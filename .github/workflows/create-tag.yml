@@ -15,6 +15,7 @@ jobs:
         python-version: "3.10"
 
     - name: Update version
+      id: update-version
       with:
         github-token: ${{ github.token }}
         run: |
