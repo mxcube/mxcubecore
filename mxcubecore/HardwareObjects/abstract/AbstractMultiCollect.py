@@ -228,6 +228,16 @@ class AbstractMultiCollect(object):
         pass
 
     @abc.abstractmethod
+    def set_fast_characterisation(self, value: bool):
+        """
+        Use fast characterisation
+
+        Args:
+            value (boolean): True if to use fast characterisation otherwise False
+        """
+        pass
+
+    @abc.abstractmethod
     @task
     def generate_image_jpeg(self, filename, jpeg_path, jpeg_thumbnail_path):
         pass
