@@ -14,6 +14,14 @@ jobs:
       with:
         python-version: "3.10"
 
+    - name: Update version
+      with:
+        github-token: ${{ github.token }}
+        run: |
+          pip install --upgrade pip
+          pip install poetry
+          poetry version minor
+
     - name: Read package version
       id: set-tag
       run: |
