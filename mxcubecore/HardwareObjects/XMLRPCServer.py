@@ -708,8 +708,8 @@ class XMLRPCServer(HardwareObject):
         """Add GPhL owrkflow to queue."""
         self.workflow_id = workflow_id
         from mxcubecore.model import queue_model_objects as qmo
+
         gphl_model = qmo.GphlWorkflow()
-        from mxcubecore.model import queue_model_objects as qmo
         parent_model = HWR.beamline.queue_model.get_node(int(parent_node_id))
         sample_model = parent_model.get_sample_node()
         gphl_model.init_from_task_data(sample_model, task_dict)
