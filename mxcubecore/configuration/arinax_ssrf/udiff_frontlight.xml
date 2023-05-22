@@ -1,0 +1,9 @@
+<device class="MicrodiffLight">
+  <username>frontlight</username>
+  <actuator_name>FrontLight</actuator_name>
+  <exporter_address>10.0.1.60:9001</exporter_address>
+  <position_suffix>Factor</position_suffix>
+  <state_suffix>IsOn</state_suffix>
+  <channel type="exporter" name="chanLightIsOn">FrontLightIsOn</channel>
+  <limits>[0, 2]</limits>
+</device>

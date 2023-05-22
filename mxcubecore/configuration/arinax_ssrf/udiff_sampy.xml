@@ -1,0 +1,7 @@
+<device class="ExporterMotor">
+  <username>sampy</username>
+  <exporter_address>10.0.1.60:9001</exporter_address>
+  <actuator_name>CentringY</actuator_name>
+  <GUIstep>0.01</GUIstep>
+  <unit>1e-5</unit>
+</device>

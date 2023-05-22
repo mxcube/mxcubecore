@@ -1,0 +1,7 @@
+<device class="ExporterMotor">
+  <username>PhiX</username>
+  <exporter_address>10.0.1.60:9001</exporter_address>
+  <actuator_name>AlignmentX</actuator_name>
+  <GUIstep>0.1</GUIstep>
+  <unit>1e-3</unit>
+</device>

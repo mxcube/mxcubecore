@@ -1,0 +1,7 @@
+<device class="ExporterMotor">
+  <username>Omega</username>
+  <exporter_address>10.0.1.60:9001</exporter_address>
+  <actuator_name>Omega</actuator_name>
+  <unit>1e-3</unit>
+  <GUIstep>90</GUIstep>
+</device>

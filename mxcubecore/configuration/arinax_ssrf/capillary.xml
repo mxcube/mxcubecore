@@ -1,0 +1,7 @@
+<device class="ExporterNState">
+  <username>Capillary</username>
+  <exporter_address>10.0.1.60:9001</exporter_address>
+  <value_channel_name>CapillaryPosition</value_channel_name>
+  <state_channel_name>HardwareState</state_channel_name>
+  <values>{"IN": "BEAM", "OUT": "OFF", "PARK":"PARK", "TRANSFER":"TRANSFER"}</values>
+</device>

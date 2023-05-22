@@ -1,0 +1,9 @@
+<device class="MicrodiffLight">
+  <username>backlight</username>
+  <actuator_name>BackLight</actuator_name>
+  <exporter_address>10.0.1.60:9001</exporter_address>
+  <position_suffix>Factor</position_suffix>
+  <state_suffix>IsOn</state_suffix>
+  <channel type="exporter" name="chanLightIsOn">BackLightIsOn</channel>
+  <limits>[0, 2]</limits>
+</device>

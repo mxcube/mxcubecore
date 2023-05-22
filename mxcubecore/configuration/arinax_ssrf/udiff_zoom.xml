@@ -1,0 +1,9 @@
+<device class="Arinax.ArinaxCameraZoom">
+  <username>zoom</username>
+  <tangoname>tango://10.0.1.60:9999/md/oav/bzoom#dbase=no</tangoname>
+  <channel type="tango" name="zoom_idx">video_zoom_idx</channel>
+  <channel type="tango" name="video_scale">video_scale</channel>
+  <channel type="tango" name="num_zoom_levels">num_zoom_levels</channel>
+  <channel type="tango" name="zoom_state">State</channel>
+  <values>{"LEVEL1": 1, "LEVEL2": 2, "LEVEL3": 3, "LEVEL4": 4, "LEVEL5": 5, "LEVEL6": 6, "LEVEL7": 7}</values>
+</device>

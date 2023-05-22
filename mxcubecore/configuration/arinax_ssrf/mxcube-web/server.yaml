@@ -1,0 +1,23 @@
+server:
+  SECRET_KEY: "ASECRETKEY"
+  SECURITY_PASSWORD_SALT: "ASALT"
+  SESSION_TYPE: "redis"
+  SESSION_KEY_PREFIX: "mxcube:session:"
+  DEBUG: False
+  STREAMED_VIDEO: True
+
+  ALLOWED_CORS_ORIGINS:
+    - "*"
+
+mxcube:
+  VIDEO_FORMAT: MJPEG
+  # Mode, SSX, OSC
+  mode: SSX
+
+  usermanager:
+    class: UserManager
+    inhouse_is_staff: True
+    users:
+      -
+        username: opid0
+        role: staff

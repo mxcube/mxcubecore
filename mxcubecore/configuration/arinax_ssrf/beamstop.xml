@@ -1,0 +1,7 @@
+<device class="ExporterNState">
+  <username>beamstop</username>
+  <exporter_address>10.0.1.60:9001</exporter_address>
+  <value_channel_name>BeamstopPosition</value_channel_name>
+  <values>{"OUT": "OFF", "IN": "BEAM"}</values>
+  <use_hwstate>True</use_hwstate>
+</device>

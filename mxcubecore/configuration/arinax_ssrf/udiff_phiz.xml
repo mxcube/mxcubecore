@@ -1,0 +1,6 @@
+<device class="ExporterMotor">
+  <username>PhiZ</username>
+  <exporter_address>10.0.1.60:9001</exporter_address>
+  <actuator_name>AlignmentY</actuator_name>
+  <unit>1e-5</unit>
+</device>

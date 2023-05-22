@@ -1,0 +1,16 @@
+<device class="Arinax.TangoBzoomCamera">
+  <username>camera</username>
+  <tangoname>tango://10.0.1.60:9999/md/oav/bzoom#dbase=no</tangoname>
+  <interval>100</interval>
+  <image_channel>video_last_image</image_channel>
+  <camera_video_mode>video_mode</camera_video_mode>
+  <exposure_time>video_exposure</exposure_time>
+  <gain_channel>video_gain</gain_channel>
+  <video_width>image_width</video_width>
+  <video_height>image_height</video_height>
+  <scale_chan>video_scale</scale_chan>
+  <type>bzoom</type>
+  <encoding>rgb24</encoding>
+  <scale>1</scale>
+  <python_dir>/home/arinax/.conda/envs/mxcubecore/bin/python</python_dir>
+</device>
