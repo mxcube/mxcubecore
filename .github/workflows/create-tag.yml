@@ -8,7 +8,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-
     - name: Set up Python 3.10
       uses: actions/setup-python@v4
       with:
@@ -16,9 +15,7 @@ jobs:
 
     - name: Update version
       id: update-version
-      with:
-        github-token: ${{ github.token }}
-        run: |
+      run: |
           pip install --upgrade pip
           pip install poetry
           poetry version minor
