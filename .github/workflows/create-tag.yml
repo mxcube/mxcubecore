@@ -19,6 +19,8 @@ jobs:
           pip install --upgrade pip
           pip install poetry
           poetry version minor
+          git config --global user.email "oscarsso@esrf.fr"
+          git config --global user.name "Marcus Oskarsson"
           git add -A
           git commit -m "Bumped minor version"
           git push
