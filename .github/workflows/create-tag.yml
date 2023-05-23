@@ -19,7 +19,10 @@ jobs:
           pip install --upgrade pip
           pip install poetry
           poetry version minor
-
+          git add -A
+          git commit -m "Bumped minor version"
+          git push
+         
     - name: Read package version
       id: set-tag
       run: |
