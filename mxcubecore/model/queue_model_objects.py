@@ -2176,6 +2176,7 @@ class GphlWorkflow(TaskNode):
             self.initial_strategy = strategy
         elif self.wftype != "transcal":
             # This must be characterisation - here we do not accept defaults
+            strategy = strategy or settings["characterisation_strategies"][0]
             self.initial_strategy = strategy
 
         self.init_spot_dir = init_spot_dir

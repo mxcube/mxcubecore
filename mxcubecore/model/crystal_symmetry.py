@@ -536,3 +536,12 @@ def strategy_laue_group(crystal_classes: tuple, phasing=False):
             result = ("-1", "1")
     #
     return result
+
+
+def regularise_space_group(sgname:str):
+    """Convert finput (ISPyB) space gorup name to officlalspace group name"""
+
+    if sgname in SPACEGROUP_MAP:
+        return sgname
+    else:
+        return None

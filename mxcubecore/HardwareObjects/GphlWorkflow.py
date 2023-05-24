@@ -502,7 +502,9 @@ class GphlWorkflow(HardwareObjectYaml):
         }
         fields["input_space_group"] = {
             "title": "Space Group",
-            "default": data_model.input_space_group or "",
+            "default": crystal_symmetry.regularise_space_group(
+                data_model.input_space_group
+            ) or "",
             "type": "string",
             "readOnly": True,
         }
@@ -2100,7 +2102,7 @@ class GphlWorkflow(HardwareObjectYaml):
         if data_model.automation_mode:
             header, soldict, select_row = self.parse_indexing_solution(choose_lattice)
 
-            indexingSolution = soldict.values()[select_row]
+            indexingSolution = list(soldict.values())[select_row]
 
             if not data_model.aimed_resolution:
                 raise ValueError("aimed_resolution must be set in automation mode")
