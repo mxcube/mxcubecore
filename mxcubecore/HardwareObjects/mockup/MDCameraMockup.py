@@ -107,7 +107,7 @@ class MDCameraMockup(BaseHardwareObjects.Device):
     def get_stream_size(self):
         return self.get_width(), self.get_height(), 1
 
-    def start_video_stream_process(self, fmt, size):
+    def start_video_stream_process(self, fmt, size, port):
         if (
             not self._video_stream_process
             or self._video_stream_process.poll() is not None
@@ -120,7 +120,7 @@ class MDCameraMockup(BaseHardwareObjects.Device):
                     "-hs",
                     "localhost",
                     "-p",
-                    "8000",
+                    port,
                     "-of",
                     fmt,
                     "-q",
@@ -144,15 +144,15 @@ class MDCameraMockup(BaseHardwareObjects.Device):
 
             self._video_stream_process = None
 
-    def start_streaming(self, fmt="MPEG1", size=(0, 0)):
-        self._format = fmt
+    def start_streaming(self, _format="MPEG1", size=(0, 0), port="4042"):
+        self._format = _format
 
         if not size[0]:
             _s = int(self.get_width()), int(self.get_height())
         else:
             _s = size
 
-        self.start_video_stream_process(self._format, _s)
+        self.start_video_stream_process(self._format, _s, port)
 
     def restart_streaming(self, size):
         self.stop_streaming()

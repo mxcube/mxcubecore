@@ -105,9 +105,9 @@ class TangoLimaMpegVideo(TangoLimaVideo):
 
             self._video_stream_process = None
 
-    def start_streaming(self, fmt=None, size=(0, 0)):
-        if fmt:
-            self._format = fmt
+    def start_streaming(self, _format=None, size=(0, 0), port="4042"):
+        if _format:
+            self._format = _format
 
         if not size[0]:
             _s = self.get_width(), self.get_height()
@@ -115,7 +115,7 @@ class TangoLimaMpegVideo(TangoLimaVideo):
             _s = size
 
         self.set_stream_size(_s[0], _s[1])
-        self.start_video_stream_process()
+        self.start_video_stream_process(port)
 
     def restart_streaming(self, size):
         self.stop_streaming()
