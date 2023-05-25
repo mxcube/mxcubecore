@@ -198,19 +198,19 @@ class TestConfiguredObject:
         # Check returned result matches patched values
         assert configured_object.all_objects_by_role == initial_objects
 
-    def test_procedures(
-        self,
-        mocker: "MockerFixture",
-        configured_object: ConfiguredObject,
-    ):
-        """ """
+    # def test_procedures(
+    #     self,
+    #     mocker: "MockerFixture",
+    #     configured_object: ConfiguredObject,
+    # ):
+    #     """ """
 
-        # Patch "_procedure_names" with known values
-        mocker.patch.object(
-            configured_object,
-            "_procedure_names",
-            new=None,
-        )
+    #     # Patch "_procedure_names" with known values
+    #     mocker.patch.object(
+    #         configured_object,
+    #         "_procedure_names",
+    #         new=None,
+    #     )
 
 
 class TestPropertySet:

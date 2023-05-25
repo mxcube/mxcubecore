@@ -250,12 +250,8 @@ class GraphicsItemBeam(GraphicsItem):
                     self.beam_position[1] * self.scene().image_scale
                     - self.beam_size_pix[1] / 2 * self.scene().image_scale
                 ),
-                int(
-                    self.beam_size_pix[0] * self.scene().image_scale
-                ),
-                int(
-                    self.beam_size_pix[1] * self.scene().image_scale
-                ),
+                int(self.beam_size_pix[0] * self.scene().image_scale),
+                int(self.beam_size_pix[1] * self.scene().image_scale),
             )
         else:
             painter.drawEllipse(

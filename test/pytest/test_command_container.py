@@ -220,9 +220,7 @@ class TestCommandObject:
     )
     @pytest.mark.parametrize(
         "initial_arguments",
-        (
-            [("test1", "test1", None, None), ("test2", "test2", None, None)],
-        ),
+        ([("test1", "test1", None, None), ("test2", "test2", None, None)],),
     )
     @pytest.mark.parametrize(
         "combo_items",
@@ -256,7 +254,9 @@ class TestCommandObject:
         """
 
         # Patch "_arguments" and "_combo_arguments_items" with known values
-        mocker.patch.object(cmd_object, "_arguments", new=copy.deepcopy(initial_arguments))
+        mocker.patch.object(
+            cmd_object, "_arguments", new=copy.deepcopy(initial_arguments)
+        )
         mocker.patch.object(cmd_object, "_combo_arguments_items", new={})
 
         # Call method
@@ -275,7 +275,10 @@ class TestCommandObject:
         if arg_name not in [arg[0] for arg in initial_arguments]:
             # List should have been appended with new values
             assert cmd_object._arguments[-1] == (
-                arg_name, arg_type.lower(), onchange, valuefrom,
+                arg_name,
+                arg_type.lower(),
+                onchange,
+                valuefrom,
             )
         else:
             # If "arg_name" was already present, initial args should match output args
@@ -287,9 +290,7 @@ class TestCommandObject:
 
     @pytest.mark.parametrize(
         "initial_arguments",
-        (
-            [("Time [s]", "float", None, None), ("Count", "int", None, None)],
-        ),
+        ([("Time [s]", "float", None, None), ("Count", "int", None, None)],),
     )
     def test_get_arguments(
         self,
@@ -344,7 +345,9 @@ class TestCommandObject:
         """
 
         # Patch "cmd_object._combo_arguments_items" with known values
-        mocker.patch.object(cmd_object, "_combo_arguments_items", new=initial_combo_args)
+        mocker.patch.object(
+            cmd_object, "_combo_arguments_items", new=initial_combo_args
+        )
 
         # Call method
         res = cmd_object.get_combo_argument_items(argName=arg_name)
@@ -467,7 +470,8 @@ class TestChannelObject:
         # Call method
         _callable_func = MagicMock()
         channel_object.connect_signal(
-            signalName=signal_name, callableFunc=_callable_func,
+            signalName=signal_name,
+            callableFunc=_callable_func,
         )
 
         # Check that patched dispatcher methods were called with expected parameters
@@ -502,7 +506,8 @@ class TestChannelObject:
         # Call method
         _callable_func = MagicMock()
         channel_object.disconnect_signal(
-            signalName=signal_name, callableFunc=_callable_func,
+            signalName=signal_name,
+            callableFunc=_callable_func,
         )
 
         # Check "dispatcher.disconnect" patch was called with expected parameters
@@ -649,7 +654,7 @@ class TestChannelObject:
         (
             None,
             ("test1", ...),
-        )
+        ),
     )
     @pytest.mark.parametrize(
         "command_object",
@@ -1070,7 +1075,9 @@ class TestCommandContainer:
                 channel=channel,
                 add_now=add_now,
             )
-            _channels_to_add = getattr(cmd_container, "_CommandContainer__channels_to_add")
+            _channels_to_add = getattr(
+                cmd_container, "_CommandContainer__channels_to_add"
+            )
 
             # Result should be none as no channel has yet been added
             assert res is None
@@ -1095,7 +1102,10 @@ class TestCommandContainer:
             # Channel should be added now
 
             if raise_attr_error:
-                if _attributes["type"] == "exporter" and "exporter_address" not in _attributes:
+                if (
+                    _attributes["type"] == "exporter"
+                    and "exporter_address" not in _attributes
+                ):
                     # Class lacks a "exporter_address" attribute, expecting exception
                     with pytest.raises(KeyError):
                         cmd_container.add_channel(
@@ -1113,8 +1123,13 @@ class TestCommandContainer:
                     assert res is not None
 
                     # Check that "__channels_to_add" was not updated
-                    _channels_to_add = getattr(cmd_container, "_CommandContainer__channels_to_add")
-                    assert isinstance(_channels_to_add, list) and len(_channels_to_add) == 0
+                    _channels_to_add = getattr(
+                        cmd_container, "_CommandContainer__channels_to_add"
+                    )
+                    assert (
+                        isinstance(_channels_to_add, list)
+                        and len(_channels_to_add) == 0
+                    )
             else:
                 res = cmd_container.add_channel(
                     attributes_dict=_attributes,
@@ -1125,7 +1140,9 @@ class TestCommandContainer:
                 assert res is not None
 
                 # Check that "__channels_to_add" was not updated
-                _channels_to_add = getattr(cmd_container, "_CommandContainer__channels_to_add")
+                _channels_to_add = getattr(
+                    cmd_container, "_CommandContainer__channels_to_add"
+                )
                 assert isinstance(_channels_to_add, list) and len(_channels_to_add) == 0
 
     @pytest.mark.parametrize(
@@ -1215,13 +1232,14 @@ class TestCommandContainer:
             res = cmd_container.get_channel_value(channel_name=channel_name)
 
             # Check result matches expectations
-            _get_value_mock: MagicMock = getattr(initial_channels[channel_name], "get_value")
+            _get_value_mock: MagicMock = getattr(
+                initial_channels[channel_name], "get_value"
+            )
             _get_value_mock.assert_called_once()
             assert res == _get_value_mock.return_value
 
             # Reset mock to clear calls for next test
             _get_value_mock.reset_mock(return_value=True)
-
 
     @pytest.mark.parametrize(
         "initial_channels",
@@ -1532,25 +1550,41 @@ class TestCommandContainer:
         else:
             # Command should be added now
             if raise_attr_error:
-                if _attributes["type"] == "exporter" and "exporter_address" not in _attributes:
+                if (
+                    _attributes["type"] == "exporter"
+                    and "exporter_address" not in _attributes
+                ):
                     # Class lacks a "exporter_address" attribute, expecting exception
                     with pytest.raises(KeyError):
-                        cmd_container.add_command(arg1=_attributes, arg2=arg2, add_now=add_now)
+                        cmd_container.add_command(
+                            arg1=_attributes, arg2=arg2, add_now=add_now
+                        )
                 else:
-                    res = cmd_container.add_command(arg1=_attributes, arg2=arg2, add_now=add_now)
+                    res = cmd_container.add_command(
+                        arg1=_attributes, arg2=arg2, add_now=add_now
+                    )
 
                     assert res is not None
 
                     # Check that "__commands_to_add" was not updated
-                    _commands_to_add = getattr(cmd_container, "_CommandContainer__commands_to_add")
-                    assert isinstance(_commands_to_add, list) and len(_commands_to_add) == 0
+                    _commands_to_add = getattr(
+                        cmd_container, "_CommandContainer__commands_to_add"
+                    )
+                    assert (
+                        isinstance(_commands_to_add, list)
+                        and len(_commands_to_add) == 0
+                    )
             else:
-                res = cmd_container.add_command(arg1=_attributes, arg2=arg2, add_now=add_now)
+                res = cmd_container.add_command(
+                    arg1=_attributes, arg2=arg2, add_now=add_now
+                )
 
                 assert res is not None
 
                 # Check that "__commands_to_add" was not updated
-                _commands_to_add = getattr(cmd_container, "_CommandContainer__commands_to_add")
+                _commands_to_add = getattr(
+                    cmd_container, "_CommandContainer__commands_to_add"
+                )
                 assert isinstance(_commands_to_add, list) and len(_commands_to_add) == 0
 
     @pytest.mark.parametrize(
