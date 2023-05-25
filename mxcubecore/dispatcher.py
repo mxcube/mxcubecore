@@ -1,13 +1,13 @@
 try:
-    from louie import dispatcher
-    from louie import robustapply
-    from louie import saferef
+    from louie import dispatcher  # pyright: ignore[reportMissingImports]
+    from louie import robustapply  # pyright: ignore[reportMissingImports]
+    from louie import saferef  # pyright: ignore[reportMissingImports]
 
     louie = 1
 except ImportError:
-    from pydispatch import dispatcher
-    from pydispatch import robustapply
-    from pydispatch import saferef
+    from pydispatch import dispatcher  # pyright: ignore[reportMissingImports]
+    from pydispatch import robustapply  # pyright: ignore[reportMissingImports]
+    from pydispatch import saferef  # pyright: ignore[reportMissingImports]
 
     saferef.safe_ref = saferef.safeRef
     robustapply.robust_apply = robustapply.robustApply

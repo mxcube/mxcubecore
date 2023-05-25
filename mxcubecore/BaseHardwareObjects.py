@@ -93,7 +93,7 @@ class ConfiguredObject:
 
         self.name = name
 
-        self._objects: TOrderedDict[str, Union[Self, None]] = OrderedDict(
+        self._objects: TOrderedDict[str, Union[object, None]] = OrderedDict(
             (role, None) for role in self.all_roles
         )
 
@@ -105,12 +105,12 @@ class ConfiguredObject:
         """Object initialisation - executed *after* loading contents"""
         pass
 
-    def replace_object(self, role: str, new_object: Self) -> None:
+    def replace_object(self, role: str, new_object: object) -> None:
         """Replace already defined Object with a new one - for runtime use
 
         Args:
             role (str): Role name of contained Object
-            new_object (Self): New contained Object
+            new_object (object): New contained Object
 
         Raises:
             ValueError: If contained object role is unknown.
