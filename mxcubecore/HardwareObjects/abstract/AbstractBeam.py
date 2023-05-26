@@ -166,7 +166,7 @@ class AbstractBeam(HardwareObject):
         """
         # TODO move this method to AbstractSampleView
         if self._beam_position_on_screen == [None, None]:
-            self._beam_position_on_screen = (0, 0)
+            self._beam_position_on_screen = (330, 246)
             # self.init()
         return self._beam_position_on_screen
 

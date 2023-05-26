@@ -5,8 +5,7 @@ import math
 import logging
 import time
 import gevent
-from gevent import threadpool
-#from threading import Event, Thread
+from threading import Event, Thread
 import base64
 import array
 import datetime
@@ -41,6 +40,7 @@ class BL19U1MD2Camera(Device):
         Device.__init__(self, name)
         self.set_is_ready(True)
         self.stream_hash = str(uuid.uuid1())
+        #self._video_stream_process = None
         print("stream hash:", self.stream_hash)
 
     def init(self):
@@ -60,12 +60,10 @@ class BL19U1MD2Camera(Device):
         if self.getProperty("interval"):
             self.pollInterval = self.getProperty("interval")
         self.stopper = False  # self.pollingTimer(self.pollInterval, self.poll)
-        # thread = Thread(target=self.poll)
-        # thread.daemon = True
-        # thread.start()
-        #self.poll()
-        # pool = threadpool.ThreadPool(5)
-        # pool.spawn(self.poll)
+        thread = Thread(target=self.poll)
+        thread.daemon = True
+        thread.start()
+
 
     def getImage(self):
         return self.image_attr.getValue()
@@ -77,9 +75,7 @@ class BL19U1MD2Camera(Device):
         )
         count = 1
         while not self.stopper:
-            #time.sleep(float(self.pollInterval) / 1000)
-            gevent.sleep(float(self.pollInterval) / 1000)
-            # time.sleep(1)
+            time.sleep(float(self.pollInterval) / 1000)
             if count % 100 == 0:
                 print("polling", datetime.datetime.now().strftime("%H:%M:%S.%f"))
             try:
@@ -97,7 +93,7 @@ class BL19U1MD2Camera(Device):
                 #img = im.open(io.BytesIO(imgArray))
                 #img.save('1.jpg')
 
-                self.emit("imageReceived", imgStr, 659, 493)
+                self.emit("imageReceived", imgStr, 659, 453)
                 count = count + 1
             except KeyboardInterrupt:
                 self.connected = False
@@ -176,27 +172,30 @@ class BL19U1MD2Camera(Device):
             # python_executable = os.sep.join(
             #     os.path.dirname(os.__file__).split(os.sep)[:-2] + ["bin", "python"]
             # )
-            python_executable = "/home/mxcube19u1/anaconda3/envs/mxcubeweb/bin/python"
+            python_executable = "/home/mxcube19u1/anaconda3/envs/mxcubeweb/bin/python3.10"
+            try:
+                self._video_stream_process = subprocess.Popen(
+                    [
+                        python_executable,
+                        streaming_processes.__file__,
+                        self.getProperty("tangoname"),
+                        "%s, %s" % (self.get_width(), self.get_height()),
+                        self._current_stream_size,
+                        self.stream_hash,
+                        "rgb24",
+                        "",
+                        str(self._debug),
+                        str(self.pollInterval / 1000.0),
+                        str(self._quality)
+                    ],
+                    close_fds=True,
+                )
+                with open("/tmp/mxcube.pid", "a") as f:
+                    f.write("%s " % self._video_stream_process.pid)
+            except Exception as ex:
+                logging.getLogger("HWR").error(str(ex))
 
-            self._video_stream_process = subprocess.Popen(
-                [
-                    python_executable,
-                    streaming_processes.__file__,
-                    self.getProperty("tangoname"),
-                    "%s, %s" % (self.get_width(), self.get_height()),
-                    self._current_stream_size,
-                    self.stream_hash,
-                    "rgb24",
-                    "",
-                    str(self._debug),
-                    str(self.pollInterval / 1000.0),
-                    str(self._quality)
-                ],
-                close_fds=True,
-            )
 
-            with open("/tmp/mxcube.pid", "a") as f:
-                f.write("%s " % self._video_stream_process.pid)
 
     def stop_streaming(self):
         if self._video_stream_process:

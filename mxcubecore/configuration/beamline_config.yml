@@ -27,7 +27,6 @@ _objects:
     - data_publisher: data_publisher.xml
     - machine_info: bl19u/machine_info.xml
     - detector: bl19u/detector.xml
-#    - detector: detector.xml
     - beam: beam_info.xml
     - transmission: transmission.xml
     - flux: flux.xml
