@@ -1,8 +1,19 @@
 import copy
 import pytest
-from typing import Any, Union, TYPE_CHECKING, Iterator, Generator, Dict, Tuple, List
+from typing import (
+    Any,
+    Union,
+    TYPE_CHECKING,
+    Iterator,
+    Generator,
+    Dict,
+    Tuple,
+    List,
+    OrderedDict as TOrderedDict,
+)
 from logging import Logger
 from unittest.mock import MagicMock
+from collections import OrderedDict
 from mxcubecore.BaseHardwareObjects import (
     ConfiguredObject,
     PropertySet,
@@ -103,17 +114,103 @@ class TestConfiguredObject:
             ConfiguredObject,
         )
 
-    # def test_misc(self):
-    #     """ """
+    def test_init(self, configured_object: ConfiguredObject):
+        """Test "_init" and "init" methods.
 
-    #     # _init
-    #     # init
-    #     # all_roles
-    #     # all_objects_by_role
+        Args:
+            configured_object (ConfiguredObject): Object instance.
+        """
+
+        # Call "_init" placeholder method
+        res = configured_object._init()
+        assert res is None
+
+        # Call "init" placeholder method
+        res = configured_object.init()
+        assert res is None
 
     # def test_replace_object(self): ...
 
-    # def test_procedures(self): ...
+    @pytest.mark.parametrize(
+        "content_roles",
+        (
+            [],
+            ["test1"],
+            ["test1", "test2"],
+            ["test1", "test2", "test3"],
+            ["test2", "test3"],
+        ),
+    )
+    def test_all_roles(
+        self,
+        mocker: "MockerFixture",
+        configured_object: ConfiguredObject,
+        content_roles: List[str],
+    ):
+        """Test "all_roles" property.
+
+        Args:
+            mocker (MockerFixture): Instance of the Pytest mocker fixture.
+            configured_object (ConfiguredObject): Object instance.
+            content_roles (List[str]): Initial content roles.
+        """
+
+        # Patch "__content_roles" with known values
+        mocker.patch.object(
+            configured_object,
+            "_ConfiguredObject__content_roles",
+            new=copy.deepcopy(content_roles),
+        )
+
+        # Check returned result matches patched values
+        assert configured_object.all_roles == tuple(content_roles)
+
+    @pytest.mark.parametrize(
+        "initial_objects",
+        (
+            OrderedDict(test1=None),
+            OrderedDict(test1=None, test2=None, test3=None),
+            OrderedDict(test1=None, test3=None, test2=None),
+            OrderedDict(test1=None, test3=None),
+        ),
+    )
+    def test_all_objects_by_role(
+        self,
+        mocker: "MockerFixture",
+        configured_object: ConfiguredObject,
+        initial_objects: TOrderedDict[str, None],
+    ):
+        """Test "all_objects_by_role" property.
+
+        Args:
+            mocker (MockerFixture): Instance of the Pytest mocker fixture.
+            configured_object (ConfiguredObject): Object instance.
+            initial_objects (TOrderedDict[str, None]): Initial objects.
+        """
+
+        # Patch "_objects" with known values
+        mocker.patch.object(
+            configured_object,
+            "_objects",
+            new=copy.deepcopy(initial_objects),
+        )
+
+        # Check returned result matches patched values
+        assert configured_object.all_objects_by_role == initial_objects
+
+    def test_procedures(
+        self,
+        mocker: "MockerFixture",
+        configured_object: ConfiguredObject,
+    ):
+        """ """
+
+        # Patch "_procedure_names" with known values
+        mocker.patch.object(
+            configured_object,
+            "_procedure_names",
+            new=None,
+        )
 
 
 class TestPropertySet:

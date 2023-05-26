@@ -179,7 +179,9 @@ class ChannelObject:
         self._name: str = name
         self._username: Union[str, None] = username
         self._attributes: Dict[str, Any] = kwargs
-        self._on_change: Union[Any, None] = None
+        self._on_change: Union[
+            Tuple[str, weakref.ref], None,
+        ] = None
         self.__first_update: bool = True
 
     def name(self) -> str:
@@ -267,7 +269,7 @@ class ChannelObject:
 
         if self._on_change is not None:
             cmd, container_ref = self._on_change
-            container = container_ref()
+            container: "CommandContainer" = container_ref()
             if container is not None:
                 cmdobj = container.get_command_object(cmd)
                 if cmdobj is not None:
