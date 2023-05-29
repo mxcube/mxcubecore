@@ -660,6 +660,8 @@ class __HardwareRepositoryClient:
                 if object_name in self.hardware_objects:
                     hardware_obj = self.hardware_objects[object_name]
                 else:
+                    if object_name == '/bl19u/detector':
+                        print("/bl19u/detector")
                     hardware_obj = self._load_hardware_object(object_name)
                 return hardware_obj
         except TypeError as err:

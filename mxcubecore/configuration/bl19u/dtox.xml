@@ -6,6 +6,5 @@
     <channel type="epics" name="detectorDistance_RBV">19U:TABLE:DETH.RBV</channel>
 
   <default_limits>(160000, 800000)</default_limits>
-  <username>Detector Distance</username>
 <!--tolerance>1e-3</tolerance-->
 </device>
