@@ -24,14 +24,15 @@ sample_view:
       suffix: °          
     -
       label: X
-      attribute: diffractometer.phix
+      #attribute: diffractometer.phix
+      attribute: diffractometer.focus
       role: phix
       step: 0.1
       precision: 3
       suffix: mm      
     -
       label: Y
-      attribute: diffractometer.phiy
+      attribute: diffractometer.sample_horizontal
       role: phiy
       step: 0.1
       precision: 3
