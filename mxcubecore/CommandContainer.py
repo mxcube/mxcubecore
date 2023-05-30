@@ -180,7 +180,8 @@ class ChannelObject:
         self._username: Union[str, None] = username
         self._attributes: Dict[str, Any] = kwargs
         self._on_change: Union[
-            Tuple[str, weakref.ref], None,
+            Tuple[str, weakref.ref],
+            None,
         ] = None
         self.__first_update: bool = True
 

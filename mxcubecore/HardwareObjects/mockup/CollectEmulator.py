@@ -329,9 +329,7 @@ class CollectEmulator(CollectMockup):
         for tag, val in self["simcal_options"].get_properties().items():
             command_list.extend(conversion.command_option(tag, val, prefix="--"))
         logging.getLogger("HWR").info("Executing command: %s", " ".join(command_list))
-        logging.getLogger("HWR").info(
-            "Executing environment: %s", sorted(envs.items())
-        )
+        logging.getLogger("HWR").info("Executing environment: %s", sorted(envs.items()))
 
         if compress_data:
             command_list.append("--gzip-img")

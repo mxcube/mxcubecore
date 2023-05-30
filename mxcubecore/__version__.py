@@ -1,12 +1,14 @@
 try:
     # Python3.8+ standard library
     from importlib.metadata import (  # pyright: ignore[reportMissingImports]
-        PackageNotFoundError, version,
+        PackageNotFoundError,
+        version,
     )
 except ImportError:
     # Python3.7 module backport
     from importlib_metadata import (
-        PackageNotFoundError, version,  # pyright: ignore[reportMissingImports]
+        PackageNotFoundError,
+        version,  # pyright: ignore[reportMissingImports]
     )
 
 __version__: str
