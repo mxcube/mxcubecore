@@ -135,6 +135,7 @@ class XalocCollect(AbstractCollect):
 
         self.omega_hwobj = None
 
+        self.use_sardana_scan = None
         self.mesh_scan_line_motor_name = None
         self.mesh_scan_discrete_motor_name = None
         self.scan_start_positions = {}
@@ -208,7 +209,7 @@ class XalocCollect(AbstractCollect):
                                        'sampx': 'centx', 
                                        'sampy': 'centy'}
 
-        #TODO 20200921 kappa_phi is broken
+        self.use_sardana_scan = self.get_property('use_sardana_scan')
         #self.scan_all_motor_names = ['phiy', 'phiz', 'sampx', 'sampy', 'kappa', 'kappa_phi']
         self.scan_all_motor_names = ['phiy', 'phiz', 'sampx', 'sampy']
         #TODO get rid of hardcoded max and minvelocity numbers
@@ -222,8 +223,7 @@ class XalocCollect(AbstractCollect):
         self.mesh_fast_index = 0
         self.mesh_slow_index = 1
 
-        #self.mesh_sshaped_bool = True # True: up and down scans
-        self.mesh_sshaped_bool = False # False: only up scans
+        self.mesh_sshaped_bool = self.get_property('mesh_sshape') # False: only up scans
 
         #self.chan_undulator_gap = self.get_channel_object("chanUndulatorGap")
 
@@ -492,14 +492,13 @@ class XalocCollect(AbstractCollect):
         self.current_dc_parameters['detector_binning_mode'] = ['EXTERNAL_TRIGGER']
 
         first_image_no = osc_seq['start_image_number']
-        exp_time = osc_seq['exposure_time']
+        exp_period = osc_seq['exposure_time']
         img_range = osc_seq['range']
         omega_speed = 60 # initial the speed value, this will be recalculated later on in prepare_acquisition
         omega_pos = osc_seq['start']
-        exp_time = osc_seq['exposure_time']
         nb_images = osc_seq['number_of_images']
         sweep_nb_images = nb_images
-        total_collection_time = exp_time * nb_images
+        total_collection_time = exp_period * nb_images
 
         if self.aborted_by_user:
             self.emit_collection_failed("Aborted by user")
@@ -554,10 +553,10 @@ class XalocCollect(AbstractCollect):
 
             # RB init_pos and final_pos include the ramp up and run out range for omega
         except Exception as e:
-            self.user_logger.error("Prepare_acquisition failed")
+            self.user_logger.error("calc_omega_scan_values failed")
             self.logger.error('error %s' % str(e) )
             #self.user_logger.error('error %s' % repr( e ) )
-            self.data_collection_failed( e, "Prepare_acquisition failed" )
+            self.data_collection_failed( e, "calc_omega_scan_values failed" )
             
         self.logger.debug('  Sweep parameters omega: init %s start %s total dist %s speed %s' % 
                           (init_pos, omega_pos, total_dist, omega_speed ) 
@@ -581,6 +580,7 @@ class XalocCollect(AbstractCollect):
                 nb_images=nb_images,
                 img_range=img_range,
                 first_image_no=first_image_no,
+                exp_time = exp_period - self.detector_hwobj.get_latency_time(), 
                 omega_speed = omega_speed
             )
             # omega_speed, start_pos, final_pos, nb_images, first_image_no
@@ -596,6 +596,7 @@ class XalocCollect(AbstractCollect):
                     nb_images=1, 
                     img_range=img_range,
                     first_image_no=first_image_no,
+                    exp_time = exp_period - self.detector_hwobj.get_latency_time(), 
                     omega_speed = omega_speed
                 ) 
                 self.collect_images(
@@ -615,7 +616,7 @@ class XalocCollect(AbstractCollect):
 
         elif exp_type == 'Mesh':   # combine all collections
             self.logger.debug("Running a raster collection")
-            self.write_image_headers(omega_pos)
+            #self.write_image_headers(omega_pos)
             self.collect_mesh(
                       'test_pilatus_omegax_scan',
                       first_image_no,
@@ -624,7 +625,7 @@ class XalocCollect(AbstractCollect):
                       self.mesh_mxcube_slow_motor_name,
                       slow_motor_nr_images,
                       self.mesh_range,
-                      exp_time,
+                      exp_period,
                       self.mesh_center
                     )
             #self.finalize_mesh_scan()
@@ -678,6 +679,8 @@ class XalocCollect(AbstractCollect):
            The mesh scan does an S shape when sshape is true.
         """
         
+        # Since pilatus3 the images do not start with number 1
+        #self.detector_hwobj.chan_saving_next_number.set_value(first_image_no)
         # Calculate motor steps
         mov_fast_step = mesh_range[self.mesh_fast_index] / float( mesh_num_frames_per_line )
         mov_slow_step = 0
@@ -686,21 +689,43 @@ class XalocCollect(AbstractCollect):
         local_slow_start_pos = self.scan_start_positions[ mesh_mxcube_slow_motor_name ]
         local_first_image_no = first_image_no
         mesh_xaloc_fast_motor_name = self.xaloc_motor_names_dict[ mesh_mxcube_fast_motor_name ]
+        fast_motor_hwo = self.scan_motors_hwobj[ mesh_mxcube_fast_motor_name ]
+        # Calculate motor margin to start up
+        # x_constant_vel = vel_0 * t_acc + 1 / 2. * (acc) * (t_acc**2)
+        #margin_mm = fast_motor_hwo.get_acceleration()
+        margin_mm = 0.025 # margin in mm for the motor to get to speed
+
         self.logger.debug("Running a raster collection")
         # final_pos is end of omega range (not including safedelta)
         detdeadtime = self.detector_hwobj.get_latency_time()
         total_time = mesh_num_frames_per_line * mesh_num_lines * time_interval
         
-        #TODO: fix image headers
-        #self.write_image_headers( self.omega_hwobj.get_value() )
-
         local_fast_start_pos = self.scan_start_positions[ mesh_mxcube_fast_motor_name ]
         local_fast_end_pos = self.scan_end_positions[ mesh_mxcube_fast_motor_name ]
         self.scan_motors_hwobj[ self.mesh_mxcube_slow_motor_name ].set_value( local_slow_start_pos, timeout = 10 )
 
         #TODO fix the numbering of the files
         self.prepare_sardana_env( measurement_group )
-        sshape = True
+        sshape = self.mesh_sshaped_bool
+
+        if not self.use_sardana_scan:
+            # mv omegax to starting position
+            self.logger.debug("Moving fast scan motor %s to %.4f" % ( mesh_xaloc_fast_motor_name, local_fast_start_pos - margin_mm ) )
+            fast_motor_hwo.set_value(
+                                                local_fast_start_pos - margin_mm,
+                                                timeout = 10
+                                            )
+            fast_motor_hwo.wait_end_of_move( timeout = 30 )
+            fast_motor_hwo.wait_ready( timeout = 5 )
+
+            # Calculate motor velocity 
+            saved_scan_motor_velocity = fast_motor_hwo.get_velocity()
+            required_scan_motor_velocity = math.fabs( 
+                    (local_fast_end_pos - local_fast_start_pos) / (mesh_num_frames_per_line * time_interval)
+                )
+            self.logger.debug("Calculated velocity for the fast scan motor %.4f" % ( required_scan_motor_velocity ) )
+            fast_motor_hwo.set_velocity( required_scan_motor_velocity )
+            fast_motor_hwo.wait_ready( timeout = 5 )
 
         for lineno in range( mesh_num_lines ):
             if self.aborted_by_user: 
@@ -708,6 +733,9 @@ class XalocCollect(AbstractCollect):
                 break # cleanup will be handled in stop_collect
             else:
                 self.logger.debug("\t line %s out of %s" % ( lineno + 1, mesh_num_lines ) )
+
+                #TODO: fix image headers
+                self.write_image_headers( 0 )
 
                 #TODO move omegax/phiy to starting position of collection (OR is this done in the MxCube sequence somewhere???
                 # Sardana will move the motor back to the inital position after the scan. Two consecuences:
@@ -726,28 +754,41 @@ class XalocCollect(AbstractCollect):
                                    )
                                  )
                 # TODO: that should not be here: prepare mesh or sardana instead
-                self.write_image_headers(0)
-                time.sleep(0.1)
-                self.run_ascanct(
-                        mesh_xaloc_fast_motor_name,
-                        local_fast_start_pos,
-                        local_fast_end_pos,
-                        mov_fast_step,
-                        time_interval,
-                        detdeadtime,
-                        local_first_image_no,
-                        mesh_num_frames_per_line
+                gevent.sleep(0.1)
+                if self.use_sardana_scan:
+                    self.run_ascanct(
+                            mesh_xaloc_fast_motor_name,
+                            local_fast_start_pos,
+                            local_fast_end_pos,
+                            mov_fast_step,
+                            time_interval,
+                            detdeadtime,
+                            local_first_image_no,
+                            mesh_num_frames_per_line
+                        )
+                else:
+                    self.run_line_scan(
+                            mesh_xaloc_fast_motor_name,
+                            mesh_mxcube_fast_motor_name,
+                            local_fast_start_pos,
+                            local_fast_end_pos,
+                            mov_fast_step,
+                            time_interval, # exp period
+                            detdeadtime,
+                            local_first_image_no,
+                            mesh_num_frames_per_line, 
+                            margin_mm
                     )
+
                 local_first_image_no += mesh_num_frames_per_line
+                if lineno == mesh_num_lines-1: 
+                    break
+                
                 self.scan_motors_hwobj[ self.mesh_mxcube_slow_motor_name ].set_value(
                                              self.scan_motors_hwobj[ self.mesh_mxcube_slow_motor_name ].get_value() \
                                                  + mov_slow_step ,
                                              timeout = 10
                                         )
-                #TODO sscans are not possible yet, becuase Sardana moves the motors back to the starting position
-                #self.logger.debug('  scan_start_positions before swap= %s' % self.scan_start_positions )
-                #self.logger.debug('  scan_end_positions before swap= %s' % self.scan_end_positions )
-                ## Invert fast start and end positions so the motor will move the other way for the next sweep
                 if sshape: 
                     dummy = local_fast_start_pos
                     local_fast_start_pos = local_fast_end_pos
@@ -758,12 +799,18 @@ class XalocCollect(AbstractCollect):
 
         self.scan_motors_hwobj[ self.mesh_mxcube_slow_motor_name ].wait_ready()
         # move motors to center of scan
+        if not self.use_sardana_scan:
+            # Calculate motor velocity 
+            self.logger.debug("Resetting velocity of the fast scan motor %.4f" % ( saved_scan_motor_velocity ) )
+            fast_motor_hwo.set_velocity( saved_scan_motor_velocity )
+            fast_motor_hwo.wait_ready( timeout = 5 )
+
         self.move_motors( mesh_center.as_dict() )
         self.go_to_sampleview()
         self.wait_collection_done(first_image_no, first_image_no + ( mesh_num_frames_per_line * mesh_num_lines ) - 1, total_time + 5)
                 
     # omega_speed and det_trigger are not necessary for sardanized collections            
-    def prepare_collection(self, start_angle, nb_images, img_range, first_image_no, omega_speed ):
+    def prepare_collection(self, start_angle, nb_images, img_range, first_image_no, exp_time, omega_speed ):
         osc_seq = self.current_dc_parameters['oscillation_sequence'][0]
 
         total_dist = float ( nb_images * img_range )
@@ -788,16 +835,17 @@ class XalocCollect(AbstractCollect):
         #
         # START of 20210218: Lines only necessary for ni660 collects, remove when switching to pure meshct/ascanct scans   
         try:
-            self.detector_hwobj.prepare_collection( nb_images, first_image_no )
+            self.detector_hwobj.prepare_collection( nb_images, first_image_no, exp_time )
         except Exception as e :
-            self.logger.error(e)
+            self.logger.error( str(e) )
             self.user_logger.error("Cannot prepare the detector, does the image exist? If not, check the detector state" )
-            self.data_collection_failed( e, "Cant set the scan velocity of motor %s" % scanmovemotorname)
+            self.data_collection_failed( e, "Cannot prepare the detector" )
             
         if self.current_dc_parameters['experiment_type'] != 'Mesh':
+            self.logger.debug( "Setting detector binning mode %s" % self.current_dc_parameters['detector_binning_mode'][0] )
             self.detector_hwobj.set_binning_mode( self.current_dc_parameters['detector_binning_mode'][0] )
             if omega_speed != 0 :
-               self.configure_ni(start_angle, total_dist)
+               self.configure_ni(start_angle, total_dist, 'omega', self.omega_hwobj.get_acceleration() )
                
         # END of lines for ni660 scans
         #
@@ -808,26 +856,27 @@ class XalocCollect(AbstractCollect):
 
     def prepare_sardana_env( self, measurement_group ):
                 # This is repeated code: occurs in write_image_headers and wait_save_image
+        # Set the appropriate environment variables
+        # TODO: the time.sleeps are necessary to wait for the door to recover. Make a while loop to check for doors ON. see ./HardwareRepository/Command/Sardana.py
         fileinfo = self.current_dc_parameters['fileinfo']
         basedir = fileinfo['directory']
         template = fileinfo['template'] # prefix_1_%04d.cbf
-        sardtemplate = template.split('%')[0] + \
-            "{index:%02d}" % int(template.split('%')[-1].split('d')[0]) + \
-                template.split('%')[-1].split('d')[1]
-        savingpattern = 'file://' + os.path.join( basedir , sardtemplate )
-        self.logger.info("savingpattern = %s" % savingpattern)
+        if self.use_sardana_scan:
+            # save the images to the write place
+            sardtemplate = template.split('%')[0] + \
+                "{index:%02d}" % int(template.split('%')[-1].split('d')[0]) + \
+                    template.split('%')[-1].split('d')[1]
+            savingpattern = 'file://' + os.path.join( basedir , sardtemplate )
+            self.logger.info("savingpattern = %s" % savingpattern)
+            self.logger.info("setting ActiveMntGrp")
+            self.logger.info("setting pilatus saving pattern")
+            #self.set_pilatus_saving_pattern( measurement_group, savingpattern, wait=True)
+            self.set_pilatus_saving_pattern( 'ValueRefEnabled', True, 'pilatus_image', measurement_group, wait=True)
+            self.set_pilatus_saving_pattern( 'ValueRefPattern', savingpattern, 'pilatus_image', measurement_group, wait=True)
+            #self.logger.debug("set_pilatus_saving_pattern.doorstate = %s" % self.set_pilatus_saving_pattern.doorstate )
+            self.senv('ActiveMntGrp', measurement_group, wait=True)
+            time.sleep(0.1)
         
-        # Set the appropriate environment variables
-        # TODO: the time.sleeps are necessary to wait for the door to recover. Make a while loop to check for doors ON. see ./HardwareRepository/Command/Sardana.py
-        # save the images to the write place
-        self.logger.info("setting ActiveMntGrp")
-        self.senv('ActiveMntGrp', measurement_group, wait=True)
-        time.sleep(0.1)
-        self.logger.info("setting pilatus saving pattern")
-        #self.set_pilatus_saving_pattern( measurement_group, savingpattern, wait=True)
-        self.set_pilatus_saving_pattern( 'ValueRefEnabled', True, 'pilatus_image', measurement_group, wait=True)
-        self.set_pilatus_saving_pattern( 'ValueRefPattern', savingpattern, 'pilatus_image', measurement_group, wait=True)
-        #self.logger.debug("set_pilatus_saving_pattern.doorstate = %s" % self.set_pilatus_saving_pattern.doorstate )
 
         # save the collection details
         self.logger.info("setting ScanDir")
@@ -924,7 +973,72 @@ class XalocCollect(AbstractCollect):
                          wait = True
                      )
         self.mxcube_sardanascan_running = False
-                
+
+
+    def run_line_scan(
+                            self,
+                            mesh_xaloc_fast_motor_name,
+                            mesh_mxcube_fast_motor_name,
+                            local_fast_start_pos,
+                            local_fast_end_pos,
+                            mov_fast_step,
+                            exp_period,
+                            detdeadtime,
+                            local_first_image_no,
+                            mesh_num_frames_per_line,
+                            margin_mm
+                    ):
+        #initialize local pars
+        self.mxcube_sardanascan_running = True # tell mxcube that we are running a line scan, not only for sardanascan!
+        fast_motor_hwo = self.scan_motors_hwobj[ mesh_mxcube_fast_motor_name ]
+
+        if local_fast_end_pos < local_fast_start_pos: 
+            margin_mm *= -1
+        self.logger.debug("Fast scan motor %s at initial position %.4f" % 
+                          ( mesh_xaloc_fast_motor_name, fast_motor_hwo.get_value() ) 
+        )
+        
+
+        # configure NI6602. TODO: This may not be necessary for each line. Configuring once, and then invert the line direction might be enough
+        try:
+            self.configure_ni(
+                local_fast_start_pos, # position where detector should be triggered
+                math.fabs(local_fast_end_pos - local_fast_start_pos),
+                mesh_xaloc_fast_motor_name,
+                0.001, # override acceleration. TODO: which acceleration time is correct for omegax?
+            )
+        except Exception as e:
+            self.data_collection_failed( e, "Can't configure the trigger ni660 card")
+
+        # set collection pars in detector
+        try:
+            self.detector_hwobj.prepare_collection( mesh_num_frames_per_line, local_first_image_no, exp_period - detdeadtime )
+        except Exception as e:
+            self.logger.error( str(e) )
+            self.user_logger.error("Cannot prepare the detector, does the image exist? If not, check the detector state" )
+            self.data_collection_failed( e, "Cannot prepare the detector, does the image exist? If not, check the detector state" )
+        
+        # arm detector
+        self.detector_hwobj.start_collection()
+        #gevent.sleep(1)
+        # mv omegax
+        self.logger.debug("Moving fast scan motor %s to end of line at %.4f" % ( mesh_xaloc_fast_motor_name, local_fast_end_pos + margin_mm ) )
+        fast_motor_hwo.set_value(
+                                             local_fast_end_pos + margin_mm,
+                                        )
+        # wait collection_done
+        fast_motor_hwo.wait_end_of_move( timeout = 30 )
+        fast_motor_hwo.wait_ready( timeout = 30 )
+        self.wait_collection_done(local_first_image_no, 
+                                  local_first_image_no + mesh_num_frames_per_line - 1, 
+                                  (local_fast_end_pos + margin_mm - local_fast_start_pos + margin_mm) * fast_motor_hwo.get_velocity() # total time
+                                )
+        self.detector_hwobj.wait_ready()
+        self.unconfigure_ni()
+        #self.detector_hwobj.stop_collection()
+
+        self.mxcube_sardanascan_running = False # tell mxcube that we are running a line scan, not only for sardanascan!
+
 
     def calc_omega_scan_values( self, omega_start_pos, nb_images ):
         """
@@ -1074,8 +1188,8 @@ class XalocCollect(AbstractCollect):
                 msg += "Issuing a reset command in bl13/eh/pilatuslima, try again" 
                 self.detector_hwobj.cmd_reset()
             else: msg += "The Pilatus is setting the energy, please be patient!!!" 
-            self.logger.info( msg )
-            self.data_collection_failed( Exception(e), msg )
+            self.user_logger.info( msg )
+            self.data_collection_failed( Exception(msg), msg )
             
         return
 
@@ -1112,6 +1226,7 @@ class XalocCollect(AbstractCollect):
         except: img_range = 0
 
         if exp_type == "Characterization":
+            #TODO set spacing according to the spacing used in collect, not a fixed value
             angle_spacing = 90
         else:
             angle_spacing = img_range
@@ -1161,15 +1276,16 @@ class XalocCollect(AbstractCollect):
 
         self.image_headers["Threshold_setting"] = '%0f eV' %\
                                                   self.detector_hwobj.get_threshold()
-        self.image_headers["Gain_setting"] = '%s (vtr)' % str(
-            self.detector_hwobj.get_gain())
+        #self.image_headers["Gain_setting"] = '%s (vtr)' % str(
+            #self.detector_hwobj.get_gain())
 
         self.image_headers["Tau"] = '%s s' % str(199.1e-09)
         self.image_headers["Count_cutoff"] = '%s counts' % str(370913)
         self.image_headers["N_excluded_pixels"] = '= %s' % str(1178)
-        self.image_headers["Excluded_pixels"] = ': %s' % str("badpix_mask.tif")
-        self.image_headers["Trim_file"] = ': %s' % str(
-            "p6m0108_E12661_T6330_vrf_m0p20.bin") #TODO: pick up the true trim file!!!!!
+        self.image_headers["Excluded_pixels"] = ': %s' % str("/var/local/lib/dectris/config/calibration/Mask/badpix_mask.tif")
+        #### TODO find trim file for pilatus3X
+        #self.image_headers["Trim_file"] = ': %s' % str(
+            #"p6m0108_E12661_T6330_vrf_m0p20.bin") #TODO: pick up the true trim file!!!!!
 
         self.detector_hwobj.set_image_headers(self.image_headers, angle_info)
 
@@ -1464,13 +1580,34 @@ class XalocCollect(AbstractCollect):
 
         #
         #
-        # START of 20210218: Lines only necessary for ni660 collects, remove when switching to pure meshct/ascanct scans   
-    def configure_ni(self, startang, total_dist):
+        # START of 20210218: Lines only necessary for non sardana collects, remove when switching to pure meshct/ascanct scans   
+    def configure_ni(self, start_scan_pos, scan_total_dist, xaloc_scan_motor_name,
+                     override_motor_acceleration):
+        """
+           Sets up the ni660 for triggering detector and fast shutter
+           the current position of the xaloc_scan_motor_name is used to calculate trigger positions
+           The motor should be positioned correctly to 
+           - leave sufficient distance to accelerate 
+           - open the fast shutter
+           
+        """
+        fast_shutter_delay_time = self.fastshut_hwobj.get_shutter_delay_sec()
         self.logger.debug(
-            "Configuring NI660 with pars 0, %s, %s, 0, 1" %
-            (startang, total_dist))
-        #TODO: test if the macro can be executed, if not, abort collection
-        self.cmd_ni_conf(0.0, startang, total_dist, 0, 1, wait = True )
+            "Configuring NI660 with pars %.5f %.4f %.4f 0 1 %s %.4f" %
+            (fast_shutter_delay_time, start_scan_pos, scan_total_dist,
+             xaloc_scan_motor_name, override_motor_acceleration)
+        )
+
+        self.cmd_ni_conf(
+            fast_shutter_delay_time, 
+            start_scan_pos, # motor scan start position
+            scan_total_dist, # distance covered by the scan
+            0, # trigger_low distance
+            1, # trigger count
+            xaloc_scan_motor_name, # for now either omega or omegax
+            override_motor_acceleration, # if acceleration is not correct in sardana
+            wait = True 
+        )
 
     def unconfigure_ni(self):
         self.cmd_ni_unconf( wait = True )
@@ -1706,7 +1843,7 @@ class XalocCollect(AbstractCollect):
         """
         #   program energy
         #   prepare detector for diffraction
-        self.user_logger.warning("Setting beamline energy it can take a while, please be patient")
+        #self.user_logger.warning("Setting beamline energy it can take a while, please be patient")
         self.energy_hwobj.move_energy(value)
         self.energy_hwobj.wait_move_energy_done()
 

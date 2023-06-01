@@ -66,7 +66,7 @@ class XalocPilatus(AbstractDetector):
         self.cmd_reset_frame_headers = None
         self.cmd_set_image_header = None
 
-        self.cmd_set_threshold_gain = None
+        #self.cmd_set_threshold_gain = None
 
         self.chan_saving_mode = None
         self.chan_saving_prefix = None
@@ -86,7 +86,7 @@ class XalocPilatus(AbstractDetector):
 
         self.chan_energy = None
         self.chan_threshold = None
-        self.chan_gain = None
+        #self.chan_gain = None
         self.chan_cam_state = None
 
         self.chan_beam_x = None
@@ -112,7 +112,7 @@ class XalocPilatus(AbstractDetector):
         self.cmd_reset_frame_headers = self.get_command_object('reset_frame_headers')
         self.cmd_set_image_header = self.get_command_object('set_image_header')
 
-        self.cmd_set_threshold_gain = self.get_command_object('set_threshold_gain')
+        #self.cmd_set_threshold_gain = self.get_command_object('set_threshold_gain')
 
         self.chan_saving_mode = self.get_channel_object('saving_mode')
         self.chan_saving_prefix = self.get_channel_object('saving_prefix')
@@ -134,7 +134,7 @@ class XalocPilatus(AbstractDetector):
 
         self.chan_energy = self.get_channel_object('energy')
         self.chan_threshold = self.get_channel_object('threshold')
-        self.chan_gain = self.get_channel_object('gain')
+        #self.chan_gain = self.get_channel_object('gain')
         self.chan_cam_state = self.get_channel_object('cam_state')
 
 
@@ -209,8 +209,8 @@ class XalocPilatus(AbstractDetector):
     def get_threshold(self):
         return self.chan_threshold.get_value()
 
-    def get_gain(self):
-        return self.chan_gain.get_value()
+    #def get_gain(self):
+        #return self.chan_gain.get_value()
 
     def get_cam_state(self):
         return self.chan_cam_state.get_value()
@@ -267,8 +267,8 @@ class XalocPilatus(AbstractDetector):
             self.logger.debug("Setting default energy = %s" % beamline_energy)
         return beamline_energy
 
-    def set_gain(self, value):
-        self.chan_gain.set_value(value)
+    #def set_gain(self, value):
+        #self.chan_gain.set_value(value)
 
     def arm(self):
         """
@@ -279,12 +279,12 @@ class XalocPilatus(AbstractDetector):
             beamline_energy = self._get_beamline_energy()
             energy = self.get_energy()
             threshold = self.get_threshold()
-            threshold_gain = self.get_gain()
+            #threshold_gain = self.get_gain()
             cam_state = self.get_cam_state()
 
             self.logger.debug("beamline energy (Eb): %s" % beamline_energy)
             self.logger.debug("energy_threshold (Eth): %s" % energy)
-            self.logger.debug("current threshold gain: %s" % threshold_gain)
+            #self.logger.debug("current threshold gain: %s" % threshold_gain)
 
             if abs(energy - beamline_energy) > ENERGY_CHANGE_LIMIT:
                 self.chan_energy.set_value(beamline_energy)
@@ -388,16 +388,20 @@ class XalocPilatus(AbstractDetector):
         self.chan_saving_format.set_value(fileformat)
 
         self.chan_acq_trigger_mode.set_value(trig_mode)
-        self.chan_acq_expo_time.set_value(exp_time - latency_time)
 
         return True
 
-    def prepare_collection(self, nb_frames, first_img_no):
+    def set_exposure_time(exp_period):
+        self.chan_acq_expo_time.set_value(exp_period - latency_time)
+
+    def prepare_collection(self, nb_frames, first_img_no, exp_time):
         self.logger.debug("Preparing collection")
-        self.logger.debug("# images = %s, first image number: %s" %
-                                       (nb_frames, first_img_no))
+        self.logger.debug("# images = %s, first image number: %s, exp_time %.4f" %
+                                       (nb_frames, first_img_no, exp_time)
+                          )
         self.chan_acq_nb_frames.set_value(nb_frames)
         self.chan_saving_next_number.set_value(first_img_no)
+        self.chan_acq_expo_time.set_value(exp_time)
         self.cmd_prepare_acq()
         return True
 
@@ -420,10 +424,10 @@ class XalocPilatus(AbstractDetector):
 
         headers = list()
         for i, sa in enumerate(startangles_list):
-            header = "# Detector: PILATUS 6M, S/N 60-0108, Alba\n" \
+            header = "# Detector: PILATUS3X 6M, S/N 60-0140, XALOC, Alba\n" \
                 "# %s\n" \
                 "# Pixel_size 172e-6 m x 172e-6 m\n" \
-                "# Silicon sensor, thickness 0.000320 m\n" % datetime.now().strftime(
+                "# Silicon sensor, thickness 0.001 m\n" % datetime.now().strftime(
                         "%Y-%m-%dT%T.%f")[:-3]
 
             # Acquisition values (headers dictionary) but overwrites start angle
@@ -435,9 +439,13 @@ class XalocPilatus(AbstractDetector):
             headers.append("%d : array_data/header_convention|%s;" %  (i, "PILATUS_1.2")) 
             headers.append("%d : array_data/header_contents|%s;" % (i, header))
 
+        #self.logger.debug("  saving header delimiters %s" % ["|", ";", ":"])
         self.chan_saving_header_delimiter.set_value(["|", ";", ":"])
+        #self.logger.debug("  reset_common_header" )
         self.cmd_reset_common_header()
+        #self.logger.debug("  reset_frame_headers" )
         self.cmd_reset_frame_headers()
+        #self.logger.debug("  set_image_header %s" % headers)
         self.cmd_set_image_header(headers)
 
     def get_saving_statistics(self):

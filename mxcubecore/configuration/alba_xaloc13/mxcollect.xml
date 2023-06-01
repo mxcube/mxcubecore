@@ -1,9 +1,11 @@
 <object class="XalocCollect">
 
+  <use_sardana_scan>False</use_sardana_scan>
+  <mesh_sshape>True</mesh_sshape>
+  
   <object href="/supervisor" role="supervisor"/>
   <object href="/mini-diff" role="diffractometer"/>
   <object href="/omega" role="omega"/>
-  <!-- object href="/Qt4_graphics-manager" role="graphics_manager"/ -->
   <object href="/dbconnection" role="lims_client"/>
 
   <object href="/offline-processing" role="offline_processing"/>
@@ -21,9 +23,9 @@
   <object href="/mach-info" role="machine_info"/>
   <object href="/beam" role="beam_info"/>
 
-  <doorname>bl13/door/05</doorname>
-  <command type="sardana" name="ni_configure">ni660x_configure_collect</command>
-  <command type="sardana" name="ni_unconfigure">ni660x_unconfigure_collect</command>
+  <doorname>bl13/door/01</doorname>
+  <command type="sardana" name="ni_configure">ni660x_configure_collect_multi</command>
+  <command type="sardana" name="ni_unconfigure">ni660x_unconfigure_collect_multi</command>
   <command type="sardana" name="meshct">meshct</command>
   <command type="sardana" name="ascanct">ascanct</command>
   <!--command type="sardana" name="set_pilatus_saving_pattern">set_pilatus_saving_pattern</command-->
