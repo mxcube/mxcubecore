@@ -58,6 +58,7 @@ class BeamInfo(Equipment):
         self.beam_size_definer = [9999, 9999]
         self.beam_position = (0, 0)
         self.beam_info_dict = {}
+        self.polarisation = self.get_property("polarisation", 0.99)
 
         self.aperture_hwobj = self.get_object_by_role("aperture")
         if self.aperture_hwobj is not None:
