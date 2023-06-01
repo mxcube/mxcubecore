@@ -138,10 +138,12 @@ class MICROMAXAperture(AbstractActuator):
         self.emit("valueChanged", position)
 
     def diameter_changed(self, diameter):
-        self._current_diameter_index = diameter
-        self.emit("valueChanged", self._diameter_size_list[self._current_diameter_index] / 1000.0)
+        if diameter is None:
+            self.get_diameter_size()
+        else:
+            self._current_diameter_index = diameter
+        self.emit("valueChanged", self._diameter_size_list[self._current_diameter_index])
         self.emit(
             "diameterIndexChanged",
             self._current_diameter_index,
-            self._diameter_size_list[self._current_diameter_index] / 1000.0,
-        )
+            self._diameter_size_list[self._current_diameter_index] / 1000)

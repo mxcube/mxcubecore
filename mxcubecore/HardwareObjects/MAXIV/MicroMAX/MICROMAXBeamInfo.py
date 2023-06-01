@@ -64,7 +64,7 @@ class MICROMAXBeamInfo(BeamInfo.BeamInfo, AbstractBeam.AbstractBeam):
         self._aperture = self.get_object_by_role("aperture")
         if self._aperture is not None:
             self.connect(
-                self._aperture, "apertureChanged", self.aperture_pos_changed
+                self._aperture, "valueChanged", self.aperture_pos_changed
             )
         else:
             logging.getLogger("HWR").debug("BeamInfo: Aperture hwobj not defined")
@@ -93,14 +93,12 @@ class MICROMAXBeamInfo(BeamInfo.BeamInfo, AbstractBeam.AbstractBeam):
         return
 
     def evaluate_beam_info(self, *args):
-        BeamInfo.BeamInfo.evaluate_beam_info(self, *args)
         self.beam_info_dict["shape"] = "ellipse"
         current_aperture = float(self._aperture.get_diameter_size())
         self._beam_width = current_aperture / 1000
         self.beam_info_dict["size_x"] = self._beam_width
         self._beam_height = current_aperture / 1000
         self.beam_info_dict["size_y"] = self._beam_height
-
         return self.beam_info_dict
 
     def get_value(self):
