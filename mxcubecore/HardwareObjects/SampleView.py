@@ -355,11 +355,13 @@ class SampleView(AbstractSampleView):
 
         return grid
 
-    def set_grid_data(self, sid, result_data):
+    def set_grid_data(self, sid, result_data, data_file_path):
         shape = self.get_shape(sid)
 
         if shape:
             shape.set_result(result_data)
+            shape.result_data_path = data_file_path
+
             self.emit("newGridResult", shape)
         else:
             msg = "Cant set result for %s, no shape with id %s" % (sid, sid)

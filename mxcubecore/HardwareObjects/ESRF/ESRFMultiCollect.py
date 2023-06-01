@@ -162,7 +162,9 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         if shutterless:
             if first_frame:
                 exptime = (exptime + self._detector.get_deadtime()) * number_of_images
-                self.oscillation_task = self.oscil(start, end, exptime, 1, wait=False)
+                self.oscillation_task = self.oscil(
+                    start, end, exptime, number_of_images, wait=False
+                )
 
             if self.oscillation_task.ready():
                 self.oscillation_task.get()
@@ -313,8 +315,12 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             self._detector._emit_status()
             return res
 
-    def last_image_saved(self):
-        return self._detector.last_image_saved()
+    def last_image_saved(self, total_time, exptime, num_images):
+        # check here if fast shutter is open ?
+        if HWR.beamline.detector.status["acq_satus"] == "RUNNING":
+            return int(total_time / exptime)
+        else:
+            return HWR.beamline.detector.last_image_saved()
 
     def stop_acquisition(self):
         return self._detector.stop_acquisition()
@@ -512,13 +518,13 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     def get_machine_message(self):
         if HWR.beamline.machine_info:
-            return HWR.beamline.machine_info.getMessage()
+            return HWR.beamline.machine_info.get_message()
         else:
             return ""
 
     def get_machine_fill_mode(self):
         if HWR.beamline.machine_info:
-            return HWR.beamline.machine_info.getFillMode()
+            return HWR.beamline.machine_info.get_fill_mode()
         else:
             """"""
 

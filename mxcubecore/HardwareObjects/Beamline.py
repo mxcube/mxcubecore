@@ -737,15 +737,17 @@ class Beamline(ConfiguredObject):
             setattr(acq_parameters, tag, val)
 
         motor_positions = self.diffractometer.get_positions()
-        osc_start = motor_positions.get("phi", params["osc_start"])
-        acq_parameters.osc_start = round(float(osc_start), 2)
-        kappa = motor_positions.get("kappa", 0.0)
-        kappa = kappa if kappa else 0.0
-        acq_parameters.kappa = round(float(kappa), 2)
-        kappa_phi = motor_positions.get("kappa_phi", 0.0)
-        kappa_phi = kappa_phi if kappa_phi else 0.0
-        acq_parameters.kappa_phi = round(float(kappa_phi), 2)
-
+        osc_start = (
+            None
+            if not params["osc_start"]
+            else motor_positions.get("phi", params["osc_start"])
+        )
+        acq_parameters.osc_start = osc_start
+        kappa = motor_positions.get("kappa", False)
+        kappa = kappa if kappa else None
+        acq_parameters.kappa = round(float(kappa), 2) if kappa else None
+        kappa_phi = motor_positions.get("kappa_phi", False)
+        acq_parameters.kappa_phi = round(float(kappa_phi), 2) if kappa_phi else None
         try:
             acq_parameters.resolution = self.resolution.get_value()
         except Exception:
@@ -773,14 +775,7 @@ class Beamline(ConfiguredObject):
             )
             acq_parameters.transmission = 0.0
 
-        try:
-            acq_parameters.shutterless = self.detector.has_shutterless()
-        except Exception:
-            logging.getLogger("HWR").warning(
-                "get_default_acquisition_parameters: "
-                "Could not get has_shutterless, setting to False"
-            )
-            acq_parameters.shutterless = False
+        acq_parameters.shutterless = params.get("shutterless", True)
 
         try:
             acq_parameters.detector_binning_mode = self.detector.get_binning_mode()

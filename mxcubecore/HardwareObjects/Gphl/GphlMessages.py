@@ -320,46 +320,20 @@ class ChooseLattice(Payload):
         self,
         indexingSolutions,
         indexingFormat="IDXREF",
-        crystalFamilyChar=None,
-        lattices=None,
-        userProvidedCell=None,
-        indexingHeader=None,
+        crystalClasses=None,
     ):
         """
 
         Args:
             indexingSolutions (list(IndexingSolution):
             indexingFormat (str):
-            crystalFamilyChar (str):
-            lattices sequence(str): string or sequence with one, or two unique strings
-            userProvidedCell (UnitCell):
-            indexingHeader (str):
+            crystalClasses sequence(str):
         """
         super().__init__()
 
         self._indexingSolutions = indexingSolutions
         self._indexingFormat = indexingFormat
-        self._crystalFamilyChar = crystalFamilyChar
-        if not lattices:
-            self._lattices = frozenset()
-        elif isinstance(lattices, string_types):
-            # Allows you to pass in lattices as a string without silly errors
-            self._lattices = frozenset((lattices,))
-        else:
-            self._lattices = frozenset(lattices)
-        self._userProvidedCell = userProvidedCell
-        self._indexingHeader = indexingHeader
-        self._crystalClasses = frozenset()
-
-    @property
-    def crystalFamilyChar(self):
-        """One-letter code for crystal system (one of 'amothc')"""
-        return self._crystalFamilyChar
-
-    @property
-    def lattices(self):
-        """set of expected lattices for solution"""
-        return self._lattices
+        self._crystalClasses = crystalClasses or ()
 
     @property
     def crystalClasses(self):
@@ -376,11 +350,6 @@ class ChooseLattice(Payload):
         """Indexing format"""
         return self._indexingFormat
 
-    @property
-    def indexingHeader(self):
-        """Indexing table header"""
-        return self._indexingHeader
-
 
 class SelectedLattice(MessageData):
     """Lattice selected message"""
@@ -390,14 +359,20 @@ class SelectedLattice(MessageData):
     def __init__(
         self,
         data_model,
+        indexingFormat,
         indexingSolution,
-        userPointGroup=None,
     ):
+        self._indexingFormat = indexingFormat
         self._indexingSolution = indexingSolution
         self._strategyDetectorSetting = data_model.detector_setting
         self._strategyWavelength = data_model.wavelengths[0]
         self._strategyControl = json.dumps(data_model.strategy_options, sort_keys=True)
-        self._userPointGroup = userPointGroup
+        self._userPointGroup = None
+
+    @property
+    def indexingFormat(self):
+        """Indexing format"""
+        return self._indexingFormat
 
     @property
     def indexingSolution(self):
@@ -876,18 +851,19 @@ class UserProvidedInfo(MessageData):
 
         self._scatterers = ()
         crystal_classes = data_model.crystal_classes
-        lauegrp, ptgrp = crystal_symmetry.strategy_laue_group(crystal_classes)
-        self._pointGroup = ptgrp
+        if crystal_classes:
+            lauegrp, ptgrp = crystal_symmetry.strategy_laue_group(crystal_classes)
+            self._pointGroup = ptgrp
+        else:
+            self._pointGroup = None
         crystal_systems = set(
             crystal_symmetry.CRYSTAL_CLASS_MAP[name].crystal_system
             for name in crystal_classes
         )
-        if crystal_systems in (set(("Trigonal")), set(("Trigonal", "Hexagonal"))):
-            self._crystal_family = "HEXAGONAL"
-        elif len(crystal_systems) == 1:
-            self._crystal_family = crystal_systems.pop().upper()
+        if len(crystal_systems) == 1:
+            self._lattice = crystal_systems.pop().upper()
         else:
-            self._crystal_family = None
+            self._lattice = None
 
         sg_data = crystal_symmetry.SPACEGROUP_MAP.get(data_model.space_group)
         self._spaceGroup = sg_data.number if sg_data else None
@@ -896,7 +872,11 @@ class UserProvidedInfo(MessageData):
             self._cell = UnitCell(*cell_parameters)
         else:
             self._cell = None
-        self._expectedResolution = data_model.aimed_resolution
+        detector_setting = data_model.detector_setting
+        if detector_setting:
+            self._expectedResolution = detector_setting.resolution
+        else:
+            self._expectedResolution = data_model.aimed_resolution
         self._isAnisotropic = None
 
     @property
@@ -904,8 +884,8 @@ class UserProvidedInfo(MessageData):
         return self._scatterers
 
     @property
-    def crystal_family(self):
-        return self._crystal_family
+    def lattice(self):
+        return self._lattice
 
     @property
     def pointGroup(self):
@@ -1280,16 +1260,17 @@ class SampleCentred(Payload):
         self._goniostatTranslations = frozenset(data_model.goniostat_translations)
         self._repetition_count = data_model.repetition_count
 
+        self._detectorSetting = None
         if data_model.characterisation_done:
             self._wavelengths = tuple(data_model.wavelengths)
-            self._detectorSetting = None
         else:
             # Ths trick assumes that characterisation and diffractcal
             # use one, the first, wavelength and default interleave order
             # Which is true. Not the ideal place to put this code
             # but it works.
             self._wavelengths = tuple((data_model.wavelengths[0],))
-            self._detectorSetting = data_model.detector_setting
+            if data_model.wftype != "diffractcal":
+                self._detectorSetting = data_model.detector_setting
 
     @property
     def imageWidth(self):

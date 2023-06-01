@@ -445,7 +445,7 @@ def space_groups_from_params(lattices=(), point_groups=(), chiral_only=True):
 
 
 def crystal_classes_from_params(
-    lattices: list = (), point_groups: list = (), space_group: str = None
+    lattices: tuple = (), point_groups: tuple = (), space_group: str = None
 ):
     """
     Get tuple of crystal class names compatible with input parameters,
@@ -523,7 +523,7 @@ def strategy_laue_group(crystal_classes: tuple, phasing=False):
     laue_groups = frozenset(laue_groups)
     result = laue_group_map.get(laue_groups)
     if result is None:
-        if lattices.issubset(set(("hP", "hR"))):
+        if lattices and lattices.issubset(set(("hP", "hR"))):
             if laue_groups == set(("-3m",)) and lattices == set(("hR",)):
                 # NB Includes non-chiral crystal classes
                 result = ("-3m", "32")

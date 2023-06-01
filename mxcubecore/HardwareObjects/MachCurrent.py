@@ -10,21 +10,23 @@ Example XML:
 </device>
 """
 
-from mxcubecore import BaseHardwareObjects
+from mxcubecore.HardwareObjects.abstract.AbstractMachineInfo import (
+    AbstractMachineInfo,
+)
+
 import logging
 
 
-class MachCurrent(BaseHardwareObjects.Device):
+class MachCurrent(AbstractMachineInfo):
     def __init__(self, name):
-        BaseHardwareObjects.Device.__init__(self, name)
-
+        super().__init__(name)
         self.opmsg = ""
 
     def init(self):
         try:
             chanCurrent = self.get_channel_object("Current")
             chanCurrent.connect_signal("update", self.value_changed)
-            self.set_is_ready(True)
+            self.update_state(self.STATES.READY)
         except Exception as e:
             logging.getLogger("HWR").exception(e)
 
@@ -55,7 +57,7 @@ class MachCurrent(BaseHardwareObjects.Device):
 
         return value
 
-    def getMessage(self):
+    def get_message(self):
         try:
             msg = self.get_channel_object("OperatorMsg").get_value()
         except Exception as e:
@@ -64,7 +66,7 @@ class MachCurrent(BaseHardwareObjects.Device):
 
         return msg
 
-    def getFillMode(self):
+    def get_fill_mode(self):
         try:
             fmode = self.get_channel_object("FillingMode").get_value()
         except Exception as e:

@@ -53,7 +53,7 @@ class ScanMockup(HardwareObject):
         super(ScanMockup, self).init()
 
         self._npoints = self.get_property("number_of_points", 100)
-        self._min, self._max = ast.literal_eval(self.get_property("min_max", (0, 10)))
+        self._min, self._max = ast.literal_eval(self.get_property("min_max", "(0, 10)"))
         self._sample_rate = self.get_property("sample_rate", 0.5)
 
         HWR.beamline.data_publisher.register(

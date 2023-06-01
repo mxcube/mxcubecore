@@ -523,7 +523,9 @@ class GphlWorkflow(HardwareObjectYaml):
         fields["resolution"] = {
             "title": "Resolution",
             "type": "number",
-            "default": HWR.beamline.resolution.get_value(),
+            "default": (
+                data_model.aimed_resolution or HWR.beamline.resolution.get_value()
+            ),
             "minimum": reslimits[0],
             "maximum": reslimits[1],
         }
@@ -959,7 +961,7 @@ class GphlWorkflow(HardwareObjectYaml):
             )
             info_title = "GΦL workflow:   %s, strategy '%s', for symmetry '%s'." % (
                 title_string,
-                data_model.strategy_variant,
+                data_model.strategy_variant or data_model.strategy_name,
                 ptgrp,
             )
             lines = []
@@ -2048,6 +2050,7 @@ class GphlWorkflow(HardwareObjectYaml):
             data_collections.append(data_collection)
 
             data_collection.set_enabled(True)
+            data_collection.ispyb_group_data_collections = True
             data_collection.set_name(path_template.get_prefix())
             data_collection.set_number(path_template.run_number)
             self._add_to_queue(self._data_collection_group, data_collection)
@@ -2125,7 +2128,9 @@ class GphlWorkflow(HardwareObjectYaml):
         distance = data_model.detector_setting.axisSettings["Distance"]
         HWR.beamline.detector.distance.set_value(distance, timeout=30)
         return GphlMessages.SelectedLattice(
-            data_model, indexingSolution=indexingSolution
+            data_model,
+            indexingFormat=choose_lattice.indexingFormat,
+            indexingSolution=indexingSolution
         )
 
     def parse_indexing_solution(self, choose_lattice):
@@ -2388,6 +2393,7 @@ class GphlWorkflow(HardwareObjectYaml):
             self._add_to_queue(parent, centring_model)
         centring_entry = queue_manager.get_entry_with_model(centring_model)
         centring_entry.in_queue = in_queue
+        centring_entry.set_enabled(True)
 
         return centring_entry
 
