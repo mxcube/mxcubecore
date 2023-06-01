@@ -122,8 +122,6 @@ class SsxFoilCollectionQueueEntry(SsxBaseQueueEntry):
         super().execute()
         debug(self._data_model._task_data)
         params = self._data_model._task_data.user_collection_parameters
-
-        MAX_FREQ = 925.0
         packet_fifo_depth = 20000
 
         chip_name = params.chip_type
@@ -152,7 +150,7 @@ class SsxFoilCollectionQueueEntry(SsxBaseQueueEntry):
         fname_prefix = self._data_model._task_data.path_parameters.prefix
         data_root_path, _ = self.get_data_path()
 
-        self.take_pedestal(MAX_FREQ)
+        self.take_pedestal(HWR.beamline.collect.get_property("max_freq", 925))
 
         logging.getLogger("user_level_log").info("Preparing detector")
         HWR.beamline.detector.prepare_acquisition(

@@ -81,15 +81,13 @@ class SsxBigFoilCollectionQueueEntry(SsxBaseQueueEntry):
         debug(self._data_model._task_data)
         params = self._data_model._task_data.user_collection_parameters
 
-        MAX_FREQ = 925.0
-
         exp_time = self._data_model._task_data.user_collection_parameters.exp_time
         fname_prefix = self._data_model._task_data.path_parameters.prefix
         num_images = params.nb_samples_per_line * params.nb_lines
         self._data_model._task_data.collection_parameters.num_images = num_images
         data_root_path, _ = self.get_data_path()
 
-        self.take_pedestal(MAX_FREQ)
+        self.take_pedestal(HWR.beamline.collect.get_property("max_freq", 925))
 
         logging.getLogger("user_level_log").info("Preparing detector")
         HWR.beamline.detector.prepare_acquisition(

@@ -68,7 +68,7 @@ class SsxInjectorCollectionQueueEntry(SsxBaseQueueEntry):
 
     def execute(self):
         super().execute()
-        MAX_FREQ = 925.0
+
         exp_time = self._data_model._task_data.user_collection_parameters.exp_time
         fname_prefix = self._data_model._task_data.path_parameters.prefix
         num_images = self._data_model._task_data.user_collection_parameters.num_images
@@ -78,7 +78,7 @@ class SsxInjectorCollectionQueueEntry(SsxBaseQueueEntry):
         self._data_model._task_data.collection_parameters.num_images = num_images
         data_root_path, _ = self.get_data_path()
 
-        self.take_pedestal(MAX_FREQ)
+        self.take_pedestal(HWR.beamline.collect.get_property("max_freq", 925))
 
         HWR.beamline.detector.prepare_acquisition(
             num_images, exp_time, data_root_path, fname_prefix
