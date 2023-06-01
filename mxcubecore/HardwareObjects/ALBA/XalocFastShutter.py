@@ -76,10 +76,13 @@ class XalocFastShutter(BaseHardwareObjects.Device):
         self.motor_position = None
         self.motor_state = None
         self.state_strings = None
+        
+        self.shutter_delay_time_sec = None
 
     def init(self):
         self.logger.debug("Initializing {0}".format(self.__class__.__name__))
         try:
+            self.shutter_delay_time_sec = self.get_property('shutter_delay_time_sec')
             self.cmd_ni_start = self.get_command_object("nistart")
             self.cmd_ni_stop = self.get_command_object("nistop")
 
@@ -159,6 +162,9 @@ class XalocFastShutter(BaseHardwareObjects.Device):
 
     def get_user_name(self):
         return self.username
+
+    def get_shutter_delay_sec(self):
+        return self.shutter_delay_time_sec
 
     def get_status(self):
         state = self.getState()
