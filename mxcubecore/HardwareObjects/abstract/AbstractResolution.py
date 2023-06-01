@@ -136,7 +136,8 @@ class AbstractResolution(AbstractMotor):
             (float): Resolution [Å].
         """
         distance = distance or self._hwr_detector.distance.get_value()
-
+        if distance > 1000:
+            distance = round(distance / 1000)
         return self._calculate_resolution(
             self._hwr_detector.get_radius(distance), distance, wavelength
         )

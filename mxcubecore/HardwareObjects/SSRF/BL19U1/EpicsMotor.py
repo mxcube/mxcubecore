@@ -33,6 +33,9 @@ from ast import literal_eval
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from gevent import sleep
+import gevent
+import time
+
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -55,8 +58,12 @@ class EpicsMotor(AbstractMotor):
         AbstractMotor.init(self)
         self.motor_position_channel = self.get_channel_object("detectorDistance")
         self.motor_position_channel.connectSignal("update", self.update_value)
+        self.motor_position_channel.connectSignal("valueChanged", self.update_value)
+
         self.motor_position_channel_RBV = self.get_channel_object("detectorDistance_RBV")
         self.motor_position_channel_RBV.connectSignal("update", self.update_value)
+        self.motor_position_channel_RBV.connectSignal("valueChanged", self.update_value)
+
         self.motor_position = self.get_value()
         limits = self.getProperty("default_limits")
         if limits:
@@ -69,6 +76,13 @@ class EpicsMotor(AbstractMotor):
         # init state to match motor's one
         self.update_state(HardwareObjectState.READY)
 
+        # self.__watch_task = gevent.spawn(self._watch)
+
+    # def _watch(self):
+    #     """ Watch motor current value and update it on the UI."""
+    #     while True:
+    #         time.sleep(0.25)
+    #         self.update_value()
     def motor_position_changed(self, value):
         self.motor_position = value
         self.motor_position = self.get_value()
@@ -97,8 +111,6 @@ class EpicsMotor(AbstractMotor):
         Returns:
             float: Motor position.
         """
-        if self.motor_position_channel.getValue() == 400000:
-            print('det')
         if self.actuator_name == "dtox":
             value = self.motor_position_channel_RBV.getValue()/1000
         else:

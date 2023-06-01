@@ -225,10 +225,10 @@ class EpicsChannel(ChannelObject):
         self.command.poll(1000, self.command.arg_list, self.value_changed)
 
     def value_changed(self, value):
-        print("===== Epics value changed!! =====")
-        print(value)
+        # print("===== Epics value changed!! =====")
+        # print(value)
         self.emit("update", value)
-        self.emit("valueChanged", value)
+        #self.emit("valueChanged", value)
 
     def get_value(self):
         return self.command()

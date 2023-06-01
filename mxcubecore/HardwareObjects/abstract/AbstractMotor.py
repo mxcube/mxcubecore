@@ -113,4 +113,6 @@ class AbstractMotor(AbstractActuator):
                 return
 
         self._nominal_value = value
+        # if value > 430000:
+        #     print("value chagned - distance: ", str(value))
         self.emit("valueChanged", (value,))

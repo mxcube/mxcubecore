@@ -696,6 +696,8 @@ class HardwareObjectMixin(CommandContainer):
         if len(args) == 1:
             if isinstance(args[0], tuple):
                 args = args[0]
+        # if signal == "valueChanged":
+        #     print("emit ===", *args)
         dispatcher.send(signal, self, *args)
 
     def connect(self, sender, signal, slot=None):
