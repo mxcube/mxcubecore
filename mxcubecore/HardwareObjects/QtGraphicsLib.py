@@ -1015,7 +1015,7 @@ class GraphicsItemGrid(GraphicsItem):
                 self.__overlay_pixmap.setOpacity(self.__fill_alpha / 255.0)
                 self.__overlay_pixmap.setPos(corner_coord[0][0], corner_coord[0][1])
             else:
-                logging.getLogger("HWR").debug("__overlay_pixmap not visible")
+                #logging.getLogger("HWR").debug("__overlay_pixmap not visible")
                 self.__overlay_pixmap.setVisible(False)
 
         self.__grid_size_pix[0] = self.__spacing_pix[0] * self.__num_cols
