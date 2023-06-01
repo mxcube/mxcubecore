@@ -75,7 +75,7 @@ default_acquisition_parameters:
     default:
         # Default values, also used for standard acquisition.
         # Values not given in other dictionaries are taken from here
-        exp_time: 0.1               # (s) exposure time
+        exp_time: 0.05               # (s) exposure time
         osc_start: 0.0              # (degrees) Only used if no current angle found
         osc_range: 0.1              # (degrees)
         num_passes: 1               # (int)
@@ -91,31 +91,31 @@ default_acquisition_parameters:
 
     helical:
         # Defaults for helical scan. Missing values are taken from default
-        exp_time: 0.08              # (s) exposure time
+        exp_time: 0.05             # (s) exposure time
 
     characterisation:
         # Defaults for chareacterisation. Missing values are taken from default
-        exp_time: 0.08               # (s) exposure time
+        exp_time: 0.05               # (s) exposure time
         osc_range: 0.1
 
     mesh:
         # Defaults for 'advanced' acquisition. Missing values are taken from default
-        exp_time: 0.08              # (s) exposure time
+        exp_time: 0.05              # (s) exposure time
         osc_range: 0.0
         num_images: 100
         cell_counting: inverse-zig-zag
         cell_spacing: vertical,horizontal
         mesh_center: top-left
 
-#    advanced:
-#        # Defaults for 'advanced' acquisition. Missing values are taken from default
-#        exp_time: 0.04              # (s) exposure time
-#        osc_range: 0.5
-#        num_images: 100
+   # The next lines cause an error in the beamline code
+   #advanced:
+        # Defaults for 'advanced' acquisition. Missing values are taken from default
+        # exp_time: 0.04              # (s) exposure time
+        # osc_range: 0.01
 
 acquisition_limit_values:
     exposure_time:     # (s)
-        - 0.08
+        - 0.05
         - 1000.0
     osc_range:         # (degrees)
         -  -2160.0
