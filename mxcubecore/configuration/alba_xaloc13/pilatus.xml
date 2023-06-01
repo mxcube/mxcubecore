@@ -2,11 +2,11 @@
   <username>PilatusDetector</username>
   <!-- object href="/detector-distance" role="distance_motor"/ -->
   <object href="/detector-distance" role="detector_distance"/>
-  <taurusname>bl13/eh/pilatuslima</taurusname>
+  <taurusname>bl13/eh/pilatus3xlima</taurusname>
 
   <manufacturer>DECTRIS</manufacturer>
-  <model>6M_S</model>
-  <type>pilatus</type>
+  <model>Pilatus 3X 6M</model>
+  <type>Hybrid photon counting</type>
 
   <file_suffix>cbf</file_suffix>
 
@@ -16,9 +16,9 @@
   <height>2527</height>
 
 
-  <default_exposure_time>0.1</default_exposure_time>
-  <minimum_exposure_time>0.08</minimum_exposure_time>
-  <exposure_limits>0.08,1000</exposure_limits>
+  <default_exposure_time>0.05</default_exposure_time>
+  <minimum_exposure_time>0.05</minimum_exposure_time>
+  <exposure_limits>0.05,1000</exposure_limits>
 
   <command type="sardana" name="prepare_acq">prepareAcq</command>
   <command type="sardana" name="start_acq">startAcq</command>
@@ -27,8 +27,6 @@
   <command type="sardana" name="reset_common_header">resetCommonHeader</command>
   <command type="sardana" name="reset_frame_headers">resetFrameHeaders</command>
   <command type="sardana" name="set_image_header">setImageHeader</command>
-
-  <command type="sardana" name="set_threshold_gain">setThresholdGain</command>
 
   <channel type="sardana" name="saving_mode">saving_mode</channel>
   <channel type="sardana" name="saving_prefix">saving_prefix</channel>
@@ -45,10 +43,9 @@
   <channel type="sardana" name="acq_status_fault_error">acq_status_fault_error</channel>
   <channel type="sardana" name="latency_time">latency_time</channel>
 
-  <channel type="sardana" taurusname="bl13/eh/pilatusspecific" name="energy">energy_threshold</channel>
-  <channel type="sardana" taurusname="bl13/eh/pilatusspecific" name="threshold">threshold</channel>
-  <channel type="sardana" taurusname="bl13/eh/pilatusspecific" name="gain">threshold_gain</channel>
-  <channel type="sardana" taurusname="bl13/eh/pilatusspecific" name="cam_state">cam_state</channel>
+  <channel type="sardana" taurusname="bl13/eh/pilatus3xspecific" name="energy">energy_threshold</channel>
+  <channel type="sardana" taurusname="bl13/eh/pilatus3xspecific" name="threshold">threshold</channel>
+  <channel type="sardana" taurusname="bl13/eh/pilatus3xspecific" name="cam_state">cam_state</channel>
 
   <channel type="sardana" taurusname="bl13/ct/variables" name="beamx">beamx</channel>
   <channel type="sardana" taurusname="bl13/ct/variables" name="beamy">beamy</channel>
