@@ -1,5 +1,8 @@
 <device class="XalocFastShutter">
   <username>Fast Shutter</username>
+  
+  <shutter_delay_time_sec>0.005</shutter_delay_time_sec>
+  
   <channel type="sardana" polling="events" taurusname="bl13/IO/ibl1302-dev1-ctr2" name="actuator">IdleState</channel>
   <command type="sardana" taurusname="bl13/IO/ibl1302-dev1-ctr2" name="nistart">Start</command>
   <command type="sardana" taurusname="bl13/IO/ibl1302-dev1-ctr2" name="nistop">Stop</command>
