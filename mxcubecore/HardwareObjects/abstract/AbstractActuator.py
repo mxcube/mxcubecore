@@ -149,7 +149,8 @@ class AbstractActuator(HardwareObject):
         """
         if value is None:
             value = self.get_value()
-
+        print("==== acturator value changed ====");
+        print("==== acturator name is ", self.actuator_name, ", value is ", str(value))
         if self._nominal_value != value:
             self._nominal_value = value
             self.emit("valueChanged", (value,))

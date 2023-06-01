@@ -8,11 +8,11 @@ from gevent import _threading
 from gevent.event import Event
 import numpy
 
-
-try:
-    import Queue as queue
-except ImportError:
-    import queue
+from gevent.queue import Queue, Empty
+# try:
+#     import Queue as queue
+# except ImportError:
+#     import queue
 
 
 log = logging.getLogger("HWR")
@@ -90,7 +90,7 @@ class _Poller:
         self.error_callback_ref = saferef.safe_ref(error_callback)
         self.compare = compare
         self.old_res = NotInitializedValue
-        self.queue = queue.Queue()
+        self.queue = Queue()
         self.delay = 0
         self.stop_event = Event()
 
@@ -141,7 +141,7 @@ class _Poller:
         while True:
             try:
                 res = self.queue.get_nowait()
-            except queue.Empty:
+            except Empty:
                 break
 
             if isinstance(res, PollingException):
@@ -209,6 +209,7 @@ class _Poller:
                 if new_value:
                     self.old_res = res
                     self.queue.put(res)
+                    self.async_watcher.send()
             sleep(self.polling_period / 1000.0)
 
         if error_cb is not None:

@@ -425,6 +425,8 @@ class __HardwareRepositoryClient:
 
         if xml_data:
             try:
+                if "tox" in hwobj_name:
+                    print("dtox")
                 hwobj_instance = self.parse_xml(xml_data, hwobj_name)
                 if isinstance(hwobj_instance, string_types):
                     # We have redirection to another file
@@ -432,6 +434,7 @@ class __HardwareRepositoryClient:
                     result = self._load_hardware_object(hwobj_instance)
                     if hwobj_name in self.invalid_hardware_objects:
                         self.invalid_hardware_objects.remove(hwobj_name)
+
                     self.hardware_objects[hwobj_name] = result
                     return result
             except Exception:
@@ -477,7 +480,6 @@ class __HardwareRepositoryClient:
                     else:
                         if hwobj_instance.name() in self.invalid_hardware_objects:
                             self.invalid_hardware_objects.remove(hwobj_instance.name())
-
                         self.hardware_objects[hwobj_instance.name()] = hwobj_instance
                 else:
                     logging.getLogger("HWR").error(

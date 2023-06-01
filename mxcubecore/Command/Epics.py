@@ -42,7 +42,8 @@ class EpicsCommand(CommandObject):
 
         self.pv_name = pv_name
         self.read_as_str = kwargs.get("read_as_str", False)
-        self.auto_monitor = kwargs.get("auto_monitor", True)
+        # self.auto_monitor = kwargs.get("auto_monitor", True)
+        self.auto_monitor = True
         self.pollers = {}
         self.__value_changed_callback_ref = None
         self.__timeout_callback_ref = None
@@ -68,11 +69,11 @@ class EpicsCommand(CommandObject):
             self.read_as_str,
         )
         self.pv = epics.PV(pv_name, auto_monitor=self.auto_monitor)
-        time.sleep(0.05)
-        self.pv_connected = self.pv.connect(timeout=0.1)
-
+        # time.sleep(0.05)
+        self.pv_connected = self.pv.connect(timeout=5)
+        value = self.pv.get(5)
         if self.pv_connected:
-            self.value_changed(self.pv.get(as_string=self.read_as_str, timeout=0.1))
+            self.value_changed(self.pv.get(as_string=self.read_as_str, timeout=5))
         else:
             logging.getLogger("HWR").error(
                 "EpicsCommand: Error connecting to pv %s.", self.pv_name
@@ -98,15 +99,16 @@ class EpicsCommand(CommandObject):
             if len(args) == 0:
                 # no arguments available -> get the pv's current value
                 try:
-                    ret = self.pv.get(as_string=self.read_as_str, timeout=0.2)
-                    if ret is None:
-                        ret = self.reconnect()
-                except TypeError:
-                    # When a cached info is lost internally Epics return a TypeError
-                    ret = self.reconnect()
-                    if ret is not None:
-                        self.emit("commandReplyArrived", (ret, str(self.name())))
-                        return ret
+                    ret = self.pv.get(as_string=self.read_as_str)
+                #     ret = self.pv.get(as_string=self.read_as_str, timeout=0.2)
+                #     if ret is None:
+                #         ret = self.reconnect()
+                # except TypeError:
+                #     # When a cached info is lost internally Epics return a TypeError
+                #     ret = self.reconnect()
+                #     if ret is not None:
+                #         self.emit("commandReplyArrived", (ret, str(self.name())))
+                #         return ret
                 except Exception as e:
                     logging.getLogger("HWR").error(
                         "%s: an error occured when getting value with Epics command %s",
@@ -120,8 +122,9 @@ class EpicsCommand(CommandObject):
                 # use the given argument to change the pv's value
                 try:
                     value = args[0]
-                    wait = kwargs.get("wait", False)
-                    self.pv.put(value, wait=wait)
+                    # wait = kwargs.get("wait", False)
+                    # self.pv.put(value, wait=wait)
+                    self.pv.put(value, False)
                 except:
                     logging.getLogger("HWR").error(
                         "%s: an error occured when putting a value with Epics command %s",
@@ -136,6 +139,8 @@ class EpicsCommand(CommandObject):
     def value_changed(self, value):
         try:
             callback = self.__value_changed_callback_ref()
+            # print("===== Epics value changed!! =====")
+            # print(str(value))
         except Exception:
             pass
         else:
@@ -194,9 +199,9 @@ class EpicsCommand(CommandObject):
         epics.ca._cache.clear()
         # Reconnect PV
         self.pv = epics.PV(self.pv_name, auto_monitor=self.auto_monitor)
-        self.pv_connected = self.pv.connect(timeout=0.2)
+        self.pv_connected = self.pv.connect(timeout=5)
         # Return the result of get()
-        ret = self.pv.get(as_string=self.read_as_str, timeout=0.2)
+        ret = self.pv.get(as_string=self.read_as_str, timeout=5)
         return ret
 
 
@@ -205,18 +210,25 @@ class EpicsChannel(ChannelObject):
 
     def __init__(self, name, command, username=None, polling=None, args=None, **kwargs):
         ChannelObject.__init__(self, name, username, **kwargs)
+        if command == "19U:TABLE:DETH.VAL":
+            print("19U:TABLE:DETH.VAL")
         self.command = EpicsCommand(
             name + "_internalCmd", command, username, args, **kwargs
         )
-        try:
-            self.polling = int(polling)
-        except Exception:
-            self.polling = None
-        else:
-            self.command.poll(self.polling, self.command.arg_list, self.value_changed)
+        # try:
+        #     self.polling = int(polling)
+        # except Exception:
+        #     self.polling = 500
+        # else:
+        #     self.command.poll(self.polling, self.command.arg_list, self.value_changed)
+
+        self.command.poll(1000, self.command.arg_list, self.value_changed)
 
     def value_changed(self, value):
+        print("===== Epics value changed!! =====")
+        print(value)
         self.emit("update", value)
+        self.emit("valueChanged", value)
 
     def get_value(self):
         return self.command()

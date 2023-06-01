@@ -76,8 +76,8 @@ class BL19U1MD2Camera(Device):
         count = 1
         while not self.stopper:
             time.sleep(float(self.pollInterval) / 1000)
-            if count % 100 == 0:
-                print("polling", datetime.datetime.now().strftime("%H:%M:%S.%f"))
+            # if count % 100 == 0:
+            #     print("polling", datetime.datetime.now().strftime("%H:%M:%S.%f"))
             try:
                 img = self.image_attr.get_value()
                 #print(img)

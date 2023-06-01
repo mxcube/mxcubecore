@@ -150,5 +150,6 @@ class EpicsMotor(AbstractMotor):
 
     def name(self):
         """Get the motor name. Should be removed when GUI ready"""
+        if self.actuator_name == "dtox":
+            return "/dtox"
         return self.actuator_name
-

@@ -1,5 +1,6 @@
 <equipment class = "mxcubecore.HardwareObjects.SSRF.BL19U1.LNLSPilatusDet">
   <object href="/dtox" role="detector_distance"/>
+   <object hwrid="/dtox" role="detector_distance"/>
   <!-- Channels -->
   <channel type="epics" name="det_threshols_energy">BL19U1:cam1:ThresholdEnergy</channel>
   <channel type="epics" name="det_wavelength">BL19U1:cam1:Wavelength</channel>
@@ -82,11 +83,11 @@
 
 
   <!-- Properties -->
-  <!--default_beam_x>729</default_beam_x>
-  <default_beam_y>838</default_beam_y-->
-   <default_beam_x>0</default_beam_x>
-  <default_beam_y>0</default_beam_y>
-  <object hwrid="/dtox" role="detector_distance"/>
+  <default_beam_x>1232</default_beam_x>
+  <default_beam_y>1264</default_beam_y>
+   <!--default_beam_x>0</default_beam_x>
+  <default_beam_y>0</default_beam_y-->
+  <!--object hwrid="/dtox" role="detector_distance"/-->
   <tempThreshold>33.5</tempThreshold>
   <humidityThreshold>20.0</humidityThreshold>
   <tolerance>0.2</tolerance>
@@ -104,7 +105,7 @@
   <buffer>/ramdisk/data</buffer>
   <!--buffer>/data/images</buffer-->
   <user>det</user>
-  <control>10.30.63.181</control>
+  <control>10.30.61.81</control>
   <beam>
     <ax>0.000336</ax>
     <ay>0.001161</ay>

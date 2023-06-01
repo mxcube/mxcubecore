@@ -51,7 +51,7 @@
     <object role="sample_horizontal" href="./udiff/udiff_phiy"/>
     <!--object role="sample_horizontal" href="/udiff_centringvertical"/-->
     <object role="cryostream" href="./udiff/cryostream"/>
-    <object href="/centring-math" role="centring"/>
+    <object href="./centring-math" role="centring"/>
   </complex_equipment>
   <exporter_address>10.30.61.67:9002</exporter_address>
   <exporter_commands>
