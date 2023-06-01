@@ -240,7 +240,7 @@ class PyISPyBClient(HardwareObject):
                 "resolution": beamline_parameters.resolution,
                 "resolutionAtCorner": 0.0,
                 "flux_end": extra_lims_values.flux_end,
-                "detector_id": 83,
+                "detector_id": HWR.beamline.detector.get_property("detector_id"),
                 "startTime": extra_lims_values.start_time,
                 "endTime": extra_lims_values.end_time,
                 "repetitionRate": 0.0,
