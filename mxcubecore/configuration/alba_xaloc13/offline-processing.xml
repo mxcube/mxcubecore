@@ -1,6 +1,6 @@
 <object class="XalocOfflineProcessing">
 
-  <template_dir>/beamlines/bl13/controls/production/git/bl13_processing/templates</template_dir>
+  <template_dir>/beamlines/bl13/sdm/production/processing_xaloc/templates</template_dir>
   <object href="/cluster" role="cluster"/>
   <object href="/detector-distance" role="detector_distance"/>
   <channel type="sardana" taurusname="bl13/ct/variables" polling="events" name="beamx">beamx</channel>
