@@ -75,19 +75,11 @@ class CollectEmulator(CollectMockup):
             instrument_input = f90nml.read(fp0)
 
             self.instrument_data = instrument_input["sdcp_instrument_list"]
-            self.segments = instrument_input["segment_list"]
+            self.segments = instrument_input.get("segment_list")
 
         #
         # # update with instrument data
-        # fp0 = HWR.beamline.gphl_workflow.file_paths.get("instrumentation_file")
-        # instrument_input = f90nml.read(fp0)
         #
-        # instrument_data = instrument_input["sdcp_instrument_list"]
-        # segments = instrument_input["segment_list"]
-        if isinstance(self.segments, dict):
-            segment_count = 1
-        else:
-            segment_count = len(self.segments)
 
         sweep_count = len(data_collect_parameters["oscillation_sequence"])
 
@@ -161,12 +153,17 @@ class CollectEmulator(CollectMockup):
 
         setup_data["n_vertices"] = 0
         setup_data["n_triangles"] = 0
-        setup_data["n_segments"] = segment_count
         setup_data["n_orients"] = 0
         setup_data["n_sweeps"] = sweep_count
 
         # Add segments
-        result["segment_list"] = self.segments
+        if self.segments:
+            if isinstance(self.segments, dict):
+                segment_count = 1
+            else:
+                segment_count = len(self.segments)
+            setup_data["n_segments"] = segment_count
+            result["segment_list"] = self.segments
 
         # Adjustments
         val = self.instrument_data.get("beam")
