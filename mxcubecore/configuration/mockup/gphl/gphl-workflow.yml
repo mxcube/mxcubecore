@@ -1,5 +1,5 @@
 _initialise_class:
-    class: mxcubecore.HardwareObjects.GphlWorkflow.GphlWorkflow
+    class: mxcubecore.HardwareObjects.Gphl.GphlWorkflow.GphlWorkflow
 
 settings:
     # Controls for MXCuBE UI and behaviour
