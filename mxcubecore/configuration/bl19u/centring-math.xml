@@ -7,7 +7,7 @@
         <motorname>phiy</motorname>
         <direction>[1, 0, 0]</direction>
 	<type>translation</type>
-	<motorHO>/bl19u/udiff/udiff-phiy</motorHO>
+	<motorHO>/bl19u/udiff/udiff_phiy</motorHO>
      </axis>
 
      <!-- removing this axis (normal to Omega) will fix Omega position -->
