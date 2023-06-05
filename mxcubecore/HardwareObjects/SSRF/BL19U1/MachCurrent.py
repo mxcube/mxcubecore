@@ -12,9 +12,11 @@ Example XML:
 
 from mxcubecore import BaseHardwareObjects
 import logging
+from mxcubecore.HardwareObjects.abstract.AbstractMachineInfo import (
+    AbstractMachineInfo
+)
 
-
-class MachCurrent(BaseHardwareObjects.Device):
+class MachCurrent(BaseHardwareObjects.Device, AbstractMachineInfo):
     def __init__(self, name):
         BaseHardwareObjects.Device.__init__(self, name)
 
