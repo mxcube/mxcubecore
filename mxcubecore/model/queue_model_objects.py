@@ -2054,6 +2054,9 @@ class GphlWorkflow(TaskNode):
             "relative_rad_sensitivity",
             "aimed_resolution",
             "repetition_count",
+            "initial_strategy",
+            "strategy_variant",
+            "strategy_options",
         ):
             summary[tag] = getattr(self, tag)
         summary["wavelengths"] = tuple(x.wavelength for x in self.wavelengths)
@@ -2348,7 +2351,6 @@ class GphlWorkflow(TaskNode):
             self.cell_parameters = tpl
         self.protein_acronym = crystal.protein_acronym
         self.space_group = self.input_space_group = crystal.space_group
-        self.crystal_classes = params.get("crystal_classes", ())
 
         # Set to current wavelength for now - nothing else available
         wavelength = HWR.beamline.energy.get_wavelength()

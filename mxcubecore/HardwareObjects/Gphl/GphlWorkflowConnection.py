@@ -721,6 +721,11 @@ class GphlWorkflowConnection(HardwareObjectYaml):
             )
         else:
             crystalClasses = None
+
+        # NBNB TBD For now this does  NOT make sense.
+        # The actual ctrystal classes are kept on the BCS side, and
+        # chat is calculated here is missign infornmation.
+        crystalClasses = None
         indexingFormat = py4jChooseLattice.getFormat().toString()
         return GphlMessages.ChooseLattice(
             indexingSolutions=self.parse_indexing_solution_text(

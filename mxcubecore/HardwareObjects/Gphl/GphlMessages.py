@@ -427,13 +427,9 @@ class IndexingSolution(MessageData):
         self._latticeCharacter = latticeCharacter
         self._qualityOfFit = qualityOfFit
 
-    def bravaisLattice(self):
-        """One of the 14 Bravais lattices ('aP' etc.)"""
-        return self._bravaisLattice
-
     @property
     def bravaisLattice(self):
-        """"""
+        """One of the 14 Bravais lattices ('aP' etc.)"""
         return self._bravaisLattice
 
     @property
