@@ -1920,15 +1920,17 @@ class GphlWorkflow(HardwareObjectYaml):
             goniostatRotation = sweep.goniostatSweepSetting
             rotation_id = goniostatRotation.id_
             initial_settings = sweep.get_initial_settings()
-            orientation = tuple(
-                initial_settings.get(tag) for tag in ("kappa", "kappa_phi")
-            )
+            kappa =  initial_settings.get("kappa")
+            kappa_phi =  initial_settings.get("kappa_phi")
+            orientation = (kappa, kappa_phi)
             acq = queue_model_objects.Acquisition()
 
             # Get defaults, even though we override most of them
             acq_parameters = HWR.beamline.get_default_acquisition_parameters()
             acq.acquisition_parameters = acq_parameters
 
+            acq_parameters.kappa = kappa
+            acq_parameters.kappa_phi = kappa_phi
             acq_parameters.first_image = scan.imageStartNum
             acq_parameters.num_images = scan.width.numImages
             acq_parameters.osc_start = scan.start
