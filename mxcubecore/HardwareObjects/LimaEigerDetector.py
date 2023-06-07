@@ -7,6 +7,7 @@ import os
 import math
 import logging
 
+from mxcubecore.model.queue_model_objects import PathTemplate
 from mxcubecore.TaskUtils import task
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
@@ -272,9 +273,16 @@ class LimaEigerDetector(AbstractDetector):
 
         return file_name
 
-    def get_first_and_last_file(self, pt):
-        file_name_template = self.get_image_file_name(pt)
+    def get_first_and_last_file(self, pt: PathTemplate):
+        """
+        Get complete path to first and last image
 
+        Args:
+          pt (PathTempalte): Path template parameter
+
+        Returns:
+        (Tuple): Tuple containing first and last image path (first, last)
+        """
         start_num = int(math.ceil(pt.start_num / 100))
         end_num = int(math.ceil((pt.start_num + pt.num_files - 1) / 100))
 

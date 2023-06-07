@@ -54,6 +54,7 @@ import ast
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.model.queue_model_objects import PathTemplate
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -326,3 +327,18 @@ class AbstractDetector(HardwareObject):
             (float): Detector threshold energy [eV]
         """
         return self._threshold_energy
+
+    def get_first_and_last_file(self, pt: PathTemplate):
+        """
+        Get complete path to first and last image
+
+        Args:
+          pt (PathTempalte): Path template parameter
+
+        Returns:
+        (Tuple): Tuple containing first and last image path (first, last)
+        """
+        start_num = pt.start_num
+        end_num = pt.start_num + pt.num_files - 1
+
+        return (pt.get_image_path() % start_num, pt.get_image_path() % end_num)
