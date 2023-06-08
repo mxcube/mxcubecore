@@ -711,7 +711,7 @@ class MiniDiff(Equipment):
         self.emitProgressMessage("")
 
         if reject:
-            self.rejectCentring()
+            self.reject_centring()
 
         self.wait_ready(30)
 
@@ -879,7 +879,7 @@ class MiniDiff(Equipment):
             logging.error("Could not complete automatic centring")
             logging.getLogger("user_level_log").info("Automatic loop centring failed")
             self.emitCentringFailed()
-            self.rejectCentring()
+            self.reject_centring()
         else:
             if res is None:
                 logging.error("Could not complete automatic centring")
@@ -887,7 +887,7 @@ class MiniDiff(Equipment):
                     "Automatic loop centring failed"
                 )
                 self.emitCentringFailed()
-                self.rejectCentring()
+                self.reject_centring()
             else:
                 self.emitCentringSuccessful()
                 if not self.user_confirms_centring:
@@ -945,7 +945,7 @@ class MiniDiff(Equipment):
         self.emit("centringAccepted", (True, self.get_centring_status()))
         logging.getLogger("user_level_log").info("Centring successful")
 
-    def rejectCentring(self):
+    def reject_centring(self):
         if self.current_centring_procedure:
             self.current_centring_procedure.kill()
         self.centringStatus = {"valid": False}
