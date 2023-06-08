@@ -24,7 +24,12 @@ jobs:
           git add -A
           git commit -m "[skip ci] Bumped minor version"
           git push
-         
+          poetry build
+    - name: Publish package to PyPI
+      id: publish-pacakge
+      run: |
+        poetry config pypi-token.pypi ${{ secrets.PYPI }}
+        poetry publish
     - name: Read package version
       id: set-tag
       run: |
