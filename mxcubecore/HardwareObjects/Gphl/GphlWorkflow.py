@@ -1920,15 +1920,17 @@ class GphlWorkflow(HardwareObjectYaml):
             goniostatRotation = sweep.goniostatSweepSetting
             rotation_id = goniostatRotation.id_
             initial_settings = sweep.get_initial_settings()
-            orientation = tuple(
-                initial_settings.get(tag) for tag in ("kappa", "kappa_phi")
-            )
+            kappa =  initial_settings.get("kappa")
+            kappa_phi =  initial_settings.get("kappa_phi")
+            orientation = (kappa, kappa_phi)
             acq = queue_model_objects.Acquisition()
 
             # Get defaults, even though we override most of them
             acq_parameters = HWR.beamline.get_default_acquisition_parameters()
             acq.acquisition_parameters = acq_parameters
 
+            acq_parameters.kappa = kappa
+            acq_parameters.kappa_phi = kappa_phi
             acq_parameters.first_image = scan.imageStartNum
             acq_parameters.num_images = scan.width.numImages
             acq_parameters.osc_start = scan.start
@@ -2100,9 +2102,6 @@ class GphlWorkflow(HardwareObjectYaml):
         data_model.characterisation_done = True
 
         if data_model.automation_mode:
-            header, soldict, select_row = self.parse_indexing_solution(choose_lattice)
-
-            indexingSolution = list(soldict.values())[select_row]
 
             if not data_model.aimed_resolution:
                 raise ValueError("aimed_resolution must be set in automation mode")
@@ -2115,6 +2114,29 @@ class GphlWorkflow(HardwareObjectYaml):
                     data_model.aimed_resolution
                     or HWR.beamline.get_default_acquisition_parameters().resolution
                 )
+
+
+            # get allowed crystal clases from indexing solution
+            crystal_classes = (
+                choose_lattice.crystalClasses or data_model.crystal_classes
+            )
+            space_group = data_model.space_group
+            if space_group and not crystal_classes:
+                crystal_classes = (
+                    crystal_symmetry.SPACEGROUP_MAP[space_group].crystal_class,
+                )
+            header, soldict, select_row = self.parse_indexing_solution(
+                choose_lattice)
+            indexingSolution = list(soldict.values())[select_row]
+            lattice = indexingSolution.bravaisLattice
+            if not any(
+                crystal_symmetry.CRYSTAL_CLASS_MAP[xtc].bravais_lattice == lattice
+                for xtc in crystal_classes
+            ):
+                crystal_classes = crystal_symmetry.crystal_classes_from_params(
+                    lattices=(lattice,)
+                )
+            params["crystal_classes"] = crystal_classes
         else:
             # SIGNAL TO GET Pre-strategy parameters here
             # NB set defaults from data_model
