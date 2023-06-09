@@ -34,7 +34,7 @@ __license__ = "LGPLv3+"
 EXPORTER_CLIENTS = {}
 
 
-def start_exporter(address, port, timeout=3, retries=1):
+def start_exporter(address, port, timeout=10, retries=1):
     """Start the exporter"""
     global EXPORTER_CLIENTS
     if (address, port) not in EXPORTER_CLIENTS:
@@ -69,7 +69,7 @@ class Exporter(ExporterClient.ExporterClient, object):
     STATE_FAULT = "Fault"
     STATE_UNKNOWN = "Unknown"
 
-    def __init__(self, address, port, timeout=3, retries=1):
+    def __init__(self, address, port, timeout=10, retries=1):
         super(Exporter, self).__init__(address, port, PROTOCOL.STREAM, timeout, retries)
 
         self.started = False
@@ -158,9 +158,11 @@ class Exporter(ExporterClient.ExporterClient, object):
         while True:
             try:
                 name, value = self.events_queue.get()
-            except Exception:
+            except Exception as ex:
+                logging.getLogger("HWR").error(str(ex))
                 return
-
+            if name.lower() == "currentphase" or name.lower() == "phasecurrent" or value == "Transfer" or value == "Centring" :
+                print("==== CurrentPhase: {}".format(value))
             for cb in self.callbacks.get(name, []):
                 try:
                     cb(self._to_python_value(value))
@@ -176,7 +178,7 @@ class ExporterCommand(CommandObject):
     """Command implementation for Exporter"""
 
     def __init__(
-        self, name, command, username=None, address=None, port=None, timeout=3, **kwargs
+        self, name, command, username=None, address=None, port=None, timeout=10, **kwargs
     ):
         CommandObject.__init__(self, name, username, **kwargs)
         self.command = command
@@ -224,7 +226,7 @@ class ExporterChannel(ChannelObject):
         username=None,
         address=None,
         port=None,
-        timeout=3,
+        timeout=20,
         **kwargs
     ):
         ChannelObject.__init__(self, name, username, **kwargs)
@@ -258,7 +260,7 @@ class ExporterChannel(ChannelObject):
             value = self.__exporter.read_property(self.attribute_name)
             return value
         except Exception as ex:
-            logging.getLogger("HWR").debug(str(ex))
+            logging.getLogger("HWR").error(str(ex))
 
     def set_value(self, value):
         """Set a value

@@ -25,8 +25,8 @@
     <device role="focus" hwrid="./udiff/udiff_phix"/>
     <device role="FrontLight" hwrid="./udiff/udiff_frontlight"/>
     <device role="BackLight" hwrid="./udiff/udiff_backlight"/>
-    <device role="x_centring" hwrid="./udiff/udiff_centringfocus"/>
-    <device role="y_centring" hwrid="./udiff/udiff_centringvertical"/>
+    <device role="centringFocus" hwrid="./udiff/udiff_centringfocus"/>
+    <device role="centringVertical" hwrid="./udiff/udiff_centringvertical"/>
   </motors>
   <grid_directions>
     <holderlength>-1</holderlength>
@@ -46,7 +46,7 @@
     <!--object role="beamstop_distance" href="/udiff_beamstopdistance_mockup"/-->
     <object role="capillary" href="./udiff/capillary"/>
     <object role="aperture" href="./udiff/aperture"/>
-    <object role="sample_vertical" href= "./udiff/udiff_centringvertical"/>
+    <object role="centringVertical" href= "./udiff/udiff_centringvertical"/>
     <!--object role="sample_vertical" href= "/udiff_phiz"/-->
     <object role="sample_horizontal" href="./udiff/udiff_phiy"/>
     <!--object role="sample_horizontal" href="/udiff_centringvertical"/-->

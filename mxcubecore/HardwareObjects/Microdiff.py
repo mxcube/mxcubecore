@@ -349,15 +349,18 @@ class Microdiff(MiniDiff.MiniDiff):
     def set_phase(self, phase, wait=False, timeout=None):
         if self._ready():
             if phase in self.phases:
-                if phase in ["BeamLocation", "Transfer", "Centring"]:
-                    self.close_detector_cover()
-                    self.phase_prepare(phase)
+                # if phase in ["BeamLocation", "Transfer", "Centring"]:
+                #     self.close_detector_cover()
+                #     self.phase_prepare(phase)
+                if not timeout:
+                    timeout = 40
+                self._wait_ready(timeout)
 
                 self.movePhase(phase)
                 if wait:
-                    if not timeout:
-                        timeout = 40
                     self._wait_ready(timeout)
+                self.current_phase = str(phase)
+                self.emit("PhaseChanged", (self.current_phase,))
         else:
             logging.getLogger("HWR").exception("")
 
@@ -387,7 +390,7 @@ class Microdiff(MiniDiff.MiniDiff):
         self._move_sync_motors(argin)
 
         if wait:
-            time.sleep(0.1)
+            time.sleep(0.5)
             self._wait_ready()
         # print "end moving motors =============", time.time()
 

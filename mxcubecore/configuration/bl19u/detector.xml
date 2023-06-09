@@ -1,6 +1,6 @@
 <equipment class = "mxcubecore.HardwareObjects.SSRF.BL19U1.LNLSPilatusDet">
   <object href="/dtox" role="detector_distance"/>
-   <object hwrid="/dtox" role="detector_distance"/>
+<!--   <object hwrid="/dtox" role="detector_distance"/>-->
   <!-- Channels -->
   <channel type="epics" name="det_threshols_energy">BL19U1:cam1:ThresholdEnergy</channel>
   <channel type="epics" name="det_wavelength">BL19U1:cam1:Wavelength</channel>

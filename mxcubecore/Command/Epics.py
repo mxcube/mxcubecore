@@ -39,7 +39,8 @@ __license__ = "LGPLv3+"
 class EpicsCommand(CommandObject):
     def __init__(self, name, pv_name, username=None, args=None, **kwargs):
         CommandObject.__init__(self, name, username, **kwargs)
-
+        if pv_name == "BL19U1:cam1:Armed":
+            print("==== detector status")
         self.pv_name = pv_name
         self.read_as_str = kwargs.get("read_as_str", False)
         # self.auto_monitor = kwargs.get("auto_monitor", True)
@@ -228,7 +229,7 @@ class EpicsChannel(ChannelObject):
         # print("===== Epics value changed!! =====")
         # print(value)
         self.emit("update", value)
-        #self.emit("valueChanged", value)
+        self.emit("valueChanged", value)
 
     def get_value(self):
         return self.command()
