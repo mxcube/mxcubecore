@@ -344,13 +344,13 @@ class MD2(Microdiff.Microdiff):
     def getCalibrationData(self, offset):
         #return self.zoomMotor.get_pixels_per_mm()
         (x, y) = (1.0 / self.x_calib.get_value(), 1.0 / self.y_calib.get_value())
-        print("pixelsPerMmY: %d pixelsPerMmZ: %d" % (x, y))
+        # print("pixelsPerMmY: %d pixelsPerMmZ: %d" % (x, y))
         return (x, y)
 
 
     def getCalibrationData_custom(self):
         (x, y) = (1.0 / self.x_calib.get_value(), 1.0 / self.y_calib.get_value())
-        print("pixelsPerMmY: %d pixelsPerMmZ: %d" % (x, y))
+        # print("pixelsPerMmY: %d pixelsPerMmZ: %d" % (x, y))
         return (x, y)
 
     def motor_positions_to_screen(self, centred_positions_dict):

@@ -605,7 +605,8 @@ class HardwareObjectMixin(CommandContainer):
         Returns:
             (bool): True if ready, otherwise False.
         """
-        return self._ready_event.is_set()
+        return self.get_state() == self.STATES.READY
+        # return self._ready_event.is_set()
 
     def update_state(self, state=None):
         """Update self._state, and emit signal stateChanged if the state has changed

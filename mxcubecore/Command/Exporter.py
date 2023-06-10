@@ -161,8 +161,8 @@ class Exporter(ExporterClient.ExporterClient, object):
             except Exception as ex:
                 logging.getLogger("HWR").error(str(ex))
                 return
-            if name.lower() == "currentphase" or name.lower() == "phasecurrent" or value == "Transfer" or value == "Centring" :
-                print("==== CurrentPhase: {}".format(value))
+            # if name.lower() == "currentphase" or name.lower() == "phasecurrent" or value == "Transfer" or value == "Centring" :
+            #     print("==== CurrentPhase: {}".format(value))
             for cb in self.callbacks.get(name, []):
                 try:
                     cb(self._to_python_value(value))

@@ -431,6 +431,15 @@ class MiniDiff(Equipment):
         self.emit("diffractometerMoved", ())
 
     def is_ready(self):
+        # if self.is_valid():
+        #     a = self.sampleXMotor.is_ready()
+        #     a = self.sampleYMotor.is_ready()
+        #     a = self.zoomMotor.is_ready()
+        #     a = self.phiMotor.is_ready()
+        #     a = self.phizMotor.is_ready()
+        #     a = self.phiyMotor.is_ready()
+        #     if not a:
+        #         print("==== not ready")
         res = self.is_valid() and all(
             [
                 m.is_ready()
@@ -444,7 +453,6 @@ class MiniDiff(Equipment):
                 )
             ]
         )
-
         return res
 
     def is_valid(self):
