@@ -278,7 +278,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             self.emit_collection_finished()
 
             print(self.collection_uuid)
-            self.updateJobStatus(self.collection_uuid, 'PENDING')
+            #self.updateJobStatus(self.collection_uuid, 'PENDING')
 
         except Exception as ex:
             logging.getLogger("HWR").error("[COLLECT] Data collection failed: %s", ex)
@@ -1032,7 +1032,8 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
 
             # for plate head, takes only one image
             if (self.current_dc_parameters["experiment_type"] == "Mesh" or
-                HWR.beamline.diffractometer.head_type == HWR.beamline.diffractometer.HEAD_TYPE_PLATE
+                # HWR.beamline.diffractometer.head_type.value == HWR.beamline.diffractometer.HEAD_TYPE_SMARTMAGNET
+                HWR.beamline.diffractometer.head_type.value == "SmartMagnet"
             ):
                 number_of_snapshots = 1
             else:
@@ -1452,7 +1453,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         beam_centre_x, beam_centre_y = self.get_beam_centre()  # returns pixel
         config["beam_center_x"] = beam_centre_x  # unit, should be pixel for master file
         config["beam_center_y"] = beam_centre_y
-        config["detector_distance"] = HWR.beamline.detector.distance.get_value() / 1000.0
+        config["detector_distance"] = HWR.beamline.detector.distance.get_value()
         config["frame_time"] = oscillation_parameters["exposure_time"]
         config["count_time"] = config["frame_time"] - 0.001  # TODO check if it can be exactly same as frame_time
         config["ntrigger"] = ntrigger

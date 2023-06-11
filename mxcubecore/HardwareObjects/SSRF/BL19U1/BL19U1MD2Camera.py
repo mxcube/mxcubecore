@@ -153,18 +153,18 @@ class BL19U1MD2Camera(Device):
         return None
 
     def takeSnapshot(self, snapshot_filename, bw=True):
-        img = self.image_attr.getValue()
+        img = self.image_attr.get_value()
         imgArray = array.array("b", img)
-        imgStr = imgArray.tostring()
+        imgStr = imgArray.tobytes()
         f = open(snapshot_filename, "wb")
         f.write(imgStr)
         f.close()
         return True
 
     def get_snapshot_img_str(self):
-        img = self.image_attr.getValue()
+        img = self.image_attr.get_value()
         imgArray = array.array("b", img)
-        return imgArray.tostring()
+        return imgArray.tobytes()
 
     def start_video_stream_process(self):
         # import pdb; pdb.set_trace()

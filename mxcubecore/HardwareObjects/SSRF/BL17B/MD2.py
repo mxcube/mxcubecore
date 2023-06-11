@@ -117,7 +117,7 @@ class MD2(Microdiff.Microdiff):
         """
         Descript. :
         """
-        logging.getLogger("HWR").info("MD2 phase changed to %s" % current_phase)
+        logging.getLogger("HWR").info("==== MD2 phase changed to %s" % current_phase)
         self.emit("phaseChanged", (current_phase,))
 
     def update_scale(self):

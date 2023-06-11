@@ -662,7 +662,7 @@ class LNLSPilatusDet(AbstractDetector):
             self.set_image_header()
             logging.getLogger("HWR").info('=============END set_detector_filenames')
             ##############
-            self.updateJobStatus(collect_uuid, saving_directory, 'START')
+            # self.updateJobStatus(collect_uuid, saving_directory, 'START')
         except Exception as ex:
             logging.getLogger("HWR").error(
                 "[HWR] Error set_detector_filenames: %s"
@@ -841,7 +841,8 @@ class LNLSPilatusDet(AbstractDetector):
         self.header["file_comments"] = comment
         self.header["N_oscillations"] = number_of_images
         self.header["Oscillation_axis"] = "omega"
-        self.header["Chi"] = "0.0000 deg."
+        #self.header["Chi"] = "0.0000 deg."
+        self.header["Chi"] = "0"
         kappa_phi = diffractometer_positions.get("kappa_phi", -9999)
         if kappa_phi is None:
             kappa_phi = -9999
