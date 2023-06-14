@@ -530,6 +530,23 @@ class CommandContainer:
                     self.name(),
                     cmd_name,
                 )
+        elif cmd_type.lower() == "socketrobot":
+            host, port = attributes_dict["socket_address"].split(":")
+            try:
+                attributes_dict["address"] = host
+                attributes_dict["port"] = int(port)
+                del attributes_dict["socket_address"]
+
+                from mxcubecore.Command.SocketRobot import SocketRobotCommand
+                # cmd_name就是name,cmd是arg2,**attr 就是把整个字典传过去，一定会用到的有username=None, address=None, port=None，可能要用到的：timeout=10, **kwargs
+                new_command = SocketRobotCommand(cmd_name,cmd,**attributes_dict)
+            except Exception:
+                logging.getLogger().exception(
+                    "%s: cannot add command %s (hint: check attributes)",
+                    self.name(),
+                    cmd_name,
+                )
+
         elif cmd_type.lower() == "epics":
             try:
                 from mxcubecore.Command.Epics import EpicsCommand
