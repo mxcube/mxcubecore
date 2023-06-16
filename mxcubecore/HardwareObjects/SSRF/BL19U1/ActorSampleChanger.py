@@ -217,8 +217,8 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
                 if type(self._ifcmdSucceeded) is Exception:
                     self._ifcmdSucceeded = str(self._ifcmdSucceeded)
                     self._ifcmdSucceeded = self._paraphrase_errorCode(self._ifcmdSucceeded)
-                logging.getLogger("user_level_log").info(
-                    "ErrorCode from robot: %s, please contact the teacher on duty" % self._ifcmdSucceeded)
+                logging.getLogger("user_level_log").error(
+                    "ErrorCode from robot:"+ self._ifcmdSucceeded+",please contact the teacher on duty")
                 raise Exception(f"ErrorCode from robot: {self._ifcmdSucceeded}, please contact the teacher on duty")
 
             # 命令完成
@@ -249,11 +249,12 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
 
 
 
-    def change_MD2_state(self):
+    def change_MD2_state(self,timeout=3):
         MD2 = HWR.beamline.diffractometer
         if MD2.get_current_phase() != "Transfer":
             MD2.set_phase("Transfer", wait=True)
             print("切换完成")
+        gevent.sleep(timeout)
         if MD2.get_current_phase() == "Transfer":
             return True
         else:
@@ -277,8 +278,10 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
             HWR.beamline.sample_changer_maintenance._running = 0
             HWR.beamline.sample_changer_maintenance._update_global_state()
 
-            logging.getLogger("user_level_log").info("please close the lid first")
+            logging.getLogger("user_level_log").error("please close the lid first")# doesn't work,can show on log message, don't know why
             logging.getLogger("HWR").debug("please close the lid first")
+            self.send_msg_to_statemessage("please close the lid first")
+            HWR.beamline.sample_changer_maintenance._update_global_state()
             raise Exception("please close the lid first")
 
         # 判断md2
@@ -348,7 +351,7 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
                 if type(self._ifcmdSucceeded) is Exception:
                     self._ifcmdSucceeded = str(self._ifcmdSucceeded)
                     self._ifcmdSucceeded = self._paraphrase_errorCode(self._ifcmdSucceeded)
-                logging.getLogger("user_level_log").info("ErrorCode from robot: %s, please contact the teacher on duty" %self._ifcmdSucceeded)
+                logging.getLogger("user_level_log").error("ErrorCode from robot: %s, please contact the teacher on duty" % self._ifcmdSucceeded)
                 raise Exception(f"ErrorCode from robot: {self._ifcmdSucceeded}, please contact the teacher on duty")
 
             self._trigger_loaded_sample_changed_event(mounted_sample)
@@ -414,7 +417,7 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         try:
             logging.getLogger("user_level_log").info("即将把样品下到的位置:"+sample_slot+",已上样样品本来所处的位置:"+self.get_loaded_sample().get_address())
         except AttributeError:
-            logging.getLogger("user_level_log").info("还没有上样，无法取下样品")
+            logging.getLogger("user_level_log").error("还没有上样，无法取下样品")
 
             # print("当下样的报错的时候的self.get_loaded_sample()：",self.get_loaded_sample())
             # 下面这行函数会结束load sample，please wait的进度条,真正作用的是
@@ -492,6 +495,9 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
             )
             == self.get_loaded_sample()
         )
+
+    def send_msg_to_statemessage(self,msg):
+        HWR.beamline.sample_changer_maintenance.change_message_error(msg)
 
     def send_sample_address_to_statemessage(self):
         try:

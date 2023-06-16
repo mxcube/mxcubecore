@@ -162,8 +162,8 @@ class ActorMaint(Equipment):
         self._running = 0
         self._powered = 0
         self._toolopen = 0
-        # self._message = ["1. Nothing to report. ","2. current sample: ","None"]
-        self._message = [" ","1. current sample: ","None"]
+        self._message = ["1. ","Nothing to report. ","   2. current sample: ","None"]
+        # self._message = [" ","1. current sample: ","None"]
         self._regulating = 0
         self._lid1state = 1
         self._lid2state = 0
@@ -232,8 +232,9 @@ class ActorMaint(Equipment):
             self._running = state
 
     def change_message_sampleState(self,msg):
-        self._message[2] = msg
-
+        self._message[3] = msg
+    def change_message_error(self,msg):
+        self._message[1] = msg
 
     def get_current_tool(self):
         return self._currenttool
@@ -324,6 +325,7 @@ class ActorMaint(Equipment):
 
         elif state == False:
             HWR.beamline.sample_changer.change_ifcloseLid_inBeginning_state(True)
+            self.change_message_error("Nothing to report")
             self._ifcmdSucceeded  = self._do_cmdCloselid()
 
         print("self._ifcmdSucceeded:", self._ifcmdSucceeded, type(self._ifcmdSucceeded))
@@ -336,7 +338,7 @@ class ActorMaint(Equipment):
             if type(self._ifcmdSucceeded) is Exception:
                 self._ifcmdSucceeded = str(self._ifcmdSucceeded)
                 self._ifcmdSucceeded = HWR.beamline.sample_changer._paraphrase_errorCode(self._ifcmdSucceeded)
-            logging.getLogger("user_level_log").info(
+            logging.getLogger("user_level_log").error(
                 "ErrorCode from robot: %s, please contact the teacher on duty" % self._ifcmdSucceeded)
             raise Exception(f"ErrorCode from robot: {self._ifcmdSucceeded}, please contact the teacher on duty")
 
