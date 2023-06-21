@@ -6,14 +6,15 @@ from mxcubecore.BaseHardwareObjects import Equipment
 
 class PlateManipulatorMaintenance(Equipment):
 
-    __TYPE__ = "PlateManipulatorM"
+    __TYPE__ = "PlateManipulatorMaintenance"
 
     """
-        Plate Manipulator is treated like a SC
+    Actual implementation of the Plate Manipulator MAINTENANCE,
+    COMMANDS ONLY
     """
 
     def __init__(self, *args, **kwargs):
-        Equipment.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
     
     def init(self):
         self._sc = self.get_object_by_role("sample_changer")
@@ -30,9 +31,10 @@ class PlateManipulatorMaintenance(Equipment):
     
     def _move_to_crystal_position(self, args):
         """
-        moveToCrystalPosition current command
+        command to move MD head to x, y crystal position
+        argrs: crystall uuid or none for current drop position
 
-        :returns: None
+        :returns: None if exception
         :rtype: None
         """
         return self._sc.move_to_crystal_position(args)
@@ -42,6 +44,11 @@ class PlateManipulatorMaintenance(Equipment):
         self._sc._do_change_mode(args)
 
     def set_plate_barcode(self, args):
+        """
+        Plate barcode is set in config, but can be update here
+        :returns: None
+        :rtype: None
+        """
         ret = self._sc.change_plate_barcode(args)
         if ret:
             self._update_global_state()
@@ -53,7 +60,7 @@ class PlateManipulatorMaintenance(Equipment):
         :rtype: None
         """
         self._scan_limits = self._sc.get_scan_limits(args)
-        self.emit("globalStateChanged", (self.get_global_state()))
+        self._update_global_state()
 
 
     def _update_global_state(self):
