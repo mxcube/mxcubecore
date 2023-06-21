@@ -94,7 +94,7 @@ class Xtal(Sample):
     
     def get_cell_no(self):
         """
-        In this cas we assume a well in the row is a cell
+        In this cas we assume wells in the row is a cell
         """
         return  self.get_cell().get_row_index() + 1
 
@@ -255,7 +255,7 @@ class PlateManipulator(SampleChanger):
         self.stored_pos_y = 0.5
         self.plate_label = self.get_property("plateLabel")
         self.crims_url = self.get_property("crimsWsRoot")
-        self.plate_barcode = self.get_property("PlateBarode")
+        self.plate_barcode = self.get_property("PlateBarcode")
         self.harvester_key = self.get_property("harvesterKey")
 
         self.cmd_move_to_drop = self.get_command_object("MoveToDrop")
@@ -395,57 +395,57 @@ class PlateManipulator(SampleChanger):
     def load(self, sample=None, wait=True):
         comp = self._resolve_component(sample)
         coords = comp.get_coords()
-        self._set_loaded_sample(sample)
-        return self.load_sample(coords)
+        res = self.load_sample(coords)
+        if res:
+            self._set_loaded_sample(comp)
+            comp._set_loaded(True, True)
+        return res
 
     def load_sample(self, sample_location=None, pos_x=None, pos_y=None, wait=True):
         """
         Location is estimated by sample location and reference positions.
         """
-        if len(sample_location) == 3:
-            row = sample_location[0] -1
-            col = sample_location[1] -1
-            drop = sample_location[2]
-        else:
+        try:
             row = sample_location[0] - 1
             col = int((sample_location[1] - 1) / self.num_drops)
             drop = sample_location[1] - self.num_drops * col
 
-        if not pos_x:
-            # pos_x = self.reference_pos_x
-            pos_x = self.stored_pos_x
-        else:
-            self.stored_pos_x = pos_x
-        if not pos_y:
-            pos_y = self.stored_pos_y
-        else:
-            self.stored_pos_y = pos_y
-            # pos_y = float(drop) / (self.num_drops + 1)
+            if not pos_x:
+                pos_x = self.stored_pos_x
+            else:
+                self.stored_pos_x = pos_x
+            if not pos_y:
+                pos_y = self.stored_pos_y
+            else:
+                self.stored_pos_y = pos_y
+                # pos_y = float(drop) / (self.num_drops + 1)
 
-        if self.cmd_move_to_location:
-            self.cmd_move_to_location(row, col, pos_x, pos_y)
-            if wait:
-                self._wait_ready(60)
-        elif self.cmd_move_to_drop:
-            self.cmd_move_to_drop(row, col, drop - 1)
-            if wait:
-                self._wait_ready(60)
-        else:
-            # No actual move cmd defined. Act like a mockup
-            self.plate_location = [row, col, self.reference_pos_x, pos_y]
-            col += 1
-            cell = self.get_component_by_address("%s%d" % (chr(65 + row), col))
-            drop = cell.get_component_by_address("%s%d:%d" % (chr(65 + row), col, drop))
-            new_sample = drop.get_sample()
-            old_sample = self.get_loaded_sample()
-            new_sample = drop.get_sample()
-            if old_sample != new_sample:
-                if old_sample is not None:
-                    old_sample._set_loaded(False, True)
-                if new_sample is not None:
-                    new_sample._set_loaded(True, True)
+            if self.cmd_move_to_location:
+                self.cmd_move_to_location(row, col, pos_x, pos_y)
+                if wait:
+                    self._wait_ready(60)
+            elif self.cmd_move_to_drop:
+                self.cmd_move_to_drop(row, col, drop - 1)
+                if wait:
+                    self._wait_ready(60)
+            else:
+                # No actual move cmd defined. Act like a mockup
+                self.plate_location = [row, col, self.stored_pos_x, pos_y]
+                col += 1
+                cell = self.get_component_by_address("%s%d" % (chr(65 + row), col))
+                drop = cell.get_component_by_address("%s%d:%d" % (chr(65 + row), col, drop))
+                new_sample = drop.get_sample()
+                old_sample = self.get_loaded_sample()
+                new_sample = drop.get_sample()
+                if old_sample != new_sample:
+                    if old_sample is not None:
+                        old_sample._set_loaded(False, True)
+                    if new_sample is not None:
+                        new_sample._set_loaded(True, True)
 
-        return True
+            return True
+        except:
+             return False   
 
     def _do_unload(self, sample_slot=None):
         """
@@ -484,7 +484,7 @@ class PlateManipulator(SampleChanger):
         """
         Descript. :
         """
-        pos_x = self.reference_pos_x
+        pos_x = self.stored_pos_x
         pos_y = 0.5
 
         if isinstance(component, Xtal):
@@ -561,15 +561,13 @@ class PlateManipulator(SampleChanger):
                 xtal._set_name(x.sample)
                 xtal._set_info_url(x.summary_url)
                 drop._add_component(xtal)
-            return processing_plan
+        return processing_plan
 
     def _do_update_info(self):
         """
         Descript. :
         """
         self._update_state()
-        # TODO remove self._update_loaded_sample and add event to self.chan_plate_location
-        # self._update_loaded_sample()
 
     def _read_state(self):
         return self.chan_state.get_value()
@@ -588,22 +586,15 @@ class PlateManipulator(SampleChanger):
 
     def _update_loaded_sample(self):
         """Updates plate location"""
-        old_sample = self.get_loaded_sample()
 
         if self.plate_location is not None:
-            new_sample = self.get_sample(self.plate_location)
-
-            if old_sample != new_sample:
-                if old_sample is not None:
-                    # there was a sample on the gonio
-                    loaded = False
-                    has_been_loaded = True
-                    old_sample._set_loaded(loaded, has_been_loaded)
-                if new_sample is not None:
-                    # self._update_sample_barcode(new_sample)
-                    loaded = True
-                    has_been_loaded = True
-                    new_sample._set_loaded(loaded, has_been_loaded)
+            new_sample = self.get_loaded_sample()
+            if new_sample is not None:
+                # self._update_sample_barcode(new_sample)
+                loaded = True
+                has_been_loaded = True
+                new_sample._set_loaded(loaded, has_been_loaded)
+                self._set_loaded_sample(new_sample)
 
     def get_loaded_sample(self):
         sample = None
@@ -622,7 +613,6 @@ class PlateManipulator(SampleChanger):
 
         cell = self.get_component_by_address("%s%d" % (chr(65 + row), col + 1))
         if cell:
-            old_sample = self.get_loaded_sample()
             drop = cell.get_component_by_address(
                 "%s%d:%d" % (chr(65 + row), col + 1, drop_index)
             )
@@ -715,6 +705,7 @@ class PlateManipulator(SampleChanger):
         """
         get Omega Motor Dynamic Scan Limits
         """
+        ret = ''
         if self.cmd_get_omega_scan_limits:
             try:
                 ret = self.cmd_get_omega_scan_limits(args)

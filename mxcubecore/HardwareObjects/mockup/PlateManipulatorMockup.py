@@ -231,7 +231,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         self.num_cols = self.get_property("numCols")
         self.num_rows = self.get_property("numRows")
         self.num_drops = self.get_property("numDrops")
-        self.plate_barcode = self.get_property("PlateBarode")
+        self.plate_barcode = self.get_property("PlateBarcode")
         self.plate_label = self.get_property("plateLabel")
         self.reference_pos_x = self.get_property("referencePosX")
         if not self.reference_pos_x:
@@ -550,8 +550,15 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
     def get_plate_location(self):
         return self.plate_location
 
-    def sync_with_crims(self, barcode):
-        return self._load_data(barcode)
+    def change_plate_barcode(self, barcode):
+        if self._load_data(barcode):
+            self.plate_barcode = barcode
+            return True
+        else:
+            raise Exception("barcode unknown")
+
+    def sync_with_crims(self):
+        return self._load_data(self.plate_barcode)
 
     def re_emit_values(self):
         return
