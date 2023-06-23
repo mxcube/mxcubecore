@@ -35,6 +35,8 @@ import pickle
 import logging
 import gevent
 
+from mxcubecore import HardwareRepository as HWR
+
 from mxcubecore.TaskUtils import task
 from mxcubecore.HardwareObjects.abstract.AbstractSampleChanger import (
     SampleChanger,
@@ -585,6 +587,8 @@ class EMBLFlexHCD(SampleChanger):
         return self._set_loaded_sample_and_prepare(loaded_sample, previous_sample)
 
     def _do_unload(self, sample=None):
+        HWR.beamline.diffractometer.set_phase("Transfer")
+
         self._execute_cmd_exporter(
             "unloadSample",
             sample.get_cell_no(),
