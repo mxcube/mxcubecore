@@ -40,6 +40,7 @@ from mxcubecore.HardwareObjects.abstract.sample_changer import Crims
 from mxcubecore.HardwareObjects.abstract.AbstractSampleChanger import (
     SampleChanger,
     SampleChangerState,
+    SampleChangerMode
 )
 from mxcubecore.HardwareObjects.abstract.sample_changer.Container import (
     Container,
@@ -526,7 +527,7 @@ class PlateManipulator(SampleChanger):
             if len(component > 2):
                 pos_x = component[2]
                 pos_y = component[3]
-            cell = self.get_component_by_address(Cell._get_cell_address(row, column))
+            cell = self.get_component_by_address(Cell._get_cell_address(row, col))
             cell._set_selected(True)
         else:
             raise Exception("Invalid selection")
