@@ -136,7 +136,7 @@ class Cell(Container):
 
 
 class EMBLFlexHCD(SampleChanger):
-    __TYPE__ = "HCD"
+    __TYPE__ = "Flex Sample Changer"
 
     def __init__(self, *args, **kwargs):
         super(EMBLFlexHCD, self).__init__(self.__TYPE__, True, *args, **kwargs)

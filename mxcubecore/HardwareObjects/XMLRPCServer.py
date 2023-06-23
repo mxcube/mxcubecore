@@ -451,7 +451,7 @@ class XMLRPCServer(HardwareObject):
         # Wait a couple of seconds for the files to appear
 
         time.sleep(2)
-        HWR.beamline.diffractometer.wait_ready()
+        HWR.beamline.diffractometer.wait_ready(300)
         tmp_path = HWR.beamline.diffractometer.get_property(
             "custom_snapshot_script_dir", "/tmp"
         )
@@ -579,14 +579,14 @@ class XMLRPCServer(HardwareObject):
         """
         Sets the zoom to a pre-defined level.
         """
-        zoom = HWR.beamline.sample_view.zoom
+        zoom = HWR.beamline.diffractometer.zoomMotor
         zoom.set_value(zoom.value_to_enum(pos))
 
     def get_zoom_level(self):
         """
         Returns the zoom level.
         """
-        zoom = HWR.beamline.sample_view.zoom
+        zoom = HWR.beamline.diffractometer.zoomMotor
         pos = zoom.get_value().value
         return pos
 
