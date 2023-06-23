@@ -48,7 +48,7 @@ class MachCurrent(AbstractMachineInfo):
             logging.getLogger("user_level_log").info(self.opmsg)
         self.emit("valueChanged", (mach, opmsg, fillmode, refill))
 
-    def get_current(self):
+    def get_current(self) -> float:
         try:
             value = self.get_channel_object("Current").get_value()
         except Exception as e:
@@ -57,7 +57,7 @@ class MachCurrent(AbstractMachineInfo):
 
         return value
 
-    def get_message(self):
+    def get_message(self) -> str:
         try:
             msg = self.get_channel_object("OperatorMsg").get_value()
         except Exception as e:
@@ -66,7 +66,7 @@ class MachCurrent(AbstractMachineInfo):
 
         return msg
 
-    def get_fill_mode(self):
+    def get_fill_mode(self) -> str:
         try:
             fmode = self.get_channel_object("FillingMode").get_value()
         except Exception as e:
