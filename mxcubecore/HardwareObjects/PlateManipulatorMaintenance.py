@@ -1,10 +1,10 @@
 """
 Plate Manipulator maintenance.
 """
-from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
-class PlateManipulatorMaintenance(Equipment):
+class PlateManipulatorMaintenance(HardwareObject):
 
     __TYPE__ = "PlateManipulatorMaintenance"
 
