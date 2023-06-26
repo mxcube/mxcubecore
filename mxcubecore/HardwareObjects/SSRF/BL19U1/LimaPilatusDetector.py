@@ -19,6 +19,8 @@ from mxcubecore.HardwareObjects.abstract.AbstractDetector import (
 
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.HardwareObjects.SSRF.BL19U1 import Constants as cts
+from mxcubecore.utils.pymysql_comm import UsingMysql
+
 
 class LimaPilatusDetector(AbstractDetector):
     def __init__(self, name):
@@ -346,7 +348,7 @@ class LimaPilatusDetector(AbstractDetector):
             self.execute_command("set_image_header", headers)
             logging.getLogger("HWR").info('=============END set_detector_filenames')
 
-            self.updateJobStatus(collect_uuid, saving_directory, 'START')
+            self.updateJobStatus(frame_number, collect_uuid, saving_directory, 'START')
         except Exception as ex:
             logging.getLogger("HWR").error(
                 "[HWR] Error set_detector_filenames: %s"
@@ -359,16 +361,21 @@ class LimaPilatusDetector(AbstractDetector):
         logging.getLogger("HWR").info('saved number: %s', savednumber)
         return savednumber
 
-    def updateJobStatus(self, uuid, path, status):
+    def updateJobStatus(self, frame_number, uuid, path, status):
         try:
-            data = {}
-            data['uuid'] = uuid
-            data['src'] = path
-            data['dest'] = path
-            data['status'] = status
-            data['completiontime'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            addr = '{0}/job/insert'.format(cts.server_address)
-            response = requests.post(addr, json.dumps(data))
+            # data = {}
+            # data['uuid'] = uuid
+            # data['src'] = path
+            # data['dest'] = path
+            # data['status'] = status
+            # data['completiontime'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            # addr = '{0}/job/insert'.format(cts.server_address)
+            # response = requests.post(addr, json.dumps(data))
+            completiontime = datetime.now().strftime(' % Y - %m - % d % H: % M: %S')
+            with UsingMysql(log_time=True) as um:
+                sql = "INSERT INTO job (frame_number, src, dest, createtime, status, uuid) VALUES (%d, '%s', '%s', '%s', '%s', '%s')" % (
+                    frame_number, path, path, completiontime, status, uuid)
+                um.cursor.execute(sql)
         except Exception as ex:
             logging.getLogger("HWR").error("[COLLECT] Data collection job update failure: %s", ex)
 

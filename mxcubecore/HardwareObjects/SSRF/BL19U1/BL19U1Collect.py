@@ -32,6 +32,8 @@ from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.SSRF.BL19U1.BL19U1DetCover import DetCover
 from mxcubecore.HardwareObjects.SSRF.BL19U1 import Constants as cts
+from mxcubecore.utils.pymysql_comm import UsingMysql
+
 
 class BL19U1Collect(AbstractCollect, HardwareObject):
     """
@@ -290,12 +292,18 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
 
     def updateJobStatus(self, uuid, status):
         try:
-            data = {}
-            data['uuid'] = uuid
-            data['status'] = status
-            data['completiontime'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            addr = '{0}/job/update'.format(cts.server_address)
-            response = requests.post(addr, json.dumps(data))
+            # data = {}
+            # data['uuid'] = uuid
+            # data['status'] = status
+            # data['completiontime'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            # addr = '{0}/job/update'.format(cts.server_address)
+            # response = requests.post(addr, json.dumps(data))
+
+            completiontime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            with UsingMysql(log_time=True) as um:
+                sql = "UPDATE job SET completiontime = '%s', status = '%s'  WHERE uuid = '%s'" % (
+                completiontime, status, uuid)
+                um.cursor.execute(sql)
         except Exception as ex:
             logging.getLogger("HWR").error("[COLLECT] Data collection job update failure: %s", ex)
 
@@ -445,7 +453,8 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         _filename = '/', _date, _subdir, '/', file_parameters["filename"]
         # _filename = '/', _subdir, '/', file_parameters["filename"]
         oscillation_parameters = self.current_dc_parameters["oscillation_sequence"][0]
-        HWR.beamline.detector.set_detector_filenames(0, oscillation_parameters["start_image_number"],
+        HWR.beamline.detector.set_detector_filenames(oscillation_parameters["number_of_images"],
+                                                     oscillation_parameters["start_image_number"],
                                                      "".join(_filename), self.collection_uuid);
 
         # logging.getLogger("HWR").info("set detector filenames: %S" % "".join(_filename))
