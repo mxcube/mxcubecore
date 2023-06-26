@@ -19,6 +19,7 @@
 
 """ Mockup shutter implementation"""
 
+from warnings import warn
 from enum import Enum, unique
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
@@ -36,7 +37,7 @@ class ShutterStates(Enum):
     AUTOMATIC = HardwareObjectState.READY, 10
 
 
-class ShutterMockup(ActuatorMockup, AbstractShutter):
+class ShutterMockup(AbstractShutter, ActuatorMockup):
     """
     ShutterMockup for simulating a simple open/close shutter.
     """
@@ -45,18 +46,11 @@ class ShutterMockup(ActuatorMockup, AbstractShutter):
 
     def init(self):
         """Initialisation"""
-        super(ShutterMockup, self).init()
+        super().init()
         self.update_value(self.VALUES.CLOSED)
         self.update_state(self.STATES.READY)
 
-    def is_open(self):
-        return self.get_value() is self.VALUES.OPEN
-
     def is_closed(self):
+        """This is deprecated"""
+        warn("is_closed is deprecated. Use is_open instead", DeprecationWarning)
         return self.get_value() is self.VALUES.CLOSED
-
-    def open(self):
-        self.set_value(self.VALUES.OPEN, timeout=None)
-
-    def close(self):
-        self.set_value(self.VALUES.CLOSED, timeout=None)
