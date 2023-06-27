@@ -34,12 +34,14 @@ def set_running_sc(func):
         HWR.beamline.sample_changer_maintenance._update_global_state()
         # print("设置完running状态：",HWR.beamline.sample_changer_maintenance.running)
 
-        res = func(self,sample,wait) #command的返回值ret,命令运行成功应该会返回机械手的返回信息，如果没有连通机械手返回False
-
-
-        # 结束机械手运动状态
-        HWR.beamline.sample_changer_maintenance._running = 0
-        HWR.beamline.sample_changer_maintenance._update_global_state()
+        try:
+            res = func(self,sample,wait) #command的返回值ret,命令运行成功应该会返回机械手的返回信息，如果没有连通机械手返回False
+        except Exception as e:
+            raise e
+        finally:
+            # 结束机械手运动状态
+            HWR.beamline.sample_changer_maintenance._running = 0
+            HWR.beamline.sample_changer_maintenance._update_global_state()
         if self._ifcmdSucceeded:
             self._ifcmdSucceeded = False
             return res
@@ -81,6 +83,7 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         self._selected_sample = -1
         self._selected_basket = -1
         self._scIsCharging = None
+        # self.use_magnet = self.getroperty("")
 
 
         self.no_of_baskets = self.get_property(
@@ -108,7 +111,7 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         self._dewar=1
         self.socket_addr = '10.30.61.73:10100'
         self._ifcloseLid_inBeginning = False
-        self.count = 14
+        self.count = 15
 
         self._cmdMount = self.add_command(
             {"type": "socketrobot", "socket_address": self.socket_addr, "name": '_cmdMount'},
@@ -121,6 +124,11 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         self._cmdExchange = self.add_command(
             {"type": "socketrobot", "socket_address": self.socket_addr, "name": '_cmdExchange'},
             'Exchange'
+        )
+
+        self._cmdGetStatus = self.add_command(
+            {"type": "socketrobot", "socket_address": self.socket_addr, "name": '_cmdGetStatus'},
+            'GetRobotStatus'
         )
 
         self._ifcmdSucceeded = False
@@ -140,6 +148,10 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
     def _do_exchange(self,oldMagazine,oldPosition,newMagazine,newPosition):
         print("oldMagazine,oldPosition,NewMagazine,NewPosition:",oldMagazine,oldPosition,newMagazine,newPosition)
         return self._cmdExchange(oldMagazine=oldMagazine,oldPosition=oldPosition,newMagazine=newMagazine,newPosition=newPosition)
+
+    @if_ErrorCode
+    def _do_getStatus(self):
+        return self._cmdGetStatus()
 
     def get_log_filename(self):
         return self.log_filename
@@ -164,8 +176,7 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
 
         #检查md2
         self.check_MD2_state()
-
-
+        # self.check_MD2_Magnet()
 
         oldsample = self.get_loaded_sample().get_address()
         print("oldsample: ",oldsample,"newsample: ",newsample)
@@ -262,30 +273,54 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
 
     def check_MD2_state(self):
         if not self.change_MD2_state():
-            raise Exception("please check the status of MD2")
+            logging.getLogger("user_level_log").error(
+                "The MD2 seems cannot change to sample change status while mounting,please contact the teacher on duty")
+            raise Exception("The MD2 seems cannot change to sample change status while mounting,please contact the teacher on duty")
         else:
-            print("进入安全等待时间5s")
-            time.sleep(5)
+            print("进入安全等待时间3s")
+            time.sleep(3)
+    def check_MD2_Magnet(self):
+        MD2 = HWR.beamline.diffractometer
+        print("smart magnet: "+str(MD2.sample_isloaded_magnet.get_value()))
+        if MD2.sample_isloaded_magnet.get_value():
+            logging.getLogger("user_level_log").error(
+                "The smart magnet says there's a sample already been mounted, if there's not, please contact the teacher on duty")
+            raise Exception("The smart magnet says there's a sample already been mounted, if there's not, please contact the teacher on duty")
+
+
 
     @if_running_sc
     @set_running_sc
     def load(self, sample, wait=False):
         print("进入load函数")
 
-        # 先判断是否closelid了
-        if not self._ifcloseLid_inBeginning:
-            # 恢复各种状态
-            HWR.beamline.sample_changer_maintenance._running = 0
-            HWR.beamline.sample_changer_maintenance._update_global_state()
+        # 判断机械手当前状态，如果位置在dewar里，就不用判断close lid
+        ret = self._cmdGetStatus()
+        # print("self._cmdGetStatus")
+        # print(ret)
+        index_RobotLocation = ret.index('RobotLocation')
+        RobotLocation= ret[index_RobotLocation+2]
 
-            logging.getLogger("user_level_log").error("please close the lid first")# doesn't work,can show on log message, don't know why
-            logging.getLogger("HWR").debug("please close the lid first")
-            self.send_msg_to_statemessage("please close the lid first")
-            HWR.beamline.sample_changer_maintenance._update_global_state()
-            raise Exception("please close the lid first")
+        #不在dewar里
+        if RobotLocation != "2":
+            # 先判断是否closelid了
+            if not self._ifcloseLid_inBeginning:
+                # 恢复各种状态
+                HWR.beamline.sample_changer_maintenance._running = 0
+                HWR.beamline.sample_changer_maintenance._update_global_state()
+
+                logging.getLogger("user_level_log").error("please close the lid first")# doesn't work,can show on log message, don't know why
+                logging.getLogger("HWR").debug("please close the lid first")
+                self.send_msg_to_statemessage("please close the lid first")
+                HWR.beamline.sample_changer_maintenance._update_global_state()
+                raise Exception("please close the lid first")
+        #在dewar里
+        else:
+            self.change_ifcloseLid_inBeginning_state(True)
 
         # 判断md2
         self.check_MD2_state()
+        self.check_MD2_Magnet()
 
         self.emit("fsmConditionChanged", "sample_mounting_sample_changer", True)
         previous_sample = self.get_loaded_sample()
@@ -478,6 +513,8 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
             return "Pin already mounted, (if there is no Pin mounted, then it could be the incorrect judge from infrared senor)"
         elif errorCode == "31":
             return "Pin is not sensored on goniometer after mounting, (maybe caused by there's no pin in that postion)"
+        elif errorCode == "32":
+            return "Pin is sensored on goniometer by infrared ray while tring to mount a new one, (please check if there really has a pin)"
         else:
             return errorCode
 

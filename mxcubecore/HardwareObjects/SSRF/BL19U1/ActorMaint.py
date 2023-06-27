@@ -634,7 +634,7 @@ class ActorMaint(Equipment):
                 [
                     ["home", "Home", "Actions", "Home (trajectory)"],
                     ["dry", "Dry", "Actions", "Dry (trajectory)"],
-                    ["soak", "Soak", "Actions", "Soak (trajectory)"],
+                    # ["soak", "Soak", "Actions", "Soak (trajectory)"],
                 ],
             ],
             [
@@ -646,9 +646,9 @@ class ActorMaint(Equipment):
                         "Clear Info in Robot Memory "
                         " (includes info about sample on Diffr)",
                     ],
-                    ["reset", "Reset Message", "Reset Cats State"],
-                    ["back", "Back", "Reset Cats State"],
-                    ["safe", "Safe", "Reset Cats State"],
+                    # ["reset", "Reset Message", "Reset Cats State"],
+                    # ["back", "Back", "Reset Cats State"],
+                    # ["safe", "Safe", "Reset Cats State"],
                 ],
             ],
             ["Abort", [["abort", "Abort", "Abort Execution of Command"]]],

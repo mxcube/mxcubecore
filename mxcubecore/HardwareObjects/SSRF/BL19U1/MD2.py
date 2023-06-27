@@ -89,6 +89,14 @@ class MD2(Microdiff.Microdiff):
             },
             "State",
         )
+        self.sample_isloaded_magnet = self.add_channel(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "sample_isloaded_magnet",
+            },
+            "SampleIsLoaded",
+        )
 
         self.save_centring_positions = self.add_command(
             {

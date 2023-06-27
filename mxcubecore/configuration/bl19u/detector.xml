@@ -102,8 +102,8 @@
   <file_suffix>cbf</file_suffix>
   <trigger_mode>exts</trigger_mode>
   <deadtime>0.0023</deadtime>
-  <!--buffer>/data1</buffer-->
-  <buffer>/data/images</buffer>
+  <buffer>/data1</buffer>
+<!--  <buffer>/data/images</buffer>-->
   <user>det</user>
   <control>10.30.61.81</control>
   <beam>
