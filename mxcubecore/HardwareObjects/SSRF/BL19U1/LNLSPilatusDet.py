@@ -707,9 +707,9 @@ class LNLSPilatusDet(AbstractDetector):
             # data['completiontime'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             # addr = '{0}/job/insert'.format(cts.server_address)
             # response = requests.post(addr, json.dumps(data))
-            completiontime = datetime.now().strftime(' % Y - %m - % d % H: % M: %S')
+            completiontime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             with UsingMysql(log_time=True) as um:
-                sql = "INSERT INTO job (frame_number, src, dest, createtime, status, uuid) VALUES (%d, '%s', '%s', '%s', '%s', '%s')" % (
+                sql = "INSERT INTO job (nimage, src, dest, createtime, status, uuid) VALUES (%d, '%s', '%s', '%s', '%s', '%s')" % (
                     frame_number, path, path, completiontime, status, uuid)
                 um.cursor.execute(sql)
         except Exception as ex:

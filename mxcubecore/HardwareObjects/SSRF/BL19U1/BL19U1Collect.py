@@ -115,7 +115,8 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         #         "[HWR] *** Detector min exposure not available, set to 0.1"
         #     )
         #     min_exp = 0.1
-        min_exp = 0.05
+        #     min_exp = 0.05
+        min_exp=0.01
         try:
             pix_x = HWR.beamline.detector.get_pixel_size_x()
         except Exception:
@@ -280,7 +281,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             self.emit_collection_finished()
 
             print(self.collection_uuid)
-            #self.updateJobStatus(self.collection_uuid, 'PENDING')
+            self.updateJobStatus(self.collection_uuid, 'PENDING')
 
         except Exception as ex:
             logging.getLogger("HWR").error("[COLLECT] Data collection failed: %s", ex)
