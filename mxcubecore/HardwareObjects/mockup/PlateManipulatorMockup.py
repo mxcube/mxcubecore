@@ -73,6 +73,7 @@ class Xtal(Sample.Sample):
 
         self._set_info(False, False, False)
         self._set_loaded(False, False)
+        self.present = True
 
     def _set_name(self, value):
         self._set_property(self.__NAME_PROPERTY__, value)
@@ -88,6 +89,18 @@ class Xtal(Sample.Sample):
 
     def get_cell(self):
         return self.get_drop().get_cell()
+
+    def get_basket_no(self):
+        """
+        In this cas we assume a drop is a basket or puck
+        """
+        return self.get_drop().get_index() + 1
+    
+    def get_cell_no(self):
+        """
+        In this cas we assume a well in the row is a cell
+        """
+        return  self.get_cell().get_row_index() + 1
 
     @staticmethod
     def _get_xtal_address(drop, index):
@@ -150,11 +163,6 @@ class Drop(Container.Container):
         sample = self.get_components()
         return sample[0]
 
-    # def get_index(self):
-    #    """
-    #    Descript. Drop index is relative to the row
-    #    """
-    #    return self._well_no
 
 
 class Cell(Container.Container):
@@ -205,6 +213,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
             self.__TYPE__, False, *args, **kwargs
         )
 
+        self.plate_label = None
         self.num_cols = None
         self.num_rows = None
         self.num_drops = None
@@ -213,6 +222,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         self.timeout = 3  # default timeout
         self.plate_location = None
         self.crims_url = None
+        self.plate_barcode = None
 
     def init(self):
         """
@@ -221,6 +231,8 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         self.num_cols = self.get_property("numCols")
         self.num_rows = self.get_property("numRows")
         self.num_drops = self.get_property("numDrops")
+        self.plate_barcode = self.get_property("PlateBarcode")
+        self.plate_label = self.get_property("plateLabel")
         self.reference_pos_x = self.get_property("referencePosX")
         if not self.reference_pos_x:
             self.reference_pos_x = 0.5
@@ -230,6 +242,12 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         AbstractSampleChanger.SampleChanger.init(self)
 
         self.update_state(self.STATES.READY)
+    
+    def _read_state(self):
+        return 'ready'
+    
+    def _ready(self):
+        return True
 
     def _on_state_changed(self, state):
         """
@@ -238,23 +256,23 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         """
         SampleChangerState = AbstractSampleChanger.SampleChangerState
         if state is None:
-            self._set_state(AbstractSampleChanger.SampleChangerState.Unknown)
+            self._set_state(SampleChangerState.Unknown)
         else:
             if state == "Alarm":
-                self._set_state(AbstractSampleChanger.SampleChangerState.Alarm)
+                self._set_state(SampleChangerState.Alarm)
             elif state == "Fault":
-                self._set_state(AbstractSampleChanger.SampleChangerState.Fault)
+                self._set_state(SampleChangerState.Fault)
             elif state == "Moving" or state == "Running":
-                self._set_state(AbstractSampleChanger.SampleChangerState.Moving)
+                self._set_state(SampleChangerState.Moving)
             elif state == "Ready":
                 if self.current_phase == "Transfer":
-                    self._set_state(AbstractSampleChanger.SampleChangerState.Charging)
+                    self._set_state(SampleChangerState.Charging)
                 elif self.current_phase == "Centring":
-                    self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
+                    self._set_state(SampleChangerState.Ready)
                 else:
-                    self._set_state(AbstractSampleChanger.SampleChangerState.StandBy)
+                    self._set_state(SampleChangerState.StandBy)
             elif state == "Initializing":
-                self._set_state(AbstractSampleChanger.SampleChangerState.Initializing)
+                self._set_state(SampleChangerState.Initializing)
 
     def _init_sc_contents(self):
         """
@@ -276,6 +294,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
             for col in range(self.num_cols):
                 cell = Cell(basket, chr(65 + row), col + 1, self.num_drops)
                 basket._add_component(cell)
+        self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
 
     def _do_abort(self):
         """
@@ -489,7 +508,6 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
 
         cell = self.get_component_by_address("%s%d" % (chr(65 + row), col + 1))
         if cell:
-            old_sample = self.get_loaded_sample()
             drop = cell.get_component_by_address(
                 "%s%d:%d" % (chr(65 + row), col + 1, drop_index)
             )
@@ -524,16 +542,23 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         plate_info_dict["num_cols"] = self.num_cols
         plate_info_dict["num_rows"] = self.num_rows
         plate_info_dict["num_drops"] = self.num_drops
-        plate_info_dict["plate_label"] = "Demo plate label"
+        plate_info_dict["plate_label"] = self.plate_label or  "Demo plate label"
+        plate_info_dict["plate_barcode"] = self.plate_barcode or  ""
+        
         return plate_info_dict
 
     def get_plate_location(self):
-        # if self.chan_plate_location is not None:
-        #    self.plate_location = self.chan_plate_location.get_value()
         return self.plate_location
 
-    def sync_with_crims(self, barcode):
-        return self._load_data(barcode)
+    def change_plate_barcode(self, barcode):
+        if self._load_data(barcode):
+            self.plate_barcode = barcode
+            return True
+        else:
+            raise Exception("barcode unknown")
+
+    def sync_with_crims(self):
+        return self._load_data(self.plate_barcode)
 
     def re_emit_values(self):
         return
