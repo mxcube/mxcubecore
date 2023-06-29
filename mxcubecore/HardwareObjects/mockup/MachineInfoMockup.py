@@ -78,7 +78,7 @@ class MachineInfoMockup(AbstractMachineInfo):
                 self._message = self.default_message
                 self.attention = False
 
-            self._current = (
+            self._current = "%3.2f" % (
                 self.default_current - (3 - self._topup_remaining / 100.0) * 5
             )
 
