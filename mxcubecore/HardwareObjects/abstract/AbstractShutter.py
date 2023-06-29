@@ -18,14 +18,15 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """ AbstractShutter class - interface for shutter type devices.
-Defines BaseValueEnum and ShutterStates Enums.
+Define open/close methods and is_open property.
+Overload BaseValueEnum
 """
 
 import abc
 from enum import Enum, unique
 from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
 
-__copyright__ = """ Copyright 2016-2022 by the MXCuBE collaboration """
+__copyright__ = """ Copyright 2016-2023 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
@@ -42,20 +43,29 @@ class AbstractShutter(AbstractNState):
     """Abstract base class for shutter type objects."""
 
     __metaclass__ = abc.ABCMeta
-    VALUES = BaseValueEnum
 
     @property
     def is_open(self):
-        """Check the state of the shutter.
+        """Check if the shutter is open.
         Returns:
             (bool): True if open, False otherwise.
         """
         return self.get_value() == self.VALUES.OPEN
 
-    def open(self):
-        """Open the shutter."""
-        self.set_value(self.VALUES.OPEN)
+    def open(self, timeout=None):
+        """Open the shutter.
+        Args:
+            timeout(float): optional - timeout [s],
+                            If timeout == 0: return at once and do not wait
+                            if timeout is None: wait forever.
+        """
+        self.set_value(self.VALUES.OPEN, timeout=timeout)
 
-    def close(self):
-        """Close the shutter"""
-        self.set_value(self.VALUES.CLOSED)
+    def close(self, timeout=None):
+        """Close the shutter.
+        Args:
+            timeout(float): optional - timeout [s],
+                            If timeout == 0: return at once and do not wait
+                            if timeout is None: wait forever.
+        """
+        self.set_value(self.VALUES.CLOSED, timeout=timeout)
