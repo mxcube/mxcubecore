@@ -75,7 +75,7 @@ class Microdiff(MiniDiff.MiniDiff):
             "DataCollection": 3,
             "Transfer": 4,
         }
-        self.movePhase = self.add_command(
+        self.move_phase = self.add_command(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -419,7 +419,7 @@ class Microdiff(MiniDiff.MiniDiff):
                     # self.close_detector_cover()
                     self.phase_prepare(phase)
 
-                self.movePhase(phase)
+                self.move_phase(phase)
                 if wait:
                     if not timeout:
                         timeout = 40

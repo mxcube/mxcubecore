@@ -1567,15 +1567,7 @@ class PathTemplate(object):
         return prefix
 
     def get_image_file_name(self, suffix=None):
-        template = "%s_%s_%%0" + str(self.precision) + "d.%s"
-
-        if suffix:
-            file_name = template % (self.get_prefix(), self.run_number, suffix)
-        else:
-            file_name = template % (self.get_prefix(), self.run_number, self.suffix)
-        if self.compression:
-            file_name = "%s.gz" % file_name
-
+        file_name = HWR.beamline.detector.get_image_file_name(self)
         return file_name
 
     def get_image_path(self):

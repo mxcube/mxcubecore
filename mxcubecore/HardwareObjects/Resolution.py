@@ -40,15 +40,6 @@ __license__ = "LGPLv3+"
 class Resolution(AbstractResolution):
     """Resolution as motor"""
 
-    unit = "Å"
-
-    def __init__(self, name):
-        super(Resolution, self).__init__(name)
-
-    def init(self):
-        """Initialisation"""
-        super(Resolution, self).init()
-
     def set_value(self, value, timeout=None):
         """Set the resolution.
         Args:

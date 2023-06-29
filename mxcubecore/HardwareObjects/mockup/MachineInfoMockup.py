@@ -77,32 +77,34 @@ class MachineInfoMockup(AbstractMachineInfo):
             else:
                 self._message = self.default_message
                 self.attention = False
+
             self._current = "%3.2f" % (
                 self.default_current - (3 - self._topup_remaining / 100.0) * 5
             )
+
             values = dict()
             values["current"] = self._current
             values["message"] = self._message
-            values["lifetime"] = "%3.2f hours" % self._lifetime
-            values["topup_remaining"] = "%3.0f secs" % self._topup_remaining
+            values["lifetime"] = self._lifetime
+            values["topup_remaining"] = self._topup_remaining
             values["attention"] = self.attention
             self._mach_info_dict = values
 
             self.emit("machInfoChanged", values)
 
-    def get_current(self):
+    def get_current(self) -> float:
         """Override method."""
         return self._current
 
-    def get_lifetime(self):
+    def get_lifetime(self) -> float:
         """Override method."""
         return self._lifetime
 
-    def get_topup_remaining(self):
+    def get_topup_remaining(self) -> float:
         """Override method."""
         return self._topup_remaining
 
-    def get_message(self):
+    def get_message(self) -> str:
         """Override method."""
         return self._message
 

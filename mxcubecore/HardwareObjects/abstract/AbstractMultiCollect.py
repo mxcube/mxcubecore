@@ -9,6 +9,7 @@ import abc
 import collections
 import autoprocessing
 import gevent
+import socket
 from mxcubecore.TaskUtils import task, cleanup, error_cleanup
 
 from mxcubecore import HardwareRepository as HWR
@@ -282,6 +283,31 @@ class AbstractMultiCollect(object):
             except os.error as e:
                 if e.errno != errno.EEXIST:
                     raise
+
+    def adxv_notify(self, image_filename: str, image_num: int = 1):
+        """
+        Notify ADXV of new image
+
+        Args:
+           image_filename: full path to image file
+           image_num: image number within image file to open (if it conatins
+                      mutiple images i.e HDF5)
+        """
+        logging.getLogger("HWR").info(f"ADXV notify {image_filename}")
+        adxv_host = self.get_property("adxv_host", "localhost")
+        adxv_port = int(self.get_property("adxv_port", "8100"))
+
+        try:
+            adxv_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            adxv_socket.connect((adxv_host, adxv_port))
+            adxv_socket.sendall(
+                f"load_image {image_filename}\n slab {image_num}\n".encode()
+            )
+            adxv_socket.close()
+        except Exception:
+            logging.getLogger("HWR").exception("")
+        else:
+            pass
 
     def _take_crystal_snapshots(self, number_of_snapshots):
         try:
