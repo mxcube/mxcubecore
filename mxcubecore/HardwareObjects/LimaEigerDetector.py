@@ -22,6 +22,7 @@ class LimaEigerDetector(AbstractDetector):
         AbstractDetector.init(self)
 
         self.header = dict()
+        self._images_per_file = self.get_property("images_per_file", 100)
 
         lima_device = self.get_property("lima_device")
         eiger_device = self.get_property("eiger_device")
@@ -178,7 +179,7 @@ class LimaEigerDetector(AbstractDetector):
             self.set_channel_value("acq_trigger_mode", "EXTERNAL_TRIGGER")
 
         self.get_channel_object("saving_frame_per_file").set_value(
-            min(100, number_of_images)
+            min(self._images_per_file, number_of_images)
         )
 
         # 'MANUAL', 'AUTO_FRAME', 'AUTO_SEQUENCE
@@ -273,17 +274,36 @@ class LimaEigerDetector(AbstractDetector):
 
         return file_name
 
-    def get_first_and_last_file(self, pt: PathTemplate):
+    def get_first_and_last_file(self, pt: PathTemplate) -> tuple:
         """
         Get complete path to first and last image
 
         Args:
-          pt (PathTempalte): Path template parameter
+          Path template parameter
 
         Returns:
-        (Tuple): Tuple containing first and last image path (first, last)
+        Tuple containing first and last image path (first, last)
         """
         start_num = int(math.ceil(pt.start_num / 100))
         end_num = int(math.ceil((pt.start_num + pt.num_files - 1) / 100))
 
         return (pt.get_image_path() % start_num, pt.get_image_path() % end_num)
+
+    def get_actual_file_path(self, master_file_path: str, image_number: int) -> tuple:
+        """
+        Get file path to image with the given image number <image_number> and
+        the master h5 file <master_file_path>
+
+        Args:
+            first_file_path: Path to master h5 file
+            image_number: image number (absolute)
+
+        Returns:
+            A tuple [image file path, image_number (relative to file)]
+        """
+        result_data_path = "_".join(master_file_path.split("_")[0:-2])
+        img_number = int(image_number) % self._images_per_file
+        start_file_number = int(int(image_number) / self._images_per_file) + 1
+        result_data_path += "_data_%06d.h5" % start_file_number
+
+        return result_data_path, img_number

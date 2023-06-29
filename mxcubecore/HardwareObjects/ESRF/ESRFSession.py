@@ -32,7 +32,6 @@ class ESRFSession(Session.Session):
         Returns:
            Sub-directory path string
         """
-
         subdir = ""
 
         if isinstance(sample_data, dict):
@@ -42,10 +41,10 @@ class ESRFSession(Session.Session):
             sample_name = sample_data.name
             protein_acronym = sample_data.crystals[0].protein_acronym
 
-        # if protein_acronym:
-        #    subdir = "%s/%s-%s/" % (protein_acronym, protein_acronym, sample_name)
-        # else:
-        subdir = "%s/" % sample_name
+        if protein_acronym:
+            subdir = "%s/%s-%s/" % (protein_acronym, protein_acronym, sample_name)
+        else:
+            subdir = "%s/" % sample_name
 
         return subdir.replace(":", "-")
 

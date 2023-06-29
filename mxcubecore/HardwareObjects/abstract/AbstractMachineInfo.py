@@ -41,37 +41,44 @@ class AbstractMachineInfo(HardwareObject):
         self._mach_info_dict = {}
 
     @abc.abstractmethod
-    def get_current(self):
+    def get_current(self) -> float:
         """Read current.
         Returns:
-            value: Current.
+            Current.
         """
-        return None
+        return 0
 
-    def get_message(self):
-        """Read message.
-        Returns:
-            value: Message.
+    def get_message(self) -> str:
         """
-        return None
-
-    def get_lifetime(self):
-        """Read life time.
         Returns:
-            value: Life time [s].
+            Message.
         """
-        return None
+        return ""
 
-    def get_topup_remaining(self):
-        """Read top up remaining.
-        Returns:
-            value: Top up remaining.
+    def get_lifetime(self) -> float:
         """
-        return None
-
-    def get_mach_info_dict(self):
-        """Read machine info dictionary.
         Returns:
-            (dict): Copy of mach_info_dict.
+            Life time [s].
+        """
+        return 0
+
+    def get_topup_remaining(self) -> float:
+        """
+        Returns:
+            Top up remaining.
+        """
+        return 0
+
+    def get_fill_mode(self) -> str:
+        """
+        Returns:
+            Machine fille mode
+        """
+        return ""
+
+    def get_mach_info_dict(self) -> dict:
+        """
+        Returns:
+            Copy of mach_info_dict.
         """
         return self._mach_info_dict.copy()
