@@ -83,9 +83,9 @@ default_acquisition_parameters:
     default:
         # Default values, also used for standard acquisition.
         # Values not given in other dictionaries are taken from here
-        exp_time: 0.02        # exposure time
+        exp_time: 0.1        # exposure time
         osc_start: 0.0  # Only used if no current angle can be found
-        osc_range: 0.1
+        osc_range: 1
         num_passes: 1
         first_image: 1
         overlap: 0

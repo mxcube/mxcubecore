@@ -111,7 +111,7 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         self._dewar=1
         self.socket_addr = '10.30.61.73:10100'
         self._ifcloseLid_inBeginning = False
-        self.count = 15
+        self.count = 1
 
         self._cmdMount = self.add_command(
             {"type": "socketrobot", "socket_address": self.socket_addr, "name": '_cmdMount'},
@@ -132,6 +132,11 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         )
 
         self._ifcmdSucceeded = False
+        self.first_launch_mxcube=True #添加
+        self.if_check_mountedPin_from_camerman = False
+
+
+
 
     # def load_sample(self, holder_length, sample_location=None, wait=False):
     #     if Microdiff.get_current_phase() != "Transfer:
@@ -277,8 +282,8 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
                 "The MD2 seems cannot change to sample change status while mounting,please contact the teacher on duty")
             raise Exception("The MD2 seems cannot change to sample change status while mounting,please contact the teacher on duty")
         else:
-            print("进入安全等待时间3s")
-            time.sleep(3)
+            print("进入安全等待时间1s")
+            time.sleep(1)
     def check_MD2_Magnet(self):
         MD2 = HWR.beamline.diffractometer
         print("smart magnet: "+str(MD2.sample_isloaded_magnet.get_value()))
@@ -512,13 +517,39 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         elif errorCode == "24":
             return "Pin already mounted, (if there is no Pin mounted, then it could be the incorrect judge from infrared senor)"
         elif errorCode == "31":
-            return "Pin is not sensored on goniometer after mounting, (maybe caused by there's no pin in that postion)"
+            self.clear_memory()
+            HWR.beamline.sample_changer_maintenance.cmdClearMemory()
+            return "Pin is not sensored on goniometer after mounting, (maybe caused by there's no pin in that postion), please check the goniometer. If there is no pin on it, please try to mount another position"
         elif errorCode == "32":
             return "Pin is sensored on goniometer by infrared ray while tring to mount a new one, (please check if there really has a pin)"
+        elif errorCode == "12":
+            return "Robot E stop, there was a collision happened, please have a check and don't send another command to robot"
         else:
             return errorCode
 
     def get_loaded_sample(self):
+        # 当mxcube重起，向camerman询问已上样信息
+        try:
+            if self.first_launch_mxcube:
+                self.first_launch_mxcube=False
+        except AttributeError:
+            pass
+        else:
+            if not self.if_check_mountedPin_from_camerman:
+                self.if_check_mountedPin_from_camerman = True
+                # 判断机械手当前状态，如果位置在dewar里，就不用判断close lid
+                ret = self._cmdGetStatus()
+                # print("self._cmdGetStatus")
+                print(ret)
+                index_MountedPin = ret.index('MountedPin')
+                MountedPin = ret[index_MountedPin + 2]
+                # 不在dewar里
+                MountedPin = int(MountedPin)
+                if MountedPin != 0:
+                    self._selected_basket =int(MountedPin/100)
+                    self._selected_sample=MountedPin % 100
+
+
         return self.get_component_by_address(
             Container.Pin.get_sample_address(
                 self._selected_basket, self._selected_sample

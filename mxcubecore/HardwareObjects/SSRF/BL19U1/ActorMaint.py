@@ -190,8 +190,8 @@ class ActorMaint(Equipment):
         self._cmdHome = self.add_command(
             {"type": "socketrobot", "socket_address": self._socket_addr, "name": '_cmdHome'}, 'RobotInitialize'
         )
-        self._cmdClearMemory = self.add_command(
-            {"type": "socketrobot", "socket_address": self._socket_addr, "name": '_cmdClearMemory'}, 'SetMountedPin Dewar = 1 Magazine = 0 Position = 0'
+        self.cmdClearMemory = self.add_command(
+            {"type": "socketrobot", "socket_address": self._socket_addr, "name": 'cmdClearMemory'}, 'SetMountedPin Dewar = 1 Magazine = 0 Position = 0'
         )
         self._cmdCloselid = self.add_command(
             {"type": "socketrobot", "socket_address": self._socket_addr, "name": '_cmdCloselid'}, 'Dewar Open = OFF Dewar = 1'
@@ -299,7 +299,7 @@ class ActorMaint(Equipment):
         # 清除系统存储的上样样品
         HWR.beamline.sample_changer.clear_memory()
         # 清除机械手存储的上样样品
-        return self._cmdClearMemory()
+        return self.cmdClearMemory()
 
 
     @if_ErrorCode
@@ -629,10 +629,18 @@ class ActorMaint(Equipment):
                     ["closelid1", "Close Lid", "Close Lid"],
                 ],
             ],
+            # [
+            #     "Lid",
+            #     [
+            #         ["openlid1", "Open Lid", "Actions","Open Lid (trajectory)"],
+            #         ["closelid1", "Close Lid", "Close Lid"],
+            #         # ["soak", "Soak", "Actions", "Soak (trajectory)"],
+            #     ],
+            # ],
             [
                 "Actions",
                 [
-                    ["home", "Home", "Actions", "Home (trajectory)"],
+                    ["home", "Initialize", "Actions", "Home (trajectory)"],
                     ["dry", "Dry", "Actions", "Dry (trajectory)"],
                     # ["soak", "Soak", "Actions", "Soak (trajectory)"],
                 ],

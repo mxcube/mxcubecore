@@ -105,6 +105,12 @@ class LNLSPilatusDet(AbstractDetector):
             xval = self.getProperty("width", 2463) / 2.0 + 0.4
             yval = self.getProperty("height", 2527) / 2.0 + 0.4
         return xval, yval
+    # def get_beam_position(self, distance=None, wavelength=None):
+    #     """Get approx detector centre """
+    #     xval = self.getProperty("bx")
+    #     yval = self.getProperty("by")
+    #     return xval, yval
+
 
     def update_values(self):
         self.emit("detectorModeChanged", (self._roi_mode,))
@@ -873,11 +879,12 @@ class LNLSPilatusDet(AbstractDetector):
         self.header["Transmission"] = HWR.beamline.transmission.get_value()
 
         self.header["Flux"] = HWR.beamline.flux.get_value()
-        self.header["Beam_xy"] = "(%.2f, %.2f) pixels" % tuple(
-            [value / 0.172 for value in HWR.beamline.detector.get_beam_position()]
-        )
+        # self.header["Beam_xy"] = "(%.2f, %.2f) pixels" % tuple(
+        #     [value / 0.172 for value in HWR.beamline.detector.get_beam_position()]
+        # )
+        self.header["Beam_xy"] = "(1232.00, 1264.00) pixels"
         self.header["Detector_Voffset"] = "0.0000 m"
-        self.header["Energy_range"] = "(5, 22) keV"
+        self.header["Energy_range"] = "(7, 20) keV"
         self.header["Detector_distance"] = "%f m" % (self.distance.get_value() / 1000.0)
         self.header["Wavelength"] = "%f A" % HWR.beamline.energy.get_wavelength()
         self.header["Trim_directory:"] = "(nil)"

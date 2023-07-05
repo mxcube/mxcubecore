@@ -1542,7 +1542,8 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
                                                          )
 
 
-    def stop_collect(self, owner):
+    # def stop_collect(self, owner):
+    def stop_collect(self):
         """
         Stops data collection
         """
