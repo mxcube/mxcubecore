@@ -328,6 +328,17 @@ class AbstractDetector(HardwareObject):
         """
         return self._threshold_energy
 
+    def get_image_file_name(self, path_template, suffix=None):
+        template = "%s_%s_%%0" + str(path_template.precision) + "d.%s"
+        suffix = suffix or path_template.suffix
+        file_name = template % (
+            path_template.get_prefix(), path_template.run_number, suffix
+        )
+        if path_template.compression:
+            file_name = "%s.gz" % file_name
+        #
+        return file_name
+
     def get_first_and_last_file(self, pt: PathTemplate):
         """
         Get complete path to first and last image
