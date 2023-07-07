@@ -20,7 +20,11 @@
 
 """Abstract XRF spectrum class. Complient with queue_entry/xrf_spectrum.py
 Define methods:
- - start_xrf_spectrum, execute_xrf_spectrum, cancel_xrf_spectrum
+ - start_xrf_spectrum, execute_xrf_spectrum, spectrum_store_lims,
+   spectrum_command_finished, spectrum_command_failed,
+   spectrum_command_aborted, spectrum_status_change
+Defines hooks for specific implementation:
+ - _execite_xrf_scan, spectrum_analyse, 
 
 Emit signals:
  - xrfSpectrumStarted
@@ -102,20 +106,20 @@ class AbstractXRFSpectrum(HardwareObject):
         self.spectrum_info_dict["startTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
         self.spectrum_running = True
         self.emit("xrfSpectrumStarted", ())
-        gevent.spawn(self.do_xrf_spectrum())
+        gevent.spawn(self.execute_xrf_spectrum())
         return True
 
-    def do_xrf_spectrum(self):
+    def execute_xrf_spectrum(self):
         """Do the acquisition"""
         try:
-            self._do_xrf_spectrum()
+            self._execute_xrf_spectrum()
             self.spectrum_command_finished()
         except RuntimeError as err:
             msg = "XRFSpectrum: could not acquire spectrum"
             logging.getLogger("user_level_log").exception(f"{msg}, {err}")
             self.spectrum_status_change(msg)
 
-    def _do_xrf_spectrum(self):
+    def _execute_xrf_spectrum(self):
         """Specific xrf acquisition procedure"""
 
     def create_directory(self, directory):

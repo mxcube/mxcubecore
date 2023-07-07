@@ -69,7 +69,7 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
         )
         self.cfg_energies.reverse()
 
-    def _do_xrf_spectrum(self):
+    def _execute_xrf_spectrum(self):
         """Do the xrf spectrum - choose appropriate maximum attenuation.
            Save the data file.
         Returns:
