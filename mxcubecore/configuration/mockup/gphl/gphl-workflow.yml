@@ -54,6 +54,9 @@ settings:
         #            )
         #         mode "scan" is not allowed as default
         recentring_mode: sweep
+        # GPHL or MINIKAPPA. Preference for GPHL transcal or MiniKappaCorrection
+        # recentring where both are available Default is GPHL
+        recentring_calc_preference: GPHL
         # Parameters to control proposed total dose budget
         # The proposed budget is calculated so that radiation damage is predicted
         # to reduce the intensity at the highest expected redolution to this percentaged-->

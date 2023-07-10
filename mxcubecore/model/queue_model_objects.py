@@ -2008,6 +2008,7 @@ class GphlWorkflow(TaskNode):
         self.repetition_count = 1
         self.snapshot_count = 2
         self.recentring_mode = "sweep"
+        self.recentring_calc_preference = "GPHL"
 
         # Workflow interleave order (string).
         # Slowest changing first, characters 'g' (Goniostat position);

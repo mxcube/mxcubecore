@@ -284,20 +284,20 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         path_template = workflow_model_obj.get_path_template()
         if "prefix" in workflow_options:
             workflow_options["prefix"] = path_template.base_prefix
-        if strategy_settings["wftype"] != "transcal":
-            workflow_options[
-                "appdir"
-            ] = HWR.beamline.session.get_base_process_directory()
         workflow_options["wdir"] = self.software_paths["GPHL_WDIR"]
         workflow_options["persistname"] = self.gphl_persistname
 
         # Set the workflow root subdirectory parameter from the base image directory
         image_root = os.path.abspath(HWR.beamline.session.get_base_image_directory())
-        rootsubdir = path_template.directory[len(image_root) :]
-        if rootsubdir.startswith(os.path.sep):
-            rootsubdir = rootsubdir[1:]
-        if rootsubdir:
-            workflow_options["rootsubdir"] = rootsubdir
+        if strategy_settings["wftype"] != "transcal":
+            workflow_options[
+                "appdir"
+            ] = HWR.beamline.session.get_base_process_directory()
+            rootsubdir = path_template.directory[len(image_root) :]
+            if rootsubdir.startswith(os.path.sep):
+                rootsubdir = rootsubdir[1:]
+            if rootsubdir:
+                workflow_options["rootsubdir"] = rootsubdir
 
         # Hardcoded - location for log output
         command_list.extend(

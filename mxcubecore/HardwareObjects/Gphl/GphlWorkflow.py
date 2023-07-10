@@ -49,6 +49,7 @@ from mxcubecore.queue_entry import QUEUE_ENTRY_STATUS
 from mxcubecore.queue_entry import QueueAbortedException
 
 from mxcubecore.HardwareObjects.Gphl import GphlMessages
+from mxcubecore.HardwareObjects.Gphl.Transcal2MiniKappa import make_home_data
 from mxcubecore import HardwareRepository as HWR
 
 
@@ -211,8 +212,10 @@ class GphlWorkflow(HardwareObjectYaml):
         # Configurable file paths
         self.file_paths = {}
 
+        # Options "GPHL", "MINIKAPPA", None
+        self.recentring = None
         # Configuration data for recentring calculations
-        self.recentring_data = OrderedDict()
+        self._recentring_data = OrderedDict()
 
         # TEST mxcube3 UI
         self.gevent_event = gevent.event.Event()
@@ -294,11 +297,15 @@ class GphlWorkflow(HardwareObjectYaml):
                         )
 
         self.update_state(self.STATES.READY)
-        self.setup_recentring()
+        recentring_calc_preference = self.settings["defaults"].get(
+            "recentring_calc_preference"
+        )
+        self.setup_recentring(preferred_mode=recentring_calc_preference)
 
-    def setup_recentring(self, force=True):
+    def setup_recentring(self, preferred_mode=None):
 
-        recen_data = self.recentring_data
+        preferred_mode = preferred_mode or "GPHL"
+        recen_data = self._recentring_data
 
         transcal_data = None
         fp0 = self.file_paths.get("transcal_file")
@@ -319,47 +326,29 @@ class GphlWorkflow(HardwareObjectYaml):
         minikappa_correction = HWR.beamline.diffractometer.get_object_by_role(
             "minikappa_correction"
         )
-        if minikappa_correction and (force or not transcal_data):
-            posk = minikappa_correction.kappa["position"]
-            dirk = minikappa_correction.kappa["direction"]
-            posp = minikappa_correction.phi["position"]
-            dirp = minikappa_correction.phi["direction"]
-            aval = dirk.dot(dirp)
-            bvec = posk - posp
-            kappahome = -posk + (aval * bvec.dot(dirp) - bvec.dot(dirk)) * dirk / (
-                aval * aval - 1
+        fp0 = self.file_paths.get("instrumentation_file")
+        instrumentation_data = f90nml.read(fp0)["sdcp_instrument_list"]
+        centring_axes = instrumentation_data["gonio_centring_axis_dirs"]
+
+        if transcal_data and (preferred_mode == "GPHL" or not minikappa_correction):
+            self.recentring = "GPHL"
+
+        elif minikappa_correction:
+            self.recentring = "MINIKAPPA"
+            home_position, cross_sec_of_soc = make_home_data(
+                centring_axes=centring_axes,
+                axis_names=instrumentation_data["gonio_centring_axis_names"],
+                kappadir=minikappa_correction.kappa["direction"],
+                kappapos=minikappa_correction.kappa["position"],
+                phidir=minikappa_correction.phi["direction"],
+                phipos=minikappa_correction.phi["position"],
             )
-            phihome = -posp - (aval * bvec.dot(dirk) - bvec.dot(dirp)) * dirp / (
-                aval * aval - 1
-            )
-            home_position = 0.5 * (kappahome + phihome)
-            # For some reason the original formula gave the wrong sign
-            # (http://confluence.globalphasing.com/display/SDCP/EMBL+MiniKappaCorrection)
-            home_position = -home_position
-            cross_sec_of_soc = 0.5 * (kappahome - phihome)
-            # Set omega axis to be teh basis vactor most slose to phi axis
-            omega = [0, 0, 0]
-            val = abs(dirp[0])
-            indx = 0
-            for iii in 1, 2:
-                if abs(dirp[iii]) > val:
-                    val = dirp[iii]
-                    indx = iii
-            omega[indx] = 1
-            recen_data["omega_axis"] = omega
-            recen_data["kappa_axis"] = dirk
-            recen_data["phi_axis"] = dirp
-            recen_data["trans_1_axis"] = [1, 0, 0]
-            recen_data["trans_2_axis"] = [0, 1, 0]
-            recen_data["trans_3_axis"] = [0, 0, 1]
-            recen_data["cross_sec_of_soc"] = cross_sec_of_soc
-            recen_data["home"] = home_position
 
         else:
-            fp0 = self.file_paths.get("instrumentation_file")
-            instrumentation_data = f90nml.read(fp0)["sdcp_instrument_list"]
-            diffractcal_data = instrumentation_data
+            self.recentring = None
 
+        if self.recentring:
+            diffractcal_data = instrumentation_data
             fp0 = self.file_paths.get("diffractcal_file")
             try:
                 diffractcal_data = f90nml.read(fp0)["sdcp_instrument_list"]
@@ -371,10 +360,9 @@ class GphlWorkflow(HardwareObjectYaml):
             recen_data["omega_axis"] = ll0[:3]
             recen_data["kappa_axis"] = ll0[3:6]
             recen_data["phi_axis"] = ll0[6:]
-            ll0 = instrumentation_data["gonio_centring_axis_dirs"]
-            recen_data["trans_1_axis"] = ll0[:3]
-            recen_data["trans_2_axis"] = ll0[3:6]
-            recen_data["trans_3_axis"] = ll0[6:]
+            recen_data["trans_1_axis"] = list(centring_axes[ind] for ind in (0, 3, 6))
+            recen_data["trans_2_axis"] = list(centring_axes[ind] for ind in (1, 4, 7))
+            recen_data["trans_3_axis"] = list(centring_axes[ind] for ind in (2, 5, 8))
             recen_data["cross_sec_of_soc"] = cross_sec_of_soc
             recen_data["home"] = home_position
 
@@ -504,7 +492,8 @@ class GphlWorkflow(HardwareObjectYaml):
             "title": "Space Group",
             "default": crystal_symmetry.regularise_space_group(
                 data_model.input_space_group
-            ) or "",
+            )
+            or "",
             "type": "string",
             "readOnly": True,
         }
@@ -1238,7 +1227,7 @@ class GphlWorkflow(HardwareObjectYaml):
             use_modes.append("start")
         if is_interleaved:
             use_modes.append("scan")
-        if self.recentring_data and (
+        if self.recentring and (
             data_model.characterisation_done or data_model.wftype == "diffractcal"
         ):
             # Not Characterisation
@@ -1636,8 +1625,8 @@ class GphlWorkflow(HardwareObjectYaml):
             okp = tuple(settings.get(x, 0) for x in self.rotation_axis_roles)
             maxdev = max(abs(okp[1] - current_okp[1]), abs(okp[2] - current_okp[2]))
 
-            if self.recentring_data:
-                # recentre first sweep from okp
+            if self.recentring:
+                # calculate first sweep recentring from okp
                 tol = self.settings.get("angular_tolerance", 1.0)
                 translation_settings = self.calculate_recentring(
                     okp, ref_xyz=current_xyz, ref_okp=current_okp
@@ -1666,7 +1655,7 @@ class GphlWorkflow(HardwareObjectYaml):
             else:
 
                 if recentring_mode == "none":
-                    if self.recentring_data:
+                    if self.recentring:
                         translation = GphlMessages.GoniostatTranslation(
                             rotation=sweepSetting, **translation_settings
                         )
@@ -1676,7 +1665,8 @@ class GphlWorkflow(HardwareObjectYaml):
                             "Coding error, mode 'none' requires recentring_data"
                         )
                 else:
-                    settings.update(translation_settings)
+                    if self.recentring == "GPHL":
+                        settings.update(translation_settings)
                     q_e = self.enqueue_sample_centring(motor_settings=settings)
                     translation, dummy = self.execute_sample_centring(q_e, sweepSetting)
                     goniostatTranslations.append(translation)
@@ -1714,8 +1704,8 @@ class GphlWorkflow(HardwareObjectYaml):
                 "Coding error, first sweepSetting should have been set here"
             )
         for sweepSetting in sweepSettings[1:]:
-            settings = sweepSetting.get_motor_settings()
-            if self.recentring_data:
+            settings = dict(sweepSetting.axisSettings)
+            if self.recentring:
                 # Update settings
                 okp = tuple(settings.get(x, 0) for x in self.rotation_axis_roles)
                 centring_settings = self.calculate_recentring(
@@ -1725,17 +1715,18 @@ class GphlWorkflow(HardwareObjectYaml):
                     "GPHL Recentring. okp, motors, %s, %s"
                     % (okp, sorted(centring_settings.items()))
                 )
-                settings.update(centring_settings)
 
             if recentring_mode == "start":
                 # Recentre now, using updated values if available
+                if self.recentring == "GPHL":
+                    settings.update(centring_settings)
                 q_e = self.enqueue_sample_centring(motor_settings=settings)
                 translation, dummy = self.execute_sample_centring(q_e, sweepSetting)
                 goniostatTranslations.append(translation)
                 gphl_workflow_model.current_rotation_id = sweepSetting.id_
                 okp = tuple(int(settings.get(x, 0)) for x in self.rotation_axis_roles)
                 self.collect_centring_snapshots("%s_%s_%s" % okp)
-            elif self.recentring_data:
+            elif self.recentring:
                 # put recalculated translations back to workflow
                 translation = GphlMessages.GoniostatTranslation(
                     rotation=sweepSetting, **centring_settings
@@ -1768,7 +1759,7 @@ class GphlWorkflow(HardwareObjectYaml):
         return sampleCentred
 
     def calculate_recentring(self, okp, ref_okp, ref_xyz):
-        """Add predicted traslation values using recen
+        """Calculate predicted traslation values using recen
         okp is the omega,gamma,phi tuple of the target position,
         ref_okp and ref_xyz are the reference omega,gamma,phi and the
         corresponding x,y,z translation position"""
@@ -1777,7 +1768,7 @@ class GphlWorkflow(HardwareObjectYaml):
         infile = os.path.join(
             HWR.beamline.gphl_connection.software_paths["GPHL_WDIR"], "temp_recen.in"
         )
-        indata = {"recen_list": self.recentring_data}
+        indata = {"recen_list": self._recentring_data}
         f90nml.write(indata, infile, force=True)
 
         # Get program locations
@@ -1920,8 +1911,8 @@ class GphlWorkflow(HardwareObjectYaml):
             goniostatRotation = sweep.goniostatSweepSetting
             rotation_id = goniostatRotation.id_
             initial_settings = sweep.get_initial_settings()
-            kappa =  initial_settings.get("kappa")
-            kappa_phi =  initial_settings.get("kappa_phi")
+            kappa = initial_settings.get("kappa")
+            kappa_phi = initial_settings.get("kappa_phi")
             orientation = (kappa, kappa_phi)
             acq = queue_model_objects.Acquisition()
 
@@ -2018,7 +2009,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 )
             else:
                 # Collect using precalculated centring position
-                initial_settings[goniostatRotation.scanAxis] = scan.start
+                # initial_settings[goniostatRotation.scanAxis] = scan.start
                 acq_parameters.centred_position = queue_model_objects.CentredPosition(
                     initial_settings
                 )
@@ -2115,7 +2106,6 @@ class GphlWorkflow(HardwareObjectYaml):
                     or HWR.beamline.get_default_acquisition_parameters().resolution
                 )
 
-
             # get allowed crystal clases from indexing solution
             crystal_classes = (
                 choose_lattice.crystalClasses or data_model.crystal_classes
@@ -2125,8 +2115,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 crystal_classes = (
                     crystal_symmetry.SPACEGROUP_MAP[space_group].crystal_class,
                 )
-            header, soldict, select_row = self.parse_indexing_solution(
-                choose_lattice)
+            header, soldict, select_row = self.parse_indexing_solution(choose_lattice)
             indexingSolution = list(soldict.values())[select_row]
             lattice = indexingSolution.bravaisLattice
             if not any(
@@ -2154,7 +2143,7 @@ class GphlWorkflow(HardwareObjectYaml):
         return GphlMessages.SelectedLattice(
             data_model,
             indexingFormat=choose_lattice.indexingFormat,
-            indexingSolution=indexingSolution
+            indexingSolution=indexingSolution,
         )
 
     def parse_indexing_solution(self, choose_lattice):
@@ -2821,6 +2810,7 @@ def update_lattice(values_map: ui_communication.AbstractValuesMap):
         )
     finally:
         values_map.block_updates = False
+
 
 def update_point_groups(values_map: ui_communication.AbstractValuesMap):
     """Update pulldowns when pointgroups change"""
