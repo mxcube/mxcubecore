@@ -346,6 +346,8 @@ class CatsMaint(HardwareObject):
             }
         }
 
+        self._update_state(self._chnState.get_value())
+
     def is_isara(self):
         return self.cats_model == "ISARA"
 
@@ -689,6 +691,10 @@ class CatsMaint(HardwareObject):
             a message describing current state information
             as a string
         """
+        if self._state is None:
+            self._state = self._chnState.get_value()
+        if self._state is None:
+            self._powered = self._chnPowered.get_value()
         _ready = str(self._state) in ("READY", "ON")
 
         if self._running:
@@ -728,7 +734,6 @@ class CatsMaint(HardwareObject):
         }
 
         message = self._message
-
         return state_dict, cmd_state, message
 
     def get_cmd_info(self):
@@ -798,7 +803,6 @@ class CatsMaint(HardwareObject):
         lid = 1
         toolcal = 0
         tool = self.get_current_tool()
-
         if cmd_name in ["dry", "safe", "home"]:
             if tool is not None:
                 args = [tool]
@@ -818,9 +822,8 @@ class CatsMaint(HardwareObject):
                 raise Exception("Cannot detect type of TOOL in Cats. Command ignored")
 
         cmd = getattr(self.cats_device, cmd_name)
-
         try:
-            if args is not None:
+            if args is not None and args != "undefined":
                 if len(args) > 1:
                     ret = cmd(map(str, args))
                 else:
