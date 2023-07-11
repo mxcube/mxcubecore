@@ -577,7 +577,13 @@ class GphlWorkflow(HardwareObjectYaml):
             "maximum": energy_limits[1],
         }
         # Handle cell parameters
-        cell_parameters = data_model.cell_parameters
+        cell_parameters = None
+        if choose_lattice:
+            unit_cell = choose_lattice.userProvidedCell
+            if unit_cell:
+                cell_parameters = unit_cell.lengths + unit_cell.angles
+        if not cell_parameters:
+            cell_parameters = data_model.cell_parameters
         if cell_parameters:
             for tag, val in zip(
                 ("cell_a", "cell_b", "cell_c", "cell_alpha", "cell_beta", "cell_gamma"),
@@ -687,7 +693,7 @@ class GphlWorkflow(HardwareObjectYaml):
             # Color green (figuratively) if matches lattices
             # NBNB TBD Redo once ABI has changed
             crystal_classes = (
-                choose_lattice.crystalClasses or data_model.crystal_classes
+                choose_lattice.priorCrystalClasses or data_model.crystal_classes
             )
             # Must match bravaisLattices column
             lattices = set(
@@ -1920,8 +1926,8 @@ class GphlWorkflow(HardwareObjectYaml):
             acq_parameters = HWR.beamline.get_default_acquisition_parameters()
             acq.acquisition_parameters = acq_parameters
 
-            acq_parameters.kappa = kappa
-            acq_parameters.kappa_phi = kappa_phi
+            # acq_parameters.kappa = kappa
+            # acq_parameters.kappa_phi = kappa_phi
             acq_parameters.first_image = scan.imageStartNum
             acq_parameters.num_images = scan.width.numImages
             acq_parameters.osc_start = scan.start
@@ -2093,6 +2099,8 @@ class GphlWorkflow(HardwareObjectYaml):
         data_model.characterisation_done = True
 
         if data_model.automation_mode:
+            header, soldict, select_row = self.parse_indexing_solution(choose_lattice)
+            indexing_solution = list(soldict.values())[select_row]
 
             if not data_model.aimed_resolution:
                 raise ValueError("aimed_resolution must be set in automation mode")
@@ -2105,27 +2113,6 @@ class GphlWorkflow(HardwareObjectYaml):
                     data_model.aimed_resolution
                     or HWR.beamline.get_default_acquisition_parameters().resolution
                 )
-
-            # get allowed crystal clases from indexing solution
-            crystal_classes = (
-                choose_lattice.crystalClasses or data_model.crystal_classes
-            )
-            space_group = data_model.space_group
-            if space_group and not crystal_classes:
-                crystal_classes = (
-                    crystal_symmetry.SPACEGROUP_MAP[space_group].crystal_class,
-                )
-            header, soldict, select_row = self.parse_indexing_solution(choose_lattice)
-            indexingSolution = list(soldict.values())[select_row]
-            lattice = indexingSolution.bravaisLattice
-            if not any(
-                crystal_symmetry.CRYSTAL_CLASS_MAP[xtc].bravais_lattice == lattice
-                for xtc in crystal_classes
-            ):
-                crystal_classes = crystal_symmetry.crystal_classes_from_params(
-                    lattices=(lattice,)
-                )
-            params["crystal_classes"] = crystal_classes
         else:
             # SIGNAL TO GET Pre-strategy parameters here
             # NB set defaults from data_model
@@ -2136,15 +2123,11 @@ class GphlWorkflow(HardwareObjectYaml):
             params = self.query_pre_strategy_params(choose_lattice)
             if params is StopIteration:
                 return StopIteration
-            indexingSolution = params["indexing_solution"]
+            indexing_solution = params["indexing_solution"]
         data_model.set_pre_strategy_params(**params)
         distance = data_model.detector_setting.axisSettings["Distance"]
         HWR.beamline.detector.distance.set_value(distance, timeout=30)
-        return GphlMessages.SelectedLattice(
-            data_model,
-            indexingFormat=choose_lattice.indexingFormat,
-            indexingSolution=indexingSolution,
-        )
+        return GphlMessages.SelectedLattice(data_model, solution=indexing_solution)
 
     def parse_indexing_solution(self, choose_lattice):
         """
@@ -2251,7 +2234,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 ] = solution
 
             crystal_classes = (
-                choose_lattice.crystalClasses
+                choose_lattice.priorCrystalClasses
                 or self._queue_entry.get_data_model().crystal_classes
             )
             # Must match bravaisLattices column
