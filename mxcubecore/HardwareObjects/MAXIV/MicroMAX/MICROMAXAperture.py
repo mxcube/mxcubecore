@@ -43,6 +43,13 @@ class MICROMAXAperture(AbstractActuator):
         self.diameter_list = self.aperture_diameters.get_value()
         self.set_position = self.move_to_position
 
+    def get_value(self):
+        """Read the actuator position.
+        Returns:
+            value: Actuator position.
+        """
+        return self.get_diameter_size()
+
     def set_diameter_size(self, diameter_size):
         """Setting new size for aperture diameter.
 
