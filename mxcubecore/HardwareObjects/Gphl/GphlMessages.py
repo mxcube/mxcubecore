@@ -1275,7 +1275,7 @@ class SampleCentred(Payload):
         self._imageWidth = data_model.image_width
         self._transmission = 0.01 * data_model.transmission
         self._exposure = data_model.exposure_time
-        self._wedgeWidth = data_model.wedge_width
+        self._wedgeWidth = round(data_model.wedge_width / data_model.image_width)
         self._interleaveOrder = data_model.interleave_order
         self._beamstopSetting = data_model.beamstop_setting
         self._goniostatTranslations = frozenset(data_model.goniostat_translations)
@@ -1311,6 +1311,7 @@ class SampleCentred(Payload):
 
     @property
     def wedgeWidth(self):
+        # Wedge width NB in *number of images*
         return self._wedgeWidth
 
     @property
