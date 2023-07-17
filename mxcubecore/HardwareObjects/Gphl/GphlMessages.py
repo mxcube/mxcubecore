@@ -320,25 +320,47 @@ class ChooseLattice(Payload):
         self,
         indexingSolutions,
         indexingFormat="IDXREF",
-        crystalClasses=None,
+        indexingHeader=None,
+        priorCrystalClasses=(),
+        priorSpaceGroup=None,
+        priorSpaceGroupString=None,
+        userProvidedCell=None,
     ):
         """
 
         Args:
             indexingSolutions (list(IndexingSolution):
             indexingFormat (str):
-            crystalClasses sequence(str):
+            indexingHeader str:
+            priorCrystalClasses sequence(str):
+            priorSpaceGroup int:
+            priorSpaceGroupString str:
+            userProvidedCell UnitCell:
         """
         super().__init__()
 
         self._indexingSolutions = indexingSolutions
         self._indexingFormat = indexingFormat
-        self._crystalClasses = crystalClasses or ()
+        self._indexingHeader = indexingHeader
+        self._priorCrystalClasses = priorCrystalClasses or ()
+        self._priorSpaceGroup = priorSpaceGroup
+        self._priorSpaceGroupString= priorSpaceGroupString
+        self._userProvidedCell = userProvidedCell
 
     @property
-    def crystalClasses(self):
+    def priorCrystalClasses(self):
         """set of crystal class names"""
-        return self._crystalClasses
+        return self._priorCrystalClasses
+
+    @property
+    def priorSpaceGroup(self):
+        """space group number"""
+        return self._priorSpaceGroup
+
+    @property
+    def priorSpaceGroupString(self):
+        """space group name"""
+        return self._priorSpaceGroupString
 
     @property
     def indexingSolutions(self):
@@ -350,6 +372,16 @@ class ChooseLattice(Payload):
         """Indexing format"""
         return self._indexingFormat
 
+    @property
+    def indexingHeader(self):
+        """Indexing header"""
+        return self._indexingHeader
+
+    @property
+    def userProvidedCell(self):
+        """User provided unit cell"""
+        return self._userProvidedCell
+
 
 class SelectedLattice(MessageData):
     """Lattice selected message"""
@@ -359,25 +391,20 @@ class SelectedLattice(MessageData):
     def __init__(
         self,
         data_model,
-        indexingFormat,
-        indexingSolution,
+        solution,
     ):
-        self._indexingFormat = indexingFormat
-        self._indexingSolution = indexingSolution
+        self._solution = solution
         self._strategyDetectorSetting = data_model.detector_setting
         self._strategyWavelength = data_model.wavelengths[0]
         self._strategyControl = json.dumps(data_model.strategy_options, sort_keys=True)
-        self._userPointGroup = None
+        self._userCrystalClasses = data_model.crystal_classes
+        sginfo = crystal_symmetry.SPACEGROUP_MAP.get(data_model.space_group)
+        self._userSpaceGroup = sginfo.number if sginfo else None
 
     @property
-    def indexingFormat(self):
-        """Indexing format"""
-        return self._indexingFormat
-
-    @property
-    def indexingSolution(self):
+    def solution(self):
         """Proposed solution"""
-        return self._indexingSolution
+        return self._solution
 
     @property
     def strategyDetectorSetting(self):
@@ -396,9 +423,14 @@ class SelectedLattice(MessageData):
         return self._strategyControl
 
     @property
-    def userPointGroup(self):
-        """Point group given by user for strategy calculation"""
-        return self._userPointGroup
+    def userCrystalClasses(self):
+        """Crystal classes given by user"""
+        return self._userCrystalClasses
+
+    @property
+    def userSpaceGroup(self):
+        """Space group (int) given by user"""
+        return self._userSpaceGroup
 
 
 class IndexingSolution(MessageData):
@@ -848,21 +880,14 @@ class UserProvidedInfo(MessageData):
         self._scatterers = ()
         crystal_classes = data_model.crystal_classes
         if crystal_classes:
-            lauegrp, ptgrp = crystal_symmetry.strategy_laue_group(crystal_classes)
-            self._pointGroup = ptgrp
+            self._crystalClasses = tuple(crystal_classes)
         else:
-            self._pointGroup = None
-        crystal_systems = set(
-            crystal_symmetry.CRYSTAL_CLASS_MAP[name].crystal_system
-            for name in crystal_classes
-        )
-        if len(crystal_systems) == 1:
-            self._lattice = crystal_systems.pop().upper()
-        else:
-            self._lattice = None
+            self._crystalClasses = ()
 
-        sg_data = crystal_symmetry.SPACEGROUP_MAP.get(data_model.space_group)
-        self._spaceGroup = sg_data.number if sg_data else None
+        space_group = data_model.space_group
+        sginfo = crystal_symmetry.SPACEGROUP_MAP.get(data_model.space_group)
+        self._spaceGroup = sginfo.number if sginfo else None
+        self._spaceGroupString = space_group or None
         cell_parameters = data_model.cell_parameters
         if cell_parameters:
             self._cell = UnitCell(*cell_parameters)
@@ -880,16 +905,16 @@ class UserProvidedInfo(MessageData):
         return self._scatterers
 
     @property
-    def lattice(self):
-        return self._lattice
-
-    @property
-    def pointGroup(self):
-        return self._pointGroup
+    def crystalClasses(self):
+        return self._crystalClasses
 
     @property
     def spaceGroup(self):
         return self._spaceGroup
+
+    @property
+    def spaceGroupString(self):
+        return self._spaceGroupString
 
     @property
     def cell(self):
@@ -973,7 +998,7 @@ class Sweep(IdentifiedElement):
 
     def get_initial_settings(self):
         """Get dictionary of rotation and translation motor settings for start of sweep"""
-        result = self.goniostatSweepSetting.get_motor_settings()
+        result = dict(self.goniostatSweepSetting.axisSettings)
         result[self.goniostatSweepSetting.scanAxis] = self.start
         #
         return result
@@ -1250,7 +1275,7 @@ class SampleCentred(Payload):
         self._imageWidth = data_model.image_width
         self._transmission = 0.01 * data_model.transmission
         self._exposure = data_model.exposure_time
-        self._wedgeWidth = data_model.wedge_width
+        self._wedgeWidth = round(data_model.wedge_width / data_model.image_width)
         self._interleaveOrder = data_model.interleave_order
         self._beamstopSetting = data_model.beamstop_setting
         self._goniostatTranslations = frozenset(data_model.goniostat_translations)
@@ -1286,6 +1311,7 @@ class SampleCentred(Payload):
 
     @property
     def wedgeWidth(self):
+        # Wedge width NB in *number of images*
         return self._wedgeWidth
 
     @property

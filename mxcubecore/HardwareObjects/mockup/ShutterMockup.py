@@ -50,7 +50,7 @@ class ShutterMockup(AbstractShutter, ActuatorMockup):
         self.update_value(self.VALUES.CLOSED)
         self.update_state(self.STATES.READY)
 
-    def is_closed(self):
-        """This is deprecated"""
-        warn("is_closed is deprecated. Use is_open instead", DeprecationWarning)
-        return self.get_value() is self.VALUES.CLOSED
+    # def is_closed(self):
+    #     """This is deprecated"""
+    #     warn("is_closed is deprecated. Use is_open instead", DeprecationWarning)
+    #     return self.get_value() is self.VALUES.CLOSED

@@ -43,7 +43,7 @@ from mxcubecore import HardwareRepository as HWR
 # NB this is patching the original socket module in to avoid the
 # monkeypatched version we get from gevent - that causes errors.
 # It depends on knowing where in py4j socket is imported
-# Hacky, but the best solutoin to making py4j and gevent compatible
+# Hacky, but the best solution to making py4j and gevent compatible
 
 import socket
 origsocket = sys.modules.pop("socket")
@@ -284,20 +284,20 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         path_template = workflow_model_obj.get_path_template()
         if "prefix" in workflow_options:
             workflow_options["prefix"] = path_template.base_prefix
-        if strategy_settings["wftype"] != "transcal":
-            workflow_options[
-                "appdir"
-            ] = HWR.beamline.session.get_base_process_directory()
         workflow_options["wdir"] = self.software_paths["GPHL_WDIR"]
         workflow_options["persistname"] = self.gphl_persistname
 
         # Set the workflow root subdirectory parameter from the base image directory
         image_root = os.path.abspath(HWR.beamline.session.get_base_image_directory())
-        rootsubdir = path_template.directory[len(image_root) :]
-        if rootsubdir.startswith(os.path.sep):
-            rootsubdir = rootsubdir[1:]
-        if rootsubdir:
-            workflow_options["rootsubdir"] = rootsubdir
+        if strategy_settings["wftype"] != "transcal":
+            workflow_options[
+                "appdir"
+            ] = HWR.beamline.session.get_base_process_directory()
+            rootsubdir = path_template.directory[len(image_root) :]
+            if rootsubdir.startswith(os.path.sep):
+                rootsubdir = rootsubdir[1:]
+            if rootsubdir:
+                workflow_options["rootsubdir"] = rootsubdir
 
         # Hardcoded - location for log output
         command_list.extend(
@@ -704,99 +704,25 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         return GphlMessages.SubprocessStopped()
 
     def _ChooseLattice_to_python(self, py4jChooseLattice):
-        """ 20230515
-        Temporarily input java class has attributes:
-        solutions (str) # solutions table as a text block
-        format (str), lattices (set(str)), and crystalSystem (CrystalSystem)
-        """
-        lattices = tuple(py4jChooseLattice.getLattices())
-        java_crystal_system = py4jChooseLattice.getCrystalSystem()
-        if lattices:
-            crystalClasses = crystal_symmetry.crystal_classes_from_params(
-                lattices=lattices
-            )
-        elif java_crystal_system:
-            crystalClasses = crystal_symmetry.crystal_classes_from_params(
-                lattices= (java_crystal_system.name().capitalize(),),
-            )
-        else:
-            crystalClasses = None
-
-        # NBNB TBD For now this does  NOT make sense.
-        # The actual ctrystal classes are kept on the BCS side, and
-        # chat is calculated here is missign infornmation.
-        crystalClasses = None
-        indexingFormat = py4jChooseLattice.getFormat().toString()
+        # NB the functions return different types, so toString is needed in only once
+        indexingFormat = py4jChooseLattice.getIndexingFormat().toString()
+        indexingHeader = py4jChooseLattice.getIndexingHeader()
         return GphlMessages.ChooseLattice(
-            indexingSolutions=self.parse_indexing_solution_text(
-                indexingFormat,
-                py4jChooseLattice.getSolutions(),
+            indexingSolutions=tuple(
+                self._IndexingSolution_to_python(sol)
+                for sol in py4jChooseLattice.getIndexingSolutions()
             ),
             indexingFormat=indexingFormat,
-            crystalClasses=crystalClasses,
+            indexingHeader=indexingHeader,
+            priorCrystalClasses=tuple(
+                ccl.toString() for ccl in py4jChooseLattice.getPriorCrystalClasses()
+            ),
+            priorSpaceGroup=py4jChooseLattice.getPriorSpaceGroup(),
+            priorSpaceGroupString=py4jChooseLattice.getPriorSpaceGroupString(),
+            userProvidedCell=self._UnitCell_to_python(
+                py4jChooseLattice.getUserProvidedCell()
+            ),
         )
-
-    def parse_indexing_solution_text(self, solution_format, text):
-        """CONvert indexing solutions as a block fo text to a list of IndexingSolution
-
-        Args:
-            solution_format (str)
-            text (str):
-
-        Returns: list(GphlMessages.indexingSolution)
-
-        """
-        # find headers lines
-        solutions = []
-        if solution_format == "IDXREF":
-            lines = text.splitlines()
-            for indx, line in enumerate(lines):
-                if "BRAVAIS-" in line:
-                    # Used as marker for first header line
-                    header = ["%s\n%s" % (line, lines[indx + 1])]
-                    break
-            else:
-                raise ValueError("Substring 'BRAVAIS-' missing in %s indexing solution")
-
-            for line in lines[indx:]:
-                ss0 = line.strip()
-                if ss0:
-                    # we are skipping blank line at the start
-                    if solutions or ss0[0] == "*":
-                        # First real line will start with a '*
-                        # Subsequent non-empty lines will also be used
-                        fields = ss0.split()
-                        if fields[0] == "*":
-                            del fields[0]
-                            isConsistent = True
-                        else:
-                            isConsistent = False
-                        latticeCharacter = int(fields[0])
-                        bravaisLattice = fields[1]
-                        qualityOfFit = float(fields[2])
-                        cell = GphlMessages.UnitCell(*(float(x) for x in fields[3:]))
-                        solutions.append(
-                            GphlMessages.IndexingSolution(
-                                isConsistent=isConsistent,
-                                latticeCharacter=latticeCharacter,
-                                bravaisLattice=bravaisLattice,
-                                qualityOfFit=qualityOfFit,
-                                cell=cell,
-                            )
-                        )
-
-
-                elif solutions:
-                    # we have finished - empty non-initial line
-                    break
-
-            #
-            return solutions
-        else:
-            raise ValueError(
-                "GPhL: Indexing format %s is not known" % repr(solution_format)
-            )
-
 
     def _CollectionProposal_to_python(self, py4jCollectionProposal):
         uuidString = py4jCollectionProposal.getId().toString()
@@ -1121,30 +1047,21 @@ class GphlWorkflowConnection(HardwareObjectYaml):
 
     def _SelectedLattice_to_java(self, selectedLattice):
         jvm = self._gateway.jvm
-        userPointGroup = selectedLattice.userPointGroup
-        if userPointGroup:
-            userPointGroup = (
-                jvm.co.gphl.beamline.v2_unstable.domain_types.PointGroup.valueOf(
-                    "PG%s" % selectedLattice.userPointGroup
+        crystal_classes = selectedLattice.userCrystalClasses
+        if crystal_classes:
+            userCrystalClasses = set(
+                jvm.co.gphl.beamline.v2_unstable.domain_types.CrystalClass.fromStringList(
+                    self.toJStringArray(crystal_classes)
                 )
             )
-        # solution = self._IndexingSolution_to_java(selectedLattice.indexingSolution)
-        solution = list(
-            str(
-                getattr(selectedLattice.indexingSolution, tag))
-                for tag in ("latticeCharacter", "bravaisLattice", "qualityOfFit")
-        ) + list(
-            str(getattr(selectedLattice.indexingSolution.cell, tag) )
-            for tag in ("a", "b", "c", "alpha", "beta", "gamma")
-        )
+        else:
+            userCrystalClasses = None
         result = jvm.astra.messagebus.messages.information.SelectedLatticeImpl(
-            jvm.co.gphl.beamline.v2_unstable.domain_types.IndexingFormat.valueOf(
-                selectedLattice.indexingFormat
-            ),
-            solution,
+            self._IndexingSolution_to_java(selectedLattice.solution),
             self._BcsDetectorSetting_to_java(selectedLattice.strategyDetectorSetting),
             self._PhasingWavelength_to_java(selectedLattice.strategyWavelength),
-            # userPointGroup,
+            selectedLattice.userSpaceGroup,
+            userCrystalClasses,
             selectedLattice.strategyControl,
         )
         #
@@ -1181,23 +1098,21 @@ class GphlWorkflowConnection(HardwareObjectYaml):
 
         for scatterer in userProvidedInfo.scatterers:
             builder = builder.addScatterer(self._AnomalousScatterer_to_java(scatterer))
-        if userProvidedInfo.lattice:
-            builder = builder.lattice(
-                jvm.co.gphl.beamline.v2_unstable.domain_types.CrystalSystem.valueOf(
-                    userProvidedInfo.lattice
+
+        crystal_classes = userProvidedInfo.crystalClasses
+        if crystal_classes:
+            ccset = set(
+                jvm.co.gphl.beamline.v2_unstable.domain_types.CrystalClass.fromStringList(
+                    self.toJStringArray(crystal_classes)
                 )
             )
-        # NB The Java point groups are an enumeration: 'PG1', 'PG422' etc.
-        xx0 = userProvidedInfo.pointGroup
-        if xx0:
-            builder = builder.pointGroup(
-                jvm.co.gphl.beamline.v2_unstable.domain_types.PointGroup.valueOf(
-                    "PG%s" % xx0
-                )
-            )
+            builder = builder.crystalClasses(ccset)
         xx0 = userProvidedInfo.spaceGroup
         if xx0:
             builder = builder.spaceGroup(xx0)
+        xx0 = userProvidedInfo.spaceGroupString
+        if xx0:
+            builder = builder.spaceGroupString(xx0)
         xx0 = userProvidedInfo.cell
         if xx0 is not None:
             builder = builder.cell(self._UnitCell_to_java(xx0))
@@ -1349,5 +1264,14 @@ class GphlWorkflowConnection(HardwareObjectYaml):
             axisSettings, javaUuid
         )
 
-    class Java():
+    def toJStringArray(self, arr):
+        """Modified from
+        https://stackoverflow.com/questions/61230680/pyspark-py4j-create-java-string-array
+        """
+        jarr = self._gateway.new_array(self._gateway.jvm.java.lang.String, len(arr))
+        for ind, val in enumerate(arr):
+            jarr[ind] = val
+        return jarr
+
+    class Java:
         implements = ["co.gphl.py4j.PythonListener"]
