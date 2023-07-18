@@ -55,3 +55,8 @@ class TestShutter(TestAbstractNStateBase.TestAbstractNStateBase):
 
         test_object.close(timeout=None)
         assert test_object.is_open is False
+
+    def test_shutter_value(self, test_object):
+        for val in test_object.VALUES:
+            test_object.set_value(val, timeout=None)
+            assert test_object.get_value() == val

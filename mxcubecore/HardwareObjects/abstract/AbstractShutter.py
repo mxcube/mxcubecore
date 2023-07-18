@@ -43,6 +43,7 @@ class AbstractShutter(AbstractNState):
     """Abstract base class for shutter type objects."""
 
     __metaclass__ = abc.ABCMeta
+    VALUES = BaseValueEnum
 
     @property
     def is_open(self):
