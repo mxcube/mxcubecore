@@ -40,6 +40,7 @@ class ShutterStates(Enum):
 class ShutterMockup(AbstractShutter, ActuatorMockup):
     """
     ShutterMockup for simulating a simple open/close shutter.
+    Fake some of the states of the shutter to correspong to values.
     """
 
     SPECIFIC_STATES = ShutterStates
@@ -47,10 +48,22 @@ class ShutterMockup(AbstractShutter, ActuatorMockup):
     def init(self):
         """Initialisation"""
         super().init()
+        self._initialise_values()
         self.update_value(self.VALUES.CLOSED)
         self.update_state(self.STATES.READY)
 
-    # def is_closed(self):
-    #     """This is deprecated"""
-    #     warn("is_closed is deprecated. Use is_open instead", DeprecationWarning)
-    #     return self.get_value() is self.VALUES.CLOSED
+    def _initialise_values(self):
+        """Add additional, known in advance states to VALUES"""
+        values_dict = {item.name: item.value for item in self.VALUES}
+        values_dict.update(
+            {
+                "MOVING": "In Motion",
+                "UNUSABLE": "Temporarily not controlled",
+            }
+        )
+        self.VALUES = Enum("ValueEnum", values_dict)
+
+    def _set_value(self, value):
+        """Simulate setting different values"""
+        self._nominal_value = value
+        self.update_state(self.STATES.READY)
