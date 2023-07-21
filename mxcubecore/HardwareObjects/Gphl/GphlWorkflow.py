@@ -170,6 +170,9 @@ class GphlWorkflow(HardwareObjectYaml):
 
     TEST_SAMPLE_PREFIX = "emulate"
 
+    PARAMETER_RETURN_SIGNAL = "GphlParameterReturn"
+    PARAMETERS_READY = "PARAMETERS_READY"
+
     def __init__(self, name):
         super().__init__(name)
 
@@ -470,7 +473,6 @@ class GphlWorkflow(HardwareObjectYaml):
             "default": lattice,
             # "$ref": "#/definitions/lattice",
             "value_dict": lattice_dict,
-            "hidden": False,
         }
         pg_dict = OrderedDict((tag, tag) for tag in point_groups)
         fields["point_groups"] = {
@@ -520,26 +522,10 @@ class GphlWorkflow(HardwareObjectYaml):
             "minimum": reslimits[0],
             "maximum": reslimits[1],
         }
-        fields["decay_limit"] = {
-            "title": "Signal decay limit (%)",
-            "type": "number",
-            "default": 25,
-            "minimum": 1,
-            "maximum": 99,
-            "hidden": True,
-        }
         fields["strategy"] = {
             "title": "Strategy",
             "$ref": "#/definitions/strategy",
         }
-        # tags = [""] + list(lattice2point_group_tags)
-        # schema["definitions"]["lattice"] = list(
-        #     {
-        #         "type": "string",
-        #         "enum": [tag],
-        #         "title": tag,
-        #     }
-        #     for tag in tags
         # )
         # Handle strategy fields
         if data_model.characterisation_done or data_model.wftype == "diffractcal":
@@ -591,10 +577,15 @@ class GphlWorkflow(HardwareObjectYaml):
             ):
                 fields[tag]["default"] = val
 
+        # NB update_on_change supports "never", "always", and "selected"
+        # It controls whether an update signal is sent when a parameter changes
         ui_schema = {
             "ui:order": ["crystal_data", "parameters"],
             "ui:widget": "vertical_box",
-            "ui:options": {"import_module_name": GphlWorkflow.__module__},
+            "ui:options": {
+                "return_signal": self.PARAMETER_RETURN_SIGNAL,
+                "update_on_change": "selected"
+            },
             "crystal_data": {
                 "ui:title": "Input Unit Cell",
                 "ui:widget": "column_grid",
@@ -635,17 +626,17 @@ class GphlWorkflow(HardwareObjectYaml):
                     ],
                     "lattice": {
                         "ui:options": {
-                            "update_function": "update_lattice",
+                            "update_on_change": True,
                         },
                     },
                     "point_groups": {
                         "ui:options": {
-                            "update_function": "update_point_groups",
+                            "update_on_change": True,
                         },
                     },
                     "space_group": {
                         "ui:options": {
-                            "update_function": "update_space_group",
+                            "update_on_change": True,
                         },
                     },
                 },
@@ -719,19 +710,19 @@ class GphlWorkflow(HardwareObjectYaml):
                     "content": [list(soldict)],
                     "select_row": select_row,
                     "colouring": colouring,
-                    "update_function": "update_indexing_solution",
+                    "update_on_change": True,
                 },
             }
 
         self._return_parameters = gevent.event.AsyncResult()
 
         try:
+            dispatcher.connect(self.receive_pre_strategy_data, "gphlProvideParameters")
             responses = dispatcher.send(
                 "gphlJsonParametersNeeded",
                 self,
                 schema,
                 ui_schema,
-                self._return_parameters,
             )
             if not responses:
                 self._return_parameters.set_exception(
@@ -745,6 +736,9 @@ class GphlWorkflow(HardwareObjectYaml):
             if solline:
                 params["indexing_solution"] = soldict[solline[0]]
         finally:
+            dispatcher.disconnect(
+                self.receive_pre_strategy_data, "gphlProvideParameters"
+            )
             self._return_parameters = None
 
         # Convert lattice and pointgroups to crystal class names
@@ -1058,7 +1052,7 @@ class GphlWorkflow(HardwareObjectYaml):
         # For calculating dose-budget transmission
         flux_density = HWR.beamline.flux.get_average_flux_density(transmission=100.0)
         if flux_density:
-            std_dose_rate = (
+            std_dose_rate = data_model.std_dose_rate = (
                 HWR.beamline.flux.get_dose_rate_per_photon_per_mmsq(initial_energy)
                 * flux_density
                 * 1.0e-6  # convert to MGy/s
@@ -1070,7 +1064,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 use_dose_start = proposed_dose * 100.0 / transmission
                 transmission = 100.0
         else:
-            std_dose_rate = 0
+            data_model.std_dose_rate = 0
             transmission = acq_parameters.transmission
             use_dose_start = 0
             use_dose_frozen = True
@@ -1089,49 +1083,13 @@ class GphlWorkflow(HardwareObjectYaml):
             "definitions": {},
         }
         fields = schema["properties"]
-        fields["total_strategy_length"] = {
-            "title": "Strategy length",
-            "type": "number",
-            "default": total_strategy_length,
-            "hidden": True,
-        }
-        fields["std_dose_rate"] = {
-            "title": "Dose rate",
-            "type": "number",
-            "default": std_dose_rate,
-            "hidden": True,
-        }
-        fields["decay_limit"] = {
-            "title": "Decay limit",
-            "type": "number",
-            "default": data_model.decay_limit,
-            "hidden": True,
-        }
-        fields["relative_rad_sensitivity"] = {
-            "title": "Relative radiation sensitivity",
-            "type": "number",
-            "default": data_model.relative_rad_sensitivity,
-            "hidden": True,
-        }
-        fields["budget_use_fraction"] = {
-            "title": "Budget fraction to use",
-            "type": "number",
-            "default": budget_use_fraction,
-            "hidden": True,
-        }
-        fields["maximum_dose_budget"] = {
-            "title": "Default value for exposure",
-            "type": "number",
-            "default": default_exposure,
-            "hidden": True,
-        }
-        # From here on visible fields
-        fields["_info"] = {
-            # "title": "Data collection plan",
-            "type": "string",
-            "default": info_text,
-            "readOnly": True,
-        }
+        # # From here on visible fields
+        # fields["_info"] = {
+        #     # "title": "Data collection plan",
+        #     "type": "string",
+        #     "default": info_text,
+        #     "readOnly": True,
+        # }
         fields["image_width"] = {
             "title": "Oscillation range",
             "type": "string",
@@ -1293,7 +1251,10 @@ class GphlWorkflow(HardwareObjectYaml):
         ui_schema = {
             "ui:order": ["_info", "parameters"],
             "ui:widget": "vertical_box",
-            "ui:options": {"import_module_name": GphlWorkflow.__module__},
+            "ui:options": {
+                "return_signal": self.PARAMETER_RETURN_SIGNAL,
+                "update_on_change": "selected"
+            },
             "_info": {
                 "ui:title": info_title,
                 "ui:widget": "textarea",
@@ -1317,28 +1278,28 @@ class GphlWorkflow(HardwareObjectYaml):
                     ],
                     "exposure": {
                         "ui:options": {
-                            "update_function": "update_exptime",
+                            "update_on_change": True,
                             "decimals": 4,
                         }
                     },
                     "use_dose": {
                         "ui:options": {
                             "decimals": use_dose_decimals,
-                            "update_function": "update_dose",
+                            "update_on_change": True,
                         }
                     },
                     "image_width": {
                         "ui:options": {
-                            "update_function": "update_dose",
+                            "update_on_change": True,
                         }
                     },
                     "transmission": {
                         "ui:options": {
                             "decimals": 3,
-                            "update_function": "update_transmission",
+                            "update_on_change": True,
                         }
                     },
-                    "repetition_count": {"ui:options": {}},
+                    "repetition_count": {"ui:options": {"update_on_change": True}},
                 },
                 "column2": {
                     "ui:order": [
@@ -1378,12 +1339,12 @@ class GphlWorkflow(HardwareObjectYaml):
 
         self._return_parameters = gevent.event.AsyncResult()
         try:
+            dispatcher.connect(self.receive_pre_collection_data, "gphlProvideParameters")
             responses = dispatcher.send(
                 "gphlJsonParametersNeeded",
                 self,
                 schema,
                 ui_schema,
-                self._return_parameters,
             )
             if not responses:
                 self._return_parameters.set_exception(
@@ -1394,6 +1355,9 @@ class GphlWorkflow(HardwareObjectYaml):
             if result is StopIteration:
                 return StopIteration
         finally:
+            dispatcher.disconnect(
+                self.receive_pre_collection_data, "gphlProvideParameters"
+            )
             self._return_parameters = None
 
         tag = "image_width"
@@ -2070,13 +2034,10 @@ class GphlWorkflow(HardwareObjectYaml):
             self._data_collection_group
         )
 
-        # dispatcher.send("gphlStartAcquisition", self, gphl_workflow_model)
         try:
             queue_manager.execute_entry(data_collection_entry)
         except:
             HWR.beamline.queue_manager.emit("queue_execution_failed", (None,))
-        # finally:
-        #     dispatcher.send("gphlDoneAcquisition", self, gphl_workflow_model)
         self._data_collection_group = None
 
         if data_collection_entry.status == QUEUE_ENTRY_STATUS.FAILED:
@@ -2651,224 +2612,235 @@ class GphlWorkflow(HardwareObjectYaml):
     #
     # Functions for new version of UI handling
 
+    def receive_pre_strategy_data(self, instruction, parameters):
 
-#
-
-
-def update_exptime(values_map: ui_communication.AbstractValuesMap):
-    """When image_width or exposure_time change,
-     update experiment_time and either use_dose or transmission
-    In parameter popup"""
-    if values_map.block_updates:
-        return
-    values_map.block_updates = True
-    try:
-        parameters = values_map.get_values_map()
-        exposure_time = float(parameters.get("exposure", 0))
-        image_width = float(parameters.get("image_width", 0))
-        transmission = float(parameters.get("transmission", 0))
-        repetition_count = int(parameters.get("repetition_count") or 1)
-        total_strategy_length = float(parameters.get("total_strategy_length", 0))
-        std_dose_rate = float(parameters.get("std_dose_rate", 0))
-
-        if image_width and exposure_time:
-            rotation_rate = image_width / exposure_time
-            dd0 = {}
-            experiment_time = total_strategy_length / rotation_rate
-            if std_dose_rate and transmission:
-                # NB - dose is calculated for *one* repetition
-                dd0["use_dose"] = std_dose_rate * experiment_time * transmission / 100.0
-            dd0["experiment_time"] = experiment_time * repetition_count
-            values_map.set_values(**dd0)
-            values_map.block_updates = False
-            update_dose(values_map)
-    finally:
-        values_map.block_updates = False
-
-
-def update_transmission(values_map: ui_communication.AbstractValuesMap):
-    """When transmission changes, update use_dose
-    In parameter popup"""
-    if values_map.block_updates:
-        return
-    values_map.block_updates = True
-    try:
-        parameters = values_map.get_values_map()
-        exposure_time = float(parameters.get("exposure", 0))
-        image_width = float(parameters.get("image_width", 0))
-        transmission = float(parameters.get("transmission", 0))
-        total_strategy_length = float(parameters.get("total_strategy_length", 0))
-        std_dose_rate = float(parameters.get("std_dose_rate", 0))
-        if image_width and exposure_time and std_dose_rate and transmission:
-            # If we get here, Adjust dose
-            # NB dose is calculated for *one* repetition
-            experiment_time = exposure_time * total_strategy_length / image_width
-            use_dose = std_dose_rate * experiment_time * transmission / 100
-            values_map.set_values(use_dose=use_dose, exposure=exposure_time)
-            values_map.block_updates = False
-            update_dose(values_map)
-    finally:
-        values_map.block_updates = False
-
-
-def update_dose(values_map: ui_communication.AbstractValuesMap):
-    """When use_dose changes, update transmission and/or exposure_time
-    In parameter popup"""
-    if values_map.block_updates:
-        return
-    values_map.block_updates = True
-    try:
-        exposure_limits = HWR.beamline.detector.get_exposure_time_limits()
-        parameters = values_map.get_values_map()
-        exposure_time = float(parameters.get("exposure", 0))
-        image_width = float(parameters.get("image_width", 0))
-        use_dose = float(parameters.get("use_dose", 0))
-        dose_budget = float(parameters.get("dose_budget", 0))
-        std_dose_rate = float(parameters.get("std_dose_rate", 0))
-        total_strategy_length = float(parameters.get("total_strategy_length", 0))
-
-        if image_width and exposure_time and std_dose_rate and use_dose:
-            experiment_time = exposure_time * total_strategy_length / image_width
-            transmission = 100 * use_dose / (std_dose_rate * experiment_time)
-
-            if transmission > 100.0:
-                # Transmission too high. Try max transmission and longer exposure
-                transmission = 100.0
-                experiment_time = use_dose / std_dose_rate
-                exposure_time = experiment_time * image_width / total_strategy_length
-            max_exposure = exposure_limits[1]
-            if max_exposure and exposure_time > max_exposure:
-                # exposure_time over max; set dose to highest achievable dose
-                experiment_time = max_exposure * total_strategy_length / image_width
-                use_dose = std_dose_rate * experiment_time
-                values_map.set_values(
-                    exposure=max_exposure,
-                    transmission=100,
-                    use_dose=use_dose,
-                    experiment_time=experiment_time,
-                )
+        if instruction == self.PARAMETERS_READY:
+            self._return_parameters.set(parameters)
+        else:
+            if instruction == "indexing_solution":
+                update_dict = self.update_indexing_solution(parameters)
+            elif instruction == "lattice":
+                update_dict = self.update_lattice(parameters)
+            elif instruction == "point_groups":
+                update_dict = self.update_point_groups(parameters)
+            elif instruction == "space_group":
+                update_dict = self.update_space_group(parameters)
             else:
-                values_map.set_values(
-                    exposure=exposure_time,
-                    transmission=transmission,
-                    experiment_time=experiment_time,
+                update_dict = {}
+
+            responses = dispatcher.send(
+                "gphlUpdateUiParameters",
+                self,
+                update_dict,
+            )
+            if not responses:
+                self._return_parameters.set_exception(
+                    RuntimeError("Signal 'gphlUpdateUiParameters' is not connected")
+            )
+
+    def receive_pre_collection_data(self, instruction, parameters):
+
+        if instruction == self.PARAMETERS_READY:
+            self._return_parameters.set(parameters)
+        else:
+            if instruction == "dose":
+                update_dict = self.adjust_transmission(parameters)
+            elif instruction in (
+                "image_width", "exposure", "repetition_count", "transmission"):
+                update_dict = self.adjust_dose(parameters)
+            else:
+                update_dict = {}
+            responses = dispatcher.send(
+                "gphlUpdateUiParameters",
+                self,
+                update_dict,
+            )
+            if not responses:
+                self._return_parameters.set_exception(
+                    RuntimeError("Signal 'gphlUpdateUiParameters' is not connected")
                 )
-            if use_dose and dose_budget and use_dose > dose_budget:
-                values_map.colour_widget("use_dose", "LINE_EDIT_WARNING")
-                values_map.colour_widget("dose_budget", "LINE_EDIT_WARNING")
-    finally:
-        values_map.block_updates = False
 
-
-def update_lattice(values_map: ui_communication.AbstractValuesMap):
-    """Update pulldowns when crystal lattice changes"""
-    if values_map.block_updates:
-        return
-    values_map.block_updates = True
-    try:
-        state = values_map.get_values_map()
-        lattice = state.get("lattice") or ""
-        pgvar = state.get("point_groups")
-        space_group = state.get("space_group")
+    def update_lattice(self, values):
+        """Update pulldowns when crystal lattice changes"""
+        lattice = values.get("lattice") or ""
+        pgvar = values.get("point_groups")
+        space_group = values.get("space_group")
         if lattice:
             pglist = lattice2point_group_tags[lattice]
-            pgdefault = pgvar if pgvar and pgvar in pglist else pglist[-1]
+            pgvalue = pgvar if pgvar and pgvar in pglist else pglist[-1]
             sgoptions = [""] + crystal_symmetry.space_groups_from_params(
                 point_groups=pglist[-1].split("|")
             )
         else:
             pglist = all_point_group_tags
-            pgdefault = ""
+            pgvalue = ""
             sgoptions = [""] + crystal_symmetry.space_groups_from_params()
-        values_map.reset_options(
-            "point_groups",
-            value_dict=OrderedDict((tag, tag) for tag in pglist),
-            default=pgdefault,
-        )
-        sgdefault = space_group if space_group in sgoptions else ""
-        values_map.reset_options(
-            "space_group",
-            value_dict=OrderedDict((tag, tag) for tag in sgoptions),
-            default=sgdefault,
-        )
-    finally:
-        values_map.block_updates = False
+        sgvalue = space_group if space_group in sgoptions else ""
+        result = {
+            "point_groups": {
+                "value": pgvalue,
+                "options": {
+                    "value_dict": OrderedDict((tag, tag) for tag in pglist),
+                },
+            },
+            "space_group": {
+                "value": sgvalue,
+                "options": {
+                    "value_dict": OrderedDict((tag, tag) for tag in sgoptions),
+                },
+            }
+        }
+        #
+        return result
 
-
-def update_point_groups(values_map: ui_communication.AbstractValuesMap):
-    """Update pulldowns when pointgroups change"""
-    if values_map.block_updates:
-        return
-    values_map.block_updates = True
-    try:
-        state = values_map.get_values_map()
-        pgvar = state.get("point_groups") or ""
-        space_group = state.get("space_group")
+    def update_point_groups(self, values):
+        """Update pulldowns when pointgroups change"""
+        pgvar = values.get("point_groups") or ""
+        space_group = values.get("space_group")
         sglist = [""] + crystal_symmetry.space_groups_from_params(
             point_groups=pgvar.split("|")
         )
-        default = space_group if space_group in sglist else ""
-        lattice = state.get("lattice")
-        values_map.reset_options(
-            "space_group",
-            value_dict=OrderedDict((tag, tag) for tag in sglist),
-            default=default,
-        )
-    finally:
-        values_map.block_updates = False
+        value = space_group if space_group in sglist else ""
+        result = {
+            "point_groups": {
+                "value": value,
+                "options": {
+                    "value_dict": OrderedDict((tag, tag) for tag in sglist),
+                },
+            },
+        }
+        #
+        return result
 
-
-def update_space_group(values_map: ui_communication.AbstractValuesMap):
-    """Update pulldowns when crystal lattice changes"""
-    if values_map.block_updates:
-        return
-    values_map.block_updates = True
-    try:
-        state = values_map.get_values_map()
-        space_group = state.get("space_group")
-        lattice0 = state.get("lattice")
-        point_groups0 = state.get("point_groups")
+    def update_space_group(self, values):
+        """Update pulldowns when space_group changes"""
+        space_group = values.get("space_group")
+        lattice0 = values.get("lattice")
+        point_groups0 = values.get("point_groups")
+        result = {}
         if space_group:
             info = crystal_symmetry.CRYSTAL_CLASS_MAP[
                 crystal_symmetry.SPACEGROUP_MAP[space_group].crystal_class
             ]
             lattice = info.bravais_lattice
             if lattice != lattice0:
-                values_map.set_values(lattice=lattice)
-                values_map.block_updates = False
-                update_lattice(values_map)
-                values_map.block_updates = True
+                values1 = dict(values)
+                values1["lattice"] = lattice
+                result = self.update_lattice(values1)
+                # In case update_lattice changed the space group
+                result["space_group"] = space_group
             point_groups = info.point_group
             if point_groups == "32" and lattice == "hP":
                 point_groups = info.name[:-1]
             if point_groups != point_groups0:
-                values_map.set_values(point_groups=point_groups)
-        # Following is necessary because previous commands reset space_group
-        values_map.set_values(space_group=space_group)
-    finally:
-        values_map.block_updates = False
+                result["point_groups"] = point_groups
+        #
+        return result
 
-
-def update_indexing_solution(values_map: ui_communication.AbstractValuesMap):
-    """Update pulldowns when selected indexing solution changes"""
-    if values_map.block_updates:
-        return
-    values_map.block_updates = True
-    try:
-        state = values_map.get_values_map()
-        solution = state.get("indexing_solution")[0]
+    def update_indexing_solution(self, values):
+        """Update pulldowns when selected indexing solution changes"""
+        solution = values.get("indexing_solution")[0]
         for lattice in crystal_symmetry.UI_LATTICES:
             if lattice and lattice in solution:
                 # values_map.set_values(lattice=lattice)
-                values_map.reset_options(
-                    "lattice",
-                    value_dict=OrderedDict(
-                        ((tag, tag) for tag in alternative_lattices[lattice])
-                    ),
-                    default=lattice,
-                )
-                values_map.block_updates = False
-                update_lattice(values_map)
+                values1 = dict(values)
+                values1["lattice"] = lattice
+                result = self.update_lattice(values)
+                result["lattice"] = {
+                    "value": lattice,
+                    "options": {
+                        "value_dict": OrderedDict(
+                            ((tag, tag) for tag in alternative_lattices[lattice])
+                        ),
+                    }
+                }
                 break
-    finally:
-        values_map.block_updates = False
+        else:
+            result = {}
+        #
+        return result
+
+
+    def adjust_dose(self, values):
+        """When transmission, image_width, exposure or repetition_count changes,
+        update experiment_time and use_dose in parameter popup, and reset warnings"""
+        data_model = self._queue_entry.get_data_model()
+        exposure_time = float(values.get("exposure", 0))
+        image_width = float(values.get("image_width", 0))
+        transmission = float(values.get("transmission", 0))
+        dose_budget = float(values.get("dose_budget", 0))
+        repetition_count = int(values.get("repetition_count", 1))
+        total_strategy_length = data_model.total_strategy_length
+        std_dose_rate = data_model.std_dose_rate
+        if image_width and exposure_time:
+            experiment_time = exposure_time * total_strategy_length / image_width
+            result = {"experiment_time": {"value": experiment_time}}
+            if std_dose_rate and transmission:
+                # If we get here, Adjust dose
+                # NB dose is calculated for *one* repetition
+                use_dose = std_dose_rate * experiment_time * transmission / 100
+                result["use_dose"] = {"value": use_dose}
+                if use_dose and dose_budget and use_dose * repetition_count > dose_budget:
+                    status = "WARNING"
+                else:
+                    status = "OK"
+                result["use_dose"]["status"] = status
+                result["dose_budget"] = {["status"]: status}
+        #
+        return result
+
+
+    def adjust_transmission(self, values):
+        """When use_dose changes, update transmission and/or exposure_time
+        In parameter popup"""
+        data_model = self._queue_entry.get_data_model()
+        exposure_limits = HWR.beamline.detector.get_exposure_time_limits()
+        exposure_time = float(values.get("exposure", 0))
+        image_width = float(values.get("image_width", 0))
+        use_dose = float(values.get("use_dose", 0))
+        dose_budget = float(values.get("dose_budget", 0))
+        repetition_count = int(values.get("repetition_count", 1))
+        std_dose_rate = data_model.std_dose_rate
+        total_strategy_length = data_model.total_strategy_length
+
+        result = {}
+        if image_width and exposure_time:
+            experiment_time = exposure_time * total_strategy_length / image_width
+            if std_dose_rate and use_dose:
+                transmission = 100 * use_dose / (std_dose_rate * experiment_time)
+
+                if transmission > 100.0:
+                    # Transmission too high. Try max transmission and longer exposure
+                    transmission = 100.0
+                    experiment_time = use_dose / std_dose_rate
+                    exposure_time = experiment_time * image_width / total_strategy_length
+                    max_exposure = exposure_limits[1]
+                    if max_exposure and exposure_time > max_exposure:
+                        # exposure_time over max; set dose to highest achievable dose
+                        exposure_time = max_exposure
+                        experiment_time = exposure_time * total_strategy_length / image_width
+                    use_dose = std_dose_rate * experiment_time
+                    result = {
+                        "exposure": {
+                            "value": exposure_time,
+                        },
+                        "transmission": {
+                            "value": transmission,
+                        },
+                        "use_dose": {
+                            "value": use_dose,
+                        },
+                        "experiment_time": {
+                            "value": experiment_time,
+                        },
+                    }
+                else:
+                    result = {"transmission": {"value": transmission}}
+                if use_dose and dose_budget and use_dose * repetition_count > dose_budget:
+                    status = "WARNING"
+                else:
+                    status = "OK"
+                result["use_dose"]["status"] = status
+                result["dose_budget"] = {["status"]: status}
+        #
+        return result

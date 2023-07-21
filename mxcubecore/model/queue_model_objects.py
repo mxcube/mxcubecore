@@ -2009,6 +2009,7 @@ class GphlWorkflow(TaskNode):
         self.snapshot_count = 2
         self.recentring_mode = "sweep"
         self.recentring_calc_preference = "GPHL"
+        self.std_dose_rate = 0.0
 
         # Workflow interleave order (string).
         # Slowest changing first, characters 'g' (Goniostat position);
@@ -2418,6 +2419,18 @@ class GphlWorkflow(TaskNode):
                 self._cell_parameters = tuple(float(x) for x in value)
             else:
                 raise ValueError("invalid value for cell_parameters: %s" % str(value))
+    @property
+    def total_strategy_length(self):
+        """Total strategy length for a single repetition
+        (but counting all wavelengths)"""
+        result = self.strategy_length
+        energy_tags = self.strategy_settings.get("beam_energy_tags")
+        if energy_tags:
+            result *= len(energy_tags)
+        #
+        return result
+
+
 
     def calculate_transmission(self, use_dose=None):
         """Calculate transmission correspoiding to using up a given dose
