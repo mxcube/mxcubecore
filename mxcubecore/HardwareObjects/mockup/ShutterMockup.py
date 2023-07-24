@@ -63,7 +63,3 @@ class ShutterMockup(AbstractShutter, ActuatorMockup):
         )
         self.VALUES = Enum("ValueEnum", values_dict)
 
-    def _set_value(self, value):
-        """Simulate setting different values"""
-        self._nominal_value = value
-        self.update_state(self.STATES.READY)
