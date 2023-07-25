@@ -19,7 +19,6 @@
 
 """ Mockup shutter implementation"""
 
-from warnings import warn
 from enum import Enum, unique
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
