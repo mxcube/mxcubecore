@@ -41,7 +41,6 @@ import gevent.queue
 import f90nml
 
 from mxcubecore.dispatcher import dispatcher
-from mxcubecore.utils import ui_communication
 from mxcubecore.BaseHardwareObjects import HardwareObjectYaml
 from mxcubecore.model import queue_model_objects
 from mxcubecore.model import crystal_symmetry
@@ -170,8 +169,12 @@ class GphlWorkflow(HardwareObjectYaml):
 
     TEST_SAMPLE_PREFIX = "emulate"
 
+    # Signals
+    PARAMETERS_NEEDED = "GphlJsonParametersNeeded"
     PARAMETER_RETURN_SIGNAL = "GphlParameterReturn"
+    PARAMETER_UPDATE_SIGNAL = "GphlUpdateUiParameters"
     PARAMETERS_READY = "PARAMETERS_READY"
+    PARAMETERS_CANCELLED = "PARAMETERS_CANCELLED"
 
     def __init__(self, name):
         super().__init__(name)
@@ -220,9 +223,9 @@ class GphlWorkflow(HardwareObjectYaml):
         # Configuration data for recentring calculations
         self._recentring_data = OrderedDict()
 
-        # TEST mxcube3 UI
-        self.gevent_event = gevent.event.Event()
-        self.params_dict = {}
+        # # TEST mxcube3 UI
+        # self.gevent_event = gevent.event.Event()
+        # self.params_dict = {}
 
     def init(self):
         super().init()
@@ -577,13 +580,14 @@ class GphlWorkflow(HardwareObjectYaml):
             ):
                 fields[tag]["default"] = val
 
-        # NB update_on_change supports "never", "always", and "selected"
+        # NB update_on_change supports None, "always", and "selected"
         # It controls whether an update signal is sent when a parameter changes
         ui_schema = {
             "ui:order": ["crystal_data", "parameters"],
             "ui:widget": "vertical_box",
             "ui:options": {
                 "return_signal": self.PARAMETER_RETURN_SIGNAL,
+                "update_signal": self.PARAMETER_UPDATE_SIGNAL,
                 "update_on_change": "selected"
             },
             "crystal_data": {
@@ -717,16 +721,20 @@ class GphlWorkflow(HardwareObjectYaml):
         self._return_parameters = gevent.event.AsyncResult()
 
         try:
-            dispatcher.connect(self.receive_pre_strategy_data, "gphlProvideParameters")
+            dispatcher.connect(
+                self.receive_pre_strategy_data,
+                self.PARAMETER_RETURN_SIGNAL,
+                dispatcher.Any
+            )
             responses = dispatcher.send(
-                "gphlJsonParametersNeeded",
+                self.PARAMETERS_NEEDED,
                 self,
                 schema,
                 ui_schema,
             )
             if not responses:
                 self._return_parameters.set_exception(
-                    RuntimeError("Signal 'gphlJsonParametersNeeded' is not connected")
+                    RuntimeError("Signal %s is not connected" % self.PARAMETERS_NEEDED)
                 )
 
             params = self._return_parameters.get()
@@ -737,7 +745,9 @@ class GphlWorkflow(HardwareObjectYaml):
                 params["indexing_solution"] = soldict[solline[0]]
         finally:
             dispatcher.disconnect(
-                self.receive_pre_strategy_data, "gphlProvideParameters"
+                self.receive_pre_strategy_data,
+                self.PARAMETER_RETURN_SIGNAL,
+                dispatcher.Any
             )
             self._return_parameters = None
 
@@ -1253,6 +1263,7 @@ class GphlWorkflow(HardwareObjectYaml):
             "ui:widget": "vertical_box",
             "ui:options": {
                 "return_signal": self.PARAMETER_RETURN_SIGNAL,
+                "update_signal": self.PARAMETER_UPDATE_SIGNAL,
                 "update_on_change": "selected"
             },
             "_info": {
@@ -1339,16 +1350,20 @@ class GphlWorkflow(HardwareObjectYaml):
 
         self._return_parameters = gevent.event.AsyncResult()
         try:
-            dispatcher.connect(self.receive_pre_collection_data, "gphlProvideParameters")
+            dispatcher.connect(
+                self.receive_pre_collection_data,
+                self.PARAMETER_RETURN_SIGNAL,
+                dispatcher.Any,
+            )
             responses = dispatcher.send(
-                "gphlJsonParametersNeeded",
+                self.PARAMETERS_NEEDED,
                 self,
                 schema,
                 ui_schema,
             )
             if not responses:
                 self._return_parameters.set_exception(
-                    RuntimeError("Signal 'gphlJsonParametersNeeded' is not connected")
+                    RuntimeError("Signal %s is not connected" % self.PARAMETERS_NEEDED)
                 )
 
             result = self._return_parameters.get()
@@ -1356,8 +1371,9 @@ class GphlWorkflow(HardwareObjectYaml):
                 return StopIteration
         finally:
             dispatcher.disconnect(
-                self.receive_pre_collection_data, "gphlProvideParameters"
-            )
+                self.receive_pre_collection_data,
+                self.PARAMETER_RETURN_SIGNAL,
+                dispatcher.Any)
             self._return_parameters = None
 
         tag = "image_width"
@@ -2285,23 +2301,32 @@ class GphlWorkflow(HardwareObjectYaml):
                     }
                 ]
                 self._return_parameters = gevent.event.AsyncResult()
-                responses = dispatcher.send(
-                    "gphlParametersNeeded",
-                    self,
-                    field_list,
-                    self._return_parameters,
-                    None,
-                )
-                if not responses:
-                    self._return_parameters.set_exception(
-                        RuntimeError("Signal 'gphlParametersNeeded' is not connected")
-                    )
 
-                # We do not need the result, just to end the waiting
-                response = self._return_parameters.get()
-                self._return_parameters = None
-                if response is StopIteration:
-                    return StopIteration
+                try:
+                    responses = dispatcher.send(
+                        "gphlParametersNeeded",
+                        self,
+                        field_list,
+                        self._return_parameters,
+                        None,
+                    )
+                    if not responses:
+                        self._return_parameters.set_exception(
+                            RuntimeError("Signal 'gphlParametersNeeded' is not connected")
+                        )
+
+                    # We do not need the result, just to end the waiting
+                    response = self._return_parameters.get()
+                    self._return_parameters = None
+                    if response is StopIteration:
+                        return StopIteration
+                finally:
+                    dispatcher.disconnect(
+                        self.receive_pre_strategy_data,
+                        self.PARAMETER_RETURN_SIGNAL,
+                        dispatcher.Any,
+                    )
+                    self._return_parameters = None
 
         settings = goniostatRotation.axisSettings.copy()
         if goniostatTranslation is not None:
@@ -2616,6 +2641,8 @@ class GphlWorkflow(HardwareObjectYaml):
 
         if instruction == self.PARAMETERS_READY:
             self._return_parameters.set(parameters)
+        elif instruction == self.PARAMETERS_CANCELLED:
+            self._return_parameters.set(StopIteration)
         else:
             if instruction == "indexing_solution":
                 update_dict = self.update_indexing_solution(parameters)
@@ -2629,19 +2656,23 @@ class GphlWorkflow(HardwareObjectYaml):
                 update_dict = {}
 
             responses = dispatcher.send(
-                "gphlUpdateUiParameters",
+                self.PARAMETER_UPDATE_SIGNAL,
                 self,
                 update_dict,
             )
             if not responses:
                 self._return_parameters.set_exception(
-                    RuntimeError("Signal 'gphlUpdateUiParameters' is not connected")
+                    RuntimeError(
+                        "Signal %s is not connected" % self.PARAMETER_UPDATE_SIGNAL
+                    )
             )
 
     def receive_pre_collection_data(self, instruction, parameters):
 
         if instruction == self.PARAMETERS_READY:
             self._return_parameters.set(parameters)
+        elif instruction == self.PARAMETERS_CANCELLED:
+            self._return_parameters.set(StopIteration)
         else:
             if instruction == "dose":
                 update_dict = self.adjust_transmission(parameters)
@@ -2651,13 +2682,15 @@ class GphlWorkflow(HardwareObjectYaml):
             else:
                 update_dict = {}
             responses = dispatcher.send(
-                "gphlUpdateUiParameters",
+                self.PARAMETER_UPDATE_SIGNAL,
                 self,
                 update_dict,
             )
             if not responses:
                 self._return_parameters.set_exception(
-                    RuntimeError("Signal 'gphlUpdateUiParameters' is not connected")
+                    RuntimeError(
+                        "Signal %s is not connected" % self.PARAMETER_UPDATE_SIGNAL
+                    )
                 )
 
     def update_lattice(self, values):
@@ -2780,12 +2813,13 @@ class GphlWorkflow(HardwareObjectYaml):
                 # NB dose is calculated for *one* repetition
                 use_dose = std_dose_rate * experiment_time * transmission / 100
                 result["use_dose"] = {"value": use_dose}
-                if use_dose and dose_budget and use_dose * repetition_count > dose_budget:
-                    status = "WARNING"
-                else:
-                    status = "OK"
-                result["use_dose"]["status"] = status
-                result["dose_budget"] = {["status"]: status}
+                if (
+                    use_dose
+                    and dose_budget
+                    and use_dose * repetition_count > dose_budget
+                ):
+                    result["use_dose"]["highlight"] = "WARNING"
+                    result["dose_budget"] = {["highlight"]: "WARNING"}
         #
         return result
 
@@ -2813,12 +2847,16 @@ class GphlWorkflow(HardwareObjectYaml):
                     # Transmission too high. Try max transmission and longer exposure
                     transmission = 100.0
                     experiment_time = use_dose / std_dose_rate
-                    exposure_time = experiment_time * image_width / total_strategy_length
+                    exposure_time = (
+                        experiment_time * image_width / total_strategy_length
+                    )
                     max_exposure = exposure_limits[1]
                     if max_exposure and exposure_time > max_exposure:
                         # exposure_time over max; set dose to highest achievable dose
                         exposure_time = max_exposure
-                        experiment_time = exposure_time * total_strategy_length / image_width
+                        experiment_time = (
+                            exposure_time * total_strategy_length / image_width
+                        )
                     use_dose = std_dose_rate * experiment_time
                     result = {
                         "exposure": {
@@ -2836,11 +2874,12 @@ class GphlWorkflow(HardwareObjectYaml):
                     }
                 else:
                     result = {"transmission": {"value": transmission}}
-                if use_dose and dose_budget and use_dose * repetition_count > dose_budget:
-                    status = "WARNING"
-                else:
-                    status = "OK"
-                result["use_dose"]["status"] = status
-                result["dose_budget"] = {["status"]: status}
+                if (
+                    use_dose
+                    and dose_budget
+                    and use_dose * repetition_count > dose_budget
+                ):
+                    result["use_dose"]["highlight"] = "WARNING"
+                    result["dose_budget"] = {["highlight"]: "WARNING"}
         #
         return result
