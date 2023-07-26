@@ -628,6 +628,7 @@ class MiniDiff(Equipment):
             self.emitCentringStarted(method)
 
             def fake_centring_procedure():
+                logging.getLogger("HWR").debug("get in fake_centring_procedure() in MiniDiff.py")
                 return {"motors": {}, "method": method, "valid": True}
 
             self.current_centring_procedure = gevent.spawn(fake_centring_procedure)
@@ -720,6 +721,7 @@ class MiniDiff(Equipment):
         )
 
         self.current_centring_procedure.link(self.manualCentringDone)
+
 
     def motor_positions_to_screen(self, centred_positions_dict):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
@@ -939,16 +941,75 @@ class MiniDiff(Equipment):
         self.current_centring_procedure = None
         self.emit("centringFailed", (method, self.get_centring_status()))
 
+    # def emitCentringSuccessful(self):
+    #     logging.getLogger("HWR").debug(
+    #         "MiniDiff: get into emitCentringSuccessful()"
+    #     )
+    #     if self.current_centring_procedure is not None:
+    #         logging.getLogger("HWR").debug(
+    #             "MiniDiff: get into emitCentringSuccessful(), self.current_centring_procedure is not None"
+    #         )
+    #
+    #         curr_time = time.strftime("%Y-%m-%d %H:%M:%S")
+    #         self.centringStatus["endTime"] = curr_time
+    #
+    #         self.centringStatus["motors"] = self.get_positions()
+    #         logging.getLogger("HWR").debug(
+    #             "MiniDiff: get into emitCentringSuccessful(), before self.current_centring_procedure.get()"
+    #         )
+    #         print("self.current_centring_procedure:",self.current_centring_procedure)
+    #         centred_pos = self.current_centring_procedure.get() #卡在这
+    #
+    #         for role in self.centringStatus["motors"]:
+    #
+    #             motor = self.get_object_by_role(role)
+    #
+    #             try:
+    #
+    #                 self.centringStatus["motors"][role] = centred_pos[motor]
+    #
+    #             except KeyError:
+    #                 continue
+    #
+    #         self.centringStatus["method"] = self.currentCentringMethod
+    #         self.centringStatus["valid"] = True
+    #
+    #         method = self.currentCentringMethod
+    #         self.emit("centringSuccessful", (method, self.get_centring_status()))
+    #         self.currentCentringMethod = None
+    #         self.current_centring_procedure = None
+    #
+    #     else:
+    #         logging.getLogger("HWR").debug(
+    #             "MiniDiff: trying to emit centringSuccessful outside of a centring"
+    #         )
     def emitCentringSuccessful(self):
+        logging.getLogger("HWR").debug(
+            "MiniDiff: get into emitCentringSuccessful()"
+        )
         if self.current_centring_procedure is not None:
+            logging.getLogger("HWR").debug(
+                "MiniDiff: get into emitCentringSuccessful(), self.current_centring_procedure is not None"
+            )
+
             curr_time = time.strftime("%Y-%m-%d %H:%M:%S")
             self.centringStatus["endTime"] = curr_time
+
             self.centringStatus["motors"] = self.get_positions()
-            centred_pos = self.current_centring_procedure.get()
+            logging.getLogger("HWR").debug(
+                "MiniDiff: get into emitCentringSuccessful(), before self.current_centring_procedure.get()"
+            )
+            print("self.current_centring_procedure:",self.current_centring_procedure)
+            centred_pos = self.current_centring_procedure.get() #卡在这
+
             for role in self.centringStatus["motors"]:
+
                 motor = self.get_object_by_role(role)
+
                 try:
+
                     self.centringStatus["motors"][role] = centred_pos[motor]
+
                 except KeyError:
                     continue
 
@@ -959,6 +1020,7 @@ class MiniDiff(Equipment):
             self.emit("centringSuccessful", (method, self.get_centring_status()))
             self.currentCentringMethod = None
             self.current_centring_procedure = None
+
         else:
             logging.getLogger("HWR").debug(
                 "MiniDiff: trying to emit centringSuccessful outside of a centring"

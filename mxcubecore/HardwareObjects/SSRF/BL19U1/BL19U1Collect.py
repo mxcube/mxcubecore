@@ -190,6 +190,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         """
         Actual collect sequence
         """
+        print("get in do_collect method**************************************")
         log = logging.getLogger("user_level_log")
         log.info("Collection: Preparing to collect")
         # todo, add more exceptions and abort
@@ -230,7 +231,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             # log.info("Collect: Storing sample info in LIMS")
             # self.store_sample_info_in_lims()
 
-            HWR.beamline.diffractometer.emitCentringSuccessful() # Force curent pos a centred pos
+            HWR.beamline.diffractometer.emitCentringSuccessful() # Force curent pos a centred pos #如果用户收集的同时也点了对中会卡住，先注释掉
 
             if all(
                 item is None for item in self.current_dc_parameters["motors"].values()
@@ -463,6 +464,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         if HWR.beamline.diffractometer.get_current_phase() != "DataCollection":
             HWR.beamline.diffractometer.wait_ready()
             log.info("Moving Diffractometer to Data Collection")
+            print("Moving Diffractometer to Data Collection**********************************************************")
             HWR.beamline.diffractometer.set_phase(
                 "DataCollection", wait=True, timeout=200
             )
@@ -1563,6 +1565,8 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             self.data_collect_task.kill(block=False)
         logging.getLogger("HWR").error("Collection stopped")
         self.stop_display = True
+
+        self.emit_collection_failed() #添加
 
 
     def get_undulators_gaps(self):

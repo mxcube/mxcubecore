@@ -650,6 +650,7 @@ class Microdiff(MiniDiff.MiniDiff):
             )
 
         self.current_centring_procedure.link(self.manualCentringDone)
+        # print("exiting start_manual_centring()****************************************")
 
     def interrupt_and_accept_centring(self):
         """Used when plate. Kills the current 1 click centring infinite loop

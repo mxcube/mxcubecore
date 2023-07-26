@@ -104,6 +104,7 @@ def start(
     chi_angle=0,
     n_points=3,
 ):
+    logging.getLogger("HWR").debug("get in start() in sample_centring.py")
     global CURRENT_CENTRING
 
     phi, phiy, phiz, sampx, sampy = prepare(centring_motors_dict)
@@ -122,6 +123,9 @@ def start(
         chi_angle,
         n_points,
     )
+    # logging.getLogger("HWR").debug(
+    #     "MiniDiff: get into start(), 222"
+    # )
     return CURRENT_CENTRING
 
 
@@ -176,6 +180,9 @@ def start_plate_1_click(
     phi_max,
     n_points=10,
 ):
+    logging.getLogger("HWR").debug(
+        "MiniDiff: get into start_plate_1_click()"
+    )
     global CURRENT_CENTRING
 
     # plateTranslation = centring_motors_dict["plateTranslation"]
@@ -512,6 +519,7 @@ def start_auto(
     msg_cb=None,
     new_point_cb=None,
 ):
+    logging.getLogger("HWR").debug("get in start_auto() in sample_centring.py")
     global CURRENT_CENTRING
 
     phi, phiy, phiz, sampx, sampy = prepare(centring_motors_dict)

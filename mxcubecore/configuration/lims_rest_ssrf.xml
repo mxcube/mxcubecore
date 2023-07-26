@@ -1,0 +1,16 @@
+<object class="ISPyBRestClient">
+  <restRoot>
+      http://10.30.61.230/ispyb/ispyb-ws
+  </restRoot>
+  <site>
+   SSRF
+  </site>
+  <exi_root>
+   http://10.30.61.230/EXI
+  </exi_root>
+  <restUserName></restUserName>
+  <restPass></restPass>
+
+  <object role="session" href="/session"/>
+
+</object>

@@ -1,0 +1,15 @@
+<object class="ISPyBClient">
+  <object hwrid="/lims_rest_ssrf" role="lims_rest"/>
+  <ws_root>
+    http://10.30.61.230/ispyb/ispyb-ws/ispybWS/
+  </ws_root>
+  <base_result_url>
+    http://10.30.61.230/ispyb
+  </base_result_url>
+  <ws_username>ssrf</ws_username>
+  <ws_password>ssrf</ws_password>
+  <loginType>proposal</loginType>
+  <object role="session" href="/session"/>
+  <object role="ldapServer" href="/ldapconnection"/>
+  <authServerType>ispyb</authServerType>
+</object>

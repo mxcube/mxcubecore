@@ -229,8 +229,41 @@ class Session(HardwareObject):
             directory = os.path.join(directory, sub_dir) + "/"
 
         return directory
-
-    def get_default_prefix(self, sample_data_node=None, generic_name=False):
+    #
+    # def get_default_prefix(self, sample_data_node=None, generic_name=False):
+    #     """
+    #     Returns the default prefix, using sample data such as the
+    #     acronym as parts in the prefix.
+    #
+    #     :param sample_data_node: The data node to get additional
+    #                              information from, (which will be
+    #                              added to the prefix).
+    #     :type sample_data_node: Sample
+    #
+    #
+    #     :returns: The default prefix.
+    #     :rtype: str
+    #     """
+    #     proposal = self.get_proposal()
+    #     prefix = proposal
+    #
+    #     if sample_data_node:
+    #         if sample_data_node.has_lims_data():
+    #             protein_acronym = sample_data_node.crystals[0].protein_acronym
+    #             name = sample_data_node.name
+    #             if protein_acronym:
+    #                 if name:
+    #                     prefix = "%s-%s" % (protein_acronym, name)
+    #                 else:
+    #                     prefix = protein_acronym
+    #             else:
+    #                 prefix = name or ""
+    #     elif generic_name:
+    #         prefix = "<acronym>-<name>"
+    #     #
+    #     return prefix
+    #
+    def get_default_prefix(self, sample_data_node=None, generic_name=False,sample_prefix=None):
         """
         Returns the default prefix, using sample data such as the
         acronym as parts in the prefix.
@@ -243,23 +276,29 @@ class Session(HardwareObject):
 
         :returns: The default prefix.
         :rtype: str
+        #修改
         """
+        # print("进入session.py的get_default_prefix()")
         proposal = self.get_proposal()
         prefix = proposal
 
         if sample_data_node:
-            if sample_data_node.has_lims_data():
-                protein_acronym = sample_data_node.crystals[0].protein_acronym
-                name = sample_data_node.name
-                if protein_acronym:
-                    if name:
-                        prefix = "%s-%s" % (protein_acronym, name)
-                    else:
-                        prefix = protein_acronym
-                else:
-                    prefix = name or ""
+            print("sample_prefix0:", sample_prefix)
+
+            protein_acronym = sample_data_node.crystals[0].protein_acronym
+            name = sample_data_node.name
+            if sample_prefix:
+               print("sample_prefix2:",sample_prefix)
+               prefix = "%s" %sample_prefix
+            elif protein_acronym:
+               if name:
+                   prefix = "%s-%s" % (protein_acronym, name)
+               else:
+                   prefix = protein_acronym
+            else:
+                prefix = name or ""
         elif generic_name:
-            prefix = "<acronym>-<name>"
+               prefix = "<acronym>-<name>"
         #
         return prefix
 
@@ -284,7 +323,8 @@ class Session(HardwareObject):
             protein_acronym = sample_data.crystals[0].protein_acronym
 
         if protein_acronym:
-            subdir = "%s/%s-%s/" % (protein_acronym, protein_acronym, sample_name)
+            # subdir = "%s/%s-%s/" % (protein_acronym, protein_acronym, sample_name)
+            subdir = "%s/" % (protein_acronym)
         else:
             subdir = "%s/" % sample_name
 

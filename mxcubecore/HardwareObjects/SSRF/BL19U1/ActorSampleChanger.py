@@ -134,8 +134,24 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         self._ifcmdSucceeded = False
         self.first_launch_mxcube=True #添加
         self.if_check_mountedPin_from_camerman = False
+        self.write_sample_dir() #加载sample的prefix和subdir
+    def write_sample_dir(self):    #添加
+        """
+        将目录从sc.xml写入二维列表
+        self.proteinAcronym与
+        self.default_prefix
+        """
+        self.proteinAcronym=[["0" for j in range(self.no_of_samples_in_basket)]for i in range(self.no_of_baskets)]
+        for i in range(len(self.proteinAcronym)):
+            for j in range(self.no_of_samples_in_basket):
+                xmlName = "subdir"+str(i+1)+"-"+str(j+1) #"subdir5-2"
+                self.proteinAcronym[i][j] = self.get_property(xmlName)
 
-
+        self.default_prefix=[["0" for j in range(self.no_of_samples_in_basket)]for i in range(self.no_of_baskets)]
+        for i in range(len(self.default_prefix)):
+            for j in range(self.no_of_samples_in_basket):
+                xmlName = "prefix"+str(i+1)+"-"+str(j+1) #"subdir5-2"
+                self.default_prefix[i][j] = self.get_property(xmlName)
 
 
     # def load_sample(self, holder_length, sample_location=None, wait=False):
@@ -224,7 +240,8 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
                 self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
                 return
             # 如果命令返回的类型是Exception，说明是机械手有报错
-            elif (type(self._ifcmdSucceeded) is Exception) or (type(self._ifcmdSucceeded) is OSError) or (type(self._ifcmdSucceeded) is TimeoutError) or (type(self._ifcmdSucceeded) is KeyError):
+            # 20230714 添加新异常：<ConnectionRefusedError>
+            elif (type(self._ifcmdSucceeded) is Exception) or (type(self._ifcmdSucceeded) is OSError) or (type(self._ifcmdSucceeded) is TimeoutError) or (type(self._ifcmdSucceeded) is KeyError) or (type(self._ifcmdSucceeded) is ConnectionRefusedError):
                 # 在发生错误后恢复机械手的各种状态
                 self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
                 HWR.beamline.sample_changer_maintenance._running = 0
@@ -524,6 +541,10 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
             return "Pin is sensored on goniometer by infrared ray while tring to mount a new one, (please check if there really has a pin)"
         elif errorCode == "12":
             return "Robot E stop, there was a collision happened, please have a check and don't send another command to robot"
+        elif errorCode == "21":
+            return "The imformation of mounted sample is different between mxcube and camerman, please try to use camerman to dismount the current sample and clear the memory of mxcube, then please try again."
+        elif errorCode == "3":
+            return "Robot collect error, usually caused by the robot gripper."
         else:
             return errorCode
 
