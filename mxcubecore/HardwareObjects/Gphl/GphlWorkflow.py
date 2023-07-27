@@ -588,7 +588,7 @@ class GphlWorkflow(HardwareObjectYaml):
             "ui:options": {
                 "return_signal": self.PARAMETER_RETURN_SIGNAL,
                 "update_signal": self.PARAMETER_UPDATE_SIGNAL,
-                "update_on_change": "selected"
+                "update_on_change": "selected",
             },
             "crystal_data": {
                 "ui:title": "Input Unit Cell",
@@ -698,13 +698,11 @@ class GphlWorkflow(HardwareObjectYaml):
             if "mC" in lattices:
                 # NBNB special case. mI non-standard but supported in XDS
                 lattices.add("mI")
+            highlights = {}
             if lattices:
-                colouring = list(
-                    any(x == solution.bravaisLattice for x in lattices)
-                    for solution in soldict.values()
-                )
-            else:
-                colouring = None
+                for rowno, solution in enumerate(soldict.values()):
+                    if any(x == solution.bravaisLattice for x in lattices):
+                        highlights[(rowno,0)] = "HIGHLIGHT"
 
             ui_schema["ui:order"].insert(0, "indexing_solution")
             ui_schema["indexing_solution"] = {
@@ -712,8 +710,8 @@ class GphlWorkflow(HardwareObjectYaml):
                 "ui:options": {
                     "header": [header],
                     "content": [list(soldict)],
-                    "select_row": select_row,
-                    "colouring": colouring,
+                    "select_cell": (select_row, 0),
+                    "highlights": highlights,
                     "update_on_change": True,
                 },
             }
@@ -724,7 +722,7 @@ class GphlWorkflow(HardwareObjectYaml):
             dispatcher.connect(
                 self.receive_pre_strategy_data,
                 self.PARAMETER_RETURN_SIGNAL,
-                dispatcher.Any
+                dispatcher.Any,
             )
             responses = dispatcher.send(
                 self.PARAMETERS_NEEDED,
@@ -742,12 +740,12 @@ class GphlWorkflow(HardwareObjectYaml):
                 return StopIteration
             solline = params.get("indexing_solution")
             if solline:
-                params["indexing_solution"] = soldict[solline[0]]
+                params["indexing_solution"] = soldict[solline]
         finally:
             dispatcher.disconnect(
                 self.receive_pre_strategy_data,
                 self.PARAMETER_RETURN_SIGNAL,
-                dispatcher.Any
+                dispatcher.Any,
             )
             self._return_parameters = None
 
@@ -1094,12 +1092,12 @@ class GphlWorkflow(HardwareObjectYaml):
         }
         fields = schema["properties"]
         # # From here on visible fields
-        # fields["_info"] = {
-        #     # "title": "Data collection plan",
-        #     "type": "string",
-        #     "default": info_text,
-        #     "readOnly": True,
-        # }
+        fields["_info"] = {
+            # "title": "Data collection plan",
+            "type": "string",
+            "default": info_text,
+            "readOnly": True,
+        }
         fields["image_width"] = {
             "title": "Oscillation range",
             "type": "string",
@@ -1264,7 +1262,7 @@ class GphlWorkflow(HardwareObjectYaml):
             "ui:options": {
                 "return_signal": self.PARAMETER_RETURN_SIGNAL,
                 "update_signal": self.PARAMETER_UPDATE_SIGNAL,
-                "update_on_change": "selected"
+                "update_on_change": "selected",
             },
             "_info": {
                 "ui:title": info_title,
@@ -1373,7 +1371,8 @@ class GphlWorkflow(HardwareObjectYaml):
             dispatcher.disconnect(
                 self.receive_pre_collection_data,
                 self.PARAMETER_RETURN_SIGNAL,
-                dispatcher.Any)
+                dispatcher.Any,
+            )
             self._return_parameters = None
 
         tag = "image_width"
@@ -2312,7 +2311,9 @@ class GphlWorkflow(HardwareObjectYaml):
                     )
                     if not responses:
                         self._return_parameters.set_exception(
-                            RuntimeError("Signal 'gphlParametersNeeded' is not connected")
+                            RuntimeError(
+                                "Signal 'gphlParametersNeeded' is not connected"
+                            )
                         )
 
                     # We do not need the result, just to end the waiting
@@ -2665,7 +2666,7 @@ class GphlWorkflow(HardwareObjectYaml):
                     RuntimeError(
                         "Signal %s is not connected" % self.PARAMETER_UPDATE_SIGNAL
                     )
-            )
+                )
 
     def receive_pre_collection_data(self, instruction, parameters):
 
@@ -2677,7 +2678,11 @@ class GphlWorkflow(HardwareObjectYaml):
             if instruction == "dose":
                 update_dict = self.adjust_transmission(parameters)
             elif instruction in (
-                "image_width", "exposure", "repetition_count", "transmission"):
+                "image_width",
+                "exposure",
+                "repetition_count",
+                "transmission",
+            ):
                 update_dict = self.adjust_dose(parameters)
             else:
                 update_dict = {}
@@ -2721,7 +2726,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 "options": {
                     "value_dict": OrderedDict((tag, tag) for tag in sgoptions),
                 },
-            }
+            },
         }
         #
         return result
@@ -2772,7 +2777,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
     def update_indexing_solution(self, values):
         """Update pulldowns when selected indexing solution changes"""
-        solution = values.get("indexing_solution")[0]
+        solution = values.get("indexing_solution")
         for lattice in crystal_symmetry.UI_LATTICES:
             if lattice and lattice in solution:
                 # values_map.set_values(lattice=lattice)
@@ -2785,14 +2790,13 @@ class GphlWorkflow(HardwareObjectYaml):
                         "value_dict": OrderedDict(
                             ((tag, tag) for tag in alternative_lattices[lattice])
                         ),
-                    }
+                    },
                 }
                 break
         else:
             result = {}
         #
         return result
-
 
     def adjust_dose(self, values):
         """When transmission, image_width, exposure or repetition_count changes,
@@ -2822,7 +2826,6 @@ class GphlWorkflow(HardwareObjectYaml):
                     result["dose_budget"] = {["highlight"]: "WARNING"}
         #
         return result
-
 
     def adjust_transmission(self, values):
         """When use_dose changes, update transmission and/or exposure_time
