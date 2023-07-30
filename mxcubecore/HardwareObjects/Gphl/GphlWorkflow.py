@@ -435,40 +435,40 @@ class GphlWorkflow(HardwareObjectYaml):
             "title": "a",
             "type": "number",
             "minimum": 0,
-            "readOnly": True,
+            "readonly": True,
         }
         fields["cell_b"] = {
             "title": "b",
             "type": "number",
             "minimum": 0,
-            "readOnly": True,
+            "readonly": True,
         }
         fields["cell_c"] = {
             "title": "c",
             "type": "number",
             "minimum": 0,
-            "readOnly": True,
+            "readonly": True,
         }
         fields["cell_alpha"] = {
             "title": "α",
             "type": "number",
             "minimum": 0,
             "maximum": 180,
-            "readOnly": True,
+            "readonly": True,
         }
         fields["cell_beta"] = {
             "title": "β",
             "type": "number",
             "minimum": 0,
             "maximum": 180,
-            "readOnly": True,
+            "readonly": True,
         }
         fields["cell_gamma"] = {
             "title": "γ",
             "type": "number",
             "minimum": 0,
             "maximum": 180,
-            "readOnly": True,
+            "readonly": True,
         }
         lattice_dict = OrderedDict((tag, tag) for tag in lattice_tags)
         fields["lattice"] = {
@@ -500,7 +500,7 @@ class GphlWorkflow(HardwareObjectYaml):
             )
             or "",
             "type": "string",
-            "readOnly": True,
+            "readonly": True,
         }
         fields["relative_rad_sensitivity"] = {
             "title": "Radiation sensitivity",
@@ -669,7 +669,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 "cell_beta",
                 "cell_gamma",
             ):
-                fields[tag]["readOnly"] = False
+                fields[tag]["readonly"] = False
             ui_schema["parameters"]["column1"]["ui:order"].remove("point_groups")
 
         elif choose_lattice is None:
@@ -679,7 +679,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
         else:
             # Acquisition
-            fields["relative_rad_sensitivity"]["readOnly"] = True
+            fields["relative_rad_sensitivity"]["readonly"] = True
             fields["indexing_solution"] = {
                 "title": "Select indexing solution:",
                 "type": "string",
@@ -933,7 +933,6 @@ class GphlWorkflow(HardwareObjectYaml):
         is_interleaved = geometric_strategy.isInterleaved
 
         data_model = self._queue_entry.get_data_model()
-        budget_use_fraction = data_model.characterisation_budget_fraction
         initial_energy = HWR.beamline.energy.calculate_energy(
             data_model.wavelengths[0].wavelength
         )
@@ -1096,7 +1095,7 @@ class GphlWorkflow(HardwareObjectYaml):
             # "title": "Data collection plan",
             "type": "string",
             "default": info_text,
-            "readOnly": True,
+            "readonly": True,
         }
         fields["image_width"] = {
             "title": "Oscillation range",
@@ -1114,16 +1113,16 @@ class GphlWorkflow(HardwareObjectYaml):
         fields["dose_budget"] = {
             "title": "Dose budget (MGy)",
             "type": "number",
-            "default": dose_budget,
+            "default": dose_budget - data_model.characterisation_dose,
             "minimum": 0.0,
-            "readOnly": True,
+            "readonly": True,
         }
         fields["use_dose"] = {
             "title": dose_label,
             "type": "number",
             "default": use_dose_start,
             "minimum": 0.000001,
-            "readOnly": use_dose_frozen,
+            "readonly": use_dose_frozen,
         }
         # NB Transmission is in % in UI, but in 0-1 in workflow
         fields["transmission"] = {
@@ -1139,13 +1138,13 @@ class GphlWorkflow(HardwareObjectYaml):
             "default": resolution,
             "minimum": reslimits[0],
             "maximum": reslimits[1],
-            "readOnly": True,
+            "readonly": True,
         }
         fields["experiment_time"] = {
             "title": "Experiment duration (s)",
             "type": "number",
             "default": experiment_time,
-            "readOnly": True,
+            "readonly": True,
         }
         if data_model.characterisation_done:
             fields["repetition_count"] = {
@@ -1175,7 +1174,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 "default": val,
                 "minimum": energy_limits[0],
                 "maximum": energy_limits[1],
-                "readOnly": readonly,
+                "readonly": readonly,
             }
             readonly = False
 
@@ -1318,7 +1317,7 @@ class GphlWorkflow(HardwareObjectYaml):
                     ],
                     "dose_budget": {
                         "ui:options": {
-                            "decimals": 3,
+                            "decimals": 4,
                         }
                     },
                     "resolution": {
@@ -2645,28 +2644,33 @@ class GphlWorkflow(HardwareObjectYaml):
         elif instruction == self.PARAMETERS_CANCELLED:
             self._return_parameters.set(StopIteration)
         else:
-            if instruction == "indexing_solution":
-                update_dict = self.update_indexing_solution(parameters)
-            elif instruction == "lattice":
-                update_dict = self.update_lattice(parameters)
-            elif instruction == "point_groups":
-                update_dict = self.update_point_groups(parameters)
-            elif instruction == "space_group":
-                update_dict = self.update_space_group(parameters)
-            else:
-                update_dict = {}
-
-            responses = dispatcher.send(
-                self.PARAMETER_UPDATE_SIGNAL,
-                self,
-                update_dict,
-            )
-            if not responses:
-                self._return_parameters.set_exception(
-                    RuntimeError(
-                        "Signal %s is not connected" % self.PARAMETER_UPDATE_SIGNAL
-                    )
+            update_dict = {}
+            try:
+                if instruction == "indexing_solution":
+                    update_dict = self.update_indexing_solution(parameters)
+                elif instruction == "lattice":
+                    update_dict = self.update_lattice(parameters)
+                elif instruction == "point_groups":
+                    update_dict = self.update_point_groups(parameters)
+                elif instruction == "space_group":
+                    update_dict = self.update_space_group(parameters)
+            except:
+                logging.getLogger("HWR").error(
+                    "Error in GΦL parameter update for %s, Continuing ...",
+                    instruction,
                 )
+            finally:
+                responses = dispatcher.send(
+                    self.PARAMETER_UPDATE_SIGNAL,
+                    self,
+                    update_dict,
+                )
+                if not responses:
+                    self._return_parameters.set_exception(
+                        RuntimeError(
+                            "Signal %s is not connected" % self.PARAMETER_UPDATE_SIGNAL
+                        )
+                    )
 
     def receive_pre_collection_data(self, instruction, parameters):
 
@@ -2675,28 +2679,34 @@ class GphlWorkflow(HardwareObjectYaml):
         elif instruction == self.PARAMETERS_CANCELLED:
             self._return_parameters.set(StopIteration)
         else:
-            if instruction == "dose":
-                update_dict = self.adjust_transmission(parameters)
-            elif instruction in (
-                "image_width",
-                "exposure",
-                "repetition_count",
-                "transmission",
-            ):
-                update_dict = self.adjust_dose(parameters)
-            else:
-                update_dict = {}
-            responses = dispatcher.send(
-                self.PARAMETER_UPDATE_SIGNAL,
-                self,
-                update_dict,
-            )
-            if not responses:
-                self._return_parameters.set_exception(
-                    RuntimeError(
-                        "Signal %s is not connected" % self.PARAMETER_UPDATE_SIGNAL
-                    )
+            update_dict = {}
+            try:
+                if instruction == "use_dose":
+                    update_dict = self.adjust_transmission(parameters)
+                elif instruction in (
+                    "image_width",
+                    "exposure",
+                    "repetition_count",
+                    "transmission",
+                ):
+                    update_dict = self.adjust_dose(parameters)
+            except:
+                logging.getLogger("HWR").error(
+                    "Error in GΦL parameter update for %s, Continuing ...",
+                    instruction,
                 )
+            finally:
+                responses = dispatcher.send(
+                    self.PARAMETER_UPDATE_SIGNAL,
+                    self,
+                    update_dict,
+                )
+                if not responses:
+                    self._return_parameters.set_exception(
+                        RuntimeError(
+                            "Signal %s is not connected" % self.PARAMETER_UPDATE_SIGNAL
+                        )
+                    )
 
     def update_lattice(self, values):
         """Update pulldowns when crystal lattice changes"""
@@ -2766,12 +2776,12 @@ class GphlWorkflow(HardwareObjectYaml):
                 values1["lattice"] = lattice
                 result = self.update_lattice(values1)
                 # In case update_lattice changed the space group
-                result["space_group"] = space_group
+                result["space_group"]["value"] = space_group
             point_groups = info.point_group
             if point_groups == "32" and lattice == "hP":
                 point_groups = info.name[:-1]
             if point_groups != point_groups0:
-                result["point_groups"] = point_groups
+                result["point_groups"]["value"] = point_groups
         #
         return result
 
@@ -2783,7 +2793,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 # values_map.set_values(lattice=lattice)
                 values1 = dict(values)
                 values1["lattice"] = lattice
-                result = self.update_lattice(values)
+                result = self.update_lattice(values1)
                 result["lattice"] = {
                     "value": lattice,
                     "options": {
@@ -2823,7 +2833,10 @@ class GphlWorkflow(HardwareObjectYaml):
                     and use_dose * repetition_count > dose_budget
                 ):
                     result["use_dose"]["highlight"] = "WARNING"
-                    result["dose_budget"] = {["highlight"]: "WARNING"}
+                    result["dose_budget"] = {"highlight": "WARNING"}
+                else:
+                    result["use_dose"]["highlight"] = "OK"
+                    result["dose_budget"] = {"highlight": "OK"}
         #
         return result
 
@@ -2882,7 +2895,12 @@ class GphlWorkflow(HardwareObjectYaml):
                     and dose_budget
                     and use_dose * repetition_count > dose_budget
                 ):
-                    result["use_dose"]["highlight"] = "WARNING"
-                    result["dose_budget"] = {["highlight"]: "WARNING"}
+                    dd0 = result.setdefault("use_dose", {})
+                    dd0["highlight"] = "WARNING"
+                    result["dose_budget"] = {"highlight": "WARNING"}
+                else:
+                    dd0 = result.setdefault("use_dose", {})
+                    dd0["highlight"] = "OK"
+                    result["dose_budget"] = {"highlight": "OK"}
         #
         return result

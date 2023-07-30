@@ -2425,7 +2425,7 @@ class GphlWorkflow(TaskNode):
         (but counting all wavelengths)"""
         result = self.strategy_length
         energy_tags = self.strategy_settings.get("beam_energy_tags")
-        if energy_tags:
+        if energy_tags and self.characterisation_done:
             result *= len(energy_tags)
         #
         return result
@@ -2455,7 +2455,7 @@ class GphlWorkflow(TaskNode):
         """
 
         if transmission is None:
-            transmission = self.transmission
+            transmission = 100.0 * self.transmission
         energy = HWR.beamline.energy.calculate_energy(self.wavelengths[0].wavelength)
         flux_density = HWR.beamline.flux.get_average_flux_density(
             transmission=transmission
