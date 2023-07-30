@@ -2169,6 +2169,7 @@ class GphlWorkflow(TaskNode):
             self.strategy_options["variant"] = self.strategy_variant = strategy
         elif self.wftype == "diffractcal":
             strategy = strategy or self.strategy_settings["variants"][0]
+            self.strategy_options["variant"] = self.strategy_variant = strategy
             self.initial_strategy = strategy
         elif self.wftype != "transcal":
             # This must be characterisation - here we do not accept defaults

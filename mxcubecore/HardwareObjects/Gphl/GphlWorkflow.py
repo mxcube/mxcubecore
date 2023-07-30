@@ -681,7 +681,7 @@ class GphlWorkflow(HardwareObjectYaml):
             # Acquisition
             fields["relative_rad_sensitivity"]["readonly"] = True
             fields["indexing_solution"] = {
-                "title": "Select indexing solution:",
+                "title": "--- Select indexing solution : ---",
                 "type": "string",
             }
 
@@ -957,12 +957,14 @@ class GphlWorkflow(HardwareObjectYaml):
                 data_model.crystal_classes,
                 phasing=(data_model.strategy_type == "phasing"),
             )
-            info_title = "GΦL workflow:   %s, strategy '%s', for symmetry '%s'." % (
-                title_string,
-                data_model.strategy_variant or data_model.strategy_name,
-                ptgrp,
-            )
-            lines = []
+            info_title = "--- %s ---" % title_string
+            lines = [
+                "Strategy '%s', for symmetry '%s'\n" % (
+                    # title_string,
+                    data_model.strategy_variant or data_model.strategy_name,
+                    ptgrp,
+                )
+            ]
             energy_tags = strategy_settings.get("beam_energy_tags") or (
                 self.settings["default_beam_energy_tag"],
             )
@@ -975,7 +977,7 @@ class GphlWorkflow(HardwareObjectYaml):
         else:
             # Characterisation
             title_string = "Characterisation"
-            info_title = "GΦL Characterisation strategy"
+            info_title = "--- GΦL Characterisation strategy ---"
             lines = []
             beam_energies = OrderedDict((("Characterisation", initial_energy),))
             dose_label = "Characterisation dose (MGy)"
@@ -1093,7 +1095,7 @@ class GphlWorkflow(HardwareObjectYaml):
         # # From here on visible fields
         fields["_info"] = {
             # "title": "Data collection plan",
-            "type": "string",
+            "type": "textdisplay",
             "default": info_text,
             "readonly": True,
         }
@@ -1265,12 +1267,6 @@ class GphlWorkflow(HardwareObjectYaml):
             },
             "_info": {
                 "ui:title": info_title,
-                "ui:widget": "textarea",
-                "ui:options": {
-                    # 'rows' not used in Qt - gives minimum necessary size.
-                    "rows": len(fields["_info"]["default"].splitlines())
-                    + 1
-                },
             },
             "parameters": {
                 "ui:title": "Parameters",
