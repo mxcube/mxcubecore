@@ -702,7 +702,7 @@ class GphlWorkflow(HardwareObjectYaml):
             if lattices:
                 for rowno, solution in enumerate(soldict.values()):
                     if any(x == solution.bravaisLattice for x in lattices):
-                        highlights[(rowno,0)] = "HIGHLIGHT"
+                        highlights[rowno] = {0: "HIGHLIGHT"}
 
             ui_schema["ui:order"].insert(0, "indexing_solution")
             ui_schema["indexing_solution"] = {
