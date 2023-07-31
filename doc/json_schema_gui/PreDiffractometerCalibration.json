@@ -1,5 +1,5 @@
 {
-    "SCHEMA": {
+    "schema": {
         "definitions": {
             "strategy": [
                 {
@@ -22,7 +22,7 @@
             "cell_a": {
                 "default": 200.2841,
                 "minimum": 0,
-                "readOnly": false,
+                "readonly": false,
                 "title": "a",
                 "type": "number"
             },
@@ -30,14 +30,14 @@
                 "default": 90.0,
                 "maximum": 180,
                 "minimum": 0,
-                "readOnly": false,
+                "readonly": false,
                 "title": "\u03b1",
                 "type": "number"
             },
             "cell_b": {
                 "default": 200.2841,
                 "minimum": 0,
-                "readOnly": false,
+                "readonly": false,
                 "title": "b",
                 "type": "number"
             },
@@ -45,14 +45,14 @@
                 "default": 90.0,
                 "maximum": 180,
                 "minimum": 0,
-                "readOnly": false,
+                "readonly": false,
                 "title": "\u03b2",
                 "type": "number"
             },
             "cell_c": {
                 "default": 200.2841,
                 "minimum": 0,
-                "readOnly": false,
+                "readonly": false,
                 "title": "c",
                 "type": "number"
             },
@@ -60,16 +60,8 @@
                 "default": 90.0,
                 "maximum": 180,
                 "minimum": 0,
-                "readOnly": false,
+                "readonly": false,
                 "title": "\u03b3",
-                "type": "number"
-            },
-            "decay_limit": {
-                "default": 25,
-                "hidden": true,
-                "maximum": 99,
-                "minimum": 1,
-                "title": "Signal decay limit (%)",
                 "type": "number"
             },
             "energy": {
@@ -81,13 +73,12 @@
             },
             "input_space_group": {
                 "default": "F432",
-                "readOnly": true,
+                "readonly": true,
                 "title": "Space Group",
                 "type": "string"
             },
             "lattice": {
                 "default": "cF",
-                "hidden": false,
                 "title": "Crystal lattice",
                 "value_dict": {
                     "": "",
@@ -131,7 +122,7 @@
                 "type": "number"
             },
             "resolution": {
-                "default": 1.5890209772332455,
+                "default": 2.323,
                 "maximum": 2.942352157399316,
                 "minimum": 0.9035138162988328,
                 "title": "Resolution",
@@ -171,7 +162,7 @@
         "title": "G\u03a6L Pre-strategy parameters",
         "type": "object"
     },
-    "UI_SCHEMA": {
+    "ui_schema": {
         "crystal_data": {
             "cella": {
                 "ui:order": [
@@ -215,17 +206,17 @@
             "column1": {
                 "lattice": {
                     "ui:options": {
-                        "update_function": "update_lattice"
+                        "update_on_change": true
                     }
                 },
                 "point_groups": {
                     "ui:options": {
-                        "update_function": "update_point_groups"
+                        "update_on_change": true
                     }
                 },
                 "space_group": {
                     "ui:options": {
-                        "update_function": "update_space_group"
+                        "update_on_change": true
                     }
                 },
                 "ui:order": [
@@ -259,7 +250,9 @@
             "ui:widget": "column_grid"
         },
         "ui:options": {
-            "import_module_name": "mxcubecore.HardwareObjects.GphlWorkflow"
+            "return_signal": "GphlParameterReturn",
+            "update_on_change": "selected",
+            "update_signal": "GphlUpdateUiParameters"
         },
         "ui:order": [
             "crystal_data",

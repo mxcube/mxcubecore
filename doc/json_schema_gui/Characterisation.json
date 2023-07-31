@@ -1,5 +1,5 @@
 {
-    "SCHEMA": {
+    "schema": {
         "definitions": {
             "image_width": [
                 {
@@ -132,37 +132,25 @@
                 "default": 12.4,
                 "maximum": 20,
                 "minimum": 4,
-                "readOnly": true,
+                "readonly": true,
                 "title": "Characterisation beam energy (keV)",
                 "type": "number"
             },
             "_info": {
                 "default": "Experiment length (per repetition):    6.0\u00b0\n\nSweep :  kappa=   11.0\u00b0,  kappa_phi=   22.0\u00b0,  phi=    0.0\u00b0,  sweep width=    1.2\u00b0\n                                               phi=   45.0\u00b0,  sweep width=    1.2\u00b0\n                                               phi=   90.0\u00b0,  sweep width=    1.2\u00b0\n                                               phi=  135.0\u00b0,  sweep width=    1.2\u00b0\n                                               phi=  180.0\u00b0,  sweep width=    1.2\u00b0",
-                "readOnly": true,
-                "type": "string"
-            },
-            "budget_use_fraction": {
-                "default": 0.05,
-                "hidden": true,
-                "title": "Budget fraction to use",
-                "type": "number"
-            },
-            "decay_limit": {
-                "default": 25,
-                "hidden": true,
-                "title": "Decay limit",
-                "type": "number"
+                "readonly": true,
+                "type": "textdisplay"
             },
             "dose_budget": {
-                "default": 7.4752707974371395,
+                "default": 8.012730557122548,
                 "minimum": 0.0,
-                "readOnly": true,
+                "readonly": true,
                 "title": "Dose budget (MGy)",
                 "type": "number"
             },
             "experiment_time": {
                 "default": 2.4,
-                "readOnly": true,
+                "readonly": true,
                 "title": "Experiment duration (s)",
                 "type": "number"
             },
@@ -179,28 +167,16 @@
                 "title": "Oscillation range",
                 "type": "string"
             },
-            "maximum_dose_budget": {
-                "default": 0.04,
-                "hidden": true,
-                "title": "Default value for exposure",
-                "type": "number"
-            },
             "recentring_mode": {
                 "$ref": "#/definitions/recentring_mode",
                 "default": "Re-centre when orientation changes",
                 "type": "string"
             },
-            "relative_rad_sensitivity": {
-                "default": 1.0,
-                "hidden": true,
-                "title": "Relative radiation sensitivity",
-                "type": "number"
-            },
             "resolution": {
-                "default": 1.6419908730535508,
+                "default": 1.6999946057811597,
                 "maximum": 2.942352157399316,
                 "minimum": 0.9035138162988328,
-                "readOnly": true,
+                "readonly": true,
                 "title": "Detector resolution (\u00c5)",
                 "type": "number"
             },
@@ -210,29 +186,17 @@
                 "title": "Number of snapshots",
                 "type": "string"
             },
-            "std_dose_rate": {
-                "default": 3.8621025701823886,
-                "hidden": true,
-                "title": "Dose rate",
-                "type": "number"
-            },
-            "total_strategy_length": {
-                "default": 6.0,
-                "hidden": true,
-                "title": "Strategy length",
-                "type": "number"
-            },
             "transmission": {
-                "default": 4.032777409965181,
+                "default": 4.322746898829379,
                 "maximum": 100.0,
                 "minimum": 0.001,
                 "title": "Transmission (%)",
                 "type": "number"
             },
             "use_dose": {
-                "default": 0.3738,
+                "default": 0.4006,
                 "minimum": 1e-06,
-                "readOnly": false,
+                "readonly": false,
                 "title": "Characterisation dose (MGy)",
                 "type": "number"
             }
@@ -240,34 +204,32 @@
         "title": "G\u03a6L Characterisation parameters",
         "type": "object"
     },
-    "UI_SCHEMA": {
+    "ui_schema": {
         "_info": {
-            "ui:options": {
-                "rows": 8
-            },
-            "ui:title": "G\u03a6L Characterisation strategy",
-            "ui:widget": "textarea"
+            "ui:title": "--- G\u03a6L Characterisation strategy ---"
         },
         "parameters": {
             "column1": {
                 "exposure": {
                     "ui:options": {
                         "decimals": 4,
-                        "update_function": "update_exptime"
+                        "update_on_change": true
                     }
                 },
                 "image_width": {
                     "ui:options": {
-                        "update_function": "update_dose"
+                        "update_on_change": true
                     }
                 },
                 "repetition_count": {
-                    "ui:options": {}
+                    "ui:options": {
+                        "update_on_change": true
+                    }
                 },
                 "transmission": {
                     "ui:options": {
                         "decimals": 3,
-                        "update_function": "update_transmission"
+                        "update_on_change": true
                     }
                 },
                 "ui:order": [
@@ -280,14 +242,14 @@
                 "use_dose": {
                     "ui:options": {
                         "decimals": 4,
-                        "update_function": "update_dose"
+                        "update_on_change": true
                     }
                 }
             },
             "column2": {
                 "dose_budget": {
                     "ui:options": {
-                        "decimals": 3
+                        "decimals": 4
                     }
                 },
                 "experiment_time": {
@@ -316,7 +278,9 @@
             "ui:widget": "column_grid"
         },
         "ui:options": {
-            "import_module_name": "mxcubecore.HardwareObjects.GphlWorkflow"
+            "return_signal": "GphlParameterReturn",
+            "update_on_change": "selected",
+            "update_signal": "GphlUpdateUiParameters"
         },
         "ui:order": [
             "_info",

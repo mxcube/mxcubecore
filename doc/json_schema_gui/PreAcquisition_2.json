@@ -1,290 +1,251 @@
 {
-    "SCHEMA": {
+    "schema": {
         "definitions": {
-            "strategy": [
+            "image_width": [
                 {
                     "enum": [
-                        "quick"
+                        "0.05"
                     ],
-                    "title": "quick",
+                    "title": "0.05",
                     "type": "string"
                 },
                 {
                     "enum": [
-                        "full"
+                        "0.1"
                     ],
-                    "title": "full",
+                    "title": "0.1",
+                    "type": "string"
+                },
+                {
+                    "enum": [
+                        "0.2"
+                    ],
+                    "title": "0.2",
+                    "type": "string"
+                }
+            ],
+            "recentring_mode": [
+                {
+                    "enum": [
+                        "Re-centre when orientation changes"
+                    ],
+                    "title": "Re-centre when orientation changes",
+                    "type": "string"
+                },
+                {
+                    "enum": [
+                        "Re-centre at the start of each wedge"
+                    ],
+                    "title": "Re-centre at the start of each wedge",
+                    "type": "string"
+                },
+                {
+                    "enum": [
+                        "Re-centre all before acquisition start"
+                    ],
+                    "title": "Re-centre all before acquisition start",
+                    "type": "string"
+                },
+                {
+                    "enum": [
+                        "No manual re-centring, rely on calculated values"
+                    ],
+                    "title": "No manual re-centring, rely on calculated values",
+                    "type": "string"
+                }
+            ],
+            "snapshot_count": [
+                {
+                    "enum": [
+                        "0"
+                    ],
+                    "title": "0",
+                    "type": "string"
+                },
+                {
+                    "enum": [
+                        "1"
+                    ],
+                    "title": "1",
+                    "type": "string"
+                },
+                {
+                    "enum": [
+                        "2"
+                    ],
+                    "title": "2",
+                    "type": "string"
+                },
+                {
+                    "enum": [
+                        "4"
+                    ],
+                    "title": "4",
                     "type": "string"
                 }
             ]
         },
         "properties": {
-            "cell_a": {
-                "default": 86.75,
-                "minimum": 0,
-                "readOnly": true,
-                "title": "a",
-                "type": "number"
-            },
-            "cell_alpha": {
-                "default": 90.0,
-                "maximum": 180,
-                "minimum": 0,
-                "readOnly": true,
-                "title": "\u03b1",
-                "type": "number"
-            },
-            "cell_b": {
-                "default": 86.75,
-                "minimum": 0,
-                "readOnly": true,
-                "title": "b",
-                "type": "number"
-            },
-            "cell_beta": {
-                "default": 90.0,
-                "maximum": 180,
-                "minimum": 0,
-                "readOnly": true,
-                "title": "\u03b2",
-                "type": "number"
-            },
-            "cell_c": {
-                "default": 85.6276,
-                "minimum": 0,
-                "readOnly": true,
-                "title": "c",
-                "type": "number"
-            },
-            "cell_gamma": {
-                "default": 90.0,
-                "maximum": 180,
-                "minimum": 0,
-                "readOnly": true,
-                "title": "\u03b3",
-                "type": "number"
-            },
-            "decay_limit": {
-                "default": 25,
-                "hidden": true,
-                "maximum": 99,
-                "minimum": 1,
-                "title": "Signal decay limit (%)",
-                "type": "number"
-            },
-            "energy": {
-                "default": 12.4,
+            "Falling_Inflection": {
+                "default": 11.99,
                 "maximum": 20,
                 "minimum": 4,
-                "title": "Peak energy (keV)",
+                "readonly": false,
+                "title": "Falling_Inflection beam energy (keV)",
                 "type": "number"
             },
-            "indexing_solution": {
-                "title": "Select indexing solution:",
-                "type": "string"
-            },
-            "input_space_group": {
-                "default": "I4",
-                "readOnly": true,
-                "title": "Space Group",
-                "type": "string"
-            },
-            "lattice": {
-                "default": "cI",
-                "hidden": false,
-                "title": "Crystal lattice",
-                "value_dict": {
-                    "Cubic": "Cubic",
-                    "cF": "cF",
-                    "cI": "cI",
-                    "cP": "cP"
-                }
-            },
-            "point_groups": {
-                "default": "23|432",
-                "hidden": false,
-                "title": "Point Groups",
-                "value_dict": {
-                    "23": "23",
-                    "23|432": "23|432",
-                    "432": "432"
-                }
-            },
-            "relative_rad_sensitivity": {
-                "default": 1.0,
-                "minimum": 0,
-                "readOnly": true,
-                "title": "Radiation sensitivity",
+            "Peak": {
+                "default": 12.0,
+                "maximum": 20,
+                "minimum": 4,
+                "readonly": true,
+                "title": "Peak beam energy (keV)",
                 "type": "number"
+            },
+            "Rising_Inflection": {
+                "default": 12.01,
+                "maximum": 20,
+                "minimum": 4,
+                "readonly": false,
+                "title": "Rising_Inflection beam energy (keV)",
+                "type": "number"
+            },
+            "_info": {
+                "default": "Strategy 'quick', for symmetry '222'\n\nExperiment length (per repetition): 3 *  424.0\u00b0\n\nSweep :  kappa=   78.8\u00b0,  kappa_phi=   69.5\u00b0,  phi=    6.8\u00b0,  sweep width=  180.0\u00b0\n\nSweep :  kappa=   78.9\u00b0,  kappa_phi= -110.6\u00b0,  phi=  170.8\u00b0,  sweep width=   48.0\u00b0\n\nSweep :  kappa=   78.9\u00b0,  kappa_phi= -110.6\u00b0,  phi=  154.8\u00b0,  sweep width=   16.0\u00b0\n\nSweep :  kappa=   78.9\u00b0,  kappa_phi= -110.6\u00b0,  phi=  -25.2\u00b0,  sweep width=  180.0\u00b0",
+                "readonly": true,
+                "type": "textdisplay"
+            },
+            "dose_budget": {
+                "default": 7.103744544217244,
+                "minimum": 0.0,
+                "readonly": true,
+                "title": "Dose budget (MGy)",
+                "type": "number"
+            },
+            "experiment_time": {
+                "default": 508.8,
+                "readonly": true,
+                "title": "Experiment duration (s)",
+                "type": "number"
+            },
+            "exposure": {
+                "default": 0.04,
+                "maximum": 60000,
+                "minimum": 0.04,
+                "title": "Exposure Time (s)",
+                "type": "number"
+            },
+            "image_width": {
+                "$ref": "#/definitions/image_width",
+                "default": "0.1",
+                "title": "Oscillation range",
+                "type": "string"
+            },
+            "recentring_mode": {
+                "$ref": "#/definitions/recentring_mode",
+                "default": "Re-centre when orientation changes",
+                "type": "string"
+            },
+            "repetition_count": {
+                "default": 1,
+                "lowerBound": 1,
+                "stepsize": 1,
+                "title": "Number of repetitions",
+                "type": "spinbox",
+                "upperBound": 99
             },
             "resolution": {
-                "default": 1.6419908730535508,
+                "default": 1.6451526011357036,
                 "maximum": 2.942352157399316,
                 "minimum": 0.9035138162988328,
-                "title": "Resolution",
+                "readonly": true,
+                "title": "Detector resolution (\u00c5)",
                 "type": "number"
             },
-            "space_group": {
-                "default": "",
-                "title": "Space Group",
-                "value_dict": {
-                    "": "",
-                    "F23": "F23",
-                    "F4132": "F4132",
-                    "F432": "F432",
-                    "I213": "I213",
-                    "I23": "I23",
-                    "I4132": "I4132",
-                    "I432": "I432",
-                    "P213": "P213",
-                    "P23": "P23",
-                    "P4132": "P4132",
-                    "P4232": "P4232",
-                    "P432": "P432",
-                    "P4332": "P4332"
-                }
+            "snapshot_count": {
+                "$ref": "#/definitions/snapshot_count",
+                "default": "2",
+                "title": "Number of snapshots",
+                "type": "string"
             },
-            "strategy": {
-                "$ref": "#/definitions/strategy",
-                "default": "quick",
-                "title": "Acquisition strategy"
+            "transmission": {
+                "default": 0.014746051007010683,
+                "maximum": 100.0,
+                "minimum": 0.001,
+                "title": "Transmission (%)",
+                "type": "number"
             },
-            "use_cell_for_processing": {
-                "default": true,
-                "title": "Use for indexing",
-                "type": "boolean"
+            "use_dose": {
+                "default": 7.1037,
+                "minimum": 1e-06,
+                "readonly": false,
+                "title": "Dose/repetition (MGy)",
+                "type": "number"
+            },
+            "wedge_width": {
+                "default": 15,
+                "maximum": 7200,
+                "minimum": 0.1,
+                "title": "Wedge width (\u00b0)",
+                "type": "number"
             }
         },
-        "title": "G\u03a6L Pre-strategy parameters",
+        "title": "G\u03a6L Three-wavelength MAD parameters",
         "type": "object"
     },
-    "UI_SCHEMA": {
-        "crystal_data": {
-            "cella": {
-                "ui:order": [
-                    "cell_a",
-                    "cell_alpha"
-                ]
-            },
-            "cellb": {
-                "ui:order": [
-                    "cell_b",
-                    "cell_beta"
-                ]
-            },
-            "cellc": {
-                "ui:order": [
-                    "cell_c",
-                    "cell_gamma"
-                ]
-            },
-            "sgroup": {
-                "relative_rad_sensitivity": {
-                    "ui:options": {
-                        "decimals": 2
-                    }
-                },
-                "ui:order": [
-                    "input_space_group",
-                    "relative_rad_sensitivity"
-                ]
-            },
-            "ui:order": [
-                "sgroup",
-                "cella",
-                "cellb",
-                "cellc"
-            ],
-            "ui:title": "Input Unit Cell",
-            "ui:widget": "column_grid"
-        },
-        "indexing_solution": {
-            "ui:options": {
-                "colouring": null,
-                "content": [
-                    [
-                        " *  44        aP          0.0      74.8   74.9   74.9 109.1 109.1 110.2",
-                        " *  43        mI          0.6      85.7  122.9   74.9  90.0 125.0  90.0",
-                        " *  25        mC          1.2      85.7  122.9   74.8  90.0 124.9  90.0",
-                        " *  14        mC          1.6      85.7  122.7   74.9  90.0 124.9  89.9",
-                        " *  17        mC          2.0     122.7   85.7   86.8  90.1 135.0  89.9",
-                        " *  16        oF          2.4     122.7  122.9   85.7  90.0  90.0  89.9",
-                        " *   8        oI          2.5      86.8   86.8   85.7  89.9  89.9  90.0",
-                        " *   6        tI          3.0      86.8   86.8   85.7  90.0  89.9  89.9",
-                        " *  24        hR          4.6     122.0  122.9   74.8  90.0  89.4 120.2",
-                        " *   4        hR         10.8     122.7  121.9   74.9  90.7  90.0 120.2",
-                        " *   7        tI         11.3      86.8   85.7   86.8  90.0  89.9  90.1",
-                        " *   5        cI         13.3      86.8   85.7   86.8  89.9  89.9  90.0",
-                        "    31        aP        163.6      74.8   74.9   74.9  69.8  70.9 109.1",
-                        "    20        mC        173.5      86.8  122.0   74.8  90.6 125.4  90.0",
-                        "    10        mC        173.6      86.8  121.9   74.9  90.6 125.4  90.1",
-                        "     3        cP        175.0      74.8   74.9   74.9 109.1 109.1 110.2",
-                        "    39        mC        241.1     142.5   74.8   74.9 109.1 121.1  80.6",
-                        "    41        mC        241.4     142.5   74.9   74.8 109.1 121.1  80.7",
-                        "    37        mC        241.5     142.5   74.8   74.9 109.1 121.1  80.6",
-                        "    42        oI        327.6      74.9  122.0   74.8  89.3  90.6 109.1",
-                        "    34        mP        327.8      74.9   74.9   74.8 109.1 110.2 109.1",
-                        "    35        mP        328.1      74.9   74.8   74.9 109.1 110.2 109.1",
-                        "    33        mP        328.2      74.9   74.9   74.8 109.1 110.2 109.1",
-                        "    15        tI        328.3      74.8   74.9  122.0  90.7  89.4 109.1",
-                        "    23        oC        328.4      85.7  122.9   74.8  90.0 124.9  90.0",
-                        "    13        oC        328.8      85.7  122.7   74.9  90.0 124.9  89.9",
-                        "    40        oC        405.3      74.9  142.5   74.8  58.9 109.1  99.3",
-                        "    38        oC        405.3      74.8  142.5   74.9  58.9 109.1  99.4",
-                        "    22        hP        405.6      74.9   74.9   74.8 109.1 109.1 110.2",
-                        "    36        oC        405.7      74.8  142.5   74.9  58.9 109.1  99.4",
-                        "    12        hP        406.3      74.8   74.9   74.9 109.1 109.1 110.2",
-                        "    30        mC        486.5      74.9  142.5   74.8  58.9  70.9  80.7",
-                        "    29        mC        487.1      74.8  142.5   74.9  58.9  70.9  80.6",
-                        "    28        mC        487.5      74.8  142.5   74.9  58.9  70.9  80.6",
-                        "    32        oP        500.4      74.9   74.9   74.8 109.1 109.1 110.2",
-                        "    21        tP        500.7      74.9   74.9   74.8 109.1 110.2 109.1",
-                        "    11        tP        501.3      74.8   74.9   74.9 109.1 109.1 110.2",
-                        "     2        hR        502.3      85.7   86.8  143.7  72.5 107.3  90.0",
-                        "     1        cF        578.9     142.3   74.9  143.8 100.3 116.9  99.4",
-                        "    27        mC        654.7     142.5   74.8   86.8  54.6 107.8  80.6",
-                        "    19        oI        655.1      86.8  142.4   74.8  72.3  58.9  54.6",
-                        "    26        oF        694.0     142.5  188.0   74.8  61.6 131.2  99.4",
-                        "    18        tI        694.3      86.8  142.4   74.8  58.9 125.4 107.7",
-                        "     9        hR        741.2      74.8  121.9  188.2  89.2  82.9 144.5"
-                    ]
-                ],
-                "header": [
-                    "  LATTICE-  BRAVAIS-   QUALITY  UNIT CELL CONSTANTS (ANGSTROEM & DEGREES)\n CHARACTER  LATTICE     OF FIT      a      b      c   alpha  beta gamma"
-                ],
-                "select_row": 11,
-                "update_function": "update_indexing_solution"
-            },
-            "ui:widget": "selection_table"
+    "ui_schema": {
+        "_info": {
+            "ui:title": "--- Three-wavelength MAD ---"
         },
         "parameters": {
             "column1": {
-                "lattice": {
+                "exposure": {
                     "ui:options": {
-                        "update_function": "update_lattice"
+                        "decimals": 4,
+                        "update_on_change": true
                     }
                 },
-                "point_groups": {
+                "image_width": {
                     "ui:options": {
-                        "update_function": "update_point_groups"
+                        "update_on_change": true
                     }
                 },
-                "space_group": {
+                "repetition_count": {
                     "ui:options": {
-                        "update_function": "update_space_group"
+                        "update_on_change": true
+                    }
+                },
+                "transmission": {
+                    "ui:options": {
+                        "decimals": 3,
+                        "update_on_change": true
                     }
                 },
                 "ui:order": [
-                    "lattice",
-                    "point_groups",
-                    "space_group",
-                    "use_cell_for_processing"
-                ]
+                    "use_dose",
+                    "exposure",
+                    "image_width",
+                    "transmission",
+                    "snapshot_count",
+                    "repetition_count",
+                    "wedge_width"
+                ],
+                "use_dose": {
+                    "ui:options": {
+                        "decimals": 4,
+                        "update_on_change": true
+                    }
+                }
             },
             "column2": {
-                "energy": {
+                "dose_budget": {
                     "ui:options": {
                         "decimals": 4
+                    }
+                },
+                "experiment_time": {
+                    "ui:options": {
+                        "decimals": 1
                     }
                 },
                 "resolution": {
@@ -293,9 +254,13 @@
                     }
                 },
                 "ui:order": [
-                    "strategy",
+                    "dose_budget",
+                    "experiment_time",
                     "resolution",
-                    "energy"
+                    "Peak",
+                    "Rising_Inflection",
+                    "Falling_Inflection",
+                    "recentring_mode"
                 ]
             },
             "ui:order": [
@@ -306,11 +271,12 @@
             "ui:widget": "column_grid"
         },
         "ui:options": {
-            "import_module_name": "mxcubecore.HardwareObjects.GphlWorkflow"
+            "return_signal": "GphlParameterReturn",
+            "update_on_change": "selected",
+            "update_signal": "GphlUpdateUiParameters"
         },
         "ui:order": [
-            "indexing_solution",
-            "crystal_data",
+            "_info",
             "parameters"
         ],
         "ui:widget": "vertical_box"
