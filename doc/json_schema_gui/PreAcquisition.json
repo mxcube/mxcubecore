@@ -1,5 +1,5 @@
 {
-    "SCHEMA": {
+    "schema": {
         "definitions": {
             "strategy": [
                 {
@@ -36,7 +36,7 @@
             "cell_a": {
                 "default": 86.75,
                 "minimum": 0,
-                "readOnly": true,
+                "readonly": true,
                 "title": "a",
                 "type": "number"
             },
@@ -44,14 +44,14 @@
                 "default": 90.0,
                 "maximum": 180,
                 "minimum": 0,
-                "readOnly": true,
+                "readonly": true,
                 "title": "\u03b1",
                 "type": "number"
             },
             "cell_b": {
                 "default": 86.75,
                 "minimum": 0,
-                "readOnly": true,
+                "readonly": true,
                 "title": "b",
                 "type": "number"
             },
@@ -59,14 +59,14 @@
                 "default": 90.0,
                 "maximum": 180,
                 "minimum": 0,
-                "readOnly": true,
+                "readonly": true,
                 "title": "\u03b2",
                 "type": "number"
             },
             "cell_c": {
                 "default": 85.6276,
                 "minimum": 0,
-                "readOnly": true,
+                "readonly": true,
                 "title": "c",
                 "type": "number"
             },
@@ -74,16 +74,8 @@
                 "default": 90.0,
                 "maximum": 180,
                 "minimum": 0,
-                "readOnly": true,
+                "readonly": true,
                 "title": "\u03b3",
-                "type": "number"
-            },
-            "decay_limit": {
-                "default": 25,
-                "hidden": true,
-                "maximum": 99,
-                "minimum": 1,
-                "title": "Signal decay limit (%)",
                 "type": "number"
             },
             "energy": {
@@ -94,18 +86,17 @@
                 "type": "number"
             },
             "indexing_solution": {
-                "title": "Select indexing solution:",
+                "title": "--- Select indexing solution : ---",
                 "type": "string"
             },
             "input_space_group": {
                 "default": "I4",
-                "readOnly": true,
+                "readonly": true,
                 "title": "Space Group",
                 "type": "string"
             },
             "lattice": {
                 "default": "tI",
-                "hidden": false,
                 "title": "Crystal lattice",
                 "value_dict": {
                     "Tetragonal": "Tetragonal",
@@ -126,12 +117,12 @@
             "relative_rad_sensitivity": {
                 "default": 1.0,
                 "minimum": 0,
-                "readOnly": true,
+                "readonly": true,
                 "title": "Radiation sensitivity",
                 "type": "number"
             },
             "resolution": {
-                "default": 1.6419908730535508,
+                "default": 1.7,
                 "maximum": 2.942352157399316,
                 "minimum": 0.9035138162988328,
                 "title": "Resolution",
@@ -174,7 +165,7 @@
         "title": "G\u03a6L Pre-strategy parameters",
         "type": "object"
     },
-    "UI_SCHEMA": {
+    "ui_schema": {
         "crystal_data": {
             "cella": {
                 "ui:order": [
@@ -216,105 +207,76 @@
         },
         "indexing_solution": {
             "ui:options": {
-                "colouring": [
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    true,
-                    false,
-                    false,
-                    true,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    true,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    true,
-                    false
-                ],
                 "content": [
                     [
-                        " *  44        aP          0.0      74.8   74.8   74.9 109.1 109.1 110.2",
-                        " *  43        mI          0.5      85.7  122.9   74.8  90.0 124.9  90.0",
-                        " *  14        mC          0.7      85.7  122.7   74.9  90.0 124.9  90.0",
-                        " *  17        mC          0.9     122.7   85.7   86.8  90.0 135.0  90.0",
-                        " *  16        oF          1.0     122.7  122.9   85.7  90.0  90.0  90.0",
-                        " *  25        mC          1.1      85.7  122.9   74.8  90.0 124.9  90.0",
-                        " *   8        oI          1.5      86.8   86.8   85.7  89.9  90.0  90.0",
-                        " *   6        tI          1.6      86.8   86.8   85.7  90.0  90.0  89.9",
-                        " *  24        hR          4.4     122.0  122.9   74.8  90.0  89.4 120.2",
-                        " *   4        hR          9.8     122.7  122.0   74.9  90.7  90.0 120.2",
-                        " *   7        tI         10.1      86.8   85.7   86.8  90.0  89.9  90.0",
-                        " *   5        cI         12.5      86.8   85.7   86.8  90.0  89.9  90.0",
-                        "    31        aP        163.7      74.8   74.9   74.9  69.8  70.9 109.1",
-                        "    10        mC        172.9      85.7  122.7   74.9  90.0 124.9  90.0",
-                        "    20        mC        173.1      86.8  122.0   74.8  90.6 125.4  90.0",
-                        "     3        cP        173.8      74.8   74.8   74.9 109.1 109.1 110.2",
-                        "    39        mC        241.2     142.4   74.8   74.9 109.1 121.1  80.6",
-                        "    41        mC        241.5     142.4   74.9   74.8 109.1 121.1  80.7",
-                        "    37        mC        241.6     142.4   74.8   74.9 109.1 121.1  80.6",
-                        "    42        oI        327.6      74.9  122.0   74.8  89.4  90.6 109.1",
-                        "    34        mP        327.6      74.8   74.9   74.8 109.1 110.2 109.1",
-                        "    15        tI        328.0      74.8   74.9  122.0  90.6  89.4 109.1",
-                        "    33        mP        328.0      74.8   74.9   74.8 109.1 110.2 109.1",
-                        "    13        oC        328.0      85.7  122.7   74.9  90.0 124.9  90.0",
-                        "    35        mP        328.2      74.9   74.8   74.9 109.1 110.2 109.1",
-                        "    23        oC        328.4      85.7  122.9   74.8  90.0 124.9  90.0",
-                        "    38        oC        405.2      74.8  142.4   74.9  58.9 109.1  99.4",
-                        "    40        oC        405.4      74.9  142.4   74.8  58.9 109.1  99.3",
-                        "    36        oC        405.6      74.8  142.4   74.9  58.9 109.1  99.4",
-                        "    12        hP        405.6      74.8   74.8   74.9 109.1 109.1 110.2",
-                        "    22        hP        405.6      74.9   74.9   74.8 109.1 109.1 110.2",
-                        "    30        mC        486.6      74.9  142.4   74.8  58.9  70.9  80.7",
-                        "    29        mC        487.0      74.8  142.4   74.9  58.9  70.9  80.6",
-                        "    28        mC        487.4      74.8  142.4   74.9  58.9  70.9  80.6",
-                        "    32        oP        500.1      74.8   74.9   74.8 109.1 109.1 110.2",
-                        "    21        tP        500.5      74.8   74.9   74.8 109.1 110.2 109.1",
-                        "    11        tP        500.5      74.8   74.8   74.9 109.1 109.1 110.2",
-                        "     2        hR        501.2      85.7   86.8  143.7  72.5 107.3  90.0",
-                        "     1        cF        578.3     142.4   74.8  143.8 100.3 116.9  99.4",
-                        "    27        mC        654.9     142.4   74.8   86.8  54.6 107.8  80.6",
-                        "    19        oI        655.2      86.8  142.4   74.8  72.3  58.9  54.6",
-                        "    26        oF        693.9     142.4  188.0   74.8  61.6 131.2  99.4",
-                        "    18        tI        694.2      86.8  142.4   74.8  58.9 125.4 107.7",
-                        "     9        hR        741.0      74.8  121.9  188.1  89.2  82.9 144.5"
+                        " *  44        aP          0.0      74.8   74.8   74.9 110.2 109.1 109.0",
+                        " *  17        mC          1.3     121.8   86.8   85.6  90.0 134.6  90.0",
+                        " *  25        mC          1.3      85.6  122.8   74.8  90.0 124.8  90.0",
+                        " *  43        mI          2.0      85.6  122.8   74.9  90.0 125.0  90.0",
+                        " *  14        mC          2.3      85.6  122.8   74.8  90.0 124.8  90.0",
+                        " *  16        oF          3.9     122.8  122.8   85.6  90.0  89.9  90.0",
+                        " *   8        oI          4.0      86.8   86.8   85.6  90.0  90.0  89.9",
+                        " *   6        tI          4.6      86.8   86.8   85.6  90.1  90.0  90.0",
+                        " *  24        hR          4.8     122.0  122.8   74.8  90.0  89.3 120.2",
+                        " *   4        hR         10.6     121.8  121.9   74.9  89.4  90.6 119.5",
+                        " *   7        tI         12.9      86.8   85.6   86.8  90.0  90.0  89.9",
+                        " *   5        cI         14.0      86.8   85.6   86.8  90.0  90.0  90.1",
+                        "    31        aP        163.1      74.8   74.8   74.9  70.9  69.8 109.0",
+                        "    10        mC        172.0      86.8  121.8   74.9  90.6 125.5  90.0",
+                        "    20        mC        173.3      86.8  121.8   74.9  90.6 125.4  90.0",
+                        "     3        cP        174.6      74.9   74.8   74.8 109.0 109.1 110.2",
+                        "    41        mC        240.3     142.4   74.8   74.8 109.0 121.0  80.7",
+                        "    37        mC        240.6     142.4   74.8   74.8 109.0 121.0  80.7",
+                        "    39        mC        241.3     142.4   74.8   74.8 109.0 121.0  80.7",
+                        "    42        oI        326.4      74.8  122.0   74.8  90.6  89.4 109.0",
+                        "    15        tI        326.6      74.8   74.8  122.0  89.4  90.6 109.0",
+                        "    35        mP        326.8      74.9   74.8   74.8 109.1 110.2 109.0",
+                        "    33        mP        327.1      74.9   74.8   74.8 109.1 110.2 109.0",
+                        "    23        oC        327.4      85.6  122.8   74.8  90.0 124.8  90.0",
+                        "    34        mP        327.7      74.9   74.8   74.8 109.0 110.2 109.1",
+                        "    13        oC        328.4      85.6  122.8   74.8  90.0 124.8  90.0",
+                        "    40        oC        404.1      74.8  142.4   74.8  59.0 109.0  99.3",
+                        "    36        oC        404.4      74.8  142.4   74.8  59.0 109.0  99.3",
+                        "    22        hP        404.7      74.8   74.9   74.8 109.1 109.0 110.2",
+                        "    38        oC        405.0      74.8  142.4   74.8  59.0 109.0  99.3",
+                        "    12        hP        405.7      74.8   74.9   74.8 109.1 109.0 110.2",
+                        "    30        mC        485.6      74.8  142.4   74.8  59.0  71.0  80.7",
+                        "    28        mC        485.7      74.8  142.5   74.8  58.9  71.0  80.7",
+                        "    29        mC        486.5      74.9  142.3   74.8 121.0 109.1  80.6",
+                        "    32        oP        499.5      74.8   74.9   74.8 110.2 109.1 109.0",
+                        "     2        hR        499.8     121.8   86.8  143.8 107.6  89.7 135.3",
+                        "    11        tP        499.8      74.8   74.8   74.9 110.2 109.1 109.0",
+                        "    21        tP        500.2      74.8   74.9   74.8 109.1 109.0 110.2",
+                        "     1        cF        576.9     142.3   74.9  143.7 100.4 116.9  99.4",
+                        "    27        mC        652.9     187.8   74.8   86.8 125.4 133.8  48.9",
+                        "    19        oI        654.2      86.8  142.3   74.8 107.7  59.0 125.4",
+                        "    26        oF        692.2     142.5  187.8   74.8  61.6  99.3 131.1",
+                        "    18        tI        693.4      86.8  142.3   74.8  59.0  54.6  72.3",
+                        "     9        hR        738.8      74.8  121.8  188.2  90.7  81.7 144.5"
                     ]
                 ],
                 "header": [
                     "  LATTICE-  BRAVAIS-   QUALITY  UNIT CELL CONSTANTS (ANGSTROEM & DEGREES)\n CHARACTER  LATTICE     OF FIT      a      b      c   alpha  beta gamma"
                 ],
-                "select_row": 7,
-                "update_function": "update_indexing_solution"
+                "highlights": {
+                    "7": {
+                        "0": "HIGHLIGHT"
+                    },
+                    "10": {
+                        "0": "HIGHLIGHT"
+                    },
+                    "20": {
+                        "0": "HIGHLIGHT"
+                    },
+                    "42": {
+                        "0": "HIGHLIGHT"
+                    }
+                },
+                "select_cell": [
+                    7,
+                    0
+                ],
+                "update_on_change": true
             },
             "ui:widget": "selection_table"
         },
@@ -322,17 +284,17 @@
             "column1": {
                 "lattice": {
                     "ui:options": {
-                        "update_function": "update_lattice"
+                        "update_on_change": true
                     }
                 },
                 "point_groups": {
                     "ui:options": {
-                        "update_function": "update_point_groups"
+                        "update_on_change": true
                     }
                 },
                 "space_group": {
                     "ui:options": {
-                        "update_function": "update_space_group"
+                        "update_on_change": true
                     }
                 },
                 "ui:order": [
@@ -367,7 +329,9 @@
             "ui:widget": "column_grid"
         },
         "ui:options": {
-            "import_module_name": "mxcubecore.HardwareObjects.GphlWorkflow"
+            "return_signal": "GphlParameterReturn",
+            "update_on_change": "selected",
+            "update_signal": "GphlUpdateUiParameters"
         },
         "ui:order": [
             "indexing_solution",

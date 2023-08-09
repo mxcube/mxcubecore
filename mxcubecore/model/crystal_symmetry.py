@@ -387,7 +387,7 @@ UI_LATTICES = BRAVAIS_LATTICES + ("mI",)
 
 
 def space_groups_from_params(lattices=(), point_groups=(), chiral_only=True):
-    """list of names sfo space groups compatible with lattices and point groups
+    """list of names of space groups compatible with lattices and point groups
     Given in space group number order
 
     Args:

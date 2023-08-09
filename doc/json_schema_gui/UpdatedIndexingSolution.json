@@ -1,0 +1,39 @@
+{
+    "lattice": {
+        "options": {
+            "value_dict": {
+                "Orthorhombic": "Orthorhombic",
+                "oC": "oC",
+                "oF": "oF",
+                "oI": "oI",
+                "oP": "oP"
+            }
+        },
+        "value": "oI"
+    },
+    "point_groups": {
+        "options": {
+            "value_dict": {
+                "222": "222"
+            }
+        },
+        "value": "222"
+    },
+    "space_group": {
+        "options": {
+            "value_dict": {
+                "": "",
+                "C222": "C222",
+                "C2221": "C2221",
+                "F222": "F222",
+                "I212121": "I212121",
+                "I222": "I222",
+                "P21212": "P21212",
+                "P212121": "P212121",
+                "P222": "P222",
+                "P2221": "P2221"
+            }
+        },
+        "value": ""
+    }
+}

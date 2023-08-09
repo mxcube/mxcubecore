@@ -1,289 +1,234 @@
 {
-    "SCHEMA": {
+    "schema": {
         "definitions": {
-            "image_width": [
+            "strategy": [
                 {
                     "enum": [
-                        "0.05"
+                        "DiffractCal_long"
                     ],
-                    "title": "0.05",
+                    "title": "DiffractCal_long",
                     "type": "string"
                 },
                 {
                     "enum": [
-                        "0.1"
+                        "DiffractCal_short"
                     ],
-                    "title": "0.1",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "0.2"
-                    ],
-                    "title": "0.2",
-                    "type": "string"
-                }
-            ],
-            "recentring_mode": [
-                {
-                    "enum": [
-                        "Re-centre when orientation changes"
-                    ],
-                    "title": "Re-centre when orientation changes",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "Re-centre at the start of each wedge"
-                    ],
-                    "title": "Re-centre at the start of each wedge",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "Re-centre all before acquisition start"
-                    ],
-                    "title": "Re-centre all before acquisition start",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "No manual re-centring, rely on calculated values"
-                    ],
-                    "title": "No manual re-centring, rely on calculated values",
-                    "type": "string"
-                }
-            ],
-            "snapshot_count": [
-                {
-                    "enum": [
-                        "0"
-                    ],
-                    "title": "0",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "1"
-                    ],
-                    "title": "1",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "2"
-                    ],
-                    "title": "2",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "4"
-                    ],
-                    "title": "4",
+                    "title": "DiffractCal_short",
                     "type": "string"
                 }
             ]
         },
         "properties": {
-            "Falling_Inflection": {
-                "default": 11.99,
+            "cell_a": {
+                "default": 200.2841,
+                "minimum": 0,
+                "readonly": false,
+                "title": "a",
+                "type": "number"
+            },
+            "cell_alpha": {
+                "default": 90.0,
+                "maximum": 180,
+                "minimum": 0,
+                "readonly": false,
+                "title": "\u03b1",
+                "type": "number"
+            },
+            "cell_b": {
+                "default": 200.2841,
+                "minimum": 0,
+                "readonly": false,
+                "title": "b",
+                "type": "number"
+            },
+            "cell_beta": {
+                "default": 90.0,
+                "maximum": 180,
+                "minimum": 0,
+                "readonly": false,
+                "title": "\u03b2",
+                "type": "number"
+            },
+            "cell_c": {
+                "default": 200.2841,
+                "minimum": 0,
+                "readonly": false,
+                "title": "c",
+                "type": "number"
+            },
+            "cell_gamma": {
+                "default": 90.0,
+                "maximum": 180,
+                "minimum": 0,
+                "readonly": false,
+                "title": "\u03b3",
+                "type": "number"
+            },
+            "energy": {
+                "default": 12.4,
                 "maximum": 20,
                 "minimum": 4,
-                "readOnly": false,
-                "title": "Falling_Inflection beam energy (keV)",
+                "title": "Main energy (keV)",
                 "type": "number"
             },
-            "Peak": {
-                "default": 12.0,
-                "maximum": 20,
-                "minimum": 4,
-                "readOnly": true,
-                "title": "Peak beam energy (keV)",
-                "type": "number"
-            },
-            "Rising_Inflection": {
-                "default": 12.01,
-                "maximum": 20,
-                "minimum": 4,
-                "readOnly": false,
-                "title": "Rising_Inflection beam energy (keV)",
-                "type": "number"
-            },
-            "_info": {
-                "default": "Experiment length (per repetition): 3 *  428.0\u00b0\n\nSweep :  kappa=   78.8\u00b0,  kappa_phi=   69.5\u00b0,  phi=    6.8\u00b0,  sweep width=  180.0\u00b0\n\nSweep :  kappa=   78.9\u00b0,  kappa_phi= -110.6\u00b0,  phi=  169.8\u00b0,  sweep width=   51.0\u00b0\n\nSweep :  kappa=   78.9\u00b0,  kappa_phi= -110.6\u00b0,  phi=  152.8\u00b0,  sweep width=   17.0\u00b0\n\nSweep :  kappa=   78.9\u00b0,  kappa_phi= -110.6\u00b0,  phi=  -27.2\u00b0,  sweep width=  180.0\u00b0",
-                "readOnly": true,
+            "input_space_group": {
+                "default": "F432",
+                "readonly": true,
+                "title": "Space Group",
                 "type": "string"
             },
-            "budget_use_fraction": {
-                "default": 0.05,
+            "lattice": {
+                "default": "cF",
+                "title": "Crystal lattice",
+                "value_dict": {
+                    "": "",
+                    "Cubic": "Cubic",
+                    "Hexagonal": "Hexagonal",
+                    "Monoclinic": "Monoclinic",
+                    "Orthorhombic": "Orthorhombic",
+                    "Tetragonal": "Tetragonal",
+                    "Triclinic": "Triclinic",
+                    "aP": "aP",
+                    "cF": "cF",
+                    "cI": "cI",
+                    "cP": "cP",
+                    "hP": "hP",
+                    "hR": "hR",
+                    "mC": "mC",
+                    "mI": "mI",
+                    "mP": "mP",
+                    "oC": "oC",
+                    "oF": "oF",
+                    "oI": "oI",
+                    "oP": "oP",
+                    "tI": "tI",
+                    "tP": "tP"
+                }
+            },
+            "point_groups": {
+                "default": "432",
                 "hidden": true,
-                "title": "Budget fraction to use",
-                "type": "number"
-            },
-            "decay_limit": {
-                "default": 25,
-                "hidden": true,
-                "title": "Decay limit",
-                "type": "number"
-            },
-            "dose_budget": {
-                "default": 7.000752326788191,
-                "minimum": 0.0,
-                "readOnly": true,
-                "title": "Dose budget (MGy)",
-                "type": "number"
-            },
-            "experiment_time": {
-                "default": 513.5999999999999,
-                "readOnly": true,
-                "title": "Experiment duration (s)",
-                "type": "number"
-            },
-            "exposure": {
-                "default": 0.04,
-                "maximum": 60000,
-                "minimum": 0.04,
-                "title": "Exposure Time (s)",
-                "type": "number"
-            },
-            "image_width": {
-                "$ref": "#/definitions/image_width",
-                "default": "0.1",
-                "title": "Oscillation range",
-                "type": "string"
-            },
-            "maximum_dose_budget": {
-                "default": 0.04,
-                "hidden": true,
-                "title": "Default value for exposure",
-                "type": "number"
-            },
-            "recentring_mode": {
-                "$ref": "#/definitions/recentring_mode",
-                "default": "Re-centre when orientation changes",
-                "type": "string"
+                "title": "Point Groups",
+                "value_dict": {
+                    "23": "23",
+                    "23|432": "23|432",
+                    "432": "432"
+                }
             },
             "relative_rad_sensitivity": {
                 "default": 1.0,
-                "hidden": true,
-                "title": "Relative radiation sensitivity",
+                "minimum": 0,
+                "title": "Radiation sensitivity",
                 "type": "number"
-            },
-            "repetition_count": {
-                "default": 1,
-                "lowerBound": 1,
-                "stepsize": 1,
-                "title": "Number of repetitions",
-                "type": "spinbox",
-                "upperBound": 99
             },
             "resolution": {
-                "default": 1.5890209772332455,
+                "default": 2.323,
                 "maximum": 2.942352157399316,
                 "minimum": 0.9035138162988328,
-                "readOnly": true,
-                "title": "Detector resolution (\u00c5)",
+                "title": "Resolution",
                 "type": "number"
             },
-            "snapshot_count": {
-                "$ref": "#/definitions/snapshot_count",
-                "default": "2",
-                "title": "Number of snapshots",
-                "type": "string"
+            "space_group": {
+                "default": "F432",
+                "title": "Space Group",
+                "value_dict": {
+                    "": "",
+                    "F23": "F23",
+                    "F4132": "F4132",
+                    "F432": "F432",
+                    "I213": "I213",
+                    "I23": "I23",
+                    "I4132": "I4132",
+                    "I432": "I432",
+                    "P213": "P213",
+                    "P23": "P23",
+                    "P4132": "P4132",
+                    "P4232": "P4232",
+                    "P432": "P432",
+                    "P4332": "P4332"
+                }
             },
-            "std_dose_rate": {
-                "default": 101.49561774744258,
-                "hidden": true,
-                "title": "Dose rate",
-                "type": "number"
+            "strategy": {
+                "$ref": "#/definitions/strategy",
+                "default": "DiffractCal_long",
+                "title": "Acquisition strategy"
             },
-            "total_strategy_length": {
-                "default": 1284.0,
-                "hidden": true,
-                "title": "Strategy length",
-                "type": "number"
-            },
-            "transmission": {
-                "default": 0.01342269023033216,
-                "maximum": 100.0,
-                "minimum": 0.001,
-                "title": "Transmission (%)",
-                "type": "number"
-            },
-            "use_dose": {
-                "default": 6.997,
-                "minimum": 1e-06,
-                "readOnly": false,
-                "title": "Dose/repetition (MGy)",
-                "type": "number"
-            },
-            "wedge_width": {
-                "default": 15,
-                "maximum": 7200,
-                "minimum": 0.1,
-                "title": "Wedge width (\u00b0)",
-                "type": "number"
+            "use_cell_for_processing": {
+                "default": true,
+                "title": "Use for indexing",
+                "type": "boolean"
             }
         },
-        "title": "G\u03a6L Three-wavelength MAD parameters",
+        "title": "G\u03a6L Pre-strategy parameters",
         "type": "object"
     },
-    "UI_SCHEMA": {
-        "_info": {
-            "ui:options": {
-                "rows": 10
+    "ui_schema": {
+        "crystal_data": {
+            "cella": {
+                "ui:order": [
+                    "cell_a",
+                    "cell_alpha"
+                ]
             },
-            "ui:title": "G\u03a6L workflow:   Three-wavelength MAD, strategy 'quick', for symmetry '4'.",
-            "ui:widget": "textarea"
-        },
-        "parameters": {
-            "column1": {
-                "exposure": {
+            "cellb": {
+                "ui:order": [
+                    "cell_b",
+                    "cell_beta"
+                ]
+            },
+            "cellc": {
+                "ui:order": [
+                    "cell_c",
+                    "cell_gamma"
+                ]
+            },
+            "sgroup": {
+                "relative_rad_sensitivity": {
                     "ui:options": {
-                        "decimals": 4,
-                        "update_function": "update_exptime"
-                    }
-                },
-                "image_width": {
-                    "ui:options": {
-                        "update_function": "update_dose"
-                    }
-                },
-                "repetition_count": {
-                    "ui:options": {}
-                },
-                "transmission": {
-                    "ui:options": {
-                        "decimals": 3,
-                        "update_function": "update_transmission"
+                        "decimals": 2
                     }
                 },
                 "ui:order": [
-                    "use_dose",
-                    "exposure",
-                    "image_width",
-                    "transmission",
-                    "snapshot_count",
-                    "repetition_count",
-                    "wedge_width"
-                ],
-                "use_dose": {
-                    "ui:options": {
-                        "decimals": 4,
-                        "update_function": "update_dose"
-                    }
-                }
+                    "input_space_group",
+                    "relative_rad_sensitivity"
+                ]
             },
-            "column2": {
-                "dose_budget": {
+            "ui:order": [
+                "sgroup",
+                "cella",
+                "cellb",
+                "cellc"
+            ],
+            "ui:title": "Input Unit Cell",
+            "ui:widget": "column_grid"
+        },
+        "parameters": {
+            "column1": {
+                "lattice": {
                     "ui:options": {
-                        "decimals": 3
+                        "update_on_change": true
                     }
                 },
-                "experiment_time": {
+                "point_groups": {
                     "ui:options": {
-                        "decimals": 1
+                        "update_on_change": true
+                    }
+                },
+                "space_group": {
+                    "ui:options": {
+                        "update_on_change": true
+                    }
+                },
+                "ui:order": [
+                    "lattice",
+                    "space_group",
+                    "use_cell_for_processing"
+                ]
+            },
+            "column2": {
+                "energy": {
+                    "ui:options": {
+                        "decimals": 4
                     }
                 },
                 "resolution": {
@@ -292,13 +237,9 @@
                     }
                 },
                 "ui:order": [
-                    "dose_budget",
-                    "experiment_time",
+                    "strategy",
                     "resolution",
-                    "Peak",
-                    "Rising_Inflection",
-                    "Falling_Inflection",
-                    "recentring_mode"
+                    "energy"
                 ]
             },
             "ui:order": [
@@ -309,10 +250,12 @@
             "ui:widget": "column_grid"
         },
         "ui:options": {
-            "import_module_name": "mxcubecore.HardwareObjects.GphlWorkflow"
+            "return_signal": "GphlParameterReturn",
+            "update_on_change": "selected",
+            "update_signal": "GphlUpdateUiParameters"
         },
         "ui:order": [
-            "_info",
+            "crystal_data",
             "parameters"
         ],
         "ui:widget": "vertical_box"

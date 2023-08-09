@@ -2009,6 +2009,7 @@ class GphlWorkflow(TaskNode):
         self.snapshot_count = 2
         self.recentring_mode = "sweep"
         self.recentring_calc_preference = "GPHL"
+        self.std_dose_rate = 0.0
 
         # Workflow interleave order (string).
         # Slowest changing first, characters 'g' (Goniostat position);
@@ -2168,6 +2169,7 @@ class GphlWorkflow(TaskNode):
             self.strategy_options["variant"] = self.strategy_variant = strategy
         elif self.wftype == "diffractcal":
             strategy = strategy or self.strategy_settings["variants"][0]
+            self.strategy_options["variant"] = self.strategy_variant = strategy
             self.initial_strategy = strategy
         elif self.wftype != "transcal":
             # This must be characterisation - here we do not accept defaults
@@ -2418,6 +2420,18 @@ class GphlWorkflow(TaskNode):
                 self._cell_parameters = tuple(float(x) for x in value)
             else:
                 raise ValueError("invalid value for cell_parameters: %s" % str(value))
+    @property
+    def total_strategy_length(self):
+        """Total strategy length for a single repetition
+        (but counting all wavelengths)"""
+        result = self.strategy_length
+        energy_tags = self.strategy_settings.get("beam_energy_tags")
+        if energy_tags and self.characterisation_done:
+            result *= len(energy_tags)
+        #
+        return result
+
+
 
     def calculate_transmission(self, use_dose=None):
         """Calculate transmission correspoiding to using up a given dose
@@ -2442,7 +2456,7 @@ class GphlWorkflow(TaskNode):
         """
 
         if transmission is None:
-            transmission = self.transmission
+            transmission = 100.0 * self.transmission
         energy = HWR.beamline.energy.calculate_energy(self.wavelengths[0].wavelength)
         flux_density = HWR.beamline.flux.get_average_flux_density(
             transmission=transmission
