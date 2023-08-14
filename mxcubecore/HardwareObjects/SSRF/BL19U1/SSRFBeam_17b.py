@@ -37,7 +37,7 @@ class SSRFBeam(AbstractBeam):
         AbstractBeam.__init__(self, name)
         self._beam_size_dict["slits"] = [9999, 9999]
         self._beam_size_dict["aperture"] = [9999, 9999]
-        self._beam_position_on_screen = [330, 246]
+        self._beam_position_on_screen = [612, 512]
         self._beam_divergence = (0, 0)
 
     def init(self):
@@ -65,7 +65,7 @@ class SSRFBeam(AbstractBeam):
         # beam_pos = self.getProperty("default_beam_pos_on_screen")
         # self._beam_position_on_screen = list(ast.literal_eval(beam_pos))
         #self._beam_position_on_screen = [640, 512]
-        self._beam_position_on_screen = [330, 246]
+        self._beam_position_on_screen = [612, 512]
 
         self.evaluate_beam_info()
         self.emit_beam_info_change()

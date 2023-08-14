@@ -16,9 +16,7 @@ from PIL import  Image as im
 import psutil
 import subprocess
 from mxcubecore.utils.video_utils import streaming_processes
-# import ArinaxCameraZoom
-from mxcubecore import HardwareRepository as HWR
-from PIL import ImageOps
+
 
 class MD2TimeoutError(Exception):
     pass
@@ -37,7 +35,7 @@ class BL19U1MD2Camera(Device):
         "LowLim": ONLIMIT,
         "HighLim": ONLIMIT,
     }
-
+    
 
     def __init__(self, name):
         Device.__init__(self, name)
@@ -45,7 +43,6 @@ class BL19U1MD2Camera(Device):
         self.stream_hash = str(uuid.uuid1())
         #self._video_stream_process = None
         print("stream hash:", self.stream_hash)
-        self.bzoom_device = HWR.beamline.bzoom
 
     def init(self):
         logging.getLogger("HWR").info("initializing camera object")
@@ -74,23 +71,20 @@ class BL19U1MD2Camera(Device):
 
     def poll(self):
         logging.getLogger("HWR").info("going to poll images, pollInterval: %d",self.pollInterval)
-        # self.image_attr = self.add_channel(
-        #     {"type": "exporter", "name": "image"}, "ImageJPG"
-        # )
+        self.image_attr = self.add_channel(
+            {"type": "exporter", "name": "image"}, "ImageJPG"
+        )
         count = 1
         while not self.stopper:
             # time.sleep(float(self.pollInterval) / 1000)
-            time.sleep(0.01)
+            time.sleep(0.04)
             # if count % 100 == 0:
             #     print("polling", datetime.datetime.now().strftime("%H:%M:%S.%f"))
-            # print("polling", datetime.datetime.now().strftime("%H:%M:%S.%f"))
+            print("polling", datetime.datetime.now().strftime("%H:%M:%S.%f"))
             try:
-                # img = self.image_attr.get_value()
-                img, width, height = self.bzoom_device.get_jpg_image()
-                # print(type(img))
-                # img = self.bzoom_device.image_attr.get_value()
-                # print("got the image", datetime.datetime.now().strftime("%H:%M:%S.%f"))
-
+                img = self.image_attr.get_value()
+                print("got the image", datetime.datetime.now().strftime("%H:%M:%S.%f"))
+                #print(img)
                 #img = self.image_attr.value
                 imgArray = array.array("b", img)
                 imgStr = imgArray.tobytes()
@@ -103,8 +97,7 @@ class BL19U1MD2Camera(Device):
                 #img = im.open(io.BytesIO(imgArray))
                 #img.save('1.jpg')
 
-                # self.emit("imageReceived", imgStr, 659, 453)
-                self.emit("imageReceived", imgStr, width, height)
+                self.emit("imageReceived", imgStr, 659, 453)
                 count = count + 1
             except KeyboardInterrupt:
                 self.connected = False

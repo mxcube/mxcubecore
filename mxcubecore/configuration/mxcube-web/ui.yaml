@@ -92,7 +92,8 @@ beamline_setup:
   components:
     -
       label: Beamstop
-      attribute: diffractometer.capillary
+#      attribute: diffractometer.capillary
+      attribute: diffractometer.beamstop
     -
       label: Capillary
       attribute: capillary

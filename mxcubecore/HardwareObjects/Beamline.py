@@ -440,6 +440,18 @@ class Beamline(ConfiguredObject):
     __content_roles.append("lims")
 
     @property
+    def bzoom(self):
+        """LIMS client object.
+
+        Returns:
+            Optional[ISPyBClient]:
+        """
+        return self._objects.get("bzoom")
+
+    __content_roles.append("bzoom")
+
+
+    @property
     def sample_view(self):
         """Sample view object. Includes defined shapes.
 

@@ -132,6 +132,7 @@ class MD2(Microdiff.Microdiff):
     def update_scale(self):
         pixelsPerMmY = self.x_calib.get_value()
         pixelsPerMmZ = self.y_calib.get_value()
+        logging.getLogger("HWR").debug("CENTRING DEBUG !!!!!!! scale changed to %f" % pixelsPerMmY)
 
     def zoomMotorPredefinedPositionChanged(self, positionName, offset=None):
         self.emit("zoomMotorPredefinedPositionChanged", (positionName, offset))
@@ -352,7 +353,7 @@ class MD2(Microdiff.Microdiff):
     def getCalibrationData(self, offset):
         #return self.zoomMotor.get_pixels_per_mm()
         (x, y) = (1.0 / self.x_calib.get_value(), 1.0 / self.y_calib.get_value())
-        # print("pixelsPerMmY: %d pixelsPerMmZ: %d" % (x, y))
+        print("pixelsPerMmY: %d pixelsPerMmZ: %d" % (x, y))
         return (x, y)
 
 

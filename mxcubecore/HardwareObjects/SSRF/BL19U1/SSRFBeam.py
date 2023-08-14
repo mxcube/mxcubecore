@@ -164,6 +164,7 @@ class SSRFBeam(AbstractBeam):
                 self.chan_beam_position_hor.get_value(),
                 self.chan_beam_position_ver.get_value(),
             ]
+        print("Debug!!!!! beam position: ",self._beam_position_on_screen)
         return self._beam_position_on_screen
 
     def set_beam_position(self, beam_x, beam_y):

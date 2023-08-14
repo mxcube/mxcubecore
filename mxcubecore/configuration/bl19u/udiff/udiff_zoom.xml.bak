@@ -7,7 +7,7 @@
 {"ZOOM_1": 1, "ZOOM_2": 2, "ZOOM_3": 3, "ZOOM_4": 4, "ZOOM_5": 5, "ZOOM_6": 6, "ZOOM_7": 7, "ZOOM_8": 8, "ZOOM_9": 9, "ZOOM_10": 10}
 </values-->
   <values>
-{"ZOOM_1": 0, "ZOOM_2": 1, "ZOOM_3": 2, "ZOOM_4": 3, "ZOOM_5": 4, "ZOOM_6": 5, "ZOOM_7": 6}
+{"ZOOM_1": 1, "ZOOM_2": 2, "ZOOM_3": 3, "ZOOM_4": 4, "ZOOM_5": 5, "ZOOM_6": 6, "ZOOM_7": 7udiff_zoom.xml}
 </values>
      <positions>
     <position>
@@ -16,9 +16,9 @@
       <focus_offset>0.0</focus_offset>
       <lightLevel>28</lightLevel>
       <calibrationData>
-        <pixelsPerMmY>630</pixelsPerMmY>
-        <pixelsPerMmZ>630</pixelsPerMmZ>
-        <beamPositionX>612</beamPositionX>
+        <pixelsPerMmY>381</pixelsPerMmY>
+        <pixelsPerMmZ>382</pixelsPerMmZ>
+        <beamPositionX>680</beamPositionX>
         <beamPositionY>512</beamPositionY>
       </calibrationData>
     </position>
@@ -28,9 +28,9 @@
       <focus_offset>0.0</focus_offset>
       <lightLevel>35</lightLevel>
       <calibrationData>
-        <pixelsPerMmY>887</pixelsPerMmY>
-        <pixelsPerMmZ>887</pixelsPerMmZ>
-        <beamPositionX>612</beamPositionX>
+        <pixelsPerMmY>1269</pixelsPerMmY>
+        <pixelsPerMmZ>1269</pixelsPerMmZ>
+        <beamPositionX>680</beamPositionX>
         <beamPositionY>512</beamPositionY>
       </calibrationData>
     </position>
@@ -76,9 +76,9 @@
       <focus_offset>0.0</focus_offset>
       <lightLevel>66</lightLevel>
       <calibrationData>
-        <pixelsPerMmY>3015</pixelsPerMmY>
-        <pixelsPerMmZ>3015</pixelsPerMmZ>
-        <beamPositionX>612</beamPositionX>
+        <pixelsPerMmY>4000</pixelsPerMmY>
+        <pixelsPerMmZ>4000</pixelsPerMmZ>
+        <beamPositionX>680</beamPositionX>
         <beamPositionY>512</beamPositionY>
       </calibrationData>
     </position>
@@ -88,13 +88,13 @@
       <focus_offset>0.0</focus_offset>
       <lightLevel>75</lightLevel>
       <calibrationData>
-        <pixelsPerMmY>4672</pixelsPerMmY>
-        <pixelsPerMmZ>4672</pixelsPerMmZ>
-        <beamPositionX>612</beamPositionX>
+        <pixelsPerMmY>4565</pixelsPerMmY>
+        <pixelsPerMmZ>4565</pixelsPerMmZ>
+        <beamPositionX>680</beamPositionX>
         <beamPositionY>512</beamPositionY>
       </calibrationData>
     </position>
-<!--    <position>
+    <!--position>
       <username>Zoom 8</username>
       <offset>11500</offset>
       <focus_offset>0.0</focus_offset>
@@ -105,8 +105,8 @@
         <beamPositionX>680</beamPositionX>
         <beamPositionY>512</beamPositionY>
       </calibrationData>
-    </position>-->
-    <!--position>
+    </position>
+    <position>
       <username>Zoom 9</username>
       <offset>12200</offset>
       <focus_offset>0.0</focus_offset>

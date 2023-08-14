@@ -43,7 +43,7 @@ _objects:
     #- diffractometer: minidiff.xml
     #- diffractometer: bl19u/md2.xml
     - diffractometer: bl19u/udiff.xml
-
+    - bzoom: bl19u/udiff/bzoom_video.xml
     - lims: lims.xml
     - sample_view: bl19u/sample_view.xml
     - queue_manager: bl19u/queue.xml
@@ -55,7 +55,7 @@ _objects:
     #- collect: mxcollect.xml
     - collect: bl19u/mxcollect.xml
     - xrf_spectrum: bl19u/xrf.xml
-    - energy_scan: bl19u/energyscan.xml
+#    - energy_scan: bl19u/energyscan.xml
     #- gphl_connection: gphl/gphl-setup.yml
     #- gphl_workflow: gphl/gphl-workflow.yml
     - xray_centring: xray_centring2.yml

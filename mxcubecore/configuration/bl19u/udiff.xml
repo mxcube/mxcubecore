@@ -42,7 +42,7 @@
   </actuators>
   <complex_equipment>
     <object role="zoom" href="./udiff/udiff_zoom"/>
-    <object role="beamstop" href="./udiff/capillary"/>
+    <object role="beamstop" href="./udiff/beamstop"/>
     <!--object role="beamstop_distance" href="/udiff_beamstopdistance_mockup"/-->
     <object role="capillary" href="./udiff/capillary"/>
     <object role="aperture" href="./udiff/aperture"/>

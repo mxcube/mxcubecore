@@ -456,7 +456,9 @@ def center(
         READY_FOR_NEXT_POINT.set()
         raise RuntimeError("Exception while centring")
 
-    # logging.info("X=%s,Y=%s", X, Y)
+    # print("pixelsPerMm_Hor,pixelsPerMm_Ver,beam_xc,beam_yc: ",pixelsPerMm_Hor,pixelsPerMm_Ver,beam_xc,beam_yc)
+    # logging.info("CENTRING DEBUG !!!!!!! X=%s,Y=%s,scale=%f, beam_xc = %f , beam_yc = %f", X, Y, pixelsPerMm_Hor, beam_xc, beam_yc)
+    logging.getLogger("HWR").debug("CENTRING DEBUG !!!!!!! X=%s,Y=%s,scale=%f, beam_xc = %f , beam_yc = %f", X, Y, pixelsPerMm_Hor, beam_xc, beam_yc)
     chi_angle = math.radians(chi_angle)
     chiRotMatrix = numpy.matrix(
         [
