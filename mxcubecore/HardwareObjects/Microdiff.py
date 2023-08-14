@@ -644,8 +644,6 @@ class Microdiff(MiniDiff.MiniDiff):
                 },
                 self.pixelsPerMmY,
                 self.pixelsPerMmZ,
-                # self.pixelsPerMmY/2,
-                # self.pixelsPerMmZ/2,
                 beam_pos_x,
                 beam_pos_y,
                 chi_angle=self.chiAngle,
