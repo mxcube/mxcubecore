@@ -434,9 +434,11 @@ class MD2(Microdiff.Microdiff):
             return 0, 0
 
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
-        dx = (x - beam_pos_x) / self.pixelsPerMmY
-        dy = (y - beam_pos_y) / self.pixelsPerMmZ
-
+        # dx = (x - beam_pos_x) / self.pixelsPerMmY
+        # dy = (y - beam_pos_y) / self.pixelsPerMmZ
+        # worked for now
+        dx = (x - beam_pos_x) / (self.pixelsPerMmY/2)
+        dy = (y - beam_pos_y) / (self.pixelsPerMmZ/2)
 
         phi_angle = math.radians(
             self.centringPhi.direction * self.centringPhi.get_value()

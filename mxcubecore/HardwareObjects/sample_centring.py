@@ -116,6 +116,8 @@ def start(
         phiz,
         sampx,
         sampy,
+        # pixelsPerMm_Hor/2,
+        # pixelsPerMm_Ver/2,
         pixelsPerMm_Hor,
         pixelsPerMm_Ver,
         beam_xc,

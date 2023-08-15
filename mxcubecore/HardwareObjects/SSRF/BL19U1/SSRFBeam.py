@@ -89,13 +89,13 @@ class SSRFBeam(AbstractBeam):
         else:
             logging.getLogger("HWR").debug("BeamInfo: Beam focusing hwobj not defined")
 
-        #self.chan_beam_position_hor = self.get_channel_object("BeamPositionHorizontal")
+        # self.chan_beam_position_hor = self.get_channel_object("BeamPositionHorizontal")
         if self.chan_beam_position_hor:
             self.chan_beam_position_hor.connect_signal(
                 "update", self.beam_pos_hor_changed
             )
             self.beam_pos_hor_changed(self.chan_beam_position_hor.get_value())
-        #self.chan_beam_position_ver = self.get_channel_object("BeamPositionVertical")
+        # self.chan_beam_position_ver = self.get_channel_object("BeamPositionVertical")
         if self.chan_beam_position_ver:
             self.chan_beam_position_ver.connect_signal(
                 "update", self.beam_pos_ver_changed

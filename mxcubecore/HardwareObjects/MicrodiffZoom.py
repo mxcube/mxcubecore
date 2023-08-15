@@ -49,14 +49,16 @@ class MicrodiffZoom(ExporterNState):
     def init(self):
         """Initialize the zoom"""
         super().init()
-
         self.initialise_values()
         # check if we have values other that UNKNOWN
-        _len = len(self.VALUES) - 1
+        # _len = len(self.VALUES) - 1
+        # -2, due to we have start with Zoom_0 in udiff_zoom.xml
+        _len = len(self.VALUES)-2
         if _len > 0:
             # we can only assume that the values are consecutive integers
             # so the limits correspond to the keys.
             self.set_limits((1, _len))
+
         else:
             # no values in the config file, initialise from the hardware.
             self.set_limits(self._get_range())
@@ -86,7 +88,7 @@ class MicrodiffZoom(ExporterNState):
         """
         if not limits:
             limits = self.get_limits()
-
+        # print("limits!!!:",limits)
         # All values are not None nor NaN
         self._nominal_limits = limits
         self.emit("limitsChanged", (limits,))
@@ -100,6 +102,7 @@ class MicrodiffZoom(ExporterNState):
             "ValueEnum",
             dict(values, **{item.name: item.value for item in BaseValueEnum}),
         )
+        print("BZOOM values ------->%s", self.VALUES)
 
     def _get_range(self):
         """Get the zoom range.
@@ -117,5 +120,4 @@ class MicrodiffZoom(ExporterNState):
 
         if _high == float("inf"):
             _high = 10
-
         return _low, _high
