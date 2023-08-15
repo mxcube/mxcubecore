@@ -105,6 +105,9 @@ class ExporterMotor(AbstractMotor):
         try:
             state = state.upper()
             state = ExporterStates.__members__[state].value
+
+            # logging.getLogger("HWR").debug("==== exporter %s update_state is %s" % (self.actuator_name, state) )
+
         except (AttributeError, KeyError):
             state = self.STATES.UNKNOWN
         return self.update_state(state)

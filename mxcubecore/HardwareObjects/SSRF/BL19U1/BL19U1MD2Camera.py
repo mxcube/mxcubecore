@@ -81,6 +81,7 @@ class BL19U1MD2Camera(Device):
         while not self.stopper:
             # time.sleep(float(self.pollInterval) / 1000)
             time.sleep(0.01)
+            # time.sleep(0.01)
             # if count % 100 == 0:
             #     print("polling", datetime.datetime.now().strftime("%H:%M:%S.%f"))
             # print("polling", datetime.datetime.now().strftime("%H:%M:%S.%f"))

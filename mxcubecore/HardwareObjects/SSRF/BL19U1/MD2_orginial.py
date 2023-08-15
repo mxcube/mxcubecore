@@ -26,7 +26,7 @@ class MD2(Microdiff.Microdiff):
         self.centringPhiy = CentringMotor(
             self.phiyMotor, direction=-1, reference_position=None
         )
-        self.centringSamplex = CentringMotor(self.sampleXMotor, direction=-1)   #-1 for MD2-S
+        self.centringSamplex = CentringMotor(self.sampleXMotor, direction=1)
         self.centringSampley = CentringMotor(self.sampleYMotor, direction=1)
         self.scan_nb_frames = -1
 
