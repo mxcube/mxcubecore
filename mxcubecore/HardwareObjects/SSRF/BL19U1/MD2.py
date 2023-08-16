@@ -26,7 +26,7 @@ class MD2(Microdiff.Microdiff):
         self.centringPhiy = CentringMotor(
             self.phiyMotor, direction=-1, reference_position=None
         )
-        self.centringSamplex = CentringMotor(self.sampleXMotor, direction=1)
+        self.centringSamplex = CentringMotor(self.sampleXMotor, direction=-1)
         self.centringSampley = CentringMotor(self.sampleYMotor, direction=1)
         self.scan_nb_frames = -1
 
@@ -354,7 +354,7 @@ class MD2(Microdiff.Microdiff):
         #return self.zoomMotor.get_pixels_per_mm()
         (x, y) = (1.0 / self.x_calib.get_value(), 1.0 / self.y_calib.get_value())
         print("pixelsPerMmY: %d pixelsPerMmZ: %d" % (x, y))
-        return (x, y)
+        return (x/2, y/2)
 
 
     def getCalibrationData_custom(self):
@@ -437,8 +437,8 @@ class MD2(Microdiff.Microdiff):
         # dx = (x - beam_pos_x) / self.pixelsPerMmY
         # dy = (y - beam_pos_y) / self.pixelsPerMmZ
         # worked for now
-        dx = (x - beam_pos_x) / (self.pixelsPerMmY/2)
-        dy = (y - beam_pos_y) / (self.pixelsPerMmZ/2)
+        dx = (x - beam_pos_x) / (self.pixelsPerMmY)
+        dy = (y - beam_pos_y) / (self.pixelsPerMmZ)
 
         phi_angle = math.radians(
             self.centringPhi.direction * self.centringPhi.get_value()

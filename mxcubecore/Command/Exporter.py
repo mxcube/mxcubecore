@@ -249,6 +249,7 @@ class ExporterChannel(ChannelObject):
             value = list(value)
 
         self.value = value
+        logging.getLogger("HWR").error("==== exporter %s update is %s" % (self.__exporter, value) )
         self.emit("update", value)
 
     def get_value(self):
