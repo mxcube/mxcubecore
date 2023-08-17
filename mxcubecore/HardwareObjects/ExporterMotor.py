@@ -109,7 +109,11 @@ class ExporterMotor(AbstractMotor):
             # logging.getLogger("HWR").debug("==== exporter %s update_state is %s" % (self.actuator_name, state) )
 
         except (AttributeError, KeyError):
-            state = self.STATES.UNKNOWN
+            if self.actuator_name == "BackLight":
+                state = self.STATES.READY
+            else:
+                state = self.STATES.UNKNOWN
+            # state may be bool
         return self.update_state(state)
 
     def _get_hwstate(self):
