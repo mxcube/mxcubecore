@@ -97,6 +97,16 @@ class MD2(Microdiff.Microdiff):
             },
             "SampleIsLoaded",
         )
+        self.Cryo_Is_Back = self.add_channel(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "Cryo_Is_Back",
+            },
+            "CryoIsBack",
+        )
+
+
 
         self.save_centring_positions = self.add_command(
             {
@@ -106,6 +116,7 @@ class MD2(Microdiff.Microdiff):
             },
             "saveCentringPositions",
         )
+
 
         self.connect("update", self.state_changed)
     def abort(self):
@@ -353,7 +364,7 @@ class MD2(Microdiff.Microdiff):
     def getCalibrationData(self, offset):
         #return self.zoomMotor.get_pixels_per_mm()
         (x, y) = (1.0 / self.x_calib.get_value(), 1.0 / self.y_calib.get_value())
-        print("pixelsPerMmY: %d pixelsPerMmZ: %d" % (x, y))
+        # print("pixelsPerMmY: %d pixelsPerMmZ: %d" % (x, y))
         return (x/2, y/2)
 
 

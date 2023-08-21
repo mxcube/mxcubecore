@@ -698,6 +698,8 @@ class LNLSPilatusDet(AbstractDetector):
         # self.set_channel_value("det_phi_omega_incr", file_template)
         self.set_channel_value("det_phi_oscill_axis",  self.header["Oscillation_axis"])
         self.set_channel_value("det_num_oscill", self.header["N_oscillations"])
+        self.set_channel_value("det_beam_x", 1232.00)
+        self.set_channel_value("det_beam_y", 1264.00)
         # self.set_channel_value("det_cbf_template_file", file_template)
 
 

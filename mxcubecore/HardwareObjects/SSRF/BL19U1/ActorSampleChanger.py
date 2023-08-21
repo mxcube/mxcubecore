@@ -286,6 +286,7 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         MD2 = HWR.beamline.diffractometer
         if MD2.get_current_phase() != "Transfer":
             MD2.set_phase("Transfer", wait=True)
+            # MD2.Cryo_Is_Back.set_value("true")
             print("切换完成")
         gevent.sleep(timeout)
         if MD2.get_current_phase() == "Transfer":
