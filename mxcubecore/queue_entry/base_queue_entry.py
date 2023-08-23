@@ -33,11 +33,11 @@ from collections import namedtuple
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.model import queue_model_objects
 from mxcubecore.model.queue_model_enumerables import (
-    CENTRING_METHOD,
+    CENTRING_METHOD, EXPERIMENT_TYPE,
 )
 
 from mxcubecore.HardwareObjects import autoprocessing
-
+from copy import copy
 __credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3+"
 __category__ = "General"
