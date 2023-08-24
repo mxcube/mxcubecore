@@ -107,21 +107,12 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True,))
 
-    # Moved to AbstractMultiCollect, as it was called there
-    # @task
-    # def take_crystal_snapshots(self, number_of_snapshots):
-    #     HWR.beamline.diffractometer.take_snapshots(number_of_snapshots, wait=True)
-
-    @task
-    def data_collection_hook(self, data_collect_parameters):
-        if self._metadataClient is None:
-            self._metadataClient = MXCuBEMetadataClient(self)
-        self._metadataClient.start(data_collect_parameters)
-
     @task
     def data_collection_end_hook(self, data_collect_parameters):
         self._detector._emit_status()
-        self._metadataClient.end(data_collect_parameters)
+        HWR.beamline.lims.icat_client.create_mx_collection(data_collect_parameters)
+
+    #     self._metadataClient.end(data_collect_parameters)
 
     def prepare_oscillation(
         self,
