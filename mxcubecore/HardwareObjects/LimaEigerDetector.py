@@ -76,16 +76,22 @@ class LimaEigerDetector(AbstractDetector):
         self.get_command_object("prepare_acq").init_device()
         self.get_command_object("prepare_acq").device.set_timeout_millis(5 * 60 * 1000)
         self.get_channel_object("photon_energy").init_device()
-        self._emit_status()
+        self.update_state(self.STATES.READY)
 
     def has_shutterless(self):
         return True
 
     def wait_ready(self, timeout=30):
         acq_status_chan = self.get_channel_object("acq_status")
+
+        if acq_status_chan.get_value() != "Ready":
+            self.update_state(self.STATES.BUSY)
+
         with gevent.Timeout(timeout, RuntimeError("Detector not ready")):
             while acq_status_chan.get_value() != "Ready":
                 time.sleep(1)
+
+        self.update_state(self.STATES.READY)
 
     def last_image_saved(self):
         # return 0
@@ -228,7 +234,6 @@ class LimaEigerDetector(AbstractDetector):
         self.get_command_object("prepare_acq")()
         logging.getLogger("user_level_log").info("Detector ready, continuing")
         self.get_command_object("start_acq")()
-        self._emit_status()
 
     def stop_acquisition(self):
         try:
@@ -239,7 +244,6 @@ class LimaEigerDetector(AbstractDetector):
         time.sleep(1)
         self.get_command_object("reset")()
         self.wait_ready()
-        self._emit_status()
 
     def reset(self):
         self.stop_acquisition()
