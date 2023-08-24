@@ -30,7 +30,7 @@ from mxcubecore.HardwareObjects.EMBL import EMBLQueueEntry
 
 # These two queue entries, for the moment violates the convention above and
 # should eventually be changed
-from mxcubecore.queue_entry.xrf_spectrum import XRFSpectrumQueueEntry
+from mxcubecore.queue_entry.xrf_spectrum import XrfSpectrumQueueEntry
 from mxcubecore.queue_entry.characterisation import (
     CharacterisationGroupQueueEntry,
 )
@@ -84,7 +84,7 @@ def import_queue_entries(site_name_list=()):
         queue_model_objects.DataCollection: _modules["DataCollectionQueueEntry"],
         queue_model_objects.Characterisation: CharacterisationGroupQueueEntry,
         queue_model_objects.EnergyScan: _modules["EnergyScanQueueEntry"],
-        queue_model_objects.XRFSpectrum: XRFSpectrumQueueEntry,
+        queue_model_objects.XRFSpectrum: XrfSpectrumQueueEntry,
         queue_model_objects.SampleCentring: _modules["SampleCentringQueueEntry"],
         queue_model_objects.OpticalCentring: _modules["OpticalCentringQueueEntry"],
         queue_model_objects.DelayTask: DelayQueueEntry,

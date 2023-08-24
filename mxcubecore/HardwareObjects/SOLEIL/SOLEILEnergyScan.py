@@ -28,7 +28,7 @@ class SOLEILEnergyScan(Equipment):
         self.defaultWavelength = None
         self._element = None
         self._edge = None
-        self.doEnergyScan = None
+        self.do_energy_scan = None
         try:
             self.defaultWavelengthChannel = self.get_channel_object(
                 "default_wavelength"
@@ -65,30 +65,32 @@ class SOLEILEnergyScan(Equipment):
                 self.connect(self.scanStatusMessage, "update", self.scanStatusChanged)
 
             try:
-                self.doEnergyScan.connect_signal(
+                self.do_energy_scan.connect_signal(
                     "commandReplyArrived", self.scanCommandFinished
                 )
-                self.doEnergyScan.connect_signal(
+                self.do_energy_scan.connect_signal(
                     "commandBeginWaitReply", self.scanCommandStarted
                 )
-                self.doEnergyScan.connect_signal(
+                self.do_energy_scan.connect_signal(
                     "commandFailed", self.scanCommandFailed
                 )
-                self.doEnergyScan.connect_signal(
+                self.do_energy_scan.connect_signal(
                     "commandAborted", self.scanCommandAborted
                 )
-                self.doEnergyScan.connect_signal("commandReady", self.scanCommandReady)
-                self.doEnergyScan.connect_signal(
+                self.do_energy_scan.connect_signal(
+                    "commandReady", self.scanCommandReady
+                )
+                self.do_energy_scan.connect_signal(
                     "commandNotReady", self.scanCommandNotReady
                 )
             except AttributeError as diag:
                 logging.getLogger("HWR").warning(
                     "EnergyScan: error initializing energy scan (%s)" % str(diag)
                 )
-                self.doEnergyScan = Xanes  # .xanes(None, None) #None
+                self.do_energy_scan = Xanes  # .xanes(None, None) #None
             else:
-                self.doEnergyScan.connect_signal("connected", self.sConnected)
-                self.doEnergyScan.connect_signal("disconnected", self.sDisconnected)
+                self.do_energy_scan.connect_signal("connected", self.sConnected)
+                self.do_energy_scan.connect_signal("disconnected", self.sDisconnected)
 
             self.previousResolution = None
             self.lastResolution = None
@@ -164,7 +166,7 @@ class SOLEILEnergyScan(Equipment):
                 return False
         else:
             try:
-                return self.doEnergyScan.is_connected()
+                return self.do_energy_scan.is_connected()
             except Exception:
                 return False
 
@@ -204,9 +206,9 @@ class SOLEILEnergyScan(Equipment):
     #         return False
     #     if self.energy2WavelengthConstant is None or self.energyScanArgs is None:
     #         return False
-    #     return self.doEnergyScan is not None
+    #     return self.do_energy_scan is not None
 
-    def startEnergyScan(
+    def start_energy_scan(
         self, element, edge, directory, prefix, session_id=None, blsample_id=None
     ):
         self._element = element
@@ -283,7 +285,7 @@ class SOLEILEnergyScan(Equipment):
             self.emit("scanStatusChanged", ("Error setting energy scan parameters",))
             return False
         try:
-            # self.doEnergyScan("%s %s" % (element,edge))
+            # self.do_energy_scan("%s %s" % (element,edge))
             self.scanCommandStarted()
             self.xanes.scan()  # start() #scan()
             self.scanCommandFinished("success")
@@ -300,7 +302,7 @@ class SOLEILEnergyScan(Equipment):
     def cancelEnergyScan(self, *args):
         logging.info("SOLEILEnergyScan: canceling the scan")
         if self.scanning:
-            # self.doEnergyScan.abort()
+            # self.do_energy_scan.abort()
             self.xanes.abort()
             self.ready_event.set()
 
@@ -389,7 +391,7 @@ class SOLEILEnergyScan(Equipment):
             time.sleep(0.1)
             self.emit("energyScanFinished2", (self.scanInfo,))
 
-    def doChooch(self, elt, edge, scanArchiveFilePrefix, scanFilePrefix):
+    def do_chooch(self, elt, edge, scanArchiveFilePrefix, scanFilePrefix):
         # symbol = "_".join((elt, edge))
         # scanArchiveFilePrefix = "_".join((scanArchiveFilePrefix, symbol))
 
@@ -402,7 +404,7 @@ class SOLEILEnergyScan(Equipment):
         rawScanFile = os.path.extsep.join((scanFilePrefix, "raw"))
         scanFile = os.path.extsep.join((scanFilePrefix, "efs"))
         logging.info(
-            "SOLEILEnergyScan doChooch rawScanFile %s, scanFile %s"
+            "SOLEILEnergyScan do_chooch rawScanFile %s, scanFile %s"
             % (rawScanFile, scanFile)
         )
         # if not os.path.exists(os.path.dirname(scanArchiveFilePrefix)):

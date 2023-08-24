@@ -72,7 +72,7 @@ class ID29EnergyScan(ESRFEnergyScan):
 
         self.ctrl.detcover.set_in()
         self.ctrl.diffractometer.fldet_in()
-        self.ctrl.diffractometer.set_phase("DataCollection", wait=True)
+        self.ctrl.diffractometer.set_phase("DataCollection")
 
         if self.beamsize:
             # get the aperture size

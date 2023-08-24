@@ -195,7 +195,7 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
             time.sleep(0.05)
         self.scanCommandFinished()
 
-    def startEnergyScan(
+    def start_energy_scan(
         self,
         element,
         edge,
@@ -237,7 +237,7 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         # self.emit('energyScanFinished', (self.scan_info,))
         # self.ready_event.set()
 
-    def doChooch(self, elt, edge, scan_directory, archive_directory, prefix):
+    def do_chooch(self, elt, edge, scan_directory, archive_directory, prefix):
         """
         Descript. :
         """

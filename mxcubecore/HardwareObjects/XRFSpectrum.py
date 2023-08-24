@@ -8,11 +8,9 @@ from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
-# class XRFSpectrum(Equipment):
 class XRFSpectrum(HardwareObject):
     def __init__(self, *args, **kwargs):
-        HardwareObject.__init__(self, *args, **kwargs)
-        # Equipment.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.config_data = None
         self.calib_data = None
         self.energy_spectrum_args = None
@@ -50,7 +48,8 @@ class XRFSpectrum(HardwareObject):
         self.spectrumInfo = None
 
         self.ctrl_hwobj = self.get_object_by_role("controller")
-        self.mca_hwobj = self.get_object_by_role("mca")
+        self.mca_hwobj = self.ctrl_hwobj.mca
+        # self.mca_hwobj = self.get_object_by_role("mca")
         # if self.mca_hwobj:
         #    self.mca_hwobj.set_calibration(calib_cf=self.mca_hwobj.calib_cf)
 
@@ -180,10 +179,9 @@ class XRFSpectrum(HardwareObject):
     def reallyStartXrfSpectrum(self, ct, filename):
         try:
             res = self._doSpectrum(ct, filename, wait=True)
-        except Exception:
-            logging.getLogger("user_level_log").exception(
-                "XRFSpectrum: problem calling procedure"
-            )
+        except RuntimeError as err:
+            msg = f"XRFSpectrum: problem calling procedure, {err}"
+            logging.getLogger("user_level_log").exception(msg)
             self.spectrumStatusChanged("Error problem with spectrum procedure")
         else:
             self.spectrumCommandFinished(res)
@@ -298,6 +296,8 @@ class XRFSpectrum(HardwareObject):
             session_id = int(self.spectrumInfo["sessionId"])
         except Exception:
             return
+        blsampleid = self.spectrumInfo["blSampleId"]
+
         db_status = HWR.beamline.lims.storeXfeSpectrum(self.spectrumInfo)
 
     def updateXrfSpectrum(self, spectrum_id, jpeg_spectrum_filename):

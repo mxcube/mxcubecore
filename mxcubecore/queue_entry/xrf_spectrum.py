@@ -34,7 +34,7 @@ __license__ = "LGPLv3+"
 __category__ = "General"
 
 
-class XRFSpectrumQueueEntry(BaseQueueEntry):
+class XrfSpectrumQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None):
         BaseQueueEntry.__init__(self, view, data_model)
         self._failed = False
