@@ -501,7 +501,7 @@ def end(centred_pos=None):
 
 
 def start_auto(
-    camera,
+    sample_view,
     centring_motors_dict,
     pixelsPerMm_Hor,
     pixelsPerMm_Ver,
@@ -518,7 +518,7 @@ def start_auto(
 
     CURRENT_CENTRING = gevent.spawn(
         auto_center,
-        camera,
+        sample_view,
         phi,
         phiy,
         phiz,
@@ -536,11 +536,11 @@ def start_auto(
     return CURRENT_CENTRING
 
 
-def find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb):
+def find_loop(sample_view, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb):
     snapshot_filename = os.path.join(
         tempfile.gettempdir(), "mxcube_sample_snapshot.png"
     )
-    camera.take_snapshot(snapshot_filename, bw=True)
+    sample_view.save_snapshot(snapshot_filename, overlay=False, bw=True)
 
     # Lucid does not accept 0 degree rotation and
     # has a reference frame that is reversed to the one used
@@ -569,7 +569,7 @@ def find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb):
 
 
 def auto_center(
-    camera,
+    sample_view,
     phi,
     phiy,
     phiz,
@@ -584,12 +584,14 @@ def auto_center(
     msg_cb,
     new_point_cb,
 ):
-    imgWidth = camera.get_width()
-    imgHeight = camera.get_height()
+    imgWidth = sample_view.camera.get_width()
+    imgHeight = sample_view.camera.get_height()
 
     # check if loop is there at the beginning
     i = 0
-    while -1 in find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb):
+    while -1 in find_loop(
+        sample_view, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb
+    ):
         phi.set_value_relative(90)
         i += 1
         if i > 4:
@@ -617,14 +619,20 @@ def auto_center(
         )
 
         for a in range(n_points):
-            x, y = find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb)
+            x, y = find_loop(
+                sample_view, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb
+            )
             # logging.info("in autocentre, x=%f, y=%f",x,y)
             if x < 0 or y < 0:
                 for i in range(1, 18):
                     # logging.info("loop not found - moving back %d" % i)
                     phi.set_value_relative(5)
                     x, y = find_loop(
-                        camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb
+                        sample_view,
+                        pixelsPerMm_Hor,
+                        chi_angle,
+                        msg_cb,
+                        new_point_cb,
                     )
                     if -1 in (x, y):
                         continue
