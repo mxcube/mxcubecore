@@ -1,8 +1,9 @@
 from mxcubecore.HardwareObjects import Session
 import os
 import time
+import glob
 from mxcubecore.model import queue_model_objects
-
+from mxcubecore import HardwareRepository as HWR
 
 class ESRFSession(Session.Session):
     def __init__(self, name):
@@ -21,6 +22,40 @@ class ESRFSession(Session.Session):
             queue_model_objects.PathTemplate.set_archive_path(
                 archive_base_directory, archive_folder
             )
+
+    def get_full_path(self, subdir, tag):
+        folders = glob.glob(
+            os.path.join(self.get_base_image_directory(), subdir) + "/run*"
+        )
+
+        runs = [1]
+        for folder in folders:
+            runs.append(int(folder.split("/")[-1].strip("run_").split("_")[0]))
+
+        run_num = max(runs) + 1
+
+        full_path = os.path.join(
+            self.get_base_image_directory(), subdir, f"run_{run_num:02d}/"
+        )
+
+        # Check collects in queue not yet collected
+        for pt in HWR.beamline.queue_model.get_path_templates():
+            if pt[1].directory.startswith(full_path[:-1]):
+                run_num += 1
+
+                full_path = os.path.join(
+                    self.get_base_image_directory(), subdir, f"run_{run_num:02d}/"
+                )
+
+        full_path = os.path.join(
+            self.get_base_image_directory(), subdir, f"run_{run_num:02d}_{tag}/"
+        )
+
+        process_path = os.path.join(
+            self.get_base_process_directory(), subdir, f"run_{run_num:02d}_{tag}/"
+        )
+
+        return full_path, process_path
 
     def get_default_subdir(self, sample_data: dict) -> str:
         """
