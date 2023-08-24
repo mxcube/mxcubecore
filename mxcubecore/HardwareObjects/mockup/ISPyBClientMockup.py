@@ -117,11 +117,12 @@ class ISPyBClientMockup(HardwareObject):
         if psd == "nosession":
             new_session = True
         prop = self.get_proposal(loginID, 9999)
+
         return {
             "status": {"code": "ok", "msg": "Successful login"},
             "Proposal": prop["Proposal"],
             "Session": {
-                "session": prop["Session"],
+                "session": prop["Session"][0],
                 "new_session_flag": new_session,
                 "is_inhouse": False,
             },
@@ -132,38 +133,38 @@ class ISPyBClientMockup(HardwareObject):
 
     def get_todays_session(self, prop, create_session=True):
         try:
-            sessions = prop["Session"]
+            session = prop["Session"]
         except KeyError:
-            sessions = None
+            session = None
+
         # Check if there are sessions in the proposal
         todays_session = None
-        if sessions is None or len(sessions) == 0:
-            pass
-        else:
-            # Check for today's session
-            for session in sessions:
-                beamline = session["beamlineName"]
-                start_date = "%s 00:00:00" % session["startDate"].split()[0]
-                end_date = "%s 23:59:59" % session["endDate"].split()[0]
+
+        if not session:
+            beamline = session["beamlineName"]
+            start_date = "%s 00:00:00" % session["startDate"].split()[0]
+            end_date = "%s 23:59:59" % session["endDate"].split()[0]
+
+            try:
+                start_struct = time.strptime(start_date, "%Y-%m-%d %H:%M:%S")
+            except ValueError:
+                pass
+            else:
                 try:
-                    start_struct = time.strptime(start_date, "%Y-%m-%d %H:%M:%S")
+                    end_struct = time.strptime(end_date, "%Y-%m-%d %H:%M:%S")
                 except ValueError:
                     pass
                 else:
-                    try:
-                        end_struct = time.strptime(end_date, "%Y-%m-%d %H:%M:%S")
-                    except ValueError:
-                        pass
-                    else:
-                        start_time = time.mktime(start_struct)
-                        end_time = time.mktime(end_struct)
-                        current_time = time.time()
-                        # Check beamline name
-                        if beamline == self.beamline_name:
-                            # Check date
-                            if current_time >= start_time and current_time <= end_time:
-                                todays_session = session
-                                break
+                    start_time = time.mktime(start_struct)
+                    end_time = time.mktime(end_struct)
+                    current_time = time.time()
+
+                    # Check beamline name
+                    if beamline == self.beamline_name:
+                        # Check date
+                        if current_time >= start_time and current_time <= end_time:
+                            todays_session = session
+
         new_session_flag = False
         if todays_session is None:
             # a newSession will be created, UI (Qt, web) can decide to accept the
