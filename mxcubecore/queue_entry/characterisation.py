@@ -137,78 +137,73 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                 )
                 self.start_char()
             else:
-                logging.getLogger("user_level_log").info(
-                    "Characterisation: Started in the background"
+                logging.getLogger("user_level_log").warning(
+                    "Characterisation: Please wait ..."
                 )
                 gevent.spawn(self.start_char)
 
     def start_char(self):
-        log = logging.getLogger("user_level_log")
-        self.get_view().setText(1, "Characterising")
-        log.info("Characterising, please wait ...")
         char = self.get_data_model()
-        reference_image_collection = char.reference_image_collection
         characterisation_parameters = char.characterisation_parameters
 
-        if HWR.beamline.characterisation is not None:
-            edna_input = HWR.beamline.characterisation.input_from_params(
-                reference_image_collection, characterisation_parameters
-            )
+        if characterisation_parameters.strategy_program != "None":
+            log = logging.getLogger("user_level_log")
+            self.get_view().setText(1, "Characterising")
+            log.info("Characterising, please wait ...")
+            reference_image_collection = char.reference_image_collection
 
-            self.edna_result = HWR.beamline.characterisation.characterise(edna_input)
-
-        if self.edna_result:
-            log.info("Characterisation completed.")
-
-            char.html_report = HWR.beamline.characterisation.get_html_report(
-                self.edna_result
-            )
-
-            try:
-                strategy_result = (
-                    self.edna_result.getCharacterisationResult().getStrategyResult()
+            if HWR.beamline.characterisation is not None:
+                edna_input = HWR.beamline.characterisation.input_from_params(
+                    reference_image_collection, characterisation_parameters
                 )
-            except Exception:
-                strategy_result = None
 
-            if strategy_result:
-                collection_plan = strategy_result.getCollectionPlan()
-            else:
-                collection_plan = None
+                self.edna_result = HWR.beamline.characterisation.characterise(
+                    edna_input
+                )
 
-            if collection_plan:
-                if char.auto_add_diff_plan:
-                    # default action
-                    self.handle_diffraction_plan(self.edna_result, None)
+                if self.edna_result:
+                    log.info("Characterisation completed.")
+
+                    char.html_report = HWR.beamline.characterisation.get_html_report(
+                        self.edna_result
+                    )
+
+                    try:
+                        strategy_result = (
+                            self.edna_result.getCharacterisationResult().getStrategyResult()
+                        )
+                    except Exception:
+                        strategy_result = None
+
+                    if strategy_result:
+                        collection_plan = strategy_result.getCollectionPlan()
+                    else:
+                        collection_plan = None
+
+                    if collection_plan:
+                        if char.auto_add_diff_plan:
+                            # default action
+                            self.handle_diffraction_plan(self.edna_result, None)
+                        else:
+                            collections = HWR.beamline.characterisation.dc_from_output(
+                                self.edna_result, char.reference_image_collection
+                            )
+                            char.diffraction_plan.append(collections)
+                            HWR.beamline.queue_model.emit(
+                                "diff_plan_available", (char, collections)
+                            )
+
+                        self.get_view().setText(1, "Done")
+                    else:
+                        self.get_view().setText(1, "No result")
+                        self.status = QUEUE_ENTRY_STATUS.WARNING
+                        log.warning(
+                            "Characterisation completed "
+                            + "successfully but without collection plan."
+                        )
                 else:
-                    collections = HWR.beamline.characterisation.dc_from_output(
-                        self.edna_result, char.reference_image_collection
-                    )
-                    char.diffraction_plan.append(collections)
-                    HWR.beamline.queue_model.emit(
-                        "diff_plan_available", (char, collections)
-                    )
-
-                self.get_view().setText(1, "Done")
-            else:
-                self.get_view().setText(1, "No result")
-                self.status = QUEUE_ENTRY_STATUS.WARNING
-                log.warning(
-                    "Characterisation completed "
-                    + "successfully but without collection plan."
-                )
-        else:
-            self.get_view().setText(1, "Charact. Failed")
-
-            if HWR.beamline.characterisation.is_running():
-                log.error("EDNA-Characterisation, software is not responding.")
-                log.error(
-                    "Characterisation completed with error: "
-                    + " data analysis server is not responding."
-                )
-            else:
-                log.error("EDNA-Characterisation completed with a failure.")
-                log.error("Characterisation completed with errors.")
+                    self.get_view().setText(1, "Charact. Failed")
+                    log.error("EDNA-Characterisation completed with a failure.")
 
         char.set_executed(True)
         self.get_view().setHighlighted(True)

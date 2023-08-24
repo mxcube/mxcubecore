@@ -26,6 +26,7 @@ the QueueModel.
 import copy
 import os
 import logging
+import math
 
 from mxcubecore.model import queue_model_enumerables
 
@@ -953,6 +954,7 @@ class CharacterisationParameters(object):
         self.aimed_i_sigma = float()
         self.aimed_completness = float()
         self.strategy_complexity = int()
+        self.strategy_program = "Optimal"
         self.induce_burn = bool()
         self.use_permitted_rotation = bool()
         self.permitted_phi_start = float()
@@ -993,6 +995,7 @@ class CharacterisationParameters(object):
             "aimed_i_sigma": self.aimed_i_sigma,
             "aimed_completness": self.aimed_completness,
             "strategy_complexity": self.strategy_complexity,
+            "strategy_program": self.strategy_program,
             "induce_burn": self.induce_burn,
             "use_permitted_rotation": self.use_permitted_rotation,
             "permitted_phi_start": self.permitted_phi_start,
@@ -1522,7 +1525,7 @@ class PathTemplate(object):
         self.reference_image_prefix = str()
         self.wedge_prefix = str()
         self.run_number = int()
-        self.suffix = str()
+        self.suffix = "h5"
         self.start_num = int()
         self.num_files = int()
         self.compression = False
@@ -1991,7 +1994,7 @@ class GphlWorkflow(TaskNode):
         self.aimed_resolution = None  # from 'resolution' parameter or defaults
         self.wavelengths = ()  # from 'energies' parametes
         self.use_cell_for_processing = False
-        self.strategy_variant = None  # from 'strategy' Used for acquisition
+        self.strategy_variant = "Optimal"  # from 'strategy' Used for acquisition
         self.strategy_options = {}  # Overrides config/default
         self.relative_rad_sensitivity = 1.0
         # Directory containing SPOT.XDS file
