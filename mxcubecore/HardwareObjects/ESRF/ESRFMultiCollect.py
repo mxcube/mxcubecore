@@ -147,15 +147,11 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         self.close_fast_shutter()
 
     @task
-    def do_oscillation(
-        self, start, end, exptime, number_of_images, shutterless, npass, first_frame
-    ):
+    def do_oscillation(self, start, end, exptime, shutterless, npass, first_frame):
         if shutterless:
             if first_frame:
                 exptime = (exptime + self._detector.get_deadtime()) * number_of_images
-                self.oscillation_task = self.oscil(
-                    start, end, exptime, number_of_images, wait=False
-                )
+                self.oscillation_task = self.oscil(start, end, exptime, npass wait=False)
 
             if self.oscillation_task.ready():
                 self.oscillation_task.get()
