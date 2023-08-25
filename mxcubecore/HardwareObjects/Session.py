@@ -175,6 +175,25 @@ class Session(HardwareObject):
 
         return directory
 
+    def get_path_with_proposal_as_root(self, path: str) -> str:
+        """
+        Strips the begining of the path so that it starts with
+        the proposal folder as root
+
+        :path: The full path
+        :returns: Path stripped so that it starts with proposal
+        """
+        if self.is_inhouse():
+            user_category = "inhouse"
+            directory = os.path.join(
+                self.base_directory, self.endstation_name, user_category
+            )
+        else:
+            user_category = "visitor"
+            directory = os.path.join(self.base_directory, user_category)
+
+        return path.split(directory)[1]
+
     def get_base_image_directory(self):
         """
         :returns: The base path for images.
