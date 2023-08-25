@@ -34,9 +34,7 @@ import json
 from mxcubecore.utils.qt_import import QImage, QPixmap
 from mxcubecore.utils.conversion import string_types
 
-from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import (
-    AbstractVideoDevice,
-)
+from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import AbstractVideoDevice
 
 
 class MjpgStreamVideo(AbstractVideoDevice):
@@ -297,7 +295,6 @@ class MjpgStreamVideo(AbstractVideoDevice):
 
         self.set_is_ready(True)
 
-
     def http_get(self, query, host=None, port=None, path=None):
         """Sends HTTP GET requests and returns the answer.
 
@@ -484,7 +481,7 @@ class MjpgStreamVideo(AbstractVideoDevice):
         if query is not None:
             data = self.http_get(query)
             if data is not None:
-                data = json.loads(data.decode('utf-8'))
+                data = json.loads(data.decode("utf-8"))
                 if dest != self.DEST_PROGRAM and "controls" in data:
                     data = data["controls"]
                 return data
@@ -761,7 +758,10 @@ class MjpgStreamVideo(AbstractVideoDevice):
         height = self.image_dimensions[1] / zoom
 
         self.log.debug("ZOOM setting zoom %s" % zoom)
-        self.log.debug("  - image_dims: %s / sensor_dims: %s" % (str(self.image_dimensions), str(self.sensor_dimensions)))
+        self.log.debug(
+            "  - image_dims: %s / sensor_dims: %s"
+            % (str(self.image_dimensions), str(self.sensor_dimensions))
+        )
 
         self.changing_pars = True
 
@@ -782,15 +782,25 @@ class MjpgStreamVideo(AbstractVideoDevice):
             self.send_cmd(pos_x, self.IN_CMD_AVT_REGION_X)
             self.send_cmd(pos_y, self.IN_CMD_AVT_REGION_Y)
 
-            x_i = int(self.get_cmd_info(self.IN_CMD_AVT_REGION_X)['value'])
-            y_i = int(self.get_cmd_info(self.IN_CMD_AVT_REGION_Y)['value'])
-            w_i = int(self.get_cmd_info(self.IN_CMD_AVT_WIDTH)['value'])
-            h_i = int(self.get_cmd_info(self.IN_CMD_AVT_HEIGHT)['value'])
+            x_i = int(self.get_cmd_info(self.IN_CMD_AVT_REGION_X)["value"])
+            y_i = int(self.get_cmd_info(self.IN_CMD_AVT_REGION_Y)["value"])
+            w_i = int(self.get_cmd_info(self.IN_CMD_AVT_WIDTH)["value"])
+            h_i = int(self.get_cmd_info(self.IN_CMD_AVT_HEIGHT)["value"])
 
-            self.log.debug("(w) pos_x, pos_y: (%s,%s) / w, h (%s,%s)" % (pos_x, pos_y, width, height))
-            self.log.debug("(r) pos_x, pos_y: (%s,%s) / w, h (%s,%s)" % (x_i, y_i, w_i, h_i))
+            self.log.debug(
+                "(w) pos_x, pos_y: (%s,%s) / w, h (%s,%s)"
+                % (pos_x, pos_y, width, height)
+            )
+            self.log.debug(
+                "(r) pos_x, pos_y: (%s,%s) / w, h (%s,%s)" % (x_i, y_i, w_i, h_i)
+            )
 
-            if abs(x_i-pos_x) > 3 or abs(y_i-pos_y) >3 or abs(w_i-width) >3 or abs(h_i-height) >3:
+            if (
+                abs(x_i - pos_x) > 3
+                or abs(y_i - pos_y) > 3
+                or abs(w_i - width) > 3
+                or abs(h_i - height) > 3
+            ):
                 self.log.debug(" - trying to program zoom again")
                 gevent.sleep(0.1)
                 continue
@@ -866,9 +876,7 @@ class MjpgStreamVideo(AbstractVideoDevice):
             #    qimage.setNumColors(0)
             qimage.save(filename, "PNG")
         except Exception:
-            self.log.error(
-                "MjpgStreamVideo: unable to save snapshot: %s" % filename
-            )
+            self.log.error("MjpgStreamVideo: unable to save snapshot: %s" % filename)
 
     def _do_imagePolling(self, sleep_time):
         """
@@ -884,4 +892,4 @@ class MjpgStreamVideo(AbstractVideoDevice):
             if image is not None:
                 self.image = QPixmap.fromImage(image.scaled(self.width, self.height))
                 self.emit("imageReceived", self.image)
-            #gevent.sleep(sleep_time)
+            # gevent.sleep(sleep_time)

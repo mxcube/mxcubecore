@@ -1,5 +1,5 @@
 # encoding: utf-8
-# 
+#
 #  Project: MXCuBE
 #  https://github.com/mxcube.
 #
@@ -24,14 +24,14 @@ import ast
 from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
 from mxcubecore.HardwareObjects.abstract.AbstractNState import BaseValueEnum
 
-class P11Zoom(AbstractNState):
 
+class P11Zoom(AbstractNState):
     def __init__(self, name):
         self.camera_hwobj = None
         self.pixels_per_mm = None
         self.closest_zoom = None
 
-        AbstractNState.__init__(self,name)
+        AbstractNState.__init__(self, name)
 
     def init(self):
 
@@ -43,12 +43,14 @@ class P11Zoom(AbstractNState):
         if self.camera_hwobj is None:
             self.log.debug("P11Zoom.py - cannot connect to camera hardware object")
         else:
-            self.log.debug("P11Zoom.py / current zoom is %s" % self.camera_hwobj.get_zoom())
+            self.log.debug(
+                "P11Zoom.py / current zoom is %s" % self.camera_hwobj.get_zoom()
+            )
 
         AbstractNState.init(self)
 
     def initialise_values(self):
-        self.VALUES = Enum("ZoomEnum", ast.literal_eval(self.get_property('values')))
+        self.VALUES = Enum("ZoomEnum", ast.literal_eval(self.get_property("values")))
 
     def get_state(self):
         return self.STATES.READY
@@ -72,7 +74,7 @@ class P11Zoom(AbstractNState):
     def set_zoom_value(self, value):
         self.camera_hwobj.set_zoom(value)
 
-    def set_zoom(self,zoom):
+    def set_zoom(self, zoom):
         self.camera_hwobj.set_zoom(zoom.value)
 
     def get_current_zoom(self):
@@ -80,7 +82,7 @@ class P11Zoom(AbstractNState):
         self.update_zoom()
         return self.closest_zoom, self.get_zoom()
 
-    def zoom_value_changed(self,value):
+    def zoom_value_changed(self, value):
         self.log.debug("ZOOM - value changed: %s" % value)
         self.current_value = value
         self.update_value(value)
@@ -91,13 +93,12 @@ class P11Zoom(AbstractNState):
         value = self.get_value()
 
         for zoom in self.VALUES:
-            _dist = abs(value - zoom.value) 
+            _dist = abs(value - zoom.value)
             if dist is None or _dist < dist:
-                dist = _dist 
+                dist = _dist
                 self.closest_zoom = zoom
 
         if self.closest_zoom is not None:
             self.emit("predefinedPositionChanged", (self.closest_zoom, value))
         else:
             self.emit("predefinedPositionChanged", (None, None))
-          

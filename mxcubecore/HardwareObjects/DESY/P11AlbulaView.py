@@ -5,6 +5,7 @@ import time
 from PIL import Image
 
 import threading
+
 sys.path.append("/opt/dectris/albula/4.0/python/")
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
@@ -14,9 +15,10 @@ try:
 except:
     print("albula module not found")
 
+
 class P11AlbulaView(HardwareObject):
 
-    default_interval = 0.5 # secs
+    default_interval = 0.5  # secs
     stoptimer = -1.0
 
     def init(self):
@@ -28,7 +30,7 @@ class P11AlbulaView(HardwareObject):
 
         interval = self.get_property("update_interval")
 
-        self.interval = interval is not None) and interval or self.default_interval
+        self.interval = interval is not None and interval or self.default_interval
 
         self.mask_4m = None
         self.mask_16m = None
@@ -75,8 +77,8 @@ class P11AlbulaView(HardwareObject):
         else:
             self.eigerThread.clearMonitorBuffer()
             self.eigerThread.setMonitorDiscardNew(True)
-            
-        super(LiveView,self).start()
+
+        super(LiveView, self).start()
 
     def stop(self, interval=0.0):
 
@@ -86,24 +88,24 @@ class P11AlbulaView(HardwareObject):
 
         print("Live view thread: Stopping thread")
         self.alive = False
-        self.wait() # waits until run stops on his own
-    
+        self.wait()  # waits until run stops on his own
+
     def check_app(self):
         try:
             self.subframe.setOffsetX(0)
         except BaseException as e:
             self.subframe = None
 
-        if self.subframe is None: 
+        if self.subframe is None:
             try:
                 self.viewer.enableClose()
             except BaseException as e:
                 self.viewer = None
 
-        if self.viewer is None: 
+        if self.viewer is None:
             self.viewer = albula.openMainFrame()
 
-        if self.subframe is None: 
+        if self.subframe is None:
             self.subframe = self.viewer.openSubFrame()
 
     def run(self):
@@ -111,15 +113,20 @@ class P11AlbulaView(HardwareObject):
 
         while self.alive:
 
-
             # hdf5
-            wavelength = 12398.4/energy
+            wavelength = 12398.4 / energy
 
             try:
                 energy = self.eigerThread.photonEnergy
-                detector_distance = self.eigerThread.proxyEiger.read_attribute("DetectorDistance").value
-                beam_center_x = self.eigerThread.proxyEiger.read_attribute("BeamCenterX").value
-                beam_center_y = self.eigerThread.proxyEiger.read_attribute("BeamCenterY").value
+                detector_distance = self.eigerThread.proxyEiger.read_attribute(
+                    "DetectorDistance"
+                ).value
+                beam_center_x = self.eigerThread.proxyEiger.read_attribute(
+                    "BeamCenterX"
+                ).value
+                beam_center_y = self.eigerThread.proxyEiger.read_attribute(
+                    "BeamCenterY"
+                ).value
             except:
                 detector_distance = 1.0
                 beam_center_x = 2074
@@ -128,23 +135,23 @@ class P11AlbulaView(HardwareObject):
             # get latest file from reveiver
             timestamp = time.time()
             if self.stream:
-                    try:
-                        img = self.eigerMonitor.next()
-                    except:
-                        time.sleep(0.1)
-                        if self.stoptimer > 0:
-                            self.stoptimer -= 0.1
-                            if self.stoptimer <= 0.0:
-                                self.stoptimer = -1.0
-                                self.alive = False
-                        continue
+                try:
+                    img = self.eigerMonitor.next()
+                except:
+                    time.sleep(0.1)
+                    if self.stoptimer > 0:
+                        self.stoptimer -= 0.1
+                        if self.stoptimer <= 0.0:
+                            self.stoptimer = -1.0
+                            self.alive = False
+                    continue
             else:
-                    try:
-                        img = self.eigerMonitor.monitor()
-                        self.eigerThread.clearMonitorBuffer()
-                    except:
-                        print(sys.exc_info())
-                        continue
+                try:
+                    img = self.eigerMonitor.monitor()
+                    self.eigerThread.clearMonitorBuffer()
+                except:
+                    print(sys.exc_info())
+                    continue
 
             # display image
             img.optionalData().set_wavelength(wavelength)
@@ -195,11 +202,10 @@ class P11AlbulaView(HardwareObject):
         if interval is not None:
             self.interval = interval
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
 
     lv = LiveView()
     lv.start()
     time.sleep(200)
     lv.stop()
-
-

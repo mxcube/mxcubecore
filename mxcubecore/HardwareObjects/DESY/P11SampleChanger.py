@@ -3,7 +3,10 @@ from datetime import datetime
 import time
 import logging
 
-from mxcubecore.HardwareObjects.abstract.AbstractSampleChanger import SampleChanger, SampleChangerState
+from mxcubecore.HardwareObjects.abstract.AbstractSampleChanger import (
+    SampleChanger,
+    SampleChangerState,
+)
 from mxcubecore.HardwareObjects.abstract.sample_changer import Container
 from mxcubecore.TaskUtils import task
 from mxcubecore import HardwareRepository as HWR
@@ -33,7 +36,7 @@ class P11SampleChanger(SampleChanger):
 
         for i in range(self.no_of_baskets):
             basket = Container.Basket(
-                self, i+1, samples_num=self.no_of_samples_in_basket
+                self, i + 1, samples_num=self.no_of_samples_in_basket
             )
             self._add_component(basket)
 
@@ -42,28 +45,37 @@ class P11SampleChanger(SampleChanger):
         self.wash_cmd = self.get_command_object("wash")
 
         self.chan_current_sample = self.get_channel_object("current_sample")
-        self.chan_current_sample.connect_signal("update", self.current_sample_changed) 
+        self.chan_current_sample.connect_signal("update", self.current_sample_changed)
 
         self.chan_state = self.get_channel_object("state")
-        self.chan_state.connect_signal("update", self.state_channel_changed) 
+        self.chan_state.connect_signal("update", self.state_channel_changed)
 
         self.chan_powered = self.get_channel_object("powered")
-        self.chan_powered.connect_signal("update", self.powered_changed) 
+        self.chan_powered.connect_signal("update", self.powered_changed)
 
         self.chan_condition_dict = {}
-        self.condition_list = ['cond_interlock', 'cond_collimator',
-                               'cond_goniopos', 'cond_guillotine',
-                               'cond_collision', 'cond_screen']
+        self.condition_list = [
+            "cond_interlock",
+            "cond_collimator",
+            "cond_goniopos",
+            "cond_guillotine",
+            "cond_collision",
+            "cond_screen",
+        ]
 
         self.chan_cryoswitch = self.get_channel_object("cryoswitch")
 
         self.chan_cond_cryo = self.get_channel_object("cond_cryo")
-        self.chan_cond_cryo.connect_signal("update", self.cryopos_changed) 
+        self.chan_cond_cryo.connect_signal("update", self.cryopos_changed)
 
         for condition in self.condition_list:
-            self.chan_condition_dict[condition] = self.get_channel_object(condition) 
-            self.chan_condition_dict[condition].connect_signal("update", \
-                    lambda value, cond=condition,this=self:P11SampleChanger.condition_changed(this,cond,value)) 
+            self.chan_condition_dict[condition] = self.get_channel_object(condition)
+            self.chan_condition_dict[condition].connect_signal(
+                "update",
+                lambda value, cond=condition, this=self: P11SampleChanger.condition_changed(
+                    this, cond, value
+                ),
+            )
 
         # channels
         self._init_sc_contents()
@@ -86,7 +98,7 @@ class P11SampleChanger(SampleChanger):
     def load_sample(self, holder_length, sample_location=None, wait=False):
         self.load(sample_location, wait)
 
-    def wash(self,wait=False):
+    def wash(self, wait=False):
         if not self.has_loaded_sample():
             self.user_log.debug("No sample is mounted. Wash command not possible")
             raise BaseException("There is no sample to wash")
@@ -112,7 +124,7 @@ class P11SampleChanger(SampleChanger):
             (Object): Value returned by _execute_task either a Task or result of the
                       operation
         """
-        #sample = self._resolve_component(sample)
+        # sample = self._resolve_component(sample)
         self.assert_not_charging()
 
         self._set_state(SampleChangerState.Moving)
@@ -125,10 +137,10 @@ class P11SampleChanger(SampleChanger):
         else:
             basket, sample = sample.split(":")
 
-        self.log.debug(" loading basket %s - sample %s" % (basket,sample) )
+        self.log.debug(" loading basket %s - sample %s" % (basket, sample))
         self._selected_basket = basket = int(basket)
         self._selected_sample = sample = int(sample)
-        sample_no = (basket-1)*self.NO_OF_SAMPLES_IN_BASKET + sample
+        sample_no = (basket - 1) * self.NO_OF_SAMPLES_IN_BASKET + sample
 
         self._selected_sample_no = sample_no
 
@@ -140,7 +152,7 @@ class P11SampleChanger(SampleChanger):
 
         self.emit("progressInit", (msg, 100))
 
-        #for step in range(2 * 100):
+        # for step in range(2 * 100):
         #    self.emit("progressStep", int(step / 2.0))
         #    time.sleep(0.01)
 
@@ -154,7 +166,6 @@ class P11SampleChanger(SampleChanger):
                     + str(self.get_loaded_sample().get_address())
                     + " is already loaded"
                 )
-            
 
             self.log.debug("A sample is mounted. Doing a chained unload/load")
             self.prepare_load()
@@ -168,12 +179,15 @@ class P11SampleChanger(SampleChanger):
 
         self.cleanup_load()
 
-        logging.getLogger("user_level_log").info("Sample changer: Sample loaded (total time: %s)" % (time.time() - self._start_load))
+        logging.getLogger("user_level_log").info(
+            "Sample changer: Sample loaded (total time: %s)"
+            % (time.time() - self._start_load)
+        )
         self.emit("progressStop", ())
 
         return self.get_loaded_sample()
 
-    def _load(self,sample_no):
+    def _load(self, sample_no):
 
         self.log.debug("   - checking if conditions (except cryo) are all fulfilled")
         if not self.check_pre_conditions():
@@ -182,14 +196,14 @@ class P11SampleChanger(SampleChanger):
         self.wait_sc_ready()
         self.retract_cryo()
 
-        self.log.debug("OPERATING SC NOW (LOAD) sample_changer: %s" % sample_no) 
+        self.log.debug("OPERATING SC NOW (LOAD) sample_changer: %s" % sample_no)
         self._set_state(SampleChangerState.Moving)
         self.load_cmd(sample_no)
         self.wait_sc_ready()
         self.insert_cryo()
-        
+
     @task
-    def unload(self, sample=None,wait=True):
+    def unload(self, sample=None, wait=True):
         self._start_load = time.time()
         self.log.debug("Unload called with sample = %s" % sample)
 
@@ -197,9 +211,12 @@ class P11SampleChanger(SampleChanger):
             raise Exception("Trying to unmount sample without any sample mounted")
 
         self.prepare_load()
-        self._unload() 
+        self._unload()
         self.cleanup_load()
-        logging.getLogger("user_level_log").info("Sample changer: Sample unloaded (total time: %s)" % (time.time() - self._start_load))
+        logging.getLogger("user_level_log").info(
+            "Sample changer: Sample unloaded (total time: %s)"
+            % (time.time() - self._start_load)
+        )
 
     def _unload(self):
 
@@ -214,7 +231,7 @@ class P11SampleChanger(SampleChanger):
         self.unload_cmd()
         self.wait_sc_ready()
         self.insert_cryo()
-        
+
     def prepare_load(self, wash=False):
         self.log.debug("Preparing load")
         self.log.debug("   - asking diffractometer to save state")
@@ -236,8 +253,8 @@ class P11SampleChanger(SampleChanger):
 
         except Exception as e:
             self.cleanup_load()
-            raise(e)
-          
+            raise (e)
+
         return
 
     def cleanup_load(self):
@@ -255,7 +272,9 @@ class P11SampleChanger(SampleChanger):
                 self.log.debug(" Condition %s for mounting not met" % cond_name)
                 all_good = False
 
-        self.log.debug("   - conditions for mounting are %s met" % (all_good and "now" or "not"))
+        self.log.debug(
+            "   - conditions for mounting are %s met" % (all_good and "now" or "not")
+        )
 
         return all_good
 
@@ -269,9 +288,9 @@ class P11SampleChanger(SampleChanger):
         self.chan_cryoswitch.set_value(0)
         self.wait_cryo_condition(False)
 
-    def wait_cryo_condition(self,condition, timeout=1):
+    def wait_cryo_condition(self, condition, timeout=1):
         t0 = time.time()
-        while time.time() -t0 < timeout:
+        while time.time() - t0 < timeout:
             if self.chan_cond_cryo.get_value() == condition:
                 break
             time.sleep(0.03)
@@ -280,19 +299,21 @@ class P11SampleChanger(SampleChanger):
 
     def sample_no_to_address(self, sample_no):
         if sample_no == 0:
-            return (-1,-1)
+            return (-1, -1)
 
-        basket = int( (sample_no-1) / self.no_of_samples_in_basket ) + 1
-        sample = (sample_no-1) % self.no_of_samples_in_basket + 1
+        basket = int((sample_no - 1) / self.no_of_samples_in_basket) + 1
+        sample = (sample_no - 1) % self.no_of_samples_in_basket + 1
         return (basket, sample)
 
     def sample_address_to_no(self, sample_address):
         basket, sample = sample_address
-        sample_no = (basket-1)*self.no_of_samples_in_basket + sample
+        sample_no = (basket - 1) * self.no_of_samples_in_basket + sample
         return sample_no
 
     def current_sample_changed(self, sample_no):
-        self.log.debug("P11SampleChanger -  current sample changed. now is: %s" % sample_no)
+        self.log.debug(
+            "P11SampleChanger -  current sample changed. now is: %s" % sample_no
+        )
         self._update_selection()
 
     def read_current_sample(self):
@@ -410,20 +431,24 @@ class P11SampleChanger(SampleChanger):
         self.log.debug(" - P11SampleChanger cryopos changed. now is %s" % (value))
 
     def condition_changed(self, condition, value):
-        self.log.debug(" - P11SampleChanger condition %s changed. now is %s" % (condition,value))
+        self.log.debug(
+            " - P11SampleChanger condition %s changed. now is %s" % (condition, value)
+        )
 
     def update_enable_state(self, condition, value):
-        self.log.debug(" - P11SampleChanger condition %s changed. now is %s" % (condition,value))
+        self.log.debug(
+            " - P11SampleChanger condition %s changed. now is %s" % (condition, value)
+        )
 
     def _update_selection(self):
         self.log.debug(" updating selection")
         basket, sample = self.read_current_sample()
 
-        self.log.debug(" looking for sample %s" % str((basket,sample)))
+        self.log.debug(" looking for sample %s" % str((basket, sample)))
 
         for c in self.get_components():
             i = c.get_index()
-            if basket == i+1:
+            if basket == i + 1:
                 self._set_selected_component(c)
                 break
 
@@ -437,4 +462,3 @@ class P11SampleChanger(SampleChanger):
                 s._set_loaded(False)
 
         self._set_selected_sample(None)
-
