@@ -77,7 +77,7 @@ class MotorsNPosition(AbstractActuator):
         self._last_position_name = None
 
     def init(self):
-        motorlist = self.get_property('motorlist').split(',')
+        motorlist = self.get_property("motorlist").split(",")
         self.motorlist = [motor.strip() for motor in motorlist]
 
         for motorname in self.motorlist:
@@ -100,7 +100,6 @@ class MotorsNPosition(AbstractActuator):
 
         self.update_multi_value()
         self.update_state(HardwareObjectState.READY)
-
 
     def load_positions(self):
         positions = self["positions"]
@@ -136,14 +135,14 @@ class MotorsNPosition(AbstractActuator):
         elif position_index is None:
             retprop = OrderedDict()
             for name in self._positions:
-                property_value = self._properties[name].get(property_name,None)
+                property_value = self._properties[name].get(property_name, None)
                 retprop[name] = property_value
-        elif position_index >=0 and position_index < len(self._positions):
+        elif position_index >= 0 and position_index < len(self._positions):
             name = list(self._positions.keys())[position_index]
             if property_name is None:
                 retprop = self._properties[name]
             else:
-                retprop = self._properties[name].get(property_name,None)
+                retprop = self._properties[name].get(property_name, None)
         else:
             return None
 
@@ -152,7 +151,7 @@ class MotorsNPosition(AbstractActuator):
     def get_value(self):
         return self.update_multi_value()
 
-    def set_position(self,posname):
+    def set_position(self, posname):
         """
         Allow to move by providing in order (if previous not found):
                posname
@@ -176,16 +175,17 @@ class MotorsNPosition(AbstractActuator):
                 self._set_value(posidx)
                 return
 
-        if isinstance(posname,int):
+        if isinstance(posname, int):
             if posname >= 0 and posname < len(self._positions):
                 self._set_value(posname)
                 return
 
-        self.user_log.error("Wrong position name %s selected for %s" % (posname, self.username))
-
+        self.user_log.error(
+            "Wrong position name %s selected for %s" % (posname, self.username)
+        )
 
     def _set_value(self, value):
-        if value >=0 and value < len(self._positions):
+        if value >= 0 and value < len(self._positions):
             name = list(self._positions.keys())[value]
             for motorname in self.motorlist:
                 pos = self._positions[name][motorname]
@@ -215,7 +215,9 @@ class MotorsNPosition(AbstractActuator):
         for motorname in self.motorlist:
             current_pos[motorname] = self.motor_hwobjs[motorname].get_value()
             if self.name().lower() == "/pinhole":
-                 self.log.debug("   - position for %s is %s" % (motorname, current_pos[motorname]))
+                self.log.debug(
+                    "   - position for %s is %s" % (motorname, current_pos[motorname])
+                )
 
         for name in self._positions:
             posidx += 1
@@ -233,7 +235,7 @@ class MotorsNPosition(AbstractActuator):
                 self.log.debug(" Found position %s for object %s" % (name, self.name()))
                 for motorname in self.motorlist:
                     position = self._positions[name][motorname]
-                    self.log.debug("     - motor %s is at %s" % (motorname,position))
+                    self.log.debug("     - motor %s is at %s" % (motorname, position))
                 current_idx = posidx
                 break
 
@@ -250,20 +252,23 @@ class MotorsNPosition(AbstractActuator):
             motor = self.motor_hwobjs[motorname]
             state = motor.get_state()
 
-            self.log.debug("MotorsNPosition - updating multi_state. motor (%s) is %s" % (motorname, str(state)))
+            self.log.debug(
+                "MotorsNPosition - updating multi_state. motor (%s) is %s"
+                % (motorname, str(state))
+            )
 
             if state in (HardwareObjectState.FAULT, HardwareObjectState.UNKNOWN):
-                 multi_state = state
-                 break
+                multi_state = state
+                break
 
             if state == HardwareObjectState.OFF:
-                 multi_state = state
-                 continue
+                multi_state = state
+                continue
 
             if state in (MotorStates.MOVING, HardwareObjectState.BUSY):
-                 if multi_state != HardwareObjectState.OFF:
-                     multi_state = HardwareObjectState.BUSY
-                     continue
+                if multi_state != HardwareObjectState.OFF:
+                    multi_state = HardwareObjectState.BUSY
+                    continue
 
         self.update_state(multi_state)
 
