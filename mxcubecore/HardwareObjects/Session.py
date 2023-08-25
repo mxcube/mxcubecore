@@ -10,6 +10,8 @@ import socket
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.model.queue_model_objects import PathTemplate
+from typing_extensions import Tuple
+
 
 default_raw_data_folder = "RAW_DATA"
 default_processed_data_folder = "PROCESSED_DATA"
@@ -189,18 +191,14 @@ class Session(HardwareObject):
             self.get_base_data_directory(), self.processed_data_folder_name
         )
 
-    def get_image_directory(self, sub_dir=None):
+    def get_image_directory(self, sub_dir: str = "") -> str:
         """
-        Returns the full path to images, using the name of each of
-        data_nodes parents as sub directories.
+        Returns the full path to images
 
-        :param data_node: The data node to get additional
-                          information from, (which will be added
-                          to the path).
-        :type data_node: TaskNode
+        :param subdir: sub directory relative to path returned
+                       by get_base_image_directory
 
         :returns: The full path to images.
-        :rtype: str
         """
         directory = self.get_base_image_directory()
 
@@ -210,17 +208,14 @@ class Session(HardwareObject):
 
         return directory
 
-    def get_process_directory(self, sub_dir=None):
+    def get_process_directory(self, sub_dir: str = "") -> str:
         """
-        Returns the full path to processed data, using the name of
-        each of data_nodes parents as sub directories.
+        Returns the full path to processed data,
 
-        :param data_node: The data node to get additional
-                          information from, (which will be added
-                          to the path).
-        :type data_node: TaskNode
+        :param subdir: sub directory relative to path returned
+                       by get_base_proccess_directory
 
-        :returns: The full path to images.
+        :returns: The full path to processed data.
         """
         directory = self.get_base_process_directory()
 
@@ -229,6 +224,24 @@ class Session(HardwareObject):
             directory = os.path.join(directory, sub_dir) + "/"
 
         return directory
+
+    def get_full_path(self, subdir: str = "", tag: str = "") -> Tuple[str, str]:
+        """
+        Returns the full path to both image and processed data.
+        The path(s) returned will follow the convention:
+
+          <base_direcotry>/<subdir>/run_<NUMBER>_<tag>
+
+        Where NUMBER is a automaticaly sequential number and
+        base_directory the path returned by get_base_image/process_direcotry
+
+        :param subdir: subdirecotry
+        :param tag: tag for
+
+        :returns: Tuple with the full path to image and processed data
+        """
+
+        return self.get_image_directory(subdir), self.get_process_directory(subdir)
 
     def get_default_prefix(self, sample_data_node=None, generic_name=False):
         """

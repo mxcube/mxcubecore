@@ -4,6 +4,8 @@ import time
 import glob
 from mxcubecore.model import queue_model_objects
 from mxcubecore import HardwareRepository as HWR
+from typing_extensions import Tuple
+
 
 class ESRFSession(Session.Session):
     def __init__(self, name):
@@ -23,7 +25,21 @@ class ESRFSession(Session.Session):
                 archive_base_directory, archive_folder
             )
 
-    def get_full_path(self, subdir, tag):
+    def get_full_path(self, subdir: str, tag: str) -> Tuple[str, str]:
+        """
+        Returns the full path to both image and processed data.
+        The path(s) returned will follow the convention:
+
+          <base_direcotry>/<subdir>/run_<NUMBER>_<tag>
+
+        Where NUMBER is a automaticaly sequential number and
+        base_directory the path returned by get_base_image/process_direcotry
+
+        :param subdir: subdirecotry
+        :param tag: tag for
+
+        :returns: Tuple with the full path to image and processed data
+        """
         folders = glob.glob(
             os.path.join(self.get_base_image_directory(), subdir) + "/run*"
         )
