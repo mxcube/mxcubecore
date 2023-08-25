@@ -496,20 +496,18 @@ class NanoDiff(HardwareObject):
             return
         if self.omega_reference_par["camera_axis"].lower() == "x":
             on_beam = (
-                self.beam_position[0] - self.zoom_centre["x"]
-            ) * self.omega_reference_par[
-                "direction"
-            ] / self.pixels_per_mm_x + self.omega_reference_par[
-                "position"
-            ]
+                (self.beam_position[0] - self.zoom_centre["x"])
+                * self.omega_reference_par["direction"]
+                / self.pixels_per_mm_x
+                + self.omega_reference_par["position"]
+            )
         else:
             on_beam = (
-                self.beam_position[1] - self.zoom_centre["y"]
-            ) * self.omega_reference_par[
-                "direction"
-            ] / self.pixels_per_mm_y + self.omega_reference_par[
-                "position"
-            ]
+                (self.beam_position[1] - self.zoom_centre["y"])
+                * self.omega_reference_par["direction"]
+                / self.pixels_per_mm_y
+                + self.omega_reference_par["position"]
+            )
         self.centring_hwobj.appendMotorConstraint(self.omega_reference_motor, on_beam)
 
     def omega_reference_motor_moved(self, pos):
@@ -1321,11 +1319,7 @@ class NanoDiff(HardwareObject):
             (
                 new_kappa,
                 new_phi,
-                (
-                    new_sampx,
-                    new_sampy,
-                    new_phiy,
-                ),
+                (new_sampx, new_sampy, new_phiy,),
             ) = self.minikappa_correction_hwobj.alignVector(t1, t2, kappa, phi)
         self.move_to_motors_positions(
             {

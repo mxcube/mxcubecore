@@ -28,6 +28,7 @@ from mxcubecore.HardwareObjects.abstract.AbstractTransmission import (
 
 log = logging.getLogger("HWR")
 
+
 class P11Transmission(AbstractTransmission):
     def __init__(self, name):
         super(P11Transmission, self).__init__(name)
@@ -38,23 +39,25 @@ class P11Transmission(AbstractTransmission):
 
     def init(self):
 
-        limits = self.get_property('limits',None)
+        limits = self.get_property("limits", None)
 
         try:
-            limits = list(map(float,limits.split(',')))
+            limits = list(map(float, limits.split(",")))
         except Exception as e:
             log.error("P11Transmission - cannot parse limits: {}".format(str(e)))
             limits = None
 
         if limits is None:
-            log.error("P11Transmission - Cannot read LIMITS from configuration xml file.  Check values")
-            return 
+            log.error(
+                "P11Transmission - Cannot read LIMITS from configuration xml file.  Check values"
+            )
+            return
         else:
             self.set_limits(limits)
 
-        self.chan_read_value = self.get_channel_object('chanRead')
-        self.chan_set_value = self.get_channel_object('chanSet')
-        self.chan_state = self.get_channel_object('chanState')
+        self.chan_read_value = self.get_channel_object("chanRead")
+        self.chan_set_value = self.get_channel_object("chanSet")
+        self.chan_state = self.get_channel_object("chanState")
 
         if self.chan_read_value is not None:
             self.chan_read_value.connectSignal("update", self.value_changed)
@@ -81,13 +84,13 @@ class P11Transmission(AbstractTransmission):
             state = self.chan_state.getValue()
 
         _str_state = str(state)
-        
-        if _str_state == 'ON':
-           _state = self.STATES.READY
-        elif _str_state == 'MOVING':
-           _state = self.STATES.BUSY
+
+        if _str_state == "ON":
+            _state = self.STATES.READY
+        elif _str_state == "MOVING":
+            _state = self.STATES.BUSY
         else:
-           _state = self.STATES.FAULT
+            _state = self.STATES.FAULT
 
         self.update_state(_state)
 
@@ -107,9 +110,7 @@ class P11Transmission(AbstractTransmission):
         self.chan_set_value.setValue(value)
 
         print("============== Setting transmission ==================")
-        
+
         while self.get_state() == "MOVING":
             time.sleep(0.1)
             print("Changing transmission")
-
-
