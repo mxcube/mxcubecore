@@ -974,11 +974,23 @@ class GphlWorkflow(HardwareObjectYaml):
                 beam_energies[tag] = energies[idx]
             dose_label = "Dose/repetition (MGy)"
 
+            # Make strategy-description info_text
+            if len(beam_energies) > 1:
+                lines.append(
+                    "Experiment length (per repetition): %s * %6.1f°"
+                    % (len(beam_energies), data_model.strategy_length)
+                )
+            else:
+                lines.append(
+                    "Experiment length (per repetition): %6.1f°"
+                    % data_model.strategy_length
+                )
+
         else:
             # Characterisation
             title_string = "Characterisation"
             info_title = "--- GΦL Characterisation strategy ---"
-            lines = []
+            lines = ["Experiment length: %6.1f°" % data_model.strategy_length]
             beam_energies = OrderedDict((("Characterisation", initial_energy),))
             dose_label = "Characterisation dose (MGy)"
             if not self.settings.get("recentre_before_start"):
@@ -989,18 +1001,6 @@ class GphlWorkflow(HardwareObjectYaml):
                     pos = current_pos_dict.get(tag)
                     if pos is not None:
                         dd0[tag] = pos
-
-        # Make strategy-description info_text
-        if len(beam_energies) > 1:
-            lines.append(
-                "Experiment length (per repetition): %s * %6.1f°"
-                % (len(beam_energies), data_model.strategy_length)
-            )
-        else:
-            lines.append(
-                "Experiment length (per repetition): %6.1f°"
-                % data_model.strategy_length
-            )
 
         for rotation_id, sweeps in orientations.items():
             axis_settings = axis_setting_dicts[rotation_id]

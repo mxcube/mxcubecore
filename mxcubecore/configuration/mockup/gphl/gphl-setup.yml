@@ -5,7 +5,7 @@ _initialise_class:
 directory_locations:
     # Directory locations. Can also be used with ${} syntax in this file
 #    GPHL_INSTALLATION: /alt/rhfogh/Software/GPhL/gphl_release
-    GPHL_INSTALLATION: /alt/rhfogh/Software/GPhL/nightly_20230727/Files_workflow_TRUNK_alpha-bdg
+    GPHL_INSTALLATION: /alt/rhfogh/Software/GPhL/nightly_20230823/Files_workflow_TRUNK_alpha-bdg
 #    GPHL_INSTALLATION: /alt/rhfogh/Software/GPhL/nightly_20230602/Files_workflow_BETA_beta-academic
 
 
@@ -87,8 +87,8 @@ software_properties:
     # co.gphl.wf.recen.bdg_licence_dir/fill/me/in
 
     # OPTIONAL. simcal *binary* For Mock collection emulation only. Not used by ASTRA workflow
-    co.gphl.wf.simcal.bin: /alt/rhfogh/Software/GPhL/nightly_20230727/Files_workflow_TRUNK_alpha-bdg/autoPROC/bin/linux64/simcal
-    co.gphl.wf.simcal.bdg_licence_dir: /alt/rhfogh/Software/GPhL/nightly_20230727/Files_workflow_TRUNK_alpha-bdg
+    co.gphl.wf.simcal.bin: /alt/rhfogh/Software/GPhL/nightly_20230823/Files_workflow_TRUNK_alpha-bdg/autoPROC/bin/linux64/simcal
+    co.gphl.wf.simcal.bdg_licence_dir: /alt/rhfogh/Software/GPhL/nightly_20230823/Files_workflow_TRUNK_alpha-bdg
 #    co.gphl.wf.simcal.bin: /alt/rhfogh/Software/GPhL/gphl_release/autoPROC/bin/linux64/simcal
 #    co.gphl.wf.simcal.bdg_licence_dir: /alt/rhfogh/Software/GPhL/gphl_release
 #    co.gphl.wf.simcal.bin: "{GPHL_INSTALLATION}/autoPROC/bin/linux64/simcal"/alt/rhfogh/Software/GPhL/gphl_release

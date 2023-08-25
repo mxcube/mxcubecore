@@ -2002,8 +2002,8 @@ class GphlWorkflow(TaskNode):
         self.aimed_resolution = None  # from 'resolution' parameter or defaults
         self.wavelengths = ()  # from 'energies' parametes
         self.use_cell_for_processing = False
-        self.strategy_variant = "Optimal"  # from 'strategy' Used for acquisition
-        self.strategy_options = {}  # Overrides config/default
+        self.strategy_variant = None  # from 'strategy' Used for acquisition
+        self.strategy_options = {}
         self.relative_rad_sensitivity = 1.0
         # Directory containing SPOT.XDS file
         # For cases where characterisation and XDS processing are done
@@ -2172,6 +2172,10 @@ class GphlWorkflow(TaskNode):
             "maximum_chi": settings["maximum_chi"],
             "variant": self.strategy_settings["variants"][0],
         }
+        if "allow_duplicate_orientations" in settings:
+            self.strategy_options["allow_duplicate_orientations"] = settings[
+                "allow_duplicate_orientations"
+            ]
         if strategy_options:
             self.strategy_options.update(strategy_options)
 
