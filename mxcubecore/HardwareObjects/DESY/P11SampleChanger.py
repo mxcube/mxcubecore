@@ -1,5 +1,3 @@
-import gevent
-from datetime import datetime
 import time
 import logging
 
@@ -101,7 +99,7 @@ class P11SampleChanger(SampleChanger):
     def wash(self, wait=False):
         if not self.has_loaded_sample():
             self.user_log.debug("No sample is mounted. Wash command not possible")
-            raise BaseException("There is no sample to wash")
+            raise RuntimeWarning("There is no sample to wash")
 
         sample_no = self.chan_current_sample.get_value()
 
