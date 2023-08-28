@@ -60,17 +60,13 @@ class P11EigerDetector(AbstractDetector):
     def has_shutterless(self):
         return True
 
-    # def prepare_acquisition(self,
-    # take_dark,
-    # start,
-    # osc_range,
-    # exptime,
-    # npass,
-    # number_of_images,
-    # comment,
-    # mesh,
-    # mesh_nb_lines
-    #                          ):
+    def prepare_acquisition(self, *args, **kwargs):
+        """
+        Prepares detector for acquisition
+        """
+        self.log.debug("EIGER - prepare_acquisition")
+        # Sets the metadata for the header
+        self.set_metadata()
 
     def get_radius(self, distance=None):
         # a proper calculation should be done here
