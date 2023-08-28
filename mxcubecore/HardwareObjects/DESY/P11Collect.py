@@ -456,20 +456,6 @@ class P11Collect(AbstractCollect):
             group = h5fd.create_group("entry/instrument/attenuator")
             group.attrs["NX_class"] = np.array("NXattenuator", dtype="S")
 
-            # group = h5fd.create_group(u'entry/source')
-            # group.attrs[u'NX_class'] = np.array(u'NXsource', dtype='S')
-            # group.create_dataset(u'name', data=np.array(u'PETRA III, DESY', dtype='S'))
-
-            group = h5fd.create_group("entry/source")
-            group.attrs["NX_class"] = np.array("NXsource", dtype="S")
-            group.create_dataset("name", data=np.array("PETRA III, DESY", dtype="S"))
-
-            group = h5fd.get("entry/instrument")
-            group.create_dataset("name", data=np.array("P11", dtype="S"))
-
-            group = h5fd.create_group("entry/instrument/attenuator")
-            group.attrs["NX_class"] = np.array("NXattenuator", dtype="S")
-
             data_set = group.create_dataset(
                 "thickness", dtype="f8", data=self.get_filter_thickness()
             )
