@@ -300,7 +300,7 @@ class P11Collect(AbstractCollect):
                     + " --image_number 1"
                 )
 
-        except RuntimeError():
+        except RuntimeError:
             self.log.error(traceback.format_exc())
         finally:
             self.acquisition_cleanup()
@@ -403,7 +403,7 @@ class P11Collect(AbstractCollect):
                 f"load_image {image_filename}\n slab {image_num}\n".encode()
             )
             adxv_socket.close()
-        except RuntimeWarning():
+        except RuntimeWarning:
             logging.getLogger("HWR").exception("")
         else:
             pass
@@ -423,7 +423,7 @@ class P11Collect(AbstractCollect):
             self.log.debug("#COLLECT# Closing detector cover")
             diffr.detector_cover_close(wait=True)
             detector.stop_acquisition()
-        except RuntimeError():
+        except RuntimeError:
             self.log.error(traceback.format_exc())
 
     def add_h5_info(self, h5file):
@@ -442,7 +442,7 @@ class P11Collect(AbstractCollect):
         while not os.path.exists(h5file):
             if time.time() - start_wait > FILE_TIMEOUT:
                 raise RuntimeWarning(
-                    "Cannot add info to H5 file. Timeout waiting for file on disk"
+                    "Cannot add info to H5 file. Timeout waiting for file on disk."
                 )
             time.sleep(0.5)
 
@@ -591,7 +591,7 @@ class P11Collect(AbstractCollect):
             # bl-fs mount on the compute nodes can not be found
             try:
                 btHelper = triggerUtils.Trigger()
-            except RuntimeError():
+            except RuntimeError:
                 self.log.debug(sys.exc_info())
                 self.log.error("Cannot trigger auto processing")
                 return
@@ -696,7 +696,7 @@ class P11Collect(AbstractCollect):
 
                 try:
                     btHelper = triggerUtils.Trigger()
-                except RuntimeError():
+                except RuntimeError:
                     self.log.debug(sys.exc_info())
                     self.log.error("Cannot trigger auto processing")
                     return
@@ -743,7 +743,7 @@ class P11Collect(AbstractCollect):
                     open(datasets_file, "a", encoding="utf-8").write(
                         xdsapp_path_local.split("/gpfs/current/processed/")[1] + "\n"
                     )
-                except RuntimeError():
+                except RuntimeError:
                     print(sys.exc_info())
 
                 # create call
@@ -1065,7 +1065,7 @@ class P11Collect(AbstractCollect):
                 if force:
                     try:
                         os.mkdir(path, mode=0o777)
-                    except RuntimeError():
+                    except RuntimeError:
                         print("mkdir failed:", str(sys.exc_info()))
                         return False
                 else:
