@@ -17,7 +17,6 @@
 #   You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 import copy
 from collections import OrderedDict
 
@@ -123,7 +122,7 @@ class MotorsNPosition(AbstractActuator):
     def get_position_list(self):
         return list(self._positions.keys())
 
-    def get_properties(self, position_index, property_name):
+    def get_properties_(self, position_index, property_name):
         """
              returns property with name property_name for position_index 
              if position_index is None returns OrderedDict with property_name for all positions
@@ -163,7 +162,7 @@ class MotorsNPosition(AbstractActuator):
         posidx = -1
         for name in self._positions:
             posidx += 1
-            if posname == self.get_properties(posidx, "posname"):
+            if posname == self.get_properties_(posidx, "posname"):
                 self._set_value(posidx)
                 return
 
