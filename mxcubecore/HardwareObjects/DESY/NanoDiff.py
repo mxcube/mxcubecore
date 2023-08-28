@@ -1344,6 +1344,6 @@ class NanoDiff(HardwareObject):
         snapshot_filename = os.path.join(
             tempfile.gettempdir(), "mxcube_sample_snapshot.png"
         )
-        HWR.beamline.sample_view.camera.take_snapshot(snapshot_filename, bw=True)
+        HWR.beamline.sample_view.camera.take_snapshot_filename(snapshot_filename, bw=True)
         info, x, y = lucid.find_loop(snapshot_filename)
         return x, y
