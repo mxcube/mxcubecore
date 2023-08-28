@@ -1,20 +1,22 @@
 import errno
 import socket
-import subprocess
+import time
+import sys
+import os
+import logging
+import traceback
+import h5py
+import numpy as np
+
+
+
 from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.TaskUtils import task
 
 from mxcubecore.Command.Tango import DeviceProxy
 
-import gevent
-import time
-import numpy as np
-import logging
-import os
-import sys
-import math
-import h5py
+
 
 import triggerUtils
 
@@ -26,20 +28,13 @@ class P11Collect(AbstractCollect):
     def __init__(self, *args):
         super(P11Collect, self).__init__(*args)
 
-    def init(self):
-
-        super(P11Collect, self).init()
-
-        # os.system("/opt/xray/bin/adxv -socket -colors Gray -rings &")
-
-        # os.system("/bin/bash /gpfs/local/shared/MXCuBE/STRELA/start_viewer_zmq.sh")
-
         self.default_speed = self.get_property("omega_default_speed", 130)
         self.turnback_time = self.get_property("turnback_time", 0.1)
         self.filter_server_name = self.get_property("filterserver")
         self.mono_server_name = self.get_property("monoserver")
         self.filter_server = DeviceProxy(self.filter_server_name)
         self.mono_server = DeviceProxy(self.mono_server_name)
+        self.diffr = HWR.beamline.diffractometer
 
         self.lower_bound_ch = self.get_channel_object("acq_lower_bound")
         self.upper_bound_ch = self.get_channel_object("acq_upper_bound")
@@ -48,6 +43,18 @@ class P11Collect(AbstractCollect):
         self.acq_on_cmd = self.get_command_object("acq_on")
         self.acq_off_cmd = self.get_command_object("acq_off")
         self.acq_window_off_cmd = self.get_command_object("acq_window_off")
+
+        self.latest_frames = 1
+        self.acq_speed = 1.0
+        self.init_ok = False
+        self.latest_h5_filename = "TEST_master.h5"
+
+    def init(self):
+        super(P11Collect, self).init()
+
+        # os.system("/opt/xray/bin/adxv -socket -colors Gray -rings &")
+
+        # os.system("/bin/bash /gpfs/local/shared/MXCuBE/STRELA/start_viewer_zmq.sh")
 
         if None in [
             self.lower_bound_ch,
@@ -82,7 +89,7 @@ class P11Collect(AbstractCollect):
 
         time.sleep(0.3)
         if not diffr.is_centring_phase():
-            raise BaseException(
+            raise RuntimeError(
                 "P11Collect. cannot reach centring phase for acquiring snapshots"
             )
 
@@ -90,9 +97,8 @@ class P11Collect(AbstractCollect):
         HWR.beamline.sample_view.save_snapshot(filename)
 
     def data_collection_hook(self):
-
         if not self.init_ok:
-            raise BaseException(
+            raise RuntimeError(
                 "P11Collect. - object initialization failed. COLLECTION not possible"
             )
 
@@ -160,29 +166,6 @@ class P11Collect(AbstractCollect):
 
             self.log.debug("#COLLECT# Programming detector for data collection")
             if collection_type == "Characterization":
-
-                # AG: Create screening_001, etc the same way as for CC in case of characterisation
-                filepath = os.path.join(
-                    basepath,
-                    prefix,
-                    "screening_"
-                    + str(runno).zfill(3)
-                    + "/"
-                    + "%s_%d" % (prefix, runno),
-                )
-                # filepath = os.path.join(basepath)
-                self.log.debug(
-                    "======= CURRENT FILEPATH: "
-                    + str(filepath)
-                    + "======================================="
-                )
-                self.latest_h5_filename = "%s_master.h5" % filepath
-                self.log.debug(
-                    "======= LATEST H5 FILENAME FILEPATH: "
-                    + str(self.latest_h5_filename)
-                    + "======================================="
-                )
-
                 # Filepath for the presenterd to work
                 filepath = os.path.join(
                     basepath,
@@ -230,13 +213,12 @@ class P11Collect(AbstractCollect):
                     + "======================================="
                 )
 
-                overlap = osc_pars["overlap"]
+                # overlap = osc_pars["overlap"]
                 angle_inc = 90.0
                 detector.prepare_characterisation(
                     exp_time, nframes, angle_inc, filepath
                 )
             else:
-
                 # AG: Create rotational_001, etc the same way as for CC in case of characterisation
 
                 # Filepath to work with presenterd
@@ -283,7 +265,6 @@ class P11Collect(AbstractCollect):
 
                 # Create diffraction snapshots
                 for i in range(nframes):
-
                     os.system(
                         "python3 /gpfs/local/shared/MXCuBE/hdf5tools/albula_api/generate_image.py --input "
                         + self.latest_h5_filename
@@ -307,7 +288,7 @@ class P11Collect(AbstractCollect):
                 # Open index_html
                 os.system("firefox /gpfs/current/processed/index.html")
 
-                ## Create diffraction snapshots
+                # Create diffraction snapshots
                 os.system(
                     "python3 /gpfs/local/shared/MXCuBE/hdf5tools/albula_api/generate_image.py --input "
                     + self.latest_h5_filename
@@ -319,9 +300,7 @@ class P11Collect(AbstractCollect):
                     + " --image_number 1"
                 )
 
-        except BaseException as e:
-            import traceback
-
+        except RuntimeError():
             self.log.error(traceback.format_exc())
         finally:
             self.acquisition_cleanup()
@@ -330,6 +309,14 @@ class P11Collect(AbstractCollect):
         self.trigger_auto_processing()
 
     def collect_std_collection(self, start_angle, stop_angle):
+        """
+        The function collects data from a standard acquisition by moving the omega motor from a start
+        angle to a stop angle.
+
+        :param start_angle: The starting angle for the collection
+        :param stop_angle: The stop_angle parameter is the final angle at which the collection should
+        stop
+        """
 
         self.omega_mv(start_angle, self.default_speed)
 
@@ -349,6 +336,20 @@ class P11Collect(AbstractCollect):
     def collect_characterisation(
         self, start_angle, img_range, nimages, angle_inc, exp_time
     ):
+        """
+        The function `collect_characterisation` is used to collect a series of images at different
+        angles for characterisation.
+
+        :param start_angle: The starting angle for the characterisation acquisition
+        :param img_range: The `img_range` parameter represents the range of angles over which the single image 
+        will be collected
+        :param nimages: The parameter `nimages` represents the number of images to be collected during
+        the characterisation process (1, 2, 4).
+        :param angle_inc: The `angle_inc` parameter represents the increment in angle between each image
+        in the collection
+        :param exp_time: The `exp_time` parameter represents the exposure time for each image
+        """
+
         diffr = HWR.beamline.diffractometer
 
         self.log.debug("#COLLECT# Running OMEGA through the char acquisition")
@@ -381,7 +382,15 @@ class P11Collect(AbstractCollect):
             # self.adxv_notify(self.latest_h5_filename,img_no+1)
 
     def adxv_notify(self, image_filename, image_num=1):
+        """
+        The `adxv_notify` function sends a notification to an ADXV to load an image file and
+        display a specific slab.
 
+        :param image_filename: The `image_filename` parameter is a string that represents the filename
+        of the image that needs to be loaded into ADXV
+        :param image_num: The `image_num` parameter is an optional parameter that specifies the image
+        number to be loaded in ADXV. If not provided, it defaults to 1, defaults to 1 (optional)
+        """
         logging.getLogger("HWR").info(f"ADXV notify {image_filename}")
         logging.getLogger("HWR").info(f"ADXV notify {image_num}")
         adxv_host = "localhost"  # self.getProperty("adxv_host", "localhost")
@@ -394,12 +403,17 @@ class P11Collect(AbstractCollect):
                 f"load_image {image_filename}\n slab {image_num}\n".encode()
             )
             adxv_socket.close()
-        except Exception as ex:
+        except RuntimeWarning():
             logging.getLogger("HWR").exception("")
         else:
             pass
 
     def acquisition_cleanup(self):
+        """
+        The function `acquisition_cleanup` performs various cleanup tasks related to data acquisition,
+        such as setting the omega velocity, turning off acquisition and window commands, closing the
+        detector cover, and stopping the acquisition.
+        """
         try:
             diffr = HWR.beamline.diffractometer
             detector = HWR.beamline.detector
@@ -409,13 +423,17 @@ class P11Collect(AbstractCollect):
             self.log.debug("#COLLECT# Closing detector cover")
             diffr.detector_cover_close(wait=True)
             detector.stop_acquisition()
-        except BaseException as e:
-            import traceback
-
+        except RuntimeError():
             self.log.error(traceback.format_exc())
 
     def add_h5_info(self, h5file):
+        """
+        The function `add_h5_info` waits for a specified amount of time for a file to appear on disk and
+        raises an exception if the file does not appear within the timeout period.
 
+        :param h5file: The `h5file` parameter is the name or path of the H5 file that you want to add
+        information to
+        """
         self.log.debug("========== Writing H5 info ==============")
         h5file = self.latest_h5_filename
 
@@ -423,52 +441,54 @@ class P11Collect(AbstractCollect):
         start_wait = time.time()
         while not os.path.exists(h5file):
             if time.time() - start_wait > FILE_TIMEOUT:
-                raise BaseException(
+                raise RuntimeWarning(
                     "Cannot add info to H5 file. Timeout waiting for file on disk"
                 )
             time.sleep(0.5)
 
         try:
             h5fd = h5py.File(h5file, "r+")
-            g = h5fd.create_group("entry/source")
-            g.attrs["NX_class"] = np.array("NXsource", dtype="S")
-            g.create_dataset("name", data=np.array("PETRA III, DESY", dtype="S"))
-            g = h5fd.get("entry/instrument")
-            g.create_dataset("name", data=np.array("P11", dtype="S"))
-            g = h5fd.create_group("entry/instrument/attenuator")
-            g.attrs["NX_class"] = np.array("NXattenuator", dtype="S")
+            group = h5fd.create_group("entry/source")
+            group.attrs["NX_class"] = np.array("NXsource", dtype="S")
+            group.create_dataset("name", data=np.array("PETRA III, DESY", dtype="S"))
+            group = h5fd.get("entry/instrument")
+            group.create_dataset("name", data=np.array("P11", dtype="S"))
+            group = h5fd.create_group("entry/instrument/attenuator")
+            group.attrs["NX_class"] = np.array("NXattenuator", dtype="S")
 
-            # g = h5fd.create_group(u'entry/source')
-            # g.attrs[u'NX_class'] = np.array(u'NXsource', dtype='S')
-            # g.create_dataset(u'name', data=np.array(u'PETRA III, DESY', dtype='S'))
+            # group = h5fd.create_group(u'entry/source')
+            # group.attrs[u'NX_class'] = np.array(u'NXsource', dtype='S')
+            # group.create_dataset(u'name', data=np.array(u'PETRA III, DESY', dtype='S'))
 
-            g = h5fd.create_group("entry/source")
-            g.attrs["NX_class"] = np.array("NXsource", dtype="S")
-            g.create_dataset("name", data=np.array("PETRA III, DESY", dtype="S"))
+            group = h5fd.create_group("entry/source")
+            group.attrs["NX_class"] = np.array("NXsource", dtype="S")
+            group.create_dataset("name", data=np.array("PETRA III, DESY", dtype="S"))
 
-            g = h5fd.get("entry/instrument")
-            g.create_dataset("name", data=np.array("P11", dtype="S"))
+            group = h5fd.get("entry/instrument")
+            group.create_dataset("name", data=np.array("P11", dtype="S"))
 
-            g = h5fd.create_group("entry/instrument/attenuator")
-            g.attrs["NX_class"] = np.array("NXattenuator", dtype="S")
+            group = h5fd.create_group("entry/instrument/attenuator")
+            group.attrs["NX_class"] = np.array("NXattenuator", dtype="S")
 
-            ds = g.create_dataset(
+            data_set = group.create_dataset(
                 "thickness", dtype="f8", data=self.get_filter_thickness()
             )
-            ds.attrs["units"] = np.array("m", dtype="S")
-            ds = g.create_dataset("type", data=np.array("Aluminum", dtype="S"))
-            ds = g.create_dataset(
+            data_set.attrs["units"] = np.array("m", dtype="S")
+            data_set = group.create_dataset(
+                "type", data=np.array("Aluminum", dtype="S")
+            )
+            data_set = group.create_dataset(
                 "attenuator_transmission",
                 dtype="f8",
                 data=self.get_filter_transmission(),
             )
             # fix rotation axis and detector orientation
-            ds = h5fd.get("entry/sample/transformations/omega")
-            ds.attrs["vector"] = [1.0, 0.0, 0.0]
-            ds = h5fd.get("entry/instrument/detector/module/fast_pixel_direction")
-            ds.attrs["vector"] = [1.0, 0.0, 0.0]
-            ds = h5fd.get("entry/instrument/detector/module/slow_pixel_direction")
-            ds.attrs["vector"] = [0.0, 1.0, 0.0]
+            data_set = h5fd.get("entry/sample/transformations/omega")
+            data_set.attrs["vector"] = [1.0, 0.0, 0.0]
+            data_set = h5fd.get("entry/instrument/detector/module/fast_pixel_direction")
+            data_set.attrs["vector"] = [1.0, 0.0, 0.0]
+            data_set = h5fd.get("entry/instrument/detector/module/slow_pixel_direction")
+            data_set.attrs["vector"] = [0.0, 1.0, 0.0]
             # delete phi angle info to avoid confusion
             nodes = [
                 "entry/sample/goniometer/phi",
@@ -481,13 +501,16 @@ class P11Collect(AbstractCollect):
                     del h5fd[node]
             h5fd.close()
 
-        except BaseException as e:
-            import traceback
-
-            self.log.debug("Error while adding info to HDF5 file (%s)" % str(e))
+        except RuntimeError as err_msg:
+            self.log.debug("Error while adding info to HDF5 file (%s)" % str(err_msg))
             self.log.debug(traceback.format_exc())
 
     def get_filter_thickness(self):
+        """
+        The function `get_filter_thickness` calculates the total thickness of three filters.
+        :return: the total thickness of the filters in meters. If the filter server is not available, it
+        returns -1.
+        """
         if self.filter_server:
             thick1 = self.filter_server.Filter1Thickness
             thick2 = self.filter_server.Filter2Thickness
@@ -500,6 +523,12 @@ class P11Collect(AbstractCollect):
             return -1
 
     def get_filter_transmission(self):
+        """
+        The function returns the current transmission value from the filter server, or -1 if the filter
+        server is not available.
+        :return: The method is returning the current transmission value of the filter server. If the
+        filter server is not available, it returns -1.
+        """
         if self.filter_server:
             return self.filter_server.CurrentTransmission
         else:
@@ -507,6 +536,9 @@ class P11Collect(AbstractCollect):
 
     # TODO: Move to Maxwell completely
     def generate_xds_template(self):
+        """
+        The function generates an XDS template by executing a command on a remote server.
+        """
         self.log.debug(
             "============== Generating XDS template.============================"
         )
@@ -542,6 +574,17 @@ class P11Collect(AbstractCollect):
         )
 
     def trigger_auto_processing(self, process_event=None, frame_number=None):
+        """
+        The function `trigger_auto_processing` triggers auto processing based on the experiment type and
+        performs different actions for characterization and OSC experiments.
+
+        :param process_event: The `process_event` parameter is an optional argument that specifies the
+        type of event that triggered the auto processing. It can be used to provide additional
+        information or context for the processing
+        :param frame_number: The `frame_number` parameter is used to specify the number of frames in the
+        processing. It is an integer value that represents the number of frames to be processed
+        :return: The function does not return any value.
+        """
         self.log.debug("Writing HDF% file header final information")
         self.add_h5_info(self.latest_h5_filename)
         self.log.debug("Triggering auto processing")
@@ -554,7 +597,6 @@ class P11Collect(AbstractCollect):
         )
 
         if collection_type == "Characterization":
-
             self.log.debug(
                 "==== AUTOPROCESSING CHARACTERISATION IN PROGRESS =========="
             )
@@ -563,7 +605,7 @@ class P11Collect(AbstractCollect):
             # bl-fs mount on the compute nodes can not be found
             try:
                 btHelper = triggerUtils.Trigger()
-            except BaseException as e:
+            except RuntimeError():
                 self.log.debug(sys.exc_info())
                 self.log.error("Cannot trigger auto processing")
                 return
@@ -668,7 +710,7 @@ class P11Collect(AbstractCollect):
 
                 try:
                     btHelper = triggerUtils.Trigger()
-                except BaseException as e:
+                except RuntimeError():
                     self.log.debug(sys.exc_info())
                     self.log.error("Cannot trigger auto processing")
                     return
@@ -712,10 +754,10 @@ class P11Collect(AbstractCollect):
 
                 # add to datasets.txt for presenterd
                 try:
-                    open(datasets_file, "a").write(
+                    open(datasets_file, "a", encoding="utf-8").write(
                         xdsapp_path_local.split("/gpfs/current/processed/")[1] + "\n"
                     )
-                except:
+                except RuntimeError():
                     print(sys.exc_info())
 
                 # create call
@@ -874,6 +916,17 @@ class P11Collect(AbstractCollect):
         return diffr.is_collect_phase()
 
     def prepare_std_collection(self, start_angle, img_range):
+        """
+        The function prepares a standard collection by setting the start angle and angle increment in
+        the header of the Eiger detector.
+
+        :param start_angle: The start_angle parameter represents the starting angle of the standard collection
+        sequence. It is used to also set the start angle in the header of the detector.
+        :param img_range: The `img_range` parameter represents the range of angles over which the
+        detector will collect single image. It is used to set the angle increment in the header of the Eiger
+        detector
+        :return: a boolean value of True.
+        """
         # Add start angle to the header
         osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
         start_angle = osc_pars["start"]
@@ -889,11 +942,24 @@ class P11Collect(AbstractCollect):
         return True
 
     def omega_mv(self, target, speed):
+        """
+        The function sets the velocity of the omega motor, moves the omega motor to a target position,
+        and waits for the movement to complete.
+
+        :param target: The target parameter is the desired position or angle that you want the omega
+        motor to move to.
+        :param speed: The speed parameter is the desired velocity at which the omega motor should move
+        """
         self.diffr.set_omega_velocity(speed)
         self.diffr.move_omega(target)
         self.diffr.wait_omega()
 
     def prepare_characterization(self):
+        """
+        The function prepares for characterization data collection by setting the start angle and angle
+        increment for the detector.
+        :return: a boolean value of True.
+        """
         self.log.debug("Preparing for characterization data collection.")
 
         # Add start angle to the header
@@ -911,18 +977,36 @@ class P11Collect(AbstractCollect):
         return True
 
     def get_relative_path(self, path1, path2):
-        p1 = path1.split(os.path.sep)
-        p2 = path2.split(os.path.sep)
+        """
+        The function `get_relative_path` takes two paths as input and returns the relative path from the
+        first path to the second path.
 
-        for i, v in enumerate(p2):
-            if p1[i] != v:
+        :param path1: The `path1` parameter is a string representing the first path. It can be an
+        absolute or relative path to a file or directory
+        :param path2: The `path2` parameter is a string representing a file or directory path
+        :return: the relative path between `path1` and `path2`.
+        """
+        path_1 = path1.split(os.path.sep)
+        path_2 = path2.split(os.path.sep)
+
+        for i, v__ in enumerate(path_2):
+            if path_1[i] != v__:
                 break
 
-        parts = ["..",] * (len(p2) - i)
-        parts.extend(p1[i:])
+            parts = ["..",] * (len(path_2) - i)
+            parts.extend(path_1[i:])
+
         return os.path.join(*parts)
 
     def base_dir(self, path, what):
+        """
+        The function `base_dir` returns the base directory path of a given file or directory.
+
+        :param path: The `path` parameter is a string representing a file path
+        :param what: The "what" parameter is a string that represents the directory or file name that
+        you are searching for within the given path
+        :return: the base directory path that contains the specified "what" directory or file.
+        """
         what = what.lstrip(os.path.sep)
 
         if path.startswith(os.path.sep):
@@ -930,14 +1014,23 @@ class P11Collect(AbstractCollect):
         else:
             start_sep = ""
 
-        p1 = path.split(os.path.sep)
-        for i, v in enumerate(p1):
-            if p1[i] == what:
+        path_ = path.split(os.path.sep)
+        for i, v__ in enumerate(path_):
+            if path_[i] == what:
                 break
 
-        return start_sep + os.path.join(*p1[: i + 1])
+        return start_sep + os.path.join(*path_[: i + 1])
 
     def mkdir_with_mode(self, directory, mode):
+        """
+        The function creates a directory with a specified mode if it does not already exist.
+
+        :param directory: The "directory" parameter is the path of the directory that you want to
+        create. It can be an absolute path or a relative path
+        :param mode: The "mode" parameter in the above code refers to the permissions that will be set
+        for the newly created directory. It is an optional parameter and can be specified as an octal
+        value
+        """
         if not os.path.isdir(directory):
             oldmask = os.umask(000)
             os.makedirs(directory, mode=mode)
@@ -954,23 +1047,39 @@ class P11Collect(AbstractCollect):
             try:
                 # os.makedirs(directory)
                 self.mkdir_with_mode(directory, mode=0o777)
-            except os.error as e:
-                if e.errno != errno.EEXIST:
+            except os.error as err_:
+                if err_.errno != errno.EEXIST:
                     raise
 
-    def checkPath(self, path=None, force=False):
+    def check_path(self, path=None, force=False):
+        """
+        The function checks if a given path is valid and accessible, and creates the directories along
+        the path if they don't exist.
+
+        :param path: The `path` parameter is the file path that needs to be checked. It is optional and
+        defaults to `None`
+        :param force: The "force" parameter is a boolean flag that determines whether the function
+        should create the directories in the given path if they do not exist. If "force" is set to True,
+        the function will create the directories. If "force" is set to False, the function will return
+        False if any, defaults to False (optional)
+        :return: the path if it exists and is writable. If the path does not exist and the force
+        parameter is set to True, the function will attempt to create the directory and return the path
+        if successful. If the path does not exist and the force parameter is set to False, the function
+        will print an error message and return False. If the path exists but is not writable, the
+        function
+        """
         path = str(path).replace("\\", "/")
         dirs = path.strip("/").split("/")
         path = ""
-        for d in dirs:
-            if d.find("*") > -1 or d.find("?") > -1 or d.find("..") > -1:
+        for dir_ in dirs:
+            if dir_.find("*") > -1 or dir_.find("?") > -1 or dir_.find("..") > -1:
                 return False
-            path += "/" + d
+            path += "/" + dir_
             if not os.access(path, os.F_OK):
                 if force:
                     try:
                         os.mkdir(path, mode=0o777)
-                    except:
+                    except RuntimeError():
                         print("mkdir failed:", str(sys.exc_info()))
                         return False
                 else:
