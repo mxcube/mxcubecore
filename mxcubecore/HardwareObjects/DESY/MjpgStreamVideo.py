@@ -285,15 +285,18 @@ class MjpgStreamVideo(AbstractVideoDevice):
         self.image = self.get_new_image()
 
         if self.input_avt:
-            sensor_info = self.get_cmd_info(self.IN_CMD_AVT_SENSOR_WIDTH)
-            if sensor_info:
-                sensor_width = int(sensor_info["value"])
-            sensor_info = self.get_cmd_info(self.IN_CMD_AVT_SENSOR_HEIGHT)
-            if sensor_info:
-                sensor_height = int(sensor_info["value"])
-            self.sensor_dimensions = (sensor_width, sensor_height)
-
-        self.set_is_ready(True)
+            try:
+                sensor_info = self.get_cmd_info(self.IN_CMD_AVT_SENSOR_WIDTH)
+                if sensor_info:
+                    sensor_width = int(sensor_info["value"])
+                sensor_info = self.get_cmd_info(self.IN_CMD_AVT_SENSOR_HEIGHT)
+                if sensor_info:
+                    sensor_height = int(sensor_info["value"])
+                self.sensor_dimensions = (sensor_width, sensor_height)
+            except RuntimeError("Error. Can not get sensor dimensions."):
+                self.set_is_ready(False)
+            else:
+                self.set_is_ready(True)
 
     def http_get(self, query, host=None, port=None, path=None):
         """Sends HTTP GET requests and returns the answer.
