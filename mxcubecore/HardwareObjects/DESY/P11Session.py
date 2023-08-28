@@ -7,7 +7,6 @@ from Session import Session
 
 from configparser import ConfigParser
 
-PATH_BEAMTIME = "/gpfs/beamtime"
 PATH_BEAMTIME = "/gpfs/current"
 PATH_COMMISSIONING = "/gpfs/commissioning"
 PATH_FALLBACK = "/gpfs/local"
