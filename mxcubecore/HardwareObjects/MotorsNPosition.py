@@ -96,12 +96,6 @@ class MotorsNPosition(AbstractActuator):
 
         self.load_positions()
 
-        self.log.debug("Multi N State created (%s)" % self.name())
-        self.log.debug("      Motors:  %s" % str(self.motorlist))
-        self.log.debug("      Deltas:  %s" % str(self.deltas))
-        self.log.debug("   Positions:  %s" % str(self._positions))
-        self.log.debug("  Properties:  %s" % str(self._properties))
-
         self.update_multi_value()
         self.update_state(HardwareObjectState.READY)
 
@@ -236,6 +230,7 @@ class MotorsNPosition(AbstractActuator):
                     break
             else:
                 # found
+                #self.log.debug(" Found position %s for object %s" % (name, self.name()))
                 for motorname in self.motorlist:
                     position = self._positions[name][motorname]
                     self.log.debug("     - motor %s is at %s" % (motorname, position))

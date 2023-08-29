@@ -565,7 +565,8 @@ class AbstractCollect(HardwareObject, object):
         """
         Descript. :
         """
-        if HWR.beamline.lims and not self.current_dc_parameters["in_interleave"]:
+        lims = HWR.beamline.lims
+        if lims and lims.is_connected() and not self.current_dc_parameters["in_interleave"]:
             try:
                 self.current_dc_parameters[
                     "synchrotronMode"
@@ -625,14 +626,16 @@ class AbstractCollect(HardwareObject, object):
         """
         Descript. :
         """
-        if HWR.beamline.lims and not self.current_dc_parameters["in_interleave"]:
+        lims = HWR.beamline.lims
+        if lims and lims.is_connected() and not self.current_dc_parameters["in_interleave"]:
             HWR.beamline.lims.update_bl_sample(self.current_lims_sample)
 
     def store_image_in_lims(self, frame_number, motor_position_id=None):
         """
         Descript. :
         """
-        if HWR.beamline.lims and not self.current_dc_parameters["in_interleave"]:
+        lims = HWR.beamline.lims
+        if lims and lims.is_connected() and not self.current_dc_parameters["in_interleave"]:
             file_location = self.current_dc_parameters["fileinfo"]["directory"]
             image_file_template = self.current_dc_parameters["fileinfo"]["template"]
             filename = image_file_template % frame_number
@@ -677,7 +680,8 @@ class AbstractCollect(HardwareObject, object):
         :param grid_snapshot_filename: grid snapshot file path
         :type grid_snapshot_filename: string
         """
-        if HWR.beamline.lims is not None:
+        lims = HWR.beamline.lims
+        if lims and lims.is_connected():
             try:
                 self.current_dc_parameters["workflow_id"] = workflow_id
                 if grid_snapshot_filename:
