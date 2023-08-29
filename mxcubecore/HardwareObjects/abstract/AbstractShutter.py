@@ -36,6 +36,7 @@ class BaseValueEnum(Enum):
 
     OPEN = "OPEN"
     CLOSED = "CLOSED"
+    MOVING = "MOVING"
     UNKNOWN = "UNKNOWN"
 
 
@@ -44,6 +45,14 @@ class AbstractShutter(AbstractNState):
 
     __metaclass__ = abc.ABCMeta
     VALUES = BaseValueEnum
+
+    def __init__(self, name):
+        AbstractNState.__init__(self, name)
+
+    def init(self):
+        """Initilise the predefined values"""
+        self.set_value(self.VALUES.UNKNOWN)
+        AbstractNState.init(self)
 
     @property
     def is_open(self):
