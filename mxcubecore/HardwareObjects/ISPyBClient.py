@@ -183,6 +183,7 @@ class ISPyBClient(HardwareObject):
         """
         self.lims_rest = self.get_object_by_role("lims_rest")
         self.pyispyb = self.get_object_by_role("pyispyb")
+        self.icat_client = self.get_object_by_role("icat_client")
 
         self.authServerType = self.get_property("authServerType") or "ldap"
         if self.authServerType == "ldap":

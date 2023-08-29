@@ -32,22 +32,26 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
             energy=HWR.beamline.energy,
             resolution=self.get_object_by_role("resolution"),
             detector_distance=self.get_object_by_role("detector_distance"),
-            transmission=self.get_object_by_role("transmission"), # Returns attenuators.
+            transmission=self.get_object_by_role(
+                "transmission"
+            ),  # Returns attenuators.
             undulators=self.get_object_by_role("undulators"),
             flux=self.get_object_by_role("flux"),
             detector=self.get_object_by_role("detector"),
             beam_info=self.get_object_by_role("beam_info"),
         )
         # Adding this line to get transmission value:
-        self.filter_transmission = self.get_object_by_role('filter_transmission')
+        self.filter_transmission = self.get_object_by_role("filter_transmission")
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True,))
 
     @task
     def loop(self, owner, data_collect_parameters_list):
-        print('\nCALL LOOP\n')
-        print('\nDC PARAM LIST:\n')
-        print('data_collect_parameters_list = {}\n'.format(data_collect_parameters_list))
+        print("\nCALL LOOP\n")
+        print("\nDC PARAM LIST:\n")
+        print(
+            "data_collect_parameters_list = {}\n".format(data_collect_parameters_list)
+        )
         failed_msg = "Data collection failed!"
         failed = True
         collections_analyse_params = []
@@ -55,14 +59,17 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
         self.emit("collectStarted", (owner, 1))
 
         for data_collect_parameters in data_collect_parameters_list:
-            print('\nSUB LOOP SINGLE COLLECT?\n')
-            print('data_collect_parameters = {}\n'.format(data_collect_parameters))
+            print("\nSUB LOOP SINGLE COLLECT?\n")
+            print("data_collect_parameters = {}\n".format(data_collect_parameters))
             logging.debug("collect parameters = %r", data_collect_parameters)
             failed = False
             data_collect_parameters["status"] = "Data collection successful"
-            osc_id, sample_id, sample_code, sample_location = self.update_oscillations_history(
-                data_collect_parameters
-            )
+            (
+                osc_id,
+                sample_id,
+                sample_code,
+                sample_location,
+            ) = self.update_oscillations_history(data_collect_parameters)
 
             self.emit(
                 "collectOscillationStarted",
@@ -77,10 +84,10 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
             )
 
             # Translate parameters to scan-utils flyscan
-            config_yml = 'pilatus'
+            config_yml = "pilatus"
             message = "Flyscan called from mxcube3."
 
-            output_directory = data_collect_parameters['fileinfo']['directory']
+            output_directory = data_collect_parameters["fileinfo"]["directory"]
             # Create dir
             path = output_directory
             try:
@@ -88,47 +95,74 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
                     logging.getLogger("HWR").info("Directory exists: %s " % path)
                 else:
                     os.makedirs(path)
-                    logging.getLogger("HWR").info("Successfully created the directory %s " % path)
+                    logging.getLogger("HWR").info(
+                        "Successfully created the directory %s " % path
+                    )
             except OSError:
-                logging.getLogger("HWR").error("Creation of the directory %s failed." % path)
-            
-            if not output_directory.endswith('/'):
-                output_directory = output_directory + '/'
-            output_prefix =  data_collect_parameters['fileinfo']['prefix']
+                logging.getLogger("HWR").error(
+                    "Creation of the directory %s failed." % path
+                )
+
+            if not output_directory.endswith("/"):
+                output_directory = output_directory + "/"
+            output_prefix = data_collect_parameters["fileinfo"]["prefix"]
             output_file = output_directory + output_prefix
 
-            motor_mnenomic = 'gonio'
+            motor_mnenomic = "gonio"
             xlabel = motor_mnenomic
-            plot_type = 'none'
-            mode = '--points-mode'
+            plot_type = "none"
+            mode = "--points-mode"
 
-            start_float = float(data_collect_parameters['oscillation_sequence'][0]['start']) # omega start pos
+            start_float = float(
+                data_collect_parameters["oscillation_sequence"][0]["start"]
+            )  # omega start pos
             start = str(start_float)
 
-            step_size = float(data_collect_parameters['oscillation_sequence'][0]['range'])
-            num_of_points = int(data_collect_parameters['oscillation_sequence'][0]['number_of_images'])
-            end_float = start_float + step_size*num_of_points
+            step_size = float(
+                data_collect_parameters["oscillation_sequence"][0]["range"]
+            )
+            num_of_points = int(
+                data_collect_parameters["oscillation_sequence"][0]["number_of_images"]
+            )
+            end_float = start_float + step_size * num_of_points
             end = str(end_float)
 
             step_or_points = str(num_of_points)
 
-            time_float = float(data_collect_parameters['oscillation_sequence'][0]['exposure_time'])
+            time_float = float(
+                data_collect_parameters["oscillation_sequence"][0]["exposure_time"]
+            )
             time = str(time_float)
 
-            prescan = ' '
-            postscan = ' '
+            prescan = " "
+            postscan = " "
 
             # flyscan-only params
             start_offset = str(0)
             end_offset = str(0)
-            aquire_period = str(time_float + 0.0023) # + pilatus readout time
+            aquire_period = str(time_float + 0.0023)  # + pilatus readout time
 
-            command = 'flyscan -c {} -m "{}" -o {} -s --motor {} {} --start {} --end {} --step-or-points {} --time {} --prescan={} --postscan={} --start-offset {} --end-offset {} --aquire-period {}'.format(config_yml, message, output_file, motor_mnenomic, mode, start, end, step_or_points, time, prescan, postscan, start_offset, end_offset, aquire_period)
+            command = 'flyscan -c {} -m "{}" -o {} -s --motor {} {} --start {} --end {} --step-or-points {} --time {} --prescan={} --postscan={} --start-offset {} --end-offset {} --aquire-period {}'.format(
+                config_yml,
+                message,
+                output_file,
+                motor_mnenomic,
+                mode,
+                start,
+                end,
+                step_or_points,
+                time,
+                prescan,
+                postscan,
+                start_offset,
+                end_offset,
+                aquire_period,
+            )
 
-            #command = 'scan -c {} -m "{}" -o {} --motor {} --xlabel {} --plot-type {} {} --start {} --end {} --step-or-points {} --time {} --prescan={} --postscan={}'.format(config_yml, message, output_file, motor_mnenomic, xlabel, plot_type, mode, start, end, step_or_points, time, prescan, postscan)
+            # command = 'scan -c {} -m "{}" -o {} --motor {} --xlabel {} --plot-type {} {} --start {} --end {} --step-or-points {} --time {} --prescan={} --postscan={}'.format(config_yml, message, output_file, motor_mnenomic, xlabel, plot_type, mode, start, end, step_or_points, time, prescan, postscan)
 
             logging.getLogger("HWR").info("[SCAN-UTILS] Command: " + str(command))
-            print('\n[SCAN-UTILS] Command: ' + str(command) + '\n')
+            print("\n[SCAN-UTILS] Command: " + str(command) + "\n")
 
             # Store values for clean up
             logging.getLogger("HWR").info("[Clean up] Configuring...")
@@ -138,30 +172,38 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
             else:
                 omega_original_velo = omega.get_velocity()
                 logging.getLogger("HWR").info(
-                    "[Clean up] Omega velo: {}".format(omega_original_velo))
+                    "[Clean up] Omega velo: {}".format(omega_original_velo)
+                )
             logging.getLogger("HWR").info("[Clean up] Configured.")
 
             # Set detector cbf header
             header_ok = self.set_pilatus_det_header(start_float, step_size)
             if not header_ok:
                 logging.getLogger("HWR").error(
-                        "[Collect] Pilatus header params could not be set! Collection aborted."
+                    "[Collect] Pilatus header params could not be set! Collection aborted."
                 )
                 return
 
             import sys, subprocess
-            try:
-                process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
-                logging.getLogger("HWR").info('[SCAN-UTILS] Executing scan...')
+            try:
+                process = subprocess.Popen(
+                    command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
+                )
+
+                logging.getLogger("HWR").info("[SCAN-UTILS] Executing scan...")
                 logging.getLogger("user_level_log").info("Executing scan...")
                 stdout, stderr = process.communicate()
                 # stdout
-                logging.getLogger("HWR").info('[SCAN-UTILS] output : ' + stdout.decode('utf-8'))
-                print('[SCAN-UTILS] output : ' + stdout.decode('utf-8'))
+                logging.getLogger("HWR").info(
+                    "[SCAN-UTILS] output : " + stdout.decode("utf-8")
+                )
+                print("[SCAN-UTILS] output : " + stdout.decode("utf-8"))
                 # stderr
-                logging.getLogger("HWR").error('[SCAN-UTILS] errors : ' + stderr.decode('utf-8'))
-                print('[SCAN-UTILS] errors : ' + stderr.decode('utf-8'))
+                logging.getLogger("HWR").error(
+                    "[SCAN-UTILS] errors : " + stderr.decode("utf-8")
+                )
+                print("[SCAN-UTILS] errors : " + stderr.decode("utf-8"))
 
             except BaseException:
                 logging.getLogger("HWR").error("[SCAN-UTILS] Error in calling scan.")
@@ -170,18 +212,19 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
             else:
                 logging.getLogger("HWR").info("[SCAN-UTILS] Finished scan!")
                 logging.getLogger("user_level_log").info("Finished scan!")
-                #print("[SCAN-UTILS] Finished scan!")
+                # print("[SCAN-UTILS] Finished scan!")
             finally:
                 # Clean up
                 logging.getLogger("HWR").info("[Clean up] Applying...")
                 import time as timee
+
                 timee.sleep(10)
                 if omega is not None:
                     # Restore omega default velocity
                     omega.set_velocity(omega_original_velo)
                     logging.getLogger("HWR").info(
-                        "[Clean up] Omega velo reset to: {}".format(
-                            omega_original_velo))
+                        "[Clean up] Omega velo reset to: {}".format(omega_original_velo)
+                    )
                 logging.getLogger("HWR").info("[Clean up] Done!")
 
             data_collect_parameters["status"] = "Running"
@@ -230,7 +273,9 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
         sa_ok = self.bl_control.detector.set_start_angle(start_angle)
         ss_ok = self.bl_control.detector.set_angle_incr(step_size)
 
-        return wl_ok and dd_ok and bx_ok and by_ok and te_ok and ft_ok and sa_ok and ss_ok
+        return (
+            wl_ok and dd_ok and bx_ok and by_ok and te_ok and ft_ok and sa_ok and ss_ok
+        )
 
     @task
     def take_crystal_snapshots(self, number_of_snapshots):
@@ -291,7 +336,7 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
     def prepare_oscillation(self, start, osc_range, exptime, npass):
         return (start, start + osc_range)
 
-    def do_oscillation(self, start, end, exptime, npass):
+    def do_oscillation(self, start, end, exptime, shutterless, npass, first_frame):
         gevent.sleep(exptime)
 
     def start_acquisition(self, exptime, npass, first_frame):
@@ -378,7 +423,7 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
         if self.bl_control.machine_current is not None:
             return self.bl_control.machine_current.getFillMode()
         else:
-            ""
+            """"""
 
     def get_cryo_temperature(self):
         if self.bl_control.cryo_stream is not None:

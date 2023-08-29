@@ -3,6 +3,7 @@ import copy
 import logging
 import binascii
 import subprocess
+import time
 
 from mxcubecore.model import queue_model_objects as qmo
 from mxcubecore.model import queue_model_enumerables as qme
@@ -23,6 +24,7 @@ from XSDataCommon import XSDataAngle
 from XSDataCommon import XSDataBoolean
 from XSDataCommon import XSDataDouble
 from XSDataCommon import XSDataFile
+from XSDataCommon import XSDataImage
 from XSDataCommon import XSDataFlux
 from XSDataCommon import XSDataLength
 from XSDataCommon import XSDataTime
@@ -75,12 +77,38 @@ class EDNACharacterisation(AbstractCharacterisation):
         """Starts EDNA"""
         msg = "Starting EDNA characterisation using xml file %s" % input_file
         logging.getLogger("queue_exec").info(msg)
-
+        self.characterisationResult = None
         args = (self.start_edna_command, input_file, results_file, process_directory)
-        subprocess.call("%s %s %s %s" % args, shell=True)
+        # subprocess.call("%s %s %s %s" % args, shell=True)
+        p = subprocess.Popen("%s %s %s %s --verbose --debug" % args, shell=True)
 
+        do_continue = True
         self.result = None
-        if os.path.exists(results_file):
+        start_time = time.time()
+        TIME_OUT = 120
+        while do_continue:
+            if self.characterisationResult is not None:
+                logging.getLogger("queue_exec").info(
+                    "Received characterisation results via XMLRPC"
+                )
+                # logging.getLogger("queue_exec").info([self.characterisationResult])
+                # with open("/tmp/EDNA_results.xml", "w") as f:
+                #     f.write(self.characterisationResult)
+                self.result = XSDataResultMXCuBE.parseString(
+                    self.characterisationResult
+                )
+                do_continue = False
+            elif p.poll() is not None:
+                do_continue = False
+            elif time.time() - start_time > TIME_OUT:
+                do_continue = False
+            if do_continue:
+                logging.getLogger("queue_exec").info(
+                    "Waiting for characterisation results..."
+                )
+                time.sleep(1)
+
+        if self.result is None and os.path.exists(results_file):
             self.result = XSDataResultMXCuBE.parseFile(results_file)
 
         return self.result
@@ -181,6 +209,7 @@ class EDNACharacterisation(AbstractCharacterisation):
             diff_plan.setAimedResolution(aimed_resolution)
 
         diff_plan.setComplexity(complexity)
+        diff_plan.setStrategyType(XSDataString(char_params.strategy_program))
 
         if char_params.use_permitted_rotation:
             diff_plan.setUserDefinedRotationStart(permitted_phi_start)
@@ -229,17 +258,20 @@ class EDNACharacterisation(AbstractCharacterisation):
         path_str = os.path.join(
             path_template.directory, path_template.get_image_file_name()
         )
-
+        characterisation_dir = path_template.xds_dir.replace(
+            "/autoprocessing_", "/characterisation_"
+        )
+        os.makedirs(characterisation_dir, mode=0o755, exist_ok=True)
         for img_num in range(int(acquisition_parameters.num_images)):
-            image_file = XSDataFile()
+            image_file = XSDataImage()
             path = XSDataString()
-            path.setValue(path_str % (img_num + 1))
-            image_file.setPath(path)
+            path.value = path_str % (img_num + 1)
+            image_file.path = path
+            image_file.number = XSDataInteger(img_num + 1)
             data_set.addImageFile(image_file)
 
         edna_input.addDataSet(data_set)
-        edna_input.process_directory = path_template.process_directory
-
+        edna_input.process_directory = characterisation_dir
         return edna_input
 
     def characterise(self, edna_input):

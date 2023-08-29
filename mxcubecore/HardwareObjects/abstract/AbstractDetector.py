@@ -336,7 +336,7 @@ class AbstractDetector(HardwareObject):
         )
         if path_template.compression:
             file_name = "%s.gz" % file_name
-        #
+
         return file_name
 
     def get_first_and_last_file(self, pt: PathTemplate):

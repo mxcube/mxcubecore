@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #
-# Generated Thu Sep 17 03:33::44 2020 by EDGenerateDS.
+# Generated Thu Feb 9 10:58::29 2023 by EDGenerateDS.
 #
 
 import os, sys
@@ -19,9 +19,11 @@ dictLocation = {
     "XSDataCommon": "kernel/datamodel",
     "XSDataCommon": "kernel/datamodel",
     "XSDataCommon": "kernel/datamodel",
+    "XSDataCommon": "kernel/datamodel",
     "XSDataMXv1": "mxv1/datamodel",
     "XSDataMXv1": "mxv1/datamodel",
     "XSDataMXv1": "mxv1/datamodel",
+    "XSDataCommon": "kernel/datamodel",
     "XSDataMXv1": "mxv1/datamodel",
     "XSDataMXv1": "mxv1/datamodel",
     "XSDataMXv1": "mxv1/datamodel",
@@ -30,6 +32,7 @@ dictLocation = {
 try:
     from XSDataCommon import XSData
     from XSDataCommon import XSDataDictionary
+    from XSDataCommon import XSDataDouble
     from XSDataCommon import XSDataFile
     from XSDataCommon import XSDataInput
     from XSDataCommon import XSDataInteger
@@ -38,6 +41,7 @@ try:
     from XSDataMXv1 import XSDataCollectionPlan
     from XSDataMXv1 import XSDataDiffractionPlan
     from XSDataMXv1 import XSDataExperimentalCondition
+    from XSDataCommon import XSDataImage
     from XSDataMXv1 import XSDataInputCharacterisation
     from XSDataMXv1 import XSDataResultCharacterisation
     from XSDataMXv1 import XSDataSampleCrystalMM
@@ -55,6 +59,7 @@ except ImportError as error:
         raise error
 from XSDataCommon import XSData
 from XSDataCommon import XSDataDictionary
+from XSDataCommon import XSDataDouble
 from XSDataCommon import XSDataFile
 from XSDataCommon import XSDataInput
 from XSDataCommon import XSDataInteger
@@ -63,9 +68,12 @@ from XSDataCommon import XSDataString
 from XSDataMXv1 import XSDataCollectionPlan
 from XSDataMXv1 import XSDataDiffractionPlan
 from XSDataMXv1 import XSDataExperimentalCondition
+from XSDataCommon import XSDataImage
 from XSDataMXv1 import XSDataInputCharacterisation
 from XSDataMXv1 import XSDataResultCharacterisation
 from XSDataMXv1 import XSDataSampleCrystalMM
+
+
 
 
 #
@@ -90,7 +98,6 @@ def warnEmptyAttribute(_strName, _strTypeName):
     # if not _strTypeName in ["float", "double", "string", "boolean", "integer"]:
     #    print("Warning! Non-optional attribute %s of type %s is None!" % (_strName, _strTypeName))
 
-
 class MixedContainer(object):
     # Constants for category:
     CategoryNone = 0
@@ -106,25 +113,19 @@ class MixedContainer(object):
     TypeDecimal = 5
     TypeDouble = 6
     TypeBoolean = 7
-
     def __init__(self, category, content_type, name, value):
         self.category = category
         self.content_type = content_type
         self.name = name
         self.value = value
-
     def getCategory(self):
         return self.category
-
     def getContenttype(self, content_type):
         return self.content_type
-
     def getValue(self):
         return self.value
-
     def getName(self):
         return self.name
-
     def export(self, outfile, level, name):
         if self.category == MixedContainer.CategoryText:
             outfile.write(self.value)
@@ -132,7 +133,6 @@ class MixedContainer(object):
             self.exportSimple(outfile, level, name)
         else:  # category == MixedContainer.CategoryComplex
             self.value.export(outfile, level, name)
-
     def exportSimple(self, outfile, level, name):
         if self.content_type == MixedContainer.TypeString:
             outfile.write(unicode("<%s>%s</%s>" % (self.name, self.value, self.name)))
@@ -166,8 +166,7 @@ class XSDataMXCuBEDataSet(object):
                 "ERROR! XSDataMXCuBEDataSet constructor argument 'imageFile' is not list but %s"
                 % self._imageFile.__class__.__name__
             )
-            raise Exception(strMessage)
-
+            raise BaseException(strMessage)
     # Methods and properties for the 'imageFile' attribute
     def getImageFile(self):
         return self._imageFile
@@ -182,7 +181,7 @@ class XSDataMXCuBEDataSet(object):
                 "ERROR! XSDataMXCuBEDataSet.setImageFile argument is not list but %s"
                 % imageFile.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
 
     def delImageFile(self):
         self._imageFile = None
@@ -194,35 +193,34 @@ class XSDataMXCuBEDataSet(object):
     def addImageFile(self, value):
         if value is None:
             strMessage = "ERROR! XSDataMXCuBEDataSet.addImageFile argument is None"
-            raise Exception(strMessage)
-        elif value.__class__.__name__ == "XSDataFile":
+            raise BaseException(strMessage)
+        elif value.__class__.__name__ == "XSDataImage":
             self._imageFile.append(value)
         else:
             strMessage = (
-                "ERROR! XSDataMXCuBEDataSet.addImageFile argument is not XSDataFile but %s"
+                "ERROR! XSDataMXCuBEDataSet.addImageFile argument is not XSDataImage but %s"
                 % value.__class__.__name__
             )
-            raise Exception(strMessage)
-
+            raise BaseException(strMessage)
     def insertImageFile(self, index, value):
         if index is None:
             strMessage = (
                 "ERROR! XSDataMXCuBEDataSet.insertImageFile argument 'index' is None"
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
         if value is None:
             strMessage = (
                 "ERROR! XSDataMXCuBEDataSet.insertImageFile argument 'value' is None"
             )
-            raise Exception(strMessage)
-        elif value.__class__.__name__ == "XSDataFile":
+            raise BaseException(strMessage)
+        elif value.__class__.__name__ == "XSDataImage":
             self._imageFile[index] = value
         else:
             strMessage = (
-                "ERROR! XSDataMXCuBEDataSet.addImageFile argument is not XSDataFile but %s"
+                "ERROR! XSDataMXCuBEDataSet.addImageFile argument is not XSDataImage but %s"
                 % value.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
 
     def export(self, outfile, level, name_="XSDataMXCuBEDataSet"):
         showIndent(outfile, level)
@@ -232,19 +230,18 @@ class XSDataMXCuBEDataSet(object):
         outfile.write(unicode("</%s>\n" % name_))
 
     def exportChildren(self, outfile, level, name_="XSDataMXCuBEDataSet"):
+        pass
         for imageFile_ in self.getImageFile():
             imageFile_.export(outfile, level, name_="imageFile")
         if self.getImageFile() == []:
-            warnEmptyAttribute("imageFile", "XSDataFile")
-
+            warnEmptyAttribute("imageFile", "XSDataImage")
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
-
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "imageFile":
-            obj_ = XSDataFile()
+            obj_ = XSDataImage()
             obj_.build(child_)
             self.imageFile.append(obj_)
 
@@ -288,6 +285,7 @@ class XSDataMXCuBEDataSet(object):
         return rootObj
 
     parseString = staticmethod(parseString)
+
     # Static method for parsing a file
     def parseFile(_inFilePath):
         doc = minidom.parse(_inFilePath)
@@ -476,7 +474,6 @@ class XSDataMXCuBEParameters(XSData):
             self._transmission = None
         else:
             self._transmission = float(transmission)
-
     # Methods and properties for the 'sessionId' attribute
     def getSessionId(self):
         return self._sessionId
@@ -493,6 +490,7 @@ class XSDataMXCuBEParameters(XSData):
     sessionId = property(
         getSessionId, setSessionId, delSessionId, "Property for sessionId"
     )
+
     # Methods and properties for the 'blSampleId' attribute
     def getBlSampleId(self):
         return self._blSampleId
@@ -509,6 +507,7 @@ class XSDataMXCuBEParameters(XSData):
     blSampleId = property(
         getBlSampleId, setBlSampleId, delBlSampleId, "Property for blSampleId"
     )
+
     # Methods and properties for the 'exposure_time' attribute
     def getExposure_time(self):
         return self._exposure_time
@@ -528,6 +527,7 @@ class XSDataMXCuBEParameters(XSData):
         delExposure_time,
         "Property for exposure_time",
     )
+
     # Methods and properties for the 'resolution' attribute
     def getResolution(self):
         return self._resolution
@@ -544,6 +544,7 @@ class XSDataMXCuBEParameters(XSData):
     resolution = property(
         getResolution, setResolution, delResolution, "Property for resolution"
     )
+
     # Methods and properties for the 'resolution_at_corner' attribute
     def getResolution_at_corner(self):
         return self._resolution_at_corner
@@ -563,6 +564,7 @@ class XSDataMXCuBEParameters(XSData):
         delResolution_at_corner,
         "Property for resolution_at_corner",
     )
+
     # Methods and properties for the 'x_beam' attribute
     def getX_beam(self):
         return self._x_beam
@@ -607,6 +609,7 @@ class XSDataMXCuBEParameters(XSData):
     beam_size_x = property(
         getBeam_size_x, setBeam_size_x, delBeam_size_x, "Property for beam_size_x"
     )
+
     # Methods and properties for the 'beam_size_y' attribute
     def getBeam_size_y(self):
         return self._beam_size_y
@@ -623,6 +626,7 @@ class XSDataMXCuBEParameters(XSData):
     beam_size_y = property(
         getBeam_size_y, setBeam_size_y, delBeam_size_y, "Property for beam_size_y"
     )
+
     # Methods and properties for the 'mad_1_energy' attribute
     def getMad_1_energy(self):
         return self._mad_1_energy
@@ -639,6 +643,7 @@ class XSDataMXCuBEParameters(XSData):
     mad_1_energy = property(
         getMad_1_energy, setMad_1_energy, delMad_1_energy, "Property for mad_1_energy"
     )
+
     # Methods and properties for the 'mad_2_energy' attribute
     def getMad_2_energy(self):
         return self._mad_2_energy
@@ -655,6 +660,7 @@ class XSDataMXCuBEParameters(XSData):
     mad_2_energy = property(
         getMad_2_energy, setMad_2_energy, delMad_2_energy, "Property for mad_2_energy"
     )
+
     # Methods and properties for the 'mad_3_energy' attribute
     def getMad_3_energy(self):
         return self._mad_3_energy
@@ -671,6 +677,7 @@ class XSDataMXCuBEParameters(XSData):
     mad_3_energy = property(
         getMad_3_energy, setMad_3_energy, delMad_3_energy, "Property for mad_3_energy"
     )
+
     # Methods and properties for the 'mad_4_energy' attribute
     def getMad_4_energy(self):
         return self._mad_4_energy
@@ -687,6 +694,7 @@ class XSDataMXCuBEParameters(XSData):
     mad_4_energy = property(
         getMad_4_energy, setMad_4_energy, delMad_4_energy, "Property for mad_4_energy"
     )
+
     # Methods and properties for the 'prefix' attribute
     def getPrefix(self):
         return self._prefix
@@ -728,6 +736,7 @@ class XSDataMXCuBEParameters(XSData):
     osc_start = property(
         getOsc_start, setOsc_start, delOsc_start, "Property for osc_start"
     )
+
     # Methods and properties for the 'process_directory' attribute
     def getProcess_directory(self):
         return self._process_directory
@@ -744,6 +753,7 @@ class XSDataMXCuBEParameters(XSData):
         delProcess_directory,
         "Property for process_directory",
     )
+
     # Methods and properties for the 'sum_images' attribute
     def getSum_images(self):
         return self._sum_images
@@ -760,6 +770,7 @@ class XSDataMXCuBEParameters(XSData):
     sum_images = property(
         getSum_images, setSum_images, delSum_images, "Property for sum_images"
     )
+
     # Methods and properties for the 'detector_mode' attribute
     def getDetector_mode(self):
         return self._detector_mode
@@ -776,6 +787,7 @@ class XSDataMXCuBEParameters(XSData):
         delDetector_mode,
         "Property for detector_mode",
     )
+
     # Methods and properties for the 'mad_energies' attribute
     def getMad_energies(self):
         return self._mad_energies
@@ -789,6 +801,7 @@ class XSDataMXCuBEParameters(XSData):
     mad_energies = property(
         getMad_energies, setMad_energies, delMad_energies, "Property for mad_energies"
     )
+
     # Methods and properties for the 'comments' attribute
     def getComments(self):
         return self._comments
@@ -816,6 +829,7 @@ class XSDataMXCuBEParameters(XSData):
     osc_range = property(
         getOsc_range, setOsc_range, delOsc_range, "Property for osc_range"
     )
+
     # Methods and properties for the 'first_image' attribute
     def getFirst_image(self):
         return self._first_image
@@ -832,6 +846,7 @@ class XSDataMXCuBEParameters(XSData):
     first_image = property(
         getFirst_image, setFirst_image, delFirst_image, "Property for first_image"
     )
+
     # Methods and properties for the 'template' attribute
     def getTemplate(self):
         return self._template
@@ -859,6 +874,7 @@ class XSDataMXCuBEParameters(XSData):
     kappaStart = property(
         getKappaStart, setKappaStart, delKappaStart, "Property for kappaStart"
     )
+
     # Methods and properties for the 'processing' attribute
     def getProcessing(self):
         return self._processing
@@ -872,6 +888,7 @@ class XSDataMXCuBEParameters(XSData):
     processing = property(
         getProcessing, setProcessing, delProcessing, "Property for processing"
     )
+
     # Methods and properties for the 'inverse_beam' attribute
     def getInverse_beam(self):
         return self._inverse_beam
@@ -888,6 +905,7 @@ class XSDataMXCuBEParameters(XSData):
     inverse_beam = property(
         getInverse_beam, setInverse_beam, delInverse_beam, "Property for inverse_beam"
     )
+
     # Methods and properties for the 'number_images' attribute
     def getNumber_images(self):
         return self._number_images
@@ -907,6 +925,7 @@ class XSDataMXCuBEParameters(XSData):
         delNumber_images,
         "Property for number_images",
     )
+
     # Methods and properties for the 'current_detdistance' attribute
     def getCurrent_detdistance(self):
         return self._current_detdistance
@@ -926,6 +945,7 @@ class XSDataMXCuBEParameters(XSData):
         delCurrent_detdistance,
         "Property for current_detdistance",
     )
+
     # Methods and properties for the 'residues' attribute
     def getResidues(self):
         return self._residues
@@ -953,6 +973,7 @@ class XSDataMXCuBEParameters(XSData):
     run_number = property(
         getRun_number, setRun_number, delRun_number, "Property for run_number"
     )
+
     # Methods and properties for the 'current_wavelength' attribute
     def getCurrent_wavelength(self):
         return self._current_wavelength
@@ -972,6 +993,7 @@ class XSDataMXCuBEParameters(XSData):
         delCurrent_wavelength,
         "Property for current_wavelength",
     )
+
     # Methods and properties for the 'phiStart' attribute
     def getPhiStart(self):
         return self._phiStart
@@ -999,6 +1021,7 @@ class XSDataMXCuBEParameters(XSData):
     anomalous = property(
         getAnomalous, setAnomalous, delAnomalous, "Property for anomalous"
     )
+
     # Methods and properties for the 'number_passes' attribute
     def getNumber_passes(self):
         return self._number_passes
@@ -1018,6 +1041,7 @@ class XSDataMXCuBEParameters(XSData):
         delNumber_passes,
         "Property for number_passes",
     )
+
     # Methods and properties for the 'directory' attribute
     def getDirectory(self):
         return self._directory
@@ -1031,6 +1055,7 @@ class XSDataMXCuBEParameters(XSData):
     directory = property(
         getDirectory, setDirectory, delDirectory, "Property for directory"
     )
+
     # Methods and properties for the 'current_energy' attribute
     def getCurrent_energy(self):
         return self._current_energy
@@ -1050,6 +1075,7 @@ class XSDataMXCuBEParameters(XSData):
         delCurrent_energy,
         "Property for current_energy",
     )
+
     # Methods and properties for the 'current_osc_start' attribute
     def getCurrent_osc_start(self):
         return self._current_osc_start
@@ -1069,6 +1095,7 @@ class XSDataMXCuBEParameters(XSData):
         delCurrent_osc_start,
         "Property for current_osc_start",
     )
+
     # Methods and properties for the 'output_file' attribute
     def getOutput_file(self):
         return self._output_file
@@ -1082,6 +1109,7 @@ class XSDataMXCuBEParameters(XSData):
     output_file = property(
         getOutput_file, setOutput_file, delOutput_file, "Property for output_file"
     )
+
     # Methods and properties for the 'transmission' attribute
     def getTransmission(self):
         return self._transmission
@@ -1371,12 +1399,10 @@ class XSDataMXCuBEParameters(XSData):
             )
         else:
             warnEmptyAttribute("transmission", "float")
-
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
-
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "sessionId":
             if child_.firstChild:
@@ -1776,6 +1802,7 @@ class XSDataMXCuBEParameters(XSData):
         return rootObj
 
     parseString = staticmethod(parseString)
+
     # Static method for parsing a file
     def parseFile(_inFilePath):
         doc = minidom.parse(_inFilePath)
@@ -1794,6 +1821,7 @@ class XSDataInputMXCuBE(XSDataInput):
     def __init__(
         self,
         configuration=None,
+        currentResolution=None,
         token=None,
         htmlDir=None,
         dataSet=None,
@@ -1814,7 +1842,7 @@ class XSDataInputMXCuBE(XSDataInput):
                 "ERROR! XSDataInputMXCuBE constructor argument 'characterisationInput' is not XSDataInputCharacterisation but %s"
                 % self._characterisationInput.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
         if dataCollectionId is None:
             self._dataCollectionId = None
         elif dataCollectionId.__class__.__name__ == "XSDataInteger":
@@ -1824,7 +1852,7 @@ class XSDataInputMXCuBE(XSDataInput):
                 "ERROR! XSDataInputMXCuBE constructor argument 'dataCollectionId' is not XSDataInteger but %s"
                 % self._dataCollectionId.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
         if diffractionPlan is None:
             self._diffractionPlan = None
         elif diffractionPlan.__class__.__name__ == "XSDataDiffractionPlan":
@@ -1834,7 +1862,7 @@ class XSDataInputMXCuBE(XSDataInput):
                 "ERROR! XSDataInputMXCuBE constructor argument 'diffractionPlan' is not XSDataDiffractionPlan but %s"
                 % self._diffractionPlan.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
         if experimentalCondition is None:
             self._experimentalCondition = None
         elif experimentalCondition.__class__.__name__ == "XSDataExperimentalCondition":
@@ -1844,7 +1872,7 @@ class XSDataInputMXCuBE(XSDataInput):
                 "ERROR! XSDataInputMXCuBE constructor argument 'experimentalCondition' is not XSDataExperimentalCondition but %s"
                 % self._experimentalCondition.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
         if outputFileDirectory is None:
             self._outputFileDirectory = None
         elif outputFileDirectory.__class__.__name__ == "XSDataFile":
@@ -1854,7 +1882,7 @@ class XSDataInputMXCuBE(XSDataInput):
                 "ERROR! XSDataInputMXCuBE constructor argument 'outputFileDirectory' is not XSDataFile but %s"
                 % self._outputFileDirectory.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
         if sample is None:
             self._sample = None
         elif sample.__class__.__name__ == "XSDataSampleCrystalMM":
@@ -1864,7 +1892,7 @@ class XSDataInputMXCuBE(XSDataInput):
                 "ERROR! XSDataInputMXCuBE constructor argument 'sample' is not XSDataSampleCrystalMM but %s"
                 % self._sample.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
         if dataSet is None:
             self._dataSet = []
         elif dataSet.__class__.__name__ == "list":
@@ -1874,7 +1902,7 @@ class XSDataInputMXCuBE(XSDataInput):
                 "ERROR! XSDataInputMXCuBE constructor argument 'dataSet' is not list but %s"
                 % self._dataSet.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
         if htmlDir is None:
             self._htmlDir = None
         elif htmlDir.__class__.__name__ == "XSDataFile":
@@ -1884,7 +1912,7 @@ class XSDataInputMXCuBE(XSDataInput):
                 "ERROR! XSDataInputMXCuBE constructor argument 'htmlDir' is not XSDataFile but %s"
                 % self._htmlDir.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
         if token is None:
             self._token = None
         elif token.__class__.__name__ == "XSDataString":
@@ -1894,8 +1922,17 @@ class XSDataInputMXCuBE(XSDataInput):
                 "ERROR! XSDataInputMXCuBE constructor argument 'token' is not XSDataString but %s"
                 % self._token.__class__.__name__
             )
-            raise Exception(strMessage)
-
+            raise BaseException(strMessage)
+        if currentResolution is None:
+            self._currentResolution = None
+        elif currentResolution.__class__.__name__ == "XSDataDouble":
+            self._currentResolution = currentResolution
+        else:
+            strMessage = (
+                "ERROR! XSDataInputMXCuBE constructor argument 'currentResolution' is not XSDataDouble but %s"
+                % self._currentResolution.__class__.__name__
+            )
+            raise BaseException(strMessage)
     # Methods and properties for the 'characterisationInput' attribute
     def getCharacterisationInput(self):
         return self._characterisationInput
@@ -1910,7 +1947,7 @@ class XSDataInputMXCuBE(XSDataInput):
                 "ERROR! XSDataInputMXCuBE.setCharacterisationInput argument is not XSDataInputCharacterisation but %s"
                 % characterisationInput.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
 
     def delCharacterisationInput(self):
         self._characterisationInput = None
@@ -1921,6 +1958,7 @@ class XSDataInputMXCuBE(XSDataInput):
         delCharacterisationInput,
         "Property for characterisationInput",
     )
+
     # Methods and properties for the 'dataCollectionId' attribute
     def getDataCollectionId(self):
         return self._dataCollectionId
@@ -1935,7 +1973,7 @@ class XSDataInputMXCuBE(XSDataInput):
                 "ERROR! XSDataInputMXCuBE.setDataCollectionId argument is not XSDataInteger but %s"
                 % dataCollectionId.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
 
     def delDataCollectionId(self):
         self._dataCollectionId = None
@@ -1946,6 +1984,7 @@ class XSDataInputMXCuBE(XSDataInput):
         delDataCollectionId,
         "Property for dataCollectionId",
     )
+
     # Methods and properties for the 'diffractionPlan' attribute
     def getDiffractionPlan(self):
         return self._diffractionPlan
@@ -1960,7 +1999,7 @@ class XSDataInputMXCuBE(XSDataInput):
                 "ERROR! XSDataInputMXCuBE.setDiffractionPlan argument is not XSDataDiffractionPlan but %s"
                 % diffractionPlan.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
 
     def delDiffractionPlan(self):
         self._diffractionPlan = None
@@ -1971,6 +2010,7 @@ class XSDataInputMXCuBE(XSDataInput):
         delDiffractionPlan,
         "Property for diffractionPlan",
     )
+
     # Methods and properties for the 'experimentalCondition' attribute
     def getExperimentalCondition(self):
         return self._experimentalCondition
@@ -1985,7 +2025,7 @@ class XSDataInputMXCuBE(XSDataInput):
                 "ERROR! XSDataInputMXCuBE.setExperimentalCondition argument is not XSDataExperimentalCondition but %s"
                 % experimentalCondition.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
 
     def delExperimentalCondition(self):
         self._experimentalCondition = None
@@ -1996,6 +2036,7 @@ class XSDataInputMXCuBE(XSDataInput):
         delExperimentalCondition,
         "Property for experimentalCondition",
     )
+
     # Methods and properties for the 'outputFileDirectory' attribute
     def getOutputFileDirectory(self):
         return self._outputFileDirectory
@@ -2010,7 +2051,7 @@ class XSDataInputMXCuBE(XSDataInput):
                 "ERROR! XSDataInputMXCuBE.setOutputFileDirectory argument is not XSDataFile but %s"
                 % outputFileDirectory.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
 
     def delOutputFileDirectory(self):
         self._outputFileDirectory = None
@@ -2021,6 +2062,7 @@ class XSDataInputMXCuBE(XSDataInput):
         delOutputFileDirectory,
         "Property for outputFileDirectory",
     )
+
     # Methods and properties for the 'sample' attribute
     def getSample(self):
         return self._sample
@@ -2035,7 +2077,7 @@ class XSDataInputMXCuBE(XSDataInput):
                 "ERROR! XSDataInputMXCuBE.setSample argument is not XSDataSampleCrystalMM but %s"
                 % sample.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
 
     def delSample(self):
         self._sample = None
@@ -2055,17 +2097,16 @@ class XSDataInputMXCuBE(XSDataInput):
                 "ERROR! XSDataInputMXCuBE.setDataSet argument is not list but %s"
                 % dataSet.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
 
     def delDataSet(self):
         self._dataSet = None
 
     dataSet = property(getDataSet, setDataSet, delDataSet, "Property for dataSet")
-
     def addDataSet(self, value):
         if value is None:
             strMessage = "ERROR! XSDataInputMXCuBE.addDataSet argument is None"
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
         elif value.__class__.__name__ == "XSDataMXCuBEDataSet":
             self._dataSet.append(value)
         else:
@@ -2073,19 +2114,18 @@ class XSDataInputMXCuBE(XSDataInput):
                 "ERROR! XSDataInputMXCuBE.addDataSet argument is not XSDataMXCuBEDataSet but %s"
                 % value.__class__.__name__
             )
-            raise Exception(strMessage)
-
+            raise BaseException(strMessage)
     def insertDataSet(self, index, value):
         if index is None:
             strMessage = (
                 "ERROR! XSDataInputMXCuBE.insertDataSet argument 'index' is None"
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
         if value is None:
             strMessage = (
                 "ERROR! XSDataInputMXCuBE.insertDataSet argument 'value' is None"
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
         elif value.__class__.__name__ == "XSDataMXCuBEDataSet":
             self._dataSet[index] = value
         else:
@@ -2093,8 +2133,7 @@ class XSDataInputMXCuBE(XSDataInput):
                 "ERROR! XSDataInputMXCuBE.addDataSet argument is not XSDataMXCuBEDataSet but %s"
                 % value.__class__.__name__
             )
-            raise Exception(strMessage)
-
+            raise BaseException(strMessage)
     # Methods and properties for the 'htmlDir' attribute
     def getHtmlDir(self):
         return self._htmlDir
@@ -2109,7 +2148,7 @@ class XSDataInputMXCuBE(XSDataInput):
                 "ERROR! XSDataInputMXCuBE.setHtmlDir argument is not XSDataFile but %s"
                 % htmlDir.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
 
     def delHtmlDir(self):
         self._htmlDir = None
@@ -2129,12 +2168,38 @@ class XSDataInputMXCuBE(XSDataInput):
                 "ERROR! XSDataInputMXCuBE.setToken argument is not XSDataString but %s"
                 % token.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
 
     def delToken(self):
         self._token = None
 
     token = property(getToken, setToken, delToken, "Property for token")
+
+    # Methods and properties for the 'currentResolution' attribute
+    def getCurrentResolution(self):
+        return self._currentResolution
+
+    def setCurrentResolution(self, currentResolution):
+        if currentResolution is None:
+            self._currentResolution = None
+        elif currentResolution.__class__.__name__ == "XSDataDouble":
+            self._currentResolution = currentResolution
+        else:
+            strMessage = (
+                "ERROR! XSDataInputMXCuBE.setCurrentResolution argument is not XSDataDouble but %s"
+                % currentResolution.__class__.__name__
+            )
+            raise BaseException(strMessage)
+
+    def delCurrentResolution(self):
+        self._currentResolution = None
+
+    currentResolution = property(
+        getCurrentResolution,
+        setCurrentResolution,
+        delCurrentResolution,
+        "Property for currentResolution",
+    )
 
     def export(self, outfile, level, name_="XSDataInputMXCuBE"):
         showIndent(outfile, level)
@@ -2167,12 +2232,13 @@ class XSDataInputMXCuBE(XSDataInput):
             self.htmlDir.export(outfile, level, name_="htmlDir")
         if self._token is not None:
             self.token.export(outfile, level, name_="token")
+        if self._currentResolution is not None:
+            self.currentResolution.export(outfile, level, name_="currentResolution")
 
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
-
     def buildChildren(self, child_, nodeName_):
         if (
             child_.nodeType == Node.ELEMENT_NODE
@@ -2218,6 +2284,10 @@ class XSDataInputMXCuBE(XSDataInput):
             obj_ = XSDataString()
             obj_.build(child_)
             self.setToken(obj_)
+        elif child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "currentResolution":
+            obj_ = XSDataDouble()
+            obj_.build(child_)
+            self.setCurrentResolution(obj_)
         XSDataInput.buildChildren(self, child_, nodeName_)
 
     # Method for marshalling an object
@@ -2260,6 +2330,7 @@ class XSDataInputMXCuBE(XSDataInput):
         return rootObj
 
     parseString = staticmethod(parseString)
+
     # Static method for parsing a file
     def parseFile(_inFilePath):
         doc = minidom.parse(_inFilePath)
@@ -2296,7 +2367,7 @@ class XSDataResultMXCuBE(XSDataResult):
                 "ERROR! XSDataResultMXCuBE constructor argument 'characterisationExecutiveSummary' is not XSDataString but %s"
                 % self._characterisationExecutiveSummary.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
         if characterisationResult is None:
             self._characterisationResult = None
         elif (
@@ -2308,7 +2379,7 @@ class XSDataResultMXCuBE(XSDataResult):
                 "ERROR! XSDataResultMXCuBE constructor argument 'characterisationResult' is not XSDataResultCharacterisation but %s"
                 % self._characterisationResult.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
         if collectionPlan is None:
             self._collectionPlan = []
         elif collectionPlan.__class__.__name__ == "list":
@@ -2318,7 +2389,7 @@ class XSDataResultMXCuBE(XSDataResult):
                 "ERROR! XSDataResultMXCuBE constructor argument 'collectionPlan' is not list but %s"
                 % self._collectionPlan.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
         if listOfOutputFiles is None:
             self._listOfOutputFiles = None
         elif listOfOutputFiles.__class__.__name__ == "XSDataString":
@@ -2328,7 +2399,7 @@ class XSDataResultMXCuBE(XSDataResult):
                 "ERROR! XSDataResultMXCuBE constructor argument 'listOfOutputFiles' is not XSDataString but %s"
                 % self._listOfOutputFiles.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
         if outputFileDictionary is None:
             self._outputFileDictionary = None
         elif outputFileDictionary.__class__.__name__ == "XSDataDictionary":
@@ -2338,7 +2409,7 @@ class XSDataResultMXCuBE(XSDataResult):
                 "ERROR! XSDataResultMXCuBE constructor argument 'outputFileDictionary' is not XSDataDictionary but %s"
                 % self._outputFileDictionary.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
         if htmlPage is None:
             self._htmlPage = None
         elif htmlPage.__class__.__name__ == "XSDataFile":
@@ -2348,7 +2419,7 @@ class XSDataResultMXCuBE(XSDataResult):
                 "ERROR! XSDataResultMXCuBE constructor argument 'htmlPage' is not XSDataFile but %s"
                 % self._htmlPage.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
         if screeningId is None:
             self._screeningId = None
         elif screeningId.__class__.__name__ == "XSDataInteger":
@@ -2358,8 +2429,7 @@ class XSDataResultMXCuBE(XSDataResult):
                 "ERROR! XSDataResultMXCuBE constructor argument 'screeningId' is not XSDataInteger but %s"
                 % self._screeningId.__class__.__name__
             )
-            raise Exception(strMessage)
-
+            raise BaseException(strMessage)
     # Methods and properties for the 'characterisationExecutiveSummary' attribute
     def getCharacterisationExecutiveSummary(self):
         return self._characterisationExecutiveSummary
@@ -2374,7 +2444,7 @@ class XSDataResultMXCuBE(XSDataResult):
                 "ERROR! XSDataResultMXCuBE.setCharacterisationExecutiveSummary argument is not XSDataString but %s"
                 % characterisationExecutiveSummary.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
 
     def delCharacterisationExecutiveSummary(self):
         self._characterisationExecutiveSummary = None
@@ -2385,6 +2455,7 @@ class XSDataResultMXCuBE(XSDataResult):
         delCharacterisationExecutiveSummary,
         "Property for characterisationExecutiveSummary",
     )
+
     # Methods and properties for the 'characterisationResult' attribute
     def getCharacterisationResult(self):
         return self._characterisationResult
@@ -2401,7 +2472,7 @@ class XSDataResultMXCuBE(XSDataResult):
                 "ERROR! XSDataResultMXCuBE.setCharacterisationResult argument is not XSDataResultCharacterisation but %s"
                 % characterisationResult.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
 
     def delCharacterisationResult(self):
         self._characterisationResult = None
@@ -2412,6 +2483,7 @@ class XSDataResultMXCuBE(XSDataResult):
         delCharacterisationResult,
         "Property for characterisationResult",
     )
+
     # Methods and properties for the 'collectionPlan' attribute
     def getCollectionPlan(self):
         return self._collectionPlan
@@ -2426,7 +2498,7 @@ class XSDataResultMXCuBE(XSDataResult):
                 "ERROR! XSDataResultMXCuBE.setCollectionPlan argument is not list but %s"
                 % collectionPlan.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
 
     def delCollectionPlan(self):
         self._collectionPlan = None
@@ -2441,7 +2513,7 @@ class XSDataResultMXCuBE(XSDataResult):
     def addCollectionPlan(self, value):
         if value is None:
             strMessage = "ERROR! XSDataResultMXCuBE.addCollectionPlan argument is None"
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
         elif value.__class__.__name__ == "XSDataCollectionPlan":
             self._collectionPlan.append(value)
         else:
@@ -2449,15 +2521,14 @@ class XSDataResultMXCuBE(XSDataResult):
                 "ERROR! XSDataResultMXCuBE.addCollectionPlan argument is not XSDataCollectionPlan but %s"
                 % value.__class__.__name__
             )
-            raise Exception(strMessage)
-
+            raise BaseException(strMessage)
     def insertCollectionPlan(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataResultMXCuBE.insertCollectionPlan argument 'index' is None"
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
         if value is None:
             strMessage = "ERROR! XSDataResultMXCuBE.insertCollectionPlan argument 'value' is None"
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
         elif value.__class__.__name__ == "XSDataCollectionPlan":
             self._collectionPlan[index] = value
         else:
@@ -2465,8 +2536,7 @@ class XSDataResultMXCuBE(XSDataResult):
                 "ERROR! XSDataResultMXCuBE.addCollectionPlan argument is not XSDataCollectionPlan but %s"
                 % value.__class__.__name__
             )
-            raise Exception(strMessage)
-
+            raise BaseException(strMessage)
     # Methods and properties for the 'listOfOutputFiles' attribute
     def getListOfOutputFiles(self):
         return self._listOfOutputFiles
@@ -2481,7 +2551,7 @@ class XSDataResultMXCuBE(XSDataResult):
                 "ERROR! XSDataResultMXCuBE.setListOfOutputFiles argument is not XSDataString but %s"
                 % listOfOutputFiles.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
 
     def delListOfOutputFiles(self):
         self._listOfOutputFiles = None
@@ -2492,6 +2562,7 @@ class XSDataResultMXCuBE(XSDataResult):
         delListOfOutputFiles,
         "Property for listOfOutputFiles",
     )
+
     # Methods and properties for the 'outputFileDictionary' attribute
     def getOutputFileDictionary(self):
         return self._outputFileDictionary
@@ -2506,7 +2577,7 @@ class XSDataResultMXCuBE(XSDataResult):
                 "ERROR! XSDataResultMXCuBE.setOutputFileDictionary argument is not XSDataDictionary but %s"
                 % outputFileDictionary.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
 
     def delOutputFileDictionary(self):
         self._outputFileDictionary = None
@@ -2517,6 +2588,7 @@ class XSDataResultMXCuBE(XSDataResult):
         delOutputFileDictionary,
         "Property for outputFileDictionary",
     )
+
     # Methods and properties for the 'htmlPage' attribute
     def getHtmlPage(self):
         return self._htmlPage
@@ -2531,7 +2603,7 @@ class XSDataResultMXCuBE(XSDataResult):
                 "ERROR! XSDataResultMXCuBE.setHtmlPage argument is not XSDataFile but %s"
                 % htmlPage.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
 
     def delHtmlPage(self):
         self._htmlPage = None
@@ -2551,7 +2623,7 @@ class XSDataResultMXCuBE(XSDataResult):
                 "ERROR! XSDataResultMXCuBE.setScreeningId argument is not XSDataInteger but %s"
                 % screeningId.__class__.__name__
             )
-            raise Exception(strMessage)
+            raise BaseException(strMessage)
 
     def delScreeningId(self):
         self._screeningId = None
@@ -2594,7 +2666,6 @@ class XSDataResultMXCuBE(XSDataResult):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
-
     def buildChildren(self, child_, nodeName_):
         if (
             child_.nodeType == Node.ELEMENT_NODE
@@ -2674,6 +2745,7 @@ class XSDataResultMXCuBE(XSDataResult):
         return rootObj
 
     parseString = staticmethod(parseString)
+
     # Static method for parsing a file
     def parseFile(_inFilePath):
         doc = minidom.parse(_inFilePath)

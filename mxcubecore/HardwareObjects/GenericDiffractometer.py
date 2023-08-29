@@ -897,7 +897,7 @@ class GenericDiffractometer(HardwareObject):
         while self.automatic_centring_try_count > 0:
             if self.use_sample_centring:
                 self.current_centring_procedure = sample_centring.start_auto(
-                    HWR.beamline.sample_view.camera,
+                    HWR.beamline.sample_view,
                     {
                         "phi": self.centring_phi,
                         "phiy": self.centring_phiy,

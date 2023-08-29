@@ -91,6 +91,7 @@ default_acquisition_parameters:
         opt_sad: False
         account_rad_damage: True
         strategy_complexity: 0
+        strategy_program: Optimal
         max_crystal_vdim: 1.0
         min_crystal_vdim: 1.0
         max_crystal_vphi: 1.0

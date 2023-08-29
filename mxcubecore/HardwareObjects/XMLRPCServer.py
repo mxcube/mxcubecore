@@ -18,6 +18,7 @@ import time
 import json
 import atexit
 import jsonpickle
+import xml
 
 from functools import reduce
 
@@ -165,6 +166,7 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.addGphlWorkflow)
         self._server.register_function(self.get_gphl_workflow_status)
         self._server.register_function(self.clearISPyBClientGroupId)
+        self._server.register_function(self.setCharacterisationResult)
 
         # Register functions from modules specified in <apis> element
         if self.has_object("apis"):
@@ -495,7 +497,7 @@ class XMLRPCServer(HardwareObject):
         """
         Saves the current position as a centered position.
         """
-        HWR.beamline.diffractometer.saveCurrentPos()
+        HWR.beamline.diffractometer.save_current_position()
         return True
 
     def cryo_temperature(self):
@@ -695,6 +697,11 @@ class XMLRPCServer(HardwareObject):
 
     def clearISPyBClientGroupId(self):
         HWR.beamline.lims.group_id = None
+
+    def setCharacterisationResult(self, characterisationResult):
+        HWR.beamline.characterisation.characterisationResult = (
+            xml.sax.saxutils.unescape(characterisationResult)
+        )
 
     def addXrayCentring(self, parent_node_id, **centring_parameters):
         """Add Xray centring to queue."""

@@ -1,6 +1,6 @@
 <equipment class="EnergyScan">
   <specversion>lid232:eh1</specversion>
-  <command type="spec" name="doEnergyScan">eprodc_do_energy_scan</command>
+  <command type="spec" name="do_energy_scan">eprodc_do_energy_scan</command>
   <channel type="spec" name="scanStatusMsg">eprodc_energy_scan_msg</channel>
   <channel type="spec" name="hc_over_e">hc_over_e</channel>
   <channel type="spec" name="escan_args">MXCOLLECT_PARS</channel>

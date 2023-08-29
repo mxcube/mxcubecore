@@ -274,7 +274,7 @@ class Microdiff(MiniDiff.MiniDiff):
     def _update_value(self, value=None):
         if value is None:
             value = self.get_current_phase()
-        self.emit("valueChanged", (value))
+        self.emit("phaseChanged", (value))
 
     def _update_state(self, value):
         self.update_state(
@@ -371,69 +371,37 @@ class Microdiff(MiniDiff.MiniDiff):
         logging.getLogger("HWR").info("Moving backlight in")
         light_hwobj = self.get_object_by_role("BackLightSwitch")
         light_hwobj.set_value(light_hwobj.VALUES.IN)
-        self.wait_ready(20)
+        self._wait_ready(20)
 
     def set_light_out(self):
         """Set the backlight out - used by the XMLRPC calls"""
         logging.getLogger("HWR").info("Moving backlight out")
         light_hwobj = self.get_object_by_role("BackLightSwitch")
         light_hwobj.set_value(light_hwobj.VALUES.OUT)
-        self.wait_ready(20)
-
-    def run_custom_set_phase_script(self, phase, wait=False, timeout=None):
-        logging.getLogger("HWR").info("############################################")
-        logging.getLogger("HWR").info("changing phase in Microdiff to " + str(phase))
-        if self._ready():
-            logging.getLogger("HWR").info("ready is True")
-            if phase in self.phases:
-                logging.getLogger("HWR").info(
-                    "phase is in DataCollection/BeamLocation/Transfer/Centring"
-                )
-                if phase in ["BeamLocation", "Transfer", "Centring"]:
-                    logging.getLogger("HWR").info(
-                        "phase is in BeamLocation/Transfer/Centring"
-                    )
-                    self.close_detector_cover()
-                    self.phase_prepare(phase)
-
-                if phase == "Transfer":
-                    logging.getLogger("HWR").info("phase = Transfer")
-                    self.run_script("ChangePhase_transfer")
-                if phase == "Centring":
-                    logging.getLogger("HWR").info("phase = Centring")
-                    self.run_script("ChangePhase_centring")
-                if phase == "DataCollection":
-                    logging.getLogger("HWR").info("phase = DataCollection")
-                    self.run_script("ChangePhase_datacollection")
-                if wait:
-                    if not timeout:
-                        timeout = 40
-                    self._wait_ready(timeout)
-        else:
-            logging.getLogger("HWR").exception("")
-
-    def run_standard_set_phase(self, phase, wait=False, timeout=None):
-        if self._ready():
-            if phase in self.phases:
-                if phase in ["BeamLocation", "Transfer", "Centring"]:
-                    # self.close_detector_cover()
-                    self.phase_prepare(phase)
-
-                self.move_phase(phase)
-                if wait:
-                    if not timeout:
-                        timeout = 40
-                    self._wait_ready(timeout)
-        else:
-            logging.getLogger("HWR").exception("")
+        self._wait_ready(20)
 
     def set_phase(self, phase, wait=False, timeout=None):
+        """Set the phase"""
         _use_custom = self.get_property("use_custom_phase_script", False)
+        if not self._ready():
+            logging.getLogger("HWR").exception("MD not ready - phase not set.")
+            return
 
-        if _use_custom:
-            self.run_custom_set_phase_script(phase, wait, timeout)
-        else:
-            self.run_standard_set_phase(phase, wait, timeout)
+        if phase in self.phases:
+            if phase in ["BeamLocation", "Transfer"]:
+                self.close_detector_cover()
+            self.phase_prepare(phase)
+
+            if _use_custom:
+                script = "ChangePhase_" + phase.lower()
+                msg = f"Changing phase to {phase}, using pmac script"
+                logging.getLogger("user_level_log").info(msg)
+                self.run_script(script)
+            else:
+                self.move_phase(phase)
+            if wait:
+                timeout = timeout or 40
+                self._wait_ready(timeout)
 
     def get_current_phase(self):
         return self.readPhase.get_value()
@@ -467,7 +435,7 @@ class Microdiff(MiniDiff.MiniDiff):
             self._wait_ready()
         # print "end moving motors =============", time.time()
 
-    def oscilScan(self, start, end, exptime, number_of_images, wait=False):
+    def oscilScan(self, start, end, exptime, wait=False):
         if self.in_plate_mode():
             scan_speed = math.fabs(end - start) / exptime
             low_lim, hi_lim = map(float, self.scanLimits(scan_speed))
@@ -476,15 +444,12 @@ class Microdiff(MiniDiff.MiniDiff):
             elif end > hi_lim:
                 raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
 
-        servo_time = self.get_property("md_servo_time", 0.110)
         dead_time = HWR.beamline.detector.get_deadtime()
 
         self.scan_detector_gate_pulse_enabled.set_value(True)
-        self.scan_detector_gate_pulse_readout_time.set_value(
-            dead_time * 1000 + servo_time
-        )
+        self.scan_detector_gate_pulse_readout_time.set_value(dead_time * 1000)
 
-        self.nb_frames.set_value(number_of_images)
+        self.nb_frames.set_value(1)
 
         scan_params = "1\t%0.3f\t%0.3f\t%0.4f\t1" % (start, (end - start), exptime)
         scan = self.add_command(
@@ -503,9 +468,7 @@ class Microdiff(MiniDiff.MiniDiff):
             )  # timeout of 10 min # Changed on 20180406 Daniele, because of long exposure time set by users
             print("finished at ---------->", time.time())
 
-    def oscilScan4d(
-        self, start, end, exptime, number_of_images, motors_pos, wait=False
-    ):
+    def oscilScan4d(self, start, end, exptime, motors_pos, wait=False):
         if self.in_plate_mode():
             scan_speed = math.fabs(end - start) / exptime
             low_lim, hi_lim = map(float, self.scanLimits(scan_speed))
@@ -514,7 +477,7 @@ class Microdiff(MiniDiff.MiniDiff):
             elif end > hi_lim:
                 raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
 
-        self.nb_frames.set_value(number_of_images)
+        self.nb_frames.set_value(1)
         scan_params = "%0.3f\t%0.3f\t%f\t" % (start, (end - start), exptime)
         scan_params += "%0.3f\t" % motors_pos["1"]["phiy"]
         scan_params += "%0.3f\t" % motors_pos["1"]["phiz"]
@@ -554,12 +517,8 @@ class Microdiff(MiniDiff.MiniDiff):
         wait=False,
     ):
         self.scan_detector_gate_pulse_enabled.set_value(True)
-        servo_time = self.get_property("md_servo_time", 0.110)
-
-        self.scan_detector_gate_pulse_readout_time.set_value(
-            dead_time * 1000 + servo_time
-        )
-
+        dead_time = HWR.beamline.detector.get_deadtime()
+        self.scan_detector_gate_pulse_readout_time.set_value(dead_time * 1000)
         self.move_motors(mesh_center.as_dict())
         positions = self.get_positions()
 
@@ -573,7 +532,7 @@ class Microdiff(MiniDiff.MiniDiff):
         params += "%0.3f\t" % positions["sampy"]
         params += "%d\t" % mesh_num_lines
         params += "%d\t" % (mesh_total_nb_frames / mesh_num_lines)
-        params += "%0.3f\t" % (exptime / mesh_num_lines)
+        params += "%0.6f\t" % (exptime / mesh_num_lines)
         params += "%r\t" % True
         params += "%r\t" % True
         params += "%r\t" % self.get_property("use_fast_mesh", True)
@@ -804,6 +763,7 @@ class Microdiff(MiniDiff.MiniDiff):
             self.beam_position_horizontal.get_value(),
             self.beam_position_vertical.get_value(),
         )
+
 
 def to_float(d):
     for k, v in d.items():

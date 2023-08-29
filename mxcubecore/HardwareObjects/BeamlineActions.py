@@ -9,6 +9,14 @@ from mxcubecore.TaskUtils import task
 from mxcubecore.CommandContainer import CommandObject
 from mxcubecore.utils.conversion import camel_to_snake
 
+from mxcubecore.CommandContainer import (
+    CommandObject,
+    TWO_STATE_COMMAND_T,
+    PROCEDURE_COMMAND_T,
+    ARGUMENT_TYPE_JSON_SCHEMA,
+    ARGUMENT_TYPE_LIST,
+)
+
 import gevent
 import logging
 

@@ -203,9 +203,6 @@ class MiniDiff(Equipment):
         self.kappaMotor = self.get_object_by_role("kappa")
         self.kappaPhiMotor = self.get_object_by_role("kappa_phi")
 
-        # mh 2013-11-05:why is the channel read directly? disabled for the moment
-        # HWR.beamline.sample_view.camera.add_channel({ 'type': 'tango', 'name': 'jpegImage' }, "JpegImage")
-
         self.centringPhi = sample_centring.CentringMotor(self.phiMotor, direction=-1)
         self.centringPhiz = sample_centring.CentringMotor(
             self.phizMotor, reference_position=phiz_ref
@@ -297,16 +294,7 @@ class MiniDiff(Equipment):
                 "MiniDiff: sampx motor is not defined in minidiff equipment %s",
                 str(self.name()),
             )
-        # if HWR.beamline.sample_view.camera is None:
-        #     logging.getLogger("HWR").error(
-        #         "MiniDiff: camera is not defined in minidiff equipment %s",
-        #         str(self.name()),
-        #     )
-        # else:
-        #     self.imgWidth, self.imgHeight = (
-        #         HWR.beamline.sample_view.camera.get_width(),
-        #         HWR.beamline.sample_view.camera.get_height(),
-        #     )
+
         if HWR.beamline.sample_changer is None:
             logging.getLogger("HWR").warning(
                 "MiniDiff: sample changer is not defined in minidiff equipment %s",
@@ -440,7 +428,7 @@ class MiniDiff(Equipment):
         self.emit("diffractometerMoved", ())
 
     def is_ready(self):
-        return self.get_state().name == "READY"
+        return self.get_state() and self.get_state().name == "READY"
 
     def is_valid(self):
         return (
@@ -718,7 +706,7 @@ class MiniDiff(Equipment):
     def currentCentringMethod(self):
         return self.currentCentringMethod
 
-    def saveCurrentPos(self):
+    def save_current_position(self):
         self.centringStatus["motors"] = self.get_positions()
         self.accept_centring()
 
@@ -903,7 +891,7 @@ class MiniDiff(Equipment):
 
         self.wait_ready(30)
         self.current_centring_procedure = sample_centring.start_auto(
-            HWR.beamline.sample_view.camera,
+            HWR.beamline.sample_view,
             {
                 "phi": self.centringPhi,
                 "phiy": self.centringPhiy,
@@ -943,6 +931,7 @@ class MiniDiff(Equipment):
         self.centringStatus["valid"] = True
         self.centringStatus["accepted"] = True
         self.emit("centringAccepted", (True, self.get_centring_status()))
+        logging.getLogger("HWR").info("DEBUG %s" % self.get_centring_status())
         logging.getLogger("user_level_log").info("Centring successful")
 
     def reject_centring(self):

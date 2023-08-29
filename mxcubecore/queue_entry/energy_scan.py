@@ -59,12 +59,12 @@ class EnergyScanQueueEntry(BaseQueueEntry):
 
             sample_lims_id = sample_model.lims_id
 
-            # No sample id, pass None to startEnergyScan
+            # No sample id, pass None to start_energy_scan
             if sample_lims_id == -1:
                 sample_lims_id = None
 
             self.energy_scan_task = gevent.spawn(
-                HWR.beamline.energy_scan.startEnergyScan,
+                HWR.beamline.energy_scan.start_energy_scan,
                 energy_scan.element_symbol,
                 energy_scan.edge,
                 energy_scan.path_template.directory,
@@ -150,7 +150,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
             chooch_graph_y1,
             chooch_graph_y2,
             title,
-        ) = HWR.beamline.energy_scan.doChooch(
+        ) = HWR.beamline.energy_scan.do_chooch(
             energy_scan.element_symbol,
             energy_scan.edge,
             energy_scan.path_template.directory,

@@ -163,7 +163,7 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
     def prepare_oscillation(self, start, osc_range, exptime, npass):
         return (start, start + osc_range)
 
-    def do_oscillation(self, start, end, exptime, npass):
+    def do_oscillation(self, start, end, exptime, shutterless, npass, first_frame):
         gevent.sleep(exptime)
 
     def start_acquisition(self, exptime, npass, first_frame):

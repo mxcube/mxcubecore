@@ -137,7 +137,7 @@ class PX2EnergyScanQueueEntry(EnergyScanQueueEntry):
                 scan_file_path,
             )
         )
-        egy_result = HWR.beamline.energy_scan.doChooch(
+        egy_result = HWR.beamline.energy_scan.do_chooch(
             energy_scan.element_symbol,
             energy_scan.edge,
             scan_file_archive_path,

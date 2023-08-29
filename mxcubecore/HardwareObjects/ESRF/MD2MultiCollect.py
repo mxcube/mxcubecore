@@ -66,7 +66,7 @@ class MD2MultiCollect(ESRFMultiCollect):
             # this has to be done before each chage of phase
             HWR.beamline.diffractometer.save_centring_positions()
             # not going to centring phase if in plate mode (too long)
-            HWR.beamline.diffractometer.set_phase("Centring", wait=True, timeout=200)
+            HWR.beamline.diffractometer.set_phase("Centring", wait=True, timeout=600)
 
         HWR.beamline.diffractometer.take_snapshots(number_of_snapshots, wait=True)
 
@@ -87,14 +87,16 @@ class MD2MultiCollect(ESRFMultiCollect):
         # has to be where the motors are and before changing the phase
         # diffr.get_command_object("save_centring_positions")()
 
-        # move to DataCollection phase
-        logging.getLogger("user_level_log").info("Moving MD2 to Data Collection")
-        diffr.set_phase("DataCollection", wait=True, timeout=200)
-
         # switch on the front light
         front_light_switch = diffr.get_object_by_role("FrontLightSwitch")
         front_light_switch.set_value(front_light_switch.VALUES.IN)
         # diffr.get_object_by_role("FrontLight").set_value(2)
+
+        # move to DataCollection phase
+        logging.getLogger("user_level_log").info("Moving MD2 to DataCollection")
+        # AB next 3 lines to speed up the data collection
+        # diffr.set_phase("DataCollection", wait=True, timeout=200)
+        diffr.set_phase("DataCollection", wait=False, timeout=0)
 
     @task
     def data_collection_cleanup(self):
@@ -102,12 +104,12 @@ class MD2MultiCollect(ESRFMultiCollect):
         self.close_fast_shutter()
 
     @task
-    def oscil(self, start, end, exptime, number_of_images, wait=True):
+    def oscil(self, start, end, exptime, npass, wait=True):
         diffr = self.get_object_by_role("diffractometer")
+        # make sure the diffractometer is ready to do the scan
+        diffr.wait_ready(100)
         if self.helical:
-            diffr.oscilScan4d(
-                start, end, exptime, number_of_images, self.helical_pos, wait=True
-            )
+            diffr.oscilScan4d(start, end, exptime, self.helical_pos, wait=True)
         elif self.mesh:
             det = HWR.beamline.detector
             latency_time = det.get_property("latecy_time_mesh") or det.get_deadtime()
@@ -147,7 +149,7 @@ class MD2MultiCollect(ESRFMultiCollect):
                 wait=True,
             )
         else:
-            diffr.oscilScan(start, end, exptime, number_of_images, wait=True)
+            diffr.oscilScan(start, end, exptime, wait=True)
 
     @task
     def prepare_acquisition(
@@ -166,7 +168,7 @@ class MD2MultiCollect(ESRFMultiCollect):
             number_of_images,
             comment,
             ext_gate,
-            self.mesh_num_lines
+            self.mesh_num_lines,
         )
 
     def open_fast_shutter(self):
@@ -197,7 +199,7 @@ class MD2MultiCollect(ESRFMultiCollect):
          - nb lines
          - nb frames per line
          - invert direction (boolean)  # NOT YET DONE
-         """
+        """
         self.mesh_num_lines = num_lines
         self.mesh_total_nb_frames = total_nb_frames
         self.mesh_range = mesh_range_param
