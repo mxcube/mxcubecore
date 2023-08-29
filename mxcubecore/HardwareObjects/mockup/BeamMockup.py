@@ -38,7 +38,7 @@ class BeamMockup(AbstractBeam):
 
         self._beam_size_dict["slits"] = [9999, 9999]
         self._beam_size_dict["aperture"] = [9999, 9999]
-        self._beam_position_on_screen = [318, 238]
+        self._beam_position_on_screen = [680, 512]
         self._beam_divergence = (0, 0)
 
     def init(self):
