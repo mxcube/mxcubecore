@@ -794,7 +794,7 @@ class __HardwareRepositoryClient:
                             "macro or function": str(cmd.command),
                         }
                     elif cmd.__class__.__name__ == "TacoCommand":
-                        dd = {"type": "taco", "device": cmd.deviceName}
+                        dd = {"type": "taco", "device": cmd.device_name}
 
                         try:
                             dd["imported ?"] = "yes" if cmd.device.imported else "no"
@@ -807,7 +807,7 @@ class __HardwareRepositoryClient:
                     elif cmd.__class__.__name__ == "TangoCommand":
                         d["commands"][cmd.userName()] = {
                             "type": "tango",
-                            "device": cmd.deviceName,
+                            "device": cmd.device_name,
                             "imported ?": (
                                 "no, invalid Tango device"
                                 if cmd.device is None
@@ -833,11 +833,11 @@ class __HardwareRepositoryClient:
                     elif chan.__class__.__name__ == "TangoChannel":
                         d["channels"][chan.userName()] = {
                             "type": "tango",
-                            "device": chan.deviceName,
+                            "device": chan.device_name,
                             "imported ?": chan.device is not None
                             and "yes"
                             or "no, invalid Tango device or attribute name",
-                            "attribute": str(chan.attributeName),
+                            "attribute": str(chan.attribute_name),
                         }
 
             if "SpecMotorA" in [

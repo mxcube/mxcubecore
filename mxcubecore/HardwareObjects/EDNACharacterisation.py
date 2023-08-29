@@ -265,9 +265,8 @@ class EDNACharacterisation(AbstractCharacterisation):
         for img_num in range(int(acquisition_parameters.num_images)):
             image_file = XSDataImage()
             path = XSDataString()
-            path.value = path_str % (img_num + 1)
-            image_file.path = path
-            image_file.number = XSDataInteger(img_num + 1)
+            path.setValue(path_str % (img_num + 1))
+            image_file.setPath(path)
             data_set.addImageFile(image_file)
 
         edna_input.addDataSet(data_set)

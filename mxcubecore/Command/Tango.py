@@ -35,6 +35,7 @@ from mxcubecore.CommandContainer import (
 )
 from mxcubecore import Poller
 from mxcubecore.dispatcher import saferef
+import numpy
 
 gevent_version = list(map(int, gevent.__version__.split(".")))
 
@@ -143,10 +144,10 @@ class TangoChannel(ChannelObject):
     _tangoEventsQueue = queue.Queue()
     _eventReceivers = {}
 
-    if gevent_version < [1, 3, 0]:
-        _tangoEventsProcessingTimer = getattr(gevent.get_hub().loop, "async")()
-    else:
-        _tangoEventsProcessingTimer = gevent.get_hub().loop.async_()
+    #if gevent_version < [1,3,0]:
+        #_tangoEventsProcessingTimer = gevent.get_hub().loop.async()
+    #else:
+    _tangoEventsProcessingTimer = gevent.get_hub().loop.async_()
 
     # start Tango events processing timer
     _tangoEventsProcessingTimer.start(process_tango_events)
@@ -324,9 +325,11 @@ class TangoChannel(ChannelObject):
 
     def update(self, value=Poller.NotInitializedValue):
 
-        if value == Poller.NotInitializedValue:
+        if isinstance(value, numpy.ndarray):
+            value = value
+        elif value == Poller.NotInitializedValue:
             value = self.get_value()
-        if isinstance(value, tuple):
+        elif isinstance(value, tuple):
             value = list(value)
 
         self.value = value
@@ -340,7 +343,11 @@ class TangoChannel(ChannelObject):
         else:
             value = self.device.read_attribute(self.attribute_name).value
 
-        if value != self.value:
+        
+        if isinstance(value, numpy.ndarray):
+            if any(value != self.value):
+                self.update(value)
+        elif value != self.value:
             self.update(value)
 
         return value
