@@ -427,6 +427,25 @@ class P11NanoDiff(GenericDiffractometer):
         self.current_phase = str(phase)
         self.emit("minidiffPhaseChanged", (self.current_phase,))
 
+    def stop_omega(self):
+        self.motor_hwobj_dict["phi"].abort()
+
+    def get_omega_position(self):
+        return self.motor_hwobj_dict["phi"].get_value()
+
+    def get_omega_velocity(self ):
+        return self.motor_hwobj_dict["phi"].get_velocity()
+
+    def set_omega_velocity(self, value):
+        return self.motor_hwobj_dict["phi"].set_velocity(value)
+
+    def omega_calibrate(self, value):
+        return self.motor_hwobj_dict["phi"].calibrate(value)
+
+    def wait_omega(self):
+        while self.motor_hwobj_dict["phi"].is_moving():
+            time.sleep(0.05)
+
     def get_point_from_line(self, point_one, point_two, index, images_num):
         return point_one.as_dict()
 

@@ -46,6 +46,7 @@ class TangoMotor(AbstractMotor):
         self.latest_position = None
         self.auto_on = False
         self.cmd_on = None
+        self.cmd_calibrate = None
 
         self.step_limits = None
 
@@ -126,6 +127,8 @@ class TangoMotor(AbstractMotor):
 
         self.chan_velocity = self.get_channel_object("velocity", optional=True)
 
+        self.cmd_calibrate = self.get_command_object("calibrate")
+
         # update values
         self.motor_state_changed()
         self.update_value()
@@ -188,6 +191,9 @@ class TangoMotor(AbstractMotor):
     def abort(self):
         """Stops motor movement"""
         self.cmd_stop()
+
+    def calibrate(self, value):
+        self.cmd_calibrate(value)
 
     def _set_value(self, value):
         """

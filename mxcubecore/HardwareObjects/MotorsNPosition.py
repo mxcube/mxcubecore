@@ -213,8 +213,8 @@ class MotorsNPosition(AbstractActuator):
 
         current_pos = {}
 
-        if self.name().lower() == "/pinhole":
-            self.log.debug("updating pinhole position")
+        #if self.name().lower() == "/pinhole":
+            #self.log.debug("updating pinhole position")
 
         for motorname in self.motorlist:
             current_pos[motorname] = self.motor_hwobjs[motorname].get_value()
@@ -236,7 +236,6 @@ class MotorsNPosition(AbstractActuator):
                     break
             else:
                 # found
-                self.log.debug(" Found position %s for object %s" % (name, self.name()))
                 for motorname in self.motorlist:
                     position = self._positions[name][motorname]
                     self.log.debug("     - motor %s is at %s" % (motorname, position))
