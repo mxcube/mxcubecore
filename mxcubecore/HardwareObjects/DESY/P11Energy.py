@@ -1,7 +1,7 @@
 # encoding: utf-8
-# 
+#
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -16,23 +16,25 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+
+__copyright__ = """ Copyright © 2010 - 2023 by MXCuBE Collaboration """
+__license__ = "LGPLv3+"
 
 from mxcubecore.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
 from mxcubecore.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
 
 import logging
 
-log= logging.getLogger("HWR")
+log = logging.getLogger("HWR")
 
 
 class P11Energy(AbstractEnergy):
-    
+
     _default_energy = 12.0
 
-
     def __init__(self, name):
-        super(P11Energy,self).__init__(name)
+        super(P11Energy, self).__init__(name)
 
     def init(self):
         self.chan_energy = self.get_channel_object("chanEnergy")
@@ -43,17 +45,19 @@ class P11Energy(AbstractEnergy):
         if self.chan_status is not None:
             self.chan_status.connectSignal("update", self.energy_state_changed)
 
-        limits = self.get_property('limits',None)
+        limits = self.get_property("limits", None)
 
         try:
-            limits = list(map(float,limits.split(',')))
+            limits = list(map(float, limits.split(",")))
         except Exception as e:
             log.error("P11Transmission - cannot parse limits: {}".format(str(e)))
             limits = None
 
         if limits is None:
-            log.error("P11Transmission - Cannot read LIMITS from configuration xml file.  Check values")
-            return 
+            log.error(
+                "P11Transmission - Cannot read LIMITS from configuration xml file.  Check values"
+            )
+            return
         else:
             self.set_limits(limits)
 
@@ -74,11 +78,11 @@ class P11Energy(AbstractEnergy):
 
         _state = str(state)
 
-        if _state == 'ON':
+        if _state == "ON":
             self._state = self.STATES.READY
-        elif _state == 'MOVING':
+        elif _state == "MOVING":
             self._state = self.STATES.BUSY
-        elif _state == 'DISABLED':
+        elif _state == "DISABLED":
             self._state = self.STATES.OFF
         else:
             self._state = self.STATES.FAULT
@@ -100,7 +104,9 @@ class P11Energy(AbstractEnergy):
             self._nominal_value = energy
             self._wavelength_value = 12.3984 / energy
             if self._wavelength_value is not None:
-                self.emit("energyChanged", (self._nominal_value, self._wavelength_value))
+                self.emit(
+                    "energyChanged", (self._nominal_value, self._wavelength_value)
+                )
                 self.emit("valueChanged", (self._nominal_value,))
 
     def _set_value(self, value):
@@ -127,10 +133,9 @@ class P11Energy(AbstractEnergy):
                 return None
         return value
 
-    #def get_limits(self):
-        #return my_limits
+    # def get_limits(self):
+    # return my_limits
 
 
 def test_hwo(hwo):
-    print( "Energy is: {0} keV".format(hwo.get_value()))
-
+    print("Energy is: {0} keV".format(hwo.get_value()))
