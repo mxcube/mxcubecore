@@ -7,7 +7,6 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 
 class P11ISPyBClient(ISPyBClient):
-    
     def init(self):
         ISPyBClient.init(self)
 

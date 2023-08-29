@@ -33,13 +33,11 @@ import h5py
 import numpy as np
 
 
-
 from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.TaskUtils import task
 
 from mxcubecore.Command.Tango import DeviceProxy
-
 
 
 import triggerUtils

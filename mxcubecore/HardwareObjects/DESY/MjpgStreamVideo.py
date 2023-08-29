@@ -868,7 +868,6 @@ class MjpgStreamVideo(AbstractVideoDevice):
             self.image = QPixmap.fromImage(image.scaled(self.width, self.height))
             self.emit("imageReceived", self.image)
 
-    
     def take_snapshot_filename(self, filename, bw=False):
         """
         Descript. : calls get_new_image() and saves the result
