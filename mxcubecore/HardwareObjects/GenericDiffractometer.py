@@ -401,10 +401,10 @@ class GenericDiffractometer(HardwareObject):
             # NBNB TODO refactor configuration, and set properties directly (see below)
             temp_motor_hwobj = self.get_object_by_role(motor_name)
             if temp_motor_hwobj is not None:
-                logging.getLogger("HWR").debug(
-                    "Diffractometer: Adding "
-                    + "%s motor to centring motors" % motor_name
-                )
+                #logging.getLogger("HWR").debug(
+                    #"Diffractometer: Adding "
+                    #+ "%s motor to centring motors" % motor_name
+                #)
 
                 self.motor_hwobj_dict[motor_name] = temp_motor_hwobj
                 self.connect(temp_motor_hwobj, "stateChanged", self.motor_state_changed)

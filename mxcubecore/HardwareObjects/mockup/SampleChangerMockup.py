@@ -178,3 +178,6 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
             sample._set_holder_length(spl[4])
 
         self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
+
+    def is_powered(self):
+        return True

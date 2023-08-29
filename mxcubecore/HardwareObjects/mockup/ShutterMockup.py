@@ -51,14 +51,9 @@ class ShutterMockup(AbstractShutter, ActuatorMockup):
         self.update_value(self.VALUES.CLOSED)
         self.update_state(self.STATES.READY)
 
-    def _initialise_values(self):
-        """Add additional, known in advance states to VALUES"""
-        values_dict = {item.name: item.value for item in self.VALUES}
-        values_dict.update(
-            {
-                "MOVING": "In Motion",
-                "UNUSABLE": "Temporarily not controlled",
-            }
-        )
-        self.VALUES = Enum("ValueEnum", values_dict)
+    def open(self):
+        self.set_value(self.VALUES.OPEN, timeout=None)
+
+    def close(self):
+        self.set_value(self.VALUES.CLOSED, timeout=None)
 

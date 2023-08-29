@@ -177,6 +177,8 @@ class ISPyBClient(HardwareObject):
         self.base_result_url = None
         self.group_id = None
 
+        self.login_ok = False
+
     def init(self):
         """
         Init method declared by HardwareObject.
@@ -642,6 +644,8 @@ class ISPyBClient(HardwareObject):
         proposal_code = ""
         proposal_number = ""
 
+        self.login_ok = False
+
         # For porposal login, split the loginID to code and numbers
         if self.loginType == "proposal":
             proposal_code = "".join(
@@ -694,6 +698,8 @@ class ISPyBClient(HardwareObject):
                 "Proposal": None,
                 "session": None,
             }
+
+        self.login_ok = True
 
         logging.getLogger("HWR").debug("Proposal is fine, get sessions from ISPyB...")
         logging.getLogger("HWR").debug(prop)
@@ -1597,6 +1603,9 @@ class ISPyBClient(HardwareObject):
 
     def enable(self):
         self._disabled = False
+
+    def is_connected(self):
+        return self.login_ok
 
     def isInhouseUser(self, proposal_code, proposal_number):
         """

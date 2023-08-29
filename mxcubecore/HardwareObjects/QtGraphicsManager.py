@@ -843,6 +843,8 @@ class QtGraphicsManager(AbstractSampleView):
                         item.set_pixels_per_mm(self.pixels_per_mm)
                 self.graphics_view.graphics_scene.update()
 
+        self.diffractometer_state_changed()
+
     def diffractometer_omega_reference_changed(self, omega_reference):
         """Method called when omega reference changed
 
@@ -1489,7 +1491,7 @@ class QtGraphicsManager(AbstractSampleView):
         tt = image_list[0]
         write_gif(image_list, "/tmp/test_anim.gif", fps=15)
 
-    def get_snapshot(self, overlay=True, bw=False, return_as_array=False):
+    def get_snapshot(self, overlay=True, bw=False, return_as_array=False, **kwargs):
         """Returns a raw snapshot from camera
 
         :param bw: black and white

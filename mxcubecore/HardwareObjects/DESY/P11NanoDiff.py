@@ -229,7 +229,7 @@ class P11NanoDiff(GenericDiffractometer):
         self.current_centring_procedure = gevent.spawn(self.manual_centring)
         self.current_centring_procedure.link(self.centring_done)
 
-    def manual_centring(self, phi_range=120, n_points=3):
+    def manual_centring(self, phi_range=20, n_points=3):
         """
         Descript. :
         """
@@ -317,9 +317,9 @@ class P11NanoDiff(GenericDiffractometer):
         y_pos = sampy_mot.get_value() + y_d
         z_pos = phiz_mot.get_value() + z_d
 
-        motor_positions["sampx"] = x_pos
-        motor_positions["sampy"] = y_pos
-        motor_positions["phiz"] = z_pos
+        motor_positions['phiy'] = z_pos
+        motor_positions['sampx'] = x_pos
+        motor_positions['sampy'] = y_pos
         return motor_positions
 
     def get_positions(self):
@@ -426,6 +426,25 @@ class P11NanoDiff(GenericDiffractometer):
     def set_phase(self, phase, timeout=None):
         self.current_phase = str(phase)
         self.emit("minidiffPhaseChanged", (self.current_phase,))
+
+    def stop_omega(self):
+        self.motor_hwobj_dict["phi"].abort()
+
+    def get_omega_position(self):
+        return self.motor_hwobj_dict["phi"].get_value()
+
+    def get_omega_velocity(self ):
+        return self.motor_hwobj_dict["phi"].get_velocity()
+
+    def set_omega_velocity(self, value):
+        return self.motor_hwobj_dict["phi"].set_velocity(value)
+
+    def omega_calibrate(self, value):
+        return self.motor_hwobj_dict["phi"].calibrate(value)
+
+    def wait_omega(self):
+        while self.motor_hwobj_dict["phi"].is_moving():
+            time.sleep(0.05)
 
     def get_point_from_line(self, point_one, point_two, index, images_num):
         return point_one.as_dict()
