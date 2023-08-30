@@ -51,9 +51,9 @@ class ShutterMockup(AbstractShutter, ActuatorMockup):
         self.update_value(self.VALUES.CLOSED)
         self.update_state(self.STATES.READY)
 
-    def open(self):
-        self.set_value(self.VALUES.OPEN, timeout=None)
+    def open(self, timeout=0):
+        self.set_value(self.VALUES.OPEN, timeout=timeout)
 
-    def close(self):
-        self.set_value(self.VALUES.CLOSED, timeout=None)
+    def close(self, open(self, timeout=0)):
+        self.set_value(self.VALUES.CLOSED, timeout=timeout)
 
