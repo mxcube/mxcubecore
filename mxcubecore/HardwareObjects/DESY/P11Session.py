@@ -114,10 +114,10 @@ class P11Session(Session):
     def read_beamtime_info(self):
         for ety in os.scandir(PATH_BEAMTIME):
             if ety.is_file() and ety.name.startswith('beamtime-metadata'):
-                info = self.load_info(ety.path)
+                info = self.read_load_info(ety.path)
                 self.log.debug(f"BEAMTIME INFO from {ety.path} is " + str(info))
                 if info is not None:
-                    self.beamtime_info.update( self.load_info(ety.path) )
+                    self.beamtime_info.update( self.read_load_info(ety.path) )
                 self.beamtime_info['rootPath'] = PATH_BEAMTIME
             
             return None
@@ -133,19 +133,14 @@ class P11Session(Session):
                 #     self.beamtime_info.update( self.load_info(ety.path) )
                 #     self.beamtime_info['rootPath'] = PATH_COMMISSIONING
 
-        return self.read_info(fname)
+        return self.read_load_info(fname)
 
-    def read_info(self, filename):
-        buf = open(filename, encoding="utf-8").read()
-        return self.load_info(buf)
-
-    def load_info(self,json_str):
+    def read_load_info(self, filename):
         try:
-            #json_str = buf[buf.index("{"):buf.index("}")+1]
-            # return json.JSONDecoder().decode(json_str)
-            return json.loads(json_str)
-            #return json.loads(open(filename).read())
-        except ValueError:
+            with open(filename, encoding="utf-8") as file:
+                json_str = file.read()
+                return json.loads(json_str)
+        except (ValueError, FileNotFoundError):
             return None
 
     def select_base_directory(self, mode="beamtime"):
