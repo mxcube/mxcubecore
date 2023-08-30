@@ -343,12 +343,11 @@ class TangoChannel(ChannelObject):
         else:
             value = self.device.read_attribute(self.attribute_name).value
 
-        
         if isinstance(value, numpy.ndarray):
             if not numpy.array_equal(value, self.value):
                 self.update(value)
-            elif value != self.value:
-                self.update(value)
+        elif value != self.value:
+            self.update(value)
 
         return value
 
