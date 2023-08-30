@@ -331,7 +331,7 @@ class Sample(TaskNode):
         display_name = HWR.beamline.session.get_default_prefix(self)
         if self.lims_code:
             display_name += " (%s)" % self.lims_code
-        if self.get_name() != "":
+        if self.get_name():
             display_name = self.get_name()
         return display_name
 
