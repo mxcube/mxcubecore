@@ -37,6 +37,7 @@ PATH_FALLBACK = "/gpfs/local"
 
 
 class P11Session(Session):
+
     default_archive_folder = "raw"
 
     def __init__(self, *args):
@@ -89,10 +90,9 @@ class P11Session(Session):
 
     def is_commissioning_open(self):
         return self.is_writable_dir(
-            os.path.join(PATH_BEAMTIME, self.raw_data_folder_name)
+            os.path.join(PATH_COMMISSIONING, self.raw_data_folder_name)
         )
-        return self.is_writable_dir( os.path.join(PATH_COMMISSIONING, self.raw_data_folder_name) )
-
+    
     def is_writable_dir(self, folder):
         return os.path.isdir(folder) and os.access(folder, os.F_OK | os.W_OK)
 
@@ -119,7 +119,7 @@ class P11Session(Session):
                 if info is not None:
                     self.beamtime_info.update( self.load_info(ety.path) )
                 self.beamtime_info['rootPath'] = PATH_BEAMTIME
-        else:
+            
             return None
 
     def read_commissioning_info(self):
@@ -127,22 +127,22 @@ class P11Session(Session):
             if ety.is_file() and ety.name.startswith("commissioning-metadata"):
                 fname = ety.path
                 break
-        else:
-            return None
-            if ety.is_file() and ety.name.startswith('commissioning-metadata'):
-                self.beamtime_info.update( self.load_info(ety.path) )
-                self.beamtime_info['rootPath'] = PATH_COMMISSIONING
+            else:
+                return None
+                # if ety.is_file() and ety.name.startswith('commissioning-metadata'):
+                #     self.beamtime_info.update( self.load_info(ety.path) )
+                #     self.beamtime_info['rootPath'] = PATH_COMMISSIONING
 
         return self.read_info(fname)
 
     def read_info(self, filename):
-        buf = open(filename).read()
+        buf = open(filename, encoding="utf-8").read()
+        return self.load_info(buf)
 
-    def load_info(self,filename):
+    def load_info(self,json_str):
         try:
-            # json_str = buf[buf.index("{"):buf.index("}")+1]
+            #json_str = buf[buf.index("{"):buf.index("}")+1]
             # return json.JSONDecoder().decode(json_str)
-            json_str = buf
             return json.loads(json_str)
             #return json.loads(open(filename).read())
         except ValueError:
