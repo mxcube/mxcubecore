@@ -325,15 +325,16 @@ class TangoChannel(ChannelObject):
 
     def update(self, value=Poller.NotInitializedValue):
 
-        if isinstance(value, numpy.ndarray):
-            self.value = value
-        elif value == Poller.NotInitializedValue:
-            self.value = self.get_value()
+        if value == Poller.NotInitializedValue:
+            value = self.get_value()
         elif isinstance(value, tuple):
-            self.value = list(value)
-        else:  
-            self.value = value
+            value = list(value)
 
+        #Explicit conversion to list to avoid numpy array.
+        if isinstance(value, numpy.ndarray):
+            value = value.tolist()
+
+        self.value = value
         self.emit("update", value)
 
     def get_value(self):
@@ -346,7 +347,7 @@ class TangoChannel(ChannelObject):
 
         
         if isinstance(value, numpy.ndarray):
-            if (value != self.value).any():
+            if not numpy.array_equal(value, self.value):
                 self.update(value)
             elif value != self.value:
                 self.update(value)
