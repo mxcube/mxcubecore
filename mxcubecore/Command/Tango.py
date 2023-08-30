@@ -329,9 +329,7 @@ class TangoChannel(ChannelObject):
             value = self.get_value()
         elif isinstance(value, tuple):
             value = list(value)
-
-        #Explicit conversion to list to avoid numpy array.
-        if isinstance(value, numpy.ndarray):
+        elif isinstance(value, numpy.ndarray):
             value = value.tolist()
 
         self.value = value
