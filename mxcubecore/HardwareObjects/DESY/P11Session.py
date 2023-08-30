@@ -137,13 +137,14 @@ class P11Session(Session):
 
     def read_info(self, filename):
         buf = open(filename).read()
+
     def load_info(self,filename):
         try:
             # json_str = buf[buf.index("{"):buf.index("}")+1]
             # return json.JSONDecoder().decode(json_str)
             json_str = buf
             return json.loads(json_str)
-            return json.loads(open(filename).read())
+            #return json.loads(open(filename).read())
         except ValueError:
             return None
 
