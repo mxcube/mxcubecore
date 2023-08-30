@@ -4,7 +4,7 @@ import time
 import glob
 from mxcubecore.model import queue_model_objects
 from mxcubecore import HardwareRepository as HWR
-from typing_extensions import Tuple
+from typing import Tuple
 
 
 class ESRFSession(Session.Session):
