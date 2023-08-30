@@ -346,11 +346,10 @@ class TangoChannel(ChannelObject):
 
         
         if isinstance(value, numpy.ndarray):
-            if any(value != self.value):
+            if (value != self.value).any():
                 self.update(value)
-            else:
-                if value != self.value:
-                    self.update(value)
+            elif value != self.value:
+                self.update(value)
 
         return value
 
