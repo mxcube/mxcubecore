@@ -10,7 +10,7 @@ import socket
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.model.queue_model_objects import PathTemplate
-from typing_extensions import Tuple
+from typing import Tuple
 
 
 default_raw_data_folder = "RAW_DATA"
