@@ -177,7 +177,7 @@ class TangoMotor(AbstractMotor):
         return state
 
     def motor_state_changed(self, state=None):
-        if state == None:
+        if state is None:
             state = self.chan_state.get_value()
 
         self.update_state(self.motstate_to_state(state))
