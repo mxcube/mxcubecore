@@ -286,7 +286,9 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         MD2 = HWR.beamline.diffractometer
         if MD2.get_current_phase() != "Transfer":
             MD2.set_phase("Transfer", wait=True)
-            # MD2.Cryo_Is_Back.set_value("true")
+            time.sleep(0.5)
+            MD2.Cryo_Is_Back.set_value(True)
+
             print("切换完成")
         gevent.sleep(timeout)
         if MD2.get_current_phase() == "Transfer":
@@ -295,16 +297,25 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
             return False
 
     def check_MD2_state(self):
+        MD2 = HWR.beamline.diffractometer
+        #判断是否在对的phase
         if not self.change_MD2_state():
             logging.getLogger("user_level_log").error(
                 "The MD2 seems cannot change to sample change status while mounting,please contact the teacher on duty")
             raise Exception("The MD2 seems cannot change to sample change status while mounting,please contact the teacher on duty")
+        #判断cryo是否在对的位置
+        logging.getLogger("HWR").info("Cryo state: %s ", str(MD2.Cryo_Is_Back.get_value()))
+        if MD2.Cryo_Is_Back.get_value() != True:
+            logging.getLogger("user_level_log").error(
+                "The cryo seems cannot change to back position while mounting,please contact the teacher on duty")
+            raise Exception("The cryo seems cannot change to back position while mounting,please contact the teacher on duty")
         else:
-            print("进入安全等待时间1s")
-            time.sleep(1)
+            print("get into safe waiting time for 0.5 second")
+            time.sleep(0.5)
     def check_MD2_Magnet(self):
         MD2 = HWR.beamline.diffractometer
-        print("smart magnet: "+str(MD2.sample_isloaded_magnet.get_value()))
+        # print("smart magnet: "+str(MD2.sample_isloaded_magnet.get_value()))
+        logging.getLogger("HWR").info("smart magnet state: %s", str(MD2.sample_isloaded_magnet.get_value()))
         if MD2.sample_isloaded_magnet.get_value():
             logging.getLogger("user_level_log").error(
                 "The smart magnet says there's a sample already been mounted, if there's not, please contact the teacher on duty")

@@ -97,6 +97,7 @@ class MD2(Microdiff.Microdiff):
             },
             "SampleIsLoaded",
         )
+        # Cryo_Is_Back get_value得到的是bool type
         self.Cryo_Is_Back = self.add_channel(
             {
                 "type": "exporter",

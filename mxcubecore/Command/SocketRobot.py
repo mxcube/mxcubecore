@@ -223,7 +223,7 @@ class StandardClientRobot:
         buffer = empty_buffer()
         mReceivedSTX = True
         while True:
-            print("开始等待返回信息")
+            logging.getLogger("HWR").info("robot: start to wait the return message from camerman")
             ret = self.__sock.recv(512)
             if not ret:
                 # connection reset by peer
@@ -356,8 +356,7 @@ class SocketRobotClient(StandardClientRobot):
             msg(str): The message.
         """
 
-        print("收到返回信号:")
-        print(msg)
+        logging.getLogger("HWR").info("robot: have received the return message from camerman")
         StandardClientRobot.on_message_received(self, msg)
 
     def get_method_list(self):
@@ -736,7 +735,7 @@ class SocketRobotCommand(CommandObject):
             raise
         else:
             self.emit("commandReplyArrived", (ret, str(self.name())))
-            print("__call__函数返回值ret:",ret)
+            print("the ret value returned from __call__():",ret)
             return ret
 
     def abort(self):
