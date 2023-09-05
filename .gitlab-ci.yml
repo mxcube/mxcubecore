@@ -1,0 +1,39 @@
+---
+
+include:
+  - project: 'kits-maxiv/cfg-maxiv-gitlabci'
+    file: PreCommit.gitlab-ci.yml
+
+workflow:
+  auto_cancel:
+    on_job_failure: all
+
+run-test:
+  stage: check
+  image: mambaorg/micromamba:latest
+  tags:
+    - kubernetes
+  parallel:
+    matrix:
+      - PYTHON_VER: ["3.10"]
+  coverage: '/^TOTAL.+?(\d+\%)$/'
+  before_script:
+    # There is no wheel for python-ldap which depends on openldap
+    # We install it with conda
+    - eval "$(/bin/micromamba shell hook -s bash)"
+    - >
+      micromamba install --channel conda-forge --name base --yes
+      python=$PYTHON_VER
+      python-ldap=3.4.3
+    - micromamba activate base
+    # Install 'tango' extra packages, as they are required to run unit tests.
+    - python -m pip install --editable '.[tango]' pytest pytest-cov pytest-mock
+  script:
+    - pytest -v --cov-report term-missing --cov-report html --junitxml=report.xml
+  artifacts:
+    when: always
+    paths:
+      - htmlcov/
+      - report.xml
+    reports:
+      junit: report.xml
