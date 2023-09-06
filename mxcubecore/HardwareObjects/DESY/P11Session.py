@@ -25,6 +25,7 @@ import os
 import re
 import time
 import json
+from datetime import date
 
 from Session import Session
 
@@ -36,6 +37,7 @@ PATH_FALLBACK = "/gpfs/local"
 
 
 class P11Session(Session):
+
     default_archive_folder = "raw"
 
     def __init__(self, *args):
@@ -47,6 +49,7 @@ class P11Session(Session):
 
         self.settings_file = self.get_property("p11_settings_file")
         self.operation_mode = self.get_property("mode")
+        self.beamtime_info = {}
 
         parser = ConfigParser()
         parser.read(self.settings_file)
@@ -57,6 +60,12 @@ class P11Session(Session):
             self.start_time = self.session_start_date.split(" ")[0].replace("-", "")
         else:
             self.start_time = time.strftime("%Y%m%d")
+
+        self.info_set_defaults()
+        if self.is_beamtime_open():
+            self.read_beamtime_info()
+        elif self.is_commissioning_open():
+            self.read_commissioning_info()
 
         self.select_base_directory(self.operation_mode)
 
@@ -69,13 +78,11 @@ class P11Session(Session):
             archive_folder=self.default_archive_folder,
         )
 
-    def select_base_directory(self, mode="beamtime"):
-        if mode == "beamtime" and self.is_beamtime_open():
-            self.base_directory = PATH_BEAMTIME
-        elif mode == "commissioning" and self.is_commissioning_open():
-            self.base_directory = PATH_COMMISSIONING
-        else:
-            self.base_directory = PATH_FALLBACK
+    def info_set_defaults(self):
+        self.beamtime_info['beamtimeId'] = None
+        self.beamtime_info['proposalType'] = None
+        self.beamtime_info['proposalId'] = None
+        self.beamtime_info['rootPath'] = PATH_FALLBACK
 
     def is_beamtime_open(self):
         return True
@@ -83,9 +90,9 @@ class P11Session(Session):
 
     def is_commissioning_open(self):
         return self.is_writable_dir(
-            os.path.join(PATH_BEAMTIME, self.raw_data_folder_name)
+            os.path.join(PATH_COMMISSIONING, self.raw_data_folder_name)
         )
-
+    
     def is_writable_dir(self, folder):
         return os.path.isdir(folder) and os.access(folder, os.F_OK | os.W_OK)
 
@@ -104,41 +111,40 @@ class P11Session(Session):
             info = self.get_beamtime_info()
             return info["proposalId"]
 
-    def get_beamtime_info(self):
-        if not self.is_beamtime_open():
-            return None
-
+    def read_beamtime_info(self):
         for ety in os.scandir(PATH_BEAMTIME):
-            if ety.is_file() and ety.name.startswith("beamtime-metadata"):
-                fname = ety.path
-                break
-        else:
+            if ety.is_file() and ety.name.startswith('beamtime-metadata'):
+                info = self.read_load_info(ety.path)
+                self.log.debug(f"BEAMTIME INFO from {ety.path} is " + str(info))
+                if info is not None:
+                    self.beamtime_info.update( self.read_load_info(ety.path) )
+                self.beamtime_info['rootPath'] = PATH_BEAMTIME
+            
             return None
 
-        return self.read_info(fname)
-
-    def get_commissioning_info(self):
-        if not self.is_commissioning_open():
-            return None
-
+    def read_commissioning_info(self):
         for ety in os.scandir(PATH_COMMISSIONING):
             if ety.is_file() and ety.name.startswith("commissioning-metadata"):
                 fname = ety.path
                 break
-        else:
-            return None
+            else:
+                return None
+                # if ety.is_file() and ety.name.startswith('commissioning-metadata'):
+                #     self.beamtime_info.update( self.load_info(ety.path) )
+                #     self.beamtime_info['rootPath'] = PATH_COMMISSIONING
 
-        return self.read_info(fname)
+        return self.read_load_info(fname)
 
-    def read_info(self, filename):
-        buf = open(filename).read()
+    def read_load_info(self, filename):
         try:
-            # json_str = buf[buf.index("{"):buf.index("}")+1]
-            # return json.JSONDecoder().decode(json_str)
-            json_str = buf
-            return json.loads(json_str)
-        except ValueError:
+            with open(filename, encoding="utf-8") as file:
+                json_str = file.read()
+                return json.loads(json_str)
+        except (ValueError, FileNotFoundError):
             return None
+
+    def select_base_directory(self, mode="beamtime"):
+        self.base_directory = self.beamtime_info['rootPath']
 
     def get_base_data_directory(self):
         """
@@ -201,3 +207,14 @@ class P11Session(Session):
         return os.path.join(self.get_base_data_directory(), self.default_archive_folder)
         # self.session_file_name, \
         # self.start_time)
+
+    def path_to_ispyb(self, path):
+        ispyb_template = self["file_info"].get_property("ispyb_directory_template")
+        bid = self.beamtime_info['beamtimeId'] 
+        year = date.today().year
+        ispyb_path = ispyb_template.format(beamtime_id=bid,year=year)
+        return path
+
+    def is_writable_dir(self, folder):
+        return os.path.isdir(folder) and os.access(folder, os.F_OK | os.W_OK )
+

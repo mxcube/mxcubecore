@@ -35,6 +35,7 @@ from mxcubecore.CommandContainer import (
 )
 from mxcubecore import Poller
 from mxcubecore.dispatcher import saferef
+import numpy
 
 gevent_version = list(map(int, gevent.__version__.split(".")))
 
@@ -143,10 +144,10 @@ class TangoChannel(ChannelObject):
     _tangoEventsQueue = queue.Queue()
     _eventReceivers = {}
 
-    if gevent_version < [1, 3, 0]:
-        _tangoEventsProcessingTimer = getattr(gevent.get_hub().loop, "async")()
-    else:
-        _tangoEventsProcessingTimer = gevent.get_hub().loop.async_()
+    #if gevent_version < [1,3,0]:
+        #_tangoEventsProcessingTimer = gevent.get_hub().loop.async()
+    #else:
+    _tangoEventsProcessingTimer = gevent.get_hub().loop.async_()
 
     # start Tango events processing timer
     _tangoEventsProcessingTimer.start(process_tango_events)
@@ -173,13 +174,13 @@ class TangoChannel(ChannelObject):
         self.timeout = int(timeout)
         self.read_as_str = kwargs.get("read_as_str", False)
         self._device_initialized = gevent.event.Event()
-        logging.getLogger("HWR").debug(
-            "creating Tango attribute %s/%s, polling=%s, timeout=%d",
-            self.device_name,
-            self.attribute_name,
-            polling,
-            self.timeout,
-        )
+        #logging.getLogger("HWR").debug(
+        #    "creating Tango attribute %s/%s, polling=%s, timeout=%d",
+        #    self.device_name,
+        #    self.attribute_name,
+        #    polling,
+        #    self.timeout,
+        #)
         self.init_device()
         self.continue_init(None)
         """
@@ -326,8 +327,10 @@ class TangoChannel(ChannelObject):
 
         if value == Poller.NotInitializedValue:
             value = self.get_value()
-        if isinstance(value, tuple):
+        elif isinstance(value, tuple):
             value = list(value)
+        elif isinstance(value, numpy.ndarray):
+            value = value.tolist()
 
         self.value = value
         self.emit("update", value)
@@ -340,7 +343,10 @@ class TangoChannel(ChannelObject):
         else:
             value = self.device.read_attribute(self.attribute_name).value
 
-        if value != self.value:
+        if isinstance(value, numpy.ndarray):
+            if not numpy.array_equal(value, self.value):
+                self.update(value)
+        elif value != self.value:
             self.update(value)
 
         return value

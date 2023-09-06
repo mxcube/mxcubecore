@@ -33,6 +33,7 @@ class ISPyBClientMockup(HardwareObject):
         self.loginType = None
         self.base_result_url = None
         self.lims_rest = None
+        self.login_ok = True
 
     def init(self):
         """
@@ -248,6 +249,9 @@ class ISPyBClientMockup(HardwareObject):
             translated = code
 
         return translated
+    
+    def is_connected(self):
+        return self.login_ok
 
     def isInhouseUser(self, proposal_code, proposal_number):
         """

@@ -96,12 +96,6 @@ class MotorsNPosition(AbstractActuator):
 
         self.load_positions()
 
-        self.log.debug("Multi N State created (%s)" % self.name())
-        self.log.debug("      Motors:  %s" % str(self.motorlist))
-        self.log.debug("      Deltas:  %s" % str(self.deltas))
-        self.log.debug("   Positions:  %s" % str(self._positions))
-        self.log.debug("  Properties:  %s" % str(self._properties))
-
         self.update_multi_value()
         self.update_state(HardwareObjectState.READY)
 
@@ -213,8 +207,8 @@ class MotorsNPosition(AbstractActuator):
 
         current_pos = {}
 
-        if self.name().lower() == "/pinhole":
-            self.log.debug("updating pinhole position")
+        #if self.name().lower() == "/pinhole":
+            #self.log.debug("updating pinhole position")
 
         for motorname in self.motorlist:
             current_pos[motorname] = self.motor_hwobjs[motorname].get_value()
@@ -236,7 +230,7 @@ class MotorsNPosition(AbstractActuator):
                     break
             else:
                 # found
-                self.log.debug(" Found position %s for object %s" % (name, self.name()))
+                #self.log.debug(" Found position %s for object %s" % (name, self.name()))
                 for motorname in self.motorlist:
                     position = self._positions[name][motorname]
                     self.log.debug("     - motor %s is at %s" % (motorname, position))
