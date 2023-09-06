@@ -698,12 +698,16 @@ class LNLSPilatusDet(AbstractDetector):
         # self.set_channel_value("det_phi_omega_incr", file_template)
         self.set_channel_value("det_phi_oscill_axis",  self.header["Oscillation_axis"])
         self.set_channel_value("det_num_oscill", self.header["N_oscillations"])
-        self.set_channel_value("det_beam_x", 1232.00)
-        self.set_channel_value("det_beam_y", 1264.00)
+        self.set_channel_value("det_beam_x", 1229.00)
+        # self.set_channel_value("det_beam_y", 1331.00)
+        beamy = self.get_beamy()
+        self.set_channel_value("det_beam_y", beamy)
         # self.set_channel_value("det_cbf_template_file", file_template)
 
-
-
+    def get_beamy(self):
+        distance = self.get_detector_distance()
+        value = 1331 - 0.0465*distance/1000
+        return round(value, 2)
 
     def updateJobStatus(self,frame_number, uuid, path, status):
         try:
@@ -884,7 +888,7 @@ class LNLSPilatusDet(AbstractDetector):
         # self.header["Beam_xy"] = "(%.2f, %.2f) pixels" % tuple(
         #     [value / 0.172 for value in HWR.beamline.detector.get_beam_position()]
         # )
-        self.header["Beam_xy"] = "(1232.00, 1264.00) pixels"
+        self.header["Beam_xy"] = "(1229.00, 1331.00) pixels"
         self.header["Detector_Voffset"] = "0.0000 m"
         self.header["Energy_range"] = "(7, 20) keV"
         self.header["Detector_distance"] = "%f m" % (self.distance.get_value() / 1000.0)

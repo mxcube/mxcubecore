@@ -7,6 +7,7 @@ import socket
 import gevent.lock
 import gevent.event
 import sys
+# from exporter.StandardClient import StandardClient, ProtocolError,SocketError     #不能家，会报错
 
 
 
@@ -61,7 +62,7 @@ class StandardClientRobot:
     def __create_socket(self):
         """Create socket"""
         self.__sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        print('设置socket连接时间timeout:',self.timeout)
+        print('set the timeout for socket connection',self.timeout)
         self.__sock.settimeout(self.timeout)
     def __close_socket(self):
         """Close socket"""
@@ -80,16 +81,16 @@ class StandardClientRobot:
         print("self.__sock:",self.__sock)
         if self.__sock is None:
             self.__create_socket()
-            print("创建socket之后的socket：",self.__sock)
-        print("self.__sock.connect函数运行开始")
+            print("socket object after creating the socket：",self.__sock)
+        print("self.__sock.connect function start to run")
         #添加
         try:
             self.__sock.connect((self.server_ip, self.server_port))
         except socket.timeout: #如果没插网线，是不会有这个timeout报错的，会立刻直接报错 Error: [Errno 101] Network is unreachable，因此也不会返回False
-            print("连接超时")
+            print("connection timeout")
             return False
         else:
-            print("self.__sock.connect函数运行完成")
+            print("self.__sock.connect function completed")
             #重新设置等待机械手回信息的timeout
             self.__sock.settimeout(Timeout_recv)
             self._is_connected = True
@@ -263,11 +264,11 @@ class StandardClientRobot:
         Args:
             cmd(str): command
         """
-        print('进入__send_stream函数')
+        print(' into __send_stream function')
         if not self.is_connected():
             self.connect()
         try:
-            print("进入try")
+            print("set into try")
             print(cmd)
             pack = encode(cmd) + _bytes([ETX])
             print(pack)
@@ -284,18 +285,18 @@ class StandardClientRobot:
         Returns:
             (str): reply form the socket
         """
-        print("进入__send_receive_stream函数")
+        print("step into __send_receive_stream function")
         self.error = None
         self.received_msg = None
         self.msg_received_event.clear()  # = gevent.event.Event()
         if not self.is_connected():
-            print("开始socket连接")
+            print("start the socket connection")
             self.connect()
             # 尝试连接之后还是没有连接成功，返回
             if not self.is_connected():
                 return False
 
-        print("判断已经is_connected")
+        print("already is_connected")
         self.__send_stream(cmd)
         with gevent.Timeout(100, TimeoutError):
             while self.received_msg is None:
@@ -431,12 +432,12 @@ class SocketRobotClient(StandardClientRobot):
                     cmd += args[i] + PARAMETER_SEPARATOR
             elif cmd =="Abort ":
                 self._lock.release()
-                print("命令是abort，执行self._lock.release()")
-        print("当前执行命令的默认timeout:",timeout)
+                print("command: abort，run self._lock.release()")
+        print("the default timeout of current command:",timeout)
         ret = self.send_receive(cmd, timeout)
-        print("execute函数返回值:",ret,type(ret))
+        print("the return of execute function:",ret,type(ret))
         # ret == False means the socket failed to connect
-        print("send_receice函数返回值: (如果是False说明没有连上)",ret)
+        print("the return value of send_receice function: (False means connection failed)",ret)
         if ret==False:
             return False
         return self.__process_return(ret)
@@ -726,7 +727,7 @@ class SocketRobotCommand(CommandObject):
 
     def __call__(self, *args, **kwargs):
         self.emit("commandBeginWaitReply", (str(self.name()),))
-        print("进入__call__函数")
+        print("get in __call__ function")
         try:
             ret = self.__socket.execute(self.command, args, kwargs.get("timeout", -1),**kwargs)  #.get(),如果timeout没有设置，输出默认值-1
             

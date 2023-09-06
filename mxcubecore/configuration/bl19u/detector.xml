@@ -83,8 +83,8 @@
 
 
   <!-- Properties -->
-  <default_beam_x>1232</default_beam_x>
-  <default_beam_y>1264</default_beam_y>
+  <default_beam_x>1229</default_beam_x>
+  <default_beam_y>1331</default_beam_y>
    <!--default_beam_x>0</default_beam_x>
   <default_beam_y>0</default_beam_y-->
   <!--object hwrid="/dtox" role="detector_distance"/-->
