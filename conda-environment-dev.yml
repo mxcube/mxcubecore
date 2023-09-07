@@ -11,3 +11,4 @@ dependencies:
   - flake8
   - black  
   - pytest-cov
+  - pytest-mock
