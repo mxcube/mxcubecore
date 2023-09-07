@@ -173,7 +173,7 @@ It is very important to write a clean and readable code. Therefore we follow the
    * CapitalizedWords for class names.
    * UPPERCASE for constants.
 * When catching exceptions, mention specific exceptions whenever possible instead of using a bare except.
-* Add [google style](https://www.sphinx-doc.org/en/master/usage/extensions/example_google.html?highlight=google%20style) doc strings to describe methods and classes. Types should be omitted in doc strings of the method is type hinted.
+* Add [google style](https://www.sphinx-doc.org/en/master/usage/extensions/example_google.html?highlight=google%20style) doc strings to describe methods and classes. Types should be omitted in doc strings if the method is type hinted.
 
 An example how to describe a class:
 
