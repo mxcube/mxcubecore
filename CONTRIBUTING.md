@@ -4,8 +4,7 @@ Before submiting the code to the repository please read these contributing guidl
 The aim of these guidlines is to help the developers community to maintain the code stable and reusable.
 
 ### Reporting bugs
-
-Before submitting a new bug check if the bug is not already reported in the [issues](https://github.com/mxcube/HardwareRepository/issues/).
+Before submitting a new bug check if the bug is not already reported in the [issues](https://github.com/mxcube/mxcubecore/issues).
 If the corresponding issue do not exist then:
 
 * Open a new issue with a short description in the title.
@@ -22,7 +21,7 @@ Pull requests (PR's) are used to submitt new code to the repository, it helps de
 * If necessary add link to the offical mxcubecore repository:
 
   ```bash
-  git remote add upstream https://github.com/mxcube/HardwareRepository.git
+  git remote add upstream git@github.com:mxcube/mxcubecore.git
   ```
   
 A branching model based on the popular [gitlfow model](https://nvie.com/posts/a-successful-git-branching-model/) is used inorder to be able to provide versioned releases and at the same time continue seperate development. The stable releases are kept on the [**master**](https://github.com/mxcube/mxcubecore/tree/master) branch and the development takes place on [**develop**](https://github.com/mxcube/mxcubecore/tree/develop).
@@ -85,9 +84,11 @@ git pull --rebase develop
 * The author of the PR is free to merge the PR once its been reviewed and all pending comments/discussions are solved 
 
 ### Versioning 
-Versioning is partly automated by GitHub actions and the software called [bump2version](https://github.com/c4urself/bump2version) and based on the gitflow braching model:
+Versioning is partly automated by GitHub actions and [Poetry]([https://github.com/c4urself/bump2version](https://python-poetry.org/)) and based on the gitflow braching model:
 
 - Each new feature is implemented in a `feature branch`, branching from the `develop branch`.
+
+- The minor version is bumped automatically by the CI workflow when a PR is merged on develop 
 
 - The merge of a `feature branch` is made via PR to the `develop branch`. The author of 
   the PR must solve any conflicts with the latest development version before the merge.
@@ -137,6 +138,8 @@ Imports that are incompatable between Python 2x and 3x should be handled with:
   except ImportError:
       import myotherfile
   ```
+#### Type hints
+We strongly encourage the usage of type hints 
 
 #### Naming convention
 
@@ -170,7 +173,7 @@ It is very important to write a clean and readable code. Therefore we follow the
    * CapitalizedWords for class names.
    * UPPERCASE for constants.
 * When catching exceptions, mention specific exceptions whenever possible instead of using a bare except.
-* Add [google style](https://www.sphinx-doc.org/en/master/usage/extensions/example_google.html?highlight=google%20style) doc strings to describe methods and classes:
+* Add [google style](https://www.sphinx-doc.org/en/master/usage/extensions/example_google.html?highlight=google%20style) doc strings to describe methods and classes. Types should be omitted in doc strings if the method is type hinted.
 
 An example how to describe a class:
 
@@ -258,7 +261,7 @@ You can use [autopep8](https://pypi.org/project/autopep8/) and [black](https://p
 
 ### Continuous integration (CI)
 
-For continuous integration [Travis](https://travis-ci.org/) is used.
+GitHub Action are used for continues integration
 
 ### Additional notes
 Abstract classes hierarchy scheme can be found [here](https://github.com/mxcube/mxcubecore/blob/hierarchy/Hierarchy.pdf).
