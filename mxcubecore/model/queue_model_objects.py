@@ -2429,7 +2429,7 @@ class GphlWorkflow(TaskNode):
 
     @cell_parameters.setter
     def cell_parameters(self, value):
-        self._cell_parameters = None
+        self._cell_parameters = ()
         if value:
             if len(value) == 6:
                 self._cell_parameters = tuple(float(x) for x in value)
