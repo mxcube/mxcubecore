@@ -1,7 +1,7 @@
 ## How to contribute to mxcubecore
 
-Before submiting the code to the repository please read these contributing guidlines.
-The aim of these guidlines is to help the developers community to maintain the code stable and reusable.
+Before submitting the code to the repository please read these contributing guidelines.
+The aim of these guidelines is to help the developers community to maintain the code stable and reusable.
 
 ### Reporting bugs
 Before submitting a new bug check if the bug is not already reported in the [issues](https://github.com/mxcube/mxcubecore/issues).
@@ -11,14 +11,17 @@ If the corresponding issue do not exist then:
 * In the description describe the bug:
     * Conditions when the bug appears.
     * How it can be reproduced.
-    * Possible cause of the bug and source code where it occures.
+    * Possible cause of the bug and source code where it occurs.
     * If possible add error log and screenshot.
 * Assign a label to the issue (see available labels).
 
-### Submiting code to the repository
-Pull requests (PR's) are used to submitt new code to the repository, it helps developers to review and dicuss the proposed change. To avoid any conflicts in the code base it is important to keep your local git repository syncronised with the latest code in the upstream repository. If the repository is checked out directly then use `git pull --rebase` to obtain the latest code, if a fork is used then add the offical mxcubecore repository to the list of remotes.
+### Submitting code to the repository
+Pull requests (PR's) are used to submit new code to the repository, it helps developers to review and discuss the proposed change.
+To avoid any conflicts in the code base it is important to keep your local git repository synchronised with the latest code in the upstream repository.
+If the repository is checked out directly then use `git pull --rebase` to obtain the latest code,
+if a fork is used then add the official mxcubecore repository to the list of remotes.
 
-* If necessary add link to the offical mxcubecore repository:
+* If necessary add link to the official mxcubecore repository:
 
   ```bash
   git remote add upstream git@github.com:mxcube/mxcubecore.git
@@ -51,7 +54,7 @@ We **recommend to always rebase your local changes instead of merging them**, gi
 git checkout develop`
 git pull --rebase develop
 ```
-* Create a new branch, its recommended to use a meaningfull name. for instance [initials]-[fix/feature]-[some name] i.e mo-feature-gizmo1
+* Create a new branch, it's recommended to use a meaningfull name. for instance [initials]-[fix/feature]-[some name] i.e mo-feature-gizmo1
  `git checkout -b mo-feature-gizmo1`
 * If the pull request is associated with an issue then reference the issue in the name. For example:
   `git checkout -b issue_100`
@@ -70,7 +73,7 @@ git pull --rebase develop
 
 #### Creating a new pull request via github webpage
 
-* Keep the pull requests small preferbly contaning a single feature
+* Keep the pull requests small preferably containing a single feature
 * Give enough information about the changes in the pull request summary so that the reviewers easily understands whats been done
 * Highlight technically complex/complicated sections of the code and supply additional comments to code that might need extra explication/motivation by making inline comments
 * If needed assign a developer who shall review the PR.
@@ -130,7 +133,7 @@ The "valueChanged" and "stateChanged" signals should be used when a HardwareObje
 has been changed. Defined in for instance the base class [HardwareObject](https://github.com/mxcube/HardwareRepository/blob/ea8369ab2c08dbe539fd92ffee18fd21bb3a81b8/BaseHardwareObjects.py#L666), [AbstractMotor](https://github.com/mxcube/HardwareRepository/blob/master/HardwareObjects/abstract/AbstractMotor.py) and
 [AbstractActutor](https://github.com/mxcube/HardwareRepository/blob/master/HardwareObjects/abstract/AbstractActuator.py)
 
-The use of the the signal "attributeChanged" with a key, value pair is encouraged for all other
+The use of the signal "attributeChanged" with a key, value pair is encouraged for all other
 attributes, for instance ```self.emit("attributeChanged", "attr1", 0)``` instead of using a
 specific signal with for instance a single dictionary as data.
 
