@@ -500,6 +500,7 @@ class Sample(TaskNode):
         self.crystals[0].cell_c = p.get("cellC", "")
         self.crystals[0].cell_gamma = p.get("cellGamma", "")
         self.crystals[0].protein_acronym = p.get("proteinAcronym", "")
+        self.crystals[0].crystal_uuid = p.get("crystalUUID", "")
 
     def get_processing_parameters(self):
         processing_params = ProcessingParameters()
@@ -1861,6 +1862,7 @@ class Crystal(object):
         self.cell_c = 0
         self.cell_gamma = 0
         self.protein_acronym = ""
+        self.crystal_uuid = ""
 
         # MAD energies
         self.energy_scan_result = EnergyScanResult()
