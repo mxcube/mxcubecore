@@ -4,10 +4,7 @@ import requests
 from PIL import Image
 from io import BytesIO
 
-try:
-    from urllib import urlopen
-except ImportError:
-    from urllib.request import urlopen
+import urllib
 
 
 def get_image(url):
@@ -78,15 +75,23 @@ class ProcessingPlan:
 def get_processing_plan(barcode, crims_url, harvester_key):
     processing_plan = None
     try:
+        xml = None
         url = crims_url
         url = (
             crims_url
             + barcode
             + "/plans/xml"
-            + "?harvester-key=%s" % harvester_key
         )
-        f = urlopen(url)
-        xml = f.read()
+
+        headers = { 
+            'User-Agent' : "Mozilla/5.0 (Windows NT 6.1; Win64; x64",
+            'harvester-key' : harvester_key,       
+         }
+
+        req = urllib.request.Request(url, data=None, headers=headers)
+
+        with urllib.request.urlopen(req) as response:
+            xml = response.read()
 
         tree = et.fromstring(xml)
 
