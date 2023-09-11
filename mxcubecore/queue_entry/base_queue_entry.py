@@ -787,14 +787,7 @@ def mount_sample(view, data_model, centring_done_cb, async_result):
     # "xtalSnapshotBefore": data_model.get_snapshot_filename(prefix="before"),
     # "xtalSnapshotAfter": data_model.get_snapshot_filename(prefix="after")}
 
-    # This is a possible solution how to deal with two devices that
-    # can move sample on beam (sample changer, plate holder, in future
-    # also harvester)
-    # TODO make sample_Changer_one, sample_changer_two
-    if HWR.beamline.diffractometer.in_plate_mode():
-        sample_mount_device = HWR.beamline.plate_manipulator
-    else:
-        sample_mount_device = HWR.beamline.sample_changer
+    sample_mount_device = HWR.beamline.sample_changer
 
     if hasattr(sample_mount_device, "__TYPE__"):
         if sample_mount_device.__TYPE__ in ["Marvin", "CATS"]:
