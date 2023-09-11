@@ -1083,7 +1083,7 @@ class HardwareObject(HardwareObjectNode, HardwareObjectMixin):
 class HardwareObjectYaml(ConfiguredObject, HardwareObjectMixin):
     """Yaml-configured hardware object.
 
-    For use when we move confiugration out of xml and into yaml.
+    For use when we move configuration out of xml and into yaml.
 
     The class is needed only to provide a single superclass
     that combines ConfiguredObject and HardwareObjectMixin"""

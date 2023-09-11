@@ -39,7 +39,7 @@ import logging
 from mxcubecore.BaseHardwareObjects import ConfiguredObject, HardwareObject
 
 # NBNB The acq parameter names match the attributes of AcquisitionParameters
-# Whereas the limit parmeter values use more udnerstandable names
+# Whereas the limit parameter values use more understandable names
 #
 # TODO Make all tags consistent, including AcquisitionParameters attributes.
 
@@ -51,8 +51,8 @@ class Beamline(ConfiguredObject):
     # NB the double underscore is deliberate - attribute must be hidden from subclasses
     __content_roles = []
 
-    # Names of procedures under Beamline - set of sttrings.
-    # NB subclasses must add additional parocedures to this set,
+    # Names of procedures under Beamline - set of strings.
+    # NB subclasses must add additional procedures to this set,
     # and may NOT override _procedure_names
     _procedure_names = set()
 
@@ -84,7 +84,7 @@ class Beamline(ConfiguredObject):
         """
 
         Args:
-            name (str) : Object name, generally saet to teh role name of the object
+            name (str) : Object name, generally set to the role name of the object
         """
         super(Beamline, self).__init__(name)
 

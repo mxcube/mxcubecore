@@ -28,7 +28,7 @@ __license__ = "LGPLv3+"
 
 
 class AbstractMachineInfo(HardwareObject):
-    """Abstract machine info - nformation coming from the accelerator source.
+    """Abstract machine info - information coming from the accelerator source.
        It provides only few common to all accelerators parameters.
 
     Emits:
@@ -77,18 +77,18 @@ class AbstractMachineInfo(HardwareObject):
         return ""
 
     def get_lifetime(self) -> float:
-        """Read the life time.
+        """Read the lifetime.
 
         Returns:
-            Life time [s].
+            Lifetime [s].
         """
         return 0
 
     def get_topup_remaining(self) -> float:
-        """Read the top up remaining time.
+        """Read the top-up remaining time.
 
         Returns:
-            Top up remaining [s].
+            Top-up remaining [s].
         """
         return 0
 

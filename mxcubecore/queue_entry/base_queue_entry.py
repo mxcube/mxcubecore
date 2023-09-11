@@ -17,9 +17,9 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
-All queue entries inherits the baseclass BaseQueueEntry which inturn
+All queue entries inherits the baseclass BaseQueueEntry which in turn
 inherits QueueEntryContainer. This makes it possible to arrange and
-execute queue entries in a hierarchical maner.
+execute queue entries in a hierarchical manner.
 """
 
 import logging

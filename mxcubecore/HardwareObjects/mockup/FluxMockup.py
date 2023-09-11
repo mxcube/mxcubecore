@@ -53,7 +53,7 @@ class FluxMockup(AbstractFlux):
 
     def measure_flux(self) -> None:
         """
-        Measures intesity
+        measures intensity
 
         Emits:
            valueChanged (float): The new flux value

@@ -49,7 +49,7 @@ if TYPE_CHECKING:
     from mxcubecore.BaseHardwareObjects import HardwareObject
 
 # If you want to write out copies of the file, use typ="rt" instead
-# pure=True uses yaml version 1.2, with fewere gotchas for strange type conversions
+# pure=True uses yaml version 1.2, with fewer gotchas for strange type conversions
 yaml = YAML(typ="safe", pure=True)
 # The following are not needed for load, but define the default style.
 yaml.default_flow_style = False
@@ -109,7 +109,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
             if _container:
                 msg0 = "No '_initialise_class' tag"
             else:
-                # at top lavel we want to get the actual error
+                # at top level we want to get the actual error
                 raise ValueError(
                     "%s file lacks  '_initialise_class' tag" % configuration_file
                 )
@@ -120,7 +120,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
             if _container:
                 msg0 = "No 'class' tag"
             else:
-                # at top lavel we want to get the actual error
+                # at top level we want to get the actual error
                 raise ValueError("%s file lacks  'class' tag" % configuration_file)
 
     if not msg0:
@@ -331,7 +331,7 @@ def get_hardware_repository():
 class __HardwareRepositoryClient:
     """Hardware Repository class
 
-    Warning -- should not be instanciated directly ;
+    Warning -- should not be instantiated directly ;
     call the module's level get_hardware_repository() function instead
     """
 

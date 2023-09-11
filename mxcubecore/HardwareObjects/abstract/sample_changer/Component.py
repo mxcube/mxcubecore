@@ -22,7 +22,7 @@ class Component(object):
 
     def get_id(self):
         """
-        Returns an unique ID of an element - typically scanned from the real object
+        Returns a unique ID of an element - typically scanned from the real object
         Can be None if sample is unknown or not present
         :rtype: str
         """
@@ -30,7 +30,7 @@ class Component(object):
 
     def get_address(self):
         """
-        Returns an unique identifier of the slot of the element ()
+        Returns a unique identifier of the slot of the element ()
         Can never be None - even if the component is not present
         :rtype: str
         """

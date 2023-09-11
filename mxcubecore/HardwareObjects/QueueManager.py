@@ -230,7 +230,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         except base_queue_entry.QueueAbortedException as ex:
             # Queue entry was aborted in a controlled, way.
             # or in the exception case:
-            # Definetly not good state, but call post_execute
+            # Definitely not good state, but call post_execute
             # anyway, there might be code that cleans up things
             # done in _pre_execute or before the exception in _execute.
             logging.getLogger("HWR").warning(
