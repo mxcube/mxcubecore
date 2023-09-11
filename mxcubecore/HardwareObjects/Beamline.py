@@ -457,18 +457,42 @@ class Beamline(ConfiguredObject):
         return self._objects.get("sample_changer_maintenance")
 
     __content_roles.append("sample_changer_maintenance")
-
+    
     @property
-    def plate_manipulator(self):
-        """Plate Manuipulator Hardware object
-        NBNB TODO REMOVE THIS and treat as an alternative sample changer instead.
+    def harvester(self):
+        """Harvester Hardware object
+        can be a sample or plate holder
 
         Returns:
-            Optional[AbstractSampleChanger]:
+            Optional[AbstractHarvester]:
         """
-        return self._objects.get("plate_manipulator")
+        return self._objects.get("harvester")
 
-    __content_roles.append("plate_manipulator")
+    __content_roles.append("harvester")
+
+    @property
+    def harvester_maintenance(self):
+        """harvester maintenance Hardware object
+
+        Returns:
+            Optional[Harvester]:
+        """
+        return self._objects.get("harvester_maintenance")
+
+    __content_roles.append("harvester_maintenance")
+
+
+    # @property
+    # def plate_manipulator(self):
+    #     """Plate Manuipulator Hardware object
+    #     NBNB TODO REMOVE THIS and treat as an alternative sample changer instead.
+
+    #     Returns:
+    #         Optional[AbstractSampleChanger]:
+    #     """
+    #     return self._objects.get("plate_manipulator")
+
+    # __content_roles.append("plate_manipulator")
 
     @property
     def session(self):
