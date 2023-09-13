@@ -1196,6 +1196,7 @@ class PriorInformation(Payload):
 
         self._sampleName = data_model.path_template.base_prefix
         # Draft in API, not currently coded in Java:
+        # self._referenceFile = referenceFile
         self._rootDirectory = image_root
         self._userProvidedInfo = UserProvidedInfo(data_model)
 
@@ -1206,6 +1207,10 @@ class PriorInformation(Payload):
     @property
     def sampleName(self):
         return self._sampleName
+
+    # @property
+    # def referenceFile(self):
+    #     return self._referenceFile
 
     @property
     def rootDirectory(self):
