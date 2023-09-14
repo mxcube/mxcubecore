@@ -19,7 +19,6 @@
 
 """P11Shutter"""
 
-import logging
 from enum import Enum, unique
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractNState
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
@@ -33,12 +32,14 @@ import time
 from enum import Enum, unique
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 
+
 @unique
 class BackLightValues(Enum):
     IN = "In"
     OUT = "Out"
     MOVING = "Moving"
     UNKNOWN = "UNKNOWN"
+
 
 class P11BackLight(AbstractNState):
     """
@@ -50,9 +51,9 @@ class P11BackLight(AbstractNState):
     default_open_time = 8
     default_close_time = 3
 
-    def __init__(self,name):
+    def __init__(self, name):
 
-        super(AbstractNState,self).__init__(name)
+        super(AbstractNState, self).__init__(name)
 
         self.cmd_open_close = None
         self.cmd_started = 0
@@ -71,11 +72,11 @@ class P11BackLight(AbstractNState):
             self.chan_value.connect_signal("update", self.update_light_state)
 
         self.update_light_state(self.chan_value.get_value())
-        super(AbstractNState,self).init()
+        super(AbstractNState, self).init()
 
     def get_value(self):
         return self.update_light_state()
-       
+
     def is_moving(self):
         return self.get_value() == self.VALUES.MOVING
 
@@ -98,7 +99,7 @@ class P11BackLight(AbstractNState):
             new_value = 1
         elif value == self.VALUES.OUT:
             new_value = 0
-            
+
         if current_value != new_value:
             self.chan_value.set_value(new_value)
             self.cmd_started = time.time()
@@ -110,7 +111,7 @@ class P11BackLight(AbstractNState):
         """
         if value is None:
             value = self.chan_value.get_value()
-  
+
         elapsed = time.time() - self.cmd_started
 
         if value == 1:
@@ -127,6 +128,5 @@ class P11BackLight(AbstractNState):
             light_value = self.VALUES.UNKNOWN
 
         self.update_value(light_value)
-
 
         return light_value

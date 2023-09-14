@@ -1,4 +1,3 @@
-
 #  Project: MXCuBE
 #  https://github.com/mxcube
 #
@@ -21,7 +20,6 @@
 
 import time
 import gevent
-import logging
 import urllib
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
@@ -39,9 +37,9 @@ class P11Shutter(AbstractShutter):
 
     default_timeout = 6
 
-    def __init__(self,name):
+    def __init__(self, name):
 
-        super(AbstractShutter,self).__init__(name)
+        super(AbstractShutter, self).__init__(name)
 
         self.simulation = False
         self.simulated_opened = True
@@ -52,7 +50,6 @@ class P11Shutter(AbstractShutter):
         self.cmd_started = 0
 
         self.chan_state = None
-        
 
     def init(self):
         """Initilise the predefined values"""
@@ -70,7 +67,6 @@ class P11Shutter(AbstractShutter):
 
             self.chan_state = self.get_channel_object("chanState")
 
-
             if self.chan_state is not None:
                 self.chan_state.connect_signal("update", self.update_shutter_state)
 
@@ -78,19 +74,19 @@ class P11Shutter(AbstractShutter):
         else:
             self.simulated_update()
 
-        super(AbstractShutter,self).init()
+        super(AbstractShutter, self).init()
 
     def get_value(self):
         if self.simulation:
             return self.simulated_update()
 
         return self.update_shutter_state()
-       
+
     def _set_value(self, value):
         if value == self.VALUES.OPEN:
-             open_it = 1
+            open_it = 1
         elif value == self.VALUES.CLOSED:
-             open_it = 0
+            open_it = 0
         else:
             self.log.debug(" ###  setting wrong value for shutter %s" % str(value))
             return
@@ -111,7 +107,6 @@ class P11Shutter(AbstractShutter):
 
     def do_close(self, timeout=3):
         result = urllib.request.urlopen(self.url_close, None, timeout).readlines()
-
 
     def simul_do(self):
         gevent.sleep(1)

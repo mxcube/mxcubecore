@@ -19,11 +19,9 @@
 
 """P11DetectorCover"""
 
-import logging
 import time
 import gevent
 
-from enum import Enum, unique
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 
@@ -32,18 +30,20 @@ __credits__ = ["DESY P11"]
 __license__ = "LGPLv3+"
 __category__ = "General"
 
+
 class P11DetectorCover(AbstractShutter):
     """
     P11DetectorCover define interface to Tango Detector Cover at DESY P11
 
     Similar to P11 Shutter tango - but differs
     """
+
     default_timeout = 4
     move_time_min = 1
 
-    def __init__(self,name):
+    def __init__(self, name):
 
-        super(AbstractShutter,self).__init__(name)
+        super(AbstractShutter, self).__init__(name)
 
         self.simulation = False
         self.simulated_opened = False
@@ -68,7 +68,7 @@ class P11DetectorCover(AbstractShutter):
         if not self.simulation:
             self.cmd_open = self.get_command_object("cmdOpen")
             self.cmd_close = self.get_command_object("cmdClose")
-    
+
             self.chan_state_open = self.get_channel_object("chanStateOpen")
             self.chan_state_closed = self.get_channel_object("chanStateClosed")
 
@@ -78,7 +78,9 @@ class P11DetectorCover(AbstractShutter):
                 self.log.error("Cannot get channel for shutter %s" % self.username)
 
             if self.chan_state_closed is not None:
-                self.chan_state_closed.connect_signal("update", self.state_closed_changed)
+                self.chan_state_closed.connect_signal(
+                    "update", self.state_closed_changed
+                )
             else:
                 self.log.error("Cannot get channel for shutter %s" % self.username)
 
@@ -86,7 +88,7 @@ class P11DetectorCover(AbstractShutter):
         else:
             self.simulated_update()
 
-        super(AbstractShutter,self).init()
+        super(AbstractShutter, self).init()
 
     def get_value(self):
         if self.simulation:
@@ -115,7 +117,7 @@ class P11DetectorCover(AbstractShutter):
 
         if current_value == self.VALUES.MOVING:
             self.log.error("Cannot move while moving")
-            return 
+            return
 
         if value != current_value:
             if value == self.VALUES.OPEN:
@@ -166,7 +168,7 @@ class P11DetectorCover(AbstractShutter):
         else:
             if time.time() - self.cmd_started > self.cmd_timeout:
                 value = self.VALUES.UNKNOWN
-            else:    
+            else:
                 value = self.VALUES.MOVING
 
         self.update_value(value)

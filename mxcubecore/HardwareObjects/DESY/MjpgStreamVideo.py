@@ -34,11 +34,10 @@ import json
 from mxcubecore.utils.qt_import import QImage, QPixmap, QPoint
 from mxcubecore.utils.conversion import string_types
 
-from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import (
-    AbstractVideoDevice,
-)
+from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import AbstractVideoDevice
 
 from mxcubecore.BaseHardwareObjects import Device
+
 
 class MjpgStreamVideo(AbstractVideoDevice, Device):
     """
@@ -268,7 +267,6 @@ class MjpgStreamVideo(AbstractVideoDevice, Device):
 
         self.changing_pars = False
 
-
     def init(self):
         """
         Descript. :
@@ -277,12 +275,14 @@ class MjpgStreamVideo(AbstractVideoDevice, Device):
 
         hw_width = self.get_property("width")
         hw_height = self.get_property("height")
-        scale = self.get_property("scale",1)
+        scale = self.get_property("scale", 1)
 
         self.display_width = hw_width * scale
         self.display_height = hw_height * scale
 
-        self.log.debug(" MJPG video - width=%s,height=%s - scale=%s" % (hw_width,hw_height,scale))
+        self.log.debug(
+            " MJPG video - width=%s,height=%s - scale=%s" % (hw_width, hw_height, scale)
+        )
         self.hw_dimensions = (hw_width, hw_height)
         self.image_dimensions = (self.display_width, self.display_height)
         self.scale = scale
@@ -323,8 +323,7 @@ class MjpgStreamVideo(AbstractVideoDevice, Device):
             self.sensor_dimensions = (sensor_width, sensor_height)
 
         self.set_is_ready(True)
-        self.set_zoom(0) # overview camera
-
+        self.set_zoom(0)  # overview camera
 
     def http_get(self, query, host=None, port=None, path=None):
         """Sends HTTP GET requests and returns the answer.
@@ -350,7 +349,7 @@ class MjpgStreamVideo(AbstractVideoDevice, Device):
 
         # send get request and return response
         http = HTTPConnection(host, port, timeout=3)
-        #self.log.debug("MjpgStreamVideo: %s:%s - sending %s / %s " % (host,port,path,query))
+        # self.log.debug("MjpgStreamVideo: %s:%s - sending %s / %s " % (host,port,path,query))
 
         try:
             http.request("GET", path + query)
@@ -517,7 +516,7 @@ class MjpgStreamVideo(AbstractVideoDevice, Device):
         if query is not None:
             data = self.http_get(query)
             if data is not None:
-                data = json.loads(data.decode('utf-8'))
+                data = json.loads(data.decode("utf-8"))
                 if dest != self.DEST_PROGRAM and "controls" in data:
                     data = data["controls"]
                 return data
@@ -809,7 +808,7 @@ class MjpgStreamVideo(AbstractVideoDevice, Device):
             if zoom < limits[0] or zoom > limits[1]:
                 return
 
-            display_dimensions = self.image_dimensions 
+            display_dimensions = self.image_dimensions
             width = display_dimensions[0] / zoom
             height = display_dimensions[1] / zoom
 
@@ -846,17 +845,22 @@ class MjpgStreamVideo(AbstractVideoDevice, Device):
             if pos_x > 0:
                 self.send_cmd(pos_x, self.IN_CMD_AVT_REGION_X)
                 gevent.sleep(0.01)
-    
-            x_i = int(self.get_cmd_info(self.IN_CMD_AVT_REGION_X)['value'])
-            y_i = int(self.get_cmd_info(self.IN_CMD_AVT_REGION_Y)['value'])
-            w_i = int(self.get_cmd_info(self.IN_CMD_AVT_WIDTH)['value'])
-            h_i = int(self.get_cmd_info(self.IN_CMD_AVT_HEIGHT)['value'])
-    
-            print("zoom: %s" % zoom)
-            print("pos_x (%s, %s) - pos_y (%s,%s) " % (pos_x, x_i,pos_y, y_i))
-            print("width (%s, %s) - height (%s,%s) " % (width, w_i,height, h_i))
 
-            if abs(x_i-pos_x) > 3 or abs(y_i-pos_y) >3 or abs(w_i-width) >3 or abs(h_i-height) >3:
+            x_i = int(self.get_cmd_info(self.IN_CMD_AVT_REGION_X)["value"])
+            y_i = int(self.get_cmd_info(self.IN_CMD_AVT_REGION_Y)["value"])
+            w_i = int(self.get_cmd_info(self.IN_CMD_AVT_WIDTH)["value"])
+            h_i = int(self.get_cmd_info(self.IN_CMD_AVT_HEIGHT)["value"])
+
+            print("zoom: %s" % zoom)
+            print("pos_x (%s, %s) - pos_y (%s,%s) " % (pos_x, x_i, pos_y, y_i))
+            print("width (%s, %s) - height (%s,%s) " % (width, w_i, height, h_i))
+
+            if (
+                abs(x_i - pos_x) > 3
+                or abs(y_i - pos_y) > 3
+                or abs(w_i - width) > 3
+                or abs(h_i - height) > 3
+            ):
                 self.log.debug(" - trying to program zoom again")
                 gevent.sleep(0.1)
                 continue
@@ -931,7 +935,9 @@ class MjpgStreamVideo(AbstractVideoDevice, Device):
         if image is not None:
             image = image.scaled(self.display_width, self.display_height)
             # image.setOffset(QPoint(300,300))
-            self.image = QPixmap.fromImage(image.scaled(self.display_width, self.display_height))
+            self.image = QPixmap.fromImage(
+                image.scaled(self.display_width, self.display_height)
+            )
             self.emit("imageReceived", self.image)
 
     def take_snapshot(self, filename, bw=False):
@@ -945,9 +951,7 @@ class MjpgStreamVideo(AbstractVideoDevice, Device):
             #    qimage.setNumColors(0)
             qimage.save(filename, "PNG")
         except Exception:
-            self.log.error(
-                "MjpgStreamVideo: unable to save snapshot: %s" % filename
-            )
+            self.log.error("MjpgStreamVideo: unable to save snapshot: %s" % filename)
 
     def _do_imagePolling(self, sleep_time):
         """
@@ -962,7 +966,9 @@ class MjpgStreamVideo(AbstractVideoDevice, Device):
             image = self.get_new_image()
             if image is not None:
                 # image.setOffset(QPoint(300,300))
-                #self.image = QPixmap.fromImage(image)
-                self.image = QPixmap.fromImage(image.scaled(self.display_width, self.display_height))
+                # self.image = QPixmap.fromImage(image)
+                self.image = QPixmap.fromImage(
+                    image.scaled(self.display_width, self.display_height)
+                )
                 self.emit("imageReceived", self.image)
             # gevent.sleep(0.1)

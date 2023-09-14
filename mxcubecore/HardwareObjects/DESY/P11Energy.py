@@ -46,10 +46,10 @@ class P11Energy(AbstractEnergy):
             self.chan_status.connect_signal("update", self.energy_state_changed)
 
         self.chan_autobrake = self.get_channel_object("chanAutoBrake")
-        limits = self.get_property('limits',None)
+        limits = self.get_property("limits", None)
 
         try:
-            limits = list(map(float,limits.split(',')))
+            limits = list(map(float, limits.split(",")))
         except Exception as e:
             log.error("P11Transmission - cannot parse limits: {}".format(str(e)))
             limits = None
@@ -115,10 +115,9 @@ class P11Energy(AbstractEnergy):
         """
         prog_value = value * 1000
         self.chan_autobrake.set_value(True)
-        if self.get_state() == self.STATES.READY: 
+        if self.get_state() == self.STATES.READY:
             self.log.debug("Programming ENERGY to %s" % prog_value)
             self.chan_energy.set_value(prog_value)
-        pass
 
     def get_value(self):
         """

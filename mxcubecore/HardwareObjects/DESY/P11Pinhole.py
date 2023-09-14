@@ -1,4 +1,3 @@
-
 #  Project: MXCuBE
 #  https://github.com/mxcube
 #
@@ -32,12 +31,11 @@ __category__ = "General"
 
 
 class P11Pinhole(MotorsNPosition):
-    def __init__(self,name):
+    def __init__(self, name):
 
-        super(P11Pinhole,self).__init__(name)
+        super(P11Pinhole, self).__init__(name)
 
         self._config_file = None
-        
 
     def init(self):
         """Initilise the predefined values"""
@@ -46,8 +44,7 @@ class P11Pinhole(MotorsNPosition):
 
         self._config_file = self.get_property("config_file")
 
-        super(P11Pinhole,self).init()
-
+        super(P11Pinhole, self).init()
 
     def load_positions(self):
 
@@ -64,12 +61,14 @@ class P11Pinhole(MotorsNPosition):
         units[0] = ""
 
         posnames = copy.copy(names)
-        posnames[1:] = [ "{}um".format(posname) for posname in posnames[1:] ]
+        posnames[1:] = ["{}um".format(posname) for posname in posnames[1:]]
 
         yposlist = map(int, config["Pinholes"]["pinholeyposlist"].split(","))
         zposlist = map(int, config["Pinholes"]["pinholezposlist"].split(","))
 
-        for name, posname, unit, ypos, zpos in zip(names, posnames, units, yposlist, zposlist):
+        for name, posname, unit, ypos, zpos in zip(
+            names, posnames, units, yposlist, zposlist
+        ):
             self._positions[name] = {}
             self._properties[name] = {}
 

@@ -1,5 +1,5 @@
 # encoding: utf-8
-# 
+#
 #  Project: MXCuBE
 #  https://github.com/mxcube.
 #
@@ -20,10 +20,10 @@
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
+
 class ValueStateChannel(HardwareObject):
-    
     def __init__(self, name):
-        super(ValueStateChannel,self).__init__(name)
+        super(ValueStateChannel, self).__init__(name)
 
     def init(self):
 
@@ -41,37 +41,40 @@ class ValueStateChannel(HardwareObject):
         if self.chan_state is not None:
             self.chan_state.connect_signal("update", self.state_changed)
 
-        self.update_delta = self.get_property('delta')
+        self.update_delta = self.get_property("delta")
 
-        green_states = self.get_property('ok_states')
-        yellow_states = self.get_property('warning_states')
-        red_states = self.get_property('alarm_states')
+        green_states = self.get_property("ok_states")
+        yellow_states = self.get_property("warning_states")
+        red_states = self.get_property("alarm_states")
 
-        yellow_limits = self.get_property('warning_limits')
-        red_limits = self.get_property('alarm_limits')
+        yellow_limits = self.get_property("warning_limits")
+        red_limits = self.get_property("alarm_limits")
 
         if green_states:
-            self.green_states = [ stat.strip().upper() for stat in green_states.split(",")]
+            self.green_states = [
+                stat.strip().upper() for stat in green_states.split(",")
+            ]
         if yellow_states:
-            self.yellow_states = [ stat.strip().upper() for stat in yellow_states.split(",")]
+            self.yellow_states = [
+                stat.strip().upper() for stat in yellow_states.split(",")
+            ]
         if red_states:
-            self.red_states = [ stat.strip().upper() for stat in red_states.split(",")]
+            self.red_states = [stat.strip().upper() for stat in red_states.split(",")]
 
         if yellow_limits:
-            lims = [ float(lim.strip()) for lim in yellow_limits.split(",")]
+            lims = [float(lim.strip()) for lim in yellow_limits.split(",")]
             if len(lims) == 2:
                 if lims[0] > lims[1]:
-                    self.yellow_limits = lims[1],lims[0]
+                    self.yellow_limits = lims[1], lims[0]
                 else:
                     self.yellow_limits = lims
         if red_limits:
-            lims = [ float(lim.strip()) for lim in red_limits.split(",")]
+            lims = [float(lim.strip()) for lim in red_limits.split(",")]
             if len(lims) == 2:
                 if lims[0] > lims[1]:
-                    self.red_limits = lims[1],lims[0]
+                    self.red_limits = lims[1], lims[0]
                 else:
                     self.red_limits = lims
-
 
     def is_ready(self):
         return self._state == self.STATES.READY
@@ -105,20 +108,19 @@ class ValueStateChannel(HardwareObject):
 
         if self.red_limits:
             llim, hlim = self.red_limits
-            if  llim > val or hlim < val:
+            if llim > val or hlim < val:
                 _state = "ALARM"
 
         if _state != "ALARM" and self.yellow_limits:
             llim, hlim = self.yellow_limits
-            if  llim > val or hlim < val:
+            if llim > val or hlim < val:
                 _state = "WARNING"
 
         if self._red_states and self._state in self._red_states:
             _state = "ALARM"
         elif self._yellow_states and self._state in self._yellow_states:
-            _state = (_state == "ALARM" and _state or "WARNING"
+            _state = _state == "ALARM" and _state or "WARNING"
 
         if _state != self.current_state:
             self.current_state = _state
             self.emit("stateChanged", _state)
-

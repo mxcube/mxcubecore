@@ -19,7 +19,6 @@
 
 """P11Shutter"""
 
-import logging
 from enum import Enum, unique
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractNState
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
@@ -29,14 +28,15 @@ __credits__ = ["DESY P11"]
 __license__ = "LGPLv3+"
 __category__ = "General"
 
-import time
 from enum import Enum, unique
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
+
 
 @unique
 class FastShutterValues(Enum):
     OPEN = "Open"
     CLOSED = "Closed"
+
 
 class P11FastShutter(AbstractNState):
     """
@@ -48,9 +48,9 @@ class P11FastShutter(AbstractNState):
     default_open_time = 8
     default_close_time = 3
 
-    def __init__(self,name):
+    def __init__(self, name):
 
-        super(AbstractNState,self).__init__(name)
+        super(AbstractNState, self).__init__(name)
         self.chan_value = None
 
     def init(self):
@@ -62,11 +62,11 @@ class P11FastShutter(AbstractNState):
             self.chan_value.connect_signal("update", self.update_fast_shutter)
 
         self.update_fast_shutter(self.chan_value.get_value())
-        super(AbstractNState,self).init()
+        super(AbstractNState, self).init()
 
     def get_value(self):
         return self.update_fast_shutter()
-       
+
     def is_open(self):
         return self.get_value() == self.VALUES.OPEN
 
@@ -86,7 +86,7 @@ class P11FastShutter(AbstractNState):
             new_value = 1
         elif value == self.VALUES.CLOSED:
             new_value = 0
-            
+
         if current_value != new_value:
             self.chan_value.set_value(new_value)
 
@@ -102,8 +102,7 @@ class P11FastShutter(AbstractNState):
             shutter_value = self.VALUES.OPEN
         else:
             shutter_value = self.VALUES.CLOSED
-  
-        self.update_value(shutter_value)
 
+        self.update_value(shutter_value)
 
         return shutter_value
