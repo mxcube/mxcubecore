@@ -23,6 +23,7 @@ __license__ = "LGPLv3+"
 
 import os
 import re
+from select import EPOLL_CLOEXEC
 import time
 import json
 from datetime import date
@@ -112,16 +113,20 @@ class P11Session(Session):
             return info["proposalId"]
 
     def read_beamtime_info(self):
-        for ety in os.scandir(PATH_BEAMTIME):
-            if ety.is_file() and ety.name.startswith('beamtime-metadata'):
-                info = self.read_load_info(ety.path)
-                self.log.debug(f"BEAMTIME INFO from {ety.path} is " + str(info))
-                if info is not None:
-                    self.beamtime_info.update( self.read_load_info(ety.path) )
-                self.beamtime_info['rootPath'] = PATH_BEAMTIME
+        self.log.debug("=========== READING BEAMTIME INFO ============")
+        if os.path.exists(PATH_BEAMTIME):
+            if os.scandir(PATH_BEAMTIME):
+                for ety in os.scandir(PATH_BEAMTIME):
+                    if ety.is_file() and ety.name.startswith('beamtime-metadata'):
+                        info = self.read_load_info(ety.path)
+                        self.log.debug(f"BEAMTIME INFO from {ety.path} is " + str(info))
+                        if info is not None:
+                            self.beamtime_info.update( self.read_load_info(ety.path) )
+                        self.beamtime_info['rootPath'] = PATH_BEAMTIME
+        else:
+            self.log.debug(f"No beamtime ID is open, using local path {PATH_FALLBACK}.")
+            self.beamtime_info['rootPath'] = PATH_FALLBACK
             
-            return None
-
     def read_commissioning_info(self):
         for ety in os.scandir(PATH_COMMISSIONING):
             if ety.is_file() and ety.name.startswith("commissioning-metadata"):
