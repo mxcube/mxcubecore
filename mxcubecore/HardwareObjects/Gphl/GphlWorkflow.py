@@ -95,13 +95,6 @@ RECENTRING_MODES = OrderedDict(
 )
 # Lattice to point groups,
 # Used for GPhL UI pulldowns, hence the combined point groups, like '4|422'
-# Note:
-# Values consist of point groups EXCEPT "312" and "321", that are special-cased
-# The first value is the default for the strategy,
-# the last for the set of possibilities.
-# The list for lattice "" contains all point group settings
-# The keys consist opf the Bravais lattice names, the crystam system names
-# and "" (for 'not set')
 # The list of keys, plus "", defines the GPhL lattices pulldown.
 lattice2point_group_tags = OrderedDict(
     aP=("1",),
@@ -579,6 +572,12 @@ class GphlWorkflow(HardwareObjectYaml):
                 data_model.cell_parameters,
             ):
                 fields[tag]["default"] = val
+        else:
+            for tag in (
+                "cell_a", "cell_b", "cell_c", "cell_alpha", "cell_beta", "cell_gamma"
+            ):
+                fields[tag]["default"] = 0
+
 
         # NB update_on_change supports None, "always", and "selected"
         # It controls whether an update signal is sent when a parameter changes
@@ -974,11 +973,23 @@ class GphlWorkflow(HardwareObjectYaml):
                 beam_energies[tag] = energies[idx]
             dose_label = "Dose/repetition (MGy)"
 
+            # Make strategy-description info_text
+            if len(beam_energies) > 1:
+                lines.append(
+                    "Experiment length (per repetition): %s * %6.1f°"
+                    % (len(beam_energies), data_model.strategy_length)
+                )
+            else:
+                lines.append(
+                    "Experiment length (per repetition): %6.1f°"
+                    % data_model.strategy_length
+                )
+
         else:
             # Characterisation
             title_string = "Characterisation"
             info_title = "--- GΦL Characterisation strategy ---"
-            lines = []
+            lines = ["Experiment length: %6.1f°" % data_model.strategy_length]
             beam_energies = OrderedDict((("Characterisation", initial_energy),))
             dose_label = "Characterisation dose (MGy)"
             if not self.settings.get("recentre_before_start"):
@@ -989,18 +1000,6 @@ class GphlWorkflow(HardwareObjectYaml):
                     pos = current_pos_dict.get(tag)
                     if pos is not None:
                         dd0[tag] = pos
-
-        # Make strategy-description info_text
-        if len(beam_energies) > 1:
-            lines.append(
-                "Experiment length (per repetition): %s * %6.1f°"
-                % (len(beam_energies), data_model.strategy_length)
-            )
-        else:
-            lines.append(
-                "Experiment length (per repetition): %6.1f°"
-                % data_model.strategy_length
-            )
 
         for rotation_id, sweeps in orientations.items():
             axis_settings = axis_setting_dicts[rotation_id]
@@ -2605,6 +2604,8 @@ class GphlWorkflow(HardwareObjectYaml):
         crystal_data = None
         hklfile = None
         if sample_name:
+            if sample_name.startswith(self.TEST_SAMPLE_PREFIX):
+                sample_name = sample_name[len(self.TEST_SAMPLE_PREFIX)+1:]
             sample_dir = HWR.beamline.gphl_connection.software_paths.get(
                 "gphl_test_samples"
             )
@@ -2746,7 +2747,7 @@ class GphlWorkflow(HardwareObjectYaml):
         )
         value = space_group if space_group in sglist else ""
         result = {
-            "point_groups": {
+            "space_group": {
                 "value": value,
                 "options": {
                     "value_dict": OrderedDict((tag, tag) for tag in sglist),
@@ -2773,11 +2774,11 @@ class GphlWorkflow(HardwareObjectYaml):
                 result = self.update_lattice(values1)
                 # In case update_lattice changed the space group
                 result["space_group"]["value"] = space_group
-            point_groups = info.point_group
-            if point_groups == "32" and lattice == "hP":
-                point_groups = info.name[:-1]
-            if point_groups != point_groups0:
-                result["point_groups"]["value"] = point_groups
+                point_groups = info.point_group
+                if point_groups == "32" and lattice == "hP":
+                    point_groups = info.name[:-1]
+                if point_groups != point_groups0:
+                    result["point_groups"]["value"] = point_groups
         #
         return result
 

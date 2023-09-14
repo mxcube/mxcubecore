@@ -37,6 +37,9 @@ settings:
     display_energy_decimals: 4
     default_beam_energy_tag: Main
 
+    # NB Temporary developer option. Defaults to 1
+    allow_duplicate_orientations: 0
+
 
     defaults:
         # Default values for queue_model_objects.GphlWorkflow attributes
