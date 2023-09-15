@@ -23,6 +23,7 @@ import gevent
 import urllib
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
+from enum import Enum, unique
 
 
 __credits__ = ["DESY P11"]
@@ -36,6 +37,16 @@ class P11Shutter(AbstractShutter):
     """
 
     default_timeout = 6
+
+    @unique
+    class BaseValueEnum(Enum):
+     """Defines only the compulsory values."""
+     OPEN = "OPEN"
+     CLOSED = "CLOSED"
+     MOVING = "MOVING"
+     UNKNOWN = "UNKNOWN"
+    
+    VALUES=BaseValueEnum
 
     def __init__(self, name):
 
