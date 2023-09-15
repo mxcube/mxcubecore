@@ -657,7 +657,7 @@ class P11NanoDiff(GenericDiffractometer):
         self.phase_goingto = GenericDiffractometer.PHASE_CENTRING
 
         self.log.debug("  - close detector cover")
-        self.detcover_hwobj.close()
+        self.detcover_hwobj.close(timeout=0)
 
         self.log.debug("  - setting backlight in")
         self.backlight_hwobj.set_in()
@@ -689,7 +689,7 @@ class P11NanoDiff(GenericDiffractometer):
 
         try:
             self.log.debug("  - close detector cover")
-            self.detcover_hwobj.close()
+            self.detcover_hwobj.close(timeout=0)
 
             self.log.debug("  - setting backlight out")
             self.backlight_hwobj.set_out()
@@ -725,12 +725,12 @@ class P11NanoDiff(GenericDiffractometer):
         # microx, microy to 0
 
     def detector_cover_open(self, wait=True):
-        self.detcover_hwobj.open()
+        self.detcover_hwobj.open(timeout=0)
         if wait:
             self.wait_detcover(state="close")
 
     def detector_cover_close(self, wait=True):
-        self.detcover_hwobj.close()
+        self.detcover_hwobj.close(timeout=0)
         if wait:
             self.wait_detcover(state="close")
 
@@ -786,7 +786,7 @@ class P11NanoDiff(GenericDiffractometer):
         self.log.debug(" SETTING BEAM LOCATION PHASE ")
 
         self.log.debug("  - open detector cover")
-        self.detcover_hwobj.open()
+        self.detcover_hwobj.open(timeout=0)
         self.log.debug("  - setting backlight out")
         self.backlight_hwobj.set_out()  # out
 
