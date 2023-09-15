@@ -2716,11 +2716,12 @@ class GphlWorkflow(HardwareObjectYaml):
             sgoptions = [""] + crystal_symmetry.space_groups_from_params(
                 point_groups=pglist[-1].split("|")
             )
+            sgvalue = ""
         else:
-            pglist = all_point_group_tags
+            pglist = [""] + all_point_group_tags
             pgvalue = ""
             sgoptions = [""] + crystal_symmetry.space_groups_from_params()
-        sgvalue = space_group if space_group in sgoptions else ""
+            sgvalue = space_group
         result = {
             "point_groups": {
                 "value": pgvalue,
