@@ -132,7 +132,6 @@ class DigitalZoomMotor(AbstractMotor, Device):
         """
         Descript. : does nothing, for position change is instantaneous
         """
-        pass
 
     def is_moving(self):
         return False

@@ -39,12 +39,13 @@ class P11Energy(AbstractEnergy):
     def init(self):
         self.chan_energy = self.get_channel_object("chanEnergy")
         if self.chan_energy is not None:
-            self.chan_energy.connectSignal("update", self.energy_position_changed)
+            self.chan_energy.connect_signal("update", self.energy_position_changed)
 
         self.chan_status = self.get_channel_object("chanStatus")
         if self.chan_status is not None:
-            self.chan_status.connectSignal("update", self.energy_state_changed)
+            self.chan_status.connect_signal("update", self.energy_state_changed)
 
+        self.chan_autobrake = self.get_channel_object("chanAutoBrake")
         limits = self.get_property("limits", None)
 
         try:
@@ -61,20 +62,19 @@ class P11Energy(AbstractEnergy):
         else:
             self.set_limits(limits)
 
-        self.re_emit_values()
-
-    def re_emit_values(self):
-        self._nominal_value = None
-        self._state = None
         self.energy_state_changed()
         self.energy_position_changed()
+
+    def re_emit_values(self):
+        self.emit("valueChanged", (self._nominal_value))
+        self.emit("energyChanged", (self._nominal_value, self._wavelength_value))
 
     def is_ready(self):
         return self._state == self.STATES.READY
 
     def energy_state_changed(self, state=None):
         if state is None:
-            state = self.chan_status.getValue()
+            state = self.chan_status.get_value()
 
         _state = str(state)
 
@@ -96,7 +96,7 @@ class P11Energy(AbstractEnergy):
         :return:
         """
         if pos is None:
-            pos = self.chan_energy.getValue()
+            pos = self.chan_energy.get_value()
 
         energy = pos / 1000.0
 
@@ -113,7 +113,11 @@ class P11Energy(AbstractEnergy):
         """
         Implementation pending
         """
-        pass
+        prog_value = value * 1000
+        self.chan_autobrake.set_value(True)
+        if self.get_state() == self.STATES.READY:
+            self.log.debug("Programming ENERGY to %s" % prog_value)
+            self.chan_energy.set_value(prog_value)
 
     def get_value(self):
         """
@@ -124,7 +128,7 @@ class P11Energy(AbstractEnergy):
         value = self._default_energy
         if self.chan_energy is not None:
             try:
-                value = self.chan_energy.getValue()
+                value = self.chan_energy.get_value()
                 return value / 1000
             except Exception:
                 logging.getLogger("HWR").exception(

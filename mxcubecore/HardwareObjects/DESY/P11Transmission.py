@@ -64,10 +64,10 @@ class P11Transmission(AbstractTransmission):
         self.chan_state = self.get_channel_object("chanState")
 
         if self.chan_read_value is not None:
-            self.chan_read_value.connectSignal("update", self.value_changed)
+            self.chan_read_value.connect_signal("update", self.value_changed)
 
         if self.chan_state is not None:
-            self.chan_state.connectSignal("update", self.state_changed)
+            self.chan_state.connect_signal("update", self.state_changed)
 
         self.re_emit_values()
 
@@ -80,12 +80,12 @@ class P11Transmission(AbstractTransmission):
         return self._state
 
     def get_value(self):
-        return self.chan_read_value.getValue() * 100.0
+        return self.chan_read_value.get_value() * 100.0
 
     def state_changed(self, state=None):
 
         if state is None:
-            state = self.chan_state.getValue()
+            state = self.chan_state.get_value()
 
         _str_state = str(state)
 
@@ -106,12 +106,11 @@ class P11Transmission(AbstractTransmission):
 
         # update only if needed
         if self._nominal_value is None or abs(self._nominal_value - _value) > 10e-1:
-            self._nominal_value = _value
             self.update_value(_value)
 
     def _set_value(self, value):
         value = value / 100.0
-        self.chan_set_value.setValue(value)
+        self.chan_set_value.set_value(value)
 
         print("============== Setting transmission ==================")
 

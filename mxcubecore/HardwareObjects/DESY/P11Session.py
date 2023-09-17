@@ -22,7 +22,7 @@ __copyright__ = """ Copyright © 2010 - 2023 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
 import os
-import re
+from select import EPOLL_CLOEXEC
 import time
 import json
 from datetime import date
@@ -79,10 +79,10 @@ class P11Session(Session):
         )
 
     def info_set_defaults(self):
-        self.beamtime_info['beamtimeId'] = None
-        self.beamtime_info['proposalType'] = None
-        self.beamtime_info['proposalId'] = None
-        self.beamtime_info['rootPath'] = PATH_FALLBACK
+        self.beamtime_info["beamtimeId"] = None
+        self.beamtime_info["proposalType"] = None
+        self.beamtime_info["proposalId"] = None
+        self.beamtime_info["rootPath"] = PATH_FALLBACK
 
     def is_beamtime_open(self):
         return True
@@ -92,7 +92,7 @@ class P11Session(Session):
         return self.is_writable_dir(
             os.path.join(PATH_COMMISSIONING, self.raw_data_folder_name)
         )
-    
+
     def is_writable_dir(self, folder):
         return os.path.isdir(folder) and os.access(folder, os.F_OK | os.W_OK)
 
@@ -112,15 +112,19 @@ class P11Session(Session):
             return info["proposalId"]
 
     def read_beamtime_info(self):
-        for ety in os.scandir(PATH_BEAMTIME):
-            if ety.is_file() and ety.name.startswith('beamtime-metadata'):
-                info = self.read_load_info(ety.path)
-                self.log.debug(f"BEAMTIME INFO from {ety.path} is " + str(info))
-                if info is not None:
-                    self.beamtime_info.update( self.read_load_info(ety.path) )
-                self.beamtime_info['rootPath'] = PATH_BEAMTIME
-            
-            return None
+        self.log.debug("=========== READING BEAMTIME INFO ============")
+        if os.path.exists(PATH_BEAMTIME):
+            if os.scandir(PATH_BEAMTIME):
+                for ety in os.scandir(PATH_BEAMTIME):
+                    if ety.is_file() and ety.name.startswith("beamtime-metadata"):
+                        info = self.read_load_info(ety.path)
+                        self.log.debug(f"BEAMTIME INFO from {ety.path} is " + str(info))
+                        if info is not None:
+                            self.beamtime_info.update(self.read_load_info(ety.path))
+                        self.beamtime_info["rootPath"] = PATH_BEAMTIME
+        else:
+            self.log.debug(f"No beamtime ID is open, using local path {PATH_FALLBACK}.")
+            self.beamtime_info["rootPath"] = PATH_FALLBACK
 
     def read_commissioning_info(self):
         for ety in os.scandir(PATH_COMMISSIONING):
@@ -144,7 +148,7 @@ class P11Session(Session):
             return None
 
     def select_base_directory(self, mode="beamtime"):
-        self.base_directory = self.beamtime_info['rootPath']
+        self.base_directory = self.beamtime_info["rootPath"]
 
     def get_base_data_directory(self):
         """
@@ -210,11 +214,10 @@ class P11Session(Session):
 
     def path_to_ispyb(self, path):
         ispyb_template = self["file_info"].get_property("ispyb_directory_template")
-        bid = self.beamtime_info['beamtimeId'] 
+        bid = self.beamtime_info["beamtimeId"]
         year = date.today().year
-        ispyb_path = ispyb_template.format(beamtime_id=bid,year=year)
+        ispyb_path = ispyb_template.format(beamtime_id=bid, year=year)
         return path
 
     def is_writable_dir(self, folder):
-        return os.path.isdir(folder) and os.access(folder, os.F_OK | os.W_OK )
-
+        return os.path.isdir(folder) and os.access(folder, os.F_OK | os.W_OK)

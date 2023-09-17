@@ -23,11 +23,9 @@ __license__ = "LGPLv3+"
 
 
 import sys
-import os
 import time
 from PIL import Image
 
-import threading
 
 sys.path.append("/opt/dectris/albula/4.0/python/")
 

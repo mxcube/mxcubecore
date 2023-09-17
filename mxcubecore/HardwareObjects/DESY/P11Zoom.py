@@ -1,7 +1,7 @@
 # encoding: utf-8
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube
+#  https://github.com/mxcube.
 #
 #  This file is part of MXCuBE software.
 #
@@ -16,11 +16,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
-
-__copyright__ = """ Copyright © 2010 - 2023 by MXCuBE Collaboration """
-__license__ = "LGPLv3+"
-
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 from enum import Enum
 import ast
@@ -39,17 +35,14 @@ class P11Zoom(AbstractNState):
 
     def init(self):
 
-        self.pixels_per_mm = self.get_property("pixels_per_mm")
+        self._pixels_per_mm = self.get_property("pixels_per_mm")
+        self._overview_pixels_per_mm = self.get_property("overview_pixels_per_mm")
         self.camera_hwobj = self.get_object_by_role("camera")
 
         self.connect(self.camera_hwobj, "zoomChanged", self.zoom_value_changed)
 
         if self.camera_hwobj is None:
             self.log.debug("P11Zoom.py - cannot connect to camera hardware object")
-        else:
-            self.log.debug(
-                "P11Zoom.py / current zoom is %s" % self.camera_hwobj.get_zoom()
-            )
 
         AbstractNState.init(self)
 
@@ -59,6 +52,9 @@ class P11Zoom(AbstractNState):
     def get_state(self):
         return self.STATES.READY
 
+    def is_moving(self):
+        return False
+
     def get_value(self):
         return self.get_zoom()
 
@@ -67,12 +63,24 @@ class P11Zoom(AbstractNState):
 
     def get_pixels_per_mm(self):
         current_zoom = self.get_zoom()
-        px_per_mm = self.pixels_per_mm * current_zoom
-        return [px_per_mm, px_per_mm]
+
+        if current_zoom == 0:
+            px_per_mm = self._overview_pixels_per_mm
+        else:
+            self.log.debug(
+                "getting pixels per mm: %s - %s"
+                % (str(self._pixels_per_mm), str(current_zoom))
+            )
+            px_per_mm = self._pixels_per_mm * current_zoom
+
+        scale = self.camera_hwobj.get_scale()
+
+        return [int(px_per_mm * scale), int(px_per_mm * scale)]
 
     def get_zoom(self):
-        self.log.debug("ZOOM: current zoom is : %s" % self.camera_hwobj.get_zoom())
-        self.current_value = self.camera_hwobj.get_zoom()
+        zoom = self.camera_hwobj.get_zoom()
+        if zoom is not None:
+            self.current_value = zoom
         return self.current_value
 
     def set_zoom_value(self, value):
@@ -87,16 +95,21 @@ class P11Zoom(AbstractNState):
         return self.closest_zoom, self.get_zoom()
 
     def zoom_value_changed(self, value):
-        self.log.debug("ZOOM - value changed: %s" % value)
         self.current_value = value
         self.update_value(value)
         self.update_zoom()
 
     def update_zoom(self):
+
         dist = None
         value = self.get_value()
 
         for zoom in self.VALUES:
+
+            if value == 0:
+                self.closest_zoom = zoom
+                break
+
             _dist = abs(value - zoom.value)
             if dist is None or _dist < dist:
                 dist = _dist
