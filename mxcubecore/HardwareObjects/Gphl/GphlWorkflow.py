@@ -2714,7 +2714,7 @@ class GphlWorkflow(HardwareObjectYaml):
             pglist = lattice2point_group_tags[lattice]
             pgvalue = pgvar if pgvar and pgvar in pglist else pglist[-1]
             sgoptions = [""] + crystal_symmetry.space_groups_from_params(
-                point_groups=pglist[-1].split("|")
+                (lattice,), point_groups=pglist[-1].split("|")
             )
             sgvalue = ""
         else:
@@ -2742,11 +2742,12 @@ class GphlWorkflow(HardwareObjectYaml):
     def update_point_groups(self, values):
         """Update pulldowns when pointgroups change"""
         pgvar = values.get("point_groups") or ""
+        lattice = values.get("lattice")
         space_group = values.get("space_group")
         sglist = [""] + crystal_symmetry.space_groups_from_params(
-            point_groups=pgvar.split("|")
+            (lattice,), point_groups=pgvar.split("|")
         )
-        value = space_group if space_group in sglist else ""
+        value = ""
         result = {
             "space_group": {
                 "value": value,
