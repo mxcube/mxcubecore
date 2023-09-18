@@ -56,6 +56,7 @@ FILE_TIMEOUT = 5
 
 
 class P11Collect(AbstractCollect):
+
     def __init__(self, *args):
         super(P11Collect, self).__init__(*args)
 
@@ -99,7 +100,6 @@ class P11Collect(AbstractCollect):
             self.log.debug("acq_window_off_cmd: %s" % self.acq_window_off_cmd)
         else:
             self.init_ok = True
-
     @task
     def move_motors(self, motor_position_dict):
         HWR.beamline.diffractometer.wait_omega()
@@ -429,8 +429,16 @@ class P11Collect(AbstractCollect):
                 "======= collect_characterisation  Waiting ======================================="
             )
 
-            # Let adxv know whether it is
+            #This part goes to standard collection. Otherwise it produces phantom openings.
+            # diffr.set_omega_velocity(self.default_speed)
+            # self.acq_window_off_cmd()
+            # self.acq_off_cmd()
+            self.log.debug("======= collect_characterisation  Waiting =======================================")
+
+            #Let adxv know whether it is 
             # self.adxv_notify(self.latest_h5_filename,img_no+1)
+            
+            # time.sleep(1)
 
             # time.sleep(1)
 
