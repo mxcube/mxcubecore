@@ -56,21 +56,23 @@ FILE_TIMEOUT = 5
 
 
 class P11Collect(AbstractCollect):
+
     def __init__(self, *args):
         super(P11Collect, self).__init__(*args)
 
     def init(self):
 
-        super(P11Collect, self).init()
+        super(P11Collect,self).init()
 
         # os.system("/opt/xray/bin/adxv -socket -colors Gray -rings &")
 
         # os.system("/bin/bash /gpfs/local/shared/MXCuBE/STRELA/start_viewer_zmq.sh")
 
+        
         self.default_speed = self.get_property("omega_default_speed", 130)
         self.turnback_time = self.get_property("turnback_time", 0.3)
-        self.filter_server_name = self.get_property("filterserver")
-        self.mono_server_name = self.get_property("monoserver")
+        self.filter_server_name = self.get_property('filterserver')
+        self.mono_server_name = self.get_property('monoserver')
         self.filter_server = DeviceProxy(self.filter_server_name)
         self.mono_server = DeviceProxy(self.mono_server_name)
 
@@ -82,14 +84,9 @@ class P11Collect(AbstractCollect):
         self.acq_off_cmd = self.get_command_object("acq_off")
         self.acq_window_off_cmd = self.get_command_object("acq_window_off")
 
-        if None in [
-            self.lower_bound_ch,
-            self.upper_bound_ch,
-            self.acq_arm_cmd,
-            self.acq_on_cmd,
-            self.acq_off_cmd,
-            self.acq_window_off_cmd,
-        ]:
+        if None in [self.lower_bound_ch, self.upper_bound_ch,
+                    self.acq_arm_cmd, self.acq_on_cmd, self.acq_off_cmd,
+                    self.acq_window_off_cmd]:
             self.init_ok = False
             self.log.debug("lower_bound_ch: %s" % self.lower_bound_ch)
             self.log.debug("upper_bound_ch: %s" % self.upper_bound_ch)
@@ -99,7 +96,6 @@ class P11Collect(AbstractCollect):
             self.log.debug("acq_window_off_cmd: %s" % self.acq_window_off_cmd)
         else:
             self.init_ok = True
-
     @task
     def move_motors(self, motor_position_dict):
         HWR.beamline.diffractometer.wait_omega()
@@ -351,17 +347,20 @@ class P11Collect(AbstractCollect):
         """
         HWR.beamline.diffractometer.wait_omega()
 
-        start_pos = start_angle - self.turnback_time * self.acq_speed
-        stop_pos = stop_angle + self.turnback_time * self.acq_speed
-
+        start_pos = start_angle - self.turnback_time*self.acq_speed
+        stop_pos = stop_angle + self.turnback_time*self.acq_speed
+        
+        
+    
         self.log.debug("#COLLECT# Running OMEGA through the std acquisition")
         if start_angle <= stop_angle:
-            self.lower_bound_ch.set_value(start_angle)
-            self.upper_bound_ch.set_value(stop_angle)
+                self.lower_bound_ch.set_value(start_angle)
+                self.upper_bound_ch.set_value(stop_angle)
 
         else:
-            self.lower_bound_ch.set_value(stop_angle)
-            self.upper_bound_ch.set_value(start_angle)
+                self.lower_bound_ch.set_value(stop_angle)
+                self.upper_bound_ch.set_value(start_angle)
+
 
         self.omega_mv(start_pos, self.default_speed)
         self.acq_arm_cmd()
@@ -391,9 +390,7 @@ class P11Collect(AbstractCollect):
 
         diffr = HWR.beamline.diffractometer
 
-        self.log.debug(
-            "#COLLECT# Running OMEGA through the characteristation acquisition"
-        )
+        self.log.debug("#COLLECT# Running OMEGA through the characteristation acquisition")
 
         self.omega_mv(start_angle, self.default_speed)
 
@@ -401,36 +398,36 @@ class P11Collect(AbstractCollect):
             print("collecting image %s" % img_no)
             start_at = start_angle + angle_inc * img_no
             stop_angle = start_at + img_range * 1.0
-            # print("======= CHARACTERISATION Adding angle and range to the header...")
-            # Add start angle to the header
-            # detector = HWR.beamline.detector
-            # detector.set_eiger_start_angle(start_at)
+            #print("======= CHARACTERISATION Adding angle and range to the header...")
+            #Add start angle to the header
+            #detector = HWR.beamline.detector
+            #detector.set_eiger_start_angle(start_at)
 
             # Add angle increment to the header
-            # detector.set_eiger_angle_increment(angle_inc)
+            #detector.set_eiger_angle_increment(angle_inc)
 
             print("collecting image %s, angle %f" % (img_no, start_at))
 
             if start_at >= stop_angle:
-                init_pos = start_at  # - self.acq_speed * self.turnback_time
+                init_pos = start_at #- self.acq_speed * self.turnback_time
                 # init_pos = start_at - 1.5
             else:
-                init_pos = start_at  # + self.acq_speed * self.turnback_time
+                init_pos = start_at #+ self.acq_speed * self.turnback_time
                 # init_pos = start_at + 1.5
 
             # self.omega_mv(init_pos, self.default_speed)
             self.collect_std_collection(start_at, stop_angle)
 
-            # This part goes to standard collection. Otherwise it produces phantom openings.
+            #This part goes to standard collection. Otherwise it produces phantom openings.
             # diffr.set_omega_velocity(self.default_speed)
             # self.acq_window_off_cmd()
             # self.acq_off_cmd()
-            self.log.debug(
-                "======= collect_characterisation  Waiting ======================================="
-            )
+            self.log.debug("======= collect_characterisation  Waiting =======================================")
 
-            # Let adxv know whether it is
+            #Let adxv know whether it is 
             # self.adxv_notify(self.latest_h5_filename,img_no+1)
+            
+            # time.sleep(1)
 
             # time.sleep(1)
 
@@ -475,14 +472,14 @@ class P11Collect(AbstractCollect):
             detector.stop_acquisition()
             diffr.wait_omega()
             # =================
-            # It is probably already finished in a standard collection.
+            #It is probably already finished in a standard collection.
             self.acq_off_cmd()
             self.acq_window_off_cmd()
             # ==================
             diffr.set_omega_velocity(self.default_speed)
             self.log.debug("#COLLECT# Closing detector cover")
             diffr.detector_cover_close(wait=True)
-
+            
         except RuntimeError:
             self.log.error(traceback.format_exc())
 
