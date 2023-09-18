@@ -21,6 +21,7 @@
 import logging
 import gevent
 import gevent.event
+import numpy as np
 
 try:
     import Queue as queue
@@ -323,17 +324,22 @@ class TangoChannel(ChannelObject):
         self._device_initialized.wait(timeout=3)
         return self.device.get_attribute_config(self.attribute_name)
 
-    def update(self, value=Poller.NotInitializedValue):
+    
 
-        if value == Poller.NotInitializedValue:
+    def update(self, value=None):
+        if value is None:
             value = self.get_value()
         elif isinstance(value, tuple):
             value = list(value)
-        elif isinstance(value, numpy.ndarray):
-            value = value.tolist()
+        elif isinstance(value, np.ndarray):
+            if (value == Poller.NotInitializedValue).all():
+                value = self.get_value()
+            else:
+                value = value.tolist()
 
         self.value = value
         self.emit("update", value)
+
 
     def get_value(self):
         if self.read_as_str:
