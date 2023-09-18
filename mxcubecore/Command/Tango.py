@@ -21,6 +21,7 @@
 import logging
 import gevent
 import gevent.event
+import numpy as np
 
 try:
     import Queue as queue
@@ -28,11 +29,7 @@ except ImportError:
     import queue
 
 
-from mxcubecore.CommandContainer import (
-    CommandObject,
-    ChannelObject,
-    ConnectionError,
-)
+from mxcubecore.CommandContainer import CommandObject, ChannelObject, ConnectionError
 from mxcubecore import Poller
 from mxcubecore.dispatcher import saferef
 import numpy
@@ -171,13 +168,13 @@ class TangoChannel(ChannelObject):
         self.timeout = int(timeout)
         self.read_as_str = kwargs.get("read_as_str", False)
         self._device_initialized = gevent.event.Event()
-        #logging.getLogger("HWR").debug(
+        # logging.getLogger("HWR").debug(
         #    "creating Tango attribute %s/%s, polling=%s, timeout=%d",
         #    self.device_name,
         #    self.attribute_name,
         #    polling,
         #    self.timeout,
-        #)
+        # )
         self.init_device()
         self.continue_init(None)
         """
