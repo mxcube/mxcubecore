@@ -129,3 +129,39 @@ def get_processing_plan(barcode, crims_url, harvester_key):
     except Exception as ex:
         print("Error on getting processing plan because of:  %s" %str(ex))
         return processing_plan
+
+
+
+
+def send_data_collection_info_to_crims(crims_url, crystaluuid, datacollectiongroupid, dcid, proposal, rest_token):
+    try:
+        url = crims_url
+        url = (
+            crims_url
+            + str(crystaluuid)
+            + "/dcgroupid/"
+            + str(datacollectiongroupid)
+            + "/dcid/"
+            +  str(dcid)
+            + "/mx/"
+            + str(proposal)
+            + "/token/"
+            + str(rest_token)
+            + "?janitor_key=kbonvRqc8"
+        )
+      
+        data = {
+            "crystal_uuid": str(crystaluuid),
+            "datacollectionGroupId": str(datacollectiongroupid),
+            "dcid":str(dcid),
+            "mx": str(proposal),
+            "token": str(rest_token),
+        }
+        response = requests.get(url, timeout=900)
+        # response = post(url, data=data, timeout=900)
+        print(response.text)
+        # import pdb; pdb.set_trace()
+        return response.text
+    except Exception as ex:
+        msg = "POST to %s failed reason %s" % (url, str(ex))
+        return msg
