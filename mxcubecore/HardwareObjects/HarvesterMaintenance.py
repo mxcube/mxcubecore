@@ -47,7 +47,7 @@ class HarvesterMaintenance(HardwareObject):
         """
         return self._harvester.load_plate(plate_id=args)
     
-    def _set_temperature_mode(self, args):
+    def _set_room_temperature_mode(self, args):
         """
         Set Harvester temperature mode
 
@@ -55,7 +55,7 @@ class HarvesterMaintenance(HardwareObject):
         :args: boolean
         """
         value = True if args.lower() in ['true', 'True', '1'] else False
-        return self._harvester.set_temperature_mode(value)
+        return self._harvester.set_room_temperature_mode(value)
 
     def _do_abort(self):
         """
@@ -142,5 +142,5 @@ class HarvesterMaintenance(HardwareObject):
         if cmdname == "loadPlateWithBarcode":
             self._load_plate(args)
         if cmdname == "setTemeratureMode":
-            self._set_temperature_mode(args)
+            self._set_room_temperature_mode(args)
         return True

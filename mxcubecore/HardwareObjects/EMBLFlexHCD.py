@@ -147,6 +147,7 @@ class EMBLFlexHCD(SampleChanger):
         _pucks = '["UNI", "UNI", "UNI", "UNI", "UNI", "UNI", "UNI", "UNI"]'
         pucks = ast.literal_eval(self.get_property("puck_configuration", _pucks))
 
+        self.pin_cleaning= self.get_property("pin_cleaning")
         self._harvester = self.get_property("harvester", False)
         if self._harvester:
             self._loaded_sample = (-1, -1, -1)
@@ -582,11 +583,13 @@ class EMBLFlexHCD(SampleChanger):
         except:
             return False
 
+    def get_room_temperature_mode(self):
+        return self._execute_cmd_exporter("getRoomTemperatureMode", attribute=True)
+
     def set_room_temperature_mode(self, value):
-        mode = self._execute_cmd_exporter("setRoomTemperatureMode", value, command=True)
+        self._execute_cmd_exporter("setRoomTemperatureMode", value, command=True)
         logging.getLogger("user_level_log").info(f"setting Flex Room temperature to {value}")
-        # We should return exporter response instead
-        return value
+        return self.get_room_temperature_mode()
 
     def _do_load(self, sample=None):
         self._update_state()
@@ -604,6 +607,7 @@ class EMBLFlexHCD(SampleChanger):
             load_task = gevent.spawn(
                 self._execute_cmd_exporter,
                 "loadSampleFromHarvester",
+                self.pin_cleaning,
                 command=True
             )
         else:       
