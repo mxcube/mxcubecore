@@ -2470,8 +2470,9 @@ class GphlWorkflow(TaskNode):
         :return:
         """
 
-        if transmission is None:
-            transmission = 100.0 * self.transmission
+        # if transmission is None:
+        #     transmission = 100.0 * self.transmission
+        transmission = transmission or self.transmission
         energy = HWR.beamline.energy.calculate_energy(self.wavelengths[0].wavelength)
         flux_density = HWR.beamline.flux.get_average_flux_density(
             transmission=transmission

@@ -33,10 +33,9 @@ __license__ = "LGPLv3+"
 __category__ = "Task"
 
 
-class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
+class EMBLXRFSpectrum(AbstractXRFSpectrum):
     def __init__(self, name):
-        AbstractXRFSpectrum.__init__(self)
-        HardwareObject.__init__(self, name)
+        AbstractXRFSpectrum.__init__(self, name)
 
         self.ready_event = None
         self.spectrum_running = None
