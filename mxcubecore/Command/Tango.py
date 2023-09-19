@@ -144,9 +144,6 @@ class TangoChannel(ChannelObject):
     _tangoEventsQueue = queue.Queue()
     _eventReceivers = {}
 
-    #if gevent_version < [1,3,0]:
-        #_tangoEventsProcessingTimer = gevent.get_hub().loop.async()
-    #else:
     _tangoEventsProcessingTimer = gevent.get_hub().loop.async_()
 
     # start Tango events processing timer
@@ -285,7 +282,6 @@ class TangoChannel(ChannelObject):
             value = self.raw_device.read_attribute(
                 self.attribute_name, PyTango.DeviceAttribute.ExtractAs.String
             ).value
-            # value = self.device.read_attribute_as_str(self.attribute_name).value
         else:
             value = self.raw_device.read_attribute(self.attribute_name).value
 
@@ -325,12 +321,14 @@ class TangoChannel(ChannelObject):
 
     def update(self, value=Poller.NotInitializedValue):
 
-        if value == Poller.NotInitializedValue:
+        # start with checking if we have a numpy array, as comparing
+        # numpy.ndarray to Poller.NotInitializedValue raises a ValueError exception
+        if isinstance(value, numpy.ndarray):
+            value = value.tolist()
+        elif value == Poller.NotInitializedValue:
             value = self.get_value()
         elif isinstance(value, tuple):
             value = list(value)
-        elif isinstance(value, numpy.ndarray):
-            value = value.tolist()
 
         self.value = value
         self.emit("update", value)
@@ -353,10 +351,6 @@ class TangoChannel(ChannelObject):
 
     def set_value(self, new_value):
         self.device.write_attribute(self.attribute_name, new_value)
-        # attr = PyTango.AttributeProxy(self.device_name + "/" + self.attribute_name)
-        # a = attr.read()
-        # a.value = newValue
-        # attr.write(a)
 
     def is_connected(self):
         return self.device is not None
