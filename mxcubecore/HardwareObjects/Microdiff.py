@@ -216,6 +216,15 @@ class Microdiff(MiniDiff.MiniDiff):
             "saveCentringPositions",
         )
 
+        self.set_room_temperature_mode = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "set_room_temperature_mode",
+            },
+            "setRoomTemperatureMode",
+        )
+
         self.auto_align_ssx_block = self.add_command(
             {
                 "type": "exporter",
