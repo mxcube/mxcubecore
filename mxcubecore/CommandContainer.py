@@ -276,7 +276,7 @@ class ChannelObject:
                 if cmdobj is not None:
                     cmdobj(value)
 
-    def get_value(self, force: bool = False) -> None:
+    def get_value(self, force: bool = False):
         """Get channel value.
 
         Args:
