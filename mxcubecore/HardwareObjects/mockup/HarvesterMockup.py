@@ -341,7 +341,7 @@ class HarvesterMockup(HardwareObject):
         """
         return self._execute_cmd_exporter("getImageTargetY", crystal_uuid, command=True)
 
-    def set_temperature_mode(self, value):
+    def set_room_temperature_mode(self, value):
         """Set Harvester temperature mode
 
         Args: (bool) set room temperature when true
@@ -350,13 +350,6 @@ class HarvesterMockup(HardwareObject):
         print("setting HA Room temperature to: %s" %value)
         self.room_temperature_mode = value
         return value
-    
-    def get_room_temperature(self):
-        """Get Harvester temperature mode
-        """
-        # NB TBD Create function in Harvester 
-        # mode = self._execute_cmd_exporter("setRoomTemperatureMode", value, command=True)
-        return self.room_temperature_mode
 
     # -------------------- Calibrate  Drift Shape offset ----------------------------
 
@@ -430,11 +423,11 @@ class HarvesterMockup(HardwareObject):
     
     def get_offsets_for_sample_centering(self):
 
-        pin_to_beam = tuple(self.harvester_hwo.get_calibrated_pin_offset())
+        pin_to_beam = tuple(self.get_calibrated_pin_offset())
 
         sample_drift_x = float(self.get_last_sample_drift_offset_x())
         sample_drift_y = float(self.get_last_sample_drift_offset_y())
-        sample_drift_z = float(-self.get_last_sample_drift_offset_z())
+        sample_drift_z = -float(self.get_last_sample_drift_offset_z())
 
         pin_cut_shape_x = float(self.get_last_pin_cut_shape_offset_x())
         pin_cut_shape_y = float(self.get_last_pin_cut_shape_offset_y())
