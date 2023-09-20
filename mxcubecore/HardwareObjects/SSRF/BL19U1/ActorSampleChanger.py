@@ -277,7 +277,7 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
 
         # 上完样品，md2 变为centering
         HWR.beamline.diffractometer.set_phase("Centring")
-
+        
         return self.get_loaded_sample()
 
 
@@ -287,14 +287,17 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         if MD2.get_current_phase() != "Transfer":
             MD2.set_phase("Transfer", wait=True)
             time.sleep(0.5)
-            MD2.Cryo_Is_Back.set_value(True)
-
             print("切换完成")
         gevent.sleep(timeout)
         if MD2.get_current_phase() == "Transfer":
             return True
         else:
             return False
+
+    def change_Cryo_state(self,timeout=1):
+        MD2 = HWR.beamline.diffractometer
+        MD2.Cryo_Is_Back.set_value(True)
+
 
     def check_MD2_state(self):
         MD2 = HWR.beamline.diffractometer
@@ -304,6 +307,7 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
                 "The MD2 seems cannot change to sample change status while mounting,please contact the teacher on duty")
             raise Exception("The MD2 seems cannot change to sample change status while mounting,please contact the teacher on duty")
         #判断cryo是否在对的位置
+        self.change_Cryo_state()
         logging.getLogger("HWR").info("Cryo state: %s ", str(MD2.Cryo_Is_Back.get_value()))
         if MD2.Cryo_Is_Back.get_value() != True:
             logging.getLogger("user_level_log").error(

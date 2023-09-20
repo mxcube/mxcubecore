@@ -8,7 +8,7 @@
   </base_result_url>
   <ws_username>ssrf</ws_username>
   <ws_password>ssrf</ws_password>
-  <loginType>proposal</loginType>
+  <loginType>user</loginType>
   <object role="session" href="/session"/>
   <object role="ldapServer" href="/ldapconnection"/>
   <authServerType>ispyb</authServerType>

@@ -189,8 +189,11 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
     def do_collect(self, owner):
         """
         Actual collect sequence
+        如果是普通3-click收集，则current_dc_parameters of motors就是当前位置
+        如果是raster scan方式收集，则current_dc_parameters of motors中的phiz位置和sampx位置会根据画的矩形而改变
         """
         print("get in do_collect method**************************************")
+        print("[Data collection info] ,current_dc_parameters of motors: ", self.current_dc_parameters["motors"])
         log = logging.getLogger("user_level_log")
         log.info("Collection: Preparing to collect")
         # todo, add more exceptions and abort
@@ -232,7 +235,6 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             # self.store_sample_info_in_lims()
 
             HWR.beamline.diffractometer.emitCentringSuccessful() # Force curent pos a centred pos #如果用户收集的同时也点了对中会卡住，先注释掉
-
             if all(
                 item is None for item in self.current_dc_parameters["motors"].values()
             ):
@@ -245,7 +247,6 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
                     self.current_dc_parameters["motors"][
                         motor
                     ] = current_diffractometer_position[motor]
-
             #  elf.move_to_centered_position() is inside take_crystal_snapshots,
             # which makes sure it move motors to the correct positions and move back
             # if there is a phase change
@@ -387,8 +388,12 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         if "resolution" in self.current_dc_parameters:
             try:
                 resolution = self.current_dc_parameters["resolution"]["upper"]
-                log.info("Collection: Setting resolution to %.3f", resolution)
+                logging.getLogger("HWR").info("Collection: Setting resolution to %.3f", resolution)
                 HWR.beamline.resolution.set_value(resolution)
+
+                while(abs(HWR.beamline.resolution.get_value() - resolution) > 0.01):
+                    # logging.getLogger("HWR").info("==== resolution: %.3f ", HWR.beamline.resolution.get_value())
+                    time.sleep(0.2)
             except Exception as ex:
                 log.error("Collection: cannot set resolution.")
                 logging.getLogger("HWR").error(
@@ -468,8 +473,12 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             HWR.beamline.diffractometer.set_phase(
                 "DataCollection", wait=True, timeout=200
             )
+        #因为现在是从右往左扫
+        #因此需要修改矩形左上的第一个位置点 到 右位置点上
+        # self.current_dc_parameters["motors"]['phiy']
+        #
 
-        self.move_to_centered_position()
+        self.move_to_centered_position()            #此处raster scan时，会移动到矩形的第一个位置点
 
         # HWR.beamline.diffractometer.save_centring_positions();
 
@@ -648,12 +657,16 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             latency_time = det.get_deadtime()
             # shape_id = self.get_current_shape_id()
             shape = HWR.beamline.sample_view.get_selected_shapes()[0].as_dict()
+            # shape["pixels_per_mm"][0] = shape["pixels_per_mm"][0]/2
+            # shape["pixels_per_mm"][1] = shape["pixels_per_mm"][1]/2
             self.width = "cell_width"
             range_x = shape.get("num_cols") * shape.get(self.width) / 1000.0
             range_y = shape.get("num_rows") * shape.get("cell_height") / 1000.0
             print(" ^^^^^^^^^^^^ RASTER SCAN ^^^^^^^^^^^^^^^^^^^")
             while(HWR.beamline.diffractometer.get_state() != "Ready"):
                 time.sleep(0.1)
+            print("[RasterScanEX info] RAW parameter of RASTER SCAN, start: ",start," end: ",end," exptime: ",exptime," latency_time: ",latency_time)
+            print(" self.mesh_num_lines: ",self.mesh_num_lines," self.mesh_total_nb_frames: ",self.mesh_total_nb_frames," self.mesh_center: ",self.mesh_center," self.mesh_range: ",self.mesh_range)
             HWR.beamline.diffractometer.oscilScanMesh(
                 start,
                 end,
@@ -1266,6 +1279,8 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         # that is correct for MD2 but not for MD3
         # a better implementation would be to fix the value in the set_dc_params
         shape = HWR.beamline.sample_view.get_selected_shapes()[0].as_dict()
+        logging.getLogger("HWR.MX3").info("There's sample_view.get_selected_shapes()[0].as_dict() from BL19U1Collect beneath ")
+        logging.getLogger("HWR.MX3").info(shape)
         self.mesh_num_lines = shape.get("num_cols")  # total_nb_frames is bad
 
         # TODO the hack below overrides the mesh_total_nb_frames from queue entry
@@ -1286,7 +1301,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
     def set_wavelength(self, value):
         HWR.beamline.energy.set_wavelength(value)
         current_energy = HWR.beamline.energy.get_energy()
-        #HWR.beamline.detector.set_photon_energy (current_energy * 1000)
+        #HWR.beamline.detector.set_photon_energy (current_energy * 1000)[]
         HWR.beamline.detector.set_energy_threshold(current_energy)  # ev
 
 

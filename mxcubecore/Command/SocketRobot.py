@@ -9,7 +9,8 @@ import gevent.event
 import sys
 # from exporter.StandardClient import StandardClient, ProtocolError,SocketError     #不能家，会报错
 
-
+class SocketError(Exception):
+    """"""
 
 
 CLIENTS = {}
@@ -268,7 +269,7 @@ class StandardClientRobot:
         if not self.is_connected():
             self.connect()
         try:
-            print("set into try")
+            print("get into try")
             print(cmd)
             pack = encode(cmd) + _bytes([ETX])
             print(pack)
