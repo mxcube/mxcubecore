@@ -56,9 +56,6 @@ class ISPyBRestClient(HardwareObject):
 
         self.__update_rest_token()
 
-    def get_login_type(self):
-        return "user"
-
     def __update_rest_token(self):
         """
         Updates REST token if necessary by default token expires in 3h so we

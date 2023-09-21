@@ -40,6 +40,9 @@ if sys.version_info > (3, 0):
 logging.getLogger("suds").setLevel(logging.INFO)
 
 
+LOGIN_TYPE_FALLBACK = "proposal"
+
+
 # Production web-services:    http://160.103.210.1:8080/ispyb-ejb3/ispybWS/
 # Test web-services:          http://160.103.210.4:8080/ispyb-ejb3/ispybWS/
 
@@ -167,7 +170,6 @@ class ISPyBClient(HardwareObject):
         self._disabled = False
 
         self.authServerType = None
-        self.loginType = None
         self.loginTranslate = None
 
         self.ws_root = None
@@ -194,7 +196,6 @@ class ISPyBClient(HardwareObject):
             if self.ldapConnection is None:
                 logging.getLogger("HWR").debug("LDAP Server is not available")
 
-        self.loginType = self.get_property("loginType") or "proposal"
         self.loginTranslate = self.get_property("loginTranslate") or True
         self.beamline_name = HWR.beamline.session.beamline_name
 
@@ -326,7 +327,15 @@ class ISPyBClient(HardwareObject):
                 except AttributeError:
                     pass
 
+    @property
+    def loginType(self):
+        return self.get_property("loginType", LOGIN_TYPE_FALLBACK)
+
     def get_login_type(self):
+        warnings.warn(
+            "Deprecated method `get_login_type`. Use `loginType` property instead.",
+            DeprecationWarning,
+        )
         return self.loginType
 
     def translate(self, code, what):
