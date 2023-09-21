@@ -20,6 +20,9 @@ except Exception:
 # to simulate no session scheduled, use "nosession" for password
 
 
+LOGIN_TYPE_FALLBACK = "proposal"
+
+
 class ISPyBClientMockup(HardwareObject):
     """
     Web-service client for ISPyB.
@@ -30,7 +33,6 @@ class ISPyBClientMockup(HardwareObject):
         self.__translations = {}
         self.__disabled = False
         self.__test_proposal = None
-        self.loginType = None
         self.base_result_url = None
         self.lims_rest = None
         self.login_ok = True
@@ -47,7 +49,6 @@ class ISPyBClientMockup(HardwareObject):
             if self.ldapConnection is None:
                 logging.getLogger("HWR").debug("LDAP Server is not available")
 
-        self.loginType = self.get_property("loginType") or "proposal"
         self.beamline_name = HWR.beamline.session.beamline_name
 
         try:
@@ -87,8 +88,15 @@ class ISPyBClientMockup(HardwareObject):
             "Laboratory": {"laboratoryId": 1, "name": "TEST eh1"},
         }
 
+    @property
+    def loginType(self):
+        return self.get_property("loginType", LOGIN_TYPE_FALLBACK)
+
     def get_login_type(self):
-        self.loginType = self.get_property("loginType") or "proposal"
+        warnings.warn(
+            "Deprecated method `get_login_type`. Use `loginType` property instead.",
+            DeprecationWarning,
+        )
         return self.loginType
 
     def login(self, loginID, psd, ldap_connection=None, create_session=True):

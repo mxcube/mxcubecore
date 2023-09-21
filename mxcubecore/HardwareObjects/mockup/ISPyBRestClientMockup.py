@@ -105,6 +105,8 @@ class ISPyBRestClientMockup(HardwareObject):
         :returns: None
 
         """
+        if password == "wrong":
+            raise Exception("Wrong credentials")
         self.__rest_token = "#MOCKTOKEN123"
         self.__rest_token_timestamp = datetime.now()
         self.__rest_username = user
