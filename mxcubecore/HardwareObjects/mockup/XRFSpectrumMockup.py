@@ -53,8 +53,6 @@ spectrum_test_data = [
 
 
 class XRFSpectrumMockup(AbstractXRFSpectrum):
-    # def __init__(self, name):
-    #     super.__init__(name)
 
     def init(self):
         pass
