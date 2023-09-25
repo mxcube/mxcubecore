@@ -707,6 +707,8 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         # NB the functions return different types, so toString is needed in only once
         indexingFormat = py4jChooseLattice.getIndexingFormat().toString()
         indexingHeader = py4jChooseLattice.getIndexingHeader()
+        inputCell = py4jChooseLattice.getUserProvidedCell()
+        userProvidedCell = self._UnitCell_to_python(inputCell) if inputCell else None
         return GphlMessages.ChooseLattice(
             indexingSolutions=tuple(
                 self._IndexingSolution_to_python(sol)
@@ -719,9 +721,7 @@ class GphlWorkflowConnection(HardwareObjectYaml):
             ),
             priorSpaceGroup=py4jChooseLattice.getPriorSpaceGroup(),
             priorSpaceGroupString=py4jChooseLattice.getPriorSpaceGroupString(),
-            userProvidedCell=self._UnitCell_to_python(
-                py4jChooseLattice.getUserProvidedCell()
-            ),
+            userProvidedCell=userProvidedCell,
         )
 
     def _CollectionProposal_to_python(self, py4jCollectionProposal):

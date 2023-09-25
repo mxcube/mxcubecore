@@ -1,25 +1,5 @@
 <object class="Gphl.CollectEmulator">
 
-  <!-- First part must mirror mxcollect.xml -->
-  <object href="/mini-diff-mockup" role="diffractometer"/>
-  <object href="/graphics" role="graphics_manager"/>
-  <object href="/lims-client-mockup" role="lims_client"/>
-
-  <object href="/energy-mockup" role="energy"/>
-  <object href="/attenuators-mockup" role="transmission"/>
-  <object href="/detector-mockup" role="detector"/>
-  <object href="/resolution-mockup" role="resolution"/>
-
-  <object href="/mach-info-mockup" role="machine_info"/>
-  <object href="/sc-mockup" role="sample_changer"/>
-
-  <!--<auto_processing>-->
-    <!--<program>-->
-      <!--<executable>none_present_executable</executable>-->
-      <!--<event>after</event>-->
-    <!--</program>-->
-  <!--</auto_processing>-->
-
 <!--  <override_data_directories>-->
     <!-- If override_data_directories is set, it must contain the three base directories -->
     <!-- and may contain raw_folder, process_folder, and archive_folder -->

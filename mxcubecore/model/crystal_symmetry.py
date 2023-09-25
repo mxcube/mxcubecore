@@ -393,6 +393,7 @@ def space_groups_from_params(lattices=(), point_groups=(), chiral_only=True):
     Args:
         lattices:
         point_groups:
+        chiral_only:
 
     Returns:
 
@@ -539,7 +540,7 @@ def strategy_laue_group(crystal_classes: tuple, phasing=False):
 
 
 def regularise_space_group(sgname:str):
-    """Convert finput (ISPyB) space gorup name to officlalspace group name"""
+    """Convert finput (ISPyB) space gorup name to official space group name"""
 
     if sgname in SPACEGROUP_MAP:
         return sgname
