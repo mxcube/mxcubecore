@@ -198,7 +198,6 @@ class EMBLFlexHCD(SampleChanger):
 
         present_sample_list = []
         if self._harvester:
-            # present_sample_list = self._harvester_hwo.get_sample_list(sample_list)
             ha_sample_lists = self._harvester_hwo.get_crystal_uuids()
             ha_sample_names = self._harvester_hwo.get_sample_names()
             ha_sample_acronyms = self._harvester_hwo.get_sample_acronyms()
@@ -564,6 +563,7 @@ class EMBLFlexHCD(SampleChanger):
             load_task = gevent.spawn(
                     self._execute_cmd_exporter,
                     "loadSampleFromHarvester",
+                    self.pin_cleaning,
                     command=True
                 )
 
