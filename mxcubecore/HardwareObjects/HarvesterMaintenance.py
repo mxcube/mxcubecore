@@ -130,17 +130,17 @@ class HarvesterMaintenance(HardwareObject):
 
         return cmd_list
 
-    def send_command(self, cmdname, args=None):
-        if cmdname in ["park"]:
+    def send_command(self, cmd_name, args=None):
+        if cmd_name in ["park"]:
             self._do_park()
-        if cmdname == "trash":
+        if cmd_name == "trash":
             self._do_trash()
-        if cmdname == "transfer":
+        if cmd_name == "transfer":
             self._transfer_sample()
-        if cmdname == "abort":
+        if cmd_name == "abort":
             self._do_abort()
-        if cmdname == "loadPlateWithBarcode":
+        if cmd_name == "loadPlateWithBarcode":
             self._load_plate(args)
-        if cmdname == "setTemeratureMode":
+        if cmd_name == "set_room_temperature_mode":
             self._set_room_temperature_mode(args)
         return True
