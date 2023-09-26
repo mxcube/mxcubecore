@@ -62,6 +62,58 @@ pytest-mock = "^3.10.0"
 [tool.poetry.extras]
 tango = ["PyTango"]
 
+[tool.autoflake]
+#
+# Exclude files below from autoflake checks until we get around fixing them.
+# This way we can check that all other files are autoflake clean in CI.
+#
+exclude = """
+deprecated/Command/Exporter/MDClient.py,
+deprecated/HardwareObjects/Server/SimpleXMLReadWriteSupport.py,
+deprecated/HardwareObjects/SpecShell.py,
+deprecated/HardwareObjects/mockup/CameraMockup.py,
+mxcubecore/HardwareObjects/ALBA/ALBAFastShutter.py,
+mxcubecore/HardwareObjects/ALBA/ALBAFrontEnd.py,
+mxcubecore/HardwareObjects/ALBA/ALBAMachineInfo.py,
+mxcubecore/HardwareObjects/ALBA/ALBASupervisor.py,
+mxcubecore/HardwareObjects/ALBA/XalocMachineInfo.py,
+mxcubecore/HardwareObjects/EMBL/EMBLBeamline.py,
+mxcubecore/HardwareObjects/EMBL/EMBLBeamlineTest.py,
+mxcubecore/HardwareObjects/EMBL/EMBLFlux.py,
+mxcubecore/HardwareObjects/EMBL/EMBLPiezoMotor.py,
+mxcubecore/HardwareObjects/EMBL/EMBLXrayImaging.py,
+mxcubecore/HardwareObjects/EMBL/TINEMotor.py,
+mxcubecore/HardwareObjects/ESRF/ID30A1MultiCollect.py,
+mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_chip_collection.py,
+mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_injector_collection.py,
+mxcubecore/HardwareObjects/Gphl/GphlWorkflow.py,
+mxcubecore/HardwareObjects/LNLS/EPICSActuator.py,
+mxcubecore/HardwareObjects/LNLS/LNLSCollect.py,
+mxcubecore/HardwareObjects/LNLS/LNLSDetDistMotor.py,
+mxcubecore/HardwareObjects/Lima2Detector.py,
+mxcubecore/HardwareObjects/MAXIV/BIOMAXCollect.py,
+mxcubecore/HardwareObjects/MAXIV/BIOMAXEiger.py,
+mxcubecore/HardwareObjects/MAXIV/BIOMAXMD3Camera.py,
+mxcubecore/HardwareObjects/MAXIV/MAXIVAutoProcessing.py,
+mxcubecore/HardwareObjects/MAXIV/MAXIVMD2Camera.py,
+mxcubecore/HardwareObjects/MAXIV/autoProcLauncher.py,
+mxcubecore/HardwareObjects/MAXIV/ednaProcLauncher.py,
+mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Configuration.py,
+mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Energy.py,
+mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Resolution.py,
+mxcubecore/HardwareObjects/SOLEIL/PX2/PX2Collect.py,
+mxcubecore/HardwareObjects/SOLEIL/PX2/PX2Qt4_LimaVideo.py,
+mxcubecore/HardwareObjects/SOLEIL/PX2/PX2Resolution.py,
+mxcubecore/HardwareObjects/SOLEIL/PX2/PX2Video.py,
+mxcubecore/HardwareObjects/SOLEIL/SOLEILMachineInfo.py,
+mxcubecore/HardwareObjects/SOLEIL/SOLEILPss.py,
+mxcubecore/HardwareObjects/SOLEIL/SOLEILqueue_entry.py,
+mxcubecore/HardwareObjects/TangoLimaMpegVideo.py,
+mxcubecore/HardwareObjects/XSDataMXCuBEv1_4.py,
+mxcubecore/HardwareObjects/XSDataMXv1.py,
+mxcubecore/model/common.py,
+mxcubecore/model/queue_model_objects.py,
+"""
 
 [tool.black]
 line-length = 88
