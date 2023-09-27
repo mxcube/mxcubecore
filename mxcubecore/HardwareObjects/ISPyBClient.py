@@ -8,6 +8,7 @@ import traceback
 from pprint import pformat
 from collections import namedtuple
 from datetime import datetime
+import warnings
 
 try:
     from urlparse import urljoin
