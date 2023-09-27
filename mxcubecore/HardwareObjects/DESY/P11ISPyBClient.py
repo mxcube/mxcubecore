@@ -26,8 +26,6 @@ class P11ISPyBClient(ISPyBClient):
             "PROPOSAL NUMBER is %s" % self.simulated_prop_number
         )
 
-        self.loginType = "user"
-
     def update_data_collection(self, mx_collection, wait=False):
         mx_collection["beamline_name"] = "P11"
         ISPyBClient.update_data_collection(self, mx_collection, wait)
