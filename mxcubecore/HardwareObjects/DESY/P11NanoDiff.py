@@ -737,9 +737,9 @@ class P11NanoDiff(GenericDiffractometer):
     def wait_detcover(self, state, timeout=60):
         start_time = time.time()
         while time.time() - start_time > timeout:
-            if state == "open" and self.detcover_hwobj.is_open():
+            if state == "open" and self.detcover_hwobj.is_open:
                 break
-            elif state == "close" and self.detcover_hwobj.is_closed():
+            elif state == "close" and self.detcover_hwobj.is_closed:
                 break
             gevent.sleep(0.5)
 
@@ -802,8 +802,8 @@ class P11NanoDiff(GenericDiffractometer):
 
         omega_pos = self.get_omega_position()
 
-        cover_open = self.detcover_hwobj.is_open()
-        cover_closed = self.detcover_hwobj.is_closed()
+        cover_open = self.detcover_hwobj.is_open
+        cover_closed = self.detcover_hwobj.is_closed
         blight_in = self.backlight_hwobj.is_in()
         blight_out = self.backlight_hwobj.is_out()
         collim = self.collimator_hwobj.get_position()
