@@ -116,6 +116,9 @@ class P11Session(Session):
             info = self.get_beamtime_info()
             return info["proposalId"]
 
+    def get_beamtime_info(self):
+        return self.beamtime_info
+
     def read_beamtime_info(self):
         self.log.debug("=========== READING BEAMTIME INFO ============")
         if os.path.exists(PATH_BEAMTIME):
