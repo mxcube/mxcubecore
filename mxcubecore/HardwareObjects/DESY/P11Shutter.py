@@ -133,9 +133,12 @@ class P11Shutter(AbstractShutter):
         if state is None:
             state = self.chan_state.get_value()
 
+        self.log.debug(" SHUTTER state changed")
         if state[0] == 3:
+            self.log.debug(" P11SHUTTER IS OPEN")
             value = self.VALUES.OPEN
         else:
+            self.log.debug(" P11SHUTTER IS CLOSED")
             value = self.VALUES.CLOSED
 
         # else:
@@ -146,6 +149,7 @@ class P11Shutter(AbstractShutter):
 
         self.update_value(value)
 
+        self.log.debug("  update shutter state done")
         return value
 
     def simulated_update(self):
