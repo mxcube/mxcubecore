@@ -781,6 +781,17 @@ class GphlWorkflow(HardwareObjectYaml):
         HWR.beamline.gphl_connection.open_connection()
         if data_model.automation_mode:
             params = data_model.auto_acq_parameters[0]
+            space_group = params.pop("space_group", "")
+            crystal_classes = params.pop("crystal_classes", ())
+            if space_group and crystal_classes:
+                raise ValueError(
+                    "Only one of space_group and crystal_classes can be set"
+                    "values are: %s, %s" % (space_group, crystal_classes)
+                )
+            elif space_group or crystal_classes:
+                params["space_group"] = space_group
+                params["crystal_classes"] = crystal_classes
+
         else:
             params = self.query_pre_strategy_params()
             if params is StopIteration:
@@ -2069,9 +2080,8 @@ class GphlWorkflow(HardwareObjectYaml):
         data_model.characterisation_done = True
 
         if data_model.automation_mode:
-            header, soldict, select_row = self.parse_indexing_solution(choose_lattice)
-            indexing_solution = list(soldict.values())[select_row]
 
+            # Handle resolution
             if not data_model.aimed_resolution:
                 raise ValueError("aimed_resolution must be set in automation mode")
             # Resets detector_setting to match aimed_resolution
@@ -2083,17 +2093,41 @@ class GphlWorkflow(HardwareObjectYaml):
                     data_model.aimed_resolution
                     or HWR.beamline.get_default_acquisition_parameters().resolution
                 )
+
+            # select indexing solution adn set space_group, crystal_classes
+            header, soldict, select_row = self.parse_indexing_solution(choose_lattice)
+            indexing_solution = list(soldict.values())[select_row]
+            bravais_lattice = indexing_solution.bravaisLattice
+            space_group = choose_lattice.priorSpaceGroupString
+            crystal_classes = crystal_symmetry.filter_crystal_classes(
+                bravais_lattice, choose_lattice.priorCrystalClasses
+            )
+
+            if space_group:
+                xtlc = crystal_symmetry.SPACEGROUP_MAP[space_group].crystal_class
+                if (
+                    crystal_symmetry.CRYSTAL_CLASS_MAP[xtlc].bravais_lattice
+                    == bravais_lattice
+                ):
+                    crystal_classes = (xtlc,)
+                else:
+                    crystal_classes = ()
+                    space_group = ""
+            if not crystal_classes:
+                crystal_classes = (
+                    crystal_symmetry.crystal_classes_from_params(
+                        lattices=(bravais_lattice)
+                    )
+                )
+            params["space_group"] = space_group
+            params["crystal_classes"] = crystal_classes
+
         else:
-            # SIGNAL TO GET Pre-strategy parameters here
-            # NB set defaults from data_model
-            # NB consider whether to override on None
-
-            # NBNB DISPLAY_ENERGY_DECIMALS
-
             params = self.query_pre_strategy_params(choose_lattice)
             if params is StopIteration:
                 return StopIteration
             indexing_solution = params["indexing_solution"]
+        #
         data_model.set_pre_strategy_params(**params)
         distance = data_model.detector_setting.axisSettings["Distance"]
         HWR.beamline.detector.distance.set_value(distance, timeout=30)

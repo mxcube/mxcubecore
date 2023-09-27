@@ -26,9 +26,9 @@ the QueueModel.
 import copy
 import os
 import logging
-import math
 
 from mxcubecore.model import queue_model_enumerables
+from mxcubecore.model import crystal_symmetry
 
 # This module is used as a self contained entity by the BES
 # workflows, so we need to make sure that this module can be
@@ -2113,6 +2113,10 @@ class GphlWorkflow(TaskNode):
 
         from mxcubecore.HardwareObjects.Gphl import GphlMessages
 
+        if space_group and not crystal_classes:
+            crystal_classes = (
+                crystal_symmetry.SPACEGROUP_MAP[space_group].crystal_class,
+            )
         self.space_group = space_group
         self.crystal_classes = tuple(crystal_classes)
         if cell_parameters:

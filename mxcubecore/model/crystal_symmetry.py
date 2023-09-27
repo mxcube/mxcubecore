@@ -39,6 +39,20 @@ CrystalClassInfo = namedtuple(
         "laue_group",
     ),
 )
+
+
+# Crystal families (one-letter codes) compatible with a solution in a given family
+# These are the solutions that could aply using the same axes,
+# hence "c" not compatible with "h
+SUB_LATTICE_MAP = {
+    "a": "a",
+    "m": "am",
+    "o": "amo",
+    "t": "amot",
+    "h": "amh",
+    "c": "amotc"
+}
+
 # Data from https://onlinelibrary.wiley.com/iucr/itc/Cb/ch1o4v0001/
 # Laue group names from http://pd.chem.ucl.ac.uk/pdnn/symm2/laue1.htm
 # Point group names from https://en.wikipedia.org/wiki/Crystallographic_point_group
@@ -384,6 +398,27 @@ BRAVAIS_LATTICES = (
     "cI",
 )
 UI_LATTICES = BRAVAIS_LATTICES + ("mI",)
+
+def filter_crystal_classes(bravais_lattice, crystal_classes=()):
+    """ Filter crystal classes to select those compatible with selected Bravais lattice
+
+    including sublattices
+
+    Args:
+        bravais_lattice: str
+        crystal_classes: Sequence
+
+    Returns:
+        tuople
+
+    """
+    compatibles = SUB_LATTICE_MAP[bravais_lattice[0]]
+    result = tuple(
+        xcls for xcls in crystal_classes
+        if CRYSTAL_CLASS_MAP[xcls].bravais_lattice[0] in compatibles
+    )
+    #
+    return result
 
 
 def space_groups_from_params(lattices=(), point_groups=(), chiral_only=True):

@@ -349,7 +349,7 @@ class ChooseLattice(Payload):
 
     @property
     def priorCrystalClasses(self):
-        """set of crystal class names"""
+        """tuple of crystal class names"""
         return self._priorCrystalClasses
 
     @property
