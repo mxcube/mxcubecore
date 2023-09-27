@@ -153,7 +153,6 @@ class P11Shutter(AbstractShutter):
             state = self.chan_state.get_value()
 
         self.log.debug(" SHUTTER state changed")
-
         if state[0] == 3:
             self.log.debug(" P11SHUTTER IS OPEN")
             value = self.VALUES.OPEN
