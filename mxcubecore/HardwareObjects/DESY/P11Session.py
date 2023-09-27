@@ -85,8 +85,7 @@ class P11Session(Session):
         self.beamtime_info["rootPath"] = PATH_FALLBACK
 
     def is_beamtime_open(self):
-        return True
-        # return self.is_writable_dir( os.path.join(PATH_BEAMTIME, self.raw_data_folder_name) )
+        return self.is_writable_dir( os.path.join(PATH_BEAMTIME, self.raw_data_folder_name) )
 
     def is_commissioning_open(self):
         return self.is_writable_dir(
