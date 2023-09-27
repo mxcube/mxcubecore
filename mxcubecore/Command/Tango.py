@@ -21,7 +21,6 @@
 import logging
 import gevent
 import gevent.event
-import numpy as np
 
 try:
     import Queue as queue
@@ -320,9 +319,8 @@ class TangoChannel(ChannelObject):
         self._device_initialized.wait(timeout=3)
         return self.device.get_attribute_config(self.attribute_name)
 
-    
+    def update(self, value=Poller.NotInitializedValue):
 
-<<<<<<< HEAD
         # start with checking if we have a numpy array, as comparing
         # numpy.ndarray to Poller.NotInitializedValue raises a ValueError exception
         if isinstance(value, numpy.ndarray):
@@ -331,22 +329,9 @@ class TangoChannel(ChannelObject):
             value = self.get_value()
         elif isinstance(value, tuple):
             value = list(value)
-=======
-    def update(self, value=None):
-        if value is None:
-            value = self.get_value()
-        elif isinstance(value, tuple):
-            value = list(value)
-        elif isinstance(value, np.ndarray):
-            if (value == Poller.NotInitializedValue).all():
-                value = self.get_value()
-            else:
-                value = value.tolist()
->>>>>>> p11_develop
 
         self.value = value
         self.emit("update", value)
-
 
     def get_value(self):
         if self.read_as_str:
