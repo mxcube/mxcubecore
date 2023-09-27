@@ -8,10 +8,10 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Set up Python 3.7
+    - name: Set up Python 3.8
       uses: actions/setup-python@v4
       with:
-        python-version: "3.7"
+        python-version: "3.8"
 
     - name: Install openldap
       run: |
@@ -26,5 +26,4 @@ jobs:
 
     - name: Run Pre-Commit
       run: |
-        # Disable linting for now
-        # poetry run pre-commit run --all-files
+        poetry run pre-commit run --all-files
