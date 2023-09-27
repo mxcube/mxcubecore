@@ -197,13 +197,7 @@ class P11DetectorCover(AbstractShutter):
         self.update_value(value)
         return value
     
-    def is_open(self):
-        """Check if the shutter is open.
-        Returns:
-            (bool): True if open, False otherwise.
-        """
-        return self.get_value() == self.VALUES.OPEN
-
+    @property
     def is_closed(self):
         """Check if the shutter is closed.
         Returns:
