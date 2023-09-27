@@ -85,6 +85,12 @@ class P11Session(Session):
         self.beamtime_info["rootPath"] = PATH_FALLBACK
 
     def is_beamtime_open(self):
+        self.log.debug("=========== CHECKING IF BEAMTIME ID IS OPEN... ============")
+        if self.is_writable_dir(os.path.join(PATH_BEAMTIME, self.raw_data_folder_name)):
+            self.log.debug("=========== BEAMTIME IS OPEN (/gpfs/current exists) ============")
+        else:
+            self.log.debug("=========== NO BEMTIME ID IS OPEN (check /gpfs/current) ============")
+            
         return self.is_writable_dir( os.path.join(PATH_BEAMTIME, self.raw_data_folder_name) )
 
     def is_commissioning_open(self):
