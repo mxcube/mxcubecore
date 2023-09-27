@@ -161,7 +161,7 @@ class MotorsNPosition(AbstractActuator):
         posidx = -1
         for name in self._positions:
             posidx += 1
-            if posname == self.get_properties_(posidx, "posname"):
+            if posname == self.get_properties(posidx, "posname"):
                 self._set_value(posidx)
                 return
 
