@@ -50,6 +50,17 @@ repos:
                 mxcubecore/HardwareObjects/ESRF/ID29XRFSpectrum\.py
             )$
       - id: end-of-file-fixer
+        #
+        # Exclude files below from end-of-file-fixer checks until we get around fixing them.
+        # This way we can check that all other files are end-of-file-fixer clean in CI.
+        #
+        exclude: |
+            (?x)^(
+                mxcubecore/configuration/.*|
+                mxcubecore/HardwareObjects/mockup/(Shutter|Motor)Mockup\.py|
+                mxcubecore/HardwareObjects/LNLS/EPICS(NState|Motor)\.py|
+                mxcubecore/HardwareObjects/EMBL/EMBLOnlineProcessing\.py
+            )$
       - id: check-case-conflict
       - id: check-merge-conflict
         # exclude files where underlines are not distinguishable from merge conflicts
