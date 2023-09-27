@@ -67,9 +67,11 @@ class P11FastShutter(AbstractNState):
     def get_value(self):
         return self.update_fast_shutter()
 
+    @property
     def is_open(self):
         return self.get_value() == self.VALUES.OPEN
 
+    @property
     def is_closed(self):
         return self.get_value() == self.VALUES.CLOSED
 
