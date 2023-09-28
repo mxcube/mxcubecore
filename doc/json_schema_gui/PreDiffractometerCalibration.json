@@ -20,7 +20,7 @@
         },
         "properties": {
             "cell_a": {
-                "default": 200.2841,
+                "default": 100.74,
                 "minimum": 0,
                 "readonly": false,
                 "title": "a",
@@ -35,7 +35,7 @@
                 "type": "number"
             },
             "cell_b": {
-                "default": 200.2841,
+                "default": 100.74,
                 "minimum": 0,
                 "readonly": false,
                 "title": "b",
@@ -50,7 +50,7 @@
                 "type": "number"
             },
             "cell_c": {
-                "default": 200.2841,
+                "default": 100.74,
                 "minimum": 0,
                 "readonly": false,
                 "title": "c",
@@ -72,13 +72,13 @@
                 "type": "number"
             },
             "input_space_group": {
-                "default": "F432",
+                "default": "I23",
                 "readonly": true,
                 "title": "Space Group",
                 "type": "string"
             },
             "lattice": {
-                "default": "cF",
+                "default": "cI",
                 "title": "Crystal lattice",
                 "value_dict": {
                     "": "",
@@ -106,7 +106,7 @@
                 }
             },
             "point_groups": {
-                "default": "432",
+                "default": "23",
                 "hidden": true,
                 "title": "Point Groups",
                 "value_dict": {
@@ -122,14 +122,14 @@
                 "type": "number"
             },
             "resolution": {
-                "default": 2.323,
+                "default": 2.3,
                 "maximum": 2.942352157399316,
                 "minimum": 0.9035138162988328,
                 "title": "Resolution",
                 "type": "number"
             },
             "space_group": {
-                "default": "F432",
+                "default": "I23",
                 "title": "Space Group",
                 "value_dict": {
                     "": "",

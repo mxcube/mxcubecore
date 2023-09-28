@@ -1,0 +1,16 @@
+{
+    "Falling_Inflection": 12.39,
+    "Peak": 12.4,
+    "Rising_Inflection": 12.41,
+    "dose_budget": 2.9571,
+    "experiment_time": 537.6,
+    "exposure": 0.04,
+    "image_width": "0.1",
+    "recentring_mode": "Re-centre when orientation changes",
+    "repetition_count": 1,
+    "resolution": 1.033,
+    "snapshot_count": "2",
+    "transmission": 0.3142,
+    "use_dose": 6.5231,
+    "wedge_width": 15.0
+}

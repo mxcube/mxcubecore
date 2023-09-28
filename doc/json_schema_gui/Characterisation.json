@@ -137,12 +137,12 @@
                 "type": "number"
             },
             "_info": {
-                "default": "Experiment length (per repetition):    6.0\u00b0\n\nSweep :  kappa=   11.0\u00b0,  kappa_phi=   22.0\u00b0,  phi=    0.0\u00b0,  sweep width=    1.2\u00b0\n                                               phi=   45.0\u00b0,  sweep width=    1.2\u00b0\n                                               phi=   90.0\u00b0,  sweep width=    1.2\u00b0\n                                               phi=  135.0\u00b0,  sweep width=    1.2\u00b0\n                                               phi=  180.0\u00b0,  sweep width=    1.2\u00b0",
+                "default": "Experiment length:    6.0\u00b0\n\nSweep :  kappa=   11.0\u00b0,  kappa_phi=   22.0\u00b0,  phi=    0.0\u00b0,  sweep width=    1.2\u00b0\n                                               phi=   45.0\u00b0,  sweep width=    1.2\u00b0\n                                               phi=   90.0\u00b0,  sweep width=    1.2\u00b0\n                                               phi=  135.0\u00b0,  sweep width=    1.2\u00b0\n                                               phi=  180.0\u00b0,  sweep width=    1.2\u00b0",
                 "readonly": true,
                 "type": "textdisplay"
             },
             "dose_budget": {
-                "default": 8.012730557122548,
+                "default": 12.227057407626583,
                 "minimum": 0.0,
                 "readonly": true,
                 "title": "Dose budget (MGy)",
@@ -173,7 +173,7 @@
                 "type": "string"
             },
             "resolution": {
-                "default": 1.6999946057811597,
+                "default": 2.0999949456276994,
                 "maximum": 2.942352157399316,
                 "minimum": 0.9035138162988328,
                 "readonly": true,
@@ -187,14 +187,14 @@
                 "type": "string"
             },
             "transmission": {
-                "default": 4.322746898829379,
+                "default": 6.598412136654653,
                 "maximum": 100.0,
                 "minimum": 0.001,
                 "title": "Transmission (%)",
                 "type": "number"
             },
             "use_dose": {
-                "default": 0.4006,
+                "default": 0.6114,
                 "minimum": 1e-06,
                 "readonly": false,
                 "title": "Characterisation dose (MGy)",

@@ -1,0 +1,12 @@
+{
+    "Characterisation": 12.4,
+    "dose_budget": 12.2271,
+    "experiment_time": 2.4,
+    "exposure": 0.04,
+    "image_width": "0.1",
+    "recentring_mode": "Re-centre when orientation changes",
+    "resolution": 2.1,
+    "snapshot_count": "2",
+    "transmission": 6.598,
+    "use_dose": 0.6114
+}
