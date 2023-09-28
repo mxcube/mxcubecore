@@ -79,28 +79,44 @@
             ]
         },
         "properties": {
-            "Main": {
+            "Falling_Inflection": {
+                "default": 12.39,
+                "maximum": 20,
+                "minimum": 4,
+                "readonly": false,
+                "title": "Falling_Inflection beam energy (keV)",
+                "type": "number"
+            },
+            "Peak": {
                 "default": 12.4,
                 "maximum": 20,
                 "minimum": 4,
                 "readonly": true,
-                "title": "Main beam energy (keV)",
+                "title": "Peak beam energy (keV)",
+                "type": "number"
+            },
+            "Rising_Inflection": {
+                "default": 12.41,
+                "maximum": 20,
+                "minimum": 4,
+                "readonly": false,
+                "title": "Rising_Inflection beam energy (keV)",
                 "type": "number"
             },
             "_info": {
-                "default": "Strategy 'full', for symmetry '32'\n\nExperiment length (per repetition):  720.0\u00b0\n\nSweep :  kappa=   31.2\u00b0,  kappa_phi= -144.3\u00b0,  phi=  -14.9\u00b0,  sweep width=  360.0\u00b0\n\nSweep :  kappa=   65.2\u00b0,  kappa_phi=   -8.2\u00b0,  phi=  -30.8\u00b0,  sweep width=  360.0\u00b0",
+                "default": "Strategy 'quick', for symmetry '222'\n\nExperiment length (per repetition): 3 *  448.0\u00b0\n\nSweep :  kappa=  239.2\u00b0,  kappa_phi=   17.8\u00b0,  phi= -163.3\u00b0,  sweep width=  180.0\u00b0\n\nSweep :  kappa=   46.8\u00b0,  kappa_phi=  -61.9\u00b0,  phi=  135.9\u00b0,  sweep width=   66.0\u00b0\n                                               phi=  113.9\u00b0,  sweep width=   22.0\u00b0\n                                               phi=  -66.1\u00b0,  sweep width=  180.0\u00b0",
                 "readonly": true,
                 "type": "textdisplay"
             },
             "dose_budget": {
-                "default": 12.220942722677329,
+                "default": 2.9570742709090507,
                 "minimum": 0.0,
                 "readonly": true,
                 "title": "Dose budget (MGy)",
                 "type": "number"
             },
             "experiment_time": {
-                "default": 288.0,
+                "default": 537.5999999999999,
                 "readonly": true,
                 "title": "Experiment duration (s)",
                 "type": "number"
@@ -132,7 +148,7 @@
                 "upperBound": 99
             },
             "resolution": {
-                "default": 2.0999949456276994,
+                "default": 1.0329922035210448,
                 "maximum": 2.942352157399316,
                 "minimum": 0.9035138162988328,
                 "readonly": true,
@@ -146,14 +162,14 @@
                 "type": "string"
             },
             "transmission": {
-                "default": 1.0988254706515248,
+                "default": 0.14243447955030134,
                 "maximum": 100.0,
                 "minimum": 0.001,
                 "title": "Transmission (%)",
                 "type": "number"
             },
             "use_dose": {
-                "default": 12.2209,
+                "default": 2.9571,
                 "minimum": 1e-06,
                 "readonly": false,
                 "title": "Dose/repetition (MGy)",
@@ -167,12 +183,12 @@
                 "type": "number"
             }
         },
-        "title": "G\u03a6L Native data collection parameters",
+        "title": "G\u03a6L Three-wavelength MAD parameters",
         "type": "object"
     },
     "ui_schema": {
         "_info": {
-            "ui:title": "--- Native data collection ---"
+            "ui:title": "--- Three-wavelength MAD ---"
         },
         "parameters": {
             "column1": {
@@ -234,7 +250,9 @@
                     "dose_budget",
                     "experiment_time",
                     "resolution",
-                    "Main",
+                    "Peak",
+                    "Rising_Inflection",
+                    "Falling_Inflection",
                     "recentring_mode"
                 ]
             },

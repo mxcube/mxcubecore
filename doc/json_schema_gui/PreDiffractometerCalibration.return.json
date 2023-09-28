@@ -1,0 +1,17 @@
+{
+    "cell_a": 100.9,
+    "cell_alpha": 90.0,
+    "cell_b": 100.9,
+    "cell_beta": 90.0,
+    "cell_c": 100.9,
+    "cell_gamma": 90.0,
+    "energy": 12.4,
+    "input_space_group": "I23",
+    "lattice": "cI",
+    "point_groups": "23",
+    "relative_rad_sensitivity": 1.0,
+    "resolution": 1.9,
+    "space_group": "I23",
+    "strategy": "DiffractCal_long",
+    "use_cell_for_processing": true
+}

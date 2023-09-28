@@ -20,7 +20,7 @@
         },
         "properties": {
             "cell_a": {
-                "default": 86.75,
+                "default": 133.8562,
                 "minimum": 0,
                 "readonly": true,
                 "title": "a",
@@ -35,7 +35,7 @@
                 "type": "number"
             },
             "cell_b": {
-                "default": 86.75,
+                "default": 133.8562,
                 "minimum": 0,
                 "readonly": true,
                 "title": "b",
@@ -50,14 +50,14 @@
                 "type": "number"
             },
             "cell_c": {
-                "default": 85.6276,
+                "default": 127.4557,
                 "minimum": 0,
                 "readonly": true,
                 "title": "c",
                 "type": "number"
             },
             "cell_gamma": {
-                "default": 90.0,
+                "default": 120.0,
                 "maximum": 180,
                 "minimum": 0,
                 "readonly": true,
@@ -72,13 +72,13 @@
                 "type": "number"
             },
             "input_space_group": {
-                "default": "I4",
+                "default": "R32",
                 "readonly": true,
                 "title": "Space Group",
                 "type": "string"
             },
             "lattice": {
-                "default": "tI",
+                "default": "hR",
                 "title": "Crystal lattice",
                 "value_dict": {
                     "": "",
@@ -106,13 +106,13 @@
                 }
             },
             "point_groups": {
-                "default": "4",
+                "default": "32",
                 "hidden": true,
                 "title": "Point Groups",
                 "value_dict": {
-                    "4": "4",
-                    "422": "422",
-                    "4|422": "4|422"
+                    "3": "3",
+                    "32": "32",
+                    "3|32": "3|32"
                 }
             },
             "relative_rad_sensitivity": {
@@ -122,33 +122,28 @@
                 "type": "number"
             },
             "resolution": {
-                "default": 1.7,
+                "default": 2.1,
                 "maximum": 2.942352157399316,
                 "minimum": 0.9035138162988328,
                 "title": "Resolution",
                 "type": "number"
             },
             "space_group": {
-                "default": "I4",
+                "default": "R32",
                 "title": "Space Group",
                 "value_dict": {
                     "": "",
-                    "I4": "I4",
-                    "I41": "I41",
-                    "I4122": "I4122",
-                    "I422": "I422",
-                    "P4": "P4",
-                    "P41": "P41",
-                    "P41212": "P41212",
-                    "P4122": "P4122",
-                    "P42": "P42",
-                    "P4212": "P4212",
-                    "P422": "P422",
-                    "P42212": "P42212",
-                    "P4222": "P4222",
-                    "P43": "P43",
-                    "P43212": "P43212",
-                    "P4322": "P4322"
+                    "P3": "P3",
+                    "P31": "P31",
+                    "P3112": "P3112",
+                    "P312": "P312",
+                    "P3121": "P3121",
+                    "P32": "P32",
+                    "P321": "P321",
+                    "P3212": "P3212",
+                    "P3221": "P3221",
+                    "R3": "R3",
+                    "R32": "R32"
                 }
             },
             "strategy": {
