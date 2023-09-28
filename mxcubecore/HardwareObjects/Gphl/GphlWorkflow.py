@@ -2127,7 +2127,7 @@ class GphlWorkflow(HardwareObjectYaml):
             if params is StopIteration:
                 return StopIteration
             indexing_solution = params["indexing_solution"]
-        #
+
         data_model.set_pre_strategy_params(**params)
         distance = data_model.detector_setting.axisSettings["Distance"]
         HWR.beamline.detector.distance.set_value(distance, timeout=30)
