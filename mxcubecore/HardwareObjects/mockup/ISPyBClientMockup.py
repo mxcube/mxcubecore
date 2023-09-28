@@ -4,6 +4,7 @@ A client for ISPyB Webservices.
 
 import logging
 import time
+import warnings
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
@@ -257,7 +258,7 @@ class ISPyBClientMockup(HardwareObject):
             translated = code
 
         return translated
-    
+
     def is_connected(self):
         return self.login_ok
 

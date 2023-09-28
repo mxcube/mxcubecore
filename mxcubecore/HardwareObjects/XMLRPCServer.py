@@ -712,7 +712,7 @@ class XMLRPCServer(HardwareObject):
         return child_id
 
     def addGphlWorkflow(self, parent_node_id, task_dict, workflow_id):
-        """Add GPhL owrkflow to queue."""
+        """Add GPhL workflow to queue."""
         self.workflow_id = workflow_id
         from mxcubecore.model import queue_model_objects as qmo
 
