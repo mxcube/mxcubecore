@@ -29,7 +29,38 @@ repos:
     rev: v4.3.0
     hooks:
       - id: trailing-whitespace
+        #
+        # Exclude files below from trailing-whitespace checks until we get around fixing them.
+        # This way we can check that all other files are trailing-whitespace clean in CI.
+        #
+        exclude: |
+            (?x)^(
+                mxcubecore/configuration/.*|
+                mxcubecore/HardwareObjects/(MotorsNPosition|PlateManipulator|TangoMotor)\.py|
+                mxcubecore/HardwareObjects/(PlateManipulatorMaintenance|TangoLimaMpegVideo)\.py|
+                mxcubecore/HardwareObjects/DESY/P11(EDNACharacterisation|BackLight|Shutter|Collect|DetectorCover)\.py|
+                mxcubecore/HardwareObjects/LNLS/LNLS(PilatusDet|Energy|Diffractometer)\.py|
+                mxcubecore/HardwareObjects/LNLS/EPICS(Actuator|Motor|NState)\.py|
+                mxcubecore/HardwareObjects/LNLS/set_transmission_mnc.py|
+                mxcubecore/HardwareObjects/EMBL/EMBL(Energy|DoorInterlock|OnlineProcessing)\.py|
+                mxcubecore/HardwareObjects/mockup/(ISPyBClient|Motor|PlateManipulator)Mockup\.py|
+                mxcubecore/HardwareObjects/abstract/(AbstractXRFSpectrum|sample_changer/Crims)\.py|
+                mxcubecore/HardwareObjects/Gphl/Transcal2MiniKappa\.py|
+                mxcubecore/HardwareObjects/SOLEIL/PX2/PX2Resolution\.py|
+                mxcubecore/HardwareObjects/ESRF/ID29XRFSpectrum\.py
+            )$
       - id: end-of-file-fixer
+        #
+        # Exclude files below from end-of-file-fixer checks until we get around fixing them.
+        # This way we can check that all other files are end-of-file-fixer clean in CI.
+        #
+        exclude: |
+            (?x)^(
+                mxcubecore/configuration/.*|
+                mxcubecore/HardwareObjects/mockup/(Shutter|Motor)Mockup\.py|
+                mxcubecore/HardwareObjects/LNLS/EPICS(NState|Motor)\.py|
+                mxcubecore/HardwareObjects/EMBL/EMBLOnlineProcessing\.py
+            )$
       - id: check-case-conflict
       - id: check-merge-conflict
         # exclude files where underlines are not distinguishable from merge conflicts
