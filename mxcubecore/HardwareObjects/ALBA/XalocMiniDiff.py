@@ -62,7 +62,7 @@ except ImportError:
 import queue_model_objects
 import queue_entry
 
-from GenericDiffractometer import GenericDiffractometer, DiffractometerState
+from mxcubecore.HardwareObjects.GenericDiffractometer import GenericDiffractometer, DiffractometerState
 from taurus.core.tango.enums import DevState
 
 __credits__ = ["ALBA Synchrotron"]
@@ -113,9 +113,14 @@ class XalocMiniDiff(GenericDiffractometer):
 
         self.cmd_go_transfer = None
         self.cmd_go_sample_view = None
+        
+        # For testing
+        self.no_sample = None
 
     def init(self):
         self.logger.debug("Initializing {0}".format(self.__class__.__name__))
+
+        self.no_sample = self.get_property('no_sample', False)
 
         self.centring_hwobj = self.get_object_by_role('centring')
 
@@ -479,10 +484,10 @@ class XalocMiniDiff(GenericDiffractometer):
             "startTime": curr_time,
             "angleLimit": None,
         }
-        logging.getLogger("HWR").debug(
+        self.emit_centring_started(method)
+        self.logger.debug(
             "Diffractometer:  centring method (%s)" % str(self.current_centring_method)
         )
-        self.emit_centring_started(method)
 
         try:
             centring_method = self.centring_methods[method]
@@ -656,22 +661,6 @@ class XalocMiniDiff(GenericDiffractometer):
         
         #TODO: make method called finish_centring to reset values?
 
-    #def accept_centring(self):
-        #"""
-        #Descript. :
-        #Arg.      " fully_centred_point. True if 3 click centring
-                    #else False
-        #"""
-        #logging.getLogger("HWR").debug("accept_centring: centring_status %s" % self.centring_status)
-        #self.centring_status["valid"] = True
-        #self.centring_status["accepted"] = True
-        #centring_status = self.get_centring_status()
-        #if "motors" not in centring_status:
-            #logging.getLogger("HWR").debug("getting stored motor positions %s" % self.get_positions() )
-            #centring_status["motors"] = self.get_positions()
-        #self.emit("centringAccepted", (True, centring_status))
-        #self.emit("fsmConditionChanged", "centering_position_accepted", True)
-       
     def automatic_centring(self, pid):
         """Automatic centring procedure. Rotates n times and executes
            centring algorithm. Optimal scan position is detected.
@@ -695,10 +684,10 @@ class XalocMiniDiff(GenericDiffractometer):
         # This cycle now starts
         if pid == 0: 
             self.zoom_motor_hwobj.move_to_position(1)
-            gevent.sleep(0.1) # wait for zoom update
+            gevent.sleep(0.2) # wait for zoom update
         else: 
             self.zoom_motor_hwobj.move_to_position(4)
-            gevent.sleep(1) # wait for motors from previous centrings to start moving
+            gevent.sleep(0.2) # wait for motors from previous centrings to start moving
         
         self.wait_device_ready( timeout = 20) # wait for motors from previous centrings to finish
 
@@ -783,12 +772,16 @@ class XalocMiniDiff(GenericDiffractometer):
         return centred_pos_dict
 
     def retreat_pin(self):
+        self.logger.debug("  moving sample back by half a camera width")
         hor_mot_hwobj = self.phiy_motor_hwobj
         half_camera_width_mm = HWR.beamline.sample_view.camera.get_width() / self.pixels_per_mm_x / 2 # half camera width in mm
         #self.logger.debug( "half camera_width_mm %.4f" % half_camera_width_mm )
         hor_mot_hwobj.set_value( hor_mot_hwobj.get_value() + half_camera_width_mm, timeout = 6 ) 
         gevent.sleep(0.1) # wait for zoom update
         hor_mot_hwobj.wait_end_of_move( timeout = 10 )
+        hor_mot_hwobj.wait_ready( timeout = 10 )
+        gevent.sleep(0.1) # wait for zoom update
+        self.logger.debug(" Done moving sample back by half a camera width")
 
     def search_pin(self):
         spindle_mot_hwobj = self.phi_motor_hwobj
@@ -814,7 +807,9 @@ class XalocMiniDiff(GenericDiffractometer):
         #self.logger.debug( "Calculated horizontal velocity %.4f" % hor_vel )
         if hor_vel < hor_mot_hwobj.get_velocity(): 
             if hor_vel < 0.001: hor_vel = 0.001
-            else: hor_mot_hwobj.set_velocity(hor_vel)
+            else: 
+                hor_mot_hwobj.wait_ready( timeout = 10 )
+                hor_mot_hwobj.set_velocity(hor_vel)
     
         #self.logger.debug( 'hor mot pos channel info %s' % str( hor_mot_hwobj.position_channel.get_info().minval ) )
         #self.logger.debug( 'hor mot limits %s' % str( hor_mot_hwobj.get_limits() ) )
@@ -840,60 +835,6 @@ class XalocMiniDiff(GenericDiffractometer):
         # reset the velocities
         hor_mot_hwobj.set_velocity(hor_mot_ini_vel)
         return True
-
-    #def start_3d_mesh_centring(self):
-        ## first wait for optical centring to finish
-        #timeout = self.numAutoCentringCycles  * 20
-        #while self.automatic_centring_try_count < self.numAutoCentringCycles and time.time()-stime < timeout:
-            #gevent.sleep(1)
-        
-        #self.logger.debug("Starting 3d centring")
-        ## setup collection
-        ## based on Qt4_create_task_base create_task method
-        ##TODO: get sample instance
-        #mesh_dc = self._create_dc_from_grid( sample )
-        #mesh_dc.run_processing_parallel = "XrayCentering"
-        #xray_centering = queue_model_objects.XrayCentering(mesh_dc)
-        
-
-    #def create_dc_from_grid(self, sample, grid=None):
-        #if grid is None:
-            #grid = self._graphics_manager_hwobj.get_auto_grid()
-
-        #grid.set_snapshot(self._graphics_manager_hwobj.\
-                          #get_scene_snapshot(grid))
-
-        #grid_properties = grid.get_properties()
-
-        #acq = self._create_acq(sample)
-        #acq.acquisition_parameters.centred_position = \
-            #grid.get_centred_position()
-        #acq.acquisition_parameters.mesh_range = \
-            #[grid_properties["dx_mm"],
-             #grid_properties["dy_mm"]]
-        #acq.acquisition_parameters.num_lines = \
-            #grid_properties["num_lines"]
-        #acq.acquisition_parameters.num_images = \
-            #grid_properties["num_lines"] * \
-            #grid_properties["num_images_per_line"]
-        #grid.set_osc_range(acq.acquisition_parameters.osc_range)
-
-        #processing_parameters = deepcopy(self._processing_parameters)
-
-        #dc = queue_model_objects.DataCollection([acq],
-                                                #sample.crystals[0],
-                                                #processing_parameters)
-
-        #dc.set_name(acq.path_template.get_prefix())
-        #dc.set_number(acq.path_template.run_number)
-        #dc.set_experiment_type(queue_model_enumerables.EXPERIMENT_TYPE.MESH)
-        #dc.set_requires_centring(False)
-        #dc.grid = grid
-
-        #self._path_template.run_number += 1
-
-        #return dc
-
 
     def motor_positions_to_screen(self, centred_positions_dict):
         """
@@ -941,7 +882,7 @@ class XalocMiniDiff(GenericDiffractometer):
         try:
             motor_pos = centring_procedure.get()
             if isinstance(motor_pos, gevent.GreenletExit):
-                raise motor_pos
+                raise Exception( str(motor_pos) )
         except:
             logging.exception("Could not complete centring")
             self.emit_centring_failed()
@@ -997,10 +938,9 @@ class XalocMiniDiff(GenericDiffractometer):
 
     def find_loop_xaloc(self):
         """
-        Description:
+        Description: finds loop using lucid3
+        An example filename can be found at /tmp/mxcube_sample_snapshot.png
         """
-
-        #=================================================================================
 
         # the following lines are used because the lucid3 package installed at xaloc 
         #      does not allow an array as argument. Lucid3 should be updated to use the code below
@@ -1014,11 +954,14 @@ class XalocMiniDiff(GenericDiffractometer):
         #(info, x, y) = lucid.find_loop( snapshot_filename , IterationClosing=6 )
         #self.logger.debug('Lucid output: info %s x %s y %s' % ( str(info), str(x), str(y) ) )
 
+
+        #=================================================================================
+
         #the following lines should be used when lucid3 is updated to the newest version 
         image_array = HWR.beamline.sample_view.camera.get_snapshot(return_as_array=True)
         #self.logger.debug("image_array: %s" % str(image_array))
         #self.logger.debug("type( image_array ): %s" % str( type(image_array) ) )
-        if type( image_array ) == str: self.logger.debug("image_array  is a string" )
+        if type( image_array ) == str: self.logger.debug("image_array is a string" )
         image_array = np.fliplr( image_array )
         (info, x, y) = lucid.find_loop( image_array , IterationClosing=6 )
         #self.logger.debug('Lucid output: info %s x %s y %s' % ( str(info), str(x), str(y) ) )
