@@ -39,6 +39,7 @@ from mxcubecore.HardwareObjects.abstract.AbstractDetector import (
 )
 #from mxcubecore.BaseHardwareObjects import HardwareObject
 from taurus import Device
+from mxcubecore import HardwareRepository as HWR
 
 __credits__ = ["ALBA"]
 __version__ = "3."
@@ -62,6 +63,7 @@ class XalocPilatus(AbstractDetector):
         self.cmd_prepare_acq = None
         self.cmd_start_acq = None
         self.cmd_abort_acq = None
+        self.cmd_stop_acq = None
         self.cmd_reset_common_header = None
         self.cmd_reset_frame_headers = None
         self.cmd_set_image_header = None
@@ -81,13 +83,16 @@ class XalocPilatus(AbstractDetector):
         self.chan_acq_expo_time = None
         self.chan_acq_status = None
         self.chan_acq_status_fault_error = None
+        self.chan_lima_ready = None
 
+        self.latency_time = None
         self.chan_latency_time = None
 
         self.chan_energy = None
         self.chan_threshold = None
         #self.chan_gain = None
         self.chan_cam_state = None
+        self.cmd_cam_server = None
 
         self.chan_beam_x = None
         self.chan_beam_y = None
@@ -97,16 +102,20 @@ class XalocPilatus(AbstractDetector):
         self.default_distance_limits = None
         self.exp_time_limits = None
         self.device = None
-
+        self.start_acq_cam_server = None
+        
         self.headers = {}
 
     def init(self):
         AbstractDetector.init(self)
         self.logger.debug("Initializing {0}".format(self.__class__.__name__))
-        
+
+        self.latency_time = self.get_property("latency_time")
+
         self.cmd_prepare_acq = self.get_command_object('prepare_acq')
         self.cmd_start_acq = self.get_command_object('start_acq')
         self.cmd_abort_acq = self.get_command_object('abort_acq')
+        self.cmd_stop_acq = self.get_command_object('stop_acq')
         self.cmd_reset = self.get_command_object('reset')
         self.cmd_reset_common_header = self.get_command_object('reset_common_header')
         self.cmd_reset_frame_headers = self.get_command_object('reset_frame_headers')
@@ -129,14 +138,19 @@ class XalocPilatus(AbstractDetector):
         self.chan_acq_status = self.get_channel_object('acq_status')
         self.chan_acq_status_fault_error = self.get_channel_object(
             'acq_status_fault_error')
-
+        self.chan_lima_ready = self.get_channel_object('lima_ready_for_next_acq')
         self.chan_latency_time = self.get_channel_object('latency_time')
+    
+        if self.latency_time == None:
+            self.latency_time = self.chan_latency_time.get_value()
+        else:
+            self.chan_latency_time.set_value( self.latency_time )
 
         self.chan_energy = self.get_channel_object('energy')
         self.chan_threshold = self.get_channel_object('threshold')
         #self.chan_gain = self.get_channel_object('gain')
         self.chan_cam_state = self.get_channel_object('cam_state')
-
+        self.cmd_cam_server = self.get_command_object('cmd_cam_server')
 
         # TODO: set timeout via xml but for command?
         name = self.get_property("taurusname")
@@ -145,17 +159,34 @@ class XalocPilatus(AbstractDetector):
 
         exp_time_limits = self.get_property("exposure_limits")
         self.exp_time_limits = map(float, exp_time_limits.strip().split(","))
+        self.start_acq_cam_server = self.get_property("start_acq_cam_server")
 
         self.chan_beam_x = self.get_channel_object("beamx")
         self.chan_beam_y = self.get_channel_object("beamy")
         self.chan_eugap = self.get_channel_object("eugap")
 
     def start_acquisition(self):
-        self.cmd_start_acq()
+        if self.start_acq_cam_server is True:
+            #TODO format the number of digits correctly
+            first_file_name = self.chan_saving_prefix.get_value() + \
+                "%04d" % self.chan_saving_next_number.get_value() + \
+                "." + self.chan_saving_format.get_value().lower()
+            self.cmd_cam_server("ExtTrigger %s" % first_file_name)
+        else:
+            self.cmd_start_acq()
 
     def stop_acquisition(self):
-        self.cmd_abort_acq()
-        self.cmd_reset()
+        self.logger.debug("Stopping detector and resetting it")
+        if self.start_acq_cam_server is True:
+            self.cmd_cam_server("k")
+            self.wait_not_running()
+            self.chan_energy.set_value( self._get_beamline_energy() )
+        else:
+            #self.cmd_stop_acq()
+            self.cmd_abort_acq()
+            self.wait_not_running()
+            time.sleep(0.1)
+            self.cmd_reset()
 
     def get_radius(self, distance=None):
         """Get distance from the beam position to the nearest detector edge.
@@ -190,11 +221,16 @@ class XalocPilatus(AbstractDetector):
             self._distance_motor_hwobj.move(value)
 
     def wait_move_distance_done(self):
-        self._distance_motor_hwobj.wait_end_of_move(timeout=1000)
+        self._distance_motor_hwobj.wait_ready(1000)
+        #self._distance_motor_hwobj.wait_end_of_move(timeout=1000) # wait_end_of_nove does not work!
 
     def wait_ready(self):
         self.wait_move_distance_done()
         self.wait_standby()
+
+    def wait_lima_ready(self):
+        self.wait_move_distance_done()
+        self.wait_lima_ready_for_next_acq()
 
     def get_distance_limits(self):
         """Returns detector distance limits"""
@@ -213,7 +249,7 @@ class XalocPilatus(AbstractDetector):
         #return self.chan_gain.get_value()
 
     def get_cam_state(self):
-        return self.chan_cam_state.get_value()
+        return self.chan_cam_state.force_get_value()
 
     def has_shutterless(self):
         """Return True if has shutterless mode"""
@@ -275,6 +311,7 @@ class XalocPilatus(AbstractDetector):
         Configure detector electronics.
         :return:
         """
+        self.logger.debug("Arming the detector")
         try:
             beamline_energy = self._get_beamline_energy()
             energy = self.get_energy()
@@ -327,29 +364,60 @@ class XalocPilatus(AbstractDetector):
             self.logger.error("Exception when setting threshold to pilatus: %s" % str(e))
 
     def get_latency_time(self):
+        if self.latency_time != None:
+            return self.latency_time
         return self.chan_latency_time.get_value()
 
-    def wait_standby(self, timeout=300):
-        if self.get_cam_state() != 'STANDBY':
-            logging.getLogger("user_level_log").info("Waiting detector to be in STANDBY")
+    def wait_standby(self, timestep = 0.1, timeout=300):
+        standby = self.get_cam_state() 
+        if standby != 'STANDBY':
+            self.logger.debug("Waiting detector to be in STANDBY")
         t0 = time.time()
-        while self.get_cam_state() != 'STANDBY':
+        while standby != 'STANDBY' and standby != 'ERROR':
             if time.time() - t0 > timeout:
                 self.logger.debug("timeout waiting for Pilatus to be on STANDBY")
                 return False
-            time.sleep(1)
-            self.logger.debug("Detector is %s" % self.get_cam_state())
+            time.sleep(timestep)
+            standby = self.get_cam_state() 
+            #self.logger.debug("Detector is %s" % self.get_cam_state())
+        if standby == 'STANDBY': return True
+        return False 
+
+    def wait_lima_ready_for_next_acq(self, timeout=300):
+        lima_ready = self.chan_lima_ready.get_value() 
+        if lima_ready != True:
+            logging.getLogger("").info("Waiting detector lima to be ready for next image")
+        t0 = time.time()
+        while lima_ready != True and HWR.beamline.collect._collecting and self.get_cam_state() != 'ERROR':
+            if time.time() - t0 > timeout:
+                self.logger.debug("timeout waiting for Pilatus lima to be ready for next image")
+                return False
+            time.sleep(0.1)
+            lima_ready = self.chan_lima_ready.get_value() 
+            #self.logger.debug("Detector lima ready for next image is %s" %  lima_ready )
         return True
 
     def wait_running(self, timestep=0.1, timeout=300):
-        logging.getLogger("user_level_log").info("Waiting detector to be in RUNNING")
+        self.logger.debug("Waiting detector to be in RUNNING")
         t0 = time.time()
         while self.get_cam_state() != 'RUNNING':
             if time.time() - t0 > timeout:
-                self.logger.debug("timeout waiting for Pilatus to be on RUNNING")
+                self.logger.debug("timeout waiting for Pilatus to be inn RUNNING state")
                 return False
             time.sleep( timestep )
-            self.logger.debug("Detector is %s" % self.get_cam_state())
+            #self.logger.debug("Detector is %s" % self.get_cam_state())
+        return True
+
+    def wait_not_running(self, timestep=0.1, timeout=300):
+        self.logger.debug("Waiting detector to stop RUNNING")
+        t0 = time.time()
+        self.logger.debug("wait_not_running: Detector is %s" % self.get_cam_state())
+        while self.get_cam_state() == 'RUNNING':
+            if time.time() - t0 > timeout:
+                self.logger.debug("timeout waiting for Pilatus to stop RUNNING")
+                return False
+            time.sleep( timestep )
+            #self.logger.debug("Detector is %s" % self.get_cam_state())
         return True
 
     def prepare_acquisition(self, dcpars):
@@ -412,13 +480,33 @@ class XalocPilatus(AbstractDetector):
         self.stop_acquisition()
 
     def set_image_headers(self, image_headers, angle_info):
-
+        """
+            Prepares headers both in lima as well as the camserver
+            TODO: use start_acq_cam_server to set the appropriate header
+        """
+        
         nb_images = image_headers['nb_images']
         angle_inc = image_headers['Angle_increment']
         start_angle = image_headers['Start_angle']
 
-        startangles_list = list()
         ang_start, ang_inc, spacing = angle_info
+
+        #Set the camserver headings in case lima is not used
+        self.cmd_cam_server("MXsettings Start_angle %s" % image_headers["Start_angle"].split()[0]  )
+        self.cmd_cam_server("MXsettings Angle_increment %s" % image_headers["Angle_increment"].split()[0] )
+        self.cmd_cam_server("MXsettings Kappa %s" % image_headers["Kappa"].split()[0] )
+        self.cmd_cam_server("MXsettings Phi %s" % image_headers["Phi"].split()[0] )
+        self.cmd_cam_server("MXsettings Flux %s" % image_headers["Flux"].split()[0]  )
+        self.cmd_cam_server("MXsettings Wavelength %s" % image_headers["Wavelength"].split()[0] )
+        self.cmd_cam_server("MXsettings Filter_transmission %s" % image_headers["Filter_transmission"].split()[0]  )
+        self.cmd_cam_server("MXsettings Detector_distance %s" % image_headers["Detector_distance"].split()[0]  )
+        self.cmd_cam_server("MXsettings Polarization %s" % image_headers["Polarization"].split()[0]  )
+        self.cmd_cam_server("MXsettings Detector_2theta %s" % image_headers["Detector_2theta"].split()[0]  )
+        self.cmd_cam_server("MXsettings Beam_xy %s" % image_headers["Beam_xy"].split("pixels")[0]  )
+        self.cmd_cam_server("MXsettings Detector_Voffset %s" % image_headers["Detector_Voffset"].split()[0]  )
+        self.cmd_cam_server("MXsettings Oscillation_axis %s" % image_headers["Oscillation_axis"]  )
+
+        startangles_list = list()
         for i in range(nb_images):
             startangles_list.append("%0.4f deg." % (ang_start + spacing * i))
 
