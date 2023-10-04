@@ -135,7 +135,10 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                         qe.handle_exception(ex)
                         self.stop()
                     except gevent.GreenletExit:
-                        pass
+                        #pass
+                        logging.getLogger("user_level_log").warning(
+                            "Queue execution GreenletExit error, " + str(ex)
+                        )
 
                     if isinstance(ex, base_queue_entry.QueueAbortedException):
                         logging.getLogger("user_level_log").warning(
