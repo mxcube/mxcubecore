@@ -56,12 +56,13 @@ class XalocFrontEnd(XalocEpsActuator):
         self.chan_open = self.get_channel_object('open_command')
         self.chan_close = self.get_channel_object('close_command')
 
-    def cmd_in(self):
+    def cmd_out(self):
+        self.chan_close.set_value(False)
         self.chan_open.set_value(True)
 
-    def cmd_out(self):
+    def cmd_in(self):
+        self.chan_open.set_value(False)
         self.chan_close.set_value(True)
-
 
 def test_hwo(hwo):
     print("Name is: ", hwo.getUserName())
