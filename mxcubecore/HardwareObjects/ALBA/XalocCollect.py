@@ -663,7 +663,7 @@ class XalocCollect(AbstractCollect):
 
     def collect_mesh(
                        self,
-                       measurement_group, 
+                       measurement_group, # ised only for sardana scans
                        first_image_no, 
                        mesh_mxcube_fast_motor_name, 
                        mesh_num_frames_per_line, 
@@ -986,19 +986,26 @@ class XalocCollect(AbstractCollect):
                             mesh_mxcube_fast_motor_name,
                             local_fast_start_pos,
                             local_fast_end_pos,
-                            mov_fast_step,
                             exp_period,
                             detdeadtime,
                             local_first_image_no,
                             mesh_num_frames_per_line,
-                            margin_mm
+                            margin_mm,
+                            fast_scan_direction
                     ):
         #initialize local pars
         self.mxcube_sardanascan_running = True # tell mxcube that we are running a line scan, not only for sardanascan!
-        fast_motor_hwo = self.scan_motors_hwobj[ mesh_mxcube_fast_motor_name ]
+        manage_shutter_locally = False #TODO: fix the shutterchannel for the ni660 poschan ctr6
 
-        if local_fast_end_pos < local_fast_start_pos: 
-            margin_mm *= -1
+        # To show intermediate images
+        if mesh_mxcube_fast_motor_name == 'phiz':
+            manage_shutter_locally = False
+
+        fast_motor_hwo = self.scan_motors_hwobj[ mesh_mxcube_fast_motor_name ]
+        fast_motor_hwo.wait_end_of_move( timeout = ( exp_period * mesh_num_frames_per_line) + 5 )
+        fast_motor_hwo.wait_ready( timeout = (exp_period * mesh_num_frames_per_line) + 5 )
+
+        margin_mm *= fast_scan_direction
         self.logger.debug("Fast scan motor %s at initial position %.4f" % 
                           ( mesh_xaloc_fast_motor_name, fast_motor_hwo.get_value() ) 
         )
@@ -1607,9 +1614,6 @@ class XalocCollect(AbstractCollect):
                 break
             gevent.sleep(0.5)
 
-        #
-        #
-        # START of 20210218: Lines only necessary for non sardana collects, remove when switching to pure meshct/ascanct scans   
     def configure_ni(self, start_scan_pos, scan_total_dist, xaloc_scan_motor_name,
                      override_motor_acceleration):
         """
@@ -1791,7 +1795,7 @@ class XalocCollect(AbstractCollect):
         self.logger.debug( "mesh_center          : %s" % self.mesh_center )
 
 
-    def setMeshScanParameters(self, osc_seq, mesh_mxcube_fast_motor_name, mesh_mxcube_slow_motor_name, mesh_center, mesh_range):
+    def setMeshScanParameters(self, osc_seq, mesh_mxcube_horizontal_motor_name, mesh_mxcube_vertical_motor_name, mesh_center, mesh_range):
         """
         Calculates velocity, starting and end position of the phiy (omegax) motor for each horizontal line scan
                    the step size for the vertical direction
@@ -1814,45 +1818,58 @@ class XalocCollect(AbstractCollect):
         # mesh_center is a Centering_Point, which fails to work as a dictionary, following lines needed
         if not type(mesh_center) is dict:
             mesh_center = mesh_center.as_dict()
-
-        mesh_vertical_discrete_step_size = 0
-        self.logger.debug('setMeshScanParameters')
+        #mesh_step_x = mesh_range[0] / float(self.mesh_num_lines)
+        #mesh_step_y = mesh_range[1] / float(self.mesh_total_nb_frames) / float(self.mesh_num_lines)
 
         beam_size = self.get_beam_size() # TODO get beam size
         self.logger.debug('\t beam size: %s' % str(beam_size))
 
+        slow_mxcube_motor_name = mesh_mxcube_vertical_motor_name
+        fast_mxcube_motor_name = mesh_mxcube_horizontal_motor_name
+        slow_motor_nr_images = self.mesh_num_lines  
+        fast_motor_nr_images = self.mesh_total_nb_frames / self.mesh_num_lines 
+        self.mesh_slow_index = self.mesh_vertical_index
+        self.mesh_fast_index = self.mesh_horizontal_index
+
+        if self.mesh_num_lines == self.mesh_total_nb_frames: # vertical scan
+            slow_mxcube_motor_name = mesh_mxcube_horizontal_motor_name
+            fast_mxcube_motor_name = mesh_mxcube_vertical_motor_name
+            self.mesh_fast_index = self.mesh_vertical_index
+            self.mesh_slow_index = self.mesh_horizontal_index
+            dummy = slow_motor_nr_images
+            slow_motor_nr_images = fast_motor_nr_images 
+            fast_motor_nr_images = dummy
+
+        self.logger.debug('setMeshScanParameters')
+        slow_index = self.mesh_slow_index
+        fast_index = self.mesh_fast_index
+
+
         self.logger.debug('\t mesh_center: %s' % str(mesh_center))
         self.logger.debug('\t mesh_range: %s' % str(mesh_range))
-        self.logger.debug('\t mesh_mxcube_fast_motor_name %s' % ( mesh_mxcube_fast_motor_name) ) 
-        self.logger.debug('\t mesh_mxcube_slow_motor_name %s' % ( mesh_mxcube_slow_motor_name) ) 
-        #self.logger.debug('\t mesh_center[%s]: %s' % 
-                #( mesh_mxcube_fast_motor_name, str(mesh_center[mesh_mxcube_fast_motor_name]) ) 
-            #)
-        #self.logger.debug('\t mesh_center[%s]: %s' % 
-                #( mesh_mxcube_slow_motor_name, str(mesh_center[mesh_mxcube_slow_motor_name]) ) 
-            #)
-        self.logger.debug('\t ( mesh_range[1] / 2 ) %s' % ( mesh_range[1] / 2 ) )
-        #TODO: index 0 is fast??
+        self.logger.debug('\t fast_index  %s' % ( fast_index) ) 
+        self.logger.debug('\t slow_index %s' % ( slow_index) ) 
 
-        self.scan_start_positions[mesh_mxcube_fast_motor_name] = \
-            mesh_center [ mesh_mxcube_fast_motor_name ] - ( mesh_range[0] / 2.0 ) - ( beam_size[0] / 2.0 ) 
-        self.scan_start_positions[mesh_mxcube_slow_motor_name] = \
-            mesh_center [ mesh_mxcube_slow_motor_name ] - ( mesh_range[1] / 2.0 ) 
+        #TODO: index 0 is fast for mxcube?? Is this configured somewhere?
+        self.scan_start_positions[ fast_mxcube_motor_name ] = \
+            mesh_center [ fast_mxcube_motor_name ] - ( mesh_range[fast_index] / 2.0 ) -  ( beam_size[fast_index] / 2.0 )
+        self.scan_end_positions[fast_mxcube_motor_name] = \
+            self.scan_start_positions[fast_mxcube_motor_name] + mesh_range[fast_index] + beam_size[fast_index]
+        self.scan_start_positions[slow_mxcube_motor_name] = \
+            mesh_center [ slow_mxcube_motor_name ] - ( mesh_range[slow_index] / 2.0 ) 
+        self.scan_end_positions[slow_mxcube_motor_name] = \
+            self.scan_start_positions[slow_mxcube_motor_name] + mesh_range[slow_index] 
 
-        self.scan_end_positions[mesh_mxcube_fast_motor_name] = \
-            self.scan_start_positions[mesh_mxcube_fast_motor_name] + mesh_range[0] + beam_size[0]
-        # Add a beamsize to the slow motor
-        self.scan_end_positions[mesh_mxcube_slow_motor_name] = \
-            self.scan_start_positions[mesh_mxcube_slow_motor_name] + mesh_range[1] 
+        self.logger.debug('\t slow_mxcube_motor_name: %s' % slow_mxcube_motor_name )
+        self.logger.debug('\t fast_mxcube_motor_name: %s' % fast_mxcube_motor_name )
+
         self.logger.debug('\t scan_start_positions: %s' % str(self.scan_start_positions))
         self.logger.debug('\t scan_end_positions: %s' % str(self.scan_end_positions))
 
-        slow_motor_nr_images = self.mesh_num_lines  
-        fast_motor_nr_images = self.mesh_total_nb_frames / self.mesh_num_lines 
         self.logger.debug('\t fast_motor_nr_images: %s' % str( fast_motor_nr_images ) )
         self.logger.debug('\t slow_motor_nr_images: %s' % str( slow_motor_nr_images ) )
 
-        return fast_motor_nr_images, slow_motor_nr_images
+        return slow_mxcube_motor_name, fast_mxcube_motor_name, fast_motor_nr_images, slow_motor_nr_images
 
     @task
     def _take_crystal_snapshot(self, filename):
