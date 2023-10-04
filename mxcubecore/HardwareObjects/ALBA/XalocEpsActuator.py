@@ -66,7 +66,7 @@ __credits__ = ["ALBA Synchrotron"]
 __version__ = "3"
 __category__ = "General"
 
-STATE_OUT, STATE_IN, STATE_MOVING, STATE_FAULT, STATE_ALARM, STATE_UNKNOWN = \
+STATE_IN, STATE_OUT, STATE_MOVING, STATE_FAULT, STATE_ALARM, STATE_UNKNOWN = \
     (0, 1, 9, 11, 13, 23)
 
 
@@ -81,7 +81,7 @@ class XalocEpsActuator(BaseHardwareObjects.Device):
         STATE_UNKNOWN: "unknown",
     }
 
-    default_state_strings = ["Out", "In"]
+    default_state_strings = ["In", "Out"]
 
     def __init__(self, name):
         BaseHardwareObjects.Device.__init__(self, name)
@@ -106,28 +106,18 @@ class XalocEpsActuator(BaseHardwareObjects.Device):
             if state_string is None:
                 self.state_strings = self.default_state_strings
             else:
-                states = state_string.split(",")
-                self.state_strings = states[1].strip(), states[0].strip()
+                self.state_strings = state_string.split(",")
         except Exception as e:
             self.logger.warning("%s" % str(e))
             self.state_strings = self.default_state_strings
 
     def get_state(self):
-        state = self.chan_actuator.get_value()
-        self.actuator_state = self.convert_state(state)
+        self.actuator_state = self.chan_actuator.force_get_value()
         return self.actuator_state
 
-    def convert_state(self, state):
-        if state == 0:
-            act_state = STATE_OUT
-        elif state == 1:
-            act_state = STATE_IN
-        else:
-            act_state = STATE_UNKNOWN
-        return act_state
-
     def state_changed(self, value):
-        self.actuator_state = self.convert_state(value)
+        self.actuator_state = value
+        self.logger.debug("State change for actuator %s, new state is %s" % (self.name(), value) )
         self.emit('stateChanged', (self.actuator_state,))
 
     def get_user_name(self):
@@ -146,17 +136,16 @@ class XalocEpsActuator(BaseHardwareObjects.Device):
             return "Unknown"
 
     def open(self):
-        self.cmd_in()
-
-    def close(self):
         self.cmd_out()
 
+    def close(self):
+        self.cmd_in()
+
     def cmd_in(self):
-        self.chan_actuator.set_value(1)
+        self.chan_actuator.set_value( STATE_IN )
 
     def cmd_out(self):
-        self.chan_actuator.set_value(0)
-
+        self.chan_actuator.set_value( STATE_OUT )
 
 def test_hwo(hwo):
     print("Name is: ", hwo.getUserName())
