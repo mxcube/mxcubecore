@@ -184,8 +184,14 @@ class Cats90(SampleChanger):
         # add support for CATS dewars with variable number of lids
 
         # Create channels from XML
-
-        self.cats_device = PyTango.DeviceProxy(self.get_property("tangoname"))
+        try:
+            cats_name = self.get_property("tangoname")
+        except AttributeError as e:
+            logging.getLogger("HWR").debug(
+                "cats device not under tangoname, trying taurusname" 
+            )  
+            cats_name = self.get_property("taurusname")
+        self.cats_device = PyTango.DeviceProxy( self.get_property("taurusname") )
 
         no_of_lids = self.get_property("no_of_lids")
         if no_of_lids is None:
@@ -865,7 +871,7 @@ class Cats90(SampleChanger):
         else:
             if self.cats_sample_on_diffr() == 1:
                 logging.getLogger("HWR").warning(
-                    "  ==========CATS=== trying to load sample, but sample detected on diffr. aborting"
+                    "  ==========CATS=== trying to load sample, but there is an unknown sample detected on diffr. aborting"
                 )
                 self._update_state()  # remove software flags like Loading.
             elif self.cats_sample_on_diffr() == -1:
@@ -971,9 +977,9 @@ class Cats90(SampleChanger):
             while value in [PyTango.DevState.ALARM, PyTango.DevState.ON]:
                 time.sleep(0.1)
                 trials += 1
-                logging.getLogger("HWR").warning(
-                    "SAMPLE CHANGER could be in transient state. trying again"
-                )
+                #logging.getLogger("HWR").warning(
+                    #"SAMPLE CHANGER could be in transient state. trying again"
+                #)
                 value = self._chnState.get_value()
                 if trials > 4:
                     break
@@ -1210,10 +1216,10 @@ class Cats90(SampleChanger):
         elif has_loaded ^ on_diff:
             # go to Unknown state if a sample is detected on the gonio but not registered in the internal database
             # or registered but not on the gonio anymore
-            logging.getLogger("HWR").warning(
-                "SAMPLE CHANGER Unknown 2 (hasLoaded: %s / detected: %s)"
-                % (self.has_loaded_sample(), self._chnSampleIsDetected.get_value())
-            )
+            #logging.getLogger("HWR").warning(
+                #"SAMPLE CHANGER Unknown 2 (hasLoaded: %s / detected: %s)"
+                #% (self.has_loaded_sample(), self._chnSampleIsDetected.get_value())
+            #)
             _state = SampleChangerState.Unknown
         # elif not lids_closed:
         # _state = SampleChangerState.Charging
