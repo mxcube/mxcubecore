@@ -694,18 +694,20 @@ class XalocCollect(AbstractCollect):
         #margin_mm = fast_motor_hwo.get_acceleration()
         margin_mm = 0.025 # margin in mm for the motor to get to speed
 
-        self.logger.debug("Running a raster collection")
         # final_pos is end of omega range (not including safedelta)
         detdeadtime = self.detector_hwobj.get_latency_time()
         total_time = mesh_num_frames_per_line * mesh_num_lines * time_interval
         
         local_fast_start_pos = self.scan_start_positions[ mesh_mxcube_fast_motor_name ]
         local_fast_end_pos = self.scan_end_positions[ mesh_mxcube_fast_motor_name ]
-        self.scan_motors_hwobj[ self.mesh_mxcube_slow_motor_name ].set_value( local_slow_start_pos, timeout = 10 )
+        self.scan_motors_hwobj[ mesh_mxcube_slow_motor_name ].set_value( local_slow_start_pos, timeout = 10 )
+
+        self.logger.debug("Running a raster collection, fast motor range is from %.4f to %.4f " % (local_fast_start_pos, local_fast_end_pos))
 
         #TODO fix the numbering of the files
         self.prepare_sardana_env( measurement_group )
         sshape = self.mesh_sshaped_bool
+        fast_scan_direction = 1
 
         if not self.use_sardana_scan:
             # mv omegax to starting position
@@ -752,7 +754,6 @@ class XalocCollect(AbstractCollect):
                                           mesh_num_frames_per_line
                                    )
                                  )
-                # TODO: that should not be here: prepare mesh or sardana instead
                 gevent.sleep(0.1)
                 if self.use_sardana_scan:
                     self.run_ascanct(
@@ -771,42 +772,47 @@ class XalocCollect(AbstractCollect):
                             mesh_mxcube_fast_motor_name,
                             local_fast_start_pos,
                             local_fast_end_pos,
-                            mov_fast_step,
                             time_interval, # exp period
                             detdeadtime,
                             local_first_image_no,
                             mesh_num_frames_per_line, 
-                            margin_mm
+                            margin_mm,
+                            fast_scan_direction
                     )
 
                 local_first_image_no += mesh_num_frames_per_line
                 if lineno == mesh_num_lines-1: 
                     break
-                
-                self.scan_motors_hwobj[ self.mesh_mxcube_slow_motor_name ].set_value(
-                                             self.scan_motors_hwobj[ self.mesh_mxcube_slow_motor_name ].get_value() \
-                                                 + mov_slow_step ,
-                                             timeout = 10
+
+                self.scan_motors_hwobj[ mesh_mxcube_slow_motor_name ].set_value(
+                                            self.scan_motors_hwobj[ mesh_mxcube_slow_motor_name ].get_value() \
+                                                + mov_slow_step ,
+                                            timeout = 10
                                         )
+                
                 if sshape: 
                     dummy = local_fast_start_pos
                     local_fast_start_pos = local_fast_end_pos
                     local_fast_end_pos = dummy
+                    fast_scan_direction *= -1
                 
-                #self.logger.debug('  scan_start_positions after swap= %s' % self.scan_start_positions )
-                #self.logger.debug('  scan_end_positions after swap= %s' % self.scan_end_positions )
-
-        self.scan_motors_hwobj[ self.mesh_mxcube_slow_motor_name ].wait_ready()
+        self.scan_motors_hwobj[ mesh_mxcube_slow_motor_name ].wait_ready()
         # move motors to center of scan
         if not self.use_sardana_scan:
+            fast_motor_hwo.wait_end_of_move( timeout = ( time_interval * mesh_num_frames_per_line) + 5 )
+            fast_motor_hwo.wait_ready( timeout = (time_interval * mesh_num_frames_per_line) + 5 )
             # Calculate motor velocity 
             self.logger.debug("Resetting velocity of the fast scan motor %.4f" % ( saved_scan_motor_velocity ) )
             fast_motor_hwo.set_velocity( saved_scan_motor_velocity )
             fast_motor_hwo.wait_ready( timeout = 5 )
 
-        self.move_motors( mesh_center.as_dict() )
-        self.go_to_sampleview()
+        if self.current_dc_parameters['processing_online'] != "XrayCentering":
+            self.move_motors( mesh_center.as_dict() )
+            self.go_to_sampleview()
+        
         self.wait_collection_done(first_image_no, first_image_no + ( mesh_num_frames_per_line * mesh_num_lines ) - 1, total_time + 5)
+        if self.current_dc_parameters['processing_online'] == "XrayCentering":
+            self.wait_online_processing_done()
                 
     # omega_speed and det_trigger are not necessary for sardanized collections            
     def prepare_collection(self, start_angle, nb_images, img_range, first_image_no, exp_time, omega_speed ):
@@ -1011,6 +1017,7 @@ class XalocCollect(AbstractCollect):
 
         # set collection pars in detector
         try:
+            self.logger.debug("Preparing detector for line scan collection, lima ready is %s" % self.detector_hwobj.chan_lima_ready.get_value() )
             self.detector_hwobj.prepare_collection( mesh_num_frames_per_line, local_first_image_no, exp_period - detdeadtime )
         except Exception as e:
             self.logger.error( str(e) )
@@ -1018,26 +1025,49 @@ class XalocCollect(AbstractCollect):
             self.data_collection_failed( e, "Cannot prepare the detector, does the image exist? If not, check the detector state" )
         
         # arm detector
+        #self.logger.debug("Arm detector for line scan collection" )
         self.detector_hwobj.start_collection()
         #gevent.sleep(1)
         # mv omegax
-        self.logger.debug("Moving fast scan motor %s to end of line at %.4f" % ( mesh_xaloc_fast_motor_name, local_fast_end_pos + margin_mm ) )
+        if manage_shutter_locally:#TODO: fix the shutterchannel for the ni660 poschan ctr6
+            self.logger.debug("Opening shutter manually " )
+            self.open_fast_shutter_for_internal_trigger() 
+            sleep_time = 0.1
+            self.logger.debug("Sleeping for %.2f secs" % sleep_time )
+            gevent.sleep( sleep_time )
+            self.logger.debug("Waking up" )
+        self.logger.debug("Moving fast scan motor %s from %.4f to end of line at %.4f" % \
+            ( mesh_xaloc_fast_motor_name, fast_motor_hwo.get_value(), local_fast_end_pos + margin_mm ) 
+        )
         fast_motor_hwo.set_value(
-                                             local_fast_end_pos + margin_mm,
-                                        )
+                local_fast_end_pos + margin_mm,
+        )
         # wait collection_done
-        fast_motor_hwo.wait_end_of_move( timeout = 30 )
-        fast_motor_hwo.wait_ready( timeout = 30 )
-        self.wait_collection_done(local_first_image_no, 
-                                  local_first_image_no + mesh_num_frames_per_line - 1, 
-                                  (local_fast_end_pos + margin_mm - local_fast_start_pos + margin_mm) * fast_motor_hwo.get_velocity() # total time
-                                )
-        self.detector_hwobj.wait_ready()
-        self.unconfigure_ni()
-        #self.detector_hwobj.stop_collection()
+        #fast_motor_hwo.wait_end_of_move( timeout = ( exp_period * mesh_num_frames_per_line) + 1 )
+        #fast_motor_hwo.wait_ready( timeout = (exp_period * mesh_num_frames_per_line) + 5 )
+        while fast_scan_direction * ( local_fast_end_pos - fast_motor_hwo.get_value() ) > 0.001 and not self.aborted_by_user: 
+            time.sleep(0.005)
+            intermediate_image = self.get_image_file_name( intermediate_image_number )
+            #self.logger.debug("Waiting for intermediate image %s" % ( intermediate_image ) )
+            if intermediate_image_number < mesh_num_frames_per_line: 
+                #self.logger.debug("   waiting for image on disk: %s" % intermediate_image)
+                while not os.path.exists(intermediate_image) and not self.aborted_by_user: 
+                    time.sleep(0.005)    
+                self.image_tracking_hwobj.load_image(intermediate_image)
+                intermediate_image_number += intermediate_image_step
 
+        if manage_shutter_locally:#TODO: fix the shutterchannel for the ni660 poschan ctr6
+            self.fastshut_hwobj.close() #TODO: fix the shutterchannel for the ni660 poschan ctr6
+        #self.detector_hwobj.wait_running(timestep = 0.025, timeout = 5)
+        #self.detector_hwobj.wait_standby(timestep = 0.05, timeout = mesh_num_frames_per_line * exp_period + 5)
+        #self.logger.debug("detector cam_state %s, lima ready %s, " % 
+                          #(self.detector_hwobj.get_cam_state(), self.detector_hwobj.chan_lima_ready.get_value() )
+        #)
         self.mxcube_sardanascan_running = False # tell mxcube that we are running a line scan, not only for sardanascan!
 
+        #self.detector_hwobj.wait_ready()
+        self.unconfigure_ni()
+        #self.detector_hwobj.stop_collection()
 
     def calc_omega_scan_values( self, omega_start_pos, nb_images ):
         """
