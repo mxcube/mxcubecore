@@ -136,8 +136,6 @@ class XalocCollect(AbstractCollect):
         self.omega_hwobj = None
 
         self.use_sardana_scan = None
-        self.mesh_scan_line_motor_name = None
-        self.mesh_scan_discrete_motor_name = None
         self.scan_start_positions = {}
         self.scan_end_positions = {}
         self.scan_velocities = {}
@@ -147,11 +145,14 @@ class XalocCollect(AbstractCollect):
         self.scan_move_motor_names = []
         self.scan_all_motor_names = []
 
-        self.mesh_mxcube_fast_motor_name = None
-        self.mesh_mxcube_slow_motor_name = None
+        self.mesh_mxcube_horizontal_motor_name = None
+        self.mesh_mxcube_vertical_motor_name = None
         self.mesh_fast_index = None
         self.mesh_slow_index = None
+        self.mesh_horizontal_index = None
+        self.mesh_vertical_index = None
         self.mesh_sshaped_bool = None # True: up and down scans, False: only up scans
+        self.mesh_fast_motor_max_velocity = None
 
         #self.helical_positions = None
         #self.saved_omega_velocity = None
@@ -213,29 +214,26 @@ class XalocCollect(AbstractCollect):
         #self.scan_all_motor_names = ['phiy', 'phiz', 'sampx', 'sampy', 'kappa', 'kappa_phi']
         self.scan_all_motor_names = ['phiy', 'phiz', 'sampx', 'sampy']
         #TODO get rid of hardcoded max and minvelocity numbers
-        self.scan_motors_min_velocity = {'phiy': 6E-6, 'phiz': 1.3E-4, 'sampx': 7E-6, 'sampy': 7E-6, 'kappa': 4, 'kappaphi': 7} # see XALOC elog 925
-        self.scan_motors_max_velocity = {'phiy': 1.0, 'phiz': 0.22, 'sampx': 0.15, 'sampy': 0.15, 'kappa': 17, 'kappaphi': 70}
         for scan_motor in self.scan_all_motor_names:
             self.scan_motors_hwobj[scan_motor] = self.get_object_by_role(scan_motor)
 
-        self.mesh_mxcube_fast_motor_name = 'phiy' # omegax
-        self.mesh_mxcube_slow_motor_name = 'phiz' # omegaz
-        self.mesh_fast_index = 0
-        self.mesh_slow_index = 1
+        self.mesh_mxcube_horizontal_motor_name = 'phiy' # omegax
+        self.mesh_mxcube_vertical_motor_name = 'phiz' # omegaz
+        self.mesh_horizontal_index = 0
+        self.mesh_vertical_index = 1
+        self.mesh_fast_motor_max_velocity = 1.5 # mm/sec. Physically the motor should be fine up to 3.0 mm/sec
 
         self.mesh_sshaped_bool = self.get_property('mesh_sshape') # False: only up scans
 
         #self.chan_undulator_gap = self.get_channel_object("chanUndulatorGap")
 
         self.scan_motors_hwobj = {}
-        self.mesh_scan_line_motor_name = 'phiz'
-        self.mesh_scan_discrete_motor_name = 'phiy' 
         #TODO 20200921 kappa_phi is broken
         #self.scan_all_motor_names = ['phiy', 'phiz', 'sampx', 'sampy', 'kappa', 'kappa_phi']
         self.scan_all_motor_names = ['phiy', 'phiz', 'sampx', 'sampy']
         #TODO get rid of hardcoded max and minvelocity numbers
         self.scan_motors_min_velocity = {'phiy': 6E-6, 'phiz': 1.3E-4, 'sampx': 7E-6, 'sampy': 7E-6, 'kappa': 4, 'kappaphi': 7} # see XALOC elog 925
-        self.scan_motors_max_velocity = {'phiy': 1.0, 'phiz': 0.22, 'sampx': 0.15, 'sampy': 0.15, 'kappa': 17, 'kappaphi': 70}
+        self.scan_motors_max_velocity = {'phiy': 3.0, 'phiz': 0.5, 'sampx': 0.15, 'sampy': 0.15, 'kappa': 17, 'kappaphi': 70}
         for scan_motor in self.scan_all_motor_names:
             self.scan_motors_hwobj[scan_motor] = self.get_object_by_role(scan_motor)
         
@@ -531,13 +529,14 @@ class XalocCollect(AbstractCollect):
                                                                 )
             self.logger.info('Preliminary helical setup completed')
         elif exp_type == "Mesh":
-            fast_motor_nr_images, slow_motor_nr_images = self.setMeshScanParameters( 
+            slow_mxcube_motor_name, fast_mxcube_motor_name, fast_motor_nr_images, slow_motor_nr_images = \
+                self.setMeshScanParameters( 
                                             osc_seq, 
-                                            self.mesh_mxcube_fast_motor_name, 
-                                            self.mesh_mxcube_slow_motor_name,
+                                            self.mesh_mxcube_horizontal_motor_name, 
+                                            self.mesh_mxcube_vertical_motor_name,
                                             self.mesh_center,
                                             self.mesh_range
-                                            )
+                )
         else:
             self.logger.debug("Running a collect (STANDARD)")
 
@@ -620,9 +619,9 @@ class XalocCollect(AbstractCollect):
             self.collect_mesh(
                       'test_pilatus_omegax_scan',
                       first_image_no,
-                      self.mesh_mxcube_fast_motor_name,
+                      fast_mxcube_motor_name,
                       fast_motor_nr_images,
-                      self.mesh_mxcube_slow_motor_name,
+                      slow_mxcube_motor_name,
                       slow_motor_nr_images,
                       self.mesh_range,
                       exp_period,
