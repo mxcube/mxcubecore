@@ -1,7 +1,7 @@
 <object class="XalocPilatus">
   <username>PilatusDetector</username>
-  <!-- object href="/detector-distance" role="distance_motor"/ -->
   <object href="/detector-distance" role="detector_distance"/>
+  
   <taurusname>bl13/eh/pilatus3xlima</taurusname>
 
   <manufacturer>DECTRIS</manufacturer>
@@ -15,14 +15,17 @@
   <width>2463</width>
   <height>2527</height>
 
-
-  <default_exposure_time>0.05</default_exposure_time>
-  <minimum_exposure_time>0.05</minimum_exposure_time>
-  <exposure_limits>0.05,1000</exposure_limits>
-
+  <default_exposure_time>0.01</default_exposure_time>
+  <minimum_exposure_time>0.01</minimum_exposure_time>
+  <exposure_limits>0.01,1000</exposure_limits>
+  <latency_time>0.00095</latency_time>
+  
+  <start_acq_cam_server>True</start_acq_cam_server>
+  
   <command type="sardana" name="prepare_acq">prepareAcq</command>
   <command type="sardana" name="start_acq">startAcq</command>
   <command type="sardana" name="abort_acq">abortAcq</command>
+  <command type="sardana" name="stop_acq">stopAcq</command>
   <command type="sardana" name="reset">reset</command>
   <command type="sardana" name="reset_common_header">resetCommonHeader</command>
   <command type="sardana" name="reset_frame_headers">resetFrameHeaders</command>
@@ -35,6 +38,7 @@
   <channel type="sardana" name="saving_next_number">saving_next_number</channel>
   <channel type="sardana" name="saving_header_delimiter">saving_header_delimiter</channel>
   <channel type="sardana" name="saving_statistics">saving_statistics</channel>
+  <channel type="sardana" name="lima_ready_for_next_acq">ready_for_next_acq</channel>
 
   <channel type="sardana" name="acq_nb_frames">acq_nb_frames</channel>
   <channel type="sardana" name="acq_trigger_mode">acq_trigger_mode</channel>
@@ -46,6 +50,7 @@
   <channel type="sardana" taurusname="bl13/eh/pilatus3xspecific" name="energy">energy_threshold</channel>
   <channel type="sardana" taurusname="bl13/eh/pilatus3xspecific" name="threshold">threshold</channel>
   <channel type="sardana" taurusname="bl13/eh/pilatus3xspecific" name="cam_state">cam_state</channel>
+  <command type="sardana" taurusname="bl13/eh/pilatus3xspecific" name="cmd_cam_server">SendCamServerCmd</command>
 
   <channel type="sardana" taurusname="bl13/ct/variables" name="beamx">beamx</channel>
   <channel type="sardana" taurusname="bl13/ct/variables" name="beamy">beamy</channel>
