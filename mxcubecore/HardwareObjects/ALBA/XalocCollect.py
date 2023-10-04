@@ -299,10 +299,10 @@ class XalocCollect(AbstractCollect):
                 self.current_dc_parameters['oscillation_sequence'][0]['start_image_number'] 
             )
         if os.path.exists( full_path ):
-            msg = "Filename already exists"
+            msg = "Filename already exists : %s" % full_path
             self.data_collection_failed( Exception(msg) , msg )
 
-        if HWR.beamline.session.proposal_id == None:
+        if HWR.beamline.session.get_proposal() == 'local-user':
             msg = "You are not logged in, log in first"
             self.data_collection_failed( Exception(msg) , msg )
         
@@ -316,10 +316,6 @@ class XalocCollect(AbstractCollect):
         log.info("Collection: Preparing to collect")
 
         try:
-
-            if not HWR.beamline.session.proposal_id: 
-                msg = "First log in before starting a data collection"
-                self.data_collection_failed( Exception( msg ), msg )
 
             self.pre_collect_check()
 
@@ -452,6 +448,8 @@ class XalocCollect(AbstractCollect):
         except:
             exc_type, exc_value, exc_tb = sys.exc_info()
             failed_msg = "Data collection failed!\n%s" % exc_value
+            import traceback
+            failed_msg += traceback.format_exc() 
             self.collection_failed(failed_msg)
         else:
             self.collection_finished()
@@ -464,12 +462,12 @@ class XalocCollect(AbstractCollect):
 
         self.logger.info("Running Xaloc data collection hook")
         
-        if not self.resolution_hwobj.is_ready(): 
-            self.logger.info("Waiting for resolution ready...")
-            self.resolution_hwobj.wait_ready()
-        if not self.detector_hwobj.is_ready(): 
-            self.logger.info("Waiting for detector distance ready...")
-            self.detector_hwobj.wait_move_distance_done()
+        #if not self.resolution_hwobj.is_ready(): 
+            #self.logger.info("Waiting for resolution ready...")
+            #self.resolution_hwobj.wait_ready()
+        #if not self.detector_hwobj.is_ready(): 
+        self.logger.info("Waiting for detector distance ready...")
+        self.detector_hwobj.wait_move_distance_done()
         if not self.energy_hwobj.is_ready(): 
             self.logger.info("Waiting for energy ready...")
             self.energy_hwobj.wait_move_energy_done()
@@ -648,6 +646,9 @@ class XalocCollect(AbstractCollect):
         self.logger.info("collect_images: Collecting images, by moving omega to %s" % final_pos)
         total_time = (final_pos - self.omega_hwobj.get_value() ) / omega_speed # assumes omega is already at start position for collection
         self.logger.info("    Total collection time = %s" % total_time)
+
+        margin_deg = 0.1
+        final_pos += margin_deg
 
         # Now collect the data
         self.detector_hwobj.start_collection()
@@ -1552,7 +1553,7 @@ class XalocCollect(AbstractCollect):
     def data_collection_cleanup(self):
         # this is called from AbstractCollect.do_collect, so it is always called and will be the last step in the data collection
         
-        self.logger.debug("XalocCollect data_collection_cleanup") 
+        self.logger.debug("XalocCollect data_collection_cleanup started") 
 
         # Not sure what the following line does, does it remove any errors??
         if self.detector_hwobj.get_cam_state() == 'ERROR': self.detector_hwobj.stop_collection()
@@ -1717,6 +1718,8 @@ class XalocCollect(AbstractCollect):
                 self.data_collection_failed( RuntimeError("Supervisor cannot be operated (state %s)" % super_state), msg)
                 break
             gevent.sleep(0.5)
+        gevent.sleep(1)
+
 
     def configure_ni(self, start_scan_pos, scan_total_dist, xaloc_scan_motor_name,
                      override_motor_acceleration):
@@ -2045,7 +2048,7 @@ class XalocCollect(AbstractCollect):
             The queue_entry stop method is called from the QueueManager when the user clicks stop
         
         """
-        self.logger.debug("XalocCollect stop_collect")
+        self.logger.debug("XalocCollect stop_collect, colletion stopped by user")
         self.aborted_by_user = True
 
         # Before killing the process, wait for a line scan to stop. self.aborted_by_user is read in the mesh scan methods to decide to go on or not
