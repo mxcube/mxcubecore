@@ -64,8 +64,10 @@ class XalocCats(Cats90):
     Main class used @ ALBA to integrate the CATS-IRELEC sample changer.
     """
 
-    def __init__(self, *args):
-        Cats90.__init__(self, *args)
+    def __init__(self, *args, **kwargs):
+        Cats90.__init__(self, *args, **kwargs)
+        #super(XalocCats, self).__init__(self.__TYPE__, False, *args, **kwargs)
+
         self.logger = logging.getLogger("HWR.XalocCats")
         self.detdist_saved = None
 
@@ -77,7 +79,6 @@ class XalocCats(Cats90):
         self.kappa_position_channel = None
         self._chnisDetDistSafe = None
         
-        self._chnPathSafe = None
         self._chnCollisionSensorOK = None
         self._chnIsCatsIdle = None
         self._chnIsCatsHome = None
@@ -86,6 +87,7 @@ class XalocCats(Cats90):
         self._chnNBSoakings = None
         self._chnLidSampleOnTool = None
         self._chnNumSampleOnTool = None
+        self._chnPath = None
         
         self.diff_go_sampleview_cmd = None
         self.super_go_sampleview_cmd = None
@@ -113,7 +115,9 @@ class XalocCats(Cats90):
 
     def init(self):
         self.logger.debug("Initializing {0}".format(self.__class__.__name__))
-        Cats90.init(self)
+        #Cats90.init(self)
+        super(XalocCats,self).init()
+
         # TODO: Migrate to taurus channels instead of tango channels
         self.shifts_channel = self.get_channel_object("shifts")
         self.diff_phase_channel = self.get_channel_object("diff_phase")
@@ -124,7 +128,6 @@ class XalocCats(Cats90):
         self.kappa_position_channel = self.get_channel_object("kappa_position") # position of the kappa axis
         self._chnisDetDistSafe = self.get_channel_object("DetDistanceSafe")
 
-        #self._chnPathSafe = self.get_channel_object("_chnPathSafe")
         self._chnCollisionSensorOK = self.get_channel_object("_chnCollisionSensorOK")
         self._chnIsCatsIdle = self.get_channel_object( "_chnIsCatsIdle" )
         self._chnIsCatsHome = self.get_channel_object( "_chnIsCatsHome" )
@@ -133,6 +136,7 @@ class XalocCats(Cats90):
         self._chnNBSoakings = self.get_channel_object( "_chnNBSoakings" )
         self._chnLidSampleOnTool = self.get_channel_object( "_chnLidSampleOnTool" )
         self._chnNumSampleOnTool = self.get_channel_object( "_chnNumSampleOnTool" )
+        self._chnPath = self.get_channel_object( "_chnPath" )
         
         self.diff_go_sampleview_cmd = self.get_command_object("diff_go_sampleview")
         self.super_go_sampleview_cmd = self.get_command_object("super_go_sampleview")
@@ -158,17 +162,15 @@ class XalocCats(Cats90):
         self.sample_lid_on_tool = -1
         self.sample_num_on_tool = -1
 
+        if self._chnPath is not None:
+            #self.current_path = self._chnPath.get_value()
+            self._chnPath.connect_signal("update", self._update_path)
+
         if self._chnPathRunning is not None:
             self._chnPathRunning.connect_signal("update", self._update_running_state)
 
         if self._chnIsCatsRI2 is not None:
             self._chnIsCatsRI2.connect_signal("update", self._cats_ri2_changed)
-
-        #if self._chnPathRunning is not None:
-            #self._chnPathRunning.connect_signal("update", self._update_running_state)
-
-        #if self._chnPowered is not None:
-            #self._chnPowered.connect_signal("update", self._update_powered_state)
 
         if self._chnLidSampleOnTool is not None:
             self._chnLidSampleOnTool.connect_signal("update", self.sample_lid_on_tool_changed)
@@ -240,7 +242,8 @@ class XalocCats(Cats90):
 
         @return: boolean
         """
-        
+        msg = ""
+       
         if HWR.beamline.supervisor.is_detector_cover_opened():
             self.logger.debug("Closing detcover.")
             HWR.beamline.supervisor.close_detector_cover()
@@ -254,8 +257,9 @@ class XalocCats(Cats90):
                 time.sleep(0.1)
                 HWR.beamline.supervisor.set_phase("TRANSFER")
             except Exception as e:
-                logging.getLogger("HWR").error("Supervisor cannot get to transfer phase.\n%s" % str(e) )
-                return False # a return False, in order to update the state in case of an Exception
+                msg = "Supervisor cannot get to transfer phase.\n %s" % str(e) 
+                logging.getLogger("HWR").error( msg )
+                return False,msg # a return False, in order to update the state in case of an Exception
 
         # To improve the speed of sample mounting, the wait for phase done was removed.
         # Rationale: the time it takes the diff to go to transfer phase is about 7-9 seconds. 
@@ -271,7 +275,11 @@ class XalocCats(Cats90):
         ret1 = self._wait_kappa_zero() 
         ret2 = self._wait_omega_zero() 
         ret3 = self._wait_det_safe()
-        return ( ret1 and ret2 and ret3 )
+        if not ret1: msg = "Cannot move kappa to zero"
+        if not ret2: msg = "Cannot move omega to zero"
+        if not ret3: msg = "Cannot move detector to safety"
+
+        return ( ret1 and ret2 and ret3 ), msg
 
     #TODO: remove and replace with diffractometer.wait_ready()
     def _wait_diff_on(self, timeout = 36):
@@ -467,10 +475,10 @@ class XalocCats(Cats90):
         sample_location_str = sample
         self.sample_can_be_centered = True
 
-        self.logger.debug(
-                "Loading sample %s / type(%s)" %
-                ( sample_location_str, type(sample_location_str) )
-            )
+        #self.logger.debug(
+                #"Loading sample %s / type(%s)" %
+                #( sample_location_str, type(sample_location_str) )
+            #)
 
         ok, msg = self._check_incoherent_sample_info()
         if not ok:
@@ -492,12 +500,13 @@ class XalocCats(Cats90):
         if self.has_loaded_sample():
             if self.get_loaded_sample() == sample:
                 raise Exception(
-                    "The sample %s is already loaded" % sample.get_address())
+                    "The sample %s is already loaded" % sample.get_address()
+                    )
 
-        self.logger.debug(
-                "Loading sample %s / type(%s)" %
-                ( sample.get_address(), type(sample) )
-            )
+        #self.logger.debug(
+                #"Loading sample %s / type(%s)" %
+                #( sample.get_address(), type(sample) )
+            #)
 
 
         # This runs the AbstractSampleChanger method!
@@ -535,8 +544,10 @@ class XalocCats(Cats90):
                                  wait, self._do_unload, sample_slot)
         if not ok: self.sample_can_be_centered = False
 
-
         return ok
+
+    def _update_path(self, value):
+        self.current_path = value
 
     def _update_running_state(self, value):
         """
@@ -544,6 +555,7 @@ class XalocCats(Cats90):
 
         @value: New running state
         """
+        self.path_running = value
         self.emit('runningStateChanged', (value, ))
 
     def _update_powered_state(self, value):
@@ -578,14 +590,14 @@ class XalocCats(Cats90):
 
         self.save_detdist_position()
         self.logger.debug("Sending supervisor to transfer phase.")
-        ret = self.send_beamline_to_transfer()
+        ret,msg = self.send_beamline_to_transfer()
 
         if ret is False:
             self.logger.error(
-                "Supervisor cmd transfer phase returned an error.")
+                "Supervisor cmd transfer phase returned an error: %s" % msg)
             self._update_state()
             raise Exception(
-                "Supervisor cannot get to transfer phase. Aborting sample changer operation. Ask LC or floor coordinator to check the supervisor and diff device servers")
+                "Supervisor cannot get to transfer phase, error is\n %s\nAborting sample changer operation. Ask LC or floor coordinator to check the supervisor and diff device servers" % msg)
 
         if not self._chnPowered.get_value():
             self._update_state()
@@ -594,7 +606,7 @@ class XalocCats(Cats90):
                 "transferring samples."
             )
 
-        self.logger.debug("Sample is %s " % sample.get_address() )
+        self.logger.debug("Selected sample is %s " % sample.get_address() )
 
         selected = self.get_selected_sample()
         self.logger.debug("Selected sample object is %s " % selected )
@@ -612,8 +624,11 @@ class XalocCats(Cats90):
             selected = None
 
         # get sample selection
+        prev_address = None
+        if self.get_loaded_sample() != None:
+            prev_address = self.get_loaded_sample().get_address()
         self.logger.debug("Selected sample is %s (prev %s)" %
-                            ( selected.get_address(), sample.get_address() )
+                            ( selected.get_address(), prev_address )
                          )
 
         # some cancel cases
@@ -666,6 +681,8 @@ class XalocCats(Cats90):
 
         # A time sleep is needed to get updates on the sample status etc.
         #time.sleep(3)
+        if self.get_current_tool() == TOOL_DOUBLE_GRIPPER and self._chnNBSoakings.get_value() == 0: 
+            self.logger.info("A dry will now be done" )
 
         if not cmd_ok:
             self.logger.info("Load Command failed on device server")
@@ -711,7 +728,7 @@ class XalocCats(Cats90):
                         time.sleep( 16 )
                     self.recover_cats_from_failed_put()
                 else:
-                    self._do_recover_failure()
+                    self._do_recover_failure() # recover from failed get
                     msg = "The CATS device indicates there was a problem in unmounting the sample, click ok to recover from a Fix Fail Get"
                 self._update_state()
                 #raise Exception( msg )
@@ -987,29 +1004,30 @@ class XalocCats(Cats90):
             while not self.path_safe():
                 gevent.sleep(0.01)
 
-    def _do_unload(self, sample_slot=None, shifts=None):
+    def _do_unload(self, sample_slot=None):
         """
         Unloads a sample from the diffractometer.
         Overides Cats90 method.
 
         @sample_slot:
-        @shifts: mounting position
         """
         self.logger.debug("checking power")
         if not self._chnPowered.get_value():
-            try: self._cmdPowerOn()  # try switching power on
+            try: 
+                self._cmdPowerOn()  # try switching power on
             except Exception as e:
                 self._update_state()
                 raise Exception(e)
 
         #TODO: wait for cats poweron
 
-        ret = self.send_beamline_to_transfer()
+        ret, msg = self.send_beamline_to_transfer()
 
         if ret is False:
             self.logger.error(
-                "Supervisor cmd transfer phase returned an error.")
-            return
+                "Supervisor cmd transfer phase returned an error: %s" % msg)
+            raise Exception(
+                "Supervisor cannot get to transfer phase, error is\n %s\nAborting sample changer operation. Ask LC or floor coordinator to check the supervisor and diff device servers" % msg)
 
         shifts = self._get_shifts()
 
@@ -1027,8 +1045,8 @@ class XalocCats(Cats90):
         loaded_num = self._chnNumLoadedSample.get_value()
 
         if loaded_lid == -1:
-            self.logger.warning("Unload sample, no sample mounted detected")
-            return
+            self.logger.warning("Unload sample, no mounted sample detected")
+            return False
 
         loaded_basket, loaded_sample = self.lidsample_to_basketsample(
             loaded_lid, loaded_num)
@@ -1334,10 +1352,14 @@ class XalocCats(Cats90):
         else:
             # introduced wait because it takes some time before the attribute PathRunning is set
             # after launching a transfer. This is only necessary if the trajectory is not safe
-            if task_id not in  ['pick']: 
-                self.logger.debug("Going to sleep for 6 seconds, task_id is %s" % task_id)
-                gevent.sleep(6.0)
-            while True:
+            #if task_id not in  ['pick']: 
+                #self.logger.debug("Going to sleep for 6 seconds, task_id is %s" % task_id)
+                #gevent.sleep(4.0)
+            self.logger.debug("Waiting for the HO to be busy")
+            while not self._is_device_busy():
+                gevent.sleep(0.1)
+            self.logger.debug("Starting error detection loop")
+            while self._is_device_busy():
                 if waitsafe:
                     #TODO: when a sample is loaded but not present, detect this...
                     if self.get_loaded_sample() == self.get_selected_sample() and not self.cats_ri2:
@@ -1371,8 +1393,30 @@ class XalocCats(Cats90):
                     #break
                 gevent.sleep(0.3)            
             ret = True
+        logging.getLogger("HWR").debug("XalocCats. return value from method _execute_server_task is %s" % str( ret ) )
         return ret
 
+    def assert_can_execute_task(self):
+        """
+        Raises:
+            (Exeption): If sample changer cannot execute a task
+        """
+        if not self.is_ready():
+            error_msg = ""
+            state_str = SampleChangerState.tostring(self.state)
+            if state_str == "Loading" or state_str == "Unloading":
+                error_msg = "The robot is busy, please wait till the robot finishes and try again."
+            elif state_str == "Unknown":
+                error_msg = "The robot is busy, you may need to use the sample changer details tab to unload the sample"
+            elif state_str == "Moving":
+                error_msg = "The robot is doing a %s trajectory, please wait and try again" % self.current_path
+            else:
+                error_msg = "Cannot execute task, robot is not ready"
+            raise Exception(
+                error_msg + " ( state is "
+                + SampleChangerState.tostring(self.state)
+                + ")"
+            )
 
 def test_hwo(hwo):
     hwo._updateCatsContents()
