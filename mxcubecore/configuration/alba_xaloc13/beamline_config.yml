@@ -68,20 +68,20 @@ advanced_methods:
     - MeshScan
     - XrayCentering
 tunable_wavelength: true
-disable_num_passes: false
+disable_num_passes: true
 run_number: 1
 
 default_acquisition_parameters:
     default:
         # Default values, also used for standard acquisition.
         # Values not given in other dictionaries are taken from here
-        exp_time: 0.05               # (s) exposure time
+        exp_time: 0.01               # (s) exposure time
         osc_start: 0.0              # (degrees) Only used if no current angle found
         osc_range: 0.1              # (degrees)
         num_passes: 1               # (int)
         first_image: 1              # (int)
         overlap: 0
-        num_images: 1800               # (int)
+        num_images: 100               # (int)
         # detector_binning_mode: 1          # Removed as not in practice used.
         inverse_beam: false         # (bool)
         take_dark_current: true     # (bool)
@@ -91,7 +91,7 @@ default_acquisition_parameters:
 
     helical:
         # Defaults for helical scan. Missing values are taken from default
-        exp_time: 0.05             # (s) exposure time
+        exp_time: 0.01             # (s) exposure time
 
     characterisation:
         # Defaults for chareacterisation. Missing values are taken from default
@@ -100,7 +100,7 @@ default_acquisition_parameters:
 
     mesh:
         # Defaults for 'advanced' acquisition. Missing values are taken from default
-        exp_time: 0.05              # (s) exposure time
+        exp_time: 0.02              # (s) exposure time
         osc_range: 0.0
         num_images: 100
         cell_counting: inverse-zig-zag
@@ -115,7 +115,7 @@ default_acquisition_parameters:
 
 acquisition_limit_values:
     exposure_time:     # (s)
-        - 0.05
+        - 0.01
         - 1000.0
     osc_range:         # (degrees)
         -  -2160.0
