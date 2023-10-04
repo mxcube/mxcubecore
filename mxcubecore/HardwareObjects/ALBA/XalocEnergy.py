@@ -144,14 +144,14 @@ class XalocEnergy(Energy):
     def move_wavelength(self, value):
         # convert wavelength to energy and move energy
  
-        #current_lambda = self.get_wavelength()
-        #kV_from_lambda = 12.398419303652055 / value
-        #self.logger.debug("Moving wavelength to %s (E %s). now is %s" % 
-                            #(value, kV_from_lambda, current_lambda)
-                         #)
+        current_lambda = self.get_wavelength()
+        kV_from_lambda = 12.398419303652055 / value
+        self.logger.debug("Requested wavelength change, moving wavelength to %s (E %s). now is %s" % 
+                            (value, kV_from_lambda, current_lambda)
+                         )
 
-        #self.move_energy( kV_from_lambda ) 
-        self.wavelength_motor.set_value(value)
+        self.move_energy( kV_from_lambda ) 
+        #self.wavelength_motor.set_value(value)
 
     def wait_move_wavelength_done(self):
         self.wavelength_motor.wait_ready()
