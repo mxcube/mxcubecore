@@ -71,12 +71,14 @@ import time
 import gevent
 import logging
 import math 
+import glob
 
 from mxcubecore.TaskUtils import task
 from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 from taurus.core.tango.enums import DevState
 #from xaloc.resolution import get_dettaby, get_resolution
 from mxcubecore import HardwareRepository as HWR
+from datetime import datetime
 
 __credits__ = ["ALBA Synchrotron"]
 __version__ = "3"
@@ -160,6 +162,8 @@ class XalocCollect(AbstractCollect):
         self.bypass_shutters = False
         self.rescorner = None
         
+        self.symbolic_link_image_destination = None
+        
     def init(self):
         self.logger.debug("Initializing {0}".format(self.__class__.__name__))
         self.ready_event = gevent.event.Event()
@@ -225,6 +229,7 @@ class XalocCollect(AbstractCollect):
 
         self.mesh_sshaped_bool = self.get_property('mesh_sshape') # False: only up scans
 
+        self.symbolic_link_image_destination = self.get_property('symbolic_link_image_destination')
         #self.chan_undulator_gap = self.get_channel_object("chanUndulatorGap")
 
         self.scan_motors_hwobj = {}
@@ -1222,7 +1227,7 @@ class XalocCollect(AbstractCollect):
             msg = "Cannot prepare the detector for acquisition, check the Pilatus cam_state. "
             if self.detector_hwobj.get_cam_state() != 'SETTING_ENERGY':
                 msg += "Issuing a reset command in bl13/eh/pilatuslima, try again" 
-                self.detector_hwobj.cmd_reset()
+                self.detector_hwobj.stop_acquisition()
             else: msg += "The Pilatus is setting the energy, please be patient!!!" 
             self.user_logger.info( msg )
             self.data_collection_failed( Exception(msg), msg )
@@ -1283,7 +1288,7 @@ class XalocCollect(AbstractCollect):
         self.image_headers['Exposure_period'] = "%.4f" % exp_time
         self.image_headers['Start_angle'] = "%f deg." % start_angle
         self.image_headers['Angle_increment'] = "%f deg." % img_range
-        self.image_headers['Wavelength'] = self.energy_hwobj.get_wavelength()
+        self.image_headers['Wavelength'] = "%f A" %  self.energy_hwobj.get_wavelength()
 
         self.image_headers["Detector_distance"] = "%.5f m" % (
             self.detector_hwobj.get_distance() / 1000.0)
@@ -1331,10 +1336,13 @@ class XalocCollect(AbstractCollect):
         self.logger.info("  last_image_no          = %d" % last_image_no )
 
         self.wait_save_image(first_image_no)
-        if not self.omega_hwobj.is_ready(): 
-            self.omega_hwobj.wait_ready( timeout= total_time + 5 )
         if last_image_no != first_image_no: 
-            self.wait_save_image( last_image_no ) 
+            #self.wait_save_image( last_image_no, timeout = total_time+60, show_intermediates = True ) 
+            self.wait_all_images( timeout = total_time+60, show_intermediates = True ) 
+        else: 
+            if not self.omega_hwobj.is_ready(): 
+                self.omega_hwobj.wait_ready( timeout= total_time + 5 )
+
         #self.logger.info("  wait_collection_done last image found" ) # doesnt make much sense when user aborts collection
         for motorname in self.scan_move_motor_names:
             self.logger.info("     Motor %s position = %.2f" % ( motorname, self.scan_motors_hwobj[motorname].get_value() ) )
@@ -1352,10 +1360,11 @@ class XalocCollect(AbstractCollect):
     def wait_save_image(self, frame_number, timeout=60):
 
         full_path = self.get_image_file_name( frame_number )
+        intermediate_time_step = 0.1
 
         start_wait = time.time()
 
-        self.logger.debug("   waiting for image on disk: %s" % full_path)
+        self.logger.debug("   waiting for image on disk: %s with timeout %.2f" % ( full_path, timeout ) )
 
         while not os.path.exists(full_path) and not self.aborted_by_user: 
             # TODO: review next line for NFTS related issues.
@@ -1402,6 +1411,65 @@ class XalocCollect(AbstractCollect):
 
         self.logger.debug("   writing thumbnails info in LIMS")
         self.store_image_in_lims(frame_number)
+
+        if not self.aborted_by_user: self.logger.debug("   Found image on disk: %s" % full_path)
+
+        return True
+
+
+    def wait_all_images(self, timeout=600, show_intermediates = False):
+
+        file_template = self.current_dc_parameters['fileinfo']['template']
+        glob_file_template = file_template.replace('%04d','*')
+        number_of_images = self.current_dc_parameters['oscillation_sequence'][0]['number_of_images']
+
+        start_wait = time.time()
+
+        self.logger.debug("   waiting for %d images with pattern %s with timeout %.2f" % \
+            ( number_of_images, os.path.join(collect_dir,glob_file_template), timeout ) 
+        )
+
+        while len(glob.glob(os.path.join(collect_dir,glob_file_template) )) < number_of_images \
+                  and not self.aborted_by_user: 
+            # TODO: review next line for NFTS related issues.
+            if (time.time() - start_wait) > timeout:
+                self.logger.debug("   giving up waiting for image")
+                cam_state = self.detector_hwobj.chan_cam_state.get_value()
+                acq_status = self.detector_hwobj.chan_acq_status.get_value()
+                fault_error = self.detector_hwobj.chan_acq_status_fault_error.get_value()
+                self.detector_hwobj.get_saving_statistics()
+                msg = "cam_state = {}, acq_status = {}, fault_error = {}".format(
+                    cam_state, acq_status, fault_error)
+                self.user_logger.error("Incomplete data collection")
+                self.user_logger.error(msg)
+                
+                self.data_collection_failed( RuntimeError(msg), msg )
+                #return False
+            #self.logger.debug("self.aborted_by_user %s" % str(self.aborted_by_user) )
+        self.detector_hwobj.get_saving_statistics()
+
+        # generate thumbnails
+        fileinfo = self.current_dc_parameters['fileinfo']        
+        filename = file_template % number_of_images
+        archive_dir = self.current_dc_parameters['fileinfo']['archive_directory']
+        self.check_directory(archive_dir)
+
+        jpeg_filename = os.path.splitext(filename)[0] + ".jpeg"
+        thumb_filename = os.path.splitext(filename)[0] + ".thumb.jpeg"
+
+        thumb_fullpath = os.path.join(archive_dir, thumb_filename)
+        jpeg_fullpath = os.path.join(archive_dir, jpeg_filename)
+
+        self.logger.debug(
+            "   creating thumbnails for  %s in: %s and %s" %
+            (full_path, jpeg_fullpath, thumb_fullpath))
+        cmd = "adxv -sa -jpeg_scale 0.4 %s %s" % (full_path, jpeg_fullpath)
+        os.system(cmd)
+        cmd = "adxv -sa -jpeg_scale 0.1 %s %s" % (full_path, thumb_fullpath)
+        os.system(cmd)
+
+        self.logger.debug("   writing thumbnails info in LIMS")
+        self.store_image_in_lims( number_of_images )
 
         if not self.aborted_by_user: self.logger.debug("   Found image on disk: %s" % full_path)
 
@@ -1978,12 +2046,48 @@ class XalocCollect(AbstractCollect):
         self.create_directories(
             self.current_dc_parameters['fileinfo']['directory'],
             self.current_dc_parameters['fileinfo']['process_directory']
-            )
+        )
 
+        self.remove_symbolic_link()
+            
+        try:
+            os.symlink(
+                    self.current_dc_parameters['fileinfo']['directory'], 
+                    self.symbolic_link_image_destination, 
+            )
+        except Exception as e:
+            self.user_logger.error('Cannot create the symlink for the images destination, images will not be copied' )
+            self.user_logger.error('It is exists, remove the file/directory %s' % self.symbolic_link_image_destination)
+            self.data_collection_failed( e, str(e) )
+            
         # create processing directories for each post process
         if self.current_dc_parameters['experiment_type'] in ["OSC","Helical"]:
             for proc in ['xds', 'mosflm', 'ednaproc', 'autoproc', 'xia2', 'xia2chem']:
                 self._create_proc_files_directory(proc)
+
+    def remove_symbolic_link(self):
+        try:
+            if os.path.exists(self.symbolic_link_image_destination):
+                os.remove(self.symbolic_link_image_destination)
+        except Exception as e:
+            base_dir_name = os.path.dirname(self.symbolic_link_image_destination)
+            temp_dir_name = os.path.join(
+                base_dir_name, 
+                "%s-%s" % (HWR.beamline.session.get_proposal(), datetime.now().strftime("%Y%m%d-%H%M%S"))
+            )
+            self.user_logger.error('Cannot remove the symlink for the images destination' )
+            self.user_logger.error('Trying to rename to %s' % 
+                            temp_dir_name
+            ) 
+            os.rename(
+                self.symbolic_link_image_destination, \
+                temp_dir_name
+            )
+            if os.path.exists(self.symbolic_link_image_destination):
+                self.user_logger.error('Cannot update the symlink for the images destination, images will not be copied' )
+                self.user_logger.error('Remove the file/directory %s' % self.symbolic_link_image_destination)
+                self.data_collection_failed( e, str(e) )
+                
 
     # The following methods are copied to improve error logging, the functionality is the same
     def create_directories(self, *args):
