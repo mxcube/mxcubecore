@@ -2,6 +2,9 @@
  
   <taurusname>bl13/eh/diff</taurusname>
 
+  <!-- For testing, use False under normal operation -->
+  <no_sample>False</no_sample>
+  
   <!-- Specific for Xaloc -->
 
   <object href="/limavideo" role="camera"/>
