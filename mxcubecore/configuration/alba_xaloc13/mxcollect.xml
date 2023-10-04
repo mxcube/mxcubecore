@@ -2,11 +2,13 @@
 
   <use_sardana_scan>False</use_sardana_scan>
   <mesh_sshape>True</mesh_sshape>
+  <symbolic_link_image_destination>/beamlines/bl13/commissioning/latest_user_data_collection</symbolic_link_image_destination>
   
   <object href="/supervisor" role="supervisor"/>
   <object href="/mini-diff" role="diffractometer"/>
   <object href="/omega" role="omega"/>
   <object href="/dbconnection" role="lims_client"/>
+  <object href="/image-tracking" role="image_tracking"/>
 
   <object href="/offline-processing" role="offline_processing"/>
 
