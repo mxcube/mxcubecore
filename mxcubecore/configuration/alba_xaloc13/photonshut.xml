@@ -2,5 +2,5 @@
   <username>Photon Shutter</username>
   <taurusname>bl13/ct/eps-plc-01</taurusname>
   <channel type="sardana" polling="events" name="actuator">pshu</channel>
-  <states>Open,Closed</states>
+  <states>Closed,Open</states>
 </device>
