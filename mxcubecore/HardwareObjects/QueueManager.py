@@ -146,6 +146,8 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                             "Queue execution failed with: " + str(ex)
                         )
 
+                    logging.getLogger("HWR").info( "traceback %s" % traceback.format_exc() )
+                    logging.getLogger("HWR").info( "ex %s" % ex )
                     raise ex
         finally:
             self._running = False
