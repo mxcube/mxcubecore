@@ -103,6 +103,8 @@ class XalocCollect(AbstractCollect):
         self.diffractometer_hwobj = None
         self.omega_hwobj = None
         self.lims_client_hwobj = None
+        self.image_tracking_hwobj = None
+
         self.machine_info_hwobj = None
         self.energy_hwobj = None
         self.resolution_hwobj = None
@@ -176,6 +178,7 @@ class XalocCollect(AbstractCollect):
         self.diffractometer_hwobj = self.get_object_by_role("diffractometer")
         self.omega_hwobj = self.get_object_by_role("omega")
         self.lims_client_hwobj = self.get_object_by_role("lims_client")
+        self.image_tracking_hwobj = self.get_object_by_role("image_tracking")
         self.machine_info_hwobj = self.get_object_by_role("machine_info")
         self.energy_hwobj = self.get_object_by_role("energy")
         self.resolution_hwobj = self.get_object_by_role("resolution")
@@ -1003,6 +1006,9 @@ class XalocCollect(AbstractCollect):
         manage_shutter_locally = False #TODO: fix the shutterchannel for the ni660 poschan ctr6
 
         # To show intermediate images
+        intermediate_image_number = local_first_image_no
+        intermediate_image_step = max( int (0.1 / exp_period), 1)
+        
         if mesh_mxcube_fast_motor_name == 'phiz':
             manage_shutter_locally = False
 
@@ -1357,7 +1363,7 @@ class XalocCollect(AbstractCollect):
             # Make sure the detector is ready (in stand by and not moving)
             self.detector_hwobj.wait_ready()
 
-    def wait_save_image(self, frame_number, timeout=60):
+    def wait_save_image(self, frame_number, timeout=600, show_intermediates = False):
 
         full_path = self.get_image_file_name( frame_number )
         intermediate_time_step = 0.1
@@ -1382,8 +1388,20 @@ class XalocCollect(AbstractCollect):
                 self.data_collection_failed( RuntimeError(msg), msg )
                 #return False
             #self.logger.debug("self.aborted_by_user %s" % str(self.aborted_by_user) )
-            time.sleep(0.2)
+            time.sleep( intermediate_time_step )
+            if show_intermediates:
+                intermediate_image_number = int( 
+                        (time.time() - start_wait) / 
+                        self.current_dc_parameters['oscillation_sequence'][0]['exposure_time'] 
+                    )
+                intermediate_image = self.get_image_file_name( intermediate_image_number )
+                if intermediate_image_number < frame_number: 
+                    #self.logger.debug("   waiting for image on disk: %s" % intermediate_image)
+                    while not os.path.exists(intermediate_image) and not self.aborted_by_user: 
+                        time.sleep(0.01)    
+                    self.image_tracking_hwobj.load_image(intermediate_image)
 
+        if os.path.exists(full_path): self.image_tracking_hwobj.load_image(full_path)
         self.detector_hwobj.get_saving_statistics()
 
         # self.last_saved_image = fullpath
@@ -1419,6 +1437,8 @@ class XalocCollect(AbstractCollect):
 
     def wait_all_images(self, timeout=600, show_intermediates = False):
 
+        intermediate_time_step = 0.1
+        collect_dir = self.current_dc_parameters['fileinfo']['directory']
         file_template = self.current_dc_parameters['fileinfo']['template']
         glob_file_template = file_template.replace('%04d','*')
         number_of_images = self.current_dc_parameters['oscillation_sequence'][0]['number_of_images']
@@ -1446,6 +1466,21 @@ class XalocCollect(AbstractCollect):
                 self.data_collection_failed( RuntimeError(msg), msg )
                 #return False
             #self.logger.debug("self.aborted_by_user %s" % str(self.aborted_by_user) )
+            time.sleep( intermediate_time_step )
+            if show_intermediates:
+                intermediate_image_number = int( 
+                        (time.time() - start_wait) / 
+                        self.current_dc_parameters['oscillation_sequence'][0]['exposure_time'] 
+                    )
+                intermediate_image = self.get_image_file_name( intermediate_image_number )
+                if intermediate_image_number < number_of_images: 
+                    #self.logger.debug("   waiting for image on disk: %s" % intermediate_image)
+                    while not os.path.exists(intermediate_image) and not self.aborted_by_user: 
+                        time.sleep(0.01)    
+                    self.image_tracking_hwobj.load_image(intermediate_image)
+
+        full_path = self.get_image_file_name( number_of_images )
+        if os.path.exists(full_path): self.image_tracking_hwobj.load_image(full_path)
         self.detector_hwobj.get_saving_statistics()
 
         # generate thumbnails
@@ -1564,6 +1599,7 @@ class XalocCollect(AbstractCollect):
         self.mxcube_sardanascan_running = False
         self.aborted_by_user = False
 
+        self.remove_symbolic_link()
         self.logger.debug("Xaloc data_collection_cleanup finished")
 
     def check_directory(self, basedir):
