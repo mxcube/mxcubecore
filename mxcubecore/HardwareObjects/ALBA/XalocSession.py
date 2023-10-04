@@ -137,7 +137,10 @@ class XalocSession(Session):
                 name = sample_data_node.name
                 if protein_acronym:
                     if name:
-                        prefix = "%s-%s" % (protein_acronym, name)
+                        if self.proposal_number.split('-')[-1] in ['2019013247','2018002222']:
+                            prefix = "%s" % (name)
+                        else:
+                            prefix = "%s-%s" % (protein_acronym, name)
                     else:
                         prefix = protein_acronym
                 else:
