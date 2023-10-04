@@ -253,10 +253,10 @@ class SampleChanger(Container, Equipment):
         self.update_info()
 
     def _on_timer_1s_exit(self, task):
-        logging.warning("Exiting Sample Changer 1s timer task")
+        logging.getLogger("HWR").warning("Exiting Sample Changer 1s timer task")
 
     def _on_timer_update_exit(self, task):
-        logging.warning("Exiting Sample Changer update timer task")
+        logging.getLogger("HWR").warning("Exiting Sample Changer update timer task")
 
     @task
     def __timer_1s_task(self, *args):
@@ -729,7 +729,7 @@ class SampleChanger(Container, Equipment):
 
     def _execute_task(self, task, wait, method, *args):
         self.assert_can_execute_task()
-        logging.debug("Start " + SampleChangerState.tostring(task))
+        logging.getLogger("HWR").debug("Start " + SampleChangerState.tostring(task))
         self.task = task
         self.task_error = None
         self._set_state(task)
@@ -779,9 +779,9 @@ class SampleChanger(Container, Equipment):
     def _on_task_ended(self, task):
         try:
             e = task.get()
-            logging.debug("Task ended. Return value: " + str(e))
+            logging.getLogger("HWR").debug("Task ended. Return value: " + str(e))
         except Exception as errmsg:
-            logging.error("Error while executing sample changer task: %s", str(errmsg))
+            logging.getLogger("HWR").error("Error while executing sample changer task: %s", str(errmsg))
 
     def _set_state(self, state=None, status=None):
         if (state is not None) and (self.state != state):
