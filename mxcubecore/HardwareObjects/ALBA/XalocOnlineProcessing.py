@@ -53,10 +53,11 @@ class XalocOnlineProcessing(DozorOnlineProcessing):
         DozorOnlineProcessing.__init__(self, name)
         self.logger = logging.getLogger("HWR.XalocOnlineProcessing")
         self.pop_object = None # the subprocess.Popen object returned by subprocess.Popen
+        self.testing = None
 
     def init(self):
         DozorOnlineProcessing.init(self)
-
+        self.testing = self.get_property('testing', False)
 
     def run_processing(self, data_collection):
         """Starts parallel processing
@@ -341,8 +342,8 @@ class XalocOnlineProcessing(DozorOnlineProcessing):
         """
         # Each result array is realigned
 
-        #self.logger.debug("align_processing_results, start_index %d, end_index %s, self.grid %s" % 
-                          #(start_index, end_index, self.grid))
+        self.logger.debug("align_processing_results, start_index %d, end_index %s, self.grid %s" % 
+                          (start_index, end_index, self.grid))
         for score_key in self.results_raw.keys():
             if (
                 self.grid
@@ -356,12 +357,22 @@ class XalocOnlineProcessing(DozorOnlineProcessing):
                         col < self.results_aligned[score_key].shape[0]
                         and row < self.results_aligned[score_key].shape[1]
                     ):
-                        self.results_aligned[score_key][col][row] = \
-                            self.results_raw[ score_key ][ cell_index ]
+                        # to test the xray centering without beam, until "End of lines for test -----
+                        if self.testing: 
+                            self.results_raw[ score_key ][ cell_index ] = \
+                                pow( self.results_aligned[score_key].shape[0]/2., 2.001) + \
+                                pow( self.results_aligned[score_key].shape[1]/2. , 2.001) - \
+                                pow( -2. + col - self.results_aligned[score_key].shape[0]/2., 2.) - \
+                                pow( -1. + row - self.results_aligned[score_key].shape[1]/2., 2.) # to test the xray centering without beam
+                            if self.results_raw[ score_key ][ cell_index ] < 0 : self.results_raw[ score_key ][ cell_index ] = 0
+                            # End of lines for test ----------------------------------------
+                        else: 
+                            self.results_aligned[score_key][col][row] = \
+                                self.results_raw[ score_key ][ cell_index ]
             else:
                 self.results_aligned[score_key] = self.results_raw[score_key]
                 if self.interpolate_results:
-                    x_array = np.linspace(
+                    x_array = numpy.linspace(
                         0,
                         self.params_dict["images_num"],
                         self.params_dict["images_num"],
@@ -466,7 +477,9 @@ class XalocOnlineProcessing(DozorOnlineProcessing):
             self.logger.error(
                 "Can not generate json file, error is %s" % ( str(e) ) 
             )
+            self.logger.debug( "traceback %s" % traceback.format_exc() )
 
+        
     def generate_online_processing_json_xaloc(self):
         import json
         from mxcubecore.HardwareObjects.SimpleHTML import create_json_images
@@ -621,3 +634,8 @@ class XalocOnlineProcessing(DozorOnlineProcessing):
     #         dozor_result.addImageDozor(dozor_image)
     #     dozor_result.exportToFile(processing_xml_filename)
     #     logging.getLogger("HWR").info("Parallel processing: Results saved in %s" % processing_xml_filename)
+
+    def is_running(self):
+        """Returns True if processing is running"""
+        return self.started
+
