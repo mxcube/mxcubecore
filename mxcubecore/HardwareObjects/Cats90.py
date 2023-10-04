@@ -1386,13 +1386,21 @@ class Cats90(SampleChanger):
 
         old_sample = self.get_loaded_sample()
 
+        old_address = None
+        if old_sample != None: 
+            old_address = old_sample.get_address() 
+        new_address = None
+        if new_sample != None:
+            new_address = new_sample.get_address() 
         logging.getLogger("HWR").debug(
             "----- Cats90 -----.  Sample has changed. Dealing with it - new_sample = %s / old_sample = %s"
-            % (new_sample, old_sample)
+            % ( old_address, new_address )
         )
 
         if old_sample != new_sample:
             # remove 'loaded' flag from old sample but keep all other information
+
+            #TODO: send a signal to be captured by the tree_brick so that the tree can be updated with the new sample info
 
             if old_sample is not None:
                 # there was a sample on the gonio
