@@ -888,9 +888,9 @@ class XalocCollect(AbstractCollect):
     #def run_meshct(
                       #self, 
                       #first_image_no, 
-                      #mesh_mxcube_fast_motor_name, 
+                      #mesh_mxcube_horizontal_motor_name, 
                       #fast_motor_nr_images, 
-                      #mesh_mxcube_slow_motor_name, 
+                      #mesh_mxcube_vertical_motor_name, 
                       #slow_motor_nr_images,
                       #time_interval, 
                       #sshaped_bool, 
@@ -910,15 +910,15 @@ class XalocCollect(AbstractCollect):
             ##bidirectional : (Boolean) Save time by scanning s-shaped
             ##latency_time : (Float) Latency time
         #self.logger.debug("meshct parameters:")
-        #self.logger.debug("    fast_motor_name: %s" % mesh_mxcube_fast_motor_name)
-        #self.logger.debug("    xaloc fast_motor_name: %s" % self.xaloc_motor_names_dict[mesh_mxcube_fast_motor_name])
-        #self.logger.debug("    fast_motor_start_pos: %s" % self.scan_start_positions[mesh_mxcube_fast_motor_name])
-        #self.logger.debug("    fast_motor_end_pos: %s" % self.scan_end_positions[mesh_mxcube_fast_motor_name])
+        #self.logger.debug("    fast_motor_name: %s" % mesh_mxcube_horizontal_motor_name)
+        #self.logger.debug("    xaloc fast_motor_name: %s" % self.xaloc_motor_names_dict[mesh_mxcube_horizontal_motor_name])
+        #self.logger.debug("    fast_motor_start_pos: %s" % self.scan_start_positions[mesh_mxcube_horizontal_motor_name])
+        #self.logger.debug("    fast_motor_end_pos: %s" % self.scan_end_positions[mesh_mxcube_horizontal_motor_name])
         #self.logger.debug("    fast_motor_nr_images: %s" % fast_motor_nr_images)
         #self.logger.debug("    slow_motor_name: %s" % mesh_xaloc_slow_motor_name)
-        #self.logger.debug("    xaloc slow_motor_name: %s" % self.xaloc_motor_names_dict[mesh_mxcube_slow_motor_name])
-        #self.logger.debug("    slow_motor_start_pos: %s" % self.scan_start_positions[mesh_mxcube_slow_motor_name])
-        #self.logger.debug("    slow_motor_end_pos: %s" % self.scan_end_positions[mesh_mxcube_slow_motor_name])
+        #self.logger.debug("    xaloc slow_motor_name: %s" % self.xaloc_motor_names_dict[mesh_mxcube_vertical_motor_name])
+        #self.logger.debug("    slow_motor_start_pos: %s" % self.scan_start_positions[mesh_mxcube_vertical_motor_name])
+        #self.logger.debug("    slow_motor_end_pos: %s" % self.scan_end_positions[mesh_mxcube_vertical_motor_name])
         #self.logger.debug("    slow_motor_nr_images: %s" % slow_motor_nr_images)
         #self.logger.debug("    time_interval: %.4f" % time_interval)
         #self.logger.debug("    sshaped_bool: %s" % sshaped_bool)
@@ -926,13 +926,13 @@ class XalocCollect(AbstractCollect):
 
         # TODO: include the first image as a parameter
         #self.meshct(
-                      #self.xaloc_motor_names_dict[mesh_mxcube_fast_motor_name], 
-                      #self.scan_start_positions[mesh_mxcube_fast_motor_name],
-                      #self.scan_end_positions[mesh_mxcube_fast_motor_name], #start pos of fast motor for last data point
+                      #self.xaloc_motor_names_dict[mesh_mxcube_horizontal_motor_name], 
+                      #self.scan_start_positions[mesh_mxcube_horizontal_motor_name],
+                      #self.scan_end_positions[mesh_mxcube_horizontal_motor_name], #start pos of fast motor for last data point
                       #fast_motor_nr_images - 1, 
-                      #self.xaloc_motor_names_dict[mesh_mxcube_slow_motor_name],
-                      #self.scan_start_positions[mesh_mxcube_slow_motor_name],
-                      #self.scan_end_positions[mesh_mxcube_slow_motor_name], #start pos of slow motor for last data point
+                      #self.xaloc_motor_names_dict[mesh_mxcube_vertical_motor_name],
+                      #self.scan_start_positions[mesh_mxcube_vertical_motor_name],
+                      #self.scan_end_positions[mesh_mxcube_vertical_motor_name], #start pos of slow motor for last data point
                       #slow_motor_nr_images - 1, 
                       #time_interval - deadtime, 
                       #sshaped_bool, # True: up and down scans, False: only up scans
