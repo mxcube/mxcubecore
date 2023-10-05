@@ -22,6 +22,7 @@ import time
 import gevent
 import urllib
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
+import mxcubecore.HardwareObjects.abstract.AbstractShutter as absshut
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from enum import Enum, unique
 
@@ -85,6 +86,8 @@ class P11Shutter(AbstractShutter):
         else:
             self.simulated_update()
 
+        self.update_state(self.STATES.READY)
+
         super(AbstractShutter, self).init()
 
     def get_value(self):
@@ -105,25 +108,39 @@ class P11Shutter(AbstractShutter):
         if self.simulation:
             self.simulated_opened = open_it
             self.simulated_moving = True
-            gevent.spawn(self.simul_do)
+            self.t1 = gevent.spawn(self.simul_do)
+            self.t1.link(self.do_finish) 
+            self.t1.link_exception(self.do_finish_exc) 
         else:
             if open_it:
                 self.do_open()
             else:
                 self.do_close()
             self.cmd_started = time.time()
+        self.log.debug(" ###  setting value value for shutter done")
 
     def do_open(self, timeout=3):
+        self.log.debug(" OPENING SHUTTER (web request)")
         result = urllib.request.urlopen(self.url_open, None, timeout).readlines()
+        self.log.debug(" OPENING SHUTTER (web request) retured")
 
     def do_close(self, timeout=3):
+        self.log.debug(" CLOSING SHUTTER (web request)")
         result = urllib.request.urlopen(self.url_close, None, timeout).readlines()
+        self.log.debug(" CLOSING SHUTTER (web request) retured")
 
     def simul_do(self):
+        self.log.debug("### starting simulated shutter move")
         gevent.sleep(1)
         self.simulated_moving = False
         self.log.debug("### updating simulated shutter")
         self.simulated_update()
+        self.log.debug("### ending simulated shutter move")
+
+    def do_finish(self, t=None):
+        self.log.debug("### simulated finished")
+    def do_finish_exc(self, exc=None):
+        self.log.debug("### simulated finished with exception")
 
     def update_shutter_state(self, state=None):
         """Updates shutter state 
@@ -134,6 +151,7 @@ class P11Shutter(AbstractShutter):
             state = self.chan_state.get_value()
 
         self.log.debug(" SHUTTER state changed")
+
         if state[0] == 3:
             self.log.debug(" P11SHUTTER IS OPEN")
             value = self.VALUES.OPEN
