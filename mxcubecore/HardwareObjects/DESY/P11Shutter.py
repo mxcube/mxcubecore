@@ -140,7 +140,6 @@ class P11Shutter(AbstractShutter):
 
     def do_finish(self, t=None):
         self.log.debug("### simulated finished")
-
     def do_finish_exc(self, exc=None):
         self.log.debug("### simulated finished with exception")
 
@@ -153,6 +152,7 @@ class P11Shutter(AbstractShutter):
             state = self.chan_state.get_value()
 
         self.log.debug(" SHUTTER state changed")
+
         if state[0] == 3:
             self.log.debug(" P11SHUTTER IS OPEN")
             value = self.VALUES.OPEN
