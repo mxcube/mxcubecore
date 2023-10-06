@@ -56,25 +56,15 @@ class P11EDNACharacterisation(EDNACharacterisation):
         # subprocess.call("%s %s %s %s" % args, shell=True)
 
         # Test run DESY
-<<<<<<< HEAD
+
         self.edna_maxwell(process_directory, input_file, results_file)
-=======
-        self.edna_maxwell(process_directory,input_file, results_file)
-
-
->>>>>>> Upgraded the characterisation part for P11 using EDNA
 
         self.result = None
         if os.path.exists(results_file):
             self.result = XSDataResultMXCuBE.parseFile(results_file)
 
         return self.result
-<<<<<<< HEAD
 
-=======
-    
-    
->>>>>>> Upgraded the characterisation part for P11 using EDNA
     def edna_maxwell(self, process_directory, inputxml, outputxml):
         """
         The function `edna_maxwell` is used to execute a command on a remote cluster using SSH and SBATCH.
@@ -133,15 +123,14 @@ class P11EDNACharacterisation(EDNACharacterisation):
             )
         )
 
-<<<<<<< HEAD
+
         print(
             '{ssh:s} "{sbatch:s} --wrap \\"{cmd:s}"\\"'.format(
                 ssh=ssh, sbatch=sbatch, cmd=cmd
             )
         )
-=======
+
         print('{ssh:s} "{sbatch:s} --wrap \\"{cmd:s}"\\"'.format(ssh=ssh, sbatch=sbatch, cmd=cmd))
->>>>>>> Upgraded the characterisation part for P11 using EDNA
 
         os.system(
             '{ssh:s} "{sbatch:s} --wrap \\"{cmd:s}"\\"'.format(
@@ -273,42 +262,29 @@ class P11EDNACharacterisation(EDNACharacterisation):
         data_set = XSDataMXCuBEDataSet()
         acquisition_parameters = data_collection.acquisitions[0].acquisition_parameters
         path_template = data_collection.acquisitions[0].path_template
-<<<<<<< HEAD
+
 
         # Make sure there is a proper path conversion between different mount points
         print(
             "======= Characterisation path template ====", path_template.directory
         )  # /gpfs/current/raw
 
-=======
-        
         #Make sure there is a proper path conversion between different mount points
         print("======= Characterisation path template ====", path_template.directory) #/gpfs/current/raw
         
->>>>>>> Upgraded the characterisation part for P11 using EDNA
         image_dir = path_template.directory.replace(
             "/gpfs/current", triggerUtils.get_beamtime_metadata()[2]
         )
 
         print(image_dir)
-<<<<<<< HEAD
 
         path_str = os.path.join(image_dir, path_template.get_image_file_name())
         print(path_template.xds_dir)
-=======
->>>>>>> Upgraded the characterisation part for P11 using EDNA
 
-        path_str = os.path.join(image_dir, path_template.get_image_file_name())
-        print(path_template.xds_dir)
-        
         characterisation_dir = path_template.xds_dir.replace(
             "/autoprocessing_", "/characterisation_"
         )
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> Upgraded the characterisation part for P11 using EDNA
         os.makedirs(characterisation_dir, mode=0o755, exist_ok=True)
 
         for img_num in range(int(acquisition_parameters.num_images)):
