@@ -34,7 +34,7 @@ jsonschema = "^4.17.1"
 lxml = "^4.9.1"
 matplotlib = [ { version = "3.5.3", python = "3.7" }, { version = "^3.6.2", python = ">=3.8" } ]
 numpy = [ { version = "1.21.6", python = "3.7" }, { version = "^1.23.5", python = ">=3.8" } ]
-Pillow = "^9.3.0"
+Pillow = ">=9.3,<11.0"
 pydantic = "^1.10.2"
 PyDispatcher = "^2.0.6"
 "ruamel.yaml" = "^0.17.21"
