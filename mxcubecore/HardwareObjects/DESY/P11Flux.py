@@ -44,7 +44,7 @@ class P11Flux(AbstractFlux):
 
     def get_value(self):
         """Get flux at current transmission in units of photons/s"""
-
+        
         """ FLUX IS CHEETED HERE - NOWERE ELSE!"""
         return self.current_flux_dict["flux"]
 
