@@ -44,13 +44,14 @@ class P11DetectorCover(AbstractShutter):
 
     @unique
     class BaseValueEnum(Enum):
-     """Defines only the compulsory values."""
-     OPEN = "OPEN"
-     CLOSED = "CLOSED"
-     MOVING = "MOVING"
-     UNKNOWN = "UNKNOWN"
-    
-    VALUES=BaseValueEnum
+        """Defines only the compulsory values."""
+
+        OPEN = "OPEN"
+        CLOSED = "CLOSED"
+        MOVING = "MOVING"
+        UNKNOWN = "UNKNOWN"
+
+    VALUES = BaseValueEnum
 
     def __init__(self, name):
 
@@ -196,7 +197,7 @@ class P11DetectorCover(AbstractShutter):
 
         self.update_value(value)
         return value
-    
+
     @property
     def is_closed(self):
         """Check if the shutter is closed.
