@@ -56,7 +56,6 @@ FILE_TIMEOUT = 5
 
 
 class P11Collect(AbstractCollect):
-
     def __init__(self, *args):
         super(P11Collect, self).__init__(*args)
 
@@ -100,6 +99,7 @@ class P11Collect(AbstractCollect):
             self.log.debug("acq_window_off_cmd: %s" % self.acq_window_off_cmd)
         else:
             self.init_ok = True
+
     @task
     def move_motors(self, motor_position_dict):
         HWR.beamline.diffractometer.wait_omega()
@@ -130,7 +130,6 @@ class P11Collect(AbstractCollect):
 
         self.diffr = HWR.beamline.diffractometer
         detector = HWR.beamline.detector
-        
 
         dc_pars = self.current_dc_parameters
         collection_type = dc_pars["experiment_type"]
@@ -204,7 +203,7 @@ class P11Collect(AbstractCollect):
                 )
 
                 # Filepath to the EDNA processing
-                #filepath = os.path.join(basepath,"%s_%d" % (prefix, runno))
+                # filepath = os.path.join(basepath,"%s_%d" % (prefix, runno))
 
                 # setting up xds_dir for characterisation (used there internally to create dirs)
                 self.current_dc_parameters["xds_dir"] = os.path.join(
@@ -434,11 +433,13 @@ class P11Collect(AbstractCollect):
             # diffr.set_omega_velocity(self.default_speed)
             # self.acq_window_off_cmd()
             # self.acq_off_cmd()
-            self.log.debug("======= collect_characterisation  Waiting =======================================")
+            self.log.debug(
+                "======= collect_characterisation  Waiting ======================================="
+            )
 
-            #Let adxv know whether it is 
+            # Let adxv know whether it is
             # self.adxv_notify(self.latest_h5_filename,img_no+1)
-            
+
             # time.sleep(1)
 
             # time.sleep(1)
