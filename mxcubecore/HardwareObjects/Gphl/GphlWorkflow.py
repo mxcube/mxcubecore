@@ -797,6 +797,7 @@ class GphlWorkflow(HardwareObjectYaml):
             if params is StopIteration:
                 self.workflow_failed()
                 return
+            params["init_spot_dir"] = self.settings.get("init_spot_dir")
 
         cell_tags = (
             "cell_a",
