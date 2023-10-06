@@ -110,8 +110,8 @@ class P11Shutter(AbstractShutter):
             self.simulated_opened = open_it
             self.simulated_moving = True
             self.t1 = gevent.spawn(self.simul_do)
-            self.t1.link(self.do_finish) 
-            self.t1.link_exception(self.do_finish_exc) 
+            self.t1.link(self.do_finish)
+            self.t1.link_exception(self.do_finish_exc)
         else:
             if open_it:
                 self.do_open()
@@ -140,6 +140,7 @@ class P11Shutter(AbstractShutter):
 
     def do_finish(self, t=None):
         self.log.debug("### simulated finished")
+
     def do_finish_exc(self, exc=None):
         self.log.debug("### simulated finished with exception")
 
