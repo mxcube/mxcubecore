@@ -126,6 +126,7 @@ class P11Collect(AbstractCollect):
 
         self.diffr = HWR.beamline.diffractometer
         detector = HWR.beamline.detector
+        
 
         dc_pars = self.current_dc_parameters
         collection_type = dc_pars["experiment_type"]
@@ -199,8 +200,12 @@ class P11Collect(AbstractCollect):
                 )
 
                 # Filepath to the EDNA processing
-                # filepath = os.path.join(basepath,"%s_%d" % (prefix, runno))
+                #filepath = os.path.join(basepath,"%s_%d" % (prefix, runno))
 
+                
+                #setting up xds_dir for characterisation (used there internally to create dirs)
+                self.current_dc_parameters["xds_dir"] =  os.path.join(basepath,"%s_%d" % (prefix, runno))
+ 
                 self.log.debug(
                     "======= CURRENT FILEPATH: "
                     + str(filepath)
@@ -282,23 +287,24 @@ class P11Collect(AbstractCollect):
                 # os.system("/opt/dectris/albula/4.0/bin/albula "+self.latest_h5_filename +" &")
                 # os.system("adxv "+self.latest_h5_filename +" &")
 
+                #TODO: Remove for now creation of the snapshots and processing html.
                 # Open index_html
-                os.system("firefox /gpfs/current/processed/index.html")
+                #os.system("firefox /gpfs/current/processed/index.html")
 
                 # Create diffraction snapshots
-                for i in range(nframes):
-                    os.system(
-                        "python3 /gpfs/local/shared/MXCuBE/hdf5tools/albula_api/generate_image.py --input "
-                        + self.latest_h5_filename
-                        + " --output "
-                        + os.path.join(
-                            basepath, prefix, "screening_" + str(runno).zfill(3)
-                        )
-                        + "/"
-                        + " --image_number "
-                        + str(i + 1)
-                    )
-
+#                for i in range(nframes):
+#                    os.system(
+#                        "python3 /gpfs/local/shared/MXCuBE/hdf5tools/albula_api/generate_image.py --input "
+#                        + self.latest_h5_filename
+#                        + " --output "
+#                        + os.path.join(
+#                            basepath, prefix, "screening_" + str(runno).zfill(3)
+#                        )
+#                        + "/"
+#                        + " --image_number "
+#                        + str(i + 1)
+#                    )
+#
             else:
                 self.collect_std_collection(start_angle, stop_angle)
                 self.generate_xds_template()
@@ -307,21 +313,21 @@ class P11Collect(AbstractCollect):
                 # os.system("killall albula")
                 # os.system("/opt/dectris/albula/4.0/bin/albula "+self.latest_h5_filename +" &")
 
-                # Open index_html
-                os.system("firefox /gpfs/current/processed/index.html")
-
-                # Create diffraction snapshots
-                os.system(
-                    "python3 /gpfs/local/shared/MXCuBE/hdf5tools/albula_api/generate_image.py --input "
-                    + self.latest_h5_filename
-                    + " --output "
-                    + os.path.join(
-                        basepath, prefix, "rotational_" + str(runno).zfill(3)
-                    )
-                    + "/"
-                    + " --image_number 1"
-                )
-
+#                # Open index_html
+#                os.system("firefox /gpfs/current/processed/index.html")
+#
+#                # Create diffraction snapshots
+#                os.system(
+#                    "python3 /gpfs/local/shared/MXCuBE/hdf5tools/albula_api/generate_image.py --input "
+#                    + self.latest_h5_filename
+#                    + " --output "
+#                    + os.path.join(
+#                        basepath, prefix, "rotational_" + str(runno).zfill(3)
+#                    )
+#                    + "/"
+#                    + " --image_number 1"
+#                )
+#
         except RuntimeError:
             self.log.error(traceback.format_exc())
         finally:
@@ -535,7 +541,7 @@ class P11Collect(AbstractCollect):
                     del h5fd[node]
             h5fd.close()
 
-        except RuntimeError as err_msg:
+        except RuntimeWarning as err_msg:
             self.log.debug("Error while adding info to HDF5 file (%s)" % str(err_msg))
             self.log.debug(traceback.format_exc())
 
