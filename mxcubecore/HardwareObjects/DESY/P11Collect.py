@@ -130,6 +130,7 @@ class P11Collect(AbstractCollect):
 
         self.diffr = HWR.beamline.diffractometer
         detector = HWR.beamline.detector
+        
 
         dc_pars = self.current_dc_parameters
         collection_type = dc_pars["experiment_type"]
@@ -203,7 +204,7 @@ class P11Collect(AbstractCollect):
                 )
 
                 # Filepath to the EDNA processing
-                # filepath = os.path.join(basepath,"%s_%d" % (prefix, runno))
+                #filepath = os.path.join(basepath,"%s_%d" % (prefix, runno))
 
                 # setting up xds_dir for characterisation (used there internally to create dirs)
                 self.current_dc_parameters["xds_dir"] = os.path.join(
