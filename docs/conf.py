@@ -20,9 +20,7 @@ PROJECT_PACKAGE_METADATA = importlib.metadata.metadata(PROJECT_PACKAGE_NAME)
 
 project = "MXCuBE-Core"
 author = PROJECT_PACKAGE_METADATA["Author"]
-copyright = (
-    f"{datetime.datetime.today().year}, {author}",
-)
+copyright = (f"{datetime.datetime.today().year}, {author}",)
 
 version = PROJECT_PACKAGE_METADATA["Version"]
 release = version
@@ -48,7 +46,7 @@ source_suffix = {
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'alabaster'
+html_theme = "alabaster"
 
 html_theme_options = {
     "description": DOCUMENT_DESCRIPTION,
