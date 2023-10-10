@@ -267,7 +267,7 @@ class StandardClientRobot:
         """
         print(' into __send_stream function')
         if not self.is_connected():
-            self.connect()
+            self.connect()          #这里调用self.recv_thread
         try:
             print("get into try")
             print(cmd)
@@ -302,7 +302,7 @@ class StandardClientRobot:
         with gevent.Timeout(100, TimeoutError):
             while self.received_msg is None:
                 if self.error is not None:
-                    raise SocketError("Socket error:" + str(self.error))
+                    raise SocketError("Socket error:" + str(self.error))        #connection refused error 可能是从这报错的
                 self.msg_received_event.wait()
             return self.received_msg
 
