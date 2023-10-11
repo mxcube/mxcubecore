@@ -62,8 +62,8 @@ def if_ErrorCode(func):
             print()
             res = func(self,magazine,position,*args)
         except Exception as e:
-            print("type(e):",type(e))
-            print("e:",e)
+            print("type(e) from if_ErrorCode:",type(e))
+            print("e from if_ErrorCode::",e)
             errorCode = e
             return errorCode
         else:
@@ -221,18 +221,21 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         logging.getLogger("user_level_log").info(
             "Sample changer: %s. Please wait..." % msg
         )
-
+        # print("before self.emit(progressInit, (msg, 100))")
         self.emit("progressInit", (msg, 100))
+        # print("self.emit(progressInit, (msg, 100)) ended")
+        print("before self.emit(progressStep,int(step/2))")
         for step in range(2 * 100):
             self.emit("progressStep", int(step / 2.0))
-            time.sleep(0.01)
+            # time.sleep(0.001)      #不知道为什么要有这行，但这行原来是time.sleep(0.01)拖漫了大概有14s的时间,改成0.001从2s变到5s左右
+        print("self.emit(progressStep,int(step/2)) ended")
 
         print("oldSample!=newSample or oldBasket != newSample:",oldSample!=newSample or oldBasket != newBasket)
         if oldSample!=newSample or oldBasket != newBasket:
             # 判断真实命令是否发送成功,_ifcmdSucceeded可能是机械手的返回信息，或者是因为socket连接问题所返回的False,
             # 如果机械手返回信息有报错，在cmd函数中就会raise exception,然后会在if_ErrorCode函数中(转换为int?)传递过来
             self._ifcmdSucceeded = self._do_exchange(oldBasket, oldSample,newBasket,newSample)
-            print("self._ifcmdSucceeded:", self._ifcmdSucceeded, type(self._ifcmdSucceeded))
+            print("DEBUG!!!self._ifcmdSucceeded:", self._ifcmdSucceeded, type(self._ifcmdSucceeded))
 
             #处理返回的_ifcmdSucceeded信息
                 # 如果命令返回False说明是socket连接没有连上
@@ -241,7 +244,7 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
                 return
             # 如果命令返回的类型是Exception，说明是机械手有报错
             # 20230714 添加新异常：<ConnectionRefusedError>
-            elif (type(self._ifcmdSucceeded) is Exception) or (type(self._ifcmdSucceeded) is OSError) or (type(self._ifcmdSucceeded) is TimeoutError) or (type(self._ifcmdSucceeded) is KeyError) or (type(self._ifcmdSucceeded) is ConnectionRefusedError):
+            elif (type(self._ifcmdSucceeded) is Exception) or (type(self._ifcmdSucceeded) is OSError) or (type(self._ifcmdSucceeded) is TimeoutError) or (type(self._ifcmdSucceeded) is KeyError) or (type(self._ifcmdSucceeded) is ConnectionRefusedError)   or (type(self._ifcmdSucceeded) is ConnectionAbortedError) or (type(self._ifcmdSucceeded) is ConnectionResetError):
                 # 在发生错误后恢复机械手的各种状态
                 self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
                 HWR.beamline.sample_changer_maintenance._running = 0
@@ -316,6 +319,7 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         else:
             print("get into safe waiting time for 0.5 second")
             time.sleep(0.5)
+            print("safe waiting time ended")
     def check_MD2_Magnet(self):
         MD2 = HWR.beamline.diffractometer
         # print("smart magnet: "+str(MD2.sample_isloaded_magnet.get_value()))

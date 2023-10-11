@@ -234,7 +234,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             # log.info("Collect: Storing sample info in LIMS")
             # self.store_sample_info_in_lims()
 
-            HWR.beamline.diffractometer.emitCentringSuccessful() # Force curent pos a centred pos #如果用户收集的同时也点了对中会卡住，先注释掉
+            # HWR.beamline.diffractometer.emitCentringSuccessful() # Force curent pos a centred pos #如果用户收集的同时也点了对中会卡住，先注释掉
             if all(
                 item is None for item in self.current_dc_parameters["motors"].values()
             ):
