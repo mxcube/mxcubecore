@@ -84,7 +84,7 @@ git pull --rebase develop
 * The author of the PR is free to merge the PR once its been reviewed and all pending comments/discussions are solved
 
 ### Versioning
-Versioning is partly automated by GitHub actions and [Poetry]([https://github.com/c4urself/bump2version](https://python-poetry.org/)) and based on the gitflow braching model:
+Versioning is partly automated by GitHub actions and [Poetry](https://python-poetry.org/) and based on the gitflow branching model:
 
 - Each new feature is implemented in a `feature branch`, branching from the `develop branch`.
 
