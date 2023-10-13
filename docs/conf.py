@@ -57,4 +57,56 @@ html_theme_options = {
 }
 
 
+# -- Extensions --------------------------------------------------------------
+
+
+# -- Options for sphinx.ext.autodoc
+# https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
+
+extensions.append("sphinx.ext.autodoc")
+
+autodoc_default_options = {
+    "inherited-members": True,
+    "members": True,
+    "show-inheritance": True,
+}
+
+autodoc_typehints = "both"
+
+
+# -- Options for sphinx.ext.autosummary
+# https://www.sphinx-doc.org/en/master/usage/extensions/autosummary.html
+
+extensions.append("sphinx.ext.autosummary")
+
+autosummary_generate = True
+
+
+# -- Options for sphinx.ext.intersphinx
+# https://www.sphinx-doc.org/en/master/usage/extensions/intersphinx.html
+
+extensions.append("sphinx.ext.intersphinx")
+
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3/", None),
+}
+
+
+# -- Options for sphinx.ext.napoleon
+# https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html
+
+# We use Google style docstrings
+# https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings
+
+extensions.append("sphinx.ext.napoleon")
+
+napoleon_numpy_docstring = False
+
+
+# -- Options for sphinx.ext.viewcode
+# https://www.sphinx-doc.org/en/master/usage/extensions/viewcode.html
+
+extensions.append("sphinx.ext.viewcode")
+
+
 # EOF
