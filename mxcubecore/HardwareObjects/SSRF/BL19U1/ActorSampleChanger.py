@@ -277,6 +277,9 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         print("self.get_loaded_sample().get_address()",self.get_loaded_sample().get_address())
         #计数
         self.count += 1
+        # 应该不需要下面这两行
+        # if not self._ifcloseLid_inBeginning:
+        #     self.change_ifcloseLid_inBeginning_state(True)
 
         # 上完样品，md2 变为centering
         HWR.beamline.diffractometer.set_phase("Centring")
