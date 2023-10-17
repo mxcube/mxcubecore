@@ -222,7 +222,10 @@ class SardanaMotor(AbstractMotor, HardwareObject):
                     static_limits is returned
         """
         try:
-            self._nominal_limits = (self.limit_lower, self.limit_upper)
+            self._nominal_limits = (
+                self.position_channel.info.minval,
+                self.position_channel.info.maxval,
+            )
             return self._nominal_limits
         except Exception:
             return (None, None)
