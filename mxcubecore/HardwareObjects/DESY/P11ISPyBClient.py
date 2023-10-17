@@ -38,6 +38,10 @@ class P11ISPyBClient(ISPyBClient):
         self.prepare_image_for_lims(image_dict)
         return ISPyBClient.store_image(self, image_dict)
 
+    def store_robot_action(self, robot_action_dict):
+        #TODO ISPyB is not ready for now. This prevents from error 500 from the server.
+        pass
+
     def prepare_collect_for_lims(self, mx_collect_dict):
         # Attention! directory passed by reference. modified in place
 
