@@ -153,7 +153,7 @@ class Beamline(ConfiguredObject):
     def _hwr_init_done(self):
         """
         Method called after the initialization of HardwareRepository is done
-        (when all HardwreObjects have been created and initialized)
+        (when all HardwareObjects have been created and initialized)
         """
         self._hardware_object_id_dict = self._get_id_dict()
 
@@ -211,7 +211,7 @@ class Beamline(ConfiguredObject):
         "dotted path/attribute"
 
         Args:
-            ho (HardwreObject): The HardwareObject to get the id for
+            ho (HardwareObject): The HardwareObject to get the id for
             _path (str): Current path (used in recursion)
             result: A dictionary where the key is the id of the HardwareObject
                     and the value its dotted path.
