@@ -6,6 +6,7 @@ import logging
 from mxcubecore.HardwareObjects.abstract import AbstractSampleChanger
 from mxcubecore.HardwareObjects.abstract.sample_changer import Container
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.queue_entry.base_queue_entry import CENTRING_METHOD
 
 # MD2 = HWR.beamline.diffractometer
 
@@ -83,6 +84,7 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         self._selected_sample = -1
         self._selected_basket = -1
         self._scIsCharging = None
+        self.centring_method = "AUTO_LOOP"
         # self.use_magnet = self.getroperty("")
 
 
@@ -111,7 +113,7 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         self._dewar=1
         self.socket_addr = '10.30.61.73:10100'
         self._ifcloseLid_inBeginning = False
-        self.count = 1
+        self.count = 15
 
         self._cmdMount = self.add_command(
             {"type": "socketrobot", "socket_address": self.socket_addr, "name": '_cmdMount'},
@@ -188,6 +190,16 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
 
     def change_ifcloseLid_inBeginning_state(self,state:bool):
         self._ifcloseLid_inBeginning = state
+
+    def MD2_Centring(self):
+        # pass
+        HWR.beamline.diffractometer.set_phase("Centring")
+        HWR.beamline.diffractometer._wait_ready(30000)
+        if self.centring_method == "AUTO_LOOP":
+            logging.getLogger("HWR").info("CENTRING_METHOD: auto LOOP CENTRING")
+            HWR.beamline.diffractometer.start_auto_sample_centring("LOOP_CENTRING_ONLY")
+        elif self.centring_method == "MANUAL":
+            logging.getLogger("HWR").info("CENTRING_METHOD: MANUAL CENTRING")
 
 
     @if_running_sc
@@ -282,7 +294,8 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         #     self.change_ifcloseLid_inBeginning_state(True)
 
         # 上完样品，md2 变为centering
-        HWR.beamline.diffractometer.set_phase("Centring")
+        self.MD2_Centring()
+
         
         return self.get_loaded_sample()
 
@@ -451,7 +464,10 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         self.count += 1
 
         # 上完样品，md2 变为centering
-        HWR.beamline.diffractometer.set_phase("Centring")
+        self.MD2_Centring()
+
+
+
         return self.get_loaded_sample()
 
 

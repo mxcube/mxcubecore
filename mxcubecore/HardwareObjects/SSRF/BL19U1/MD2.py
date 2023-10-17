@@ -107,6 +107,15 @@ class MD2(Microdiff.Microdiff):
             "CryoIsBack",
         )
 
+        self.Cryo_Is_Out = self.add_channel(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "Cryo_Is_Out",
+            },
+            "CryoIsOut",
+        )
+
         self.save_centring_positions = self.add_command(
             {
                 "type": "exporter",

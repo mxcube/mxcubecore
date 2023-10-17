@@ -655,7 +655,7 @@ class ActorMaint(Equipment):
                         " (includes info about sample on Diffr)",
                     ],
                     # ["reset", "Reset Message", "Reset Cats State"],
-                    # ["back", "Back", "Reset Cats State"],
+                    ["back", "Cryo_Back", "Reset Cats State"],
                     # ["safe", "Safe", "Reset Cats State"],
                 ],
             ],
@@ -674,6 +674,13 @@ class ActorMaint(Equipment):
             gevent.sleep(0.1)
         ret = True
         return ret
+    def change_Cryo_Out_state(self,timeout=30000):
+        MD2 = HWR.beamline.diffractometer
+        MD2._wait_ready(timeout)
+        if MD2.Cryo_Is_Out.get_value():
+            MD2.Cryo_Is_Out.set_value(False)
+        else:
+            MD2.Cryo_Is_Out.set_value(True)
 
     def send_command(self, cmd_name, args=None):
 
@@ -698,11 +705,21 @@ class ActorMaint(Equipment):
             else:
                 raise Exception("Can SOAK only when UNIPUCK tool is mounted")
 
+        # if cmd_name == "back":
+        #     if tool is not None:
+        #         args = [tool, toolcal]
+        #     else:
+        #         raise Exception("Cannot detect type of TOOL in Cats. Command ignored")
+
+        #改：
         if cmd_name == "back":
-            if tool is not None:
-                args = [tool, toolcal]
-            else:
-                raise Exception("Cannot detect type of TOOL in Cats. Command ignored")
+            logging.getLogger("HWR").debug(
+                "back command %d" % (1)
+            )
+            self.change_Cryo_Out_state()
+
+
+
 
         if cmd_name == "powerOn":
             logging.getLogger("HWR").debug(

@@ -299,7 +299,7 @@ class ISPyBClient(HardwareObject):
                 except URLError:
                     logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
                     return
-        except Exception:
+        except Exception as ex:
             logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
             return
 
