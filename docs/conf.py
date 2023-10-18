@@ -25,8 +25,6 @@ copyright = (f"{datetime.datetime.today().year}, {author}",)
 version = PROJECT_PACKAGE_METADATA["Version"]
 release = version
 
-DOCUMENT_DESCRIPTION = f"{project} documentation"
-
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -46,15 +44,7 @@ source_suffix = {
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "alabaster"
-
-html_theme_options = {
-    "description": DOCUMENT_DESCRIPTION,
-    "github_banner": "true",
-    "github_button": "true",
-    "github_repo": "mxcubecore",
-    "github_user": "mxcube",
-}
+html_theme = "furo"
 
 
 # -- Extensions --------------------------------------------------------------
@@ -66,7 +56,6 @@ html_theme_options = {
 extensions.append("sphinx.ext.autodoc")
 
 autodoc_default_options = {
-    "inherited-members": True,
     "members": True,
     "show-inheritance": True,
 }
