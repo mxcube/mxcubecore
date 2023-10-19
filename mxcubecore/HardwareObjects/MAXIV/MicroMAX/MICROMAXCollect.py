@@ -357,16 +357,6 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
             self.log.error(msg)
             raise Exception(msg)
 
-        # important this step is after detector configuration,
-        # which otherwise would give the wrong count_rate_cutoff
-        if self.current_dc_parameters['experiment_type'] == 'Mesh' or self.hve:
-            self.dozor_hwobj.start_spot_finder_dozor(self.current_dc_parameters,
-                                                     self.polarisation,
-                                                     self.get_detector_distance(),
-                                                     self.get_wavelength(),
-                                                     self.get_beam_centre()
-                                                     )
-
         # move MD3 to DataCollection phase if it's not
         if self.diffractometer_hwobj.get_current_phase() != "DataCollection":
             self.user_log.info("Moving Diffractometer to Data Collection")
@@ -525,12 +515,6 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
         '''
         self.log.info("[MICROMAXCOLLECT] update task progress launched")
         num_images = self.current_dc_parameters['oscillation_sequence'][0]['number_of_images']
-        if self.current_dc_parameters.get('experiment_type') == 'Mesh':
-            shape_id = self.get_current_shape_id()
-            shape = self.shape_history_hwobj.get_shape(shape_id).as_dict()
-            num_cols = shape.get('num_cols')
-            num_rows = shape.get('num_rows')
-            num_images = num_cols * num_rows
         num_steps = 10.0
         if num_images < num_steps:
             step_size = 1
@@ -561,7 +545,6 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
             self.char = False
         if self.current_dc_parameters['experiment_type'] == 'Mesh' or self.hve:
             self.detector_hwobj.disable_stream()
-            self.dozor_hwobj.stop_spot_finder_dozor(self.current_dc_parameters)
 
         self.emit("collectEnded", self.owner, False, failed_msg)
         self.emit("collectReady", (True, ))
@@ -590,9 +573,7 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
 
         if self.current_dc_parameters['experiment_type'] == 'Mesh' or self.hve:
             # disable stream interface
-            # stop spot finding
             self.detector_hwobj.disable_stream()
-            self.dozor_hwobj.stop_spot_finder_dozor(self.current_dc_parameters)
         if self.char:
             # stop char converter
             self.char = False
@@ -1063,15 +1044,8 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
 
         if self.current_dc_parameters['experiment_type'] == 'Mesh':
             # enable stream interface
-            # appendix with grid name, collection id
             self.detector_hwobj.enable_stream()
-            img_appendix = {'exp_type': "mesh",
-                            'col_id': self.current_dc_parameters["collection_id"],
-                            'shape_id': self.get_current_shape_id()}
-            self.detector_hwobj.set_image_appendix(json.dumps(img_appendix))
         self.detector_hwobj.prepare_acquisition(config)
-
-
 
     def stop_collect(self, owner):
         """
