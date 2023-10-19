@@ -50,11 +50,10 @@
         # unless explicitly set
         - exposure_time: 0.04 # (s) Optional, default configured. Mandatory if init_spot_dir is set
           image_width: 0.1    # (°) Optional, default configured. Mandatory if init_spot_dir is set
+#          use_dose: 020.0 # (MGy) NB Optional, for entire experiment. Overrides transmission, dose budget
           init_spot_dir: "/where/ever/dict"   # Directory containing SPOTS.XDS file from preliminary XDS calculation
-          # If not set and init_spot_dir is set, the dose consumed during cahrcterisation will not be accounted for.
-          # When init_spot_dir is set, image_width, exposure_time, and transmission are mandatory
-          # For MASSIF1 must be the name of the strategy (specified in stragegylib.nml) that
-          # is actually used for characterisation.
+          # When init_spot_dir is set,  strategy must be the name of the strategy
+          # (specified in stragegylib.nml) that was actually used for characterisation.
           strategy: “Char_6_5_multitrigger”
           # Optional: Arithmetic crystal classes expected for the symmetry.
           # Will be used to select a matching indexing solution,
@@ -69,7 +68,7 @@
           use_cell_for_processing: false
 
         # acquisition parameters, for successive acquisition steps (characterisation or main).
-        # This example lists all options, foe diocumentation purposes
+        # This example lists all options, for documentation purposes
         # All are optional (except when init_spot_dir is set) and should normally
         # be left empty so the default is used.
         - resolution: 1.7 # (Å) Optional. Defaults to current value, or to diffraction plan aimed_resolution
@@ -80,9 +79,9 @@
           image_width: 0.1    # (°) Optional, default configured. Mandatory if init_spot_dir is set
           wedge_width: 15.0 # (°)  Optional, default configured. Wedge  width (for interleaving)
           snapshot_count: 2 # Optional, default configured.
-          dose_budget: 20.0 # (MGy) NB Optional. Overrides transmission and recommended dose budget,
+          use_dose: 20.0 # (MGy) NB Optional, for entire experiment. Defaults to calculated dose budget
           # and resets transmission and maybe exposure time
-          transmission: 80.0 # (%) NB Optional  Defaults to current valuee if init_spot_dir is set
+          transmission: 80.0 # (%) NB Optional  Overrides use_dose. Defaults to current valuee if init_spot_dir is set
           # Otherwise is set from dose budget and resolution.
           # If set this value will reset the dose budget
           # Strategy variant

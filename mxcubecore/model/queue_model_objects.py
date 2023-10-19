@@ -2020,7 +2020,6 @@ class GphlWorkflow(TaskNode):
         self.snapshot_count = 2
         self.recentring_mode = "sweep"
         self.recentring_calc_preference = "GPHL"
-        self.std_dose_rate = 0.0
 
         # Workflow interleave order (string).
         # Slowest changing first, characters 'g' (Goniostat position);
@@ -2071,7 +2070,7 @@ class GphlWorkflow(TaskNode):
         summary["orgxy"] = self.detector_setting.orgxy
         summary["strategy_variant"] = self.strategy_options.get("variant", "not set")
         summary["orientation_count"] = len(self.goniostat_translations)
-        summary["radiation_dose"] = self.calculate_dose()
+        summary["radiation_dose"] = self.maximum_dose() * self.transmission / 100.0
         summary["total_dose_budget"] = self.recommended_dose_budget()
         #
         return summary
@@ -2453,58 +2452,42 @@ class GphlWorkflow(TaskNode):
         return result
 
 
+    def maximum_dose(self, energy=None, exposure_time=None, image_width=-None):
+        """Dose at transmission=100 for given energy, exposure time and image width
 
-    def calculate_transmission(self, use_dose=None):
-        """Calculate transmission correspoiding to using up a given dose
-        NBNB value may be higher than 100%; this must be dealt with by the caller
+        The strategy length is taken from self.stratyegy_length
 
-        :param use_dose (float): Dose to consume, in MGy
-        :return (float): transmission in %
+        Args:
+            energy Optional[float]: Energy in keV; defaults to self.energy
+            exposure_time Optional[float]: Value in s; defaults to self.exposure_time
+            image_width Optional[float]:  VAlue in deg; defaults to self.image_width
+
+        Returns:
+            float: Maximum dose in MGy
         """
-        if not use_dose:
-            use_dose = self.recommended_dose_budget()
-        max_dose = self.calculate_dose(transmission=100.0)
-        if max_dose:
-            return 100.0 * use_dose / max_dose
-        else:
-            raise ValueError("Could not calculate transmission")
-
-    def calculate_dose(self, transmission=None):
-        """Calculate dose consumed with current parameters
-
-        :param transmission (float): Transmission in %. Defaults to current setting
-        :return:
-        """
-
-        transmission = transmission or self.transmission
-        energy = HWR.beamline.energy.calculate_energy(self.wavelengths[0].wavelength)
-        flux_density = HWR.beamline.flux.get_average_flux_density(
-            transmission=transmission
+        energy = (
+            energy
+            or HWR.beamline.energy.calculate_energy(self.wavelengths[0].wavelength)
         )
-        exposure_time = self.exposure_time
-        image_width = self.image_width
-        strategy_length = self.strategy_length
-        if flux_density:
-            if strategy_length and exposure_time and image_width:
-                total_strategy_length = strategy_length * len(self.wavelengths)
-                duration = exposure_time * total_strategy_length / image_width
-                return HWR.beamline.gphl_workflow.calculate_dose(
-                    duration, energy, flux_density
-                )
+        dose_rate = HWR.beamline.gphl_workflow.maximum_dose_rate(energy)
+        exposure_time = exposure_time or self.exposure_time
+        image_width = image_width  or self.image_width
+        total_strategy_length = self.strategy_length * len(self.wavelengths)
+        if (dose_rate and exposure_time and image_width and total_strategy_length):
+            return (dose_rate * total_strategy_length * exposure_time / image_width)
         msg = (
             "WARNING: Dose could not be calculated from:\n"
-            " energy:%s keV, strategy_length:%s deg, exposure_time:%s s, "
-            "image_width:%s deg, transmission: %s  flux_density:%s  photons/mm^2"
+            " energy:%s keV, total_strategy_length:%s deg, exposure_time:%s s, "
+            "image_width:%s deg, dose_rate: %s"
         )
         raise UserWarning(
             msg
             % (
                 energy,
-                strategy_length,
+                total_strategy_length,
                 exposure_time,
                 image_width,
-                transmission,
-                flux_density,
+                dose_rate
             )
         )
         return 0
