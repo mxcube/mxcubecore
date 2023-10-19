@@ -887,9 +887,7 @@ class AbstractCollect(HardwareObject, object):
          - nb frames per line
          - invert direction (boolean)  # NOT YET DONE
         """
-        return
-
-        # self.mesh_num_lines = num_lines
-        # self.mesh_total_nb_frames = total_nb_frames
-        # self.mesh_range = mesh_range_param
-        # self.mesh_center = mesh_center_param
+        self.mesh_num_lines = num_lines
+        self.mesh_total_nb_frames = total_nb_frames
+        self.mesh_range = mesh_range_param
+        self.mesh_center = mesh_center_param
