@@ -568,9 +568,15 @@ class AbstractCollect(HardwareObject, object):
         lims = HWR.beamline.lims
         if lims and lims.is_connected() and not self.current_dc_parameters["in_interleave"]:
             try:
+                # group_id needs to be created first
+                group_id = self.current_dc_parameters.get("group_id", None)
+                if group_id is None:
+                    lims.store_data_collection_group(self.current_dc_parameters)
+
                 self.current_dc_parameters[
                     "synchrotronMode"
                 ] = self.get_machine_fill_mode()
+
                 (collection_id, detector_id,) = HWR.beamline.lims.store_data_collection(
                     self.current_dc_parameters, self.bl_config
                 )
