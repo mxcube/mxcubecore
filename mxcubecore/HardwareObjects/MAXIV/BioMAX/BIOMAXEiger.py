@@ -415,6 +415,12 @@ class BIOMAXEiger(AbstractDetector):
         """
         return self.get_value("StreamState")
 
+    def get_filewriter_state(self):
+        """
+        "disabled", "ready", "acquire" or "error".
+        """
+        return self.get_value("FilewriterState")
+
     #  GET INFORMATION END
 
     #  SET VALUES
@@ -662,6 +668,12 @@ class BIOMAXEiger(AbstractDetector):
 
     def disarm(self):
         self.get_command_object("Disarm")()
+
+    def enable_filewriter(self):
+        self.set_value("FilewriterMode", "enabled")
+
+    def disable_filewriter(self):
+        self.set_value("FilewriterMode", "disabled")
 
     def enable_stream(self):
         self.get_command_object("EnableStream")()

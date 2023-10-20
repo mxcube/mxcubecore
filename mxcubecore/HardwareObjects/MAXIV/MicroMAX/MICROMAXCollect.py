@@ -1000,14 +1000,7 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
         else:
             ntrigger = len(self.triggers_to_collect)
         config = self.detector_hwobj.col_config
-        """ move after setting energy
-        if roi == "4M":
-            config['RoiMode'] = "4M"
-        else:
-            config['RoiMode'] = "disabled" #disabled means 16M
 
-        config['PhotonEnergy'] = self._tunable_bl.getCurrentEnergy()
-        """
         config['OmegaStart'] = osc_start #oscillation_parameters['start']
         config['OmegaIncrement'] = osc_range #oscillation_parameters["range"]
         beam_centre_x, beam_centre_y = self.get_beam_centre()  # self.get_beam_centre_pixel() # returns pixel
@@ -1041,7 +1034,8 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
         file_parameters["filename"] = "%s_master.h5" % name_pattern
         self.display["file_name1"] = file_parameters["filename"]
         config['FilenamePattern'] = name_pattern
-
+        # make sure the filewriter is enabled
+        self.detector_hwobj.enable_filewriter()
         if self.current_dc_parameters['experiment_type'] == 'Mesh':
             # enable stream interface
             self.detector_hwobj.enable_stream()
