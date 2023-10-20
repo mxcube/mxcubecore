@@ -1327,7 +1327,7 @@ class XrayCentring2(TaskNode):
         """Set parameters from task input dictionary.
 
         sample_model is required as this may be called before the object is enqueued
-        params is a dictionary with structure determined by mxcube3 usage
+        params is a dictionary with structure determined by mxcubeweb usage
         """
 
         # Set path template
@@ -1450,15 +1450,11 @@ class Acquisition(object):
         self.acquisition_parameters = AcquisitionParameters()
 
     def get_preview_image_paths(self):
-        """
-        Returns the full paths, including the filename, to preview/thumbnail
+        """Returns the full paths, including the filename, to preview/thumbnail
         images stored in the archive directory.
 
-        :param acquisition: The acqusition object to generate paths for.
-        :type acquisition: Acquisition
-
-        :returns: The full paths.
-        :rtype: str
+        Returns:
+            list: list of paths
         """
         paths = []
 
@@ -2273,7 +2269,7 @@ class GphlWorkflow(TaskNode):
     def init_from_task_data(self, sample_model, params):
         """
         sample_model is required as this may be called before the object is enqueued
-        params is a dictionary with structure determined by mxcube3 usage
+        params is a dictionary with structure determined by mxcubeweb usage
         """
 
         from mxcubecore.HardwareObjects.Gphl import GphlMessages
@@ -2452,7 +2448,7 @@ class GphlWorkflow(TaskNode):
         return result
 
 
-    def maximum_dose(self, energy=None, exposure_time=None, image_width=-None):
+    def maximum_dose(self, energy=None, exposure_time=None, image_width=None):
         """Dose at transmission=100 for given energy, exposure time and image width
 
         The strategy length is taken from self.stratyegy_length

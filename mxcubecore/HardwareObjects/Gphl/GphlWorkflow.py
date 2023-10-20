@@ -216,7 +216,7 @@ class GphlWorkflow(HardwareObjectYaml):
         # Configuration data for recentring calculations
         self._recentring_data = OrderedDict()
 
-        # # TEST mxcube3 UI
+        # # TEST mxcubeweb UI
         # self.gevent_event = gevent.event.Event()
         # self.params_dict = {}
 
@@ -1435,9 +1435,10 @@ class GphlWorkflow(HardwareObjectYaml):
         gphl_workflow_model.strategy_length = strategy_length
 
         allowed_widths = geometric_strategy.allowedWidths
+        print('@~@~ allowed_widths, idx', allowed_widths, geometric_strategy.defaultWidthIdx)
         if allowed_widths:
             default_image_width = float(
-                allowed_widths(geometric_strategy.defaultWidthIdx or 0)
+                allowed_widths[geometric_strategy.defaultWidthIdx or 0]
             )
         else:
             default_image_width = list(
