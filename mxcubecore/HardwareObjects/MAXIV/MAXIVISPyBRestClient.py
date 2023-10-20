@@ -25,6 +25,7 @@ class MAXIVISPyBRestClient(ISPyBRestClient):
     def init(self):
         ISPyBRestClient.init(self)
         self.exi_root = self.get_property("exi_root").strip()
+        self.pyispybui_root = self.get_property("pyispybui_root").strip()
 
     def dc_link(self, did):
         """
@@ -41,15 +42,16 @@ class MAXIVISPyBRestClient(ISPyBRestClient):
                                did=did)
 
             url = urljoin(self.exi_root, path)
-
         else:
+            # pyispybui does not have dedicated view for each collection
+            # so we show the session instead
             return self.dc_list_link()
 
         return url
 
     def dc_list_link(self):
         """
-        Get the LIMS link the data collection with id <id>.
+        Get the LIMS link to the session
 
         :param str did: Data collection ID
         :returns: The link to the data collection
@@ -60,6 +62,14 @@ class MAXIVISPyBRestClient(ISPyBRestClient):
             path = path.format(session_id=HWR.beamline.session.session_id)
 
             url = urljoin(self.exi_root, path)
+        elif self.pyispybui_root is not None and HWR.beamline.session.session_id:
+            # https://py-ispyb-ui.maxiv.lu.se/legacy/proposals/MX20170251/MX/83485/collection
+            path = "legacy/proposals/{pcode}{pnumber}/MX/{sessionid}/collection"
+            path = path.format(pcode=HWR.beamline.session.proposal_code,
+                               pnumber=HWR.beamline.session.proposal_number,
+                               sessionid=HWR.beamline.session.session_id)
+
+            url = urljoin(self.pyispybui_root, path)
 
         return url
 
