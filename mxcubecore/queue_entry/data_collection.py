@@ -198,7 +198,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     # log.info(msg)
                     # list_item.setText(1, "Moving sample")
                 elif dc.experiment_type is EXPERIMENT_TYPE.MESH:
-                    mesh_nb_lines = acq_1.acquisition_parameters.num_lines
+                    mesh_nb_lines = acq_1.acquisition_parameters.mesh_steps
                     mesh_total_nb_frames = acq_1.acquisition_parameters.num_images
                     mesh_range = acq_1.acquisition_parameters.mesh_range
                     mesh_center = acq_1.acquisition_parameters.centred_position
