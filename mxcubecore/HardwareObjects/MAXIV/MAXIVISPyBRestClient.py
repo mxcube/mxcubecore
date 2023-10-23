@@ -24,8 +24,15 @@ class MAXIVISPyBRestClient(ISPyBRestClient):
 
     def init(self):
         ISPyBRestClient.init(self)
-        self.exi_root = self.get_property("exi_root").strip()
-        self.pyispybui_root = self.get_property("pyispybui_root").strip()
+        try:
+            self.exi_root = self.get_property("exi_root").strip()
+        except:
+            self.exi_root = None
+
+        try:
+            self.pyispybui_root = self.get_property("pyispybui_root").strip()
+        except:
+            self.pyispybui_root = None
 
     def dc_link(self, did):
         """
@@ -36,10 +43,9 @@ class MAXIVISPyBRestClient(ISPyBRestClient):
         """
         url = "#"
         if self.exi_root is not None and did:
-            path = "mx/index.html#/mx/datacollection/proposal/{pcode}{pnumber}/dcid/{did}/main"
-            path = path.format(pcode=HWR.beamline.session.proposal_code,
-                               pnumber=HWR.beamline.session.proposal_number,
-                               did=did)
+            pcode = HWR.beamline.session.proposal_code
+            pnumber = HWR.beamline.session.proposal_number
+            path = f"mx/index.html#/mx/datacollection/proposal/{pcode}{pnumber}/dcid/{did}/main"
 
             url = urljoin(self.exi_root, path)
         else:
@@ -57,18 +63,16 @@ class MAXIVISPyBRestClient(ISPyBRestClient):
         :returns: The link to the data collection
         """
         url = "#"
-        if self.exi_root is not None and HWR.beamline.session.session_id:
-            path = "mx/index.html#/mx/datacollection/session/{session_id}/main"
-            path = path.format(session_id=HWR.beamline.session.session_id)
+        session_id = HWR.beamline.session.session_id
 
+        if self.exi_root is not None and session_id:
+            path = f"mx/index.html#/mx/datacollection/session/{session_id}/main"
             url = urljoin(self.exi_root, path)
-        elif self.pyispybui_root is not None and HWR.beamline.session.session_id:
+        elif self.pyispybui_root is not None and session_id:
             # https://py-ispyb-ui.maxiv.lu.se/legacy/proposals/MX20170251/MX/83485/collection
-            path = "legacy/proposals/{pcode}{pnumber}/MX/{sessionid}/collection"
-            path = path.format(pcode=HWR.beamline.session.proposal_code,
-                               pnumber=HWR.beamline.session.proposal_number,
-                               sessionid=HWR.beamline.session.session_id)
-
+            pcode = HWR.beamline.session.proposal_code
+            pnumber = HWR.beamline.session.proposal_number
+            path = f"legacy/proposals/{pcode}{pnumber}/MX/{session_id}/collection"
             url = urljoin(self.pyispybui_root, path)
 
         return url
