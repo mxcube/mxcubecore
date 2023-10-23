@@ -1461,7 +1461,8 @@ class GphlWorkflow(HardwareObjectYaml):
                 )
             if parameters.get("init_spot_dir"):
                 transmission = HWR.beamline.transmission.get_value()
-                parameters["transmission"] = transmission
+                if not parameters["transmission"]:
+                    parameters["transmission"] = transmission
                 if not(
                     parameters.get("exposure_time") and parameters.get("image_width")
                 ):
