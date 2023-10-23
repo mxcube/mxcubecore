@@ -132,6 +132,7 @@ from gevent import sleep, Timeout
 from mxcubecore.TaskUtils import task as dtask
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.abstract.sample_changer.Container import Container
+from mxcubecore.HardwareObjects.abstract.sample_changer.Sample import Sample
 
 
 class SampleChangerState:
