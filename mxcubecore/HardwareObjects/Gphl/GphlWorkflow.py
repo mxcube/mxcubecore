@@ -1435,7 +1435,6 @@ class GphlWorkflow(HardwareObjectYaml):
         gphl_workflow_model.strategy_length = strategy_length
 
         allowed_widths = geometric_strategy.allowedWidths
-        print('@~@~ allowed_widths, idx', allowed_widths, geometric_strategy.defaultWidthIdx)
         if allowed_widths:
             default_image_width = float(
                 allowed_widths[geometric_strategy.defaultWidthIdx or 0]

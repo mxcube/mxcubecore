@@ -50,7 +50,8 @@
         # unless explicitly set
         - exposure_time: 0.04 # (s) Optional, default configured. Mandatory if init_spot_dir is set
           image_width: 0.1    # (°) Optional, default configured. Mandatory if init_spot_dir is set
-#          use_dose: 020.0 # (MGy) NB Optional, for entire experiment. Overrides transmission, dose budget
+#          use_dose: 20.0 # (MGy) NB Optional, for entire experiment. Overrides, dose budget
+#          transmission: 100.0 # (%) NB Optional  Overrides use_dose. Defaults to current valuee if init_spot_dir is set
           init_spot_dir: "/where/ever/dict"   # Directory containing SPOTS.XDS file from preliminary XDS calculation
           # When init_spot_dir is set,  strategy must be the name of the strategy
           # (specified in stragegylib.nml) that was actually used for characterisation.
