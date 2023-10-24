@@ -1530,10 +1530,9 @@ class GphlWorkflow(HardwareObjectYaml):
         # First set current transmission and resolution values
         transmission = parameters["transmission"]
         logging.getLogger("GUI").info(
-            "GphlWorkflow: setting transmission to %7.3f %%"
-            % (100.0 * transmission)
+            "GphlWorkflow: setting transmission to %7.3f %%" % transmission
         )
-        HWR.beamline.transmission.set_value(100 * transmission)
+        HWR.beamline.transmission.set_value(transmission)
 
         # NB - now pre-setting of detector has been removed, this gets
         # the current resolution setting, whatever it is
