@@ -27,8 +27,6 @@ import json
 from collections import OrderedDict
 from collections import namedtuple
 
-from mxcubecore.utils.conversion import string_types
-
 from mxcubecore.model import crystal_symmetry
 
 __copyright__ = """ Copyright © 2016 - 2019 by Global Phasing Ltd. """
@@ -1292,7 +1290,7 @@ class SampleCentred(Payload):
         else:
             # Ths trick assumes that characterisation and diffractcal
             # use one, the first, wavelength and default interleave order
-            # Which is true. Not the ideal place to put this code
+            # Which is true. Not the ideal place to put this code,
             # but it works.
             self._wavelengths = tuple((data_model.wavelengths[0],))
             if data_model.wftype != "diffractcal":

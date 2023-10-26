@@ -85,7 +85,7 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
 
             # Translate parameters to scan-utils flyscan
             config_yml = "pilatus"
-            message = "Flyscan called from mxcube3."
+            message = "Flyscan called from mxcubeweb."
 
             output_directory = data_collect_parameters["fileinfo"]["directory"]
             # Create dir
