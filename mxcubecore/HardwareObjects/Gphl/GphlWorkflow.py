@@ -253,16 +253,6 @@ class GphlWorkflow(HardwareObjectYaml):
         self.rotation_axis_roles = instrument_data["gonio_axis_names"]
         self.translation_axis_roles = instrument_data["gonio_centring_axis_names"]
 
-        detector = HWR.beamline.detector
-        if "Mockup" in detector.__class__.__name__:
-            # We are in mock  mode
-            # - set detector centre to match instrumentaiton.nml
-            # NB this sould be done with isinstance, but that seems to fail,
-            # probably because of import path mix-ups.
-            detector._set_beam_centre(
-                (instrument_data["det_org_x"], instrument_data["det_org_y"])
-            )
-
         # Adapt configuration data - must be done after file_paths setting
         if HWR.beamline.gphl_connection.ssh_options:
             # We are running workflow through ssh - set beamline url
@@ -401,8 +391,11 @@ class GphlWorkflow(HardwareObjectYaml):
                     point_group = info.point_group
                     if point_group == "32" and info.bravais_lattice == "hP":
                         point_group = info.crystal_class[:-1]
-                    # if point_group not in point_groups:
-                    #     point_group = point_groups[-1]
+                    if point_group not in point_groups:
+                        point_group = point_groups[-1]
+                    if space_group not in crystal_symmetry.XTAL_SPACEGROUPS:
+                        # Non-enantiomeric sace groups not supported in user interface
+                        space_group = ""
                 else:
                     space_group = ""
         elif space_group:
@@ -411,7 +404,12 @@ class GphlWorkflow(HardwareObjectYaml):
             lattice = info.bravais_lattice
             point_group = info.point_group
             point_groups = lattice2point_group_tags[lattice]
+            if point_group not in point_groups:
+                point_group = point_groups[-1]
             lattice_tags = [""] + list(lattice2point_group_tags)
+            if space_group not in crystal_symmetry.XTAL_SPACEGROUPS:
+                # Non-enantiomeric sace groups not supported in user interface
+                space_group = ""
         else:
             lattice = ""
             point_group = ""
@@ -506,15 +504,16 @@ class GphlWorkflow(HardwareObjectYaml):
             "type": "boolean",
             "default": self.settings["defaults"]["use_cell_for_processing"],
         }
+        resolution = data_model.aimed_resolution or HWR.beamline.resolution.get_value()
         reslimits = HWR.beamline.resolution.get_limits()
         if None in reslimits:
             reslimits = (0.5, 5.0)
+        resolution = max(resolution, reslimits[0])
+        resolution = min(resolution, reslimits[1])
         fields["resolution"] = {
             "title": "Resolution",
             "type": "number",
-            "default": (
-                data_model.aimed_resolution or HWR.beamline.resolution.get_value()
-            ),
+            "default": resolution,
             "minimum": reslimits[0],
             "maximum": reslimits[1],
         }
@@ -797,7 +796,20 @@ class GphlWorkflow(HardwareObjectYaml):
             if params is StopIteration:
                 self.workflow_failed()
                 return
-            params["init_spot_dir"] = self.settings.get("init_spot_dir")
+            use_preset_spotdir = self.settings.get("use_preset_spotdir")
+            if use_preset_spotdir:
+                spotdir = self.get_emulation_sample_dir()
+                if spotdir:
+                    if os.path.isfile(os.path.join(spotdir, "SPOT.XDS")):
+                        params["init_spot_dir"] = spotdir
+                    else:
+                        raise ValueError(
+                            "no file SPOT.XDS in %s" % spotdir)
+                else:
+                    raise ValueError(
+                        "use_preset_spotdir was set for non-emulation sample"
+                    )
+
 
         cell_tags = (
             "cell_a",
@@ -2661,18 +2673,20 @@ class GphlWorkflow(HardwareObjectYaml):
         #
         return result
 
-    def get_emulation_crystal_data(self, sample_name=None):
-        """If sample is a test data set for emulation, get crystal data
+
+    def get_emulation_sample_dir(self, sample_name=None):
+        """If sample is a test data set for emulation, get test data directory
+        Args:
+         sample_name Optional[str]:
 
         Returns:
-            Optional[dict]
+
         """
+        sample_dir = None
         if sample_name is None:
             sample_name = (
                 self._queue_entry.get_data_model().get_sample_node().get_name()
             )
-        crystal_data = None
-        hklfile = None
         if sample_name:
             if sample_name.startswith(self.TEST_SAMPLE_PREFIX):
                 sample_name = sample_name[len(self.TEST_SAMPLE_PREFIX)+1:]
@@ -2682,10 +2696,23 @@ class GphlWorkflow(HardwareObjectYaml):
             if not sample_dir:
                 raise ValueError("Test sample requires gphl_test_samples dir specified")
             sample_dir = os.path.join(sample_dir, sample_name)
-            if not os.path.isdir(sample_dir):
-                raise RuntimeError(
-                    "No emulation data found for %s at %s " % (sample_name, sample_dir)
-                )
+        if not sample_dir:
+            logging.getLogger("HWR").warning(
+                "No emulation sample dir found for sample %s", sample_name
+            )
+        #
+        return sample_dir
+
+    def get_emulation_crystal_data(self, sample_name=None):
+        """If sample is a test data set for emulation, get crystal data
+
+        Returns:
+            Optional[str]
+        """
+        crystal_data = None
+        hklfile = None
+        sample_dir = self.get_emulation_sample_dir(sample_name=sample_name)
+        if os.path.isdir(sample_dir):
             crystal_file = os.path.join(sample_dir, "crystal.nml")
             if not os.path.isfile(crystal_file):
                 raise ValueError(
@@ -2698,6 +2725,10 @@ class GphlWorkflow(HardwareObjectYaml):
             hklfile = os.path.join(sample_dir, "sample.hkli")
             if not os.path.isfile(hklfile):
                 raise ValueError("Emulator hkli file %s does not exist" % hklfile)
+        else:
+            raise RuntimeError(
+                "No emulation data found for %s at %s " % (sample_name, sample_dir)
+            )
         #
         return crystal_data, hklfile
 
