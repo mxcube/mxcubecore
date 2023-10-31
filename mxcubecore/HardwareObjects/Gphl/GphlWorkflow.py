@@ -2309,6 +2309,10 @@ class GphlWorkflow(HardwareObjectYaml):
 
     def process_centring_request(self, payload, correlation_id):
         # Used for transcal only - anything else is data collection related
+
+        raise NotImplementedError(
+            "This function is currently broken, must eb upgraded to new system"
+        )
         request_centring = payload
 
         logging.getLogger("user_level_log").info(
@@ -2371,7 +2375,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
                 try:
                     responses = dispatcher.send(
-                        "gphlParametersNeeded",
+                        self.PARAMETERS_NEEDED,
                         self,
                         field_list,
                         self._return_parameters,
