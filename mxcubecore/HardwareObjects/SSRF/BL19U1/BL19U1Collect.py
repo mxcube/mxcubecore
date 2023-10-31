@@ -781,7 +781,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
                 self.osc_id,
                 self.current_dc_parameters,
             ),
-        )
+        )#这边出的错
         self.emit("collectEnded", self.owner, True, success_msg)
         self.emit("collectReady", (True,))
         HWR.beamline.detector.emit_status()

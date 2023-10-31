@@ -113,7 +113,7 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         self._dewar=1
         self.socket_addr = '10.30.61.73:10100'
         self._ifcloseLid_inBeginning = False
-        self.count = 15
+        self.count = 1
 
         self._cmdMount = self.add_command(
             {"type": "socketrobot", "socket_address": self.socket_addr, "name": '_cmdMount'},
@@ -256,7 +256,7 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
                 return
             # 如果命令返回的类型是Exception，说明是机械手有报错
             # 20230714 添加新异常：<ConnectionRefusedError>
-            elif (type(self._ifcmdSucceeded) is Exception) or (type(self._ifcmdSucceeded) is OSError) or (type(self._ifcmdSucceeded) is TimeoutError) or (type(self._ifcmdSucceeded) is KeyError) or (type(self._ifcmdSucceeded) is ConnectionRefusedError)   or (type(self._ifcmdSucceeded) is ConnectionAbortedError) or (type(self._ifcmdSucceeded) is ConnectionResetError):
+            elif (type(self._ifcmdSucceeded) is Exception) or (type(self._ifcmdSucceeded) is OSError) or (type(self._ifcmdSucceeded) is TimeoutError) or (type(self._ifcmdSucceeded) is KeyError) or (type(self._ifcmdSucceeded) is ConnectionRefusedError)   or (type(self._ifcmdSucceeded) is ConnectionAbortedError) or (type(self._ifcmdSucceeded) is ConnectionResetError) or (type(self._ifcmdSucceeded) is BrokenPipeError):
                 # 在发生错误后恢复机械手的各种状态
                 self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
                 HWR.beamline.sample_changer_maintenance._running = 0
