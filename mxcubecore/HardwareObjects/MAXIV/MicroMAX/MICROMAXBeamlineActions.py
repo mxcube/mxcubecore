@@ -1,143 +1,106 @@
 import logging
 import time
 import gevent
-import PyTango
+import tango
 
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore.TaskUtils import task
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.CommandContainer import CommandObject
+from mxcubecore.HardwareObjects.BeamlineActions import (
+    BeamlineActions,
+)
+
+DET_SAFE_POSITION = 500  # mm
 
 
-class ControllerCommand(CommandObject):
-    def __init__(self, name, cmd):
-        CommandObject.__init__(self, name)
-        self._cmd = cmd
-        self._cmd_execution = None
-        self.type = "CONTROLLER"
+class PrepareOpenHutch:
+    """
+    Prepare beamline for openning the hutch door
 
-
-    def is_connected(self):
-        return True
-
-    def get_arguments(self):
-        if self.name() == "Anneal":
-            self.add_argument("Time [s]", "float")
-
-        return CommandObject.get_arguments(self)
-
-    @task
-    def __call__(self, *args, **kwargs):
-        self.emit("commandBeginWaitReply", (str(self.name()),))
-        self._cmd_execution = gevent.spawn(self._cmd, *args, **kwargs)
-        self._cmd_execution.link(self._cmd_done)
-
-    def _cmd_done(self, cmd_execution):
+    Close safety shutter, close detector cover and move detector to a safe area
+    """
+    def __call__(self, *args, **kw):
         try:
-            try:
-                res = cmd_execution.get()
-            except:
-                self.emit("commandFailed", (str(self.name()),))
-            else:
-                if isinstance(res, gevent.GreenletExit):
-                    self.emit("commandFailed", (str(self.name()),))
-                else:
-                    self.emit("commandReplyArrived", (str(self.name()), res))
-        finally:
-            self.emit("commandReady")
+            logging.getLogger("HWR").info("Preparing experimental hutch for door openning.")
+            if (
+                HWR.beamline.safety_shutter is not None
+                and HWR.beamline.safety_shutter.getShutterState() == "opened"
+            ):
+                logging.getLogger("HWR").info("Closing safety shutter...")
+                HWR.safety_shutter.closeShutter()
+                while HWR.beamline.safety_shutter.getShutterState() == "opened":
+                    gevent.sleep(0.1)
 
-    def abort(self):
-        if self._cmd_execution and not self._cmd_execution.ready():
-            self._cmd_execution.kill()
+            logging.getLogger("HWR").info("Closing detector cover...")
 
-    def value(self):
-        return None
+            close_det_cover = CloseDetectorCover()
+            close_det_cover()
+            if HWR.beamline.detector is not None:
+                logging.getLogger("HWR").info("Moving detector to safe area...")
+                try:
+                    HWR.beamline.detector.distance_motor_hwobj.set_value(DET_SAFE_POSITION)
+                except Exception:
+                    logging.getLogger("HWR").warning("Could not move detector to safe position")
+        except Exception as ex:
+            logging.getLogger("HWR").exception("Could not PrepareOpenHutch")
+            print(ex)
 
 
-class MICROMAXBeamlineActions(HardwareObject):
-    def __init__(self, *args):
-        HardwareObject.__init__(self, *args)
-        self.command_list = []
-
-    def close_detector_cover(self):
+class CloseDetectorCover:
+    def __call__(self, *args, **kw):
         """
-        Descript. :
+        Close detector cover
         """
         try:
-            self.log.info("Closing the detector cover")
-            plc = PyTango.DeviceProxy('b312a/vac/plc-01')
+            logging.getLogger("HWR").info("Closing the detector cover")
+            plc = tango.DeviceProxy('b312a/vac/plc-01')
             plc.B312A_E06_DIA_DETC01_ENAC = 1
             plc.B312A_E06_DIA_DETC01_CLC = 1
         except Exception:
-            self.log.exception("Could not close the detector cover")
+            logging.getLogger("HWR").exception("Could not close the detector cover")
             pass
 
-    def _prepare_open_hutch_task(self, unmount_sample = False):
+
+class OpenDetectorCover:
+    def __call__(self, *args, **kw):
         """
-        Descript.: prepare beamline for openning the hutch door,
+        Open detector cover
         """
-        logging.getLogger("HWR").info("Preparing experimental hutch for door openning.")
-        if (
-            self.safety_shutter_hwobj is not None
-            and self.safety_shutter_hwobj.getShutterState() == "opened"
-        ):
-            logging.getLogger("HWR").info("Closing safety shutter...")
-            self.safety_shutter_hwobj.closeShutter()
-            while self.safety_shutter_hwobj.getShutterState() == "opened":
-                gevent.sleep(0.1)
-
-        logging.getLogger("HWR").info("Closing detector cover...")
-        self.close_detector_cover()
-
-        if self.dtox_hwobj is not None:
-            logging.getLogger("HWR").info("Moving detector to safe area...")
-            self.dtox_hwobj.sync_move(900, timeout = 50)
-
-    def _end_beamtime(self):
         try:
-            self._prepare_open_hutch_task(unmount_sample = True)
+            logging.getLogger("HWR").info("Openning the detector cover")
+            plc = tango.DeviceProxy('b312a/vac/plc-01')
+            plc.B312A_E06_DIA_DETC01_ENAC = 1
+            plc.B312A_E06_DIA_DETC01_OPC = 1
+        except Exception:
+            logging.getLogger("HWR").exception("Could not close the detector cover")
+            pass
+
+
+class BeamtimeEnd:
+    def __call__(self, *args, **kw):
+        """
+        TBD
+        """
+        try:
+            prepare_open_hutch = PrepareOpenHutch()
+            prepare_open_hutch()
             cmd = self.getCommandObject('beamtime_end')
             cmd(wait=True)
-        except Exception as ex:
+        except Exception:
             logging.getLogger("HWR").error("Cannot end beamtime.")
 
-    def _start_beamtime(self):
+
+class BeamtimeStart:
+    def __call__(self, *args, **kw):
+        """
+        TBD
+        """
         try:
             cmd = self.getCommandObject('beamtime_start')
             cmd(wait=True)
-            time.sleep(10)
-            self._checkbeam()
-        except Exception as ex:
+        except Exception:
             logging.getLogger("HWR").error("Cannot start beamtime.")
 
-    def _open_beamline_shutters(self):
-        try:
-            cmd = self.getCommandObject('open_beamline_shutters')
-            cmd(wait=True)
-        except Exception as ex:
-            logging.getLogger("HWR").error("Cannot open_beamline_shutters.")
 
-    def init(self):
-        self.dtox_hwobj = self.get_object_by_role("dtox")
-        self.safety_shutter_hwobj = self.get_object_by_role("safety_shutter")
-        self.diffractometer_hwobj = self.get_object_by_role("diffractometer")
-
-        self.prepare_open_hutch = ControllerCommand("prepare_open_hutch", self._prepare_open_hutch_task)
-        self.end_beamtime = ControllerCommand("end_beamtime", self._end_beamtime)
-        self.open_beamline_shutters = ControllerCommand("open_beamline_shutters", self._open_beamline_shutters)
-        self.start_beamtime = ControllerCommand("start_beamtime", self._start_beamtime)
-
-        self.dispatcher = {"prepare_open_hutch": self.prepare_open_hutch,
-                           "end_beamtime": self.end_beamtime,
-                           "open_beamline_shutters": self.open_beamline_shutters,
-                           "start_beamtime": self.start_beamtime }
-
-        self.command_list = eval(self.get_property("command_list"))
-
-    def get_commands(self):
-        commands = []
-        for command in self.command_list:
-            commands.append(self.dispatcher[command])
-        return commands
-
-    def get_annotated_commands(self):
-        return []
+class MICROMAXBeamlineActions(BeamlineActions):
+    def __init__(self, *args):
+        super().__init__(*args)
