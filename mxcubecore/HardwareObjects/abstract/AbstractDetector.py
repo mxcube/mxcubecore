@@ -224,12 +224,6 @@ class AbstractDetector(HardwareObject):
                 else self._distance_motor_hwobj.get_value()
             )
 
-            wavelength = (
-                wavelength
-                if wavelength is not None
-                else HWR.beamline.energy.get_wavelength()
-            )
-
             metadata = self.get_metadata()
 
             beam_position = (
