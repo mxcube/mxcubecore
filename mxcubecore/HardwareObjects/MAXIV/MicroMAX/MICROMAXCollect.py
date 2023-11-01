@@ -1007,7 +1007,7 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
         config['BeamCenterX'] = beam_centre_x  # unit, should be pixel for master file
         config['BeamCenterY'] = beam_centre_y
         config['DetectorDistance'] = self.get_detector_distance()/1000.0
-
+        config['PhotonEnergy'] = oscillation_parameters['energy']
 
         config['CountTime'] = oscillation_parameters['exposure_time']
 
