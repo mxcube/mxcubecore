@@ -52,7 +52,6 @@ import abc
 import ast
 import math
 
-from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.model.queue_model_objects import PathTemplate
 
@@ -210,7 +209,7 @@ class AbstractDetector(HardwareObject):
         """
         self._binning_mode = value
 
-    def get_beam_position(self, distance=None, wavelength=None):
+    def get_beam_position(self, distance=None, wavelength=None):  # noqa: ARG002
         """Calculate the beam position for a given distance.
         Args:
             distance (float): detector distance [mm]
@@ -229,12 +228,6 @@ class AbstractDetector(HardwareObject):
                 distance
                 if distance is not None
                 else self._distance_motor_hwobj.get_value()
-            )
-
-            wavelength = (
-                wavelength
-                if wavelength is not None
-                else HWR.beamline.energy.get_wavelength()
             )
 
             metadata = self.get_metadata()
