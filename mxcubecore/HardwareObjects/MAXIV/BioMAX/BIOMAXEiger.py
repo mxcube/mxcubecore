@@ -189,7 +189,6 @@ class BIOMAXEiger(AbstractDetector):
         _status = self.get_channel_object('Status')
 
         _status.connect_signal('update', self.status_update)
-        # print(_status.get_value())
         self.update_state(self.STATES.READY)
 
     #  STATUS , status can be "idle", "ready", "UNKNOWN"
@@ -205,8 +204,7 @@ class BIOMAXEiger(AbstractDetector):
         return self.status_chan.get_value().split("\n")[0]
 
     def status_update(*args):
-        print('eiger satus update', args)
-        print(args)
+        logging.getLogger("HWR").debug('eiger satus update', args)
 
     def is_idle(self):
         return self.get_status()[:4] == "idle"
@@ -285,7 +283,8 @@ class BIOMAXEiger(AbstractDetector):
                 "ImageAppendix",
                 "TriggerMode",
                 "RoiMode",
-                "MonitorMode"]:
+                "MonitorMode",
+                "FileWriterMode"]:
                 while self.get_value(att) != new_val:
                     gevent.sleep(0.1)
             elif "BeamCenter" in att:
@@ -450,21 +449,22 @@ class BIOMAXEiger(AbstractDetector):
 
         current_energy = self.get_value("PhotonEnergy")
 
-        print("   - currently configured energy is: %s" % current_energy)
-        print("   -    min val: %s / max val: %s " % (self.photon_energy_min, self.photon_energy_max))
+        logging.getLogger("HWR").debug("   - target energy is: %s" % target_energy)
+        logging.getLogger("HWR").debug("   - currently configured energy is: %s" % current_energy)
+        logging.getLogger("HWR").debug("   -    min val: %s / max val: %s " % (self.photon_energy_min, self.photon_energy_max))
 
         if target_energy < self.photon_energy_min or target_energy > self.photon_energy_max:
-            print("Energy value out of limits: %s" % energy)
+            logging.getLogger("HWR").debug("Energy value out of limits: %s" % energy)
             logging.getLogger("user_level_log").info(
                 "Energy value out of limits: %s" % energy
             )
             return -1
 
         if abs(energy - current_energy) > self.energy_change_threshold:
-            print("Energy difference over threshold. program energy necessary")
+            logging.getLogger("HWR").debug("Energy difference over threshold. program energy necessary")
             return 1
         else:
-            print("Energy difference below threshold. Do not need to program")
+            logging.getLogger("HWR").debug("Energy difference below threshold. Do not need to program")
             return 0
 
     def set_energy_threshold(self, threshold):
@@ -561,7 +561,7 @@ class BIOMAXEiger(AbstractDetector):
                     raise Exception("Could not program energy in detector")
         if "CountTime" in self._config_vals.keys():
             self.set_value("CountTime", self._config_vals["CountTime"])
-            print(
+            logging.getLogger("HWR").debug(
                 "readout time and count time is ",
                 self.get_readout_time(),
                 self.get_value("CountTime")
@@ -569,7 +569,7 @@ class BIOMAXEiger(AbstractDetector):
             self.set_value(
                 "FrameTime", self._config_vals["CountTime"] + self.get_readout_time()
             )
-            print("new frame time is ", self.get_value("FrameTime"))
+            logging.getLogger("HWR").debug("new frame time is ", self.get_value("FrameTime"))
             for cfg_name, cfg_value in self._config_vals.items():
                 t0 = time.time()
                 if cfg_name == "PhotonEnergy" or cfg_name == "CountTime":
@@ -587,7 +587,7 @@ class BIOMAXEiger(AbstractDetector):
                         if cfg_name == "RoiMode":
                             self.emit("roiChanged")
                     else:
-                        print("      - value does need to change")
+                        logging.getLogger("HWR").debug("      - value does need to change")
                 else:
                     logging.getLogger("HWR").error(
                         "Could not config value %s for detector. Not such channel"
@@ -670,10 +670,10 @@ class BIOMAXEiger(AbstractDetector):
         self.get_command_object("Disarm")()
 
     def enable_filewriter(self):
-        self.set_value("FilewriterMode", "enabled")
+        self.set_value("FileWriterMode", "enabled")
 
     def disable_filewriter(self):
-        self.set_value("FilewriterMode", "disabled")
+        self.set_value("FileWriterMode", "disabled")
 
     def enable_stream(self):
         self.get_command_object("EnableStream")()
