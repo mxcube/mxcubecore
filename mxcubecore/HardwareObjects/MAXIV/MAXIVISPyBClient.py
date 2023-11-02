@@ -29,6 +29,12 @@ class MAXIVISPyBClient(ISPyBClient):
         ISPyBClient.init(self)
         self.sdm = SDM(production=True)
 
+    def is_connected(self):
+        # This is a hack. We auth via REST not via this hwobj
+        # Returning True here since other parts need it
+        # TODO: remove all SOAP calls
+        return True
+
     def get_todays_session(self, prop, create_session=True):
         logging.getLogger("HWR").debug("Getting todays session")
 
