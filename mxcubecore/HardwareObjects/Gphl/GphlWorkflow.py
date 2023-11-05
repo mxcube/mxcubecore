@@ -2134,7 +2134,7 @@ class GphlWorkflow(HardwareObjectYaml):
                     or HWR.beamline.get_default_acquisition_parameters().resolution
                 )
 
-            # select indexing solution adn set space_group, crystal_classes
+            # select indexing solution and set space_group, crystal_classes
             header, soldict, select_row = self.parse_indexing_solution(choose_lattice)
             indexing_solution = list(soldict.values())[select_row]
             bravais_lattice = indexing_solution.bravaisLattice

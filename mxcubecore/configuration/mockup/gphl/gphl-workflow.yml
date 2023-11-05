@@ -88,7 +88,10 @@ settings:
         interleave_order: gs
 
         # For testing only:
-#        automation_mode: TEST
+        # value TEST_FROM_FILE mode reads input from environment variable GPHL_TEST_INPUT
+        # (which may override this value)
+        # Any other true value reads from auto_acq_parameters below
+#        automation_mode: TEST_FROM_FILE
 
     # Default parameters for fully automated strategies
     # Multiple acquisitions in order - characterisation then main

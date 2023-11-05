@@ -49,6 +49,7 @@ _objects:
 #    - imaging: xray-imaging.xml # Only in EMBL as of 201907
     - gphl_connection: gphl-setup.yml
     - gphl_workflow: gphl-workflow.yml
+    - xray_centring: xray_centring2.yml
     # - centring: centring.xml
     # Analysis:
     - offline_processing: offline-processing-mockup.xml
