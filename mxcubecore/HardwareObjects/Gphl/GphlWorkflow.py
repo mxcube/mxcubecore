@@ -519,7 +519,8 @@ class GphlWorkflow(HardwareObjectYaml):
         }
         fields["strategy"] = {
             "title": "Strategy",
-            "$ref": "#/definitions/strategy",
+            "type": "string",
+            # "$ref": "#/definitions/strategy",
         }
         # )
         # Handle strategy fields
@@ -538,14 +539,14 @@ class GphlWorkflow(HardwareObjectYaml):
             fields["strategy"]["default"] = strategies[0]
             fields["strategy"]["title"] = "Characterisation strategy"
             energy_tag = "Characterisation"
-        schema["definitions"]["strategy"] = list(
-            {
-                "type": "string",
-                "enum": [tag],
-                "title": tag,
-            }
-            for tag in strategies
-        )
+        # schema["definitions"]["strategy"] = list(
+        #     {
+        #         "type": "string",
+        #         "enum": [tag],
+        #         "title": tag,
+        #     }
+        #     for tag in strategies
+        # )
         # Handle energy field
         # NBNB allow for fixed-energy beamlines
         energy_limits = HWR.beamline.energy.get_limits()
