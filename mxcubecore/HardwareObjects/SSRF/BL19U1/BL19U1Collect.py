@@ -682,6 +682,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             print(" ^^^^^^^^^^^^ OSC SCAN ^^^^^^^^^^^")
             HWR.beamline.diffractometer.oscilScan(start, end, exptime, wait=True)
 
+
     def _update_task_progress(self):
         logging.getLogger("HWR").info("[COLLECT] update task progress launched")
         num_images = self.current_dc_parameters["oscillation_sequence"][0][
@@ -781,7 +782,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
                 self.osc_id,
                 self.current_dc_parameters,
             ),
-        )#这边出的错
+        )#原来这边会报错
         self.emit("collectEnded", self.owner, True, success_msg)
         self.emit("collectReady", (True,))
         HWR.beamline.detector.emit_status()

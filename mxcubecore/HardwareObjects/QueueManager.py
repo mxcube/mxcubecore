@@ -180,6 +180,9 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             self.emit("queue_execution_finished", (None,))
 
     def __execute_entry(self, entry):
+        logging.getLogger("HWR").debug(
+            "get in __execute_entry()"
+        )  # 添加
         if not entry.is_enabled() or self._is_stopped:
             return
 
@@ -257,6 +260,9 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             # self.emit('queue_entry_execute_finished', (entry, ))
             self.set_current_entry(None)
             self._current_queue_entries.pop(self._current_queue_entries.index(entry))
+            logging.getLogger("HWR").debug(
+                "get out __execute_entry()"
+            )  # 添加
 
     def stop(self):
         """

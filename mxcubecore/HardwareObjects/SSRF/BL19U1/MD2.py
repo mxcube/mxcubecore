@@ -1,4 +1,6 @@
 import math
+import time
+
 import numpy
 import logging
 import gevent
@@ -186,7 +188,7 @@ class MD2(Microdiff.Microdiff):
         self.nb_frames.set_value(self.scan_nb_frames)
 
         params = "1\t%0.3f\t%0.3f\t%0.4f\t1" % (start, (end - start), exptime)
-
+        print("OSC SCAN's parameter: ",params)
         scan = self.add_command(
             {
                 "type": "exporter",
@@ -197,9 +199,9 @@ class MD2(Microdiff.Microdiff):
         )
 
         self._wait_ready(30000)
-
+        start_time=time.time()
         scan(params)
-
+        print("OSC SCAN's time cost: ",time.time()-start_time)
         if wait:
             # Timeout of 5 min
             self._wait_ready(30000)
