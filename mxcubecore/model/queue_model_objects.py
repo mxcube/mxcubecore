@@ -26,6 +26,7 @@ the QueueModel.
 import copy
 import os
 import logging
+import ruamel.yaml as yaml
 
 from mxcubecore.model import queue_model_enumerables
 from mxcubecore.model import crystal_symmetry
@@ -2017,6 +2018,9 @@ class GphlWorkflow(TaskNode):
         self.recentring_mode = "sweep"
         self.recentring_calc_preference = "GPHL"
 
+        # TEST attribute - if true collection is skipped. Set also if init_spot_dir
+        self.skip_collection = False
+
         # Workflow interleave order (string).
         # Slowest changing first, characters 'g' (Goniostat position);
         # 's' (Scan number), 'b' (Beam wavelength), 'd' (Detector position)
@@ -2086,8 +2090,8 @@ class GphlWorkflow(TaskNode):
         strategy="",
         strategy_options=None,
         init_spot_dir=None,
-        relative_rad_sensitivity=1.0,
-        use_cell_for_processing=False,
+        relative_rad_sensitivity=None,
+        use_cell_for_processing=None,
         **unused,
     ):
         """
@@ -2108,12 +2112,16 @@ class GphlWorkflow(TaskNode):
 
         from mxcubecore.HardwareObjects.Gphl import GphlMessages
 
-        if space_group and not crystal_classes:
-            crystal_classes = (
+        if space_group:
+            self.space_group = space_group
+        else:
+            space_group = self.space_group
+        if crystal_classes:
+            self.crystal_classes = tuple(crystal_classes)
+        elif space_group:
+            self.crystal_classes = (
                 crystal_symmetry.SPACEGROUP_MAP[space_group].crystal_class,
             )
-        self.space_group = space_group
-        self.crystal_classes = tuple(crystal_classes)
         if cell_parameters:
             self.cell_parameters = cell_parameters
 
@@ -2192,9 +2200,12 @@ class GphlWorkflow(TaskNode):
             strategy = strategy or settings["characterisation_strategies"][0]
             self.initial_strategy = strategy
 
+        # NB init_spot_dir must be re-set every time, hence no if test
         self.init_spot_dir = init_spot_dir
-        self.relative_rad_sensitivity = relative_rad_sensitivity
-        self.use_cell_for_processing = use_cell_for_processing
+        if relative_rad_sensitivity:
+            self.relative_rad_sensitivity = relative_rad_sensitivity
+        if use_cell_for_processing is not None:
+            self.use_cell_for_processing = use_cell_for_processing
 
     def set_pre_acquisition_params(
         self,
@@ -2206,6 +2217,7 @@ class GphlWorkflow(TaskNode):
         snapshot_count=None,
         recentring_mode=None,
         energies=(),
+        skip_collection=False,
         **unused,
     ):
         """
@@ -2219,6 +2231,7 @@ class GphlWorkflow(TaskNode):
             snapshot_count:
             recentring_mode:
             energies:
+            skip_collection:
             **unused:
 
         Returns:
@@ -2265,6 +2278,8 @@ class GphlWorkflow(TaskNode):
                     "Number of energies %s do not match remaining slots %s"
                     % (energies, energy_tags[len(self.wavelengths) :])
                 )
+        if skip_collection:
+            self.skip_collection = True
 
     def init_from_task_data(self, sample_model, params):
         """
@@ -2273,6 +2288,17 @@ class GphlWorkflow(TaskNode):
         """
 
         from mxcubecore.HardwareObjects.Gphl import GphlMessages
+
+        if self.automation_mode == "TEST_FROM_FILE":
+            fname = os.getenv("GPHL_TEST_INPUT")
+            if os.path.isfile(fname):
+                with open(fname, "r") as fp0:
+                    task = yaml.load(fp0)["task"]
+                    print(task)
+                    params.update(task["parameters"])
+            else:
+                print("WARNING no GPHL_TEST_INPUT found. test using default values")
+
 
         # Set attributes directly from params
         self.strategy_settings = HWR.beamline.gphl_workflow.workflow_strategies.get(

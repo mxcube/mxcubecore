@@ -48,10 +48,6 @@ class DetectorMockup(AbstractDetector):
         """Returns always True"""
         return True
 
-    def _set_beam_centre(self, beam_centre):
-        # Needed for GPhL collection emulation
-        self._beam_centre = beam_centre
-
     def prepare_acquisition(self, *args, **kwargs):
         """
         Prepares detector for acquisition

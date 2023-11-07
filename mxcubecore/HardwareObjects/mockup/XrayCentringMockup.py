@@ -44,17 +44,17 @@ class XrayCentringMockup(AbstractXrayCentring):
         logging.getLogger("HWR").debug("Execute mock Xray centring ")
 
         # Add Dummy task 1
-        dummy = queue_model_objects.DelayTask(delay=5)
+        dummy = queue_model_objects.DelayTask(delay=1)
         dummy.set_enabled(True)
-        dummy.set_name("dummy1")
+        dummy.set_name("CentringDelay1")
         self._add_to_queue(self._data_collection_group, dummy)
         dummy_entry = queue_manager.get_entry_with_model(dummy)
         dummy_entry.in_queue = True
 
         # Add Dummy task 2
-        dummy = queue_model_objects.DelayTask(delay=10)
+        dummy = queue_model_objects.DelayTask(delay=2)
         dummy.set_enabled(True)
-        dummy.set_name("dummy2")
+        dummy.set_name("CentringDelay2")
         self._add_to_queue(self._data_collection_group, dummy)
         dummy_entry = queue_manager.get_entry_with_model(dummy)
         dummy_entry.in_queue = True
