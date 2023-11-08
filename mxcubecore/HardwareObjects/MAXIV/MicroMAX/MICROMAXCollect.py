@@ -479,8 +479,13 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
     def get_mesh_total_nb_frames(self):
         return self.mesh_total_nb_frames
 
-    def get_current_shape_id(self):
-        return self.current_dc_parameters["shape"]
+    def get_current_shape(self):
+        shape_id = self.current_dc_parameters["shape"]
+        if shape_id != "":
+            shape = self.shape_history_hwobj.get_shape(shape_id).as_dict()
+        else:
+            shape = None
+        return shape
 
     def oscil(self, start, end, exptime, npass, wait=True):
         time.sleep(1)
@@ -493,8 +498,11 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
         elif self.current_dc_parameters['experiment_type'] == 'Mesh':
             self.log.info("Mesh oscillation requested: number of lines %s" % self.get_mesh_num_lines())
             self.log.info("Mesh oscillation requested: total number of frames %s" % self.get_mesh_total_nb_frames())
-            shape_id = self.get_current_shape_id()
-            shape = self.shape_history_hwobj.get_shape(shape_id).as_dict()
+
+            shape = self.get_current_shape()
+            if shape is None:
+                raise RuntimeError("Mesh oscillation failed, no shape defined")
+
             range_x = shape.get('num_cols') * shape.get('cell_width') / 1000.0
             range_y = shape.get('num_rows') * shape.get('cell_height') / 1000.0
             self.diffractometer_hwobj.raster_scan(start,
