@@ -26,7 +26,6 @@ import sys
 import time
 from PIL import Image
 
-
 sys.path.append("/opt/dectris/albula/4.0/python/")
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
