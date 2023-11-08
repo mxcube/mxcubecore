@@ -75,9 +75,9 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
         self.resolution_hwobj = self.get_object_by_role("resolution")
         self.detector_hwobj = self.get_object_by_role("detector")
         self.flux_hwobj = self.get_object_by_role("flux")
-        # self.autoprocessing_hwobj = self.get_object_by_role("auto_processing")
+        self.autoprocessing_hwobj = self.get_object_by_role("auto_processing")
         # self.autoprocessing_hwobj.lims_client_hwobj = self.lims_client_hwobj
-        # self.autoprocessing_hwobj.NIMAGES_TRIGGER_AUTO_PROC = self.NIMAGES_TRIGGER_AUTO_PROC
+        self.autoprocessing_hwobj.NIMAGES_TRIGGER_AUTO_PROC = self.NIMAGES_TRIGGER_AUTO_PROC
         self.beam_info_hwobj = self.get_object_by_role("beam_info")
         self.transmission_hwobj = self.get_object_by_role("transmission")
         # self.sample_changer_hwobj = self.getObjectByRole("sample_changer")
@@ -742,7 +742,6 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
         """
         self.log.info("[COLLECT] triggering auto processing, self.current_dc_parameters: %s" % self.current_dc_parameters)
         self.log.info("[COLLECT] Launching MAXIV Autoprocessing")
-        return
         if self.autoprocessing_hwobj is not None:
             try:
                 self.autoprocessing_hwobj.execute_autoprocessing(process_event,
@@ -1007,7 +1006,6 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
         config['BeamCenterX'] = beam_centre_x  # unit, should be pixel for master file
         config['BeamCenterY'] = beam_centre_y
         config['DetectorDistance'] = self.get_detector_distance()/1000.0
-        config['PhotonEnergy'] = oscillation_parameters['energy']
 
         config['CountTime'] = oscillation_parameters['exposure_time']
 
