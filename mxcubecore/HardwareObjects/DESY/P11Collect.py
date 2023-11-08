@@ -442,8 +442,6 @@ class P11Collect(AbstractCollect):
 
             # time.sleep(1)
 
-            # time.sleep(1)
-
     def adxv_notify(self, image_filename, image_num=1):
         """
         The `adxv_notify` function sends a notification to an ADXV to load an image file and
