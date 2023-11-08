@@ -14,7 +14,7 @@ DET_SAFE_POSITION = 500  # mm
 
 class PrepareOpenHutch:
     """
-    Prepare beamline for openning the hutch door
+    Prepare beamline for opening the hutch door
 
     Close safety shutter, close detector cover and move detector to a safe area
     """
@@ -66,7 +66,7 @@ class OpenDetectorCover:
         Open detector cover
         """
         try:
-            logging.getLogger("HWR").info("Openning the detector cover")
+            logging.getLogger("HWR").info("Opening the detector cover")
             plc = tango.DeviceProxy('b312a/vac/plc-01')
             plc.B312A_E06_DIA_DETC01_ENAC = 1
             plc.B312A_E06_DIA_DETC01_OPC = 1

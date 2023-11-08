@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -234,7 +234,7 @@ class MAXIVAutoProcessing(HardwareObject):
                 break
             i += 1
 
-        auto_directory = os.path.join(\
+        auto_directory = os.path.join(
             dc_params['fileinfo']['process_directory'],
             xds_input_file_dirname)
 
