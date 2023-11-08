@@ -286,52 +286,12 @@ class P11Collect(AbstractCollect):
                 self.collect_characterisation(
                     start_angle, img_range, nframes, angle_inc, exp_time
                 )
-                # TODO: Add LiveView here
-                # os.system("killall albula")
-                # os.system("/opt/dectris/albula/4.0/bin/albula "+self.latest_h5_filename +" &")
-                # os.system("adxv "+self.latest_h5_filename +" &")
-
-                # TODO: Remove for now creation of the snapshots and processing html.
-                # Open index_html
-                # os.system("firefox /gpfs/current/processed/index.html")
-
-                # Create diffraction snapshots
-            #                for i in range(nframes):
-            #                    os.system(
-            #                        "python3 /gpfs/local/shared/MXCuBE/hdf5tools/albula_api/generate_image.py --input "
-            #                        + self.latest_h5_filename
-            #                        + " --output "
-            #                        + os.path.join(
-            #                            basepath, prefix, "screening_" + str(runno).zfill(3)
-            #                        )
-            #                        + "/"
-            #                        + " --image_number "
-            #                        + str(i + 1)
-            #                    )
-            #
             else:
                 self.collect_std_collection(start_angle, stop_angle)
                 self.generate_xds_template()
                 # self.adxv_notify(self.latest_h5_filename)
                 # TODO: Add LiveView here
-                # os.system("killall albula")
-                # os.system("/opt/dectris/albula/4.0/bin/albula "+self.latest_h5_filename +" &")
 
-        #                # Open index_html
-        #                os.system("firefox /gpfs/current/processed/index.html")
-        #
-        #                # Create diffraction snapshots
-        #                os.system(
-        #                    "python3 /gpfs/local/shared/MXCuBE/hdf5tools/albula_api/generate_image.py --input "
-        #                    + self.latest_h5_filename
-        #                    + " --output "
-        #                    + os.path.join(
-        #                        basepath, prefix, "rotational_" + str(runno).zfill(3)
-        #                    )
-        #                    + "/"
-        #                    + " --image_number 1"
-        #                )
-        #
         except RuntimeError:
             self.log.error(traceback.format_exc())
         finally:
