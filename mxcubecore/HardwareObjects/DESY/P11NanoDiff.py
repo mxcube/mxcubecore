@@ -154,7 +154,8 @@ class P11NanoDiff(GenericDiffractometer):
         self.update_phase()
         self.update_zoom_calibration()
 
-        self.beam_position = self.update_beam_position()
+        #self.beam_position = self.update_beam_position()
+        self.update_beam_position()
 
     def update_beam_position(self):
         zoom_hwobj = self.motor_hwobj_dict["zoom"]
