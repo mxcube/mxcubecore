@@ -558,6 +558,9 @@ class P11Collect(AbstractCollect):
         except RuntimeWarning as err_msg:
             self.log.debug("Error while adding info to HDF5 file (%s)" % str(err_msg))
             self.log.debug(traceback.format_exc())
+        except Exception as err_msg:
+            self.log.debug("Error while adding info to HDF5 file (%s)" % str(err_msg))
+            self.log.debug(traceback.format_exc())
 
     def get_filter_thickness(self):
         """
