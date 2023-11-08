@@ -73,6 +73,9 @@ class P11Beam(AbstractBeam):
 
         return self.STATES_READY
 
+    def get_slits_gap(self):
+        return None, None
+
     def mirror_state_changed(self, state=None):
 
         if state is None:
