@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mxcubecore"
-version = "1.45.0"
+version = "1.48.0"
 license = "LGPL-3.0-or-later"
 description = "Core libraries for the MXCuBE application"
 authors = ["The MXCuBE collaboration <mxcube@esrf.fr>"]
@@ -12,7 +12,7 @@ maintainers = [
 readme = "README.md"
 homepage = "http://github.com/mxcube/mxcubecore"
 repository = "http://github.com/mxcube/mxcubecore"
-documentation = ""
+documentation = "https://mxcubecore.readthedocs.io/"
 keywords = ["mxcube", "mxcube3", "mxcubecore"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",

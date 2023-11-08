@@ -216,7 +216,7 @@ class GphlWorkflow(HardwareObjectYaml):
         # Configuration data for recentring calculations
         self._recentring_data = OrderedDict()
 
-        # # TEST mxcube3 UI
+        # # TEST mxcubeweb UI
         # self.gevent_event = gevent.event.Event()
         # self.params_dict = {}
 
@@ -252,16 +252,6 @@ class GphlWorkflow(HardwareObjectYaml):
         instrument_data = f90nml.read(fp0)["sdcp_instrument_list"]
         self.rotation_axis_roles = instrument_data["gonio_axis_names"]
         self.translation_axis_roles = instrument_data["gonio_centring_axis_names"]
-
-        detector = HWR.beamline.detector
-        if "Mockup" in detector.__class__.__name__:
-            # We are in mock  mode
-            # - set detector centre to match instrumentaiton.nml
-            # NB this sould be done with isinstance, but that seems to fail,
-            # probably because of import path mix-ups.
-            detector._set_beam_centre(
-                (instrument_data["det_org_x"], instrument_data["det_org_y"])
-            )
 
         # Adapt configuration data - must be done after file_paths setting
         if HWR.beamline.gphl_connection.ssh_options:
@@ -401,8 +391,11 @@ class GphlWorkflow(HardwareObjectYaml):
                     point_group = info.point_group
                     if point_group == "32" and info.bravais_lattice == "hP":
                         point_group = info.crystal_class[:-1]
-                    # if point_group not in point_groups:
-                    #     point_group = point_groups[-1]
+                    if point_group not in point_groups:
+                        point_group = point_groups[-1]
+                    if space_group not in crystal_symmetry.XTAL_SPACEGROUPS:
+                        # Non-enantiomeric sace groups not supported in user interface
+                        space_group = ""
                 else:
                     space_group = ""
         elif space_group:
@@ -411,7 +404,12 @@ class GphlWorkflow(HardwareObjectYaml):
             lattice = info.bravais_lattice
             point_group = info.point_group
             point_groups = lattice2point_group_tags[lattice]
+            if point_group not in point_groups:
+                point_group = point_groups[-1]
             lattice_tags = [""] + list(lattice2point_group_tags)
+            if space_group not in crystal_symmetry.XTAL_SPACEGROUPS:
+                # Non-enantiomeric sace groups not supported in user interface
+                space_group = ""
         else:
             lattice = ""
             point_group = ""
@@ -506,15 +504,16 @@ class GphlWorkflow(HardwareObjectYaml):
             "type": "boolean",
             "default": self.settings["defaults"]["use_cell_for_processing"],
         }
+        resolution = data_model.aimed_resolution or HWR.beamline.resolution.get_value()
         reslimits = HWR.beamline.resolution.get_limits()
         if None in reslimits:
             reslimits = (0.5, 5.0)
+        resolution = max(resolution, reslimits[0])
+        resolution = min(resolution, reslimits[1])
         fields["resolution"] = {
             "title": "Resolution",
             "type": "number",
-            "default": (
-                data_model.aimed_resolution or HWR.beamline.resolution.get_value()
-            ),
+            "default": resolution,
             "minimum": reslimits[0],
             "maximum": reslimits[1],
         }
@@ -797,6 +796,20 @@ class GphlWorkflow(HardwareObjectYaml):
             if params is StopIteration:
                 self.workflow_failed()
                 return
+            use_preset_spotdir = self.settings.get("use_preset_spotdir")
+            if use_preset_spotdir:
+                spotdir = self.get_emulation_sample_dir()
+                if spotdir:
+                    if os.path.isfile(os.path.join(spotdir, "SPOT.XDS")):
+                        params["init_spot_dir"] = spotdir
+                    else:
+                        raise ValueError(
+                            "no file SPOT.XDS in %s" % spotdir)
+                else:
+                    raise ValueError(
+                        "use_preset_spotdir was set for non-emulation sample"
+                    )
+
 
         cell_tags = (
             "cell_a",
@@ -1056,8 +1069,9 @@ class GphlWorkflow(HardwareObjectYaml):
             resolution,
             decay_limit=data_model.decay_limit,
         )
-        default_image_width = float(allowed_widths[default_width_index])
-        default_exposure = acq_parameters.exp_time
+        # NB These default values are set just before this function is called
+        default_image_width = data_model.image_width
+        default_exposure = data_model.exposure_time
         exposure_limits = HWR.beamline.detector.get_exposure_time_limits()
         total_strategy_length = data_model.strategy_length * len(beam_energies)
         # NB this is the default starting value, so repetition_count is 1 at this point
@@ -1069,21 +1083,15 @@ class GphlWorkflow(HardwareObjectYaml):
         proposed_dose = round(max(proposed_dose, 0), use_dose_decimals)
 
         # For calculating dose-budget transmission
-        flux_density = HWR.beamline.flux.get_average_flux_density(transmission=100.0)
-        if flux_density:
-            std_dose_rate = data_model.std_dose_rate = (
-                HWR.beamline.flux.get_dose_rate_per_photon_per_mmsq(initial_energy)
-                * flux_density
-                * 1.0e-6  # convert to MGy/s
-            )
+        maximum_dose = data_model.maximum_dose(energy=initial_energy)
+        if maximum_dose:
             use_dose_start = proposed_dose
             use_dose_frozen = False
-            transmission = 100 * proposed_dose / (std_dose_rate * experiment_time)
+            transmission = 100 * proposed_dose / maximum_dose
             if transmission > 100:
                 use_dose_start = proposed_dose * 100.0 / transmission
                 transmission = 100.0
         else:
-            data_model.std_dose_rate = 0
             transmission = acq_parameters.transmission
             use_dose_start = 0
             use_dose_frozen = True
@@ -1393,8 +1401,7 @@ class GphlWorkflow(HardwareObjectYaml):
         tag = "transmission"
         value = result.get(tag)
         if value:
-            # Convert from % to fraction
-            result[tag] = value / 100.0
+            result[tag] = value
         tag = "wedgeWidth"
         value = result.get(tag)
         if value:
@@ -1439,6 +1446,18 @@ class GphlWorkflow(HardwareObjectYaml):
         strategy_length = sum(sweep.width for sweep in sweeps)
         gphl_workflow_model.strategy_length = strategy_length
 
+        allowed_widths = geometric_strategy.allowedWidths
+        if allowed_widths:
+            default_image_width = float(
+                allowed_widths[geometric_strategy.defaultWidthIdx or 0]
+            )
+        else:
+            default_image_width = list(
+                self.settings.get("default_image_widths")
+            )[0]
+        acq_parameters = HWR.beamline.get_default_acquisition_parameters()
+        default_exposure_time = acq_parameters.exp_time
+
         # get parameters and initial transmission/use_dose
         if gphl_workflow_model.automation_mode:
             # Get parameters and transmission/use_dose
@@ -1451,46 +1470,61 @@ class GphlWorkflow(HardwareObjectYaml):
                     "'dose_budget' parameter no longer supported. "
                     "Use 'use_dose' or 'transmission' instead"
                 )
-            transmission = parameters.get("transmission")
-            use_dose = parameters.get("use_dose")
+            if parameters.get("init_spot_dir"):
+                transmission = HWR.beamline.transmission.get_value()
+                if not parameters["transmission"]:
+                    parameters["transmission"] = transmission
+                if not(
+                    parameters.get("exposure_time") and parameters.get("image_width")
+                ):
+                    raise ValueError(
+                        "exposure_time and image_width must be set when init_spot_dir is set"
+                    )
+            else:
+                image_width = parameters.setdefault("image_width", default_image_width)
+                exposure_time = parameters.setdefault(
+                    "exposure_time", default_exposure_time
+                )
+                transmission = parameters.get("transmission")
+                if not transmission:
+                    use_dose = parameters.get(
+                        "use_dose", gphl_workflow_model.recommended_dose_budget()
+                    )
+                    if gphl_workflow_model.characterisation_done:
+                        use_dose -= gphl_workflow_model.characterisation_dose
+                    elif wftype != "diffractcal":
+                        # This is characterisation
+                        use_dose *= gphl_workflow_model.characterisation_budget_fraction
+                    maximum_dose = gphl_workflow_model.maximum_dose(
+                        image_width=image_width, exposure_time=exposure_time
+                    )
+                    parameters["transmission"] = min(100 * use_dose / maximum_dose, 100)
         else:
-            transmission = None
-            use_dose = None
-
-        # set gphl_workflow_model.transmission (initial value for interactive mode)
-        if transmission is None:
-            # If transmission is already set (automation mode), there is nothing to do
-            if use_dose is None:
-                # Set use_dose from recommended budget
-                use_dose = gphl_workflow_model.recommended_dose_budget()
-                if gphl_workflow_model.characterisation_done:
-                    use_dose -= gphl_workflow_model.characterisation_dose
-                elif wftype != "diffractcal":
-                    # This is characterisation
-                    use_dose *= gphl_workflow_model.characterisation_budget_fraction
-            transmission = gphl_workflow_model.calculate_transmission(use_dose)
+            # set gphl_workflow_model.transmission (initial value for interactive mode)
+            use_dose = gphl_workflow_model.recommended_dose_budget()
+            if gphl_workflow_model.characterisation_done:
+                use_dose -= gphl_workflow_model.characterisation_dose
+            elif wftype != "diffractcal":
+                # This is characterisation
+                use_dose *= gphl_workflow_model.characterisation_budget_fraction
+            # Need setting before query
+            gphl_workflow_model.image_width = default_image_width
+            gphl_workflow_model.exposure_time = default_exposure_time
+            maximum_dose = gphl_workflow_model.maximum_dose()
+            transmission = 100 * use_dose / maximum_dose
             if transmission > 100:
                 if gphl_workflow_model.characterisation_done or wftype == "diffractcal":
                     # We are not in characterisation.
-                    # Try top reset exposure time to get desired dose
+                    # Try to reset exposure time to get desired dose
                     exposure_time = (
                         gphl_workflow_model.exposure_time * transmission / 100
                     )
                     exposure_limits = HWR.beamline.detector.get_exposure_time_limits()
                     if exposure_limits[1]:
-                        exposure_time = max(exposure_limits[1], exposure_time)
+                        exposure_time = min(exposure_limits[1], exposure_time)
                     gphl_workflow_model.exposure_time = exposure_time
                 transmission = 100
             gphl_workflow_model.transmission = transmission
-
-        # If not in automation mode, get params from user query
-        if not gphl_workflow_model.automation_mode:
-
-            # NB - now pre-setting of detector has been removed, this gets
-            # the current resolution setting, whatever it is
-            initial_resolution = HWR.beamline.resolution.get_value()
-            # Put resolution value in workflow model object
-            # gphl_workflow_model.set_detector_resolution(initial_resolution)
 
             # Get modified parameters from UI and confirm acquisition
             # Run before centring, as it also does confirm/abort
@@ -1504,30 +1538,36 @@ class GphlWorkflow(HardwareObjectYaml):
                     "User modification of sweep settings not implemented. Ignored"
                 )
 
-            transmission = parameters["transmission"]
-            logging.getLogger("GUI").info(
-                "GphlWorkflow: setting transmission to %7.3f %%"
-                % (100.0 * transmission)
-            )
-            HWR.beamline.transmission.set_value(100 * transmission)
-
-            new_resolution = parameters.pop("resolution")
-            if (
-                new_resolution != initial_resolution
-                and not gphl_workflow_model.characterisation_done
-            ):
-                logging.getLogger("GUI").info(
-                    "GphlWorkflow: setting detector distance for resolution %7.3f A",
-                    new_resolution,
-                )
-                # timeout in seconds: max move is ~2 meters, velocity 4 cm/sec
-                HWR.beamline.resolution.set_value(new_resolution, timeout=60)
-
         # From here on same for manual and automation
+        # First set current transmission and resolution values
+        transmission = parameters["transmission"]
+        logging.getLogger("GUI").info(
+            "GphlWorkflow: setting transmission to %7.3f %%" % transmission
+        )
+        HWR.beamline.transmission.set_value(transmission)
+
+        # NB - now pre-setting of detector has been removed, this gets
+        # the current resolution setting, whatever it is
+        initial_resolution = HWR.beamline.resolution.get_value()
+        new_resolution = parameters.pop("resolution", initial_resolution)
+        if (
+            new_resolution != initial_resolution
+            and not  parameters.get("init_spot_dir")
+            and not gphl_workflow_model.characterisation_done
+        ):
+            logging.getLogger("GUI").info(
+                "GphlWorkflow: setting detector distance for resolution %7.3f A",
+                new_resolution,
+            )
+            # timeout in seconds: max move is ~2 meters, velocity 4 cm/sec
+            HWR.beamline.resolution.set_value(new_resolution, timeout=60)
+
         gphl_workflow_model.set_pre_acquisition_params(**parameters)
 
         # Update dose consumed to include dose (about to be) acquired.
-        new_dose = gphl_workflow_model.calculate_dose()
+        new_dose = (
+            gphl_workflow_model.maximum_dose() * gphl_workflow_model.transmission / 100
+        )
         if (
             gphl_workflow_model.characterisation_done
             or gphl_workflow_model.wftype == "diffractcal"
@@ -2094,7 +2134,7 @@ class GphlWorkflow(HardwareObjectYaml):
                     or HWR.beamline.get_default_acquisition_parameters().resolution
                 )
 
-            # select indexing solution adn set space_group, crystal_classes
+            # select indexing solution and set space_group, crystal_classes
             header, soldict, select_row = self.parse_indexing_solution(choose_lattice)
             indexing_solution = list(soldict.values())[select_row]
             bravais_lattice = indexing_solution.bravaisLattice
@@ -2269,6 +2309,10 @@ class GphlWorkflow(HardwareObjectYaml):
 
     def process_centring_request(self, payload, correlation_id):
         # Used for transcal only - anything else is data collection related
+
+        raise NotImplementedError(
+            "This function is currently broken, must eb upgraded to new system"
+        )
         request_centring = payload
 
         logging.getLogger("user_level_log").info(
@@ -2331,7 +2375,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
                 try:
                     responses = dispatcher.send(
-                        "gphlParametersNeeded",
+                        self.PARAMETERS_NEEDED,
                         self,
                         field_list,
                         self._return_parameters,
@@ -2530,21 +2574,29 @@ class GphlWorkflow(HardwareObjectYaml):
         return min(result, max_budget) / relative_rad_sensitivity
 
     @staticmethod
-    def calculate_dose(duration, energy, flux_density):
-        """Calculate dose accumulated by sample
+    def maximum_dose_rate(energy=None):
+        """Calculate dose rate at average flux density for transmission=100
 
-        :param duration (s): Duration of radiation
-        :param energy (keV): Energy of ratiation
-        :param flux_density: Flux in photons per second per mm^2
-        :return: Accumulted dose in MGy
+        NB put here rather than in AbstractFlux as assumptions inherent in
+        using averaging to calculate dose rates are felt to be ungeneric
+
+        Args:
+            energy (Optional[float]): Beam enrgy in keV. Defaults to current beamline v alue
+
+        Returns:
+            float: Maximum dose rate in MGy/s
         """
+        energy = energy or HWR.beamline.energy.get_value()
+        flux_density = HWR.beamline.flux.get_average_flux_density(transmission=100.0)
+        if flux_density:
+            return (
+                flux_density
+                * HWR.beamline.flux.get_dose_rate_per_photon_per_mmsq(energy)
+                * 1.0e-6  # convert to MGy
+            )
+        else:
+            return 0
 
-        return (
-            duration
-            * flux_density
-            * HWR.beamline.flux.get_dose_rate_per_photon_per_mmsq(energy)
-            * 1.0e-6  # convert to MGy
-        )
 
     def get_emulation_samples(self):
         """Get list of lims_sample information dictionaries for mock/emulation
@@ -2625,18 +2677,20 @@ class GphlWorkflow(HardwareObjectYaml):
         #
         return result
 
-    def get_emulation_crystal_data(self, sample_name=None):
-        """If sample is a test data set for emulation, get crystal data
+
+    def get_emulation_sample_dir(self, sample_name=None):
+        """If sample is a test data set for emulation, get test data directory
+        Args:
+         sample_name Optional[str]:
 
         Returns:
-            Optional[dict]
+
         """
+        sample_dir = None
         if sample_name is None:
             sample_name = (
                 self._queue_entry.get_data_model().get_sample_node().get_name()
             )
-        crystal_data = None
-        hklfile = None
         if sample_name:
             if sample_name.startswith(self.TEST_SAMPLE_PREFIX):
                 sample_name = sample_name[len(self.TEST_SAMPLE_PREFIX)+1:]
@@ -2646,10 +2700,23 @@ class GphlWorkflow(HardwareObjectYaml):
             if not sample_dir:
                 raise ValueError("Test sample requires gphl_test_samples dir specified")
             sample_dir = os.path.join(sample_dir, sample_name)
-            if not os.path.isdir(sample_dir):
-                raise RuntimeError(
-                    "No emulation data found for %s at %s " % (sample_name, sample_dir)
-                )
+        if not sample_dir:
+            logging.getLogger("HWR").warning(
+                "No emulation sample dir found for sample %s", sample_name
+            )
+        #
+        return sample_dir
+
+    def get_emulation_crystal_data(self, sample_name=None):
+        """If sample is a test data set for emulation, get crystal data
+
+        Returns:
+            Optional[str]
+        """
+        crystal_data = None
+        hklfile = None
+        sample_dir = self.get_emulation_sample_dir(sample_name=sample_name)
+        if os.path.isdir(sample_dir):
             crystal_file = os.path.join(sample_dir, "crystal.nml")
             if not os.path.isfile(crystal_file):
                 raise ValueError(
@@ -2662,6 +2729,10 @@ class GphlWorkflow(HardwareObjectYaml):
             hklfile = os.path.join(sample_dir, "sample.hkli")
             if not os.path.isfile(hklfile):
                 raise ValueError("Emulator hkli file %s does not exist" % hklfile)
+        else:
+            raise RuntimeError(
+                "No emulation data found for %s at %s " % (sample_name, sample_dir)
+            )
         #
         return crystal_data, hklfile
 
@@ -2850,15 +2921,18 @@ class GphlWorkflow(HardwareObjectYaml):
         transmission = float(values.get("transmission", 0))
         dose_budget = float(values.get("dose_budget", 0))
         repetition_count = int(values.get("repetition_count", 1))
-        total_strategy_length = data_model.total_strategy_length
-        std_dose_rate = data_model.std_dose_rate
         if image_width and exposure_time:
-            experiment_time = exposure_time * total_strategy_length / image_width
+            maximum_dose = data_model.maximum_dose(
+                exposure_time=exposure_time, image_width=image_width
+            )
+            experiment_time = (
+                exposure_time * data_model.total_strategy_length / image_width
+            )
             result = {"experiment_time": {"value": experiment_time}}
-            if std_dose_rate and transmission:
+            if maximum_dose and transmission:
                 # If we get here, Adjust dose
                 # NB dose is calculated for *one* repetition
-                use_dose = std_dose_rate * experiment_time * transmission / 100
+                use_dose = maximum_dose * transmission / 100
                 result["use_dose"] = {"value": use_dose}
                 if (
                     use_dose
@@ -2870,8 +2944,9 @@ class GphlWorkflow(HardwareObjectYaml):
                 else:
                     result["use_dose"]["highlight"] = "OK"
                     result["dose_budget"] = {"highlight": "OK"}
-        #
-        return result
+            return result
+        else:
+            return {}
 
     def adjust_transmission(self, values):
         """When use_dose changes, update transmission and/or exposure_time
@@ -2883,33 +2958,35 @@ class GphlWorkflow(HardwareObjectYaml):
         use_dose = float(values.get("use_dose", 0))
         dose_budget = float(values.get("dose_budget", 0))
         repetition_count = int(values.get("repetition_count", 1))
-        std_dose_rate = data_model.std_dose_rate
-        total_strategy_length = data_model.total_strategy_length
 
         result = {}
         if image_width and exposure_time:
-            experiment_time = exposure_time * total_strategy_length / image_width
-            if std_dose_rate and use_dose:
-                transmission = 100 * use_dose / (std_dose_rate * experiment_time)
+            maximum_dose = data_model.maximum_dose(
+                exposure_time=exposure_time, image_width=image_width
+            )
+            experiment_time = (
+                exposure_time * data_model.total_strategy_length / image_width
+            )
+            if maximum_dose and use_dose:
+                transmission = 100 * use_dose / maximum_dose
 
                 if transmission > 100.0:
                     # Transmission too high. Try max transmission and longer exposure
+                    new_exposure_time = exposure_time * transmission / 100.0
                     transmission = 100.0
-                    experiment_time = use_dose / std_dose_rate
-                    exposure_time = (
-                        experiment_time * image_width / total_strategy_length
-                    )
                     max_exposure = exposure_limits[1]
-                    if max_exposure and exposure_time > max_exposure:
+                    if max_exposure and new_exposure_time > max_exposure:
                         # exposure_time over max; set dose to highest achievable dose
-                        exposure_time = max_exposure
-                        experiment_time = (
-                            exposure_time * total_strategy_length / image_width
-                        )
-                    use_dose = std_dose_rate * experiment_time
+                        new_exposure_time = max_exposure
+                    experiment_time = (
+                        experiment_time * new_exposure_time / exposure_time
+                    )
+                    use_dose = data_model.maximum_dose(
+                        exposure_time=new_exposure_time, image_width=image_width
+                    )
                     result = {
                         "exposure": {
-                            "value": exposure_time,
+                            "value": new_exposure_time,
                         },
                         "transmission": {
                             "value": transmission,

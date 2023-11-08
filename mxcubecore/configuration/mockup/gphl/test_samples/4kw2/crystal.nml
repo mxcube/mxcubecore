@@ -17,6 +17,6 @@
  ! L/R at lambda=1A ca. 2.16
  ! B factor to cause intensities to drop off (a bit).
  ! 160.0 selected (correctly?() to make reflections drop to zero by 2.4A ca.
- B_WILSON = 80.0
+ B_WILSON = 10.0
  GEN_MODE = -1
  /

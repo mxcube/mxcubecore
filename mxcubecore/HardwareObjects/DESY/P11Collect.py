@@ -429,6 +429,14 @@ class P11Collect(AbstractCollect):
                 "======= collect_characterisation  Waiting ======================================="
             )
 
+            #This part goes to standard collection. Otherwise it produces phantom openings.
+            # diffr.set_omega_velocity(self.default_speed)
+            # self.acq_window_off_cmd()
+            # self.acq_off_cmd()
+            self.log.debug(
+                "======= collect_characterisation  Waiting ======================================="
+            )
+
             # Let adxv know whether it is
             # self.adxv_notify(self.latest_h5_filename,img_no+1)
 

@@ -7,8 +7,8 @@
     </directory_locations>
 
     <software_paths>
-        <!-- Location of Java binary to execute for workflow application -->
-        <java_binary>/sware/pub/java-1.8.0_91/linux_x64/bin/java</java_binary>
+        <!--  OPTIONAL for java binary => defaults to just 'java' -->
+        <!-- <java_binary>/sware/pub/java-1.8.0_91/linux_x64/bin/java</java_binary> -->
 
         <!-- Gphl workflow Java classpath. -->
         <!--Should point to all contents of workflow application directory-->

@@ -262,6 +262,9 @@ class CollectEmulator(CollectMockup):
     @task
     def data_collection_hook(self):
         """Spawns data emulation using gphl simcal"""
+        data_model = HWR.beamline.gphl_workflow._queue_entry.get_data_model()
+        if data_model.skip_collection:
+            return
 
         data_collect_parameters = self.current_dc_parameters
 
