@@ -1,5 +1,3 @@
-
-
 import gevent
 import time
 import copy
@@ -12,9 +10,9 @@ from mxcubecore import HardwareRepository as HWR
 
 class BIOMAXEiger(AbstractDetector):
     """Eiger hwobj based on tango
-        hardware status:
-        ready:   ready for trigger (this is the state after an "Arm" command)
-        idle:    ready for config (this should be the state after a "Disarm" command)
+    hardware status:
+    ready:   ready for trigger (this is the state after an "Arm" command)
+    idle:    ready for config (this should be the state after a "Disarm" command)
     """
 
     def __init__(self, *args, **kwargs):
@@ -90,7 +88,7 @@ class BIOMAXEiger(AbstractDetector):
             "ImageNbStart",
             "MonitorMode",
             "DiscardNew",
-            "FileWriterMode"
+            "FileWriterMode",
         )
 
         # config needed to be set up for data collection
@@ -186,9 +184,9 @@ class BIOMAXEiger(AbstractDetector):
 
         frame_time_info = self.frame_time_channel.get_info()
         self.frame_time_min = float(frame_time_info.min_value)
-        _status = self.get_channel_object('Status')
+        _status = self.get_channel_object("Status")
 
-        _status.connect_signal('update', self.status_update)
+        _status.connect_signal("update", self.status_update)
         self.update_state(self.STATES.READY)
 
     #  STATUS , status can be "idle", "ready", "UNKNOWN"
@@ -204,7 +202,7 @@ class BIOMAXEiger(AbstractDetector):
         return self.status_chan.get_value().split("\n")[0]
 
     def status_update(*args):
-        logging.getLogger("HWR").debug('eiger satus update', args)
+        logging.getLogger("HWR").debug("eiger satus update", args)
 
     def is_idle(self):
         return self.get_status()[:4] == "idle"
@@ -266,7 +264,7 @@ class BIOMAXEiger(AbstractDetector):
 
     def isclose(self, a, b, rel_tol=1e-04, abs_tol=0.0):
         # implementation from PEP 485
-        return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
+        return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
 
     def wait_attribute_applied(self, att, new_val):
         with gevent.Timeout(
@@ -284,7 +282,8 @@ class BIOMAXEiger(AbstractDetector):
                 "TriggerMode",
                 "RoiMode",
                 "MonitorMode",
-                "FileWriterMode"]:
+                "FileWriterMode",
+            ]:
                 while self.get_value(att) != new_val:
                     gevent.sleep(0.1)
             elif "BeamCenter" in att:
@@ -293,6 +292,7 @@ class BIOMAXEiger(AbstractDetector):
             else:
                 while not self.isclose(self.get_value(att), new_val, rel_tol=1e-04):
                     gevent.sleep(0.1)
+
     #  STATUS END
 
     #  GET INFORMATION
@@ -311,7 +311,8 @@ class BIOMAXEiger(AbstractDetector):
             logging.getLogger("HWR").error(
                 "Cannot set value: %s for attribute %s" % (value, name)
             )
-            raise RuntimeError("[DETECTOR] Cannot set value: %s for attribute %s" % (value, name)
+            raise RuntimeError(
+                "[DETECTOR] Cannot set value: %s for attribute %s" % (value, name)
             )
 
     def get_readout_time(self):
@@ -333,7 +334,11 @@ class BIOMAXEiger(AbstractDetector):
             % (frame_time, nb_images)
         )
 
-        if not self.isclose(time, _nb_images * (_count_time + readout_time) - readout_time, rel_tol=1e-04):
+        if not self.isclose(
+            time,
+            _nb_images * (_count_time + readout_time) - readout_time,
+            rel_tol=1e-04,
+        ):
             logging.getLogger("HWR").error(
                 "[DETECTOR] Acquisition time configuration wrong."
             )
@@ -392,7 +397,7 @@ class BIOMAXEiger(AbstractDetector):
 
     def get_header_detail(self):
         """
-    Detail of header data to be sent.
+        Detail of header data to be sent.
         """
         return self.get_value("HeaderDetail")
 
@@ -454,7 +459,10 @@ class BIOMAXEiger(AbstractDetector):
         msg += f" min val: {self.photon_energy_min}/ max val: {self.photon_energy_max}"
         logging.getLogger("HWR").debug(msg)
 
-        if target_energy < self.photon_energy_min or target_energy > self.photon_energy_max:
+        if (
+            target_energy < self.photon_energy_min
+            or target_energy > self.photon_energy_max
+        ):
             msg = f"Energy value out of limits: {energy}"
             logging.getLogger("HWR").debug(msg)
             logging.getLogger("user_level_log").info(msg)
@@ -462,10 +470,14 @@ class BIOMAXEiger(AbstractDetector):
             return -1
 
         if abs(energy - current_energy) > self.energy_change_threshold:
-            logging.getLogger("HWR").debug("Energy difference over threshold. program energy necessary")
+            logging.getLogger("HWR").debug(
+                "Energy difference over threshold. program energy necessary"
+            )
             return 1
         else:
-            logging.getLogger("HWR").debug("Energy difference below threshold. Do not need to program")
+            logging.getLogger("HWR").debug(
+                "Energy difference below threshold. Do not need to program"
+            )
             return 0
 
     def set_energy_threshold(self, threshold):
@@ -507,7 +519,7 @@ class BIOMAXEiger(AbstractDetector):
         if value not in ["4M", "disabled"]:
             logging.getLogger("HWR").error("Cannot set roi mode")
             return
-        return self.set_value("RoiMode",value)
+        return self.set_value("RoiMode", value)
 
     #  SET VALUES END
 
@@ -532,16 +544,18 @@ class BIOMAXEiger(AbstractDetector):
         try:
             self._prepare_acquisition_sequence()
         except Exception as ex:
-            logging.getLogger("HWR").error("[DETECTOR] Could not configure detector %s" %str(ex))
+            logging.getLogger("HWR").error(
+                "[DETECTOR] Could not configure detector %s" % str(ex)
+            )
             self._configuration_failed()
         else:
-     	    self._configuration_done()
+            self._configuration_done()
 
-    def _configuration_done(self): # (self, gl)
+    def _configuration_done(self):  # (self, gl)
         logging.getLogger("HWR").info("Detector configuration done")
         self.config_state = None
 
-    def _configuration_failed(self): # (self, gl)
+    def _configuration_failed(self):  # (self, gl)
         self.config_state = "error"
         logging.getLogger("HWR").error("Could not configure detector")
         raise RuntimeError("Could not configure detector")
@@ -565,12 +579,14 @@ class BIOMAXEiger(AbstractDetector):
             logging.getLogger("HWR").debug(
                 "readout time and count time is ",
                 self.get_readout_time(),
-                self.get_value("CountTime")
+                self.get_value("CountTime"),
             )
             self.set_value(
                 "FrameTime", self._config_vals["CountTime"] + self.get_readout_time()
             )
-            logging.getLogger("HWR").debug("new frame time is ", self.get_value("FrameTime"))
+            logging.getLogger("HWR").debug(
+                "new frame time is ", self.get_value("FrameTime")
+            )
             for cfg_name, cfg_value in self._config_vals.items():
                 t0 = time.time()
                 if cfg_name == "PhotonEnergy" or cfg_name == "CountTime":
@@ -588,7 +604,9 @@ class BIOMAXEiger(AbstractDetector):
                         if cfg_name == "RoiMode":
                             self.emit("roiChanged")
                     else:
-                        logging.getLogger("HWR").debug("      - value does need to change")
+                        logging.getLogger("HWR").debug(
+                            "      - value does need to change"
+                        )
                 else:
                     logging.getLogger("HWR").error(
                         "Could not config value %s for detector. Not such channel"
@@ -611,7 +629,9 @@ class BIOMAXEiger(AbstractDetector):
         self.wait_buffer_ready()
 
         if not self.is_idle():
-            raise RuntimeError("Detector should be idle before starting a new acquisition")
+            raise RuntimeError(
+                "Detector should be idle before starting a new acquisition"
+            )
 
         self.config_state = None
 
@@ -639,7 +659,7 @@ class BIOMAXEiger(AbstractDetector):
                 "[DETECTOR] Stop acquisition, detector canceled and disarmed."
             )
         except Exception as ex:
-            RuntimeError("[DETECTOR] Error stopping acquisition: %s" %str(ex))
+            RuntimeError("[DETECTOR] Error stopping acquisition: %s" % str(ex))
 
     def cancel_acquisition(self):
         """Cancel acquisition"""
@@ -647,7 +667,7 @@ class BIOMAXEiger(AbstractDetector):
         try:
             self.cancel()
         except Exception as ex:
-            RuntimeError("[DETECTOR] Error cancelling acquisition: %s" %str(ex))
+            RuntimeError("[DETECTOR] Error cancelling acquisition: %s" % str(ex))
 
         time.sleep(1)
         self.disarm()
@@ -693,16 +713,16 @@ class BIOMAXEiger(AbstractDetector):
 
     def set_monitor(self):
         """
-          make sure monitor interface is enabled and discard_new is set to false
-          this is used by the beamline monitor interface
+        make sure monitor interface is enabled and discard_new is set to false
+        this is used by the beamline monitor interface
         """
         try:
             self.set_value("MonitorMode", "enabled")
             self.set_value("DiscardNew", False)
         except Exception as ex:
             logging.getLogger("HWR").error(
-                "[DETECTOR] Couldn't set monitor during init with error {}". format(ex)
-                )
+                "[DETECTOR] Couldn't set monitor during init with error {}".format(ex)
+            )
 
     def get_radius(self, distance=None):
         """Get distance from the beam position to the nearest detector edge.
@@ -727,6 +747,9 @@ class BIOMAXEiger(AbstractDetector):
         # rry = min(self.get_height() - beam_y, beam_y) * pixel_y
         # radius = min(rrx, rry)
 
-        radius = min(self.get_width() - beam_x, self.get_height() - beam_y, beam_x, beam_y) * 0.075
+        radius = (
+            min(self.get_width() - beam_x, self.get_height() - beam_y, beam_x, beam_y)
+            * 0.075
+        )
 
         return radius
