@@ -202,18 +202,19 @@ class SardanaMotor(AbstractMotor):
                     static_limits is returned
         """
         try:
-            _min = self.position_channel.info.minval
-            if math.isinf(self.position_channel.info.minval):
-                _min = -10000
-
-            _max = self.position_channel.info.maxval
-            if math.isinf(self.position_channel.info.maxval):
-                _max = 10000
-            self._nominal_limits = (_min, _max)
-            return self._nominal_limits
-        except Exception as ex:
-            print(ex)
+            minval = self.position_channel.info.minval
+            maxval = self.position_channel.info.maxval
+        except AttributeError:
             return (None, None)
+
+        # Sardana returns infinity if limits are not defined,
+        # this break any later jsonification so we cap the limits
+        min_ = minval if not math.isinf(minval) else self.static_limits[0]
+        max_ = maxval if not math.isinf(maxval) else self.static_limits[1]
+
+        limits_ = (self.limit_lower, self.limit_upper) = (min_, max_)
+
+        return limits_
 
     def get_value(self):
         """
