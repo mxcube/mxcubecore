@@ -449,15 +449,16 @@ class BIOMAXEiger(AbstractDetector):
 
         current_energy = self.get_value("PhotonEnergy")
 
-        logging.getLogger("HWR").debug("   - target energy is: %s" % target_energy)
-        logging.getLogger("HWR").debug("   - currently configured energy is: %s" % current_energy)
-        logging.getLogger("HWR").debug("   -    min val: %s / max val: %s " % (self.photon_energy_min, self.photon_energy_max))
+        msg = f"target energy is: {target_energy}\n"
+        msg += f"currently configured energy is: {current_energy}\n"
+        msg += f" min val: {self.photon_energy_min}/ max val: {self.photon_energy_max}"
+        logging.getLogger("HWR").debug(msg)
 
         if target_energy < self.photon_energy_min or target_energy > self.photon_energy_max:
-            logging.getLogger("HWR").debug("Energy value out of limits: %s" % energy)
-            logging.getLogger("user_level_log").info(
-                "Energy value out of limits: %s" % energy
-            )
+            msg = f"Energy value out of limits: {energy}"
+            logging.getLogger("HWR").debug(msg)
+            logging.getLogger("user_level_log").info(msg)
+
             return -1
 
         if abs(energy - current_energy) > self.energy_change_threshold:

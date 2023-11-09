@@ -730,14 +730,17 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
 
     def getElements(self):
         """
-        Descript. :
+        Return list of dicts with element and energy level
+            [
+                {'symbol': 'Mn', 'energy': 'K'},
+                {'symbol': 'Fe', 'energy': 'K'
+            ]
         """
         elements = []
-        try:
+        if self["elements"] is not None:
             for el in self["elements"]:
                 elements.append({"symbol": el.symbol, "energy": el.energy})
-        except IndexError:
-            pass
+
         return elements
 
     # Mad energies commands
@@ -1026,4 +1029,3 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
         except IndexError:
             pass
         return elements
-
