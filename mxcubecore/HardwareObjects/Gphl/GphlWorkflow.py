@@ -1089,6 +1089,7 @@ class GphlWorkflow(HardwareObjectYaml):
         default_image_width = data_model.image_width
         default_exposure = data_model.exposure_time
         exposure_limits = HWR.beamline.detector.get_exposure_time_limits()
+        maximum_dose = data_model.maximum_dose(energy=initial_energy)
         total_strategy_length = data_model.strategy_length * len(beam_energies)
         # NB this is the default starting value, so repetition_count is 1 at this point
         experiment_time = total_strategy_length * default_exposure / default_image_width
@@ -1099,7 +1100,6 @@ class GphlWorkflow(HardwareObjectYaml):
         proposed_dose = round(max(proposed_dose, 0), use_dose_decimals)
 
         # For calculating dose-budget transmission
-        maximum_dose = data_model.maximum_dose(energy=initial_energy)
         if maximum_dose:
             use_dose_start = proposed_dose
             use_dose_frozen = False

@@ -26,10 +26,8 @@ the QueueModel.
 import copy
 import os
 import logging
-import ruamel.yaml as yaml
 
 from mxcubecore.model import queue_model_enumerables
-from mxcubecore.model import crystal_symmetry
 
 # This module is used as a self contained entity by the BES
 # workflows, so we need to make sure that this module can be
@@ -2111,6 +2109,7 @@ class GphlWorkflow(TaskNode):
         """
 
         from mxcubecore.HardwareObjects.Gphl import GphlMessages
+        from mxcubecore.model import crystal_symmetry
 
         if space_group:
             self.space_group = space_group
@@ -2288,6 +2287,7 @@ class GphlWorkflow(TaskNode):
         """
 
         from mxcubecore.HardwareObjects.Gphl import GphlMessages
+        import ruamel.yaml as yaml
 
         if self.automation_mode == "TEST_FROM_FILE":
             fname = os.getenv("GPHL_TEST_INPUT")
