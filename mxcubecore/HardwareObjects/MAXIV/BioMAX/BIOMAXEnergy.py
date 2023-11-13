@@ -43,7 +43,7 @@ class BIOMAXEnergy(AbstractEnergy):
             logging.getLogger("HWR").warning("Energy: error initializing energy motor")
 
         if self.energy_motor is not None:
-            self.energy_motor.connect("positionChanged", self.energy_position_changed)
+            self.energy_motor.connect("valueChanged", self.energy_position_changed)
             self.energy_motor.connect("stateChanged", self.energy_state_changed)
 
         self.get_energy_limits()
@@ -52,7 +52,7 @@ class BIOMAXEnergy(AbstractEnergy):
         wl=12.3984/pos
         if wl:
             self.emit("energyChanged", (pos/1000, wl*1000))
-            self.emit("positionChanged", (pos/1000, ))
+            self.emit("valueChanged", (pos/1000, ))
 
     def energy_state_changed(self, state):
         self.emit("stateChanged", (state))

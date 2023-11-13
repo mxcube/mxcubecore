@@ -30,9 +30,9 @@ class BIOMAXResolution(AbstractResolution):
             self.valid = False
             logging.getLogger().exception("Cannot get detector size")
 
-        self.update_beam_centre(self.dtox.get_value()) 
+        self.update_beam_centre(self.dtox.get_value())
         self.connect(self.dtox, "stateChanged", self.dtox_state_changed)
-        self.connect(self.dtox, "positionChanged", self.dtox_position_changed)
+        self.connect(self.dtox, "valueChanged", self.dtox_position_changed)
         self.connect(self.energy, "valueChanged", self.energy.energy_state_changed)  # def energy_state_changed(self, state) in BIOMAXEnergy.py
         self.connect(self.detector, "roiChanged", self.det_roi_changed)
 
@@ -49,7 +49,7 @@ class BIOMAXResolution(AbstractResolution):
         self.update_detector_position()
 
     def update_detector_position(self, state=None):
-        self.emit("positionChanged", state)
+        self.emit("valueChanged", state)
 
     def det_roi_changed(self):
         self.det_width = self.detector.get_x_pixels_in_detector()
@@ -68,7 +68,7 @@ class BIOMAXResolution(AbstractResolution):
         bx = float(self.detector['beam'].get_property('bx'))
         ay = float(self.detector['beam'].get_property('ay'))
         by = float(self.detector['beam'].get_property('by'))
-    
+
         return float(dtox)*ax+bx, float(dtox)*ay+by
 
     def recalculate_resolution(self):
@@ -81,7 +81,7 @@ class BIOMAXResolution(AbstractResolution):
         if dist is None:
             dist = self.dtox.get_value()
 
-        return "%.3f" % self._calc_res(self.det_radius, dist) 
+        return "%.3f" % self._calc_res(self.det_radius, dist)
 
     def get_value(self):
         return self.dist2res(self.dtox.get_value())
@@ -97,7 +97,7 @@ class BIOMAXResolution(AbstractResolution):
             self.dist2res(_low),
             self.dist2res(_high),
         )
-    
+
 
     def _set_value(self, value):
         """Move resolution to value.
@@ -114,7 +114,7 @@ class BIOMAXResolution(AbstractResolution):
 
         try:
             ttheta = math.atan(radius / dist)
-            
+
             if ttheta != 0:
                 return current_wavelength / (2*math.sin(ttheta/2))
             else:
@@ -122,7 +122,7 @@ class BIOMAXResolution(AbstractResolution):
         except Exception:
             logging.getLogger().exception("error while calculating resolution")
             return None
-    
+
     def get_wavelength(self):
         return self.get_wavelegth_from_energy(self.energy.get_current_energy())
 
@@ -131,7 +131,6 @@ class BIOMAXResolution(AbstractResolution):
 
     def update_resolution(self, res):
         self.current_resolution = res
-        self.emit("positionChanged", (res, ))
         self.emit('valueChanged', (res, ))
 
     def res2dist(self, res=None):

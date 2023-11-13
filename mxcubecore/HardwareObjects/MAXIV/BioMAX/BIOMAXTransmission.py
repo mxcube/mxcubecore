@@ -26,7 +26,7 @@ class BIOMAXTransmission(AbstractTransmission):
         except KeyError:
             logging.getLogger("HWR").warning("Error initializing transmission motor")
         if self.transmission_motor is not None:
-            self.transmission_motor.connect("positionChanged", self.transmission_position_changed
+            self.transmission_motor.connect("valueChanged", self.transmission_position_changed
             )
 
     def is_ready(self):
@@ -54,8 +54,8 @@ class BIOMAXTransmission(AbstractTransmission):
             raise Exception("Transmssion out of limits.")
 
         with gevent.Timeout(10, Exception("Timeout waiting for device to be stopped")):
-                while self.transmission_motor.is_moving():
-                    gevent.sleep(0.1)
+            while self.transmission_motor.is_moving():
+                gevent.sleep(0.1)
 
         self.transmission_motor.set_value(value) # self.transmission_motor.move(value)
         time.sleep(0.25) #motor does not switch to moving inmediately
