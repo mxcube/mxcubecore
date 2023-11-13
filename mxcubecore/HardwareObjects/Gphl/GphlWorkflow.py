@@ -596,6 +596,7 @@ class GphlWorkflow(HardwareObjectYaml):
         # NB update_on_change supports None, "always", and "selected"
         # It controls whether an update signal is sent when a parameter changes
         ui_schema = {
+            "wf_type": {"ui:widget": "hidden"},
             "ui:order": ["crystal_data", "parameters"],
             "ui:widget": "vertical_box",
             "ui:options": {
