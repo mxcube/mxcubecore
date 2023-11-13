@@ -352,5 +352,4 @@ class PrepareRemoveLongPin:
 
 class BIOMAXBeamlineActions(BeamlineActions):
     def __init__(self, *args):
-        HardwareObject.__init__(self, *args)
-        self.command_list = []
+        super().__init__(*args)
