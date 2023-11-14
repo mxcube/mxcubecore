@@ -27,11 +27,6 @@ jobs:
           python -m pip install poetry --user
           python -m poetry install
 
-      - name: Linting and code quality checks
-        run: |
-          # Disabled for now
-          # python -m poetry run pre-commit run --all-files
-
       - name: Test with pytest
         run: |
           python -m poetry run pytest --no-cov
