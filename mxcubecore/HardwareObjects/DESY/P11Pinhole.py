@@ -57,7 +57,7 @@ class P11Pinhole(MotorsNPosition):
         names = config["Pinholes"]["pinholesizelist"].split(",")
         names[0] = "Down"
 
-        units = ["micron",] * len(names)
+        units = ["micron"] * len(names)
         units[0] = ""
 
         posnames = copy.copy(names)

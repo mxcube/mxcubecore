@@ -389,7 +389,7 @@ class P11Collect(AbstractCollect):
                 "======= collect_characterisation  Waiting ======================================="
             )
 
-            #This part goes to standard collection. Otherwise it produces phantom openings.
+            # This part goes to standard collection. Otherwise it produces phantom openings.
             # diffr.set_omega_velocity(self.default_speed)
             # self.acq_window_off_cmd()
             # self.acq_off_cmd()
@@ -536,7 +536,7 @@ class P11Collect(AbstractCollect):
 
             thickness = int(thick1) + int(thick2) + int(thick3)
 
-            return float(thickness) / 1000000
+            return float(thickness) / 1_000_000
         else:
             return -1
 
@@ -1011,7 +1011,7 @@ class P11Collect(AbstractCollect):
             if path_1[i] != v__:
                 break
 
-            parts = ["..",] * (len(path_2) - i)
+            parts = [".."] * (len(path_2) - i)
             parts.extend(path_1[i:])
 
         return os.path.join(*parts)

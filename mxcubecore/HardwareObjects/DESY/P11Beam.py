@@ -32,36 +32,31 @@ __category__ = "General"
 
 
 class P11Beam(AbstractBeam):
-    def __init__(self,*args):
-        super(P11Beam,self).__init__(*args)
+    def __init__(self, *args):
+        super(P11Beam, self).__init__(*args)
 
-        self._beam_size_dict = {
-            "aperture": [9999,9999],
-            "slits": [9999,9999],
-        }
+        self._beam_size_dict = {"aperture": [9999, 9999], "slits": [9999, 9999]}
 
-        self._beam_position_on_screen = [340, 256]  
+        self._beam_position_on_screen = [340, 256]
 
         self.focus_sizes = {
-             -1: {'label': 'unknown', 'size': (0.2,0.2)},
-             0: {'label': 'flat', 'size': (0.2,0.2)},
-             1: {'label': '200x200', 'size': (0.2,0.2)},
-             2: {'label': '100x100', 'size': (0.1,0.1)},
-             3: {'label': '50x50', 'size': (0.05,0.05)},
-             4: {'label': '20x20', 'size': (0.02,0.02)},
-             5: {'label': '4x9', 'size': (0.009,0.004)},
-          }
-
-
+            -1: {"label": "unknown", "size": (0.2, 0.2)},
+            0: {"label": "flat", "size": (0.2, 0.2)},
+            1: {"label": "200x200", "size": (0.2, 0.2)},
+            2: {"label": "100x100", "size": (0.1, 0.1)},
+            3: {"label": "50x50", "size": (0.05, 0.05)},
+            4: {"label": "20x20", "size": (0.02, 0.02)},
+            5: {"label": "4x9", "size": (0.009, 0.004)},
+        }
 
     def init(self):
         self.mirror_idx_ch = self.get_channel_object("beamsize")
         self.mirror_state_ch = self.get_channel_object("state")
 
         if self.mirror_idx_ch is not None:
-             self.mirror_idx_ch.connect_signal("update", self.mirror_idx_changed)
+            self.mirror_idx_ch.connect_signal("update", self.mirror_idx_changed)
         if self.mirror_state_ch is not None:
-             self.mirror_state_ch.connect_signal("update", self.mirror_state_changed)
+            self.mirror_state_ch.connect_signal("update", self.mirror_state_changed)
 
         self.mirror_idx_changed()
         self.mirror_state_changed()
@@ -81,7 +76,7 @@ class P11Beam(AbstractBeam):
         if state is None:
             state = self.get_beam_info_state()
 
-        self.update_state( self._convert_tango_state(state) )
+        self.update_state(self._convert_tango_state(state))
 
     def _convert_tango_state(self, state):
         str_state = str(state)
@@ -93,7 +88,6 @@ class P11Beam(AbstractBeam):
         else:
             _state = self.STATES.FAULT
         return _state
-
 
     def mirror_idx_changed(self, value=None):
 
@@ -107,11 +101,11 @@ class P11Beam(AbstractBeam):
             self.log.debug(f"    - UNKNOWN mirror index")
 
         curr_size_item = self.focus_sizes[value]
-        self.log.debug(f"    current mirror focus is {curr_size_item['label']}: {curr_size_item['size']}")
+        self.log.debug(
+            f"    current mirror focus is {curr_size_item['label']}: {curr_size_item['size']}"
+        )
 
-             
-        self._beam_size_dict["aperture"] = curr_size_item['size']
+        self._beam_size_dict["aperture"] = curr_size_item["size"]
 
         self.evaluate_beam_info()
         self.re_emit_values()
-

@@ -205,7 +205,7 @@ class P11SampleChanger(SampleChanger):
             "Sample changer: Sample loaded (total time: %s)"
             % (time.time() - self._start_load)
         )
-        
+
         self.emit("progressStop", ())
 
         return self.get_loaded_sample()

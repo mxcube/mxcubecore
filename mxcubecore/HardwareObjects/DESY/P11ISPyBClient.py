@@ -39,7 +39,7 @@ class P11ISPyBClient(ISPyBClient):
         return ISPyBClient.store_image(self, image_dict)
 
     def store_robot_action(self, robot_action_dict):
-        #TODO ISPyB is not ready for now. This prevents from error 500 from the server.
+        # TODO ISPyB is not ready for now. This prevents from error 500 from the server.
         pass
 
     def prepare_collect_for_lims(self, mx_collect_dict):
