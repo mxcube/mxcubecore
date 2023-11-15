@@ -808,7 +808,7 @@ class SampleChanger(Container, HardwareObject):
             else:
                 self.log.debug(f" Found sample {smp} is loaded")
                 self.log.debug(f"   getting loaded {self.get_loaded_sample()}")
-                #if self.get_loaded_sample() == smp:
+                # if self.get_loaded_sample() == smp:
                 smp._set_loaded(True)
 
         if previous_loaded != self.get_loaded_sample():
