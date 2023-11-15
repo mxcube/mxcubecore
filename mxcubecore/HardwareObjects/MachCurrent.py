@@ -35,12 +35,13 @@ from mxcubecore.HardwareObjects.abstract.AbstractMachineInfo import (
     AbstractMachineInfo,
 )
 
-_copyright__ = """ Copyright © 2010-2023 by the MXCuBE collaboration """
+__copyright__ = """ Copyright © 2010-2023 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
 class MachCurrent(AbstractMachineInfo):
     """Tango implementation"""
+
     def __init__(self, name):
         super().__init__(name)
         self.opmsg = ""
