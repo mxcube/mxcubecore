@@ -23,7 +23,7 @@ import abc
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
-__copyright__ = """ Copyright © 2010-2022 by the MXCuBE collaboration """
+__copyright__ = """ Copyright © 2010-2023 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
@@ -42,42 +42,42 @@ class AbstractMachineInfo(HardwareObject):
 
     @abc.abstractmethod
     def get_current(self) -> float:
-        """Read current.
+        """Read the ring current.
         Returns:
-            Current.
+            Current [mA].
         """
         return 0
 
     def get_message(self) -> str:
-        """
+        """Read the operator's message.
         Returns:
             Message.
         """
         return ""
 
     def get_lifetime(self) -> float:
-        """
+        """Read the life time.
         Returns:
             Life time [s].
         """
         return 0
 
     def get_topup_remaining(self) -> float:
-        """
+        """Read the top up remaining time.
         Returns:
-            Top up remaining.
+            Top up remaining [s].
         """
         return 0
 
     def get_fill_mode(self) -> str:
-        """
+        """Read the fill mode as text.
         Returns:
             Machine fille mode
         """
         return ""
 
     def get_mach_info_dict(self) -> dict:
-        """
+        """Read machine info summary as dictionary.
         Returns:
             Copy of mach_info_dict.
         """
