@@ -426,52 +426,56 @@ class GphlWorkflow(HardwareObjectYaml):
             "title": "a",
             "type": "number",
             "minimum": 0,
-            "readonly": True,
+            "readOnly": True,
         }
         fields["cell_b"] = {
             "title": "b",
             "type": "number",
             "minimum": 0,
-            "readonly": True,
+            "readOnly": True,
         }
         fields["cell_c"] = {
             "title": "c",
             "type": "number",
             "minimum": 0,
-            "readonly": True,
+            "readOnly": True,
         }
         fields["cell_alpha"] = {
             "title": "α",
             "type": "number",
             "minimum": 0,
             "maximum": 180,
-            "readonly": True,
+            "readOnly": True,
         }
         fields["cell_beta"] = {
             "title": "β",
             "type": "number",
             "minimum": 0,
             "maximum": 180,
-            "readonly": True,
+            "readOnly": True,
         }
         fields["cell_gamma"] = {
             "title": "γ",
             "type": "number",
             "minimum": 0,
             "maximum": 180,
-            "readonly": True,
+            "readOnly": True,
         }
         lattice_dict = OrderedDict((tag, tag) for tag in lattice_tags)
         fields["lattice"] = {
             "title": "Crystal lattice",
+            "type": "string",
             "default": lattice,
+             "enum": lattice_tags,
             # "$ref": "#/definitions/lattice",
             "value_dict": lattice_dict,
         }
         pg_dict = OrderedDict((tag, tag) for tag in point_groups)
         fields["point_groups"] = {
             "title": "Point Groups",
+            "type": "string",
             "default": point_group,
+            "enum": point_groups,
             "value_dict": pg_dict,
             "hidden": not choose_lattice,
         }
@@ -481,7 +485,9 @@ class GphlWorkflow(HardwareObjectYaml):
         sg_dict = OrderedDict((tag, tag) for tag in sglist)
         fields["space_group"] = {
             "title": "Space Group",
+            "type": "string",
             "default": space_group,
+            "enum": sglist,
             "value_dict": sg_dict,
         }
         fields["input_space_group"] = {
@@ -491,7 +497,7 @@ class GphlWorkflow(HardwareObjectYaml):
             )
             or "",
             "type": "string",
-            "readonly": True,
+            "readOnly": True,
         }
         fields["relative_rad_sensitivity"] = {
             "title": "Radiation sensitivity",
@@ -519,7 +525,14 @@ class GphlWorkflow(HardwareObjectYaml):
         }
         fields["strategy"] = {
             "title": "Strategy",
-            "$ref": "#/definitions/strategy",
+            "type": "string",
+            # "$ref": "#/definitions/strategy",
+        }
+        fields["wf_type"] = {
+            "title": "Workflow type",
+            "type": "string",
+            "default": "GphlWorkflow",
+            "readOnly": True,
         }
         # )
         # Handle strategy fields
@@ -527,6 +540,7 @@ class GphlWorkflow(HardwareObjectYaml):
             strategies = strategy_settings["variants"]
             fields["strategy"]["default"] = strategies[0]
             fields["strategy"]["title"] = "Acquisition strategy"
+            fields["strategy"]["enum"] = strategies
             ll0 = strategy_settings.get("beam_energy_tags")
             if ll0:
                 energy_tag = ll0[0]
@@ -537,15 +551,16 @@ class GphlWorkflow(HardwareObjectYaml):
             strategies = self.settings["characterisation_strategies"]
             fields["strategy"]["default"] = strategies[0]
             fields["strategy"]["title"] = "Characterisation strategy"
+            fields["strategy"]["enum"] = strategies
             energy_tag = "Characterisation"
-        schema["definitions"]["strategy"] = list(
-            {
-                "type": "string",
-                "enum": [tag],
-                "title": tag,
-            }
-            for tag in strategies
-        )
+        # schema["definitions"]["strategy"] = list(
+        #     {
+        #         "type": "string",
+        #         "enum": [tag],
+        #         "title": tag,
+        #     }
+        #     for tag in strategies
+        # )
         # Handle energy field
         # NBNB allow for fixed-energy beamlines
         energy_limits = HWR.beamline.energy.get_limits()
@@ -581,6 +596,7 @@ class GphlWorkflow(HardwareObjectYaml):
         # NB update_on_change supports None, "always", and "selected"
         # It controls whether an update signal is sent when a parameter changes
         ui_schema = {
+            "wf_type": {"ui:widget": "hidden"},
             "ui:order": ["crystal_data", "parameters"],
             "ui:widget": "vertical_box",
             "ui:options": {
@@ -667,7 +683,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 "cell_beta",
                 "cell_gamma",
             ):
-                fields[tag]["readonly"] = False
+                fields[tag]["readOnly"] = False
             ui_schema["parameters"]["column1"]["ui:order"].remove("point_groups")
 
         elif choose_lattice is None:
@@ -677,7 +693,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
         else:
             # Acquisition
-            fields["relative_rad_sensitivity"]["readonly"] = True
+            fields["relative_rad_sensitivity"]["readOnly"] = True
             fields["indexing_solution"] = {
                 "title": "--- Select indexing solution : ---",
                 "type": "string",
@@ -1115,7 +1131,7 @@ class GphlWorkflow(HardwareObjectYaml):
             # "title": "Data collection plan",
             "type": "textdisplay",
             "default": info_text,
-            "readonly": True,
+            "readOnly": True,
         }
         fields["image_width"] = {
             "title": "Oscillation range",
@@ -1135,14 +1151,14 @@ class GphlWorkflow(HardwareObjectYaml):
             "type": "number",
             "default": dose_budget - data_model.characterisation_dose,
             "minimum": 0.0,
-            "readonly": True,
+            "readOnly": True,
         }
         fields["use_dose"] = {
             "title": dose_label,
             "type": "number",
             "default": use_dose_start,
             "minimum": 0.000001,
-            "readonly": use_dose_frozen,
+            "readOnly": use_dose_frozen,
         }
         # NB Transmission is in % in UI, but in 0-1 in workflow
         fields["transmission"] = {
@@ -1158,13 +1174,13 @@ class GphlWorkflow(HardwareObjectYaml):
             "default": resolution,
             "minimum": reslimits[0],
             "maximum": reslimits[1],
-            "readonly": True,
+            "readOnly": True,
         }
         fields["experiment_time"] = {
             "title": "Experiment duration (s)",
             "type": "number",
             "default": experiment_time,
-            "readonly": True,
+            "readOnly": True,
         }
         if data_model.characterisation_done:
             fields["repetition_count"] = {
@@ -1194,7 +1210,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 "default": val,
                 "minimum": energy_limits[0],
                 "maximum": energy_limits[1],
-                "readonly": readonly,
+                "readOnly": readonly,
             }
             readonly = False
 
