@@ -1,3 +1,23 @@
+# encoding: utf-8
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU General Lesser Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+
 """Machine Current Tango Hardware Object
 Example XML:
 <device class = "MachCurrent">
@@ -10,28 +30,33 @@ Example XML:
 </device>
 """
 
+import logging
 from mxcubecore.HardwareObjects.abstract.AbstractMachineInfo import (
     AbstractMachineInfo,
 )
 
-import logging
+__copyright__ = """ Copyright © 2010-2023 by the MXCuBE collaboration """
+__license__ = "LGPLv3+"
 
 
 class MachCurrent(AbstractMachineInfo):
+    """Tango implementation"""
+
     def __init__(self, name):
         super().__init__(name)
         self.opmsg = ""
 
     def init(self):
         try:
-            chanCurrent = self.get_channel_object("Current")
-            chanCurrent.connect_signal("update", self.value_changed)
+            curr = self.get_channel_object("Current")
+            curr.connect_signal("update", self.value_changed)
             self.update_state(self.STATES.READY)
-        except Exception as e:
-            logging.getLogger("HWR").exception(e)
+        except Exception as err:
+            logging.getLogger("HWR").exception(err)
 
     def value_changed(self, value):
-        mach = value or self.get_current()
+        """Get information from the control software, emit valueChanged"""
+        value = value or self.get_current()
 
         try:
             opmsg = self.get_channel_object("OperatorMsg").get_value()
@@ -39,38 +64,36 @@ class MachCurrent(AbstractMachineInfo):
             fillmode = fillmode.strip()
 
             refill = self.get_channel_object("RefillCountdown").get_value()
-        except Exception as e:
-            logging.getLogger("HWR").exception(e)
+        except Exception as err:
+            logging.getLogger("HWR").exception(err)
             opmsg, fillmode, value, refill = ("", "", -1, -1)
 
         if opmsg and opmsg != self.opmsg:
             self.opmsg = opmsg
             logging.getLogger("user_level_log").info(self.opmsg)
-        self.emit("valueChanged", (mach, opmsg, fillmode, refill))
+        self.emit("valueChanged", (value, opmsg, fillmode, refill))
 
     def get_current(self) -> float:
+        """Read the ring current.
+        Returns:
+            (float): Ring current [mA]
+        """
         try:
-            value = self.get_channel_object("Current").get_value()
-        except Exception as e:
-            logging.getLogger("HWR").exception(e)
-            value = -1
-
-        return value
+            return self.get_channel_object("Current").get_value()
+        except Exception as err:
+            logging.getLogger("HWR").exception(err)
+            return -1
 
     def get_message(self) -> str:
         try:
-            msg = self.get_channel_object("OperatorMsg").get_value()
-        except Exception as e:
-            logging.getLogger("HWR").exception(e)
-            msg = ""
-
-        return msg
+            return self.get_channel_object("OperatorMsg").get_value()
+        except Exception as err:
+            logging.getLogger("HWR").exception(err)
+            return ""
 
     def get_fill_mode(self) -> str:
         try:
-            fmode = self.get_channel_object("FillingMode").get_value()
-        except Exception as e:
-            logging.getLogger("HWR").exception(e)
-            fmode = ""
-
-        return fmode
+            return self.get_channel_object("FillingMode").get_value()
+        except Exception as err:
+            logging.getLogger("HWR").exception(err)
+            return ""
