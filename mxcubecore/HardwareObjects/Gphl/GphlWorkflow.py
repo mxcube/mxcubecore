@@ -473,6 +473,11 @@ class GphlWorkflow(HardwareObjectYaml):
         # Handle strategy fields
         if data_model.characterisation_done or data_model.wftype == "diffractcal":
             strategies = strategy_settings["variants"]
+            if data_model.wftype == "diffractcal":
+                strategies = list(
+                    strategy_settings["options"].get("strategy", "") + variant
+                    for variant in strategies
+                 )
             fields["strategy"]["default"] = strategies[0]
             fields["strategy"]["title"] = "Acquisition strategy"
             fields["strategy"]["enum"] = strategies

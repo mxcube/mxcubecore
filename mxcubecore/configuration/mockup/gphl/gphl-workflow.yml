@@ -155,8 +155,8 @@ settings:
 
         # Parameters to individual applications
         # Switch devMod to True to activate development parameters
-        # NB needed as of 20210802 to pass stratcal parameters strategy_type and variant
-        co.gphl.wf.devMode: true
+        # NB needed as of 20231116 no longer in active use
+#        co.gphl.wf.devMode: true
         # For stratcal configuration switches edit run_stratcal_wrap.py script instead-->
 
 #            Dummy sample properties.
