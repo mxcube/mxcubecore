@@ -283,12 +283,6 @@ class GphlWorkflow(HardwareObjectYaml):
                         )
 
         self.update_state(self.STATES.READY)
-        recentring_file = os.path.join(
-            HWR.beamline.session.get_base_process_directory(), "recen.nml"
-        )
-        print ('@~@~ recentring_file', os.path.isfile(recentring_file), recentring_file)
-        if os.path.isfile(recentring_file):
-            self.recentring_file = recentring_file
 
     def shutdown(self):
         """Shut down workflow and connection. Triggered on program quit."""
@@ -740,7 +734,10 @@ class GphlWorkflow(HardwareObjectYaml):
 
         self._workflow_queue = gevent.queue.Queue()
         HWR.beamline.gphl_connection.open_connection()
-        if data_model.automation_mode:
+
+        if data_model.wftype == "transcal":
+            return
+        elif data_model.automation_mode:
             params = data_model.auto_acq_parameters[0]
             space_group = params.pop("space_group", "")
             crystal_classes = params.pop("crystal_classes", ())
@@ -810,6 +807,12 @@ class GphlWorkflow(HardwareObjectYaml):
         # Fork off workflow server process
         HWR.beamline.gphl_connection.start_workflow(
             self._workflow_queue, self._queue_entry.get_data_model()
+        )
+
+        # NB - this is really initialising, but we want to do it aftrer WF start
+        # since here the directory we want is set
+        self.recentring_file = os.path.join(
+            HWR.beamline.gphl_connection.software_paths["GPHL_WDIR"], "recen.nml"
         )
 
         while True:
@@ -1406,6 +1409,8 @@ class GphlWorkflow(HardwareObjectYaml):
         # Set up
         gphl_workflow_model = self._queue_entry.get_data_model()
         wftype = gphl_workflow_model.wftype
+        has_recentring_file = os.path.isfile(self.recentring_file)
+
         sweeps = geometric_strategy.get_ordered_sweeps()
 
         # Set strategy_length
@@ -1625,7 +1630,7 @@ class GphlWorkflow(HardwareObjectYaml):
             maxdev = max(abs(okp[1] - current_okp[1]), abs(okp[2] - current_okp[2]))
 
             # Get translation setting from recentring or current (MAY be used)
-            if self.recentring_file:
+            if has_recentring_file:
                 # calculate first sweep recentring from okp
                 tol = self.settings.get("angular_tolerance", 1.0)
                 translation_settings = self.calculate_recentring(
@@ -1655,14 +1660,14 @@ class GphlWorkflow(HardwareObjectYaml):
             else:
 
                 if recentring_mode == "none":
-                    if self.recentring_file:
+                    if has_recentring_file:
                         # NB  if no recentring  but  MiniKappaCorrection this still OK
                         translation = GphlMessages.GoniostatTranslation(
                             rotation=sweepSetting, **translation_settings
                         )
                         goniostatTranslations.append(translation)
                 else:
-                    if self.recentring_file:
+                    if has_recentring_file:
                         settings.update(translation_settings)
                     q_e = self.enqueue_sample_centring(motor_settings=settings)
                     translation, dummy = self.execute_sample_centring(q_e, sweepSetting)
@@ -1698,7 +1703,7 @@ class GphlWorkflow(HardwareObjectYaml):
         # calculate or determine centring for remaining sweeps
         for sweepSetting in sweepSettings[1:]:
             settings = dict(sweepSetting.axisSettings)
-            if self.recentring_file:
+            if has_recentring_file:
                 # Update settings
                 okp = tuple(settings.get(x, 0) for x in self.rotation_axis_roles)
                 settings.update(
@@ -1718,7 +1723,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 gphl_workflow_model.current_rotation_id = sweepSetting.id_
                 okp = tuple(int(settings.get(x, 0)) for x in self.rotation_axis_roles)
                 self.collect_centring_snapshots("%s_%s_%s" % okp)
-            elif self.recentring_file and not gphl_workflow_model.lattice_selected:
+            elif has_recentring_file and not gphl_workflow_model.characterisation_done:
                 # Not the first sweep and not gone through stratcal
                 # Calculate recentred positions and pass them back
                 translation = GphlMessages.GoniostatTranslation(
@@ -2249,10 +2254,6 @@ class GphlWorkflow(HardwareObjectYaml):
 
     def process_centring_request(self, payload, correlation_id):
         # Used for transcal only - anything else is data collection related
-
-        raise NotImplementedError(
-            "This function is currently broken, must eb upgraded to new system"
-        )
         request_centring = payload
 
         logging.getLogger("user_level_log").info(
@@ -2303,39 +2304,52 @@ class GphlWorkflow(HardwareObjectYaml):
                 # Ask user to zoom
                 info_text = """Automatic sample re-centering is now active
     Switch to maximum zoom before continuing"""
-                field_list = [
-                    {
-                        "variableName": "_info",
-                        "uiLabel": "Data collection plan",
-                        "type": "textarea",
-                        "default": info_text,
-                    }
-                ]
-                self._return_parameters = gevent.event.AsyncResult()
 
+                schema = {
+                    "title": "GΦL Tramslational calibration",
+                    "type": "object",
+                    "properties": {},
+                }
+                fields = schema["properties"]
+                fields["_info"] = {
+                    "type": "textdisplay",
+                    "default": info_text,
+                    "readonly": True,
+                }
+                ui_schema = {
+                    "ui:order": ["_info"],
+                    "ui:widget": "vertical_box",
+                    "ui:options": {
+                        "return_signal": self.PARAMETER_RETURN_SIGNAL,
+                        # "update_signal": self.PARAMETER_UPDATE_SIGNAL,
+                        # "update_on_change": "selected",
+                    },
+                }
+                self._return_parameters = gevent.event.AsyncResult()
                 try:
+                    dispatcher.connect(
+                        self.receive_pre_transcal_data,
+                        self.PARAMETER_RETURN_SIGNAL,
+                        dispatcher.Any,
+                    )
                     responses = dispatcher.send(
                         self.PARAMETERS_NEEDED,
                         self,
-                        field_list,
-                        self._return_parameters,
-                        None,
+                        schema,
+                        ui_schema,
                     )
                     if not responses:
                         self._return_parameters.set_exception(
                             RuntimeError(
-                                "Signal 'gphlParametersNeeded' is not connected"
-                            )
+                                "Signal %s is not connected" % self.PARAMETERS_NEEDED)
                         )
 
-                    # We do not need the result, just to end the waiting
-                    response = self._return_parameters.get()
-                    self._return_parameters = None
-                    if response is StopIteration:
+                    result = self._return_parameters.get()
+                    if result is StopIteration:
                         return StopIteration
                 finally:
                     dispatcher.disconnect(
-                        self.receive_pre_strategy_data,
+                        self.receive_pre_transcal_data,
                         self.PARAMETER_RETURN_SIGNAL,
                         dispatcher.Any,
                     )
@@ -2713,6 +2727,18 @@ class GphlWorkflow(HardwareObjectYaml):
                             "Signal %s is not connected" % self.PARAMETER_UPDATE_SIGNAL
                         )
                     )
+
+    def receive_pre_transcal_data(self, instruction, parameters):
+
+        if instruction == self.PARAMETERS_READY:
+            self._return_parameters.set(parameters)
+        elif instruction == self.PARAMETERS_CANCELLED:
+            self._return_parameters.set(StopIteration)
+        else:
+            raise ValueError(
+                "Illegal return instruction %s for transcal parameter query"
+                % instruction
+            )
 
     def receive_pre_collection_data(self, instruction, parameters):
 
