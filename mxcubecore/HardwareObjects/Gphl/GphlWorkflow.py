@@ -348,7 +348,6 @@ class GphlWorkflow(HardwareObjectYaml):
             "title": "GΦL Pre-strategy parameters",
             "type": "object",
             "properties": {},
-            "definitions": {},
         }
         fields = schema["properties"]
         fields["cell_a"] = {
@@ -390,34 +389,27 @@ class GphlWorkflow(HardwareObjectYaml):
             "maximum": 180,
             "readOnly": True,
         }
-        lattice_dict = OrderedDict((tag, tag) for tag in lattice_tags)
         fields["lattice"] = {
             "title": "Crystal lattice",
             "type": "string",
             "default": lattice,
-             "enum": lattice_tags,
-            # "$ref": "#/definitions/lattice",
-            "value_dict": lattice_dict,
+            "enum": lattice_tags,
         }
-        pg_dict = OrderedDict((tag, tag) for tag in point_groups)
         fields["point_groups"] = {
             "title": "Point Groups",
             "type": "string",
             "default": point_group,
             "enum": point_groups,
-            "value_dict": pg_dict,
             "hidden": not choose_lattice,
         }
         sglist = [""] + crystal_symmetry.space_groups_from_params(
             point_groups=point_groups
         )
-        sg_dict = OrderedDict((tag, tag) for tag in sglist)
         fields["space_group"] = {
             "title": "Space Group",
             "type": "string",
             "default": space_group,
             "enum": sglist,
-            "value_dict": sg_dict,
         }
         fields["input_space_group"] = {
             "title": "Space Group",
@@ -455,7 +447,6 @@ class GphlWorkflow(HardwareObjectYaml):
         fields["strategy"] = {
             "title": "Strategy",
             "type": "string",
-            # "$ref": "#/definitions/strategy",
         }
         fields["wf_type"] = {
             "title": "Workflow type",
@@ -487,14 +478,6 @@ class GphlWorkflow(HardwareObjectYaml):
             fields["strategy"]["title"] = "Characterisation strategy"
             fields["strategy"]["enum"] = strategies
             energy_tag = "Characterisation"
-        # schema["definitions"]["strategy"] = list(
-        #     {
-        #         "type": "string",
-        #         "enum": [tag],
-        #         "title": tag,
-        #     }
-        #     for tag in strategies
-        # )
         # Handle energy field
         # NBNB allow for fixed-energy beamlines
         energy_limits = HWR.beamline.energy.get_limits()
@@ -1084,9 +1067,14 @@ class GphlWorkflow(HardwareObjectYaml):
             "title": "GΦL %s parameters" % title_string,
             "type": "object",
             "properties": {},
-            "definitions": {},
         }
         fields = schema["properties"]
+        fields["wf_type"] = {
+            "title": "Workflow type",
+            "type": "string",
+            "default": "GphlWorkflow",
+            "readOnly": True,
+        }
         # # From here on visible fields
         fields["_info"] = {
             # "title": "Data collection plan",
@@ -1098,7 +1086,7 @@ class GphlWorkflow(HardwareObjectYaml):
             "title": "Oscillation range",
             "type": "string",
             "default": str(default_image_width),
-            "$ref": "#/definitions/image_width",
+            "enum": allowed_widths
         }
         fields["exposure"] = {
             "title": "Exposure Time (s)",
@@ -1178,7 +1166,7 @@ class GphlWorkflow(HardwareObjectYaml):
             "title": "Number of snapshots",
             "type": "string",
             "default": str(data_model.snapshot_count),
-            "$ref": "#/definitions/snapshot_count",
+            "enum": ["0", "1", "2", "4"]
         }
 
         # recentring mode:
@@ -1210,44 +1198,15 @@ class GphlWorkflow(HardwareObjectYaml):
         else:
             default_recentring_mode = "sweep"
         default_label = labels[modes.index(default_recentring_mode)]
-        # if len(modes) > 1:
         fields["recentring_mode"] = {
             # "title": "Recentring mode",
             "type": "string",
             "default": default_label,
-            "$ref": "#/definitions/recentring_mode",
+            "enum": labels,
         }
-        schema["definitions"]["recentring_mode"] = list(
-            {
-                "type": "string",
-                "enum": [label],
-                "title": label,
-            }
-            for label in labels
-        )
-        schema["definitions"]["snapshot_count"] = list(
-            {
-                "type": "string",
-                "enum": [tag],
-                "title": tag,
-            }
-            for tag in (
-                "0",
-                "1",
-                "2",
-                "4",
-            )
-        )
-        schema["definitions"]["image_width"] = list(
-            {
-                "type": "string",
-                "enum": [str(tag)],
-                "title": str(tag),
-            }
-            for tag in allowed_widths
-        )
 
         ui_schema = {
+            "wf_type": {"ui:widget": "hidden"},
             "ui:order": ["_info", "parameters"],
             "ui:widget": "vertical_box",
             "ui:options": {
@@ -2311,12 +2270,19 @@ class GphlWorkflow(HardwareObjectYaml):
                     "properties": {},
                 }
                 fields = schema["properties"]
+                fields["wf_type"] = {
+                    "title": "Workflow type",
+                    "type": "string",
+                    "default": "GphlWorkflow",
+                    "readOnly": True,
+                }
                 fields["_info"] = {
                     "type": "textdisplay",
                     "default": info_text,
-                    "readonly": True,
+                    "readOnly": True,
                 }
                 ui_schema = {
+                    "wf_type": {"ui:widget": "hidden"},
                     "ui:order": ["_info"],
                     "ui:widget": "vertical_box",
                     "ui:options": {
@@ -2796,15 +2762,11 @@ class GphlWorkflow(HardwareObjectYaml):
         result = {
             "point_groups": {
                 "value": pgvalue,
-                "options": {
-                    "value_dict": OrderedDict((tag, tag) for tag in pglist),
-                },
+                "options": {"enum": pglist,},
             },
             "space_group": {
                 "value": sgvalue,
-                "options": {
-                    "value_dict": OrderedDict((tag, tag) for tag in sgoptions),
-                },
+                "options": {"enum": sgoptions,},
             },
         }
         #
@@ -2814,7 +2776,6 @@ class GphlWorkflow(HardwareObjectYaml):
         """Update pulldowns when pointgroups change"""
         pgvar = values.get("point_groups") or ""
         lattice = values.get("lattice")
-        space_group = values.get("space_group")
         sglist = [""] + crystal_symmetry.space_groups_from_params(
             (lattice,), point_groups=pgvar.split("|")
         )
@@ -2822,9 +2783,7 @@ class GphlWorkflow(HardwareObjectYaml):
         result = {
             "space_group": {
                 "value": value,
-                "options": {
-                    "value_dict": OrderedDict((tag, tag) for tag in sglist),
-                },
+                "options": {"enum": sglist},
             },
         }
         #
@@ -2866,11 +2825,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 result = self.update_lattice(values1)
                 result["lattice"] = {
                     "value": lattice,
-                    "options": {
-                        "value_dict": OrderedDict(
-                            ((tag, tag) for tag in alternative_lattices[lattice])
-                        ),
-                    },
+                    "options": {"enum":alternative_lattices[lattice]}
                 }
                 break
         else:

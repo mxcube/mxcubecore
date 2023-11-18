@@ -27,7 +27,8 @@ All HardwareObjects
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
-from typing import Union
+from typing import Union, Any
+from mxcubecore.dispatcher import dispatcher
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -238,6 +239,36 @@ class Beamline(ConfiguredObject):
                     )
 
         return _path
+
+
+    # Signal handling functions:
+    def emit(self, signal: Union[str, object, Any], *args) -> None:
+        """Emit signal. Accepts both multiple args and a single tuple of args.
+
+        This is needed for communication from the GUI to the core
+        (jsonparamsgui in mxcubeqt)
+        NBNB TODO HACK
+        This is a duplicate of the same function in HardwareObjectMixin.
+        Since the Beamline is not a CommandContainer or a normal HardwareObject
+        It may not be appropriate to make it a subclass of HardwareObjectYaml
+        We need to consider how we want this organised
+
+        TODO: This function would be unnecessary if all callers used
+        ```python
+        dispatcher.send(signal, self, *argtuple)
+        ```
+
+        Args:
+            signal (Union[str, object, Any]): In practice a string, or dispatcher.
+            *args (tuple): Arguments sent with signal.
+        """
+
+        signal = str(signal)
+
+        if len(args) == 1:
+            if isinstance(args[0], tuple):
+                args = args[0]
+        dispatcher.send(signal, self, *args)
 
     # NB this function must be re-implemented in nested subclasses
     @property
