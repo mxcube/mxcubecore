@@ -14,6 +14,7 @@ import json
 import PyTango
 import sys
 
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.TaskUtils import task
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from abstract.AbstractCollect import AbstractCollect
@@ -90,7 +91,7 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
         self.dtox_hwobj = self.get_object_by_role("dtox")
         # self.detector_cover_hwobj = self.getObjectByRole("detector_cover")
         self.session_hwobj = self.get_object_by_role("session")
-        self.shape_history_hwobj = self.get_object_by_role("shape_history")
+        self.shape_history_hwobj = HWR.beamline.sample_view
         self.dozor_hwobj = self.get_object_by_role("dozor")
         self.datacatalog_enabled = (
             False  # self.getProperty("datacatalog_enabled", False)
@@ -504,7 +505,7 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
             raise Exception("data collection hook failed... ", str(ex))
         except Exception:
             self.data_collection_cleanup()
-            self.log.error("Unexpected error:", sys.exc_info()[0])
+            self.log.exception("Unexpected error: %s" % sys.exc_info()[0])
             self.close_detector_cover()
             raise Exception("data collection hook failed... ", sys.exc_info()[0])
 

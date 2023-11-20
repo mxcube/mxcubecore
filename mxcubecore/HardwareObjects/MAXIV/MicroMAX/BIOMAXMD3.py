@@ -491,12 +491,19 @@ class BIOMAXMD3(GenericDiffractometer):
         nframes,
         invert_direction=1,
         wait=False,
+        table_pitch=1,
+        fast_scan=1,
     ):
         """
            raster_scan: snake scan by default
            start, end, exptime are the parameters per line
            Note: vertical_range and horizontal_range unit is mm, a test value could be 0.1,0.1
            example, raster_scan(20, 22, 5, 0.1, 0.1, 10, 10)
+
+        Args:
+            invert_direction: ``1`` to enable passes in the reverse direction.
+            table_pitch: ``1`` to use the centring table to do the pitch movements.
+            fast_scan: ``1`` to use the fast raster scan if available (power PMAC).
         """
         if self.in_plate_mode():
             scan_speed = math.fabs(end - start) / exptime
@@ -525,12 +532,14 @@ class BIOMAXMD3(GenericDiffractometer):
         self.channel_dict["ScanRange"].set_value(end - start)
         self.channel_dict["ScanNumberOfFrames"].set_value(nframes)
 
-        raster_params = "%0.5f\t%0.5f\t%i\t%i\t%i" % (
+        raster_params = "%0.5f\t%0.5f\t%i\t%i\t%i\t%i\t%i" % (
             vertical_range,
             horizontal_range,
             nlines,
             nframes,
             invert_direction,
+            table_pitch,
+            fast_scan,
         )
 
         raster = self.command_dict["startRasterScan"]
