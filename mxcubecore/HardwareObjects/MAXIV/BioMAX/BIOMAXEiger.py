@@ -204,7 +204,7 @@ class BIOMAXEiger(AbstractDetector):
         return self.status_chan.get_value().split("\n")[0]
 
     def status_update(*args):
-        logging.getLogger("HWR").debug("eiger satus update", args)
+        logging.getLogger("HWR").debug("eiger satus update {}".format(args))
 
     def is_idle(self):
         return self.get_status()[:4] == "idle"
@@ -578,17 +578,13 @@ class BIOMAXEiger(AbstractDetector):
                     raise Exception("Could not program energy in detector")
         if "CountTime" in self._config_vals.keys():
             self.set_value("CountTime", self._config_vals["CountTime"])
-            logging.getLogger("HWR").debug(
-                "readout time and count time is ",
-                self.get_readout_time(),
-                self.get_value("CountTime"),
-            )
+            msg =  "Readout time: {} | count time: {}".format(self.get_readout_time(), self.get_value("CountTime"))
+            logging.getLogger("HWR").debug(msg)
             self.set_value(
                 "FrameTime", self._config_vals["CountTime"] + self.get_readout_time()
             )
-            logging.getLogger("HWR").debug(
-                "new frame time is ", self.get_value("FrameTime")
-            )
+            msg =  "New frame time is {}".format(self.get_value("FrameTime"))
+            logging.getLogger("HWR").debug(msg)
             for cfg_name, cfg_value in self._config_vals.items():
                 t0 = time.time()
                 if cfg_name == "PhotonEnergy" or cfg_name == "CountTime":
