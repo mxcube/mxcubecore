@@ -1085,7 +1085,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             else:
                 try:
                     if self.dtox_hwobj is not None:
-                        self.dtox_hwobj.sync_move(value, timeout = 50) #30s is not enough for the whole range
+                        self.dtox_hwobj.set_value(value)
+                        self.dtox_hwobj.wait_end_of_move(50) #30s is not enough for the whole range
                 except:
                     logging.getLogger("user_level_log").error("Cannot move detector, please check the key!!")
                     logging.getLogger("HWR").exception("Problems when moving detector!!") 
