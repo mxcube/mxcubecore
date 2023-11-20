@@ -1,6 +1,6 @@
 import logging
 from mxcubecore.HardwareObjects import BeamInfo
-from mxcubecore.HardwareObjects.abstract.AbstractBeam import AbstractBeam
+from mxcubecore.HardwareObjects.abstract import AbstractBeam
 from mxcubecore import HardwareRepository as HWR
 from enum import Enum, unique
 
@@ -22,13 +22,21 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo, AbstractBeam.AbstractBeam):
     """Beam information"""
 
     def __init__(self, *args):
-        AbstractBeam.__init__(self, *args)
+        BeamInfo.BeamInfo.__init__(self, *args)
+        self.beam_position = (0, 0)
+        self._beam_width = None
+        self._beam_height = None
+        self._beam_shape = None
+        self._beam_label = None
+        self._beam_divergence = (None, None)
+        self._beam_position_on_screen = [None, None]  # TODO move to sample_view
         self.beam_size_hor = None
         self.beam_size_ver = None
+        self._beam_size_dict = {}
+        self._beam_info_dict ={}
 
     def init(self):
-        super().init()
-
+        BeamInfo.BeamInfo.init(self)
         self._beam_size_dict["aperture"] = [9999, 9999]
         self._beam_size_dict["slits"] = [9999, 9999]
         self._beam_position_on_screen = (687, 519)
