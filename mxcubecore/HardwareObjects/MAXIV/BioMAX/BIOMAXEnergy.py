@@ -1,3 +1,4 @@
+from typing import Iterable
 import sys
 import time
 import logging
@@ -9,7 +10,15 @@ from gevent import Timeout
 import PyTango
 from mxcubecore.TaskUtils import *
 from mxcubecore.HardwareObjects import Energy
+from mxcubecore.utils.units import ev_to_kev
 from mxcubecore.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
+
+
+def _ev_vals_to_kev(ev_vals: Iterable[float]) -> tuple[float]:
+    """
+    convert all values from eV to KeV
+    """
+    return tuple(ev_to_kev(ev) for ev in ev_vals)
 
 
 class BIOMAXEnergy(AbstractEnergy):
@@ -49,13 +58,12 @@ class BIOMAXEnergy(AbstractEnergy):
         self.emit("stateChanged", (state))
 
     def get_value(self):
-        val = "%.3f" % (self.energy_motor.get_value() / 1000)
-        return float(val)
+        return ev_to_kev(self.energy_motor.get_value())
 
     def get_current_energy(self):
         if self.energy_motor is not None:
             try:
-                return self.energy_motor.get_value() / 1000
+                return self.get_value()
             except:
                 logging.getLogger("HWR").exception("EnergyHO: could not read current energy")
                 return None
@@ -71,7 +79,7 @@ class BIOMAXEnergy(AbstractEnergy):
     def get_energy_limits(self):
         if self.energy_motor is not None:
             try:
-                self._nominal_limits = self.energy_motor.get_limits()
+                self._nominal_limits = _ev_vals_to_kev(self.energy_motor.get_limits())
             except:
                 logging.getLogger("HWR").exception(
                     "EnergyHO: could not read energy motor limits"
