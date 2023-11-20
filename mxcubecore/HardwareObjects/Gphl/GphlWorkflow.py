@@ -400,7 +400,6 @@ class GphlWorkflow(HardwareObjectYaml):
             "type": "string",
             "default": point_group,
             "enum": point_groups,
-            "hidden": not choose_lattice,
         }
         sglist = [""] + crystal_symmetry.space_groups_from_params(
             point_groups=point_groups
@@ -452,7 +451,6 @@ class GphlWorkflow(HardwareObjectYaml):
             "title": "Workflow type",
             "type": "string",
             "default": "GphlWorkflow",
-            "readOnly": True,
         }
         # )
         # Handle strategy fields
@@ -513,7 +511,6 @@ class GphlWorkflow(HardwareObjectYaml):
         # NB update_on_change supports None, "always", and "selected"
         # It controls whether an update signal is sent when a parameter changes
         ui_schema = {
-            "wf_type": {"ui:widget": "hidden"},
             "ui:order": ["crystal_data", "parameters"],
             "ui:widget": "vertical_box",
             "ui:options": {
@@ -603,7 +600,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 fields[tag]["readOnly"] = False
             ui_schema["parameters"]["column1"]["ui:order"].remove("point_groups")
 
-        elif choose_lattice is None:
+        elif not choose_lattice:
             # Characterisation
             ui_schema["parameters"]["column1"]["ui:order"].remove("point_groups")
             pass
@@ -1006,13 +1003,9 @@ class GphlWorkflow(HardwareObjectYaml):
 
         # Set up image width pulldown
         allowed_widths = geometric_strategy.allowedWidths
-        if allowed_widths:
-            default_width_index = geometric_strategy.defaultWidthIdx or 0
-        else:
+        if not allowed_widths:
             allowed_widths = list(self.settings.get("default_image_widths"))
-            val = allowed_widths[0]
             allowed_widths.sort()
-            default_width_index = allowed_widths.index(val)
             logging.getLogger("HWR").info(
                 "No allowed image widths returned by strategy - use defaults"
             )
@@ -1073,7 +1066,6 @@ class GphlWorkflow(HardwareObjectYaml):
             "title": "Workflow type",
             "type": "string",
             "default": "GphlWorkflow",
-            "readOnly": True,
         }
         # # From here on visible fields
         fields["_info"] = {
@@ -1086,7 +1078,7 @@ class GphlWorkflow(HardwareObjectYaml):
             "title": "Oscillation range",
             "type": "string",
             "default": str(default_image_width),
-            "enum": allowed_widths
+            "enum": list(str(val) for val in allowed_widths)
         }
         fields["exposure"] = {
             "title": "Exposure Time (s)",
@@ -1206,7 +1198,6 @@ class GphlWorkflow(HardwareObjectYaml):
         }
 
         ui_schema = {
-            "wf_type": {"ui:widget": "hidden"},
             "ui:order": ["_info", "parameters"],
             "ui:widget": "vertical_box",
             "ui:options": {
@@ -2274,7 +2265,6 @@ class GphlWorkflow(HardwareObjectYaml):
                     "title": "Workflow type",
                     "type": "string",
                     "default": "GphlWorkflow",
-                    "readOnly": True,
                 }
                 fields["_info"] = {
                     "type": "textdisplay",
@@ -2282,7 +2272,6 @@ class GphlWorkflow(HardwareObjectYaml):
                     "readOnly": True,
                 }
                 ui_schema = {
-                    "wf_type": {"ui:widget": "hidden"},
                     "ui:order": ["_info"],
                     "ui:widget": "vertical_box",
                     "ui:options": {

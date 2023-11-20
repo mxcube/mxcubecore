@@ -247,16 +247,12 @@ class Beamline(ConfiguredObject):
 
         This is needed for communication from the GUI to the core
         (jsonparamsgui in mxcubeqt)
+
         NBNB TODO HACK
         This is a duplicate of the same function in HardwareObjectMixin.
         Since the Beamline is not a CommandContainer or a normal HardwareObject
-        It may not be appropriate to make it a subclass of HardwareObjectYaml
+        it may not be appropriate to make it a subclass of HardwareObjectYaml
         We need to consider how we want this organised
-
-        TODO: This function would be unnecessary if all callers used
-        ```python
-        dispatcher.send(signal, self, *argtuple)
-        ```
 
         Args:
             signal (Union[str, object, Any]): In practice a string, or dispatcher.
@@ -268,7 +264,11 @@ class Beamline(ConfiguredObject):
         if len(args) == 1:
             if isinstance(args[0], tuple):
                 args = args[0]
-        dispatcher.send(signal, self, *args)
+        responses: list = dispatcher.send(signal, self, *args)
+        if not responses:
+            raise RuntimeError(
+                "Signal %s is not connected" % signal
+            )
 
     # NB this function must be re-implemented in nested subclasses
     @property
