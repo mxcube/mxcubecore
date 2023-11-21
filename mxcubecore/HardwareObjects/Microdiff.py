@@ -417,7 +417,7 @@ class Microdiff(MiniDiff.MiniDiff):
                 self.close_detector_cover()
             self.phase_prepare(phase)
 
-            if _use_custom:
+            if _use_custom and not self.in_plate_mode():
                 script = "ChangePhase_" + phase.lower()
                 msg = f"Changing phase to {phase}, using pmac script"
                 logging.getLogger("user_level_log").info(msg)
