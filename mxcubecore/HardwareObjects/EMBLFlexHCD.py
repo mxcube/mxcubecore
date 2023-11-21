@@ -147,6 +147,11 @@ class EMBLFlexHCD(SampleChanger):
         _pucks = '["UNI", "UNI", "UNI", "UNI", "UNI", "UNI", "UNI", "UNI"]'
         pucks = ast.literal_eval(self.get_property("puck_configuration", _pucks))
 
+        self._harvester = self.get_property("harvester", False)
+        if self._harvester:
+            self._loaded_sample = (-1, -1, -1)
+            self._harvester_hwo = self.get_object_by_role("harvester")
+
         for i in range(8):
             cell = Cell(self, i + 1, pucks[i])
             self._add_component(cell)
@@ -182,32 +187,57 @@ class EMBLFlexHCD(SampleChanger):
         # self._set_state(SampleChangerState.Disabled)
         self._update_selection()
         self.state = self._read_state()
+    
+    def mount_from_harvester(self):
+        return self._harvester and self._harvester_hwo
+
 
     def get_sample_list(self):
         sample_list = super().get_sample_list()
 
-        sc_present_sample_list = self._execute_cmd_exporter(
-            "getPresentSamples", attribute=True
-        )
-
-        if sc_present_sample_list:
-            sc_present_sample_list = sc_present_sample_list.split(":")
-        else:
-            sc_present_sample_list = []
-
         present_sample_list = []
+        if self._harvester:
+            # present_sample_list = self._harvester_hwo.get_sample_list(sample_list)
+            ha_sample_lists = self._harvester_hwo.get_crystal_uuids()
+            ha_sample_names = self._harvester_hwo.get_sample_names()
+            ha_sample_acronyms = self._harvester_hwo.get_sample_acronyms()
 
-        for sample in sample_list:
-            for present_sample_str in sc_present_sample_list:
-                present_sample = present_sample_str.split(",")
-                if sample.get_address() == (
-                    str(present_sample[0])
-                    + ":"
-                    + str(present_sample[1])
-                    + ":"
-                    + "%02d" % int(present_sample[4])
-                ):
+            if ha_sample_lists:
+                for i in range(len(ha_sample_lists)):
+                    sample = sample_list[i]
+                    sample.id = ha_sample_lists[i]
+                    sample._name = ha_sample_names[i]
+                    # if all sample come with proteinAcronym
+                    if len(ha_sample_acronyms) > 0 and len(ha_sample_acronyms) == len(ha_sample_lists):
+                        sample.proteinAcronym = ha_sample_acronyms[i]
+                    else:
+                        # if all sample does not have proteinAcronym
+                        # we set first proteinAcronym to all if exist at least one
+                        sample.proteinAcronym = ha_sample_acronyms[0] if len(ha_sample_acronyms) > 0 else ''
                     present_sample_list.append(sample)
+        else:
+            sc_present_sample_list = self._execute_cmd_exporter(
+                "getPresentSamples", attribute=True
+            )
+
+            if sc_present_sample_list:
+                sc_present_sample_list = sc_present_sample_list.split(":")
+            else:
+                sc_present_sample_list = []
+
+            present_sample_list = []
+
+            for sample in sample_list:
+                for present_sample_str in sc_present_sample_list:
+                    present_sample = present_sample_str.split(",")
+                    if sample.get_address() == (
+                        str(present_sample[0])
+                        + ":"
+                        + str(present_sample[1])
+                        + ":"
+                        + "%02d" % int(present_sample[4])
+                    ):
+                        present_sample_list.append(sample)
 
         return present_sample_list
 
@@ -386,9 +416,12 @@ class EMBLFlexHCD(SampleChanger):
         return res
 
     def _hw_get_mounted_sample(self):
-        loaded_sample = tuple(
-            self._execute_cmd_exporter("getMountedSamplePosition", attribute=True)
-        )
+        if self._harvester:
+            loaded_sample = self._loaded_sample
+        else:
+            loaded_sample = tuple(
+                self._execute_cmd_exporter("getMountedSamplePosition", attribute=True)
+            )
 
         return (
             str(loaded_sample[0])
@@ -531,15 +564,24 @@ class EMBLFlexHCD(SampleChanger):
         # wait for 10 minutes then timeout !
         self._wait_ready(600)
 
-        # Start loading
-        load_task = gevent.spawn(
-            self._execute_cmd_exporter,
-            "loadSample",
-            sample.get_cell_no(),
-            sample.get_basket_no(),
-            sample.get_vial_no(),
-            command=True,
-        )
+        if self._harvester:
+            previous_sample = self._loaded_sample
+            # Start loading from harvester
+            load_task = gevent.spawn(
+                self._execute_cmd_exporter,
+                "loadSampleFromHarvester",
+                command=True
+            )
+        else:       
+            # Start loading
+            load_task = gevent.spawn(
+                self._execute_cmd_exporter,
+                "loadSample",
+                sample.get_cell_no(),
+                sample.get_basket_no(),
+                sample.get_vial_no(),
+                command=True,
+            )
 
         # Wait for sample changer to start activity
         try:
@@ -583,6 +625,10 @@ class EMBLFlexHCD(SampleChanger):
             if msg is not None:
                 logging.getLogger("HWR").error(msg)
                 logging.getLogger("user_level_log").error(msg)
+            
+        if self._harvester:
+            loaded_sample = (sample.get_cell_no(), sample.get_basket_no(),sample.get_vial_no())
+            self._loaded_sample = loaded_sample
 
         return self._set_loaded_sample_and_prepare(loaded_sample, previous_sample)
 
