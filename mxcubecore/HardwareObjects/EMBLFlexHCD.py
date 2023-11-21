@@ -553,6 +553,40 @@ class EMBLFlexHCD(SampleChanger):
         self.prepare_load()
         self.enable_power()
         self._execute_cmd_exporter("defreezeGripper", command=True)
+    
+    @task
+    def single_load(self):
+        try:
+            self.prepare_load()
+            self.enable_power()
+
+            load_task = gevent.spawn(
+                    self._execute_cmd_exporter,
+                    "loadSampleFromHarvester",
+                    command=True
+                )
+
+            self._wait_busy(30)
+            err_msg = "Timeout while waiting to sample to be loaded"
+            with gevent.Timeout(600, RuntimeError(err_msg)):
+                while not load_task.ready():
+                    gevent.sleep(2)
+            
+            with gevent.Timeout(600, RuntimeError(err_msg)):
+                while True:
+                    is_safe = self._execute_cmd_exporter("getRobotIsSafe", attribute=True)
+                    if is_safe:
+                        break
+                    gevent.sleep(2)
+            return True
+        except:
+            return False
+
+    def set_room_temperature_mode(self, value):
+        mode = self._execute_cmd_exporter("setRoomTemperatureMode", value, command=True)
+        logging.getLogger("user_level_log").info(f"setting Flex Room temperature to {value}")
+        # We should return exporter response instead
+        return value
 
     def _do_load(self, sample=None):
         self._update_state()
