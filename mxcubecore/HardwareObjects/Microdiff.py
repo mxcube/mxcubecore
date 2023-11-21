@@ -260,6 +260,8 @@ class Microdiff(MiniDiff.MiniDiff):
         self.centringVertical = self.get_object_by_role("centringVertical")
         self.centringFocus = self.get_object_by_role("centringFocus")
 
+        self.saved_motor_position = {}
+
         self.frontLight = self.get_object_by_role("FrontLight")
         self.backLight = self.get_object_by_role("BackLight")
 
@@ -304,6 +306,16 @@ class Microdiff(MiniDiff.MiniDiff):
             )
 
         return MOTOR_TO_EXPORTER_NAME
+    
+    def save_current_motor_position(self):
+        motor_pos_dict = {
+            "focus": self.focusMotor.get_value(),
+            "phiy": self.phiyMotor.get_value(),
+            "phiz": self.phizMotor.get_value(),
+            "centring_focus": self.centringFocus.get_value(),
+            "centring_vertical": self.centringVertical.get_value()
+        }
+        self.saved_motor_position = motor_pos_dict
 
     def getCalibrationData(self, offset):
         return (1.0 / self.x_calib.get_value(), 1.0 / self.y_calib.get_value())
@@ -759,6 +771,27 @@ class Microdiff(MiniDiff.MiniDiff):
         self.do_centring = False
         self.start_centring_method(self, self.MANUAL3CLICK_MODE)
         self.do_centring = True
+
+    
+    def start_harvester_centring(self, computed_offset):
+        """ used when Pin from Harvester
+        """
+
+        phiy_offset, centringFocus, centringTableVertical = computed_offset
+
+        motor_pos_dict = {
+            "kappa": float(self["HacentringReferencePosition"].get_property("kappa_ref")),
+            "kappa_phi": float(self["HacentringReferencePosition"].get_property("phi_ref")),
+            "phi": float(self["HacentringReferencePosition"].get_property("omega_ref")),
+            "phiy": self.phiyMotor.get_value() + phiy_offset,
+        }
+
+        self.move_motors(motor_pos_dict)
+
+        self.centringFocus.set_value_relative(centringFocus, None)
+
+        self.centringVertical.set_value_relative(centringTableVertical, None)
+    
 
     def getFrontLightLevel(self):
         return self.frontLight.get_value()
