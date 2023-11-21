@@ -595,6 +595,12 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
                 self.emit("progressStep", 100)
                 # self.emit("collectReady", (True,))
             except Exception as ex:
+                logging.getLogger("HWR").info(
+                        "detector stop acquisition due to %s" % str(ex)
+                )
+                # logging.getLogger("HWR").info(
+                #         "[COLLECT] Detector images saved: %s/%s" % (num_images, num_images)
+                # )
                 HWR.beamline.detector.stop_acquisition()
 
                 self.close_detector_cover()
@@ -1441,6 +1447,15 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         return number - detfilenumber + 1
 
     def prepare_detector(self):
+        """
+        经过测试，如果是characteristic方式收集，self.triggers_to_collect会是一个长度为4或2的list
+        普通data collection方式收集，就是长度为一的list
+        问题在于，如果是characteristic方式，md2触发4次收集动作，探测器还是只触发一次收集，测试显示md2的总收集时间（转动4次）会远大于探测器的收集时间
+        即：探测器已经结束收集了，md2才刚刚转到第四张要收集数据的位置
+            测试结果：收4张，0.5exp，探测器2-3s停止，md2完整转完要9-10s
+                   ：收4张，1 exp，探测器4-5s停止，md2完整转完要12-13s
+        因此在detector.prepare_acquisition函数里进行判断，如果是characteristic方式，则增加暴光时间
+        """
         logging.getLogger("HWR").info("Cleaning old detector images !!!!!")
         # HWR.beamline.detector.clear()  # TODO remove this line here to help debugging new image files
         config = HWR.beamline.detector.col_config
@@ -1548,6 +1563,26 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         HWR.beamline.detector.set_cam1_distance()
         #HWR.beamline.detector.set_wavelength(value)
         #return HWR.beamline.detector.prepare_acquisition(config)
+
+        #修改，增加判断，是否是charactoristic方式，如果是,暴光时间改变,一般暴光时间在0.2-0.3，所以这里相对的改一下
+        if len(self.triggers_to_collect) != 1:
+            if 0<config["frame_time"]<=0.5:
+                exp_time = 7
+            elif 0.5<config["frame_time"]<1:
+                exp_time = 10
+            elif config["frame_time"]>1:
+                exp_time = 10 + config["frame_time"]
+            logging.getLogger("HWR").info("charactoristic way, exposure time extend to 4.5/3 times")
+            return HWR.beamline.detector.prepare_acquisition(0,
+                                                             config["omega_start"],
+                                                             config["omega_increment"],
+                                                             exp_time/4,
+                                                             0,
+                                                             config["nimages"],
+                                                             "",
+                                                             False,
+                                                             0
+                                                             )
         return HWR.beamline.detector.prepare_acquisition(0,
                                                          config["omega_start"],
                                                          config["omega_increment"],

@@ -187,7 +187,7 @@ class MD2(Microdiff.Microdiff):
                 raise ValueError("Scan end above the allowed value %f" % hi_lim)
         self.nb_frames.set_value(self.scan_nb_frames)
 
-        params = "1\t%0.3f\t%0.3f\t%0.4f\t1" % (start, (end - start), exptime)
+        params = "1\t%0.3f\t%0.3f\t%0.4f\t1" % (start, (end - start), exptime)  # 1,起始角度，扫描范围，暴光时间，1
         print("OSC SCAN's parameter: ",params)
         scan = self.add_command(
             {
@@ -202,9 +202,11 @@ class MD2(Microdiff.Microdiff):
         start_time=time.time()
         scan(params)
         print("OSC SCAN's time cost: ",time.time()-start_time)
+        end_scan_time = time.time()
         if wait:
             # Timeout of 5 min
             self._wait_ready(30000)
+        print("wait time after scan end: ",  time.time()-end_scan_time) #这个时间才是应该有的暴光时间
 
     def oscilScan4d(self, start, end, exptime, motors_pos, wait=False):
         if self.in_plate_mode():
