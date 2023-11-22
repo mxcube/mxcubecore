@@ -113,7 +113,7 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         self._dewar=1
         self.socket_addr = '10.30.61.73:10100'
         self._ifcloseLid_inBeginning = False
-        self.count = 1
+        self.count = 28
 
         self._cmdMount = self.add_command(
             {"type": "socketrobot", "socket_address": self.socket_addr, "name": '_cmdMount'},
@@ -401,11 +401,15 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         logging.getLogger("user_level_log").info(
             "Sample changer: %s. Please wait..." % msg
         )
-
+        time_before_emit_progressInit = time.time()
         self.emit("progressInit", (msg, 100))
+        time_after_emit_progressInit = time.time()
         for step in range(2 * 100):
             self.emit("progressStep", int(step / 2.0))
-            time.sleep(0.01)
+            # time.sleep(0.01)            #不知道为什么要有这行，但这行原来是time.sleep(0.01)拖漫了大概有14s的时间,改成0.001从2s变到5s左右
+        time_after_emit_progressStep = time.time()
+        logging.getLogger("HWR").info("the time cost by emit progressInit and progressStrp: %s,%s", str(time_after_emit_progressInit-time_before_emit_progressInit)
+                                      ,str(time_after_emit_progressStep-time_after_emit_progressInit))
 
         mounted_sample = self.get_component_by_address(
             Container.Pin.get_sample_address(basket, sample)

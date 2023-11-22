@@ -66,8 +66,10 @@ class StandardClientRobot:
         print('set the timeout for socket connection',self.timeout)
         self.__sock.settimeout(self.timeout)
     def __close_socket(self):
+
         """Close socket"""
         try:
+            logging.getLogger("HWR").debug("SocketRobot close socket")
             self.__sock.close()
         except Exception:
             pass
@@ -286,7 +288,7 @@ class StandardClientRobot:
         Returns:
             (str): reply form the socket
         """
-        print("step into __send_receive_stream function")
+        logging.getLogger("HWR").debug("step into __send_receive_stream function")
         self.error = None
         self.received_msg = None
         self.msg_received_event.clear()  # = gevent.event.Event()
@@ -728,7 +730,7 @@ class SocketRobotCommand(CommandObject):
 
     def __call__(self, *args, **kwargs):
         self.emit("commandBeginWaitReply", (str(self.name()),))
-        print("get in __call__ function")
+        logging.getLogger("HWR").debug("get in __call__ function of SocketRobotCommand class in SocketRobot.py")
         try:
             ret = self.__socket.execute(self.command, args, kwargs.get("timeout", -1),**kwargs)  #.get(),如果timeout没有设置，输出默认值-1
             
