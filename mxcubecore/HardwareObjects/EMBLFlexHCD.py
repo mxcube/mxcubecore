@@ -627,9 +627,10 @@ class EMBLFlexHCD(SampleChanger):
             self._wait_busy(300)
             logging.getLogger("HWR").info(f"Waited SC activity {time.time() - _tt}")
         except:
+            logging.getLogger("user_level_log").error("ERROR While Waited SC activity to start")
             for msg in self.get_robot_exceptions():
                 logging.getLogger("user_level_log").error(msg)
-            raise
+            return False
 
         # Wait for the sample to be loaded, (put on the goniometer)
         err_msg = "Timeout while waiting to sample to be loaded"
@@ -661,9 +662,14 @@ class EMBLFlexHCD(SampleChanger):
 
         for msg in self.get_robot_exceptions():
             if msg is not None:
+                logging.getLogger("user_level_log").error("ERROR While SC activity After Loaded Sample ")
                 logging.getLogger("HWR").error(msg)
                 logging.getLogger("user_level_log").error(msg)
-            
+                # Temp: In Harvester mode any robot Exception is consider as Loading failed 
+                # Except Pin Cleaning Station Exception
+                if self._harvester and "Pin Cleaning Station" not in msg:
+                    return False
+
         if self._harvester:
             loaded_sample = (sample.get_cell_no(), sample.get_basket_no(),sample.get_vial_no())
             self._loaded_sample = loaded_sample
