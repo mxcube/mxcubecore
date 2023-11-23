@@ -447,12 +447,6 @@ class GphlWorkflow(HardwareObjectYaml):
             "title": "Strategy",
             "type": "string",
         }
-        fields["wf_type"] = {
-            "title": "Workflow type",
-            "type": "string",
-            "default": "GphlWorkflow",
-        }
-        # )
         # Handle strategy fields
         if data_model.characterisation_done or data_model.wftype == "diffractcal":
             strategies = strategy_settings["variants"]
@@ -1062,11 +1056,6 @@ class GphlWorkflow(HardwareObjectYaml):
             "properties": {},
         }
         fields = schema["properties"]
-        fields["wf_type"] = {
-            "title": "Workflow type",
-            "type": "string",
-            "default": "GphlWorkflow",
-        }
         # # From here on visible fields
         fields["_info"] = {
             # "title": "Data collection plan",
@@ -2261,11 +2250,6 @@ class GphlWorkflow(HardwareObjectYaml):
                     "properties": {},
                 }
                 fields = schema["properties"]
-                fields["wf_type"] = {
-                    "title": "Workflow type",
-                    "type": "string",
-                    "default": "GphlWorkflow",
-                }
                 fields["_info"] = {
                     "type": "textdisplay",
                     "default": info_text,
