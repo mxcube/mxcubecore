@@ -124,6 +124,16 @@ class Beamline(ConfiguredObject):
         # List of undulators
         self.undulators = []
 
+        # Format of mesh result for display
+        self.mesh_result_format = "PNG"
+
+        # bool Use the native mesh feature available, true by default
+        self.use_native_mesh = True
+
+        # bool Enable features to work with points in the plane, called
+        # 2D-points, (none centred positions)
+        self.enable_2d_points = True
+
         # Dictionary with the python id of hardwareobject as key
         # and the "dotted/attribute path" to hardwareobject from the
         # Beamline object
