@@ -28,9 +28,7 @@ import abc
 from enum import Enum, unique
 
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
-from mxcubecore.HardwareObjects.abstract.AbstractActuator import (
-    AbstractActuator,
-)
+from mxcubecore.HardwareObjects.abstract.AbstractActuator import AbstractActuator
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -58,6 +56,10 @@ class AbstractMotor(AbstractActuator):
         super().__init__(name)
         self._velocity = None
         self._tolerance = None
+
+        # Added additional guard variable to help with the recursion error in SampleChanger
+        # Probably related to the comments in Tango.py in def __call__
+        self._updating_value = False
 
     def init(self):
         """Initialise tolerance property"""
@@ -101,6 +103,11 @@ class AbstractMotor(AbstractActuator):
         Args:
             value (float): value
         """
+        if self._updating_value:
+            return  # Already updating, avoid recursion
+
+        self._updating_value = True
+
         if value is None:
             value = self.get_value()
 
@@ -114,3 +121,5 @@ class AbstractMotor(AbstractActuator):
 
         self._nominal_value = value
         self.emit("valueChanged", (value,))
+
+        self._updating_value = False
