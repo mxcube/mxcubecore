@@ -57,7 +57,7 @@ class SardanaMotor(AbstractMotor):
         self.polling_default = "events"
         self.limit_upper = None
         self.limit_lower = None
-        self.static_limits = (-1e4, 1e4)
+        self.static_limits = (-1e10, 1e10)
         self.limits = (None, None)
 
     def init(self):
