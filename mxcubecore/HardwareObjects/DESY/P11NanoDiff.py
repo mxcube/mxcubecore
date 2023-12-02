@@ -20,7 +20,10 @@
 
 __copyright__ = """ Copyright © 2010 - 2024 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
+import logging
 import sys
+import os
+import tempfile
 
 if sys.version_info[0] >= 3:
     unicode = str
@@ -40,6 +43,11 @@ from mxcubecore.HardwareObjects.GenericDiffractometer import (
 )
 from mxcubecore.TaskUtils import task
 from tango import DeviceProxy
+
+sys.path.insert(1, "/gpfs/local/shared/MXCuBE/murko/P11/test/test_beamtime/murko")
+from murko import get_loop_bbox, get_most_likely_click, get_predictions
+import numpy as np
+import cv2
 
 
 @unique
@@ -191,9 +199,340 @@ class P11NanoDiff(GenericDiffractometer):
         """
         return self.grid_direction
 
+    def predict_click_pix(self, frame):
+
+        # f = open(frame.split("/")[-1],"rb")
+        f = open(frame, "rb")
+        print(f)
+        jpg = f.read()
+        frame_open = cv2.imdecode(
+            np.frombuffer(jpg, dtype=np.uint8), cv2.IMREAD_GRAYSCALE
+        )
+
+        sizeOfPictureX = frame_open.shape[1]
+        sizeOfPictureY = frame_open.shape[0]
+
+        print("Picture size XY:", (sizeOfPictureX, sizeOfPictureY))
+
+        # parser.add_argument('-t', '--to_predict', type=str, default='image.jpg', help='to_predict')
+        # parser.add_argument('-H', '--prediction_heigth', default=256, type=int, help='prediction_heigth')
+        # parser.add_argument('-W', '--prediction_width', default=320, type=int, help='prediction_width')
+        # parser.add_argument('-s', '--save', action='store_true', help='save')
+        # parser.add_argument('-P', '--prefix', type=str, default='test', help='prefix')
+        # parser.add_argument('-p', '--port', type=int, default=8099, help='port')
+        # args = parser.parse_args()
+
+        model_img_size = (256, 320)
+
+        request_arguments = {}
+        request_arguments["to_predict"] = frame
+        request_arguments["model_img_size"] = model_img_size
+        request_arguments["save"] = True
+        request_arguments["prefix"] = "predicted"
+        _start = time.time()
+
+        print("Request args========", request_arguments)
+
+        print("opening frame", frame)
+        predictions = get_predictions(request_arguments)
+        print("Client got all predictions in %.4f seconds" % (time.time() - _start))
+        loop_present, r, c, h, w = get_loop_bbox(predictions)
+        print(loop_present, r, c, h, w)
+
+        if loop_present == 1:
+            print(
+                "Loop found! Its bounding box parameters in fractional coordianates are: center (vertical %.3f, horizontal %.3f), height %.3f, width %.3f"
+                % (r, c, h, w)
+            )
+            print(
+                "Most likely click in fractional coordinates: (vertical %.3f, horizontal %.3f)"
+                % (get_most_likely_click(predictions))
+            )
+
+            print(get_most_likely_click(predictions))
+
+            v, h = get_most_likely_click(predictions)
+
+            y_pix = round(v * sizeOfPictureY)
+            x_pix = round(h * sizeOfPictureX)
+
+        else:
+            print("Loop not found. Click to the center.")
+
+            v = 0.5
+            h = 0.5
+
+            y_pix = round(v * sizeOfPictureY)
+            x_pix = round(h * sizeOfPictureX)
+
+        return x_pix, y_pix
+
+    def auto_ai_routine(self, zoom):
+
+        self.goto_centring_phase()
+        self.log.debug("Automatic 3 click centring")
+        self.emit_progress_message("AI centring. Please wait...")
+
+        # from gevent import monkey
+        # monkey.patch_all()
+        # Prototype using MURKO
+
+        # Define Zoom:
+        zoom_hwobj = self.motor_hwobj_dict["zoom"]
+        # Zoom0,1,2,3,4
+        # zoom_list=[0,0.3,0.6,1,1.5]
+
+        # zoom_list=[0,0,0.3,0.6]
+        zoom_list = [0, 0.3]
+
+        # for z in zoom_list:
+
+        zoom_hwobj.camera_hwobj.set_zoom(zoom)
+        motor_pos = self.automatic_ai_centring()
+        print("======================POSITIONS", motor_pos)
+        # self.move_to_motors_positions(motor_pos,wait=True) #also emits events....
+
+        self.move_to_centred_position(motor_pos)
+
+        # # for z in zoom_list[1]:
+        # zoom_hwobj.camera_hwobj.set_zoom(0.3)
+        # motor_pos = self.automatic_ai_centring()
+        # print("======================POSITIONS",motor_pos)
+
+        # return motor_pos
+
+    def centring_done(self, centring_procedure, motor_p=None):
+        """
+        Descript. :
+        """
+        try:
+            motor_pos = centring_procedure.get()
+            if isinstance(motor_pos, gevent.GreenletExit):
+                raise motor_pos
+            else:
+                motor_pos = motor_p
+        except Exception:
+            logging.exception("Could not complete centring")
+            self.emit_centring_failed()
+        else:
+            self.emit_progress_message("Moving sample to centred position...")
+            self.emit_centring_moving()
+
+            try:
+                logging.getLogger("HWR").debug(
+                    "Centring finished. Moving motors to position %s" % str(motor_pos)
+                )
+                self.move_to_motors_positions(motor_pos, wait=True)
+            except Exception:
+                logging.exception("Could not move to centred position")
+                self.emit_centring_failed()
+            else:
+                # if 3 click centring move -180. well. dont, in principle the calculated
+                # centred positions include omega to initial position
+                pass
+                # if not self.in_plate_mode():
+                #    logging.getLogger("HWR").debug("Centring finished. Moving omega back to initial position")
+                #    self.motor_hwobj_dict['phi'].set_value_relative(-180, timeout=None)
+                #    logging.getLogger("HWR").debug("         Moving omega done")
+
+            if (
+                self.current_centring_method
+                == GenericDiffractometer.CENTRING_METHOD_AUTO
+            ):
+                self.emit("newAutomaticCentringPoint", motor_pos)
+            self.ready_event.set()
+            self.centring_time = time.time()
+            self.emit_centring_successful()
+            self.emit_progress_message("")
+
     def automatic_centring(self):
         """Automatic centring procedure"""
+
+        self.auto_ai_routine(0)
+        motor_pos = self.auto_ai_routine(0.3)
+
+        self.emit_progress_message("Moving sample to centred position...")
+        self.emit_centring_moving()
+
+        try:
+            logging.getLogger("HWR").debug(
+                "Centring finished. Moving motors to position %s" % str(motor_pos)
+            )
+            self.move_motors(motor_pos)
+        except Exception:
+            logging.exception("Could not move to centred position")
+            self.emit_centring_failed()
+        else:
+            # if 3 click centring move -180. well. dont, in principle the calculated
+            # centred positions include omega to initial position
+            pass
+            # if not self.in_plate_mode():
+            #    logging.getLogger("HWR").debug("Centring finished. Moving omega back to initial position")
+            #    self.motor_hwobj_dict['phi'].set_value_relative(-180, timeout=None)
+            #    logging.getLogger("HWR").debug("         Moving omega done")
+
+        self.ready_event.set()
+        self.centring_time = time.time()
+        self.emit_centring_successful()
+        self.emit_progress_message("")
+
+        # Before
+        self.current_centring_procedure = gevent.spawn(self.auto_ai_routine(0.3))
+        # self.current_centring_procedure.join()
+        motor_p = self.auto_ai_routine(0)
+        self.centring_done(self.current_centring_procedure, motor_pos=motor_p)
+
+        # self.current_centring_method=None
+        # self.current_centring_procedure = None
+
+        HWR.beamline.sample_view.accept_centring()
+
         return
+
+    def automatic_ai_centring(self):
+        """Automatic centring procedure"""
+        print(
+            "*******************************Autocentering with AI is started================="
+        )
+
+        n_points = 3
+        phi_range = 360 / n_points
+
+        self.ai_finished = False
+
+        X = []
+        Y = []
+        PHI = []
+
+        beam_xc, beam_yc = self.beam_position
+        self.log.debug("STARTING AI CENTRING")
+
+        motor_positions = {
+            "phiy": self.centring_phiy.motor.get_value(),
+            "phiz": self.centring_phiz.motor.get_value(),
+            "sampx": self.centring_sampx.motor.get_value(),
+            "sampy": self.centring_sampy.motor.get_value(),
+            "phi": self.centring_phi.motor.get_value(),
+        }
+
+        phi_mot = self.centring_phi.motor
+        phi_start_pos = phi_mot.get_value()
+
+        for click in range(n_points):
+            print("================ Click:", click)
+
+            dev_gonio = DeviceProxy("p11/servomotor/eh.1.01")
+
+            _start = time.time()
+            snapshot_filename = os.path.join(
+                tempfile.gettempdir(), "mxcube_sample_snapshot_" + str(click) + ".png"
+            )
+
+            # Small size
+            # HWR.beamline.sample_view.save_snapshot(snapshot_filename, overlay=True, bw=True)
+
+            # # Full size
+            HWR.beamline.sample_view.save_snapshot(
+                snapshot_filename, overlay=False, bw=True
+            )
+
+            while not os.path.exists(snapshot_filename):
+                time.sleep(0.1)
+
+            x_click, y_click = self.predict_click_pix(snapshot_filename)
+            print("Most probable click at the pixel coordinates:", x_click, y_click)
+            print("Current run time %.4f seconds" % (time.time() - _start))
+
+            # # Small = 680, 512 (if overlay=True)
+            # x, y =  x_click, y_click
+
+            # Full size= 2264, 1824
+            x = x_click / 2264 * 680
+            y = y_click / 1824 * 512
+
+            X.append(x)
+            Y.append(y)
+            PHI.append(phi_mot.get_value())
+
+            # os.system("display "+snapshot_filename.split(".png")[0]+"_default_model_img_size_256x320_comparison.png")
+            # os.system("rm "+snapshot_filename)
+            print("************************", X, Y, PHI)
+
+            if click < n_points - 1:
+                phi_mot.set_value_relative(phi_range)
+                gevent.sleep(2)
+                while str(dev_gonio.State()) != "ON":
+                    print("***********************", str(dev_gonio.State()))
+                    time.sleep(0.1)
+
+        #  [363, 371, 377] [300, 244, 238] [390.00002216708185, 509.99999776030194, 510.0000358958955] - auto
+        # [349, 341, 342] [255, 244, 265] [91.8808518778272, 210.29110711859207, 329.99999372629446]
+
+        phi_mot.set_value(phi_start_pos)
+        gevent.sleep(1)
+        phi_mot.wait_ready()
+
+        print("*******************", X, Y, PHI)
+
+        DX = []
+        DY = []
+        ANG = []
+
+        P = []
+        Q = []
+
+        for i in range(n_points):
+            dx = X[i] - beam_xc
+            dy = Y[i] - beam_yc
+            ang = math.radians(PHI[i])
+
+            DX.append(dx)
+            DY.append(dy)
+            ANG.append(ang)
+
+        for i in range(n_points):
+            y0 = DY[i]
+            ang0 = ANG[i]
+            if i < (n_points - 1):
+                y1 = DY[i + 1]
+                ang1 = ANG[i + 1]
+            else:
+                y1 = DY[0]
+                ang1 = ANG[0]
+
+            p = (y0 * math.sin(ang1) - y1 * math.sin(ang0)) / math.sin(ang1 - ang0)
+            q = (y0 * math.cos(ang1) - y1 * math.cos(ang0)) / math.sin(ang1 - ang0)
+
+            P.append(p)
+            Q.append(q)
+
+        x_s = -sum(Q) / n_points
+        y_s = sum(P) / n_points
+        z_s = sum(DX) / n_points
+
+        x_d_mm = x_s / self.pixels_per_mm_y
+        y_d_mm = y_s / self.pixels_per_mm_y
+        z_d_mm = z_s / self.pixels_per_mm_x
+
+        x_d = self.centring_sampx.mm_to_units(x_d_mm)
+        y_d = self.centring_sampy.mm_to_units(y_d_mm)
+        z_d = self.centring_phiy.mm_to_units(z_d_mm)
+
+        sampx_mot = self.centring_sampx.motor
+        sampy_mot = self.centring_sampy.motor
+        phiy_mot = self.centring_phiy.motor
+
+        x_pos = sampx_mot.get_value() + x_d
+        y_pos = sampy_mot.get_value() + y_d
+        z_pos = phiy_mot.get_value() + z_d
+
+        motor_positions["phiy"] = z_pos
+        motor_positions["sampx"] = x_pos
+        motor_positions["sampy"] = y_pos
+
+        self.ai_finished = True
+
+        return motor_positions
 
     def is_ready(self):
         """
