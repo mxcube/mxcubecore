@@ -92,21 +92,15 @@ class P11EDNACharacterisation(EDNACharacterisation):
             + "/edna.log",
         )
 
-        cmd = (
-            "/asap3/petra3/gpfs/common/p11/processing/edna_sbatch.sh "
-            + "{inxml:s} {outxml:s} {processpath:s}"
-        ).format(
-            inxml=inputxml.replace("/gpfs", "/beamline/p11"),
-            outxml=outputxml.replace("/gpfs", "/beamline/p11"),
-            processpath=process_directory.replace("/gpfs", "/beamline/p11") + "/edna",
-        )
-
-        self.mkdir_with_mode(process_directory + "/edna", mode=0o777)
-
+        
         # Check path conversion
         inxml = inputxml.replace("/gpfs", "/beamline/p11")
-        outxml = outputxml.replace("/gpfs", "/beamline/p11")
-        processpath = process_directory.replace("/gpfs", "/beamline/p11") + "/edna"
+        outxml = outputxml.replace("/gpfs/current/raw", "/beamline/p11/current/processed")
+        processpath = process_directory.replace("/gpfs/current/raw", "/beamline/p11/current/processed") + "/edna"
+        self.mkdir_with_mode(process_directory.replace("/gpfs/current/raw","/gpfs/current/processed/") + "/edna", mode=0o777)
+
+
+
         self.log.debug(
             '=======EDNA========== CLUSTER PROCESS DIRECTORY="%s"' % processpath
         )
@@ -115,6 +109,16 @@ class P11EDNACharacterisation(EDNACharacterisation):
 
         self.log.debug('=======EDNA========== ssh="%s"' % ssh)
         self.log.debug('=======EDNA========== sbatch="%s"' % sbatch)
+
+        cmd = (
+            "/asap3/petra3/gpfs/common/p11/processing/edna_sbatch.sh "
+            + "{inxml:s} {outxml:s} {processpath:s}"
+        ).format(
+            inxml=inxml,
+            outxml=outxml,
+            processpath=processpath
+        )
+
         self.log.debug('=======EDNA========== executing process cmd="%s"' % cmd)
         self.log.debug(
             '=======EDNA========== {ssh:s} "{sbatch:s} --wrap \\"{cmd:s}\\""'.format(
