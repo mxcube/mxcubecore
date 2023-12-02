@@ -32,8 +32,6 @@ from enum import Enum, unique
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 
 
-
-
 class P11FastShutter(AbstractNState):
     """
     P11 BakcLight define interface to Tango backlight at DESY P11
@@ -58,16 +56,11 @@ class P11FastShutter(AbstractNState):
 
         self.update_fast_shutter(self.chan_value.get_value())
         super(AbstractNState, self).init()
-    
+
     def _initialise_values(self):
         """Add additional, known in advance states to VALUES"""
         values_dict = {item.name: item.value for item in self.VALUES}
-        values_dict.update(
-            {
-                "OPEN": "Open",
-                "CLOSED": "Closed",
-            }
-        )
+        values_dict.update({"OPEN": "Open", "CLOSED": "Closed"})
         self.VALUES = Enum("ValueEnum", values_dict)
 
     def get_value(self):
