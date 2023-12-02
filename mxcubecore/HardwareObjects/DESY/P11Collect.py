@@ -454,74 +454,111 @@ class P11Collect(AbstractCollect):
 
     def add_h5_info(self, h5file):
         """
-        The function `add_h5_info` waits for a specified amount of time for a file to appear on disk and
-        raises an exception if the file does not appear within the timeout period.
+        Add information to an HDF5 file.
 
-        :param h5file: The `h5file` parameter is the name or path of the H5 file that you want to add
-        information to
+        :param h5file: The name or path of the HDF5 file.
         """
         self.log.debug("========== Writing H5 info ==============")
-        h5file = self.latest_h5_filename
 
-        # wait up to 5 seconds to see the file appear
-        start_wait = time.time()
+        # Wait for the HDF5 file to appear with a timeout
+        start_time = time.time()
         while not os.path.exists(h5file):
-            if time.time() - start_wait > FILE_TIMEOUT:
-                raise RuntimeWarning(
-                    "Cannot add info to H5 file. Timeout waiting for file on disk."
+            if time.time() - start_time > 5:
+                raise IOError(
+                    "Cannot add info to HDF5 file. Timeout waiting for file on disk."
                 )
             time.sleep(0.5)
 
         try:
-            h5fd = h5py.File(h5file, "r+")
-            group = h5fd.create_group("entry/source")
-            group.attrs["NX_class"] = np.array("NXsource", dtype="S")
-            group.create_dataset("name", data=np.array("PETRA III, DESY", dtype="S"))
-            group = h5fd.get("entry/instrument")
-            group.create_dataset("name", data=np.array("P11", dtype="S"))
-            group = h5fd.create_group("entry/instrument/attenuator")
-            group.attrs["NX_class"] = np.array("NXattenuator", dtype="S")
+            with h5py.File(h5file, "r+") as h5fd:
+                # Create or get the 'entry/source' group
+                source_group = self.get_or_create_group(h5fd, "entry/source")
+                source_group.attrs["NX_class"] = np.array("NXsource", dtype="S")
 
-            data_set = group.create_dataset(
-                "thickness", dtype="f8", data=self.get_filter_thickness()
-            )
-            data_set.attrs["units"] = np.array("m", dtype="S")
-            data_set = group.create_dataset(
-                "type", data=np.array("Aluminum", dtype="S")
-            )
-            data_set = group.create_dataset(
-                "attenuator_transmission",
-                dtype="f8",
-                data=self.get_filter_transmission(),
-            )
-            # fix rotation axis and detector orientation
-            data_set = h5fd.get("entry/sample/transformations/omega")
-            data_set.attrs["vector"] = [1.0, 0.0, 0.0]
-            data_set = h5fd.get("entry/instrument/detector/module/fast_pixel_direction")
-            data_set.attrs["vector"] = [1.0, 0.0, 0.0]
-            data_set = h5fd.get("entry/instrument/detector/module/slow_pixel_direction")
-            data_set.attrs["vector"] = [0.0, 1.0, 0.0]
-            # delete phi angle info to avoid confusion
-            nodes = [
-                "entry/sample/goniometer/phi",
-                "entry/sample/goniometer/phi_end",
-                "entry/sample/goniometer/phi_range_average",
-                "entry/sample/goniometer/phi_range_total",
-            ]
-            for node in nodes:
-                if node in h5fd:
-                    del h5fd[node]
-            h5fd.close()
+                # Create or get datasets within the 'entry/source' group
+                self.create_or_get_dataset(
+                    source_group, "name", np.array("PETRA III, DESY", dtype="S")
+                )
 
-        # except RuntimeWarning as err_msg:
-        #     self.log.debug("Error while adding info to HDF5 file (%s)" % str(err_msg))
-        #     self.log.debug(traceback.format_exc())
+                # Create or get the 'entry/instrument' group
+                instrument_group = self.get_or_create_group(h5fd, "entry/instrument")
+
+                # Create or get datasets within the 'entry/instrument' group
+                self.create_or_get_dataset(
+                    instrument_group, "name", np.array("P11", dtype="S")
+                )
+
+                # Create or get the 'entry/instrument/attenuator' group
+                attenuator_group = self.get_or_create_group(
+                    instrument_group, "attenuator"
+                )
+                attenuator_group.attrs["NX_class"] = np.array("NXattenuator", dtype="S")
+
+                # Create or get datasets within the 'entry/instrument/attenuator' group
+                self.create_or_get_dataset(
+                    attenuator_group, "thickness", self.get_filter_thickness()
+                )
+                self.create_or_get_dataset(
+                    attenuator_group, "type", np.array("Aluminum", dtype="S")
+                )
+                self.create_or_get_dataset(
+                    attenuator_group,
+                    "attenuator_transmission",
+                    self.get_filter_transmission(),
+                )
+
+                # Set attributes for certain nodes
+                h5fd["entry/sample/transformations/omega"].attrs["vector"] = [
+                    1.0,
+                    0.0,
+                    0.0,
+                ]
+                h5fd["entry/instrument/detector/module/fast_pixel_direction"].attrs[
+                    "vector"
+                ] = [1.0, 0.0, 0.0]
+                h5fd["entry/instrument/detector/module/slow_pixel_direction"].attrs[
+                    "vector"
+                ] = [0.0, 1.0, 0.0]
+
+                # Delete unwanted nodes
+                unwanted_nodes = [
+                    "entry/sample/goniometer/phi",
+                    "entry/sample/goniometer/phi_end",
+                    "entry/sample/goniometer/phi_range_average",
+                    "entry/sample/goniometer/phi_range_total",
+                ]
+                for node in unwanted_nodes:
+                    if node in h5fd:
+                        del h5fd[node]
         except Exception as err_msg:
-            self.log.debug("Error while adding info to HDF5 file (%s)" % str(err_msg))
+            self.log.debug(f"Error while adding info to HDF5 file: {str(err_msg)}")
             self.log.debug(traceback.format_exc())
-        except Exception as err_msg:
-            self.log.debug("Error while adding info to HDF5 file (%s)" % str(err_msg))
-            self.log.debug(traceback.format_exc())
+
+    def get_or_create_group(self, parent_group, group_name):
+        """
+        Get or create a group within a parent group.
+
+        :param parent_group: The parent group where the new group will be created.
+        :param group_name: The name of the group to get or create.
+        :return: The group object.
+        """
+        if group_name in parent_group:
+            return parent_group[group_name]
+        else:
+            return parent_group.create_group(group_name)
+
+    def create_or_get_dataset(self, group, dataset_name, dataset_data):
+        """
+        Create or get a dataset within a group.
+
+        :param group: The group where the dataset will be created or retrieved.
+        :param dataset_name: The name of the dataset.
+        :param dataset_data: The data to be stored in the dataset.
+        """
+        if dataset_name in group:
+            dataset = group[dataset_name]
+        else:
+            dataset = group.create_dataset(dataset_name, data=dataset_data)
 
     def get_filter_thickness(self):
         """
