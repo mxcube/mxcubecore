@@ -42,17 +42,6 @@ class P11DetectorCover(AbstractShutter):
     default_timeout = 4
     move_time_min = 1
 
-    @unique
-    class BaseValueEnum(Enum):
-        """Defines only the compulsory values."""
-
-        OPEN = "OPEN"
-        CLOSED = "CLOSED"
-        MOVING = "MOVING"
-        UNKNOWN = "UNKNOWN"
-
-    VALUES = BaseValueEnum
-
     def __init__(self, name):
 
         super(AbstractShutter, self).__init__(name)
@@ -74,6 +63,7 @@ class P11DetectorCover(AbstractShutter):
     def init(self):
         """Initilise the predefined values"""
 
+        self._initialise_values()
         self.simulation = self.get_property("simulation")
         self.cmd_timeout = self.get_property("command_timeout", self.default_timeout)
 
@@ -101,6 +91,16 @@ class P11DetectorCover(AbstractShutter):
             self.simulated_update()
 
         super(AbstractShutter, self).init()
+    
+    def _initialise_values(self):
+        """Add additional, known in advance states to VALUES"""
+        values_dict = {item.name: item.value for item in self.VALUES}
+        values_dict.update(
+            {
+                "MOVING": "MOVING",
+            }
+        )
+        self.VALUES = Enum("ValueEnum", values_dict)
 
     def get_value(self):
         if self.simulation:
