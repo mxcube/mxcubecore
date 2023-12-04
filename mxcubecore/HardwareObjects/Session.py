@@ -223,8 +223,9 @@ class Session(HardwareObject):
 
         if sub_dir:
             sub_dir = sub_dir.replace(" ", "").replace(":", "-")
-            directory = os.path.join(directory, sub_dir) + os.path.sep
-
+            directory = os.path.join(directory, sub_dir)
+            if not directory.endswith("/"):
+                directory += os.path.sep
         return directory
 
     def get_process_directory(self, sub_dir: str = "") -> str:
