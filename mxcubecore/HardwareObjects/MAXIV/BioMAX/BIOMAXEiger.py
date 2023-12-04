@@ -753,3 +753,23 @@ class BIOMAXEiger(AbstractDetector):
         )
 
         return radius
+
+    def get_image_file_name(self, path_template, suffix=None):
+        # ref-Tau-natA1_1_master.h5
+        template = "%s_%s_master.h5"
+        file_name = template % (
+            path_template.get_prefix(), path_template.run_number
+        )
+        return file_name
+
+    def get_first_and_last_file(self, pt: PathTemplate):
+        """
+        Get complete path to first and last image
+
+        Args:
+          pt (PathTempalte): Path template parameter
+
+        Returns:
+        (Tuple): Tuple containing first and last image path (first, last)
+        """
+        return (pt.get_image_path(), pt.get_image_path())
