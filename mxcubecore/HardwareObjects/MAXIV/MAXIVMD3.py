@@ -3,7 +3,12 @@ import logging
 import gevent
 import numpy as np
 from PIL import Image
-import lucid_core as lucid
+try:
+    import lucid_core as lucid
+except ModuleNotFoundError:
+    logging.getLogger("HWR").warning(
+        "[MAXIVMD3] Lucid cannot be imported."
+    )
 import math
 from mxcubecore.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer,
