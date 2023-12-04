@@ -82,7 +82,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         :raises: RuntimeError, if the queue is already running when called
         """
         if self._running:
-            raise RuntimeError("Can't call excute on a queue that is already running")
+            raise RuntimeError("Can't call execute on a queue that is already running")
 
         if not self.is_disabled():
             # If no entry is passed run all entries in the queue
