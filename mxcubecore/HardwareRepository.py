@@ -287,7 +287,7 @@ def init_hardware_repository(configuration_path):
         )
     if not configuration_path:
         logging.getLogger("HWR").error(
-            "Unable to initialize hardware repository. No cofiguration path passed."
+            "Unable to initialize hardware repository. No configuration path passed."
         )
         return
 
