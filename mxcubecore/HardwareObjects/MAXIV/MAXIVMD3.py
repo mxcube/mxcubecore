@@ -76,14 +76,12 @@ class MAXIVMD3(GenericDiffractometer):
         except:
             self.beamstop_z = None
 
-        self.camera = HWR.beamline.sample_view.camera
         # to make it comaptible
         self.motors_hwobj_dict = self.motor_hwobj_dict  # making sampleView happy
         self.wait_device_ready = self.wait_ready
         self.acceptCentring = self.accept_centring
         self.startCentringMethod = self.start_centring_method
-        self.image_width = self.camera.get_width()
-        self.image_height = self.camera.get_height()
+
 
         self.phi_motor_hwobj = self.motor_hwobj_dict["phi"]
         self.phiz_motor_hwobj = self.motor_hwobj_dict["phiz"]
@@ -323,7 +321,9 @@ class MAXIVMD3(GenericDiffractometer):
         """
         Description:
         """
-        img_buf, w, h = HWR.beamline.sample_view.camera.get_image_array()
+
+        self.camera = HWR.beamline.sample_view.camera
+        img_buf, w, h = self.camera.get_image_array()
 
         try:
             img = img_buf.reshape(h, w, 3)
@@ -331,7 +331,7 @@ class MAXIVMD3(GenericDiffractometer):
             info, y, x = lucid.find_loop_array(
                 img_rot, IterationClosing=6
             )  # np.array(img_rot, order='C'), IterationClosing=6)
-            x = self.camera.getWidth() - x
+            x = w - x
         except:
             return -1, -1, 0
         if info == "Coord":
