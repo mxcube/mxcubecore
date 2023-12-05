@@ -127,12 +127,14 @@ class AbstractMultiCollect(object):
         pass
 
     @abc.abstractmethod
-    def do_oscillation(self, start, end, exptime, shutterless, npass, first_frame):
+    def do_oscillation(
+        self, start, end, exptime, number_of_images, shutterless, first_frame
+    ):
         pass
 
     @abc.abstractmethod
     def prepare_oscillation(
-        self, start, osc_range, exptime, number_of_images, shutterless, npass
+        self, start, osc_range, exptime, number_of_images, shutterless, first_frame
     ):
         pass
 
@@ -751,6 +753,7 @@ class AbstractMultiCollect(object):
                 "Setting resolution to %f", resolution
             )
             try:
+                HWR.beamline.diffractometer.open_detector_cover()
                 HWR.beamline.resolution.set_value(resolution, timeout=3500)
             except RuntimeError:
                 logging.getLogger("user_level_log").info(
@@ -949,7 +952,6 @@ class AbstractMultiCollect(object):
                             exptime,
                             wedge_size,
                             data_collect_parameters.get("shutterless", True),
-                            npass,
                             j == wedge_size,
                         )
 
@@ -964,8 +966,8 @@ class AbstractMultiCollect(object):
                                 osc_start,
                                 osc_end,
                                 exptime,
+                                wedge_size,
                                 data_collect_parameters.get("shutterless", True),
-                                npass,
                                 j == wedge_size,
                             )
 
@@ -1033,7 +1035,7 @@ class AbstractMultiCollect(object):
                                 ),
                             ):
                                 if last_image_saved <= 0:
-                                    last_image_saved = elf.last_image_saved(
+                                    last_image_saved = self.last_image_saved(
                                         _total_exptime, exptime, wedge_size
                                     )
 
