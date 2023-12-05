@@ -107,12 +107,22 @@ class ExporterClient(StandardClient):
             pars(str): parameters
             timeout(float): Timeout [s]
         """
+
+        # runScript returns results in a different way than any other
+        # comand, fix on MD side ?
+        if method == "runScript" and pars is not None:
+            pars = pars[0].split(",")
+
         cmd = "{} {} ".format(CMD_SYNC_CALL, method)
+
         if pars is not None:
-            for par in pars:
-                if isinstance(par, (list, tuple)):
-                    par = self.create_array_parameter(par)
-                cmd += str(par) + PARAMETER_SEPARATOR
+            if isinstance(pars, (list, tuple)):
+                for par in pars:
+                    if isinstance(par, (list, tuple)):
+                        par = self.create_array_parameter(par)
+                    cmd += str(par) + PARAMETER_SEPARATOR
+            else:
+                cmd += str(pars)
 
         ret = self.send_receive(cmd, timeout)
         return self.__process_return(ret)
