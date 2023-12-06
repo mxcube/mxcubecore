@@ -555,7 +555,7 @@ class EMBLFlexHCD(SampleChanger):
         self._execute_cmd_exporter("defreezeGripper", command=True)
     
     @task
-    def single_load(self):
+    def load_a_pin_for_calibration(self):
         try:
             self.prepare_load()
             self.enable_power()

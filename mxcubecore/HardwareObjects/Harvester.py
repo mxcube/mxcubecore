@@ -10,9 +10,12 @@ It has some functionalities, like Harvest Sample, .
 [Commands]
 
  - getSampleList : Get list of available sample from Harvester
- - Harvest : load sample from Harvester
- 
------------------------------------------------------------------------
+ - Harvest : Harvest sample make it ready to load
+    <equipment class="Harvester">
+        <username>harvester</username>
+        <exporter_address>wid30harvest:9001</exporter_address>
+    </equipment>
+-------------------------------------------------------------------
 """
 import gevent
 import logging
@@ -46,7 +49,6 @@ class HarvesterState:
         Running: "Running",
         Harvesting: "Harvesting 1 Crystals",
         ContinueHarvesting: "Finishing Harvesting"
-        
     }
 
     @staticmethod
@@ -55,10 +57,11 @@ class HarvesterState:
 
 
 class Harvester(HardwareObject):
-    """Harvester functionality
+    """
+      Harvester functionality
 
-      The Harvester Class consists of methods executing exporter commands
-      to communicate with the Crystal Direct Harvester Machine
+      The Harvester Class consists of methods to execute exporter commands
+      this class communicate with the Crystal Direct Harvester Machine
 
     """
 
@@ -67,7 +70,6 @@ class Harvester(HardwareObject):
     def __init__(self, name):
         super().__init__(name)
         self.timeout = 3  # default timeout
-        # Hardware objects -------------
 
         # Internal variables -----------
         self.calibrate_state = False
@@ -369,12 +371,20 @@ class Harvester(HardwareObject):
         return self._execute_cmd_exporter("getImageTargetY", crystal_uuid, command=True)
 
     def get_room_temperature_mode(self):
+        """Get the crystal images position x
+
+        Args (str) : Crystal uuid
+
+        Return (bool):  TemperatureMode , True if Room Temp else False
+        """
         return self._execute_cmd_exporter("getRoomTemperatureMode", attribute=True)
 
     def set_room_temperature_mode(self, value):
         """Set Harvester temperature mode
 
         Args: (bool) set room temperature when true
+
+        Return (bool):  TemperatureMode
         """
         self._execute_cmd_exporter("setRoomTemperatureMode", value, command=True)
         print("setting HA Room temperature to: %s" %value)
@@ -407,14 +417,14 @@ class Harvester(HardwareObject):
     # ---------------------- Calibrate Cut Shape offset----------------------------
 
     def get_last_pin_cut_shape_offset_x(self):
-        """Pin shape Offset x position when
+        """Pin shape Offset x position
         Return (float):  last pin cut shape offset x
         """
         pin_last_cut_shape_offset_x = self._execute_cmd_exporter("getLastSampleCutShapeOffsetX", attribute=True)
         return pin_last_cut_shape_offset_x
     
     def get_last_pin_cut_shape_offset_y(self):
-        """Pin shape Offset Y position when
+        """Pin shape Offset Y position
          Return (float):  last pin cut shape offset y
         """
         pin_last_cut_shape_offset_y = self._execute_cmd_exporter("getLastSampleCutShapeOffsetY", attribute=True)
@@ -428,7 +438,8 @@ class Harvester(HardwareObject):
         return self._execute_cmd_exporter("loadCalibratedPin", command=True)
 
     def store_calibrated_pin(self, x, y, z):
-        """ Store x , y , z offsets position after calibration procedure
+        """ Store x , y , z offsets position to crystal direct machine
+        after calibration procedure
 
         Args: (float) x, y, z offsets
         """
@@ -451,6 +462,12 @@ class Harvester(HardwareObject):
     
     
     def get_offsets_for_sample_centering(self):
+        """ Calculate sample centering offsets
+        based on Harvested pin shape pre-calculated offsets
+
+        Return (tuple(float)): (phiy_offset, centringFocus, centringTableVertical)
+
+        """
 
         pin_to_beam = tuple(self.get_calibrated_pin_offset())
 
