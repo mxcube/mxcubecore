@@ -271,6 +271,7 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
 
         except Exception as ex:
             self.log.error("[COLLECT] Data collection failed: %s" % ex)
+            self.user_log.error("[COLLECT] Data collection failed: %s" % ex)
             self.emit_collection_failed()
             self.close_fast_shutter()
             self.close_detector_cover()
@@ -1262,7 +1263,7 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
         """
         try:
             chan = self.getChannelObject("undulator_gap")
-            gap = "{:.2f}".format(chan.getValue())
+            gap = "{:.2f}".format(chan.get_value())
             return gap
         except Exception:
             return None
