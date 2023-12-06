@@ -715,6 +715,10 @@ class SampleChanger(Container, HardwareObject):
     @abc.abstractmethod
     def _do_reset(self):
         return
+    
+    @abc.abstractmethod
+    def _mount_from_harvester(self):
+        return
 
     # ########################    PROTECTED    #########################
 
