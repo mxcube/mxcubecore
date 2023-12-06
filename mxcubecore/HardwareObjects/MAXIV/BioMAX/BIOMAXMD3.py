@@ -227,7 +227,7 @@ class BIOMAXMD3(MAXIVMD3):
         cent_vertical_pos = self.cent_vertical_pseudo_motor.getValue() + dis / float(
             self.pixelsPerMmY
         )
-        self.cent_vertical_pseudo_motor.setValue(cent_vertical_pos)
+        self.cent_vertical_pseudo_motor.set_value(cent_vertical_pos)
         self.wait_device_ready(5)
 
     def take_snapshots_loop(self, suffix):

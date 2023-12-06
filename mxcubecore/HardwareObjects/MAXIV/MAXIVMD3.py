@@ -205,7 +205,7 @@ class MAXIVMD3(GenericDiffractometer):
         # 'true',
         # 'null',
         # '1']
-        return self.channel_dict["LastTaskInfo"].getValue()
+        return self.channel_dict["LastTaskInfo"].get_value()
 
     ## ------------------------------- ##
     ##      OPERATION                  ##
@@ -224,7 +224,7 @@ class MAXIVMD3(GenericDiffractometer):
         Returns the MD3 TRANSFER MODE config
         """
         try:
-            mode = self.channel_dict["TransferMode"].getValue()
+            mode = self.channel_dict["TransferMode"].get_value()
         except Exception as ex:
             logging.getLogger("HWR").error("Cannot get MD3 transfer mode %s " % ex)
             raise Exception("Cannot get MD3 transfer mode %s " % ex)
@@ -277,7 +277,7 @@ class MAXIVMD3(GenericDiffractometer):
         Set scintillator position
         """
         try:
-            self.channel_dict["ScintillatorPosition"].setValue(value)
+            self.channel_dict["ScintillatorPosition"].set_value(value)
             self.wait_device_ready(30)
         except Exception as ex:
             logging.getLogger("HWR").error(
@@ -289,7 +289,7 @@ class MAXIVMD3(GenericDiffractometer):
         get capillary vertical position
         """
         try:
-            return self.channel_dict["CapillaryVerticalPosition"].getValue()
+            return self.channel_dict["CapillaryVerticalPosition"].get_value()
         except Exception as ex:
             logging.getLogger("HWR").error(
                 "Cannot get MD3 capillary vertcial %s " % (ex)
@@ -300,7 +300,7 @@ class MAXIVMD3(GenericDiffractometer):
         get sample holder length
         """
         try:
-            return self.channel_dict["SampleHolderLength"].getValue()
+            return self.channel_dict["SampleHolderLength"].get_value()
         except Exception as ex:
             logging.getLogger("HWR").error("Cannot get MD3 %s value" % (ex))
 
@@ -309,7 +309,7 @@ class MAXIVMD3(GenericDiffractometer):
         set sample holder length
         """
         try:
-            return self.channel_dict["SampleHolderLength"].setValue(value)
+            return self.channel_dict["SampleHolderLength"].set_value(value)
         except Exception as ex:
             logging.getLogger("HWR").error("Cannot set MD3 %s to %s " % (ex, value))
 
@@ -537,7 +537,7 @@ class MAXIVMD3(GenericDiffractometer):
             self.omega_reference_motor_moved(reference_pos)
 
     def move_cent_vertical_relative(self, value=0):
-        cent_vertical_to_move = self.cent_vertical_pseudo_motor.getValue() + value
+        cent_vertical_to_move = self.cent_vertical_pseudo_motor.get_value() + value
         motor_limits = self.command_dict["getMotorDynamicLimits"](
             "CentringTableVertical"
         )
@@ -549,7 +549,7 @@ class MAXIVMD3(GenericDiffractometer):
             logging.getLogger("HWR").error(msg)
             raise Exception(msg)
         self.wait_device_ready(5)
-        self.cent_vertical_pseudo_motor.setValue(cent_vertical_to_move)
+        self.cent_vertical_pseudo_motor.set_value(cent_vertical_to_move)
         self.wait_device_ready(5)
 
     def move_to_omega_reference_pos(self):
@@ -558,12 +558,12 @@ class MAXIVMD3(GenericDiffractometer):
 
     def set_scan_number_of_passes(self, value):
         self.wait_device_ready(5)
-        self.channel_dict["ScanNumberOfPasses"].setValue(value)
+        self.channel_dict["ScanNumberOfPasses"].set_value(value)
         self.wait_device_ready(5)
 
     def set_scan_number_of_frames(self, value):
         self.wait_device_ready(5)
-        self.channel_dict["ScanNumberOfFrames"].setValue(value)
+        self.channel_dict["ScanNumberOfFrames"].set_value(value)
         self.wait_device_ready(5)
 
     def zoom_position_changed(self, value):
@@ -581,7 +581,8 @@ class MAXIVMD3(GenericDiffractometer):
         y = xy["Y"] * self.pixels_per_mm_y + self.zoom_centre["y"]
         return x, y
 
-    def osc_scan(self, start, end, exptime, wait=False):
+    def do_oscillation_scan(self, start, end, exptime, wait=False):
+        self.set_scan_number_of_frames(1)
         scan_params = "1\t%0.3f\t%0.3f\t%0.4f\t1" % (start, (end - start), exptime)
         scan = self.command_dict["startScanEx"]
         logging.getLogger("HWR").info(
@@ -755,7 +756,7 @@ class MAXIVMD3(GenericDiffractometer):
     def wait_camera_exposure(self, value, timeout=10):
         logging.getLogger("HWR").info("Waiting for camera exposure is set to %d" % value)
         with gevent.Timeout(timeout, Exception("Timeout waiting for camera exposure setting")):
-            exp_time = self.channel_dict["CameraExposure"].getValue()
+            exp_time = self.channel_dict["CameraExposure"].get_value()
             while int(exp_time) != value:
                 gevent.sleep(1)
 
