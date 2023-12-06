@@ -4,6 +4,7 @@ import copy
 import logging
 
 from mxcubecore.TaskUtils import task
+from mxcubecore.model.queue_model_objects import PathTemplate
 from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
 from mxcubecore import HardwareRepository as HWR
 
