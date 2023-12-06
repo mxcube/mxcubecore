@@ -32,7 +32,6 @@ class HarvesterMockup(HardwareObject):
     def __init__(self, name):
         super().__init__(name)
         self.timeout = 3  # default timeout
-        # Hardware objects ----------------------
 
         # Internal variables -----------
         self.calibrate_state = False
@@ -40,7 +39,6 @@ class HarvesterMockup(HardwareObject):
 
     def init(self):
         """ Init """
-        # self.centring_calibration_hobj = self.getObjectByRole("centring_calibration")
         self.exporter_addr = self.get_property("exporter_address")
 
 
@@ -127,7 +125,6 @@ class HarvesterMockup(HardwareObject):
             if cmd.startswith("set"):
                 ret = exp_attr.set_value(args_str)
 
-        # self._wait_ready(timeout=timeout)
         return ret
     
     # ---------------------- State --------------------------------
@@ -312,7 +309,8 @@ class HarvesterMockup(HardwareObject):
 
         Args (str) : Plate ID
         """
-        return self._execute_cmd_exporter("loadPlate", plate_id, command=True)
+        # return self._execute_cmd_exporter("loadPlate", plate_id, command=True)
+        pass
 
     def get_plate_id(self):
         """Wait Harvester to be ready to transfer a sample
@@ -320,7 +318,8 @@ class HarvesterMockup(HardwareObject):
         Args:
         Return (str) : current Plate ID
         """
-        return self._execute_cmd_exporter("getPlateID", attribute=True)
+        # return self._execute_cmd_exporter("getPlateID", attribute=True)
+        return ""
 
     def get_image_target_x(self, crystal_uuid):
         """Get the crystal images position x
@@ -329,7 +328,8 @@ class HarvesterMockup(HardwareObject):
 
         Return (float):  Crystal x coordinate in plate
         """
-        return self._execute_cmd_exporter("getImageTargetX", crystal_uuid, command=True)
+        # return self._execute_cmd_exporter("getImageTargetX", crystal_uuid, command=True)
+        return ""
         
     
     def get_image_target_y(self, crystal_uuid):
@@ -339,17 +339,21 @@ class HarvesterMockup(HardwareObject):
         state (timeout) : Whether to wait for a amound of time
         None means wait forever timeout <=0 use default timeout
         """
-        return self._execute_cmd_exporter("getImageTargetY", crystal_uuid, command=True)
+        # return self._execute_cmd_exporter("getImageTargetY", crystal_uuid, command=True)
+        return ""
+    
+    def get_room_temperature_mode(self):
+        # return self._execute_cmd_exporter("getRoomTemperatureMode", attribute=True)
+        return True
 
     def set_room_temperature_mode(self, value):
         """Set Harvester temperature mode
 
         Args: (bool) set room temperature when true
         """
-        self._execute_cmd_exporter("setRoomTemperatureMode", value, command=True)
+        # self._execute_cmd_exporter("setRoomTemperatureMode", value, command=True)
         print("setting HA Room temperature to: %s" %value)
-        self.room_temperature_mode = value
-        return value
+        return self.get_room_temperature_mode()
 
     # -------------------- Calibrate  Drift Shape offset ----------------------------
 
@@ -357,22 +361,22 @@ class HarvesterMockup(HardwareObject):
         """Sample Offset X position when drifted
         Return (float):  last pin drift offset x
         """
-        last_sample_drift_offset_x = self._execute_cmd_exporter("getLastSampleDriftOffsetX", attribute=True)
-        return last_sample_drift_offset_x
+        # last_sample_drift_offset_x = self._execute_cmd_exporter("getLastSampleDriftOffsetX", attribute=True)
+        pass
 
     def get_last_sample_drift_offset_y(self):
         """Sample Offset Y position when drifted
         Return (float):  last pin drift offset y
         """
-        last_sample_drift_offset_y = self._execute_cmd_exporter("getLastSampleDriftOffsetY", attribute=True)
-        return last_sample_drift_offset_y
+        # last_sample_drift_offset_y = self._execute_cmd_exporter("getLastSampleDriftOffsetY", attribute=True)
+        pass
 
     def get_last_sample_drift_offset_z(self):
         """Sample Offset Z position when drifted
         Return (float):  last pin drift offset z
         """
-        pin_last_drift_offset_z = self._execute_cmd_exporter("getLastSampleDriftOffsetZ", attribute=True)
-        return pin_last_drift_offset_z
+        # pin_last_drift_offset_z = self._execute_cmd_exporter("getLastSampleDriftOffsetZ", attribute=True)
+        pass
 
     # ---------------------- Calibrate Cut Shape offset----------------------------
 
@@ -380,37 +384,39 @@ class HarvesterMockup(HardwareObject):
         """Pin shape Offset x position when
         Return (float):  last pin cut shape offset x
         """
-        pin_last_cut_shape_offset_x = self._execute_cmd_exporter("getLastSampleCutShapeOffsetX", attribute=True)
-        return pin_last_cut_shape_offset_x
+        # pin_last_cut_shape_offset_x = self._execute_cmd_exporter("getLastSampleCutShapeOffsetX", attribute=True)
+        pass
     
     def get_last_pin_cut_shape_offset_y(self):
         """Pin shape Offset Y position when
          Return (float):  last pin cut shape offset y
         """
-        pin_last_cut_shape_offset_y = self._execute_cmd_exporter("getLastSampleCutShapeOffsetY", attribute=True)
-        return pin_last_cut_shape_offset_y
+        # pin_last_cut_shape_offset_y = self._execute_cmd_exporter("getLastSampleCutShapeOffsetY", attribute=True)
+        pass
 
     # =============== Pin / Calibration -----------------------------
 
     def load_calibrated_pin(self):
         """Start Pin Calibration Procedure
         """
-        return self._execute_cmd_exporter("loadCalibratedPin", command=True)
+        # return self._execute_cmd_exporter("loadCalibratedPin", command=True)
+        pass
 
     def store_calibrated_pin(self, x, y, z):
         """ Store x , y , z offsets position after calibration procedure
 
         Args: (float) x, y, z offsets
         """
-        return self._execute_cmd_exporter("storePinToBeamOffset", x , y , z,  command=True)
+        # return self._execute_cmd_exporter("storePinToBeamOffset", x , y , z,  command=True)
+        pass
 
     def get_calibrated_pin_offset(self):
         """Get Stored x , y , z offsets position after calibration procedure
 
         return: (float) x, y, z offsets
         """
-        pin_to_beam_offset = self._execute_cmd_exporter("getPinToBeamOffset", command=True)
-        return pin_to_beam_offset
+        # pin_to_beam_offset = self._execute_cmd_exporter("getPinToBeamOffset", command=True)
+        pass
 
     def get_number_of_available_pin(self):
         """Get number of available pin
