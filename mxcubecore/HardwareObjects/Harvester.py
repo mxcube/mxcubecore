@@ -3,9 +3,10 @@
 
 [Description]
 Harvester is use as a replacement of the Dewar sample storage
-This hardware object is use in couple with a Sample changer .
-and it is compatible with the Crystal Direct Harvester 3.
-It has some functionalities, like Harvest Sample, .
+This hardware object is use in couple with a Sample changer.
+Sample changer load the sample from Harvester instead of dewar.
+It is compatible with the Crystal Direct Harvester 3.
+It has some functionalities, like Harvest Sample, etc....
 
 [Commands]
 
@@ -15,7 +16,7 @@ It has some functionalities, like Harvest Sample, .
         <username>harvester</username>
         <exporter_address>wid30harvest:9001</exporter_address>
     </equipment>
--------------------------------------------------------------------
+-----------------------------------------------------------------
 """
 import gevent
 import logging
@@ -35,11 +36,11 @@ class HarvesterState:
     Running = 4
     Harvesting = 5
     ContinueHarvesting = 6
-    # Disabled = 6
-    # Running = 5
-    # StandBy = 6
-    # Alarm = 7
-    # Fault = 8
+    # Disabled = 7
+    # Running = 8
+    # StandBy = 9
+    # Alarm = 10
+    # Fault = 11
     
 
     STATE_DESC = {
@@ -76,7 +77,6 @@ class Harvester(HardwareObject):
 
     def init(self):
         """ Init """
-        # self.centring_calibration_hobj = self.getObjectByRole("centring_calibration")
         self.exporter_addr = self.get_property("exporter_address")
         self.crims_upload_url = self.get_property("crims_upload_url")
 
