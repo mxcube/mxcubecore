@@ -19,9 +19,6 @@ class HarvesterMaintenance(HardwareObject):
     def init(self):
         self._harvester = self.get_object_by_role("harvester")
 
-    # def get_current_tool(self):
-    #     return self._harvester.get_gripper()
-
     def _do_trash(self):
         """
         Trash sample
