@@ -770,8 +770,7 @@ class BIOMAXEiger(AbstractDetector):
         return (pt.get_image_path(), pt.get_image_path())
 
     def open_cover(self):
-        self.cover_hwobj.openShutter()
+        self.cover_hwobj.open()
     def close_cover(self):
-        self.cover_hwobj.closeShutter()
-        self.cover_hwobj.closeShutter()
+        self.cover_hwobj.close()
 
