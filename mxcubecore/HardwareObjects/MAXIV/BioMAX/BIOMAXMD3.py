@@ -85,6 +85,127 @@ class BIOMAXMD3(MAXIVMD3):
                 logging.getLogger("user_level_log").info("No obvious drift, loop is relatively stable")
                 logging.getLogger("user_level_log").info(
                     "o obvious drift, loop is relatively stable"
+        self.update_zoom_calibration()
+
+    def current_phase_changed(self, current_phase):
+        """
+        Descript. :
+        """
+        self.current_phase = current_phase
+        logging.getLogger("HWR").info("MD3 phase changed to %s" % current_phase)
+        self.emit("phaseChanged", (current_phase,))
+
+    def is_fast_shutter_open(self):
+        return self.fast_shutter_channel.get_value()
+
+    def state_changed(self, state):
+        logging.getLogger("HWR").debug("State changed %s" % str(state))
+        self.current_state = state
+        self.emit("minidiffStateChanged", (self.current_state))
+
+    def motor_state_changed(self, state):
+        """
+        Descript. :
+        """
+        self.emit("minidiffStateChanged", (state,))
+
+    def open_fast_shutter(self):
+        logging.getLogger("HWR").info("Openning fast shutter")
+        self.fast_shutter_channel.set_value(True)
+
+    def close_fast_shutter(self):
+        logging.getLogger("HWR").info("Closing fast shutter")
+        self.fast_shutter_channel.set_value(False)
+
+    def move_fluo_in(self, wait=True):
+        logging.getLogger("HWR").info("Moving Fluo detector in")
+        self.wait_device_ready(3)
+        self.fluodet.actuatorIn()
+        time.sleep(3) # MD3 reports long before fluo is in position
+        # the next lines are irrelevant, leaving there for future use
+        if wait:
+            with gevent.Timeout(10, Exception("Timeout waiting for fluo detector In")):
+                while self.fluodet.get_actuator_state(read=True) != 'in':
+                    gevent.sleep(0.1)
+ 
+    def move_fluo_out(self, wait=True):
+        logging.getLogger("HWR").info("Moving Fluo detector out")
+        self.wait_device_ready(3)
+        self.fluodet.actuatorOut()
+        if wait:
+            with gevent.Timeout(10, Exception("Timeout waiting for fluo detector Out")):
+                while self.fluodet.get_actuator_state(read=True) != 'out':
+                    gevent.sleep(0.1)
+
+    def start_3_click_centring(self):
+        self.start_centring_method(self.CENTRING_METHOD_MANUAL)
+
+    def start_auto_centring(self):
+        self.start_centring_method(self.CENTRING_METHOD_AUTO)
+
+    def get_pixels_per_mm(self):
+        """
+        Get the values from coaxCamScaleX and coaxCamScaleY channels diretly
+
+        :returns: list with two floats
+        """
+        zoom = self.camera.get_image_zoom()
+        return (
+            zoom / self.channel_dict["CoaxCamScaleX"].get_value(),
+            1 / self.channel_dict["CoaxCamScaleY"].get_value(),
+        )
+
+    def update_zoom_calibration(self):
+        """
+        """
+        zoom = self.camera.get_image_zoom()
+        self.pixels_per_mm_x = zoom / self.channel_dict["CoaxCamScaleX"].get_value()
+        self.pixels_per_mm_y = zoom / self.channel_dict["CoaxCamScaleY"].get_value()
+        self.emit("pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y)))
+
+    def manual_centring(self):
+        """
+        Descript. :
+        """
+        self.centring_hwobj.initCentringProcedure()
+        for click in range(3):
+            self.user_clicked_event = gevent.event.AsyncResult()
+            x, y = self.user_clicked_event.get()
+            self.centring_hwobj.appendCentringDataPoint(
+                {
+                    "X": (x - self.beam_position[0]) / self.pixels_per_mm_x,
+                    "Y": (y - self.beam_position[1]) / self.pixels_per_mm_y,
+                }
+            )
+            if self.in_plate_mode():
+                dynamic_limits = self.phi_motor_hwobj.get_dynamic_limits()
+                if click == 0:
+                    self.phi_motor_hwobj.set_value(dynamic_limits[0])
+                elif click == 1:
+                    self.phi_motor_hwobj.set_value(dynamic_limits[1])
+            else:
+                if click < 2:
+                    self.phi_motor_hwobj.set_value_relative(90)
+        self.omega_reference_add_constraint()
+        return self.centring_hwobj.centeredPosition(return_by_name=False)
+
+    def automatic_centring_old(self):
+        """Automatic centring procedure. Rotates n times and executes
+           centring algorithm. Optimal scan position is detected.
+        """
+
+        surface_score_list = []
+        self.zoom_motor_hwobj.move_to_position("Zoom 1")
+        self.wait_device_ready(3)
+        self.centring_hwobj.initCentringProcedure()
+        for image in range(BIOMAXMD3.AUTOMATIC_CENTRING_IMAGES):
+            x, y, score = self.find_loop()
+            if x > -1 and y > -1:
+                self.centring_hwobj.appendCentringDataPoint(
+                    {
+                        "X": (x - self.beam_position[0]) / self.pixels_per_mm_x,
+                        "Y": (y - self.beam_position[1]) / self.pixels_per_mm_y,
+                    }
                 )
                 return
             img_bef = img_after
