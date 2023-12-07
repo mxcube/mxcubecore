@@ -82,26 +82,29 @@ class BIOMAXMD3(MAXIVMD3):
             img_after = self._get_image_array()
             diff = cv2.absdiff(img_bef, img_after)
             if diff.max() < 100:
-                logging.info("No obvious drift, loop is relatively stable")
+                logging.getLogger("user_level_log").info("No obvious drift, loop is relatively stable")
                 logging.getLogger("user_level_log").info(
                     "o obvious drift, loop is relatively stable"
                 )
                 return
             img_bef = img_after
             timer += wait_int
-        logging.info(
-            "Loop is still drifting, have waited %d s, give up and continue with collection", wait_time
+        logging.getLogger("user_level_log").info(
+            "Loop is still drifting, have waited {}s, give up and continue with collection".format(
+                wait_time
             )
         )
         logging.getLogger("user_level_log").info(
-            "Loop is still drifting, have waited %d s, give up and continue with collection", wait_time
+            "Loop is still drifting, have waited {}s, give up and continue with collection".format(
+                wait_time
+            )
         )
 
     def automatic_centring(self):
         self.wait_device_ready(10)
         # move MD3 to Centring phase if it's not
         if self.get_current_phase() != "Centring":
-            logging.info("Moving Diffractometer to Centring for automatic_centring")
+            logging.getLogger("user_level_log").info("Moving Diffractometer to Centring for automatic_centring")
             self.set_phase("Centring", wait=True, timeout=200)
         # make sure the back light factor is 1, zoom level is 1, before loop centering
         self.zoom_motor_hwobj.moveToPosition("Zoom 1")
@@ -231,7 +234,7 @@ class BIOMAXMD3(MAXIVMD3):
         dir_name = "/data/staff/ispybstorage/staff/jienan"
         timestr = time.strftime("%Y%m%d-%H%M%S")
         file_name = os.path.join(dir_name, "{}_{}.jpeg".format(timestr, suffix))
-        logging.info(
+        logging.getLogger("user_level_log").info(
             "Taking snapshot {} {} pre-aligning loop".format(file_name, suffix)
         )
         self.camera_hwobj.save_snapshot(file_name)

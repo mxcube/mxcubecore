@@ -398,7 +398,7 @@ class MAXIVMD3(GenericDiffractometer):
         self.wait_device_ready(10)
         # move MD3 to Centring phase if it's not
         if self.get_current_phase() != "Centring":
-            logging.info("Moving Diffractometer to Centring for automatic_centring")
+            logging.getLogger("user_level_log").info("Moving Diffractometer to Centring for automatic_centring")
             self.set_phase("Centring", wait=True, timeout=200)
         # wait shortly to make sure the camera exposure time is set for the right phase
         time.sleep(1)
@@ -428,10 +428,8 @@ class MAXIVMD3(GenericDiffractometer):
             self.centring_hwobj.initCentringProcedure()
             for a in range(3):
                 x, y, score = self.find_loop()
-                logging.info("in autocentre, x=%f, y=%f", x, y)
                 if x < 0 or y < 0:
                     for i in range(1, 6):
-                        # logging.info("loop not found - moving back %d" % i)
                         self.phi_motor_hwobj.set_value_relative(15)
                         self.wait_ready(time_out)
                         x, y, score = self.find_loop()
