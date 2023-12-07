@@ -23,10 +23,10 @@ class BIOMAXMD3(MAXIVMD3):
         """
         Description:
         """
-        MAXIVMD3.__init__(self, *args)
+        super().__init__(self, *args)
 
     def init(self):
-        MAXIVMD3.init(self)
+        super().init()
 
         try:
             self.zoom_centre = eval(self.get_property("zoom_centre"))
@@ -90,14 +90,11 @@ class BIOMAXMD3(MAXIVMD3):
             img_bef = img_after
             timer += wait_int
         logging.info(
-            "Loop is still drifting, have waited {}s, give up and continue with collection".format(
-                wait_time
+            "Loop is still drifting, have waited %d s, give up and continue with collection", wait_time
             )
         )
         logging.getLogger("user_level_log").info(
-            "Loop is still drifting, have waited {}s, give up and continue with collection".format(
-                wait_time
-            )
+            "Loop is still drifting, have waited %d s, give up and continue with collection", wait_time
         )
 
     def automatic_centring(self):
