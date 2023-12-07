@@ -16,20 +16,6 @@ except ImportError:
 from Session import Session
 from mxcubecore.model import queue_model_objects
 
-# proposal types from DUO
-PROPOSAL_TYPES = {'H': 'in-house',
-                  'N': 'normal',
-                  'T': 'Training and Education"',
-                  'P': 'proprietary',
-                  'B': 'BAG proposals',
-                  'L': 'long term',
-                  'F': 'fast access',
-                  'Z': "In-house Commissioning",
-                  'G': "GAT proposal",  # Guaranteed Access Time
-                  'Y': "DDT proposal",  # Directors Discretionary Time
-                  'unknown': 'unknown'
-                }
-
 
 class MaxIVSession(Session):
     def __init__(self, name):
@@ -223,49 +209,6 @@ class MaxIVSession(Session):
             _archive_path = os.path.join(self.base_archive_directory, archive_folder)
             logging.getLogger("HWR").info("[MAX IV Session] Archive directory configured: %s" % _archive_path)
 
-    def _is_proposal_type(self, proposal_type, proposal_number=None):
-        """
-        Determines if a given proposal is of the given proposal type.
-
-        :param proposal_type: Proposal type
-        :type proposal_type: str
-
-        :param proposal_number: Proposal number
-        :type proposal_number: str
-
-        :returns: True if the proposal is of the given proposal type, otherwise False.
-        :rtype: bool
-        """
-        if not proposal_number:
-            proposal_number = self.proposal_number
-
-        if proposal_number is not None:
-            try:
-                duo = SDM(production=True).uo
-                prop_type = duo.get_proposal(proposal_number).get('prop_type', 'unknown')
-            except Exception as ex:
-                logging.getLogger("HWR").warning("[MAX IV Session] cannot retrieve proposal info from DUO,  %s" % str(ex))
-                return False
-            return PROPOSAL_TYPES[prop_type] == proposal_type
-        else:
-            return False
-
-    def is_inhouse(self, proposal_code=None, proposal_number=None):
-        """
-        Determines if a given proposal is considered to be inhouse.
-
-        :param proposal_code: Proposal code. Unused.
-        :type propsal_code: str
-
-        :param proposal_number: Proposal number
-        :type proposal_number: str
-
-        :returns: True if the proposal is inhouse, otherwise False.
-        :rtype: bool
-        """
-        logging.getLogger("HWR").debug("[MAX IV Session] Checking if {} proposal is inhouse".format(proposal_number))
-        return self._is_proposal_type('in-house', proposal_number=proposal_number)
-
     def is_proprietary(self, proposal_number=None):
         """
         Determines if a given proposal is considered to be proprietary.
@@ -276,8 +219,7 @@ class MaxIVSession(Session):
         :returns: True if the proposal is proprietary, otherwise False.
         :rtype: bool
         """
-        logging.getLogger("HWR").debug("[MAX IV Session] Checking if {} proposal is proprietary".format(proposal_number))
-        return self._is_proposal_type('proprietary', proposal_number=proposal_number)
+        return self.proposal_code == "IN"
 
     def clear_session(self):
         self.session_id = None
