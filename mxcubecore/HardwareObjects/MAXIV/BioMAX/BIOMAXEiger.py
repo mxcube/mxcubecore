@@ -36,6 +36,7 @@ class BIOMAXEiger(AbstractDetector):
     def init(self):
         super(BIOMAXEiger, self).init()
         tango_device = self.get_property("detector_device")
+        self.cover_hwobj = self.get_object_by_role("detector_cover")
         self.file_suffix = self.get_property("file_suffix")
         self.default_exposure_time = self.get_property("default_exposure_time")
         self.default_compression = self.get_property("default_compression")
@@ -771,3 +772,10 @@ class BIOMAXEiger(AbstractDetector):
         (Tuple): Tuple containing first and last image path (first, last)
         """
         return (pt.get_image_path(), pt.get_image_path())
+
+    def open_cover(self):
+        self.cover_hwobj.openShutter()
+    def close_cover(self):
+        self.cover_hwobj.closeShutter()
+        self.cover_hwobj.closeShutter()
+
