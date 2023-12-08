@@ -482,17 +482,20 @@ class Beamline(ConfiguredObject):
     __content_roles.append("harvester_maintenance")
 
 
-    # @property
-    # def plate_manipulator(self):
-    #     """Plate Manuipulator Hardware object
-    #     NBNB TODO REMOVE THIS and treat as an alternative sample changer instead.
+    @property
+    def plate_manipulator(self):
+        """**DEPRECATED**
+        Plate Manuipulator Hardware object
+        NBNB TODO REMOVE THIS From qt version usage and 
+        and call HWR.beamline.sample_changer instead as plate_manipulator being 
+        treated as an alternative sample changer .
 
-    #     Returns:
-    #         Optional[AbstractSampleChanger]:
-    #     """
-    #     return self._objects.get("plate_manipulator")
+        Returns:
+            Optional[AbstractSampleChanger]:
+        """
+        return self._objects.get("plate_manipulator")
 
-    # __content_roles.append("plate_manipulator")
+    __content_roles.append("plate_manipulator")
 
     @property
     def session(self):
