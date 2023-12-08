@@ -2267,7 +2267,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 self._return_parameters = gevent.event.AsyncResult()
                 try:
                     dispatcher.connect(
-                        self.receive_pre_transcal_data,
+                        self.receive_ok_cancel,
                         self.PARAMETER_RETURN_SIGNAL,
                         dispatcher.Any,
                     )
@@ -2288,7 +2288,7 @@ class GphlWorkflow(HardwareObjectYaml):
                         return StopIteration
                 finally:
                     dispatcher.disconnect(
-                        self.receive_pre_transcal_data,
+                        self.receive_ok_cancel,
                         self.PARAMETER_RETURN_SIGNAL,
                         dispatcher.Any,
                     )
@@ -2667,16 +2667,18 @@ class GphlWorkflow(HardwareObjectYaml):
                         )
                     )
 
-    def receive_pre_transcal_data(self, instruction, parameters):
+    def receive_ok_cancel(self, instruction, parameters):
 
         if instruction == self.PARAMETERS_READY:
             self._return_parameters.set(parameters)
         elif instruction == self.PARAMETERS_CANCELLED:
             self._return_parameters.set(StopIteration)
         else:
-            raise ValueError(
-                "Illegal return instruction %s for transcal parameter query"
-                % instruction
+            self._return_parameters.set_exception(
+                ValueError(
+                    "Illegal return instruction %s for Ok/Cancel query"
+                    % instruction
+                )
             )
 
     def receive_pre_collection_data(self, instruction, parameters):
