@@ -260,18 +260,6 @@ class Beamline(ConfiguredObject):
 
     __content_roles.append("machine_info")
 
-
-    @property
-    def authenticator(self):
-        """Authenticator Hardware object
-
-        Returns:
-            Optional[AbstractAuthenticator]:
-        """
-        return self._objects.get("authenticator")
-
-    __content_roles.append("authenticator")
-
     @property
     def transmission(self):
         """Transmission Hardware object

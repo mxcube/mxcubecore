@@ -46,8 +46,8 @@ class ISPyBClientMockup(HardwareObject):
         self.authServerType = self.get_property("authServerType") or "ldap"
         if self.authServerType == "ldap":
             # Initialize ldap
-            self.ldap_connection = self.get_object_by_role("ldapServer")
-            if self.ldap_connection is None:
+            self.ldapConnection = self.get_object_by_role("ldapServer")
+            if self.ldapConnection is None:
                 logging.getLogger("HWR").debug("LDAP Server is not available")
 
         self.beamline_name = HWR.beamline.session.beamline_name
@@ -100,9 +100,9 @@ class ISPyBClientMockup(HardwareObject):
         )
         return self.loginType
 
-    def login(self, login_id, psd, ldap_connection=None, create_session=True):
+    def login(self, loginID, psd, ldap_connection=None, create_session=True):
         # to simulate wrong loginID
-        if login_id != "idtest0":
+        if loginID != "idtest0":
             return {
                 "status": {"code": "error", "msg": "loginID 'wrong' does not exist!"},
                 "Proposal": None,
@@ -126,7 +126,7 @@ class ISPyBClientMockup(HardwareObject):
         new_session = False
         if psd == "nosession":
             new_session = True
-        prop = self.get_proposal(login_id, 9999)
+        prop = self.get_proposal(loginID, 9999)
 
         return {
             "status": {"code": "ok", "msg": "Successful login"},
