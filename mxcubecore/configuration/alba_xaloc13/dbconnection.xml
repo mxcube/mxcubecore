@@ -15,7 +15,7 @@
   <ws_tools>ToolsForBLSampleWebService</ws_tools>
   <ws_autoproc>ToolsForAutoprocessingWebService</ws_autoproc>
 
-  <object role="ldapServer" href="/LdapAuthenticator"/>
+  <object role="ldapServer" href="/ldaplogin"/>
   <object role="session" href="/session"/>
 
   <!-- all this should be removed from here (information
