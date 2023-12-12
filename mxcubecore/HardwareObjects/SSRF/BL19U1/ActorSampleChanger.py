@@ -113,7 +113,7 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         self._dewar=1
         self.socket_addr = '10.30.61.73:10100'
         self._ifcloseLid_inBeginning = False
-        self.count = 28
+        self.count = 1
 
         self._cmdMount = self.add_command(
             {"type": "socketrobot", "socket_address": self.socket_addr, "name": '_cmdMount'},

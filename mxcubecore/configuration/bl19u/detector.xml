@@ -50,7 +50,7 @@
   <channel type="epics" name="det_alpha">BL19U1:cam1:Alpha</channel>
   <channel type="epics" name="det_kappa">BL19U1:cam1:Kappa</channel>
   <channel type="epics" name="det_phi">BL19U1:cam1:Phi</channel>
-  <channel type="epics" name="det_phi_incr">BL19U1:cam1:PhiIncr</channel>
+  <!--channel type="epics" name="det_phi_incr">BL19U1:cam1:PhiIncr</channel-->
   <channel type="epics" name="det_phi_chi">BL19U1:cam1:Chi</channel>
   <channel type="epics" name="det_phi_chi_incr">BL19U1:cam1:ChiIncr</channel>
   <channel type="epics" name="det_phi_omega">BL19U1:cam1:Omega</channel>
