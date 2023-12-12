@@ -448,6 +448,10 @@ class P11Collect(AbstractCollect):
             self.log.debug("#COLLECT# Closing detector cover")
             diffr.detector_cover_close(wait=True)
 
+            # Move omega to 0 at the end
+            self.omega_mv(0, self.default_speed)
+            self.wait_omega()
+
         except RuntimeError:
             self.log.error(traceback.format_exc())
 
