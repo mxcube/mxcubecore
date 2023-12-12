@@ -30,6 +30,16 @@ try:
 except ImportError:
     from http.client import HTTPConnection
 import json
+import traceback
+
+try:
+    import redis
+    redis_flag = True
+    print(redis.__file__)
+except:
+    traceback.print_exc()
+    print('Impossible to import redis')
+    redis_flag = False
 
 from mxcubecore.utils.qt_import import QImage, QPixmap, QPoint
 from mxcubecore.utils.conversion import string_types
@@ -264,8 +274,12 @@ class MjpgStreamVideo(AbstractVideoDevice, Device):
         self.plugin = 0
         self.update_controls = None
         self.input_avt = None
-
+        self.last_jpeg = None
         self.changing_pars = False
+        if redis_flag:
+            self.redis = redis.StrictRedis()
+        else:
+            self.redis = False
 
     def init(self):
         """
@@ -854,6 +868,8 @@ class MjpgStreamVideo(AbstractVideoDevice, Device):
             print("zoom: %s" % zoom)
             print("pos_x (%s, %s) - pos_y (%s,%s) " % (pos_x, x_i, pos_y, y_i))
             print("width (%s, %s) - height (%s,%s) " % (width, w_i, height, h_i))
+            print('emit zoomChanged', zoom)
+            self.emit('zoomChanged', zoom)
 
             if (
                 abs(x_i - pos_x) > 3
@@ -868,9 +884,14 @@ class MjpgStreamVideo(AbstractVideoDevice, Device):
                 break
 
         self.changing_pars = False
+        zoom = self.get_zoom()
+        if redis_flag:
+            print('changing zoom', zoom)
+            self.redis.set('zoom', zoom)
+        print('emiting zoomChanged now')
+        self.emit("zoomChanged", zoom)
 
-        self.emit("zoomChanged", self.get_zoom())
-
+         
     def get_zoom(self):
         """
         Descript. : Returns the digital zoom factor.
@@ -923,8 +944,14 @@ class MjpgStreamVideo(AbstractVideoDevice, Device):
 
         image = self.http_get("?action=snapshot")
         if image is not None:
+            self.last_jpeg = image
+            if redis_flag:
+                self.redis.set('last_image_data', image)
             return QImage.fromData(image).mirrored(fliph, flipv)
         return None
+
+    def get_last_jpeg(self):
+        return self.last_jpeg
 
     def refresh_video(self):
         """
