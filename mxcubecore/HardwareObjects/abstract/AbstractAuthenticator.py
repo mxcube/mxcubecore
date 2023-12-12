@@ -33,7 +33,7 @@ class AbstractAuthenticator(HardwareObject):
         super().init()
 
     @abc.abstractmethod
-    def authenticate(self, username: str, password: str) -> bool:
+    def authenticte(self, username: str, password: str) -> bool:
         """
         Authenticate with credentials username, password
 
@@ -47,9 +47,9 @@ class AbstractAuthenticator(HardwareObject):
         pass
 
     @abc.abstractmethod
-    def invalidate(username: str) -> None:
+    def invlidate(username: str) -> None:
         """
-        de-authetnicate user with <username>
+        Reset de-authetnicate user with <username>
 
         Args:
             username: username

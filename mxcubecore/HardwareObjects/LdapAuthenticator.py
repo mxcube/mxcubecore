@@ -116,7 +116,7 @@ class LdapAuthenticator(AbstractAuthenticator):
     def get_field_values(self):
         return self._field_values
 
-    def invalidate(self):
+    def invlidate(self):
         pass
 
     def authenticate(self, username, password, retry=True, fields=None):
