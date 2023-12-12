@@ -670,7 +670,8 @@ class ISPyBClient(HardwareObject):
         # Authentication
         if self.authServerType == "ldap":
             logging.getLogger("HWR").debug("LDAP login")
-            ok, msg = self.ldap_login(login_name, psd, ldap_connection)
+            ok = self.ldap_login(login_name, psd, ldap_connection)
+            msg = loginID
             logging.getLogger("HWR").debug("searching for user %s" % login_name)
         elif self.authServerType == "ispyb":
             logging.getLogger("HWR").debug("ISPyB login")
@@ -749,7 +750,7 @@ class ISPyBClient(HardwareObject):
         if ldap_connection is None:
             ldap_connection = self.ldapConnection
 
-        return ldap_connection.login(login_name, psd)
+        return ldap_connection.authenticate(login_name, psd)
 
     def get_todays_session(self, prop, create_session=True):
         logging.getLogger("HWR").debug("getting proposal for todays session")
