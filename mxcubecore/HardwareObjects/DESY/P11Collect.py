@@ -298,7 +298,6 @@ class P11Collect(AbstractCollect):
             self.acquisition_cleanup()
 
         # self.add_h5_info(self.latest_h5_filename)
-        self.trigger_auto_processing()
 
     def collect_std_collection(self, start_angle, stop_angle):
         """
@@ -855,103 +854,7 @@ class P11Collect(AbstractCollect):
                     )
                 )
 
-    #        imagepath = self.path.get_path(
-    #                "/central/beamtime/raw/user/sample/rotational_number/" +
-    #                "sample_rotational_number_master.h5")
-    #        processpath = "/beamline/p11/current" + self.path.get_path(
-    #                "/processed/user/sample/rotational_number/xdsapp")
-    #
-    #
-    #
-    #
-    #       #create processing folder with 0o777
-    #        self.path.get_path("/beamline/beamtime/processed/user/sample/" +
-    #                "rotational_number/xdsapp", force=True)
-    #        #add to datasets.txt for presenterd
-    #        try:
-    #            f = open(self.path.get_path(
-    #                    "/beamline/beamtime/processed/datasets.txt"), "a")
-    #            f.write(self.path.get_path(
-    #                    "user/sample/rotational_number/xdsapp\n").lstrip("/"))
-    #            f.close()
-    #        except:
-    #            print(sys.exc_info())
-    #
-    #        #create call
-    #        ssh = btHelper.get_ssh_command()
-    #        sbatch = btHelper.get_sbatch_command(
-    #            jobname_prefix = "xdsapp",
-    #            job_dependency = "",
-    #            logfile_path = processpath + "/xdsapp.log"
-    #        )
-    #        cmd = ("/asap3/petra3/gpfs/common/p11/processing/xdsapp_sbatch.sh " + \
-    #                "{imagepath:s} {processpath:s} {res:f}").format(
-    #            imagepath = imagepath,
-    #            processpath = processpath,
-    #            res = res
-    #        )
-    #        print(cmd)
-    #        os.system("{ssh:s} \"{sbatch:s} --wrap \\\"{cmd:s}\\\"\"".format(
-    #            ssh = ssh,
-    #            sbatch = sbatch,
-    #            cmd = cmd
-    #        ))
-
-    # Test of the autoprocessing as in CC (AG)
-    #    def trigger_auto_processing(self, process_event=None, frame_number=None):
-    #        self.log.debug("Triggering auto processing. NOT IMPLEMENTED YET. Direct test from CC.")
-    #
-    #       #creation will fail if beamtime folder, slurm reservation or
-    #        #bl-fs mount on the compute nodes can not be found
-    #        try:
-    #            btHelper = triggerUtils.Trigger()
-    #        except:
-    #            print(sys.exc_info())
-    #            return
-    #
-    #        energy = self.petraThread.currentMonoEnergy / 1000.
-    #        wavelength = 12.3984 / energy #in Angstrom
-    #        res = wavelength / (2. * math.sin(0.5 * math.atan(
-    #                (311. / 2.) / self.parameters["detectordistance"])))
-    #        frames = self.parameters["frames"]
-    #        imagepath = self.path.get_path(
-    #                "/central/beamtime/raw/user/sample/rotational_number/" +
-    #                "sample_rotational_number_master.h5")
-    #        processpath = "/beamline/p11/current" + self.path.get_path(
-    #                "/processed/user/sample/rotational_number/xdsapp")
-    #
-    #        #create processing folder with 0o777
-    #        self.path.get_path("/beamline/beamtime/processed/user/sample/" +
-    #                "rotational_number/xdsapp", force=True)
-    #        #add to datasets.txt for presenterd
-    #        try:
-    #            f = open(self.path.get_path(
-    #                    "/beamline/beamtime/processed/datasets.txt"), "a")
-    #            f.write(self.path.get_path(
-    #                    "user/sample/rotational_number/xdsapp\n").lstrip("/"))
-    #            f.close()
-    #        except:
-    #            print(sys.exc_info())
-    #
-    #        #create call
-    #        ssh = btHelper.get_ssh_command()
-    #        sbatch = btHelper.get_sbatch_command(
-    #            jobname_prefix = "xdsapp",
-    #            job_dependency = "",
-    #            logfile_path = processpath + "/xdsapp.log"
-    #        )
-    #        cmd = ("/asap3/petra3/gpfs/common/p11/processing/xdsapp_sbatch.sh " + \
-    #                "{imagepath:s} {processpath:s} {res:f}").format(
-    #            imagepath = imagepath,
-    #            processpath = processpath,
-    #            res = res
-    #        )
-    #        print(cmd)
-    #        os.system("{ssh:s} \"{sbatch:s} --wrap \\\"{cmd:s}\\\"\"".format(
-    #            ssh = ssh,
-    #            sbatch = sbatch,
-    #            cmd = cmd
-    #        ))
+    
 
     def diffractometer_prepare_collection(self):
         diffr = HWR.beamline.diffractometer
