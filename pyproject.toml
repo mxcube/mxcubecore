@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mxcubecore"
-version = "1.59.0"
+version = "1.60.0"
 license = "LGPL-3.0-or-later"
 description = "Core libraries for the MXCuBE application"
 authors = ["The MXCuBE collaboration <mxcube@esrf.fr>"]
