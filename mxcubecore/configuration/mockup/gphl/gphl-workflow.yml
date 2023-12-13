@@ -65,9 +65,6 @@ settings:
         #            )
         #         mode "scan" is not allowed as default
         recentring_mode: sweep
-        # GPHL or MINIKAPPA. Preference for GPHL transcal or MiniKappaCorrection
-        # recentring where both are available Default is GPHL
-        recentring_calc_preference: GPHL
         # Parameters to control proposed total dose budget
         # The proposed budget is calculated so that radiation damage is predicted
         # to reduce the intensity at the highest expected redolution to this percentaged-->
@@ -77,6 +74,8 @@ settings:
         # The formula used is dose_budget =
         #     2 * resolution**2 * log(100. / decay_limit) / relative_sensitivity
         decay_limit: 25
+        # exposure time (s). NB automticaly reset to be within limits for detector
+        exposure_time: 0.01
         # Default use known cell parameters as forced starting point for processing
         use_cell_for_processing: true
         # Maximum dose budget to propose when converting from resolution, in MGy
@@ -156,8 +155,8 @@ settings:
 
         # Parameters to individual applications
         # Switch devMod to True to activate development parameters
-        # NB needed as of 20210802 to pass stratcal parameters strategy_type and variant
-        co.gphl.wf.devMode: true
+        # NB needed as of 20231116 no longer in active use
+#        co.gphl.wf.devMode: true
         # For stratcal configuration switches edit run_stratcal_wrap.py script instead-->
 
 #            Dummy sample properties.
@@ -265,7 +264,7 @@ workflows:
                   # 'g' (Goniostat position); 's' (Scan number);
                   # 'b' (Beam wavelength); 'd' (Detector position)-->
                   # NB position interleaving in NOT done for the moment.
-                  # So teh default ('gs') is a no-op
+                  # So the default ('gs') is a no-op
                   interleave_order: gsb
                   documentation: |
                       Two wavelength MAD data acquisition, full strategy.
