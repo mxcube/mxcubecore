@@ -2,6 +2,7 @@ import gevent
 from datetime import datetime
 import time
 import logging
+import traceback
 
 from mxcubecore.HardwareObjects.abstract import AbstractSampleChanger
 from mxcubecore.HardwareObjects.abstract.sample_changer import Container
@@ -18,7 +19,7 @@ def if_running_sc(func):
     """
     def wrapper(self,sample,wait=False):
         if HWR.beamline.sample_changer_maintenance.running == 1:
-            logging.getLogger("HWR").debug(
+            logging.getLogger("user_level_log").info(
                 "机械手正在运动，请稍后操作"
             )
             return
@@ -58,10 +59,10 @@ def if_ErrorCode(func):
     """
     装饰器函数，用于当发送机械手命令，机械手返回报错时，获取报错信息，返回给load或者unload
     """
-    def wrapper(self,magazine,position,*args):
+    def wrapper(self,*args):
         try:
             print()
-            res = func(self,magazine,position,*args)
+            res = func(self,*args)
         except Exception as e:
             print("type(e) from if_ErrorCode:",type(e))
             print("e from if_ErrorCode::",e)
@@ -137,6 +138,9 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         self.first_launch_mxcube=True #添加
         self.if_check_mountedPin_from_camerman = False
         self.write_sample_dir() #加载sample的prefix和subdir
+        self.get_loaded_sample_fromstart()
+
+
     def write_sample_dir(self):    #添加
         """
         将目录从sc.xml写入二维列表
@@ -265,9 +269,13 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
                 if type(self._ifcmdSucceeded) is Exception:
                     self._ifcmdSucceeded = str(self._ifcmdSucceeded)
                     self._ifcmdSucceeded = self._paraphrase_errorCode(self._ifcmdSucceeded)
-                logging.getLogger("user_level_log").error(
-                    "ErrorCode from robot:"+ self._ifcmdSucceeded+",please contact the teacher on duty")
-                raise Exception(f"ErrorCode from robot: {self._ifcmdSucceeded}, please contact the teacher on duty")
+                    logging.getLogger("user_level_log").error(
+                        "ErrorCode from robot:"+ self._ifcmdSucceeded+",please contact the teacher on duty")
+                    raise Exception(f"ErrorCode from robot: {self._ifcmdSucceeded}, please contact the teacher on duty")
+                else:
+                    logging.getLogger("user_level_log").error(
+                        "There are some error caused by internet connection, please try again")
+                    raise Exception("There are some error caused by internet connection, please try again")
 
             # 命令完成
             mounted_sample = self.get_component_by_address(
@@ -568,8 +576,57 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
             self.send_sample_address_to_statemessage()
 
             self.emit("fsmConditionChanged", "sample_is_loaded", False)
+
+            #20231226. make close lid state to false after unload.
+            self.change_ifcloseLid_inBeginning_state(False)
         else:
             logging.getLogger("HWR").debug("cannot unload, the location is wrong")
+
+
+    def synchronize_with_camerman(self):
+        # 判断机械手当前状态，如果位置在dewar里，就不用判断close lid
+        ret = self._do_getStatus()
+        # print("self._cmdGetStatus")
+        print(ret)
+        index_MountedPin = ret.index('MountedPin')
+        MountedPin = ret[index_MountedPin + 2]
+        # 不在dewar里
+        MountedPin = int(MountedPin)
+
+        # 有样品，相当于换样
+        if MountedPin != 0:
+            self._selected_basket = int(MountedPin / 100)
+            self._selected_sample = MountedPin % 100
+            # 命令完成
+            mounted_sample = self.get_component_by_address(
+                Container.Pin.get_sample_address(self._selected_basket, self._selected_sample)
+            )
+            self._trigger_loaded_sample_changed_event(mounted_sample)
+
+            self.send_sample_address_to_statemessage()
+            # exchange的是同一个或者exchange完成
+            self.update_info()
+            logging.getLogger("user_level_log").info("Sample changer: Sample loaded")
+
+            self.emit("fsmConditionChanged", "sample_is_loaded", True)
+            self.emit("fsmConditionChanged", "sample_mounting_sample_changer", False)
+
+
+
+        # 没有样品，相当于下样
+        else:
+            self._selected_basket = -1
+            self._selected_sample = -1
+
+            self._trigger_loaded_sample_changed_event(self.get_loaded_sample())
+            self.send_sample_address_to_statemessage()
+
+            self.emit("fsmConditionChanged", "sample_is_loaded", False)
+
+        return ret
+
+
+
 
     def _paraphrase_errorCode(self,errorCode):
         if errorCode == "62":
@@ -591,8 +648,9 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         else:
             return errorCode
 
-    def get_loaded_sample(self):
-        # 当mxcube重起，向camerman询问已上样信息
+
+
+    def get_loaded_sample_fromstart(self):
         try:
             if self.first_launch_mxcube:
                 self.first_launch_mxcube=False
@@ -601,6 +659,7 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         else:
             if not self.if_check_mountedPin_from_camerman:
                 self.if_check_mountedPin_from_camerman = True
+                # self.synchronize_with_camerman()
                 # 判断机械手当前状态，如果位置在dewar里，就不用判断close lid
                 ret = self._cmdGetStatus()
                 # print("self._cmdGetStatus")
@@ -610,8 +669,20 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
                 # 不在dewar里
                 MountedPin = int(MountedPin)
                 if MountedPin != 0:
-                    self._selected_basket =int(MountedPin/100)
-                    self._selected_sample=MountedPin % 100
+                    self._selected_basket = int(MountedPin / 100)
+                    self._selected_sample = MountedPin % 100
+
+    def get_loaded_sample(self):
+        # 当mxcube重起，向camerman询问已上样信息
+        # logging.getLogger("HWR").debug(
+        #     "get into get_loaded_sample in sc_maint"
+        # )
+        # s = traceback.extract_stack()
+        # logging.getLogger("HWR").debug(
+        #     "%s[-2][2] invoked me",s
+        # )
+
+
 
 
         return self.get_component_by_address(
@@ -619,6 +690,8 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
                 self._selected_basket, self._selected_sample
             )
         )
+
+
 
     def is_mounted_sample(self, sample):
         return (

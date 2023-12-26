@@ -69,7 +69,7 @@ def if_running(func):
     def wrapper(self):
         if self._running==1:
             logging.getLogger("HWR").debug(
-                "机械手正在运动，请稍后操作" % (1)
+                "机械手正在运动，请稍后操作"
             )
             return
         func(self)
@@ -115,7 +115,7 @@ def if_running_closelid(func):
     def wrapper(self,state=True):
         if self._running==1:
             logging.getLogger("HWR").debug(
-                "机械手正在运动，请稍后开关lid %d" % (1)
+                "机械手正在运动，请稍后开关lid %d"
             )
             return
         return func(self,state)
@@ -281,13 +281,19 @@ class ActorMaint(Equipment):
         """
         return self._cmdDry()
         # return self._do_dry0()
+
+    @set_running
+    def _do_synchronize(self):
+        return HWR.beamline.sample_changer.synchronize_with_camerman()
+
     @set_running
     def _do_home(self):
         """
         robot initialize
         会将是否close lid的flag恢复为false
+        20231226, cancel the function of setting closelid to false
         """
-        HWR.beamline.sample_changer.change_ifcloseLid_inBeginning_state(False)
+        # HWR.beamline.sample_changer.change_ifcloseLid_inBeginning_state(False)
         return self._cmdHome()
 
     @if_running
@@ -550,14 +556,17 @@ class ActorMaint(Equipment):
             "powerOn": (not self._powered) and _ready,
             "powerOff": (self._powered) and _ready,
             "regulon": (not self._regulating) and _ready,
-            "openlid1": (not self._lid1state) and self._powered and _ready,
-            "closelid1": self._lid1state and self._powered and _ready,
+            # "openlid1": (not self._lid1state) and self._powered and _ready,
+            # "closelid1": self._lid1state and self._powered and _ready,
+            "openlid1": (not self._running) and self._powered and _ready,
+            "closelid1": (not self._running) and self._powered and _ready,
             "dry": (not self._running) and self._powered and _ready,
+            "synchronize":(not self._running) and self._powered and _ready,
             "soak": (not self._running) and self._powered and _ready,
             "home": (not self._running) and self._powered and _ready,
             "back": (not self._running) and self._powered and _ready,
             "safe": (not self._running) and self._powered and _ready,
-            "clear_memory": True,
+            "clear_memory": (not self._running) and self._powered and _ready,
             "reset": True,
             "abort": self._running,
         }
@@ -642,6 +651,7 @@ class ActorMaint(Equipment):
                 [
                     ["home", "Initialize", "Actions", "Home (trajectory)"],
                     ["dry", "Dry", "Actions", "Dry (trajectory)"],
+                    ["synchronize","Synchronize_with_camerman","Actions","Synchronize_with_camerman (trajectory)"]
                     # ["soak", "Soak", "Actions", "Soak (trajectory)"],
                 ],
             ],
@@ -714,7 +724,7 @@ class ActorMaint(Equipment):
         #改：
         if cmd_name == "back":
             logging.getLogger("HWR").debug(
-                "back command %d" % (1)
+                "back command %d"
             )
             self.change_Cryo_Out_state()
 
@@ -723,7 +733,7 @@ class ActorMaint(Equipment):
 
         if cmd_name == "powerOn":
             logging.getLogger("HWR").debug(
-                "powerOn命令 %d" % (1)
+                "powerOn命令 %d"
             )
             self._do_power_state(True)
 
@@ -747,6 +757,14 @@ class ActorMaint(Equipment):
         # if cmd_name == "safe":
         #     print("abort")
         #     self._do_abort()
+        #20231226
+        if cmd_name == "synchronize":
+            logging.getLogger("HWR").debug(
+                "synchronize with camerman"
+            )
+            self._do_synchronize()
+
+
 
         return True
 

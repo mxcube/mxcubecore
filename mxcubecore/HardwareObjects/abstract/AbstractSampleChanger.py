@@ -264,7 +264,8 @@ class SampleChanger(Container, HardwareObject):
     @dtask
     def __update_timer_task(self, *args):
         while True:
-            sleep(1)
+            # sleep(1)
+            sleep(100) #这个函数会一直调用get_loaded_sample，不知道为什么，这里把sleep时间改长一点
             try:
                 if self.is_enabled():
                     self._timer_update_counter += 1

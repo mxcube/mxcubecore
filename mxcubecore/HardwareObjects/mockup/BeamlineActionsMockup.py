@@ -49,14 +49,23 @@ class Arg(typing.NamedTuple):
     alias: str
 
 
-class Anneal2(AnnotatedCommand):
-    def __init__(self, *args):
-        super().__init__(*args)
+# class Anneal2(AnnotatedCommand):
+#     def __init__(self, *args):
+#         super().__init__(*args)
+#
+#     # @argument(ArgMeta("time", "s", "time"))
+#     def anneal2(self, time: float) -> None:
+#         print("ANNEAL")
+#         gevent.sleep(float(time))
 
-    # @argument(ArgMeta("time", "s", "time"))
-    def anneal2(self, time: float) -> None:
-        print("ANNEAL")
-        gevent.sleep(float(time))
+class Anneal2(AnnotatedCommand):
+    def __init__(self,*args):
+        super().__init__(*args)
+    def anneal2(self, data: float) -> None:
+        logging.getLogger("user_level_log").info(
+            f"Annealing for {data.exp_time} seconds"
+        )
+        gevent.sleep(data.exp_time)
 
 
 class QuickRealign2(AnnotatedCommand):

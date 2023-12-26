@@ -12,6 +12,7 @@ import types
 from mxcubecore.TaskUtils import task
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.SSRF.BL19U1 import Constants as cts
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
 
 from mxcubecore.HardwareObjects.abstract.AbstractDetector import (
     AbstractDetector,
@@ -1010,4 +1011,9 @@ class LNLSPilatusDet(AbstractDetector):
             rtnValue = rtnValue / 1000
         logging.getLogger("HWR").info("RBV value: %s" % str(rtnValue))
         return rtnValue
+
+    # def restart(self) -> None:
+    #     self.update_state(HardwareObjectState.BUSY)
+    #     time.sleep(2)
+    #     self.update_state(HardwareObjectState.READY)
 

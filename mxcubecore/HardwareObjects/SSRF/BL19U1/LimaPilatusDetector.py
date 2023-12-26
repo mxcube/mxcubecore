@@ -473,3 +473,5 @@ class LimaPilatusDetector(AbstractDetector):
         self.start_acquisition()
         self.wait_ready()
         self.stop_acquisition()
+
+
