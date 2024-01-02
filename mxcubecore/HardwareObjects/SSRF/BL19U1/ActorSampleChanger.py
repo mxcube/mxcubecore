@@ -262,9 +262,17 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
             # 20230714 添加新异常：<ConnectionRefusedError>
             elif (type(self._ifcmdSucceeded) is Exception) or (type(self._ifcmdSucceeded) is OSError) or (type(self._ifcmdSucceeded) is TimeoutError) or (type(self._ifcmdSucceeded) is KeyError) or (type(self._ifcmdSucceeded) is ConnectionRefusedError)   or (type(self._ifcmdSucceeded) is ConnectionAbortedError) or (type(self._ifcmdSucceeded) is ConnectionResetError) or (type(self._ifcmdSucceeded) is BrokenPipeError):
                 # 在发生错误后恢复机械手的各种状态
+
+                #20240101 add x 3
+                self.update_info()
+                self.emit("progressStop", ())
+                self.emit("fsmConditionChanged", "sample_mounting_sample_changer", True)
+
                 self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
                 HWR.beamline.sample_changer_maintenance._running = 0
                 HWR.beamline.sample_changer_maintenance._update_global_state()
+
+                
                 # 翻译来自机械手的errorCode
                 if type(self._ifcmdSucceeded) is Exception:
                     self._ifcmdSucceeded = str(self._ifcmdSucceeded)
@@ -331,8 +339,8 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         #判断是否在对的phase
         if not self.change_MD2_state():
             logging.getLogger("user_level_log").error(
-                "The MD2 seems cannot change to sample change status while mounting,please contact the teacher on duty")
-            raise Exception("The MD2 seems cannot change to sample change status while mounting,please contact the teacher on duty")
+                "The MD2 seems cannot change to sample change status while mounting, please try again first.")
+            raise Exception("The MD2 seems cannot change to sample change status while mounting, please try again first.")
         #判断cryo是否在对的位置
         self.change_Cryo_state()
         logging.getLogger("HWR").info("Cryo state: %s ", str(MD2.Cryo_Is_Back.get_value()))
@@ -447,6 +455,10 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
                 self._selected_basket = -1
                 self.send_sample_address_to_statemessage()
 
+                # 20240101 add x 3
+                self.update_info()
+                self.emit("progressStop", ())
+                self.emit("fsmConditionChanged", "sample_mounting_sample_changer", False)
 
                 self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
                 HWR.beamline.sample_changer_maintenance._running = 0
