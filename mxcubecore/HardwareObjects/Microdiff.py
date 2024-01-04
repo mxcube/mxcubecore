@@ -315,14 +315,14 @@ class Microdiff(MiniDiff.MiniDiff):
             )
 
         return MOTOR_TO_EXPORTER_NAME
-    
+
     def save_current_motor_position(self):
         motor_pos_dict = {
             "focus": self.focusMotor.get_value(),
             "phiy": self.phiyMotor.get_value(),
             "phiz": self.phizMotor.get_value(),
             "centring_focus": self.centringFocus.get_value(),
-            "centring_vertical": self.centringVertical.get_value()
+            "centring_vertical": self.centringVertical.get_value(),
         }
         self.saved_motor_position = motor_pos_dict
 
@@ -388,7 +388,7 @@ class Microdiff(MiniDiff.MiniDiff):
             try:
                 diffr = self.get_object_by_role("controller").diffractometer
                 diffr.prepare("centre")
-            except:
+            except Exception:
                 logging.getLogger("HWR").exception("Cannot prepare centring")
 
     def set_light_in(self):
@@ -781,16 +781,18 @@ class Microdiff(MiniDiff.MiniDiff):
         self.start_centring_method(self, self.MANUAL3CLICK_MODE)
         self.do_centring = True
 
-    
     def start_harvester_centring(self, computed_offset):
-        """ used when Pin from Harvester
-        """
+        """used when Pin from Harvester"""
 
         phiy_offset, centringFocus, centringTableVertical = computed_offset
 
         motor_pos_dict = {
-            "kappa": float(self["HacentringReferencePosition"].get_property("kappa_ref")),
-            "kappa_phi": float(self["HacentringReferencePosition"].get_property("phi_ref")),
+            "kappa": float(
+                self["HacentringReferencePosition"].get_property("kappa_ref")
+            ),
+            "kappa_phi": float(
+                self["HacentringReferencePosition"].get_property("phi_ref")
+            ),
             "phi": float(self["HacentringReferencePosition"].get_property("omega_ref")),
             "phiy": self.phiyMotor.get_value() + phiy_offset,
         }
@@ -800,7 +802,6 @@ class Microdiff(MiniDiff.MiniDiff):
         self.centringFocus.set_value_relative(centringFocus, None)
 
         self.centringVertical.set_value_relative(centringTableVertical, None)
-    
 
     def getFrontLightLevel(self):
         return self.frontLight.get_value()

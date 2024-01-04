@@ -147,7 +147,7 @@ class EMBLFlexHCD(SampleChanger):
         _pucks = '["UNI", "UNI", "UNI", "UNI", "UNI", "UNI", "UNI", "UNI"]'
         pucks = ast.literal_eval(self.get_property("puck_configuration", _pucks))
 
-        self.pin_cleaning= self.get_property("pin_cleaning")
+        self.pin_cleaning = self.get_property("pin_cleaning")
         self._harvester = self.get_property("harvester", False)
         if self._harvester:
             self._loaded_sample = (-1, -1, -1)
@@ -188,10 +188,9 @@ class EMBLFlexHCD(SampleChanger):
         # self._set_state(SampleChangerState.Disabled)
         self._update_selection()
         self.state = self._read_state()
-    
+
     def _mount_from_harvester(self):
         return self._harvester and self._harvester_hwo
-
 
     def get_sample_list(self):
         sample_list = super().get_sample_list()
@@ -208,12 +207,16 @@ class EMBLFlexHCD(SampleChanger):
                     sample.id = ha_sample_lists[i]
                     sample._name = ha_sample_names[i]
                     # if all sample come with proteinAcronym
-                    if len(ha_sample_acronyms) > 0 and len(ha_sample_acronyms) == len(ha_sample_lists):
+                    if len(ha_sample_acronyms) > 0 and len(ha_sample_acronyms) == len(
+                        ha_sample_lists
+                    ):
                         sample.proteinAcronym = ha_sample_acronyms[i]
                     else:
                         # if all sample does not have proteinAcronym
                         # we set first proteinAcronym to all if exist at least one
-                        sample.proteinAcronym = ha_sample_acronyms[0] if len(ha_sample_acronyms) > 0 else ''
+                        sample.proteinAcronym = (
+                            ha_sample_acronyms[0] if len(ha_sample_acronyms) > 0 else ""
+                        )
                     present_sample_list.append(sample)
         else:
             sc_present_sample_list = self._execute_cmd_exporter(
@@ -553,7 +556,7 @@ class EMBLFlexHCD(SampleChanger):
         self.prepare_load()
         self.enable_power()
         self._execute_cmd_exporter("defreezeGripper", command=True)
-    
+
     @task
     def load_a_pin_for_calibration(self):
         try:
@@ -561,26 +564,28 @@ class EMBLFlexHCD(SampleChanger):
             self.enable_power()
 
             load_task = gevent.spawn(
-                    self._execute_cmd_exporter,
-                    "loadSampleFromHarvester",
-                    self.pin_cleaning,
-                    command=True
-                )
+                self._execute_cmd_exporter,
+                "loadSampleFromHarvester",
+                self.pin_cleaning,
+                command=True,
+            )
 
             self._wait_busy(30)
             err_msg = "Timeout while waiting to sample to be loaded"
             with gevent.Timeout(600, RuntimeError(err_msg)):
                 while not load_task.ready():
                     gevent.sleep(2)
-            
+
             with gevent.Timeout(600, RuntimeError(err_msg)):
                 while True:
-                    is_safe = self._execute_cmd_exporter("getRobotIsSafe", attribute=True)
+                    is_safe = self._execute_cmd_exporter(
+                        "getRobotIsSafe", attribute=True
+                    )
                     if is_safe:
                         break
                     gevent.sleep(2)
             return True
-        except:
+        except Exception:
             return False
 
     def get_room_temperature_mode(self):
@@ -588,7 +593,9 @@ class EMBLFlexHCD(SampleChanger):
 
     def set_room_temperature_mode(self, value):
         self._execute_cmd_exporter("setRoomTemperatureMode", value, command=True)
-        logging.getLogger("user_level_log").info(f"setting Flex Room temperature to {value}")
+        logging.getLogger("user_level_log").info(
+            f"setting Flex Room temperature to {value}"
+        )
         return self.get_room_temperature_mode()
 
     def _do_load(self, sample=None):
@@ -608,9 +615,9 @@ class EMBLFlexHCD(SampleChanger):
                 self._execute_cmd_exporter,
                 "loadSampleFromHarvester",
                 self.pin_cleaning,
-                command=True
+                command=True,
             )
-        else:       
+        else:
             # Start loading
             load_task = gevent.spawn(
                 self._execute_cmd_exporter,
@@ -626,8 +633,10 @@ class EMBLFlexHCD(SampleChanger):
             _tt = time.time()
             self._wait_busy(300)
             logging.getLogger("HWR").info(f"Waited SC activity {time.time() - _tt}")
-        except:
-            logging.getLogger("user_level_log").error("ERROR While Waited SC activity to start")
+        except Exception:
+            logging.getLogger("user_level_log").error(
+                "ERROR While Waited SC activity to start"
+            )
             for msg in self.get_robot_exceptions():
                 logging.getLogger("user_level_log").error(msg)
             return False
@@ -662,16 +671,22 @@ class EMBLFlexHCD(SampleChanger):
 
         for msg in self.get_robot_exceptions():
             if msg is not None:
-                logging.getLogger("user_level_log").error("ERROR While SC activity After Loaded Sample ")
+                logging.getLogger("user_level_log").error(
+                    "ERROR While SC activity After Loaded Sample "
+                )
                 logging.getLogger("HWR").error(msg)
                 logging.getLogger("user_level_log").error(msg)
-                # Temp: In Harvester mode any robot Exception is consider as Loading failed 
+                # Temp: In Harvester mode any robot Exception is consider as Loading failed
                 # Except Pin Cleaning Station Exception
                 if self._harvester and "Pin Cleaning Station" not in msg:
                     return False
 
         if self._harvester:
-            loaded_sample = (sample.get_cell_no(), sample.get_basket_no(),sample.get_vial_no())
+            loaded_sample = (
+                sample.get_cell_no(),
+                sample.get_basket_no(),
+                sample.get_vial_no(),
+            )
             self._loaded_sample = loaded_sample
 
         return self._set_loaded_sample_and_prepare(loaded_sample, previous_sample)
