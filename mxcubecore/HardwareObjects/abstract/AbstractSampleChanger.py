@@ -679,6 +679,13 @@ class SampleChanger(Container, HardwareObject):
             return comp
         return component
 
+    def _mount_from_harvester(self):
+        """
+            Mount from Harvester or from default dewar
+            Returns: (Bool) true Mount from Harvester
+        """
+        return 
+
     # ########################    ABSTRACTS    #########################
 
     @abc.abstractmethod
@@ -716,10 +723,6 @@ class SampleChanger(Container, HardwareObject):
     def _do_reset(self):
         return
     
-    @abc.abstractmethod
-    def _mount_from_harvester(self):
-        return
-
     # ########################    PROTECTED    #########################
 
     def _execute_task(self, task, wait, method, *args):
