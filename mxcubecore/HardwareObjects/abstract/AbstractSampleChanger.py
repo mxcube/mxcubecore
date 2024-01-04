@@ -407,7 +407,6 @@ class SampleChanger(Container, HardwareObject):
         Wait for currently running task to finish.
         """
         with Timeout(timeout, RuntimeError("Timeout waiting end of task")):
-
             while not self.is_task_finished():
                 sleep(0.1)
 
@@ -681,10 +680,10 @@ class SampleChanger(Container, HardwareObject):
 
     def _mount_from_harvester(self):
         """
-            Mount from Harvester or from default dewar
-            Returns: (Bool) true Mount from Harvester
+        Mount from Harvester or from default dewar
+        Returns: (Bool) true Mount from Harvester
         """
-        return 
+        return
 
     # ########################    ABSTRACTS    #########################
 
@@ -722,7 +721,7 @@ class SampleChanger(Container, HardwareObject):
     @abc.abstractmethod
     def _do_reset(self):
         return
-    
+
     # ########################    PROTECTED    #########################
 
     def _execute_task(self, task, wait, method, *args):
