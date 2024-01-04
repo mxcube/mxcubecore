@@ -5,7 +5,6 @@ from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 class HarvesterMaintenance(HardwareObject):
-
     __TYPE__ = "HarvesterMaintenance"
 
     """
@@ -14,7 +13,7 @@ class HarvesterMaintenance(HardwareObject):
     """
 
     def __init__(self, *args, **kwargs):
-       super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def init(self):
         self._harvester = self.get_object_by_role("harvester")
@@ -26,7 +25,7 @@ class HarvesterMaintenance(HardwareObject):
         :returns: None
         """
         return self._harvester.trash_sample()
-    
+
     def _transfer_sample(self):
         """
         Transfer sample
@@ -34,7 +33,7 @@ class HarvesterMaintenance(HardwareObject):
         :returns: None
         """
         return self._harvester.transfer_sample()
-    
+
     def _load_plate(self, args):
         """
         Load Plate
@@ -43,7 +42,7 @@ class HarvesterMaintenance(HardwareObject):
         :args: str
         """
         return self._harvester.load_plate(plate_id=args)
-    
+
     def _set_room_temperature_mode(self, args):
         """
         Set Harvester temperature mode
@@ -51,7 +50,7 @@ class HarvesterMaintenance(HardwareObject):
         :returns: None
         :args: boolean
         """
-        value = True if args.lower() in ['true', 'True', '1'] else False
+        value = True if args.lower() in ["true", "True", "1"] else False
         return self._harvester.set_room_temperature_mode(value)
 
     def _do_abort(self):
@@ -64,13 +63,12 @@ class HarvesterMaintenance(HardwareObject):
 
     def _do_park(self):
         """
-        Abort and Park (Homing) 
+        Abort and Park (Homing)
 
         :returns: None
         """
         self._harvester.do_abort()
         return self._harvester.home()
-
 
     def _update_global_state(self):
         """
@@ -94,11 +92,11 @@ class HarvesterMaintenance(HardwareObject):
         state_dict = {
             "running": running,
             "state": state,
-            "plate_barecode":plate_ID or 'Null'
+            "plate_barecode": plate_ID or "Null",
         }
 
         cmd_state = {
-            "transfer":True,
+            "transfer": True,
             "trash": True,
             "park": True,
             "abort": True,
@@ -109,8 +107,7 @@ class HarvesterMaintenance(HardwareObject):
         return state_dict, cmd_state, message
 
     def get_cmd_info(self):
-        """ return information about existing commands for this object
-        """
+        """return information about existing commands for this object"""
         """ [cmd_id, cmd_display_name, nb_args, cmd_category, description ] """
 
         cmd_list = [
