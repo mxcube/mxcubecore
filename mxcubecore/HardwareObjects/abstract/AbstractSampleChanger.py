@@ -678,10 +678,11 @@ class SampleChanger(Container, HardwareObject):
             return comp
         return component
 
-    def _mount_from_harvester(self):
+    def mount_from_harvester(self):
         """
         Mount from Harvester or from default dewar
-        Returns: (Bool) true Mount from Harvester
+        Returns: (Bool) Default False 
+        true Mount from Harvester
         """
         return
 
