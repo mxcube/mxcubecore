@@ -1,3 +1,23 @@
+# encoding: utf-8
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU General Lesser Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
 """
 [Name] Harvester
 
@@ -90,7 +110,7 @@ class HarvesterMockup(HardwareObject):
                 gevent.sleep(3)
 
     def _execute_cmd_exporter(self, cmd, *args, **kwargs):
-        """Wait Harvester to be ready to transfer a sample
+        """Exporter Command implementation
 
         Args:
         cmd (string) : command type
@@ -148,21 +168,21 @@ class HarvesterMockup(HardwareObject):
         return "Ready"
 
     def _ready(self):
-        """Same as Get Harvester State
+        """check whether the Harvester is READY
 
         Return (bool):  True if Harvester is Ready otherwise False
         """
         return True
 
     def _busy(self):
-        """Same as Get Harvester State
+        """check whether the Harvester is BUSY
 
         Return (bool):  True if Harvester is not Ready otherwise False
         """
         return not self._ready()
 
     def _ready_to_transfer(self):
-        """Same as Get Harvester Status
+        """check whether the Harvester is Waiting Sample Transfer
 
         Return (bool):  True if Harvester is Waiting Sample Transfer otherwise False
         """
@@ -170,7 +190,7 @@ class HarvesterMockup(HardwareObject):
         return "Waiting Sample Transfer"
 
     def get_samples_state(self):
-        """Get the Harvester Sample State
+        """Get the Harvester Samples State
 
         Return (List):  list of crystal state "waiting_for_transfer, Running etc.."
         """
@@ -180,13 +200,13 @@ class HarvesterMockup(HardwareObject):
     def get_current_crystal(self):
         """Get the Harvester current harvested crystal
 
-        Return (str): crystal uuid
+        Return (str): the crystal uuid
         """
         # return self._execute_cmd_exporter("getCurrentSampleID", attribute=True)
         return None
 
     def is_crystal_harvested(self, crystal_uuid):
-        """Same as Get Harvester Status
+        """Check Whether if the current crystal is harvested
 
         args: the crystal uuid
 
@@ -201,7 +221,7 @@ class HarvesterMockup(HardwareObject):
         return res
 
     def current_crystal_state(self, crystal_uuid):
-        """Wait Harvester to be ready to transfer a sample
+        """get current crystal state
 
         Args:
         state (str) : Crystal uuid
@@ -309,7 +329,7 @@ class HarvesterMockup(HardwareObject):
         pass
 
     def get_plate_id(self):
-        """Wait Harvester to be ready to transfer a sample
+        """get current plate ID
 
         Args:
         Return (str) : current Plate ID
@@ -328,16 +348,22 @@ class HarvesterMockup(HardwareObject):
         return ""
 
     def get_image_target_y(self, crystal_uuid):
-        """Wait Harvester to be ready to transfer a sample
+        """Get the crystal images position Y
 
-        Args:
-        state (timeout) : Whether to wait for a amound of time
-        None means wait forever timeout <=0 use default timeout
+        Args (str) : Crystal uuid
+
+        Return (float): Crystal Y coordinate in plate
         """
         # return self._execute_cmd_exporter("getImageTargetY", crystal_uuid, command=True)
         return ""
 
     def get_room_temperature_mode(self):
+        """get  RoomTemperature Mode state
+
+        Args (str) : Crystal uuid
+
+        Return (bool):  TemperatureMode , True if Room Temp else False
+        """
         # return self._execute_cmd_exporter("getRoomTemperatureMode", attribute=True)
         return True
 
