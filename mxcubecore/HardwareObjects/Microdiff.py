@@ -781,7 +781,7 @@ class Microdiff(MiniDiff.MiniDiff):
         self.start_centring_method(self, self.MANUAL3CLICK_MODE)
         self.do_centring = True
 
-    def start_harvester_centring(self, computed_offset):
+    def start_harvester_centring(self, computed_offset: tuple[float]):
         """used when Pin from Harvester"""
 
         phiy_offset, centringFocus, centringTableVertical = computed_offset

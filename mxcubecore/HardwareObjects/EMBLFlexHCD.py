@@ -197,27 +197,7 @@ class EMBLFlexHCD(SampleChanger):
 
         present_sample_list = []
         if self._harvester:
-            ha_sample_lists = self._harvester_hwo.get_crystal_uuids()
-            ha_sample_names = self._harvester_hwo.get_sample_names()
-            ha_sample_acronyms = self._harvester_hwo.get_sample_acronyms()
-
-            if ha_sample_lists:
-                for i in range(len(ha_sample_lists)):
-                    sample = sample_list[i]
-                    sample.id = ha_sample_lists[i]
-                    sample._name = ha_sample_names[i]
-                    # if all sample come with proteinAcronym
-                    if len(ha_sample_acronyms) > 0 and len(ha_sample_acronyms) == len(
-                        ha_sample_lists
-                    ):
-                        sample.proteinAcronym = ha_sample_acronyms[i]
-                    else:
-                        # if all sample does not have proteinAcronym
-                        # we set first proteinAcronym to all if exist at least one
-                        sample.proteinAcronym = (
-                            ha_sample_acronyms[0] if len(ha_sample_acronyms) > 0 else ""
-                        )
-                    present_sample_list.append(sample)
+            self._get_sample_list_harvester(sample_list)
         else:
             sc_present_sample_list = self._execute_cmd_exporter(
                 "getPresentSamples", attribute=True
@@ -241,6 +221,32 @@ class EMBLFlexHCD(SampleChanger):
                         + "%02d" % int(present_sample[4])
                     ):
                         present_sample_list.append(sample)
+
+        return present_sample_list
+
+    def _get_sample_list_harvester(self, sample_list):
+        present_sample_list = []
+        ha_sample_lists = self._harvester_hwo.get_crystal_uuids()
+        ha_sample_names = self._harvester_hwo.get_sample_names()
+        ha_sample_acronyms = self._harvester_hwo.get_sample_acronyms()
+
+        if ha_sample_lists:
+            for i in range(len(ha_sample_lists)):
+                sample = sample_list[i]
+                sample.id = ha_sample_lists[i]
+                sample._name = ha_sample_names[i]
+                # if all sample come with proteinAcronym
+                if len(ha_sample_acronyms) > 0 and len(ha_sample_acronyms) == len(
+                    ha_sample_lists
+                ):
+                    sample.proteinAcronym = ha_sample_acronyms[i]
+                else:
+                    # if all sample does not have proteinAcronym
+                    # we set first proteinAcronym to all if exist at least one
+                    sample.proteinAcronym = (
+                        ha_sample_acronyms[0] if len(ha_sample_acronyms) > 0 else ""
+                    )
+                present_sample_list.append(sample)
 
         return present_sample_list
 
@@ -411,7 +417,7 @@ class EMBLFlexHCD(SampleChanger):
     def _set_loaded_sample_and_prepare(self, sample, previous_sample):
         res = False
 
-        if not -1 in sample and sample != previous_sample:
+        if -1 not in sample and sample != previous_sample:
             self._set_loaded_sample(self.get_sample_with_address(sample))
             self._prepare_centring_task()
             res = True
