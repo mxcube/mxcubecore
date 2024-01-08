@@ -681,7 +681,7 @@ class SampleChanger(Container, HardwareObject):
     def mount_from_harvester(self):
         """
         Mount from Harvester or from default dewar
-        Returns: (Bool) Default False 
+        Returns: (Bool) Default False
         true Mount from Harvester
         """
         return

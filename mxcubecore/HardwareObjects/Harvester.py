@@ -101,7 +101,7 @@ class Harvester(HardwareObject):
         self.exporter_addr = self.get_property("exporter_address")
         self.crims_upload_url = self.get_property("crims_upload_url")
 
-    def set_calibrate_state(self, state):
+    def set_calibrate_state(self, state: bool):
         """Set Calibration state
 
         Args:
@@ -110,7 +110,7 @@ class Harvester(HardwareObject):
 
         self.calibrate_state = state
 
-    def _wait_ready(self, timeout=None):
+    def _wait_ready(self, timeout: float = None):
         """Wait Harvester to be ready
 
         Args:
@@ -129,7 +129,7 @@ class Harvester(HardwareObject):
                 )
                 gevent.sleep(3)
 
-    def _wait_sample_transfer_ready(self, timeout=None):
+    def _wait_sample_transfer_ready(self, timeout: float = None):
         """Wait Harvester to be ready to transfer a sample
 
         Args:
@@ -193,35 +193,35 @@ class Harvester(HardwareObject):
 
     # ---------------------- State --------------------------------
 
-    def get_state(self):
+    def get_state(self) -> str:
         """Get the Harvester State
 
         Return (str):  state "Ready, Running etc.."
         """
         return self._execute_cmd_exporter("getState", attribute=True)
 
-    def get_status(self):
+    def get_status(self) -> str:
         """Get the Harvester Status
 
         Return (str):  Status
         """
         return self._execute_cmd_exporter("getStatus", attribute=True)
 
-    def _ready(self):
+    def _ready(self) -> str:
         """check whether the Harvester is READY
 
         Return (bool):  True if Harvester is Ready otherwise False
         """
         return self._execute_cmd_exporter("getState", attribute=True) == "Ready"
 
-    def _busy(self):
+    def _busy(self) -> bool:
         """check whether the Harvester is BUSY
 
         Return (bool):  True if Harvester is not Ready otherwise False
         """
         return self._execute_cmd_exporter("getState", attribute=True) != "Ready"
 
-    def _ready_to_transfer(self):
+    def _ready_to_transfer(self) -> bool:
         """check whether the Harvester is Waiting Sample Transfer
 
         Return (bool):  True if Harvester is Waiting Sample Transfer otherwise False
@@ -231,21 +231,21 @@ class Harvester(HardwareObject):
             == "Waiting Sample Transfer"
         )
 
-    def get_samples_state(self):
+    def get_samples_state(self) -> list[str]:
         """Get the Harvester Samples State
 
         Return (List):  list of crystal state "waiting_for_transfer, Running etc.."
         """
         return self._execute_cmd_exporter("getSampleStates", command=True)
 
-    def get_current_crystal(self):
+    def get_current_crystal(self) -> str:
         """Get the Harvester current harvested crystal
 
         Return (str): the crystal uuid
         """
         return self._execute_cmd_exporter("getCurrentSampleID", attribute=True)
 
-    def is_crystal_harvested(self, crystal_uuid):
+    def is_crystal_harvested(self, crystal_uuid: str) -> str:
         """Check Whether if the current crystal is harvested
 
         args: the crystal uuid
@@ -260,7 +260,7 @@ class Harvester(HardwareObject):
                 res = True
         return res
 
-    def current_crystal_state(self, crystal_uuid):
+    def current_crystal_state(self, crystal_uuid: str) -> str:
         """get current crystal state
 
         Args:
@@ -277,7 +277,7 @@ class Harvester(HardwareObject):
 
         return None
 
-    def check_crystal_state(self, crystal_uuid):
+    def check_crystal_state(self, crystal_uuid: str) -> str | None:
         """Check wether if a Crystal is in pending_and_current or not
 
         Args (str) : Crystal uuid
@@ -297,7 +297,7 @@ class Harvester(HardwareObject):
             else:
                 return None
 
-    def get_crystal_uuids(self):
+    def get_crystal_uuids(self) -> list[str]:
         """Get the Harvester Sample List uuid
 
         Return (List):  list of crystal by uuid from the current processing plan"
@@ -307,7 +307,7 @@ class Harvester(HardwareObject):
         )
         return harvester_crystal_list
 
-    def get_sample_names(self):
+    def get_sample_names(self) -> list[str]:
         """Get the Harvester Sample List Name
 
         Return (List):  list of crystal by names from the current processing plan"
@@ -317,7 +317,7 @@ class Harvester(HardwareObject):
         )
         return harvester_sample_names
 
-    def get_crystal_images_urls(self, crystal_uuid):
+    def get_crystal_images_urls(self, crystal_uuid: str) -> list[str]:
         """Get the Harvester Sample List Images
 
         Args (str) : Crystal uuid
@@ -329,7 +329,7 @@ class Harvester(HardwareObject):
         )
         return crystal_images_url
 
-    def get_sample_acronyms(self):
+    def get_sample_acronyms(self) -> list[str]:
         """Get the Harvester Sample List by Acronyms
 
         Return (List):  list of crystal by Acronyms from the current processing plan"
@@ -341,20 +341,20 @@ class Harvester(HardwareObject):
 
     # ------------------------------------------------------------------------------------
 
-    def abort(self):
+    def abort(self) -> str:
         """Send Abort command
         Abort any current Harvester Actions
         """
         return self._execute_cmd_exporter("abort", command=True)
 
-    def harvest_crystal(self, crystal_uuid):
+    def harvest_crystal(self, crystal_uuid: str) -> str:
         """Harvester crystal
 
         Args (str) : Crystal uuid
         """
         return self._execute_cmd_exporter("harvestCrystal", crystal_uuid, command=True)
 
-    def transfer_sample(self):
+    def transfer_sample(self) -> None:
         """Transfer the current Harvested Crystal"""
         return self._execute_cmd_exporter("startTransfer", command=True)
 
@@ -364,14 +364,16 @@ class Harvester(HardwareObject):
 
     # -----------------------------------------------------------------------------
 
-    def load_plate(self, plate_id):
-        """Load a plate from Harvester to MD
+    def load_plate(self, plate_id: str) -> str:
+        """Change Harvester current plate
 
         Args (str) : Plate ID
+        Return (str) : current Plate ID
         """
-        return self._execute_cmd_exporter("loadPlate", plate_id, command=True)
+        self._execute_cmd_exporter("loadPlate", plate_id, command=True)
+        return self._execute_cmd_exporter("getPlateID", attribute=True)
 
-    def get_plate_id(self):
+    def get_plate_id(self) -> str:
         """get current plate ID
 
         Args:
@@ -379,7 +381,7 @@ class Harvester(HardwareObject):
         """
         return self._execute_cmd_exporter("getPlateID", attribute=True)
 
-    def get_image_target_x(self, crystal_uuid):
+    def get_image_target_x(self, crystal_uuid: str) -> float:
         """Get the crystal images position x
 
         Args (str) : Crystal uuid
@@ -388,7 +390,7 @@ class Harvester(HardwareObject):
         """
         return self._execute_cmd_exporter("getImageTargetX", crystal_uuid, command=True)
 
-    def get_image_target_y(self, crystal_uuid):
+    def get_image_target_y(self, crystal_uuid: str) -> float:
         """Get the crystal images position Y
 
         Args (str) : Crystal uuid
@@ -397,7 +399,7 @@ class Harvester(HardwareObject):
         """
         return self._execute_cmd_exporter("getImageTargetY", crystal_uuid, command=True)
 
-    def get_room_temperature_mode(self):
+    def get_room_temperature_mode(self) -> bool:
         """get  RoomTemperature Mode state
 
         Args (str) : Crystal uuid
@@ -406,7 +408,7 @@ class Harvester(HardwareObject):
         """
         return self._execute_cmd_exporter("getRoomTemperatureMode", attribute=True)
 
-    def set_room_temperature_mode(self, value):
+    def set_room_temperature_mode(self, value: bool) -> bool:
         """Set Harvester temperature mode
 
         Args: (bool) set room temperature when true
@@ -419,7 +421,7 @@ class Harvester(HardwareObject):
 
     # -------------------- Calibrate  Drift Shape offset ----------------------------
 
-    def get_last_sample_drift_offset_x(self):
+    def get_last_sample_drift_offset_x(self) -> float:
         """Sample Offset X position when drifted
         Return (float):  last pin drift offset x
         """
@@ -428,7 +430,7 @@ class Harvester(HardwareObject):
         )
         return last_sample_drift_offset_x
 
-    def get_last_sample_drift_offset_y(self):
+    def get_last_sample_drift_offset_y(self) -> float:
         """Sample Offset Y position when drifted
         Return (float):  last pin drift offset y
         """
@@ -437,7 +439,7 @@ class Harvester(HardwareObject):
         )
         return last_sample_drift_offset_y
 
-    def get_last_sample_drift_offset_z(self):
+    def get_last_sample_drift_offset_z(self) -> float:
         """Sample Offset Z position when drifted
         Return (float):  last pin drift offset z
         """
@@ -448,7 +450,7 @@ class Harvester(HardwareObject):
 
     # ---------------------- Calibrate Cut Shape offset----------------------------
 
-    def get_last_pin_cut_shape_offset_x(self):
+    def get_last_pin_cut_shape_offset_x(self) -> float:
         """Pin shape Offset x position
         Return (float):  last pin cut shape offset x
         """
@@ -457,7 +459,7 @@ class Harvester(HardwareObject):
         )
         return pin_last_cut_shape_offset_x
 
-    def get_last_pin_cut_shape_offset_y(self):
+    def get_last_pin_cut_shape_offset_y(self) -> float:
         """Pin shape Offset Y position
         Return (float):  last pin cut shape offset y
         """
@@ -468,11 +470,11 @@ class Harvester(HardwareObject):
 
     # =============== Pin / Calibration -----------------------------
 
-    def load_calibrated_pin(self):
+    def load_calibrated_pin(self) -> None:
         """Start Pin Calibration Procedure"""
         return self._execute_cmd_exporter("loadCalibratedPin", command=True)
 
-    def store_calibrated_pin(self, x, y, z):
+    def store_calibrated_pin(self, x: float, y: float, z: float) -> None:
         """Store x , y , z offsets position to crystal direct machine
         after calibration procedure
 
@@ -480,7 +482,7 @@ class Harvester(HardwareObject):
         """
         return self._execute_cmd_exporter("storePinToBeamOffset", x, y, z, command=True)
 
-    def get_calibrated_pin_offset(self):
+    def get_calibrated_pin_offset(self) -> dict[float]:
         """Get Stored x , y , z offsets position after calibration procedure
 
         return: (float) x, y, z offsets
@@ -490,14 +492,134 @@ class Harvester(HardwareObject):
         )
         return pin_to_beam_offset
 
-    def get_number_of_available_pin(self):
+    def get_number_of_available_pin(self) -> int:
         """Get number of available pin
 
         return: (Integer)
         """
         return self._execute_cmd_exporter("getNbRemainingPins", command=True)
 
-    def get_offsets_for_sample_centering(self):
+    def harvest_sample_before_mount(
+        self, sample_uuid: str, wait_before_load: bool = False
+    ) -> bool:
+        """Check and set  the current state of the Harvester and sample before Harvest
+
+
+        Return (bool): whether the sample has been harvest thn mount (True)
+        or had and exception (False)
+        """
+        res = None
+
+        if sample_uuid:
+            if self.get_status() == "Ready":
+                try:
+                    if self.check_crystal_state(sample_uuid) == "pending_not_current":
+                        print(self.get_samples_state())
+                        logging.getLogger("user_level_log").info(
+                            "Harvester:Trashing pending Sample"
+                        )
+                        self.trash_sample()
+                        self._wait_ready(None)
+
+                    # currently_harvested_sample = self.get_current_crystal()
+                    if (
+                        self.current_crystal_state(sample_uuid) == "ready_to_execute"
+                        or self.current_crystal_state(sample_uuid)
+                        == "needs_repositionning"
+                    ):
+                        logging.getLogger("user_level_log").info("Harvesting started")
+                        self.harvest_crystal(sample_uuid)
+                        if wait_before_load:
+                            self._wait_sample_transfer_ready(None)
+                        res = True
+                    elif self.check_crystal_state(sample_uuid) == "pending_and_current":
+                        logging.getLogger("user_level_log").info(
+                            "Putting Harvester in Tansfer Mode"
+                        )
+                        self.transfer_sample()
+                        if wait_before_load:
+                            self._wait_sample_transfer_ready(None)
+                        res = True
+                    else:
+                        # logging.getLogger("user_level_log").info("ERROR: Sample Could not be Harvested (Harvester Ready, ) ")
+                        msg = self.get_status()
+                        logging.getLogger("user_level_log").exception(
+                            "ERROR: Sample Could not be Harvested"
+                        )
+                        logging.getLogger("user_level_log").exception(msg)
+
+                        res = False
+
+                    return res
+                except RuntimeError:
+                    return False
+
+            elif self._ready_to_transfer():
+                try:
+                    if (
+                        self.current_crystal_state(sample_uuid)
+                        == "waiting_for_transfer"
+                    ):
+                        logging.getLogger("user_level_log").info(
+                            "Sample Already Harvested, continue"
+                        )
+                        res = True
+                    else:
+                        self.abort()
+                        self._wait_ready(None)
+                        logging.getLogger("user_level_log").info("Trash current Sample")
+                        self.trash_sample()
+                        self._wait_ready(None)
+                        if (
+                            self.current_crystal_state(sample_uuid)
+                            == "ready_to_execute"
+                            or self.current_crystal_state(sample_uuid)
+                            == "needs_repositionning"
+                        ):
+                            logging.getLogger("user_level_log").info(
+                                "Harvesting started"
+                            )
+                            self.harvest_crystal(sample_uuid)
+                            if wait_before_load:
+                                self._wait_sample_transfer_ready(None)
+                            res = True
+                        else:
+                            msg = self.get_status()
+                            logging.getLogger("user_level_log").info(
+                                "Warning: Sample Could not be Harvested Try Again"
+                            )
+                            return self.harvest_sample_before_mount(sample_uuid)
+
+                    return res
+                except RuntimeError:
+                    return False
+            elif (
+                "Harvesting" in self.get_status()
+                or self.get_status() == "Finishing Harvesting"
+            ):
+                logging.getLogger("user_level_log").info(
+                    "Warning: Harvesting In Progress Try Again"
+                )
+                self._wait_sample_transfer_ready(None)
+                return self.harvest_sample_before_mount(sample_uuid)
+            else:
+                msg = self.get_status()
+                logging.getLogger("user_level_log").exception(
+                    "ERROR: Sample Could not be Harvested"
+                )
+                logging.getLogger("user_level_log").exception(msg)
+                # Try an abort and move to next sample
+                self.abort()
+                self._wait_ready(None)
+                return False
+        else:
+            msg = self.get_status()
+            logging.getLogger("user_level_log").exception("ERROR: No sample uuid Found")
+            logging.getLogger("user_level_log").exception(msg)
+            # Try an abort and move to next sample
+            return False
+
+    def get_offsets_for_sample_centering(self) -> tuple[float]:
         """Calculate sample centering offsets
         based on Harvested pin shape pre-calculated offsets
 
