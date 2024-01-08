@@ -189,7 +189,7 @@ class EMBLFlexHCD(SampleChanger):
         self._update_selection()
         self.state = self._read_state()
 
-    def _mount_from_harvester(self):
+    def mount_from_harvester(self):
         return self._harvester and self._harvester_hwo
 
     def get_sample_list(self):
