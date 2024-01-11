@@ -371,9 +371,9 @@ class MD2(Microdiff.Microdiff):
         # # Set negative pitch to move CT towards the left because it starts from grid top left corner
         # params += "%0.3f\t" % (mesh_range["vertical_range"] / 1000.0)
         #改，放大两倍
-        params += "%0.3f\t" % (mesh_range["horizontal_range"] / 1000.0)*2   # TODO check why BIOMAX used to pass micrometers
+        params += "%0.3f\t" % (2*mesh_range["horizontal_range"] / 1000.0)  # TODO check why BIOMAX used to pass micrometers
         # Set negative pitch to move CT towards the left because it starts from grid top left corner
-        params += "%0.3f\t" % (mesh_range["vertical_range"] / 1000.0)*2
+        params += "%0.3f\t" % (2*mesh_range["vertical_range"] / 1000.0)
         params += "%0.3f\t" % start
         # params += "%0.3f\t" % positions["phiy"]
         params += "%0.3f\t" % mesh_center_topRightPoint_phiy    #改
