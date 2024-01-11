@@ -67,7 +67,7 @@ class TangoShutter(AbstractShutter):
     SPECIFIC_STATES = TangoShutterStates
 
     def __init__(self, name):
-        super.__init__(name)
+        super().__init__(name)
         self.open_cmd = None
         self.close_cmd = None
         self.state_channel = None
