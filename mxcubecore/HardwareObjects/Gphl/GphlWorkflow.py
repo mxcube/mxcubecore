@@ -729,19 +729,19 @@ class GphlWorkflow(HardwareObjectYaml):
             if params is StopIteration:
                 self.workflow_failed()
                 return
-            use_preset_spotdir = self.settings.get("use_preset_spotdir")
-            if use_preset_spotdir:
-                spotdir = self.get_emulation_sample_dir()
-                if spotdir:
-                    if os.path.isfile(os.path.join(spotdir, "SPOT.XDS")):
-                        params["init_spot_dir"] = spotdir
-                    else:
-                        raise ValueError(
-                            "no file SPOT.XDS in %s" % spotdir)
+        use_preset_spotdir = self.settings.get("use_preset_spotdir")
+        if use_preset_spotdir:
+            spotdir = self.get_emulation_sample_dir()
+            if spotdir:
+                if os.path.isfile(os.path.join(spotdir, "SPOT.XDS")):
+                    params["init_spot_dir"] = spotdir
                 else:
                     raise ValueError(
-                        "use_preset_spotdir was set for non-emulation sample"
-                    )
+                        "no file SPOT.XDS in %s" % spotdir)
+            else:
+                raise ValueError(
+                    "use_preset_spotdir was set for non-emulation sample"
+                )
 
 
         cell_tags = (
@@ -1382,7 +1382,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 )
             if parameters.get("init_spot_dir"):
                 transmission = HWR.beamline.transmission.get_value()
-                if not parameters["transmission"]:
+                if not parameters.get("transmission"):
                     parameters["transmission"] = transmission
                 if not(
                     parameters.get("exposure_time") and parameters.get("image_width")
