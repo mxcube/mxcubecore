@@ -20,8 +20,10 @@
 
 """ TangoShutter class - interface for shutter controlled by TANGO
 Implements _set_value, get_value methods
-Tango states are: UNKNOWN, OPEN, CLOSED, FAULT
-"MOVING", "DISABLE", "STANDBY", "RUNNING"
+
+Tango states are:
+"UNKNOWN", "OPEN", "CLOSED", "FAULT", "MOVING", "DISABLE", "STANDBY", "RUNNING"
+
 Example xml file:
 <object class = "TangoShutter">
   <username>Safety Shutter</username>
@@ -29,12 +31,18 @@ Example xml file:
   <command type="tango" name="Open">Open</command>
   <command type="tango" name="Close">Close</command>
   <channel type="tango" name="State" polling="1000">State</channel>
+  <values>{"open": "OPEN", "cloded": "CLOSED", "DISABLE" : "DISABLE"}</values>
 </object>
+
+In this example the <values> tag contains a json dictionary that maps spectific tango shutter states to the 
+convantional states defined in the TangoShutter Class. This tag is not necessay in cases where the tango shutter states
+are all covered by the TangoShuter class conventional states. 
 """
+
 from enum import Enum, unique
 import gevent
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
-
+import json
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 
 __copyright__ = """ Copyright © 2023 by the MXCuBE collaboration """
@@ -70,20 +78,25 @@ class TangoShutter(AbstractShutter):
         self.open_cmd = self.get_command_object("Open")
         self.close_cmd = self.get_command_object("Close")
         self.state_channel = self.get_channel_object("State")
-
-        """Get the values dict from the xml config file. It will be used to map specific state values to existing standard states defined """
-        self.properties_dict = eval(f'dict( {self.get_property("values")} )')
-
         self._initialise_values()
         self.state_channel.connect_signal("update", self._update_value)
         self.update_state()
+
+        try:
+            self.config_values = json.loads(self.get_property("values"))
+        except:
+            self.config_values = None
 
     def _update_value(self, value):
         """Update the value.
         Args:
             value(str): The value reported by the state channel.
         """
-        value = self.properties_dict[value.name]
+        if self.config_values : 
+            value = self.config_values[str(value)]
+        else:
+            value = str(value)
+
         super().update_value(self.value_to_enum(value))
         
     def _initialise_values(self):
@@ -105,9 +118,14 @@ class TangoShutter(AbstractShutter):
             (enum 'HardwareObjectState'): Device state.
         """
         try:
-            _state = self.properties_dict[self.state_channel.get_value().name] 
+            if self.config_values:
+                _state = self.config_values[str(self.state_channel.get_value())]
+            else:
+                _state = str(self.state_channel.get_value()) 
+                
         except (AttributeError, KeyError):
             return self.STATES.UNKNOWN
+        
         return self.SPECIFIC_STATES[_state].value[0]
 
     def get_value(self):
@@ -115,7 +133,10 @@ class TangoShutter(AbstractShutter):
         Returns:
             (Enum): Enum member, corresponding to the value or UNKNOWN.
         """
-        _val = self.properties_dict[self.state_channel.get_value().name]
+        if self.config_values:
+            _val = self.config_values[str(self.state_channel.get_value())]
+        else:
+            _val = str(self.state_channel.get_value())
        	return self.value_to_enum(_val)
 
     def _set_value(self, value):
