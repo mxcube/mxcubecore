@@ -202,9 +202,21 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     mesh_total_nb_frames = acq_1.acquisition_parameters.num_images
                     mesh_range = acq_1.acquisition_parameters.mesh_range
                     mesh_center = acq_1.acquisition_parameters.centred_position
-                    HWR.beamline.collect.set_mesh_scan_parameters(
-                        mesh_nb_lines, mesh_total_nb_frames, mesh_center, mesh_range
-                    )
+                    # HWR.beamline.collect.set_mesh_scan_parameters(
+                    #     mesh_nb_lines, mesh_total_nb_frames, mesh_center, mesh_range
+                    # )
+                    # 改，将dc.shape也传递进来
+                    if dc.shape:
+                        HWR.beamline.collect.set_mesh_scan_parameters(
+                            mesh_nb_lines, mesh_total_nb_frames, mesh_center, mesh_range,dc.shape
+                        )
+                    else:
+                        HWR.beamline.collect.set_mesh_scan_parameters(
+                            mesh_nb_lines, mesh_total_nb_frames, mesh_center, mesh_range
+                        )
+                    # 改结束
+
+
                     HWR.beamline.collect.set_helical(False)
                     HWR.beamline.collect.set_fast_characterisation(False)
                     HWR.beamline.collect.set_mesh(True)

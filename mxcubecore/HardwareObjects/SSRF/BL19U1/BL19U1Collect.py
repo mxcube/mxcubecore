@@ -656,7 +656,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             )
             logging.getLogger("HWR").info(
                 "Mesh oscillation requested: total number of frames %s"
-                % self.get_mesh_total_nb_frames()
+                % self.get_mesh_total_nb_frames()       # 此处的值是对的，为行*列
             )
             det = HWR.beamline.detector
             # latency_time = det.get_latency_time()
@@ -673,6 +673,39 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
                 time.sleep(0.1)
             print("[RasterScanEX info] RAW parameter of RASTER SCAN, start: ",start," end: ",end," exptime: ",exptime," latency_time: ",latency_time)
             print(" self.mesh_num_lines: ",self.mesh_num_lines," self.mesh_total_nb_frames: ",self.mesh_total_nb_frames," self.mesh_center: ",self.mesh_center," self.mesh_range: ",self.mesh_range)
+
+
+            # 添加
+            #
+            # 需要步骤，通过此处self.mesh_center（正方形左上角的点） 转换计算为（正方形有上角的点）,下面是可以用的变量
+            # self.mesh_num_lines: 13                                                                           ###############
+            # self.mesh_total_nb_frames: 78                                                                     ###############
+            # self.mesh_center:  {'phi': 170, 'focus': None, 'phiz': -0.0578, 'phiy': 0.7247, 'zoom': None,     ###############
+            #                           'sampx': -0.7082, 'sampy': -0.4162, 'kappa': None, 'kappa_phi': None}   ###############
+            # self.mesh_range:  {'horizontal_range': 684.2105263157895, 'vertical_range': 315.7894736842105}    ###############
+            #
+            # self.log.debug("len(HWR.beamline.sample_view.shapes: %d. " %(len(HWR.beamline.sample_view.shapes)))
+            # print("type of self.mesh_center: ",type(self.mesh_center))
+
+            self.log.debug("HWR.beamline.sample_view.shapes[self.shape].cp_list[1].phiy: %f. " %(HWR.beamline.sample_view.shapes[self.shape['id']].cp_list[1].phiy))
+            mesh_center_topRightPoint_phiy = HWR.beamline.sample_view.shapes[self.shape['id']].cp_list[1].phiy
+            # self.mesh_center.phiy = mesh_center_topRightPoint_phiy  #self.mesh_center是object  #不能在这改
+
+            # 添加结束
+
+
+
+            # HWR.beamline.diffractometer.oscilScanMesh(
+            #     start,
+            #     end,
+            #     exptime,
+            #     latency_time,
+            #     self.mesh_num_lines,
+            #     self.mesh_total_nb_frames,
+            #     self.mesh_center,
+            #     self.mesh_range,
+            #     wait=True,
+            # )
             HWR.beamline.diffractometer.oscilScanMesh(
                 start,
                 end,
@@ -682,8 +715,10 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
                 self.mesh_total_nb_frames,
                 self.mesh_center,
                 self.mesh_range,
+                mesh_center_topRightPoint_phiy,
                 wait=True,
             )
+            # 添加结束
         else:
             print(" ^^^^^^^^^^^^ OSC SCAN ^^^^^^^^^^^")
             HWR.beamline.diffractometer.oscilScan(start, end, exptime, wait=True)
@@ -1271,7 +1306,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         self.mesh = mesh_on
 
     def set_mesh_scan_parameters(
-        self, num_lines, total_nb_frames, mesh_center_param, mesh_range_param
+        self, num_lines, total_nb_frames, mesh_center_param, mesh_range_param,shape=None
     ):
         """
         sets the mesh scan parameters :
@@ -1295,6 +1330,8 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
 
         self.mesh_range = {"horizontal_range": mesh_range_param[0]*2, "vertical_range": mesh_range_param[1]*2}
         self.mesh_center = mesh_center_param
+
+        self.shape = shape
 
         self.log.debug("set mesh scan params: nlines (columns) %d, total frames %d, range %s" % (self.mesh_num_lines , self.mesh_total_nb_frames, self.mesh_range))
         self.log.debug("set mesh scan params: " + str(self.mesh_center))
@@ -1455,6 +1492,8 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             测试结果：收4张，0.5exp，探测器2-3s停止，md2完整转完要9-10s
                    ：收4张，1 exp，探测器4-5s停止，md2完整转完要12-13s
         因此在detector.prepare_acquisition函数里进行判断，如果是characteristic方式，则增加暴光时间
+
+        24/01/11:mesh scan方式，探测器收集张数不对，只收集了行数，不是行*列数
         """
         logging.getLogger("HWR").info("Cleaning old detector images !!!!!")
         # HWR.beamline.detector.clear()  # TODO remove this line here to help debugging new image files
@@ -1469,13 +1508,15 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         ) = self.triggers_to_collect[0]
 
         if self.current_dc_parameters["experiment_type"] == "Mesh":
-            if HWR.beamline.detector.is_exte_enabled():
-                ntrigger = self.get_mesh_total_nb_frames()
+            if HWR.beamline.detector.is_exte_enabled(): #没进这个条件
+                ntrigger = self.get_mesh_total_nb_frames()  #这个参数是行*列数
                 nframes_per_trigger = 1  # by definition of Dectris EXTE mode
             else:
                 ntrigger = self.get_mesh_num_lines()
 
-            config["nimages"] = round(self.get_mesh_total_nb_frames() / ntrigger);  # TODO restore use of input param nframes_per_trigger when its value is correct
+            # config["nimages"] = round(self.get_mesh_total_nb_frames() / ntrigger);  # TODO restore use of input param nframes_per_trigger when its value is correct
+            #改
+            config["nimages"] = self.get_mesh_total_nb_frames();  # TODO restore use of input param nframes_per_trigger when its value is correct
 
             self.log.debug("Preparing detector for %d triggers of %d images (%f sec per image)" %
                            (ntrigger, nframes_per_trigger, oscillation_parameters["exposure_time"]))
@@ -1565,7 +1606,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         #return HWR.beamline.detector.prepare_acquisition(config)
 
         #修改，增加判断，是否是charactoristic方式，如果是,暴光时间改变,一般暴光时间在0.2-0.3，所以这里相对的改一下
-        if len(self.triggers_to_collect) != 1:
+        if len(self.triggers_to_collect) != 1 and self.current_dc_parameters["experiment_type"]!="Mesh":
             if 0<config["frame_time"]<=0.5:
                 exp_time = 7
             elif 0.5<config["frame_time"]<1:

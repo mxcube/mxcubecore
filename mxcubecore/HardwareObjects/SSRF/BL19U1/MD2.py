@@ -330,6 +330,7 @@ class MD2(Microdiff.Microdiff):
         mesh_total_nb_frames,
         mesh_center,
         mesh_range,
+        mesh_center_topRightPoint_phiy =None ,
         wait=False,
     ):
 
@@ -347,6 +348,7 @@ class MD2(Microdiff.Microdiff):
         self.move_motors(mesh_center.as_dict())
 
         positions = self.get_positions()
+        print("mesh scan method in md2, positions: ",positions)
         #import pdb;pdb.set_trace()
         """
         # TODO the hack below overrides the num_lines from queue entry
@@ -365,11 +367,16 @@ class MD2(Microdiff.Microdiff):
         # params += "%0.3f\t" % (mesh_range["horizontal_range"] / 1000.0)
 
         #感觉 上面两个参数前后顺序反了
-        params += "%0.3f\t" % (mesh_range["horizontal_range"] / 1000.0)   # TODO check why BIOMAX used to pass micrometers
+        # params += "%0.3f\t" % (mesh_range["horizontal_range"] / 1000.0)   # TODO check why BIOMAX used to pass micrometers
+        # # Set negative pitch to move CT towards the left because it starts from grid top left corner
+        # params += "%0.3f\t" % (mesh_range["vertical_range"] / 1000.0)
+        #改，放大两倍
+        params += "%0.3f\t" % (mesh_range["horizontal_range"] / 1000.0)*2   # TODO check why BIOMAX used to pass micrometers
         # Set negative pitch to move CT towards the left because it starts from grid top left corner
-        params += "%0.3f\t" % (mesh_range["vertical_range"] / 1000.0)
+        params += "%0.3f\t" % (mesh_range["vertical_range"] / 1000.0)*2
         params += "%0.3f\t" % start
-        params += "%0.3f\t" % positions["phiy"]
+        # params += "%0.3f\t" % positions["phiy"]
+        params += "%0.3f\t" % mesh_center_topRightPoint_phiy    #改
         params += "%0.3f\t" % (positions["phiz"])
         params += "%0.3f\t" % positions["sampx"]
         params += "%0.3f\t" % positions["sampy"]
@@ -465,8 +472,17 @@ class MD2(Microdiff.Microdiff):
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
         """
+        previous ：
         #不计算sampx 和 sampy的偏移量
-        #添加水平方向移动，phiy
+        #添加水平方向移动，phiy,
+        24/01/11：
+        需要添加水平方向移动，才能让此函数给出正方形对角线点的参数。
+        总结：
+        此函数会在绘制格子时计算两次，针对正方形的起始点和对角线的终止点
+        给出xy坐标和个电机对应参数
+        测试结果，起始点位置正确，终止点对于起始点的距离是预期数值的两倍
+
+        dx,dy /2之后，对角线位置正确
         """
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
             self.zoomMotor.get_value()
@@ -476,8 +492,13 @@ class MD2(Microdiff.Microdiff):
             return 0, 0
 
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
-        dx = (x - beam_pos_x) / self.pixelsPerMmY
-        dy = (y - beam_pos_y) / self.pixelsPerMmZ
+
+
+        # dx = (x - beam_pos_x) / self.pixelsPerMmY
+        # dy = (y - beam_pos_y) / self.pixelsPerMmZ
+        # 通过上面dx，dy计算出的phiz和phiy怀疑放大了两倍，此处除以2
+        dx = ((x - beam_pos_x) / self.pixelsPerMmY) /2
+        dy = ((y - beam_pos_y) / self.pixelsPerMmZ) /2
 
         phi_angle = math.radians(
             self.centringPhi.direction * self.centringPhi.get_value()
@@ -614,6 +635,7 @@ class MD2(Microdiff.Microdiff):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
             self.zoomMotor.get_value()
         )
+        self.log.debug("the selected x: %d, y: %d." %(x,y))
 
         if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
             return 0, 0
@@ -678,3 +700,4 @@ class MD2(Microdiff.Microdiff):
         except Exception:
             msg = "MiniDiff: could not center to beam, aborting"
             logging.getLogger("HWR").exception(msg)
+
