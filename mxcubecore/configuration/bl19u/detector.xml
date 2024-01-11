@@ -78,6 +78,11 @@
   <channel type="epics" name="last_image_saved">BL19U1:cam1:FullFileName_RBV</channel>
   <channel type="epics" name="save_file_template">BL19U1:cam1:FileTemplate</channel>
 
+<!--  下面两个epics值应肖师兄要求，需每次开启mxcube时将其变为0-->
+  <channel type="epics" name="phi_increasement">BL19U1:cam1:PhiIncr</channel>
+  <channel type="epics" name="omega_increasement">BL19U1:cam1:OmegaIncr</channel>
+
+
   <!-- Status needs to be directly accessed. See details in LNLSPilatusDet. -->
   <channel_status>BL19U1:cam1:StatusMessage_RBV</channel_status>
 

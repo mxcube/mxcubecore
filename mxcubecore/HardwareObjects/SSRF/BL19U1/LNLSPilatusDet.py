@@ -89,6 +89,11 @@ class LNLSPilatusDet(AbstractDetector):
             "trigger_mode": "exts",
         }
 
+        #2024.01.12每次重启将此两个epics变量设为0
+        self.set_channel_value("phi_increasement", 0)
+        self.set_channel_value("omega_increasement", 0)
+
+
     def set_roi_mode(self, roi_mode):
         self._roi_mode = roi_mode
         self.emit("detectorModeChanged", (self._roi_mode,))
