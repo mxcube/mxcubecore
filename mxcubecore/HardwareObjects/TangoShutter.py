@@ -74,7 +74,7 @@ class TangoShutter(AbstractShutter):
 
     def init(self):
         """Initilise the predefined values"""
-        AbstractShutter.init(self)
+        super().init()
         self.open_cmd = self.get_command_object("Open")
         self.close_cmd = self.get_command_object("Close")
         self.state_channel = self.get_channel_object("State")
