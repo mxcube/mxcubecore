@@ -52,6 +52,7 @@ __license__ = "LGPLv3+"
 @unique
 class TangoShutterStates(Enum):
     """Shutter states definitions."""
+
     CLOSED = HardwareObjectState.READY, "CLOSED"
     OPEN = HardwareObjectState.READY, "OPEN"
     MOVING = HardwareObjectState.BUSY, "MOVING"
@@ -92,13 +93,13 @@ class TangoShutter(AbstractShutter):
         Args:
             value(str): The value reported by the state channel.
         """
-        if self.config_values : 
+        if self.config_values:
             value = self.config_values[str(value)]
         else:
             value = str(value)
 
         super().update_value(self.value_to_enum(value))
-        
+
     def _initialise_values(self):
         """Add the tango states to VALUES"""
         values_dict = {item.name: item.value for item in self.VALUES}
@@ -121,11 +122,11 @@ class TangoShutter(AbstractShutter):
             if self.config_values:
                 _state = self.config_values[str(self.state_channel.get_value())]
             else:
-                _state = str(self.state_channel.get_value()) 
-                
+                _state = str(self.state_channel.get_value())
+
         except (AttributeError, KeyError):
             return self.STATES.UNKNOWN
-        
+
         return self.SPECIFIC_STATES[_state].value[0]
 
     def get_value(self):
@@ -137,7 +138,7 @@ class TangoShutter(AbstractShutter):
             _val = self.config_values[str(self.state_channel.get_value())]
         else:
             _val = str(self.state_channel.get_value())
-       	return self.value_to_enum(_val)
+        return self.value_to_enum(_val)
 
     def _set_value(self, value):
         if value.name == "OPEN":
