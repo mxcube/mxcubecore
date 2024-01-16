@@ -128,7 +128,7 @@ class TangoShutter(AbstractShutter):
     def get_value(self):
         """Get the device value
         Returns:
-            (Enum): Enum member, corresponding to the value or UNKNOWN.
+            (Enum): Enum member, corresponding to the 'VALUE' or UNKNOWN.
         """
         if self.config_values:
             _val = self.config_values[str(self.state_channel.get_value())]
