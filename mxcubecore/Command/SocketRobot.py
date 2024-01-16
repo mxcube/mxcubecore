@@ -87,11 +87,25 @@ class StandardClientRobot:
             print("socket object after creating the socket：",self.__sock)
         print("self.__sock.connect function start to run")
         #添加
+
+        # 20240116 调试
+        # 下面的try, mxcube源代码只except了timeout，但实际上有各种socket报错，如socketaborterror，socketrefusederror
+        # 然后报错时except没有接住异常，就会直接报错，然后被ActorSampleChanger的if_ErrorCode抓住
         try:
-            self.__sock.connect((self.server_ip, self.server_port))
+            a=0 #a=0用于断点调试
+            if a==0:
+                self.__sock.connect((self.server_ip, self.server_port))
+            else:
+                raise ConnectionRefusedError        #如果主动raise这个异常是可以恢复状态不会卡住的
+
         except socket.timeout: #如果没插网线，是不会有这个timeout报错的，会立刻直接报错 Error: [Errno 101] Network is unreachable，因此也不会返回False
             print("connection timeout")
             return False
+        #20240116添加
+        except Exception as e:
+            print("some error when socket.connect(), close_socket manually")
+            self.__close_socket()
+            raise e
         else:
             print("self.__sock.connect function completed")
             #重新设置等待机械手回信息的timeout
@@ -100,6 +114,8 @@ class StandardClientRobot:
             self.error = None
             self.received_msg = None
             self.receiving_greenlet = gevent.spawn(self.recv_thread)
+
+
 
     def is_connected(self):
         """Check if connected
@@ -304,7 +320,7 @@ class StandardClientRobot:
         with gevent.Timeout(100, TimeoutError):
             while self.received_msg is None:
                 if self.error is not None:
-                    raise SocketError("Socket error:" + str(self.error))        #connection refused error 可能是从这报错的
+                    raise SocketError("Socket error:" + str(self.error))
                 self.msg_received_event.wait()
             return self.received_msg
 
@@ -315,6 +331,8 @@ class StandardClientRobot:
         Returns:
             (str): reply form the socket
         """
+        # 20240116 尝试给一个timeout试试
+        # timeout = 10
         self._lock.acquire()
         try:
             if (timeout is None) or (timeout >= 0):
@@ -736,6 +754,7 @@ class SocketRobotCommand(CommandObject):
             
         except Exception:
             self.emit("commandFailed", (-1, self.name()))
+            print("__call__() in SocketRobot has error, already emit commandFailed")
             raise
         else:
             self.emit("commandReplyArrived", (ret, str(self.name())))

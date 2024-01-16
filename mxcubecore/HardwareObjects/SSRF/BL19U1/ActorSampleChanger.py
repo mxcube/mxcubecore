@@ -262,7 +262,7 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
             # 20230714 添加新异常：<ConnectionRefusedError>
             elif (type(self._ifcmdSucceeded) is Exception) or (type(self._ifcmdSucceeded) is OSError) or (type(self._ifcmdSucceeded) is TimeoutError) or (type(self._ifcmdSucceeded) is KeyError) or (type(self._ifcmdSucceeded) is ConnectionRefusedError)   or (type(self._ifcmdSucceeded) is ConnectionAbortedError) or (type(self._ifcmdSucceeded) is ConnectionResetError) or (type(self._ifcmdSucceeded) is BrokenPipeError):
                 # 在发生错误后恢复机械手的各种状态
-
+                print("there is some error with exchange command, start try to restore status")
                 #20240101 add x 3
                 self.update_info()
                 self.emit("progressStop", ())
