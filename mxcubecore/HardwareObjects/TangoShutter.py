@@ -34,20 +34,17 @@ Example xml file:
   <values>{"open": "OPEN", "cloded": "CLOSED", "DISABLE" : "DISABLE"}</values>
 </object>
 
-In this example the <values> tag contains a json dictionary that maps spectific tango shutter states to the 
+In this example the <values> tag contains a json dictionary that maps spectific tango shutter states to the
 convantional states defined in the TangoShutter Class. This tag is not necessay in cases where the tango shutter states
-are all covered by the TangoShuter class conventional states. 
+are all covered by the TangoShuter class conventional states.
 """
-
-from enum import Enum, unique
-import gevent
-from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 import json
+from enum import Enum, unique
+from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 
 __copyright__ = """ Copyright © 2023 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
-
 
 @unique
 class TangoShutterStates(Enum):
@@ -60,7 +57,6 @@ class TangoShutterStates(Enum):
     AUTOMATIC = HardwareObjectState.READY, "RUNNING"
     UNKNOWN = HardwareObjectState.UNKNOWN, "RUNNING"
     FAULT = HardwareObjectState.WARNING, "FAULT"
-
 
 class TangoShutter(AbstractShutter):
     """TANGO implementation of AbstractShutter"""
