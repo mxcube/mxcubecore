@@ -50,7 +50,6 @@ PyTango = { version = "^9.3.6", optional = true }
 python-ldap = "^3.4.0"
 requests = "^2.31.0"
 colorama = "^0.4.6"
-ispyb-client = "^1.0.0"
 
 [tool.poetry.dev-dependencies]
 pylint = [ { version = "==2.13.9", python = "<=3.7.1" }, { version = "^2.15.6", python = ">=3.8" } ]
