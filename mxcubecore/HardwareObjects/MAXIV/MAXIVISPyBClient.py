@@ -14,7 +14,7 @@ from mxcubecore import HardwareRepository as HWR
 try:
     from sdm import SDM
 except Exception as ex:
-    raise Exception('Cannot import SDM library. Error was {}'.format(ex))
+    raise Exception("Cannot import SDM library. Error was {}".format(ex))
 
 
 class MAXIVISPyBClient(ISPyBClient):
@@ -90,10 +90,11 @@ class MAXIVISPyBClient(ISPyBClient):
             new_session_dict["beamlineName"] = self.beamline_name
             new_session_dict["scheduled"] = 0
             new_session_dict["nbShifts"] = 3
-            new_session_dict["comments"] = "Session created by {} for {}, hostname: {}".format(
-                self.ws_username,
-                self.beamline_name,
-                gethostname())
+            new_session_dict[
+                "comments"
+            ] = "Session created by {} for {}, hostname: {}".format(
+                self.ws_username, self.beamline_name, gethostname()
+            )
             session_id = self.create_session(new_session_dict)
             new_session_dict["sessionId"] = session_id
 
@@ -138,39 +139,45 @@ class MAXIVISPyBClient(ISPyBClient):
                     self.sdm = SDM(production=True)
                     proposer = self.sdm.uo.get_proposal_proposer(proposal_number)
                     # {'username': u'mikegu', 'lastname': u'Eguiraun', 'userid': 2776, 'firstname': u'Mikel'}
-                    _person['familyName'] = proposer.get('lastname')
-                    _person['givenName'] = proposer.get('firstname')
-                    _person['login'] = proposer.get('username')
+                    _person["familyName"] = proposer.get("lastname")
+                    _person["givenName"] = proposer.get("firstname")
+                    _person["login"] = proposer.get("username")
                 except Exception as ex:
-                    logging.getLogger("ispyb_client").warning("Cannot retrieve info from DUO/SDM; %s", str(ex))
+                    logging.getLogger("ispyb_client").warning(
+                        "Cannot retrieve info from DUO/SDM; %s", str(ex)
+                    )
 
                 try:
-                    _person_from_ispyb = self._shipping.service.findPersonByLogin(proposer.get("username"), self.beamline_name)
+                    _person_from_ispyb = self._shipping.service.findPersonByLogin(
+                        proposer.get("username"), self.beamline_name
+                    )
                     _person_from_ispysb = utf_encode(asdict(_person_from_ispyb))
                 except WebFault as e:
                     logging.getLogger("ispyb_client").warning(str(e))
                     person = {}
 
                 # now we merge both dicts, personId is the one in ispyb
-                _person['emailAddress'] = _person_from_ispysb.get('emailAddress')
-                _person['laboratoryId'] = _person_from_ispysb.get('laboratoryId')
-                _person['personId'] = _person_from_ispysb.get('personId')
+                _person["emailAddress"] = _person_from_ispysb.get("emailAddress")
+                _person["laboratoryId"] = _person_from_ispysb.get("laboratoryId")
+                _person["personId"] = _person_from_ispysb.get("personId")
 
                 person = _person
 
                 try:
-                    proposal = self._shipping.service.\
-                        findProposal(proposal_code,
-                                     proposal_number)
+                    proposal = self._shipping.service.findProposal(
+                        proposal_code, proposal_number
+                    )
 
                     if proposal:
                         proposal.code = proposal_code
                     else:
-                        return {'Proposal': {},
-                                'Person': {},
-                                'Laboratory': {},
-                                'Session': {},
-                                'status': {'code':'error'}}
+                        return {
+                            "Proposal": {},
+                            "Person": {},
+                            "Laboratory": {},
+                            "Session": {},
+                            "status": {"code": "error"},
+                        }
 
                 except WebFault as e:
                     logging.getLogger("ispyb_client").exception(str(e))
@@ -178,7 +185,9 @@ class MAXIVISPyBClient(ISPyBClient):
 
                 try:
                     lab = None
-                    lab = self._shipping.service.findLaboratoryByProposal(proposal_code, proposal_number)
+                    lab = self._shipping.service.findLaboratoryByProposal(
+                        proposal_code, proposal_number
+                    )
 
                     if not lab:
                         lab = {}
@@ -188,22 +197,23 @@ class MAXIVISPyBClient(ISPyBClient):
 
                     lab = {}
                 try:
-                    res_sessions = self._collection.service.\
-                        findSessionsByProposalAndBeamLine(proposal_code,
-                                                          proposal_number,
-                                                          self.beamline_name)
+                    res_sessions = (
+                        self._collection.service.findSessionsByProposalAndBeamLine(
+                            proposal_code, proposal_number, self.beamline_name
+                        )
+                    )
                     sessions = []
 
                     # Handels a list of sessions
                     for session in res_sessions:
-                        if session is not None :
+                        if session is not None:
                             try:
-                                session.startDate = \
-                                    datetime.strftime(session.startDate,
-                                                      "%Y-%m-%d %H:%M:%S")
-                                session.endDate = \
-                                    datetime.strftime(session.endDate,
-                                                      "%Y-%m-%d %H:%M:%S")
+                                session.startDate = datetime.strftime(
+                                    session.startDate, "%Y-%m-%d %H:%M:%S"
+                                )
+                                session.endDate = datetime.strftime(
+                                    session.endDate, "%Y-%m-%d %H:%M:%S"
+                                )
                             except:
                                 pass
 
@@ -215,29 +225,35 @@ class MAXIVISPyBClient(ISPyBClient):
 
             except URLError:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
-                return {'Proposal': {},
-                        'Person': {},
-                        'Laboratory': {},
-                        'Session': {},
-                        'status': {'code': 'error'}}
+                return {
+                    "Proposal": {},
+                    "Person": {},
+                    "Laboratory": {},
+                    "Session": {},
+                    "status": {"code": "error"},
+                }
 
-            return {'Proposal': utf_encode(asdict(proposal)),
-                    'Person': person,
-                    'Laboratory': utf_encode(asdict(lab)),
-                    'Session': sessions,
-                    'status': {'code': 'ok'}
-                    }
+            return {
+                "Proposal": utf_encode(asdict(proposal)),
+                "Person": person,
+                "Laboratory": utf_encode(asdict(lab)),
+                "Session": sessions,
+                "status": {"code": "ok"},
+            }
 
         else:
-            logging.getLogger("ispyb_client").\
-                exception("Error in get_proposal: Could not connect to server," + \
-                          " returning empty proposal")
+            logging.getLogger("ispyb_client").exception(
+                "Error in get_proposal: Could not connect to server,"
+                + " returning empty proposal"
+            )
 
-            return {'Proposal': {},
-                    'Person': {},
-                    'Laboratory': {},
-                    'Session': {},
-                    'status': {'code':'error'}}
+            return {
+                "Proposal": {},
+                "Person": {},
+                "Laboratory": {},
+                "Session": {},
+                "status": {"code": "error"},
+            }
 
     @trace
     def get_proposals_by_user(self, user_name):
@@ -246,7 +262,7 @@ class MAXIVISPyBClient(ISPyBClient):
         """
         proposal_list = []
         res_proposal = []
-        logging.getLogger("HWR").info('get_proposals_by_user')
+        logging.getLogger("HWR").info("get_proposals_by_user")
         if self._disabled:
             return proposal_list
 
@@ -274,16 +290,21 @@ class MAXIVISPyBClient(ISPyBClient):
 
             try:
                 import sdm
+
                 sdm = sdm.SDM(production=True)
             except Exception as ex:
                 print(ex)
                 traceback.print_exc()
             filtered_list = []
             for prop in proposal_list:
-                number = prop.get('number')
+                number = prop.get("number")
                 logging.getLogger("HWR").info(number)
 
-                _bl = sdm.uo.get_proposal_info(number).get('beamline_assigned', 'unknown').lower()
+                _bl = (
+                    sdm.uo.get_proposal_info(number)
+                    .get("beamline_assigned", "unknown")
+                    .lower()
+                )
                 if HWR.beamline.session.beamline_name.lower() in _bl:
                     filtered_list.append(prop)
 

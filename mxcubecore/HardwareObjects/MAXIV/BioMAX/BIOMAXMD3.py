@@ -82,9 +82,9 @@ class BIOMAXMD3(MAXIVMD3):
             img_after = self._get_image_array()
             diff = cv2.absdiff(img_bef, img_after)
             if diff.max() < 100:
-                logging.getLogger("user_level_log").info("No obvious drift, loop is relatively stable")
                 logging.getLogger("user_level_log").info(
-                    "o obvious drift, loop is relatively stable"
+                    "No obvious drift, loop is relatively stable"
+                )
         self.update_zoom_calibration()
 
     def current_phase_changed(self, current_phase):
@@ -121,20 +121,20 @@ class BIOMAXMD3(MAXIVMD3):
         logging.getLogger("HWR").info("Moving Fluo detector in")
         self.wait_device_ready(3)
         self.fluodet.actuatorIn()
-        time.sleep(3) # MD3 reports long before fluo is in position
+        time.sleep(3)  # MD3 reports long before fluo is in position
         # the next lines are irrelevant, leaving there for future use
         if wait:
             with gevent.Timeout(10, Exception("Timeout waiting for fluo detector In")):
-                while self.fluodet.get_actuator_state(read=True) != 'in':
+                while self.fluodet.get_actuator_state(read=True) != "in":
                     gevent.sleep(0.1)
- 
+
     def move_fluo_out(self, wait=True):
         logging.getLogger("HWR").info("Moving Fluo detector out")
         self.wait_device_ready(3)
         self.fluodet.actuatorOut()
         if wait:
             with gevent.Timeout(10, Exception("Timeout waiting for fluo detector Out")):
-                while self.fluodet.get_actuator_state(read=True) != 'out':
+                while self.fluodet.get_actuator_state(read=True) != "out":
                     gevent.sleep(0.1)
 
     def start_3_click_centring(self):
@@ -156,8 +156,7 @@ class BIOMAXMD3(MAXIVMD3):
         )
 
     def update_zoom_calibration(self):
-        """
-        """
+        """ """
         zoom = self.camera.get_image_zoom()
         self.pixels_per_mm_x = zoom / self.channel_dict["CoaxCamScaleX"].get_value()
         self.pixels_per_mm_y = zoom / self.channel_dict["CoaxCamScaleY"].get_value()
@@ -191,7 +190,7 @@ class BIOMAXMD3(MAXIVMD3):
 
     def automatic_centring_old(self):
         """Automatic centring procedure. Rotates n times and executes
-           centring algorithm. Optimal scan position is detected.
+        centring algorithm. Optimal scan position is detected.
         """
 
         surface_score_list = []
@@ -225,7 +224,9 @@ class BIOMAXMD3(MAXIVMD3):
         self.wait_device_ready(10)
         # move MD3 to Centring phase if it's not
         if self.get_current_phase() != "Centring":
-            logging.getLogger("user_level_log").info("Moving Diffractometer to Centring for automatic_centring")
+            logging.getLogger("user_level_log").info(
+                "Moving Diffractometer to Centring for automatic_centring"
+            )
             self.set_phase("Centring", wait=True, timeout=200)
         # make sure the back light factor is 1, zoom level is 1, before loop centering
         self.zoom_motor_hwobj.moveToPosition("Zoom 1")

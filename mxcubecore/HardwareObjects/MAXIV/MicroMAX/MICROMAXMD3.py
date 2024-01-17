@@ -13,6 +13,7 @@ from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.MAXIV.MAXIVMD3 import MAXIVMD3
 
 from gevent import monkey
+
 monkey.patch_all(thread=False)
 
 MONITORING_INTERVAL = 0.1

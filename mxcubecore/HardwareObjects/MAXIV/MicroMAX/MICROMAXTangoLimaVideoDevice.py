@@ -4,8 +4,10 @@ import uuid
 
 from mxcubecore.HardwareObjects.TangoLimaVideoDevice import TangoLimaVideoDevice
 
+
 class MICROMAXTangoLimaVideoDevice(TangoLimaVideoDevice):
     """Video calss to stream the microscope images"""
+
     def __init__(self, name):
         TangoLimaVideoDevice.__init__(self, name)
 
@@ -24,8 +26,8 @@ class MICROMAXTangoLimaVideoDevice(TangoLimaVideoDevice):
             v = pixels[n]
             p = n * 3
             rgb[p] = v  ############
-            rgb[p+1] = v
-            rgb[p+2] = v
+            rgb[p + 1] = v
+            rgb[p + 2] = v
 
         return bytes(rgb)
 
@@ -49,11 +51,15 @@ class MICROMAXTangoLimaVideoDevice(TangoLimaVideoDevice):
             _, ver, img_mode, frame_number, width, height, _, _, _, _ = struct.unpack(
                 self.header_fmt, img_data[1][: self.header_size]
             )
-            if img_mode == 0: #GRAY
-                raw_buffer = self.gray_to_rgb(width, height, img_data[1][self.header_size:]) # bytes
-                raw_buffer = np.frombuffer(raw_buffer, np.uint16) #array
+            if img_mode == 0:  # GRAY
+                raw_buffer = self.gray_to_rgb(
+                    width, height, img_data[1][self.header_size :]
+                )  # bytes
+                raw_buffer = np.frombuffer(raw_buffer, np.uint16)  # array
             else:
-                raw_buffer = np.fromstring(img_data[1][self.header_size :], np.uint16) #array
+                raw_buffer = np.fromstring(
+                    img_data[1][self.header_size :], np.uint16
+                )  # array
 
             return raw_buffer, width, height
         else:
@@ -64,7 +70,9 @@ class MICROMAXTangoLimaVideoDevice(TangoLimaVideoDevice):
         # magic_number, version, image_mode, frame_number, width, height, endianness, header_size = \
         # struct.unpack(">IHHqiiHH", frame[0:28])
         print(img_data)
-        if img_data[0]=="VIDEO_IMAGE":
-            raw_buffer = np.fromstring(img_data[1][self.header_size:], np.uint8)
-            _, ver, img_mode, frame_number, width, height, _, _, _, _ = struct.unpack(self.header_fmt, img_data[1][:self.header_size])
-            return  raw_buffer, width, height
+        if img_data[0] == "VIDEO_IMAGE":
+            raw_buffer = np.fromstring(img_data[1][self.header_size :], np.uint8)
+            _, ver, img_mode, frame_number, width, height, _, _, _, _ = struct.unpack(
+                self.header_fmt, img_data[1][: self.header_size]
+            )
+            return raw_buffer, width, height

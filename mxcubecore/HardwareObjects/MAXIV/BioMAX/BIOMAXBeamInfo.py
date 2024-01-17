@@ -33,7 +33,7 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo, AbstractBeam.AbstractBeam):
         self.beam_size_hor = None
         self.beam_size_ver = None
         self._beam_size_dict = {}
-        self._beam_info_dict ={}
+        self._beam_info_dict = {}
 
     def init(self):
         BeamInfo.BeamInfo.init(self)

@@ -578,12 +578,14 @@ class BIOMAXEiger(AbstractDetector):
                     raise Exception("Could not program energy in detector")
         if "CountTime" in self._config_vals.keys():
             self.set_value("CountTime", self._config_vals["CountTime"])
-            msg =  "Readout time: {} | count time: {}".format(self.get_readout_time(), self.get_value("CountTime"))
+            msg = "Readout time: {} | count time: {}".format(
+                self.get_readout_time(), self.get_value("CountTime")
+            )
             logging.getLogger("HWR").debug(msg)
             self.set_value(
                 "FrameTime", self._config_vals["CountTime"] + self.get_readout_time()
             )
-            msg =  "New frame time is {}".format(self.get_value("FrameTime"))
+            msg = "New frame time is {}".format(self.get_value("FrameTime"))
             logging.getLogger("HWR").debug(msg)
             for cfg_name, cfg_value in self._config_vals.items():
                 t0 = time.time()
@@ -771,6 +773,6 @@ class BIOMAXEiger(AbstractDetector):
 
     def open_cover(self):
         self.cover_hwobj.open()
+
     def close_cover(self):
         self.cover_hwobj.close()
-

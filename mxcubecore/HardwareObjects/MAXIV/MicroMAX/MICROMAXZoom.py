@@ -16,7 +16,7 @@ class MICROMAXZoom(ExporterNState):
         super().init()
         level = self.get_property("level", "")
 
-        limits = (0, level-2)
+        limits = (0, level - 2)
         self.set_limits(limits)
         self._initialise_values()
 
@@ -39,9 +39,9 @@ class MICROMAXZoom(ExporterNState):
         self.emit("limitsChanged", (limits,))
 
     def _initialise_values(self):
-        """Initialise the ValueEnum """
+        """Initialise the ValueEnum"""
         low, high = self.get_limits()
-        values = {"LEVEL%s" % str(v): v for v in range(low+1, high+2)}
+        values = {"LEVEL%s" % str(v): v for v in range(low + 1, high + 2)}
         self.VALUES = Enum(
             "ValueEnum",
             dict(values, **{item.name: item.value for item in BaseValueEnum}),

@@ -22,11 +22,12 @@ class BIOMAXTransmission(AbstractTransmission):
         self.threhold = 5
 
         try:
-            self.transmission_motor =  self.get_object_by_role("transmission_motor")
+            self.transmission_motor = self.get_object_by_role("transmission_motor")
         except KeyError:
             logging.getLogger("HWR").warning("Error initializing transmission motor")
         if self.transmission_motor is not None:
-            self.transmission_motor.connect("valueChanged", self.transmission_position_changed
+            self.transmission_motor.connect(
+                "valueChanged", self.transmission_position_changed
             )
 
     def is_ready(self):
@@ -47,7 +48,7 @@ class BIOMAXTransmission(AbstractTransmission):
 
     def setpoint_reached(self, setpoint):
         curr_pos = float(self.get_value())
-        return abs(curr_pos - setpoint) < (0.05 * setpoint) #within %5 of reach
+        return abs(curr_pos - setpoint) < (0.05 * setpoint)  # within %5 of reach
 
     def set_value(self, value, wait=False):
         if value < self.limits[0] or value > self.limits[1]:
@@ -57,11 +58,11 @@ class BIOMAXTransmission(AbstractTransmission):
             while self.transmission_motor.is_moving():
                 gevent.sleep(0.1)
 
-        self.transmission_motor.set_value(value) # self.transmission_motor.move(value)
-        time.sleep(0.25) #motor does not switch to moving inmediately
+        self.transmission_motor.set_value(value)  # self.transmission_motor.move(value)
+        time.sleep(0.25)  # motor does not switch to moving inmediately
         if wait:
             with gevent.Timeout(30, Exception("Timeout waiting for device ready")):
-                #while not self.setpoint_reached(value):
+                # while not self.setpoint_reached(value):
                 while self.transmission_motor.is_moving():
                     gevent.sleep(0.1)
 

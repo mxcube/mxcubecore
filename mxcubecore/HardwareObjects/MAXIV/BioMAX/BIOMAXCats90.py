@@ -23,10 +23,15 @@ class BIOMAXCats90(Cats90):
         Cats90.init(self)
         self._chnInSoak = self.get_channel_object("_chnInSoak")
         if self._chnInSoak is None:
-            self._chnInSoak = self.add_channel({
-                    "type": "tango", "name": "_chnInSoak",
-                    "tangoname": self.tangoname, "polling": 1000,
-                }, "InSoak")
+            self._chnInSoak = self.add_channel(
+                {
+                    "type": "tango",
+                    "name": "_chnInSoak",
+                    "tangoname": self.tangoname,
+                    "polling": 1000,
+                },
+                "InSoak",
+            )
 
         self.safe_to_center = self.cats_pathsafe
 

@@ -29,6 +29,7 @@ from gevent import monkey
 import matplotlib.pyplot as plt
 import numpy as np
 import h5py
+
 try:
     from detecta import detect_peaks
 

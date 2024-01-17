@@ -6,8 +6,7 @@ from mxcubecore.HardwareObjects.ExporterMotor import ExporterMotor
 
 
 class MICROMAXLight(ExporterMotor):
-    """Class for MD3 Light devices. 
-    """
+    """Class for MD3 Light devices."""
 
     def __init__(self, name):
         ExporterMotor.__init__(self, name)
@@ -16,7 +15,7 @@ class MICROMAXLight(ExporterMotor):
         ExporterMotor.init(self)
         _low, _high = self.get_property("limits").split(",")
         self._limits = (float(_low), float(_high))
-        
+
         self.chan_light_is_on = self.get_channel_object("chanLightIsOn")
         self.update_state(self.STATES.READY)
 

@@ -16,16 +16,16 @@ class BIOMAXZoom(AbstractNState):
         self.actuator_name = self.get_property("actuator_name", "")
         level = self.get_property("level", "")
         self.value_channel_name = self.get_property("value_channel_name", "")
-        self.predefined_position_attr = self.add_channel({"type":"exporter", "name": self.actuator_name  }, self.value_channel_name)
-        self.connect(
-                    self.predefined_position_attr, "update", self.value_changed
-                )
-        self.motors_state_attr = self.add_channel({"type":"exporter", "name":self.actuator_name}, "states")
-        self.connect(
-                    self.predefined_position_attr, "update", self.state_changed
-                )
+        self.predefined_position_attr = self.add_channel(
+            {"type": "exporter", "name": self.actuator_name}, self.value_channel_name
+        )
+        self.connect(self.predefined_position_attr, "update", self.value_changed)
+        self.motors_state_attr = self.add_channel(
+            {"type": "exporter", "name": self.actuator_name}, "states"
+        )
+        self.connect(self.predefined_position_attr, "update", self.state_changed)
 
-        limits = (0, level-2)
+        limits = (0, level - 2)
         self.set_limits(limits)
         self._initialise_values()
         self.update_limits(limits)
@@ -64,9 +64,9 @@ class BIOMAXZoom(AbstractNState):
         return self._nominal_value
 
     def _initialise_values(self):
-        """Initialise the ValueEnum """
+        """Initialise the ValueEnum"""
         low, high = self.get_limits()
-        values = {"LEVEL%s" % str(v): v for v in range(low+1, high+2)}
+        values = {"LEVEL%s" % str(v): v for v in range(low + 1, high + 2)}
         self.VALUES = Enum(
             "ValueEnum",
             dict(values, **{item.name: item.value for item in BaseValueEnum}),
@@ -74,9 +74,7 @@ class BIOMAXZoom(AbstractNState):
 
     def value_changed(self, value):
         self._set_value(value)
-        self.emit("predefinedPositionChanged", (self.get_value(),0))
+        self.emit("predefinedPositionChanged", (self.get_value(), 0))
 
     def state_changed(self, value):
         self.emit("stateChanged", (self.get_state(),))
-
-
