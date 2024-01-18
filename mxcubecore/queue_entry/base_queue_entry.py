@@ -23,6 +23,7 @@ execute queue entries in a hierarchical maner.
 """
 
 import logging
+import sys
 import traceback
 import time
 import logging
@@ -53,23 +54,18 @@ class QueueExecutionException(Exception):
         Exception.__init__(self, message, origin)
         self.message = message
         self.origin = origin
-        self.stack_trace = traceback.format_exc()
+        if sys.exc_info()[0] is None:
+            self.stack_trace = None
+        else:
+            self.stack_trace = traceback.format_exc()
 
 
 class QueueAbortedException(QueueExecutionException):
-    def __init__(self, message, origin):
-        QueueExecutionException.__init__(self, message, origin)
-        self.origin = origin
-        self.message = message
-        self.stack_trace = traceback.format_exc()
+    pass
 
 
 class QueueSkippEntryException(QueueExecutionException):
-    def __init__(self, message, origin):
-        QueueExecutionException.__init__(self, message, origin)
-        self.origin = origin
-        self.message = message
-        self.stack_trace = traceback.format_exc()
+    pass
 
 
 class QueueEntryContainer(object):
