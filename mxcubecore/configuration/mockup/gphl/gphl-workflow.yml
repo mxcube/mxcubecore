@@ -131,7 +131,6 @@ settings:
 
     # Java invocation properties - syntax is e.g. '-Dfile.encoding=UTF-8'
     invocation_properties:
-        file.encoding: UTF-8
 
         # File name prefix for workflow log files
         co.gphl.wf.persistName: wf
@@ -213,7 +212,7 @@ workflows:
                       full: 2-4 sweeps, ca. 600-1000 degrees, best possible data.
                       quick:  1-2 sweeps, 360-400 degrees, quick and cusp-free
                       minimal: 1 sweep of 180+ degrees, 1-2 centrings.
-                  application: co.gphl.wf.workflows.WFSimpleCharToProcessing
+                  wf_selection: mxexpt
                   variants:
                       - full
                       - minimal
@@ -230,7 +229,7 @@ workflows:
 
                -  title: Phasing (SAD)
                   strategy_type: phasing
-                  application: co.gphl.wf.workflows.WFSimpleCharToProcessing
+                  wf_selection: mxexpt
                   variants:
                       - full
                       - quick
@@ -253,7 +252,7 @@ workflows:
 
                -  title: Two-wavelength MAD
                   strategy_type: phasing
-                  application: co.gphl.wf.workflows.WFSimpleCharToProcessing
+                  wf_selection: mxexpt
                   variants:
                       - quick
                       - full
@@ -284,7 +283,7 @@ workflows:
 
                -  title: Three-wavelength MAD
                   strategy_type: phasing
-                  application: co.gphl.wf.workflows.WFSimpleCharToProcessing
+                  wf_selection: mxexpt
                   variants:
                       - quick
                       - full
@@ -335,7 +334,7 @@ workflows:
 
                -  title: Diffractometer calibration
                   strategy_type: diffractcal
-                  application: co.gphl.wf.workflows.WFDiffractCal
+                  wf_selection: diffractcal
                   variants:
                       - full
                       - short
@@ -371,7 +370,7 @@ workflows:
           strategies:
               -   title: Translational Calibration
                   strategy_type: transcal
-                  application: co.gphl.wf.workflows.WFTransCal
+                  wf_selection: transcal
                   variants:
                       - full
                   documentation: |
