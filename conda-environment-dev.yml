@@ -9,11 +9,3 @@ dependencies:
   # Dev
   - pip
   - poetry
-  # Format, lint
-  - black
-  - flake8
-  # Test
-  - coverage
-  - pytest
-  - pytest-cov
-  - pytest-mock
