@@ -7,12 +7,7 @@
     </directory_locations>
 
     <software_paths>
-        <!--  OPTIONAL for java binary => defaults to just 'java' -->
-        <!-- <java_binary>/sware/pub/java-1.8.0_91/linux_x64/bin/java</java_binary> -->
 
-        <!-- Gphl workflow Java classpath. -->
-        <!--Should point to all contents of workflow application directory-->
-        <gphl_java_classpath>/users/blissadm/local/gphl/gphl_java_classes/*</gphl_java_classpath>
     </software_paths>
 
     <!-- Software paths that are passed to global phasing workflow as java properties -->
