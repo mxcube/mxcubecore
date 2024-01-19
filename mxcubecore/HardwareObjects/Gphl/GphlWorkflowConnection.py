@@ -129,11 +129,7 @@ class GphlWorkflowConnection(HardwareObjectYaml):
                     raise ValueError("File path %s not recognised" % val)
             paths[tag] = val2
         paths["GPHL_INSTALLATION"] = locations["GPHL_INSTALLATION"]
-        if "java_binary" not in paths:
-            paths["java_binary"] = "java"
-        paths[
-            "runworkflow"
-        ] = "%s/ASTRAWorkflows/bin/runworkflow" % installdir
+        paths["runworkflow"] = "%s/ASTRAWorkflows/bin/runworkflow" % installdir
 
         for tag, val in properties.items():
             val2 = val.format(**locations)
