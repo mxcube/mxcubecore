@@ -551,8 +551,13 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
             if shape is None:
                 raise RuntimeError("Mesh oscillation failed, no shape defined")
 
-            range_x = shape.get("num_cols") * shape.get("cell_width") / 1000.0
-            range_y = shape.get("num_rows") * shape.get("cell_height") / 1000.0
+            range_x = (shape.get("num_cols") - 1) * shape.get("cell_width") / 1000.0
+            range_y = (shape.get("num_rows") - 1) * shape.get("cell_height") / 1000.0
+
+            # the MD3 raster scan command is relative to the currently saved centered position,
+            # calculate and save this mesh's center position
+            self.move_to_mesh_center(shape)
+
             self.diffractometer_hwobj.raster_scan(
                 start,
                 end,
@@ -566,6 +571,18 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
             )
         else:
             self.diffractometer_hwobj.do_oscillation_scan(start, end, exptime, wait)
+
+    def move_to_mesh_center(self, shape):
+        """
+        move to the mesh center and invoke 'save centered position' command
+        """
+        range_x = shape.get("num_cols") * shape.get("cell_width") / 1000.0
+        range_y = shape.get("num_rows") * shape.get("cell_height") / 1000.0
+
+        self.diffractometer_hwobj.phiy_motor_hwobj.set_value_relative(range_y / 2.0)
+        self.diffractometer_hwobj.move_cent_vertical_relative(-range_x / 2.0)
+
+        self.diffractometer_hwobj.save_centered_position()
 
     def _update_task_progress(self):
         """
