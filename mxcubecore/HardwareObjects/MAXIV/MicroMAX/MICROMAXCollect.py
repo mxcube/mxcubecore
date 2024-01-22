@@ -10,7 +10,6 @@ import logging
 import gevent
 import time
 import math
-import json
 import PyTango
 import sys
 
@@ -123,19 +122,19 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
         try:
             min_exp = self.detector_hwobj.get_minimum_exposure_time()
         except Exception:
-            self.log.error("Detector min exposure not available, set to 0.1")
+            self.log.exception("Detector min exposure not available, set to 0.1")
             min_exp = 0.1
 
         try:
             pix_x = self.detector_hwobj.get_pixel_size_x()
         except Exception:
-            self.log.error("Detector X pixel size not available, set to 7-5e5")
+            self.log.exception("Detector X pixel size not available, set to 7-5e5")
             pix_x = 7.5e-5
 
         try:
             pix_y = self.detector_hwobj.get_pixel_size_y()
         except Exception:
-            self.log.error("Detector Y pixel size not available, set to 7-5e5")
+            self.log.exception("Detector Y pixel size not available, set to 7-5e5")
             pix_y = 7.5e-5
 
         if self.beam_info_hwobj is None:
@@ -270,7 +269,7 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
             self.emit_collection_finished()
 
         except Exception as ex:
-            self.log.error("[COLLECT] Data collection failed: %s" % ex)
+            self.log.exception("[COLLECT] Data collection failed: %s" % ex)
             self.user_log.error("[COLLECT] Data collection failed: %s" % ex)
             self.emit_collection_failed()
             self.close_fast_shutter()
@@ -305,7 +304,7 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
             try:
                 self.set_energy(energy)
             except Exception as ex:
-                self.user_log.error("Collection: cannot set beamline energy.")
+                self.user_log.exception("Collection: cannot set beamline energy.")
                 msg = "[COLLECT] Error setting energy: %s" % ex
                 self.log.error(msg)
                 raise Exception(msg)
@@ -379,7 +378,7 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
         try:
             self.prepare_detector()
         except Exception as ex:
-            self.user_log.error("Collection: cannot set prepare detector.")
+            self.user_log.exception("Collection: cannot set prepare detector.")
             msg = "[COLLECT] Error preparing detector: %s" % ex
             self.log.error(msg)
             raise Exception(msg)
@@ -471,7 +470,7 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
                 # fastshutter and detector, otherwise the last image sample is less radiated.
                 shutterless_exptime = self.detector_hwobj.get_acquisition_time() + 0.003
             except Exception as ex:
-                self.log.error(
+                self.log.exception(
                     "[COLLECT] Detector error getting acquisition time: %s" % ex
                 )
                 shutterless_exptime = 0.01
@@ -505,8 +504,8 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
             self.close_detector_cover()
             raise Exception("data collection hook failed... ", str(ex))
         except Exception:
+            self.log.exception("Unexpected error")
             self.data_collection_cleanup()
-            self.log.exception("Unexpected error: %s" % sys.exc_info()[0])
             self.close_detector_cover()
             raise Exception("data collection hook failed... ", sys.exc_info()[0])
 
