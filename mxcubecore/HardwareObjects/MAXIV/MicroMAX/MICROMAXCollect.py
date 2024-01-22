@@ -936,8 +936,8 @@ class MICROMAXCollect(DataCollect):
         try:
             self.log.info("Openning the detector cover.")
             plc = PyTango.DeviceProxy("b312a/vac/plc-01")
-            plc.B312A_E06_DIA_DETC01_ENAC = 1
-            plc.B312A_E06_DIA_DETC01_OPC = 1
+            plc.B312A_E06_DIA_DETC02_ENAC = 1
+            plc.B312A_E06_DIA_DETC02_OPC = 1
             time.sleep(1)  # make sure the cover is up before the data collection stars
         except Exception:
             self.log.exception("Could not open the detector cover")
@@ -950,8 +950,8 @@ class MICROMAXCollect(DataCollect):
         try:
             self.log.info("Closing the detector cover")
             plc = PyTango.DeviceProxy("b312a/vac/plc-01")
-            plc.B312A_E06_DIA_DETC01_ENAC = 1
-            plc.B312A_E06_DIA_DETC01_CLC = 1
+            plc.B312A_E06_DIA_DETC02_ENAC = 1
+            plc.B312A_E06_DIA_DETC02_CLC = 1
         except Exception:
             self.log.exception("Could not close the detector cover")
 
