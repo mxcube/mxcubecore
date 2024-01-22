@@ -46,6 +46,7 @@ from mxcubecore.BaseHardwareObjects import HardwareObjectState
 __copyright__ = """ Copyright © 2023 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
+
 @unique
 class TangoShutterStates(Enum):
     """Shutter states definitions."""
@@ -57,6 +58,7 @@ class TangoShutterStates(Enum):
     AUTOMATIC = HardwareObjectState.READY, "RUNNING"
     UNKNOWN = HardwareObjectState.UNKNOWN, "RUNNING"
     FAULT = HardwareObjectState.WARNING, "FAULT"
+
 
 class TangoShutter(AbstractShutter):
     """TANGO implementation of AbstractShutter"""
