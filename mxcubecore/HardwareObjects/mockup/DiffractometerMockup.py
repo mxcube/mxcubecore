@@ -22,14 +22,12 @@ import logging
 import random
 import warnings
 
-from pydantic import ValidationError
-
 from mxcubecore.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer,
     PhaseEnum,
 )
 
-from mxcubecore import HardwareObjects, HardwareRepository as HWR
+from mxcubecore import HardwareRepository as HWR
 from gevent.event import AsyncResult
 
 
