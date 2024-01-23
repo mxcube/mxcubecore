@@ -729,19 +729,19 @@ class GphlWorkflow(HardwareObjectYaml):
             if params is StopIteration:
                 self.workflow_failed()
                 return
-            use_preset_spotdir = self.settings.get("use_preset_spotdir")
-            if use_preset_spotdir:
-                spotdir = self.get_emulation_sample_dir()
-                if spotdir:
-                    if os.path.isfile(os.path.join(spotdir, "SPOT.XDS")):
-                        params["init_spot_dir"] = spotdir
-                    else:
-                        raise ValueError(
-                            "no file SPOT.XDS in %s" % spotdir)
+        use_preset_spotdir = self.settings.get("use_preset_spotdir")
+        if use_preset_spotdir:
+            spotdir = self.get_emulation_sample_dir()
+            if spotdir:
+                if os.path.isfile(os.path.join(spotdir, "SPOT.XDS")):
+                    params["init_spot_dir"] = spotdir
                 else:
                     raise ValueError(
-                        "use_preset_spotdir was set for non-emulation sample"
-                    )
+                        "no file SPOT.XDS in %s" % spotdir)
+            else:
+                raise ValueError(
+                    "use_preset_spotdir was set for non-emulation sample"
+                )
 
 
         cell_tags = (
@@ -1382,7 +1382,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 )
             if parameters.get("init_spot_dir"):
                 transmission = HWR.beamline.transmission.get_value()
-                if not parameters["transmission"]:
+                if not parameters.get("transmission"):
                     parameters["transmission"] = transmission
                 if not(
                     parameters.get("exposure_time") and parameters.get("image_width")
@@ -1397,18 +1397,18 @@ class GphlWorkflow(HardwareObjectYaml):
                 )
                 transmission = parameters.get("transmission")
                 if not transmission:
-                    use_dose = parameters.get(
+                    new_dose = parameters.get(
                         "use_dose", gphl_workflow_model.recommended_dose_budget()
                     )
                     if gphl_workflow_model.characterisation_done:
-                        use_dose -= gphl_workflow_model.characterisation_dose
+                        new_dose -= gphl_workflow_model.characterisation_dose
                     elif wftype != "diffractcal":
                         # This is characterisation
-                        use_dose *= gphl_workflow_model.characterisation_budget_fraction
+                        new_dose *= gphl_workflow_model.characterisation_budget_fraction
                     maximum_dose = gphl_workflow_model.calc_maximum_dose(
                         image_width=image_width, exposure_time=exposure_time
                     )
-                    parameters["transmission"] = min(100 * use_dose / maximum_dose, 100)
+                    parameters["transmission"] = min(100 * new_dose / maximum_dose, 100)
         else:
             # set gphl_workflow_model.transmission (initial value for interactive mode)
             use_dose = gphl_workflow_model.recommended_dose_budget()
@@ -1447,6 +1447,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 logging.getLogger("HWR").warning(
                     "User modification of sweep settings not implemented. Ignored"
                 )
+            new_dose = parameters["use_dose"]
 
         # From here on same for manual and automation
         # First set current transmission and resolution values
@@ -1475,9 +1476,6 @@ class GphlWorkflow(HardwareObjectYaml):
         gphl_workflow_model.set_pre_acquisition_params(**parameters)
 
         # Update dose consumed to include dose (about to be) acquired.
-        new_dose = (
-            gphl_workflow_model.calc_maximum_dose() * gphl_workflow_model.transmission / 100
-        )
         if (
             gphl_workflow_model.characterisation_done
             or gphl_workflow_model.wftype == "diffractcal"

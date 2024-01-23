@@ -29,9 +29,7 @@ release = version
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = [
-    "myst_parser",
-]
+extensions = []
 
 root_doc = "contents"
 
@@ -96,6 +94,13 @@ napoleon_numpy_docstring = False
 # https://www.sphinx-doc.org/en/master/usage/extensions/viewcode.html
 
 extensions.append("sphinx.ext.viewcode")
+
+
+# -- Options for myst_parser
+
+extensions.append("myst_parser")
+
+myst_enable_extensions = ("fieldlist",)
 
 
 # EOF
