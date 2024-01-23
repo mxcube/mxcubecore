@@ -185,13 +185,11 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         if not entry.is_enabled() or self._is_stopped:
             return
 
-        status = "Successful"
         self.emit("queue_entry_execute_started", (entry,))
         self.set_current_entry(entry)
         self._current_queue_entries.append(entry)
 
         logging.getLogger("queue_exec").info("Executing: " + str(entry))
-        # logging.getLogger('queue_exec').info('Using model: ' + str(entry.get_data_model()))
 
         if self.is_paused():
             logging.getLogger("user_level_log").info("Queue paused, waiting ...")
