@@ -273,7 +273,6 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
             self.user_log.error("[COLLECT] Data collection failed: %s" % ex)
             self.emit_collection_failed()
             self.close_fast_shutter()
-            self.close_detector_cover()
 
     def prepare_acquisition(self):
         """
@@ -494,18 +493,17 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
             except Exception as ex:
                 self.log.error("[COLLECT] Detector error stopping acquisition: %s" % ex)
 
-            self.close_detector_cover()
             self.emit("collectImageTaken", oscillation_parameters["number_of_images"])
         except RuntimeError as ex:
             self.data_collection_cleanup()
             self.log.error("[COLLECT] Runtime Error: %s" % ex)
-            self.close_detector_cover()
             raise Exception("data collection hook failed... ", str(ex))
         except Exception:
             self.log.exception("Unexpected error")
             self.data_collection_cleanup()
-            self.close_detector_cover()
             raise Exception("data collection hook failed... ", sys.exc_info()[0])
+        finally:
+            self.close_detector_cover()
 
     def get_mesh_num_lines(self):
         return self.mesh_num_lines
