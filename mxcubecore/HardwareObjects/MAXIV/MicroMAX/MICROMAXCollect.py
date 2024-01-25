@@ -466,9 +466,7 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
             self.log.debug("data_collection_hook detector ready")
 
             try:
-                # Add 3ms into the total acquisition time, to compensate the unsynchronization between
-                # fastshutter and detector, otherwise the last image sample is less radiated.
-                shutterless_exptime = self.detector_hwobj.get_acquisition_time() + 0.003
+                shutterless_exptime = self.detector_hwobj.get_acquisition_time()
             except Exception as ex:
                 self.log.exception(
                     "[COLLECT] Detector error getting acquisition time: %s" % ex
