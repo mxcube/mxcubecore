@@ -31,7 +31,7 @@ Example xml file:
   <command type="tango" name="Open">Open</command>
   <command type="tango" name="Close">Close</command>
   <channel type="tango" name="State" polling="1000">State</channel>
-  <values>{"OPEN": "MYOPEN", "NEWSTATE": [HardwareObjectState.BUSY, "MYSTATE"]}</values>
+  <values>{"OPEN": "MYOPEN", "NEWSTATE": ["HardwareObjectState.BUSY", "MYSTATE"]}</values>
 </object>
 
 In the example the <values> property contains a dictionary that redefines or
@@ -41,11 +41,12 @@ When defining a new state (new key), the dictionary value should be a
 list. The new state is added to both the VALUES and the SPECIFIC_STATES Enum.
 Attention:
  - do not use tuples or the python json parser will fail!
- - the first element of the list should be a standard HardwareObjectState
-   member (see in BaseHardwareObjects.py)!
+ - the second element of the list should be a standard HardwareObjectState name
+ (UNKNOWN, WARNING, BUSY, READY, FAULT, OFF - see in BaseHardwareObjects.py)!
 The <values> property is optional.
 """
 
+import logging
 import json
 from enum import Enum, unique
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
@@ -115,11 +116,11 @@ class TangoShutter(AbstractShutter):
             for key, val in config_values.items():
                 if isinstance(val, (tuple, list)):
                     values_dict.update({key: val[1]})
-                    states_dict.update({key: tuple(val)})
+                    states_dict.update({key: (HardwareObjectState[val[1]], val[0])})
                 else:
                     values_dict.update({key: val})
         except (ValueError, TypeError) as err:
-            print(f"Exception in _initialise_values(): {err}")
+            logging.error(f"Exception in _initialise_values(): {err}")
 
         self.VALUES = Enum("ValueEnum", values_dict)
         self.SPECIFIC_STATES = Enum("TangoShutterStates", states_dict)
@@ -133,7 +134,7 @@ class TangoShutter(AbstractShutter):
             _state = self.get_value().name
             return self.SPECIFIC_STATES[_state].value[0]
         except (AttributeError, KeyError) as err:
-            print(f"Exception in get_state(): {err}")
+            logging.error(f"Exception in get_state(): {err}")
             return self.STATES.UNKNOWN
 
     def get_value(self):
