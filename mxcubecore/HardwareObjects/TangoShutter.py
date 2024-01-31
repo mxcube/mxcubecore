@@ -31,7 +31,7 @@ Example xml file:
   <command type="tango" name="Open">Open</command>
   <command type="tango" name="Close">Close</command>
   <channel type="tango" name="State" polling="1000">State</channel>
-  <values>{"OPEN": "MYOPEN", "NEWSTATE": [HardwareObjectState.BUSY, "MYSTATE"]}</values>
+  <values>{"OPEN": "MYOPEN", "NEWSTATE": ["HardwareObjectState.BUSY", "MYSTATE"]}</values>
 </object>
 
 In the example the <values> property contains a dictionary that redefines or
