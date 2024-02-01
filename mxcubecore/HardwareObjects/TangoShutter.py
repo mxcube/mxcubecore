@@ -31,7 +31,7 @@ Example xml file:
   <command type="tango" name="Open">Open</command>
   <command type="tango" name="Close">Close</command>
   <channel type="tango" name="State" polling="1000">State</channel>
-  <values>{"OPEN": "MYOPEN", "NEWSTATE": ["HardwareObjectState.BUSY", "MYSTATE"]}</values>
+  <values>{"OPEN": "MYOPEN", "NEWSTATE": ["MYSTATE", "BUSY"]}</values>
 </object>
 
 In the example the <values> property contains a dictionary that redefines or
@@ -41,6 +41,7 @@ When defining a new state (new key), the dictionary value should be a
 list. The new state is added to both the VALUES and the SPECIFIC_STATES Enum.
 Attention:
  - do not use tuples or the python json parser will fail!
+ - make sure only double quotes are used inside the values dictionary. No single quotes (') are allowed !
  - the second element of the list should be a standard HardwareObjectState name
  (UNKNOWN, WARNING, BUSY, READY, FAULT, OFF - see in BaseHardwareObjects.py)!
 The <values> property is optional.
