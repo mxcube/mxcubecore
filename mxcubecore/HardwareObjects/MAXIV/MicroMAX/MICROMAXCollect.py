@@ -15,14 +15,16 @@ import sys
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.TaskUtils import task
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from abstract.AbstractCollect import AbstractCollect
 from mxcubecore.HardwareObjects.GenericDiffractometer import GenericDiffractometer
+from mxcubecore.HardwareObjects.MAXIV.DataCollect import DataCollect
+from abstract.AbstractCollect import AbstractCollect
+from mxcubecore.BaseHardwareObjects import HardwareObject
+
 
 DET_SAFE_POSITION = 500
 
 
-class MICROMAXCollect(AbstractCollect, HardwareObject):
+class MICROMAXCollect(DataCollect):
     """
     Descript: Data collection class, inherited from AbstractCollect
     """
@@ -957,38 +959,6 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
             self.log.exception("Could not close the detector cover")
             pass
 
-    def open_safety_shutter(self):
-        """
-        Descript. :
-        """
-        # todo add time out? if over certain time, then stop acquisiion and
-        # popup an error message
-        if self.safety_shutter_hwobj.getShutterState() == "opened":
-            return
-        timeout = 5
-        count_time = 0
-        self.log.info("Opening the safety shutter.")
-        self.safety_shutter_hwobj.openShutter()
-        while (
-            self.safety_shutter_hwobj.getShutterState() == "closed"
-            and count_time < timeout
-        ):
-            time.sleep(0.1)
-            count_time += 0.1
-        if self.safety_shutter_hwobj.getShutterState() == "closed":
-            self.log.exception("Could not open the safety shutter")
-            raise Exception("Could not open the safety shutter")
-
-    def close_safety_shutter(self):
-        """
-        Descript. :
-        """
-        # todo, add timeout, same as open
-        self.log.info("Closing the safety shutter.")
-        self.safety_shutter_hwobj.closeShutter()
-        while self.safety_shutter_hwobj.getShutterState() == "opened":
-            time.sleep(0.1)
-
     def open_fast_shutter(self):
         """
         Descript. : important to make sure it's passed, as we
@@ -1372,11 +1342,8 @@ class MICROMAXCollect(AbstractCollect, HardwareObject):
         if manual_mode:
             self.close_detector_cover()
             self.diffractometer_hwobj.set_phase("Transfer")
-            if (
-                self.safety_shutter_hwobj is not None
-                and self.safety_shutter_hwobj.getShutterState() == "opened"
-            ):
-                self.close_safety_shutter()
+            self.close_safety_shutter()
+
         self.move_detector(DET_SAFE_POSITION)
 
     def _update_image_to_display(self):
