@@ -20,15 +20,9 @@ build:
     python: "mambaforge-22.9"
 
   commands:
-    - "mamba env create --file conda-environment-dev.yml"
+    - "mamba env create --file conda-environment-dev.yml --force"
     - "mamba run --name mxcubecore poetry install --only=docs,main"
-    - "mamba run --name mxcubecore poetry run sphinx-build -T -E -b html -c ./docs/ ./docs/source/ ${READTHEDOCS_OUTPUT}/html/"
-
-# `conda.environment` is probably not used, since we use custom commands only,
-# but it seems to be required (wrongly) by ReadTheDocs config file validation.
-# https://github.com/readthedocs/readthedocs.org/pull/10979#issuecomment-1896036953
-conda:
-  environment: "conda-environment-dev.yml"
+    - "mamba run --name mxcubecore sphinx-build -T -E -b html -c ./docs/ ./docs/source/ ${READTHEDOCS_OUTPUT}/html/"
 
 
 ...  # EOF
