@@ -1,10 +1,10 @@
 ---
 
 
-name: "Pages"
+name: Pages
 
 concurrency:
-  group: "pages"
+  group: pages
 
 "on":
   push: null
@@ -12,72 +12,71 @@ concurrency:
 
 jobs:
 
-  "pages-build":
+  pages-build:
 
-    runs-on: "ubuntu-22.04"
+    runs-on: ubuntu-24.04
 
     steps:
 
-      - name: "Checkout"
-        uses: "actions/checkout@v4"
+      - name: Checkout source code
+        uses: actions/checkout@v4
         with:
           # With shallow clone the "Last updated" timestamp can not get computed
           # See "Caveats" at https://pypi.org/project/sphinx-last-updated-by-git
           fetch-depth: 0
 
-      - name: "Set up Python 3.10"
-        uses: "actions/setup-python@v5"
+      - name: Setup Conda environment with Micromamba
+        uses: mamba-org/setup-micromamba@v2
         with:
-          python-version: "3.10"
+          cache-environment: true
+          create-args: >-
+            python=${{ matrix.python-version }}
+          environment-file: conda-environment-dev.yml
+          post-cleanup: all
 
-      - name: "Install OpenLDAP's dev package with apt"
-        run: |
-          sudo apt-get update
-          sudo apt-get install --no-install-recommends --yes libldap2-dev libsasl2-dev
+      - name: Install Python dependencies with Poetry
+        run: >
+          ${MAMBA_EXE} run --name mxcubecore
+          poetry install --only=docs,main
 
-      - name: "Install dependencies with Poetry"
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install poetry --user
-          python -m poetry install --only=docs,main
+      - name: Build documentation with Sphinx
+        run: >
+          ${MAMBA_EXE} run --name mxcubecore
+          make --directory=./docs/ html
 
-      - name: "Build documentation with Sphinx"
-        run: |
-          poetry run make --directory=./docs/ html
-
-      - name: "Upload artifact for GitHub Pages"
+      - name: Upload artifact for GitHub Pages
         # This could potentially be run only when we intend to deploy...
         # ...but it can be useful to have the artifact for debugging
         # if: "github.ref_name == github.event.repository.default_branch"
-        uses: "actions/upload-pages-artifact@v3"
+        uses: actions/upload-pages-artifact@v3
         with:
-          path: "docs/build/html"
+          path: docs/build/html
 
-  "pages-deploy":
+  pages-deploy:
 
-    if: "github.ref_name == github.event.repository.default_branch"
+    if: github.ref_name == github.event.repository.default_branch
 
     environment:
-      name: "github-pages"
-      url: "${{ steps.deployment.outputs.page_url }}"
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     needs:
-      - "pages-build"
+      - pages-build
 
     permissions:
-      pages: "write"
-      id-token: "write"
+      pages: write
+      id-token: write
 
-    runs-on: "ubuntu-22.04"
+    runs-on: ubuntu-24.04
 
     steps:
 
-      - name: "Setup GitHub Pages"
-        uses: "actions/configure-pages@v5"
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
 
-      - name: "Deploy to GitHub Pages"
-        id: "deployment"
-        uses: "actions/deploy-pages@v4"
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
 
 
-...  # EOF
+...

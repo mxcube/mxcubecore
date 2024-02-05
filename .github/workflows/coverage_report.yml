@@ -4,42 +4,54 @@ name: Coverage Report
 
 "on":
   pull_request:
+    paths-ignore:
+      - doc/**
+      - docs/**
     types: [opened, reopened, synchronize]
-    paths:
-      - '**.py'
 
 jobs:
+
   pytest-coverage:
-    runs-on: ubuntu-latest
+
+    runs-on: ubuntu-24.04
+
     permissions:
       pull-requests: write
 
     steps:
 
-      - uses: actions/checkout@v3
+      - name: Checkout source code
+        uses: actions/checkout@v4
 
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v4
+      - name: Set up Conda environment with Micromamba
+        uses: mamba-org/setup-micromamba@v2
         with:
-          python-version: "3.10"
+          cache-environment: true
+          create-args: >-
+            python=3.10
+          environment-file: conda-environment-dev.yml
+          post-cleanup: all
 
-      - name: Install dependencies
-        # yamllint disable rule:line-length
-        run: |
-          sudo apt-get update && sudo apt-get install -y libsasl2-dev libldap2-dev libssl-dev
-          python -m pip install --upgrade pip
-          python -m pip install poetry --user
-          python -m poetry install --extras=tango
-        # yamllint enable rule:line-length
+      - name: Install Python dependencies with Poetry
+        # Pytest-related dependencies are in the `dev` dependency group,
+        # so we install that group and skip the other groups.
+        run: >
+          ${MAMBA_EXE} run --name mxcubecore
+          poetry install --only=dev,main
 
-      - name: Run and write pytest
-        # yamllint disable rule:line-length
-        run: |
+      - name: Check tests with Pytest and write coverage report
+        run: >
           set -o pipefail
-          poetry run pytest --cov=mxcubecore --junitxml=pytest.xml --cov-report=term-missing:skip-covered | tee pytest-coverage.txt
-        # yamllint enable rule:line-length
 
-      - name: Pytest coverage comment
+          ${MAMBA_EXE} run --name mxcubecore
+          pytest
+          --cov=mxcubecore
+          --junitxml=pytest.xml
+          --cov-report=term-missing:skip-covered
+          |
+          tee pytest-coverage.txt
+
+      - name: Write Python tests coverage comments on pull request
         id: coverage-comment
         uses: MishaKav/pytest-coverage-comment@v1.1.40
         with:

@@ -7,31 +7,33 @@ name: Linting & Code Quality
     types: [opened, reopened, synchronize]
 
 jobs:
+
   pre-commit:
-    runs-on: ubuntu-latest
+
+    runs-on: ubuntu-24.04
 
     steps:
 
-      - uses: actions/checkout@v3
+      - name: Checkout source code
+        uses: actions/checkout@v4
 
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v4
+      - name: Set up Conda environment with Micromamba
+        uses: mamba-org/setup-micromamba@v2
         with:
-          python-version: "3.10"
+          cache-environment: true
+          create-args: >-
+            python=3.10
+          environment-file: conda-environment-dev.yml
+          post-cleanup: all
 
-      - name: Install openldap
-        # yamllint disable rule:line-length
-        run: |
-          sudo apt-get update && sudo apt-get upgrade -y
-          sudo apt-get install -y libldap2-dev libsasl2-dev slapd ldap-utils tox lcov valgrind
-        # yamllint enable rule:line-length
+      - name: Install Python dependencies
+        run: >
+          ${MAMBA_EXE} run --name mxcubecore
+          poetry install --only=dev
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install poetry --user
-          python -m poetry install
+      - name: Run Pre-Commit hooks
+        run: >
+          ${MAMBA_EXE} run --name mxcubecore
+          pre-commit run --all-files
 
-      - name: Run Pre-Commit
-        run: |
-          poetry run pre-commit run --all-files
+...
