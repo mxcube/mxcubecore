@@ -48,7 +48,7 @@ The <values> property is optional.
 """
 
 import logging
-import json
+import ast
 from enum import Enum, unique
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
@@ -113,7 +113,7 @@ class TangoShutter(AbstractShutter):
             }
         )
         try:
-            config_values = json.loads(self.get_property("values"))
+            config_values = ast.literal_eval(self.get_property("values"))
             for key, val in config_values.items():
                 if isinstance(val, (tuple, list)):
                     values_dict.update({key: val[1]})
