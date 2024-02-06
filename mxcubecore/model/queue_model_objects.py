@@ -2038,6 +2038,15 @@ class GphlWorkflow(TaskNode):
 
         self.set_from_dict(workflow_hwobj.settings["defaults"])
 
+        # Set missing values from BL defaults and limits.
+        # NB cannot be done till after all HO are initialised.
+        bl_defaults = HWR.beamline.get_default_acquisition_parameters().as_dict()
+        exposure_time = self.exposure_time or bl_defaults.get("exp_time", 0)
+        self.exposure_time = max(
+            exposure_time, HWR.beamline.detector.get_exposure_time_limits()[0]
+        )
+        self.image_width = self.image_width or bl_defaults.get("osc_range", 0.1)
+
     def parameter_summary(self):
         """Main parameter summary, for output purposes"""
         summary = {"strategy": self.strategy_name}
@@ -2350,12 +2359,6 @@ class GphlWorkflow(TaskNode):
                     "when 'init_spot_dir' is set"
                 )
             self.transmission = HWR.beamline.transmission.get_value()
-
-        else:
-            # Normal characterisation, set some parameters from defaults
-            default_parameters = HWR.beamline.get_default_acquisition_parameters()
-            self.exposure_time = default_parameters.exp_time
-            self.image_width = default_parameters.osc_range
 
         # Path template and prefixes
         base_prefix = self.path_template.base_prefix = params.get(
