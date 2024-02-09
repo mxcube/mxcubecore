@@ -26,8 +26,8 @@ det_qx= 0.075
 det_qy= 0.075
 det_nx= 3110
 det_ny= 3269
-det_org_x= 1464.088
-det_org_y= 1730.444
+det_org_x= 1565.715
+det_org_y= 1702.058
 det_org_dist= 110
 
 ! NBNB TODO get this block
