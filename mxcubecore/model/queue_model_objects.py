@@ -29,6 +29,12 @@ import logging
 
 from mxcubecore.model import queue_model_enumerables
 
+try:
+    from mxcubecore.model import crystal_symmetry
+    import ruamel.yaml as yaml
+except Exception:
+    logging.getLogger("HWR").warning("Cannot import dependenices needed for GPHL workflows - GPhL workflows might not work")
+
 # This module is used as a self contained entity by the BES
 # workflows, so we need to make sure that this module can be
 # imported eventhough HardwareRepository is not avilable.
