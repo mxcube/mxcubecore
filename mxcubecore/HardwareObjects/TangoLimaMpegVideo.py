@@ -1,5 +1,5 @@
 """
-Class for streaming MPEG1 video with cameras connected to 
+Class for streaming MPEG1 video with cameras connected to
 Lima Tango Device Servers
 
 Example configuration:
@@ -12,6 +12,7 @@ Example configuration:
   <video_mode>RGB24</video_mode>
 </device>
 """
+
 import os
 import subprocess
 import uuid
@@ -29,6 +30,7 @@ class TangoLimaMpegVideo(TangoLimaVideo):
         self.stream_hash = str(uuid.uuid1())
         self._quality_str = "High"
         self._QUALITY_STR_TO_INT = {"High": 4, "Medium": 10, "Low": 20, "Adaptive": -1}
+        self._port = 8000
 
     def init(self):
         super().init()
@@ -73,12 +75,12 @@ class TangoLimaMpegVideo(TangoLimaVideo):
             self._video_stream_process = subprocess.Popen(
                 [
                     "video-streamer",
-                    "-tu",
+                    "-uri",
                     self.get_property("tangoname").strip(),
                     "-hs",
                     "localhost",
                     "-p",
-                    str(port),
+                    str(self._port),
                     "-q",
                     str(self._quality),
                     "-s",
@@ -96,18 +98,23 @@ class TangoLimaMpegVideo(TangoLimaVideo):
 
     def stop_streaming(self):
         if self._video_stream_process:
-            ps = psutil.Process(self._video_stream_process.pid).children() + [
-                self._video_stream_process
-            ]
-
-            for p in ps:
-                p.kill()
+            try:
+                ps = [self._video_stream_process] + psutil.Process(
+                    self._video_stream_process.pid
+                ).children()
+                for p in ps:
+                    p.kill()
+            except psutil.NoSuchProcess:
+                pass
 
             self._video_stream_process = None
 
-    def start_streaming(self, _format=None, size=(0, 0), port="4042"):
+    def start_streaming(self, _format=None, size=(0, 0), port=None):
         if _format:
             self._format = _format
+
+        if port:
+            self._port = port
 
         if not size[0]:
             _s = self.get_width(), self.get_height()
@@ -115,8 +122,8 @@ class TangoLimaMpegVideo(TangoLimaVideo):
             _s = size
 
         self.set_stream_size(_s[0], _s[1])
-        self.start_video_stream_process(port)
+        self.start_video_stream_process(self._port)
 
     def restart_streaming(self, size):
         self.stop_streaming()
-        self.start_streaming(self._format)
+        self.start_streaming(self._format, size=size)

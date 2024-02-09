@@ -120,7 +120,7 @@ class MDCameraMockup(BaseHardwareObjects.Device):
                     "-hs",
                     "localhost",
                     "-p",
-                    self._port,
+                    str(self._port),
                     "-of",
                     self._format,
                     "-q",
