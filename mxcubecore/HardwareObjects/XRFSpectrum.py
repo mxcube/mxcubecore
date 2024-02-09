@@ -222,9 +222,9 @@ class XRFSpectrum(HardwareObject):
         self.scanning = False
         if result is not False:
             fname = self.spectrumInfo["filename"].replace(".dat", ".raw")
-            self.mca_hwobj.set_presets(fname=str(fname))
-            mcaData = self.mca_hwobj.read_data(save_data=True)
-            mcaCalib = self.mca_hwobj.get_calibration()
+            self.mca_hwobj.datafile = str(fname)
+            mcaData = self.mca_hwobj.read_roi_data(save_data=True)
+            mcaCalib = self.mca_hwobj.calibration
             mcaConfig = {}
             self.spectrumInfo[
                 "beamTransmission"
