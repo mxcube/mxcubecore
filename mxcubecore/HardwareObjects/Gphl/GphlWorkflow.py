@@ -713,11 +713,6 @@ class GphlWorkflow(HardwareObjectYaml):
             )
         self._queue_entry = queue_entry
         data_model = queue_entry.get_data_model()
-        default_exposure_time = data_model.exposure_time
-        data_model.exposure_time = max(
-            default_exposure_time, HWR.beamline.detector.get_exposure_time_limits()[0]
-        )
-
 
         self._workflow_queue = gevent.queue.Queue()
         HWR.beamline.gphl_connection.open_connection()
@@ -1032,8 +1027,6 @@ class GphlWorkflow(HardwareObjectYaml):
             )
 
         # set starting and unchanging values of parameters
-        acq_parameters = HWR.beamline.get_default_acquisition_parameters()
-
         resolution = HWR.beamline.resolution.get_value()
         dose_budget = self.resolution2dose_budget(
             resolution,
@@ -1066,7 +1059,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 use_dose_start = proposed_dose * 100.0 / transmission
                 transmission = 100.0
         else:
-            transmission = acq_parameters.transmission
+            transmission = HWR.beamline.transmission.get_value()
             use_dose_start = 0
             use_dose_frozen = True
             logging.getLogger("user_level_log").warning(
@@ -1392,8 +1385,6 @@ class GphlWorkflow(HardwareObjectYaml):
             default_image_width = list(
                 self.settings.get("default_image_widths")
             )[0]
-        acq_parameters = HWR.beamline.get_default_acquisition_parameters()
-        default_exposure_time = acq_parameters.exp_time
 
         # get parameters and initial transmission/use_dose
         if gphl_workflow_model.automation_mode:
@@ -1419,9 +1410,6 @@ class GphlWorkflow(HardwareObjectYaml):
                     )
             else:
                 image_width = parameters.setdefault("image_width", default_image_width)
-                exposure_time = parameters.setdefault(
-                    "exposure_time", default_exposure_time
-                )
                 transmission = parameters.get("transmission")
                 if not transmission:
                     new_dose = parameters.get(
@@ -1433,7 +1421,7 @@ class GphlWorkflow(HardwareObjectYaml):
                         # This is characterisation
                         new_dose *= gphl_workflow_model.characterisation_budget_fraction
                     maximum_dose = gphl_workflow_model.calc_maximum_dose(
-                        image_width=image_width, exposure_time=exposure_time
+                        image_width=image_width,
                     )
                     parameters["transmission"] = min(100 * new_dose / maximum_dose, 100)
         else:
@@ -1446,7 +1434,6 @@ class GphlWorkflow(HardwareObjectYaml):
                 use_dose *= gphl_workflow_model.characterisation_budget_fraction
             # Need setting before query
             gphl_workflow_model.image_width = default_image_width
-            gphl_workflow_model.exposure_time = default_exposure_time
             maximum_dose = gphl_workflow_model.calc_maximum_dose()
             transmission = 100 * use_dose / maximum_dose
             if transmission > 100:
