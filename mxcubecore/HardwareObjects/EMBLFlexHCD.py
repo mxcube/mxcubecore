@@ -587,8 +587,6 @@ class EMBLFlexHCD(SampleChanger):
         return self._set_loaded_sample_and_prepare(loaded_sample, previous_sample)
 
     def _do_unload(self, sample=None):
-        HWR.beamline.diffractometer.set_phase("Transfer")
-
         self._execute_cmd_exporter(
             "unloadSample",
             sample.get_cell_no(),
