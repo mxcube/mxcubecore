@@ -206,6 +206,59 @@ class MD3UP(Microdiff.Microdiff):
             # Timeout of 30 min
             self._wait_ready(1800)
 
+
+    def timeresolved_mesh_scan(self, timeout=900):
+        """Start timeresolved mesh.
+        Args:
+            timeout(float): Timeout to wait the execution of the scan [s].
+                            Default value is 15 min
+        """
+        scan = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_timeresolved_mesh",
+            },
+            "startContinuousTimeResolvedRasterScan",
+        )
+        scan()
+
+        # wait for the execution of the scan
+        self._wait_ready(timeout)
+
+    def get_timeresolved_mesh_nbframes(self):
+        """Get the calculated number of frames for the continuous timeresolved
+           mesh scan.
+        Returns:
+            (int): Number of frames.
+        """
+        cmd = self.add_channel(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "timeresolved_mesh_nbframes",
+            },
+            "ContinuousTimeResolvedRasterScanNbFrames"
+        )
+        return cmd.get_value()
+
+    def get_timeresolved_mesh_exptime(self):
+        """Get the calculated exposure time for the continuous timeresolved
+           mesh scan.
+        Returns:
+            (float): Exposure time [s].
+        """
+
+        cmd = self.add_channel(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "timeresolved_mesh_exptime",
+            },
+            "ContinuousTimeResolvedRasterScanExposureTime",
+        )
+        return cmd.get_value()
+
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
             self.zoomMotor.get_value()
