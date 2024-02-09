@@ -1,5 +1,5 @@
-"""Class for cameras connected to framegrabbers run by Taco Device Servers
-"""
+"""Class for cameras connected to framegrabbers run by Taco Device Servers"""
+
 import psutil
 import subprocess
 import logging
@@ -28,6 +28,7 @@ class MDCameraMockup(BaseHardwareObjects.Device):
         self.image = HWR.get_hardware_repository().find_in_repository(self.image_name)
         self.set_is_ready(True)
         self._video_stream_process = None
+        self._current_stream_size = "0, 0"
 
     def init(self):
         logging.getLogger("HWR").info("initializing camera object")
@@ -104,10 +105,15 @@ class MDCameraMockup(BaseHardwareObjects.Device):
 
         return video_sizes
 
-    def get_stream_size(self):
-        return self.get_width(), self.get_height(), 1
+    def set_stream_size(self, w, h):
+        self._current_stream_size = "%s,%s" % (int(w), int(h))
 
-    def start_video_stream_process(self, size):
+    def get_stream_size(self):
+        current_size = self._current_stream_size.split(",")
+        scale = float(current_size[0]) / self.get_width()
+        return current_size + list((scale,))
+
+    def start_video_stream_process(self, port):
         if (
             not self._video_stream_process
             or self._video_stream_process.poll() is not None
@@ -115,7 +121,7 @@ class MDCameraMockup(BaseHardwareObjects.Device):
             self._video_stream_process = subprocess.Popen(
                 [
                     "video-streamer",
-                    "-tu",
+                    "-uri",
                     "test",
                     "-hs",
                     "localhost",
@@ -126,7 +132,7 @@ class MDCameraMockup(BaseHardwareObjects.Device):
                     "-q",
                     "4",
                     "-s",
-                    "%s,%s" % size,
+                    self._current_stream_size,
                     "-id",
                     self.stream_hash,
                 ],
@@ -135,25 +141,29 @@ class MDCameraMockup(BaseHardwareObjects.Device):
 
     def stop_streaming(self):
         if self._video_stream_process:
-            ps = [self._video_stream_process] + psutil.Process(
-                self._video_stream_process.pid
-            ).children()
-            for p in ps:
-                p.kill()
+            try:
+                ps = [self._video_stream_process] + psutil.Process(
+                    self._video_stream_process.pid
+                ).children()
+                for p in ps:
+                    p.kill()
+            except psutil.NoSuchProcess:
+                pass
 
             self._video_stream_process = None
 
-    def start_streaming(self, _format="MPEG1", size=(0, 0), port="4042"):
+    def start_streaming(self, _format="MPEG1", size=(0, 0), port="8000"):
         self._format = _format
         self._port = port
 
         if not size[0]:
             _s = int(self.get_width()), int(self.get_height())
         else:
-            _s = size
+            _s = int(size[0]), int(size[1])
 
-        self.start_video_stream_process(_s)
+        self.set_stream_size(_s[0], _s[1])
+        self.start_video_stream_process(port)
 
     def restart_streaming(self, size):
         self.stop_streaming()
-        self.start_streaming(size)
+        self.start_streaming(self._format, size=size)
