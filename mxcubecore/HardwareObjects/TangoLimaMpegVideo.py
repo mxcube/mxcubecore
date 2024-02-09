@@ -78,7 +78,7 @@ class TangoLimaMpegVideo(TangoLimaVideo):
                     "-hs",
                     "localhost",
                     "-p",
-                    port,
+                    str(port),
                     "-q",
                     str(self._quality),
                     "-s",
