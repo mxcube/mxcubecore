@@ -230,6 +230,7 @@ class LimaEigerDetector(AbstractDetector):
         self.get_channel_object("saving_format").set_value("HDF5")
 
     def start_acquisition(self):
+        self.wait_ready()
         logging.getLogger("user_level_log").info("Preparing acquisition")
         self.get_command_object("prepare_acq")()
         logging.getLogger("user_level_log").info("Detector ready, continuing")
