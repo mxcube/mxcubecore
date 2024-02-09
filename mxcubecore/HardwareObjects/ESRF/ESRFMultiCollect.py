@@ -160,7 +160,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             if self.oscillation_task.ready():
                 self.oscillation_task.get()
         else:
-            self.oscil(start, end, exptime)
+            self.oscil(start, end, exptime, number_of_images)
 
     @task
     def oscil(self, start, end, exptime, number_of_images, wait=False):
