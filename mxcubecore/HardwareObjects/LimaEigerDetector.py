@@ -236,6 +236,7 @@ class LimaEigerDetector(AbstractDetector):
         self.get_command_object("start_acq")()
 
     def stop_acquisition(self):
+        self.update_state(self.STATES.BUSY)
         try:
             self.get_command_object("stop_acq")()
         except Exception:
@@ -244,9 +245,11 @@ class LimaEigerDetector(AbstractDetector):
         time.sleep(1)
         self.get_command_object("reset")()
         self.wait_ready()
+        self.update_state(self.STATES.READY)
 
     def reset(self):
         self.stop_acquisition()
+        return True
 
     @property
     def status(self):
