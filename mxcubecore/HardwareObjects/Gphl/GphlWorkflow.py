@@ -199,6 +199,9 @@ class GphlWorkflow(HardwareObjectYaml):
         # Subprocess names to track which subprocess is getting info
         self._server_subprocess_names = {}
 
+        # Dictionary holding (directory, prefix, run_number, first_image) : motors_dict
+        self._scan_to_motors = OrderedDict()
+
         # Rotation axis role names, ordered from holder towards sample
         self.rotation_axis_roles = []
 
@@ -303,6 +306,8 @@ class GphlWorkflow(HardwareObjectYaml):
         :param choose_lattice (ChooseLattice): GphlMessage.ChooseLattice
         :return: -> dict
         """
+
+        resolution_decimals = 3
         data_model = self._queue_entry.get_data_model()
         strategy_settings = data_model.strategy_settings
         space_group = data_model.space_group or ""
@@ -431,11 +436,19 @@ class GphlWorkflow(HardwareObjectYaml):
             "default": self.settings["defaults"]["use_cell_for_processing"],
         }
         resolution = data_model.aimed_resolution or HWR.beamline.resolution.get_value()
+        resolution = round(resolution, resolution_decimals)
         reslimits = HWR.beamline.resolution.get_limits()
         if None in reslimits:
             reslimits = (0.5, 5.0)
-        resolution = max(resolution, reslimits[0])
-        resolution = min(resolution, reslimits[1])
+        if resolution < reslimits[0]:
+            resolution = (
+                round(reslimits[0], resolution_decimals) + 0.1 ** resolution_decimals
+            )
+        if resolution > reslimits[1]:
+            resolution = (
+                round(reslimits[1], resolution_decimals) - 0.1 ** resolution_decimals
+            )
+
         fields["resolution"] = {
             "title": "Resolution",
             "type": "number",
@@ -570,7 +583,7 @@ class GphlWorkflow(HardwareObjectYaml):
                     "ui:order": ["strategy", "resolution", "energy"],
                     "resolution": {
                         "ui:options": {
-                            "decimals": 3,
+                            "decimals": resolution_decimals,
                         },
                     },
                     "energy": {
@@ -789,31 +802,45 @@ class GphlWorkflow(HardwareObjectYaml):
             HWR.beamline.gphl_connection.software_paths["GPHL_WDIR"], "recen.nml"
         )
 
-        while True:
-            if self._workflow_queue is None:
-                # We can only get that value if we have already done post_execute
-                # but the mechanics of aborting means we conme back
-                # Stop further processing here
-                raise QueueAbortedException("Aborting...", self)
 
-            tt0 = self._workflow_queue.get()
-            if tt0 is StopIteration:
-                logging.getLogger("HWR").debug("GΦL queue StopIteration")
-                break
+        dispatcher.connect(
+            self.handle_collection_start,
+            "collectOscillationStarted",
+            HWR.beamline.collect,
+        )
+        try:
+            while True:
+                if self._workflow_queue is None:
+                    # We can only get that value if we have already done post_execute
+                    # but the mechanics of aborting means we conme back
+                    # Stop further processing here
+                    raise QueueAbortedException("Aborting...", self)
 
-            message_type, payload, correlation_id, result_list = tt0
-            func = self._processor_functions.get(message_type)
-            if func is None:
-                logging.getLogger("HWR").error(
-                    "GΦL message %s not recognised by MXCuBE. Terminating...",
-                    message_type,
-                )
-                break
-            elif message_type != "String":
-                logging.getLogger("HWR").info("GΦL queue processing %s", message_type)
-                response = func(payload, correlation_id)
-                if result_list is not None:
-                    result_list.append((response, correlation_id))
+                tt0 = self._workflow_queue.get()
+                if tt0 is StopIteration:
+                    logging.getLogger("HWR").debug("GΦL queue StopIteration")
+                    break
+
+                message_type, payload, correlation_id, result_list = tt0
+                func = self._processor_functions.get(message_type)
+                if func is None:
+                    logging.getLogger("HWR").error(
+                        "GΦL message %s not recognised by MXCuBE. Terminating...",
+                        message_type,
+                    )
+                    break
+                elif message_type != "String":
+                    logging.getLogger("HWR").info("GΦL queue processing %s", message_type)
+                    response = func(payload, correlation_id)
+                    if result_list is not None:
+                        result_list.append((response, correlation_id))
+        finally:
+            dispatcher.disconnect(
+                self.handle_collection_start,
+                "collectOscillationStarted",
+                HWR.beamline.collect,
+            )
+
 
     def post_execute(self):
         """
@@ -2433,6 +2460,24 @@ class GphlWorkflow(HardwareObjectYaml):
         priorInformation = GphlMessages.PriorInformation(workflow_model, image_root)
         #
         return priorInformation
+
+
+    def handle_collection_start(
+        self, owner, blsampleid, barcode, location, collect_dict, osc_id
+    ):
+        """ Read and process collectOscillationStarted signal
+        Used to set actual centring positions
+
+        NB only collect_dict is reliably non-null"""
+        key = (
+            collect_dict["file_info"].get("directory"),
+            collect_dict["file_info"].get("prefix"),
+            collect_dict["file_info"].get("run_number"),
+            collect_dict["oscillation_sequence"].get("start_image_number")
+        )
+        if key in self._scan_to_motors:
+            raise RuntimeError("Duplicate scan found: " + str(key))
+        self._scan_to_motors[key] = collect_dict["motors"].copy()
 
     # Utility functions
 
