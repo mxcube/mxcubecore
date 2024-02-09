@@ -281,6 +281,10 @@ class Microdiff(MiniDiff.MiniDiff):
             EXPORTER_TO_HWOBJ_STATE.get(value, HardwareObjectState.UNKNOWN)
         )
 
+    def abort(self):
+        self.abort_cmd()
+        return True
+
     def getMotorToExporterNames(self):
         MOTOR_TO_EXPORTER_NAME = {
             "focus": self.focusMotor.get_property("actuator_name"),
@@ -397,6 +401,7 @@ class Microdiff(MiniDiff.MiniDiff):
                 msg = f"Changing phase to {phase}, using pmac script"
                 logging.getLogger("user_level_log").info(msg)
                 self.run_script(script)
+                self._wait_ready(600)
             else:
                 self.move_phase(phase)
             if wait:
