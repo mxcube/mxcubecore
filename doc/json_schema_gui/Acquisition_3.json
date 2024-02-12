@@ -1,89 +1,11 @@
 {
     "schema": {
-        "definitions": {
-            "image_width": [
-                {
-                    "enum": [
-                        "0.05"
-                    ],
-                    "title": "0.05",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "0.1"
-                    ],
-                    "title": "0.1",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "0.2"
-                    ],
-                    "title": "0.2",
-                    "type": "string"
-                }
-            ],
-            "recentring_mode": [
-                {
-                    "enum": [
-                        "Re-centre when orientation changes"
-                    ],
-                    "title": "Re-centre when orientation changes",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "Re-centre at the start of each wedge"
-                    ],
-                    "title": "Re-centre at the start of each wedge",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "Re-centre all before acquisition start"
-                    ],
-                    "title": "Re-centre all before acquisition start",
-                    "type": "string"
-                }
-            ],
-            "snapshot_count": [
-                {
-                    "enum": [
-                        "0"
-                    ],
-                    "title": "0",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "1"
-                    ],
-                    "title": "1",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "2"
-                    ],
-                    "title": "2",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "4"
-                    ],
-                    "title": "4",
-                    "type": "string"
-                }
-            ]
-        },
         "properties": {
             "Falling_Inflection": {
                 "default": 12.39,
                 "maximum": 20,
                 "minimum": 4,
-                "readonly": false,
+                "readOnly": false,
                 "title": "Falling_Inflection beam energy (keV)",
                 "type": "number"
             },
@@ -91,7 +13,7 @@
                 "default": 12.4,
                 "maximum": 20,
                 "minimum": 4,
-                "readonly": true,
+                "readOnly": true,
                 "title": "Peak beam energy (keV)",
                 "type": "number"
             },
@@ -99,25 +21,25 @@
                 "default": 12.41,
                 "maximum": 20,
                 "minimum": 4,
-                "readonly": false,
+                "readOnly": false,
                 "title": "Rising_Inflection beam energy (keV)",
                 "type": "number"
             },
             "_info": {
-                "default": "Strategy 'quick', for symmetry '222'\n\nExperiment length (per repetition): 3 *  448.0\u00b0\n\nSweep :  kappa=  239.2\u00b0,  kappa_phi=   17.8\u00b0,  phi= -163.3\u00b0,  sweep width=  180.0\u00b0\n\nSweep :  kappa=   46.8\u00b0,  kappa_phi=  -61.9\u00b0,  phi=  135.9\u00b0,  sweep width=   66.0\u00b0\n                                               phi=  113.9\u00b0,  sweep width=   22.0\u00b0\n                                               phi=  -66.1\u00b0,  sweep width=  180.0\u00b0",
-                "readonly": true,
+                "default": "Strategy 'quick', for symmetry '222'\n\nExperiment length (per repetition): 3 *  428.0\u00b0\n\nSweep :  kappa=   78.9\u00b0,  kappa_phi=   69.3\u00b0,  phi=    6.8\u00b0,  sweep width=  180.0\u00b0\n\nSweep :  kappa=   78.8\u00b0,  kappa_phi= -110.6\u00b0,  phi=  169.8\u00b0,  sweep width=   51.0\u00b0\n                                               phi=  152.8\u00b0,  sweep width=   17.0\u00b0\n                                               phi=  -27.2\u00b0,  sweep width=  180.0\u00b0",
+                "readOnly": true,
                 "type": "textdisplay"
             },
             "dose_budget": {
-                "default": 2.9570742709090507,
+                "default": 6.319911333832506,
                 "minimum": 0.0,
-                "readonly": true,
+                "readOnly": true,
                 "title": "Dose budget (MGy)",
                 "type": "number"
             },
             "experiment_time": {
-                "default": 537.5999999999999,
-                "readonly": true,
+                "default": 513.5999999999999,
+                "readOnly": true,
                 "title": "Experiment duration (s)",
                 "type": "number"
             },
@@ -129,14 +51,23 @@
                 "type": "number"
             },
             "image_width": {
-                "$ref": "#/definitions/image_width",
                 "default": "0.1",
+                "enum": [
+                    "0.05",
+                    "0.1",
+                    "0.2"
+                ],
                 "title": "Oscillation range",
                 "type": "string"
             },
             "recentring_mode": {
-                "$ref": "#/definitions/recentring_mode",
                 "default": "Re-centre when orientation changes",
+                "enum": [
+                    "Re-centre when orientation changes",
+                    "Re-centre at the start of each wedge",
+                    "Re-centre all before acquisition start",
+                    "No manual re-centring, rely on automatic recentring"
+                ],
                 "type": "string"
             },
             "repetition_count": {
@@ -148,30 +79,35 @@
                 "upperBound": 99
             },
             "resolution": {
-                "default": 1.0329922035210448,
-                "maximum": 2.942352157399316,
-                "minimum": 0.9035138162988328,
-                "readonly": true,
+                "default": 1.5489952477959528,
+                "maximum": 8.774863360734335,
+                "minimum": 1.5484097058129351,
+                "readOnly": true,
                 "title": "Detector resolution (\u00c5)",
                 "type": "number"
             },
             "snapshot_count": {
-                "$ref": "#/definitions/snapshot_count",
                 "default": "2",
+                "enum": [
+                    "0",
+                    "1",
+                    "2",
+                    "4"
+                ],
                 "title": "Number of snapshots",
                 "type": "string"
             },
             "transmission": {
-                "default": 0.14243447955030134,
+                "default": 0.9571398527312173,
                 "maximum": 100.0,
                 "minimum": 0.001,
                 "title": "Transmission (%)",
                 "type": "number"
             },
             "use_dose": {
-                "default": 2.9571,
+                "default": 6.3199,
                 "minimum": 1e-06,
-                "readonly": false,
+                "readOnly": false,
                 "title": "Dose/repetition (MGy)",
                 "type": "number"
             },

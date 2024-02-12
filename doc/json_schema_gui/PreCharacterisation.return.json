@@ -6,12 +6,12 @@
     "cell_c": 127.4557,
     "cell_gamma": 120.0,
     "energy": 12.4,
-    "input_space_group": "R32",
+    "input_space_group": "H32",
     "lattice": "hR",
     "point_groups": "32",
     "relative_rad_sensitivity": 1.0,
     "resolution": 2.1,
-    "space_group": "R32",
+    "space_group": "H32",
     "strategy": "Char_6_5_multitrigger",
     "use_cell_for_processing": true
 }
