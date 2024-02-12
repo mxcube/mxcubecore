@@ -18,6 +18,7 @@ from mxcubecore import HardwareRepository as HWR
 from mxcubecore.TaskUtils import task
 from mxcubecore.HardwareObjects.GenericDiffractometer import GenericDiffractometer
 from mxcubecore.HardwareObjects.MAXIV.DataCollect import DataCollect
+from mxcubecore.HardwareObjects.MAXIV.SciCatPlugin import SciCatPlugin
 from abstract.AbstractCollect import AbstractCollect
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
@@ -61,7 +62,7 @@ class MICROMAXCollect(DataCollect):
         self.stop_display = False
         self.interleaved_energies = []
         self.collection_dictionaries = []
-        self.datacatalog_enabled = True
+        self.scicat_enabled = False
         self.collection_uuid = ""
 
         self.flux_before_collect = None
@@ -96,13 +97,13 @@ class MICROMAXCollect(DataCollect):
         self.session_hwobj = self.get_object_by_role("session")
         self.shape_history_hwobj = HWR.beamline.sample_view
         self.dozor_hwobj = self.get_object_by_role("dozor")
-        self.datacatalog_enabled = (
-            False  # self.getProperty("datacatalog_enabled", False)
-        )
-        if self.datacatalog_enabled:
-            self.datacatalog_hwobj = self.get_object_by_role("datacatalog")
+        self.scicat_enabled = self.get_property("scicat_enabled", False)
+        if self.scicat_enabled:
+            self.scicat_hwobj = SciCatPlugin()
+            self.log.info("[COLLECT] SciCat Datacatalog enabled")
         else:
-            self.datacatalog_hwobj = None
+            self.scicat_hwobj = None
+            self.log.warning("[COLLECT] SciCat Datacatalog not enabled")
         self.polarisation = float(self.get_property("polarisation", 0.99))
         self.gen_thumbnail_script = self.get_property(
             "gen_thumbnail_script",
@@ -111,11 +112,6 @@ class MICROMAXCollect(DataCollect):
 
         self.log = logging.getLogger("HWR")
         self.user_log = logging.getLogger("user_level_log")
-
-        if self.datacatalog_enabled:
-            self.log.info("[COLLECT] Datacatalog enabled")
-        else:
-            self.log.warning("[COLLECT] Datacatalog not enabled")
 
         self.safety_shutter_hwobj = self.get_object_by_role("safety_shutter")
         # todo
@@ -368,13 +364,12 @@ class MICROMAXCollect(DataCollect):
                 self.current_dc_parameters
             )
 
-        if self.datacatalog_enabled:
+        if self.scicat_enabled:
             try:
-                self.datacatalog_hwobj.store_uuid(
-                    self.current_dc_parameters, self.session_hwobj.proposal_number
-                )
+                proposalId = self.session_hwobj.proposal_number
+                self.scicat_hwobj.start_scan(proposalId, self.current_dc_parameters)
             except Exception as ex:
-                self.log.warning(
+                self.log.exception(
                     "[COLLECT] Error sending uuid to data catalog: %s" % ex
                 )
 
@@ -723,8 +718,8 @@ class MICROMAXCollect(DataCollect):
             % self.current_dc_parameters
         )
 
-        if self.datacatalog_enabled:
-            self.datacatalog_hwobj.store_datacollection(self.current_dc_parameters)
+        if self.scicat_enabled:
+            self.scicat_hwobj.end_scan(self.current_dc_parameters)
 
     def post_collection_store_image(self, collection=None):
         """
@@ -1382,8 +1377,14 @@ class MICROMAXCollect(DataCollect):
                 break
             time.sleep(frequency)
 
-    def enable_datacatalog(self, enable):
-        self.datacatalog_enabled = enable
+    def enable_scicat(self, enable):
+        self.scicat_enabled = enable
+        if self.scicat_enabled:
+            self.scicat_hwobj = SciCatPlugin()
+            self.log.info("[COLLECT] SciCat Datacatalog enabled")
+        else:
+            self.scicat_hwobj = None
+            self.log.warning("[COLLECT] SciCat Datacatalog not enabled")
 
     def get_resolution_at_corner(self):
         return self.resolution_hwobj.get_value_at_corner()
