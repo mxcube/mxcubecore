@@ -137,7 +137,7 @@ class ExporterClient(StandardClient):
             ProtocolError
         """
         if ret[:4] == RET_ERR:
-            msg = "{} : {}".format(self.get_server_object_name(), str(ret[4:]))
+            msg = f"{self.get_server_object_name()} : {str(ret[4:])}"
             logging.getLogger("HWR").error(msg)
             raise Exception(ret[4:])
         if ret == RET_NULL:
