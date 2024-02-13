@@ -2765,14 +2765,8 @@ class GphlWorkflow(HardwareObjectYaml):
             sgoptions = [""] + crystal_symmetry.space_groups_from_params()
             sgvalue = space_group
         result = {
-            "point_groups": {
-                "value": pgvalue,
-                "options": {"enum": pglist,},
-            },
-            "space_group": {
-                "value": sgvalue,
-                "options": {"enum": sgoptions,},
-            },
+            "point_groups": {"value": pgvalue, "enum": pglist,},
+            "space_group": {"value": sgvalue, "enum": sgoptions,},
         }
         #
         return result
@@ -2786,10 +2780,7 @@ class GphlWorkflow(HardwareObjectYaml):
         )
         value = ""
         result = {
-            "space_group": {
-                "value": value,
-                "options": {"enum": sglist},
-            },
+            "space_group": {"value": value, "enum": sglist},
         }
         #
         return result
@@ -2830,7 +2821,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 result = self.update_lattice(values1)
                 result["lattice"] = {
                     "value": lattice,
-                    "options": {"enum":alternative_lattices[lattice]}
+                    "enum":alternative_lattices[lattice],
                 }
                 break
         else:
