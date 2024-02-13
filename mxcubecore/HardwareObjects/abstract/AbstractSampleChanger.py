@@ -678,14 +678,6 @@ class SampleChanger(Container, HardwareObject):
             return comp
         return component
 
-    def mount_from_harvester(self):
-        """
-        Mount from Harvester or from default dewar
-        Returns: (Bool) Default False
-        true Mount from Harvester
-        """
-        return
-
     # ########################    ABSTRACTS    #########################
 
     @abc.abstractmethod
