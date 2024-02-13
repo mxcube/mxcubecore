@@ -520,8 +520,6 @@ class Harvester(HardwareObject):
                         )
                         self.trash_sample()
                         self._wait_ready(None)
-
-                    # currently_harvested_sample = self.get_current_crystal()
                     if (
                         self.current_crystal_state(sample_uuid) == "ready_to_execute"
                         or self.current_crystal_state(sample_uuid)
@@ -534,7 +532,7 @@ class Harvester(HardwareObject):
                         res = True
                     elif self.check_crystal_state(sample_uuid) == "pending_and_current":
                         logging.getLogger("user_level_log").info(
-                            "Putting Harvester in Tansfer Mode"
+                            "Putting Harvester in Transfer Mode"
                         )
                         self.transfer_sample()
                         if wait_before_load:
