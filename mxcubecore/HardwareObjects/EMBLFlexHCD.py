@@ -645,7 +645,7 @@ class EMBLFlexHCD(SampleChanger):
             )
             for msg in self.get_robot_exceptions():
                 logging.getLogger("user_level_log").error(msg)
-            return False
+            raise
 
         # Wait for the sample to be loaded, (put on the goniometer)
         err_msg = "Timeout while waiting to sample to be loaded"
