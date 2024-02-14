@@ -338,6 +338,14 @@ class Sample(TaskNode):
             return False
         return False
 
+    def has_protein_acronym(self):
+        try:
+            if hasattr(self.crystals[0], "protein_acronym"):
+                return True
+        except TypeError:
+            return False
+        return False
+
     def get_name(self):
         return self._name
 
