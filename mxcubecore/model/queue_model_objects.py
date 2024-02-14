@@ -2176,6 +2176,15 @@ class GphlWorkflow(TaskNode):
             distance = HWR.beamline.resolution.resolution_to_distance(
                 resolution, wavelength
             )
+            distance_limits = HWR.beamline.detector.distance.get_limits()
+            if None in distance_limits:
+                distance_limits = (150, 500)
+            if distance < distance_limits[0]:
+                distance = distance_limits[0]
+                resolution = HWR.beamline.resolution.distance_to_resolution(distance)
+            elif distance > distance_limits[1]:
+                distance = distance_limits[1]
+                resolution = HWR.beamline.resolution.distance_to_resolution(distance)
             orgxy = HWR.beamline.detector.get_beam_position(distance, wavelength)
 
             self.detector_setting = GphlMessages.BcsDetectorSetting(
