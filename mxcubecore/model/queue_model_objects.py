@@ -2489,7 +2489,7 @@ class GphlWorkflow(TaskNode):
     def calc_maximum_dose(self, energy=None, exposure_time=None, image_width=None):
         """Dose at transmission=100 for given energy, exposure time and image width
 
-        The strategy length is taken from self.stratyegy_length
+        The strategy length is taken from self.strategy_length
 
         Args:
             energy Optional[float]: Energy in keV; defaults to self.energy

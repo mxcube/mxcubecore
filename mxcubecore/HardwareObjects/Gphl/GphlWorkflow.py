@@ -1408,10 +1408,16 @@ class GphlWorkflow(HardwareObjectYaml):
                     raise ValueError(
                         "exposure_time and image_width must be set when init_spot_dir is set"
                     )
+                new_dose = self.adjust_dose(parameters)["use_dose"]["value"]
             else:
                 image_width = parameters.setdefault("image_width", default_image_width)
                 transmission = parameters.get("transmission")
-                if not transmission:
+                maximum_dose = gphl_workflow_model.calc_maximum_dose(
+                    image_width=image_width,
+                )
+                if transmission:
+                    new_dose = maximum_dose * transmission / 100
+                else:
                     new_dose = parameters.get(
                         "use_dose", gphl_workflow_model.recommended_dose_budget()
                     )
@@ -1420,10 +1426,12 @@ class GphlWorkflow(HardwareObjectYaml):
                     elif wftype != "diffractcal":
                         # This is characterisation
                         new_dose *= gphl_workflow_model.characterisation_budget_fraction
-                    maximum_dose = gphl_workflow_model.calc_maximum_dose(
-                        image_width=image_width,
-                    )
-                    parameters["transmission"] = min(100 * new_dose / maximum_dose, 100)
+                    if new_dose > maximum_dose:
+                        transmission = 100
+                        new_dose = maximum_dose
+                    else:
+                        transmission = 100 * new_dose / maximum_dose
+                    parameters["transmission"] = transmission
         else:
             # set gphl_workflow_model.transmission (initial value for interactive mode)
             use_dose = gphl_workflow_model.recommended_dose_budget()
