@@ -2465,9 +2465,9 @@ class GphlWorkflow(HardwareObjectYaml):
 
         NB only collect_dict is reliably non-null"""
         key = (
-            collect_dict["file_info"].get("directory"),
-            collect_dict["file_info"].get("prefix"),
-            collect_dict["file_info"].get("run_number"),
+            collect_dict["fileinfo"].get("directory"),
+            collect_dict["fileinfo"].get("prefix"),
+            collect_dict["fileinfo"].get("run_number"),
             collect_dict["oscillation_sequence"].get("start_image_number")
         )
         if key in self._scan_to_motors:
