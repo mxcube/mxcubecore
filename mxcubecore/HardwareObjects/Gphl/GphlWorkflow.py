@@ -1089,7 +1089,7 @@ class GphlWorkflow(HardwareObjectYaml):
             "default": str(default_image_width),
             "enum": list(str(val) for val in allowed_widths)
         }
-        fields["exposure"] = {
+        fields["exposure_time"] = {
             "title": "Exposure Time (s)",
             "type": "number",
             "default": default_exposure,
@@ -1224,12 +1224,12 @@ class GphlWorkflow(HardwareObjectYaml):
                 "column1": {
                     "ui:order": [
                         "use_dose",
-                        "exposure",
+                        "exposure_time",
                         "image_width",
                         "transmission",
                         "snapshot_count",
                     ],
-                    "exposure": {
+                    "exposure_time": {
                         "ui:options": {
                             "update_on_change": True,
                             "decimals": 4,
@@ -1326,7 +1326,7 @@ class GphlWorkflow(HardwareObjectYaml):
         else:
             image_width = self.settings.get("default_image_width", default_image_width)
         result[tag] = image_width
-        # exposure OK as is
+        # exposure_time OK as is
         tag = "repetition_count"
         result[tag] = int(result.get(tag) or 1)
         tag = "transmission"
@@ -1447,7 +1447,7 @@ class GphlWorkflow(HardwareObjectYaml):
             if transmission > 100:
                 if gphl_workflow_model.characterisation_done or wftype == "diffractcal":
                     # We are not in characterisation.
-                    # Try to reset exposure time to get desired dose
+                    # Try to reset exposure_time to get desired dose
                     exposure_time = (
                         gphl_workflow_model.exposure_time * transmission / 100
                     )
@@ -2732,7 +2732,7 @@ class GphlWorkflow(HardwareObjectYaml):
                     update_dict = self.adjust_transmission(parameters)
                 elif instruction in (
                     "image_width",
-                    "exposure",
+                    "exposure_time",
                     "repetition_count",
                     "transmission",
                 ):
@@ -2838,10 +2838,10 @@ class GphlWorkflow(HardwareObjectYaml):
         return result
 
     def adjust_dose(self, values):
-        """When transmission, image_width, exposure or repetition_count changes,
+        """When transmission, image_width, exposure_time or repetition_count changes,
         update experiment_time and use_dose in parameter popup, and reset warnings"""
         data_model = self._queue_entry.get_data_model()
-        exposure_time = float(values.get("exposure", 0))
+        exposure_time = float(values.get("exposure_time", 0))
         image_width = float(values.get("image_width", 0))
         transmission = float(values.get("transmission", 0))
         dose_budget = float(values.get("dose_budget", 0))
@@ -2878,7 +2878,7 @@ class GphlWorkflow(HardwareObjectYaml):
         In parameter popup"""
         data_model = self._queue_entry.get_data_model()
         exposure_limits = HWR.beamline.detector.get_exposure_time_limits()
-        exposure_time = float(values.get("exposure", 0))
+        exposure_time = float(values.get("exposure_time", 0))
         image_width = float(values.get("image_width", 0))
         use_dose = float(values.get("use_dose", 0))
         dose_budget = float(values.get("dose_budget", 0))
@@ -2897,7 +2897,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 new_transmission = 100 * use_dose / maximum_dose
 
                 if new_transmission > 100.0:
-                    # Transmission too high. Try max transmission and longer exposure
+                    # Transmission too high. Try max transmission, longer exposure_time
                     new_exposure_time = exposure_time * new_transmission / 100
                     new_transmission = 100.0
                     max_exposure = exposure_limits[1]
@@ -2911,13 +2911,13 @@ class GphlWorkflow(HardwareObjectYaml):
                         exposure_time=new_exposure_time, image_width=image_width
                     )
                     result = {
-                        "exposure": {"value": new_exposure_time,},
+                        "exposure_time": {"value": new_exposure_time,},
                         "transmission": {"value": new_transmission,},
                         "use_dose": {"value": use_dose,},
                         "experiment_time": {"value": new_experiment_time,},
                     }
                 elif new_transmission < transmission:
-                    # Try reducing exposure time instead
+                    # Try reducing exposure_time time instead
                     new_exposure_time = exposure_time * new_transmission / transmission
                     new_transmission = transmission
                     min_exposure = exposure_limits[0]
@@ -2929,7 +2929,7 @@ class GphlWorkflow(HardwareObjectYaml):
                         new_exposure_time = min_exposure
                     result = {
                         "transmission": {"value":new_transmission},
-                        "exposure": {"value":new_exposure_time},
+                        "exposure_time": {"value":new_exposure_time},
                     }
                 else:
                     result = {"transmission": {"value":new_transmission}}
