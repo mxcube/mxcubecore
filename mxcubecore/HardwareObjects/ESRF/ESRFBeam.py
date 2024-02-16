@@ -105,6 +105,18 @@ class ESRFBeam(AbstractBeam):
             (float, str): Size [mm], label.
         """
         try:
+            value = self._complex.get_value()
+            return value.value[1], value.name
+        except AttributeError:
+            logging.getLogger("HWR").info("Could not read beam size")
+            return (-1, -1), "UNKNOWN"
+
+    def _get_complex_size_old(self):
+        """Get the size and the name of the definer in place.
+        Returns:
+            (float, str): Size [mm], label.
+        """
+        try:
             _size = self._complex.size_by_name[
                 self._complex.get_current_position_name()
             ]
@@ -167,7 +179,7 @@ class ESRFBeam(AbstractBeam):
                 self.beam_height = _val[1]
             else:
                 self.beam_height = _val[0]
-        except ValueError:
+        except (ValueError, TypeError):
             return None, None, _shape, "none"
 
         return self.beam_width, self.beam_height, _shape, _name
@@ -201,7 +213,7 @@ class ESRFBeam(AbstractBeam):
                 "values": [_low_w, _high_w, _low_h, _high_h],
             }
 
-        return None
+        return []
 
     def _set_slits_size(self, size=None):
         """Move the slits to the desired position.
