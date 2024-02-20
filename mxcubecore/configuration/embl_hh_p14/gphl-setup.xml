@@ -25,17 +25,9 @@
     <!-- HardwareRepository directories on the lookup path -->
 
     <software_paths>
-        <!--  OPTIONAL for java binary => defaults to just 'java' -->
-        <!-- <java_binary>/usr/bin/java</java_binary> -->
-        <!-- Debug mode:  -->
-        <!--<java_binary>ssh -i /home/rhfogh/.ssh/wf_test_id -o StrictHostKeyChecking=no lonsdale java</java_binary>-->
-
         <!-- Location of GPhL release, containing program binaries (or their wrapper scripts) -->
         <GPHL_INSTALLATION>{GPHL_RELEASE}/autoPROC/bin/linux64</GPHL_INSTALLATION>
 
-        <!-- Gphl workflow Java classpath. -->
-        <!--Should point to all contents of workflow application directory-->
-        <gphl_java_classpath>{GPHL_SETUP}/workflow/gphl_java_classes/lib/*</gphl_java_classpath>
 
         <!-- Directory with workflow config input, e.g. instrumentation.nml -->
 	<gphl_beamline_config>{GPHL_SETUP}/beamline_config_embl_hh_p14_202002</gphl_beamline_config>

@@ -129,14 +129,7 @@ class GphlWorkflowConnection(HardwareObjectYaml):
                     raise ValueError("File path %s not recognised" % val)
             paths[tag] = val2
         paths["GPHL_INSTALLATION"] = locations["GPHL_INSTALLATION"]
-        if "java_binary" not in paths:
-            paths["java_binary"] = "java"
-        paths[
-            "gphl_java_classpath"
-        ] = "%s/ASTRAWorkflows/config:%s/ASTRAWorkflows/lib/*" % (
-            installdir,
-            installdir,
-        )
+        paths["runworkflow"] = "%s/ASTRAWorkflows/bin/runworkflow" % installdir
 
         for tag, val in properties.items():
             val2 = val.format(**locations)
@@ -249,7 +242,8 @@ class GphlWorkflowConnection(HardwareObjectYaml):
             command_list.append(host)
         else:
             command_list = []
-        command_list.append(self.software_paths["java_binary"])
+        runworkflow_opts = []
+        command_list.append(self.software_paths["runworkflow"])
 
         # # HACK - debug options REMOVE!
         # import socket
@@ -259,13 +253,13 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         # command_list.append(ss0 % sock.getsockname()[0])
 
         for tag, val in sorted(wf_settings.get("invocation_properties", {}).items()):
-            command_list.extend(
+            runworkflow_opts.extend(
                 conversion.java_property(tag, val, quote_value=in_shell)
             )
 
         init_spot_dir = workflow_model_obj.init_spot_dir
         if init_spot_dir:
-            command_list.extend(
+            runworkflow_opts.extend(
                 conversion.java_property("co.gphl.wf.initSpotDir", init_spot_dir)
             )
 
@@ -300,18 +294,13 @@ class GphlWorkflowConnection(HardwareObjectYaml):
                 workflow_options["rootsubdir"] = rootsubdir
 
         # Hardcoded - location for log output
-        command_list.extend(
+        runworkflow_opts.extend(
             conversion.java_property(
                 "co.gphl.wf.wdir", workflow_options["wdir"], quote_value=in_shell
             )
         )
 
-        ll0 = conversion.command_option(
-            "cp", self.software_paths["gphl_java_classpath"], quote_value=in_shell
-        )
-        command_list.extend(ll0)
-
-        command_list.append(strategy_settings["application"])
+        command_list.append(strategy_settings["wf_selection"])
 
         for keyword, value in wf_settings.get("workflow_properties", {}).items():
             command_list.extend(
@@ -367,6 +356,8 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         GPHL_MINICONDA_PATH = self.software_paths.get("GPHL_MINICONDA_PATH")
         if GPHL_MINICONDA_PATH:
             envs["GPHL_MINICONDA_PATH"] = GPHL_MINICONDA_PATH
+        if runworkflow_opts:
+            envs["RUNWORKFLOW_OPTS"] = " ".join(runworkflow_opts)
 
         logging.getLogger("HWR").debug(
             "Executing GΦL workflow, in environment %s", envs
@@ -685,7 +676,7 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         else:
             detectorSetting = None
         return GphlMessages.GeometricStrategy(
-            isInterleaved=py4jGeometricStrategy.isInterleaved(),
+            # isInterleaved=py4jGeometricStrategy.isInterleaved(),
             isUserModifiable=py4jGeometricStrategy.isUserModifiable(),
             allowedWidths=py4jGeometricStrategy.getAllowedWidths(),
             sweepOffset=py4jGeometricStrategy.getSweepOffset(),

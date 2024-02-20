@@ -5,6 +5,7 @@ import time
 import itertools
 import os
 import traceback
+import warnings
 from pprint import pformat
 from collections import namedtuple
 from datetime import datetime
@@ -670,7 +671,8 @@ class ISPyBClient(HardwareObject):
         # Authentication
         if self.authServerType == "ldap":
             logging.getLogger("HWR").debug("LDAP login")
-            ok, msg = self.ldap_login(login_name, psd, ldap_connection)
+            ok = self.ldap_login(login_name, psd, ldap_connection)
+            msg = loginID
             logging.getLogger("HWR").debug("searching for user %s" % login_name)
         elif self.authServerType == "ispyb":
             logging.getLogger("HWR").debug("ISPyB login")
@@ -740,11 +742,16 @@ class ISPyBClient(HardwareObject):
         }
 
     def ldap_login(self, login_name, psd, ldap_connection):
+        warnings.warn(
+            ("Using Authenticatior from ISPyBClient is deprecated,"
+            "use Authenticator to authenticate spereatly and then login to ISPyB"),
+            DeprecationWarning
+        )
+
         if ldap_connection is None:
             ldap_connection = self.ldapConnection
 
-        ok, msg = ldap_connection.login(login_name, psd)
-        return ok, msg
+        return ldap_connection.authenticate(login_name, psd)
 
     def get_todays_session(self, prop, create_session=True):
         logging.getLogger("HWR").debug("getting proposal for todays session")

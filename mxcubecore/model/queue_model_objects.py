@@ -26,10 +26,8 @@ the QueueModel.
 import copy
 import os
 import logging
-import ruamel.yaml as yaml
 
 from mxcubecore.model import queue_model_enumerables
-from mxcubecore.model import crystal_symmetry
 
 # This module is used as a self contained entity by the BES
 # workflows, so we need to make sure that this module can be
@@ -2070,7 +2068,7 @@ class GphlWorkflow(TaskNode):
         summary["orgxy"] = self.detector_setting.orgxy
         summary["strategy_variant"] = self.strategy_options.get("variant", "not set")
         summary["orientation_count"] = len(self.goniostat_translations)
-        summary["radiation_dose"] = self.maximum_dose() * self.transmission / 100.0
+        summary["radiation_dose"] = self.calc_maximum_dose() * self.transmission / 100.0
         summary["total_dose_budget"] = self.recommended_dose_budget()
         #
         return summary
@@ -2111,6 +2109,7 @@ class GphlWorkflow(TaskNode):
         """
 
         from mxcubecore.HardwareObjects.Gphl import GphlMessages
+        from mxcubecore.model import crystal_symmetry
 
         if space_group:
             self.space_group = space_group
@@ -2288,6 +2287,7 @@ class GphlWorkflow(TaskNode):
         """
 
         from mxcubecore.HardwareObjects.Gphl import GphlMessages
+        import ruamel.yaml as yaml
 
         if self.automation_mode == "TEST_FROM_FILE":
             fname = os.getenv("GPHL_TEST_INPUT")
@@ -2474,7 +2474,7 @@ class GphlWorkflow(TaskNode):
         return result
 
 
-    def maximum_dose(self, energy=None, exposure_time=None, image_width=None):
+    def calc_maximum_dose(self, energy=None, exposure_time=None, image_width=None):
         """Dose at transmission=100 for given energy, exposure time and image width
 
         The strategy length is taken from self.stratyegy_length

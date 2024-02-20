@@ -22,7 +22,7 @@ jobs:
         sudo apt-get update && sudo apt-get install -y libsasl2-dev libldap2-dev libssl-dev
         python -m pip install --upgrade pip
         python -m pip install poetry --user
-        python -m poetry install
+        python -m poetry install --extras=tango
 
     - name: Run and write pytest
       run: |

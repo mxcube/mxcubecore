@@ -20,9 +20,9 @@ build:
     python: "mambaforge-22.9"
 
   commands:
-    - "mamba env create --file conda-environment-dev.yml"
+    - "mamba env create --file conda-environment-dev.yml --force"
     - "mamba run --name mxcubecore poetry install --only=docs,main"
-    - "mamba run --name mxcubecore poetry run sphinx-build -T -E -b html -c ./docs/ ./docs/source/ ${READTHEDOCS_OUTPUT}/html/"
+    - "mamba run --name mxcubecore sphinx-build -T -E -b html -c ./docs/ ./docs/source/ ${READTHEDOCS_OUTPUT}/html/"
 
 
 ...  # EOF

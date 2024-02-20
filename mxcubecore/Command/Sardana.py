@@ -429,9 +429,11 @@ class SardanaChannel(ChannelObject, SardanaObject):
                     self.info.maxval = float(ranges[-1])
             elif int(taurus.Release.version[0]) > 3:  # taurus 4 and beyond
                 minval, maxval = self.attribute.getRange()
-                if minval:
+                if minval is not None:
                     self.info.minval = minval.magnitude
+                if maxval is not None:
                     self.info.maxval = maxval.magnitude
+
         except Exception:
             import traceback
 
