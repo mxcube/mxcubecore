@@ -798,7 +798,7 @@ class Beamline(ConfiguredObject):
 
         motor_positions = self.diffractometer.get_positions()
 
-        osc_start = motor_positions.get("phi")
+        osc_start = params.get("osc_start") or motor_positions.get("phi")
 
         acq_parameters.osc_start = osc_start
         kappa = motor_positions.get("kappa", False)
