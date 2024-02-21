@@ -44,7 +44,7 @@ class P11DetectorCover(AbstractShutter):
 
     def __init__(self, name):
 
-        super(AbstractShutter, self).__init__(name)
+        super().__init__(name)
 
         self.simulation = False
         self.simulated_opened = False
@@ -90,7 +90,7 @@ class P11DetectorCover(AbstractShutter):
         else:
             self.simulated_update()
 
-        super(AbstractShutter, self).init()
+        super().init()
 
     def _initialise_values(self):
         """Add additional, known in advance states to VALUES"""

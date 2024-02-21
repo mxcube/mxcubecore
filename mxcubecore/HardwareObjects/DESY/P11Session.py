@@ -41,11 +41,11 @@ class P11Session(Session):
     default_archive_folder = "raw"
 
     def __init__(self, *args):
-        super(P11Session, self).__init__(*args)
+        super().__init__(*args)
 
     def init(self):
 
-        super(P11Session, self).init()
+        super().init()
 
         self.settings_file = self.get_property("p11_settings_file")
         self.operation_mode = self.get_property("mode")

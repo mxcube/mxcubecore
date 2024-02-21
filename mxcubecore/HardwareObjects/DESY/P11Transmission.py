@@ -35,7 +35,7 @@ log = logging.getLogger("HWR")
 
 class P11Transmission(AbstractTransmission):
     def __init__(self, name):
-        super(P11Transmission, self).__init__(name)
+        super().__init__(name)
 
         self.chan_read_value = None
         self.chan_set_value = None

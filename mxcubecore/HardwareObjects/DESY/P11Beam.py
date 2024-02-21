@@ -33,7 +33,7 @@ __category__ = "General"
 
 class P11Beam(AbstractBeam):
     def __init__(self, *args):
-        super(P11Beam, self).__init__(*args)
+        super().__init__(*args)
 
         self._beam_size_dict = {"aperture": [9999, 9999], "slits": [9999, 9999]}
 

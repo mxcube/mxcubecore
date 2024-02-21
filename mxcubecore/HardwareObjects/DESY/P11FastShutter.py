@@ -42,7 +42,7 @@ class P11FastShutter(AbstractNState):
 
     def __init__(self, name):
 
-        super(AbstractNState, self).__init__(name)
+        super().__init__(name)
         self.chan_value = None
 
     def init(self):
@@ -55,7 +55,7 @@ class P11FastShutter(AbstractNState):
             self.chan_value.connect_signal("update", self.update_fast_shutter)
 
         self.update_fast_shutter(self.chan_value.get_value())
-        super(AbstractNState, self).init()
+        super().init()
 
     def _initialise_values(self):
         """Add additional, known in advance states to VALUES"""

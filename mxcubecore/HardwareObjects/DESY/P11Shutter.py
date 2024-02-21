@@ -52,7 +52,7 @@ class P11Shutter(AbstractShutter):
 
     def __init__(self, name):
 
-        super(AbstractShutter, self).__init__(name)
+        super().__init__(name)
 
         self.simulation = False
         self.simulated_opened = True
@@ -90,7 +90,7 @@ class P11Shutter(AbstractShutter):
 
         self.update_state(self.STATES.READY)
 
-        super(AbstractShutter, self).init()
+        super().init()
 
     def _initialise_values(self):
         """Add additional, known in advance states to VALUES"""

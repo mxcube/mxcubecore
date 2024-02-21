@@ -33,7 +33,7 @@ __category__ = "General"
 class P11Pinhole(MotorsNPosition):
     def __init__(self, name):
 
-        super(P11Pinhole, self).__init__(name)
+        super().__init__(name)
 
         self._config_file = None
 
@@ -44,7 +44,7 @@ class P11Pinhole(MotorsNPosition):
 
         self._config_file = self.get_property("config_file")
 
-        super(P11Pinhole, self).init()
+        super().init()
 
     def load_positions(self):
 

@@ -57,11 +57,11 @@ FILE_TIMEOUT = 5
 
 class P11Collect(AbstractCollect):
     def __init__(self, *args):
-        super(P11Collect, self).__init__(*args)
+        super().__init__(*args)
 
     def init(self):
 
-        super(P11Collect, self).init()
+        super().init()
 
         # os.system("/opt/xray/bin/adxv -socket -colors Gray -rings &")
 

@@ -34,7 +34,7 @@ class P11Energy(AbstractEnergy):
     _default_energy = 12.0
 
     def __init__(self, name):
-        super(P11Energy, self).__init__(name)
+        super().__init__(name)
 
     def init(self):
         self.chan_energy = self.get_channel_object("chanEnergy")

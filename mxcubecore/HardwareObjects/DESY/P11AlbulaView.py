@@ -98,7 +98,7 @@ class P11AlbulaView(HardwareObject):
             self.eigerThread.clearMonitorBuffer()
             self.eigerThread.setMonitorDiscardNew(True)
 
-        super(LiveView, self).start()
+        super().start()
 
     def stop(self, interval=0.0):
 

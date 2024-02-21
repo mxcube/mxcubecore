@@ -41,7 +41,7 @@ class P11SampleChanger(SampleChanger):
     NO_OF_SAMPLES_IN_BASKET = 16
 
     def __init__(self, *args, **kwargs):
-        super(P11SampleChanger, self).__init__(self.__TYPE__, False, *args, **kwargs)
+        super().__init__(self.__TYPE__, False, *args, **kwargs)
 
     def init(self):
         self._selected_sample = -1
