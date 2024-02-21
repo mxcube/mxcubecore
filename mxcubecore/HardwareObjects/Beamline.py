@@ -240,8 +240,8 @@ class Beamline(ConfiguredObject):
 
         return _path
 
-
     # Signal handling functions:
+
     def emit(self, signal: Union[str, object, Any], *args) -> None:
         """Emit signal. Accepts both multiple args and a single tuple of args.
 
@@ -290,7 +290,6 @@ class Beamline(ConfiguredObject):
         return self._objects.get("machine_info")
 
     __content_roles.append("machine_info")
-
 
     @property
     def authenticator(self):
@@ -774,9 +773,9 @@ class Beamline(ConfiguredObject):
 
         acq_parameters = queue_model_objects.AcquisitionParameters()
 
-        #logging.getLogger("HWR").debug(f"""
-            #Beamline object. Getting acquisition parameters for acquisition type {acquisition_type}
-        #""")
+        # logging.getLogger("HWR").debug(f"""
+        # Beamline object. Getting acquisition parameters for acquisition type {acquisition_type}
+        # """)
 
         params = self.default_acquisition_parameters["default"].copy()
         if acquisition_type != "default":
@@ -790,16 +789,16 @@ class Beamline(ConfiguredObject):
 
                 params.update(dd0)
 
-        #logging.getLogger("HWR").debug(f"""
-              #params are {params}
-        #""")
+        # logging.getLogger("HWR").debug(f"""
+              # params are {params}
+        # """)
 
         for tag, val in params.items():
             setattr(acq_parameters, tag, val)
 
         motor_positions = self.diffractometer.get_positions()
-        
-        osc_start = motor_positions.get("phi", params["osc_start"])
+
+        osc_start = motor_positions.get("phi")
 
         acq_parameters.osc_start = osc_start
         kappa = motor_positions.get("kappa", False)
