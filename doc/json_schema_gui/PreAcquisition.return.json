@@ -6,13 +6,13 @@
     "cell_c": 127.4557,
     "cell_gamma": 120.0,
     "energy": 12.4,
-    "indexing_solution": " *   4        hR          0.2     133.9  133.9  127.5  90.0  90.0 120.0",
-    "input_space_group": "R32",
+    "indexing_solution": " *   4        hR          0.1     134.0  134.0  127.6  90.0  90.0 120.0",
+    "input_space_group": "H32",
     "lattice": "hR",
     "point_groups": "32",
     "relative_rad_sensitivity": 1.0,
     "resolution": 2.1,
-    "space_group": "R32",
+    "space_group": "H32",
     "strategy": "full",
     "use_cell_for_processing": true
 }

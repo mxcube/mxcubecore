@@ -2038,6 +2038,15 @@ class GphlWorkflow(TaskNode):
 
         self.set_from_dict(workflow_hwobj.settings["defaults"])
 
+        # Set missing values from BL defaults and limits.
+        # NB cannot be done till after all HO are initialised.
+        bl_defaults = HWR.beamline.get_default_acquisition_parameters().as_dict()
+        exposure_time = self.exposure_time or bl_defaults.get("exp_time", 0)
+        self.exposure_time = max(
+            exposure_time, HWR.beamline.detector.get_exposure_time_limits()[0]
+        )
+        self.image_width = self.image_width or bl_defaults.get("osc_range", 0.1)
+
     def parameter_summary(self):
         """Main parameter summary, for output purposes"""
         summary = {"strategy": self.strategy_name}
@@ -2167,6 +2176,15 @@ class GphlWorkflow(TaskNode):
             distance = HWR.beamline.resolution.resolution_to_distance(
                 resolution, wavelength
             )
+            distance_limits = HWR.beamline.detector.distance.get_limits()
+            if None in distance_limits:
+                distance_limits = (150, 500)
+            if distance < distance_limits[0]:
+                distance = distance_limits[0]
+                resolution = HWR.beamline.resolution.distance_to_resolution(distance)
+            elif distance > distance_limits[1]:
+                distance = distance_limits[1]
+                resolution = HWR.beamline.resolution.distance_to_resolution(distance)
             orgxy = HWR.beamline.detector.get_beam_position(distance, wavelength)
 
             self.detector_setting = GphlMessages.BcsDetectorSetting(
@@ -2351,12 +2369,6 @@ class GphlWorkflow(TaskNode):
                 )
             self.transmission = HWR.beamline.transmission.get_value()
 
-        else:
-            # Normal characterisation, set some parameters from defaults
-            default_parameters = HWR.beamline.get_default_acquisition_parameters()
-            self.exposure_time = default_parameters.exp_time
-            self.image_width = default_parameters.osc_range
-
         # Path template and prefixes
         base_prefix = self.path_template.base_prefix = params.get(
             "prefix"
@@ -2477,7 +2489,7 @@ class GphlWorkflow(TaskNode):
     def calc_maximum_dose(self, energy=None, exposure_time=None, image_width=None):
         """Dose at transmission=100 for given energy, exposure time and image width
 
-        The strategy length is taken from self.stratyegy_length
+        The strategy length is taken from self.strategy_length
 
         Args:
             energy Optional[float]: Energy in keV; defaults to self.energy
