@@ -32,10 +32,10 @@ import time
 import sys
 
 from py4j import clientserver, java_gateway
+from py4j.protocol import Py4JJavaError
 
 from mxcubecore.utils import conversion
 from mxcubecore.HardwareObjects.Gphl import GphlMessages
-from mxcubecore.model import crystal_symmetry
 
 from mxcubecore.BaseHardwareObjects import HardwareObjectYaml
 from mxcubecore import HardwareRepository as HWR
@@ -87,6 +87,7 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         super().__init__(name)
         # Py4J gateway to external workflow program
         self._gateway = None
+        self.msg_class_imported = False
 
         # ID for current workflow calculation
         self._enactment_id = None
@@ -220,6 +221,8 @@ class GphlWorkflowConnection(HardwareObjectYaml):
             # NB, for now workflow is started as the connection is made,
             # so we are never in state 'ON'/STANDBY
             raise RuntimeError("Workflow is already running, cannot be started")
+
+        self.msg_class_imported = False
 
         # Cannot be done in init, where the api.sessions link is not yet ready
         self.software_paths["GPHL_WDIR"] = os.path.join(
@@ -489,6 +492,19 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         NB Callled freom external java) workflow"""
         if self.get_state() is self.STATES.OFF:
             return None
+
+        if not self.msg_class_imported:
+            try:
+                msg_class = self._gateway.jvm.py4j.reflection.ReflectionUtil.classForName("co.gphl.sdcp.astra.service.py4j.Py4jMessage")
+                java_gateway.java_import(self._gateway.jvm, "co.gphl.sdcp.astra.service.py4j.Py4jMessage")
+            except Py4JJavaError:
+                msg_class = self._gateway.jvm.py4j.reflection.ReflectionUtil.classForName("co.gphl.sdcp.py4j.Py4jMessage")
+                java_gateway.java_import(self._gateway.jvm, "co.gphl.sdcp.py4j.Py4jMessage")
+
+            logging.getLogger("HWR").debug(
+                "GΦL workflow Py4jMessage class is: %s" % msg_class
+            )
+        self.msg_class_imported = True
 
         xx0 = self._decode_py4j_message(py4j_message)
         message_type = xx0.message_type
@@ -945,7 +961,7 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         py4j_payload = self._payload_to_java(payload)
 
         try:
-            response = self._gateway.jvm.co.gphl.sdcp.py4j.Py4jMessage(
+            response = self._gateway.jvm.Py4jMessage(
                 py4j_payload, enactment_id, correlation_id
             )
         except:
