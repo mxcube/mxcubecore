@@ -473,18 +473,15 @@ class HardwareObjectNode:
             Union[HardwareObject, None]: Hardware object.
         """
         role = str(role).lower()
-        objects = [o for o in self if o]
+        objects = [self]
 
-        while objects:
-            if role in self._objects_by_role:
-                return self._objects_by_role[role]
+        for curr in objects:
+            result = curr._objects_by_role.get(role)
+            if result is None:
+                objects.extend(obj for obj in curr if obj)
 
-            try :
-                self = objects.pop()
-
-            except :
-                if self.get_object_by_role(role):
-                    return self.get_object_by_role(role)
+            else :
+                return result
 
 
     def objects_names(self) -> List[Union[str, None]]:
