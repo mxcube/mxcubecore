@@ -118,20 +118,20 @@ class P11NanoDiff(GenericDiffractometer):
 
         # using sample_centring module
         self.centring_sampx = sample_centring.CentringMotor(
-            self.motor_hwobj_dict["sampx"], units="microns",
+            self.motor_hwobj_dict["sampx"], units="microns"
         )
         self.centring_sampy = sample_centring.CentringMotor(
-            self.motor_hwobj_dict["sampy"], units="microns",
+            self.motor_hwobj_dict["sampy"], units="microns"
         )
 
         self.centring_phi = sample_centring.CentringMotor(
-            self.motor_hwobj_dict["phi"], direction=-1,
+            self.motor_hwobj_dict["phi"], direction=-1
         )
         self.centring_phiz = sample_centring.CentringMotor(
             self.motor_hwobj_dict["phiz"], direction=1, units="microns"
         )
         self.centring_phiy = sample_centring.CentringMotor(
-            self.motor_hwobj_dict["phiy"], direction=1, units="microns",
+            self.motor_hwobj_dict["phiy"], direction=1, units="microns"
         )
 
         self.detcover_hwobj = self.get_object_by_role("detector-cover")
@@ -154,7 +154,8 @@ class P11NanoDiff(GenericDiffractometer):
         self.update_phase()
         self.update_zoom_calibration()
 
-        self.beam_position = self.update_beam_position()
+        # self.beam_position = self.update_beam_position()
+        self.update_beam_position()
 
     def update_beam_position(self):
         zoom_hwobj = self.motor_hwobj_dict["zoom"]
@@ -737,9 +738,9 @@ class P11NanoDiff(GenericDiffractometer):
     def wait_detcover(self, state, timeout=60):
         start_time = time.time()
         while time.time() - start_time > timeout:
-            if state == "open" and self.detcover_hwobj.is_open():
+            if state == "open" and self.detcover_hwobj.is_open:
                 break
-            elif state == "close" and self.detcover_hwobj.is_closed():
+            elif state == "close" and self.detcover_hwobj.is_closed:
                 break
             gevent.sleep(0.5)
 
@@ -802,8 +803,8 @@ class P11NanoDiff(GenericDiffractometer):
 
         omega_pos = self.get_omega_position()
 
-        cover_open = self.detcover_hwobj.is_open()
-        cover_closed = self.detcover_hwobj.is_closed()
+        cover_open = self.detcover_hwobj.is_open
+        cover_closed = self.detcover_hwobj.is_closed
         blight_in = self.backlight_hwobj.is_in()
         blight_out = self.backlight_hwobj.is_out()
         collim = self.collimator_hwobj.get_position()

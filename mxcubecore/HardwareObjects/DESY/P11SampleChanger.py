@@ -41,7 +41,7 @@ class P11SampleChanger(SampleChanger):
     NO_OF_SAMPLES_IN_BASKET = 16
 
     def __init__(self, *args, **kwargs):
-        super(P11SampleChanger, self).__init__(self.__TYPE__, False, *args, **kwargs)
+        super().__init__(self.__TYPE__, False, *args, **kwargs)
 
     def init(self):
         self._selected_sample = -1
@@ -205,6 +205,7 @@ class P11SampleChanger(SampleChanger):
             "Sample changer: Sample loaded (total time: %s)"
             % (time.time() - self._start_load)
         )
+
         self.emit("progressStop", ())
 
         return self.get_loaded_sample()
@@ -476,6 +477,7 @@ class P11SampleChanger(SampleChanger):
 
         # find sample
         for s in self.get_sample_list():
+            #print(f"Sample coords = {s.get_coords()}")
             if s.get_coords() == (basket, sample):
                 self.log.debug("      -   sample found")
                 self._set_loaded_sample(s)

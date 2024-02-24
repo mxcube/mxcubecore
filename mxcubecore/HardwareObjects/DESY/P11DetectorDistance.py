@@ -133,7 +133,7 @@ class P11DetectorDistance(AbstractMotor):
         if value is None:
             value = self.chan_position.get_value()
 
-        super(P11DetectorDistance, self).update_value(value)
+        super().update_value(value)
 
     def _set_value(self, value):
         """

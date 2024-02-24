@@ -26,7 +26,6 @@ import sys
 import time
 from PIL import Image
 
-
 sys.path.append("/opt/dectris/albula/4.0/python/")
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
@@ -99,7 +98,7 @@ class P11AlbulaView(HardwareObject):
             self.eigerThread.clearMonitorBuffer()
             self.eigerThread.setMonitorDiscardNew(True)
 
-        super(LiveView, self).start()
+        super().start()
 
     def stop(self, interval=0.0):
 

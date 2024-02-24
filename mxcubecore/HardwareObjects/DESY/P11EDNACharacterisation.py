@@ -47,6 +47,23 @@ class P11EDNACharacterisation(EDNACharacterisation):
         self.edna_default_file = None
         self.start_edna_command = None
 
+    def _run_edna(self, input_file, results_file, process_directory):
+        """Starts EDNA"""
+        msg = "Starting EDNA characterisation using xml file %s" % input_file
+        logging.getLogger("queue_exec").info(msg)
+
+        args = (self.start_edna_command, input_file, results_file, process_directory)
+        # subprocess.call("%s %s %s %s" % args, shell=True)
+
+        # Test run DESY
+        self.edna_maxwell(process_directory, input_file, results_file)
+
+        self.result = None
+        if os.path.exists(results_file):
+            self.result = XSDataResultMXCuBE.parseFile(results_file)
+
+        return self.result
+
     def edna_maxwell(self, process_directory, inputxml, outputxml):
         """
         The function `edna_maxwell` is used to execute a command on a remote cluster using SSH and SBATCH.
@@ -75,21 +92,23 @@ class P11EDNACharacterisation(EDNACharacterisation):
             + "/edna.log",
         )
 
-        cmd = (
-            "/asap3/petra3/gpfs/common/p11/processing/edna_sbatch.sh "
-            + "{inxml:s} {outxml:s} {processpath:s}"
-        ).format(
-            inxml=inputxml.replace("/gpfs", "/beamline/p11"),
-            outxml=outputxml.replace("/gpfs", "/beamline/p11"),
-            processpath=process_directory.replace("/gpfs", "/beamline/p11") + "/edna",
-        )
-
-        self.mkdir_with_mode(process_directory + "/edna", mode=0o777)
-
         # Check path conversion
         inxml = inputxml.replace("/gpfs", "/beamline/p11")
-        outxml = outputxml.replace("/gpfs", "/beamline/p11")
-        processpath = process_directory.replace("/gpfs", "/beamline/p11") + "/edna"
+        outxml = outputxml.replace(
+            "/gpfs/current/raw", "/beamline/p11/current/processed"
+        )
+        processpath = (
+            process_directory.replace(
+                "/gpfs/current/raw", "/beamline/p11/current/processed"
+            )
+            + "/edna"
+        )
+        self.mkdir_with_mode(
+            process_directory.replace("/gpfs/current/raw", "/gpfs/current/processed/")
+            + "/edna",
+            mode=0o777,
+        )
+
         self.log.debug(
             '=======EDNA========== CLUSTER PROCESS DIRECTORY="%s"' % processpath
         )
@@ -98,9 +117,21 @@ class P11EDNACharacterisation(EDNACharacterisation):
 
         self.log.debug('=======EDNA========== ssh="%s"' % ssh)
         self.log.debug('=======EDNA========== sbatch="%s"' % sbatch)
+
+        cmd = (
+            "/asap3/petra3/gpfs/common/p11/processing/edna_sbatch.sh "
+            + "{inxml:s} {outxml:s} {processpath:s}"
+        ).format(inxml=inxml, outxml=outxml, processpath=processpath)
+
         self.log.debug('=======EDNA========== executing process cmd="%s"' % cmd)
         self.log.debug(
             '=======EDNA========== {ssh:s} "{sbatch:s} --wrap \\"{cmd:s}\\""'.format(
+                ssh=ssh, sbatch=sbatch, cmd=cmd
+            )
+        )
+
+        print(
+            '{ssh:s} "{sbatch:s} --wrap \\"{cmd:s}"\\"'.format(
                 ssh=ssh, sbatch=sbatch, cmd=cmd
             )
         )
@@ -236,15 +267,24 @@ class P11EDNACharacterisation(EDNACharacterisation):
         acquisition_parameters = data_collection.acquisitions[0].acquisition_parameters
         path_template = data_collection.acquisitions[0].path_template
 
+        # Make sure there is a proper path conversion between different mount points
+        print(
+            "======= Characterisation path template ====", path_template.directory
+        )  # /gpfs/current/raw
+
         image_dir = path_template.directory.replace(
             "/gpfs/current", triggerUtils.get_beamtime_metadata()[2]
         )
 
+        print(image_dir)
+
         path_str = os.path.join(image_dir, path_template.get_image_file_name())
+        print(path_template.xds_dir)
 
         characterisation_dir = path_template.xds_dir.replace(
             "/autoprocessing_", "/characterisation_"
         )
+
         os.makedirs(characterisation_dir, mode=0o755, exist_ok=True)
 
         for img_num in range(int(acquisition_parameters.num_images)):
