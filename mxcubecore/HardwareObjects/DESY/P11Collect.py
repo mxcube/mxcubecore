@@ -128,9 +128,8 @@ class P11Collect(AbstractCollect):
                 "P11Collect. - object initialization failed. COLLECTION not possible"
             )
 
-        osc_pars["kappa"]=0
-        osc_pars["kappa_phi"]=0
-    
+        osc_pars["kappa"] = 0
+        osc_pars["kappa_phi"] = 0
 
         self.diffr = HWR.beamline.diffractometer
         detector = HWR.beamline.detector
@@ -861,8 +860,6 @@ class P11Collect(AbstractCollect):
                         ssh=ssh, sbatch=sbatch, cmd=cmd
                     )
                 )
-
-    
 
     def diffractometer_prepare_collection(self):
         diffr = HWR.beamline.diffractometer

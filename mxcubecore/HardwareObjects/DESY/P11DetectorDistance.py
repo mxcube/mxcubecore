@@ -141,7 +141,7 @@ class P11DetectorDistance(AbstractMotor):
         :param value: float
         :return:
         """
-        ##if self.chan_state is not None:
+        # if self.chan_state is not None:
         # self.update_state(self.STATES.BUSY)
 
         self.chan_position.set_value(value)

@@ -176,7 +176,7 @@ class P11EigerDetector(AbstractDetector):
         self.eiger_dev.write_attribute("TriggerStartDelay", 0.003)
 
         if filepath.startswith("/gpfs"):
-            filepath = filepath[len("/gpfs") :]
+            filepath = filepath[len("/gpfs"):]
 
         self.writer_dev.write_attribute("NamePattern", filepath)
 

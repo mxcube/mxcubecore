@@ -67,7 +67,7 @@ class P11EDNACharacterisation(EDNACharacterisation):
     def edna_maxwell(self, process_directory, inputxml, outputxml):
         """
         The function `edna_maxwell` is used to execute a command on a remote cluster using SSH and SBATCH.
-        
+
         :param process_directory: The `process_directory` parameter is the directory where the processing
         will take place. It is a string that represents the path to the directory
         :param inputxml: The inputxml parameter is the path to the input XML file that will be used as
@@ -302,7 +302,7 @@ class P11EDNACharacterisation(EDNACharacterisation):
     def mkdir_with_mode(self, directory, mode):
         """
         The function creates a directory with a specified mode if it does not already exist.
-        
+
         :param directory: The "directory" parameter is the path of the directory that you want to
         create. It can be an absolute path or a relative path
         :param mode: The "mode" parameter in the above code refers to the permissions that will be set
