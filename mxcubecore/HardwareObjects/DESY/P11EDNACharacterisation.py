@@ -130,7 +130,7 @@ class P11EDNACharacterisation(EDNACharacterisation):
             )
         )
 
-        print(
+        logging.info(
             '{ssh:s} "{sbatch:s} --wrap \\"{cmd:s}"\\"'.format(
                 ssh=ssh, sbatch=sbatch, cmd=cmd
             )
@@ -268,18 +268,18 @@ class P11EDNACharacterisation(EDNACharacterisation):
         path_template = data_collection.acquisitions[0].path_template
 
         # Make sure there is a proper path conversion between different mount points
-        print(
-            "======= Characterisation path template ====", path_template.directory
-        )  # /gpfs/current/raw
+        logging.info(
+            "======= Characterisation path template ====%s", path_template.directory
+        )
 
         image_dir = path_template.directory.replace(
             "/gpfs/current", triggerUtils.get_beamtime_metadata()[2]
         )
 
-        print(image_dir)
+        logging.info(image_dir)
 
         path_str = os.path.join(image_dir, path_template.get_image_file_name())
-        print(path_template.xds_dir)
+        logging.info(path_template.xds_dir)
 
         characterisation_dir = path_template.xds_dir.replace(
             "/autoprocessing_", "/characterisation_"

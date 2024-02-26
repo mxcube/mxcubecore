@@ -340,11 +340,11 @@ class P11Collect(AbstractCollect):
         self.omega_mv(start_angle, self.default_speed)
 
         for img_no in range(nimages):
-            print("collecting image %s" % img_no)
+            logging.info("collecting image %s" % img_no)
             start_at = start_angle + angle_inc * img_no
             stop_angle = start_at + img_range * 1.0
 
-            print("collecting image %s, angle %f" % (img_no, start_at))
+            logging.info("collecting image %s, angle %f" % (img_no, start_at))
 
             if start_at >= stop_angle:
                 init_pos = start_at
@@ -681,7 +681,7 @@ class P11Collect(AbstractCollect):
                     mosflm_path_local.split("/gpfs/current/processed/")[1] + "\n"
                 )
             except:
-                print(sys.exc_info())
+                logging.info(sys.exc_info())
 
             # create call
             # btHelper.user_sshkey = btHelper.user_sshkey.replace("/gpfs/current",triggerUtils.get_beamtime_metadata()[2])
@@ -773,7 +773,7 @@ class P11Collect(AbstractCollect):
                         xdsapp_path_local.split("/gpfs/current/processed/")[1] + "\n"
                     )
                 except RuntimeError:
-                    print(sys.exc_info())
+                    logging.info(sys.exc_info())
 
                 # create call
                 ssh = btHelper.get_ssh_command()
@@ -990,12 +990,12 @@ class P11Collect(AbstractCollect):
                     try:
                         os.mkdir(path, mode=0o777)
                     except RuntimeError:
-                        print("mkdir failed:", str(sys.exc_info()))
+                        logging.info("mkdir failed:", str(sys.exc_info()))
                         return False
                 else:
-                    print("dir not found:", str(sys.exc_info()))
+                    logging.info("dir not found:", str(sys.exc_info()))
                     return False
         if not os.access(path, os.W_OK):
-            print("dir not writeable:", str(sys.exc_info()))
+            logging.info("dir not writeable:", str(sys.exc_info()))
             return False
         return path
