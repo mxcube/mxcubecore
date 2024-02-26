@@ -174,13 +174,6 @@ class P11Collect(AbstractCollect):
         if not ret:
             raise BaseException("Cannot set prepare collection . Aborting")
 
-        # writeInfo (is it necessary?)
-
-        # # Separate_instance of the modified Dectris pyqt Viewer.
-        # print("=============== STARTING THE VIEWER ===============")
-        # new_gui = subprocess.Popen("/bin/bash /gpfs/local/shared/MXCuBE/STRELA/start_viewer.sh")
-        # print("=============== FINISHED STARTING THE VIEWER ===============")
-
         try:
             self.log.debug("############# #COLLECT# Opening detector cover")
             self.diffr.detector_cover_open(wait=True)
@@ -225,16 +218,6 @@ class P11Collect(AbstractCollect):
                     + "======================================="
                 )
 
-                # # === if folder exists - increase run number
-                # print("========CHECKING EXISTING DIRECTORY ===========")
-                # print(os.path.exists(self.latest_h5_filename))
-                # if os.path.exists(self.latest_h5_filename):
-                #     print("======= File exists! Increasing run number ===========")
-                #     self.current_dc_parameters["fileinfo"]["run_number"]=self.current_dc_parameters["fileinfo"]["run_number"]+1
-                #     print("Run number has changed to ", self.current_dc_parameters["fileinfo"]["run_number"])
-                #     runno = self.current_dc_parameters["fileinfo"]["run_number"]
-                #     filepath = os.path.join(basepath,prefix,"screening_"+str(runno).zfill(3)+"/"+"%s_%d" % (prefix, runno))
-
                 self.log.debug(
                     "======= CURRENT FILEPATH: "
                     + str(filepath)
@@ -247,7 +230,7 @@ class P11Collect(AbstractCollect):
                     + "======================================="
                 )
 
-                # overlap = osc_pars["overlap"]
+                overlap = osc_pars["overlap"]
                 angle_inc = 90.0
                 detector.prepare_characterisation(
                     exp_time, nframes, angle_inc, filepath
@@ -292,15 +275,12 @@ class P11Collect(AbstractCollect):
             else:
                 self.collect_std_collection(start_angle, stop_angle)
                 self.generate_xds_template()
-                # self.adxv_notify(self.latest_h5_filename)
-                # TODO: Add LiveView here
 
         except RuntimeError:
             self.log.error(traceback.format_exc())
         finally:
             self.acquisition_cleanup()
-
-        # self.add_h5_info(self.latest_h5_filename)
+            self.trigger_auto_processing()
 
     def collect_std_collection(self, start_angle, stop_angle):
         """
@@ -363,46 +343,24 @@ class P11Collect(AbstractCollect):
             print("collecting image %s" % img_no)
             start_at = start_angle + angle_inc * img_no
             stop_angle = start_at + img_range * 1.0
-            # print("======= CHARACTERISATION Adding angle and range to the header...")
-            # Add start angle to the header
-            # detector = HWR.beamline.detector
-            # detector.set_eiger_start_angle(start_at)
-
-            # Add angle increment to the header
-            # detector.set_eiger_angle_increment(angle_inc)
 
             print("collecting image %s, angle %f" % (img_no, start_at))
 
             if start_at >= stop_angle:
-                init_pos = start_at  # - self.acq_speed * self.turnback_time
-                # init_pos = start_at - 1.5
-            else:
-                init_pos = start_at  # + self.acq_speed * self.turnback_time
-                # init_pos = start_at + 1.5
+                init_pos = start_at
 
-            # self.omega_mv(init_pos, self.default_speed)
+            else:
+                init_pos = start_at
+
             self.collect_std_collection(start_at, stop_angle)
 
-            # This part goes to standard collection. Otherwise it produces phantom openings.
-            # diffr.set_omega_velocity(self.default_speed)
-            # self.acq_window_off_cmd()
-            # self.acq_off_cmd()
             self.log.debug(
                 "======= collect_characterisation  Waiting ======================================="
             )
 
-            # This part goes to standard collection. Otherwise it produces phantom openings.
-            # diffr.set_omega_velocity(self.default_speed)
-            # self.acq_window_off_cmd()
-            # self.acq_off_cmd()
             self.log.debug(
                 "======= collect_characterisation  Waiting ======================================="
             )
-
-            # Let adxv know whether it is
-            # self.adxv_notify(self.latest_h5_filename,img_no+1)
-
-            # time.sleep(1)
 
     def adxv_notify(self, image_filename, image_num=1):
         """
@@ -416,8 +374,8 @@ class P11Collect(AbstractCollect):
         """
         logging.getLogger("HWR").info(f"ADXV notify {image_filename}")
         logging.getLogger("HWR").info(f"ADXV notify {image_num}")
-        adxv_host = "localhost"  # self.getProperty("adxv_host", "localhost")
-        adxv_port = 8100  # int(self.getProperty("adxv_port", "8100"))
+        adxv_host = "localhost"
+        adxv_port = 8100
 
         try:
             adxv_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -798,10 +756,6 @@ class P11Collect(AbstractCollect):
 
                 try:
                     self.mkdir_with_mode(xdsapp_path_local, mode=0o777)
-                    # f=open(xdsapp_path_local+"/xdsapp.log", 'a')
-                    # f.write("xdsapp.log")
-                    # f.close()
-
                     self.log.debug(
                         "=========== XDSAPP ============ XDSAPP directory created"
                     )
@@ -867,11 +821,6 @@ class P11Collect(AbstractCollect):
         self.log.debug("#COLLECT# preparing collection ")
         if not diffr.is_collect_phase():
             self.log.debug("#COLLECT# going to collect phase")
-            # # If the pinhole is Down set pinhole to 200
-            # if HWR.beamline.diffractometer.pinhole_hwobj.get_position() == "Down":
-            #     print("Pinhole is down. Setting pinhole to 200.")
-            #     HWR.beamline.diffractometer.pinhole_hwobj.set_position("200")
-            #     HWR.beamline.diffractometer.wait_phase()
             diffr.goto_collect_phase(wait=True)
 
         self.log.debug("#COLLECT# now in collect phase: %s" % diffr.is_collect_phase())
@@ -998,7 +947,6 @@ class P11Collect(AbstractCollect):
             oldmask = os.umask(000)
             os.makedirs(directory, mode=mode)
             os.umask(oldmask)
-            # self.checkPath(directory,force=True)
 
             self.log.debug("local directory created")
 
@@ -1008,7 +956,6 @@ class P11Collect(AbstractCollect):
         """
         for directory in args:
             try:
-                # os.makedirs(directory)
                 self.mkdir_with_mode(directory, mode=0o777)
             except os.error as err_:
                 if err_.errno != errno.EEXIST:
@@ -1052,12 +999,3 @@ class P11Collect(AbstractCollect):
             print("dir not writeable:", str(sys.exc_info()))
             return False
         return path
-
-    # def mkdir_with_mode_remote(self, directory, mode):
-    #    ssh = btHelper.get_ssh_command()
-    #
-    #    os.system("{ssh:s} \"{sbatch:s} --wrap \\\"{cmd:s}\\\"\"".format(
-    #        ssh = ssh,
-    #        sbatch = sbatch,
-    #        cmd = cmd
-    #    ))
