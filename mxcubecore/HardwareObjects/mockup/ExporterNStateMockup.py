@@ -51,7 +51,7 @@ class ExporterNStateMockup(AbstractNState):
     def init(self):
         """Initialise the device"""
         AbstractNState.init(self)
-        value = [e.value for e in self.VALUES][1]
+        value = self.VALUES.OUT
         self.update_state(self.STATES.READY)
         self.update_value(value)
 
@@ -114,7 +114,7 @@ class ExporterNStateMockup(AbstractNState):
             else:
                 value = value.value
 
-        self._nominal_value = value
+        self._nominal_value = self.value_to_enum(value)
         self.update_state(self.STATES.READY)
 
     def get_value(self):
@@ -123,4 +123,4 @@ class ExporterNStateMockup(AbstractNState):
             (Enum): Enum member, corresponding to the value or UNKNOWN.
         """
         # _val = self._mock_value
-        return self.value_to_enum(self._nominal_value)
+        return self._nominal_value
