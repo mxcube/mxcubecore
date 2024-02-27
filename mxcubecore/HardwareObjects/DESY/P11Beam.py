@@ -18,12 +18,8 @@
 
 """P11Beam"""
 
-import time
-import sys
-import urllib
 from mxcubecore.HardwareObjects.abstract.AbstractBeam import AbstractBeam
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
-from enum import Enum, unique
 
 
 __credits__ = ["DESY P11"]

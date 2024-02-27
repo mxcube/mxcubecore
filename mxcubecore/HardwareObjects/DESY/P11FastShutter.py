@@ -19,7 +19,7 @@
 
 """P11Shutter"""
 
-from enum import Enum, unique
+from enum import Enum
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractNState
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 
@@ -28,7 +28,7 @@ __credits__ = ["DESY P11"]
 __license__ = "LGPLv3+"
 __category__ = "General"
 
-from enum import Enum, unique
+from enum import Enum
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 
 

@@ -45,7 +45,6 @@ import numpy as np
 import logging
 import os
 import sys
-import math
 import h5py
 
 import triggerUtils
