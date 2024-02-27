@@ -24,7 +24,7 @@ import gevent
 
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
-from enum import Enum, unique
+from enum import Enum
 
 
 __credits__ = ["DESY P11"]
@@ -42,19 +42,9 @@ class P11DetectorCover(AbstractShutter):
     default_timeout = 4
     move_time_min = 1
 
-    @unique
-    class BaseValueEnum(Enum):
-     """Defines only the compulsory values."""
-     OPEN = "OPEN"
-     CLOSED = "CLOSED"
-     MOVING = "MOVING"
-     UNKNOWN = "UNKNOWN"
-    
-    VALUES=BaseValueEnum
-
     def __init__(self, name):
 
-        super(AbstractShutter, self).__init__(name)
+        super().__init__(name)
 
         self.simulation = False
         self.simulated_opened = False
@@ -73,6 +63,7 @@ class P11DetectorCover(AbstractShutter):
     def init(self):
         """Initilise the predefined values"""
 
+        self._initialise_values()
         self.simulation = self.get_property("simulation")
         self.cmd_timeout = self.get_property("command_timeout", self.default_timeout)
 
@@ -99,7 +90,13 @@ class P11DetectorCover(AbstractShutter):
         else:
             self.simulated_update()
 
-        super(AbstractShutter, self).init()
+        super().init()
+
+    def _initialise_values(self):
+        """Add additional, known in advance states to VALUES"""
+        values_dict = {item.name: item.value for item in self.VALUES}
+        values_dict.update({"MOVING": "MOVING"})
+        self.VALUES = Enum("ValueEnum", values_dict)
 
     def get_value(self):
         if self.simulation:
@@ -196,14 +193,8 @@ class P11DetectorCover(AbstractShutter):
 
         self.update_value(value)
         return value
-    
-    def is_open(self):
-        """Check if the shutter is open.
-        Returns:
-            (bool): True if open, False otherwise.
-        """
-        return self.get_value() == self.VALUES.OPEN
 
+    @property
     def is_closed(self):
         """Check if the shutter is closed.
         Returns:
