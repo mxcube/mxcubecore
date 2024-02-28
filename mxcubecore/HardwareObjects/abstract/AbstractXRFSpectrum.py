@@ -194,9 +194,9 @@ class AbstractXRFSpectrum(HardwareObject):
         self.spectrum_info_dict["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
         self.spectrum_running = False
         if HWR.beamline.transmission:
-            self.spectrum_info_dict["beamTransmission"] = (
-                HWR.beamline.transmission.get_value()
-            )
+            self.spectrum_info_dict[
+                "beamTransmission"
+            ] = HWR.beamline.transmission.get_value()
         if HWR.beamline.energy:
             self.spectrum_info_dict["energy"] = HWR.beamline.energy.get_value()
         if HWR.beamline.flux:

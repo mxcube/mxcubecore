@@ -104,7 +104,6 @@ class XrfSpectrumQueueEntry(BaseQueueEntry):
         self.get_view().set_checkable(False)
         super().post_execute()
 
-
     def xrf_spectrum_status_changed(self, msg):
         """xrfSpectrumStatusChanged handler.
         Args:
