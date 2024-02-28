@@ -1,6 +1,9 @@
+import time
 from mxcubecore.HardwareObjects.abstract.AbstractDetector import (
     AbstractDetector,
 )
+
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
 
 
 class DetectorMockup(AbstractDetector):
@@ -45,10 +48,6 @@ class DetectorMockup(AbstractDetector):
         """Returns always True"""
         return True
 
-    def _set_beam_centre(self, beam_centre):
-        # Needed for GPhL collection emulation
-        self._beam_centre = beam_centre
-
     def prepare_acquisition(self, *args, **kwargs):
         """
         Prepares detector for acquisition
@@ -62,4 +61,6 @@ class DetectorMockup(AbstractDetector):
         return
 
     def restart(self) -> None:
-        pass
+        self.update_state(HardwareObjectState.BUSY)
+        time.sleep(2)
+        self.update_state(HardwareObjectState.READY)

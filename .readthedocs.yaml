@@ -1,0 +1,28 @@
+---
+
+
+# .readthedocs.yaml
+# Read the Docs configuration file
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+
+
+# This uses custom commands, because we need to install dependencies
+# from both Conda and Poetry.
+
+
+version: 2
+
+build:
+
+  os: "ubuntu-22.04"
+
+  tools:
+    python: "mambaforge-22.9"
+
+  commands:
+    - "mamba env create --file conda-environment-dev.yml --force"
+    - "mamba run --name mxcubecore poetry install --only=docs,main"
+    - "mamba run --name mxcubecore sphinx-build -T -E -b html -c ./docs/ ./docs/source/ ${READTHEDOCS_OUTPUT}/html/"
+
+
+...  # EOF

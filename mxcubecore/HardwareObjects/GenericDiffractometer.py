@@ -401,10 +401,10 @@ class GenericDiffractometer(HardwareObject):
             # NBNB TODO refactor configuration, and set properties directly (see below)
             temp_motor_hwobj = self.get_object_by_role(motor_name)
             if temp_motor_hwobj is not None:
-                logging.getLogger("HWR").debug(
-                    "Diffractometer: Adding "
-                    + "%s motor to centring motors" % motor_name
-                )
+                #logging.getLogger("HWR").debug(
+                    #"Diffractometer: Adding "
+                    #+ "%s motor to centring motors" % motor_name
+                #)
 
                 self.motor_hwobj_dict[motor_name] = temp_motor_hwobj
                 self.connect(temp_motor_hwobj, "stateChanged", self.motor_state_changed)
@@ -897,7 +897,7 @@ class GenericDiffractometer(HardwareObject):
         while self.automatic_centring_try_count > 0:
             if self.use_sample_centring:
                 self.current_centring_procedure = sample_centring.start_auto(
-                    HWR.beamline.sample_view.camera,
+                    HWR.beamline.sample_view,
                     {
                         "phi": self.centring_phi,
                         "phiy": self.centring_phiy,
@@ -1099,6 +1099,7 @@ class GenericDiffractometer(HardwareObject):
 
         for motor in motor_positions.keys():
             position = motor_positions[motor]
+            self.log.debug(u"moving motor {motor} to position {position}")
             """
             if isinstance(motor, (str, unicode)):
                 logging.getLogger("HWR").debug(" Moving %s to %s" % (motor, position))

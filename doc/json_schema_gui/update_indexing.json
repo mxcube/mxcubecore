@@ -1,0 +1,29 @@
+{
+    "lattice": {
+        "enum": [
+            "cP",
+            "cF",
+            "cI",
+            "Cubic"
+        ],
+        "value": "cI"
+    },
+    "point_groups": {
+        "enum": [
+            "23",
+            "432",
+            "23|432"
+        ],
+        "value": "23|432"
+    },
+    "space_group": {
+            "enum": [
+            "",
+            "I23",
+            "I213",
+            "I432",
+            "I4132"
+        ],
+        "value": ""
+    }
+}

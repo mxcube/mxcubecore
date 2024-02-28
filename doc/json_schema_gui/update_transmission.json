@@ -1,0 +1,12 @@
+{
+    "dose_budget": {
+        "highlight": "WARNING"
+    },
+    "experiment_time": {
+        "value": 513.5999999999999
+    },
+    "use_dose": {
+        "highlight": "WARNING",
+        "value": 6.578810470252896
+    }
+}

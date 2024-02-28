@@ -1,24 +1,4 @@
-<object class="CollectEmulator">
-
-  <!-- First part must mirror mxcollect.xml -->
-  <object href="/mini-diff-mockup" role="diffractometer"/>
-  <object href="/graphics" role="graphics_manager"/>
-  <object href="/lims-client-mockup" role="lims_client"/>
-
-  <object href="/energy-mockup" role="energy"/>
-  <object href="/attenuators-mockup" role="transmission"/>
-  <object href="/detector-mockup" role="detector"/>
-  <object href="/resolution-mockup" role="resolution"/>
-
-  <object href="/mach-info-mockup" role="machine_info"/>
-  <object href="/sc-mockup" role="sample_changer"/>
-
-  <!--<auto_processing>-->
-    <!--<program>-->
-      <!--<executable>none_present_executable</executable>-->
-      <!--<event>after</event>-->
-    <!--</program>-->
-  <!--</auto_processing>-->
+<object class="Gphl.CollectEmulator">
 
 <!--  <override_data_directories>-->
     <!-- If override_data_directories is set, it must contain the three base directories -->
@@ -41,8 +21,8 @@
     <!-- Simcal bacground noise level -->
     <background>1.0</background>
     <!-- Number of rays for simcal ray tracing (2000 minimum for testing, 5000 for use-->
-    <n_rays>2001</n_rays>
-    <!--<n_rays>5001</n_rays>-->
+<!--    <n_rays>2001</n_rays>-->
+    <n_rays>5001</n_rays>
     <!-- Unit cell orientation mode. 1 is calculate-from-cell, real-space -->
     <!-- -1 is from-cell, reciprocal-space. Default is 0 (CELL_AXIS vectors) -->
     <orient_mode>1</orient_mode>
@@ -58,8 +38,9 @@
     <memory-pool>6</memory-pool>
     <!-- Default is 1.0. Too low makes for 'insufficient spots', -->
     <!-- too high for 'insufficient indexed fraction' errors -->
-    <!-- For now all test hkli files are sdcaled to work with scale 1.0 -->
-    <hkl-scale>1.0</hkl-scale>
+    <!-- For now all test hkli files are scaled to work with scale 4.0 -->
+<!--    <hkl-scale>1.0</hkl-scale>-->
+    <hkl-scale>4.0</hkl-scale>
     <!-- NB set specifically for 5yav PONLY -->
 <!--    <hkl-scale>0.1</hkl-scale>-->
   </simcal_options>

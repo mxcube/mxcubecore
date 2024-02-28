@@ -1,4 +1,4 @@
-<procedure class="SOLEILLdapLogin">
+<procedure class="SOLEILLdapAuthenticator">
   <ldaphost>195.221.10.1</ldaphost>
   <ldapport>389</ldapport>
   <ldapdc>EXP</ldapdc>

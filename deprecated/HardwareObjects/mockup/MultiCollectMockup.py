@@ -239,13 +239,13 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
 
     def get_machine_message(self):
         if self.bl_control.machine_current is not None:
-            return self.bl_control.machine_current.getMessage()
+            return self.bl_control.machine_current.get_message()
         else:
             return ""
 
     def get_machine_fill_mode(self):
         if self.bl_control.machine_current is not None:
-            return self.bl_control.machine_current.getFillMode()
+            return self.bl_control.machine_current.get_fill_mode()
         else:
             ""
 

@@ -1,10 +1,12 @@
 
 _initialise_class:
-    class: mxcubecore.HardwareObjects.GphlWorkflowConnection.GphlWorkflowConnection
+    class: mxcubecore.HardwareObjects.Gphl.GphlWorkflowConnection.GphlWorkflowConnection
 
 directory_locations:
     # Directory locations. Can also be used with ${} syntax in this file
     GPHL_INSTALLATION: /alt/rhfogh/Software/GPhL/gphl_release
+#    GPHL_INSTALLATION: /alt/rhfogh/Software/GPhL/nightly_20230823/Files_workflow_TRUNK_alpha-bdg
+#    GPHL_INSTALLATION: /alt/rhfogh/Software/GPhL/nightly_20230602/Files_workflow_BETA_beta-academic
 
 
 # If set, run workflow through ssh with selected options
@@ -29,14 +31,14 @@ gphl_persistname: persistence
 #Hosts and ports for py4j java-python gateway, all OPTIONAL
 #If not set will use py4j default values, which are as given below
 #NB python_host is set automatically to localhost or socket.gethostname()
-#NB java_host is not needed as all communication is effectively one-way 
+#NB java_host is not needed as all communication is effectively one-way
 #connection_parameters:
 #    python_port: 25334
 #    java_port: 25333
 
 #NB Non-absolute file names are interpreted relative to one of the
 #HardwareRepository directories on the lookup path
-  
+
 software_paths:
     # Mandatory. Directory with workflow config input, e.g. instrumentation.nml
     gphl_beamline_config: gphl_beamline_config
@@ -48,9 +50,6 @@ software_paths:
     # MANDATORY for XDS => $GPHL_XDS_PATH/xds_par
     # unless already sourced in environment
     GPHL_XDS_PATH: /alt/rhfogh/Software/XDS/latest/
-
-    # OPTIONAL for java binary => defaults to just 'java'
-    java_binary: "/alt/rhfogh/Software/GPhL/mxcube_setup/jre1.8.0_144/bin/java"
 
     # gphl test samples directory - for collection emulation
     gphl_test_samples: gphl/test_samples
@@ -85,6 +84,8 @@ software_properties:
     # co.gphl.wf.recen.bdg_licence_dir/fill/me/in
 
     # OPTIONAL. simcal *binary* For Mock collection emulation only. Not used by ASTRA workflow
-    co.gphl.wf.simcal.bin: /alt/rhfogh/Software/GPhL/nightly_20230315/Files_workflow_TRUNK_alpha-bdg/autoPROC/bin/linux64/simcal
-    co.gphl.wf.simcal.bdg_licence_dir: /alt/rhfogh/Software/GPhL/nightly_20230315/Files_workflow_TRUNK_alpha-bdg
-#    co.gphl.wf.simcal.bin: "{GPHL_INSTALLATION}/autoPROC/bin/linux64/simcal"
+    co.gphl.wf.simcal.bin: /alt/rhfogh/Software/GPhL/nightly_20240206/Files_workflow_TRUNK_alpha-bdg/autoPROC/bin/linux64/simcal
+    co.gphl.wf.simcal.bdg_licence_dir: /alt/rhfogh/Software/GPhL/nightly_20240206/Files_workflow_TRUNK_alpha-bdg
+#    co.gphl.wf.simcal.bin: /alt/rhfogh/Software/GPhL/gphl_release/autoPROC/bin/linux64/simcal
+#    co.gphl.wf.simcal.bdg_licence_dir: /alt/rhfogh/Software/GPhL/gphl_release
+#    co.gphl.wf.simcal.bin: "{GPHL_INSTALLATION}/autoPROC/bin/linux64/simcal"/alt/rhfogh/Software/GPhL/gphl_release

@@ -180,7 +180,8 @@ class ChannelObject:
         self._username: Union[str, None] = username
         self._attributes: Dict[str, Any] = kwargs
         self._on_change: Union[
-            Tuple[str, weakref.ref], None,
+            Tuple[str, weakref.ref],
+            None,
         ] = None
         self.__first_update: bool = True
 
@@ -275,7 +276,7 @@ class ChannelObject:
                 if cmdobj is not None:
                     cmdobj(value)
 
-    def get_value(self, force: bool = False) -> None:
+    def get_value(self, force: bool = False):
         """Get channel value.
 
         Args:

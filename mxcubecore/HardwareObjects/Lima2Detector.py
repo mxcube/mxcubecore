@@ -1,4 +1,5 @@
 import gevent
+import time
 import logging
 from gevent import subprocess
 import os
@@ -26,7 +27,6 @@ _logger_smx = logging.getLogger("lima2.client.smx")
 _logger_det.setLevel(logging.DEBUG)
 _logger_smx.setLevel(logging.DEBUG)
 
-
 # Logger decorator
 def logger(fn):
     def inner(*args, **kwargs):
@@ -36,7 +36,6 @@ def logger(fn):
         return to_execute
 
     return inner
-
 
 def convert_state(state):
     """Convert detector state to MxCube HWR state"""
@@ -53,7 +52,6 @@ def convert_state(state):
     else:
         s = HardwareObjectState.UNKNOWN
     return s
-
 
 def create_directory(path, check=True):
     subprocess.run(
@@ -94,7 +92,6 @@ class Lima2Detector(AbstractDetector):
                 s = convert_state(state)
                 _logger.info(f"State changed to {state} / {s}")
                 self.update_state(s)
-
             self.__device.registerStateLogger(on_state_change)
 
             self.__proc_loop_task = None
@@ -114,9 +111,10 @@ class Lima2Detector(AbstractDetector):
                 print(self.__device.state)
                 gevent.sleep(1)
 
-            if self.__proc_loop_task:
+            proc = self.__proc_loop_task
+            if proc:
                 _logger.debug("waiting for previous processing to finish")
-                gevent.wait(self.__proc_loop_task)
+                gevent.wait([proc])
 
     @logger
     def wait_prepared(self, timeout=3500):
@@ -237,6 +235,7 @@ class Lima2Detector(AbstractDetector):
                 enabled=save_files[group],
                 base_path=data_path[group],
                 filename_prefix=f"{prefix}_{stream_prefix}",
+                start_number=0,
                 nb_frames_per_file=frames_per_file[group],
                 file_exists_policy="abort",
                 compression=compression[group],
@@ -273,10 +272,33 @@ class Lima2Detector(AbstractDetector):
             # "empty": -9999.0,
             "noise": 1.0,
             "cutoff_pick": 3.0,
-            "dense_intensity_factor": 41.401 * energy,
             "acc_nb_frames_reset": 0,
             "acc_nb_frames_xfer": acc_frames,
         }
+
+        def get_dense_out_params(variant_name):
+            legacy_photon_adus = 41.401 * energy
+
+            variant_data = {
+                "legacy": dict(
+                    pixel_type="int32", photon_adus=legacy_photon_adus, photon_bias=0.0
+                ),
+                "0": dict(pixel_type="int16", photon_adus=16.0, photon_bias=0.0),
+                "1": dict(pixel_type="uint16", photon_adus=16.0, photon_bias=32.0),
+                "2": dict(pixel_type="uint16", photon_adus=8.0, photon_bias=32.0),
+                "3": dict(pixel_type="int16", photon_adus=8.0, photon_bias=0.0),
+            }
+
+            variant = variant_data[variant_name]
+            photon_adus = variant["photon_adus"]
+            return dict(
+                dense_intensity_factor=photon_adus,
+                dense_intensity_offset=photon_adus * variant["photon_bias"],
+                dense_pixel_type="dense_%s" % variant["pixel_type"],
+            )
+
+        dense_variant_name = "legacy"
+        fai_params.update(get_dense_out_params(dense_variant_name))
 
         fai_params_fname = os.path.join(params_base, "fai_params.json")
         if os.path.exists(fai_params_fname):
@@ -334,6 +356,13 @@ class Lima2Detector(AbstractDetector):
 
     @logger
     def stop_acquisition(self):
+        wait_for_idle_timeout = 10
+        try:
+            self.wait_idle(wait_for_idle_timeout)
+        except:
+            _logger.warning("detector not idle after %s", wait_for_idle_timeout)
+            pass
+
         try:
             self.__device.stopAcq()
         except Exception:
@@ -346,10 +375,8 @@ class Lima2Detector(AbstractDetector):
     @logger
     def proc_loop(self, uuid):
         with ExitStack() as stack:
-
             def cleanup():
                 self.__proc_loop_task = None
-
             stack.callback(cleanup)
 
             _logger.debug("starting processing loop for %s", uuid)

@@ -1,13 +1,16 @@
 """
 A client for PyISPyB Webservices.
 """
-import urllib3
+import os
+import json
 import logging
 import datetime
 
+from typing_extensions import Literal
+
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.model.common import BeamlineParameters
+from mxcubecore.model.common import BeamlineParameters, ISPYBCollectionPrameters
 
 import pyispyb_client
 
@@ -90,7 +93,7 @@ class PyISPyBClient(HardwareObject):
 
                 self._configuration = Configuration(
                     host=self._host,
-                    # access_token=api_response.body.token,
+                    #                   access_token=api_response.body.token,
                 )
                 self._configuration.access_token = api_response.body.token
             except pyispyb_client.ApiException as e:
@@ -109,12 +112,43 @@ class PyISPyBClient(HardwareObject):
                 "detector_distance": HWR.beamline.detector.distance.get_value(),
                 "beam_x": HWR.beamline.detector.get_beam_position()[0],
                 "beam_y": HWR.beamline.detector.get_beam_position()[1],
+                "beam_size_x": HWR.beamline.beam.get_beam_size()[0],
+                "beam_size_y": HWR.beamline.beam.get_beam_size()[1],
+                "beam_shape": HWR.beamline.beam.get_beam_shape(),
+                "energy_bandwidth": HWR.beamline.beam.get_property(
+                    "energy_bandwidth", 0.1
+                ),
             }
         )
 
-    def create_ssx_data_collection_group(self, session_id=None):
-        self._update_token()
+    def get_additional_lims_values(self):
+        return ISPYBCollectionPrameters(
+            **{
+                "flux_start": HWR.beamline.flux.get_value(),
+                "flux_end": HWR.beamline.flux.get_value(),
+                "start_time": datetime.datetime.now(),
+                "end_time": datetime.datetime.now(),
+                "chip_model": HWR.beamline.collect.get_property("chip_model", ""),
+                "polarisation": HWR.beamline.beam.polarisation,
+                "mono_stripe": HWR.beamline.beam.get_property("mono_stripe", ""),
+            }
+        )
 
+    def mxcube_to_ispyb_collection_type(
+        self, collection_type: str
+    ) -> Literal["SSX-CHIP", "SSX-Jet"]:
+        val = "SSX-CHIP"
+
+        if collection_type == "ssx_chip_collection":
+            val = "SSX-CHIP"
+        elif collection_type == "ssx_injector_collection":
+            val = "SSX-Jet"
+
+        return val
+
+    def create_ssx_data_collection_group(self, collection_parameters, session_id=None):
+        self._update_token()
+        sacronym, sname = collection_parameters.path_parameters.prefix.split("-")
         session_id = session_id if session_id else int(HWR.beamline.session.session_id)
 
         with pyispyb_client.ApiClient(self._configuration) as api_client:
@@ -125,39 +159,41 @@ class PyISPyBClient(HardwareObject):
             ssx_data_collection_group_create = {
                 "sessionId": session_id,
                 "startTime": datetime.datetime.now(),
-                "endTime": datetime.datetime.now(),
-                "experimentType": "SSX-Chip",
-                "experimentName": "SSX-Chip experiment",
-                "comments": "comments_example",
+                # "endTime": datetime.datetime.now(),
+                "experimentType": self.mxcube_to_ispyb_collection_type(
+                    collection_parameters.common_parameters.type
+                ),
+                "experimentName": collection_parameters.common_parameters.label,
+                #                "comments": "comments_example",
                 "sample": {
-                    "name": "name",
+                    "name": sname,
                     "support": "support_example",
                     "crystal": {
-                        "size_X": -1.0,
-                        "size_Y": -1.0,
-                        "size_Z": -1.0,
-                        "abundance": -1.0,
+                        #                        "size_X": -1.0,
+                        #                        "size_Y": -1.0,
+                        #                        "size_Z": -1.0,
+                        #                        "abundance": -1.0,
                         "protein": {
-                            "name": "name",
-                            "acronym": "acronym_example",
+                            "name": sname,
+                            "acronym": sacronym,
                         },
-                        "components": [
-                            {
-                                "name": "name",
-                                "componentType": "Ligand",
-                                "composition": "composition_example",
-                                "abundance": -1.0,
-                            },
-                        ],
+                        "components": [],
+                        #                      "components": [{
+                        #                               "name": "name",
+                        #                               "componentType": "Ligand",
+                        #                               "composition": "composition_example",
+                        #    "abundance": -1.0,
+                        #                           },
+                        #                       ],
+                        #                   },"components":[{
+                        #                           "name": "name",
+                        #                           "componentType": "Ligand",
+                        #                           "composition": "composition_example",
+                        #                            "abundance": -1.0,
+                        #                       },
+                        #                    ],
                     },
-                    "components": [
-                        {
-                            "name": "name",
-                            "componentType": "Ligand",
-                            "composition": "composition_example",
-                            "abundance": -1.0,
-                        },
-                    ],
+                    "components": [],
                 },
             }
 
@@ -166,7 +202,7 @@ class PyISPyBClient(HardwareObject):
                     ssx_data_collection_group_create
                 )
                 # pprint.pprint(api_response)
-                return api_response.body
+                return int(api_response.body)
             except pyispyb_client.ApiException as e:
                 print(
                     "Exception when calling SerialCrystallographyApi->create_datacollectiongroup: %s\n"
@@ -174,7 +210,7 @@ class PyISPyBClient(HardwareObject):
                 )
 
     def create_ssx_data_collection(
-        self, dcg_id, collection_parameters, beamline_parameters
+        self, dcg_id, collection_parameters, beamline_parameters, extra_lims_values
     ):
         # Enter a context with an instance of the API client
         with pyispyb_client.ApiClient(self._configuration) as api_client:
@@ -186,13 +222,13 @@ class PyISPyBClient(HardwareObject):
                 "dataCollectionGroupId": dcg_id,
                 "exposureTime": collection_parameters.user_collection_parameters.exp_time,
                 "transmission": beamline_parameters.transmission,
-                "flux": 0.0,
+                "flux": extra_lims_values.flux_start,
                 "xBeam": beamline_parameters.beam_x,
                 "yBeam": beamline_parameters.beam_y,
                 "wavelength": beamline_parameters.wavelength,
                 "detectorDistance": beamline_parameters.detector_distance,
-                "beamSizeAtSampleX": 0.0,
-                "beamSizeAtSampleY": 0.0,
+                "beamSizeAtSampleX": beamline_parameters.beam_size_x,
+                "beamSizeAtSampleY": beamline_parameters.beam_size_y,
                 "average_temperature": 0.0,
                 "xtalSnapshotFullPath1": "",
                 "xtalSnapshotFullPath2": "",
@@ -203,20 +239,20 @@ class PyISPyBClient(HardwareObject):
                 "numberOfImages": collection_parameters.collection_parameters.num_images,
                 "resolution": beamline_parameters.resolution,
                 "resolutionAtCorner": 0.0,
-                "flux_end": 0.0,
-                "detector_id": 4,
-                "startTime": datetime.datetime.now(),
-                "endTime": datetime.datetime.now(),
-                "repetitionTate": 0.0,
-                "energyBandwidth": 0.0,
-                "monoStripe": "mono_stripe_example",
+                "flux_end": extra_lims_values.flux_end,
+                "detector_id": HWR.beamline.detector.get_property("detector_id"),
+                "startTime": extra_lims_values.start_time,
+                "endTime": extra_lims_values.end_time,
+                "repetitionRate": 0.0,
+                "energyBandwidth": beamline_parameters.energy_bandwidth,
+                "monoStripe": extra_lims_values.mono_stripe,
                 "jetSize": 0,
                 "jetSpeed": 0,
                 "laserEnergy": 0,
-                "chipModel": "",
+                "chipModel": extra_lims_values.chip_model,
                 "chipPattern": "",
-                "beamShape": "",
-                "polarisation": 0,
+                "beamShape": beamline_parameters.beam_shape,
+                "polarisation": extra_lims_values.polarisation,
                 "underlator_gap1": 0,
                 "event_chains": [
                     {
@@ -250,12 +286,29 @@ class PyISPyBClient(HardwareObject):
                     % e
                 )
 
-    def create_ssx_collection(self, collection_parameters, beamline_parameters):
-        return
+    def create_ssx_collection(
+        self, data_path, collection_parameters, beamline_parameters, extra_lims_values
+    ):
         try:
-            dcg = self.create_ssx_data_collection_group()
-            self.create_ssx_data_collection(
-                dcg, collection_parameters, beamline_parameters
-            )
+            fpath = os.path.abspath(os.path.join(data_path + "../", "ispyb_data.json"))
+
+            if os.path.exists(fpath):
+                with open(fpath, "r+") as _f:
+                    data = json.loads(fpath.read())
+                    dcg_id = data["dcg_id"]
+            else:
+                dcg_id = self.create_ssx_data_collection_group(collection_parameters)
+
+                with open(fpath, "w+") as _f:
+                    data = {"dcg_id": dcg_id}
+                    str_data = json.dumps(data, indent=4)
+                    _f.write(str_data)
+
+                self.create_ssx_data_collection(
+                    dcg_id,
+                    collection_parameters,
+                    beamline_parameters,
+                    extra_lims_values,
+                )
         except Exception:
             logging.getLogger("HWR").exception("")

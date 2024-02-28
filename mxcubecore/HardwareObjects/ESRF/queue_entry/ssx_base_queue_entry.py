@@ -1,16 +1,71 @@
 import os
 import logging
 import subprocess
+import datetime
+import json
+import gevent
 
+from typing_extensions import Literal
+from pydantic import BaseModel, Field
 from devtools import debug
 
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.queue_entry.base_queue_entry import (
-    BaseQueueEntry,
-)
+from mxcubecore.queue_entry.base_queue_entry import BaseQueueEntry
 
 import logging
 import xmlrpc.client
+
+
+class BaseUserCollectionParameters(BaseModel):
+    num_images: int = Field(0, description="")
+    exp_time: float = Field(100e-6, gt=0, lt=1, description="s")
+    sub_sampling: Literal[1, 2, 4, 6, 8] = Field(1)
+    take_pedestal: bool = Field(True)
+
+    frequency: float = Field(
+        float(HWR.beamline.diffractometer.get_property("max_freq", 925)),
+        description="Hz",
+    )
+
+
+class SsxBaseQueueTaskParameters(BaseModel):
+    @staticmethod
+    def ui_schema():
+        return json.dumps(
+            {
+                "ui:order": [
+                    "num_images",
+                    "exp_time",
+                    "osc_range",
+                    "osc_start",
+                    "resolution",
+                    "transmission",
+                    "energy",
+                    "vertical_spacing",
+                    "horizontal_spacing",
+                    "nb_lines",
+                    "nb_samples_per_line",
+                    "motor_top_left_x",
+                    "motor_top_left_y",
+                    "motor_top_left_z",
+                    "motor_top_right_x",
+                    "motor_top_right_y",
+                    "motor_top_right_z",
+                    "motor_bottom_left_x",
+                    "motor_bottom_left_y",
+                    "motor_bottom_left_z",
+                    "chip_type",
+                    "take_pedestal",
+                    "sub_sampling",
+                    "*",
+                ],
+                "ui:submitButtonOptions": {
+                    "norender": "true",
+                },
+                "sub_sampling": {"ui:readonly": "true"},
+                "frequency": {"ui:readonly": "true"},
+            }
+        )
 
 
 class SsxBaseQueueEntry(BaseQueueEntry):
@@ -40,7 +95,7 @@ class SsxBaseQueueEntry(BaseQueueEntry):
 
         return data_root_path, process_path
 
-    def take_pedestal_lima2(self, max_freq):
+    def take_pedestal(self, max_freq):
         params = self._data_model._task_data.user_collection_parameters
 
         exp_time = self._data_model._task_data.user_collection_parameters.exp_time
@@ -60,6 +115,10 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             pedestal_dir = HWR.beamline.detector.find_next_pedestal_dir(
                 data_root_path, "pedestal"
             )
+            sls_detectors = "/users/blissadm/local/sls_detectors"
+            lima2_path = f"{sls_detectors}/lima2"
+            cl_source_path = f"{lima2_path}/processings/common/fai/kernels"
+
             logging.getLogger("user_level_log").info(
                 f"Storing pedestal in {pedestal_dir}"
             )
@@ -82,6 +141,7 @@ class SsxBaseQueueEntry(BaseQueueEntry):
                 disable_saving="raw",
                 print_params=True,
                 det_params={"packet_fifo_depth": packet_fifo_depth},
+                cl_source_path=cl_source_path,
             )
 
             subprocess.Popen(
@@ -93,46 +153,6 @@ class SsxBaseQueueEntry(BaseQueueEntry):
                 stderr=None,
                 close_fds=True,
             ).wait()
-
-    def take_pedestal(self, max_freq):
-        params = self._data_model._task_data.user_collection_parameters
-        exp_time = self._data_model._task_data.user_collection_parameters.exp_time
-        sub_sampling = (
-            self._data_model._task_data.user_collection_parameters.sub_sampling
-        )
-
-        data_root_path, _ = self.get_data_path()
-
-        if params.take_pedestal:
-            HWR.beamline.control.safshut_oh2.close()
-            if not hasattr(HWR.beamline.control, "jungfrau_pedestal_scans"):
-                HWR.beamline.control.load_script("jungfrau.py")
-
-            pedestal_dir = HWR.beamline.detector.find_next_pedestal_dir(
-                data_root_path, "pedestal"
-            )
-            logging.getLogger("user_level_log").info(
-                f"Storing pedestal in {pedestal_dir}"
-            )
-            subprocess.Popen(
-                "mkdir --parents %s && chmod -R 755 %s" % (pedestal_dir, pedestal_dir),
-                shell=True,
-                stdin=None,
-                stdout=None,
-                stderr=None,
-                close_fds=True,
-            ).wait()
-
-            HWR.beamline.control.jungfrau_pedestal_scans(
-                HWR.beamline.control.jungfrau4m,
-                exp_time,
-                1000,
-                max_freq / sub_sampling,
-                pedestal_base_path=pedestal_dir,
-                pedestal_filename="pedestal",
-            )
-
-        HWR.beamline.control.jungfrau4m.camera.img_src = "GAIN_PED_CORR"
 
     def start_processing(self, exp_type):
         data_root_path, _ = self.get_data_path()
@@ -159,20 +179,35 @@ class SsxBaseQueueEntry(BaseQueueEntry):
         )
         HWR.beamline.detector.wait_ready()
 
+    def _monitor_collect(self):
+        for i in range(1, 99):
+            self.emit_progress(i / 100.0)
+            gevent.sleep(0.1)
+
     def execute(self):
         super().execute()
         debug(self._data_model._task_data)
 
+        self._monitor_task = gevent.spawn(self._monitor_collect)
+
     def pre_execute(self):
         super().pre_execute()
         self.beamline_values = HWR.beamline.lims.pyispyb.get_current_beamline_values()
+        self.additional_lims_values = (
+            HWR.beamline.lims.pyispyb.get_additional_lims_values()
+        )
+        self.emit_progress(0)
 
     def post_execute(self):
         super().post_execute()
+        data_root_path, _ = self.get_data_path()
+        self.additional_lims_values.end_time = datetime.datetime.now()
 
         HWR.beamline.lims.pyispyb.create_ssx_collection(
+            data_root_path,
             self._data_model._task_data,
             self.beamline_values,
+            self.additional_lims_values,
         )
 
         if HWR.beamline.control.safshut_oh2.state.name == "OPEN":
@@ -181,6 +216,10 @@ class SsxBaseQueueEntry(BaseQueueEntry):
 
         HWR.beamline.detector.wait_ready()
         HWR.beamline.detector.stop_acquisition()
+        self.emit_progress(1)
+
+    def emit_progress(self, progress):
+        HWR.beamline.collect.emit_progress(progress)
 
     def stop(self):
         super().stop()

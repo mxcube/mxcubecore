@@ -7,6 +7,7 @@ import os
 import math
 import logging
 
+from mxcubecore.model.queue_model_objects import PathTemplate
 from mxcubecore.TaskUtils import task
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
@@ -21,6 +22,7 @@ class LimaEigerDetector(AbstractDetector):
         AbstractDetector.init(self)
 
         self.header = dict()
+        self._images_per_file = self.get_property("images_per_file", 100)
 
         lima_device = self.get_property("lima_device")
         eiger_device = self.get_property("eiger_device")
@@ -74,16 +76,22 @@ class LimaEigerDetector(AbstractDetector):
         self.get_command_object("prepare_acq").init_device()
         self.get_command_object("prepare_acq").device.set_timeout_millis(5 * 60 * 1000)
         self.get_channel_object("photon_energy").init_device()
-        self._emit_status()
+        self.update_state(self.STATES.READY)
 
     def has_shutterless(self):
         return True
 
     def wait_ready(self, timeout=30):
         acq_status_chan = self.get_channel_object("acq_status")
+
+        if acq_status_chan.get_value() != "Ready":
+            self.update_state(self.STATES.BUSY)
+
         with gevent.Timeout(timeout, RuntimeError("Detector not ready")):
             while acq_status_chan.get_value() != "Ready":
                 time.sleep(1)
+
+        self.update_state(self.STATES.READY)
 
     def last_image_saved(self):
         # return 0
@@ -177,7 +185,7 @@ class LimaEigerDetector(AbstractDetector):
             self.set_channel_value("acq_trigger_mode", "EXTERNAL_TRIGGER")
 
         self.get_channel_object("saving_frame_per_file").set_value(
-            min(100, number_of_images)
+            min(self._images_per_file, number_of_images)
         )
 
         # 'MANUAL', 'AUTO_FRAME', 'AUTO_SEQUENCE
@@ -226,7 +234,6 @@ class LimaEigerDetector(AbstractDetector):
         self.get_command_object("prepare_acq")()
         logging.getLogger("user_level_log").info("Detector ready, continuing")
         self.get_command_object("start_acq")()
-        self._emit_status()
 
     def stop_acquisition(self):
         try:
@@ -237,7 +244,6 @@ class LimaEigerDetector(AbstractDetector):
         time.sleep(1)
         self.get_command_object("reset")()
         self.wait_ready()
-        self._emit_status()
 
     def reset(self):
         self.stop_acquisition()
@@ -258,3 +264,50 @@ class LimaEigerDetector(AbstractDetector):
 
     def recover_from_failure(self):
         pass
+
+    def get_image_file_name(self, pt, suffix=None):
+        pt.precision = 1
+        template = "%s_%s_%%" + str(pt.precision) + "d_master.%s"
+
+        if suffix:
+            file_name = template % (pt.get_prefix(), pt.run_number, suffix)
+        else:
+            file_name = template % (pt.get_prefix(), pt.run_number, pt.suffix)
+        if pt.compression:
+            file_name = "%s.gz" % file_name
+
+        return file_name
+
+    def get_first_and_last_file(self, pt: PathTemplate) -> tuple:
+        """
+        Get complete path to first and last image
+
+        Args:
+          Path template parameter
+
+        Returns:
+        Tuple containing first and last image path (first, last)
+        """
+        start_num = int(math.ceil(pt.start_num / 100))
+        end_num = int(math.ceil((pt.start_num + pt.num_files - 1) / 100))
+
+        return (pt.get_image_path() % start_num, pt.get_image_path() % end_num)
+
+    def get_actual_file_path(self, master_file_path: str, image_number: int) -> tuple:
+        """
+        Get file path to image with the given image number <image_number> and
+        the master h5 file <master_file_path>
+
+        Args:
+            first_file_path: Path to master h5 file
+            image_number: image number (absolute)
+
+        Returns:
+            A tuple [image file path, image_number (relative to file)]
+        """
+        result_data_path = "_".join(master_file_path.split("_")[0:-2])
+        img_number = int(image_number) % self._images_per_file
+        start_file_number = int(int(image_number) / self._images_per_file) + 1
+        result_data_path += "_data_%06d.h5" % start_file_number
+
+        return result_data_path, img_number

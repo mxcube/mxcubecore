@@ -1,0 +1,314 @@
+{
+    "schema": {
+        "properties": {
+            "cell_a": {
+                "default": 133.8562,
+                "minimum": 0,
+                "readOnly": true,
+                "title": "a",
+                "type": "number"
+            },
+            "cell_alpha": {
+                "default": 90.0,
+                "maximum": 180,
+                "minimum": 0,
+                "readOnly": true,
+                "title": "\u03b1",
+                "type": "number"
+            },
+            "cell_b": {
+                "default": 133.8562,
+                "minimum": 0,
+                "readOnly": true,
+                "title": "b",
+                "type": "number"
+            },
+            "cell_beta": {
+                "default": 90.0,
+                "maximum": 180,
+                "minimum": 0,
+                "readOnly": true,
+                "title": "\u03b2",
+                "type": "number"
+            },
+            "cell_c": {
+                "default": 127.4557,
+                "minimum": 0,
+                "readOnly": true,
+                "title": "c",
+                "type": "number"
+            },
+            "cell_gamma": {
+                "default": 120.0,
+                "maximum": 180,
+                "minimum": 0,
+                "readOnly": true,
+                "title": "\u03b3",
+                "type": "number"
+            },
+            "energy": {
+                "default": 12.4,
+                "maximum": 20,
+                "minimum": 4,
+                "title": "Main energy (keV)",
+                "type": "number"
+            },
+            "indexing_solution": {
+                "title": "--- Select indexing solution : ---",
+                "type": "string"
+            },
+            "input_space_group": {
+                "default": "H32",
+                "readOnly": true,
+                "title": "Space Group",
+                "type": "string"
+            },
+            "lattice": {
+                "default": "hR",
+                "enum": [
+                    "hP",
+                    "hR",
+                    "Hexagonal"
+                ],
+                "title": "Crystal lattice",
+                "type": "string"
+            },
+            "point_groups": {
+                "default": "32",
+                "enum": [
+                    "3",
+                    "32",
+                    "3|32"
+                ],
+                "title": "Point Groups",
+                "type": "string"
+            },
+            "relative_rad_sensitivity": {
+                "default": 1.0,
+                "minimum": 0,
+                "readOnly": true,
+                "title": "Radiation sensitivity",
+                "type": "number"
+            },
+            "resolution": {
+                "default": 2.1,
+                "maximum": 8.774863360734335,
+                "minimum": 1.5484097058129351,
+                "title": "Resolution",
+                "type": "number"
+            },
+            "space_group": {
+                "default": "H32",
+                "enum": [
+                    "",
+                    "P3",
+                    "P31",
+                    "P32",
+                    "H3",
+                    "P312",
+                    "P321",
+                    "P3112",
+                    "P3121",
+                    "P3212",
+                    "P3221",
+                    "H32"
+                ],
+                "title": "Space Group",
+                "type": "string"
+            },
+            "strategy": {
+                "default": "full",
+                "enum": [
+                    "full",
+                    "minimal",
+                    "quick",
+                    "ultralong"
+                ],
+                "title": "Acquisition strategy",
+                "type": "string"
+            },
+            "use_cell_for_processing": {
+                "default": true,
+                "title": "Use for indexing",
+                "type": "boolean"
+            }
+        },
+        "title": "G\u03a6L Pre-strategy parameters",
+        "type": "object"
+    },
+    "ui_schema": {
+        "crystal_data": {
+            "cella": {
+                "ui:order": [
+                    "cell_a",
+                    "cell_alpha"
+                ]
+            },
+            "cellb": {
+                "ui:order": [
+                    "cell_b",
+                    "cell_beta"
+                ]
+            },
+            "cellc": {
+                "ui:order": [
+                    "cell_c",
+                    "cell_gamma"
+                ]
+            },
+            "sgroup": {
+                "relative_rad_sensitivity": {
+                    "ui:options": {
+                        "decimals": 2
+                    }
+                },
+                "ui:order": [
+                    "input_space_group",
+                    "relative_rad_sensitivity"
+                ]
+            },
+            "ui:order": [
+                "sgroup",
+                "cella",
+                "cellb",
+                "cellc"
+            ],
+            "ui:title": "Input Unit Cell",
+            "ui:widget": "column_grid"
+        },
+        "indexing_solution": {
+            "ui:options": {
+                "content": [
+                    [
+                        " *  44        aP          0.0      88.3   88.3   88.3  98.7  98.7  98.7",
+                        " *  14        mC          0.0     115.0  134.0   88.3  90.0 103.5  90.0",
+                        " *  25        mC          0.0     115.0  134.0   88.3  90.0 103.5  90.0",
+                        " *   4        hR          0.1     134.0  134.0  127.6  90.0  90.0 120.0",
+                        " *  31        aP         75.9      88.3   88.3   88.3  98.7  81.3  81.3",
+                        " *  20        mC         76.0     115.0  134.0   88.3  90.0 103.5  90.0",
+                        " *  10        mC         76.0     115.0  134.0   88.3  90.0 103.5  90.0",
+                        "     3        cP         76.0      88.3   88.3   88.3  98.7  98.7  98.7",
+                        "     5        cI         90.8     115.0  115.0  115.0  71.3  71.3  71.3",
+                        "    34        mP        151.9      88.3   88.3   88.3  98.7  98.7  98.7",
+                        "    33        mP        151.9      88.3   88.3   88.3  98.7  98.7  98.7",
+                        "    13        oC        151.9     115.0  134.0   88.3  90.0 103.5  90.0",
+                        "    35        mP        151.9      88.3   88.3   88.3  98.7  98.7  98.7",
+                        "    23        oC        151.9     115.0  134.0   88.3  90.0 103.5  90.0",
+                        "    32        oP        227.8      88.3   88.3   88.3  98.7  98.7  98.7",
+                        "    21        tP        227.8      88.3   88.3   88.3  98.7  98.7  98.7",
+                        "     2        hR        227.8     115.0  115.0  160.5  82.6  97.4 108.7",
+                        "    11        tP        227.8      88.3   88.3   88.3  98.7  98.7  98.7",
+                        "    39        mC        250.0     185.0   88.3   88.3  98.7 102.6  70.6",
+                        "    37        mC        250.0     185.0   88.3   88.3  98.7 102.6  70.6",
+                        "    41        mC        250.0     185.0   88.3   88.3  98.7 102.6  70.6",
+                        "    38        oC        325.9      88.3  185.0   88.3  77.4  98.7 109.4",
+                        "    36        oC        325.9      88.3  185.0   88.3  77.4  98.7 109.4",
+                        "    12        hP        325.9      88.3   88.3   88.3  98.7  98.7  98.7",
+                        "    40        oC        325.9      88.3  185.0   88.3  77.4  98.7 109.4",
+                        "    22        hP        326.0      88.3   88.3   88.3  98.7  98.7  98.7",
+                        "    29        mC        363.8      88.3  185.0   88.3 102.6  98.7  70.6",
+                        "    28        mC        363.9      88.3  185.0   88.3 102.6  98.7  70.6",
+                        "    30        mC        363.9      88.3  185.0   88.3 102.6  98.7  70.6",
+                        "     1        cF        401.9     160.4  127.6  160.5 105.4 113.2 105.4",
+                        "    42        oI        424.1      88.3  186.9   88.3 104.9 104.9  98.7",
+                        "    15        tI        424.1      88.3   88.3  186.9  75.1  75.1  98.7",
+                        "    27        mC        575.9     185.0   88.3  115.0  76.5 120.7  70.6",
+                        "    19        oI        575.9     115.0  160.4   88.3  82.6  56.6  76.5",
+                        "    26        oF        625.0     185.0  209.0   88.3  71.1 123.4 109.4",
+                        "    18        tI        625.0     115.0  160.4   88.3  56.6 103.5  97.4",
+                        "    24        hR        635.1     186.9  134.0   88.3  90.0  75.1 111.0",
+                        "     9        hR        750.0      88.3  115.0  296.8  78.0 118.6 130.6",
+                        "    17        mC        816.6     134.0  115.0  115.0  71.3 125.6  90.0",
+                        "     8        oI        816.6     115.0  115.0  115.0  71.3  71.3  71.3",
+                        "    16        oF        816.6     134.0  186.9  115.0  90.0 113.3  90.0",
+                        "     6        tI        816.6     115.0  115.0  115.0  71.3  71.3  71.3",
+                        "     7        tI        816.6     115.0  115.0  115.0  71.3  71.3  71.3",
+                        "    43        mI        999.0     115.0  186.9   88.3 104.9 130.6  66.7"
+                    ]
+                ],
+                "header": [
+                    "  LATTICE-  BRAVAIS-   QUALITY  UNIT CELL CONSTANTS (ANGSTROEM & DEGREES)\n CHARACTER  LATTICE     OF FIT      a      b      c   alpha  beta gamma"
+                ],
+                "highlights": {
+                    "3": {
+                        "0": "HIGHLIGHT"
+                    },
+                    "16": {
+                        "0": "HIGHLIGHT"
+                    },
+                    "36": {
+                        "0": "HIGHLIGHT"
+                    },
+                    "37": {
+                        "0": "HIGHLIGHT"
+                    }
+                },
+                "select_cell": [
+                    3,
+                    0
+                ],
+                "update_on_change": true
+            },
+            "ui:widget": "selection_table"
+        },
+        "parameters": {
+            "column1": {
+                "lattice": {
+                    "ui:options": {
+                        "update_on_change": true
+                    }
+                },
+                "point_groups": {
+                    "ui:options": {
+                        "update_on_change": true
+                    }
+                },
+                "space_group": {
+                    "ui:options": {
+                        "update_on_change": true
+                    }
+                },
+                "ui:order": [
+                    "lattice",
+                    "point_groups",
+                    "space_group",
+                    "use_cell_for_processing"
+                ]
+            },
+            "column2": {
+                "energy": {
+                    "ui:options": {
+                        "decimals": 4
+                    }
+                },
+                "resolution": {
+                    "ui:options": {
+                        "decimals": 3
+                    }
+                },
+                "ui:order": [
+                    "strategy",
+                    "resolution",
+                    "energy"
+                ]
+            },
+            "ui:order": [
+                "column1",
+                "column2"
+            ],
+            "ui:title": "Parameters",
+            "ui:widget": "column_grid"
+        },
+        "ui:options": {
+            "return_signal": "GphlParameterReturn",
+            "update_on_change": "selected",
+            "update_signal": "GphlUpdateUiParameters"
+        },
+        "ui:order": [
+            "indexing_solution",
+            "crystal_data",
+            "parameters"
+        ],
+        "ui:widget": "vertical_box"
+    }
+}

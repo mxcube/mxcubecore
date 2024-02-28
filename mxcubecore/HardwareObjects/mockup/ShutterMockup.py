@@ -36,27 +36,29 @@ class ShutterStates(Enum):
     AUTOMATIC = HardwareObjectState.READY, 10
 
 
-class ShutterMockup(ActuatorMockup, AbstractShutter):
+class ShutterMockup(AbstractShutter, ActuatorMockup):
     """
     ShutterMockup for simulating a simple open/close shutter.
+    Fake some of the states of the shutter to correspong to values.
     """
 
     SPECIFIC_STATES = ShutterStates
 
     def init(self):
         """Initialisation"""
-        super(ShutterMockup, self).init()
+        super().init()
+        self._initialise_values()
         self.update_value(self.VALUES.CLOSED)
         self.update_state(self.STATES.READY)
 
-    def is_open(self):
-        return self.get_value() is self.VALUES.OPEN
+    def _initialise_values(self):
+        """Add additional, known in advance states to VALUES"""
+        values_dict = {item.name: item.value for item in self.VALUES}
+        values_dict.update(
+            {
+                "MOVING": "In Motion",
+                "UNUSABLE": "Temporarily not controlled",
+            }
+        )
+        self.VALUES = Enum("ValueEnum", values_dict)
 
-    def is_closed(self):
-        return self.get_value() is self.VALUES.CLOSED
-
-    def open(self):
-        self.set_value(self.VALUES.OPEN, timeout=None)
-
-    def close(self):
-        self.set_value(self.VALUES.CLOSED, timeout=None)

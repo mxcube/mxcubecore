@@ -43,20 +43,11 @@
     <!-- HardwareRepository directories on the lookup path -->
 
     <software_paths>
-        <!-- Location of Java binary to execute for workflow application -->
-        <java_binary>{GPHL_SETUP}/jre1.8.0_144/bin/java</java_binary>
-        <!-- Debug mode:  -->
-        <!--<java_binary>ssh -i /home/rhfogh/.ssh/wf_test_id -o StrictHostKeyChecking=no lonsdale java</java_binary>-->
-
         <!-- Location of GPhL release, containing program binaries (or their wrapper scripts) -->
         <GPHL_INSTALLATION>{GPHL_RELEASE}/gphl_release/exe</GPHL_INSTALLATION>
 
         <!-- Location of CCP4 release binaries - required ot pass on to some wrapper scripts -->
         <GPHL_CCP4_PATH>/alt/rhfogh/Software/CCP4/latest/bin</GPHL_CCP4_PATH>
-
-        <!-- Gphl workflow Java classpath. -->
-        <!--Should point to all contents of workflow application directory-->
-        <gphl_java_classpath>{GPHL_SETUP}/workflow/gphl_java_classes/lib/*</gphl_java_classpath>
 
         <!-- Directory with workflow config input, e.g. instrumentation.nml -->
         <gphl_beamline_config>gphl_beamline_config</gphl_beamline_config>

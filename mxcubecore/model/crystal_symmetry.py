@@ -39,6 +39,20 @@ CrystalClassInfo = namedtuple(
         "laue_group",
     ),
 )
+
+
+# Crystal families (one-letter codes) compatible with a solution in a given family
+# These are the solutions that could aply using the same axes,
+# hence "c" not compatible with "h
+SUB_LATTICE_MAP = {
+    "a": "a",
+    "m": "am",
+    "o": "amo",
+    "t": "amot",
+    "h": "amh",
+    "c": "amotc"
+}
+
 # Data from https://onlinelibrary.wiley.com/iucr/itc/Cb/ch1o4v0001/
 # Laue group names from http://pd.chem.ucl.ac.uk/pdnn/symm2/laue1.htm
 # Point group names from https://en.wikipedia.org/wiki/Crystallographic_point_group
@@ -270,28 +284,28 @@ SPACEGROUP_DATA = [
     SpaceGroupInfo(143, "P3", "3P"),
     SpaceGroupInfo(144, "P31", "3P"),
     SpaceGroupInfo(145, "P32", "3P"),
-    SpaceGroupInfo(146, "R3", "3R"),
+    SpaceGroupInfo(146, "H3", "3R"),
     SpaceGroupInfo(147, "P-3", "-3P"),
-    SpaceGroupInfo(148, "R-3", "-3R"),
+    SpaceGroupInfo(148, "H-3", "-3R"),
     SpaceGroupInfo(149, "P312", "312P"),
     SpaceGroupInfo(150, "P321", "321P"),
     SpaceGroupInfo(151, "P3112", "312P"),
     SpaceGroupInfo(152, "P3121", "321P"),
     SpaceGroupInfo(153, "P3212", "312P"),
     SpaceGroupInfo(154, "P3221", "321P"),
-    SpaceGroupInfo(155, "R32", "32R"),
+    SpaceGroupInfo(155, "H32", "32R"),
     SpaceGroupInfo(156, "P3m1", "3m1P"),
     SpaceGroupInfo(157, "P31m", "31mP"),
     SpaceGroupInfo(158, "P3c1", "3m1P"),
     SpaceGroupInfo(159, "P31c", "31mP"),
-    SpaceGroupInfo(160, "R3m", "3mR"),
-    SpaceGroupInfo(161, "R3c", "3mR"),
+    SpaceGroupInfo(160, "H3m", "3mR"),
+    SpaceGroupInfo(161, "H3c", "3mR"),
     SpaceGroupInfo(162, "P-31m", "-31mP"),
     SpaceGroupInfo(163, "P-31c", "-31mP"),
     SpaceGroupInfo(164, "P-3m1", "-3m1P"),
     SpaceGroupInfo(165, "P-3c1", "-3m1P"),
-    SpaceGroupInfo(166, "R-3m", "-3mR"),
-    SpaceGroupInfo(167, "R-3c", "-3mR"),
+    SpaceGroupInfo(166, "H-3m", "-3mR"),
+    SpaceGroupInfo(167, "H-3c", "-3mR"),
     SpaceGroupInfo(168, "P6", "6P"),
     SpaceGroupInfo(169, "P61", "6P"),
     SpaceGroupInfo(170, "P65", "6P"),
@@ -385,14 +399,36 @@ BRAVAIS_LATTICES = (
 )
 UI_LATTICES = BRAVAIS_LATTICES + ("mI",)
 
+def filter_crystal_classes(bravais_lattice, crystal_classes=()):
+    """ Filter crystal classes to select those compatible with selected Bravais lattice
+
+    including sublattices
+
+    Args:
+        bravais_lattice: str
+        crystal_classes: Sequence
+
+    Returns:
+        tuople
+
+    """
+    compatibles = SUB_LATTICE_MAP[bravais_lattice[0]]
+    result = tuple(
+        xcls for xcls in crystal_classes
+        if CRYSTAL_CLASS_MAP[xcls].bravais_lattice[0] in compatibles
+    )
+    #
+    return result
+
 
 def space_groups_from_params(lattices=(), point_groups=(), chiral_only=True):
-    """list of names sfo space groups compatible with lattices and point groups
+    """list of names of space groups compatible with lattices and point groups
     Given in space group number order
 
     Args:
         lattices:
         point_groups:
+        chiral_only:
 
     Returns:
 
@@ -445,7 +481,7 @@ def space_groups_from_params(lattices=(), point_groups=(), chiral_only=True):
 
 
 def crystal_classes_from_params(
-    lattices: list = (), point_groups: list = (), space_group: str = None
+    lattices: tuple = (), point_groups: tuple = (), space_group: str = None
 ):
     """
     Get tuple of crystal class names compatible with input parameters,
@@ -523,7 +559,7 @@ def strategy_laue_group(crystal_classes: tuple, phasing=False):
     laue_groups = frozenset(laue_groups)
     result = laue_group_map.get(laue_groups)
     if result is None:
-        if lattices.issubset(set(("hP", "hR"))):
+        if lattices and lattices.issubset(set(("hP", "hR"))):
             if laue_groups == set(("-3m",)) and lattices == set(("hR",)):
                 # NB Includes non-chiral crystal classes
                 result = ("-3m", "32")
@@ -536,3 +572,12 @@ def strategy_laue_group(crystal_classes: tuple, phasing=False):
             result = ("-1", "1")
     #
     return result
+
+
+def regularise_space_group(sgname:str):
+    """Convert finput (ISPyB) space gorup name to official space group name"""
+
+    if sgname in SPACEGROUP_MAP:
+        return sgname
+    else:
+        return None

@@ -25,12 +25,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install poetry --user
-          python -m poetry install
-
-      - name: Linting and code quality checks
-        run: |
-          # Disabled for now
-          # python -m poetry run pre-commit run --all-files
+          python -m poetry install --extras=tango
 
       - name: Test with pytest
         run: |

@@ -1,0 +1,22 @@
+name: mxcubecore
+channels:
+  - conda-forge
+dependencies:
+
+  ### Runtime dependencies
+
+  - python >=3.8,<3.11
+
+  # We install `python-ldap` from conda because it is "hard" to install.
+  # On PyPI it is not available as *wheel*, only as *sdist* which requires to be built
+  # with compilation steps that require a compiler and some header files.
+  # Installing with conda is much "easier".
+  #
+  # IMPORTANT:
+  # Always make sure that `python-ldap` here is pinned to the same version
+  # as in the Poetry lockfile `poetry.lock` (not the other way around).
+  - python-ldap=3.4.3
+
+  ### Development dependencies
+
+  - poetry

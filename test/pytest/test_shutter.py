@@ -42,31 +42,21 @@ class TestShutter(TestAbstractNStateBase.TestAbstractNStateBase):
         ), "Shutter hardware objects is None (not initialized)"
 
         # The methods are defined with abc.abstractmethod which will raise
-        # an exception if the method is not defined. So there is no need to test for
-        # the presence of each method
+        # an exception if the method is not defined. So there is no need to
+        # test for the presence of each method
+        print(f"state is {test_object.get_state()}")
         assert test_object.get_state() == HardwareObjectState.READY
 
     def test_shutter_open_close(self, test_object):
-        test_object.open()
-        assert test_object.is_open() is True
-        assert test_object.is_closed() is False
+        test_object.open(timeout=None)
+        assert test_object.is_open is True
 
         assert test_object.get_state() == HardwareObjectState.READY
 
-        test_object.close()
-        assert test_object.is_open() is False
-        assert test_object.is_closed() is True
+        test_object.close(timeout=None)
+        assert test_object.is_open is False
 
-    """
-    def test_shutter_is_valid(self, test_object):
-        test_object.close()
-        assert test_object.is_valid()
-
-        try:
-            test_object.current_state = None
-        except Exception:
-            assert True
-
-        test_object.open()
-        assert test_object.is_valid()
-    """
+    def test_shutter_value(self, test_object):
+        for val in test_object.VALUES:
+            test_object.set_value(val, timeout=None)
+            assert test_object.get_value() == val

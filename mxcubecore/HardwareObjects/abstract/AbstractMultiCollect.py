@@ -9,6 +9,7 @@ import abc
 import collections
 import autoprocessing
 import gevent
+import socket
 from mxcubecore.TaskUtils import task, cleanup, error_cleanup
 
 from mxcubecore import HardwareRepository as HWR
@@ -228,6 +229,16 @@ class AbstractMultiCollect(object):
         pass
 
     @abc.abstractmethod
+    def set_fast_characterisation(self, value: bool):
+        """
+        Use fast characterisation
+
+        Args:
+            value (boolean): True if to use fast characterisation otherwise False
+        """
+        pass
+
+    @abc.abstractmethod
     @task
     def generate_image_jpeg(self, filename, jpeg_path, jpeg_thumbnail_path):
         pass
@@ -272,6 +283,31 @@ class AbstractMultiCollect(object):
             except os.error as e:
                 if e.errno != errno.EEXIST:
                     raise
+
+    def adxv_notify(self, image_filename: str, image_num: int = 1):
+        """
+        Notify ADXV of new image
+
+        Args:
+           image_filename: full path to image file
+           image_num: image number within image file to open (if it conatins
+                      mutiple images i.e HDF5)
+        """
+        logging.getLogger("HWR").info(f"ADXV notify {image_filename}")
+        adxv_host = self.get_property("adxv_host", "localhost")
+        adxv_port = int(self.get_property("adxv_port", "8100"))
+
+        try:
+            adxv_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            adxv_socket.connect((adxv_host, adxv_port))
+            adxv_socket.sendall(
+                f"load_image {image_filename}\n slab {image_num}\n".encode()
+            )
+            adxv_socket.close()
+        except Exception:
+            logging.getLogger("HWR").exception("")
+        else:
+            pass
 
     def _take_crystal_snapshots(self, number_of_snapshots):
         try:
@@ -342,6 +378,27 @@ class AbstractMultiCollect(object):
 
     def execute_collect_without_loop(self, data_collect_parameters):
         return
+
+    def emit_progress(self, progress):
+        if progress == 0:
+            self.emit("collectReady", (False,))
+            self.emit("collectStarted", (None, 1))
+
+            self.emit("collectImageTaken", progress)
+        elif progress == 1:
+            self.emit(
+                "collectEnded",
+                None,
+                "Data collection successful",
+            )
+            self.emit("collectReady", (True,))
+        elif progress > 0:
+            self.emit("collectImageTaken", progress)
+        elif progress == -1:
+            self.emit(
+                "collectOscillationFailed",
+                (None, False, "Collection failed", 0, 0),
+            )
 
     def do_collect(self, owner, data_collect_parameters):
         if self.__safety_shutter_close_task is not None:
@@ -732,14 +789,21 @@ class AbstractMultiCollect(object):
                 HWR.beamline.flux.wait_for_beam()
 
             # Wait for cryo
-            while (
-                check_cryo
-                and HWR.beamline.diffractometer.cryostream.get_value() > cryo_threshold
-            ):
-                logging.getLogger("user_level_log").info(
-                    "Cryo temperature too high ..."
-                )
-                gevent.sleep(0.5)
+            # from time to time cryo does not answer
+            cryo_temp = 999
+            while check_cryo and cryo_temp > cryo_threshold:
+                try:
+                    logging.getLogger("user_level_log").info(
+                        "Cryo temperature reading ..."
+                    )
+                    cryo_temp = HWR.beamline.diffractometer.cryostream.get_value()
+                    if cryo_temp > cryo_threshold:
+                        logging.getLogger("user_level_log").info(
+                            "Cryo temperature too high ..."
+                        )
+                        gevent.sleep(0.5)
+                except:
+                    break
 
             logging.getLogger("user_level_log").info("Preparing intensity monitors")
             self.prepare_intensity_monitors()
@@ -853,6 +917,7 @@ class AbstractMultiCollect(object):
                     j = wedge_size
 
                     _total_time_spent = 0
+                    _total_exptime = exptime
                     while j > 0:
                         _time_start = time.time()
                         frame_start = start + i * osc_range
@@ -899,7 +964,6 @@ class AbstractMultiCollect(object):
                                 osc_start,
                                 osc_end,
                                 exptime,
-                                wedge_size,
                                 data_collect_parameters.get("shutterless", True),
                                 npass,
                                 j == wedge_size,
@@ -957,6 +1021,10 @@ class AbstractMultiCollect(object):
                                 ),
                             )
 
+                        last_image_saved = self.last_image_saved(
+                            _total_exptime, exptime, wedge_size
+                        )
+
                         if data_collect_parameters.get("shutterless"):
                             with gevent.Timeout(
                                 self.first_image_timeout,
@@ -964,14 +1032,20 @@ class AbstractMultiCollect(object):
                                     "Timeout waiting for detector trigger, no image taken"
                                 ),
                             ):
-                                while self.last_image_saved() == 0:
-                                    time.sleep(exptime)
+                                if last_image_saved <= 0:
+                                    last_image_saved = elf.last_image_saved(
+                                        _total_exptime, exptime, wedge_size
+                                    )
 
-                            last_image_saved = self.last_image_saved()
+                            last_image_saved = self.last_image_saved(
+                                _total_exptime, exptime, wedge_size
+                            )
 
                             if last_image_saved < wedge_size:
                                 time.sleep(exptime)
-                                last_image_saved = self.last_image_saved()
+                                last_image_saved = self.last_image_saved(
+                                    _total_exptime, exptime, wedge_size
+                                )
                             frame = max(
                                 start_image_number + 1,
                                 start_image_number + last_image_saved - 1,
@@ -986,6 +1060,7 @@ class AbstractMultiCollect(object):
                                 break
 
                         _total_time_spent += time.time() - _time_start
+                        _total_exptime += exptime
 
                         # if _total_time_spent > (wedge_size * (exptime + 0.005)) * 4:
                         #    msg = "Data collection failure, detector not responding"

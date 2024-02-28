@@ -5,6 +5,7 @@ import time
 import itertools
 import os
 import traceback
+import warnings
 from pprint import pformat
 from collections import namedtuple
 from datetime import datetime
@@ -38,6 +39,9 @@ if sys.version_info > (3, 0):
     suds_encode = bytes.decode
 
 logging.getLogger("suds").setLevel(logging.INFO)
+
+
+LOGIN_TYPE_FALLBACK = "proposal"
 
 
 # Production web-services:    http://160.103.210.1:8080/ispyb-ejb3/ispybWS/
@@ -167,7 +171,6 @@ class ISPyBClient(HardwareObject):
         self._disabled = False
 
         self.authServerType = None
-        self.loginType = None
         self.loginTranslate = None
 
         self.ws_root = None
@@ -175,6 +178,9 @@ class ISPyBClient(HardwareObject):
         self.ws_password = None
 
         self.base_result_url = None
+        self.group_id = None
+
+        self.login_ok = False
 
     def init(self):
         """
@@ -182,6 +188,7 @@ class ISPyBClient(HardwareObject):
         """
         self.lims_rest = self.get_object_by_role("lims_rest")
         self.pyispyb = self.get_object_by_role("pyispyb")
+        self.icat_client = self.get_object_by_role("icat_client")
 
         self.authServerType = self.get_property("authServerType") or "ldap"
         if self.authServerType == "ldap":
@@ -190,7 +197,6 @@ class ISPyBClient(HardwareObject):
             if self.ldapConnection is None:
                 logging.getLogger("HWR").debug("LDAP Server is not available")
 
-        self.loginType = self.get_property("loginType") or "proposal"
         self.loginTranslate = self.get_property("loginTranslate") or True
         self.beamline_name = HWR.beamline.session.beamline_name
 
@@ -322,7 +328,15 @@ class ISPyBClient(HardwareObject):
                 except AttributeError:
                     pass
 
+    @property
+    def loginType(self):
+        return self.get_property("loginType", LOGIN_TYPE_FALLBACK)
+
     def get_login_type(self):
+        warnings.warn(
+            "Deprecated method `get_login_type`. Use `loginType` property instead.",
+            DeprecationWarning,
+        )
         return self.loginType
 
     def translate(self, code, what):
@@ -640,6 +654,8 @@ class ISPyBClient(HardwareObject):
         proposal_code = ""
         proposal_number = ""
 
+        self.login_ok = False
+
         # For porposal login, split the loginID to code and numbers
         if self.loginType == "proposal":
             proposal_code = "".join(
@@ -654,7 +670,8 @@ class ISPyBClient(HardwareObject):
         # Authentication
         if self.authServerType == "ldap":
             logging.getLogger("HWR").debug("LDAP login")
-            ok, msg = self.ldap_login(login_name, psd, ldap_connection)
+            ok = self.ldap_login(login_name, psd, ldap_connection)
+            msg = loginID
             logging.getLogger("HWR").debug("searching for user %s" % login_name)
         elif self.authServerType == "ispyb":
             logging.getLogger("HWR").debug("ISPyB login")
@@ -693,6 +710,8 @@ class ISPyBClient(HardwareObject):
                 "session": None,
             }
 
+        self.login_ok = True
+
         logging.getLogger("HWR").debug("Proposal is fine, get sessions from ISPyB...")
         logging.getLogger("HWR").debug(prop)
 
@@ -722,11 +741,16 @@ class ISPyBClient(HardwareObject):
         }
 
     def ldap_login(self, login_name, psd, ldap_connection):
+        warnings.warn(
+            ("Using Authenticatior from ISPyBClient is deprecated,"
+            "use Authenticator to authenticate spereatly and then login to ISPyB"),
+            DeprecationWarning
+        )
+
         if ldap_connection is None:
             ldap_connection = self.ldapConnection
 
-        ok, msg = ldap_connection.login(login_name, psd)
-        return ok, msg
+        return ldap_connection.authenticate(login_name, psd)
 
     def get_todays_session(self, prop, create_session=True):
         logging.getLogger("HWR").debug("getting proposal for todays session")
@@ -794,6 +818,11 @@ class ISPyBClient(HardwareObject):
             session_id = todays_session["sessionId"]
             logging.getLogger("HWR").debug("getting local contact for %s" % session_id)
             localcontact = self.get_session_local_contact(session_id)
+        elif prop.get("Session", None):
+            logging.getLogger("HWR").debug(
+                "No session for today, reusing previous ! %s" % prop["Session"]
+            )
+            todays_session = prop["Session"][0]
         else:
             todays_session = {}
 
@@ -1591,6 +1620,9 @@ class ISPyBClient(HardwareObject):
     def enable(self):
         self._disabled = False
 
+    def is_connected(self):
+        return self.login_ok
+
     def isInhouseUser(self, proposal_code, proposal_number):
         """
         Returns True if the proposal is considered to be a
@@ -1635,7 +1667,7 @@ class ISPyBClient(HardwareObject):
         """
         Stores or updates a DataCollectionGroup object.
         The entry is updated of the group_id in the
-        mx_collection dictionary is set to an exisitng
+        mx_collection dictionary is set to an exisiting
         DataCollectionGroup id.
 
         :param mx_collection: The dictionary of values to create the object from.
@@ -1644,15 +1676,20 @@ class ISPyBClient(HardwareObject):
         :returns: DataCollectionGroup id
         :rtype: int
         """
-
         if self._collection:
-            group = ISPyBValueFactory().dcg_from_dc_params(
-                self._collection, mx_collection
-            )
+            group_id = None
+            if mx_collection["ispyb_group_data_collections"]:
+                group_id = mx_collection.get("group_id", None)
+            if group_id is None:
+                # Create a new group id
+                group = ISPyBValueFactory().dcg_from_dc_params(
+                    self._collection, mx_collection
+                )
+                self.group_id = (
+                    self._collection.service.storeOrUpdateDataCollectionGroup(group)
+                )
+            mx_collection["group_id"] = self.group_id
 
-            group_id = self._collection.service.storeOrUpdateDataCollectionGroup(group)
-
-            return group_id
 
     def _store_data_collection_group(self, group_data):
         """ """
@@ -1922,6 +1959,11 @@ class ISPyBClient(HardwareObject):
         """Stores robot action"""
 
         action_id = None
+
+        logging.getLogger("HWR").debug(
+            "  - storing robot_actions in lims : %s" % str(robot_action_dict)
+        )
+
         if True:
             # try:
             robot_action_vo = self._collection.factory.create("robotActionWS3VO")
@@ -2229,7 +2271,7 @@ class ISPyBValueFactory:
 
         try:
             data_collection.dataCollectionId = int(mx_collect_dict["collection_id"])
-        except KeyError:
+        except (TypeError, ValueError, KeyError):
             pass
 
         try:

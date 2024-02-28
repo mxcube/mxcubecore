@@ -75,7 +75,8 @@ class MotorMockup(ActuatorMockup, AbstractMotor):
             self._wrap_range = DEFAULT_WRAP_RANGE
         if self.default_value is None:
             self.default_value = DEFAULT_VALUE
-            self.update_value(DEFAULT_VALUE)
+            self.update_value(self.default_value)
+
         self.update_state(self.STATES.READY)
 
     def _move(self, value):
@@ -118,3 +119,7 @@ class MotorMockup(ActuatorMockup, AbstractMotor):
             self.update_specific_state(None)
 
         return value
+    
+    def is_moving(self):
+        return ( (self.get_state() == self.STATES.BUSY ) or (self.get_state() == self.SPECIFIC_STATES.MOVING))
+

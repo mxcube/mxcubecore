@@ -52,10 +52,7 @@ spectrum_test_data = [
 ]
 
 
-class XRFSpectrumMockup(AbstractXRFSpectrum, HardwareObject):
-    def __init__(self, name):
-        AbstractXRFSpectrum.__init__(self)
-        HardwareObject.__init__(self, name)
+class XRFSpectrumMockup(AbstractXRFSpectrum):
 
     def init(self):
         pass

@@ -21,7 +21,7 @@ PHASE_ACTION = {
 
 class Oxford700(AbstractActuator):
     def __init__(self, name):
-        AbstractActuator.__init__(self, name)
+        super().__init__(name)
 
         self.temp = None
         self.temp_error = None
@@ -35,20 +35,17 @@ class Oxford700(AbstractActuator):
             gevent.sleep(self.interval)
 
     def init(self):
-        controller = HWR.get_hardware_repository().get_hardware_object(
-            self.get_property("controller")
-        )
+        controller = self.get_object_by_role("controller")
         cryostat = self.get_property("cryostat")
         self.interval = self.get_property("interval") or 10
         self.ctrl = getattr(controller, cryostat)
-        if self.ctrl is not None:
-            # self.get_params()
+        if self.ctrl:
             gevent.spawn(self._do_polling)
             self._hw_ctrl = self.ctrl.controller._hw_controller
 
     def value_changed(self):
-        self.emit("temperatureChanged", (self.get_temperature(),))
-        self.emit("valueChanged", (self.get_temperature(),))
+        self.emit("temperatureChanged", (self.get_value(),))
+        self.emit("valueChanged", (self.get_value(),))
         self.emit("stateChanged", (self.get_state(),))
 
     def get_temperature(self):

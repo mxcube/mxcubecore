@@ -1,0 +1,18 @@
+{
+    "cell_a": 86.75,
+    "cell_alpha": 90.0,
+    "cell_b": 86.75,
+    "cell_beta": 90.0,
+    "cell_c": 85.6276,
+    "cell_gamma": 90.0,
+    "energy": 12.4,
+    "indexing_solution": " *   5        cI         11.6      86.8   85.7   86.9  90.0  90.0  90.0",
+    "input_space_group": "I4",
+    "lattice": "Cubic",
+    "point_groups": "432",
+    "relative_rad_sensitivity": 1.0,
+    "resolution": 1.7,
+    "space_group": "F432",
+    "strategy": "full",
+    "use_cell_for_processing": true
+}

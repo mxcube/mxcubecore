@@ -27,7 +27,8 @@ All HardwareObjects
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
-from typing import Union
+from typing import Union, Any
+from mxcubecore.dispatcher import dispatcher
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -124,6 +125,16 @@ class Beamline(ConfiguredObject):
         # List of undulators
         self.undulators = []
 
+        # Format of mesh result for display
+        self.mesh_result_format = "PNG"
+
+        # bool Use the native mesh feature available, true by default
+        self.use_native_mesh = True
+
+        # bool Enable features to work with points in the plane, called
+        # 2D-points, (none centred positions)
+        self.enable_2d_points = True
+
         # Dictionary with the python id of hardwareobject as key
         # and the "dotted/attribute path" to hardwareobject from the
         # Beamline object
@@ -153,7 +164,7 @@ class Beamline(ConfiguredObject):
     def _hwr_init_done(self):
         """
         Method called after the initialization of HardwareRepository is done
-        (when all HardwreObjects have been created and initialized)
+        (when all HardwareObjects have been created and initialized)
         """
         self._hardware_object_id_dict = self._get_id_dict()
 
@@ -211,7 +222,7 @@ class Beamline(ConfiguredObject):
         "dotted path/attribute"
 
         Args:
-            ho (HardwreObject): The HardwareObject to get the id for
+            ho (HardwareObject): The HardwareObject to get the id for
             _path (str): Current path (used in recursion)
             result: A dictionary where the key is the id of the HardwareObject
                     and the value its dotted path.
@@ -228,6 +239,36 @@ class Beamline(ConfiguredObject):
                     )
 
         return _path
+
+
+    # Signal handling functions:
+    def emit(self, signal: Union[str, object, Any], *args) -> None:
+        """Emit signal. Accepts both multiple args and a single tuple of args.
+
+        This is needed for communication from the GUI to the core
+        (jsonparamsgui in mxcubeqt)
+
+        NBNB TODO HACK
+        This is a duplicate of the same function in HardwareObjectMixin.
+        Since the Beamline is not a CommandContainer or a normal HardwareObject
+        it may not be appropriate to make it a subclass of HardwareObjectYaml
+        We need to consider how we want this organised
+
+        Args:
+            signal (Union[str, object, Any]): In practice a string, or dispatcher.
+            *args (tuple): Arguments sent with signal.
+        """
+
+        signal = str(signal)
+
+        if len(args) == 1:
+            if isinstance(args[0], tuple):
+                args = args[0]
+        responses: list = dispatcher.send(signal, self, *args)
+        if not responses:
+            raise RuntimeError(
+                "Signal %s is not connected" % signal
+            )
 
     # NB this function must be re-implemented in nested subclasses
     @property
@@ -249,6 +290,18 @@ class Beamline(ConfiguredObject):
         return self._objects.get("machine_info")
 
     __content_roles.append("machine_info")
+
+
+    @property
+    def authenticator(self):
+        """Authenticator Hardware object
+
+        Returns:
+            Optional[AbstractAuthenticator]:
+        """
+        return self._objects.get("authenticator")
+
+    __content_roles.append("authenticator")
 
     @property
     def transmission(self):
@@ -721,6 +774,10 @@ class Beamline(ConfiguredObject):
 
         acq_parameters = queue_model_objects.AcquisitionParameters()
 
+        #logging.getLogger("HWR").debug(f"""
+            #Beamline object. Getting acquisition parameters for acquisition type {acquisition_type}
+        #""")
+
         params = self.default_acquisition_parameters["default"].copy()
         if acquisition_type != "default":
             dd0 = self.default_acquisition_parameters.get(acquisition_type)
@@ -733,19 +790,25 @@ class Beamline(ConfiguredObject):
 
                 params.update(dd0)
 
+        #logging.getLogger("HWR").debug(f"""
+              #params are {params}
+        #""")
+
         for tag, val in params.items():
             setattr(acq_parameters, tag, val)
 
         motor_positions = self.diffractometer.get_positions()
-        osc_start = motor_positions.get("phi", params["osc_start"])
-        acq_parameters.osc_start = round(float(osc_start), 2)
-        kappa = motor_positions.get("kappa", 0.0)
-        kappa = kappa if kappa else 0.0
-        acq_parameters.kappa = round(float(kappa), 2)
-        kappa_phi = motor_positions.get("kappa_phi", 0.0)
-        kappa_phi = kappa_phi if kappa_phi else 0.0
-        acq_parameters.kappa_phi = round(float(kappa_phi), 2)
-
+        osc_start = (
+            None
+            if not params["osc_start"]
+            else motor_positions.get("phi", params["osc_start"])
+        )
+        acq_parameters.osc_start = osc_start
+        kappa = motor_positions.get("kappa", False)
+        kappa = kappa if kappa else None
+        acq_parameters.kappa = round(float(kappa), 2) if kappa else None
+        kappa_phi = motor_positions.get("kappa_phi", False)
+        acq_parameters.kappa_phi = round(float(kappa_phi), 2) if kappa_phi else None
         try:
             acq_parameters.resolution = self.resolution.get_value()
         except Exception:
@@ -773,14 +836,7 @@ class Beamline(ConfiguredObject):
             )
             acq_parameters.transmission = 0.0
 
-        try:
-            acq_parameters.shutterless = self.detector.has_shutterless()
-        except Exception:
-            logging.getLogger("HWR").warning(
-                "get_default_acquisition_parameters: "
-                "Could not get has_shutterless, setting to False"
-            )
-            acq_parameters.shutterless = False
+        acq_parameters.shutterless = params.get("shutterless", True)
 
         try:
             acq_parameters.detector_binning_mode = self.detector.get_binning_mode()

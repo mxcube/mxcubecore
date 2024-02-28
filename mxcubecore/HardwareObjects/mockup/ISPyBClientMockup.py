@@ -4,6 +4,7 @@ A client for ISPyB Webservices.
 
 import logging
 import time
+import warnings
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
@@ -20,6 +21,9 @@ except Exception:
 # to simulate no session scheduled, use "nosession" for password
 
 
+LOGIN_TYPE_FALLBACK = "proposal"
+
+
 class ISPyBClientMockup(HardwareObject):
     """
     Web-service client for ISPyB.
@@ -30,9 +34,9 @@ class ISPyBClientMockup(HardwareObject):
         self.__translations = {}
         self.__disabled = False
         self.__test_proposal = None
-        self.loginType = None
         self.base_result_url = None
         self.lims_rest = None
+        self.login_ok = True
 
     def init(self):
         """
@@ -42,11 +46,10 @@ class ISPyBClientMockup(HardwareObject):
         self.authServerType = self.get_property("authServerType") or "ldap"
         if self.authServerType == "ldap":
             # Initialize ldap
-            self.ldapConnection = self.get_object_by_role("ldapServer")
-            if self.ldapConnection is None:
+            self.ldap_connection = self.get_object_by_role("ldapServer")
+            if self.ldap_connection is None:
                 logging.getLogger("HWR").debug("LDAP Server is not available")
 
-        self.loginType = self.get_property("loginType") or "proposal"
         self.beamline_name = HWR.beamline.session.beamline_name
 
         try:
@@ -86,13 +89,20 @@ class ISPyBClientMockup(HardwareObject):
             "Laboratory": {"laboratoryId": 1, "name": "TEST eh1"},
         }
 
+    @property
+    def loginType(self):
+        return self.get_property("loginType", LOGIN_TYPE_FALLBACK)
+
     def get_login_type(self):
-        self.loginType = self.get_property("loginType") or "proposal"
+        warnings.warn(
+            "Deprecated method `get_login_type`. Use `loginType` property instead.",
+            DeprecationWarning,
+        )
         return self.loginType
 
-    def login(self, loginID, psd, ldap_connection=None, create_session=True):
+    def login(self, login_id, psd, ldap_connection=None, create_session=True):
         # to simulate wrong loginID
-        if loginID != "idtest0":
+        if login_id != "idtest0":
             return {
                 "status": {"code": "error", "msg": "loginID 'wrong' does not exist!"},
                 "Proposal": None,
@@ -116,12 +126,13 @@ class ISPyBClientMockup(HardwareObject):
         new_session = False
         if psd == "nosession":
             new_session = True
-        prop = self.get_proposal(loginID, 9999)
+        prop = self.get_proposal(login_id, 9999)
+
         return {
             "status": {"code": "ok", "msg": "Successful login"},
             "Proposal": prop["Proposal"],
             "Session": {
-                "session": prop["Session"],
+                "session": prop["Session"][0],
                 "new_session_flag": new_session,
                 "is_inhouse": False,
             },
@@ -130,40 +141,40 @@ class ISPyBClientMockup(HardwareObject):
             "Laboratory": prop["Laboratory"],
         }
 
-    def get_todays_session(self, prop):
+    def get_todays_session(self, prop, create_session=True):
         try:
-            sessions = prop["Session"]
+            session = prop["Session"]
         except KeyError:
-            sessions = None
+            session = None
+
         # Check if there are sessions in the proposal
         todays_session = None
-        if sessions is None or len(sessions) == 0:
-            pass
-        else:
-            # Check for today's session
-            for session in sessions:
-                beamline = session["beamlineName"]
-                start_date = "%s 00:00:00" % session["startDate"].split()[0]
-                end_date = "%s 23:59:59" % session["endDate"].split()[0]
+
+        if not session:
+            beamline = session["beamlineName"]
+            start_date = "%s 00:00:00" % session["startDate"].split()[0]
+            end_date = "%s 23:59:59" % session["endDate"].split()[0]
+
+            try:
+                start_struct = time.strptime(start_date, "%Y-%m-%d %H:%M:%S")
+            except ValueError:
+                pass
+            else:
                 try:
-                    start_struct = time.strptime(start_date, "%Y-%m-%d %H:%M:%S")
+                    end_struct = time.strptime(end_date, "%Y-%m-%d %H:%M:%S")
                 except ValueError:
                     pass
                 else:
-                    try:
-                        end_struct = time.strptime(end_date, "%Y-%m-%d %H:%M:%S")
-                    except ValueError:
-                        pass
-                    else:
-                        start_time = time.mktime(start_struct)
-                        end_time = time.mktime(end_struct)
-                        current_time = time.time()
-                        # Check beamline name
-                        if beamline == self.beamline_name:
-                            # Check date
-                            if current_time >= start_time and current_time <= end_time:
-                                todays_session = session
-                                break
+                    start_time = time.mktime(start_struct)
+                    end_time = time.mktime(end_struct)
+                    current_time = time.time()
+
+                    # Check beamline name
+                    if beamline == self.beamline_name:
+                        # Check date
+                        if current_time >= start_time and current_time <= end_time:
+                            todays_session = session
+
         new_session_flag = False
         if todays_session is None:
             # a newSession will be created, UI (Qt, web) can decide to accept the
@@ -247,6 +258,9 @@ class ISPyBClientMockup(HardwareObject):
             translated = code
 
         return translated
+
+    def is_connected(self):
+        return self.login_ok
 
     def isInhouseUser(self, proposal_code, proposal_number):
         """

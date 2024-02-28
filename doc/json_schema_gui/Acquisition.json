@@ -1,0 +1,186 @@
+{
+    "schema": {
+        "properties": {
+            "Main": {
+                "default": 12.4,
+                "maximum": 20,
+                "minimum": 4,
+                "readOnly": true,
+                "title": "Main beam energy (keV)",
+                "type": "number"
+            },
+            "_info": {
+                "default": "Strategy 'full', for symmetry '32'\n\nExperiment length (per repetition):  568.0\u00b0\n\nSweep :  kappa=  157.6\u00b0,  kappa_phi= -177.2\u00b0,  phi=  -48.0\u00b0,  sweep width=  208.0\u00b0\n\nSweep :  kappa=   48.1\u00b0,  kappa_phi= -170.6\u00b0,  phi=   21.5\u00b0,  sweep width=  360.0\u00b0",
+                "readOnly": true,
+                "type": "textdisplay"
+            },
+            "dose_budget": {
+                "default": 11.615947511926178,
+                "minimum": 0.0,
+                "readOnly": true,
+                "title": "Dose budget (MGy)",
+                "type": "number"
+            },
+            "experiment_time": {
+                "default": 227.2,
+                "readOnly": true,
+                "title": "Experiment duration (s)",
+                "type": "number"
+            },
+            "exposure": {
+                "default": 0.04,
+                "maximum": 60000,
+                "minimum": 0.04,
+                "title": "Exposure Time (s)",
+                "type": "number"
+            },
+            "image_width": {
+                "default": "0.1",
+                "enum": [
+                    "0.05",
+                    "0.1",
+                    "0.2"
+                ],
+                "title": "Oscillation range",
+                "type": "string"
+            },
+            "recentring_mode": {
+                "default": "Re-centre when orientation changes",
+                "enum": [
+                    "Re-centre when orientation changes",
+                    "Re-centre all before acquisition start",
+                    "No manual re-centring, rely on automatic recentring"
+                ],
+                "type": "string"
+            },
+            "repetition_count": {
+                "default": 1,
+                "lowerBound": 1,
+                "stepsize": 1,
+                "title": "Number of repetitions",
+                "type": "spinbox",
+                "upperBound": 99
+            },
+            "resolution": {
+                "default": 2.1000198581609832,
+                "maximum": 8.774863360734335,
+                "minimum": 1.5484097058129351,
+                "readOnly": true,
+                "title": "Detector resolution (\u00c5)",
+                "type": "number"
+            },
+            "snapshot_count": {
+                "default": "2",
+                "enum": [
+                    "0",
+                    "1",
+                    "2",
+                    "4"
+                ],
+                "title": "Number of snapshots",
+                "type": "string"
+            },
+            "transmission": {
+                "default": 1.3249946321144943,
+                "maximum": 100.0,
+                "minimum": 0.001,
+                "title": "Transmission (%)",
+                "type": "number"
+            },
+            "use_dose": {
+                "default": 11.6159,
+                "minimum": 1e-06,
+                "readOnly": false,
+                "title": "Dose/repetition (MGy)",
+                "type": "number"
+            }
+        },
+        "title": "G\u03a6L Native data collection parameters",
+        "type": "object"
+    },
+    "ui_schema": {
+        "_info": {
+            "ui:title": "--- Native data collection ---"
+        },
+        "parameters": {
+            "column1": {
+                "exposure": {
+                    "ui:options": {
+                        "decimals": 4,
+                        "update_on_change": true
+                    }
+                },
+                "image_width": {
+                    "ui:options": {
+                        "update_on_change": true
+                    }
+                },
+                "repetition_count": {
+                    "ui:options": {
+                        "update_on_change": true
+                    }
+                },
+                "transmission": {
+                    "ui:options": {
+                        "decimals": 3,
+                        "update_on_change": true
+                    }
+                },
+                "ui:order": [
+                    "use_dose",
+                    "exposure",
+                    "image_width",
+                    "transmission",
+                    "repetition_count",
+                    "snapshot_count"
+                ],
+                "use_dose": {
+                    "ui:options": {
+                        "decimals": 4,
+                        "update_on_change": true
+                    }
+                }
+            },
+            "column2": {
+                "dose_budget": {
+                    "ui:options": {
+                        "decimals": 4
+                    }
+                },
+                "experiment_time": {
+                    "ui:options": {
+                        "decimals": 1
+                    }
+                },
+                "resolution": {
+                    "ui:options": {
+                        "decimals": 3
+                    }
+                },
+                "ui:order": [
+                    "dose_budget",
+                    "experiment_time",
+                    "resolution",
+                    "Main",
+                    "recentring_mode"
+                ]
+            },
+            "ui:order": [
+                "column1",
+                "column2"
+            ],
+            "ui:title": "Parameters",
+            "ui:widget": "column_grid"
+        },
+        "ui:options": {
+            "return_signal": "GphlParameterReturn",
+            "update_on_change": "selected",
+            "update_signal": "GphlUpdateUiParameters"
+        },
+        "ui:order": [
+            "_info",
+            "parameters"
+        ],
+        "ui:widget": "vertical_box"
+    }
+}

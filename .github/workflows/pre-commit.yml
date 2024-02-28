@@ -8,22 +8,22 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Set up Python 3.7
+    - name: Set up Python 3.8
       uses: actions/setup-python@v4
       with:
-        python-version: "3.7"
+        python-version: "3.8"
 
     - name: Install openldap
-      run: sudo apt-get update && sudo apt-get install -y libldap2-dev libsasl2-dev slapd ldap-utils tox lcov valgrind
+      run: |
+        sudo apt-get update && sudo apt-get upgrade -y
+        sudo apt-get install -y libldap2-dev libsasl2-dev slapd ldap-utils tox lcov valgrind
 
     - name: Install dependencies
       run: |
-        pip install --upgrade pip
-        pip install poetry
-        poetry config virtualenvs.create false
-        poetry install
+        python -m pip install --upgrade pip
+        python -m pip install poetry --user
+        python -m poetry install
 
     - name: Run Pre-Commit
       run: |
-        # Disable linting for now
-        # poetry run pre-commit run --all-files
+        poetry run pre-commit run --all-files

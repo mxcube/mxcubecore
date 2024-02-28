@@ -23,7 +23,7 @@ BeamDefiner ESRF implementation class - methods to define the size and shape of
 the beam.
 """
 
-__copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
+__copyright__ = """ Copyright © 2023 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
@@ -37,30 +37,37 @@ from mxcubecore import HardwareRepository as HWR
 
 
 class ESRFBeam(AbstractBeam):
-    """ Beam ESRF implementation """
+    """Beam ESRF implementation"""
 
     def __init__(self, name):
-        AbstractBeam.__init__(self, name)
+        super().__init__(name)
         self._aperture = None
         self._slits = {}
         self._complex = None
         self._definer_type = None
+        self.beam_height = None
+        self.beam_width = None
 
     def init(self):
-        """ Initialize hardware """
-        AbstractBeam.init(self)
-        self._definer_type = self.get_property("definer")
+        """Initialize hardware"""
+        super().init()
+        # self._definer_type = self.get_property("definer")
 
         self._aperture = self.get_object_by_role("aperture")
-        _bliss_obj = self.get_object_by_role("bliss")
+        if self._aperture:
+            self._definer_type = "aperture"
 
         _slits = self.get_property("slits")
         if _slits:
+            self._definer_type = "slits"
+            _bliss_obj = self.get_object_by_role("bliss")
             for name in _slits.split():
                 _key, _val = name.split(":")
                 self._slits.update({_key: _bliss_obj.__getattribute__(_val)})
 
         self._complex = self.get_object_by_role("complex")
+        if self._complex:
+            self._definer_type = "complex"
 
         beam_position = self.get_property("beam_position")
 
@@ -79,7 +86,7 @@ class ESRFBeam(AbstractBeam):
         self.re_emit_values()
 
     def _get_aperture_size(self):
-        """ Get the size and the label of the aperture in place.
+        """Get the size and the label of the aperture in place.
         Returns:
             (float, str): Size [mm], label.
         """
@@ -93,12 +100,14 @@ class ESRFBeam(AbstractBeam):
         return _size / 1000.0, _label
 
     def _get_complex_size(self):
-        """ Get the size and the name of the definer in place.
+        """Get the size and the name of the definer in place.
         Returns:
             (float, str): Size [mm], label.
         """
         try:
-            _size = self._complex.sizeByName[self._complex.get_current_position_name()]
+            _size = self._complex.size_by_name[
+                self._complex.get_current_position_name()
+            ]
             _name = self._complex.get_current_position_name()
         except KeyError:
             logging.getLogger("HWR").info("Could not read beam size")
@@ -107,7 +116,7 @@ class ESRFBeam(AbstractBeam):
         return _size, _name
 
     def _get_slits_size(self):
-        """ Get the size of the slits in place.
+        """Get the size of the slits in place.
         Returns:
             (dict): {"width": float, "heigth": float}.
         """
@@ -116,11 +125,8 @@ class ESRFBeam(AbstractBeam):
             beam_size.update({_key: abs(_val.position)})
         return beam_size
 
-    def _beam_size_compare(self, s):
-        return s[0]
-
     def get_value(self):
-        """ Get the size (width and heigth) of the beam and its shape.
+        """Get the size (width and heigth) of the beam and its shape.
             The size is in mm.
         Retunrs:
             (tuple): Dictionary (width, heigth, shape, name), with types
@@ -142,9 +148,12 @@ class ESRFBeam(AbstractBeam):
         if self._slits:
             _beamsize_dict.update({"slits": self._get_slits_size().values()})
 
+        def _beam_size_compare(size):
+            return size[0]
+
         # find which device has the minimum size
         try:
-            _val = min(_beamsize_dict.values(), key=self._beam_size_compare)
+            _val = min(_beamsize_dict.values(), key=_beam_size_compare)
 
             _key = [k for k, v in _beamsize_dict.items() if v == _val]
 
@@ -164,7 +173,7 @@ class ESRFBeam(AbstractBeam):
         return self.beam_width, self.beam_height, _shape, _name
 
     def get_available_size(self):
-        """ Get the available predefined beam definer configuration.
+        """Get the available predefined beam definer configuration.
         Returns:
             (dict): apertures {name: dimension} or
                     slits {"width": motor object, "heigth", motor object} or
@@ -195,7 +204,7 @@ class ESRFBeam(AbstractBeam):
         return None
 
     def _set_slits_size(self, size=None):
-        """ Move the slits to the desired position.
+        """Move the slits to the desired position.
         Args:
             size (list): Width, heigth [mm].
         Raises:
@@ -215,23 +224,23 @@ class ESRFBeam(AbstractBeam):
             raise TypeError("Invalid size")
 
     def _set_aperture_size(self, size=None):
-        """ Move the aperture to the desired size.
+        """Move the aperture to the desired size.
         Args:
             size (str): The position name.
         """
         try:
-            _e = getattr(self._aperture.VALUES, "A" + size)
+            _enum = getattr(self._aperture.VALUES, "A" + size)
         except AttributeError:
-            _e = getattr(self._aperture.VALUES, size)
+            _enum = getattr(self._aperture.VALUES, size)
 
-        self._aperture.set_value(_e)
+        self._aperture.set_value(_enum)
 
     def _set_complex_size(self, size=None):
-        """ Move the complex definer to the desired size.
+        """Move the complex definer to the desired size.
         Args:
             size (str): The position name.
         """
-        self._complex.move_to_position(size)
+        self._complex.set_value(size)
 
     def set_value(self, size=None):
         """Set the beam size
@@ -264,7 +273,6 @@ class ESRFBeam(AbstractBeam):
                 )
             self._beam_position_on_screen = _beam_position_on_screen
         return self._beam_position_on_screen
-
 
     def get_beam_size(self):
         beam_value = self.get_value()

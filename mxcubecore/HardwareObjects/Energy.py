@@ -172,11 +172,11 @@ class Energy(Equipment):
         current_en = self.get_value()
         pos = math.fabs(current_en - energy)
         if pos < 0.001:
-            logging.getLogger("user_level_log").debug(
+            logging.getLogger("user_level_log").info(
                 "Energy: already at %g, not moving", energy
             )
         else:
-            logging.getLogger("user_level_log").debug(
+            logging.getLogger("user_level_log").info(
                 "Energy: moving energy to %g", energy
             )
             if pos > 0.02:

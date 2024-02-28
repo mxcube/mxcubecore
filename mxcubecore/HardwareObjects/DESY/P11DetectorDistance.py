@@ -1,5 +1,5 @@
 # encoding: utf-8
-# 
+#
 #  Project: MXCuBE
 #  https://github.com/mxcube.
 #
@@ -23,10 +23,11 @@ __license__ = "LGPLv3+"
 __category__ = "Motor"
 
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
+import time
+
 
 class P11DetectorDistance(AbstractMotor):
-
-    def __init__(self,name):
+    def __init__(self, name):
         AbstractMotor.__init__(self, name)
 
         self.interlock_set = None
@@ -40,28 +41,33 @@ class P11DetectorDistance(AbstractMotor):
         self.cmd_stop = None
 
     def init(self):
-        self.chan_state = self.get_channel_object('axisState')
+        self.chan_state = self.get_channel_object("axisState")
         if self.chan_state is not None:
-           self.chan_state.connectSignal("update", self._set_state)
+            self.chan_state.connect_signal("update", self._set_state)
         self._set_state()
 
-        self.chan_position = self.get_channel_object('axisPosition')
+        self.chan_position = self.get_channel_object("axisPosition")
         if self.chan_position is not None:
-            self.chan_position.connectSignal("update", self.update_value)
+            self.chan_position.connect_signal("update", self.update_value)
         self.update_value()
 
-        self.chan_min_value = self.get_channel_object('axisMinValue')
-        self.chan_max_value = self.get_channel_object('axisMaxValue')
+        self.chan_min_value = self.get_channel_object("axisMinValue")
+        self.chan_max_value = self.get_channel_object("axisMaxValue")
 
-        self.chan_interlock_state = self.get_channel_object('interlockState')
+        self.chan_interlock_state = self.get_channel_object("interlockState")
         if self.chan_interlock_state is not None:
-           self.chan_interlock_state.connectSignal("update", self.interlock_state_changed)
+            self.chan_interlock_state.connect_signal(
+                "update", self.interlock_state_changed
+            )
         self.interlock_state_changed()
 
         self.cmd_stop = self.get_command_object("stopAxis")
-        if self.cmd_stop:
-            self.cmd_stop.connectSignal("connected", self.connected)
-            self.cmd_stop.connectSignal("disconnected", self.disconnected)
+
+        self.chan_actual_value = self.get_channel_object("DistanceLaser")
+
+        # if self.cmd_stop:
+        # self.cmd_stop.connect_signal("connected", self.connected)
+        # self.cmd_stop.connect_signal("disconnected", self.disconnected)
 
     def connectNotify(self, signal):
         """
@@ -81,7 +87,7 @@ class P11DetectorDistance(AbstractMotor):
         :return:
         """
         self._set_state()
-        #self.update_state(self.STATES.READY)
+        # self.update_state(self.STATES.READY)
 
     def disconnected(self):
         """
@@ -93,39 +99,41 @@ class P11DetectorDistance(AbstractMotor):
     def _set_state(self, state=None):
 
         if state is None:
-            _state = self.chan_state.getValue()
+            _state = self.chan_state.get_value()
         else:
             _state = state
 
         _state = str(_state)
-        
+
         if self.interlock_set is None:
             self.update_interlock_state()
 
         if not self.interlock_set:
             state = self.STATES.FAULT
-            self.log.debug("P11 Detector Distance is FAULT because interlock is not set")
+            self.log.debug(
+                "P11 Detector Distance is FAULT because interlock is not set"
+            )
         else:
-            if _state == 'ON':
+            if _state == "ON":
                 state = self.STATES.READY
-            elif _state == 'MOVING':
+            elif _state == "MOVING":
                 state = self.STATES.BUSY
             else:
                 state = self.STATES.FAULT
-        
+
         self.update_state(state)
         return state
 
     def get_value(self):
-        return self.chan_position.getValue()
+        return self.chan_position.get_value()
 
     def update_value(self, value=None):
         """Updates motor position
         """
         if value is None:
-            value = self.chan_position.getValue()
+            value = self.chan_position.get_value()
 
-        super(P11DetectorDistance, self).update_value(value)
+        super().update_value(value)
 
     def _set_value(self, value):
         """
@@ -133,21 +141,25 @@ class P11DetectorDistance(AbstractMotor):
         :param value: float
         :return:
         """
-        ##if self.chan_state is not None:
-            #self.update_state(self.STATES.BUSY)
-            
-        self.chan_position.setValue(value)
+        # if self.chan_state is not None:
+        # self.update_state(self.STATES.BUSY)
 
-    def get_limits(self):  
-        min_value = self.chan_min_value.getValue()
-        max_value = self.chan_max_value.getValue()
+        self.chan_position.set_value(value)
+
+        # Wait until motor is reachiung the actual distance within tolerance.
+        tolerance = 1.0  # mm Actual tolerance is within 0.3 range.
+        while abs(self.get_value() - value) >= tolerance:
+            time.sleep(0.5)
+
+    def get_limits(self):
+        min_value = self.chan_min_value.get_value()
+        max_value = self.chan_max_value.get_value()
         return [min_value, max_value]
 
     def abort(self):
         """Stops motor movement
         """
         self.cmd_stop()
-
 
     def get_motor_mnemonic(self):
         """
@@ -161,10 +173,13 @@ class P11DetectorDistance(AbstractMotor):
             return
 
         if state is None:
-            state = self.chan_interlock_state.getValue()
+            state = self.chan_interlock_state.get_value()
         self.interlock_set = state
-        self.log.debug("P11 DetectorDistance / INTERLOCK is %s" % (self.interlock_set and "SET" or "NOT SET") )
-  
+        self.log.debug(
+            "P11 DetectorDistance / INTERLOCK is %s"
+            % (self.interlock_set and "SET" or "NOT SET")
+        )
+
     def interlock_state_changed(self, state=None):
-        self.update_interlock_state(state)   
-        self._set_state() 
+        self.update_interlock_state(state)
+        self._set_state()

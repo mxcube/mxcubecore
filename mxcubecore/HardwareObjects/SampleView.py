@@ -41,6 +41,7 @@ class SampleView(AbstractSampleView):
         super(SampleView, self).init()
         self._camera = self.get_object_by_role("camera")
         self._ui_snapshot_cb = None
+        self._last_oav_image = None
 
         self.hide_grid_threshold = self.get_property("hide_grid_threshold", 5)
         for motor_name, motor_ho in HWR.beamline.diffractometer.get_motors().items():
@@ -54,37 +55,7 @@ class SampleView(AbstractSampleView):
             previous_screen_coord = shape.screen_coord
             shape.update_position(HWR.beamline.diffractometer.motor_positions_to_screen)
 
-            # We assume that all positions are changed when a motor moves
-            # and that if the screen coordinate for the first motor is unchanged
-            # so are the rest, simply return and emit no change.
-            if shape.screen_coord != previous_screen_coord:
-                shapes_updated = True
-            else:
-                break
-
-        if shapes_updated:
-            self.emit("shapesChanged")
-
-        for motor_name, motor_ho in HWR.beamline.diffractometer.get_motors().items():
-            motor_ho.connect("stateChanged", self._update_shape_positions)
-
-    def _update_shape_positions(self, *args, **kwargs):
-        shapes_updated = False
-
-        for shape in self.get_shapes():
-            previous_screen_coord = shape.screen_coord
-            shape.update_position(HWR.beamline.diffractometer.motor_positions_to_screen)
-
-            # We assume that all positions are changed when a motor moves
-            # and that if the screen coordinate for the first motor is unchanged
-            # so are the rest, simply return and emit no change.
-            if shape.screen_coord != previous_screen_coord:
-                shapes_updated = True
-            else:
-                break
-
-        if shapes_updated:
-            self.emit("shapesChanged")
+        self.emit("shapesChanged")
 
     @property
     def shapes(self):
@@ -131,6 +102,11 @@ class SampleView(AbstractSampleView):
             img = self._ui_snapshot_cb(path, bw)
         else:
             self.camera.take_snapshot(path, bw)
+
+        self._last_oav_image = path
+
+    def get_last_image_path():
+        return self._last_oav_image
 
     def add_shape(self, shape):
         """
@@ -355,11 +331,13 @@ class SampleView(AbstractSampleView):
 
         return grid
 
-    def set_grid_data(self, sid, result_data):
+    def set_grid_data(self, sid, result_data, data_file_path):
         shape = self.get_shape(sid)
 
         if shape:
             shape.set_result(result_data)
+            shape.result_data_path = data_file_path
+
             self.emit("newGridResult", shape)
         else:
             msg = "Cant set result for %s, no shape with id %s" % (sid, sid)
@@ -556,10 +534,10 @@ class Grid(Shape):
         self.set_id(Grid.SHAPE_COUNT)
 
     def update_position(self, transform):
-        phi_pos = HWR.beamline.diffractometer.phiMotor.get_value() % 360
-        d = abs((self.get_centred_position().phi % 360) - phi_pos)
+        phi_pos = HWR.beamline.diffractometer.omega.get_value() % 360
+        _d = abs((self.get_centred_position().phi % 360) - phi_pos)
 
-        if min(d, 360 - d) > self.shapes_hw_object.hide_grid_threshold:
+        if min(_d, 360 - _d) > self.shapes_hw_object.hide_grid_threshold:
             self.state = "HIDDEN"
         else:
             super(Grid, self).update_position(transform)
@@ -598,19 +576,19 @@ class Grid(Shape):
         # replace cpos_list with the motor positions
         d["motor_positions"] = self.cp_list[0].as_dict()
 
+        pixels_per_mm = HWR.beamline.diffractometer.get_pixels_per_mm()
+        beam_pos = HWR.beamline.beam.get_beam_position_on_screen()
+        size_x, size_y, shape, _label = HWR.beamline.beam.get_value()
+
         # MXCuBE - 2 WF compatability
-        d["x1"] = -float(
-            (self.beam_pos[0] - d["screen_coord"][0]) / self.pixels_per_mm[0]
-        )
-        d["y1"] = -float(
-            (self.beam_pos[1] - d["screen_coord"][1]) / self.pixels_per_mm[1]
-        )
+        d["x1"] = -float((beam_pos[0] - d["screen_coord"][0]) / pixels_per_mm[0])
+        d["y1"] = -float((beam_pos[1] - d["screen_coord"][1]) / pixels_per_mm[1])
         d["steps_x"] = d["num_cols"]
         d["steps_y"] = d["num_rows"]
-        d["dx_mm"] = d["width"] / self.pixels_per_mm[0]
-        d["dy_mm"] = d["height"] / self.pixels_per_mm[1]
-        d["beam_width"] = d["beam_width"]
-        d["beam_height"] = d["beam_height"]
+        d["dx_mm"] = d["width"] / pixels_per_mm[0]
+        d["dy_mm"] = d["height"] / pixels_per_mm[1]
+        d["beam_width"] = size_x
+        d["beam_height"] = size_y
         d["angle"] = 0
 
         return d

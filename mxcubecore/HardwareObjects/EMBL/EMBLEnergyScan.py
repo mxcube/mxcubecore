@@ -157,7 +157,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
     def is_connected(self):
         return True
 
-    def startEnergyScan(
+    def start_energy_scan(
         self,
         element,
         edge,
@@ -317,7 +317,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
             if hasattr(HWR.beamline.energy, "set_break_bragg"):
                 HWR.beamline.energy.set_break_bragg()
 
-    def doChooch(self, elt, edge, scan_directory, archive_directory, prefix):
+    def do_chooch(self, elt, edge, scan_directory, archive_directory, prefix):
         archive_file_prefix = str(os.path.join(archive_directory, prefix))
 
         if os.path.exists(archive_file_prefix + ".raw"):

@@ -1,3 +1,4 @@
+# encoding: utf-8
 #
 #  Project: MXCuBE
 #  https://github.com/mxcube
@@ -17,12 +18,11 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
+__copyright__ = """ Copyright © 2010 - 2024 by MXCuBE Collaboration """
+__license__ = "LGPLv3+"
 
-import os
-import copy
-import logging
+
 import gevent
-import time
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.BaseHardwareObjects import Device

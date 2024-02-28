@@ -1,0 +1,13 @@
+{
+    "Main": 12.4,
+    "dose_budget": 11.6159,
+    "experiment_time": 227.2,
+    "exposure": 0.04,
+    "image_width": "0.1",
+    "recentring_mode": "Re-centre when orientation changes",
+    "repetition_count": 1,
+    "resolution": 2.1,
+    "snapshot_count": "2",
+    "transmission": 1.325,
+    "use_dose": 11.6159
+}

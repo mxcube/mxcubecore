@@ -5,6 +5,7 @@ import inspect
 import logging
 from mxcubecore.model import queue_model_objects
 from mxcubecore.model import queue_model_enumerables
+from mxcubecore import HardwareRepository as HWR
 
 xmlrpc_prefix = ""
 
@@ -99,6 +100,11 @@ def queue_update_result(server_hwobj, node_id, html_report):
         result = True
 
     return result
+
+
+def queue_get_full_path(server_hwobj, suddir, tag):
+    """ """
+    return HWR.beamline.session.get_full_path(subdir, tag)
 
 
 def queue_get_model_code(server_hwobj):

@@ -27,8 +27,6 @@ import json
 from collections import OrderedDict
 from collections import namedtuple
 
-from mxcubecore.utils.conversion import string_types
-
 from mxcubecore.model import crystal_symmetry
 
 __copyright__ = """ Copyright © 2016 - 2019 by Global Phasing Ltd. """
@@ -320,51 +318,47 @@ class ChooseLattice(Payload):
         self,
         indexingSolutions,
         indexingFormat="IDXREF",
-        crystalFamilyChar=None,
-        lattices=None,
-        userProvidedCell=None,
         indexingHeader=None,
+        priorCrystalClasses=(),
+        priorSpaceGroup=None,
+        priorSpaceGroupString=None,
+        userProvidedCell=None,
     ):
         """
 
         Args:
             indexingSolutions (list(IndexingSolution):
             indexingFormat (str):
-            crystalFamilyChar (str):
-            lattices sequence(str): string or sequence with one, or two unique strings
-            userProvidedCell (UnitCell):
-            indexingHeader (str):
+            indexingHeader str:
+            priorCrystalClasses sequence(str):
+            priorSpaceGroup int:
+            priorSpaceGroupString str:
+            userProvidedCell UnitCell:
         """
         super().__init__()
 
         self._indexingSolutions = indexingSolutions
         self._indexingFormat = indexingFormat
-        self._crystalFamilyChar = crystalFamilyChar
-        if not lattices:
-            self._lattices = frozenset()
-        elif isinstance(lattices, string_types):
-            # Allows you to pass in lattices as a string without silly errors
-            self._lattices = frozenset((lattices,))
-        else:
-            self._lattices = frozenset(lattices)
-        self._userProvidedCell = userProvidedCell
         self._indexingHeader = indexingHeader
-        self._crystalClasses = frozenset()
+        self._priorCrystalClasses = priorCrystalClasses or ()
+        self._priorSpaceGroup = priorSpaceGroup
+        self._priorSpaceGroupString= priorSpaceGroupString
+        self._userProvidedCell = userProvidedCell
 
     @property
-    def crystalFamilyChar(self):
-        """One-letter code for crystal system (one of 'amothc')"""
-        return self._crystalFamilyChar
+    def priorCrystalClasses(self):
+        """tuple of crystal class names"""
+        return self._priorCrystalClasses
 
     @property
-    def lattices(self):
-        """set of expected lattices for solution"""
-        return self._lattices
+    def priorSpaceGroup(self):
+        """space group number"""
+        return self._priorSpaceGroup
 
     @property
-    def crystalClasses(self):
-        """set of crystal class names"""
-        return self._crystalClasses
+    def priorSpaceGroupString(self):
+        """space group name"""
+        return self._priorSpaceGroupString
 
     @property
     def indexingSolutions(self):
@@ -378,8 +372,13 @@ class ChooseLattice(Payload):
 
     @property
     def indexingHeader(self):
-        """Indexing table header"""
+        """Indexing header"""
         return self._indexingHeader
+
+    @property
+    def userProvidedCell(self):
+        """User provided unit cell"""
+        return self._userProvidedCell
 
 
 class SelectedLattice(MessageData):
@@ -390,19 +389,20 @@ class SelectedLattice(MessageData):
     def __init__(
         self,
         data_model,
-        indexingSolution,
-        userPointGroup=None,
+        solution,
     ):
-        self._indexingSolution = indexingSolution
+        self._solution = solution
         self._strategyDetectorSetting = data_model.detector_setting
         self._strategyWavelength = data_model.wavelengths[0]
         self._strategyControl = json.dumps(data_model.strategy_options, sort_keys=True)
-        self._userPointGroup = userPointGroup
+        self._userCrystalClasses = data_model.crystal_classes
+        sginfo = crystal_symmetry.SPACEGROUP_MAP.get(data_model.space_group)
+        self._userSpaceGroup = sginfo.number if sginfo else None
 
     @property
-    def indexingSolution(self):
+    def solution(self):
         """Proposed solution"""
-        return self._indexingSolution
+        return self._solution
 
     @property
     def strategyDetectorSetting(self):
@@ -421,9 +421,14 @@ class SelectedLattice(MessageData):
         return self._strategyControl
 
     @property
-    def userPointGroup(self):
-        """Point group given by user for strategy calculation"""
-        return self._userPointGroup
+    def userCrystalClasses(self):
+        """Crystal classes given by user"""
+        return self._userCrystalClasses
+
+    @property
+    def userSpaceGroup(self):
+        """Space group (int) given by user"""
+        return self._userSpaceGroup
 
 
 class IndexingSolution(MessageData):
@@ -452,13 +457,9 @@ class IndexingSolution(MessageData):
         self._latticeCharacter = latticeCharacter
         self._qualityOfFit = qualityOfFit
 
-    def bravaisLattice(self):
-        """One of the 14 Bravais lattices ('aP' etc.)"""
-        return self._bravaisLattice
-
     @property
     def bravaisLattice(self):
-        """"""
+        """One of the 14 Bravais lattices ('aP' etc.)"""
         return self._bravaisLattice
 
     @property
@@ -876,27 +877,25 @@ class UserProvidedInfo(MessageData):
 
         self._scatterers = ()
         crystal_classes = data_model.crystal_classes
-        lauegrp, ptgrp = crystal_symmetry.strategy_laue_group(crystal_classes)
-        self._pointGroup = ptgrp
-        crystal_systems = set(
-            crystal_symmetry.CRYSTAL_CLASS_MAP[name].crystal_system
-            for name in crystal_classes
-        )
-        if crystal_systems in (set(("Trigonal")), set(("Trigonal", "Hexagonal"))):
-            self._crystal_family = "HEXAGONAL"
-        elif len(crystal_systems) == 1:
-            self._crystal_family = crystal_systems.pop().upper()
+        if crystal_classes:
+            self._crystalClasses = tuple(crystal_classes)
         else:
-            self._crystal_family = None
+            self._crystalClasses = ()
 
-        sg_data = crystal_symmetry.SPACEGROUP_MAP.get(data_model.space_group)
-        self._spaceGroup = sg_data.number if sg_data else None
+        space_group = data_model.space_group
+        sginfo = crystal_symmetry.SPACEGROUP_MAP.get(data_model.space_group)
+        self._spaceGroup = sginfo.number if sginfo else None
+        self._spaceGroupString = space_group or None
         cell_parameters = data_model.cell_parameters
         if cell_parameters:
             self._cell = UnitCell(*cell_parameters)
         else:
             self._cell = None
-        self._expectedResolution = data_model.aimed_resolution
+        detector_setting = data_model.detector_setting
+        if detector_setting:
+            self._expectedResolution = detector_setting.resolution
+        else:
+            self._expectedResolution = data_model.aimed_resolution
         self._isAnisotropic = None
 
     @property
@@ -904,16 +903,16 @@ class UserProvidedInfo(MessageData):
         return self._scatterers
 
     @property
-    def crystal_family(self):
-        return self._crystal_family
-
-    @property
-    def pointGroup(self):
-        return self._pointGroup
+    def crystalClasses(self):
+        return self._crystalClasses
 
     @property
     def spaceGroup(self):
         return self._spaceGroup
+
+    @property
+    def spaceGroupString(self):
+        return self._spaceGroupString
 
     @property
     def cell(self):
@@ -1054,7 +1053,7 @@ class GeometricStrategy(IdentifiedElement, Payload):
 
     def __init__(
         self,
-        isInterleaved,
+        # isInterleaved,
         isUserModifiable,
         defaultDetectorSetting,
         defaultBeamSetting,
@@ -1068,7 +1067,7 @@ class GeometricStrategy(IdentifiedElement, Payload):
 
         super().__init__(id_=id_)
 
-        self._isInterleaved = isInterleaved
+        # self._isInterleaved = isInterleaved
         self._isUserModifiable = isUserModifiable
         self._defaultDetectorSetting = defaultDetectorSetting
         self._defaultBeamSetting = defaultBeamSetting
@@ -1085,9 +1084,9 @@ class GeometricStrategy(IdentifiedElement, Payload):
         self._sweepOffset = sweepOffset
         self._sweepRepeat = sweepRepeat
 
-    @property
-    def isInterleaved(self):
-        return self._isInterleaved
+    # @property
+    # def isInterleaved(self):
+    #     return self._isInterleaved
 
     @property
     def sweepRepeat(self):
@@ -1195,6 +1194,7 @@ class PriorInformation(Payload):
 
         self._sampleName = data_model.path_template.base_prefix
         # Draft in API, not currently coded in Java:
+        # self._referenceFile = referenceFile
         self._rootDirectory = image_root
         self._userProvidedInfo = UserProvidedInfo(data_model)
 
@@ -1205,6 +1205,10 @@ class PriorInformation(Payload):
     @property
     def sampleName(self):
         return self._sampleName
+
+    # @property
+    # def referenceFile(self):
+    #     return self._referenceFile
 
     @property
     def rootDirectory(self):
@@ -1274,22 +1278,23 @@ class SampleCentred(Payload):
         self._imageWidth = data_model.image_width
         self._transmission = 0.01 * data_model.transmission
         self._exposure = data_model.exposure_time
-        self._wedgeWidth = data_model.wedge_width
+        self._wedgeWidth = round(data_model.wedge_width / data_model.image_width)
         self._interleaveOrder = data_model.interleave_order
         self._beamstopSetting = data_model.beamstop_setting
         self._goniostatTranslations = frozenset(data_model.goniostat_translations)
         self._repetition_count = data_model.repetition_count
 
+        self._detectorSetting = None
         if data_model.characterisation_done:
             self._wavelengths = tuple(data_model.wavelengths)
-            self._detectorSetting = None
         else:
             # Ths trick assumes that characterisation and diffractcal
             # use one, the first, wavelength and default interleave order
-            # Which is true. Not the ideal place to put this code
+            # Which is true. Not the ideal place to put this code,
             # but it works.
             self._wavelengths = tuple((data_model.wavelengths[0],))
-            self._detectorSetting = data_model.detector_setting
+            if data_model.wftype != "diffractcal":
+                self._detectorSetting = data_model.detector_setting
 
     @property
     def imageWidth(self):
@@ -1309,6 +1314,7 @@ class SampleCentred(Payload):
 
     @property
     def wedgeWidth(self):
+        # Wedge width NB in *number of images*
         return self._wedgeWidth
 
     @property

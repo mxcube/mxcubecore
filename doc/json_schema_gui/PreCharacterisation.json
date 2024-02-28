@@ -1,0 +1,249 @@
+{
+    "schema": {
+        "properties": {
+            "cell_a": {
+                "default": 133.8562,
+                "minimum": 0,
+                "readOnly": true,
+                "title": "a",
+                "type": "number"
+            },
+            "cell_alpha": {
+                "default": 90.0,
+                "maximum": 180,
+                "minimum": 0,
+                "readOnly": true,
+                "title": "\u03b1",
+                "type": "number"
+            },
+            "cell_b": {
+                "default": 133.8562,
+                "minimum": 0,
+                "readOnly": true,
+                "title": "b",
+                "type": "number"
+            },
+            "cell_beta": {
+                "default": 90.0,
+                "maximum": 180,
+                "minimum": 0,
+                "readOnly": true,
+                "title": "\u03b2",
+                "type": "number"
+            },
+            "cell_c": {
+                "default": 127.4557,
+                "minimum": 0,
+                "readOnly": true,
+                "title": "c",
+                "type": "number"
+            },
+            "cell_gamma": {
+                "default": 120.0,
+                "maximum": 180,
+                "minimum": 0,
+                "readOnly": true,
+                "title": "\u03b3",
+                "type": "number"
+            },
+            "energy": {
+                "default": 12.4,
+                "maximum": 20,
+                "minimum": 4,
+                "title": "Characterisation energy (keV)",
+                "type": "number"
+            },
+            "input_space_group": {
+                "default": "H32",
+                "readOnly": true,
+                "title": "Space Group",
+                "type": "string"
+            },
+            "lattice": {
+                "default": "hR",
+                "enum": [
+                    "",
+                    "aP",
+                    "Triclinic",
+                    "mP",
+                    "mC",
+                    "mI",
+                    "Monoclinic",
+                    "oP",
+                    "oC",
+                    "oF",
+                    "oI",
+                    "Orthorhombic",
+                    "tP",
+                    "tI",
+                    "Tetragonal",
+                    "hP",
+                    "hR",
+                    "Hexagonal",
+                    "cP",
+                    "cF",
+                    "cI",
+                    "Cubic"
+                ],
+                "title": "Crystal lattice",
+                "type": "string"
+            },
+            "point_groups": {
+                "default": "32",
+                "enum": [
+                    "3",
+                    "32",
+                    "3|32"
+                ],
+                "title": "Point Groups",
+                "type": "string"
+            },
+            "relative_rad_sensitivity": {
+                "default": 1.0,
+                "minimum": 0,
+                "title": "Radiation sensitivity",
+                "type": "number"
+            },
+            "resolution": {
+                "default": 2.1,
+                "maximum": 8.774863360734335,
+                "minimum": 1.5484097058129351,
+                "title": "Resolution",
+                "type": "number"
+            },
+            "space_group": {
+                "default": "H32",
+                "enum": [
+                    "",
+                    "P3",
+                    "P31",
+                    "P32",
+                    "H3",
+                    "P312",
+                    "P321",
+                    "P3112",
+                    "P3121",
+                    "P3212",
+                    "P3221",
+                    "H32"
+                ],
+                "title": "Space Group",
+                "type": "string"
+            },
+            "strategy": {
+                "default": "Char_6_5_multitrigger",
+                "enum": [
+                    "Char_6_5_multitrigger",
+                    "Char_4_by_10"
+                ],
+                "title": "Characterisation strategy",
+                "type": "string"
+            },
+            "use_cell_for_processing": {
+                "default": true,
+                "title": "Use for indexing",
+                "type": "boolean"
+            }
+        },
+        "title": "G\u03a6L Pre-strategy parameters",
+        "type": "object"
+    },
+    "ui_schema": {
+        "crystal_data": {
+            "cella": {
+                "ui:order": [
+                    "cell_a",
+                    "cell_alpha"
+                ]
+            },
+            "cellb": {
+                "ui:order": [
+                    "cell_b",
+                    "cell_beta"
+                ]
+            },
+            "cellc": {
+                "ui:order": [
+                    "cell_c",
+                    "cell_gamma"
+                ]
+            },
+            "sgroup": {
+                "relative_rad_sensitivity": {
+                    "ui:options": {
+                        "decimals": 2
+                    }
+                },
+                "ui:order": [
+                    "input_space_group",
+                    "relative_rad_sensitivity"
+                ]
+            },
+            "ui:order": [
+                "sgroup",
+                "cella",
+                "cellb",
+                "cellc"
+            ],
+            "ui:title": "Input Unit Cell",
+            "ui:widget": "column_grid"
+        },
+        "parameters": {
+            "column1": {
+                "lattice": {
+                    "ui:options": {
+                        "update_on_change": true
+                    }
+                },
+                "point_groups": {
+                    "ui:options": {
+                        "update_on_change": true
+                    }
+                },
+                "space_group": {
+                    "ui:options": {
+                        "update_on_change": true
+                    }
+                },
+                "ui:order": [
+                    "lattice",
+                    "space_group",
+                    "use_cell_for_processing"
+                ]
+            },
+            "column2": {
+                "energy": {
+                    "ui:options": {
+                        "decimals": 4
+                    }
+                },
+                "resolution": {
+                    "ui:options": {
+                        "decimals": 3
+                    }
+                },
+                "ui:order": [
+                    "strategy",
+                    "resolution",
+                    "energy"
+                ]
+            },
+            "ui:order": [
+                "column1",
+                "column2"
+            ],
+            "ui:title": "Parameters",
+            "ui:widget": "column_grid"
+        },
+        "ui:options": {
+            "return_signal": "GphlParameterReturn",
+            "update_on_change": "selected",
+            "update_signal": "GphlUpdateUiParameters"
+        },
+        "ui:order": [
+            "crystal_data",
+            "parameters"
+        ],
+        "ui:widget": "vertical_box"
+    }
+}
