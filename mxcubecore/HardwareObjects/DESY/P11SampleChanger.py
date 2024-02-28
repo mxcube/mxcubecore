@@ -486,3 +486,19 @@ class P11SampleChanger(SampleChanger):
                 s._set_loaded(False)
 
         self._set_selected_sample(None)
+    
+    def _set_loaded_sample(self, sample):
+        previous_loaded = None
+
+        for smp in self.get_sample_list():
+            if smp.is_loaded():
+                previous_loaded = smp
+                break
+
+        for smp in self.get_sample_list():
+            if smp != sample:
+                smp._set_loaded(False)
+            else:
+                self.log.debug(f" Found sample {smp} is loaded")
+                self.log.debug(f"   getting loaded {self.get_loaded_sample()}")
+                smp._set_loaded(True)
