@@ -120,8 +120,6 @@ class P11Collect(AbstractCollect):
                 "P11Collect. - object initialization failed. COLLECTION not possible"
             )
 
-       
-
         self.diffr = HWR.beamline.diffractometer
         detector = HWR.beamline.detector
 
