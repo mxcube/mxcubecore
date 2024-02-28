@@ -27,10 +27,8 @@ Defines hooks for specific implementation:
  - _execite_xrf_scan, spectrum_analyse, 
 
 Emit signals:
- - xrfSpectrumStarted
- - xrfSpectrumFinished
- - xrfSpectrumFailed
- - xrfSpectrumStatusChanged
+ - stateChanged
+ - xrfSpectrumStatusChanged (with error message)
 """
 
 import abc
@@ -41,7 +39,7 @@ import gevent
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
 
-__copyright__ = """ Copyright © 2010-2023 by the MXCuBE collaboration """
+__copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
@@ -69,14 +67,14 @@ class AbstractXRFSpectrum(HardwareObject):
         self,
         integration_time=None,
         data_dir=None,
-        archive_dir=None,
         prefix=None,
+        archive_dir=None,
         session_id=None,
         blsample_id=None,
     ):
         """Start the procedure. Called by the queu_model.
         Args:
-            integration_time(float): Inregration time [s].
+            integration_time (float): Inregration time [s].
             data_dir (str): Directory to save the data (full path).
             archive_dir (str): Directory to save the archive data (full path).
             prefix (str): File prefix
@@ -87,15 +85,17 @@ class AbstractXRFSpectrum(HardwareObject):
 
         integration_time = integration_time or self.default_integration_time
         self.spectrum_info_dict["exposureTime"] = integration_time
-
+        self.spectrum_info_dict["filename"] = ""
         # Create the data and the archive directory (if needed) and files
         if data_dir:
             if not self.create_directory(data_dir):
+                self.update_state(self.STATES.FAULT)
                 return False
             filename = self.get_filename(data_dir, prefix)
             self.spectrum_info_dict["filename"] = filename + ".dat"
         if archive_dir:
             if not self.create_directory(archive_dir):
+                self.update_state(self.STATES.FAULT)
                 return False
             filename = self.get_filename(archive_dir, prefix)
             self.spectrum_info_dict["scanFileFullPath"] = filename + ".dat"
@@ -105,22 +105,38 @@ class AbstractXRFSpectrum(HardwareObject):
 
         self.spectrum_info_dict["startTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
         self.spectrum_running = True
-        self.emit("xrfSpectrumStarted", ())
-        gevent.spawn(self.execute_xrf_spectrum())
+        self.update_state(self.STATES.BUSY)
+
+        gevent.spawn(self.execute_xrf_spectrum, integration_time,
+                     self.spectrum_info_dict["filename"])
         return True
 
-    def execute_xrf_spectrum(self):
-        """Do the acquisition"""
+    def execute_xrf_spectrum(self, integration_time=None, filename=None):
+        """Do the acquisition.
+        Args:
+            integration_time (float): MCA integration time [s].
+            filename (str): Data file (full path).
+        Raises:
+            RuntimeError: Cannot acquire data.
+        """
+        if filename:
+            self.spectrum_info_dict["filename"] = filename
+
+        integration_time = integration_time or self.default_integration_time
+
         try:
-            if self._execute_xrf_spectrum():
+            if self._execute_xrf_spectrum(integration_time, filename):
                 self.spectrum_command_finished()
         except RuntimeError as err:
             msg = "XRFSpectrum: could not acquire spectrum"
             logging.getLogger("user_level_log").exception(f"{msg}, {err}")
             self.spectrum_status_change(msg)
+            self.update_state(self.STATES.FAULT)
 
-    def _execute_xrf_spectrum(self):
-        """Specific xrf acquisition procedure"""
+    @abc.abstractmethod
+    def _execute_xrf_spectrum(self, integration_time=None, filename=None):
+        """Specific XRF acquisition procedure"""
+        return True
 
     def create_directory(self, directory):
         """Create a directory, if needed.
@@ -137,7 +153,7 @@ class AbstractXRFSpectrum(HardwareObject):
                     os.makedirs(directory)
                 return True
             except OSError as err:
-                logging.getLogger().error(msg, err)
+                logging.getLogger().error(f"{msg}: {err}")
                 self.spectrum_status_change("Error creating directory")
                 self.spectrum_command_aborted()
                 return False
@@ -174,9 +190,10 @@ class AbstractXRFSpectrum(HardwareObject):
         """Actions to do if spectrum acquired."""
         self.spectrum_info_dict["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
         self.spectrum_running = False
-        self.spectrum_info_dict[
-            "beamTransmission"
-        ] = HWR.beamline.transmission.get_value()
+        if HWR.beamline.transmission:
+            self.spectrum_info_dict[
+                "beamTransmission"
+            ] = HWR.beamline.transmission.get_value()
         if HWR.beamline.energy:
             self.spectrum_info_dict["energy"] = HWR.beamline.energy.get_value()
         if HWR.beamline.flux:
@@ -199,7 +216,6 @@ class AbstractXRFSpectrum(HardwareObject):
     def spectrum_command_aborted(self):
         """Spectrum aborted actions"""
         self.spectrum_running = False
-        self.emit("xrfSpectrumFailed", ())
         self.update_state(self.STATES.READY)
 
     def spectrum_command_failed(self):
@@ -208,10 +224,9 @@ class AbstractXRFSpectrum(HardwareObject):
         self.spectrum_running = False
         if self.lims:
             self.spectrum_store_lims()
-        self.emit("xrfSpectrumFailed", ())
-        # self.update_state(self.STATES.READY)
+        self.update_state(self.STATES.FAULT)
 
     def spectrum_store_lims(self):
         """Store the data in lims, according to the existing data model."""
-        if self.spectrum_info_dict["sessionId"]:
+        if self.spectrum_info_dict.get("sessionId"):
             self.lims.storeXfeSpectrum(self.spectrum_info_dict)

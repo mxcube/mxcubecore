@@ -17,53 +17,26 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-import time
+
+from time import sleep
 
 from mxcubecore.HardwareObjects.abstract.AbstractXRFSpectrum import (
     AbstractXRFSpectrum,
 )
-from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
-spectrum_test_data = [
-    0,
-    20,
-    340,
-    70,
-    100,
-    110,
-    120,
-    200,
-    200,
-    210,
-    1600,
-    210,
-    200,
-    200,
-    200,
-    250,
-    300,
-    200,
-    100,
-    0,
-    0,
-    0,
-    90,
-]
+__copyright__ = """ Copyright © 2010-2023 by the MXCuBE collaboration """
+__license__ = "LGPLv3+"
 
 
 class XRFSpectrumMockup(AbstractXRFSpectrum):
 
-    def init(self):
-        pass
-
-    def is_connected(self):
+    def _execute_xrf_spectrum(self, count_time=None, filename=None):
+        """Specific XRF acquisition procedure.
+        Args:
+            integration_time (float): MCA integration time [s].
+            filename (str): Data file (full path).
+        """
+        count_time = count_time or self.default_integration_time
+        sleep(count_time)
         return True
-
-    def can_spectrum(self):
-        return True
-
-    def execute_spectrum_command(self, count_time, filename, adjust_transmission):
-        self.spectrum_data = spectrum_test_data
-        time.sleep(3)
-        self.spectrum_command_finished()
