@@ -39,13 +39,6 @@ from mxcubecore.TaskUtils import task
 
 from mxcubecore.Command.Tango import DeviceProxy
 
-import gevent
-import time
-import numpy as np
-import logging
-import os
-import sys
-import h5py
 
 import triggerUtils
 
@@ -127,8 +120,7 @@ class P11Collect(AbstractCollect):
                 "P11Collect. - object initialization failed. COLLECTION not possible"
             )
 
-        osc_pars["kappa"] = 0
-        osc_pars["kappa_phi"] = 0
+       
 
         self.diffr = HWR.beamline.diffractometer
         detector = HWR.beamline.detector
@@ -144,6 +136,8 @@ class P11Collect(AbstractCollect):
 
         osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
         file_info = self.current_dc_parameters["fileinfo"]
+        osc_pars["kappa"] = 0
+        osc_pars["kappa_phi"] = 0
 
         start_angle = osc_pars["start"]
         nframes = osc_pars["number_of_images"]
