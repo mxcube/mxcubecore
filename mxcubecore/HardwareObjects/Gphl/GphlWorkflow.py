@@ -2265,7 +2265,7 @@ class GphlWorkflow(HardwareObjectYaml):
     Switch to maximum zoom before continuing"""
 
                 schema = {
-                    "title": "GΦL Tramslational calibration",
+                    "title": "GΦL Translational calibration",
                     "type": "object",
                     "properties": {},
                 }
