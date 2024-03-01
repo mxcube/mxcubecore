@@ -488,11 +488,21 @@ class CollectionDone(MessageData):
 
     INTENT = "EVENT"
 
-    def __init__(self, proposalId, status, procWithLatticeParams=False, imageRoot=None):
+    def __init__(
+        self,
+        proposalId,
+        status,
+        procWithLatticeParams=False,
+        imageRoot=None,
+        scanIdMap=None,
+        centrings=None,
+    ):
         self._proposalId = proposalId
         self._imageRoot = imageRoot
         self._status = status
         self._procWithLatticeParams = procWithLatticeParams
+        self._scanIdMap = scanIdMap
+        self._centrings = centrings
 
     @property
     def proposalId(self):
@@ -514,6 +524,18 @@ class CollectionDone(MessageData):
     def procWithLatticeParams(self):
         """Boolean, whether lattice parameters should be used for processing"""
         return self._procWithLatticeParams
+
+    @property
+    def scanIdMap(self):
+        """Dict[str,str] scan.id_:GoniostatTranslation.id_"""
+        return self._scanIdMap
+
+    @property
+    def centrings(self):
+        """set(GoniostatTranslation)
+
+        New GoniostatTranslations acquired during acquisition"""
+        return self._centrings
 
 
 # Complex payloads
