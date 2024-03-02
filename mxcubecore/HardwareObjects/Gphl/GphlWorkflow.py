@@ -1832,8 +1832,8 @@ class GphlWorkflow(HardwareObjectYaml):
             return GphlMessages.CollectionDone(
                 status=0,
                 proposalId=collection_proposal.id_,
-                # Only if you want to override prior information rootdir,
-                # imageRoot=gphl_workflow_model.characterisation_directory
+                scanIdMap={},
+                centrings=set(),
             )
 
         master_path_template = gphl_workflow_model.path_template
