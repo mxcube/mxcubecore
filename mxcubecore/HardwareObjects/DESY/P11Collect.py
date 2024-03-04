@@ -1146,22 +1146,11 @@ class P11Collect(AbstractCollect):
             self.current_dc_parameters["fileinfo"]["process_directory"],
         )
 
-        print("============= ")
-
         """create processing directories and img links"""
         xds_directory, auto_directory = self.prepare_input_files()
         try:
             self.create_directories(xds_directory, auto_directory)
-            # temporary, to improve
             os.system("chmod -R 777 %s %s" % (xds_directory, auto_directory))
-            """todo, create link of imgs for auto_processing
-            try:
-                os.symlink(files_directory, os.path.join(process_directory, "img"))
-            except os.error, e:
-                if e.errno != errno.EEXIST:
-                    raise
-            """
-            # os.symlink(files_directory, os.path.join(process_directory, "img"))
         except Exception:
             logging.exception("Could not create processing file directory")
             return
@@ -1179,31 +1168,24 @@ class P11Collect(AbstractCollect):
             "Creating XDS processing input file directories"
         )
 
-        while True:
-            xds_input_file_dirname = (
-                "%s_%s_%d"
-                % (
-                    self.current_dc_parameters["fileinfo"]["prefix"],
-                    self.current_dc_parameters["fileinfo"]["run_number"],
-                    i,
-                )
-                + "/rotational_"
-                + str(self.current_dc_parameters["fileinfo"]["run_number"]).zfill(3)
+    
+        xds_input_file_dirname = (
+            "%s"
+            % (
+                self.current_dc_parameters["fileinfo"]["prefix"],
             )
-            xds_directory = os.path.join(
-                self.current_dc_parameters["fileinfo"]["directory"].replace(
-                    "/current/raw", "/current/processed"
-                ),
-                xds_input_file_dirname,
-            )
-            if not os.path.exists(xds_directory):
-                break
-            i += 1
-        auto_directory = os.path.join(
-            self.current_dc_parameters["fileinfo"]["process_directory"],
-            "rotational_"
-            + str(float(self.current_dc_parameters["fileinfo"]["run_number"])).zfill(3),
+            + "/rotational_"
+            + str(self.current_dc_parameters["fileinfo"]["run_number"]).zfill(3)
         )
+        xds_directory = os.path.join(
+            self.current_dc_parameters["fileinfo"]["directory"].replace(
+                "/current/raw", "/current/processed"
+            ),
+            xds_input_file_dirname,"xdsapp"
+        )
+            
+        auto_directory = xds_directory
+
         logging.getLogger("HWR").info(
             "[COLLECT] Processing input file directories: XDS: %s, AUTO: %s"
             % (xds_directory, auto_directory)
@@ -1215,8 +1197,6 @@ class P11Collect(AbstractCollect):
         Descript. :
         """
         if self.current_dc_parameters["take_snapshots"]:
-            # snapshot_directory = self.current_dc_parameters["fileinfo"]["archive_directory"]
-            # save the image to the data collection directory for the moment
             snapshot_directory = os.path.join(
                 self.current_dc_parameters["fileinfo"]["directory"], "snapshot"
             )
@@ -1228,7 +1208,7 @@ class P11Collect(AbstractCollect):
                         "Collection: Error creating snapshot directory"
                     )
 
-            number_of_snapshots = 1  # 4 take only one image for the moment
+            number_of_snapshots = 1  # 4
             logging.getLogger("user_level_log").info(
                 "Collection: Taking %d sample snapshot(s)" % number_of_snapshots
             )
@@ -1252,7 +1232,6 @@ class P11Collect(AbstractCollect):
                 self.current_dc_parameters[
                     "xtalSnapshotFullPath%i" % (snapshot_index + 1)
                 ] = snapshot_filename
-                # self._do_take_snapshot(snapshot_filename)
                 self._take_crystal_snapshot(snapshot_filename)
                 time.sleep(1)  # needed, otherwise will get the same images
                 if number_of_snapshots > 1:
