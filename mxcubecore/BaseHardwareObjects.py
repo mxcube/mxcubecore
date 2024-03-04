@@ -464,24 +464,24 @@ class HardwareObjectNode:
                 yield obj
 
     def get_object_by_role(self, role: str) -> Union["HardwareObject", None]:
-            """Get hardware object by role.
+        """Get hardware object by role.
 
-            Args:
-                role (str): Role.
+        Args:
+            role (str): Role.
 
-            Returns:
-                Union[HardwareObject, None]: Hardware object.
-            """
-            role = str(role).lower()
-            objects = [self]
+        Returns:
+            Union[HardwareObject, None]: Hardware object.
+        """
+        role = str(role).lower()
+        objects = [self]
 
-            for curr in objects:
-                result = curr._objects_by_role.get(role)
-                if result is None:
-                    objects.extend(obj for obj in curr if obj)
+        for curr in objects:
+            result = curr._objects_by_role.get(role)
+            if result is None:
+                objects.extend(obj for obj in curr if obj)
 
-                else :
-                    return result
+            else:
+                return result
 
     def objects_names(self) -> List[Union[str, None]]:
         """Return hardware object names.
