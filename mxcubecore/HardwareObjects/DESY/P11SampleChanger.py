@@ -486,7 +486,7 @@ class P11SampleChanger(SampleChanger):
                 s._set_loaded(False)
 
         self._set_selected_sample(None)
-    
+
     def _set_loaded_sample(self, sample):
         previous_loaded = None
 
