@@ -121,7 +121,7 @@ class MotorsNPosition(AbstractActuator):
     def get_position_list(self):
         return list(self._positions.keys())
 
-    def get_properties_(self, position_index, property_name):
+    def get_properties_by_index(self, position_index, property_name):
         """
              returns property with name property_name for position_index 
              if position_index is None returns OrderedDict with property_name for all positions
@@ -161,7 +161,7 @@ class MotorsNPosition(AbstractActuator):
         posidx = -1
         for name in self._positions:
             posidx += 1
-            if posname == self.get_properties_(posidx, "posname"):
+            if posname == self.get_properties_by_index(posidx, "posname"):
                 self._set_value(posidx)
                 return
 
@@ -207,8 +207,8 @@ class MotorsNPosition(AbstractActuator):
 
         current_pos = {}
 
-        #if self.name().lower() == "/pinhole":
-            #self.log.debug("updating pinhole position")
+        # if self.name().lower() == "/pinhole":
+        # self.log.debug("updating pinhole position")
 
         for motorname in self.motorlist:
             current_pos[motorname] = self.motor_hwobjs[motorname].get_value()
@@ -230,7 +230,7 @@ class MotorsNPosition(AbstractActuator):
                     break
             else:
                 # found
-                #self.log.debug(" Found position %s for object %s" % (name, self.name()))
+                # self.log.debug(" Found position %s for object %s" % (name, self.name()))
                 for motorname in self.motorlist:
                     position = self._positions[name][motorname]
                     self.log.debug("     - motor %s is at %s" % (motorname, position))
