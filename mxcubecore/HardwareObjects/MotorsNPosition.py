@@ -121,30 +121,17 @@ class MotorsNPosition(AbstractActuator):
     def get_position_list(self):
         return list(self._positions.keys())
 
-    def get_properties_by_index(self, position_index, property_name):
+    def get_property_value_by_index(self, position_index=None, property_name=None):
+       
         """
-             returns property with name property_name for position_index 
-             if position_index is None returns OrderedDict with property_name for all positions
-             if property_name is None returns dictionary with all properties for position_index
-             if both position_index and property_name are None returns all properties of object
+        Returns the value of the property with the given property_name at the specified position_index.
+        If the property_name or position_index is invalid, returns None.
         """
-        if position_index is None and property_name is None:
-            retprop = copy.copy(self._properties)
-        elif position_index is None:
-            retprop = OrderedDict()
-            for name in self._positions:
-                property_value = self._properties[name].get(property_name, None)
-                retprop[name] = property_value
-        elif position_index >= 0 and position_index < len(self._positions):
-            name = list(self._positions.keys())[position_index]
-            if property_name is None:
-                retprop = self._properties[name]
-            else:
-                retprop = self._properties[name].get(property_name, None)
-        else:
-            return None
+        if position_index is not None and 0 <= position_index < len(self._positions):
+            position_name = list(self._positions.keys())[position_index]
+            return self._properties.get(position_name, {}).get(property_name)
+        return None
 
-        return retprop
 
     def get_value(self):
         return self.update_multi_value()
@@ -161,7 +148,7 @@ class MotorsNPosition(AbstractActuator):
         posidx = -1
         for name in self._positions:
             posidx += 1
-            if posname == self.get_properties_by_index(posidx, "posname"):
+            if posname == self.get_property_value_by_index(posidx, "posname"):
                 self._set_value(posidx)
                 return
 
