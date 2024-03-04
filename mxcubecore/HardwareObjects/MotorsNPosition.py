@@ -22,7 +22,6 @@ __copyright__ = """ Copyright © 2010 - 2023 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
 
-import copy
 from collections import OrderedDict
 
 from mxcubecore.HardwareObjects.abstract.AbstractActuator import AbstractActuator
