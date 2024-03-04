@@ -18,7 +18,7 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-__copyright__ = """ Copyright © 2010 - 2024 by MXCuBE Collaboration """
+__copyright__ = """ Copyright © 2010 - 2023 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
 
@@ -36,13 +36,9 @@ import numpy as np
 from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.TaskUtils import task
-
 from mxcubecore.Command.Tango import DeviceProxy
 
-
 import triggerUtils
-
-from tango import DeviceProxy, DevState
 
 FILE_TIMEOUT = 5
 
@@ -54,10 +50,6 @@ class P11Collect(AbstractCollect):
     def init(self):
 
         super().init()
-
-        # os.system("/opt/xray/bin/adxv -socket -colors Gray -rings &")
-
-        # os.system("/bin/bash /gpfs/local/shared/MXCuBE/STRELA/start_viewer_zmq.sh")
 
         self.default_speed = self.get_property("omega_default_speed", 130)
         self.turnback_time = self.get_property("turnback_time", 0.3)
@@ -94,7 +86,6 @@ class P11Collect(AbstractCollect):
 
     @task
     def move_motors(self, motor_position_dict):
-        HWR.beamline.diffractometer.wait_omega()
         HWR.beamline.diffractometer.move_motors(motor_position_dict)
 
     def _take_crystal_snapshot(self, filename):
@@ -113,6 +104,155 @@ class P11Collect(AbstractCollect):
 
         self.log.debug("#COLLECT# saving snapshot to %s" % filename)
         HWR.beamline.sample_view.save_snapshot(filename)
+
+    def set_transmission(self, value):
+        """
+        Descript. :
+        """
+        HWR.beamline.transmission.set_value(value)
+
+    def set_energy(self, value):
+        """
+        Descript. :
+        """
+        HWR.beamline.energy.set_value(value)
+
+    def set_resolution(self, value):
+        """
+        Descript. :
+        """
+        if round(HWR.beamline.resolution.get_value(), 2) != round(value, 2):
+            HWR.beamline.resolution.set_value(value)
+
+    def do_collect(self, owner):
+        """
+        Actual collect sequence
+        """
+        log = logging.getLogger("user_level_log")
+        log.info("Collection: Preparing to collect")
+        self.emit("collectReady", (False,))
+        self.emit(
+            "collectOscillationStarted",
+            (owner, None, None, None, self.current_dc_parameters, None),
+        )
+        self.emit("progressInit", ("Collection", 100, False))
+        self.collection_id = None
+
+        try:
+            # ----------------------------------------------------------------
+            # Prepare data collection
+
+            self.open_detector_cover()
+            self.open_safety_shutter()
+            self.open_fast_shutter()
+
+            # ----------------------------------------------------------------
+            # Store information in LIMS
+
+            self.current_dc_parameters["status"] = "Running"
+            self.current_dc_parameters["collection_start_time"] = time.strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
+
+            logging.getLogger("HWR").info(
+                "Collection parameters: %s" % str(self.current_dc_parameters)
+            )
+
+            log.info("Collection: Storing data collection in LIMS")
+            self.store_data_collection_in_lims()
+
+            log.info(
+                "Collection: Creating directories for raw images and processing files"
+            )
+            self.create_file_directories()
+
+            log.info("Collection: Getting sample info from parameters")
+            self.get_sample_info()
+
+            log.info("Collection: Storing sample info in LIMS")
+            self.store_sample_info_in_lims()
+
+            if all(
+                item is None for item in self.current_dc_parameters["motors"].values()
+            ):
+                # No centring point defined
+                # create point based on the current position
+                current_diffractometer_position = (
+                    HWR.beamline.diffractometer.get_positions()
+                )
+                for motor in self.current_dc_parameters["motors"].keys():
+                    self.current_dc_parameters["motors"][
+                        motor
+                    ] = current_diffractometer_position.get(motor)
+
+            # ----------------------------------------------------------------
+            # Move to the centered position and take crystal snapshots
+
+            log.info("Collection: Moving to centred position")
+            self.move_to_centered_position()
+            self.take_crystal_snapshots()
+            self.move_to_centered_position()
+
+            # ----------------------------------------------------------------
+            # Set data collection parameters
+
+            if "transmission" in self.current_dc_parameters:
+                log.info(
+                    "Collection: Setting transmission to %.2f",
+                    self.current_dc_parameters["transmission"],
+                )
+                self.set_transmission(self.current_dc_parameters["transmission"])
+
+            if "wavelength" in self.current_dc_parameters:
+                log.info(
+                    "Collection: Setting wavelength to %.4f",
+                    self.current_dc_parameters["wavelength"],
+                )
+                self.set_wavelength(self.current_dc_parameters["wavelength"])
+
+            elif "energy" in self.current_dc_parameters:
+                log.info(
+                    "Collection: Setting energy to %.4f",
+                    self.current_dc_parameters["energy"],
+                )
+                self.set_energy(self.current_dc_parameters["energy"])
+
+            dd = self.current_dc_parameters.get("resolution")
+            if dd and dd.get("upper"):
+                resolution = dd["upper"]
+                log.info("Collection: Setting resolution to %.3f", resolution)
+                self.set_resolution(resolution)
+
+            elif "detector_distance" in self.current_dc_parameters:
+                log.info(
+                    "Collection: Moving detector to %.2f",
+                    self.current_dc_parameters["detector_distance"],
+                )
+                self.move_detector(self.current_dc_parameters["detector_distance"])
+
+            # ----------------------------------------------------------------
+            # Site specific implementation of a data collection
+
+            # In order to call the hook with original parameters
+            # before update_data_collection_in_lims changes them
+            # TODO check why this happens
+
+            self.data_collection_hook()
+
+            # ----------------------------------------------------------------
+            # Store information in LIMS
+
+            log.info("Collection: Updating data collection in LIMS")
+            self.update_data_collection_in_lims()
+
+        except:
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            failed_msg = "Data collection failed!\n%s" % exc_value
+            self.collection_failed(failed_msg)
+        else:
+            self.collection_finished()
+        finally:
+            self.data_collection_cleanup()
 
     def data_collection_hook(self):
         if not self.init_ok:
@@ -260,18 +400,21 @@ class P11Collect(AbstractCollect):
             detector.start_acquisition()
 
             if collection_type == "Characterization":
+                print("STARTING CHARACTERISATION")
                 self.collect_characterisation(
                     start_angle, img_range, nframes, angle_inc, exp_time
                 )
             else:
+                print("STARTING STANDARD COLLECTION")
                 self.collect_std_collection(start_angle, stop_angle)
                 self.generate_xds_template()
 
         except RuntimeError:
             self.log.error(traceback.format_exc())
         finally:
+            self.add_h5_info(self.latest_h5_filename)
             self.acquisition_cleanup()
-            self.trigger_auto_processing()
+            print("STARTING PROCESSING")
 
     def collect_std_collection(self, start_angle, stop_angle):
         """
@@ -303,7 +446,6 @@ class P11Collect(AbstractCollect):
         self.acq_off_cmd()
         self.acq_window_off_cmd()
         self.omega_mv(stop_angle, self.acq_speed)
-        HWR.beamline.diffractometer.wait_omega()
 
     def collect_characterisation(
         self, start_angle, img_range, nimages, angle_inc, exp_time
@@ -331,24 +473,41 @@ class P11Collect(AbstractCollect):
         self.omega_mv(start_angle, self.default_speed)
 
         for img_no in range(nimages):
-            logging.info("collecting image %s" % img_no)
+            print("collecting image %s" % img_no)
             start_at = start_angle + angle_inc * img_no
             stop_angle = start_at + img_range * 1.0
+            # print("======= CHARACTERISATION Adding angle and range to the header...")
+            # Add start angle to the header
+            # detector = HWR.beamline.detector
+            # detector.set_eiger_start_angle(start_at)
 
-            logging.info("collecting image %s, angle %f" % (img_no, start_at))
+            # Add angle increment to the header
+            # detector.set_eiger_angle_increment(angle_inc)
+
+            print("collecting image %s, angle %f" % (img_no, start_at))
 
             if start_at >= stop_angle:
-                init_pos = start_at
-
+                init_pos = start_at  # - self.acq_speed * self.turnback_time
+                # init_pos = start_at - 1.5
             else:
-                init_pos = start_at
+                init_pos = start_at  # + self.acq_speed * self.turnback_time
+                # init_pos = start_at + 1.5
 
+            # self.omega_mv(init_pos, self.default_speed)
             self.collect_std_collection(start_at, stop_angle)
 
+            # This part goes to standard collection. Otherwise it produces phantom openings.
+            # diffr.set_omega_velocity(self.default_speed)
+            # self.acq_window_off_cmd()
+            # self.acq_off_cmd()
             self.log.debug(
                 "======= collect_characterisation  Waiting ======================================="
             )
 
+            # This part goes to standard collection. Otherwise it produces phantom openings.
+            # diffr.set_omega_velocity(self.default_speed)
+            # self.acq_window_off_cmd()
+            # self.acq_off_cmd()
             self.log.debug(
                 "======= collect_characterisation  Waiting ======================================="
             )
@@ -402,7 +561,6 @@ class P11Collect(AbstractCollect):
 
             # Move omega to 0 at the end
             self.omega_mv(0, self.default_speed)
-            self.wait_omega()
 
         except RuntimeError:
             self.log.error(traceback.format_exc())
@@ -462,18 +620,18 @@ class P11Collect(AbstractCollect):
                     self.get_filter_transmission(),
                 )
 
-                # Set attributes for certain nodes
-                h5fd["entry/sample/transformations/omega"].attrs["vector"] = [
-                    1.0,
-                    0.0,
-                    0.0,
-                ]
-                h5fd["entry/instrument/detector/module/fast_pixel_direction"].attrs[
-                    "vector"
-                ] = [1.0, 0.0, 0.0]
-                h5fd["entry/instrument/detector/module/slow_pixel_direction"].attrs[
-                    "vector"
-                ] = [0.0, 1.0, 0.0]
+                # # Set attributes for certain nodes
+                # h5fd["entry/sample/transformations/omega"].attrs["vector"] = [
+                #     1.0,
+                #     0.0,
+                #     0.0,
+                # ]
+                # h5fd["entry/instrument/detector/module/fast_pixel_direction"].attrs[
+                #     "vector"
+                # ] = [1.0, 0.0, 0.0]
+                # h5fd["entry/instrument/detector/module/slow_pixel_direction"].attrs[
+                #     "vector"
+                # ] = [0.0, 1.0, 0.0]
 
                 # Delete unwanted nodes
                 unwanted_nodes = [
@@ -642,19 +800,6 @@ class P11Collect(AbstractCollect):
 
             try:
                 self.mkdir_with_mode(mosflm_path_local, mode=0o777)
-
-                # AG: Explicit write of the non-empty file so that the directory is synchronised with /asap3/...
-                # Is is substituted by appropriate process from mosflm_sbatch.sh --output.
-                # f=open(mosflm_path_local+"/mosflm.log", 'a')
-                # f.write("mosflm.log")
-                # f.close()
-
-                # Create mosflm remote dir explicitly:
-                # os.system("{ssh:s} \"mkdir -p {mosflm_path:s}\"".format(
-                #  ssh = ssh,
-                #  mosflm_path = mosflm_path
-                # ))
-
                 self.log.debug(
                     "=========== MOSFLM ============ Mosflm directory created"
                 )
@@ -672,10 +817,9 @@ class P11Collect(AbstractCollect):
                     mosflm_path_local.split("/gpfs/current/processed/")[1] + "\n"
                 )
             except:
-                logging.info(sys.exc_info())
+                print(sys.exc_info())
 
             # create call
-            # btHelper.user_sshkey = btHelper.user_sshkey.replace("/gpfs/current",triggerUtils.get_beamtime_metadata()[2])
             ssh = btHelper.get_ssh_command()
             sbatch = btHelper.get_sbatch_command(
                 jobname_prefix="mosflm",
@@ -764,7 +908,7 @@ class P11Collect(AbstractCollect):
                         xdsapp_path_local.split("/gpfs/current/processed/")[1] + "\n"
                     )
                 except RuntimeError:
-                    logging.info(sys.exc_info())
+                    print(sys.exc_info())
 
                 # create call
                 ssh = btHelper.get_ssh_command()
@@ -938,6 +1082,7 @@ class P11Collect(AbstractCollect):
             oldmask = os.umask(000)
             os.makedirs(directory, mode=mode)
             os.umask(oldmask)
+            # self.checkPath(directory,force=True)
 
             self.log.debug("local directory created")
 
@@ -981,12 +1126,135 @@ class P11Collect(AbstractCollect):
                     try:
                         os.mkdir(path, mode=0o777)
                     except RuntimeError:
-                        logging.info("mkdir failed:", str(sys.exc_info()))
+                        print("mkdir failed:", str(sys.exc_info()))
                         return False
                 else:
-                    logging.info("dir not found:", str(sys.exc_info()))
+                    print("dir not found:", str(sys.exc_info()))
                     return False
         if not os.access(path, os.W_OK):
-            logging.info("dir not writeable:", str(sys.exc_info()))
+            print("dir not writeable:", str(sys.exc_info()))
             return False
         return path
+
+    def create_file_directories(self):
+        """
+        Method create directories for raw files and processing files.
+        Directories for xds.input and auto_processing are created
+        """
+        self.create_directories(
+            self.current_dc_parameters["fileinfo"]["directory"],
+            self.current_dc_parameters["fileinfo"]["process_directory"],
+        )
+
+        print("============= ")
+
+        """create processing directories and img links"""
+        xds_directory, auto_directory = self.prepare_input_files()
+        try:
+            self.create_directories(xds_directory, auto_directory)
+            # temporary, to improve
+            os.system("chmod -R 777 %s %s" % (xds_directory, auto_directory))
+            """todo, create link of imgs for auto_processing
+            try:
+                os.symlink(files_directory, os.path.join(process_directory, "img"))
+            except os.error, e:
+                if e.errno != errno.EEXIST:
+                    raise
+            """
+            # os.symlink(files_directory, os.path.join(process_directory, "img"))
+        except Exception:
+            logging.exception("Could not create processing file directory")
+            return
+        if xds_directory:
+            self.current_dc_parameters["xds_dir"] = xds_directory
+        if auto_directory:
+            self.current_dc_parameters["auto_dir"] = auto_directory
+
+    def prepare_input_files(self):
+        """
+        Descript. :
+        """
+        i = 1
+        logging.getLogger("user_level_log").info(
+            "Creating XDS processing input file directories"
+        )
+
+        while True:
+            xds_input_file_dirname = (
+                "%s_%s_%d"
+                % (
+                    self.current_dc_parameters["fileinfo"]["prefix"],
+                    self.current_dc_parameters["fileinfo"]["run_number"],
+                    i,
+                )
+                + "/rotational_"
+                + str(self.current_dc_parameters["fileinfo"]["run_number"]).zfill(3)
+            )
+            xds_directory = os.path.join(
+                self.current_dc_parameters["fileinfo"]["directory"].replace(
+                    "/current/raw", "/current/processed"
+                ),
+                xds_input_file_dirname,
+            )
+            if not os.path.exists(xds_directory):
+                break
+            i += 1
+        auto_directory = os.path.join(
+            self.current_dc_parameters["fileinfo"]["process_directory"],
+            "rotational_"
+            + str(float(self.current_dc_parameters["fileinfo"]["run_number"])).zfill(3),
+        )
+        logging.getLogger("HWR").info(
+            "[COLLECT] Processing input file directories: XDS: %s, AUTO: %s"
+            % (xds_directory, auto_directory)
+        )
+        return xds_directory, auto_directory
+
+    def take_crystal_snapshots(self):
+        """
+        Descript. :
+        """
+        if self.current_dc_parameters["take_snapshots"]:
+            # snapshot_directory = self.current_dc_parameters["fileinfo"]["archive_directory"]
+            # save the image to the data collection directory for the moment
+            snapshot_directory = os.path.join(
+                self.current_dc_parameters["fileinfo"]["directory"], "snapshot"
+            )
+            if not os.path.exists(snapshot_directory):
+                try:
+                    self.create_directories(snapshot_directory)
+                except Exception:
+                    logging.getLogger("HWR").exception(
+                        "Collection: Error creating snapshot directory"
+                    )
+
+            number_of_snapshots = 1  # 4 take only one image for the moment
+            logging.getLogger("user_level_log").info(
+                "Collection: Taking %d sample snapshot(s)" % number_of_snapshots
+            )
+            if HWR.beamline.diffractometer.get_current_phase() != "Centring":
+                logging.getLogger("user_level_log").info(
+                    "Moving Diffractometer to CentringPhase"
+                )
+                HWR.beamline.diffractometer.goto_centring_phase(wait=True)
+                self.move_to_centered_position()
+
+            for snapshot_index in range(number_of_snapshots):
+                snapshot_filename = os.path.join(
+                    snapshot_directory,
+                    "%s_%s_%s.snapshot.jpeg"
+                    % (
+                        self.current_dc_parameters["fileinfo"]["prefix"],
+                        self.current_dc_parameters["fileinfo"]["run_number"],
+                        (snapshot_index + 1),
+                    ),
+                )
+                self.current_dc_parameters[
+                    "xtalSnapshotFullPath%i" % (snapshot_index + 1)
+                ] = snapshot_filename
+                # self._do_take_snapshot(snapshot_filename)
+                self._take_crystal_snapshot(snapshot_filename)
+                time.sleep(1)  # needed, otherwise will get the same images
+                if number_of_snapshots > 1:
+                    HWR.beamline.diffractometer.move_omega_relative(90)
+                    time.sleep(1)  # needed, otherwise will get the same images
