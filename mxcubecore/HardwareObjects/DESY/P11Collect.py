@@ -1168,12 +1168,8 @@ class P11Collect(AbstractCollect):
             "Creating XDS processing input file directories"
         )
 
-    
         xds_input_file_dirname = (
-            "%s"
-            % (
-                self.current_dc_parameters["fileinfo"]["prefix"],
-            )
+            "%s" % (self.current_dc_parameters["fileinfo"]["prefix"],)
             + "/rotational_"
             + str(self.current_dc_parameters["fileinfo"]["run_number"]).zfill(3)
         )
@@ -1181,9 +1177,10 @@ class P11Collect(AbstractCollect):
             self.current_dc_parameters["fileinfo"]["directory"].replace(
                 "/current/raw", "/current/processed"
             ),
-            xds_input_file_dirname,"xdsapp"
+            xds_input_file_dirname,
+            "xdsapp",
         )
-            
+
         auto_directory = xds_directory
 
         logging.getLogger("HWR").info(
