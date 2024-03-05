@@ -142,17 +142,13 @@ class MotorsNPosition(AbstractActuator):
         """
 
         # by posname - alias
-        posidx = -1
-        for name in self._positions:
-            posidx += 1
+        for posidx, name in enumerate(self._positions):
             if posname == self.get_property_value_by_index(posidx, "posname"):
                 self._set_value(posidx)
                 return
 
         # by name - label
-        posidx = -1
-        for name in self._positions:
-            posidx += 1
+        for posidx, name in enumerate(self._positions):
             if posname == name:
                 self._set_value(posidx)
                 return
@@ -187,22 +183,14 @@ class MotorsNPosition(AbstractActuator):
 
     def update_multi_value(self):
         current_idx = -1
-        posidx = -1
+        current_pos = {motorname: self.motor_hwobjs[motorname].get_value(
+        ) for motorname in self.motorlist}
 
-        current_pos = {}
-
-        for motorname in self.motorlist:
-            current_pos[motorname] = self.motor_hwobjs[motorname].get_value()
-            if self.name().lower() == "/pinhole":
-                self.log.debug(
-                    "   - position for %s is %s" % (motorname, current_pos[motorname])
-                )
-
-        for name in self._positions:
-            posidx += 1
+        for idx, name in enumerate(self._positions):
             for motorname in self.motorlist:
                 if motorname not in self._positions[name]:
                     continue
+
                 position = self._positions[name][motorname]
                 cur_pos = current_pos[motorname]
                 delta = self.deltas[motorname]
@@ -213,12 +201,13 @@ class MotorsNPosition(AbstractActuator):
                 for motorname in self.motorlist:
                     position = self._positions[name][motorname]
                     self.log.debug("     - motor %s is at %s" % (motorname, position))
-                current_idx = posidx
+                current_idx = idx
                 break
 
         if current_idx != self.current_index:
             self.current_index = current_idx
             self.update_value(current_idx)
+
         return current_idx
 
     def update_multi_state(self):
