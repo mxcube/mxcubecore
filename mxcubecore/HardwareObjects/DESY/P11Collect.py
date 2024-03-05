@@ -380,12 +380,12 @@ class P11Collect(AbstractCollect):
             HWR.beamline.detector.start_acquisition()
 
             if collection_type == "Characterization":
-                print("STARTING CHARACTERISATION")
+                self.log.debug("STARTING CHARACTERISATION")
                 self.collect_characterisation(
                     start_angle, img_range, nframes, angle_inc, exp_time
                 )
             else:
-                print("STARTING STANDARD COLLECTION")
+                self.log.debug("STARTING STANDARD COLLECTION")
                 self.collect_std_collection(start_angle, stop_angle)
                 self.generate_xds_template()
 
@@ -394,7 +394,7 @@ class P11Collect(AbstractCollect):
         finally:
             self.add_h5_info(self.latest_h5_filename)
             self.acquisition_cleanup()
-            print("STARTING PROCESSING")
+            self.log.debug("STARTING PROCESSING")
 
     def collect_std_collection(self, start_angle, stop_angle):
         """
@@ -451,11 +451,11 @@ class P11Collect(AbstractCollect):
         self.omega_mv(start_angle, self.default_speed)
 
         for img_no in range(nimages):
-            print("collecting image %s" % img_no)
+            self.log.debug("collecting image %s" % img_no)
             start_at = start_angle + angle_inc * img_no
             stop_angle = start_at + img_range * 1.0
 
-            print("collecting image %s, angle %f" % (img_no, start_at))
+            self.log.debug("collecting image %s, angle %f" % (img_no, start_at))
 
             # Keep it here for now. It is not clear if it is needed.
             if start_at >= stop_angle:
@@ -866,8 +866,9 @@ class P11Collect(AbstractCollect):
                     open(datasets_file, "a", encoding="utf-8").write(
                         xdsapp_path_local.split("/gpfs/current/processed/")[1] + "\n"
                     )
-                except RuntimeError:
-                    print(sys.exc_info())
+                except RuntimeError as err_msg:
+                    self.log.debug("Cannot write to datasets.txt")
+                    self.log.debug(sys.exc_info())
 
                 # create call
                 ssh = btHelper.get_ssh_command()
@@ -1079,13 +1080,13 @@ class P11Collect(AbstractCollect):
                     try:
                         os.mkdir(path, mode=0o777)
                     except RuntimeError:
-                        print("mkdir failed:", str(sys.exc_info()))
+                        self.log.debug("mkdir failed:", str(sys.exc_info()))
                         return False
                 else:
-                    print("dir not found:", str(sys.exc_info()))
+                    self.log.debug("dir not found:", str(sys.exc_info()))
                     return False
         if not os.access(path, os.W_OK):
-            print("dir not writeable:", str(sys.exc_info()))
+            self.log.debug("dir not writeable:", str(sys.exc_info()))
             return False
         return path
 
