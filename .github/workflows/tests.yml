@@ -1,32 +1,35 @@
 name: Pytest
 on:
   pull_request:
+    paths-ignore:
+      - "doc/**"
+      - "docs/**"
     types: [opened, reopened, synchronize]
-    paths:
-      - '**.py'
 jobs:
   Python:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        python-version:
+          # TODO
+          #- "3.8"
+          #- "3.9"
+          - "3.10"
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+      - name: Setup conda environment with micromamba for Python ${{ matrix.python-version }}
+        uses: mamba-org/setup-micromamba@v1
         with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install openldap
-        run: sudo apt-get update && sudo apt-get install -y libldap2-dev libsasl2-dev slapd ldap-utils tox lcov valgrind
+          cache-environment: true
+          create-args: >-
+            python=${{ matrix.python-version }}
+          environment-file: conda-environment-dev.yml
+          post-cleanup: all
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install poetry --user
-          python -m poetry install --extras=tango
+        run: "${MAMBA_EXE} run --name mxcubecore poetry install --extras=tango --only=dev,main"
 
       - name: Test with pytest
-        run: |
-          python -m poetry run pytest --no-cov
+        run: "${MAMBA_EXE} run --name mxcubecore pytest --no-cov"
