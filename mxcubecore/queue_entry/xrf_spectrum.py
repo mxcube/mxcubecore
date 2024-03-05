@@ -68,6 +68,8 @@ class XrfSpectrumQueueEntry(BaseQueueEntry):
                 session_id=HWR.beamline.session.session_id,
                 blsample_id=xrf_spectrum._node_id,
             )
+            HWR.beamline.xrf_spectrum._ready_event.wait()
+            HWR.beamline.xrf_spectrum._ready_event.clear()
         else:
             logging.getLogger("user_level_log").info(
                 "XRFSpectrum not defined in beamline setup"
