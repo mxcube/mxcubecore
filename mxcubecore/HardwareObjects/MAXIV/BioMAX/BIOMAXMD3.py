@@ -23,14 +23,14 @@ class BIOMAXMD3(MAXIVMD3):
         """
         Description:
         """
-        super().__init__(self, *args)
+        super().__init__(*args)
 
     def init(self):
         super().init()
 
         try:
             self.zoom_centre = eval(self.get_property("zoom_centre"))
-            zoom = self.camera.get_image_zoom()
+            zoom = None  # zoom = self.camera.get_image_zoom()
             if zoom is not None:
                 self.zoom_centre["x"] = self.zoom_centre["x"] * zoom
                 self.zoom_centre["y"] = self.zoom_centre["y"] * zoom
@@ -149,7 +149,7 @@ class BIOMAXMD3(MAXIVMD3):
 
         :returns: list with two floats
         """
-        zoom = self.camera.get_image_zoom()
+        zoom = zoom = HWR.beamline.sample_view.camera.get_image_zoom()
         return (
             zoom / self.channel_dict["CoaxCamScaleX"].get_value(),
             1 / self.channel_dict["CoaxCamScaleY"].get_value(),
@@ -157,7 +157,7 @@ class BIOMAXMD3(MAXIVMD3):
 
     def update_zoom_calibration(self):
         """ """
-        zoom = self.camera.get_image_zoom()
+        zoom = HWR.beamline.sample_view.camera.get_image_zoom()
         self.pixels_per_mm_x = zoom / self.channel_dict["CoaxCamScaleX"].get_value()
         self.pixels_per_mm_y = zoom / self.channel_dict["CoaxCamScaleY"].get_value()
         self.emit("pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y)))
@@ -166,6 +166,7 @@ class BIOMAXMD3(MAXIVMD3):
         """
         Descript. :
         """
+        self.update_zoom_calibration()
         self.centring_hwobj.initCentringProcedure()
         for click in range(3):
             self.user_clicked_event = gevent.event.AsyncResult()

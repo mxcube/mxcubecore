@@ -43,11 +43,11 @@ class MAXIVMD3(GenericDiffractometer):
 
     AUTOMATIC_CENTRING_IMAGES = 6
 
-    def __init__(self, *args):
+    def __init__(self, name):
         """
         Description:
         """
-        GenericDiffractometer.__init__(self, *args)
+        GenericDiffractometer.__init__(self, name=name)
         # Compatibility line
         self.C3D_MODE = GenericDiffractometer.CENTRING_METHOD_AUTO
         self.MANUAL3CLICK_MODE = "Manual 3-click"
