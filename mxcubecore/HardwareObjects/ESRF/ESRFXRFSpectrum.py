@@ -26,11 +26,11 @@ from ast import literal_eval
 from warnings import warn
 import numpy
 
-from mxcubecore.HardwareObjects.abstract.AbstractXRFSpectrum import AbstractXRFSpectrum
-
 from PyMca5.PyMca import ConfigDict
 from PyMca5.PyMca import ClassMcaTheory
 from PyMca5.PyMca import QtMcaAdvancedFitReport
+
+from mxcubecore.HardwareObjects.abstract.AbstractXRFSpectrum import AbstractXRFSpectrum
 
 # Next line is a trick to avoid core dump in QtMcaAdvancedFitReport
 QtMcaAdvancedFitReport.qt = MagicMock()
@@ -73,7 +73,7 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
         )
         return self._execute_xrf_spectrum(ctime, filename)
 
-    def _execute_xrf_spectrum(self, ctime=None, filename=None):
+    def _execute_xrf_spectrum(self, integration_time=None, filename=None):
         """Local XRF spectrum sequence.
         Args:
             integration_time (float): MCA integration time [s].
@@ -161,7 +161,7 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
         calib = calib or self.ctrl_hwobj.mca.calibration
 
         # the spectra is read by the find_max_attenuation procedure.
-        # We only need the date not to read it again
+        # We only need the data, do not to read it again
         data = data or self.ctrl_hwobj.mca.data
 
         try:
@@ -172,8 +172,12 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
                 xdata = data[0] * 1.0
                 ydata = data[1]
 
-            xmin = self.config["min"]
-            xmax = self.config["max"]
+            try:
+                xmin = self.config["fit"]["xmin"]
+                xmax = self.config["fit"]["xmax"]
+            except KeyError:
+                xmin = data[0][0]
+                xmax = data[0][-1]
             self.mcafit.setData(xdata, ydata, xmin=xmin, xmax=xmax, calibration=calib)
 
             self.mcafit.estimate()
@@ -209,7 +213,7 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
             msg = f"XRFSpectrum: problem fitting {exp}\nPlease check the raw "
             msg += f"data file {self.spectrum_info_dict['scanFileFullPath']}"
             logging.getLogger("user_level_log").exception(msg)
-            self.spectrumCommandFailed()
+            self.spectrum_command_failed()
             return False
 
     def _write_csv_file(self, fitresult, fname=None):
