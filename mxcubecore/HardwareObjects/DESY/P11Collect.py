@@ -458,14 +458,14 @@ class P11Collect(AbstractCollect):
             self.log.debug("collecting image %s, angle %f" % (img_no, start_at))
 
             # Keep it here for now. It is not clear if it is needed.
-            if start_at >= stop_angle:
-                init_pos = start_at  # - self.acq_speed * self.turnback_time
-                # init_pos = start_at - 1.5
-            else:
-                init_pos = start_at  # + self.acq_speed * self.turnback_time
-                # init_pos = start_at + 1.5
-
+            # if start_at >= stop_angle:
+            #     init_pos = start_at  # - self.acq_speed * self.turnback_time
+            #     # init_pos = start_at - 1.5
+            # else:
+            #     init_pos = start_at  # + self.acq_speed * self.turnback_time
+            #     # init_pos = start_at + 1.5
             # self.omega_mv(init_pos, self.default_speed)
+
             self.collect_std_collection(start_at, stop_angle)
             self.log.debug(
                 "======= collect_characterisation  Waiting ======================================="
