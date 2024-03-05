@@ -47,6 +47,7 @@ class BIOMAXEiger(AbstractDetector):
             "Temperature",
             "Humidity",
             "CountTime",
+            "CountrateCorrectionCountCutoff",
             "FrameTime",
             "PhotonEnergy",
             "Wavelength",
@@ -109,6 +110,20 @@ class BIOMAXEiger(AbstractDetector):
             "FilenamePattern": None,
             "PhotonEnergy": None,
             "TriggerMode": "exts",
+        }
+
+        # config needed for dozor online analysis
+        self.dozor_dict = {
+            "beam_center_x": 0.0,
+            "beam_center_y": 0.0,
+            "count_time": 0.0,
+            "countrate_correction_count_cutoff": 0,
+            "detector_distance": 0.0,
+            "omega_increment": 0.0,
+            "x_pixels_in_detector": 0,
+            "x_pixel_size": 0.000075,
+            "y_pixels_in_detector": 0,
+            "wavelength": 0.0,
         }
 
         # not all of the following commands are needed, for now all of them here
@@ -552,6 +567,24 @@ class BIOMAXEiger(AbstractDetector):
             self._configuration_failed()
         else:
             self._configuration_done()
+
+        logging.getLogger("user_level_log").info(
+            "setting dozor dict for online analysis"
+        )
+        dozor_dict = self.dozor_dict
+        dozor_dict["beam_center_x"] = config["BeamCenterX"]
+        dozor_dict["beam_center_y"] = config["BeamCenterY"]
+        dozor_dict["count_time"] = config["CountTime"]
+        dozor_dict["countrate_correction_count_cutoff"] = self.get_value(
+            "CountrateCorrectionCountCutoff"
+        )
+        dozor_dict["detector_distance"] = config["DetectorDistance"]
+        dozor_dict["omega_increment"] = config["OmegaIncrement"]
+        dozor_dict["x_pixels_in_detector"] = self.get_value("XPixelsDetector")
+        dozor_dict["x_pixel_size"] = self.get_value("XPixelSize")
+        dozor_dict["y_pixels_in_detector"] = self.get_value("YPixelsDetector")
+        dozor_dict["wavelength"] = self.get_value("Wavelength")
+        return dozor_dict
 
     def _configuration_done(self):  # (self, gl)
         logging.getLogger("HWR").info("Detector configuration done")

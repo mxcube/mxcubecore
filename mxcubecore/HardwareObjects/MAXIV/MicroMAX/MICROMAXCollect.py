@@ -7,6 +7,7 @@
 
 import os
 import logging
+import json
 import gevent
 import time
 import math
@@ -1192,19 +1193,29 @@ class MICROMAXCollect(DataCollect):
         self.display["nimages"] = nframes_per_trigger * ntrigger
 
         file_parameters = self.current_dc_parameters["fileinfo"]
-        file_parameters["suffix"] = self.bl_config.detector_fileext
-        image_file_template = "%(prefix)s_%(run_number)s" % file_parameters
         name_pattern = os.path.join(file_parameters["directory"], image_file_template)
         #    file_parameters["template"] = image_file_template
         file_parameters["filename"] = "%s_master.h5" % name_pattern
         self.display["file_name1"] = file_parameters["filename"]
         config["FilenamePattern"] = name_pattern
+
         # make sure the filewriter is enabled
         self.detector_hwobj.enable_filewriter()
-        if self.current_dc_parameters["experiment_type"] == "Mesh":
-            # enable stream interface
-            self.detector_hwobj.enable_stream()
-        self.detector_hwobj.prepare_acquisition(config)
+        self.detector_hwobj.enable_stream()
+        dozor_dict = self.detector_hwobj.prepare_acquisition(config)
+
+        # set image appendix, used by online analysis
+        target_beam_size_factor = 2.0  # this value should be from x-ray centering
+        img_appendix = {"dozor_dict": dozor_dict,
+                        "exp_type": self.current_dc_parameters['experiment_type'],
+                        "ssx_mode": self.ssx_mode,
+                        "row": ntrigger,
+                        "col": nframes_per_trigger,
+                        "target_beam_size_factor": target_beam_size_factor,
+                        "col_id": self.current_dc_parameters["collection_id"],
+                        "process_dir": self.current_dc_parameters["auto_dir"],
+                        "shape_id": self.get_current_shape_id()}
+        self.detector_hwobj.set_image_appendix(json.dumps(img_appendix))
 
     def stop_collect(self, owner):
         """
