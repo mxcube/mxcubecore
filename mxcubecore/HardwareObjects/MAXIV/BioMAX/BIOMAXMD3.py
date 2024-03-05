@@ -4,7 +4,6 @@ import gevent
 import numpy as np
 from PIL import Image
 import cv2
-import math
 import os
 from mxcubecore.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer,

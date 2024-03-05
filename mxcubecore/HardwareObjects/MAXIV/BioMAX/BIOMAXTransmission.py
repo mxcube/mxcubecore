@@ -1,8 +1,6 @@
-import sys
 import gevent
 import time
 import logging
-import math
 from mxcubecore.TaskUtils import *
 from mxcubecore.HardwareObjects.abstract.AbstractTransmission import (
     AbstractTransmission,

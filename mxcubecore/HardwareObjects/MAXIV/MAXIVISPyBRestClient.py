@@ -2,10 +2,8 @@
 A client for ISPyB Webservices.
 """
 import logging
-import json
 import cgi
 
-from datetime import datetime
 from requests import post, get
 from urllib.parse import urljoin
 

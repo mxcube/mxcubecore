@@ -1,10 +1,8 @@
 from mxcubecore.BaseHardwareObjects import HardwareObject
-import math
 import logging
 import time
 import gevent
-from threading import Event, Thread
-import base64
+from threading import Thread
 import array
 import numpy as np
 

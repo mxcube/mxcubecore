@@ -959,7 +959,6 @@ class MICROMAXCollect(DataCollect):
             plc.B312A_E06_DIA_DETC01_CLC = 1
         except Exception:
             self.log.exception("Could not close the detector cover")
-            pass
 
     def open_fast_shutter(self):
         """

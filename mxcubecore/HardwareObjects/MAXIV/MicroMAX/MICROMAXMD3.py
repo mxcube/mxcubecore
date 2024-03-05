@@ -1,10 +1,8 @@
-import time
 import logging
 import gevent
 import lucid3
 import numpy as np
 from PIL import Image
-import math
 from mxcubecore.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer,
     DiffractometerState,

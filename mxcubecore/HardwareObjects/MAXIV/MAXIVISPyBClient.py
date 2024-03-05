@@ -1,7 +1,6 @@
 import logging
 import time
 from socket import gethostname
-from urllib.parse import urljoin
 from urllib.error import URLError
 from suds import WebFault
 from suds.sudsobject import asdict

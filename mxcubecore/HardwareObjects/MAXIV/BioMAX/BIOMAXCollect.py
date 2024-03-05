@@ -1001,7 +1001,6 @@ class BIOMAXCollect(DataCollect):
             self.detector_cover_hwobj.closeShutter()
         except:
             logging.getLogger("HWR").exception("Could not close the detector cover")
-            pass
 
     def open_fast_shutter(self):
         """
@@ -1016,7 +1015,6 @@ class BIOMAXCollect(DataCollect):
         """
         # to do, close the fast shutter as early as possible in case
         # MD3 fails to do so
-        pass
 
     @task
     def _take_crystal_snapshot(self, filename):

@@ -23,7 +23,6 @@ BIOMAXEnergyScan
 
 import tango
 import os
-import math
 import time
 import gevent
 import logging

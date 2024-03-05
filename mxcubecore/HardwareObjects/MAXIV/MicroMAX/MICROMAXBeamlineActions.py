@@ -1,5 +1,4 @@
 import logging
-import time
 import gevent
 import tango
 
