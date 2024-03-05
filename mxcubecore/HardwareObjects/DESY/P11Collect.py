@@ -66,6 +66,9 @@ class P11Collect(AbstractCollect):
         self.acq_off_cmd = self.get_command_object("acq_off")
         self.acq_window_off_cmd = self.get_command_object("acq_window_off")
 
+        self.latest_frames = None
+        self.acq_speed = None
+
         if None in [
             self.lower_bound_ch,
             self.upper_bound_ch,
@@ -89,15 +92,14 @@ class P11Collect(AbstractCollect):
         HWR.beamline.diffractometer.move_motors(motor_position_dict)
 
     def _take_crystal_snapshot(self, filename):
-        diffr = HWR.beamline.diffractometer
         self.log.debug("#COLLECT# taking crystal snapshot.")
 
-        if not diffr.is_centring_phase():
+        if not HWR.beamline.diffractometer.is_centring_phase():
             self.log.debug("#COLLECT# take_snapshot. moving to centring phase")
-            diffr.goto_centring_phase(wait=True)
+            HWR.beamline.diffractometer.goto_centring_phase(wait=True)
 
         time.sleep(0.3)
-        if not diffr.is_centring_phase():
+        if not HWR.beamline.diffractometer.is_centring_phase():
             raise RuntimeError(
                 "P11Collect. cannot reach centring phase for acquiring snapshots"
             )
@@ -155,7 +157,7 @@ class P11Collect(AbstractCollect):
             )
 
             logging.getLogger("HWR").info(
-                "Collection parameters: %s" % str(self.current_dc_parameters)
+                "Collection parameters: %s", str(self.current_dc_parameters)
             )
 
             log.info("Collection: Storing data collection in LIMS")
@@ -245,9 +247,8 @@ class P11Collect(AbstractCollect):
             log.info("Collection: Updating data collection in LIMS")
             self.update_data_collection_in_lims()
 
-        except:
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            failed_msg = "Data collection failed!\n%s" % exc_value
+        except RuntimeError as e:
+            failed_msg = "Data collection failed!\n%s" % str(e)
             self.collection_failed(failed_msg)
         else:
             self.collection_finished()
@@ -259,9 +260,6 @@ class P11Collect(AbstractCollect):
             raise RuntimeError(
                 "P11Collect. - object initialization failed. COLLECTION not possible"
             )
-
-        self.diffr = HWR.beamline.diffractometer
-        detector = HWR.beamline.detector
 
         dc_pars = self.current_dc_parameters
         collection_type = dc_pars["experiment_type"]
@@ -286,28 +284,11 @@ class P11Collect(AbstractCollect):
         self.acq_speed = img_range / exp_time
 
         if not self.diffractometer_prepare_collection():
-            raise BaseException("Cannot prepare diffractometer for collection")
-
-        if collection_type == "Characterization":
-            self.log.debug("P11Collect.  Characterization")
-            ret = self.prepare_characterization()
-        else:
-            stop_angle = start_angle + img_range * nframes
-
-            self.log.debug("P11Collect.  Standard Collection")
-            self.log.debug(
-                "  - collection starts at: %3.2f - ends at: %3.2f "
-                % (start_angle, stop_angle)
-            )
-
-            ret = self.prepare_std_collection(start_angle, img_range)
-
-        if not ret:
-            raise BaseException("Cannot set prepare collection . Aborting")
+            raise RuntimeError("Cannot prepare diffractometer for collection")
 
         try:
             self.log.debug("############# #COLLECT# Opening detector cover")
-            self.diffr.detector_cover_open(wait=True)
+            HWR.beamline.diffractometer.detector_cover_open(wait=True)
             self.log.debug(
                 "############ #COLLECT# detector cover is now open. Wait 2 more seconds"
             )
@@ -361,14 +342,11 @@ class P11Collect(AbstractCollect):
                     + "======================================="
                 )
 
-                overlap = osc_pars["overlap"]
                 angle_inc = 90.0
-                detector.prepare_characterisation(
+                HWR.beamline.detector.prepare_characterisation(
                     exp_time, nframes, angle_inc, filepath
                 )
             else:
-                # AG: Create rotational_001, etc the same way as for CC in case of characterisation
-
                 # Filepath to work with presenterd
                 filepath = os.path.join(
                     basepath,
@@ -394,10 +372,12 @@ class P11Collect(AbstractCollect):
                     + "======================================="
                 )
 
-                detector.prepare_std_collection(exp_time, nframes, filepath)
+                HWR.beamline.detector.prepare_std_collection(
+                    exp_time, nframes, filepath
+                )
 
             self.log.debug("#COLLECT# Starting detector")
-            detector.start_acquisition()
+            HWR.beamline.detector.start_acquisition()
 
             if collection_type == "Characterization":
                 print("STARTING CHARACTERISATION")
@@ -464,8 +444,6 @@ class P11Collect(AbstractCollect):
         :param exp_time: The `exp_time` parameter represents the exposure time for each image
         """
 
-        diffr = HWR.beamline.diffractometer
-
         self.log.debug(
             "#COLLECT# Running OMEGA through the characteristation acquisition"
         )
@@ -476,16 +454,10 @@ class P11Collect(AbstractCollect):
             print("collecting image %s" % img_no)
             start_at = start_angle + angle_inc * img_no
             stop_angle = start_at + img_range * 1.0
-            # print("======= CHARACTERISATION Adding angle and range to the header...")
-            # Add start angle to the header
-            # detector = HWR.beamline.detector
-            # detector.set_eiger_start_angle(start_at)
-
-            # Add angle increment to the header
-            # detector.set_eiger_angle_increment(angle_inc)
 
             print("collecting image %s, angle %f" % (img_no, start_at))
 
+            # Keep it here for now. It is not clear if it is needed.
             if start_at >= stop_angle:
                 init_pos = start_at  # - self.acq_speed * self.turnback_time
                 # init_pos = start_at - 1.5
@@ -495,19 +467,6 @@ class P11Collect(AbstractCollect):
 
             # self.omega_mv(init_pos, self.default_speed)
             self.collect_std_collection(start_at, stop_angle)
-
-            # This part goes to standard collection. Otherwise it produces phantom openings.
-            # diffr.set_omega_velocity(self.default_speed)
-            # self.acq_window_off_cmd()
-            # self.acq_off_cmd()
-            self.log.debug(
-                "======= collect_characterisation  Waiting ======================================="
-            )
-
-            # This part goes to standard collection. Otherwise it produces phantom openings.
-            # diffr.set_omega_velocity(self.default_speed)
-            # self.acq_window_off_cmd()
-            # self.acq_off_cmd()
             self.log.debug(
                 "======= collect_characterisation  Waiting ======================================="
             )
@@ -546,18 +505,16 @@ class P11Collect(AbstractCollect):
         detector cover, and stopping the acquisition.
         """
         try:
-            diffr = HWR.beamline.diffractometer
-            detector = HWR.beamline.detector
-            detector.stop_acquisition()
-            diffr.wait_omega()
+            HWR.beamline.detector.stop_acquisition()
+            HWR.beamline.diffractometer.wait_omega()
             # =================
             # It is probably already finished in a standard collection.
             self.acq_off_cmd()
             self.acq_window_off_cmd()
             # ==================
-            diffr.set_omega_velocity(self.default_speed)
+            HWR.beamline.diffractometer.set_omega_velocity(self.default_speed)
             self.log.debug("#COLLECT# Closing detector cover")
-            diffr.detector_cover_close(wait=True)
+            HWR.beamline.diffractometer.detector_cover_close(wait=True)
 
             # Move omega to 0 at the end
             self.omega_mv(0, self.default_speed)
@@ -620,7 +577,8 @@ class P11Collect(AbstractCollect):
                     self.get_filter_transmission(),
                 )
 
-                # # Set attributes for certain nodes
+                # Keep it here as it is not clear if it is needed.
+                # It was used in CC to fix the issue with the data processing
                 # h5fd["entry/sample/transformations/omega"].attrs["vector"] = [
                 #     1.0,
                 #     0.0,
@@ -643,7 +601,7 @@ class P11Collect(AbstractCollect):
                 for node in unwanted_nodes:
                     if node in h5fd:
                         del h5fd[node]
-        except Exception as err_msg:
+        except RuntimeWarning as err_msg:
             self.log.debug(f"Error while adding info to HDF5 file: {str(err_msg)}")
             self.log.debug(traceback.format_exc())
 
@@ -816,8 +774,9 @@ class P11Collect(AbstractCollect):
                 open(datasets_file, "a").write(
                     mosflm_path_local.split("/gpfs/current/processed/")[1] + "\n"
                 )
-            except:
-                print(sys.exc_info())
+            except RuntimeWarning as err_msg:
+                self.log.debug("Cannot write to datasets.txt")
+                self.log.debug(sys.exc_info(), err_msg)
 
             # create call
             ssh = btHelper.get_ssh_command()
@@ -859,7 +818,7 @@ class P11Collect(AbstractCollect):
         else:
             if collection_type == "OSC":
                 self.log.debug(
-                    "==== AUTOPROCESSING STANDARD PROCESSING IN PROGRESS =========="
+                    "==== AUTOPROCESSING STANDARD PROCESSING IS IN PROGRESS =========="
                 )
 
                 try:
@@ -951,16 +910,18 @@ class P11Collect(AbstractCollect):
                 )
 
     def diffractometer_prepare_collection(self):
-        diffr = HWR.beamline.diffractometer
 
         self.log.debug("#COLLECT# preparing collection ")
-        if not diffr.is_collect_phase():
+        if not HWR.beamline.diffractometer.is_collect_phase():
             self.log.debug("#COLLECT# going to collect phase")
-            diffr.goto_collect_phase(wait=True)
+            HWR.beamline.diffractometer.goto_collect_phase(wait=True)
 
-        self.log.debug("#COLLECT# now in collect phase: %s" % diffr.is_collect_phase())
+        self.log.debug(
+            "#COLLECT# now in collect phase: %s"
+            % HWR.beamline.diffractometer.is_collect_phase()
+        )
 
-        return diffr.is_collect_phase()
+        return HWR.beamline.diffractometer.is_collect_phase()
 
     def prepare_std_collection(self, start_angle, img_range):
         """
@@ -977,16 +938,12 @@ class P11Collect(AbstractCollect):
         # Add start angle to the header
         osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
         start_angle = osc_pars["start"]
-
-        detector = HWR.beamline.detector
-        detector.set_eiger_start_angle(start_angle)
+        HWR.beamline.detector.set_eiger_start_angle(start_angle)
 
         # Add angle increment to the header
         osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
         img_range = osc_pars["range"]
-        detector.set_eiger_angle_increment(img_range)
-
-        return True
+        HWR.beamline.detector.set_eiger_angle_increment(img_range)
 
     def omega_mv(self, target, speed):
         """
@@ -997,9 +954,9 @@ class P11Collect(AbstractCollect):
         motor to move to.
         :param speed: The speed parameter is the desired velocity at which the omega motor should move
         """
-        self.diffr.set_omega_velocity(speed)
-        self.diffr.move_omega(target)
-        self.diffr.wait_omega()
+        HWR.beamline.diffractometer.set_omega_velocity(speed)
+        HWR.beamline.diffractometer.move_omega(target)
+        HWR.beamline.diffractometer.wait_omega()
 
     def prepare_characterization(self):
         """
@@ -1012,16 +969,12 @@ class P11Collect(AbstractCollect):
         # Add start angle to the header
         osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
         start_angle = osc_pars["start"]
-
-        detector = HWR.beamline.detector
-        detector.set_eiger_start_angle(start_angle)
+        HWR.beamline.detector.set_eiger_start_angle(start_angle)
 
         # Add angle increment to the header
         osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
         img_range = osc_pars["range"]
-        detector.set_eiger_angle_increment(img_range)
-
-        return True
+        HWR.beamline.detector.set_eiger_angle_increment(img_range)
 
     def get_relative_path(self, path1, path2):
         """
