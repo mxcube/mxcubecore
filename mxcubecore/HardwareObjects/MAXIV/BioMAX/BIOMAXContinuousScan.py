@@ -501,7 +501,7 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
         except Exception as ex:
             logging.getLogger("HWR").error("Open safety shutter: error %s" % str(ex))
 
-        initial_transmission_value = self.transmission_hwobj.getAttFactor()
+        initial_transmission_value = self.transmission_hwobj.get_att_factor()
         initial_energy_value = self.energy_hwobj.getCurrentEnergy()
 
         self.scanInfo = {
@@ -542,7 +542,7 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
 
         if not self.prepare_transmission(element, edgeElement):
             return False
-        self.scanInfo["transmissionFactor"] = self.transmission_hwobj.getAttFactor()
+        self.scanInfo["transmissionFactor"] = self.transmission_hwobj.get_att_factor()
 
         self.prepare_panda(exptime)
 
@@ -1009,7 +1009,7 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
         """
         # todo add time out? if over certain time, then stop acquisiion and
         # popup an error message
-        if self.safety_shutter_hwobj.getShutterState() == "opened":
+        if self.safety_shutter_hwobj.get_state() == "opened":
             return
 
         logging.getLogger("HWR").info("Opening the safety shutter.")
@@ -1018,7 +1018,7 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
         with gevent.Timeout(
             5, RuntimeError("Could not open the safety shutter, timeout error")
         ):
-            while self.safety_shutter_hwobj.getShutterState() == "closed":
+            while self.safety_shutter_hwobj.get_state() == "closed":
                 gevent.sleep(0.2)
 
     def get_elements(self):

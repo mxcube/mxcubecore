@@ -219,7 +219,7 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         """
         Starting at low transmission, scan the transmission until optimal counts are read from the detector
         """
-        # self.current_energy = self.energy_hwobj.getCurrentEnergy()
+        # self.current_energy = self.energy_hwobj.get_current_energy()
         logging.getLogger("HWR").info("Calculating optimal transmission")
         logging.getLogger("user_level_log").info("Calculating optimal transmission")
 
@@ -307,7 +307,7 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             "Transmission adjusted at %s" % str(final_transmission)
         )
 
-    def start_spectrum(
+    def startXrfSpectrum(
         self,
         ct,
         spectrum_directory,
@@ -431,7 +431,7 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
 
             # We do not want to look at anything higher than the exciting energy
             # Or the inelastic scattering peak below the exciting energy
-            upperlim = int(self.energy_hwobj.getCurrentEnergy() * 100) - 150
+            upperlim = int(self.energy_hwobj.get_current_energy() * 100) - 150
             # The minimum energy is phosphor emission (ca. 2000 eV)
             lowerlim = 180
             output = ""
