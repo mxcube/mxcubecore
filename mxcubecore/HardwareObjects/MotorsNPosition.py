@@ -183,8 +183,10 @@ class MotorsNPosition(AbstractActuator):
 
     def update_multi_value(self):
         current_idx = -1
-        current_pos = {motorname: self.motor_hwobjs[motorname].get_value(
-        ) for motorname in self.motorlist}
+        current_pos = {
+            motorname: self.motor_hwobjs[motorname].get_value()
+            for motorname in self.motorlist
+        }
 
         for idx, name in enumerate(self._positions):
             for motorname in self.motorlist:
