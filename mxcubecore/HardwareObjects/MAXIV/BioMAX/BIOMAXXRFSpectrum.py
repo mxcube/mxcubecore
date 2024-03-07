@@ -219,7 +219,6 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         """
         Starting at low transmission, scan the transmission until optimal counts are read from the detector
         """
-        # self.current_energy = self.energy_hwobj.get_current_energy()
         logging.getLogger("HWR").info("Calculating optimal transmission")
         logging.getLogger("user_level_log").info("Calculating optimal transmission")
 

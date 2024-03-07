@@ -148,7 +148,7 @@ class BIOMAXMD3(MAXIVMD3):
 
         :returns: list with two floats
         """
-        zoom = zoom = HWR.beamline.sample_view.camera.get_image_zoom()
+        zoom = HWR.beamline.sample_view.camera.get_image_zoom()
         return (
             zoom / self.channel_dict["CoaxCamScaleX"].get_value(),
             1 / self.channel_dict["CoaxCamScaleY"].get_value(),
