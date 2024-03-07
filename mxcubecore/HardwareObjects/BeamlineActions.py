@@ -87,6 +87,7 @@ class HWObjActuatorCommand(CommandObject):
         self.type = TWO_STATE_COMMAND_T
         self.argument_type = ARGUMENT_TYPE_LIST
         self._hwobj.connect("valueChanged", self._cmd_done)
+        self._running = False
 
     def _get_action(self):
         """Return which action has to be executed.
@@ -105,6 +106,7 @@ class HWObjActuatorCommand(CommandObject):
         Args: None
         Kwargs: None
         """
+        self._running = True
         self.emit("commandBeginWaitReply", (str(self.name()),))
         value = self._get_action()
         self._hwobj.set_value(value, timeout=60)
@@ -122,8 +124,10 @@ class HWObjActuatorCommand(CommandObject):
         else:
             if isinstance(res, gevent.GreenletExit):
                 self.emit("commandFailed", (str(self.name()),))
-            else:
+            elif self._running:
                 self.emit("commandReplyArrived", (str(self.name()), res))
+
+        self.running = False
 
     def value(self):
         """Return the current command vaue.
