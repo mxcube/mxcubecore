@@ -84,8 +84,8 @@ software_properties:
     # co.gphl.wf.recen.bdg_licence_dir/fill/me/in
 
     # OPTIONAL. simcal *binary* For Mock collection emulation only. Not used by ASTRA workflow
-    co.gphl.wf.simcal.bin: /alt/rhfogh/Software/GPhL/nightly_20240206/Files_workflow_TRUNK_alpha-bdg/autoPROC/bin/linux64/simcal
-    co.gphl.wf.simcal.bdg_licence_dir: /alt/rhfogh/Software/GPhL/nightly_20240206/Files_workflow_TRUNK_alpha-bdg
+    co.gphl.wf.simcal.bin: /alt/rhfogh/Software/GPhL/nightly_20240311/Files_workflow_TRUNK_alpha-bdg/autoPROC/bin/linux64/simcal
+    co.gphl.wf.simcal.bdg_licence_dir: /alt/rhfogh/Software/GPhL/nightly_20240311/Files_workflow_TRUNK_alpha-bdg
 #    co.gphl.wf.simcal.bin: /alt/rhfogh/Software/GPhL/gphl_release/autoPROC/bin/linux64/simcal
 #    co.gphl.wf.simcal.bdg_licence_dir: /alt/rhfogh/Software/GPhL/gphl_release
 #    co.gphl.wf.simcal.bin: "{GPHL_INSTALLATION}/autoPROC/bin/linux64/simcal"/alt/rhfogh/Software/GPhL/gphl_release
