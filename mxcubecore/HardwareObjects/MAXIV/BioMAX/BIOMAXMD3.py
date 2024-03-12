@@ -29,7 +29,7 @@ class BIOMAXMD3(MAXIVMD3):
 
         try:
             self.zoom_centre = eval(self.get_property("zoom_centre"))
-            zoom = None  # zoom = self.camera.get_image_zoom()
+            zoom = HWR.beamline.sample_view.camera.get_image_zoom()
             if zoom is not None:
                 self.zoom_centre["x"] = self.zoom_centre["x"] * zoom
                 self.zoom_centre["y"] = self.zoom_centre["y"] * zoom
