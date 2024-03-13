@@ -17,13 +17,19 @@ import sys
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.TaskUtils import task
 from mxcubecore.HardwareObjects.GenericDiffractometer import GenericDiffractometer
-from mxcubecore.HardwareObjects.MAXIV.DataCollect import DataCollect
+from mxcubecore.HardwareObjects.MAXIV.DataCollect import (
+    DataCollect,
+    open_tango_shutter,
+    close_tango_shutter,
+)
 from mxcubecore.HardwareObjects.MAXIV.SciCatPlugin import SciCatPlugin
 from abstract.AbstractCollect import AbstractCollect
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 DET_SAFE_POSITION = 500
+# max time we wait for detector cover to open or close, in seconds
+DETECTOR_COVER_TIMEOUT = 10.0
 
 
 class MICROMAXCollect(DataCollect):
@@ -93,7 +99,7 @@ class MICROMAXCollect(DataCollect):
         # self.sample_changer_hwobj = self.getObjectByRole("sample_changer")
         # self.sample_changer_maint_hwobj = self.getObjectByRole("sample_changer_maintenance")
         self.dtox_hwobj = self.detector_hwobj.get_object_by_role("detector_distance")
-        # self.detector_cover_hwobj = self.getObjectByRole("detector_cover")
+        self.detector_cover_hwobj = self.detector_hwobj.get_object_by_role("cover")
         self.session_hwobj = self.get_object_by_role("session")
         self.shape_history_hwobj = HWR.beamline.sample_view
         self.dozor_hwobj = self.get_object_by_role("dozor")
@@ -931,27 +937,26 @@ class MICROMAXCollect(DataCollect):
 
     def open_detector_cover(self):
         """
-        Descript. :
+        send 'open' request to the detector cover and wait until it's open
         """
         try:
-            self.log.info("Openning the detector cover.")
-            plc = PyTango.DeviceProxy("b312a/vac/plc-01")
-            plc.B312A_E06_DIA_DETC02_ENAC = 1
-            plc.B312A_E06_DIA_DETC02_OPC = 1
-            time.sleep(1)  # make sure the cover is up before the data collection stars
+            self.log.info("Opening the detector cover.")
+            open_tango_shutter(
+                self.detector_cover_hwobj, DETECTOR_COVER_TIMEOUT, "detector cover"
+            )
         except Exception:
             self.log.exception("Could not open the detector cover")
             raise RuntimeError("[COLLECT] Could not open the detector cover.")
 
     def close_detector_cover(self):
         """
-        Descript. :
+        send 'close' request to the detector cover and wait until it's closed
         """
         try:
             self.log.info("Closing the detector cover")
-            plc = PyTango.DeviceProxy("b312a/vac/plc-01")
-            plc.B312A_E06_DIA_DETC02_ENAC = 1
-            plc.B312A_E06_DIA_DETC02_CLC = 1
+            close_tango_shutter(
+                self.detector_cover_hwobj, DETECTOR_COVER_TIMEOUT, "detector cover"
+            )
         except Exception:
             self.log.exception("Could not close the detector cover")
 

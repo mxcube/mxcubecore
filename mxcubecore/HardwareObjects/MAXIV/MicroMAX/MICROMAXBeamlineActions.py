@@ -57,15 +57,7 @@ class CloseDetectorCover:
         """
         Close detector cover
         """
-        try:
-            logging.getLogger("HWR").info("Closing the detector cover")
-            plc = tango.DeviceProxy("b312a/vac/plc-01")
-            plc.B312A_E06_DIA_DETC02_ENAC = 1
-            plc.B312A_E06_DIA_DETC02_CLC = 1
-        except Exception as ex:
-            logging.getLogger("HWR").exception(
-                "Could not close the detector cover. Error was {}".format(ex)
-            )
+        HWR.beamline.collect.close_detector_cover()
 
 
 class OpenDetectorCover:
@@ -73,15 +65,7 @@ class OpenDetectorCover:
         """
         Open detector cover
         """
-        try:
-            logging.getLogger("HWR").info("Opening the detector cover")
-            plc = tango.DeviceProxy("b312a/vac/plc-01")
-            plc.B312A_E06_DIA_DETC02_ENAC = 1
-            plc.B312A_E06_DIA_DETC02_OPC = 1
-        except Exception as ex:
-            logging.getLogger("HWR").exception(
-                "Could not close the detector cover. Error was {}".format(ex)
-            )
+        HWR.beamline.collect.open_detector_cover()
 
 
 class BeamtimeEnd:
