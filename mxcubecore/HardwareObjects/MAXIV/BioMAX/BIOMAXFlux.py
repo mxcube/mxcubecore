@@ -352,7 +352,7 @@ class BIOMAXFlux(AbstractFlux):
         so the flux at the sample will be less.
         as it's before the attenuator, so transmission is 100%
         """
-        energy = self.energy_hwobj.getCurrentEnergy()
+        energy = self.energy_hwobj.get_current_energy()
         energy_ev = energy * 1000
 
         if self.flux_aem_dev is None:

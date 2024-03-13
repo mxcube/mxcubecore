@@ -43,7 +43,7 @@ from mxcubecore import HardwareRepository as HWR
 
 monkey.patch_all(thread=False)
 
-MAX_TRANSMISSION = 100
+MAX_TRANSMISSION = 1
 
 
 class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
@@ -61,7 +61,7 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         self.ready_event = None
         self.stop_flag = False
         self.spectrum_running = None
-        self.spectrum_info = None
+        self.spectrum_info_dict = None
         self.config_filename = None
 
         self.energy_hwobj = None
@@ -121,7 +121,7 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         # saving attributes
         self.xspress3.WriteHdf5 = True
         # save the image at the user directory
-        self.xspress3.DestinationFileName = self.spectrum_info["scanFileFullPath"]
+        self.xspress3.DestinationFileName = self.spectrum_info_dict["scanFileFullPath"]
 
     def prepare_panda(self, trig_time):
         """
@@ -203,11 +203,11 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             (archive_file_template, "html")
         )
 
-        self.spectrum_info["filename"] = prefix
-        self.spectrum_info["scanFileFullPath"] = spectrum_file_dat_filename
-        self.spectrum_info["jpegScanFileFullPath"] = archive_file_png_filename
-        self.spectrum_info["exposureTime"] = ct
-        self.spectrum_info["annotatedPymcaXfeSpectrum"] = archive_file_html_filename
+        self.spectrum_info_dict["filename"] = prefix
+        self.spectrum_info_dict["scanFileFullPath"] = spectrum_file_dat_filename
+        self.spectrum_info_dict["jpegScanFileFullPath"] = archive_file_png_filename
+        self.spectrum_info_dict["exposureTime"] = ct
+        self.spectrum_info_dict["annotatedPymcaXfeSpectrum"] = archive_file_html_filename
         logging.getLogger("HWR").debug(
             "XRFSpectrum: spectrum data file is %s", spectrum_file_dat_filename
         )
@@ -288,7 +288,7 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
                 if step_index > 1:
                     new_transmission = self.transmission_steps[step_index - 2]
                 else:
-                    new_transmission = float(self.transmission_hwobj.getAttFactor()) / 2
+                    new_transmission = float(self.transmission_hwobj.get_att_factor()) / 2
 
                 logging.getLogger("HWR").debug(
                     "Setting new transmission %s" % new_transmission
@@ -374,7 +374,7 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             )
         )
 
-        self.spectrum_info = {"sessionId": session_id, "blSampleId": blsample_id}
+        self.spectrum_info_dict = {"sessionId": session_id, "blSampleId": blsample_id}
         try:
             self.prepare_directories(ct, spectrum_directory, archive_directory, prefix)
 
@@ -391,11 +391,13 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             self.prepare_panda(ct)
             # colibri shutter is closed at this point, but we need to open the fast shutter of the md3
             self.diffractometer_hwobj.open_fast_shutter()
-
-            self.spectrum_command_started()
+            
+            self.spectrum_info_dict["startTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
+            self.spectrum_running = True
+            self.emit("xrfSpectrumStarted", ())
 
             self.execute_spectrum_command(
-                ct, self.spectrum_info["scanFileFullPath"], adjust_transmission
+                ct, self.spectrum_info_dict["scanFileFullPath"], adjust_transmission
             )
         except Exception as ex:
             logging.getLogger("HWR").error("XRFSpectrum: error %s" % str(ex))
@@ -425,7 +427,7 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         """
         logging.getLogger("HWR").info("Sprectrum acquired, launching analysis")
         with cleanup(self.ready_event.set):
-            self.spectrum_info["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
+            self.spectrum_info_dict["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
             self.spectrum_running = False
 
             # We do not want to look at anything higher than the exciting energy
@@ -434,7 +436,7 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             # The minimum energy is phosphor emission (ca. 2000 eV)
             lowerlim = 180
             output = ""
-            data_folder = self.spectrum_info["scanFileFullPath"]
+            data_folder = self.spectrum_info_dict["scanFileFullPath"]
             logging.getLogger("HWR").info("Reading data from {}".format(data_folder))
             time.sleep(5)
             #           try:
@@ -530,30 +532,30 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             mca_config = {}
             # TODO: find peaks
 
-            self.spectrum_info[
+            self.spectrum_info_dict[
                 "beamTransmission"
-            ] = self.transmission_hwobj.getAttFactor()
-            self.spectrum_info["energy"] = self.get_current_energy()
+            ] = self.transmission_hwobj.get_att_factor()
+            self.spectrum_info_dict["energy"] = self.energy_hwobj.get_current_energy()
             beam_size = self.beam_info_hwobj.get_beam_size()
-            self.spectrum_info["beamSizeHorizontal"] = int(beam_size[0] * 1000)
-            self.spectrum_info["beamSizeVertical"] = int(beam_size[1] * 1000)
+            self.spectrum_info_dict["beamSizeHorizontal"] = int(beam_size[0] * 1000)
+            self.spectrum_info_dict["beamSizeVertical"] = int(beam_size[1] * 1000)
 
-            self.spectrum_info["flux"] = self.flux_hwobj.estimate_flux()
+            self.spectrum_info_dict["flux"] = self.flux_hwobj.estimate_flux()
             x = np.arange(5, 20, 0.01)
             plt.plot(x, self.spectrum_data[500:2000])
             plt.xlabel("Energy (keV)")
             plt.ylabel("counts")
-            plt.title = self.spectrum_info["jpegScanFileFullPath"]
+            plt.title = self.spectrum_info_dict["jpegScanFileFullPath"]
             ymin, ymax = plt.ylim()
             plt.text(12, 0.4 * ymax, tt)
-            plt.savefig(self.spectrum_info["jpegScanFileFullPath"])
+            plt.savefig(self.spectrum_info_dict["jpegScanFileFullPath"])
             # and save as well into data folder
-            data_folder = os.path.dirname(self.spectrum_info["scanFileFullPath"])
-            plt.savefig(os.path.join(data_folder, self.spectrum_info["filename"]))
+            data_folder = os.path.dirname(self.spectrum_info_dict["scanFileFullPath"])
+            plt.savefig(os.path.join(data_folder, self.spectrum_info_dict["filename"]))
 
             logging.getLogger("HWR").info(
                 "XRFSpectrum: Rendering spectrum to PNG file : %s",
-                self.spectrum_info["jpegScanFileFullPath"],
+                self.spectrum_info_dict["jpegScanFileFullPath"],
             )
             plt.close()
             status = self.store_xrf_spectrum()
@@ -574,7 +576,7 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         Descript. :
         """
         logging.getLogger("HWR").error("BIOMAXEnergyScan: XRF scan failed")
-        self.spectrum_info["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
+        self.spectrum_info_dict["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
         self.spectrum_running = False
         self.stop_flag = True
         self.closure()
@@ -619,19 +621,19 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         """
         # todo add time out? if over certain time, then stop acquisiion and
         # popup an error message
-        if self.safety_shutter_hwobj.getShutterState() == "opened":
+        if self.safety_shutter_hwobj.get_state() == "opened":
             return
         timeout = 5
         count_time = 0
         logging.getLogger("HWR").info("Opening the safety shutter.")
-        self.safety_shutter_hwobj.openShutter()
+        self.safety_shutter_hwobj.open()
         while (
-            self.safety_shutter_hwobj.getShutterState() == "closed"
+            self.safety_shutter_hwobj.get_state() == "closed"
             and count_time < timeout
         ):
             time.sleep(0.1)
             count_time += 0.1
-        if self.safety_shutter_hwobj.getShutterState() == "closed":
+        if self.safety_shutter_hwobj.get_state() == "closed":
             logging.getLogger("HWR").exception("Could not open the safety shutter")
             raise Exception("Could not open the safety shutter")
 
@@ -639,6 +641,6 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         """
         Descript. :
         """
-        logging.getLogger("HWR").debug("XRFSpectrum info %r", self.spectrum_info)
+        logging.getLogger("HWR").debug("XRFSpectrum info %r", self.spectrum_info_dict)
         if self.db_connection_hwobj:
-            return self.db_connection_hwobj.storeXfeSpectrum(self.spectrum_info)
+            return self.db_connection_hwobj.storeXfeSpectrum(self.spectrum_info_dict)
