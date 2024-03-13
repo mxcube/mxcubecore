@@ -27,31 +27,7 @@ class BIOMAXMD3(MAXIVMD3):
     def init(self):
         super().init()
 
-        try:
-            self.zoom_centre = eval(self.get_property("zoom_centre"))
-            zoom = HWR.beamline.sample_view.camera.get_image_zoom()
-            if zoom is not None:
-                self.zoom_centre["x"] = self.zoom_centre["x"] * zoom
-                self.zoom_centre["y"] = self.zoom_centre["y"] * zoom
-            self.beam_position = [self.zoom_centre["x"], self.zoom_centre["y"]]
-            self.beam_info_hwobj.beam_position = self.beam_position
-        except:
-            if self.image_width is not None and self.image_height is not None:
-                self.zoom_centre = {
-                    "x": self.image_width / 2,
-                    "y": self.image_height / 2,
-                }
-                self.beam_position = [self.image_width / 2, self.image_height / 2]
-                logging.getLogger("HWR").warning(
-                    "Diffractometer: Zoom center is ' +\
-                       'not defined. Continuing with the middle: %s"
-                    % self.zoom_centre
-                )
-            else:
-                logging.getLogger("HWR").warning(
-                    "Diffractometer: Neither zoom centre nor camera size are defined"
-                )
-
+        self.zoom_centre = eval(self.get_property("zoom_centre"))
         """
         init CameraExposure channel seperately, also try it several times
         due to the frequent TimeoutError when connecting to this channel
@@ -157,6 +133,11 @@ class BIOMAXMD3(MAXIVMD3):
     def update_zoom_calibration(self):
         """ """
         zoom = HWR.beamline.sample_view.camera.get_image_zoom()
+        if zoom is not None:
+            self.zoom_centre["x"] = self.zoom_centre["x"] * zoom
+            self.zoom_centre["y"] = self.zoom_centre["y"] * zoom
+        self.beam_position = [self.zoom_centre["x"], self.zoom_centre["y"]]
+        self.beam_info_hwobj.beam_position = self.beam_position
         self.pixels_per_mm_x = zoom / self.channel_dict["CoaxCamScaleX"].get_value()
         self.pixels_per_mm_y = zoom / self.channel_dict["CoaxCamScaleY"].get_value()
         self.emit("pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y)))
