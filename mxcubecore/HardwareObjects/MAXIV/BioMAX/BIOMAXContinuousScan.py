@@ -320,7 +320,7 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
             logging.getLogger("HWR").info(
                 "Setting prepare transmission energy %s" % str(_energy)
             )
-            self.energy_hwobj.startMoveEnergy(_energy / 1000, check_beam=True)
+            self.energy_hwobj.start_move_energy(_energy / 1000, check_beam=True)
         except Exception as ex:
             logging.getLogger("HWR").error("EnergyScan: cannot set scan Energy %s" % ex)
             return False
@@ -417,7 +417,7 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
     def energy_values(self, central_energy):
         # if energy value is not given
         if central_energy == 0:
-            central_energy = self.energy_hwobj.getCurrentEnergy()  # units?
+            central_energy = self.energy_hwobj.get_current_energy()  # units?
         # defining energy range around the edge energy
         Es = central_energy - 50
         Ef = central_energy + 50
@@ -501,7 +501,7 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
             logging.getLogger("HWR").error("Open safety shutter: error %s" % str(ex))
 
         initial_transmission_value = self.transmission_hwobj.get_att_factor()
-        initial_energy_value = self.energy_hwobj.getCurrentEnergy()
+        initial_energy_value = self.energy_hwobj.get_current_energy()
 
         self.scanInfo = {
             "sessionId": session_id,
@@ -513,9 +513,9 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
         self.scanInfo["exposureTime"] = 0.009  # defined in the sardana macro
 
         prefix = self.adjust_run_number(directory, prefix)
-        self.prefix = prefix
-        energy_scan_file_prefix = str(os.path.join(directory, prefix))
-        self.scanInfo["filename"] = energy_scan_file_prefix
+        file_name = prefix + ".h5"
+        full_file_path = str(os.path.join(directory, file_name))
+        self.scanInfo["filename"] = full_file_path # dir + file name + h5
         self.scan_data = []
         logging.getLogger("HWR").info("Energy scan info: %s", str(self.scanInfo))
 
@@ -550,7 +550,7 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
                 logging.getLogger("HWR").info(
                     "Setting start energy %s" % str(Es / 1000)
                 )
-                self.energy_hwobj.startMoveEnergy(Es / 1000, check_beam=True)
+                self.energy_hwobj.start_move_energy(Es / 1000, check_beam=True)
             except Exception as ex:
                 logging.getLogger("HWR").error(
                     "EnergyScan: cannot set scan Energy %s" % ex
@@ -560,7 +560,7 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
             self.stop_pid_controllers()
 
             logging.getLogger("HWR").info("Running sardana macro")
-            self.run_sardana_macro(Es, Ef, prefix, directory)  # or txt
+            self.run_sardana_macro(Es, Ef, file_name, directory)
 
         #    self.scan_command_finished(prefix, directory)
         except Exception as ex:
@@ -576,7 +576,7 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
         logging.getLogger("HWR").info(
             "Setting original energy %s" % str(initial_energy_value)
         )
-        self.energy_hwobj.startMoveEnergy(initial_energy_value, check_beam=False)
+        self.energy_hwobj.start_move_energy(initial_energy_value, check_beam=False)
         logging.getLogger("HWR").info(
             "Setting original transmission %s" % str(initial_transmission_value)
         )
@@ -609,7 +609,7 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
         self.scanning = False
         self.stop_flag = True
         logging.getLogger("HWR").info("Stopping Energy")
-        self.energy_hwobj.cancelMoveEnergy()
+        self.energy_hwobj.cancel_move_energy()
         logging.getLogger("HWR").info("Stopping Transmission")
         self.transmission_hwobj.stop()
 
@@ -1012,7 +1012,7 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
             return
 
         logging.getLogger("HWR").info("Opening the safety shutter.")
-        self.safety_shutter_hwobj.openShutter()
+        self.safety_shutter_hwobj.open()
 
         with gevent.Timeout(
             5, RuntimeError("Could not open the safety shutter, timeout error")
