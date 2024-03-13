@@ -515,7 +515,7 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
         prefix = self.adjust_run_number(directory, prefix)
         file_name = prefix + ".h5"
         full_file_path = str(os.path.join(directory, file_name))
-        self.scanInfo["filename"] = full_file_path # dir + file name + h5
+        self.scanInfo["filename"] = full_file_path  # dir + file name + h5
         self.scan_data = []
         logging.getLogger("HWR").info("Energy scan info: %s", str(self.scanInfo))
 

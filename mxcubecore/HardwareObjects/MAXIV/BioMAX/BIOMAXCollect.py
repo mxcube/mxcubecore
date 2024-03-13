@@ -430,7 +430,6 @@ class BIOMAXCollect(DataCollect):
     # -------------------------------------------------------------------------------
 
     def prepare_triggers_to_collect(self):
-
         oscillation_parameters = self.current_dc_parameters["oscillation_sequence"][0]
         osc_start = oscillation_parameters["start"]
         osc_range = oscillation_parameters["range"]
@@ -1202,7 +1201,6 @@ class BIOMAXCollect(DataCollect):
             return self.dtox_hwobj.get_limits()
 
     def prepare_detector(self):
-
         oscillation_parameters = self.current_dc_parameters["oscillation_sequence"][0]
         (
             osc_start,

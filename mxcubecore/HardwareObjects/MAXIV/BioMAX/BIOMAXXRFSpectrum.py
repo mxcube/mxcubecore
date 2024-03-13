@@ -207,7 +207,9 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         self.spectrum_info_dict["scanFileFullPath"] = spectrum_file_dat_filename
         self.spectrum_info_dict["jpegScanFileFullPath"] = archive_file_png_filename
         self.spectrum_info_dict["exposureTime"] = ct
-        self.spectrum_info_dict["annotatedPymcaXfeSpectrum"] = archive_file_html_filename
+        self.spectrum_info_dict[
+            "annotatedPymcaXfeSpectrum"
+        ] = archive_file_html_filename
         logging.getLogger("HWR").debug(
             "XRFSpectrum: spectrum data file is %s", spectrum_file_dat_filename
         )
@@ -288,7 +290,9 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
                 if step_index > 1:
                     new_transmission = self.transmission_steps[step_index - 2]
                 else:
-                    new_transmission = float(self.transmission_hwobj.get_att_factor()) / 2
+                    new_transmission = (
+                        float(self.transmission_hwobj.get_att_factor()) / 2
+                    )
 
                 logging.getLogger("HWR").debug(
                     "Setting new transmission %s" % new_transmission
@@ -391,7 +395,7 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             self.prepare_panda(ct)
             # colibri shutter is closed at this point, but we need to open the fast shutter of the md3
             self.diffractometer_hwobj.open_fast_shutter()
-            
+
             self.spectrum_info_dict["startTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
             self.spectrum_running = True
             self.emit("xrfSpectrumStarted", ())
@@ -628,8 +632,7 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         logging.getLogger("HWR").info("Opening the safety shutter.")
         self.safety_shutter_hwobj.open()
         while (
-            self.safety_shutter_hwobj.get_state() == "closed"
-            and count_time < timeout
+            self.safety_shutter_hwobj.get_state() == "closed" and count_time < timeout
         ):
             time.sleep(0.1)
             count_time += 0.1
