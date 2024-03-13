@@ -32,9 +32,6 @@ class BIOMAXResolution(AbstractResolution):
         self.update_beam_centre(self.dtox.get_value())
         self.connect(self.dtox, "stateChanged", self.dtox_state_changed)
         self.connect(self.dtox, "valueChanged", self.dtox_position_changed)
-        self.connect(
-            self.energy, "valueChanged", self.energy.energy_state_changed
-        )  # def energy_state_changed(self, state) in BIOMAXEnergy.py
         self.connect(self.detector, "roiChanged", self.det_roi_changed)
 
         super().init()
