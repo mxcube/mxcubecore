@@ -110,6 +110,7 @@ class AbstractBeam(HardwareObject):
 
     def get_beam_divergence(self):
         """Get the beam divergence.
+
         Returns:
             (tuple): Beam divergence (horizontal, vertical) [μm]
         """
@@ -119,18 +120,19 @@ class AbstractBeam(HardwareObject):
 
     def get_available_size(self):
         """Get the available predefined beam definers configuration.
+
         Returns:
             (dict): Dictionary {"type": (list), "values": (list)}, where
                "type": the definer type
-               "values": List of available beam size difinitions,
-                         according to the "type".
+               "values": List of available beam size difinitions, according to the "type".
         Raises:
             NotImplementedError
         """
         raise NotImplementedError
 
     def get_beam_shape(self):
-        """
+        """Get beam shape
+
         Returns:
             beam_shape: Enum BeamShape
         """
@@ -138,7 +140,8 @@ class AbstractBeam(HardwareObject):
         return self._beam_shape
 
     def get_beam_size(self):
-        """
+        """Get beam size
+
         Returns:
             (tuple): two floats
         """
@@ -146,8 +149,8 @@ class AbstractBeam(HardwareObject):
         return self._beam_width, self._beam_height
 
     def set_beam_size_shape(self, beam_width, beam_height, beam_shape):
-        """
-        Sets beam size and shape
+        """Sets beam size and shape
+
         Args:
             beam_width (float): requested beam width in microns
             beam_height (float): requested beam height in microns
@@ -161,6 +164,7 @@ class AbstractBeam(HardwareObject):
 
     def get_beam_position_on_screen(self):
         """Get the beam position
+
         Returns:
             (tuple): Position (x, y) [pixel]
         """
@@ -169,21 +173,23 @@ class AbstractBeam(HardwareObject):
 
     def set_beam_position_on_screen(self, beam_x_y):
         """Set the beam position
+
         Returns:
             beam_x_y (tuple): Position (x, y) [pixel]
         """
         raise NotImplementedError
 
     def get_beam_info_dict(self):
-        """
+        """Get beam info dictionary
+
         Returns:
             (dict): copy of beam_info_dict
         """
         return self._beam_info_dict.copy()
 
     def evaluate_beam_info(self):
-        """
-        Method called if aperture, slits or focusing has been changed
+        """Method called if aperture, slits or focusing has been changed
+
         Returns: dictionary, {size_x: 0.1, size_y: 0.1, shape: BeamShape enum}
         """
 
@@ -213,6 +219,13 @@ class AbstractBeam(HardwareObject):
     def re_emit_values(self):
         """
         Reemits beamSizeChanged and beamInfoChanged signals
+
+        Emits:
+            beamSizeChanged:  ('beamSizeChanged', (width, height)))
+
+            beamInfoChanged: ('beamInfoChanged', beam info dict)
+
+            beamPosChanged: ('beamPosChanged', beam position)
         """
         HardwareObject.re_emit_values(self)
         if self._beam_width != 9999 and self._beam_height != 9999:

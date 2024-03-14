@@ -53,21 +53,24 @@ class AbstractAperture(HardwareObject):
             logging.getLogger("HWR").error("Aperture: no position list defined")
 
     def get_diameter_size_list(self):
-        """
+        """Get diameters size list
+
         Returns:
             list: list of diameter sizes in microns
         """
         return self._diameter_size_list
 
     def get_position_list(self):
-        """
+        """Get positions list
+
         Returns:
             list: list of position names as str
         """
         return self._position_list
 
     def get_diameter_index(self):
-        """
+        """Get current diameter index
+
         Returns:
             int: current diameter index
         """
@@ -81,7 +84,7 @@ class AbstractAperture(HardwareObject):
             diameter_index (int): selected diameter index
 
         Emits:
-            diameterIndexChanged (int, float): current index, diameter in mm
+            diameterIndexChanged: ("diameterIndexChanged", current index, diameter in mm)
         """
         if diameter_index < len(self._diameter_size_list):
             self._current_diameter_index = diameter_index
@@ -96,14 +99,16 @@ class AbstractAperture(HardwareObject):
             )
 
     def get_diameter_size(self):
-        """
+        """Get current diameter size
+
         Returns:
             float: current diameter size in mm
         """
         return self._diameter_size_list[self._current_diameter_index]
 
     def set_diameter_size(self, diameter_size):
-        """
+        """Set diameter size
+
         Args:
             diameter_size (int): selected diameter index
         """
@@ -115,7 +120,8 @@ class AbstractAperture(HardwareObject):
             )
 
     def get_position_name(self):
-        """
+        """Get current position name
+
         Returns:
             str: current position as str
         """
@@ -134,6 +140,8 @@ class AbstractAperture(HardwareObject):
 
         Args:
             position_name (str): selected position
+        Emits:
+            valueChanged:  ('valueChanged', position name)
         """
         if position_name in self._position_list:
             self._current_position_name = position_name
@@ -149,6 +157,8 @@ class AbstractAperture(HardwareObject):
 
         Args:
             position_index (int): selected position index
+        Emits:
+            valueChanged:  ('valueChanged', position name)
         """
         if position_index < len(self._position_list):
             self._current_position_name = self._position_list[position_index]
@@ -171,15 +181,20 @@ class AbstractAperture(HardwareObject):
         pass
 
     def is_out(self):
-        """
+        """Is aperture out
+
         Returns:
             bool: True if aperture is in the beam, otherwise returns false
         """
         pass
 
     def force_emit_signals(self):
-        """
-        Reemits all signals
+        """Reemits all signals
+
+        Emits:
+            valueChanged:  ('valueChanged', actuator position)
+
+            diameterIndexChanged: ("diameterIndexChanged", current index, diameter in mm)
         """
         self.emit("valueChanged", self._current_position_name)
         self.emit(
