@@ -147,9 +147,6 @@ class P11Session(Session):
                 break
             else:
                 return None
-                # if ety.is_file() and ety.name.startswith('commissioning-metadata'):
-                #     self.beamtime_info.update( self.load_info(ety.path) )
-                #     self.beamtime_info['rootPath'] = PATH_COMMISSIONING
 
         return self.read_load_info(fname)
 
@@ -178,33 +175,12 @@ class P11Session(Session):
 
         return self.base_directory
 
-        # if self.is_inhouse():
-        #    user_category = "inhouse"
-        #    directory = os.path.join(
-        #        self.base_directory,
-        #        self.endstation_name,
-        #        user_category,
-        #        self.get_proposal(),
-        #    )
-        # else:
-        #    user_category = "visitor"
-        #    directory = os.path.join(
-        #        self.base_directory,
-        #        user_category,
-        #        self.get_proposal(),
-        #        self.endstation_name,
-        #    )
-        #
-        # return directory
-
     def get_base_image_directory(self):
         """
         :returns: The base path for images.
         :rtype: str
         """
         return os.path.join(self.get_base_data_directory(), self.raw_data_folder_name)
-        # self.session_file_name, \
-        # self.start_time)
 
     def get_base_process_directory(self):
         """
@@ -214,8 +190,6 @@ class P11Session(Session):
         return os.path.join(
             self.get_base_data_directory(), self.processed_data_folder_name
         )
-        # self.session_file_name, \
-        # self.start_time)
 
     def get_archive_directory(self):
         """
@@ -223,8 +197,6 @@ class P11Session(Session):
         :rtype: str
         """
         return os.path.join(self.get_base_data_directory(), self.default_archive_folder)
-        # self.session_file_name, \
-        # self.start_time)
 
     def path_to_ispyb(self, path):
         ispyb_template = self["file_info"].get_property("ispyb_directory_template")
