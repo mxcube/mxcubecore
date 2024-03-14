@@ -72,6 +72,7 @@ class AbstractActuator(HardwareObject):
     @abc.abstractmethod
     def get_value(self):
         """Read the actuator position.
+
         Returns:
             value: Actuator position.
         """
@@ -79,6 +80,7 @@ class AbstractActuator(HardwareObject):
 
     def get_limits(self):
         """Return actuator low and high limits.
+
         Returns:
             (tuple): two elements (low limit, high limit) tuple.
         """
@@ -86,8 +88,11 @@ class AbstractActuator(HardwareObject):
 
     def set_limits(self, limits):
         """Set actuator low and high limits. Emits signal limitsChanged.
+
         Args:
             limits (tuple): two elements (low limit, high limit) tuple.
+        Emits:
+            limitsChanged: ('limitsChanged', (low limit, high limit))
         Raises:
             ValueError: Attempt to set limits for read-only Actuator.
         """
@@ -99,6 +104,7 @@ class AbstractActuator(HardwareObject):
 
     def validate_value(self, value):
         """Check if the value is within limits.
+
         Args:
             value(numerical): value
         Returns:
@@ -115,18 +121,20 @@ class AbstractActuator(HardwareObject):
     @abc.abstractmethod
     def _set_value(self, value):
         """Implementation of specific set actuator logic.
+
         Args:
             value: target value
         """
 
     def set_value(self, value, timeout=0):
         """Set actuator to value.
+
         Args:
             value: target value
             timeout (float): optional - timeout [s],
-                             If timeout == 0: return at once and do not wait
-                                              (default);
-                             if timeout is None: wait forever.
+                    If timeout == 0: return at once and do not wait (default);
+                    if timeout is None: wait forever.
+
         Raises:
             ValueError: Invalid value or attemp to set read only actuator.
             RuntimeError: Timeout waiting for status ready  # From wait_ready
@@ -144,8 +152,12 @@ class AbstractActuator(HardwareObject):
 
     def update_value(self, value=None):
         """Check if the value has changed. Emits signal valueChanged.
+
         Args:
             value: value
+        Emits:
+            valueChanged: ('valueChanged', actuator position)
+
         """
         if value is None:
             value = self.get_value()
@@ -156,8 +168,11 @@ class AbstractActuator(HardwareObject):
 
     def update_limits(self, limits=None):
         """Check if the limits have changed. Emits signal limitsChanged.
+
         Args:
             limits (tuple): two elements tuple (low limit, high limit).
+        Emits:
+            limitsChanged: ('limitsChanged', (low limit, high limit))
         """
         if not limits:
             limits = self.get_limits()
@@ -175,10 +190,18 @@ class AbstractActuator(HardwareObject):
         super(AbstractActuator, self).re_emit_values()
 
     def force_emit_signals(self):
-        """Forces to emit all signals.
+        """
+        Forces to emit all signals.
 
-        Method is called from gui
-        Do not call it within HWR
+        This method is called from the GUI. Do not call it within the hardware object.
+
+        Emits:
+            valueChanged:  ('valueChanged', actuator position)
+
+            limitsChanged: ('limitsChanged', (low limit, high limit))
+
+            stateChanged: ('stateChanged', actuator state)
+
         """
         self.emit("valueChanged", (self.get_value(),))
         self.emit("limitsChanged", (self.get_limits(),))
