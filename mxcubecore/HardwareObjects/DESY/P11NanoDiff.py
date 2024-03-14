@@ -333,13 +333,11 @@ class P11NanoDiff(GenericDiffractometer):
             self.user_clicked_event = AsyncResult()
             x, y = self.user_clicked_event.get()
             if click < 2:
-                phi_mot.set_value_relative(phi_range, timeout=60)
+                phi_mot.set_value_relative(phi_range)
 
             X.append(x)
             Y.append(y)
             PHI.append(phi_mot.get_value())
-
-            print("************************", X, Y, PHI)
 
         # phi_mot.set_value(phi_start_pos)
         # gevent.sleep(2)
