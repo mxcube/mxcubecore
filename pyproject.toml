@@ -49,6 +49,7 @@ PyTango = { version = "^9.3.6", optional = true }
 python-ldap = "^3.4.0"
 requests = "^2.31.0"
 colorama = "^0.4.6"
+sphinx-material = "^0.0.36"
 
 [tool.poetry.dev-dependencies]
 pylint = "^2.15.6"
