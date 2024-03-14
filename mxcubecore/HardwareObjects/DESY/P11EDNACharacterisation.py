@@ -63,7 +63,6 @@ class P11EDNACharacterisation(EDNACharacterisation):
             self.result = XSDataResultMXCuBE.parseFile(results_file)
 
         return self.result
-
     def edna_maxwell(self, process_directory, inputxml, outputxml):
         """
         The function `edna_maxwell` is used to execute a command on a remote cluster using SSH and SBATCH.
@@ -268,14 +267,8 @@ class P11EDNACharacterisation(EDNACharacterisation):
         path_template = data_collection.acquisitions[0].path_template
 
         # Make sure there is a proper path conversion between different mount points
-        logging.info(
-            "======= Characterisation path template ====%s", path_template.directory
-        )
-
-        image_dir = path_template.directory.replace(
-            "/gpfs/current", triggerUtils.get_beamtime_metadata()[2]
-        )
-
+        logging.info("======= Characterisation path template ====%s", path_template.directory)
+        image_dir=path_template.directory.replace("/gpfs/current","/beamline/p11/current")
         logging.info(image_dir)
 
         path_str = os.path.join(image_dir, path_template.get_image_file_name())
@@ -296,7 +289,7 @@ class P11EDNACharacterisation(EDNACharacterisation):
             data_set.addImageFile(image_file)
 
         edna_input.addDataSet(data_set)
-        edna_input.process_directory = characterisation_dir
+        edna_input.process_directory = path_template.process_directory
         return edna_input
 
     def mkdir_with_mode(self, directory, mode):
