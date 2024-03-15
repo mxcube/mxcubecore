@@ -25,8 +25,8 @@ BeamDefinerMockup class
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
 
-class BeamDefinerMockup(AbstractNState):
 
+class BeamDefinerMockup(AbstractNState):
     def __init__(self, *args):
         super().__init__(*args)
         self.beam_size_hor = None
@@ -72,6 +72,6 @@ class BeamDefinerMockup(AbstractNState):
             size_x: horizontal size
             size_y: vertical size
         """
-        size_x, size_y = val.split('x')
+        size_x, size_y = val.split("x")
         self.beam_size_hor._move(float(size_x))
         self.beam_size_ver._move(float(size_y))

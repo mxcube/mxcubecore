@@ -105,7 +105,7 @@ class BeamMockup(AbstractBeam):
         self.re_emit_values()
 
     def beam_definer_changed(self, definer):
-        if definer.value != 'UNKNOWN':
+        if definer.value != "UNKNOWN":
             sx, sy = definer.value.split("x")
         else:
             _aperture = self._aperture.get_diameter_size()
