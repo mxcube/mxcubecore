@@ -18,6 +18,9 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
+
+""" Sardana Control System """
+
 from __future__ import absolute_import
 
 import logging
@@ -101,6 +104,8 @@ class AttributeEvent:
 
 
 class SardanaObject(object):
+    """Sardana Object"""
+    
     _eventsQueue = queue.Queue()
     _eventReceivers = {}
 
@@ -121,6 +126,7 @@ class SardanaObject(object):
 
 
 class SardanaMacro(CommandObject, SardanaObject, ChannelObject):
+    """Sardana macro"""
 
     macroStatusAttr = None
     INIT, STARTED, RUNNING, DONE = range(4)
@@ -319,6 +325,8 @@ class SardanaMacro(CommandObject, SardanaObject, ChannelObject):
 
 
 class SardanaCommand(CommandObject):
+    """SardanaCommand"""
+    
     def __init__(self, name, command, taurusname=None, username=None, **kwargs):
         CommandObject.__init__(self, name, username, **kwargs)
 
