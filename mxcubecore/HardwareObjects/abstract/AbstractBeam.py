@@ -186,12 +186,15 @@ class AbstractBeam(HardwareObject):
         Method called if aperture, slits or focusing has been changed
         Returns: dictionary, {size_x: 0.1, size_y: 0.1, shape: BeamShape enum}
         """
-
         size_x = min(
-            self._beam_size_dict["aperture"][0], self._beam_size_dict["slits"][0]
+            self._beam_size_dict["aperture"][0],
+            self._beam_size_dict["slits"][0],
+            self._beam_size_dict["definer"][0],
         )
         size_y = min(
-            self._beam_size_dict["aperture"][1], self._beam_size_dict["slits"][1]
+            self._beam_size_dict["aperture"][1],
+            self._beam_size_dict["slits"][1],
+            self._beam_size_dict["definer"][1],
         )
 
         self._beam_width = size_x
