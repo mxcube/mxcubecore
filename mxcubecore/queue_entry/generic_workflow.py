@@ -78,7 +78,7 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
             self.workflow_running = False
         else:
             self.workflow_running = True
-            while self.workflow_running:
+            while workflow_hwobj.state.value == "RUNNING":
                 time.sleep(1)
 
     def workflow_state_handler(self, state):
