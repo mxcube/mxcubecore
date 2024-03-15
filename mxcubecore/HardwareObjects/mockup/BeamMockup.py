@@ -105,7 +105,6 @@ class BeamMockup(AbstractBeam):
         self.re_emit_values()
 
     def beam_definer_changed(self, definer):
-        print('beam_definer_changed', definer)
         if definer.value != 'UNKNOWN':
             sx, sy = definer.value.split("x")
         else:
@@ -127,8 +126,6 @@ class BeamMockup(AbstractBeam):
         self.emit("beamPosChanged", (self._beam_position_on_screen,))
 
     def get_value(self):
-        print('beam get value', list(self.get_beam_info_dict().values()))
-
         return list(self.get_beam_info_dict().values())
 
     def get_slits_gap(self):
@@ -208,5 +205,4 @@ class BeamMockup(AbstractBeam):
         self._beam_info_dict["size_x"] = size_x
         self._beam_info_dict["size_y"] = size_y
         self._beam_info_dict["shape"] = self._beam_shape
-        print(self._beam_size_dict)
         return self._beam_info_dict
