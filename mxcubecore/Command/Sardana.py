@@ -47,8 +47,11 @@ from mxcubecore.CommandContainer import (
     ConnectionError,
 )
 
-from PyTango import DevFailed, ConnectionFailed
-import PyTango
+try:
+    from PyTango import DevFailed, ConnectionFailed
+    import PyTango
+except Exception:
+    logging.getLogger("HWR").warning("Pytango is not available in this computer.")    
 
 # from mxcubecore.TaskUtils import task
 
@@ -249,6 +252,8 @@ class SardanaMacro(CommandObject, SardanaObject, ChannelObject):
         return
 
     def update(self, event):
+        """update the macro command status: ``commandCanExecute``, ``commandReady``, ``commandNotReady``, ``commandReplyArrive``, ``commandReplyAbort`` and ``commandFailed`` """
+        
         data = event.event[2]
 
         try:
@@ -384,12 +389,13 @@ class SardanaCommand(CommandObject):
 
 
 class SardanaChannel(ChannelObject, SardanaObject):
+    """ Creates a Sardana Channel """
+    
     def __init__(
         self, name, attribute_name, username=None, uribase=None, polling=None, **kwargs
     ):
-
         super(SardanaChannel, self).__init__(name, username, **kwargs)
-
+        
         class ChannelInfo(object):
             def __init__(self):
                 super(ChannelInfo, self).__init__()
