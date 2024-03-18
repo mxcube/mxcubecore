@@ -37,7 +37,7 @@ __license__ = "LGPLv3+"
 
 
 class EpicsCommand(CommandObject):
-    """ Epics Command """
+    """Epics Command"""
 
     def __init__(self, name, pv_name, username=None, args=None, **kwargs):
         CommandObject.__init__(self, name, username, **kwargs)
