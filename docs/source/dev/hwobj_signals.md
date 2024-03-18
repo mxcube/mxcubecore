@@ -36,7 +36,7 @@ From the {py:class}`HardwareObjectMixin` class (removing extra lines for brevity
         dispatcher.send(signal, self, *args)
 ```
 
-So, in a custom hardware object, since inhnerits from _BaseHardwareObject_, one only needs to call: 
+So, in a custom hardware object, since it inherits from {py:class}`HardwareObject`, one only needs to call: 
 ```
 self.emit('my_signal', new_value)
 ```
