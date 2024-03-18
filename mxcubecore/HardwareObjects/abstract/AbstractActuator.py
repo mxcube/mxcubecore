@@ -57,8 +57,6 @@ class AbstractActuator(HardwareObject):
             actuator name specified by XML property, otherwise `None`
         read_only (bool):
             read only flag, specified by XML property, otherwise `False`
-    username : int
-        the number of legs the animal has (default 4)
     """
 
 
