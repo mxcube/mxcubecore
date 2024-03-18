@@ -125,4 +125,3 @@ HardwareReposotory.get_hardware_object, on the other hand,
 lets you access hardware objects by the name of the configuration file,
 loading the file if it has not been loaded already.
 Use of this function requires you to hardwire the names of configuration files in the code.
-
