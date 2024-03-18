@@ -46,14 +46,20 @@ class ESRFXRFSpectrum(XRFSpectrum):
     def init(self):
         super().init()
         self.ctrl_hwobj = self.get_object_by_role("controller")
-        self.cfgfile = self.get_property("cfgfile", "/users/blissadm/local/beamline_configuration/misc/15keV.cfg")
+        self.cfgfile = self.get_property(
+            "cfgfile", "/users/blissadm/local/beamline_configuration/misc/15keV.cfg"
+        )
         self.config = ConfigDict.ConfigDict()
         self.mcafit = ClassMcaTheory.McaTheory(self.cfgfile)
         self.default_integration_time = self.get_property(
             "default_integration_time", 3.5
         )
-        self.default_erange = literal_eval(self.get_property("default_energy_range", '[2.0, 15.0]'))
-        self.cfg_energies = literal_eval(self.get_property("cfg_energies", '[7, 9, 12, 15]'))
+        self.default_erange = literal_eval(
+            self.get_property("default_energy_range", "[2.0, 15.0]")
+        )
+        self.cfg_energies = literal_eval(
+            self.get_property("cfg_energies", "[7, 9, 12, 15]")
+        )
 
     def _doSpectrum(self, ctime, filename, wait=None):
         return self.choose_attenuation(ctime, filename)
