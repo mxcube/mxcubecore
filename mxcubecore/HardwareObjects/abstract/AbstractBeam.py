@@ -221,7 +221,7 @@ class AbstractBeam(HardwareObject):
         Reemits beamSizeChanged and beamInfoChanged signals
 
         Emits:
-            beamSizeChanged:  ('beamSizeChanged', (width, height)))
+            beamSizeChanged:  ('beamSizeChanged', (width, height))
 
             beamInfoChanged: ('beamInfoChanged', beam info dict)
 
