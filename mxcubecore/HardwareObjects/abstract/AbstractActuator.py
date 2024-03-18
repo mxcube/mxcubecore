@@ -46,19 +46,17 @@ __license__ = "LGPLv3+"
 class AbstractActuator(HardwareObject):
     """Abstract actuator
 
-    Attributes
-    ----------
-    _nominal_value : float
-        Current actuator value
-    default_value : float
-        value specified by xml property, otherwise None
-    _nominal_limits : tuple
-        values specified by xml property, otherwise None
-    actuator_name : str
-        actuator name specified by xml property, otherwise None
-    read_only : bool
-        read only flag, specified by xml property, otherwise False
-
+    Attributes:
+        _nominal_value (float):
+            Current actuator value
+        default_value (float):
+            value specified by XML property, otherwise `None`
+        _nominal_limits (tuple):
+            values specified by XML property, otherwise `None`
+        actuator_name (str):
+            actuator name specified by XML property, otherwise `None`
+        read_only (bool):
+            read only flag, specified by XML property, otherwise `False`
     username : int
         the number of legs the animal has (default 4)
     """
