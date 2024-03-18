@@ -35,14 +35,13 @@ Example xml file:
 </object>
 """
 import ast
-import logging
 import gevent
 
 from mxcubecore.TaskUtils import task
 from mxcubecore.HardwareObjects.BeamlineActions import (
     BeamlineActions,
     ControllerCommand,
-    HWObjActuatorCommand
+    HWObjActuatorCommand,
 )
 
 __copyright__ = """ Copyright © 2010-2023 by the MXCuBE collaboration """
@@ -59,7 +58,7 @@ class ESRFBeamlineActions(BeamlineActions):
 
     def init(self):
         """Initialise the controller commands and the actuator object
-           to be used.
+        to be used.
         """
         try:
             ctrl_cmds = self["controller_commands"].get_properties().items()
