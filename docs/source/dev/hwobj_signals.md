@@ -2,12 +2,12 @@
 
 :Created: 20240318
 
-MXCuBE relies heavily on signals beeing emmited and listened to by many elements. For example, a hardware object may listen to other lower level hardware objects in order to update values after some calculation. But it is also critical in the UI (both web and QT), in both cases they expect periodic signal updates for displaying the most recent information to the user (e.g. motor positions, data collection state, etc.)
+MXCuBE relies heavily on signals being emitted and listened to by many elements. For example, a hardware object may listen to other lower level hardware objects in order to update values after some calculation. But it is also critical in the UI (both web and Qt), in both cases they expect periodic signal updates for displaying the most recent information to the user (e.g. motor positions, data collection state, etc.)
 
 ## Implementation
 
-Depending on the installed modules signals are emitted using [Louie](https://pypi.org/project/Louie/) or [PyDispatcher](https://pypi.org/project/PyDispatcher/). The former being based on the later. The developer does not need to deal with the differences between those two modules as it is already being handled in the file [dispatcher](https://github.com/mxcube/mxcubecore/blob/develop/mxcubecore/dispatcher.py).
- **_NOTE:_**  can we remove of of those dependencies?
+Depending on the installed modules, signals are emitted using [Louie](https://pypi.org/project/Louie/) or [PyDispatcher](https://pypi.org/project/PyDispatcher/). The former being based on the later. The developer does not need to deal with the differences between those two modules as it is already being handled in the file [dispatcher](https://github.com/mxcube/mxcubecore/blob/develop/mxcubecore/dispatcher.py).
+ **_NOTE:_**  can we remove any of those dependencies?
 
 
 > PyDispatcher provides the Python programmer with a multiple-producer-multiple-consumer signal registration and routing infrastructure for use in multiple contexts
@@ -15,13 +15,13 @@ Depending on the installed modules signals are emitted using [Louie](https://pyp
 
 When certain events or conditions occur within a hardware object, corresponding signals are emitted to inform connected components or modules about these changes.
 
-The [BaseHardwareObject](https://github.com/mxcube/mxcubecore/blob/develop/mxcubecore/BaseHardwareObjects.py) class serves as the base class for all hardware objects in MXCuBE. It includes methods for defining and emitting signals, allowing derived classes to customize signal emission based on their specific requirements.
+The {py:class}`mxcubecore.BaseHardwareObjects.HardwareObject` class serves as the base class for all hardware objects in MXCuBE. It includes methods for defining and emitting signals, allowing derived classes to customize signal emission based on their specific requirements.
 
 ### Emit
 
 Signals are typically emitted when the state of a hardware object changes, such as when it becomes ready for operation, encounters an error, or completes a task. Additionally, signals may be emitted to indicate changes in parameters or settings of the hardware, such as new setpoints, values, or configuration options.
 
-To emit a signal, derived classes can use the `emit` method provided by the BaseHardwareObject class. This method takes the name of the signal as an argument and optionally includes additional data or parameters to pass along with the signal. This method calls the `dispatcher.send` method.
+To emit a signal, derived classes can use the {py:meth}`mxcubecore.BaseHardwareObjects.HardwareObjectMixin.emit` method provided by the {py:class}`HardwareObject` class. This method takes the name of the signal as an argument and optionally includes additional data or parameters to pass along with the signal. This method calls the `dispatcher.send` method.
 
 
 From the _BaseHardwareObject_ class (removing extra lines for brevity):
@@ -45,7 +45,7 @@ self.emit('my_signal', new_value)
 
 _BaseHardwareObject_ implements the following ```connect```method, built around the homonymous method of _PyDispatcher_. Making it more convenient to use. The functions provides syntactic sugar ; Instead of ```self.connect(self, "signal", slot)``` it is possible to do ```self.connect("signal", slot)```
 
-From the [BaseHardwareObject](https://github.com/mxcube/mxcubecore/blob/develop/mxcubecore/BaseHardwareObjects.py#L878) class (removing extra lines for brevity):
+From the {py:meth}`HardwareObjectMixin.connect` method (removing extra lines for brevity):
 
 ```
     def connect(
@@ -91,9 +91,9 @@ And an example usage on a custom hardware object would be:
     self.connect(some_other_hwobj, "a_signal", callback_method)
 ```
 
-This assumes that ```some_other_hwobj``` is linked in the custom hwobj initialization, and _callback_method_ must exist, otherwise an exception will happen once the signal is received.
+This assumes that `some_other_hwobj` is linked in the custom hardware object initialization, and `callback_method` must exist, otherwise an exception will happen once the signal is received.
 
-If the sender hwobj has a method named ```connect_notify```, it will be called on connect. Since this connect happens at application init, this typically triggers the emission of all signals during initialization, and thus all receivers start with the most recent value.
+If the sender hardware object has a method named `connect_notify`, it will be called on connect. Since this connect happens at application initialization, this typically triggers the emission of all signals during initialization, and thus all receivers start with the most recent value.
 
 
 ## Basic example
@@ -201,7 +201,7 @@ In [3]: ho1.stop()
 
 As you can see, the second hardware object receives and processes first one's signal.
 
-> At least one entry must appear in the beamline config yml file, in this case I left the procedure mockup, all the other mockups are commented. Thats why only a few items appear in the loading table.
+> At least one entry must appear in the beamline's YAML configuration file. In this case I left the procedure mockup only, all the other mockups are commented. That is why only a few items appear in the loading table.
 
 ## Signal List
 
