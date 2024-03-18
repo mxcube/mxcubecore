@@ -118,7 +118,9 @@ class MD3UP(Microdiff.Microdiff):
             self._wait_ready(20 * 60)  # Timeout of 20 min
             print("finished at ---------->", time.time())
 
-    def oscilScan4d(self, start, end, exptime, number_of_images, motors_pos, wait=False):
+    def oscilScan4d(
+        self, start, end, exptime, number_of_images, motors_pos, wait=False
+    ):
         if self.in_plate_mode():
             scan_speed = math.fabs(end - start) / exptime
             low_lim, hi_lim = map(float, self.scanLimits(scan_speed))
@@ -205,7 +207,6 @@ class MD3UP(Microdiff.Microdiff):
             # Timeout of 30 min
             self._wait_ready(1800)
 
-
     def timeresolved_mesh_scan(self, timeout=900):
         """Start timeresolved mesh.
         Args:
@@ -237,7 +238,7 @@ class MD3UP(Microdiff.Microdiff):
                 "exporter_address": self.exporter_addr,
                 "name": "timeresolved_mesh_nbframes",
             },
-            "ContinuousTimeResolvedRasterScanNbFrames"
+            "ContinuousTimeResolvedRasterScanNbFrames",
         )
         return cmd.get_value()
 
