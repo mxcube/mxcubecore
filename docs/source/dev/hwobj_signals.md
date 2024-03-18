@@ -24,7 +24,7 @@ Signals are typically emitted when the state of a hardware object changes, such 
 To emit a signal, derived classes can use the {py:meth}`mxcubecore.BaseHardwareObjects.HardwareObjectMixin.emit` method provided by the {py:class}`HardwareObject` class. This method takes the name of the signal as an argument and optionally includes additional data or parameters to pass along with the signal. This method calls the `dispatcher.send` method.
 
 
-From the _BaseHardwareObject_ class (removing extra lines for brevity):
+From the {py:class}`HardwareObjectMixin` class (removing extra lines for brevity):
 
 ```
     def emit(self, signal: Union[str, object, Any], *args) -> None:
@@ -43,7 +43,7 @@ self.emit('my_signal', new_value)
 
 ### Receive
 
-_BaseHardwareObject_ implements the following ```connect```method, built around the homonymous method of _PyDispatcher_. Making it more convenient to use. The functions provides syntactic sugar ; Instead of ```self.connect(self, "signal", slot)``` it is possible to do ```self.connect("signal", slot)```
+{py:class}`HardwareObjectMixin` implements the following ```connect```method, built around the homonymous method of _PyDispatcher_. Making it more convenient to use. The functions provides syntactic sugar: instead of ```self.connect(self, "signal", slot)``` it is possible to do ```self.connect("signal", slot)```.
 
 From the {py:meth}`HardwareObjectMixin.connect` method (removing extra lines for brevity):
 
