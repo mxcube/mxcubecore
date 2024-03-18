@@ -1051,7 +1051,7 @@ class AbstractMultiCollect(object):
                             frame = max(
                                 start_image_number + 1,
                                 start_image_number + last_image_saved - 1,
-                                frame+1,
+                                frame + 1,
                             )
                             self.emit("collectImageTaken", frame)
                             j = wedge_size - last_image_saved
