@@ -22,7 +22,14 @@
 Defines the set/update value, get/set/update limits and validate_value
 methods and the get_value and _set_value abstract methods.
 Initialises the actuator_name, username, read_only and default_value properties.
-Emits signals valueChanged and limitsChanged.
+
+Emits:
+    valueChanged: during hwobj initialization and when setting a new value. Format: (   valueChanged, new_value)
+    limitsChanged: emitted by update_limits if limits values are changed.
+                   Format:  (limitsChanged, (low, high))
+    stateChanged: emitted by force_emit_signals. Format: ("stateChanged", (new_state)
+
+Note: force_emit_signals emits all signals
 """
 
 import abc
@@ -37,7 +44,25 @@ __license__ = "LGPLv3+"
 
 
 class AbstractActuator(HardwareObject):
-    """Abstract actuator"""
+    """Abstract actuator
+
+    Attributes
+    ----------
+    _nominal_value : float
+        Current actuator value
+    default_value : float
+        value specified by xml property, otherwise None
+    _nominal_limits : tuple
+        values specified by xml property, otherwise None
+    actuator_name : str
+        actuator name specified by xml property, otherwise None
+    read_only : bool
+        read only flag, specified by xml property, otherwise False
+
+    username : int
+        the number of legs the animal has (default 4)
+    """
+
 
     __metaclass__ = abc.ABCMeta
 
@@ -91,8 +116,6 @@ class AbstractActuator(HardwareObject):
 
         Args:
             limits (tuple): two elements (low limit, high limit) tuple.
-        Emits:
-            limitsChanged: ('limitsChanged', (low limit, high limit))
         Raises:
             ValueError: Attempt to set limits for read-only Actuator.
         """
@@ -155,9 +178,6 @@ class AbstractActuator(HardwareObject):
 
         Args:
             value: value
-        Emits:
-            valueChanged: ('valueChanged', actuator position)
-
         """
         if value is None:
             value = self.get_value()
@@ -171,8 +191,6 @@ class AbstractActuator(HardwareObject):
 
         Args:
             limits (tuple): two elements tuple (low limit, high limit).
-        Emits:
-            limitsChanged: ('limitsChanged', (low limit, high limit))
         """
         if not limits:
             limits = self.get_limits()
@@ -194,14 +212,6 @@ class AbstractActuator(HardwareObject):
         Forces to emit all signals.
 
         This method is called from the GUI. Do not call it within the hardware object.
-
-        Emits:
-            valueChanged:  ('valueChanged', actuator position)
-
-            limitsChanged: ('limitsChanged', (low limit, high limit))
-
-            stateChanged: ('stateChanged', actuator state)
-
         """
         self.emit("valueChanged", (self.get_value(),))
         self.emit("limitsChanged", (self.get_limits(),))
