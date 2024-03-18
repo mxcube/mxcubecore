@@ -51,7 +51,7 @@ try:
     from PyTango import DevFailed, ConnectionFailed
     import PyTango
 except Exception:
-    logging.getLogger("HWR").warning("Pytango is not available in this computer.")    
+    logging.getLogger("HWR").warning("Pytango is not available in this computer.")
 
 # from mxcubecore.TaskUtils import task
 
@@ -108,7 +108,7 @@ class AttributeEvent:
 
 class SardanaObject(object):
     """Sardana Object"""
-    
+
     _eventsQueue = queue.Queue()
     _eventReceivers = {}
 
@@ -331,7 +331,7 @@ class SardanaMacro(CommandObject, SardanaObject, ChannelObject):
 
 class SardanaCommand(CommandObject):
     """SardanaCommand"""
-    
+
     def __init__(self, name, command, taurusname=None, username=None, **kwargs):
         CommandObject.__init__(self, name, username, **kwargs)
 
@@ -390,7 +390,7 @@ class SardanaCommand(CommandObject):
 
 class SardanaChannel(ChannelObject, SardanaObject):
     """ Creates a Sardana Channel """
-    
+
     def __init__(
         self, name, attribute_name, username=None, uribase=None, polling=None, **kwargs
     ):
