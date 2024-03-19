@@ -123,7 +123,7 @@ class ConfiguredObject:
     # NB this function must be re-implemented in nested subclasses
     @property
     def all_roles(self) -> Tuple[str]:
-        """Tuple of all content object roles, indefinition and loading order
+        """Tuple of all content object roles, in definition and loading order
 
         Returns:
             Tuple[str]: Content object roles
