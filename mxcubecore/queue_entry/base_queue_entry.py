@@ -26,8 +26,8 @@ import logging
 import sys
 import traceback
 import time
-import logging
 import gevent
+import copy
 
 from collections import namedtuple
 
@@ -470,7 +470,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                         self.interleave_items.append(interleave_item)
 
                         if task_model.inverse_beam_num_images is not None:
-                            inverse_beam_item = copy(interleave_item)
+                            inverse_beam_item = copy.deepcopy(interleave_item)
                             inverse_beam_item["data_model"] = interleave_item[
                                 "data_model"
                             ].copy()
