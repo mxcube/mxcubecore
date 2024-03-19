@@ -16,11 +16,20 @@ The former are identified relative to the container by a role.
 
 ## Finding the files
 Configuration files are searched for by name in a series of directories given as a lookup path.
-This is specified either with the `--coreConfigPath` command line parameter to MXCuBE,
+
+In mxcubeqt this is specified either with the `--coreConfigPath` command line parameter to MXCuBE,
 or through the `MXCUBE_CORE_CONFIG_PATH` environment variable.
-The files live under the `mxcubecore/mxcubecore/configuration` directory,
-typically with a directory for each beamline
-(which may or may not be up-to-date relative to the actual beamline environment).
+
+In mxcubeweb the configuration lookup path is specified with the `--repository` option to `mxcube-server`,
+the default being `mxcubeweb/test/HardwareObjectsMockup.xml/`,
+where the mxcubeweb mock configuration resides.
+
+There is a set of configuration data under the `mxcubecore/mxcubecore/configuration` directory.
+This includes the `mockup/` directory
+with `qt/` and `gphl/` subdirectories for mock mxcubeqt operation.
+There is also a directory with configuration for each beamline,
+but these are mostly not up to date.
+The actual beamline configuration files are mostly held in a separate (and non-comitted) directory at the beamlines.
 
 ## Yaml-configured objects
 ### Code and file structure
