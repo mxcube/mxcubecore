@@ -23,7 +23,7 @@ jobs:
           git config --global user.name "Marcus Oskarsson"
           git add -A
           git commit -m "[skip ci] Bumped minor version"
-          git push
+          git push -f
           poetry build
     - name: Publish package to PyPI
       id: publish-pacakge
