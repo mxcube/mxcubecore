@@ -208,6 +208,8 @@ class BaseQueueEntry(QueueEntryContainer):
     """
 
     def __init__(self, view=None, data_model=None, view_set_queue_entry=True):
+        print("debug: data_model in __init__ of base_queue_entry.py ")
+        print(data_model)
         QueueEntryContainer.__init__(self)
         self._data_model = None
         self._view = None
@@ -236,6 +238,8 @@ class BaseQueueEntry(QueueEntryContainer):
         :param data_model: The data model node.
         :type data_model: TaskNode
         """
+        print("debug: data_model in set_data_model of base_queue_entry.py ")
+        print(data_model)
         self._data_model = data_model
 
     def get_data_model(self):

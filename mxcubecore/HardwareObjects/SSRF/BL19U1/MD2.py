@@ -4,7 +4,7 @@ import time
 import numpy
 import logging
 import gevent
-
+from gevent import Timeout, sleep
 from mxcubecore.HardwareObjects import Microdiff
 from mxcubecore.HardwareObjects.sample_centring import CentringMotor
 from mxcubecore import HardwareRepository as HWR
@@ -116,6 +116,15 @@ class MD2(Microdiff.Microdiff):
                 "name": "Cryo_Is_Out",
             },
             "CryoIsOut",
+        )
+
+        self.centring_table_vertical_state = self.add_channel(
+            {
+                "type":"exporter",
+                "exporter_address": self.exporter_addr,
+                "name":"centring_table_vertical_state",
+            },
+            "CentringTableVerticalState",
         )
 
         self.save_centring_positions = self.add_command(
@@ -370,7 +379,7 @@ class MD2(Microdiff.Microdiff):
         # params += "%0.3f\t" % (mesh_range["horizontal_range"] / 1000.0)   # TODO check why BIOMAX used to pass micrometers
         # # Set negative pitch to move CT towards the left because it starts from grid top left corner
         # params += "%0.3f\t" % (mesh_range["vertical_range"] / 1000.0)
-        #改，放大两倍
+        #改，放大两倍,
         params += "%0.3f\t" % (2*mesh_range["horizontal_range"] / 1000.0)  # TODO check why BIOMAX used to pass micrometers
         # Set negative pitch to move CT towards the left because it starts from grid top left corner
         params += "%0.3f\t" % (2*mesh_range["vertical_range"] / 1000.0)
@@ -471,75 +480,96 @@ class MD2(Microdiff.Microdiff):
 
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
-        """
-        previous ：
-        #不计算sampx 和 sampy的偏移量
-        #添加水平方向移动，phiy,
-        24/01/11：
-        需要添加水平方向移动，才能让此函数给出正方形对角线点的参数。
-        总结：
-        此函数会在绘制格子时计算两次，针对正方形的起始点和对角线的终止点
-        给出xy坐标和个电机对应参数
-        测试结果，起始点位置正确，终止点对于起始点的距离是预期数值的两倍
+        # 20240312
+        # 此函数根据 mesh scan画的正方形的点坐标生成对应移动 md2 的参数
+        # 初步判断，mesh scan时，会传送左上和右下的坐标到此函数，其中左上的坐标和gotobeam函数所获得的坐标是一致的，右下不是
 
-        dx,dy /2之后，对角线位置正确
-        """
+
+        #20240319
+        # 此函数作用是
+        # 根据坐标点求出对应电机位置：
+        # "phi": round(self.centringPhi.get_value()),
+        # "phiz": round(phiz, 4),
+        # "phiy": round(phiy, 4),
+        # "sampx": round(sampx, 4),
+        # "sampy": round(sampy, 4),
+        # 其中phi ， phiz 不变, 需要知道sampx 和 sampy 和 phiy 的位置
+        # phiy 的位置可以根据move_to_beam的代码得知，
+        # 但sampx与sampy的具体位置不知道，只能得到centring vertical的值
+
+
+        logging.getLogger("HWR.MX3").info("get into get_centred_point_from_coord in MD2")
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
             self.zoomMotor.get_value()
         )
-
         if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
             return 0, 0
+        self.log.debug(
+            "the pixelsPerMmY: %d, Z:%d. the selected x: %d, y: %d. " % (self.pixelsPerMmY, self.pixelsPerMmZ, x, y))
+
+
 
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
+        self.log.debug("the beam_pos_x: %d, y:%d. " % (beam_pos_x, beam_pos_y))
+
+        dx = (x - beam_pos_x) / (self.pixelsPerMmY)
+        dy = (y - beam_pos_y) / (self.pixelsPerMmZ)
 
 
-        # dx = (x - beam_pos_x) / self.pixelsPerMmY
-        # dy = (y - beam_pos_y) / self.pixelsPerMmZ
-        # 通过上面dx，dy计算出的phiz和phiy怀疑放大了两倍，此处除以2
-        dx = ((x - beam_pos_x) / self.pixelsPerMmY) /2
-        dy = ((y - beam_pos_y) / self.pixelsPerMmZ) /2
 
-        phi_angle = math.radians(
-            self.centringPhi.direction * self.centringPhi.get_value()
-        )
 
-        #import pdb; pdb.set_trace()
+
+
+
+        # from move to beam
+        sampeVertical = self.centringVertical.get_value()
+        phiy = self.centringPhiy.get_value()
+
+
+        sampeVertical = sampeVertical + dy
+        phiy = phiy - dx
+
+        self.centringVertical.set_value(sampeVertical)  # 此函数控制md2上下移动，会移动mxcube界面Samp-X 和 Samp-Y电机
+        # self.centringPhiy.set_value(phiy)  # 此函数控制md2左右移动，会移动mxcube界面上的phiy电机
+
+        # 等待centringVertical重新变回ready
+        # if self.centring_table_vertical_state.get_value() == "Ready":
+        self.centringVertical.wait_move()
+
+        phiz = self.centringPhiz.direction * self.centringPhiz.get_value()
+
         # sampx = self.centringSamplex.direction * self.centringSamplex.get_value()
+        # sampy = self.centringSampley.direction * self.centringSampley.get_value()
         sampx = -self.centringSamplex.direction * self.centringSamplex.get_value()
         sampy = self.centringSampley.direction * self.centringSampley.get_value()
 
-        phiy = -self.centringPhiy.direction * self.centringPhiy.get_value()
-        phiz = self.centringPhiz.direction * self.centringPhiz.get_value()
-
-        # Focus df and horizontal move (along dx) result from sampx,sampy * RotMatrix
-        rotMatrix = numpy.matrix(
-            [
-                [math.cos(phi_angle), -math.sin(phi_angle)],
-                [math.sin(phi_angle), math.cos(phi_angle)],
-            ]
-        )
-
-        invRotMatrix = numpy.array(rotMatrix.I)
-
-        # calculate the shift with sampx sampy to do inside focus plan to reach x from beam center (move vector 0,dx in MD frame cs)
-        dsampx, dsampy = numpy.dot(numpy.array([0, dx]), invRotMatrix)
-
-        chi_angle = math.radians(-self.chiAngle)
-        chiRot = numpy.matrix(
-            [
-                [math.cos(chi_angle), -math.sin(chi_angle)],
-                [math.sin(chi_angle), math.cos(chi_angle)],
-            ]
-        )
-
-        sx, sy = numpy.dot(numpy.array([dsampx, dsampy]), numpy.array(chiRot))
-        # 不计算sampx 和 sampy的偏移量试一试
+        # 下面的尝试不太行
+        # 按照源代码尝试解决sampx 与sampy问题：
+        # sampx = self.centringSamplex.direction * self.centringSamplex.get_value()
+        # sampy = self.centringSampley.direction * self.centringSampley.get_value()
+        # phi_angle = math.radians(
+        #     self.centringPhi.direction * self.centringPhi.get_value()
+        # )
+        # rotMatrix = numpy.matrix(
+        #     [
+        #         [math.cos(phi_angle), -math.sin(phi_angle)],
+        #         [math.sin(phi_angle), math.cos(phi_angle)],
+        #     ]
+        # )
+        # invRotMatrix = numpy.array(rotMatrix.I)
+        # dsampx, dsampy = numpy.dot(numpy.array([0, dx]), invRotMatrix)
+        # chi_angle = math.radians(-self.chiAngle)
+        # chiRot = numpy.matrix(
+        #     [
+        #         [math.cos(chi_angle), -math.sin(chi_angle)],
+        #         [math.sin(chi_angle), math.cos(chi_angle)],
+        #     ]
+        # )
+        # sx, sy = numpy.dot(numpy.array([dsampx, dsampy]), numpy.array(chiRot))
         # sampx = sampx + sx
         # sampy = sampy + sy
 
-        phiz = phiz + dy
-        phiy = phiy - dx    #添加水平方向移动，phiy
+
 
 
         dict = {
@@ -553,6 +583,7 @@ class MD2(Microdiff.Microdiff):
         logging.getLogger("HWR").debug("MD2: centring point from coord (%d,%d) -> %s" %(x, y, str(dict)))
 
         return dict
+
 
 
     # Override using value from Camera device instead than from exporter MD2 server
@@ -635,12 +666,14 @@ class MD2(Microdiff.Microdiff):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
             self.zoomMotor.get_value()
         )
-        self.log.debug("the selected x: %d, y: %d." %(x,y))
+        self.log.debug("the pixelsPerMmY: %d, y:%d. the selected x: %d, y: %d. "%(self.pixelsPerMmY,self.pixelsPerMmZ,x,y))
 
         if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
             return 0, 0
 
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
+        self.log.debug("the beam_pos_x: %d, y:%d. "%(beam_pos_x,beam_pos_y))
+
         # dx = (x - beam_pos_x) / self.pixelsPerMmY
         # dy = (y - beam_pos_y) / self.pixelsPerMmZ
         # worked for now
@@ -691,11 +724,12 @@ class MD2(Microdiff.Microdiff):
         # phiz = phiz + dy
         # import pdb; pdb.set_trace()
         try:
+            self.log.debug("try to set cantringVertical to : %f, centringPhiy to :%f. " % (sampy, phiy))
             # self.centringSamplex.set_value(sampx)
             # self.centringSampley.set_value(sampy)
-            self.centringVertical.set_value(sampy)
+            self.centringVertical.set_value(sampy)      #此函数控制md2上下移动，会移动mxcube界面Samp-X 和 Samp-Y电机
             #self.centringFocus(phiy)
-            self.centringPhiy.set_value(phiy)
+            self.centringPhiy.set_value(phiy)           # 此函数控制md2左右移动，会移动mxcube界面上的phiy电机
             #self.centringPhiz.set_value(phiz)
         except Exception:
             msg = "MiniDiff: could not center to beam, aborting"

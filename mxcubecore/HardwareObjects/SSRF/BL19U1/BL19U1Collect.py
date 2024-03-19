@@ -677,7 +677,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
 
             # 添加
             #
-            # 需要步骤，通过此处self.mesh_center（正方形左上角的点） 转换计算为（正方形有上角的点）,下面是可以用的变量
+            # 需要步骤，通过此处self.mesh_center（正方形左上角的点） 转换计算为（正方形右上角的点）,下面是可以用的变量
             # self.mesh_num_lines: 13                                                                           ###############
             # self.mesh_total_nb_frames: 78                                                                     ###############
             # self.mesh_center:  {'phi': 170, 'focus': None, 'phiz': -0.0578, 'phiy': 0.7247, 'zoom': None,     ###############
@@ -687,6 +687,11 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             # self.log.debug("len(HWR.beamline.sample_view.shapes: %d. " %(len(HWR.beamline.sample_view.shapes)))
             # print("type of self.mesh_center: ",type(self.mesh_center))
 
+
+
+            # 下面的代码是通过读取shape里第二个点(即正方形右下角的点)的phi_y，,来传递下去给MD2 的 exporter命令，因为左上点到右上点只移动phiy
+            #   而右下角的点和右上角的点的phiy一样
+            self.log.debug("self.mesh_range in oscil() of BL19U!Collect.py, horizontal_range: %s, vertical_range: %s" %(self.mesh_range['horizontal_range'],self.mesh_range['vertical_range']))
             self.log.debug("HWR.beamline.sample_view.shapes[self.shape].cp_list[1].phiy: %f. " %(HWR.beamline.sample_view.shapes[self.shape['id']].cp_list[1].phiy))
             mesh_center_topRightPoint_phiy = HWR.beamline.sample_view.shapes[self.shape['id']].cp_list[1].phiy
             # self.mesh_center.phiy = mesh_center_topRightPoint_phiy  #self.mesh_center是object  #不能在这改
