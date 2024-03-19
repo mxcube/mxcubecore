@@ -447,7 +447,7 @@ class Microdiff(MiniDiff.MiniDiff):
             if start < low_lim:
                 raise ValueError("Scan start below the allowed value %f" % low_lim)
             elif end > hi_lim:
-                raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
+                raise ValueError("Scan end above the allowed value %f" % hi_lim)
 
         dead_time = HWR.beamline.detector.get_deadtime()
 
@@ -480,7 +480,7 @@ class Microdiff(MiniDiff.MiniDiff):
             if start < low_lim:
                 raise ValueError("Scan start below the allowed value %f" % low_lim)
             elif end > hi_lim:
-                raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
+                raise ValueError("Scan end above the allowed value %f" % hi_lim)
 
         self.nb_frames.set_value(1)
         scan_params = "%0.3f\t%0.3f\t%f\t" % (start, (end - start), exptime)
@@ -654,12 +654,12 @@ class Microdiff(MiniDiff.MiniDiff):
             "sampx": float(self.sampleXMotor.get_value()),
             "sampy": float(self.sampleYMotor.get_value()),
             "zoom": self.zoomMotor.get_value().value,
-            "kappa": float(self.kappaMotor.get_value())
-            if self.in_kappa_mode()
-            else None,
-            "kappa_phi": float(self.kappaPhiMotor.get_value())
-            if self.in_kappa_mode()
-            else None,
+            "kappa": (
+                float(self.kappaMotor.get_value()) if self.in_kappa_mode() else None
+            ),
+            "kappa_phi": (
+                float(self.kappaPhiMotor.get_value()) if self.in_kappa_mode() else None
+            ),
         }
         return pos
 
