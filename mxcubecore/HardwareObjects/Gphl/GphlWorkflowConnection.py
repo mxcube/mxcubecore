@@ -495,11 +495,19 @@ class GphlWorkflowConnection(HardwareObjectYaml):
 
         if not self.msg_class_imported:
             try:
-                msg_class = self._gateway.jvm.py4j.reflection.ReflectionUtil.classForName("co.gphl.sdcp.astra.service.py4j.Py4jMessage")
-                java_gateway.java_import(self._gateway.jvm, "co.gphl.sdcp.astra.service.py4j.Py4jMessage")
+                msg_class = self._gateway.jvm.py4j.reflection.ReflectionUtil.classForName(
+                    "co.gphl.sdcp.astra.service.py4j.Py4jMessage"
+                )
+                java_gateway.java_import(
+                    self._gateway.jvm, "co.gphl.sdcp.astra.service.py4j.Py4jMessage"
+                )
             except Py4JJavaError:
-                msg_class = self._gateway.jvm.py4j.reflection.ReflectionUtil.classForName("co.gphl.sdcp.py4j.Py4jMessage")
-                java_gateway.java_import(self._gateway.jvm, "co.gphl.sdcp.py4j.Py4jMessage")
+                msg_class = self._gateway.jvm.py4j.reflection.ReflectionUtil.classForName(
+                    "co.gphl.sdcp.py4j.Py4jMessage"
+                )
+                java_gateway.java_import(
+                    self._gateway.jvm, "co.gphl.sdcp.py4j.Py4jMessage"
+                )
 
             logging.getLogger("HWR").debug(
                 "GΦL workflow Py4jMessage class is: %s" % msg_class
