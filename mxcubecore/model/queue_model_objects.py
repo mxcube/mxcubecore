@@ -33,7 +33,9 @@ try:
     from mxcubecore.model import crystal_symmetry
     import ruamel.yaml as yaml
 except Exception:
-    logging.getLogger("HWR").warning("Cannot import dependenices needed for GPHL workflows - GPhL workflows might not work")
+    logging.getLogger("HWR").warning(
+        "Cannot import dependenices needed for GPHL workflows - GPhL workflows might not work"
+    )
 
 # This module is used as a self contained entity by the BES
 # workflows, so we need to make sure that this module can be
@@ -756,7 +758,7 @@ class DataCollection(TaskNode):
     def get_helical_point_index(self):
         """
         Descript. : Return indexes of points associated to the helical line
-        Args.     :
+
         Return    : index (integer), index (integer)
         """
         cp = self.get_centred_positions()
@@ -765,15 +767,17 @@ class DataCollection(TaskNode):
     def set_grid_id(self, grid_id):
         """
         Descript. : Sets grid id associated to the data collection
+
         Args.     : grid_id (integer)
+
         Return    :
         """
         self.grid_id = grid_id
 
     def get_display_name(self):
         """
-        Descript. : Returns display name depending from collection type
-        Args.     :
+        Descript. : Returns display name depending from collection type.
+
         Return    : display_name (string)
         """
         if self.is_helical():
@@ -808,9 +812,9 @@ class DataCollection(TaskNode):
         return self.online_processing_results
 
     def set_snapshot(self, snapshot):
-        self.acquisitions[
-            0
-        ].acquisition_parameters.centred_position.snapshot_image = snapshot
+        self.acquisitions[0].acquisition_parameters.centred_position.snapshot_image = (
+            snapshot
+        )
 
     def add_processing_msg(self, time, method, status, msg):
         self.processing_msg_list.append((time, method, status, msg))
@@ -920,7 +924,7 @@ class Characterisation(TaskNode):
     def get_point_index(self):
         """
         Descript. : Returns point index associated to the data collection
-        Args.     :
+
         Return    : index (integer)
         """
         cp = self.get_centred_positions()
@@ -929,7 +933,7 @@ class Characterisation(TaskNode):
     def get_display_name(self):
         """
         Descript. : Returns display name of the collection
-        Args.     :
+
         Return    : display_name (string)
         """
         index = self.get_point_index()
@@ -1274,10 +1278,10 @@ class XrayCentering(TaskNode):
 
 
 class XrayCentring2(TaskNode):
-    """X-ray centring (2022 version)
+    """X-ray centring (2022 version).
 
-    Contains all parameters necessary for X-ray centring
-    This object is passed to the QueueEntry and HardwareObject
+    Contains all parameters necessary for X-ray centring.
+    This object is passed to the QueueEntry and HardwareObject.
     Parameters not defined here must be set as defaults, somehow
     (transmission, grid step, ...)
     """
@@ -1362,18 +1366,18 @@ class XrayCentring2(TaskNode):
 
 
 class SampleCentring(TaskNode):
-    """Manual 3 click centering
+    """Manual 3-click centering
 
     kappa and kappa_phi settings are applied first, and assume that the
-    beamline does have axes with exactly these names
+    beamline does have axes with exactly these names.
 
     Other motor_positions are applied afterwards, but in random order.
-    motor_positions override kappa and kappa_phi if both are set
+    ``motor_positions`` override kappa and kappa_phi if both are set
 
     Since setting one motor can change the position of another
     (on ESRF ID30B setting kappa and kappa_phi changes the translation motors)
-     the order is important.
 
+    **the order is important**.
     """
 
     def __init__(self, name=None, kappa=None, kappa_phi=None, motor_positions=None):
@@ -1609,7 +1613,7 @@ class PathTemplate(object):
             logging.getLogger("HWR").debug(
                 "PathTemplate (DESY) - (to be defined) directory is %s" % self.directory
             )
-            #archive_directory = self.directory
+            # archive_directory = self.directory
             archive_directory = HWR.beamline.session.get_archive_directory()
         elif PathTemplate.synchrotron_name == "ALBA":
             logging.getLogger("HWR").debug(
@@ -2323,7 +2327,6 @@ class GphlWorkflow(TaskNode):
             else:
                 print("WARNING no GPHL_TEST_INPUT found. test using default values")
 
-
         # Set attributes directly from params
         self.strategy_settings = HWR.beamline.gphl_workflow.workflow_strategies.get(
             params["strategy_name"]
@@ -2480,6 +2483,7 @@ class GphlWorkflow(TaskNode):
                 self._cell_parameters = tuple(float(x) for x in value)
             else:
                 raise ValueError("invalid value for cell_parameters: %s" % str(value))
+
     @property
     def total_strategy_length(self):
         """Total strategy length for a single repetition
@@ -2490,7 +2494,6 @@ class GphlWorkflow(TaskNode):
             result *= len(energy_tags)
         #
         return result
-
 
     def calc_maximum_dose(self, energy=None, exposure_time=None, image_width=None):
         """Dose at transmission=100 for given energy, exposure time and image width
@@ -2505,30 +2508,22 @@ class GphlWorkflow(TaskNode):
         Returns:
             float: Maximum dose in MGy
         """
-        energy = (
-            energy
-            or HWR.beamline.energy.calculate_energy(self.wavelengths[0].wavelength)
+        energy = energy or HWR.beamline.energy.calculate_energy(
+            self.wavelengths[0].wavelength
         )
         dose_rate = HWR.beamline.gphl_workflow.maximum_dose_rate(energy)
         exposure_time = exposure_time or self.exposure_time
-        image_width = image_width  or self.image_width
+        image_width = image_width or self.image_width
         total_strategy_length = self.strategy_length * len(self.wavelengths)
-        if (dose_rate and exposure_time and image_width and total_strategy_length):
-            return (dose_rate * total_strategy_length * exposure_time / image_width)
+        if dose_rate and exposure_time and image_width and total_strategy_length:
+            return dose_rate * total_strategy_length * exposure_time / image_width
         msg = (
             "WARNING: Dose could not be calculated from:\n"
             " energy:%s keV, total_strategy_length:%s deg, exposure_time:%s s, "
             "image_width:%s deg, dose_rate: %s"
         )
         raise UserWarning(
-            msg
-            % (
-                energy,
-                total_strategy_length,
-                exposure_time,
-                image_width,
-                dose_rate
-            )
+            msg % (energy, total_strategy_length, exposure_time, image_width, dose_rate)
         )
         return 0
 
@@ -2597,42 +2592,37 @@ def addXrayCentring(parent_node, **centring_parameters):
 # Collect hardware object utility function.
 #
 def to_collect_dict(data_collection, session, sample, centred_pos=None):
-    """ return [{'comment': '',
-          'helical': 0,
-          'motors': {},
-          'take_video': False,
-          'take_snapshots': False,
-          'fileinfo': {'directory': '/data/id14eh4/inhouse/opid144/' +\
-                                    '20120808/RAW_DATA',
-                       'prefix': 'opid144', 'run_number': 1,
-                       'process_directory': '/data/id14eh4/inhouse/' +\
-                                            'opid144/20120808/PROCESSED_DATA'},
-          'in_queue': 0,
-          'detector_binning_mode': 2,
-          'shutterless': 0,
-          'sessionId': 32368,
-          'do_inducedraddam': False,
-          'sample_reference': {},
-          'processing': 'False',
-          'residues': '',
-          'dark': True,
-          'scan4d': 0,
-          'input_files': 1,
-          'oscillation_sequence': [{'exposure_time': 1.0,
-                                    'kappaStart': 0.0,
-                                    'phiStart': 0.0,
-                                    'start_image_number': 1,
-                                    'number_of_images': 1,
-                                    'overlap': 0.0,
-                                    'start': 0.0,
-                                    'range': 1.0,
-                                    'number_of_passes': 1}],
+    """Example of the parameters and file format for a data collection.
+
+    return:
+                                   'kappaStart': 0.0,
+
+                                   'phiStart': 0.0,
+
+                                   'start_image_number': 1,
+
+                                   'number_of_images': 1,
+
+                                   'overlap': 0.0,
+
+                                   'start': 0.0,
+
+                                   'range': 1.0,
+
+                                   'number_of_passes': 1}],
+
           'nb_sum_images': 0,
+
           'EDNA_files_dir': '',
+
           'anomalous': 'False',
+
           'file_exists': 0,
+
           'experiment_type': 'SAD',
-          'skip_images': 0}]"""
+
+          'skip_images': 0}]
+    """
 
     acquisition = data_collection.acquisitions[0]
     acq_params = acquisition.acquisition_parameters
@@ -2749,7 +2739,10 @@ def create_inverse_beam_sw(num_images, sw_size, osc_range, osc_start, run_number
     Creates subwedges for inverse beam, and interleves the result.
     Wedges W1 and W2 are created 180 degres apart, the result is
     interleaved and given on the form:
-    (W1_1, W2_1), ... (W1_n-1, W2_n-1), (W1_n, W2_n)
+
+    - (W1_1, W2_1), ...
+    - (W1_n-1, W2_n-1) ...
+    - (W1_n, W2_n)
 
     :param num_images: The total number of images
     :type num_images: int
@@ -2786,27 +2779,29 @@ def create_inverse_beam_sw(num_images, sw_size, osc_range, osc_start, run_number
 def create_interleave_sw(interleave_list, num_images, sw_size):
     """
     Creates subwedges for interleved collection.
+
     Wedges W1, W2, Wm (where m is num_collections) are created:
-    (W1_1, W2_1, ..., W1_m), ... (W1_n-1, W2_n-1, ..., Wm_n-1),
-    (W1_n, W2_n, ..., Wm_n)
+
+    - (W1_1, W2_1, ... W1_m)
+    - (W1_n-1, W2_n-1, ..., Wm_n-1)
+    - (W1_n, W2_n, ..., Wm_n)
 
     :param interleave_list: list of interleaved items
     :type interleave_list: list of dict
-
     :param num_images: number of images of first collection. Based on the
-    first collection certain number of subwedges will be created. If
-    first collection contains more images than others then in the end
-    the rest of images from first collections are created as last subwedge
-    :type num_images: int
+                     first collection certain number of subwedges will be created. If
+                     first collection contains more images than others then in the end
+                     the rest of images from first collections are created as last subwedge.
 
+    :type num_images: int
     :param sw_size: Number of images in each subwedge
     :type sw_size: int
-
     :returns: A list of tuples containing the swb wedges.
               The tuples are in the form:
               (collection_index, subwedge_index, subwedge_firt_image,
-               subwedge_start_osc)
+              subwedge_start_osc)
     :rtype: List [(...), (...)]
+
     """
     subwedges = []
     sw_first_image = None

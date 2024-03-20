@@ -18,17 +18,20 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 """
-Microdiff with Exporter implementation of AbstartNState
-Example xml file:
-<device class="ExporterNState">
+Microdiff with Exporter implementation of AbstractNState
+
+Example configuration using an xml file::
+
+  <device class="ExporterNState">
   <username>Fluorescence Detector</username>
   <exporter_address>wid30bmd2s:9001</exporter_address>
   <value_channel_name>FluoDetectorIsBack</value_channel_name>
   <state_channel_name>State</state_channel_name>
   <values>{"IN": False, "OUT": True}</values>
   <value_state>True</value_state>
-</device>
+  </device>
 """
+
 from enum import Enum
 from gevent import Timeout, sleep
 from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
@@ -40,7 +43,7 @@ __license__ = "LGPLv3+"
 
 
 class ExporterNState(AbstractNState):
-    """Microdiff with Exporter implementation of AbstartNState"""
+    """Microdiff with Exporter implementation of AbstractNState"""
 
     SPECIFIC_STATES = ExporterStates
 
@@ -53,6 +56,7 @@ class ExporterNState(AbstractNState):
 
     def init(self):
         """Initialise the device"""
+
         super().init()
         value_channel = self.get_property("value_channel_name")
         # use the value to check if action finished.
@@ -87,19 +91,23 @@ class ExporterNState(AbstractNState):
 
     def _wait_hardware(self, value, timeout=None):
         """Wait timeout seconds till hardware in place.
+
         Args:
             value (str, int): value to be tested.
             timeout(float): Timeout [s]. None means infinite timeout.
         """
+
         with Timeout(timeout, RuntimeError("Timeout waiting for hardware")):
             while self.value_channel.get_value() != value:
                 sleep(0.5)
 
     def _wait_ready(self, timeout=None):
         """Wait timeout seconds till status is ready.
+
         Args:
             timeout(float): Timeout [s]. None means infinite timeout.
         """
+
         with Timeout(timeout, RuntimeError("Timeout waiting for status ready")):
             while not self.get_state() == self.STATES.READY:
                 sleep(0.5)
@@ -109,11 +117,13 @@ class ExporterNState(AbstractNState):
 
     def _update_state(self, state=None):
         """To be used to update the state when emiting the "update" signal.
+
         Args:
             state (str): optional state value
         Returns:
             (enum 'HardwareObjectState'): state.
         """
+
         if not state:
             state = self.get_state()
         else:
@@ -123,6 +133,7 @@ class ExporterNState(AbstractNState):
 
     def _str2state(self, state):
         """Convert string state to HardwareObjectState enum value.
+
         Args:
             state (str): the state
         Returns:
@@ -135,22 +146,27 @@ class ExporterNState(AbstractNState):
 
     def get_state(self):
         """Get the device state.
+
         Returns:
             (enum 'HardwareObjectState'): Device state.
         """
+
         state = self.state_channel.get_value()
         return self._str2state(state)
 
     def abort(self):
         """Stop the action."""
+
         if self.get_state() != self.STATES.UNKNOWN:
             self._exporter.execute("abort")
 
     def _set_value(self, value):
         """Set device to value
+
         Args:
             value (str, int, float or enum): Value to be set.
         """
+
         # NB Workaround beacuse diffractomer does not send event on
         # change of actuators (light, scintillator, cryostream...)
         self.update_state(self.STATES.BUSY)
@@ -169,8 +185,10 @@ class ExporterNState(AbstractNState):
 
     def get_value(self):
         """Get the device value
+
         Returns:
             (Enum): Enum member, corresponding to the value or UNKNOWN.
         """
+
         _val = self.value_channel.get_value()
         return self.value_to_enum(_val)

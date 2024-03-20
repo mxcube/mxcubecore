@@ -19,16 +19,18 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """ BlissShutter class - interface for shutter controlled by BLISS
-Implements _set_value, get_value methods
-Bliss states are: UNKNOWN, OPEN, CLOSED, FAULT
-"MOVING", "DISABLE", "STANDBY", "RUNNING"
-Example xml file:
-<devic class="BlissShutter">
-  <username>Safety Shutter</username>
-  <name>safshut</name>
-  <type>tango</type>
-  <object href="/bliss" role="controller"/>
-</device>
+
+Implements ``_set_value``, ``get_value`` methods
+
+Example xml file::
+
+    <device class="BlissShutter">
+    <username>Safety Shutter</username>
+    <name>safshut</name> 
+    <type>tango</type>
+    <object href="/bliss" role="controller"/>
+    </device>
+
 """
 from enum import Enum, unique
 import gevent
@@ -42,7 +44,11 @@ __license__ = "LGPLv3+"
 
 @unique
 class BlissShutterStates(Enum):
-    """Shutter states definitions."""
+    """Shutter states definitions corresponding to the HardwareObjectState.
+
+    States are:
+    ``OPEN``, ``CLOSED``, ``FAULT``, ``MOVING``, ``DISABLE``, ``UNKNOWN``, ``AUTOMATIC``
+    """
 
     OPEN = HardwareObjectState.READY, "OPEN"
     CLOSED = HardwareObjectState.READY, "CLOSED"
@@ -103,6 +109,7 @@ class BlissShutter(AbstractShutter):
 
     def get_state(self):
         """Get the device state.
+
         Returns:
             (enum 'HardwareObjectState'): Device state.
         """
@@ -113,9 +120,10 @@ class BlissShutter(AbstractShutter):
         return self.SPECIFIC_STATES[_state].value[0]
 
     def get_value(self):
-        """Get the device value
+        """Get the device value.
+
         Returns:
-            (Enum): Enum member, corresponding to the value or UNKNOWN.
+            (Enum): Enum member, corresponding to the value or ``UNKNOWN``.
         """
         # the return from BLISS value is an Enum
         _val = self._bliss_obj.state.name
@@ -128,9 +136,11 @@ class BlissShutter(AbstractShutter):
             self._bliss_obj.close()
 
     def set_mode(self, value):
-        """Set automatic or manual mode for a Frontend shutter
+        """Set automatic or manual mode for a Frontend shutter.
+
         Args:
             value (str): MANUAL or AUTOMATIC
+
         Raises: NotImplementedError: Not a Fronend shutter.
         """
         self._bliss_obj.mode = value
