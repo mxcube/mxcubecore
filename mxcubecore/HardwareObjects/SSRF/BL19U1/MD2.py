@@ -525,16 +525,23 @@ class MD2(Microdiff.Microdiff):
         sampeVertical = self.centringVertical.get_value()
         phiy = self.centringPhiy.get_value()
 
-
+        # 改变前先记录原始位置
+        old_sameVertical = sampeVertical
+        old_phiy = phiy
         sampeVertical = sampeVertical + dy
         phiy = phiy - dx
 
+        # 让md2移动到目标点来获取对应的 samp-x 与 samp-y 的值
         self.centringVertical.set_value(sampeVertical)  # 此函数控制md2上下移动，会移动mxcube界面Samp-X 和 Samp-Y电机
-        # self.centringPhiy.set_value(phiy)  # 此函数控制md2左右移动，会移动mxcube界面上的phiy电机
+        self.centringPhiy.set_value(phiy)  # 此函数控制md2左右移动，会移动mxcube界面上的phiy电机
 
         # 等待centringVertical重新变回ready
         # if self.centring_table_vertical_state.get_value() == "Ready":
         self.centringVertical.wait_move()
+        self.centringPhiy.wait_move()
+
+
+
 
         phiz = self.centringPhiz.direction * self.centringPhiz.get_value()
 
@@ -543,8 +550,8 @@ class MD2(Microdiff.Microdiff):
         sampx = -self.centringSamplex.direction * self.centringSamplex.get_value()
         sampy = self.centringSampley.direction * self.centringSampley.get_value()
 
-        # 下面的尝试不太行
         # 按照源代码尝试解决sampx 与sampy问题：
+        # 尝试的不太行
         # sampx = self.centringSamplex.direction * self.centringSamplex.get_value()
         # sampy = self.centringSampley.direction * self.centringSampley.get_value()
         # phi_angle = math.radians(
@@ -569,7 +576,11 @@ class MD2(Microdiff.Microdiff):
         # sampx = sampx + sx
         # sampy = sampy + sy
 
-
+        # 移动完之后再移动回来，否则影响整体坐标系的位置
+        self.centringVertical.set_value(old_sameVertical)
+        self.centringPhiy.set_value(old_phiy)
+        self.centringVertical.wait_move()
+        self.centringPhiy.wait_move()
 
 
         dict = {
