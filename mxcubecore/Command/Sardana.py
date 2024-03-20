@@ -19,7 +19,7 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 
-""" Sardana Control System """
+"""Sardana Control System  """
 
 from __future__ import absolute_import
 
@@ -47,13 +47,15 @@ from mxcubecore.CommandContainer import (
     ConnectionError,
 )
 
+# This is a site specific module where some of the dependencies might not be capture by the ``pyproject.toml`` during installation
+
 try:
     from PyTango import DevFailed, ConnectionFailed
     import PyTango
 except Exception:
     logging.getLogger("HWR").warning("Pytango is not available in this computer.")
 
-# from mxcubecore.TaskUtils import task
+#
 
 try:
     from sardana.taurus.core.tango.sardana import registerExtensions
