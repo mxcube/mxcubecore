@@ -203,6 +203,42 @@ As you can see, the second hardware object receives and processes first one's si
 
 > At least one entry must appear in the beamline's YAML configuration file. In this case I left the procedure mockup only, all the other mockups are commented. That is why only a few items appear in the loading table.
 
-## Signal List
+## General signals List
 
 table with all the available signals, purpose, defined in abstract classes, known listeners...
+
+### State related
+| Signal                 | Description | Signature | Notes  |
+| ---------------------- | ----------- | --------- | ------ |
+| stateChanged | Notifies when the state has changed, new state value emitted      |  ('stateChanged', newState)   | |
+| specificStateChanged | Notifies when a particular state has changed, new state value emitted      |  ('stateChanged', newState)   | Defined in HardwareObjectMixin, only used in AbstractDetector  |
+| deviceReady | Notifies that the device is now ready      |  'deviceReady'  | emitted by _set\_is\_ready_ in _Device_ class. **To be deprecated?**|
+| deviceNotReady | Notifies that the device is now not ready      |  'deviceNotReady'  | emitted by _set\_is\_ready_ in _Device_ class. **To be deprecated?**|
+| equipmentReady | Notifies that the device is now ready      |  'equipmentReady'  | emitted by _device\_ready_ in _Equipment_ class. **To be deprecated?**|
+| equipmentNotReady | Notifies that the device is now not ready      |  'equipmentNotReady'  | emitted by _device\_ready_ in _Equipment_ class. **To be deprecated?**|
+
+### Value related
+| Signal                 | Description | Signature | Notes  |
+| ---------------------- | ----------- | --------- | ------ |
+| valueChanged | Notifies when the value has changed      |  ('valueChanged', newValue)   | |
+| update | Notifies when the value has changed      |  ('update', newValue)   | **Can we combine these two together?**|
+| limitsChanged | Notifies when the limits have changed     |  ('limitsChanged', (low, high))   | |
+
+### Data collection related
+| Signal                 | Description | Signature | Notes  |
+| ---------------------- | ----------- | --------- | ------ |
+| energyScanStarted |    |  "energyScanStarted" | |
+| energyScanFinished |   |  "energyScanFinished", dict: energyScanParameters   | |
+| xrfSpectrumStarted |    |  "xrfSpectrumStarted" | |
+| xrfSpectrumFailed |   |  "xrfSpectrumFailed"   | |
+| xrfSpectrumStatusChanged |   | "xrfSpectrumStatusChanged", newStatus   | |
+| collectReady | collect hwobj readiness  |  "collectReady", bool  | |
+| collectOscillationStarted |  | "collectOscillationStarted", (owner, sampleIid, sampleCode, sampleLocation, dataCollectParameters, oscId) | |
+| collectOscillationFinished |  | "collectOscillationFinished", (owner, True, msgg, collectionId, oscId, dataCollectParameters) | |
+| collectOscillationFailed |  | "collectOscillationFailed", (owner, False, msg, collectionId, osc_id)| |
+| collectEnded |  | "collectEnded", (owner, bool, msg) | in AbstractMultiCollect|
+| progressInit |  | "progressInit", ("Collection", 100, False)| |
+| progressStop |  | "progressStop"| |
+| collectImageTaken |   | ("collectImageTaken", frameNumber)  | |
+| collectNumberOfFrames |   | ("collectNumberOfFrames", nframes, exposure_time) |in AbstractMultiCollect |
+
