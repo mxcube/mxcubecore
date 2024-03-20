@@ -16,13 +16,13 @@ They should both implement the ``is_connected()`` method.
 
     - Command launcher class in the module should emit the following signals :
         - ``commandBeginWaitReply``, when the command has been sent and we are waiting for the reply.
-     
+
         - ``commandReplyArrived``, when the reply for the commandis arrived.
 
         - ``commandFailed``, when the command failed to execute.
 
         - ``commandAborted``, when the command has been aborted.
- 
+
 Every Command launcher should be a callable object ;
 the arguments provided are those for the remote command to
 be executed.
