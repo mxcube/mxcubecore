@@ -42,7 +42,24 @@ source_suffix = {
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "furo"
+html_theme = "sphinx_material"
+
+html_theme_options = {
+    "globaltoc_collapse": True,
+    "globaltoc_depth": -1,
+    "repo_name": "GitHub mxcube/mxcubecore",
+    "repo_type": "github",
+    "repo_url": "https://github.com/mxcube/mxcubecore",
+}
+
+html_sidebars = {
+    "**": [
+        "logo-text.html",
+        "globaltoc.html",
+        "localtoc.html",
+        "searchbox.html",
+    ],
+}
 
 
 # -- Extensions --------------------------------------------------------------
