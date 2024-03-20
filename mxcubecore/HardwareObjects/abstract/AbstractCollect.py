@@ -148,7 +148,7 @@ class AbstractCollect(HardwareObject, object):
 
     def do_collect(self, owner):
         """
-        Actual collect sequence.
+        Actually collect the sequence.
 
         Args:
             owner (str): owner instance
@@ -340,7 +340,7 @@ class AbstractCollect(HardwareObject, object):
             self.data_collect_task.kill(block=False)
 
     def collection_finished(self):
-        """Collection finished beahviour
+        """Collection finished behaviour
 
         Emits:
             collectOscillationFinished: ('collectOscillationFinished', dict)
@@ -843,7 +843,7 @@ class AbstractCollect(HardwareObject, object):
 
     def take_crystal_snapshots(self):
         """
-        Take crytal snapshots of the currently loaded sample
+        Take crystal snapshots of the currently loaded sample
         """
         number_of_snapshots = self.current_dc_parameters["take_snapshots"]
         if self.current_dc_parameters["experiment_type"] == "Mesh":

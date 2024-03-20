@@ -6,7 +6,7 @@ MXCuBE relies heavily on signals being emitted and listened to by many elements.
 
 ## Implementation
 
-Depending on the installed modules, signals are emitted using [Louie](https://pypi.org/project/Louie/) or [PyDispatcher](https://pypi.org/project/PyDispatcher/). The former being based on the later. The developer does not need to deal with the differences between those two modules as it is already being handled in the file [dispatcher](https://github.com/mxcube/mxcubecore/blob/develop/mxcubecore/dispatcher.py).
+Depending on the installed modules, signals are emitted using [Louie](https://pypi.org/project/Louie/) or [PyDispatcher](https://pypi.org/project/PyDispatcher/). The former being based on the latter. The developer does not need to deal with the differences between those two modules as it is already being handled in the file [`dispatcher.py`](https://github.com/mxcube/mxcubecore/blob/develop/mxcubecore/dispatcher.py).
  **_NOTE:_**  can we remove any of those dependencies?
 
 
@@ -17,7 +17,7 @@ When certain events or conditions occur within a hardware object, corresponding 
 
 The {py:class}`mxcubecore.BaseHardwareObjects.HardwareObject` class serves as the base class for all hardware objects in MXCuBE. It includes methods for defining and emitting signals, allowing derived classes to customize signal emission based on their specific requirements.
 
->Strictly speaking it is the HardwareObject OR HardwareObjectYaml class (both inherit from HardwareObjectMixin). Once we unify the YAML and XML configuration this distinction should hopefully disappear.
+> Strictly speaking it is the `HardwareObject` OR `HardwareObjectYaml` class (both inherit from `HardwareObjectMixin`). Once we unify the YAML and XML configuration, this distinction should hopefully disappear.
 
 ### Emit
 
@@ -207,7 +207,7 @@ As you can see, the second hardware object receives and processes first one's si
 
 ## General signals List
 
-The following tables list the generic signals as well the signals from the some of the most important hardware objects. 
+The following tables list the generic signals as well as the signals from some of the most important hardware objects. 
 >Additional signal could be emitted by other hardware objects. For example, "energyScanFinished" by the energy scan object, and similars. For the shake of keeping this document digestable not all the signals are listed.
 
 
