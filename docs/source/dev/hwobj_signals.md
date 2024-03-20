@@ -252,12 +252,40 @@ The following tables list the generic signals as well the signals from the some 
 | queue\_execution\_finished |    | "queue\_execution\_finished" | |
 | queue\_execution\_finished |    | "queue\_execution\_finished" | |
 | queue\_entry\_execute\_started |    | "queue\_entry\_execute\_started", entry | |
-| queue\_entry\_execute\_finished |    | "queue\_entry\excute\_finished", statusMessage | |
+| queue\_entry\_execute\_finished |    | "queue\_entry\_execute\_finished", statusMessage | |
 | queue\_stopped |    | "queue\_stopped" | |
 | queue\_paused |    | "queue\_paused" | |
 | show\_workflow\_tab |    | "show\_workflow\_tab" | |
 
 ### Difractometer
+
+Useful data types:
+
+```
+centring_status = {
+"valid": bool,
+"startTime": str, # "%Y-%m-%d %H:%M:%S"
+"startTime": str, # "%Y-%m-%d %H:%M:%S"
+"angleLimit": bool,
+"motors": MotorsDict, # see below
+"accepted": bool,
+}
+
+motor_positions = {
+"phi": float,
+"phiy": float,
+"phiz": float,
+"sampx": float,
+"sampy": float,
+"kappa": float,
+"kappa_phi": float,
+"phi": float,
+"zoom": float?, # optional
+"beam_x": float,
+"beam_y": float
+}
+```
+
 #### GenericDiffractometer.py
 | Signal                 | Description | Signature | Notes  |
 | ---------------------- | ----------- | --------- | ------ |
@@ -274,9 +302,9 @@ The following tables list the generic signals as well the signals from the some 
 | fsmConditionChanged |    | "fsmConditionChanged", (message, bool) |Also emitted in collect so unclear purpose |
 | progressMessage |    | "progressMessage", msg | |
 | diffractometerMoved |    | "diffractometerMoved" | |
-| pixelsPerMmChanged |    | "pixelsPerMmChanged", (pixels_per_mm_x, self.pixels_per_mm_y) | |
+| pixelsPerMmChanged |    | "pixelsPerMmChanged", (pixels\_per\_mm\_x, pixels\_per\_mm\_y) | |
 | zoomMotorStateChanged |    | "zoomMotorStateChanged", state | |
-| zoomMotorPredefinedPositionChanged |    | "zoomMotorPredefinedPositionChanged", (position_name, offset | |
+| zoomMotorPredefinedPositionChanged |    | "zoomMotorPredefinedPositionChanged", (position_name, offset) | |
 | minidiffStateChanged |    | "minidiffStateChanged", state | |
 | minidiffReady |    | "minidiffReady" | |
 | minidiffNotReady |    | "minidiffNotReady" | |
@@ -293,7 +321,7 @@ The following tables list the generic signals as well the signals from the some 
 | minidiffNotReady |    | "minidiffNotReady" | |
 | minidiffStateChanged |    | "minidiffStateChanged", state | |
 | zoomMotorStateChanged |    | "zoomMotorStateChanged", state | |
-| zoomMotorPredefinedPositionChanged |    | "zoomMotorPredefinedPositionChanged", (position_name, offset | |
+| zoomMotorPredefinedPositionChanged |    | "zoomMotorPredefinedPositionChanged", (position_name, offset) | |
 | phiMotorStateChanged   |    | "phiMotorStateChanged", state | |
 | phizMotorStateChanged   |    | "phizMotorStateChanged", state | |
 | phiyMotorStateChanged   |    | "phiyMotorStateChanged", state | |
