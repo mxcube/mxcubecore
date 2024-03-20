@@ -17,6 +17,8 @@ When certain events or conditions occur within a hardware object, corresponding 
 
 The {py:class}`mxcubecore.BaseHardwareObjects.HardwareObject` class serves as the base class for all hardware objects in MXCuBE. It includes methods for defining and emitting signals, allowing derived classes to customize signal emission based on their specific requirements.
 
+>Strictly speaking it is the HardwareObject OR HardwareObjectYaml class (both inherit from HardwareObjectMixin). Once we unify the YAML and XML configuration this distinction should hopefully disappear.
+
 ### Emit
 
 Signals are typically emitted when the state of a hardware object changes, such as when it becomes ready for operation, encounters an error, or completes a task. Additionally, signals may be emitted to indicate changes in parameters or settings of the hardware, such as new setpoints, values, or configuration options.
@@ -212,16 +214,16 @@ table with all the available signals, purpose, defined in abstract classes, know
 | ---------------------- | ----------- | --------- | ------ |
 | stateChanged | Notifies when the state has changed, new state value emitted      |  ('stateChanged', newState)   | |
 | specificStateChanged | Notifies when a particular state has changed, new state value emitted      |  ('stateChanged', newState)   | Defined in HardwareObjectMixin, only used in AbstractDetector  |
-| deviceReady | Notifies that the device is now ready      |  'deviceReady'  | emitted by _set\_is\_ready_ in _Device_ class. **To be deprecated?**|
-| deviceNotReady | Notifies that the device is now not ready      |  'deviceNotReady'  | emitted by _set\_is\_ready_ in _Device_ class. **To be deprecated?**|
-| equipmentReady | Notifies that the device is now ready      |  'equipmentReady'  | emitted by _device\_ready_ in _Equipment_ class. **To be deprecated?**|
-| equipmentNotReady | Notifies that the device is now not ready      |  'equipmentNotReady'  | emitted by _device\_ready_ in _Equipment_ class. **To be deprecated?**|
+| deviceReady | Notifies that the device is now ready      |  'deviceReady'  |  **Deprecated**|
+| deviceNotReady | Notifies that the device is now not ready      |  'deviceNotReady'  |  **Deprecated**|
+| equipmentReady | Notifies that the device is now ready      |  'equipmentReady'  |  **Deprecated**|
+| equipmentNotReady | Notifies that the device is now not ready      |  'equipmentNotReady'  |  **Deprecated**|
 
 ### Value related
 | Signal                 | Description | Signature | Notes  |
 | ---------------------- | ----------- | --------- | ------ |
 | valueChanged | Notifies when the value has changed      |  ('valueChanged', newValue)   | |
-| update | Notifies when the value has changed      |  ('update', newValue)   | **Can we combine these two together?**|
+| update | Notifies when the value has changed      |  ('update', newValue)   | **Deprecated**|
 | limitsChanged | Notifies when the limits have changed     |  ('limitsChanged', (low, high))   | |
 
 ### Data collection related
@@ -229,9 +231,6 @@ table with all the available signals, purpose, defined in abstract classes, know
 | ---------------------- | ----------- | --------- | ------ |
 | energyScanStarted |    |  "energyScanStarted" | |
 | energyScanFinished |   |  "energyScanFinished", dict: energyScanParameters   | |
-| xrfSpectrumStarted |    |  "xrfSpectrumStarted" | |
-| xrfSpectrumFailed |   |  "xrfSpectrumFailed"   | |
-| xrfSpectrumStatusChanged |   | "xrfSpectrumStatusChanged", newStatus   | |
 | collectReady | collect hwobj readiness  |  "collectReady", bool  | |
 | collectOscillationStarted |  | "collectOscillationStarted", (owner, sampleIid, sampleCode, sampleLocation, dataCollectParameters, oscId) | |
 | collectOscillationFinished |  | "collectOscillationFinished", (owner, True, msgg, collectionId, oscId, dataCollectParameters) | |
