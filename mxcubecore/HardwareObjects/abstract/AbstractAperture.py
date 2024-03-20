@@ -53,7 +53,7 @@ class AbstractAperture(HardwareObject):
             logging.getLogger("HWR").error("Aperture: no position list defined")
 
     def get_diameter_size_list(self):
-        """Get diameters size list
+        """Get list of diameter sizes.
 
         Returns:
             list: list of diameter sizes in microns
@@ -61,7 +61,7 @@ class AbstractAperture(HardwareObject):
         return self._diameter_size_list
 
     def get_position_list(self):
-        """Get positions list
+        """Get list of positions.
 
         Returns:
             list: list of position names as str
@@ -189,7 +189,7 @@ class AbstractAperture(HardwareObject):
         pass
 
     def force_emit_signals(self):
-        """Reemits all signals
+        """Reemit all signals.
 
         Emits:
             valueChanged:  ('valueChanged', actuator position)

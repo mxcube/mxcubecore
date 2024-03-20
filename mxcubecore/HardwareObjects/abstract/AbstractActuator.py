@@ -24,7 +24,7 @@ methods and the get_value and _set_value abstract methods.
 Initialises the actuator_name, username, read_only and default_value properties.
 
 Emits:
-    valueChanged: during hwobj initialization and when setting a new value. Format: (   valueChanged, new_value)
+    valueChanged: during hwobj initialization and when setting a new value. Format: (valueChanged, new_value)
     limitsChanged: emitted by update_limits if limits values are changed.
                    Format:  (limitsChanged, (low, high))
     stateChanged: emitted by force_emit_signals. Format: ("stateChanged", (new_state)
@@ -56,7 +56,7 @@ class AbstractActuator(HardwareObject):
         actuator_name (str):
             actuator name specified by XML property, otherwise `None`
         read_only (bool):
-            read only flag, specified by XML property, otherwise `False`
+            read-only flag, specified by XML property, otherwise `False`
     """
 
 
@@ -205,7 +205,7 @@ class AbstractActuator(HardwareObject):
 
     def force_emit_signals(self):
         """
-        Forces to emit all signals.
+        Emit all signals.
 
         This method is called from the GUI. Do not call it within the hardware object.
         """
