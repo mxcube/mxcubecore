@@ -207,7 +207,9 @@ As you can see, the second hardware object receives and processes first one's si
 
 ## General signals List
 
-table with all the available signals, purpose, defined in abstract classes, known listeners...
+The following tables list the generic signals as well the signals from the some of the most important hardware objects. 
+>Additional signal could be emitted by other hardware objects. For example, "energyScanFinished" by the energy scan object, and similars. For the shake of keeping this document digestable not all the signals are listed.
+
 
 ### State related
 | Signal                 | Description | Signature | Notes  |
@@ -240,4 +242,70 @@ table with all the available signals, purpose, defined in abstract classes, know
 | progressStop |  | "progressStop"| |
 | collectImageTaken |   | ("collectImageTaken", frameNumber)  | |
 | collectNumberOfFrames |   | ("collectNumberOfFrames", nframes, exposure_time) |in AbstractMultiCollect |
+
+### Queue
+| Signal                 | Description | Signature | Notes  |
+| ---------------------- | ----------- | --------- | ------ |
+| child\_added |    | "child\_added", (parent_node, child_node) | |
+| child\_removed |    | "child\_removed", (parent, child)) | |
+| statusMessage |    | "statusMessage", ("status", "message"", "message") | Unclear purpose, arbitrary usage of the messages |
+| queue\_execution\_finished |    | "queue\_execution\_finished" | |
+| queue\_execution\_finished |    | "queue\_execution\_finished" | |
+| queue\_entry\_execute\_started |    | "queue\_entry\_execute\_started", entry | |
+| queue\_entry\_execute\_finished |    | "queue\_entry\excute\_finished", statusMessage | |
+| queue\_stopped |    | "queue\_stopped" | |
+| queue\_paused |    | "queue\_paused" | |
+| show\_workflow\_tab |    | "show\_workflow\_tab" | |
+
+### Difractometer
+#### GenericDiffractometer.py
+| Signal                 | Description | Signature | Notes  |
+| ---------------------- | ----------- | --------- | ------ |
+| minidiffTransferModeChanged |    | "minidiffTransferModeChanged", mode | |
+| minidiffPhaseChanged |    | "minidiffPhaseChanged", currentPhase | |
+| newAutomaticCentringPoint   |    | "newAutomaticCentringPoint", motorPositions | |
+| centringInvalid |    | "centringInvalid"| |
+| centringStarted |    | "centringStarted", (method, False) | |
+| centringMoving |    | "centringMoving" | |
+| centringFailed |    | "centringFailed", (method, dict:centring_status) | |
+| centringSuccessful |    | "centringSuccessful", (method, dict:centring_status) | |
+| newAutomaticCentringPoint |    | "newAutomaticCentringPoint", motorPos | |
+| centringAccepted |    | "centringAccepted", (bool: accepted, dict:centring_status) | |
+| fsmConditionChanged |    | "fsmConditionChanged", (message, bool) |Also emitted in collect so unclear purpose |
+| progressMessage |    | "progressMessage", msg | |
+| diffractometerMoved |    | "diffractometerMoved" | |
+| pixelsPerMmChanged |    | "pixelsPerMmChanged", (pixels_per_mm_x, self.pixels_per_mm_y) | |
+| zoomMotorStateChanged |    | "zoomMotorStateChanged", state | |
+| zoomMotorPredefinedPositionChanged |    | "zoomMotorPredefinedPositionChanged", (position_name, offset | |
+| minidiffStateChanged |    | "minidiffStateChanged", state | |
+| minidiffReady |    | "minidiffReady" | |
+| minidiffNotReady |    | "minidiffNotReady" | |
+| minidiffSampleIsLoadedChanged |    | "minidiffSampleIsLoadedChanged", sampleIsLoaded  | |
+| minidiffHeadTypeChanged |    | "minidiffHeadTypeChanged", headType | |
+| minidiffNotReady |    | "minidiffNotReady" | |
+
+
+#### Minidiff.py
+| Signal                 | Description | Signature | Notes  |
+| ---------------------- | ----------- | --------- | ------ |
+| diffractometerMoved |    | "diffractometerMoved" | |
+| minidiffReady |    | "minidiffReady" | |
+| minidiffNotReady |    | "minidiffNotReady" | |
+| minidiffStateChanged |    | "minidiffStateChanged", state | |
+| zoomMotorStateChanged |    | "zoomMotorStateChanged", state | |
+| zoomMotorPredefinedPositionChanged |    | "zoomMotorPredefinedPositionChanged", (position_name, offset | |
+| phiMotorStateChanged   |    | "phiMotorStateChanged", state | |
+| phizMotorStateChanged   |    | "phizMotorStateChanged", state | |
+| phiyMotorStateChanged   |    | "phiyMotorStateChanged", state | |
+| sampxMotorStateChanged   |    | "sampxMotorStateChanged", state | |
+| sampyMotorStateChanged   |    | "sampyMotorStateChanged", state | |
+| centringInvalid |    | "centringInvalid"| |
+| centringStarted |    | "centringStarted", (method, False) | |
+| centringMoving |    | "centringMoving" | |
+| centringFailed |    | "centringFailed", (method, dict:centring_status) | |
+| centringSuccessful |    | "centringSuccessful", (method, dict:centring_status) | |
+| newAutomaticCentringPoint |    | "newAutomaticCentringPoint", motorPos | |
+| centringAccepted |    | "centringAccepted", (bool: accepted, dict:centring_status) | |
+| centringSnapshots |    | "centringSnapshots", boolean | |
+| progressMessage |    | "progressMessage", msg | |
 
