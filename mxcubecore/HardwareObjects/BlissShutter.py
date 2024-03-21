@@ -26,7 +26,7 @@ Example xml file::
 
     <device class="BlissShutter">
     <username>Safety Shutter</username>
-    <name>safshut</name> 
+    <name>safshut</name>
     <type>tango</type>
     <object href="/bliss" role="controller"/>
     </device>
