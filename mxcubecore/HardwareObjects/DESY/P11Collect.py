@@ -276,8 +276,10 @@ class P11Collect(AbstractCollect):
         osc_pars["kappa_phi"] = 0
 
         start_angle = osc_pars["start"]
+        img_range = osc_pars["range"]
         nframes = osc_pars["number_of_images"]
         self.latest_frames = nframes
+        stop_angle = start_angle + img_range * nframes
 
         img_range = osc_pars["range"]
         exp_time = osc_pars["exposure_time"]
