@@ -52,6 +52,7 @@ class AbstractNState(AbstractActuator):
 
     def validate_value(self, value):
         """Check if the value is one of the predefined values.
+
         Args:
             value(Enum): value to check
         Returns:
@@ -61,6 +62,7 @@ class AbstractNState(AbstractActuator):
 
     def set_limits(self, limits):
         """Set the low and high limits.
+
         Args:
             limits (tuple): two element (low limit, high limit) tuple.
         Raises:
@@ -70,6 +72,7 @@ class AbstractNState(AbstractActuator):
 
     def update_limits(self, limits=None):
         """Check if the limits have changed.
+
         Args:
             limits(tuple): two elements (low limit, high limit) tuple.
         Raises:
@@ -88,7 +91,8 @@ class AbstractNState(AbstractActuator):
             pass
 
     def value_to_enum(self, value):
-        """Tranform a value to Enum
+        """Tranform a value to Enum.
+
         Args:
            value(str, int, float, tuple): value
         Returns:
