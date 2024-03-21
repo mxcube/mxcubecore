@@ -2301,7 +2301,15 @@ class GphlWorkflow(HardwareObjectYaml):
                     logging.getLogger("HWR").warning(
                         "No predefined positions for zoom motor."
                     )
+            elif True:
+                logging.getLogger("user_level_log").info(
+                    "Sample re-centering now active - Zoom in before continuing."
+                )
+
             else:
+                # TODO The UI popup does not work in mxcubeweb
+                # NB Temporarily inactivated pending a fix
+
                 # Ask user to zoom
                 info_text = """Automatic sample re-centering is now active
     Switch to maximum zoom before continuing"""
