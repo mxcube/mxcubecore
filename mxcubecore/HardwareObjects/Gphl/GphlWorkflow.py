@@ -306,11 +306,14 @@ class GphlWorkflow(HardwareObjectYaml):
 
     def query_pre_strategy_params(self, choose_lattice=None):
         """Query pre_strategy parameters.
+
         Used for both characterisation, diffractcal, and acquisition
 
-        :param data_model (GphlWorkflow): GphlWorkflow QueueModelObjecy
-        :param choose_lattice (ChooseLattice): GphlMessage.ChooseLattice
-        :return: -> dict
+        Args:
+            choose_lattice (:obj: `ChooseLattice`, optional): ChooseLattice message
+
+        Returns:
+            dict: Parameter value dictionary
         """
 
         resolution_decimals = 3
@@ -1373,11 +1376,14 @@ class GphlWorkflow(HardwareObjectYaml):
         return result
 
     def setup_data_collection(self, payload, correlation_id):
-        """Query data collection parameters and return SampleCentred to ASTRA workflow
+        """
 
-        :param payload (GphlMessages.GeometricStrategy):
-        :param correlation_id (int) Astra workflow correlation ID
-        :return (GphlMessages.SampleCentred):
+        Args:
+            payload (GphlMessages.GeometricStrategy: GeometricStrategy message
+            correlation_id (str) : Astra workflow correlation ID
+
+        Returns:
+            GphlMessages.SampleCentred: Return message with collection parameters
         """
         geometric_strategy = payload
 
@@ -2295,7 +2301,15 @@ class GphlWorkflow(HardwareObjectYaml):
                     logging.getLogger("HWR").warning(
                         "No predefined positions for zoom motor."
                     )
+            elif True:
+                logging.getLogger("user_level_log").info(
+                    "Sample re-centering now active - Zoom in before continuing."
+                )
+
             else:
+                # TODO The UI popup does not work in mxcubeweb
+                # NB Temporarily inactivated pending a fix
+
                 # Ask user to zoom
                 info_text = """Automatic sample re-centering is now active
     Switch to maximum zoom before continuing"""
