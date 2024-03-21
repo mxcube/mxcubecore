@@ -3,7 +3,7 @@
 The Command package is the place to put Command launchers
 and Channel readers/writers modules.
 
-The modules are organised by Control System Software used at different facilities 
+The modules are organised by Control System Software used at different facilities
 or specific to the hardware targeted.
 Not all the facilities or even different beamlines from a facility have the same dependencies installed.
 **One should modify the** ``pyproject.toml`` **to address their needs.**
