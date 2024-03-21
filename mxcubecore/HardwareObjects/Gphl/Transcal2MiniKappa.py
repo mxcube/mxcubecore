@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # encoding: utf-8
-# 
+#
 """
 License:
 
@@ -44,7 +44,7 @@ minikappa_xml_template = """<device class="MiniKappaCorrection">
 
 transcal_nml_template = """&SDCP_INSTRUMENT_LIST
 TRANS_CALIBRATION_NAME='transcal_p14'
-TRANS_HOME= %s, %s, -%s
+TRANS_HOME= %s, %s, %s
 TRANS_CROSS_SEC_OF_SOC=%s, %s, %s
 /"""
 
@@ -242,10 +242,10 @@ Conversion between GPhL recentring data and MiniKappaCorrection recentring data
 The source option ('gphl' or 'minikappa') determines the direction of conversion.
 The default source is 'minikappa'
 
-Starting from GPhL you need an up-to-date transcal.nml file, a matching 
+Starting from GPhL you need an up-to-date transcal.nml file, a matching
 instrumentation.nml file, and preferably an up-to-date diffractcal.nml file.
 
-Starting from the minikappa correction you need an instrumentation.nml file and 
+Starting from the minikappa correction you need an instrumentation.nml file and
 a minikappa-correction-xml file
         """
     )
