@@ -203,7 +203,7 @@ In [3]: ho1.stop()
 
 As you can see, the second hardware object receives and processes first one's signal.
 
-> At least one entry must appear in the beamline's YAML configuration file. In this case I left the procedure mockup only, all the other mockups are commented. That is why only a few items appear in the loading table.
+> At least one entry must appear in the beamline's YAML configuration file. In this case only the procedure mockup is present, all the other mockups are commented. That is why only a few items appear in the loading table.
 
 ## General signals List
 
