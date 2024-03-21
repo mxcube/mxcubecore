@@ -20,6 +20,17 @@
 
 """
 BeamDefinerMockup class
+
+<object class="BeamDefinerMockup">
+    <username>beamDefiner</username>
+    <object hwrid="/beam_size_ver" role="beam_size_ver" />
+    <object hwrid="/beam_size_hor" role="beam_size_hor" />
+    <values>{"50x50": "50x50", "100x100": "100x100", "20x5": "20x5"}</values>
+    <styling>{"50x50":{100: "disable", 50: "default", 20: "normal", 10: "warning", 5: "warning"},
+        "100x100": {100: 'default',50: 'normal',20: 'normal',10: 'warning', 5: 'warning'},'20x5': {100: 'disable',50: 'disable',20: 'normal',10: 'default',5: 'normal'}, "UNKNOWN": {100: 'default',50: 'normal',20: 'normal',10: 'normal',5: 'normal'}}</styling>
+</object>
+
+
 """
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
@@ -31,7 +42,7 @@ class BeamDefinerMockup(AbstractNState):
         super().__init__(*args)
         self.beam_size_hor = None
         self.beam_size_ver = None
-
+        self.custom_styling = None
     def init(self):
         AbstractNState.init(self)
 
@@ -41,10 +52,19 @@ class BeamDefinerMockup(AbstractNState):
 
         self.connect(self.beam_size_hor, "valueChanged", self.motors_changed)
         self.connect(self.beam_size_ver, "valueChanged", self.motors_changed)
-
+        self.get_custom_styling()
     def motors_changed(self, value):
         _val = self.get_value()
         self.emit("valueChanged", _val)
+
+    def get_custom_styling(self):
+        try:
+            _ap = eval(self.get_property("styling"))
+        except:
+            print("malformed xml")
+            _ap = None
+        self.custom_styling = _ap
+        return self.custom_styling
 
     def get_state(self):
         """Get the device state.
