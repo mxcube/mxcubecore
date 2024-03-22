@@ -1,22 +1,23 @@
 # Abstract Classes
 ## General Concept
 
-The role of the mxcubecore Abstract Classes is to provide an API to be used by both mxcubeweb and mxcubeqt clients. It defines methods, properties and signals. Most of the methods are defined only to give the footprint and shold be, wneh appropriate, overloaded by the inheriting classes.
+The role of the mxcubecore Abstract Classes is to provide an API to be used by both mxcubeweb and mxcubeqt clients. It defines methods, attributes and signals. Most of the methods are defined only to give the footprint and should be, when appropriate, overloaded by the inheriting classes.
 
 Abstract class can be inherited by any class, including another abstract class.
-Any abstract calss, if not inheriting from another abstract class should inherit from the **HardwareObject** class.
+Any abstract class, if not inheriting from another abstract class should inherit from the **HardwareObject** or alternatively **HardwareObjectYam** class. The [hierarchy scheme](https://github.com/mxcube/mxcubecore/blob/develop/Hierarchy.pdf) shows in brief the inheritance of the abstract classes.
 
-If get_value/set_value methods are defined in the abstract class, the name of the class defines what will be represented. For example get_value/set_value in the AbstractEnergy will read/set the enery, while the wavelength, handled in the same class, will have specific methoods for its reading/setting.
+If get_value/set_value methods are defined in the abstract class, the name of the class defines what will be represented. For example, get_value/set_value in the AbstractEnergy will read/set the energy, while the wavelength, handled in the same class, will have specific methods like get_value_wavelemgth/set_value_wavelength.
 
 ## Methods
 
-There are two methods, which are avaiable for any class, as inherited from HardwareObject - **get_object_by_role()** and **get_property()**. Both methods allow to retrieve information from the configuration file (xml or yaml)
-- get_object_by_role returns an object, associated to a role
+There are two methods, which are available for any class, as inherited from HardwareObject - **get_object_by_role()** and **get_property()**. Both methods allow to retrieve information from the configuration file (xml or yaml)
+- get_object_by_role returns an object, associated to a role. Used to give an access to the defined Hardware Object.
 
   ```<object href="/aperture" role="beamsize"/>```
-- get_property returns a property - numeric, string or None
+- get_property returns a property - numeric, string or None. This usually serves to define or asign different attributes.
 
   ```<values>{"IN": False, "OUT": True}</values>```
+
 
 Methods, specific to different abstract classes will be listed further.
 
@@ -36,7 +37,7 @@ class HardwareObjectState(enum.Enum):
     FAULT = 4
     OFF = 5
 ```
-The HardwareObjectState class is asigned to the STATES object, so in the inheriting from HardwareObject classes it is accessible as self.STATES
+The HardwareObjectState class is assigned to the STATES object, so it is accessible by the inheriting from HardwareObject classes as self.STATES.
 
 In case additional states for a specific implementation are needed, there is a placeholder enumeration.
 
@@ -54,7 +55,7 @@ class BaseValueEnum(enum.Enum):
 
     UNKNOWN = "UNKNOWN"
 ```
-The VALUES object is asigned to BaseValueEnum. In the inheriting from AbstractNState classes it is overloaded by simply getting the information from the configuration file.
+The VALUES object is assigned to BaseValueEnum. In the inheriting from AbstractNState classes it is overloaded by simply getting the information from the configuration file.
 For example, from the following configuration
 ```
 <values>{"A10": (0, 10, 0.15), "A20": (1, 20, 0.3), "A30": (2, 30, 0.63), "A50": (3, 50, 0.9), "A75": (4, 75, 0.96)}</values>
@@ -85,7 +86,7 @@ A timeout parameter can be added to any method, which needs it. The common behav
  - timeout=n - wait for n seconds (float value). Raise an exception if error.
 
 ## Abstract Classes
-Only the defined or overloaded in the class methods and properties are listed. The exhaustive list of the available methods and properties for each class depeds on the parent class.
+Only the defined or overloaded in the class methods, attributes, signals and properties are listed. The exhaustive list of the available methods and properties for each class depends on the parent class.
 
 ### AbstractActuator
 
@@ -93,25 +94,29 @@ The {py:class}`mxcubecore.HardwareObjects.abstract.AbstractActuator.AbstractActu
 
 Inherits from **HardwareObject** class.
   - defined methods:
-    get_value, set_value, validate_value, update_value, _set_value, get_limits, update_limits, re_emit_values, force_emit_signals
-  - properties:
-    actuator_name, username, read_only, default_value, default_limits, unit
-  - emited signals:
-    valueChanged. stateChanged, limitsChanged
+    get_value, set_value, validate_value, update_value, _set_value, get_limits, update_limits
+  - properties from the configuration file:
+    actuator_name, username, read_only, default_value, default_limits
+  - attributes:
+    actuator_name, username, read_only, default_value, default_limits, unit, _nominal_value, _nominal_limits.
+  - emitted signals:
+    valueChanged, limitsChanged
 
 The _set_value is the only abstract method that needs to be overloaded with every specific implementation.
 
 ### AbstractEnergy
 
-The {py:class}`mxcubecore.HardwareObjects.abstract.AbstractEnergy.AbstractEnergy` handles the energy and wavelength.
+The {py:class}`mxcubecore.HardwareObjects.abstract.AbstractEnergy.AbstractEnergy` handles energy and wavelength.
 
 Inherits from **AbstractActuator** class.
   - methods:
     get_wavelength, get_wavelength_limits, set_wavelength, calculate_energy, calculate_wavelength
-  - properties:
+  - overloaded methods:
+    update_value, force_emit_signals
+  - attributes:
     is_tunable
-  - emited signals:
-    valueChanged
+  - emitted signals:
+    energyChanged
 
 ### AbstractMotor
 
@@ -120,14 +125,16 @@ The {py:class}`mxcubecore.HardwareObjects.abstract.AbstractMotor.AbstractMotor` 
 Inherits from **AbstractActuator** class.
   - methods:
     get_velocity, set_velocity, set_value_relative, home
-  - properties:
+  - overloaded methods:
+    update_value
+  - properties from the configuration file::
     tolerance
-  - emited signals:
-    valueChanged
+  - attributes:
+    _velocity, _tolerance
 
 ### AbstractNState
 
-The {py:class}`mxcubecore.HardwareObjects.abstract.AbstractNState.AbstractNState` implemets methods to handle devices with a fixed number of possible values.
+The {py:class}`mxcubecore.HardwareObjects.abstract.AbstractNState.AbstractNState` implements methods to handle devices with a fixed number of possible values.
 Defines the BaseValueEnum, assigned to VALUES.
 
 Inherits from **AbstractActuator** class.
@@ -143,7 +150,7 @@ The {py:class}`mxcubecore.HardwareObjects.abstract.AbstractFlux.AbstractFlux` ha
 Inherits from **AbstractActuator** class.
   - methods:
     get_average_flux_density
-  - properties:
+  - attributes:
     get_dose_rate_per_photon_per_mmsq
 
 ### AbstractTransmission
@@ -159,12 +166,46 @@ The abstract class only defines the units and the limits at initialisation.
 
 ### AbstractBeam
 
-The {py:class}`mxcubecore.HardwareObjects.abstract.AbstractBeam.AbstractBeam` defines methods to handle the beam size and shape and the presence of beam.
+The {py:class}`mxcubecore.HardwareObjects.abstract.AbstractBeam.AbstractBeam` implements methods to handle the beam size and shape and the presence of beam. Defines the BeamShape Enum to handle the shape of the beam.
 
 Inherits from **HardwareObject** class.
   - methods:
     get_beam_size, get_beam_shape, get_beam_divergence, get_available_size, get_beam_position_on_screen, evaluate_beam_info, set_beam_size_shape, set_beam_position_on_screen
-  - properties:
-    definer, aperture, slits
-  - emited signals:
+  - overloaded methods:
+    re_emit_values
+  - properties from the configuration file:
+    beam_divergence_vertical, beam_divergence_horizontal
+  - attributes:
+    definer, aperture, slits, _beam_divergence, _beam_position_on_screen, _beam_width, _beam_height, ._beam_shape, _beam_label, _beam_size_dict
+  - emitted signals:
     beamSizeChanged. beamInfoChanged, beamPosChanged
+
+### AbstractShutter
+
+The {py:class}`mxcubecore.HardwareObjects.abstract.AbstractShutter.AbstractShutter` implements methods to handle shutter like devices. Adds appropriate members to the BaseValueEnum.
+
+Inherits from **AbstractNStater** class.
+  - methods:
+    open, close
+  - attributes:
+    is_open
+
+## AbstractXRFSpectrum
+
+The {py:class}`mxcubecore.HardwareObjects.abstract.AbstractXRFSpectrum.AbstractXRFSpectrum` implements methods to run XRF Spectrum type acquisition.
+
+Inherits from **HardwareObject** class.
+  - methods:
+    start_xrf_spectrum, execute_xrf_spectrum, _execute_xrf_spectrum,
+    spectrum_store_lims, spectrum_command_finished, spectrum_command_failed,
+    spectrum_command_aborted, spectrum_status_change, spectrum_analyse,
+    create_directory, get_filename.
+  - properties from the configuration file:
+    default_integration_time
+  - attributes:
+    lims, spectrum_info_dict, default_integration_time, spectrum_running
+  - emitted signals:
+    xrfSpectrumStatusChanged
+
+_execite_xrf_scan is the only abstract method. It is a placeholder for specific  sequence implementation.
+spectrum_analyse is additional hook to allow specific implementation.
