@@ -72,7 +72,8 @@ class AbstractMotor(AbstractActuator):
         return self._velocity
 
     def set_velocity(self, velocity):
-        """Set the motor velocity
+        """Set the motor velocity.
+
         Args:
             velocity (float): target velocity
         """
@@ -80,7 +81,8 @@ class AbstractMotor(AbstractActuator):
 
     def set_value_relative(self, relative_value, timeout=0):
         """
-        Set actuator to relative to the current value
+        Set actuator to relative to the current value.
+
         Args:
             value (float): target value
             timeout (float): optional - timeout [s],
@@ -91,6 +93,7 @@ class AbstractMotor(AbstractActuator):
 
     def home(self, timeout=None):
         """Homing procedure.
+
         Args:
             timeout (float): Timeout [s].
         """
@@ -98,6 +101,7 @@ class AbstractMotor(AbstractActuator):
 
     def update_value(self, value=None):
         """Check if the value has changed. Emits signal valueChanged.
+
         Args:
             value (float): value
         """

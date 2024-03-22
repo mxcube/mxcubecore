@@ -82,6 +82,7 @@ class AbstractEnergy(AbstractActuator):
 
     def set_wavelength(self, value, timeout=None):
         """Move motor to absolute value. Wait the move to finish.
+
         Args:
             value (float): target position [keV]
             timeout (float): optional - timeout [s].
@@ -91,7 +92,8 @@ class AbstractEnergy(AbstractActuator):
         self.set_value(self.calculate_energy(value), timeout=timeout)
 
     def calculate_wavelength(self, energy=None):
-        """Calculate wavelength from energy
+        """Calculate wavelength from energy.
+
         Args:
             energy(float): Energy [keV]
         Returns:
@@ -108,7 +110,8 @@ class AbstractEnergy(AbstractActuator):
         return HC_OVER_E / energy
 
     def calculate_energy(self, wavelength=None):
-        """Calculate energy from wavelength
+        """Calculate energy from wavelength.
+
         Args:
             value((float): wavelength [Å]
         Returns:
@@ -118,7 +121,8 @@ class AbstractEnergy(AbstractActuator):
         return HC_OVER_E / wavelength
 
     def update_value(self, value=None):
-        """Emist signal energyChanged for both energy and wavelength
+        """Emist signal energyChanged for both energy and wavelength.
+
         Argin:
             value: Not used, but kept in the method signature.
         """

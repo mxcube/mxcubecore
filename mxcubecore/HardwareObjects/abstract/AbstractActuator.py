@@ -86,6 +86,7 @@ class AbstractActuator(HardwareObject):
 
     def set_limits(self, limits):
         """Set actuator low and high limits. Emits signal limitsChanged.
+
         Args:
             limits (tuple): two elements (low limit, high limit) tuple.
         Raises:
@@ -99,6 +100,7 @@ class AbstractActuator(HardwareObject):
 
     def validate_value(self, value):
         """Check if the value is within limits.
+
         Args:
             value(numerical): value
         Returns:
@@ -115,12 +117,14 @@ class AbstractActuator(HardwareObject):
     @abc.abstractmethod
     def _set_value(self, value):
         """Implementation of specific set actuator logic.
+
         Args:
             value: target value
         """
 
     def set_value(self, value, timeout=0):
         """Set actuator to value.
+
         Args:
             value: target value
             timeout (float): optional - timeout [s],
@@ -144,6 +148,7 @@ class AbstractActuator(HardwareObject):
 
     def update_value(self, value=None):
         """Check if the value has changed. Emits signal valueChanged.
+
         Args:
             value: value
         """
@@ -156,6 +161,7 @@ class AbstractActuator(HardwareObject):
 
     def update_limits(self, limits=None):
         """Check if the limits have changed. Emits signal limitsChanged.
+
         Args:
             limits (tuple): two elements tuple (low limit, high limit).
         """

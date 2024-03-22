@@ -78,7 +78,8 @@ class AbstractFlux(AbstractActuator):
 
     def get_average_flux_density(self, transmission=None):
         """Get average flux density over the beam area in photons / mm^2
-        for a given transmisison setting
+        for a given transmisison setting.
+
         Args:
             transmission (float): Target transmission [%]
                                   (defaults to current value)
