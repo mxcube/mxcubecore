@@ -18,15 +18,18 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-""" Photon fluc calculations
-Example xml file:
+""" Photon flux calculations.
+
+Example xml file::
+
 <object class="ESRF.ESRFPhotonFlux">
-  <username>Photon flux</username>
-  <object role="controller" href="/bliss"/>
-  <object role="aperture" href="/udiff_aperture"/>
-  <counter_name>i0</counter_name>
-  <beam_check_name>checkbeam</beam_check_name>
+<username>Photon flux</username>
+<object role="controller" href="/bliss"/>
+<object role="aperture" href="/udiff_aperture"/>
+<counter_name>i0</counter_name>
+<beam_check_name>checkbeam</beam_check_name>
 </object>
+
 """
 import logging
 import gevent
@@ -48,6 +51,7 @@ class ESRFPhotonFlux(AbstractFlux):
 
     def init(self):
         """Initialisation"""
+
         super().init()
         controller = self.get_object_by_role("controller")
 
@@ -82,6 +86,7 @@ class ESRFPhotonFlux(AbstractFlux):
 
     def _poll_flux(self):
         """Poll the flux every 2 seconds"""
+
         while True:
             self.re_emit_values()
             gevent.sleep(3)
@@ -123,6 +128,7 @@ class ESRFPhotonFlux(AbstractFlux):
 
     def check_beam(self):
         """Check if there is beam
+
         Returns:
             (bool): True if beam present, False otherwise
         """
@@ -130,6 +136,7 @@ class ESRFPhotonFlux(AbstractFlux):
 
     def wait_for_beam(self, timeout=None):
         """Wait until beam present
+
         Args:
             timeout (float): optional - timeout [s],
                              If timeout == 0: return at once and do not wait

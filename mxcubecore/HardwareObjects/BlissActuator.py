@@ -1,12 +1,17 @@
 """
 Use bliss to set different actuators in/out.
-If private_state not specified, True will be send to set in and False for out.
-Example xml file:
-<device class="BlissActuator">
+
+If private_state not specified, ``True`` will be send to set in and ``False`` for out.
+
+Example of a configuration via xml file::
+
+  <device class="BlissActuator">
   <username>Detector Cover</username>
   <object href="/bliss" role="controller"/>
-</device>
+  </device>
+
 """
+
 import logging
 from warnings import warn
 

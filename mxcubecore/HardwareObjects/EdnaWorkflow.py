@@ -54,16 +54,27 @@ class EdnaWorkflow(HardwareObject):
     Example of a corresponding XML file (currently called "ednaparams.xml"):
 
     <object class = "EdnaWorkflow" role = "workflow">
+
     <bes_host>mxhpc2-1705</bes_host>
+
     <bes_port>8090</bes_port>
+
     <object href="/session" role="session"/>
+
     <workflow>
+
         <title>MXPressA</title>
+
         <path>MXPressA</path>
+
     </workflow>
+
     <workflow>
+
         <title>...</title>
+
         <path>...</path>
+
     </workflow>
     """
 

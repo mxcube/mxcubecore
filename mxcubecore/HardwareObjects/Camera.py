@@ -1,20 +1,22 @@
-"""Class for cameras connected to framegrabbers run by Taco Device Servers
+"""Class for cameras connected to framegrabbers run by Taco Device Servers.
 
-template:
+Example of a configuration using a xml file::
+
   <device class = "Camera">
-    <username>user label</username>
-    <!-- <taconame>device server name (//host/.../.../...)</taconame> -->
-    <interval>polling interval (in ms.)</interval>
-    <!-- <calibration>
-      <zoomMotor>Zoom motor Hardware Object reference</zoomMotor>
-      <calibrationData>
-        <offset>Zoom motor position (user units)</offset>
-        <pixelsPerMmY>pixels per mm (Y axis)</pixelsPerMmY>
-        <pixelsPerMmZ>pixels per mm (Z axis)</pixelsPerMmZ>
-      </calibrationData>
-    </calibration> -->
+  <username>user label</username>
+  <!-- <taconame>device server name (//host/.../.../...)</taconame> -->
+  <interval>polling interval (in ms.)</interval>
+  <!-- <calibration>
+  <zoomMotor>Zoom motor Hardware Object reference</zoomMotor>
+  <calibrationData>
+  <offset>Zoom motor position (user units)</offset>
+  <pixelsPerMmY>pixels per mm (Y axis)</pixelsPerMmY>
+  <pixelsPerMmZ>pixels per mm (Z axis)</pixelsPerMmZ>
+  </calibrationData>
+  </calibration> -->
   </device>
 """
+
 from mxcubecore import BaseHardwareObjects
 from mxcubecore import CommandContainer
 import gevent

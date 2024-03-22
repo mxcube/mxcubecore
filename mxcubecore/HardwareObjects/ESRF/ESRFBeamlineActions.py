@@ -15,9 +15,12 @@
 #
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
 """ Execute commands and toggle two state actions
-Example xml file:
-<object class = "ESRF.ESRFBeamlineActions">
+
+Example xml file::
+
+  <object class = "ESRF.ESRFBeamlineActions">
   <object role="controller" href="/bliss"/>
   <object role="hutchtrigger"  href="/hutchtrigger"/>
   <object role="scintillator" href="/udiff_scint"/>
@@ -25,14 +28,15 @@ Example xml file:
   <object role="aperture" href="/udiff_apertureinout"/>
   <object role="cryostream" href="/udiff_cryo"/>
   <controller_commands>
-    <centrebeam>Centre beam</centrebeam>
-    <quick_realign>Quick realign</quick_realign>
-    <anneal_procedure>Anneal</anneal_procedure>
+  <centrebeam>Centre beam</centrebeam>
+  <quick_realign>Quick realign</quick_realign>
+  <anneal_procedure>Anneal</anneal_procedure>
   </controller_commands>
   <hwobj_commands>
-    ["hutchtrigger", "scintillator", "detector_cover", "aperture", "cryostream"]
+  ["hutchtrigger", "scintillator", "detector_cover", "aperture", "cryostream"]
   </hwobj_commands>
-</object>
+  </object>
+
 """
 import ast
 import gevent
@@ -91,6 +95,7 @@ class ESRFBeamlineActions(BeamlineActions):
 
     def get_commands(self):
         """Get which objects to be used in the GUI
+
         Returns:
             (list): List of object
         """

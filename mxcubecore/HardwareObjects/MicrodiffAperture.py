@@ -18,13 +18,15 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 """
-MicrodiffAperture. Move the aperture in the beam to a specified value or
+MicrodiffAperture moves the aperture in the beam to a specified value or
 out of the beam.
+
 The factor, which serves to calculate the flux, can be a single value or a
 tuple of values per aperture size.
 
-Example xml file:
-<object class="MicrodiffAperture">
+Example xml file::
+
+  <object class="MicrodiffAperture">
   <username>aperture</username>
   <exporter_address>wid30bmd2s:9001</exporter_address>
   <value_channel_name>CurrentApertureDiameterIndex</value_channel_name>
@@ -34,7 +36,7 @@ Example xml file:
   <!-- or complete, corresponding to label: (index, size[um], factor) -->
   <values>{"A10": (0, 10, 0.15), "A20": (1, 20, 0.3), "A30": (2, 30, 0.63), "A50": (3, 50, 0.9), "A75": (4, 75, 0.96)}</values>
   <object role="inout" href="/udiff_apertureinout"/>
-</object>
+  </object>
 """
 from ast import literal_eval
 from enum import Enum
@@ -55,7 +57,7 @@ class MicrodiffAperture(ExporterNState):
         self.inout_obj = None
 
     def init(self):
-        """Initialize the aperture"""
+        """Initialize the aperture."""
         super().init()
 
         # check if we have values other that UKNOWN (no values in config)
@@ -68,7 +70,8 @@ class MicrodiffAperture(ExporterNState):
             self._initialise_inout()
 
     def _set_value(self, value):
-        """Set device to value
+        """Set device to value.
+
         Args:
             value (str, int, float or enum): Value to be set.
         """
@@ -82,13 +85,14 @@ class MicrodiffAperture(ExporterNState):
                 self.inout_obj.set_value(self.inout_obj.VALUES.IN, timeout=60)
 
     def _initialise_inout(self):
-        """Add IN and OUT to the values Enum"""
+        """Add ``IN`` and ``OUT`` to the values Enum."""
         values_dict = {item.name: item.value for item in self.inout_obj.VALUES}
         values_dict.update({item.name: item.value for item in self.VALUES})
         self.VALUES = Enum("ValueEnum", values_dict)
 
     def _initialise_values(self):
-        """Initialise the ValueEnum from the hardware
+        """Initialise the ValueEnum from the hardware.
+
         Raises:
             RuntimeError: No aperture diameters defined.
                           Factor and aperture diameter not the same number.
@@ -121,6 +125,7 @@ class MicrodiffAperture(ExporterNState):
 
     def get_factor(self, label):
         """Get the factor associated to a label.
+
         Args:
             (enum, str): label enum or name
         Returns:
@@ -138,6 +143,7 @@ class MicrodiffAperture(ExporterNState):
 
     def get_size(self, label):
         """Get the aperture size associated to a label.
+
         Args:
             (enum, str): label enum or name
         Returns:
@@ -158,7 +164,8 @@ class MicrodiffAperture(ExporterNState):
             raise RuntimeError("Unknown aperture size")
 
     def get_diameter_size_list(self):
-        """Get the list of values to be visible. Hide IN, OUT and UNKNOWN.
+        """Get the list of values to be visible. Hide ``IN``, ``OUT`` and ``UNKNOWN``.
+
         Returns:
             (list): List of availble aperture values (string).
         """

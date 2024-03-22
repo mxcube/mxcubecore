@@ -19,11 +19,10 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
-BeamDefiner ESRF implementation class - methods to define the size and shape of
-the beam.
+Define the size and shape of the beam taking into account apertures and/or slits.
 """
 
-__copyright__ = """ Copyright © 2023 by the MXCuBE collaboration """
+__copyright__ = """ Copyright  © 2023 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
@@ -87,6 +86,7 @@ class ESRFBeam(AbstractBeam):
 
     def _get_aperture_size(self):
         """Get the size and the label of the aperture in place.
+
         Returns:
             (float, str): Size [mm], label.
         """
@@ -101,6 +101,7 @@ class ESRFBeam(AbstractBeam):
 
     def _get_complex_size(self):
         """Get the size and the name of the definer in place.
+
         Returns:
             (float, str): Size [mm], label.
         """
@@ -113,6 +114,7 @@ class ESRFBeam(AbstractBeam):
 
     def _get_complex_size_old(self):
         """Get the size and the name of the definer in place.
+
         Returns:
             (float, str): Size [mm], label.
         """
@@ -129,6 +131,7 @@ class ESRFBeam(AbstractBeam):
 
     def _get_slits_size(self):
         """Get the size of the slits in place.
+
         Returns:
             (dict): {"width": float, "heigth": float}.
         """
@@ -140,7 +143,8 @@ class ESRFBeam(AbstractBeam):
     def get_value(self):
         """Get the size (width and heigth) of the beam and its shape.
             The size is in mm.
-        Retunrs:
+
+        Returns:
             (tuple): Dictionary (width, heigth, shape, name), with types
                                (float, float, Enum, str)
         """
@@ -186,6 +190,7 @@ class ESRFBeam(AbstractBeam):
 
     def get_available_size(self):
         """Get the available predefined beam definer configuration.
+
         Returns:
             (dict): apertures {name: dimension} or
                     slits {"width": motor object, "heigth", motor object} or
@@ -217,6 +222,7 @@ class ESRFBeam(AbstractBeam):
 
     def _set_slits_size(self, size=None):
         """Move the slits to the desired position.
+
         Args:
             size (list): Width, heigth [mm].
         Raises:
@@ -237,6 +243,7 @@ class ESRFBeam(AbstractBeam):
 
     def _set_aperture_size(self, size=None):
         """Move the aperture to the desired size.
+
         Args:
             size (str): The position name.
         """
@@ -249,6 +256,7 @@ class ESRFBeam(AbstractBeam):
 
     def _set_complex_size(self, size=None):
         """Move the complex definer to the desired size.
+
         Args:
             size (str): The position name.
         """
@@ -256,6 +264,7 @@ class ESRFBeam(AbstractBeam):
 
     def set_value(self, size=None):
         """Set the beam size
+
         Args:
             size (list): Width, heigth or
                   (str): Aperture or complex definer name.

@@ -17,23 +17,27 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 """
 Energy and Wavelength with bliss.
-Example xml file:
-  - for tunable wavelength beamline:
-<object class="Energy">
-  <object href="/energy" role="energy_motor"/>
-  <object href="/bliss" role="bliss"/>
-</object>
-The energy should have methods get_value, get_limits, get_state and move.
-If used, the controller should have method moveEnergy.
 
-  - for fixed wavelength beamline:
-<object class="Energy">
-  <read_only>True</read_only>
-  <energy>12.8123</energy>
-  or
-  <object href="/energy" role="energy_motor"/>
-The energy should have methods get_value and get_state
-</object>
+Example xml file for tunable wavelength beamline::
+
+    <object class="Energy">
+    <object href="/energy" role="energy_motor"/>
+    <object href="/bliss" role="bliss"/>
+    </object>
+
+The energy should have methods ``get_value``, ``get_limits``, ``get_state`` and ``move``.
+If used, the controller should have the ``moveEnergy`` method.
+
+Example xml file for fixed wavelength beamline::
+
+    <object class="Energy">
+    <read_only>True</read_only>
+    <energy>12.8123</energy> or
+    <object href="/energy" role="energy_motor"/>
+    </object>
+
+The energy should have ``get_value`` and ``get_state`` methods
+
 """
 import logging
 import math
@@ -71,6 +75,7 @@ class BlissEnergy(AbstractEnergy):
 
     def get_value(self):
         """Read the energy.
+
         Returns:
             (float): Energy [keV]
         """
@@ -80,6 +85,7 @@ class BlissEnergy(AbstractEnergy):
 
     def get_limits(self):
         """Return energy low and high limits.
+
         Returns:
             (tuple): two floats tuple (low limit, high limit) [keV].
         """
@@ -92,7 +98,8 @@ class BlissEnergy(AbstractEnergy):
         self._energy_motor.stop()
 
     def _set_value(self, value):
-        """Execute the sequence to move to an energy
+        """Execute the sequence to move to an energy.
+
         Args:
             value (float): target energy
         """
@@ -102,7 +109,8 @@ class BlissEnergy(AbstractEnergy):
             self._energy_motor.set_value(value)
 
     def set_value(self, value, timeout=0):
-        """Move energy to absolute position. Wait the move to finish.
+        """Move energy to absolute position and wait ``move`` to finish.
+
         Args:
             value (float): target value.
             timeout (float): optional - timeout [s],

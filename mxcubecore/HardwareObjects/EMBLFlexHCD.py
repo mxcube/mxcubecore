@@ -19,13 +19,21 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 """FlexHCD Linux Java implementation of sample changer.
+
 Example xml file:
+
 <object class = "EMBLFlexHCD">
+
   <username>Sample Changer</username>
+
   <exporter_address>lid231flex1:9001</exporter_address>
+
   <object role="controller" href="/bliss"/>
-  <puck_configuration>["SC3", "UNI", "SC3", "UNI", "UNI", "UNI", "UNI", "UNI"]<
+
+  <puck_configuration>["SC3", "UNI", "SC3", "UNI", "UNI", "UNI", "UNI", "UNI"]>
+
 /puck_configuration>
+
 </object>
 """
 import time
@@ -324,7 +332,7 @@ class EMBLFlexHCD(SampleChanger):
         return self._execute_cmd_exporter("getState", attribute=True) != "Ready"
 
     def _wait_ready(self, timeout=None):
-        # None means wait forever timeout <=0 use default timeout
+        """None means wait forever timeout <=0 use default timeout"""
         if timeout is not None and timeout <= 0:
             timeout = self.timeout
 
