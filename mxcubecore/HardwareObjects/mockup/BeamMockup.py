@@ -158,7 +158,10 @@ class BeamMockup(AbstractBeam):
         return {"type": "enum", "values": aperture_list}
 
     def get_available_definer(self):
-        definer_list = [item.value for item in self._beam_definer.VALUES]
+        if self._beam_definer is not None:
+            definer_list = [item.value for item in self._beam_definer.VALUES]
+        else:
+            return {}
         return {"type": "enum", "values": definer_list}
 
     def set_value(self, value):
