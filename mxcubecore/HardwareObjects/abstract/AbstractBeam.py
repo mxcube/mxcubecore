@@ -18,13 +18,7 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-"""
-AbstracBeam class - methods to define the size and shape of the beam, its presence.
 
-emits:
-- beamSizeChanged (self._beam_width, self._beam_height)
-- beamInfoChanged (self._beam_info_dict.copy())
-"""
 
 __copyright__ = """ Copyright © 2016 - 2022 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
@@ -47,7 +41,28 @@ class BeamShape(Enum):
 
 
 class AbstractBeam(HardwareObject):
-    """AbstractBeam class"""
+    """
+    AbstracBeam class - methods to define the size and shape of the beam, its presence.
+
+    Emits:
+        beamSizeChanged:  Format: ("beamSizeChanged", (width, height))
+        beamInfoChanged: Format: ("beamInfoChanged", beam_info_dict)
+        beamPosChanged: Format: ("beamPosChanged", (pos_x, pos_y))
+
+    Note: re_emit_values emits all signals
+
+    Attributes:
+        _aperture: reference to the aperture hardware object
+        _slits: reference to the slits hardware object
+        _definer: reference to the slits hardware object
+        _beam_size_dict (dict): dictionary containing min max of aperure, slits and definer
+        _beam_width (float): beam size in horizontal direction
+        _beam_height (float): beam size in vertical direction
+        _beam_shape (str): beam shape (rectangular, ellipse, unknown)
+        _beam_divergence (tuple): beam divergence in horizontal and vertical directions
+        _beam_position_on_screen (tuple): beam position in pixel units
+        _beam_info_dict (dict): dictionary containing size_x, size_y, shape, label
+    """
 
     __metaclass__ = abc.ABCMeta
 
