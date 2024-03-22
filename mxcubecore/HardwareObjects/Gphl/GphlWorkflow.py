@@ -327,17 +327,18 @@ class GphlWorkflow(HardwareObjectYaml):
             point_group = point_groups[-1]
             lattice_tags = alternative_lattices[lattice]
             if space_group:
-                info = crystal_symmetry.CRYSTAL_CLASS_MAP[
+                crystal_class = (
                     crystal_symmetry.SPACEGROUP_MAP[space_group].crystal_class
-                ]
+                )
+                info = crystal_symmetry.CRYSTAL_CLASS_MAP[crystal_class]
                 if info.bravais_lattice == lattice:
                     point_group = info.point_group
                     if point_group == "32" and info.bravais_lattice == "hP":
-                        point_group = info.crystal_class[:-1]
+                        point_group = crystal_class[:-1]
                     if point_group not in point_groups:
                         point_group = point_groups[-1]
                     if space_group not in crystal_symmetry.XTAL_SPACEGROUPS:
-                        # Non-enantiomeric sace groups not supported in user interface
+                        # Non-enantiomeric space groups not supported in user interface
                         space_group = ""
                 else:
                     space_group = ""
