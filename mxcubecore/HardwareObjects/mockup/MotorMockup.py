@@ -104,7 +104,6 @@ class MotorMockup(ActuatorMockup, AbstractMotor):
                 )
 
                 val = val if not self._wrap_range else val % self._wrap_range
-
                 self.update_value(val)
         time.sleep(0.02)
 
@@ -118,8 +117,8 @@ class MotorMockup(ActuatorMockup, AbstractMotor):
         else:
             self.update_specific_state(None)
 
+        self.update_value(value)
         return value
-    
+
     def is_moving(self):
         return ( (self.get_state() == self.STATES.BUSY ) or (self.get_state() == self.SPECIFIC_STATES.MOVING))
-
