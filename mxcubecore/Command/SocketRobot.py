@@ -12,6 +12,8 @@ import sys
 class SocketError(Exception):
     """"""
 
+class ProtocolError(Exception):
+    """Protype"""
 
 CLIENTS = {}
 
@@ -368,8 +370,10 @@ class StandardClientRobot:
     def on_disconnected(self):
         """On disconnect"""
 
-
-
+CMD_METHOD_LIST = "LIST"
+CMD_PROPERTY_LIST = "PLST"
+CMD_NAME = "NAME"
+CMD_SYNC_CALL = "EXEC"
 class SocketRobotClient(StandardClientRobot):
     """SocketRobotClient class"""
     def on_message_received(self, msg):
@@ -431,7 +435,7 @@ class SocketRobotClient(StandardClientRobot):
             timeout(float): Timeout [s]
         """
         # print("进入二重execute函数")
-        cmd = "{} ".format(method)    # CMD_SYNC_CALL = "EXEC"
+        cmd = "{}".format(method)    # CMD_SYNC_CALL = "EXEC"
 
         if kwargs is not None:
             if cmd == "Mount " or cmd =="Dismount ":
