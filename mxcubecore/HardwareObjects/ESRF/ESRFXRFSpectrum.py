@@ -318,4 +318,3 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
             if egy > energy:
                 return os.path.join(cfg_path, f"{str(egy)}keV.cfg")
         return self.cfgfile
-
