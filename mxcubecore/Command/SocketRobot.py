@@ -7,11 +7,12 @@ import socket
 import gevent.lock
 import gevent.event
 import sys
+from .exporter import ExporterClient
 # from exporter.StandardClient import StandardClient, ProtocolError,SocketError     #不能家，会报错
-
+class TimeoutError(Exception):
+    """"""
 class SocketError(Exception):
     """"""
-
 class ProtocolError(Exception):
     """Protype"""
 
@@ -44,6 +45,7 @@ def empty_buffer():
 
 
 class StandardClientRobot:
+    #这个类对应/mxcubecore/Command/exporter/StandardClient.py脚本中的StandardClient类
     def __init__(self, server_ip, server_port, protocol, timeout, retries):
         self.server_ip = server_ip
         self.server_port = server_port
@@ -374,7 +376,10 @@ CMD_METHOD_LIST = "LIST"
 CMD_PROPERTY_LIST = "PLST"
 CMD_NAME = "NAME"
 CMD_SYNC_CALL = "EXEC"
+CMD_ASNC_CALL = "ASNC"
+CMD_PROPERTY_WRITE = "WRTE"
 class SocketRobotClient(StandardClientRobot):
+    #这个类对应/mxcubecore/Command/exporter/ExporterClient.py脚本中的ExporterClient()类
     """SocketRobotClient class"""
     def on_message_received(self, msg):
         """Act if the message is an event, pass to StandardClient otherwise.
@@ -586,6 +591,7 @@ class SocketRobotClient(StandardClientRobot):
 
 
 class SocketRobot(SocketRobotClient, object):
+    #这个类对应/mxcubecore/Command/Exporter.py脚本的Exporter类
     """Exporter class"""
 
     STATE_EVENT = "State"
@@ -712,20 +718,8 @@ class SocketRobot(SocketRobotClient, object):
                     continue
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 def start_socket(address, port, timeout=10, retries=1):
+    #这个函数对应/mxcubecore/Command/Exporter.py脚本中的start_exporter()和函数
     """Start the exporter"""
     # 这里的timeout好像没有用？
     global CLIENTS
@@ -740,6 +734,7 @@ def start_socket(address, port, timeout=10, retries=1):
 
 
 class SocketRobotCommand(CommandObject):
+    #这个类对应/mxcubecore/Command/Exporter.py脚本中的ExporterCommand类
     def __init__(
         self, name, command, username=None, address=None, port=None, timeout=5, **kwargs
     ):

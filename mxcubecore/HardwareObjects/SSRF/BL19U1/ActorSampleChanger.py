@@ -73,6 +73,7 @@ def if_ErrorCode(func):
     return wrapper
 
 class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
+    #这个类对应/mxcubecore/HardwareObjects/mockup/SampleChangerMockup.py脚本中的SampleChangerMockup类
 
     __TYPE__ = "Actor"
     NO_OF_BASKETS = 5
@@ -121,7 +122,7 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
             'Mount'
         )
         self._cmdUnMount = self.add_command(
-            {"type": "socketrobot", "socket_address": self.socket_addr, "name": '_cmdMount'},
+            {"type": "socketrobot", "socket_address": self.socket_addr, "name": '_cmdUnMount'},
             'Dismount'
         )
         self._cmdExchange = self.add_command(
