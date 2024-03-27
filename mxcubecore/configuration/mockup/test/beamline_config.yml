@@ -23,7 +23,7 @@ _objects:
     # on one object that require the other to be already loaded.
     #
     # Hardware:
-    #- session: session.xml
+    - session: session.xml
     - machine_info: mach-info-mockup.xml
     - transmission: transmission-mockup.xml
     - energy: energy-mockup.xml
@@ -39,12 +39,12 @@ _objects:
     #- plate_manipulator: plate-manipulator.xml
     - diffractometer: diffractometer-mockup.xml
     - sample_view: sample-view-mockup.xml
-    #- lims: lims-client-mockup.xml
+    - lims: lims-client-mockup.xml
     #- queue_manager: queue.xml
     #- queue_model: queue-model.xml
     # Procedures:
     #- collect: mxcollect.xml
-    #- xrf_spectrum: xrf-spectrum-mockup.xml
+    - xrf_spectrum: xrf-spectrum-mockup.xml
     #- energy_scan: energyscan-mockup.xml
 #    - imaging: xray-imaging.xml # Only in EMBL as of 201907
     #- gphl_workflow: gphl-workflow.xml
