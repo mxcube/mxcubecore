@@ -280,7 +280,10 @@ class Session(HardwareObject):
         prefix = proposal
 
         if sample_data_node:
-            if sample_data_node.has_lims_data():
+            if (
+                sample_data_node.has_lims_data()
+                or sample_data_node.has_protein_acronym()
+            ):
                 protein_acronym = sample_data_node.crystals[0].protein_acronym
                 name = sample_data_node.name
                 if protein_acronym:
