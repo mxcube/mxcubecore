@@ -133,6 +133,7 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
         change = False
         if not config or "file" not in config:
             cfgfile = self._get_cfgfile(self.spectrum_info_dict["energy"])
+
         else:
             cfgfile = config["file"]
 
@@ -165,7 +166,7 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
             calib (list): The mca calibration.
             config (dict): The configuration dictionary.
         """
-        # check if we need this!!!
+
         if not config:
             config = {
                 "energy": self.spectrum_info_dict["energy"],
@@ -317,3 +318,4 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
             if egy > energy:
                 return os.path.join(cfg_path, f"{str(egy)}keV.cfg")
         return self.cfgfile
+

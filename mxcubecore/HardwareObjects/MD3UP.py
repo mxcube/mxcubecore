@@ -1,6 +1,7 @@
 import math
 import numpy
 import logging
+import time
 
 from mxcubecore.HardwareObjects import Microdiff
 from mxcubecore.HardwareObjects.sample_centring import CentringMotor
@@ -83,36 +84,7 @@ class MD3UP(Microdiff.Microdiff):
     def setNbImages(self, number_of_images):
         self.scan_nb_frames = number_of_images
 
-    def oscilScan(self, start, end, exptime, wait=False):
-        if self.in_plate_mode():
-            scan_speed = math.fabs(end - start) / exptime
-            low_lim, hi_lim = map(float, self.scanLimits(scan_speed))
-            if start < low_lim:
-                raise ValueError("Scan start below the allowed value %f" % low_lim)
-            elif end > hi_lim:
-                raise ValueError("Scan end above the allowed value %f" % hi_lim)
-        self.nb_frames.set_value(self.scan_nb_frames)
-
-        params = "1\t%0.3f\t%0.3f\t%0.4f\t1" % (start, (end - start), exptime)
-
-        scan = self.add_command(
-            {
-                "type": "exporter",
-                "exporter_address": self.exporter_addr,
-                "name": "start_scan",
-            },
-            "startScanEx",
-        )
-
-        self._wait_ready(300)
-
-        scan(params)
-
-        if wait:
-            # Timeout of 5 min
-            self._wait_ready(300)
-
-    def oscilScan4d(self, start, end, exptime, motors_pos, wait=False):
+    def oscilScan(self, start, end, exptime, number_of_images, wait=False):
         if self.in_plate_mode():
             scan_speed = math.fabs(end - start) / exptime
             low_lim, hi_lim = map(float, self.scanLimits(scan_speed))
@@ -121,7 +93,46 @@ class MD3UP(Microdiff.Microdiff):
             elif end > hi_lim:
                 raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
 
-        self.nb_frames.set_value(self.scan_nb_frames)
+        dead_time = HWR.beamline.detector.get_deadtime()
+
+        self.scan_detector_gate_pulse_enabled.set_value(True)
+        self.scan_detector_gate_pulse_readout_time.set_value(dead_time * 1000)
+
+        if self.get_property("md_set_number_of_frames", False):
+            self.nb_frames.set_value(number_of_images)
+        else:
+            self.nb_frames.set_value(1)
+
+        scan_params = "1\t%0.3f\t%0.3f\t%0.4f\t1" % (start, (end - start), exptime)
+        scan = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_scan",
+            },
+            "startScanEx",
+        )
+        scan(scan_params)
+        print("oscil scan started at ----------->", time.time())
+        if wait:
+            self._wait_ready(20 * 60)  # Timeout of 20 min
+            print("finished at ---------->", time.time())
+
+    def oscilScan4d(
+        self, start, end, exptime, number_of_images, motors_pos, wait=False
+    ):
+        if self.in_plate_mode():
+            scan_speed = math.fabs(end - start) / exptime
+            low_lim, hi_lim = map(float, self.scanLimits(scan_speed))
+            if start < low_lim:
+                raise ValueError("Scan start below the allowed value %f" % low_lim)
+            elif end > hi_lim:
+                raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
+
+        if self.get_property("md_set_number_of_frames", False):
+            self.nb_frames.set_value(number_of_images)
+        else:
+            self.nb_frames.set_value(1)
 
         params = "%0.3f\t%0.3f\t%f\t" % (start, (end - start), exptime)
         params += "%0.3f\t" % motors_pos["1"]["phiz"]
@@ -160,20 +171,10 @@ class MD3UP(Microdiff.Microdiff):
         mesh_range,
         wait=False,
     ):
-
         self.scan_detector_gate_pulse_enabled.set_value(True)
-
-        # Adding the servo time to the readout time to avoid any
-        # servo cycle jitter
-        servo_time = 0.110
-
-        self.scan_detector_gate_pulse_readout_time.set_value(
-            dead_time * 1000 + servo_time
-        )
-
-        # Prepositionning at the center of the grid
+        dead_time = HWR.beamline.detector.get_deadtime()
+        self.scan_detector_gate_pulse_readout_time.set_value(dead_time * 1000)
         self.move_motors(mesh_center.as_dict())
-
         positions = self.get_positions()
 
         params = "%0.3f\t" % (end - start)
@@ -205,6 +206,58 @@ class MD3UP(Microdiff.Microdiff):
         if wait:
             # Timeout of 30 min
             self._wait_ready(1800)
+
+    def timeresolved_mesh_scan(self, timeout=900):
+        """Start timeresolved mesh.
+        Args:
+            timeout(float): Timeout to wait the execution of the scan [s].
+                            Default value is 15 min
+        """
+        scan = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_timeresolved_mesh",
+            },
+            "startContinuousTimeResolvedRasterScan",
+        )
+        scan()
+
+        # wait for the execution of the scan
+        self._wait_ready(timeout)
+
+    def get_timeresolved_mesh_nbframes(self):
+        """Get the calculated number of frames for the continuous timeresolved
+           mesh scan.
+        Returns:
+            (int): Number of frames.
+        """
+        cmd = self.add_channel(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "timeresolved_mesh_nbframes",
+            },
+            "ContinuousTimeResolvedRasterScanNbFrames",
+        )
+        return cmd.get_value()
+
+    def get_timeresolved_mesh_exptime(self):
+        """Get the calculated exposure time for the continuous timeresolved
+           mesh scan.
+        Returns:
+            (float): Exposure time [s].
+        """
+
+        cmd = self.add_channel(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "timeresolved_mesh_exptime",
+            },
+            "ContinuousTimeResolvedRasterScanExposureTime",
+        )
+        return cmd.get_value()
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(

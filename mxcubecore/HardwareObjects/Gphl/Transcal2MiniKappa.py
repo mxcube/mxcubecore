@@ -21,6 +21,8 @@ along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
 """
 
 import os
+import ast
+from xml.etree import ElementTree as ET
 import numpy as np
 import f90nml
 
@@ -40,7 +42,13 @@ minikappa_xml_template = """<device class="MiniKappaCorrection">
    </phi>
 </device>"""
 
-def get_recen_data(transcal_file, instrumentation_file, diffractcal_file=None):
+transcal_nml_template = """&SDCP_INSTRUMENT_LIST
+TRANS_CALIBRATION_NAME='transcal_p14'
+TRANS_HOME= %s, %s, -%s
+TRANS_CROSS_SEC_OF_SOC=%s, %s, %s
+/"""
+
+def get_recen_data(transcal_file, instrumentation_file, diffractcal_file=None, **kwds):
     """Read recentring data from GPhL files
 
     Args:
@@ -194,6 +202,31 @@ def make_home_data(
     cross_sec_of_soc = np.dot(np.array(cross_sec_of_soc), transform).tolist()[0]
     return home_position, cross_sec_of_soc
 
+def convert_to_gphl(instrumentation_file, minikappa_config, **kwds):
+
+    if not os.path.isfile(instrumentation_file):
+        raise ValueError("Instrumentation file not found: %s" % instrumentation_file)
+    if not os.path.isfile(minikappa_config):
+        raise ValueError("Minikappa config file not found: %s" % minikappa_config)
+
+    instrumentation_data = f90nml.read(instrumentation_file)["sdcp_instrument_list"]
+    centring_axes = instrumentation_data["gonio_centring_axis_dirs"]
+    axis_names = instrumentation_data["gonio_centring_axis_names"]
+    kappadir, kappapos, phidir, phipos = get_minikappa_data(minikappa_config)
+
+    home_position, cross_sec_of_soc = make_home_data(
+        centring_axes, axis_names, kappadir, kappapos, phidir, phipos
+    )
+    return home_position, cross_sec_of_soc
+
+def get_minikappa_data(configfile):
+    root = ET.fromstring(open(configfile).read())
+    result = []
+    for tag in ("kappa", "phi"):
+        elem = root.find(tag)
+        for field in ("direction", "position"):
+            result.append(ast.literal_eval(elem.findtext(field)))
+    return result
 
 if __name__ == "__main__":
 
@@ -204,11 +237,32 @@ if __name__ == "__main__":
         formatter_class=RawTextHelpFormatter,
         prefix_chars="--",
         description="""
-Conversion from GPhL recentring data to MiniKappaCorrection recentring data
+Conversion between GPhL recentring data and MiniKappaCorrection recentring data
 
-Requires an up-to-date transcal.nml file a matching instrumentation.nml file 
-and preferably an up-to-date diffractcal.nml file
+The source option ('gphl' or 'minikappa') determines the direction of conversion.
+The default source is 'minikappa'
+
+Starting from GPhL you need an up-to-date transcal.nml file, a matching 
+instrumentation.nml file, and preferably an up-to-date diffractcal.nml file.
+
+Starting from the minikappa correction you need an instrumentation.nml file and 
+a minikappa-correction-xml file
         """
+    )
+
+    default = "minikappa"
+    parser.add_argument(
+        "--source",
+        choices=["minikappa", "gphl", ],
+        default=default,
+        help="Type of input data to convert.\n",
+    )
+
+    parser.add_argument(
+        "--instrumentation_file",
+        metavar="instrumentation_file",
+        help="instrumentation.nml file\n",
+        required=True,
     )
 
     parser.add_argument(
@@ -216,17 +270,20 @@ and preferably an up-to-date diffractcal.nml file
     )
 
     parser.add_argument(
-        "--instrumentation_file",
-        metavar="instrumentation_file",
-        help="instrumentation.nml file\n"
+        "--diffractcal_file", metavar="diffractcal_file", help="diffractcal.nml file\n"
     )
 
     parser.add_argument(
-        "--diffractcal_file", metavar="diffractcal_file", help="diffractcal.nml file\n"
+        "--minikappa_config", metavar="minikappa_config", help="minikappa-correction.xmll file\n"
     )
 
     argsobj = parser.parse_args()
     options_dict = vars(argsobj)
-    recen_data = get_recen_data(**options_dict)
-    minikappa_data = make_minikappa_data(**recen_data)
-    print(minikappa_xml_template % minikappa_data)
+    source = options_dict.pop("source", "minikappa")
+    if source == "gphl":
+        recen_data = get_recen_data(**options_dict)
+        minikappa_data = make_minikappa_data(**recen_data)
+        print(minikappa_xml_template % minikappa_data)
+    else:
+        home, csoc = convert_to_gphl(**options_dict)
+        print (transcal_nml_template % tuple(home + csoc))

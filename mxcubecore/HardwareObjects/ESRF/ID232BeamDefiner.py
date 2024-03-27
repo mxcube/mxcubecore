@@ -1,5 +1,8 @@
 import ast
 
+from enum import Enum
+from gevent import Timeout, sleep
+
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
 from bliss.common import event
@@ -40,6 +43,10 @@ class ID232BeamDefiner(AbstractNState):
             self.size_by_name[name] = tuple([float(x) for x in ast.literal_eval(size)])
             self.coef_by_name[name] = float(coef)
 
+        # check if we have values other that UKNOWN
+        if len(self.VALUES) == 1:
+            self._initialise_values()
+
     def is_ready(self):
         return self.controller is not None
 
@@ -59,9 +66,9 @@ class ID232BeamDefiner(AbstractNState):
             (int): The position index.
         """
         try:
-            return self.pos_names.index(self.get_current_position_name())
-        except ValueError:
-            return -1
+            return self.VALUES[self.get_current_position_name()]
+        except (ValueError, KeyError):
+            return self.VALUES.UNKNOWN
 
     def _tf_state_updated(self, new_state=None):
         name = self.get_current_position_name()
@@ -76,13 +83,17 @@ class ID232BeamDefiner(AbstractNState):
     def get_predefined_positions_list(self):
         return self.pos_names
 
+    def get_current_status(self):
+        tf1_status = self.controller.tf.wago.get("stat")[::2]
+        tf2_status = self.controller.tf2.wago.get("stat")[::2]
+        return tf1_status, tf2_status
+
     def get_current_position_name(self, *args):
         try:
             tf1_state = self.controller.tf.status_read()[1].split()
             tf2_state = self.controller.tf2.status_read()[1].split()
         except:
             return "UNKNOWN"
-
         for name in self.pos_names:
             tf1_cfg = self.tf_cfg_by_name[name]["tf1"]
             tf2_cfg = self.tf_cfg_by_name[name]["tf2"]
@@ -98,7 +109,7 @@ class ID232BeamDefiner(AbstractNState):
             else:
                 return name
 
-    def set_value(self, name):
+    def set_value(self, name, timeout=None):
         """Set the beam size.
         Args:
             name (str): position name
@@ -108,3 +119,27 @@ class ID232BeamDefiner(AbstractNState):
 
         self.controller.tf.set(*tf1_cfg)
         self.controller.tf2.set(*tf2_cfg)
+        self.wait_ready((tf1_cfg,tf2_cfg), timeout)
+
+    def wait_ready(self, status, timeout=None):
+        """Wait timeout seconds until status reached
+        Args:
+            timeout (float): Timeout [s]. Defaults to None.
+        """
+        with Timeout(timeout, RuntimeError("Execution timeout")):
+            while status != self.get_current_status():
+                sleep(0.5)
+
+    def _initialise_values(self):
+        """Initialise the ValueEnum from the hardware
+        Raises:
+            RuntimeError: No aperture diameters defined.
+        """
+        values = {}
+        for val in self.pos_names:
+            values[val] = [self.pos_names.index(val), self.size_by_name[val]]
+
+        self.VALUES = Enum(
+            "ValueEnum",
+            dict(values, **{item.name: item.value for item in self.VALUES}),
+        )

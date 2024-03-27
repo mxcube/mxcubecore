@@ -121,7 +121,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         exptime,
         number_of_images,
         shutterless,
-        npass,
         first_frame,
     ):
         if shutterless:
@@ -129,14 +128,14 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             exptime = (exptime + self._detector.get_deadtime()) * number_of_images
 
             if first_frame:
-                self.do_prepare_oscillation(start, end, exptime, npass)
+                self.do_prepare_oscillation(start, end, exptime)
         else:
             if osc_range < 1e-4:
                 # still image
                 end = start
             else:
                 end = start + osc_range
-                self.do_prepare_oscillation(start, end, exptime, npass)
+                self.do_prepare_oscillation(start, end, exptime)
 
         return start, end
 
@@ -146,26 +145,31 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         time.sleep(exptime)
         self.close_fast_shutter()
 
+
     @task
-    def do_oscillation(self, start, end, exptime, shutterless, npass, first_frame):
+    def do_oscillation(
+        self, start, end, exptime, number_of_images, shutterless, first_frame,
+    ):
         if shutterless:
             if first_frame:
                 exptime = (exptime + self._detector.get_deadtime()) * number_of_images
-                self.oscillation_task = self.oscil(start, end, exptime, npass wait=False)
+                self.oscillation_task = self.oscil(
+                    start, end, exptime, number_of_images, wait=False
+                )
 
             if self.oscillation_task.ready():
                 self.oscillation_task.get()
         else:
-            self.oscil(start, end, exptime, npass)
+            self.oscil(start, end, exptime, number_of_images)
 
     @task
-    def oscil(self, start, end, exptime, npass, wait=False):
+    def oscil(self, start, end, exptime, number_of_images, wait=False):
         if math.fabs(end - start) < 1e-4:
             self.open_fast_shutter()
             time.sleep(exptime)
             self.close_fast_shutter()
         else:
-            return self.execute_command("do_oscillation", start, end, exptime, npass)
+            return self.execute_command("do_oscillation", start, end, exptime, number_of_images)
 
     def set_wavelength(self, wavelength):
         if HWR.beamline.tunable_wavelength:

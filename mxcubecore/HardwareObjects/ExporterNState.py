@@ -71,7 +71,7 @@ class ExporterNState(AbstractNState):
             },
             value_channel,
         )
-        self.value_channel.connect_signal("update", self.update_value)
+        self.value_channel.connect_signal("update", self._update_value)
 
         self.state_channel = self.add_channel(
             {
@@ -104,6 +104,9 @@ class ExporterNState(AbstractNState):
             while not self.get_state() == self.STATES.READY:
                 sleep(0.5)
 
+    def _update_value(self, value):
+        super().update_value(self.value_to_enum(value))
+
     def _update_state(self, state=None):
         """To be used to update the state when emiting the "update" signal.
         Args:
@@ -115,6 +118,7 @@ class ExporterNState(AbstractNState):
             state = self.get_state()
         else:
             state = self._str2state(state)
+
         return self.update_state(state)
 
     def _str2state(self, state):

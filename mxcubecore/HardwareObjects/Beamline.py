@@ -798,17 +798,24 @@ class Beamline(ConfiguredObject):
             setattr(acq_parameters, tag, val)
 
         motor_positions = self.diffractometer.get_positions()
-        osc_start = (
-            None
-            if not params["osc_start"]
-            else motor_positions.get("phi", params["osc_start"])
-        )
-        acq_parameters.osc_start = osc_start
-        kappa = motor_positions.get("kappa", False)
-        kappa = kappa if kappa else None
-        acq_parameters.kappa = round(float(kappa), 2) if kappa else None
-        kappa_phi = motor_positions.get("kappa_phi", False)
-        acq_parameters.kappa_phi = round(float(kappa_phi), 2) if kappa_phi else None
+        osc_start = motor_positions.get("phi")
+        if osc_start is None:
+            acq_parameters.osc_start = params.get("osc_start")
+        else:
+            acq_parameters.osc_start = osc_start
+
+        kappa = motor_positions.get("kappa")
+        if kappa is None:
+            acq_parameters.kappa = None
+        else:
+            acq_parameters.kappa = round(float(kappa), 2)
+
+        kappa_phi = motor_positions.get("kappa_phi")
+        if kappa_phi is None:
+            acq_parameters.kappa_phi = None
+        else:
+            acq_parameters.kappa_phi = round(float(kappa_phi), 2)
+
         try:
             acq_parameters.resolution = self.resolution.get_value()
         except Exception:
