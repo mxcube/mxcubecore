@@ -1,3 +1,4 @@
+# encoding: utf-8
 #
 #  Project: MXCuBE
 #  https://github.com/mxcube
@@ -17,7 +18,8 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-"""Mockup file to define _execute_xrf_spectrum method
+"""
+Mockup file to define _execute_xrf_spectrum method
 """
 
 from time import sleep
@@ -27,14 +29,16 @@ from mxcubecore.HardwareObjects.abstract.AbstractXRFSpectrum import (
 )
 
 
-__copyright__ = """ Copyright © 2010-2023 by the MXCuBE collaboration """
+__copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
 class XRFSpectrumMockup(AbstractXRFSpectrum):
+    """Overload the abstract method"""
 
     def _execute_xrf_spectrum(self, integration_time=None, filename=None):
         """Specific XRF acquisition procedure.
+
         Args:
             integration_time (float): MCA integration time [s].
             filename (str): Data file (full path).
