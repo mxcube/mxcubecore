@@ -326,7 +326,7 @@ class HarvesterMockup(HardwareObject):
         Args (str) : Plate ID
         """
         # return self._execute_cmd_exporter("loadPlate", plate_id, command=True)
-        pass
+        return
 
     def get_plate_id(self):
         """get current plate ID
@@ -383,21 +383,21 @@ class HarvesterMockup(HardwareObject):
         Return (float):  last pin drift offset x
         """
         # last_sample_drift_offset_x = self._execute_cmd_exporter("getLastSampleDriftOffsetX", attribute=True)
-        pass
+        return
 
     def get_last_sample_drift_offset_y(self):
         """Sample Offset Y position when drifted
         Return (float):  last pin drift offset y
         """
         # last_sample_drift_offset_y = self._execute_cmd_exporter("getLastSampleDriftOffsetY", attribute=True)
-        pass
+        return
 
     def get_last_sample_drift_offset_z(self):
         """Sample Offset Z position when drifted
         Return (float):  last pin drift offset z
         """
         # pin_last_drift_offset_z = self._execute_cmd_exporter("getLastSampleDriftOffsetZ", attribute=True)
-        pass
+        return
 
     # ---------------------- Calibrate Cut Shape offset----------------------------
 
@@ -406,21 +406,21 @@ class HarvesterMockup(HardwareObject):
         Return (float):  last pin cut shape offset x
         """
         # pin_last_cut_shape_offset_x = self._execute_cmd_exporter("getLastSampleCutShapeOffsetX", attribute=True)
-        pass
+        return
 
     def get_last_pin_cut_shape_offset_y(self):
         """Pin shape Offset Y position when
         Return (float):  last pin cut shape offset y
         """
         # pin_last_cut_shape_offset_y = self._execute_cmd_exporter("getLastSampleCutShapeOffsetY", attribute=True)
-        pass
+        return
 
     # =============== Pin / Calibration -----------------------------
 
     def load_calibrated_pin(self):
         """Start Pin Calibration Procedure"""
         # return self._execute_cmd_exporter("loadCalibratedPin", command=True)
-        pass
+        return
 
     def store_calibrated_pin(self, x, y, z):
         """Store x , y , z offsets position after calibration procedure
@@ -428,7 +428,7 @@ class HarvesterMockup(HardwareObject):
         Args: (float) x, y, z offsets
         """
         # return self._execute_cmd_exporter("storePinToBeamOffset", x , y , z,  command=True)
-        pass
+        return
 
     def get_calibrated_pin_offset(self):
         """Get Stored x , y , z offsets position after calibration procedure
@@ -436,7 +436,7 @@ class HarvesterMockup(HardwareObject):
         return: (float) x, y, z offsets
         """
         # pin_to_beam_offset = self._execute_cmd_exporter("getPinToBeamOffset", command=True)
-        pass
+        return
 
     def get_number_of_available_pin(self):
         """Get number of available pin

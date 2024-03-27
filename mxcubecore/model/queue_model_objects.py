@@ -40,7 +40,7 @@ except Exception:
 # imported eventhough HardwareRepository is not avilable.
 try:
     from mxcubecore import HardwareRepository as HWR
-except ImportError as ex:
+except ImportError:
     logging.getLogger("HWR").exception("Could not import HardwareRepository")
 
 
@@ -358,7 +358,7 @@ class Sample(TaskNode):
         else:
             self.set_name(self.loc_str)
 
-    def init_from_lims_object(self, lims_sample):
+    def init_from_lims_object(self, lims_sample):  # noqa: C901
         if hasattr(lims_sample, "cellA"):
             self.crystals[0].cell_a = lims_sample.cellA
             self.processing_parameters.cell_a = lims_sample.cellA
@@ -1618,7 +1618,7 @@ class PathTemplate(object):
             logging.getLogger("HWR").debug(
                 "PathTemplate (DESY) - (to be defined) directory is %s" % self.directory
             )
-            #archive_directory = self.directory
+            # archive_directory = self.directory
             archive_directory = HWR.beamline.session.get_archive_directory()
         elif PathTemplate.synchrotron_name == "ALBA":
             logging.getLogger("HWR").debug(
@@ -2103,7 +2103,7 @@ class GphlWorkflow(TaskNode):
             if hasattr(self, dict_item[0]):
                 setattr(self, dict_item[0], dict_item[1])
 
-    def set_pre_strategy_params(
+    def set_pre_strategy_params(  # noqa: C901
         self,
         space_group="",
         crystal_classes=(),
@@ -2134,7 +2134,6 @@ class GphlWorkflow(TaskNode):
         """
 
         from mxcubecore.HardwareObjects.Gphl import GphlMessages
-        from mxcubecore.model import crystal_symmetry
 
         if space_group:
             self.space_group = space_group
@@ -2321,7 +2320,6 @@ class GphlWorkflow(TaskNode):
         """
 
         from mxcubecore.HardwareObjects.Gphl import GphlMessages
-        import ruamel.yaml as yaml
 
         if self.automation_mode == "TEST_FROM_FILE":
             fname = os.getenv("GPHL_TEST_INPUT")
@@ -2332,7 +2330,6 @@ class GphlWorkflow(TaskNode):
                     params.update(task["parameters"])
             else:
                 print("WARNING no GPHL_TEST_INPUT found. test using default values")
-
 
         # Set attributes directly from params
         self.strategy_settings = HWR.beamline.gphl_workflow.workflow_strategies.get(
@@ -2490,6 +2487,7 @@ class GphlWorkflow(TaskNode):
                 self._cell_parameters = tuple(float(x) for x in value)
             else:
                 raise ValueError("invalid value for cell_parameters: %s" % str(value))
+
     @property
     def total_strategy_length(self):
         """Total strategy length for a single repetition
@@ -2500,7 +2498,6 @@ class GphlWorkflow(TaskNode):
             result *= len(energy_tags)
         #
         return result
-
 
     def calc_maximum_dose(self, energy=None, exposure_time=None, image_width=None):
         """Dose at transmission=100 for given energy, exposure time and image width
@@ -2521,7 +2518,7 @@ class GphlWorkflow(TaskNode):
         )
         dose_rate = HWR.beamline.gphl_workflow.maximum_dose_rate(energy)
         exposure_time = exposure_time or self.exposure_time
-        image_width = image_width  or self.image_width
+        image_width = image_width or self.image_width
         total_strategy_length = self.strategy_length * len(self.wavelengths)
         if (dose_rate and exposure_time and image_width and total_strategy_length):
             return (dose_rate * total_strategy_length * exposure_time / image_width)
