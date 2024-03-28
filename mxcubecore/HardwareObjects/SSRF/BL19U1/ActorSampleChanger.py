@@ -342,16 +342,16 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
                 "The MD2 seems cannot change to sample change status while mounting, please try again first.")
             raise Exception("The MD2 seems cannot change to sample change status while mounting, please try again first.")
         #判断cryo是否在对的位置
-        self.change_Cryo_state()
-        logging.getLogger("HWR").info("Cryo state: %s ", str(MD2.Cryo_Is_Back.get_value()))
-        if MD2.Cryo_Is_Back.get_value() != True:
-            logging.getLogger("user_level_log").error(
-                "The cryo seems cannot change to back position while mounting,please contact the teacher on duty")
-            raise Exception("The cryo seems cannot change to back position while mounting,please contact the teacher on duty")
-        else:
-            print("get into safe waiting time for 0.5 second")
-            time.sleep(0.5)
-            print("safe waiting time ended")
+        # self.change_Cryo_state()
+        # logging.getLogger("HWR").info("Cryo state: %s ", str(MD2.Cryo_Is_Back.get_value()))
+        # if MD2.Cryo_Is_Back.get_value() != True:
+        #     logging.getLogger("user_level_log").error(
+        #         "The cryo seems cannot change to back position while mounting,please contact the teacher on duty")
+        #     raise Exception("The cryo seems cannot change to back position while mounting,please contact the teacher on duty")
+        # else:
+        #     print("get into safe waiting time for 0.5 second")
+        #     time.sleep(0.5)
+        #     print("safe waiting time ended")
     def check_MD2_Magnet(self):
         MD2 = HWR.beamline.diffractometer
         # print("smart magnet: "+str(MD2.sample_isloaded_magnet.get_value()))
