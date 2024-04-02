@@ -105,7 +105,7 @@ class XRFSpectrum(HardwareObject):
             try:
                 os.makedirs(directory)
             except OSError as diag:
-                logging.getLogger().error(
+                logging.getLogger("user_level_log").error(
                     "XRFSpectrum: error creating directory %s (%s)"
                     % (directory, str(diag))
                 )
