@@ -42,6 +42,7 @@ It has some functionalities, like Harvest Sample, etc....
 """
 import gevent
 import logging
+from typing import Optional
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
@@ -277,7 +278,7 @@ class Harvester(HardwareObject):
 
         return None
 
-    def check_crystal_state(self, crystal_uuid: str) -> str | None:
+    def check_crystal_state(self, crystal_uuid: str) -> Optional[str]:
         """Check wether if a Crystal is in pending_and_current or not
 
         Args (str) : Crystal uuid
