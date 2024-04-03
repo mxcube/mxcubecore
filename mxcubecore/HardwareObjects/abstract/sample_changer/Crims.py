@@ -8,15 +8,16 @@ import urllib
 
 
 def get_image(url):
-    f = urlopen(url)
+    f = urllib.request.urlopen(url)
     img = f.read()
     return img
 
 
 def get_image_size(url):
-    img_data = requests.get(url).content    
+    img_data = requests.get(url).content
     im = Image.open(BytesIO(img_data))
     return (im.size)
+
 
 class CrimsXtal:
     def __init__(self, *args):
@@ -45,13 +46,13 @@ class CrimsXtal:
             try:
                 if self.image_url.startswith("http://"):
                     self.image_url = "https://" + self.image_url[7]
-                image_string = urlopen(self.image_url).read()
+                image_string = urllib.request.urlopen(self.image_url).read()
                 return image_string
             except Exception:
                 return
-    
+
     def get_image_size(self):
-        img_data = requests.get(self.image_url).content    
+        img_data = requests.get(self.image_url).content
         im = Image.open(BytesIO(img_data))
         return (im.size)
 
@@ -59,6 +60,7 @@ class CrimsXtal:
         if len(self.summary_url == 0):
             return None
         return self.summary_url
+
 
 class Plate:
     def __init__(self, *args):
@@ -72,7 +74,7 @@ class ProcessingPlan:
         self.plate = Plate()
 
 
-def get_processing_plan(barcode, crims_url, harvester_key):
+def get_processing_plan(barcode, crims_url, crims_user_agent, harvester_key):
     processing_plan = None
     try:
         xml = None
@@ -83,10 +85,10 @@ def get_processing_plan(barcode, crims_url, harvester_key):
             + "/plans/xml"
         )
 
-        headers = { 
-            'User-Agent' : "Mozilla/5.0 (Windows NT 6.1; Win64; x64",
-            'harvester-key' : harvester_key,       
-         }
+        headers = {
+            'User-Agent' : crims_user_agent,
+            'harvester-key' : harvester_key,
+        }
 
         req = urllib.request.Request(url, data=None, headers=headers)
 
@@ -127,10 +129,8 @@ def get_processing_plan(barcode, crims_url, harvester_key):
                 processing_plan.plate.xtal_list.append(xtal)
         return processing_plan
     except Exception as ex:
-        print("Error on getting processing plan because of:  %s" %str(ex))
+        print("Error on getting processing plan because of: %s" % str(ex))
         return processing_plan
-
-
 
 
 def send_data_collection_info_to_crims(crims_url, crystaluuid, datacollectiongroupid, dcid, proposal, rest_token):
@@ -142,25 +142,24 @@ def send_data_collection_info_to_crims(crims_url, crystaluuid, datacollectiongro
             + "/dcgroupid/"
             + str(datacollectiongroupid)
             + "/dcid/"
-            +  str(dcid)
+            + str(dcid)
             + "/mx/"
             + str(proposal)
             + "/token/"
             + str(rest_token)
             + "?janitor_key=kbonvRqc8"
         )
-      
-        data = {
-            "crystal_uuid": str(crystaluuid),
-            "datacollectionGroupId": str(datacollectiongroupid),
-            "dcid":str(dcid),
-            "mx": str(proposal),
-            "token": str(rest_token),
-        }
+
+        # data = {
+        #     "crystal_uuid": str(crystaluuid),
+        #     "datacollectionGroupId": str(datacollectiongroupid),
+        #     "dcid": str(dcid),
+        #     "mx": str(proposal),
+        #     "token": str(rest_token),
+        # }
         response = requests.get(url, timeout=900)
         # response = post(url, data=data, timeout=900)
         print(response.text)
-        # import pdb; pdb.set_trace()
         return response.text
     except Exception as ex:
         msg = "POST to %s failed reason %s" % (url, str(ex))
