@@ -1008,7 +1008,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
     def wait_for_file_copied(self, full_file_path):
         # first wait for the file being created
         with gevent.Timeout(
-            30, Exception("Timeout waiting for the data file available.")
+            1, Exception("Timeout waiting for the data file available.")
         ):
             while not os.path.exists(full_file_path):
                 gevent.sleep(0.1)
