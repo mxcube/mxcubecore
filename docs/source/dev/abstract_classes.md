@@ -6,7 +6,7 @@ The role of the mxcubecore Abstract Classes is to provide an API to be used by b
 Abstract class can be inherited by any class, including another abstract class.
 Any abstract class, if not inheriting from another abstract class should inherit from the **HardwareObject** or alternatively **HardwareObjectYam** class. The [hierarchy scheme](https://github.com/mxcube/mxcubecore/blob/develop/Hierarchy.pdf) shows in brief the inheritance of the abstract classes.
 
-If get_value/set_value methods are defined in the abstract class, the name of the class defines what will be represented. For example, get_value/set_value in the AbstractEnergy will read/set the energy, while the wavelength, handled in the same class, will have specific methods like get_value_wavelemgth/set_value_wavelength.
+If get_value/set_value methods are defined in the abstract class, the name of the class defines what will be represented. For example, get_value/set_value in the AbstractEnergy will read/set the energy, while the wavelength, handled in the same class, will have specific methods like get_value_wavelength/set_value_wavelength.
 
 ## Methods
 
@@ -14,7 +14,7 @@ There are two methods, which are available for any class, as inherited from Hard
 - get_object_by_role returns an object, associated to a role. Used to give an access to the defined Hardware Object.
 
   ```<object href="/aperture" role="beamsize"/>```
-- get_property returns a property - numeric, string or None. This usually serves to define or asign different attributes.
+- get_property returns a property - numeric, string or None. This usually serves to define or assign different attributes.
 
   ```<values>{"IN": False, "OUT": True}</values>```
 
@@ -104,6 +104,22 @@ Inherits from **HardwareObject** class.
 
 The _set_value is the only abstract method that needs to be overloaded with every specific implementation.
 
+### AbstractBeam
+
+The {py:class}`mxcubecore.HardwareObjects.abstract.AbstractBeam.AbstractBeam` implements methods to handle the beam size and shape and the presence of beam. Defines the BeamShape Enum to handle the shape of the beam.
+
+Inherits from **HardwareObject** class.
+  - methods:
+    get_beam_size, get_beam_shape, get_beam_divergence, get_available_size, get_beam_position_on_screen, evaluate_beam_info, set_beam_size_shape, set_beam_position_on_screen
+  - overloaded methods:
+    re_emit_values
+  - properties from the configuration file:
+    beam_divergence_vertical, beam_divergence_horizontal
+  - attributes:
+    definer, aperture, slits, _beam_divergence, _beam_position_on_screen, _beam_width, _beam_height, ._beam_shape, _beam_label, _beam_size_dict
+  - emitted signals:
+    beamSizeChanged, beamInfoChanged, beamPosChanged
+
 ### AbstractEnergy
 
 The {py:class}`mxcubecore.HardwareObjects.abstract.AbstractEnergy.AbstractEnergy` handles energy and wavelength.
@@ -118,9 +134,19 @@ Inherits from **AbstractActuator** class.
   - emitted signals:
     energyChanged
 
+### AbstractFlux
+
+The {py:class}`mxcubecore.HardwareObjects.abstract.AbstractFlux.AbstractFlux` handle the flux. Defines get_dose_rate_per_photon_per_mmsq as dose rate for a standard composition crystal, in Gy/s as a function of energy in keV.
+
+Inherits from **AbstractActuator** class.
+  - methods:
+    get_average_flux_density
+  - attributes:
+    get_dose_rate_per_photon_per_mmsq
+
 ### AbstractMotor
 
-The {py:class}`mxcubecore.HardwareObjects.abstract.AbstractMotor.AbstractMotor` implement methods to handle devices which behave as a motor. Defines the MotorStaes enumeration, assigned to SPECIFIC_STATES.
+The {py:class}`mxcubecore.HardwareObjects.abstract.AbstractMotor.AbstractMotor` implements methods to handle devices which behave as a motor. Defines the MotorStates enumeration, assigned to SPECIFIC_STATES.
 
 Inherits from **AbstractActuator** class.
   - methods:
@@ -143,42 +169,17 @@ Inherits from **AbstractActuator** class.
   - overloaded methods:
     validate_value, set_limits, update_limits, re_emit_values
 
-### AbstractFlux
+### AbstractResolution
 
-The {py:class}`mxcubecore.HardwareObjects.abstract.AbstractFlux.AbstractFlux` handle the flux. Defines get_dose_rate_per_photon_per_mmsq as dose rate for a standard composition crystal, in Gy/s as a function of energy in keV.
+The {py:class}`mxcubecore.HardwareObjects.abstract.AbstractResolution.AbstractResolution` implements methods to move the resolution as a motor. Handles the calculation of the resolution from detector distance and vice versa. Updates the value when energy or detector distance changed.
 
-Inherits from **AbstractActuator** class.
+Inherits from **AbstractMotor** class.
   - methods:
-    get_average_flux_density
-  - attributes:
-    get_dose_rate_per_photon_per_mmsq
-
-### AbstractTransmission
-
-The {py:class}`mxcubecore.HardwareObjects.abstract.AbstractTransmission.AbstractTransmission` get/set transmission value.
-
-Defines the MotorStaes enumeration, assigned to SPECIFIC_STATES.
-
-Inherits from **AbstractActuator** class.
-
-The abstract class only defines the units and the limits at initialisation.
-
-
-### AbstractBeam
-
-The {py:class}`mxcubecore.HardwareObjects.abstract.AbstractBeam.AbstractBeam` implements methods to handle the beam size and shape and the presence of beam. Defines the BeamShape Enum to handle the shape of the beam.
-
-Inherits from **HardwareObject** class.
-  - methods:
-    get_beam_size, get_beam_shape, get_beam_divergence, get_available_size, get_beam_position_on_screen, evaluate_beam_info, set_beam_size_shape, set_beam_position_on_screen
+    get_limits_for_wavelength, distance_to_resolution, resolution_to_distance, _calculate_resolution, get_value_at_corner, update_distance, update_energy
   - overloaded methods:
-    re_emit_values
-  - properties from the configuration file:
-    beam_divergence_vertical, beam_divergence_horizontal
+    get_state, get_value, get_limits, re_emit_values, set_limits, _set_value
   - attributes:
-    definer, aperture, slits, _beam_divergence, _beam_position_on_screen, _beam_width, _beam_height, ._beam_shape, _beam_label, _beam_size_dict
-  - emitted signals:
-    beamSizeChanged. beamInfoChanged, beamPosChanged
+    _hwr_detector
 
 ### AbstractShutter
 
@@ -190,22 +191,32 @@ Inherits from **AbstractNStater** class.
   - attributes:
     is_open
 
-## AbstractXRFSpectrum
+### AbstractTransmission
+
+The {py:class}`mxcubecore.HardwareObjects.abstract.AbstractTransmission.AbstractTransmission` get/set transmission value.
+
+Inherits from **AbstractActuator** class.
+
+The abstract class only defines the units [%] and the limits (0-100) at initialisation.
+
+### AbstractXRFSpectrum
 
 The {py:class}`mxcubecore.HardwareObjects.abstract.AbstractXRFSpectrum.AbstractXRFSpectrum` implements methods to run XRF Spectrum type acquisition.
 
 Inherits from **HardwareObject** class.
   - methods:
-    start_xrf_spectrum, execute_xrf_spectrum, _execute_xrf_spectrum,
+    start_spectrum, execute_spectrum, _execute_spectrum,
     spectrum_store_lims, spectrum_command_finished, spectrum_command_failed,
     spectrum_command_aborted, spectrum_status_change, spectrum_analyse,
     create_directory, get_filename.
   - properties from the configuration file:
     default_integration_time
   - attributes:
-    lims, spectrum_info_dict, default_integration_time, spectrum_running
+    lims, spectrum_info_dict, default_integration_time
   - emitted signals:
-    xrfSpectrumStatusChanged
+    stateChanged
+    xrfSpectrumStatusChanged - used to propagate the errors.
 
-_execite_xrf_scan is the only abstract method. It is a placeholder for specific  sequence implementation.
-spectrum_analyse is additional hook to allow specific implementation.
+***_execute_spectrum*** is the only abstract method. It is a placeholder for specific  sequence implementation.
+
+***spectrum_analyse*** is additional hook to allow specific implementation.
