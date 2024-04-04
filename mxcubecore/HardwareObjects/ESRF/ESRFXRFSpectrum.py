@@ -133,7 +133,6 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
         change = False
         if not config or "file" not in config:
             cfgfile = self._get_cfgfile(self.spectrum_info_dict["energy"])
-
         else:
             cfgfile = config["file"]
 

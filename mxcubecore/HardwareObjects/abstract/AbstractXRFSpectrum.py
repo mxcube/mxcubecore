@@ -24,11 +24,7 @@ Define methods:
    spectrum_command_finished, spectrum_command_failed,
    spectrum_command_aborted, spectrum_status_change
 Defines hooks for specific implementation:
- - _execite_xrf_scan, spectrum_analyse, 
-
-Emit signals:
- - stateChanged
- - xrfSpectrumStatusChanged (with error message)
+ - _execute_xrf_spectrum, spectrum_analyse
 """
 
 import abc
@@ -44,17 +40,28 @@ __license__ = "LGPLv3+"
 
 
 class AbstractXRFSpectrum(HardwareObject):
-    """Abstract XRFSpectrum procedure"""
+    """Abstract XRFSpectrum procedure.
+
+    Emits:
+        stateChanged: ("stateChanged", (state))
+        xrfSpectrumStatusChanged: ("xrfSpectrumStatusChanged", (error_msg)
+
+    Attributes:
+        default_integration_time (float): Time [s]
+        spectrum_info_dict (dict): keys defined by the lims model.
+        lims: reference to the lims hardware object
+
+    States:
+        HardwareObjectStates: READY, BUSY, FAULT
+    """
 
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, name):
         super().__init__(name)
-        self.scanning = None
         self.lims = None
         self.spectrum_info_dict = {}
         self.default_integration_time = None
-        self.spectrum_running = None
 
     def init(self):
         """Initialisation"""
@@ -103,7 +110,6 @@ class AbstractXRFSpectrum(HardwareObject):
             self.spectrum_info_dict["fittedDataFileFullPath"] = filename + "_peaks.csv"
 
         self.spectrum_info_dict["startTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
-        self.spectrum_running = True
         self.update_state(self.STATES.BUSY)
 
         gevent.spawn(
@@ -192,7 +198,6 @@ class AbstractXRFSpectrum(HardwareObject):
     def spectrum_command_finished(self):
         """Actions to do if spectrum acquired."""
         self.spectrum_info_dict["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
-        self.spectrum_running = False
         if HWR.beamline.transmission:
             self.spectrum_info_dict[
                 "beamTransmission"
@@ -217,13 +222,11 @@ class AbstractXRFSpectrum(HardwareObject):
 
     def spectrum_command_aborted(self):
         """Spectrum aborted actions"""
-        self.spectrum_running = False
         self.update_state(self.STATES.READY)
 
     def spectrum_command_failed(self):
         """Spectrum failed actions"""
         self.spectrum_info_dict["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
-        self.spectrum_running = False
         if self.lims:
             self.spectrum_store_lims()
         self.update_state(self.STATES.FAULT)
