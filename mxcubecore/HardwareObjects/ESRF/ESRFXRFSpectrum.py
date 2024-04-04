@@ -85,12 +85,12 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
     def _doSpectrum(self, ctime, filename):
         """Deprecated method."""
         warn(
-            "_doSpectrum is deprecated. use _execute_xrf_spectrum",
+            "_doSpectrum is deprecated. use _execute_spectrum",
             DeprecationWarning,
         )
-        return self._execute_xrf_spectrum(ctime, filename)
+        return self._execute_spectrum(ctime, filename)
 
-    def _execute_xrf_spectrum(self, integration_time=None, filename=None):
+    def _execute_spectrum(self, integration_time=None, filename=None):
         """Local XRF spectrum sequence.
 
         Args:

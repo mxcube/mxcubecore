@@ -44,13 +44,13 @@ def test_object(beamline):
 class TestXRF(TestHardwareObjectBase.TestHardwareObjectBase):
     """Test suite"""
 
-    def test_xrf_init(self, test_object):
+    def test_init(self, test_object):
         """Check initialisation"""
         assert test_object is not None, "XRF hardware objects is None (not initialized)"
         assert test_object.default_integration_time == 2
 
-    def test_start_xrf_spectrum(self, test_object):
-        """Test start_xrf_spectrum, including:
+    def test_start_spectrum(self, test_object):
+        """Test start_spectrum, including:
         - create_directory
         - get_filename
         - get the session ID from lims, if possible
@@ -63,7 +63,7 @@ class TestXRF(TestHardwareObjectBase.TestHardwareObjectBase):
                 session_id = session[0].get("sessionId")
         catcher = TestHardwareObjectBase.SignalCatcher()
         test_object.connect("stateChanged", catcher.catch)
-        ret = test_object.start_xrf_spectrum(
+        ret = test_object.start_spectrum(
             test_object.default_integration_time,
             prefix="xrftst",
             data_dir="/tmp/abb",
@@ -76,15 +76,15 @@ class TestXRF(TestHardwareObjectBase.TestHardwareObjectBase):
         test_object.disconnect("stateChanged", catcher.catch)
         assert ret is True
 
-    def test_start_xrf_spectrum_error(self, test_object):
-        """Test start_xrf_spectrum error handling:
+    def test_start_spectrum_error(self, test_object):
+        """Test start_spectrum error handling:
         - try to create directory to /, which should give an error
         """
         catcher = TestHardwareObjectBase.SignalCatcher()
         test_object.connect("stateChanged", catcher.catch)
         catcher1 = TestHardwareObjectBase.SignalCatcher()
         test_object.connect("xrfSpectrumStatusChanged", catcher1.catch)
-        ret = test_object.start_xrf_spectrum(
+        ret = test_object.start_spectrum(
             test_object.default_integration_time,
             prefix="xrftst",
             data_dir="/abcd",
@@ -101,12 +101,12 @@ class TestXRF(TestHardwareObjectBase.TestHardwareObjectBase):
 
         assert ret is False
 
-    def test_execute_xrf_spectrum(self, test_object):
-        """Test the execute_xrf_spectrum, which includes
+    def test_execute_spectrum(self, test_object):
+        """Test the execute_spectrum, which includes
         spectrum_command_finished and spectrum_store_lims"""
         catcher = TestHardwareObjectBase.SignalCatcher()
         test_object.connect("stateChanged", catcher.catch)
-        test_object.execute_xrf_spectrum(test_object.default_integration_time)
+        test_object.execute_spectrum(test_object.default_integration_time)
         state = test_object.get_state()
         assert state == HardwareObjectState.READY
         state = catcher.async_result.get_nowait()

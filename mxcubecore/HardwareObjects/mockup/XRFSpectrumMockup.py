@@ -19,7 +19,7 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
-Mockup file to define _execute_xrf_spectrum method
+Mockup file to define _execute_spectrum method
 """
 
 from time import sleep
@@ -36,7 +36,7 @@ __license__ = "LGPLv3+"
 class XRFSpectrumMockup(AbstractXRFSpectrum):
     """Overload the abstract method"""
 
-    def _execute_xrf_spectrum(self, integration_time=None, filename=None):
+    def _execute_spectrum(self, integration_time=None, filename=None):
         """Specific XRF acquisition procedure.
 
         Args:

@@ -18,14 +18,7 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-"""Abstract XRF spectrum class. Complient with queue_entry/xrf_spectrum.py
-Define methods:
- - start_xrf_spectrum, execute_xrf_spectrum, spectrum_store_lims,
-   spectrum_command_finished, spectrum_command_failed,
-   spectrum_command_aborted, spectrum_status_change
-Defines hooks for specific implementation:
- - _execute_xrf_spectrum, spectrum_analyse
-"""
+"""Abstract XRF spectrum class. Complient with queue_entry/xrf_spectrum.py"""
 
 import abc
 import logging
@@ -53,6 +46,10 @@ class AbstractXRFSpectrum(HardwareObject):
 
     States:
         HardwareObjectStates: READY, BUSY, FAULT
+
+    Note:
+        _execute_spectrum and spectrum_analyse are hooks to be overloaded
+        for spcific implementation.
     """
 
     __metaclass__ = abc.ABCMeta
@@ -70,7 +67,7 @@ class AbstractXRFSpectrum(HardwareObject):
         if not self.lims:
             logging.getLogger().warning("XRFSpectrum: no lims set")
 
-    def start_xrf_spectrum(
+    def start_spectrum(
         self,
         integration_time=None,
         data_dir=None,
@@ -80,6 +77,7 @@ class AbstractXRFSpectrum(HardwareObject):
         blsample_id=None,
     ):
         """Start the procedure. Called by the queu_model.
+
         Args:
             integration_time (float): Inregration time [s].
             data_dir (str): Directory to save the data (full path).
@@ -113,14 +111,15 @@ class AbstractXRFSpectrum(HardwareObject):
         self.update_state(self.STATES.BUSY)
 
         gevent.spawn(
-            self.execute_xrf_spectrum,
+            self.execute_spectrum,
             integration_time,
             self.spectrum_info_dict["filename"],
         )
         return True
 
-    def execute_xrf_spectrum(self, integration_time=None, filename=None):
+    def execute_spectrum(self, integration_time=None, filename=None):
         """Do the acquisition.
+
         Args:
             integration_time (float): MCA integration time [s].
             filename (str): Data file (full path).
@@ -133,7 +132,7 @@ class AbstractXRFSpectrum(HardwareObject):
         integration_time = integration_time or self.default_integration_time
 
         try:
-            if self._execute_xrf_spectrum(integration_time, filename):
+            if self._execute_spectrum(integration_time, filename):
                 self.spectrum_command_finished()
         except RuntimeError as err:
             msg = f"XRFSpectrum: could not acquire spectrum, {err}"
@@ -142,7 +141,7 @@ class AbstractXRFSpectrum(HardwareObject):
             self.update_state(self.STATES.FAULT)
 
     @abc.abstractmethod
-    def _execute_xrf_spectrum(self, integration_time=None, filename=None):
+    def _execute_spectrum(self, integration_time=None, filename=None):
         """Specific XRF acquisition procedure"""
         return True
 
