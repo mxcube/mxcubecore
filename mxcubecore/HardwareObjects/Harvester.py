@@ -101,6 +101,7 @@ class Harvester(HardwareObject):
         """Init"""
         self.exporter_addr = self.get_property("exporter_address")
         self.crims_upload_url = self.get_property("crims_upload_url")
+        self.crims_upload_key = self.get_property("crims_upload_key")
 
     def set_calibrate_state(self, state: bool):
         """Set Calibration state

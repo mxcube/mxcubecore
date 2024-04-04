@@ -70,8 +70,7 @@ class HarvesterMaintenance(HardwareObject):
         :returns: None
         :args: boolean
         """
-        value = True if args.lower() in ["true", "True", "1"] else False
-        return self._harvester.set_room_temperature_mode(value)
+        return self._harvester.set_room_temperature_mode(args)
 
     def _do_abort(self):
         """
