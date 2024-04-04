@@ -78,12 +78,7 @@ def get_processing_plan(barcode, crims_url, crims_user_agent, harvester_key):
     processing_plan = None
     try:
         xml = None
-        url = crims_url
-        url = (
-            crims_url
-            + barcode
-            + "/plans/xml"
-        )
+        url = f"{crims_url}barcode/plans/xml"
 
         headers = {
             'User-Agent' : crims_user_agent,
@@ -133,21 +128,20 @@ def get_processing_plan(barcode, crims_url, crims_user_agent, harvester_key):
         return processing_plan
 
 
-def send_data_collection_info_to_crims(crims_url, crystaluuid, datacollectiongroupid, dcid, proposal, rest_token):
+def send_data_collection_info_to_crims(
+    crims_url: str,
+    crystaluuid: str,
+    datacollectiongroupid: str,
+    dcid: str,
+    proposal: str,
+    rest_token: str,
+    crims_key: str
+) -> str:
     try:
-        url = crims_url
+
         url = (
-            crims_url
-            + str(crystaluuid)
-            + "/dcgroupid/"
-            + str(datacollectiongroupid)
-            + "/dcid/"
-            + str(dcid)
-            + "/mx/"
-            + str(proposal)
-            + "/token/"
-            + str(rest_token)
-            + "?janitor_key=kbonvRqc8"
+            f"{crims_url}{crystaluuid}/dcgroupid/{datacollectiongroupid}/dcid/"
+            f"{dcid}/mx/{proposal}/token/{rest_token}?janitor_key={crims_key}"
         )
 
         # data = {
