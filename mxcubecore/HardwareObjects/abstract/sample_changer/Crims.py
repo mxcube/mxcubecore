@@ -78,7 +78,7 @@ def get_processing_plan(barcode, crims_url, crims_user_agent, harvester_key):
     processing_plan = None
     try:
         xml = None
-        url = f"{crims_url}barcode/plans/xml"
+        url = f"{crims_url}{barcode}/plans/xml"
 
         headers = {
             'User-Agent' : crims_user_agent,

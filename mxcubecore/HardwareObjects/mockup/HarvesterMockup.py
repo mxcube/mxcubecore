@@ -195,7 +195,7 @@ class HarvesterMockup(HardwareObject):
         Return (List):  list of crystal state "waiting_for_transfer, Running etc.."
         """
         # return self._execute_cmd_exporter("getSampleStates", command=True)
-        return "Ready"
+        return ["ready_to_execute", "needs_repositionning", "failed", "harvested"]
 
     def get_current_crystal(self):
         """Get the Harvester current harvested crystal
@@ -263,7 +263,12 @@ class HarvesterMockup(HardwareObject):
         Return (List):  list of crystal by uuid from the current processing plan"
         """
         # harvester_crystal_list = self._execute_cmd_exporter("getSampleList",  attribute=True)
-        return []
+        return [
+            "c9ca5e0d-35fd-4ff9-9ad2-4de9fd47fd83",
+            "94730c39-bf66-416f-ab97-f755e45f6a3a",
+            "5d5dfc88-009d-4486-8526-33bf58c4d5d9",
+            "46aca4a4-0c00-4685-b1e1-53071bdcb66d",
+        ]
 
     def get_sample_names(self):
         """Get the Harvester Sample List Name
@@ -271,7 +276,7 @@ class HarvesterMockup(HardwareObject):
         Return (List):  list of crystal by names from the current processing plan"
         """
         # harvester_sample_names = self._execute_cmd_exporter("getSampleNames", attribute=True)
-        return []
+        return ["TestSample1", "TestSample2", "TestSample3", "TestSample4"]
 
     def get_crystal_images_urls(self, crystal_uuid):
         """Get the Harvester Sample List Images
@@ -281,7 +286,7 @@ class HarvesterMockup(HardwareObject):
         Return (List):  list of crystal by image_url from current processing plan"
         """
         # crystal_images_url = self._execute_cmd_exporter("getImageURL", crystal_uuid, command=True)
-        return []
+        return "https://htxlab.embl.org//rawimages/2021//CD032401/6/FORMULATRIX_CD032401_6_08-09-2021_05_02_01_00_99_Vis.jpg"
 
     def get_sample_acronyms(self):
         """Get the Harvester Sample List by Acronyms
@@ -289,7 +294,7 @@ class HarvesterMockup(HardwareObject):
         Return (List):  list of crystal by Acronyms from the current processing plan"
         """
         # harvester_sample_acronyms = self._execute_cmd_exporter("getSampleAcronyms", attribute=True)
-        return []
+        return ["cryoprotectant", "cryoprotectant", "cryoprotectant", "cryoprotectant"]
 
     # ------------------------------------------------------------------------------------
 
@@ -345,7 +350,7 @@ class HarvesterMockup(HardwareObject):
         Return (float):  Crystal x coordinate in plate
         """
         # return self._execute_cmd_exporter("getImageTargetX", crystal_uuid, command=True)
-        return ""
+        return 26.868617890692
 
     def get_image_target_y(self, crystal_uuid):
         """Get the crystal images position Y
@@ -355,7 +360,7 @@ class HarvesterMockup(HardwareObject):
         Return (float): Crystal Y coordinate in plate
         """
         # return self._execute_cmd_exporter("getImageTargetY", crystal_uuid, command=True)
-        return ""
+        return 50.122652377553
 
     def get_room_temperature_mode(self):
         """get  RoomTemperature Mode state

@@ -319,12 +319,12 @@ class Harvester(HardwareObject):
         )
         return harvester_sample_names
 
-    def get_crystal_images_urls(self, crystal_uuid: str) -> list[str]:
+    def get_crystal_images_urls(self, crystal_uuid: str) -> str:
         """Get the Harvester Sample List Images
 
         Args (str) : Crystal uuid
 
-        Return (List):  list of crystal by image_url from current processing plan"
+        Return (str): image_url from current processing plan for current crystal uuid"
         """
         crystal_images_url = self._execute_cmd_exporter(
             "getImageURL", crystal_uuid, command=True
