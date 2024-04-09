@@ -10,10 +10,8 @@ information by :
 
     - produces a current value that varies with time
     - simulates a control room message that changes with some condition
-      ()
-    - simulates
 
-[Emited signals]
+[Emitted signals]
 machInfoChanged
    pars:  values (dict)
 
