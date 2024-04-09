@@ -88,7 +88,7 @@ class MachineInfoMockup(AbstractMachineInfo):
             values["attention"] = self.attention
             self._mach_info_dict = values
 
-            self.emit("machInfoChanged", values)
+            self.emit("valueChanged", values)
 
     def get_current(self) -> float:
         """Override method."""
