@@ -186,7 +186,6 @@ class EMBLFlexHCD(SampleChanger):
     def get_sample_list(self):
         sample_list = super().get_sample_list()
 
-        present_sample_list = []
         sc_present_sample_list = self._execute_cmd_exporter(
             "getPresentSamples", attribute=True
         )
