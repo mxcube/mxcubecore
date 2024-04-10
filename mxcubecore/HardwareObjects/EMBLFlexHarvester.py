@@ -34,16 +34,17 @@ from mxcubecore.TaskUtils import task
 from mxcubecore.HardwareObjects import EMBLFlexHCD
 
 
-
 class EMBLFlexHarvester(EMBLFlexHCD):
     __TYPE__ = "Flex Sample Changer"
 
     def __init__(self, *args, **kwargs):
-        super(EMBLFlexHarvester, self).__init__(self.__TYPE__, True, *args, **kwargs)
+        super().__init__(*args, **kwargs)
+        self._harvester_hwo = None
+        self.pin_cleaning = None
+        self._loaded_sample = None
 
     def init(self):
         self.pin_cleaning = self.get_property("pin_cleaning")
-        self._harvester = self.get_property("harvester", False)
 
         self._loaded_sample = (-1, -1, -1)
         self._harvester_hwo = self.get_object_by_role("harvester")
@@ -53,8 +54,10 @@ class EMBLFlexHarvester(EMBLFlexHCD):
     def mount_from_harvester(self):
         return True
 
-
     def get_sample_list(self) -> list:
+        """
+        Get Sample List related to the Harvester content/processing Plan
+        """
         sample_list = super().get_sample_list()
         present_sample_list = []
         ha_sample_lists = self._harvester_hwo.get_crystal_uuids()
@@ -81,7 +84,6 @@ class EMBLFlexHarvester(EMBLFlexHCD):
 
         return present_sample_list
 
-
     def _hw_get_mounted_sample(self) -> str:
         loaded_sample = self._loaded_sample
         return (
@@ -92,22 +94,10 @@ class EMBLFlexHarvester(EMBLFlexHCD):
             + "%02d" % loaded_sample[2]
         )
 
-    def get_loaded_sample(self):
-        sample = None
-
-        loaded_sample_addr = self._hw_get_mounted_sample()
-
-        for s in self.get_sample_list():
-            if s.get_address() == loaded_sample_addr:
-                sample = s
-
-        return sample
-    
-
     @task
     def load_a_pin_for_calibration(self):
         """
-            Load a Pin from Harvester 
+        Load a Pin from Harvester
         """
         try:
             self.prepare_load()
@@ -140,7 +130,7 @@ class EMBLFlexHarvester(EMBLFlexHCD):
 
     def _do_load(self, sample=None):
         """
-            Load a Sample from Harvester 
+        Load a Sample from Harvester
         """
         self._update_state()
 
