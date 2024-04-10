@@ -18,10 +18,11 @@
 """Test suite for MachineInfo hardware object
 """
 
-from test.pytest import TestHardwareObjectBase
+from time import sleep
 import pytest
+from test.pytest import TestHardwareObjectBase
 
-__copyright__ = """ Copyright © 2020 by MXCuBE Collaboration """
+__copyright__ = """ Copyright © by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
 
@@ -55,5 +56,22 @@ class TestMachineInfo(TestHardwareObjectBase.TestHardwareObjectBase):
             test_object.get_topup_remaining(), (int, float)
         ), "topup_remaining value has to be int or float"
         assert isinstance(
-            test_object.get_mach_info_dict(), dict
+            test_object.get_value(), dict
         ), "Machine info dictionary has to be dict"
+
+    def test_get_value(self, test_object):
+        """Test the get_value and the valueChanged signal"""
+        catcher = TestHardwareObjectBase.SignalCatcher()
+        test_object.connect("valueChanged", catcher.catch)
+        # wait more than the update rate in the mockup object (5s)
+        sleep(5.5)
+        value = catcher.async_result.get_nowait()
+        test_object.disconnect("valueChanged", catcher.catch)
+        assert value.get("current") is not None
+
+    def test_check_attributes(self, test_object):
+        """Check if the attributes required have a methof for reading"""
+        test_object._mach_info_dict.update({"wrong_name": None})
+        attr_list = list(test_object._mach_info_dict.keys())
+        test_object._check_attributes(attr_list)
+        assert "wrong_name" not in test_object._mach_info_keys
