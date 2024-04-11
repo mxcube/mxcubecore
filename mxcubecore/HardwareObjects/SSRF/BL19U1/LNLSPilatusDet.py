@@ -718,6 +718,17 @@ class LNLSPilatusDet(AbstractDetector):
 
     def updateJobStatus(self,frame_number, uuid, path, status):
         try:
+
+            with UsingMysql(log_time=True) as um:
+                sql="select max(autopx_queue_id) from job"
+                um.cursor.execute(sql)
+                max_autopx_queue_id = um.cursor.fetchall()[0][0]
+                if max_autopx_queue_id is not None:
+                    next_autopx_queue_id = max_autopx_queue_id+1
+                else:
+                    next_autopx_queue_id = 1
+                logging.getLogger("HWR").debug("max_autopx_queue_id: %s , next_autopx_queue_id: %s", max_autopx_queue_id,next_autopx_queue_id)
+
             # data = {}
             # data['uuid'] = uuid
             # data['src'] = path
@@ -727,10 +738,13 @@ class LNLSPilatusDet(AbstractDetector):
             # addr = '{0}/job/insert'.format(cts.server_address)
             # response = requests.post(addr, json.dumps(data))
             completiontime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
             with UsingMysql(log_time=True) as um:
-                sql = "INSERT INTO job (nimage, src, dest, createtime, status, uuid) VALUES (%d, '%s', '%s', '%s', '%s', '%s')" % (
-                    frame_number, path, path, completiontime, status, uuid)
+                sql = "INSERT INTO job (nimage, src, dest, createtime, status, uuid,autopx_queue_id ) VALUES (%d, '%s', '%s', '%s', '%s', '%s',%d)" % (
+                    frame_number, path, path, completiontime, status, uuid,next_autopx_queue_id)
                 um.cursor.execute(sql)
+                result = um.cursor.fetchall()
+                logging.getLogger("HWR").debug("connect to mysql and result: %s", result)
         except Exception as ex:
             logging.getLogger("HWR").error("[COLLECT] Data collection job update failure: %s", ex)
 
