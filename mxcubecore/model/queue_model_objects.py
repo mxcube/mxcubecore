@@ -2050,7 +2050,7 @@ class GphlWorkflow(TaskNode):
         bl_defaults = HWR.beamline.get_default_acquisition_parameters().as_dict()
         exposure_time = self.exposure_time or bl_defaults.get("exp_time", 0)
         self.exposure_time = max(
-            exposure_time, HWR.beamline.detector.get_exposure_time_limits()[0]
+            exposure_time, HWR.beamline.detector.get_exposure_time_limits()[0] or 0
         )
         self.image_width = self.image_width or bl_defaults.get("osc_range", 0.1)
 
