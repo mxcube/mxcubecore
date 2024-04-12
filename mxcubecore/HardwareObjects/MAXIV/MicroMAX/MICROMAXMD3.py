@@ -96,13 +96,13 @@ class MICROMAXMD3(MAXIVMD3):
         self.channel_dict["ScanStartAngle"].set_value(start)
         self.channel_dict["ScanExposureTime"].set_value(exptime)
         self.channel_dict["ScanRange"].set_value(end - start)
-        self.channel_dict["ScanNumberOfFrames"].set_value(nframes)
+        self.channel_dict["ScanNumberOfFrames"].set_value(1)
 
         raster_params = "%0.5f\t%0.5f\t%i\t%i\t%i\t%i\t%i" % (
             vertical_range,
             horizontal_range,
             nlines,
-            nframes,
+            1,
             invert_direction,
             table_pitch,
             fast_scan,
