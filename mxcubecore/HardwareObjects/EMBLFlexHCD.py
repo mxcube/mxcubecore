@@ -521,16 +521,6 @@ class EMBLFlexHCD(SampleChanger):
         self.enable_power()
         self._execute_cmd_exporter("defreezeGripper", command=True)
 
-    def get_room_temperature_mode(self):
-        return self._execute_cmd_exporter("getRoomTemperatureMode", attribute=True)
-
-    def set_room_temperature_mode(self, value):
-        self._execute_cmd_exporter("setRoomTemperatureMode", value, command=True)
-        logging.getLogger("user_level_log").info(
-            f"setting Flex Room temperature to {value}"
-        )
-        return self.get_room_temperature_mode()
-
     def _do_load(self, sample=None):
         self._update_state()
         previous_sample = tuple(
@@ -557,9 +547,6 @@ class EMBLFlexHCD(SampleChanger):
             self._wait_busy(300)
             logging.getLogger("HWR").info(f"Waited SC activity {time.time() - _tt}")
         except Exception:
-            logging.getLogger("user_level_log").error(
-                "ERROR While Waited SC activity to start"
-            )
             for msg in self.get_robot_exceptions():
                 logging.getLogger("user_level_log").error(msg)
             raise
@@ -594,9 +581,6 @@ class EMBLFlexHCD(SampleChanger):
 
         for msg in self.get_robot_exceptions():
             if msg is not None:
-                logging.getLogger("user_level_log").error(
-                    "ERROR While SC activity After Loaded Sample "
-                )
                 logging.getLogger("HWR").error(msg)
                 logging.getLogger("user_level_log").error(msg)
 
