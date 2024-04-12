@@ -51,6 +51,16 @@ class EMBLFlexHarvester(EMBLFlexHCD):
 
         EMBLFlexHCD.init(self)
 
+    def get_room_temperature_mode(self):
+        return self._execute_cmd_exporter("getRoomTemperatureMode", attribute=True)
+
+    def set_room_temperature_mode(self, value):
+        self._execute_cmd_exporter("setRoomTemperatureMode", value, command=True)
+        logging.getLogger("user_level_log").info(
+            f"setting Robot Room temperature to {value}"
+        )
+        return self.get_room_temperature_mode()
+
     def mount_from_harvester(self):
         return True
 
