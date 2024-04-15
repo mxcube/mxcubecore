@@ -81,7 +81,7 @@ class MICROMAXCollect(DataCollect):
         self.machine_info_hwobj = self.get_object_by_role("mach_info")
         self.energy_hwobj = self.get_object_by_role("energy")
         self.resolution_hwobj = self.get_object_by_role("resolution")
-        self.detector_hwobj = self.get_object_by_role("detector")
+        self.detector_hwobj = HWR.beamline.detector
         self.flux_hwobj = self.get_object_by_role("flux")
         self.autoprocessing_hwobj = self.get_object_by_role("auto_processing")
         # self.autoprocessing_hwobj.lims_client_hwobj = self.lims_client_hwobj
@@ -92,7 +92,7 @@ class MICROMAXCollect(DataCollect):
         self.transmission_hwobj = self.get_object_by_role("transmission")
         # self.sample_changer_hwobj = self.getObjectByRole("sample_changer")
         # self.sample_changer_maint_hwobj = self.getObjectByRole("sample_changer_maintenance")
-        self.dtox_hwobj = self.get_object_by_role("dtox")
+        self.dtox_hwobj = self.detector_hwobj.get_object_by_role("detector_distance")
         # self.detector_cover_hwobj = self.getObjectByRole("detector_cover")
         self.session_hwobj = self.get_object_by_role("session")
         self.shape_history_hwobj = HWR.beamline.sample_view
