@@ -44,10 +44,10 @@ from mxcubecore.HardwareObjects.abstract.AbstractMachineInfo import (
 class MachineInfoMockup(AbstractMachineInfo):
     """Simulates the behaviour of an accelerator information"""
 
-    default_current = 200  # milliamps
+    default_current = 200  # [mA]
     default_message = "Beam Delivered"
     default_lifetime = 45  # hours Lifetime
-    default_topup_remaining = 70  # seconds
+    default_topup_remaining = 70  # [s]
 
     def init(self):
         """Initialise some parameters and update routine."""
