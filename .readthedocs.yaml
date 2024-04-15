@@ -21,7 +21,7 @@ build:
 
   commands:
     - "mamba env create --file conda-environment-dev.yml --force"
-    - "mamba run --name mxcubecore poetry install --only=docs,main"
+    - "mamba run --name mxcubecore poetry install --all-extras --only=docs,main"
     - "mamba run --name mxcubecore sphinx-build -T -E -b html -c ./docs/ ./docs/source/ ${READTHEDOCS_OUTPUT}/html/"
 
 
