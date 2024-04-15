@@ -47,7 +47,7 @@ class TangoMachineInfo(AbstractMachineInfo):
         # we only consider the attributes defined in the parameters property
         for name in self._mach_info_keys:
             if hasattr(self.get_channel_object(name), "get_value"):
-              setattr(self, f"{name}", self.get_channel_object(name))
+                setattr(self, f"{name}", self.get_channel_object(name))
             else:
                 # remove the attributes we cannot read
                 self._mach_info_keys.pop(name)
@@ -64,7 +64,7 @@ class TangoMachineInfo(AbstractMachineInfo):
 
         for attr_key in attr_list:
             try:
-               hasattr(self.get_channel_object(attr_key), "get_value")
+                hasattr(self.get_channel_object(attr_key), "get_value")
             except AttributeError:
                 attr_list.remove(attr_key)
         self._mach_info_keys = attr_list
