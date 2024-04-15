@@ -18,7 +18,6 @@
 """Test suite for MachineInfo hardware object
 """
 
-from time import sleep
 import pytest
 from test.pytest import TestHardwareObjectBase
 
@@ -63,9 +62,7 @@ class TestMachineInfo(TestHardwareObjectBase.TestHardwareObjectBase):
         """Test the get_value and the valueChanged signal"""
         catcher = TestHardwareObjectBase.SignalCatcher()
         test_object.connect("valueChanged", catcher.catch)
-        # wait more than the update rate in the mockup object (5s)
-        sleep(5.5)
-        value = catcher.async_result.get_nowait()
+        value = catcher.async_result.get()
         test_object.disconnect("valueChanged", catcher.catch)
         assert value.get("current") is not None
 
