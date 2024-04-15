@@ -1,16 +1,20 @@
 """
-Combine setting the back light IN with moving the beamstop out.
+Combine setting the back light ``IN`` with moving the beamstop out.
+
 This is used to set the back light in/out faster, than using
-the phase CENTRING - the beamstop motor moves only if needed.
-Example xml file:
-<device class="MicrodiffLightBeamstop">
+the phase CENTRING. The beamstop motor moves only if needed.
+
+Example xml file::
+
+  <device class="MicrodiffLightBeamstop">
   <username>Back Light</username>
   <exporter_address>wid30bmd2s:9001</exporter_address>
   <actuator_name>BackLightIsOn</actuator_name>
   <values>{"IN": True, "OUT": False}</values>
   <use_hwstate>True</use_hwstate>
   <object role="beamstop" href="/udiff_beamstop"/>
-</device>
+  </device>
+
 """
 
 from mxcubecore.HardwareObjects.ExporterNState import ExporterNState
@@ -20,7 +24,7 @@ __license__ = "LGPLv3+"
 
 
 class MicrodiffLightBeamstop(ExporterNState):
-    """Control backlight, move the beamstop to safety position"""
+    """Control backlight, move the beamstop to safety position."""
 
     def __init__(self, name):
         super().__init__(name)
@@ -36,6 +40,7 @@ class MicrodiffLightBeamstop(ExporterNState):
 
     def _set_value(self, value):
         """Set light to value. Move the beamstop, if needed.
+
         Args:
             value (enum): Value to be set.
         """
@@ -52,6 +57,7 @@ class MicrodiffLightBeamstop(ExporterNState):
 
     def handle_beamstop(self, value):
         """Move the beamstop as function of the value of the back light.
+
         Args:
             (enum): light value.
         """

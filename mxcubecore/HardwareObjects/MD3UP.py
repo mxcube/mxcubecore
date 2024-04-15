@@ -209,6 +209,7 @@ class MD3UP(Microdiff.Microdiff):
 
     def timeresolved_mesh_scan(self, timeout=900):
         """Start timeresolved mesh.
+
         Args:
             timeout(float): Timeout to wait the execution of the scan [s].
                             Default value is 15 min
@@ -229,6 +230,7 @@ class MD3UP(Microdiff.Microdiff):
     def get_timeresolved_mesh_nbframes(self):
         """Get the calculated number of frames for the continuous timeresolved
            mesh scan.
+
         Returns:
             (int): Number of frames.
         """
@@ -245,6 +247,7 @@ class MD3UP(Microdiff.Microdiff):
     def get_timeresolved_mesh_exptime(self):
         """Get the calculated exposure time for the continuous timeresolved
            mesh scan.
+
         Returns:
             (float): Exposure time [s].
         """

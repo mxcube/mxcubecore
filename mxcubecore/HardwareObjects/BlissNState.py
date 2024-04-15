@@ -19,14 +19,16 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
-bliss implementation of AbstartNState
-Example xml file:
-<device class="BlissNState">
-  <username>Detector Cover</username>
-  <actuator_name>detcover</>
-  <object href="/bliss" role="controller"/>
-  <values>{"IN": "IN", "OUT": "OUT"}</values>
-</device>
+bliss implementation of AbstractNState.
+
+Example of a configuartion xml file::
+
+    <device class="BlissNState">
+    <username>Detector Cover</username>
+    <actuator_name>detcover</>
+    <object href="/bliss" role="controller"/>
+    <values>{"IN": "IN", "OUT": "OUT"}</values>
+    </device>
 """
 from enum import Enum
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import MotorStates
@@ -40,7 +42,7 @@ __license__ = "LGPLv3+"
 
 
 class BlissNState(AbstractNState):
-    """bliss implementation of AbstartNState"""
+    """bliss implementation of AbstractNState"""
 
     SPECIFIC_STATES = MotorStates
 
@@ -79,9 +81,10 @@ class BlissNState(AbstractNState):
         self.update_state(self.STATES.READY)
 
     def get_value(self):
-        """Get the device value
+        """Get the device value.
+
         Returns:
-            (Enum): Enum member, corresponding to the value or UNKNOWN.
+            (Enum): Enum member, corresponding to the value or ``UNKNOWN``.
         """
         if self.device_type == "motor":
             _val = self._bliss_obj.position
@@ -100,6 +103,7 @@ class BlissNState(AbstractNState):
 
     def _set_value(self, value):
         """Set device to value.
+
         Args:
             value (str or enum): target value
         """
@@ -125,6 +129,7 @@ class BlissNState(AbstractNState):
 
     def get_state(self):
         """Get the device state.
+
         Returns:
             (enum 'HardwareObjectState'): Device state.
         """
@@ -153,7 +158,8 @@ class BlissNState(AbstractNState):
         return self.update_state(state)
 
     def initialise_values(self):
-        """Get the predefined valies. Create the VALUES Enum
+        """Get the predefined values and create the ``VALUES Enum``.
+
         Returns:
             (Enum): "ValueEnum" with predefined values.
         """

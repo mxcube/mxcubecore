@@ -4,20 +4,23 @@ import gevent
 from mxcubecore.BaseHardwareObjects import Equipment
 
 """
-Example xml file:
-  - for tunable wavelength beamline:
-<object class="Energy">
+
+Example xml file for tunable wavelength beamline::
+
+  <object class="Energy">
   <object href="/energy" role="energy"/>
   <object href="/bliss" role="controller"/>
   <tunable_energy>True</tunable_energy>
-</object>
-The energy should have methods get_value, get_limits and move.
-If used, the controller should have method moveEnergy.
+  </object>
 
-  - for fixed wavelength beamline:
-<object class="Energy">
+The energy should have ``get_value``, ``get_limits`` and ``move`` methods.
+If used, the controller should have method ``moveEnergy``.
+
+Example xml file for fixed wavelength beamline::
+
+  <object class="Energy">
   <default_energy>12.8123</tunable_energy>
-</object>
+  </object>
 """
 
 

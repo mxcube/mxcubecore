@@ -1,6 +1,7 @@
-"""LimaEigerDetector Class
-Lima Tango Device Server implementation of the Dectris Eiger2 Detector.
+"""Lima Tango Device Server implementation of the Dectris Eiger2 Detector.
+
 """
+
 import gevent
 import time
 import os
@@ -112,46 +113,45 @@ class LimaEigerDetector(AbstractDetector):
         mesh,
         mesh_num_lines,
     ):
-        """
-        diffractometer_positions = HWR.beamline.diffractometer.get_positions()
-        self.start_angles = list()
-        for i in range(number_of_images):
-            self.start_angles.append("%0.4f deg." % (start + osc_range * i))
-        self.header["file_comments"] = comment
-        self.header["N_oscillations"] = number_of_images
-        self.header["Oscillation_axis"] = "omega"
-        self.header["Chi"] = "0.0000 deg."
-        try:
-            self.header["Phi"] = "%0.4f deg." % diffractometer_positions.get(
-                "kappa_phi", -9999
-            )
-            self.header["Kappa"] = "%0.4f deg." % diffractometer_positions.get(
-                "kappa", -9999
-            )
-        except Exception:
-            self.header["Phi"] = "0.0000 deg."
-            self.header["Kappa"] = "0.0000 deg."
-        self.header["Alpha"] = "0.0000 deg."
-        self.header["Polarization"] = HWR.beamline.collect.bl_config.polarisation
-        self.header["Detector_2theta"] = "0.0000 deg."
-        self.header["Angle_increment"] = "%0.4f deg." % osc_range
-        self.header["Transmission"] = HWR.beamline.transmission.get_value()
-        self.header["Flux"] = HWR.beamline.flux.get_value()
-        self.header["Detector_Voffset"] = "0.0000 m"
-        self.header["Energy_range"] = "(0, 0) eV"
-        self.header["Trim_directory:"] = "(nil)"
-        self.header["Flat_field:"] = "(nil)"
-        self.header["Excluded_pixels:"] = " badpix_mask.tif"
-        self.header["N_excluded_pixels:"] = "= 321"
-        self.header["Threshold_setting"] = (
-            "%d eV" % self.get_channel_object("photon_energy").get_value()
-        )
-        self.header["Count_cutoff"] = "1048500"
-        self.header["Tau"] = "= 0 s"
-        self.header["Exposure_period"] = "%f s" % (exptime + self.get_deadtime())
-        self.header["Exposure_time"] = "%f s" % exptime
-        """
+        """Example of a header used for ISPyB
+        ::
 
+          diffractometer_positions = HWR.beamline.diffractometer.get_positions()
+          self.start_angles = list()
+          for i in range(number_of_images):
+              self.start_angles.append("%0.4f deg." % (start + osc_range * i))
+          self.header["file_comments"] = comment
+          self.header["N_oscillations"] = number_of_images
+          self.header["Oscillation_axis"] = "omega"
+          self.header["Chi"] = "0.0000 deg."
+          try:
+              self.header["Phi"] = "%0.4f deg." % diffractometer_positions.get(
+                  "kappa_phi", -9999)
+              self.header["Kappa"] = "%0.4f deg." % diffractometer_positions.get(
+                "kappa", -9999)
+          except Exception:
+              self.header["Phi"] = "0.0000 deg."
+              self.header["Kappa"] = "0.0000 deg."
+          self.header["Alpha"] = "0.0000 deg."
+          self.header["Polarization"] = HWR.beamline.collect.bl_config.polarisation
+          self.header["Detector_2theta"] = "0.0000 deg."
+          self.header["Angle_increment"] = "%0.4f deg." % osc_range
+          self.header["Transmission"] = HWR.beamline.transmission.get_value()
+          self.header["Flux"] = HWR.beamline.flux.get_value()
+          self.header["Detector_Voffset"] = "0.0000 m"
+          self.header["Energy_range"] = "(0, 0) eV"
+          self.header["Trim_directory:"] = "(nil)"
+          self.header["Flat_field:"] = "(nil)"
+          self.header["Excluded_pixels:"] = " badpix_mask.tif"
+          self.header["N_excluded_pixels:"] = "= 321"
+          self.header["Threshold_setting"] = (
+            "%d eV" % self.get_channel_object("photon_energy").get_value())
+          self.header["Count_cutoff"] = "1048500"
+          self.header["Tau"] = "= 0 s"
+          self.header["Exposure_period"] = "%f s" % (exptime + self.get_deadtime())
+          self.header["Exposure_time"] = "%f s" % exptime
+
+        """
         self.stop()
         self.wait_ready()
 
@@ -283,8 +283,7 @@ class LimaEigerDetector(AbstractDetector):
         return file_name
 
     def get_first_and_last_file(self, pt: PathTemplate) -> tuple:
-        """
-        Get complete path to first and last image
+        """Get complete path to first and last image.
 
         Args:
           Path template parameter
@@ -298,9 +297,8 @@ class LimaEigerDetector(AbstractDetector):
         return (pt.get_image_path() % start_num, pt.get_image_path() % end_num)
 
     def get_actual_file_path(self, master_file_path: str, image_number: int) -> tuple:
-        """
-        Get file path to image with the given image number <image_number> and
-        the master h5 file <master_file_path>
+        """Get file path to image with the given image number <image_number> and
+        the master h5 file <master_file_path>.
 
         Args:
             first_file_path: Path to master h5 file

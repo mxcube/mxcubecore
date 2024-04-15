@@ -371,21 +371,21 @@ class Microdiff(MiniDiff.MiniDiff):
                 logging.getLogger("HWR").exception("Cannot prepare centring")
 
     def set_light_in(self):
-        """Set the backlight in - used by the XMLRPC calls"""
+        """Set the backlight in - used by the XMLRPC calls."""
         logging.getLogger("HWR").info("Moving backlight in")
         light_hwobj = self.get_object_by_role("BackLightSwitch")
         light_hwobj.set_value(light_hwobj.VALUES.IN)
         self._wait_ready(20)
 
     def set_light_out(self):
-        """Set the backlight out - used by the XMLRPC calls"""
+        """Set the backlight out - used by the XMLRPC calls."""
         logging.getLogger("HWR").info("Moving backlight out")
         light_hwobj = self.get_object_by_role("BackLightSwitch")
         light_hwobj.set_value(light_hwobj.VALUES.OUT)
         self._wait_ready(20)
 
     def set_phase(self, phase, wait=False, timeout=None):
-        """Set the phase"""
+        """Set the phase of the diffractometer and move detector cover."""
         _use_custom = self.get_property("use_custom_phase_script", False)
         if not self._ready():
             logging.getLogger("HWR").exception("MD not ready - phase not set.")
@@ -595,6 +595,7 @@ class Microdiff(MiniDiff.MiniDiff):
         wait=False,
     ):
         """Do N scans continuously.
+
         Args:
             start (float): Position of omega for the first scan [deg].
             scan_range (float): range for each scan [deg].
@@ -641,7 +642,7 @@ class Microdiff(MiniDiff.MiniDiff):
         )
 
     def get_motors(self):
-        """Get motor_name:Motor dictionary"""
+        """Get motor_name:Motor dictionary."""
         return {
             "phi": self.phiMotor,
             "focus": self.focusMotor,
@@ -752,7 +753,9 @@ class Microdiff(MiniDiff.MiniDiff):
         self.current_centring_procedure.link(self.manualCentringDone)
 
     def interrupt_and_accept_centring(self):
-        """Used when plate. Kills the current 1 click centring infinite loop
+        """Used when plate.
+
+        Kills the current 1-click centring infinite loop
         and accepts fake centring - only save the motor positions
         """
         self.current_centring_procedure.kill()
