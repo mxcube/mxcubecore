@@ -342,7 +342,7 @@ class Sample(TaskNode):
         try:
             if hasattr(self.crystals[0], "protein_acronym"):
                 return True
-        except TypeError:
+        except (AttributeError, IndexError):
             return False
         return False
 
