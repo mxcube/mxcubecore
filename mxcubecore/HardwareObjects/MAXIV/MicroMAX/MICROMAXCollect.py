@@ -1221,7 +1221,7 @@ class MICROMAXCollect(DataCollect):
         }
         self.detector_hwobj.set_header_appendix(json.dumps(header_appendix))
 
-    def stop_collect(self, owner):
+    def stop_collect(self):
         """
         Stops data collection
         """
