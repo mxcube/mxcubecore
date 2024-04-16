@@ -177,7 +177,7 @@ class Session(HardwareObject):
 
     def get_path_with_proposal_as_root(self, path: str) -> str:
         """
-        Strips the begining of the path so that it starts with
+        Strips the beginning of the path so that it starts with
         the proposal folder as root
 
         :path: The full path
@@ -203,7 +203,7 @@ class Session(HardwareObject):
 
     def get_base_process_directory(self):
         """
-        :returns: The base path for procesed data.
+        :returns: The base path for processed data.
         :rtype: str
         """
         return os.path.join(
@@ -232,7 +232,7 @@ class Session(HardwareObject):
         Returns the full path to processed data,
 
         :param subdir: sub directory relative to path returned
-                       by get_base_proccess_directory
+                       by get_base_process_directory
 
         :returns: The full path to processed data.
         """
@@ -249,12 +249,12 @@ class Session(HardwareObject):
         Returns the full path to both image and processed data.
         The path(s) returned will follow the convention:
 
-          <base_direcotry>/<subdir>/run_<NUMBER>_<tag>
+          <base_directory>/<subdir>/run_<NUMBER>_<tag>
 
-        Where NUMBER is a automaticaly sequential number and
-        base_directory the path returned by get_base_image/process_direcotry
+        Where NUMBER is a automatically sequential number and
+        base_directory the path returned by get_base_image/process_directory
 
-        :param subdir: subdirecotry
+        :param subdir: subdirectory
         :param tag: tag for
 
         :returns: Tuple with the full path to image and processed data
@@ -280,22 +280,18 @@ class Session(HardwareObject):
         prefix = proposal
 
         if sample_data_node:
-            if (
-                sample_data_node.has_lims_data()
-                or sample_data_node.has_protein_acronym()
-            ):
+            name = sample_data_node.name
+            if sample_data_node.has_protein_acronym():
                 protein_acronym = sample_data_node.crystals[0].protein_acronym
-                name = sample_data_node.name
-                if protein_acronym:
-                    if name:
-                        prefix = "%s-%s" % (protein_acronym, name)
-                    else:
-                        prefix = protein_acronym
+                if name:
+                    prefix = "%s-%s" % (protein_acronym, name)
                 else:
-                    prefix = name or ""
+                    prefix = protein_acronym
+            else:
+                prefix = name or ""
         elif generic_name:
             prefix = "<acronym>-<name>"
-        #
+
         return prefix
 
     def get_default_subdir(self, sample_data: dict) -> str:
@@ -356,7 +352,7 @@ class Session(HardwareObject):
         Determines if a given proposal is considered to be inhouse.
 
         :param proposal_code: Proposal code
-        :type propsal_code: str
+        :type proposal_code: str
 
         :param proposal_number: Proposal number
         :type proposal_number: str
