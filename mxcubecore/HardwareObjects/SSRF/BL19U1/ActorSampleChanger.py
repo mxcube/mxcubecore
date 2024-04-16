@@ -73,6 +73,7 @@ def if_ErrorCode(func):
     return wrapper
 
 class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
+    #这个类对应/mxcubecore/HardwareObjects/mockup/SampleChangerMockup.py脚本中的SampleChangerMockup类
 
     __TYPE__ = "Actor"
     NO_OF_BASKETS = 5
@@ -121,7 +122,7 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
             'Mount'
         )
         self._cmdUnMount = self.add_command(
-            {"type": "socketrobot", "socket_address": self.socket_addr, "name": '_cmdMount'},
+            {"type": "socketrobot", "socket_address": self.socket_addr, "name": '_cmdUnMount'},
             'Dismount'
         )
         self._cmdExchange = self.add_command(
@@ -342,16 +343,16 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
                 "The MD2 seems cannot change to sample change status while mounting, please try again first.")
             raise Exception("The MD2 seems cannot change to sample change status while mounting, please try again first.")
         #判断cryo是否在对的位置
-        self.change_Cryo_state()
-        logging.getLogger("HWR").info("Cryo state: %s ", str(MD2.Cryo_Is_Back.get_value()))
-        if MD2.Cryo_Is_Back.get_value() != True:
-            logging.getLogger("user_level_log").error(
-                "The cryo seems cannot change to back position while mounting,please contact the teacher on duty")
-            raise Exception("The cryo seems cannot change to back position while mounting,please contact the teacher on duty")
-        else:
-            print("get into safe waiting time for 0.5 second")
-            time.sleep(0.5)
-            print("safe waiting time ended")
+        # self.change_Cryo_state()
+        # logging.getLogger("HWR").info("Cryo state: %s ", str(MD2.Cryo_Is_Back.get_value()))
+        # if MD2.Cryo_Is_Back.get_value() != True:
+        #     logging.getLogger("user_level_log").error(
+        #         "The cryo seems cannot change to back position while mounting,please contact the teacher on duty")
+        #     raise Exception("The cryo seems cannot change to back position while mounting,please contact the teacher on duty")
+        # else:
+        #     print("get into safe waiting time for 0.5 second")
+        #     time.sleep(0.5)
+        #     print("safe waiting time ended")
     def check_MD2_Magnet(self):
         MD2 = HWR.beamline.diffractometer
         # print("smart magnet: "+str(MD2.sample_isloaded_magnet.get_value()))
