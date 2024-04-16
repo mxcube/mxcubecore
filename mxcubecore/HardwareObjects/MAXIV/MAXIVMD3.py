@@ -4,10 +4,12 @@ import gevent
 import numpy as np
 from PIL import Image
 
+log = logging.getLogger("HWR")
+
 try:
     import lucid_core as lucid
 except ModuleNotFoundError:
-    logging.getLogger("HWR").warning("[MAXIVMD3] Lucid cannot be imported.")
+    log.warning("[MAXIVMD3] Lucid cannot be imported.")
 from mxcubecore.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer,
     DiffractometerState,
@@ -905,9 +907,9 @@ class MAXIVMD3(GenericDiffractometer):
         """
         Stops all the pending tasks, stops all the motors and closes all theirs control loop.
         """
-        logging.getLogger("HWR").exception("MiniDiff: going to abort")
+        log.warning("[MAXIVMD3]: aborting tasks")
         self.command_dict["abort"]()
-        logging.getLogger("HWR").exception("MiniDiff: all movements aborted")
+        log.warning("[MAXIVMD3]: all tasks aborted")
 
     def move_omega_relative(self, relative_angle):
         """

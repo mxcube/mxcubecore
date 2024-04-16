@@ -1225,18 +1225,19 @@ class MICROMAXCollect(DataCollect):
         """
         Stops data collection
         """
-        self.log.error("Stopping collection ....")
+        self.log.warning("Stopping collection ....")
         self.close_detector_cover()
         self.diffractometer_hwobj.abort()
         self.detector_hwobj.abort()
         self.detector_hwobj.disarm()
+
         try:
             self.progress_task.kill(block=False)
         except Exception:
             pass
         if self.data_collect_task is not None:
             self.data_collect_task.kill(block=False)
-        self.log.error("Collection stopped")
+        self.log.warning("Collection stopped")
         self.stop_display = True
 
     def get_transmission(self):
