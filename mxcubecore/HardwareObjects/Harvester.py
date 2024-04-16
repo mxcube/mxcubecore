@@ -95,7 +95,7 @@ class Harvester(HardwareObject):
         self.timeout = 3  # default timeout
 
         # Internal variables -----------
-        self.calibrate_state = False
+        self.calibration_state = False
 
     def init(self):
         """Init"""
@@ -103,14 +103,14 @@ class Harvester(HardwareObject):
         self.crims_upload_url = self.get_property("crims_upload_url")
         self.crims_upload_key = self.get_property("crims_upload_key")
 
-    def set_calibrate_state(self, state: bool):
+    def set_calibration_state(self, state: bool):
         """Set Calibration state
 
         Args:
         state (bool) : Whether a calibration procedure is on going
         """
 
-        self.calibrate_state = state
+        self.calibration_state = state
 
     def _wait_ready(self, timeout: float = None):
         """Wait Harvester to be ready

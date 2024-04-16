@@ -55,21 +55,21 @@ class HarvesterMockup(HardwareObject):
         self.timeout = 3  # default timeout
 
         # Internal variables -----------
-        self.calibrate_state = False
+        self.calibration_state = False
         self.room_temperature_mode = False
 
     def init(self):
         """Init"""
         self.exporter_addr = self.get_property("exporter_address")
 
-    def set_calibrate_state(self, state):
+    def set_calibration_state(self, state):
         """Set Calibration state
 
         Args:
         state (bool) : Whether the a calibration was perform
         """
 
-        self.calibrate_state = state
+        self.calibration_state = state
 
     def _wait_ready(self, timeout=None):
         """Wait Harvester to be ready
