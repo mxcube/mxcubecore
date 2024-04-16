@@ -739,10 +739,7 @@ class BIOMAXEiger(AbstractDetector):
         self.get_command_object("Cancel")()
 
     def abort(self):
-        try:
-            self.get_command_object("Abort")()
-        except Exception:
-            pass
+        self.get_command_object("Abort")()
 
     def set_monitor(self):
         """
