@@ -38,7 +38,7 @@ class BeamMockup(AbstractBeam):
 
         self._beam_size_dict["slits"] = [9999, 9999]
         self._beam_size_dict["aperture"] = [9999, 9999]
-        self._beam_position_on_screen = [680, 512]
+        self._beam_position_on_screen = [318, 238]
         self._beam_divergence = (0, 0)
 
     def init(self):
@@ -52,13 +52,13 @@ class BeamMockup(AbstractBeam):
         if self._aperture is not None:
             self.connect(
                 self._aperture,
-                "diameterIndexChanged",
+                "valueChanged",
                 self.aperture_diameter_changed,
             )
-
-            ad = self._aperture.get_diameter_size() / 1000.0
+            app_label = self._aperture.get_value().name
+            ad = self._aperture.get_size(app_label) / 1000.0
             self._beam_size_dict["aperture"] = [ad, ad]
-            self._beam_info_dict["label"] = self._aperture.get_diameter_size()
+            self._beam_info_dict["label"] = app_label
 
         self._slits = self.get_object_by_role("slits")
         if self._slits is not None:
@@ -71,15 +71,15 @@ class BeamMockup(AbstractBeam):
         self.re_emit_values()
         self.emit("beamPosChanged", (self._beam_position_on_screen,))
 
-    def aperture_diameter_changed(self, name, size):
+    def aperture_diameter_changed(self, size):
         """
         Method called when the aperture diameter changes
         Args:
-            name (str): diameter name - not used.
             size (float): diameter size in microns
         """
-        self._beam_size_dict["aperture"] = [size, size]
-        self._beam_info_dict["label"] = int(size * 1000)
+        if not isinstance(size, float):
+            size = size.value[0]
+        self._beam_size_dict["aperture"] = [size / 1000.0, size / 1000.0]
         self.evaluate_beam_info()
         self.re_emit_values()
 

@@ -26,8 +26,7 @@ from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
 from test.pytest import TestHardwareObjectBase
-from mxcubecore.HardwareObjects.abstract.AbstractBeam import BeamShape, AbstractBeam
-
+from mxcubecore.HardwareObjects.abstract.AbstractBeam import BeamShape
 
 import pytest
 
@@ -42,23 +41,6 @@ def test_object(beamline):
     yield result
     # Cleanup code here - restores starting state for next call:
     # NBNB TODO
-
-
-@pytest.fixture
-def beam():
-    """ """
-
-    beam = AbstractBeam(name="abstract_beam")
-    yield beam
-
-
-class TestAbstractBeam:
-    """ """
-
-    def test_beam_setup(self, beam: AbstractBeam):
-        """ """
-
-        assert beam is not None
 
 
 class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
@@ -96,8 +78,10 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
         """
         Test set methods
         """
-        max_diameter = max(test_object.aperture.get_diameter_size_list())
-        test_object.aperture.set_diameter_size(max_diameter)
+        max_diameter = max(
+            list(map(int, test_object.aperture.get_diameter_size_list()))
+        )
+        test_object.aperture.set_value(test_object.aperture.VALUES[f"A{max_diameter}"])
 
         target_width = 0.01
         target_height = 0.01
@@ -120,11 +104,15 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
         test_object.slits.set_horizontal_gap(1)
         test_object.slits.set_vertical_gap(1)
         for aperture_diameter in test_object.aperture.get_diameter_size_list():
-            test_object.aperture.set_diameter_size(aperture_diameter)
+            test_object.aperture.set_value(
+                test_object.aperture.VALUES[f"A{aperture_diameter}"], timeout=2
+            )
+            print(f"Slits ---> {test_object.slits.get_gaps()}")
+            print(f"Aperture ---> {test_object.aperture.get_value()}")
             beam_width, beam_height = test_object.get_beam_size()
             # TODO get_beam_size returns size in mm, but aperture diameters
             # are in microns. Use microns in all beam related hwobj
-            assert beam_width == beam_height == aperture_diameter / 1000.0
+            assert beam_width == beam_height == int(aperture_diameter) / 1000.0
 
             beam_shape = test_object.get_beam_shape()
             assert beam_shape == BeamShape.ELIPTICAL
@@ -134,8 +122,10 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
         Set slits smaller as the largest aperture diameter.
         In this case beam size and shape is defined by slits
         """
-        max_diameter = max(test_object.aperture.get_diameter_size_list())
-        test_object.aperture.set_diameter_size(max_diameter)
+        max_diameter = max(
+            list(map(int, test_object.aperture.get_diameter_size_list()))
+        )
+        test_object.aperture.set_value(test_object.aperture.VALUES[f"A{max_diameter}"])
 
         target_width = 0.01
         target_height = 0.01

@@ -27,8 +27,6 @@ xml example:
   <diameter_size_list>[5, 10, 20, 30, 50, 100]</diameter_size_list>
 </object>
 """
-import logging
-from time import sleep
 from enum import Enum
 from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
 from mxcubecore.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
@@ -38,7 +36,6 @@ __license__ = "LGPLv3+"
 
 
 class ApertureMockup(AbstractNState, ActuatorMockup):
-
     def init(self):
         super().init()
         # check if we have values other that UKNOWN (no values in config)
@@ -61,7 +58,7 @@ class ApertureMockup(AbstractNState, ActuatorMockup):
             "ValueEnum",
             dict(values, **{item.name: item.value for item in self.VALUES}),
         )
-        
+
     def _initialise_inout(self):
         """Add IN and OUT to the values Enum"""
         values_dict = {"IN": "BEAM", "OUT": "OFF"}

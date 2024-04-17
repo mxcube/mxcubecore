@@ -22,7 +22,6 @@ __copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 import pytest
-from enum import Enum
 from test.pytest.TestAbstractNStateBase import TestAbstractNStateBase
 
 
