@@ -44,6 +44,7 @@ import gevent
 import logging
 from typing import Optional
 
+from mxcubecore import queue_entry
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
@@ -473,7 +474,7 @@ class Harvester(HardwareObject):
     # =============== Pin / Calibration -----------------------------
 
     def load_calibrated_pin(self) -> None:
-        """Start Pin Calibration Procedure"""
+        """Load a Pin for Calibration Procedure"""
         return self._execute_cmd_exporter("loadCalibratedPin", command=True)
 
     def store_calibrated_pin(self, x: float, y: float, z: float) -> None:
@@ -484,7 +485,7 @@ class Harvester(HardwareObject):
         """
         return self._execute_cmd_exporter("storePinToBeamOffset", x, y, z, command=True)
 
-    def get_calibrated_pin_offset(self) -> dict[float]:
+    def get_calibrated_pin_offset(self) -> tuple[float]:
         """Get Stored x , y , z offsets position after calibration procedure
 
         return: (float) x, y, z offsets
@@ -501,13 +502,110 @@ class Harvester(HardwareObject):
         """
         return self._execute_cmd_exporter("getNbRemainingPins", command=True)
 
+    def queue_harvest_sample(
+        self, data_model, sample_uuid: str, current_queue: dict
+    ) -> None:
+        """
+        While queue execution send harvest request
+        current_queue : a build representation of the queue based on
+        python dictionaries
+        """
+
+        current_queue_list = list(current_queue)
+        current_queue_index = None
+        try:
+            current_queue_index = current_queue_list.index(data_model.loc_str)
+        except (ValueError, IndexError):
+            current_queue_index = None
+
+        wait_before_load = False if self.get_room_temperature_mode() else True
+        if sample_uuid in ["undefined", "", None]:
+            sample_uuid = current_queue[data_model.loc_str]["code"]
+
+        if self.get_number_of_available_pin() > 0:
+            gevent.sleep(2)
+
+            if current_queue_index == 1:
+                logging.getLogger("user_level_log").info("Harvesting First Sample")
+
+                harvest_res = self.harvest_sample_before_mount(
+                    sample_uuid, wait_before_load
+                )
+                if harvest_res is False:
+                    # if sample could not be Harvest, but no exception is raised, let's skip the sample
+                    logging.getLogger("user_level_log").error(
+                        "Harvester could not Harvest sample, Stopping queue"
+                    )
+                    raise queue_entry.QueueSkippEntryException(
+                        "Harvester could not Harvest sample", ""
+                    )
+            else:
+                logging.getLogger("user_level_log").info("checking last Harvesting")
+                harvest_res = self.harvest_sample_before_mount(
+                    sample_uuid, wait_before_load
+                )
+                if harvest_res is False:
+                    # if sample could not be Harvest, but no exception is raised, let's skip the sample
+                    logging.getLogger("user_level_log").error(
+                        "There is no more Pins in the Harvester, Stopping queue"
+                    )
+                    raise queue_entry.QueueSkippEntryException(
+                        "Harvester could not Harvest sample", ""
+                    )
+        elif self.get_number_of_available_pin() == 0 and self._ready_to_transfer():
+            logging.getLogger("user_level_log").warning(
+                "Warning: Harvester pins is approaching to ZERO"
+            )
+            logging.getLogger("user_level_log").warning(
+                "Warning: Mounting last Sample, Queue will stop on next one"
+            )
+        else:
+            # raise Not enough pins available in the pin provider
+            logging.getLogger("user_level_log").error(
+                "There is no more Pins in the Harvester, Stopping queue"
+            )
+            raise queue_entry.QueueSkippEntryException(
+                "There is no more Pins in the Harvester, Stopping queue", ""
+            )
+
+    def queue_harvest_next_sample(
+        self, data_model, sample_uuid: str, current_queue: dict
+    ):
+        """
+        While queue execution send harvest request
+        on next sample of the queue list
+        current_queue : a build representation of the queue based on
+        python dictionaries
+        """
+        current_queue_list = list(current_queue)
+        next_sample = None
+        try:
+            next_sample = current_queue_list[
+                current_queue_list.index(data_model.loc_str) + 1
+            ]
+        except (ValueError, IndexError):
+            next_sample = None
+
+        if sample_uuid in ["undefined", "", None]:
+            sample_uuid = current_queue[data_model.loc_str]["code"]
+
+        if next_sample is not None and self.get_number_of_available_pin() > 0:
+            logging.getLogger("user_level_log").info("Harvesting Next Sample")
+
+            self._wait_ready(None)
+            self.harvest_sample_before_mount(sample_uuid, False)
+        else:
+            logging.getLogger("user_level_log").warning(
+                "Warning: Could not harvest next sample"
+            )
+
     def harvest_sample_before_mount(
         self, sample_uuid: str, wait_before_load: bool = False
     ) -> bool:
-        """Check and set  the current state of the Harvester and sample before Harvest
+        """send harvest sample command
+            Check and set  the current state of the Harvester and the sample before Harvest
 
-
-        Return (bool): whether the sample has been harvest thn mount (True)
+        Return (bool): whether the sample has been harvest then mount (True)
         or had and exception (False)
         """
         res = None
