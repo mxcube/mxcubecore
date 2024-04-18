@@ -23,7 +23,6 @@ from mxcubecore.utils.pymysql_comm import UsingMysql
 
 
 class LNLSPilatusDet(AbstractDetector):
-
     DET_THRESHOLD = 'det_threshols_energy'
     # DET_STATUS = 'det_status_message'
     DET_WAVELENGTH = 'det_wavelength'
@@ -89,10 +88,9 @@ class LNLSPilatusDet(AbstractDetector):
             "trigger_mode": "exts",
         }
 
-        #2024.01.12每次重启将此两个epics变量设为0
+        # 2024.01.12每次重启将此两个epics变量设为0
         self.set_channel_value("phi_increasement", 0)
         self.set_channel_value("omega_increasement", 0)
-
 
     def set_roi_mode(self, roi_mode):
         self._roi_mode = roi_mode
@@ -111,12 +109,12 @@ class LNLSPilatusDet(AbstractDetector):
             xval = self.getProperty("width", 2463) / 2.0 + 0.4
             yval = self.getProperty("height", 2527) / 2.0 + 0.4
         return xval, yval
+
     # def get_beam_position(self, distance=None, wavelength=None):
     #     """Get approx detector centre """
     #     xval = self.getProperty("bx")
     #     yval = self.getProperty("by")
     #     return xval, yval
-
 
     def update_values(self):
         self.emit("detectorModeChanged", (self._roi_mode,))
@@ -167,7 +165,7 @@ class LNLSPilatusDet(AbstractDetector):
             float(energy)
         except Exception as e:
             logging.getLogger("HWR").error(
-                    "Error while setting Pilatus threshold. Value must be float."
+                "Error while setting Pilatus threshold. Value must be float."
             )
             return False
 
@@ -202,7 +200,7 @@ class LNLSPilatusDet(AbstractDetector):
             (self.threshold, target_threshold)
         )
         if (status == "Camserver returned OK"
-        and self.threshold == target_threshold):
+                and self.threshold == target_threshold):
             logging.getLogger("HWR").info('Pilatus status: %s' % status)
             logging.getLogger("HWR").info(
                 "Pilatus threshold successfully set."
@@ -231,22 +229,22 @@ class LNLSPilatusDet(AbstractDetector):
             float(wavelength)
         except Exception as e:
             logging.getLogger("HWR").error(
-                    "Error while setting Pilatus wavelength. Value must be float."
+                "Error while setting Pilatus wavelength. Value must be float."
             )
             return False
 
-        #if abs(self.wavelength - wavelength) < 0.0001:
+        # if abs(self.wavelength - wavelength) < 0.0001:
         #    logging.getLogger("HWR").info(
         #        "Pilatus wavelength still okay."
         #    )
         #    return True
-        
+
         # As the set of Pilatus wavelength, det dist and beam xy is fast,
         # there is no need to compare the target value with the current one.
         logging.getLogger("HWR").info("Setting Pilatus wavelength...")
         self.set_channel_value(self.DET_WAVELENGTH, wavelength)
         time.sleep(0.6)
-        
+
         print('WAVELENGHT WAS SET: ' + str(wavelength))
         self.wavelength = self.get_wavelength()
         print('WAVELENGHT GOT: ' + str(self.wavelength))
@@ -278,11 +276,11 @@ class LNLSPilatusDet(AbstractDetector):
             float(det_distance)
         except Exception as e:
             logging.getLogger("HWR").error(
-                    "Error while setting Pilatus det distance. Value must be float."
+                "Error while setting Pilatus det distance. Value must be float."
             )
             return False
 
-        #if abs(self.det_distance - det_distance) < 0.001:
+        # if abs(self.det_distance - det_distance) < 0.001:
         #    logging.getLogger("HWR").info(
         #        "Pilatus det distance still okay."
         #    )
@@ -325,7 +323,7 @@ class LNLSPilatusDet(AbstractDetector):
         """
         Set detector beam_x and returns whether it was successful or not.
 
-        Beam X value can come from different sources. The priority (from 
+        Beam X value can come from different sources. The priority (from
         high to low) is:
         * from_user
         * beam_x argument
@@ -344,7 +342,7 @@ class LNLSPilatusDet(AbstractDetector):
                 )
             beam_x = self.default_beam_x
 
-        #if abs(self.beam_x - beam_x) == 0:
+        # if abs(self.beam_x - beam_x) == 0:
         #    logging.getLogger("HWR").info(
         #        "Pilatus beam X still okay."
         #    )
@@ -387,7 +385,7 @@ class LNLSPilatusDet(AbstractDetector):
         """
         Set detector beam_y and returns whether it was successful or not.
 
-        Beam Y value can come from different sources. The priority (from 
+        Beam Y value can come from different sources. The priority (from
         high to low) is:
         * from_user
         * beam_y argument
@@ -406,7 +404,7 @@ class LNLSPilatusDet(AbstractDetector):
                 )
             beam_y = self.default_beam_y
 
-        #if abs(self.beam_y - beam_y) == 0:
+        # if abs(self.beam_y - beam_y) == 0:
         #    logging.getLogger("HWR").info(
         #        "Pilatus beam X still okay."
         #    )
@@ -428,7 +426,7 @@ class LNLSPilatusDet(AbstractDetector):
             "Error while setting Pilatus beam Y. Please, check the detector."
         )
         return False
-    
+
     def get_transmission(self):
         """
         Returns:
@@ -445,7 +443,7 @@ class LNLSPilatusDet(AbstractDetector):
             float(transmission)
         except Exception as e:
             logging.getLogger("HWR").error(
-                    "Error while setting Pilatus transmission. Value must be float."
+                "Error while setting Pilatus transmission. Value must be float."
             )
             return False
 
@@ -465,7 +463,7 @@ class LNLSPilatusDet(AbstractDetector):
             "Error while setting Pilatus transmission. Please, check the detector."
         )
         return False
-    
+
     def get_start_angle(self):
         """
         Returns:
@@ -482,7 +480,7 @@ class LNLSPilatusDet(AbstractDetector):
             float(start_angle)
         except Exception as e:
             logging.getLogger("HWR").error(
-                    "Error while setting Pilatus start angle. Value must be float."
+                "Error while setting Pilatus start angle. Value must be float."
             )
             return False
 
@@ -502,7 +500,7 @@ class LNLSPilatusDet(AbstractDetector):
             "Error while setting Pilatus start angle. Please, check the detector."
         )
         return False
-    
+
     def get_angle_incr(self):
         """
         Returns:
@@ -519,7 +517,7 @@ class LNLSPilatusDet(AbstractDetector):
             float(angle_incr)
         except Exception as e:
             logging.getLogger("HWR").error(
-                    "Error while setting Pilatus angle increment. Value must be float."
+                "Error while setting Pilatus angle increment. Value must be float."
             )
             return False
 
@@ -577,28 +575,28 @@ class LNLSPilatusDet(AbstractDetector):
         #     "acq_satus": acq_status.upper(),
         # }
         status = {"acq_satus": acq_status.upper()}
-    #     @property
-    #     def status(self):
-    #         try:
-    #             acq_status = self.get_channel_value("det_status")
-    #         except Exception:
-    #             acq_status = "OFFLINE"
-    #         if acq_status == 0:
-    #             acq_status = "IDLE"
-    #         elif acq_status == 1:
-    #             acq_status = "ACQUIRE"
-    #         elif acq_status == 2:
-    #             acq_status = "READOUT"
-    #         elif acq_status == 3:
-    #             acq_status = "SAVING"
-    #         elif acq_status == 4:
-    #             acq_status = "ABORTING"
-    #         else:
-    #             acq_status = "OFFLINE"
-    #         # status = {
-    #         #     "acq_satus": acq_status.upper(),
-    #         # }
-    #         status = {"acq_satus": acq_status.upper()}
+        #     @property
+        #     def status(self):
+        #         try:
+        #             acq_status = self.get_channel_value("det_status")
+        #         except Exception:
+        #             acq_status = "OFFLINE"
+        #         if acq_status == 0:
+        #             acq_status = "IDLE"
+        #         elif acq_status == 1:
+        #             acq_status = "ACQUIRE"
+        #         elif acq_status == 2:
+        #             acq_status = "READOUT"
+        #         elif acq_status == 3:
+        #             acq_status = "SAVING"
+        #         elif acq_status == 4:
+        #             acq_status = "ABORTING"
+        #         else:
+        #             acq_status = "OFFLINE"
+        #         # status = {
+        #         #     "acq_satus": acq_status.upper(),
+        #         # }
+        #         status = {"acq_satus": acq_status.upper()}
 
         return status
 
@@ -619,15 +617,16 @@ class LNLSPilatusDet(AbstractDetector):
             prefix = "_".join(prefix.split("_")[:-1]) + "_"
             dirname = os.path.dirname(filename)
             if dirname.startswith(os.path.sep):
-                dirname = dirname[len(os.path.sep) :]
+                dirname = dirname[len(os.path.sep):]
 
             saving_directory = os.path.join(self.getProperty("buffer"), dirname)
 
             logging.getLogger("HWR").info('=============Start subprocess')
-            logging.getLogger("HWR").info( "ssh %s@%s mkdir --parents %s"  % (self.getProperty("user"), self.getProperty("control"), saving_directory))
+            logging.getLogger("HWR").info("ssh %s@%s mkdir --parents %s" % (
+            self.getProperty("user"), self.getProperty("control"), saving_directory))
             subprocess.Popen(
                 "ssh %s@%s mkdir --parents %s"
-                #% (os.environ["USER"], self.getProperty("control"), saving_directory),
+                # % (os.environ["USER"], self.getProperty("control"), saving_directory),
                 % (self.getProperty("user"), self.getProperty("control"), saving_directory),
                 shell=True,
                 stdin=None,
@@ -644,11 +643,10 @@ class LNLSPilatusDet(AbstractDetector):
             # self.set_channel_value("saving_format", self.getProperty("file_suffix"))
             # self.set_channel_value("saving_header_delimiter", ["|", ";", ":"])
 
-
             # file_template = prefix.split(os.path.sep)[-1] + "%3.3d"+ "." + self.getProperty("file_suffix")
             # file_template = prefix.split(os.path.sep)[-1] + "." + self.getProperty("file_suffix")
             filename = prefix.split(os.path.sep)[-1]
-            #filename = filename[:-2]
+            # filename = filename[:-2]
             self.set_channel_value("det_filename", filename)
             logging.getLogger("HWR").info('=============filename is %s', filename)
 
@@ -686,7 +684,6 @@ class LNLSPilatusDet(AbstractDetector):
     def setFileNumber(self, number):
         self.set_channel_value("det_filenumber", number)
 
-
     def set_image_header(self):
         self.set_channel_value("det_energy_low", "5")
         self.set_channel_value("det_energy_high", "22")
@@ -694,7 +691,7 @@ class LNLSPilatusDet(AbstractDetector):
         self.set_channel_value("det_flux", self.header["Flux"])
         self.set_channel_value("det_2theta", self.header["Detector_2theta"])
         self.set_channel_value("det_polarization", HWR.beamline.collect.bl_config.polarisation)
-        self.set_channel_value("det_alpha",  self.header["Alpha"])
+        self.set_channel_value("det_alpha", self.header["Alpha"])
         self.set_channel_value("det_kappa", self.header["Kappa"])
         self.set_channel_value("det_phi", self.header["Phi"])
         # self.set_channel_value("det_phi_incr", file_template)
@@ -702,7 +699,7 @@ class LNLSPilatusDet(AbstractDetector):
         # self.set_channel_value("det_phi_chi_incr", file_template)
         # self.set_channel_value("det_phi_omega", file_template)
         # self.set_channel_value("det_phi_omega_incr", file_template)
-        self.set_channel_value("det_phi_oscill_axis",  self.header["Oscillation_axis"])
+        self.set_channel_value("det_phi_oscill_axis", self.header["Oscillation_axis"])
         self.set_channel_value("det_num_oscill", self.header["N_oscillations"])
         self.set_channel_value("det_beam_x", 1229.00)
         # self.set_channel_value("det_beam_y", 1331.00)
@@ -712,24 +709,24 @@ class LNLSPilatusDet(AbstractDetector):
 
     def get_beamy(self):
         distance = self.get_detector_distance()
-        #value = 1331 - 0.0465*distance/1000
-        value = 1286 - 0.0465 * distance/1000
+        # value = 1331 - 0.0465*distance/1000
+        value = 1286 - 0.0465 * distance / 1000
         return round(value, 2)
 
-    def updateJobStatus(self,frame_number, uuid, path, status):
-            # data = {}
-            # data['uuid'] = uuid
-            # data['src'] = path
-            # data['dest'] = path
-            # data['status'] = status
-            # data['completiontime'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            # addr = '{0}/job/insert'.format(cts.server_address)
-            # response = requests.post(addr, json.dumps(data))
+    def updateJobStatus(self, frame_number, uuid, path, status):
+        # data = {}
+        # data['uuid'] = uuid
+        # data['src'] = path
+        # data['dest'] = path
+        # data['status'] = status
+        # data['completiontime'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        # addr = '{0}/job/insert'.format(cts.server_address)
+        # response = requests.post(addr, json.dumps(data))
         completiontime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         try:
             with UsingMysql(log_time=True) as um:
 
-                if frame_number<10:
+                if frame_number < 10:
                     sql = "INSERT INTO job (nimage, src, dest, createtime, status, uuid ) VALUES (%d, '%s', '%s', '%s', '%s', '%s')" % (
                         frame_number, path, path, completiontime, status, uuid)
                     um.cursor.execute(sql)
@@ -750,8 +747,14 @@ class LNLSPilatusDet(AbstractDetector):
 
                     logging.getLogger("HWR").debug("max_autopx_queue_id: %s , next_autopx_queue_id: %s",
                                                    max_autopx_queue_id, next_autopx_queue_id)
-                    sql = "INSERT INTO job (nimage, src, dest, createtime, status, uuid,autopx_queue_id ) VALUES (%d, '%s', '%s', '%s', '%s', '%s',%d)" % (
-                        frame_number, path, path, completiontime, status, uuid,next_autopx_queue_id)
+                    waiting = "waiting..."
+                    sql = "INSERT INTO job (nimage, src, dest, createtime, status, uuid, autopx_queue_id, xia2_xds_result, autoprocess_result, xia2_dials_result, autopx) VALUES (%d, '%s', '%s', '%s', '%s', '%s',%d, '%s', '%s', '%s', '%s')" % (
+                        frame_number, path, path, completiontime, status, uuid, next_autopx_queue_id, waiting, waiting,
+                        waiting, waiting)
+                    sql = "INSERT INTO job (nimage, src, dest, createtime, status, uuid, autopx_queue_id) VALUES (%d, '%s', '%s', '%s', '%s', '%s',%d)" % (
+                        frame_number, path, path, completiontime, status, uuid, next_autopx_queue_id)
+                    sql = "INSERT INTO job (nimage, src, dest, createtime, status, uuid, autopx_queue_id, autopx) VALUES (%d, '%s', '%s', '%s', '%s', '%s',%d, '%s')" % (
+                        frame_number, path, path, completiontime, status, uuid, next_autopx_queue_id, waiting)
                     um.cursor.execute(sql)
                     result = um.cursor.fetchall()
                     logging.getLogger("HWR").debug("connect to mysql and result: %s", result)
@@ -793,7 +796,6 @@ class LNLSPilatusDet(AbstractDetector):
         number = self.get_channel_value("det_filenumber")
         return number
 
-
     def get_deadtime(self):
         return float(self.getProperty("deadtime"))
 
@@ -828,7 +830,6 @@ class LNLSPilatusDet(AbstractDetector):
 
         # self.set_channel_value("fill_mode", "ON")
 
-
     ### 未找到
     # def get_file_list(self):
     #     savednumber = self.get_channel_value('last_image_saved')
@@ -840,7 +841,7 @@ class LNLSPilatusDet(AbstractDetector):
         s = ''.join([chr(i) for i in arr])
         print("last image saved: ", s)
         arr1 = s.split("_")
-        s1 = arr1[len(arr1) -1]
+        s1 = arr1[len(arr1) - 1]
         arr2 = s1.split(".")
         s2 = arr2[0]
         s3 = self.removeleading(s2)
@@ -860,16 +861,16 @@ class LNLSPilatusDet(AbstractDetector):
         return self.trigger_mode == "exte"
 
     def prepare_acquisition(
-        self,
-        take_dark,
-        start,
-        osc_range,
-        exptime,
-        npass,
-        number_of_images,
-        comment,
-        mesh,
-        mesh_num_lines,
+            self,
+            take_dark,
+            start,
+            osc_range,
+            exptime,
+            npass,
+            number_of_images,
+            comment,
+            mesh,
+            mesh_num_lines,
     ):
         if osc_range < 1e-4:
             trigger_mode = "0"
@@ -878,12 +879,12 @@ class LNLSPilatusDet(AbstractDetector):
         else:
             trigger_mode = "2"
 
-         #if osc_range < 1e-4:
-         #   trigger_mode = "INTERNAL_TRIGGER"
-        #elif mesh:
-            #trigger_mode = "EXTERNAL_GATE"
-        #else:
-            #trigger_mode = "EXTERNAL_TRIGGER"
+        # if osc_range < 1e-4:
+        #   trigger_mode = "INTERNAL_TRIGGER"
+        # elif mesh:
+        # trigger_mode = "EXTERNAL_GATE"
+        # else:
+        # trigger_mode = "EXTERNAL_TRIGGER"
 
         diffractometer_positions = HWR.beamline.diffractometer.get_positions()
         logging.getLogger("HWR").info("=========Get Diffractomenter Position End")
@@ -894,7 +895,7 @@ class LNLSPilatusDet(AbstractDetector):
         self.header["file_comments"] = comment
         self.header["N_oscillations"] = number_of_images
         self.header["Oscillation_axis"] = "omega"
-        #self.header["Chi"] = "0.0000 deg."
+        # self.header["Chi"] = "0.0000 deg."
         self.header["Chi"] = "0"
         kappa_phi = diffractometer_positions.get("kappa_phi", -9999)
         if kappa_phi is None:
@@ -934,8 +935,8 @@ class LNLSPilatusDet(AbstractDetector):
         self.header["Threshold_setting"] = "%d eV" % self.get_channel_value("det_threshols_energy")
         self.header["Count_cutoff"] = "1048500"
         self.header["Tau"] = "= 0 s"
-        #self.header["Exposure_period"] = "%f s" % (exptime + self.get_deadtime())
-        #self.header["Exposure_time"] = "%f s" % exptime
+        # self.header["Exposure_period"] = "%f s" % (exptime + self.get_deadtime())
+        # self.header["Exposure_time"] = "%f s" % exptime
         self.header["Exposure_period"] = "%f s" % exptime
         self.header["Exposure_time"] = "%f s" % (exptime - self.get_deadtime())
 
@@ -948,13 +949,13 @@ class LNLSPilatusDet(AbstractDetector):
 
         self.set_channel_value("acq_trigger_mode", trigger_mode)
 
-        if self.getProperty("set_latency_time",  False):
+        if self.getProperty("set_latency_time", False):
             self.set_channel_value("latency_time", self.get_deadtime())
 
         ###??? self.set_channel_value("saving_mode", "AUTO_FRAME")
         self.set_channel_value("acq_nb_frames", number_of_images)
-        #self.set_channel_value("acq_expo_time", exptime)
-        #self.set_channel_value("acq_expo_period", exptime + self.get_deadtime())
+        # self.set_channel_value("acq_expo_time", exptime)
+        # self.set_channel_value("acq_expo_period", exptime + self.get_deadtime())
         self.set_channel_value("acq_expo_time", exptime - self.get_deadtime())
         self.set_channel_value("acq_expo_period", exptime)
         ###??? self.set_channel_value("saving_overwrite_policy", "OVERWRITE")
@@ -966,7 +967,7 @@ class LNLSPilatusDet(AbstractDetector):
             self.stop_acquisition()
         except Exception as e:
             logging.getLogger("HWR").error(
-                    "Error while stop acquisition. %s", e
+                "Error while stop acquisition. %s", e
             )
 
     def stop_acquisition(self):
@@ -1000,7 +1001,6 @@ class LNLSPilatusDet(AbstractDetector):
         )
         self._emit_status()
 
-
     def _emit_status(self):
         self.emit("statusChanged", self.status)
 
@@ -1012,11 +1012,11 @@ class LNLSPilatusDet(AbstractDetector):
             setvalue = 0;
             if type(value) == int:
                 if value > 100:
-                    setvalue = value/1000
+                    setvalue = value / 1000
             else:
                 setvalue = int(value)
                 if value > 100:
-                    setvalue = value/1000
+                    setvalue = value / 1000
             logging.getLogger("HWR").info("detect distance: %s", str(setvalue))
             self.set_channel_value("cam1_distance", setvalue)
             tolerance = float(self.getProperty("tolerance"))
@@ -1030,7 +1030,8 @@ class LNLSPilatusDet(AbstractDetector):
                 rtnValue = self.getDistnaceRtnValue()
                 time.sleep(1)
                 rtnValue1 = self.getDistnaceRtnValue()
-                logging.getLogger("HWR").info("set value: %s, RBV value: %s, RBV value 1: %s " %(str(setvalue), str(rtnValue), str(rtnValue)))
+                logging.getLogger("HWR").info(
+                    "set value: %s, RBV value: %s, RBV value 1: %s " % (str(setvalue), str(rtnValue), str(rtnValue)))
 
             logging.getLogger("HWR").info("set detect distance success, RBV value: %s" % str(rtnValue))
 
