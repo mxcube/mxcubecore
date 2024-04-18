@@ -33,14 +33,6 @@ class MICROMAXMD3(MAXIVMD3):
         self.image_width = None
         self.image_height = None
 
-        try:
-            self.channel_dict["CameraExposure"] = self.add_channel(
-                {"type": "exporter", "name": "CameraExposure"}, "CameraExposure"
-            )
-        except:
-            logging.getLogger("HWR").warning("Cannot initialize CameraExposure")
-            self.channel_dict["CameraExposure"] = None
-
     def state_changed(self, state):
         logging.getLogger("HWR").debug("State changed %s" % str(state))
         self.current_state = state

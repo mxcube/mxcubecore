@@ -752,17 +752,6 @@ class MAXIVMD3(GenericDiffractometer):
             % str(task_info)
         )
 
-    def wait_camera_exposure(self, value, timeout=10):
-        logging.getLogger("HWR").info(
-            "Waiting for camera exposure is set to %d" % value
-        )
-        with gevent.Timeout(
-            timeout, Exception("Timeout waiting for camera exposure setting")
-        ):
-            exp_time = self.channel_dict["CameraExposure"].get_value()
-            while int(exp_time) != value:
-                gevent.sleep(1)
-
     def set_phase(self, phase, wait=False, timeout=None):
         try:
             self.wait_ready(10)
@@ -789,21 +778,6 @@ class MAXIVMD3(GenericDiffractometer):
                 )
                 logging.getLogger("HWR").error(msg)
                 raise RuntimeError(msg)
-
-            if phase == "Centring":
-                logging.getLogger("HWR").info(
-                    "[MAXIVMD3] Wait for MD3 Camera exposure setting."
-                )
-                try:
-                    self.wait_camera_exposure(value=20000, timeout=20)
-                except Exception:
-                    try:
-                        self.wait_camera_exposure(value=20000, timeout=20)
-                    except Exception as ex:
-                        logging.getLogger("HWR").error(
-                            "[MAXIVMD3] Timeout while setting MD3 Camera exposure %s"
-                            % (ex)
-                        )
 
     def move_to_motors_positions(self, motors_positions, wait=False):
         """ """
@@ -993,23 +967,6 @@ class MAXIVMD3(GenericDiffractometer):
         self.command_dict["saveCentringPositions"]()
         logging.getLogger("HWR").info("saving centered positions in MD3.")
         self.last_centered_position = self.get_positions()
-
-    def set_camera_exposure(self, value):
-        """
-        Set MD3 camera exposure time
-        Try maximum five times
-        """
-        trials = 0
-        while trials < 5:
-            try:
-                time.sleep(1)
-                self.channel_dict["CameraExposure"].set_value(int(value))
-                logging.getLogger("HWR").info(
-                    "camera exposure time is set to %d " % int(value)
-                )
-                break
-            except:
-                trials += 1
 
     def park_cryo_cooler(self, value=False, wait=True):
         """

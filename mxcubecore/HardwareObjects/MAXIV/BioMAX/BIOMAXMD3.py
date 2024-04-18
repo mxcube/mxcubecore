@@ -28,24 +28,6 @@ class BIOMAXMD3(MAXIVMD3):
         super().init()
 
         self.zoom_centre = eval(self.get_property("zoom_centre"))
-        """
-        init CameraExposure channel seperately, also try it several times
-        due to the frequent TimeoutError when connecting to this channel
-        Note, this is a temporary fix until Arinax has a solution
-        """
-        init_trials = 0
-        camera_exposure = None
-        while init_trials < 5 and camera_exposure is None:
-            if init_trials > 0:
-                time.sleep(1)
-                logging.getLogger("HWR").warning(
-                    "Initializing MD3 CameraExposure Channel Failed, trying again."
-                )
-            camera_exposure = self.add_channel(
-                {"type": "exporter", "name": "CameraExposure"}, "CameraExposure"
-            )
-            init_trials += 1
-        self.channel_dict["CameraExposure"] = camera_exposure
 
     def wait_stable_loop(self, wait_time):
         logging.getLogger("user_level_log").info("Waiting loop to be stable...")
