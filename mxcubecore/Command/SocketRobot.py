@@ -7,16 +7,16 @@ import socket
 import gevent.lock
 import gevent.event
 import sys
-from .exporter import ExporterClient
+
+
 # from exporter.StandardClient import StandardClient, ProtocolError,SocketError     #不能家，会报错
-class TimeoutError(Exception):
-    """"""
+
 class SocketError(Exception):
     """"""
-class ProtocolError(Exception):
-    """Protype"""
+
 
 CLIENTS = {}
+
 
 class PROTOCOL:
     """Protocol"""
@@ -24,20 +24,21 @@ class PROTOCOL:
     DATAGRAM = 1
     STREAM = 2
 
+
 encode = str.encode
 
 _bytes = bytes
 
-
-ETX = 0     # b'\x00'
+ETX = 0  # b'\x00'
 
 MAX_SIZE_STREAM_MSG = 500000
 RET_NULL = "NULL"
 
 PARAMETER_SEPARATOR = " "
 
-#等待机械手回消息的timeout(与 和机械手创建socket连接时没有连上超时断开的timeout不一样)
+# 等待机械手回消息的timeout(与 和机械手创建socket连接时没有连上超时断开的timeout不一样)
 Timeout_recv = 180
+
 
 def empty_buffer():
     """Empty buffer"""
@@ -45,7 +46,6 @@ def empty_buffer():
 
 
 class StandardClientRobot:
-    #这个类对应/mxcubecore/Command/exporter/StandardClient.py脚本中的StandardClient类
     def __init__(self, server_ip, server_port, protocol, timeout, retries):
         self.server_ip = server_ip
         self.server_port = server_port
@@ -63,12 +63,12 @@ class StandardClientRobot:
         self.__constant_local_port = True
         self._is_connected = False
 
-
     def __create_socket(self):
         """Create socket"""
         self.__sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        print('set the timeout for socket connection',self.timeout)
+        print('set the timeout for socket connection', self.timeout)
         self.__sock.settimeout(self.timeout)
+
     def __close_socket(self):
 
         """Close socket"""
@@ -85,41 +85,39 @@ class StandardClientRobot:
         """Socket connect"""
         if self.protocol == PROTOCOL.DATAGRAM:
             return
-        print("self.__sock:",self.__sock)
+        print("self.__sock:", self.__sock)
         if self.__sock is None:
             self.__create_socket()
-            print("socket object after creating the socket：",self.__sock)
+            print("socket object after creating the socket：", self.__sock)
         print("self.__sock.connect function start to run")
-        #添加
+        # 添加
 
         # 20240116 调试
         # 下面的try, mxcube源代码只except了timeout，但实际上有各种socket报错，如socketaborterror，socketrefusederror
         # 然后报错时except没有接住异常，就会直接报错，然后被ActorSampleChanger的if_ErrorCode抓住
         try:
-            a=0 #a=0用于断点调试
-            if a==0:
+            a = 0  # a=0用于断点调试
+            if a == 0:
                 self.__sock.connect((self.server_ip, self.server_port))
             else:
-                raise ConnectionRefusedError        #如果主动raise这个异常是可以恢复状态不会卡住的
+                raise ConnectionRefusedError  # 如果主动raise这个异常是可以恢复状态不会卡住的
 
-        except socket.timeout: #如果没插网线，是不会有这个timeout报错的，会立刻直接报错 Error: [Errno 101] Network is unreachable，因此也不会返回False
+        except socket.timeout:  # 如果没插网线，是不会有这个timeout报错的，会立刻直接报错 Error: [Errno 101] Network is unreachable，因此也不会返回False
             print("connection timeout")
             return False
-        #20240116添加
+        # 20240116添加
         except Exception as e:
             print("some error when socket.connect(), close_socket manually")
             self.__close_socket()
             raise e
         else:
             print("self.__sock.connect function completed")
-            #重新设置等待机械手回信息的timeout
+            # 重新设置等待机械手回信息的timeout
             self.__sock.settimeout(Timeout_recv)
             self._is_connected = True
             self.error = None
             self.received_msg = None
             self.receiving_greenlet = gevent.spawn(self.recv_thread)
-
-
 
     def is_connected(self):
         """Check if connected
@@ -282,6 +280,7 @@ class StandardClientRobot:
             self.on_disconnected()
         except Exception:
             pass
+
     def __send_stream(self, cmd):
         """Send a command.
         Args:
@@ -289,7 +288,7 @@ class StandardClientRobot:
         """
         print(' into __send_stream function')
         if not self.is_connected():
-            self.connect()          #这里调用self.recv_thread
+            self.connect()  # 这里调用self.recv_thread
         try:
             print("get into try")
             print(cmd)
@@ -298,8 +297,8 @@ class StandardClientRobot:
             self.__sock.send(pack)
         except SocketError:
             self.disconnect()
-##################################################改过##########################################
 
+    ##################################################改过##########################################
 
     def __send_receive_stream(self, cmd):
         """Send/receive event.
@@ -372,15 +371,10 @@ class StandardClientRobot:
     def on_disconnected(self):
         """On disconnect"""
 
-CMD_METHOD_LIST = "LIST"
-CMD_PROPERTY_LIST = "PLST"
-CMD_NAME = "NAME"
-CMD_SYNC_CALL = "EXEC"
-CMD_ASNC_CALL = "ASNC"
-CMD_PROPERTY_WRITE = "WRTE"
+
 class SocketRobotClient(StandardClientRobot):
-    #这个类对应/mxcubecore/Command/exporter/ExporterClient.py脚本中的ExporterClient()类
     """SocketRobotClient class"""
+
     def on_message_received(self, msg):
         """Act if the message is an event, pass to StandardClient otherwise.
         Args:
@@ -431,8 +425,7 @@ class SocketRobotClient(StandardClientRobot):
         ret = self.send_receive(cmd)
         return self.__process_return(ret)
 
-
-    def execute(self, method, pars=None, timeout=-1,**kwargs):
+    def execute(self, method, pars=None, timeout=-1, **kwargs):
         """Execute a command synchronous.
         Args:
             method(str): Method name
@@ -440,35 +433,35 @@ class SocketRobotClient(StandardClientRobot):
             timeout(float): Timeout [s]
         """
         # print("进入二重execute函数")
-        cmd = "{}".format(method)    # CMD_SYNC_CALL = "EXEC"
+        cmd = "{} ".format(method)  # CMD_SYNC_CALL = "EXEC"
 
         if kwargs is not None:
-            if cmd == "Mount " or cmd =="Dismount ":
+            if cmd == "Mount " or cmd == "Dismount ":
                 args1 = 'Dewar=1'
-                args2 = 'Magazine='+str(kwargs['magazine'])
-                args3 = 'Position='+str(kwargs['position'])
-                args = [args1,args2,args3]
+                args2 = 'Magazine=' + str(kwargs['magazine'])
+                args3 = 'Position=' + str(kwargs['position'])
+                args = [args1, args2, args3]
                 for i in range(3):
                     cmd += args[i] + PARAMETER_SEPARATOR
-            elif cmd== "Exchange ":
+            elif cmd == "Exchange ":
                 args1 = 'OldDewar=1'
-                args2 = 'OldMagazine='+str(kwargs['oldMagazine'])
-                args3 = 'OldPosition='+str(kwargs['oldPosition'])
+                args2 = 'OldMagazine=' + str(kwargs['oldMagazine'])
+                args3 = 'OldPosition=' + str(kwargs['oldPosition'])
                 args4 = 'NewDewar=1'
-                args5 = 'NewMagazine='+str(kwargs['newMagazine'])
-                args6 = 'NewPosition='+str(kwargs['newPosition'])
-                args = [args1,args2,args3,args4,args5,args6]
+                args5 = 'NewMagazine=' + str(kwargs['newMagazine'])
+                args6 = 'NewPosition=' + str(kwargs['newPosition'])
+                args = [args1, args2, args3, args4, args5, args6]
                 for i in range(6):
                     cmd += args[i] + PARAMETER_SEPARATOR
-            elif cmd =="Abort ":
+            elif cmd == "Abort ":
                 self._lock.release()
                 print("command: abort，run self._lock.release()")
-        print("the default timeout of current command:",timeout)
+        print("the default timeout of current command:", timeout)
         ret = self.send_receive(cmd, timeout)
-        print("the return of execute function:",ret,type(ret))
+        print("the return of execute function:", ret, type(ret))
         # ret == False means the socket failed to connect
-        print("the return value of send_receice function: (False means connection failed)",ret)
-        if ret==False:
+        print("the return value of send_receice function: (False means connection failed)", ret)
+        if ret == False:
             return False
         return self.__process_return(ret)
 
@@ -484,9 +477,9 @@ class SocketRobotClient(StandardClientRobot):
 
         ret_list = ret.split(' ')
         index_ErrorCode = ret_list.index('ErrorCode')
-        ErrorCode = ret_list[index_ErrorCode+2]
+        ErrorCode = ret_list[index_ErrorCode + 2]
         print("Error:")
-        print(ErrorCode,type(ErrorCode),ErrorCode!='0')
+        print(ErrorCode, type(ErrorCode), ErrorCode != '0')
         if ErrorCode != '0':
             msg = "Robot: {}".format(str(ErrorCode))
             logging.getLogger("HWR").error(msg)
@@ -496,9 +489,6 @@ class SocketRobotClient(StandardClientRobot):
             return None
         else:
             return ret_list
-
-
-
 
     def execute_async(self, method, pars=None):
         """Execute command asynchronous.
@@ -585,13 +575,7 @@ class SocketRobotClient(StandardClientRobot):
         """Action"""
 
 
-
-
-
-
-
 class SocketRobot(SocketRobotClient, object):
-    #这个类对应/mxcubecore/Command/Exporter.py脚本的Exporter类
     """Exporter class"""
 
     STATE_EVENT = "State"
@@ -622,12 +606,14 @@ class SocketRobot(SocketRobotClient, object):
         self.callbacks = {}
         self.events_queue = Queue()
         self.events_processing_task = None
+
     def start(self):
         """Start"""
 
     def stop(self):
         """Stop"""
         self.disconnect()
+
     def execute(self, *args, **kwargs):
         """Execute"""
         # print("进入execute函数")
@@ -719,7 +705,6 @@ class SocketRobot(SocketRobotClient, object):
 
 
 def start_socket(address, port, timeout=10, retries=1):
-    #这个函数对应/mxcubecore/Command/Exporter.py脚本中的start_exporter()和函数
     """Start the exporter"""
     # 这里的timeout好像没有用？
     global CLIENTS
@@ -732,11 +717,9 @@ def start_socket(address, port, timeout=10, retries=1):
     return CLIENTS[(address, port)]
 
 
-
 class SocketRobotCommand(CommandObject):
-    #这个类对应/mxcubecore/Command/Exporter.py脚本中的ExporterCommand类
     def __init__(
-        self, name, command, username=None, address=None, port=None, timeout=5, **kwargs
+            self, name, command, username=None, address=None, port=None, timeout=5, **kwargs
     ):
         CommandObject.__init__(self, name, username, **kwargs)
         self.command = command
@@ -744,20 +727,20 @@ class SocketRobotCommand(CommandObject):
         msg = "Attaching SocketRobot command: {} {}".format(address, name)
         logging.getLogger("HWR").debug(msg)
 
-
     def __call__(self, *args, **kwargs):
         self.emit("commandBeginWaitReply", (str(self.name()),))
         logging.getLogger("HWR").debug("get in __call__ function of SocketRobotCommand class in SocketRobot.py")
         try:
-            ret = self.__socket.execute(self.command, args, kwargs.get("timeout", -1),**kwargs)  #.get(),如果timeout没有设置，输出默认值-1
-            
+            ret = self.__socket.execute(self.command, args, kwargs.get("timeout", -1),
+                                        **kwargs)  # .get(),如果timeout没有设置，输出默认值-1
+
         except Exception:
             self.emit("commandFailed", (-1, self.name()))
             print("__call__() in SocketRobot has error, already emit commandFailed")
             raise
         else:
             self.emit("commandReplyArrived", (ret, str(self.name())))
-            print("the ret value returned from __call__():",ret)
+            print("the ret value returned from __call__():", ret)
             return ret
 
     def abort(self):

@@ -1049,4 +1049,3 @@ class LNLSPilatusDet(AbstractDetector):
     #     self.update_state(HardwareObjectState.BUSY)
     #     time.sleep(2)
     #     self.update_state(HardwareObjectState.READY)
-

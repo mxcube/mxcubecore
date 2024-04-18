@@ -9,6 +9,7 @@ from mxcubecore.HardwareObjects.abstract.sample_changer import Container
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.queue_entry.base_queue_entry import CENTRING_METHOD
 
+
 # MD2 = HWR.beamline.diffractometer
 
 # print(HWR.beamline.sample_changer_maintenance.running)
@@ -17,27 +18,31 @@ def if_running_sc(func):
     """
     装饰器函数，用于取样上样时，进行判断，如果机械手在运行，则不操作直接返回（因为前端界面没有禁用按钮）
     """
-    def wrapper(self,sample,wait=False):
+
+    def wrapper(self, sample, wait=False):
         if HWR.beamline.sample_changer_maintenance.running == 1:
             logging.getLogger("user_level_log").info(
                 "机械手正在运动，请稍后操作"
             )
             return
-        return func(self,sample,wait)
+        return func(self, sample, wait)
+
     return wrapper
+
 
 def set_running_sc(func):
     """
     装饰器函数，在机械手通过此py文件运动时，设置CatsMaintMockup.py 中的 CatsMaintMockup类 的 self._running为1
     """
-    def wrapper(self,sample,wait):
-        #设置机械手在运动
+
+    def wrapper(self, sample, wait):
+        # 设置机械手在运动
         HWR.beamline.sample_changer_maintenance.change_running_state(1)
         HWR.beamline.sample_changer_maintenance._update_global_state()
         # print("设置完running状态：",HWR.beamline.sample_changer_maintenance.running)
 
         try:
-            res = func(self,sample,wait) #command的返回值ret,命令运行成功应该会返回机械手的返回信息，如果没有连通机械手返回False
+            res = func(self, sample, wait)  # command的返回值ret,命令运行成功应该会返回机械手的返回信息，如果没有连通机械手返回False
         except Exception as e:
             raise e
         finally:
@@ -53,28 +58,31 @@ def set_running_sc(func):
             )
             # 这个raise Exception要加，因为samplechanger.py的mount_sample_clean_up有个try判断
             raise Exception("socket timeout, please check the network connection")
+
     return wrapper
+
 
 def if_ErrorCode(func):
     """
     装饰器函数，用于当发送机械手命令，机械手返回报错时，获取报错信息，返回给load或者unload
     """
-    def wrapper(self,*args):
+
+    def wrapper(self, *args):
         try:
             print()
-            res = func(self,*args)
+            res = func(self, *args)
         except Exception as e:
-            print("type(e) from if_ErrorCode:",type(e))
-            print("e from if_ErrorCode::",e)
+            print("type(e) from if_ErrorCode:", type(e))
+            print("e from if_ErrorCode::", e)
             errorCode = e
             return errorCode
         else:
             return res
+
     return wrapper
 
-class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
-    #这个类对应/mxcubecore/HardwareObjects/mockup/SampleChangerMockup.py脚本中的SampleChangerMockup类
 
+class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
     __TYPE__ = "Actor"
     NO_OF_BASKETS = 5
     NO_OF_SAMPLES_IN_BASKET = 16
@@ -88,7 +96,6 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         self._scIsCharging = None
         self.centring_method = "AUTO_LOOP"
         # self.use_magnet = self.getroperty("")
-
 
         self.no_of_baskets = self.get_property(
             "no_of_baskets", ActorSampleChanger.NO_OF_BASKETS
@@ -110,9 +117,7 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
 
         self.log_filename = self.get_property("log_filename")
 
-
-
-        self._dewar=1
+        self._dewar = 1
         self.socket_addr = '10.30.61.73:10100'
         self._ifcloseLid_inBeginning = False
         self.count = 1
@@ -122,7 +127,7 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
             'Mount'
         )
         self._cmdUnMount = self.add_command(
-            {"type": "socketrobot", "socket_address": self.socket_addr, "name": '_cmdUnMount'},
+            {"type": "socketrobot", "socket_address": self.socket_addr, "name": '_cmdMount'},
             'Dismount'
         )
         self._cmdExchange = self.add_command(
@@ -136,30 +141,28 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         )
 
         self._ifcmdSucceeded = False
-        self.first_launch_mxcube=True #添加
+        self.first_launch_mxcube = True  # 添加
         self.if_check_mountedPin_from_camerman = False
-        self.write_sample_dir() #加载sample的prefix和subdir
+        self.write_sample_dir()  # 加载sample的prefix和subdir
         self.get_loaded_sample_fromstart()
 
-
-    def write_sample_dir(self):    #添加
+    def write_sample_dir(self):  # 添加
         """
         将目录从sc.xml写入二维列表
         self.proteinAcronym与
         self.default_prefix
         """
-        self.proteinAcronym=[["0" for j in range(self.no_of_samples_in_basket)]for i in range(self.no_of_baskets)]
+        self.proteinAcronym = [["0" for j in range(self.no_of_samples_in_basket)] for i in range(self.no_of_baskets)]
         for i in range(len(self.proteinAcronym)):
             for j in range(self.no_of_samples_in_basket):
-                xmlName = "subdir"+str(i+1)+"-"+str(j+1) #"subdir5-2"
+                xmlName = "subdir" + str(i + 1) + "-" + str(j + 1)  # "subdir5-2"
                 self.proteinAcronym[i][j] = self.get_property(xmlName)
 
-        self.default_prefix=[["0" for j in range(self.no_of_samples_in_basket)]for i in range(self.no_of_baskets)]
+        self.default_prefix = [["0" for j in range(self.no_of_samples_in_basket)] for i in range(self.no_of_baskets)]
         for i in range(len(self.default_prefix)):
             for j in range(self.no_of_samples_in_basket):
-                xmlName = "prefix"+str(i+1)+"-"+str(j+1) #"subdir5-2"
+                xmlName = "prefix" + str(i + 1) + "-" + str(j + 1)  # "subdir5-2"
                 self.default_prefix[i][j] = self.get_property(xmlName)
-
 
     # def load_sample(self, holder_length, sample_location=None, wait=False):
     #     if Microdiff.get_current_phase() != "Transfer:
@@ -167,15 +170,18 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
     #     self.load(sample_location, wait)
 
     @if_ErrorCode
-    def _do_mount(self,magazine,position):
-        return self._cmdMount(magazine=magazine,position=position)
+    def _do_mount(self, magazine, position):
+        return self._cmdMount(magazine=magazine, position=position)
+
     @if_ErrorCode
-    def _do_unmount(self,magazine,position):
-        return self._cmdUnMount(magazine=magazine,position=position)
+    def _do_unmount(self, magazine, position):
+        return self._cmdUnMount(magazine=magazine, position=position)
+
     @if_ErrorCode
-    def _do_exchange(self,oldMagazine,oldPosition,newMagazine,newPosition):
-        print("oldMagazine,oldPosition,NewMagazine,NewPosition:",oldMagazine,oldPosition,newMagazine,newPosition)
-        return self._cmdExchange(oldMagazine=oldMagazine,oldPosition=oldPosition,newMagazine=newMagazine,newPosition=newPosition)
+    def _do_exchange(self, oldMagazine, oldPosition, newMagazine, newPosition):
+        print("oldMagazine,oldPosition,NewMagazine,NewPosition:", oldMagazine, oldPosition, newMagazine, newPosition)
+        return self._cmdExchange(oldMagazine=oldMagazine, oldPosition=oldPosition, newMagazine=newMagazine,
+                                 newPosition=newPosition)
 
     @if_ErrorCode
     def _do_getStatus(self):
@@ -183,7 +189,6 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
 
     def get_log_filename(self):
         return self.log_filename
-
 
     def load_sample(self, holder_length, sample_location=None, wait=False):
         print("进入ActorSampleChanger.py的load_sample函数")
@@ -193,7 +198,7 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
     def ifcloseLid_inBeginning(self):
         return self._ifcloseLid_inBeginning
 
-    def change_ifcloseLid_inBeginning_state(self,state:bool):
+    def change_ifcloseLid_inBeginning_state(self, state: bool):
         self._ifcloseLid_inBeginning = state
 
     def MD2_Centring(self):
@@ -206,25 +211,23 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         elif self.centring_method == "MANUAL":
             logging.getLogger("HWR").info("CENTRING_METHOD: MANUAL CENTRING")
 
-
     @if_running_sc
     @set_running_sc
-    def exchange(self,newsample,wait=False):
+    def exchange(self, newsample, wait=False):
         print("进入exchange函数")
 
-        #检查md2
+        # 检查md2
         self.check_MD2_state()
         # self.check_MD2_Magnet()
 
         oldsample = self.get_loaded_sample().get_address()
-        print("oldsample: ",oldsample,"newsample: ",newsample)
+        print("oldsample: ", oldsample, "newsample: ", newsample)
         # print(type(oldsample),type(newsample)) # 两个str
         oldBasket, oldSample = oldsample.split(":")
         newBasket, newSample = newsample.split(":")
 
         # 清除oldsample 的 loaded属性
-        self.get_loaded_sample()._set_loaded(False, True)     #    def _set_loaded(self, loaded, has_been_loaded=None):
-
+        self.get_loaded_sample()._set_loaded(False, True)  # def _set_loaded(self, loaded, has_been_loaded=None):
 
         self.emit("fsmConditionChanged", "sample_mounting_sample_changer", True)
 
@@ -232,7 +235,6 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         newSample = int(newSample)
         oldBasket = int(oldBasket)
         oldSample = int(oldSample)
-
 
         msg = "Exchanging sample %d:%d" % (newBasket, newSample)
         logging.getLogger("user_level_log").info(
@@ -247,24 +249,29 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
             # time.sleep(0.001)      #不知道为什么要有这行，但这行原来是time.sleep(0.01)拖漫了大概有14s的时间,改成0.001从2s变到5s左右
         print("self.emit(progressStep,int(step/2)) ended")
 
-        print("oldSample!=newSample or oldBasket != newSample:",oldSample!=newSample or oldBasket != newBasket)
-        if oldSample!=newSample or oldBasket != newBasket:
+        print("oldSample!=newSample or oldBasket != newSample:", oldSample != newSample or oldBasket != newBasket)
+        if oldSample != newSample or oldBasket != newBasket:
             # 判断真实命令是否发送成功,_ifcmdSucceeded可能是机械手的返回信息，或者是因为socket连接问题所返回的False,
             # 如果机械手返回信息有报错，在cmd函数中就会raise exception,然后会在if_ErrorCode函数中(转换为int?)传递过来
-            self._ifcmdSucceeded = self._do_exchange(oldBasket, oldSample,newBasket,newSample)
+            self._ifcmdSucceeded = self._do_exchange(oldBasket, oldSample, newBasket, newSample)
             print("DEBUG!!!self._ifcmdSucceeded:", self._ifcmdSucceeded, type(self._ifcmdSucceeded))
 
-            #处理返回的_ifcmdSucceeded信息
-                # 如果命令返回False说明是socket连接没有连上
+            # 处理返回的_ifcmdSucceeded信息
+            # 如果命令返回False说明是socket连接没有连上
             if self._ifcmdSucceeded == False:
                 self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
                 return
             # 如果命令返回的类型是Exception，说明是机械手有报错
             # 20230714 添加新异常：<ConnectionRefusedError>
-            elif (type(self._ifcmdSucceeded) is Exception) or (type(self._ifcmdSucceeded) is OSError) or (type(self._ifcmdSucceeded) is TimeoutError) or (type(self._ifcmdSucceeded) is KeyError) or (type(self._ifcmdSucceeded) is ConnectionRefusedError)   or (type(self._ifcmdSucceeded) is ConnectionAbortedError) or (type(self._ifcmdSucceeded) is ConnectionResetError) or (type(self._ifcmdSucceeded) is BrokenPipeError):
+            elif (type(self._ifcmdSucceeded) is Exception) or (type(self._ifcmdSucceeded) is OSError) or (
+                    type(self._ifcmdSucceeded) is TimeoutError) or (type(self._ifcmdSucceeded) is KeyError) or (
+                    type(self._ifcmdSucceeded) is ConnectionRefusedError) or (
+                    type(self._ifcmdSucceeded) is ConnectionAbortedError) or (
+                    type(self._ifcmdSucceeded) is ConnectionResetError) or (
+                    type(self._ifcmdSucceeded) is BrokenPipeError):
                 # 在发生错误后恢复机械手的各种状态
                 print("there is some error with exchange command, start try to restore status")
-                #20240101 add x 3
+                # 20240101 add x 3
                 self.update_info()
                 self.emit("progressStop", ())
                 self.emit("fsmConditionChanged", "sample_mounting_sample_changer", True)
@@ -273,13 +280,12 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
                 HWR.beamline.sample_changer_maintenance._running = 0
                 HWR.beamline.sample_changer_maintenance._update_global_state()
 
-                
                 # 翻译来自机械手的errorCode
                 if type(self._ifcmdSucceeded) is Exception:
                     self._ifcmdSucceeded = str(self._ifcmdSucceeded)
                     self._ifcmdSucceeded = self._paraphrase_errorCode(self._ifcmdSucceeded)
                     logging.getLogger("user_level_log").error(
-                        "ErrorCode from robot:"+ self._ifcmdSucceeded+",please contact the teacher on duty")
+                        "ErrorCode from robot:" + self._ifcmdSucceeded + ",please contact the teacher on duty")
                     raise Exception(f"ErrorCode from robot: {self._ifcmdSucceeded}, please contact the teacher on duty")
                 else:
                     logging.getLogger("user_level_log").error(
@@ -303,8 +309,8 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         self.emit("fsmConditionChanged", "sample_mounting_sample_changer", False)
 
         self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
-        print("self.get_loaded_sample().get_address()",self.get_loaded_sample().get_address())
-        #计数
+        print("self.get_loaded_sample().get_address()", self.get_loaded_sample().get_address())
+        # 计数
         self.count += 1
         # 应该不需要下面这两行
         # if not self._ifcloseLid_inBeginning:
@@ -313,12 +319,9 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         # 上完样品，md2 变为centering
         self.MD2_Centring()
 
-        
         return self.get_loaded_sample()
 
-
-
-    def change_MD2_state(self,timeout=3):
+    def change_MD2_state(self, timeout=3):
         MD2 = HWR.beamline.diffractometer
         if MD2.get_current_phase() != "Transfer":
             MD2.set_phase("Transfer", wait=True)
@@ -330,29 +333,31 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         else:
             return False
 
-    def change_Cryo_state(self,timeout=1):
+    def change_Cryo_state(self, timeout=1):
         MD2 = HWR.beamline.diffractometer
         MD2.Cryo_Is_Back.set_value(True)
 
-
     def check_MD2_state(self):
         MD2 = HWR.beamline.diffractometer
-        #判断是否在对的phase
+        # 判断是否在对的phase
         if not self.change_MD2_state():
             logging.getLogger("user_level_log").error(
                 "The MD2 seems cannot change to sample change status while mounting, please try again first.")
-            raise Exception("The MD2 seems cannot change to sample change status while mounting, please try again first.")
-        #判断cryo是否在对的位置
-        # self.change_Cryo_state()
-        # logging.getLogger("HWR").info("Cryo state: %s ", str(MD2.Cryo_Is_Back.get_value()))
-        # if MD2.Cryo_Is_Back.get_value() != True:
-        #     logging.getLogger("user_level_log").error(
-        #         "The cryo seems cannot change to back position while mounting,please contact the teacher on duty")
-        #     raise Exception("The cryo seems cannot change to back position while mounting,please contact the teacher on duty")
-        # else:
-        #     print("get into safe waiting time for 0.5 second")
-        #     time.sleep(0.5)
-        #     print("safe waiting time ended")
+            raise Exception(
+                "The MD2 seems cannot change to sample change status while mounting, please try again first.")
+        # 判断cryo是否在对的位置
+        self.change_Cryo_state()
+        logging.getLogger("HWR").info("Cryo state: %s ", str(MD2.Cryo_Is_Back.get_value()))
+        if MD2.Cryo_Is_Back.get_value() != True:
+            logging.getLogger("user_level_log").error(
+                "The cryo seems cannot change to back position while mounting,please contact the teacher on duty")
+            raise Exception(
+                "The cryo seems cannot change to back position while mounting,please contact the teacher on duty")
+        else:
+            print("get into safe waiting time for 0.5 second")
+            time.sleep(0.5)
+            print("safe waiting time ended")
+
     def check_MD2_Magnet(self):
         MD2 = HWR.beamline.diffractometer
         # print("smart magnet: "+str(MD2.sample_isloaded_magnet.get_value()))
@@ -360,9 +365,8 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         if MD2.sample_isloaded_magnet.get_value():
             logging.getLogger("user_level_log").error(
                 "The smart magnet says there's a sample already been mounted, if there's not, please contact the teacher on duty")
-            raise Exception("The smart magnet says there's a sample already been mounted, if there's not, please contact the teacher on duty")
-
-
+            raise Exception(
+                "The smart magnet says there's a sample already been mounted, if there's not, please contact the teacher on duty")
 
     @if_running_sc
     @set_running_sc
@@ -374,9 +378,9 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         # print("self._cmdGetStatus")
         # print(ret)
         index_RobotLocation = ret.index('RobotLocation')
-        RobotLocation= ret[index_RobotLocation+2]
+        RobotLocation = ret[index_RobotLocation + 2]
 
-        #不在dewar里
+        # 不在dewar里
         if RobotLocation != "2":
             # 先判断是否closelid了
             if not self._ifcloseLid_inBeginning:
@@ -384,12 +388,13 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
                 HWR.beamline.sample_changer_maintenance._running = 0
                 HWR.beamline.sample_changer_maintenance._update_global_state()
 
-                logging.getLogger("user_level_log").error("please close the lid first")# doesn't work,can show on log message, don't know why
+                logging.getLogger("user_level_log").error(
+                    "please close the lid first")  # doesn't work,can show on log message, don't know why
                 logging.getLogger("HWR").debug("please close the lid first")
                 self.send_msg_to_statemessage("please close the lid first")
                 HWR.beamline.sample_changer_maintenance._update_global_state()
                 raise Exception("please close the lid first")
-        #在dewar里
+        # 在dewar里
         else:
             self.change_ifcloseLid_inBeginning_state(True)
 
@@ -400,10 +405,9 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         self.emit("fsmConditionChanged", "sample_mounting_sample_changer", True)
         previous_sample = self.get_loaded_sample()
 
-        #原来的位置,为了显示abort按钮和提示栏，把这两行注释掉 self._reset_loaded_sample() 应该是把所有sample执行sample._set_loaded(False)
+        # 原来的位置,为了显示abort按钮和提示栏，把这两行注释掉 self._reset_loaded_sample() 应该是把所有sample执行sample._set_loaded(False)
         # self._set_state(AbstractSampleChanger.SampleChangerState.Loading)   #把 abort按钮给消失了
         # self._reset_loaded_sample()     # 把提示栏消失了
-
 
         if isinstance(sample, tuple):
             basket, sample = sample
@@ -425,8 +429,9 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
             self.emit("progressStep", int(step / 2.0))
             # time.sleep(0.01)            #不知道为什么要有这行，但这行原来是time.sleep(0.01)拖漫了大概有14s的时间,改成0.001从2s变到5s左右
         time_after_emit_progressStep = time.time()
-        logging.getLogger("HWR").info("the time cost by emit progressInit and progressStrp: %s,%s", str(time_after_emit_progressInit-time_before_emit_progressInit)
-                                      ,str(time_after_emit_progressStep-time_after_emit_progressInit))
+        logging.getLogger("HWR").info("the time cost by emit progressInit and progressStrp: %s,%s",
+                                      str(time_after_emit_progressInit - time_before_emit_progressInit)
+                                      , str(time_after_emit_progressStep - time_after_emit_progressInit))
 
         mounted_sample = self.get_component_by_address(
             Container.Pin.get_sample_address(basket, sample)
@@ -436,11 +441,11 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         if mounted_sample is not previous_sample:
             # 判断真实命令是否发送成功,_ifcmdSucceeded可能是机械手的返回信息，或者是因为socket连接问题所返回的False,
             # 如果机械手返回信息有报错，在cmd函数中就会raise exception,然后会在if_ErrorCode函数中(转换为int?)传递过来
-            self._ifcmdSucceeded = self._do_mount(basket,sample)
-            print("self._ifcmdSucceeded:",self._ifcmdSucceeded,type(self._ifcmdSucceeded))
+            self._ifcmdSucceeded = self._do_mount(basket, sample)
+            print("self._ifcmdSucceeded:", self._ifcmdSucceeded, type(self._ifcmdSucceeded))
 
-            #处理返回的_ifcmdSucceeded信息
-                # 如果命令返回False说明是socket连接没有连上
+            # 处理返回的_ifcmdSucceeded信息
+            # 如果命令返回False说明是socket连接没有连上
             if self._ifcmdSucceeded == False:
                 self._selected_sample = -1
                 self._selected_basket = -1
@@ -450,7 +455,8 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
                 return
 
             # 如果命令返回的类型是Exception，说明是机械手有报错
-            elif (type(self._ifcmdSucceeded) is Exception) or (type(self._ifcmdSucceeded) is OSError) or (type(self._ifcmdSucceeded) is TimeoutError):
+            elif (type(self._ifcmdSucceeded) is Exception) or (type(self._ifcmdSucceeded) is OSError) or (
+                    type(self._ifcmdSucceeded) is TimeoutError):
                 # 在发生错误后恢复机械手的各种状态
                 self._selected_sample = -1
                 self._selected_basket = -1
@@ -465,11 +471,12 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
                 HWR.beamline.sample_changer_maintenance._running = 0
                 HWR.beamline.sample_changer_maintenance._update_global_state()
 
-                #翻译来自机械手的errorCode
+                # 翻译来自机械手的errorCode
                 if type(self._ifcmdSucceeded) is Exception:
                     self._ifcmdSucceeded = str(self._ifcmdSucceeded)
                     self._ifcmdSucceeded = self._paraphrase_errorCode(self._ifcmdSucceeded)
-                logging.getLogger("user_level_log").error("ErrorCode from robot: %s, please contact the teacher on duty" % self._ifcmdSucceeded)
+                logging.getLogger("user_level_log").error(
+                    "ErrorCode from robot: %s, please contact the teacher on duty" % self._ifcmdSucceeded)
                 raise Exception(f"ErrorCode from robot: {self._ifcmdSucceeded}, please contact the teacher on duty")
 
             self._trigger_loaded_sample_changed_event(mounted_sample)
@@ -484,18 +491,14 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         self.emit("fsmConditionChanged", "sample_mounting_sample_changer", False)
 
         self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
-        print("self.get_loaded_sample().get_address()",self.get_loaded_sample().get_address())
-        #计数
+        print("self.get_loaded_sample().get_address()", self.get_loaded_sample().get_address())
+        # 计数
         self.count += 1
 
         # 上完样品，md2 变为centering
         self.MD2_Centring()
 
-
-
         return self.get_loaded_sample()
-
-
 
     def unload_error_recover(self):
         """
@@ -505,7 +508,6 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
         HWR.beamline.sample_changer_maintenance._running = 0
         HWR.beamline.sample_changer_maintenance._update_global_state()
-
 
     def clear_memory(self):
         """
@@ -536,7 +538,8 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         logging.getLogger("user_level_log").info("Unloading sample")
 
         try:
-            logging.getLogger("user_level_log").info("即将把样品下到的位置:"+sample_slot+",已上样样品本来所处的位置:"+self.get_loaded_sample().get_address())
+            logging.getLogger("user_level_log").info(
+                "即将把样品下到的位置:" + sample_slot + ",已上样样品本来所处的位置:" + self.get_loaded_sample().get_address())
         except AttributeError:
             logging.getLogger("user_level_log").error("还没有上样，无法取下样品")
 
@@ -556,7 +559,7 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         # 检查md2
         self.check_MD2_state()
 
-        if sample_slot==self.get_loaded_sample().get_address():
+        if sample_slot == self.get_loaded_sample().get_address():
             logging.getLogger("user_level_log").info("即将把样品下到的位置与已上样样品本来所处的位置一致，开始下样")
         else:
             logging.getLogger("user_level_log").error("即将把样品下到的位置与已上样样品本来所处的位置不一致")
@@ -564,22 +567,21 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
             self.unload_error_recover()
             raise Exception("the location selected is not the same as the location where the mounted sample was taken")
 
-
         sample = self.get_loaded_sample()
-        sample._set_loaded(False, True)     #    def _set_loaded(self, loaded, has_been_loaded=None):
-
+        sample._set_loaded(False, True)  # def _set_loaded(self, loaded, has_been_loaded=None):
 
         if self._selected_sample > 0 and self._selected_sample <= 16:
-            self._ifcmdSucceeded =  self._do_unmount(self._selected_basket,self._selected_sample)
+            self._ifcmdSucceeded = self._do_unmount(self._selected_basket, self._selected_sample)
             # 如果命令返回False说明是socket连接没有连上
             if self._ifcmdSucceeded == False:
                 self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
                 return
             # 如果命令返回的类型是Exception，说明是机械手有报错
-            elif (type(self._ifcmdSucceeded) is Exception) or (type(self._ifcmdSucceeded) is OSError) or (type(self._ifcmdSucceeded) is TimeoutError):
+            elif (type(self._ifcmdSucceeded) is Exception) or (type(self._ifcmdSucceeded) is OSError) or (
+                    type(self._ifcmdSucceeded) is TimeoutError):
 
                 self.unload_error_recover()
-                self._ifcmdSucceeded  = str(self._ifcmdSucceeded)
+                self._ifcmdSucceeded = str(self._ifcmdSucceeded)
                 raise Exception(f"ErrorCode from robot: {self._ifcmdSucceeded}, please contact the teacher on duty")
 
             self._selected_basket = -1
@@ -590,11 +592,10 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
 
             self.emit("fsmConditionChanged", "sample_is_loaded", False)
 
-            #20231226. make close lid state to false after unload.
+            # 20231226. make close lid state to false after unload.
             self.change_ifcloseLid_inBeginning_state(False)
         else:
             logging.getLogger("HWR").debug("cannot unload, the location is wrong")
-
 
     def synchronize_with_camerman(self):
         # 判断机械手当前状态，如果位置在dewar里，就不用判断close lid
@@ -638,10 +639,7 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
 
         return ret
 
-
-
-
-    def _paraphrase_errorCode(self,errorCode):
+    def _paraphrase_errorCode(self, errorCode):
         if errorCode == "62":
             return "Dewar plug not in correct location when dewar open or close program called, usually caused by the insensitivty of the sensor beneath the lid"
         elif errorCode == "24":
@@ -661,12 +659,10 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         else:
             return errorCode
 
-
-
     def get_loaded_sample_fromstart(self):
         try:
             if self.first_launch_mxcube:
-                self.first_launch_mxcube=False
+                self.first_launch_mxcube = False
         except AttributeError:
             pass
         else:
@@ -695,26 +691,21 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         #     "%s[-2][2] invoked me",s
         # )
 
-
-
-
         return self.get_component_by_address(
             Container.Pin.get_sample_address(
                 self._selected_basket, self._selected_sample
             )
         )
 
-
-
     def is_mounted_sample(self, sample):
         return (
-            self.get_component_by_address(
-                Container.Pin.get_sample_address(sample[0], sample[1])
-            )
-            == self.get_loaded_sample()
+                self.get_component_by_address(
+                    Container.Pin.get_sample_address(sample[0], sample[1])
+                )
+                == self.get_loaded_sample()
         )
 
-    def send_msg_to_statemessage(self,msg):
+    def send_msg_to_statemessage(self, msg):
         HWR.beamline.sample_changer_maintenance.change_message_error(msg)
 
     def send_sample_address_to_statemessage(self):
@@ -793,9 +784,6 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
             sample._set_holder_length(spl[4])
 
         self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
-
-
-
 
     def notice_for_developer(self):
         """

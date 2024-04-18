@@ -18,7 +18,7 @@ import time
 __author__ = "Mikel Eguiraun"
 __credits__ = ["The MxCuBE collaboration"]
 
-#对应/mxcubecore/HardwareObjects/CatsMaint.py脚本文件
+
 TOOL_FLANGE, TOOL_UNIPUCK, TOOL_SPINE, TOOL_PLATE, TOOL_LASER, TOOL_DOUBLE_GRIPPER = (
     0,
     1,
@@ -142,8 +142,11 @@ def if_ErrorCode(func):
 
 
 
+
+
+
 class ActorMaint(Equipment):
-    # 对应/mxcubecore/HardwareObjects/CatsMaint.py脚本文件中的CatsMaint类
+
     __TYPE__ = "CATS"
     NO_OF_LIDS = 3
 
