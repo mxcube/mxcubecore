@@ -240,7 +240,6 @@ force-exclude = '''
   | mxcubecore/HardwareObjects/mockup/PlateManipulatorMockup.py
   | mxcubecore/model/crystal_symmetry.py
   | mxcubecore/HardwareObjects/XSDataMXCuBEv1_4.py
-  | mxcubecore/model/queue_model_objects.py
   | mxcubecore/HardwareObjects/XSDataMXv1.py
 )
 '''
