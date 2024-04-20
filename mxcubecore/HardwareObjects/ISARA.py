@@ -34,16 +34,10 @@ __credits__ = ["The MXCuBE collaboration"]
 
 __email__ = "mikel.eguiraun@maxiv.lu.se"
 
-#
-# Attention. Numbers here correspond to values returned by CassetteType of device server
-#
-BASKET_UNKNOWN, BASKET_SPINE, BASKET_UNIPUCK = (0, 1, 2)
-
-#
-# Number of samples per puck type
-#
-SAMPLES_SPINE = 10
-SAMPLES_UNIPUCK = 16
+# number of pucks in the dewar
+NUMBER_OF_PUCKS = 29
+# number of samples per puck
+NUMBER_OF_SAMPLES = 16
 
 
 def cats_basket_presence_void(value, basket=1):
@@ -78,17 +72,10 @@ class Basket(Container):
         self.get_container()._trigger_info_changed_event()
 
 
-class SpineBasket(Basket):
-    def __init__(self, container, number, name="SpinePuck"):
-        super(SpineBasket, self).__init__(
-            container, Basket.get_basket_address(number), SAMPLES_SPINE, True
-        )
-
-
 class UnipuckBasket(Basket):
     def __init__(self, container, number, name="UniPuck"):
         super(UnipuckBasket, self).__init__(
-            container, Basket.get_basket_address(number), SAMPLES_UNIPUCK, True
+            container, Basket.get_basket_address(number), NUMBER_OF_SAMPLES, True
         )
 
 
@@ -125,7 +112,6 @@ class ISARA(SampleChanger):
     __TYPE__ = "ISARA"
 
     default_no_lids = 3
-    default_basket_type = BASKET_SPINE
 
     def __init__(self, *args, **kwargs):
         super(ISARA, self).__init__(self.__TYPE__, False, *args, **kwargs)
@@ -159,11 +145,6 @@ class ISARA(SampleChanger):
         self.cats_state = PyTango.DevState.UNKNOWN
         self.cats_lids_closed = False
         self.cats_model = "ISARA"
-
-        self.basket_types = None
-
-        self.number_of_baskets = 29
-        self.samples_per_basket = SAMPLES_UNIPUCK
 
         # Create channels from XML
 
@@ -339,14 +320,6 @@ class ISARA(SampleChanger):
                 "barcode",
             )
 
-        # see if the device server can return CassetteTypes (and then number of
-        # cassettes/baskets)
-        try:
-            self.basket_types = self.cats_device.read_attribute("CassetteType").value
-            self.number_of_baskets = len(self.basket_types)
-        except PyTango.DevFailed as ex:
-            pass
-
         # declare channels to detect basket presence changes
         self.basket_channels = None
         self._chnBasketPresence = self.get_channel_object(
@@ -389,7 +362,7 @@ class ISARA(SampleChanger):
 
         # connect presence channels
         if self.basket_channels is not None:  # old device server
-            for basket_index in range(self.number_of_baskets):
+            for basket_index in range(NUMBER_OF_PUCKS):
                 channel = self.basket_channels[basket_index]
                 channel.connect_signal("update", self.cats_basket_presence_changed)
         else:  # new device server with global CassettePresence attribute
@@ -429,20 +402,13 @@ class ISARA(SampleChanger):
         """
         logging.getLogger("HWR").warning("Cats90:  initializing contents")
 
-        self.basket_presence = [None] * self.number_of_baskets
+        self.basket_presence = [None] * NUMBER_OF_PUCKS
 
-        for i in range(self.number_of_baskets):
-            if self.basket_types[i] == BASKET_SPINE:
-                basket = SpineBasket(self, i + 1)
-            elif self.basket_types[i] == BASKET_UNIPUCK:
-                basket = UnipuckBasket(self, i + 1)
-            else:
-                basket = Basket(self, i + 1, samples_num=self.samples_per_basket)
-
-            self._add_component(basket)
+        for n in range(1, NUMBER_OF_PUCKS + 1):
+            self._add_component(UnipuckBasket(self, n))
 
         # write the default basket information into permanent Basket objects
-        for basket_index in range(self.number_of_baskets):
+        for basket_index in range(NUMBER_OF_PUCKS):
             basket = self.get_components()[basket_index]
             datamatrix = None
             present = scanned = False
@@ -450,7 +416,7 @@ class ISARA(SampleChanger):
 
         # create temporary list with default sample information and indices
         sample_list = []
-        for basket_index in range(self.number_of_baskets):
+        for basket_index in range(NUMBER_OF_PUCKS):
             basket = self.get_components()[basket_index]
             for sample_index in range(basket.get_number_of_samples()):
                 sample_list.append(
@@ -541,11 +507,7 @@ class ISARA(SampleChanger):
         basket = None
         sample = None
         try:
-            if (
-                basket_no is not None
-                and basket_no > 0
-                and basket_no <= self.number_of_baskets
-            ):
+            if basket_no is not None and basket_no > 0 and basket_no <= NUMBER_OF_PUCKS:
                 basket = self.get_component_by_address(
                     Basket.get_basket_address(basket_no)
                 )
@@ -834,8 +796,8 @@ class ISARA(SampleChanger):
         self._update_state()
 
     def cats_basket_presence_changed(self, value):
-        presence = [None] * self.number_of_baskets
-        for basket_index in range(self.number_of_baskets):
+        presence = [None] * NUMBER_OF_PUCKS
+        for basket_index in range(NUMBER_OF_PUCKS):
             value = self.basket_channels[basket_index].get_value()
             presence[basket_index] = value
 
@@ -1107,24 +1069,6 @@ class ISARA(SampleChanger):
     def basketsample_to_lidsample(self, basket, num):
         return basket, num
 
-    def tool_for_basket(self, basketno):
-
-        basket_type = self.basket_types[basketno - 1]
-
-        if basket_type == BASKET_SPINE:
-            tool = TOOL_SPINE
-        elif basket_type == BASKET_UNIPUCK:
-            tool = self.unipuck_tool  # configurable (xml and command set_unipuck_tool()
-        else:
-            tool = -1
-
-        logging.getLogger("HWR").debug(
-            "   finding basket type for %s - is %s / tool is %s"
-            % (basketno, basket_type, tool)
-        )
-
-        return tool
-
     def get_current_tool(self):
         tool_str = self._chnCurrentTool.get_value()
         return tool_str
@@ -1199,7 +1143,7 @@ class ISARA(SampleChanger):
         :rtype: None
         """
         _cassette_presence = self._chnBasketPresence.get_value()
-        for basket_index in range(self.number_of_baskets):
+        for basket_index in range(NUMBER_OF_PUCKS):
             is_present = _cassette_presence[basket_index]
             self.basket_presence[basket_index] = is_present
         self._update_cats_contents()
@@ -1209,7 +1153,7 @@ class ISARA(SampleChanger):
         logging.getLogger("HWR").warning(
             "Updating contents %s" % str(self.basket_presence)
         )
-        for basket_index in range(self.number_of_baskets):
+        for basket_index in range(NUMBER_OF_PUCKS):
             # get saved presence information from object's internal bookkeeping
             basket = self.get_components()[basket_index]
             is_present = self.basket_presence[basket_index]
@@ -1253,30 +1197,3 @@ class ISARA(SampleChanger):
         self._trigger_contents_updated_event()
         self._update_loaded_sample()
         self._trigger_info_changed_event()
-
-
-def test_hwo(hwo):
-    basket_list = hwo.get_basket_list()
-    sample_list = hwo.get_sample_list()
-    gevent.sleep(2)
-    sample_list = hwo.get_sample_list()
-
-    for s in sample_list:
-        if s.is_loaded():
-            print("Sample %s loaded" % s.get_address())
-            break
-
-    if hwo.has_loaded_sample():
-        print(
-            (
-                "Currently loaded (%s): %s"
-                % (hwo.has_loaded_sample(), hwo.get_loaded_sample().get_address())
-            )
-        )
-    print("CATS state is: ", hwo.state)
-    print("Sample on Magnet : ", hwo.cats_sample_on_diffr())
-
-    print("Sample Changer State is: ", hwo.get_status())
-    for basketno in range(hwo.number_of_baskets):
-        no = basketno + 1
-        print("Tool for basket %d is: %d" % (no, hwo.tool_for_basket(no)))
