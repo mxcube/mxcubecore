@@ -39,7 +39,6 @@ class LdapAuthenticator(AbstractAuthenticator):
         ldaphost = self.get_property("ldaphost")
         ldapport = self.get_property("ldapport")
         domain = self.get_property("ldapdomain")
-        ldapou = self.get_property("ldapou")
 
         if ldaphost is None:
             logging.getLogger("HWR").error(
@@ -84,7 +83,7 @@ class LdapAuthenticator(AbstractAuthenticator):
         if self._ldapConnection is not None:
             try:
                 self._ldapConnection.result(timeout=0)
-            except ldap.LDAPError as err:
+            except ldap.LDAPError:
                 ldaphost = self.get_property("ldaphost")
                 ldapport = self.get_property("ldapport")
                 if ldapport is None:
@@ -107,11 +106,11 @@ class LdapAuthenticator(AbstractAuthenticator):
             except (IndexError, KeyError, ValueError, TypeError):
                 msg = "generic LDAP error"
 
-            logging.getLogger("HWR").debug("LdapAuthenticator: %s" % msg)
-
             self._reconnect()
 
-        return (False, msg)
+        logging.getLogger("HWR").info("LdapAuthenticator: %s" % msg)
+
+        return False
 
     def get_field_values(self):
         return self._field_values
@@ -159,20 +158,23 @@ class LdapAuthenticator(AbstractAuthenticator):
             return self._cleanup(msg="invalid password for %s" % username)
 
         logging.getLogger("HWR").debug("LdapAuthenticator: validating %s" % username)
+
         try:
             bind_str = "uid=%s, ou=%s, %s" % (username, self.ldapou, self.domstr)
-        except AttributeError as attr:
+        except AttributeError:
             bind_str = "uid=%s,%s" % (username, self.domstr)
+
         logging.getLogger("HWR").debug("LdapAuthenticator: binding to %s" % bind_str)
         handle = self._ldapConnection.simple_bind(bind_str, password)
+
         try:
-            result = self._ldapConnection.result(handle)
+            self._ldapConnection.result(handle)
         except ldap.INVALID_CREDENTIALS:
             # try second time with different bind_str
             bind_str = "uid=%s, ou=people,%s" % (username, self.domstr)
             handle = self._ldapConnection.simple_bind(bind_str, password)
             try:
-                result = self._ldapConnection.result(handle)
+                self._ldapConnection.result(handle)
             except Exception:
                 return self._cleanup(msg="invalid password for %s" % username)
         except ldap.LDAPError as err:
