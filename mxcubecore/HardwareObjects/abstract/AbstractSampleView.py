@@ -273,8 +273,7 @@ class AbstractSampleView(HardwareObject):
         return
 
     @abc.abstractmethod
-    def inc_used_for_collection(self):
-        # Signature incompatible with SampleView
+    def inc_used_for_collection(self, cpos):
         """Increase the counter that keepts on collect made on this shape,
         shape with associated CentredPosition cpos.
         Args:

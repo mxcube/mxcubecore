@@ -49,10 +49,8 @@ class SampleView(AbstractSampleView):
                 motor_ho.connect("stateChanged", self._update_shape_positions)
 
     def _update_shape_positions(self, *args, **kwargs):
-        shapes_updated = False
 
         for shape in self.get_shapes():
-            previous_screen_coord = shape.screen_coord
             shape.update_position(HWR.beamline.diffractometer.motor_positions_to_screen)
 
         self.emit("shapesChanged")
@@ -99,13 +97,13 @@ class SampleView(AbstractSampleView):
             bw(bool): return grayscale image
         """
         if overlay:
-            img = self._ui_snapshot_cb(path, bw)
+            self._ui_snapshot_cb(path, bw)
         else:
             self.camera.take_snapshot(path, bw)
 
         self._last_oav_image = path
 
-    def get_last_image_path():
+    def get_last_image_path(self):
         return self._last_oav_image
 
     def add_shape(self, shape):
@@ -360,7 +358,7 @@ class SampleView(AbstractSampleView):
         Args:
             cpos (CenteredPosition): CenteredPosition of shape
         """
-        # Signature incompatible with AbstractSampleView
+        pass
 
 
 class Shape(object):
