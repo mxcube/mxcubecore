@@ -32,6 +32,13 @@ from mxcubecore.model import queue_model_enumerables
 try:
     from mxcubecore.model import crystal_symmetry
     from ruamel.yaml import YAML
+
+    # If you want to write out copies of the file, use typ="rt" instead
+    # pure=True uses yaml version 1.2, with fewere gotchas for strange type conversions
+    yaml = YAML(typ="safe", pure=True)
+    # The following are not needed for load, but define the default style.
+    yaml.default_flow_style = False
+    yaml.indent(mapping=4, sequence=4, offset=2)
 except Exception:
     logging.getLogger("HWR").warning(
         "Cannot import dependenices needed for GPHL workflows - GPhL workflows might not work"
@@ -2317,7 +2324,7 @@ class GphlWorkflow(TaskNode):
             fname = os.getenv("GPHL_TEST_INPUT")
             if os.path.isfile(fname):
                 with open(fname, "r", encoding="utf-8") as fp0:
-                    task = YAML.load(fp0)["task"]
+                    task = yaml.load(fp0)["task"]
                     print(task)
                     params.update(task["parameters"])
             else:
