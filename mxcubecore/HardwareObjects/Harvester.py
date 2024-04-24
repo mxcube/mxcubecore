@@ -355,7 +355,14 @@ class Harvester(HardwareObject):
 
         Args (str) : Crystal uuid
         """
-        return self._execute_cmd_exporter("harvestCrystal", crystal_uuid, command=True)
+        try:
+            self._execute_cmd_exporter("harvestCrystal", crystal_uuid, command=True)
+            return "Crystal Harvested properly"
+        except Exception:
+            logging.getLogger("user_level_log").warning(
+                f"Warning: Could not harvest sample: {crystal_uuid}"
+            )
+            return "Could not Harvest Crystal"
 
     def transfer_sample(self) -> None:
         """Transfer the current Harvested Crystal"""
@@ -518,7 +525,7 @@ class Harvester(HardwareObject):
         except (ValueError, IndexError):
             current_queue_index = None
 
-        wait_before_load = False if self.get_room_temperature_mode() else True
+        wait_before_load = not self.get_room_temperature_mode()
         if sample_uuid in ["undefined", "", None]:
             sample_uuid = current_queue[data_model.loc_str]["code"]
 

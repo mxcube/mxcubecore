@@ -205,3 +205,17 @@ class EMBLFlexHarvester(EMBLFlexHCD):
         self._loaded_sample = loaded_sample
 
         return self._set_loaded_sample_and_prepare(loaded_sample, previous_sample)
+
+    def harvest_and_mount_sample(self, xtal_uuid: str, sampleID: str) -> bool:
+        """
+        return (Bool) : wether the crystal has been Harvest then mount
+
+        """
+        try:
+            self._harvester_hwo.harvest_crystal(xtal_uuid)
+            self._harvester_hwo._wait_sample_transfer_ready(None)
+
+            self._do_load(sampleID)
+        except Exception:
+            logging.getLogger("user_level_log").exception("Could not Harvest Crystal")
+            return "Could not Harvest Crystal"

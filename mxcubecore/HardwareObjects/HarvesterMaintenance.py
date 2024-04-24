@@ -277,7 +277,7 @@ class HarvesterMaintenance(HardwareObject):
                 calibrated_motor_offset["phiz"],
             )
 
-            self._harvester.calibration_state(False)
+            self._harvester.set_calibration_state(False)
         except Exception:
             logging.getLogger("user_level_log").exception(
                 "Pin Calibration / validation Failed"
