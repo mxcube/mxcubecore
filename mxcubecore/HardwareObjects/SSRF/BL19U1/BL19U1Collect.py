@@ -317,7 +317,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
                 nimage = nimage[0]['nimage']
 
 
-                if nimage >= 10:
+                if nimage > 10:
                     sql = "select max(autopx_queue_id) as max_autopx_queue_id, max(xia2_xds_queue_id) as max_xds_queue_id, max(xia2_dials_queue_id) as max_dials_queue_id, max(autoprocess_queue_id) as max_autoproc_queue_id from job"
                     um.cursor.execute(sql)
                     result = um.cursor.fetchall()
