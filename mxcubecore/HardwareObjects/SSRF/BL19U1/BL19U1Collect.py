@@ -309,41 +309,50 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
                 um.cursor.execute(sql)
 
 
-                sql = "select max(autopx_queue_id) as max_autopx_queue_id, max(xia2_xds_queue_id) as max_xds_queue_id, max(xia2_dials_queue_id) as max_dials_queue_id, max(autoprocess_queue_id) as max_autoproc_queue_id from job"
+
+
+                sql = "select nimage as nimage from job where uuid = '%s'" %(uuid)
                 um.cursor.execute(sql)
-                result = um.cursor.fetchall()
-
-                print("max_autopx_queue_id:", result[0]['max_autopx_queue_id'])
-                max_autopx_queue_id = result[0]['max_autopx_queue_id']
-                max_xds_queue_id = result[0]['max_xds_queue_id']
-                max_dials_queue_id = result[0]['max_dials_queue_id']
-                max_autoproc_queue_id = result[0]['max_autoproc_queue_id']
-
-                if max_autopx_queue_id is not None:
-                    next_autopx_queue_id = max_autopx_queue_id + 1
-                else:
-                    next_autopx_queue_id = 1
-                if max_xds_queue_id is not None:
-                    next_xds_queue_id = max_xds_queue_id + 1
-                else:
-                    next_xds_queue_id = 1
-                if max_dials_queue_id is not None:
-                    next_dials_queue_id = max_dials_queue_id + 1
-                else:
-                    next_dials_queue_id = 1
-                if max_autoproc_queue_id is not None:
-                    next_autoproc_queue_id = max_autoproc_queue_id +1
-                else:
-                    next_autoproc_queue_id = 1
+                nimage = um.cursor.fetchall()
+                nimage = nimage[0]['nimage']
 
 
-                logging.getLogger("HWR").debug("next_autopx_queue_id: %d , next_xds_queue_id: %d, next_dials_queue_id: %d, next_xds_queue_id: %d, next_autoproc_queue_id: %d",
-                                               next_autopx_queue_id, next_xds_queue_id,next_dials_queue_id,next_autoproc_queue_id)
-                waiting = "waiting..."
+                if nimage >= 10:
+                    sql = "select max(autopx_queue_id) as max_autopx_queue_id, max(xia2_xds_queue_id) as max_xds_queue_id, max(xia2_dials_queue_id) as max_dials_queue_id, max(autoprocess_queue_id) as max_autoproc_queue_id from job"
+                    um.cursor.execute(sql)
+                    result = um.cursor.fetchall()
 
-                sql = "UPDATE job SET autopx = '%s', xia2_xds_result = '%s',autoprocess_result = '%s', xia2_dials_result = '%s', autopx_queue_id = %d, xia2_xds_queue_id=%d,xia2_dials_queue_id=%d,autoprocess_queue_id=%d WHERE uuid = '%s'" % (
-                    waiting,waiting,waiting,waiting,next_autopx_queue_id,next_xds_queue_id,next_dials_queue_id,next_autoproc_queue_id,uuid)
-                um.cursor.execute(sql)
+                    print("max_autopx_queue_id:", result[0]['max_autopx_queue_id'])
+                    max_autopx_queue_id = result[0]['max_autopx_queue_id']
+                    max_xds_queue_id = result[0]['max_xds_queue_id']
+                    max_dials_queue_id = result[0]['max_dials_queue_id']
+                    max_autoproc_queue_id = result[0]['max_autoproc_queue_id']
+
+                    if max_autopx_queue_id is not None:
+                        next_autopx_queue_id = max_autopx_queue_id + 1
+                    else:
+                        next_autopx_queue_id = 1
+                    if max_xds_queue_id is not None:
+                        next_xds_queue_id = max_xds_queue_id + 1
+                    else:
+                        next_xds_queue_id = 1
+                    if max_dials_queue_id is not None:
+                        next_dials_queue_id = max_dials_queue_id + 1
+                    else:
+                        next_dials_queue_id = 1
+                    if max_autoproc_queue_id is not None:
+                        next_autoproc_queue_id = max_autoproc_queue_id +1
+                    else:
+                        next_autoproc_queue_id = 1
+
+
+                    logging.getLogger("HWR").debug("next_autopx_queue_id: %d , next_xds_queue_id: %d, next_dials_queue_id: %d, next_autoproc_queue_id: %d",
+                                                   next_autopx_queue_id, next_xds_queue_id,next_dials_queue_id,next_autoproc_queue_id)
+                    waiting = "waiting..."
+
+                    sql = "UPDATE job SET autopx = '%s', xia2_xds_result = '%s',autoprocess_result = '%s', xia2_dials_result = '%s', autopx_queue_id = %d, xia2_xds_queue_id=%d,xia2_dials_queue_id=%d,autoprocess_queue_id=%d WHERE uuid = '%s'" % (
+                        waiting,waiting,waiting,waiting,next_autopx_queue_id,next_xds_queue_id,next_dials_queue_id,next_autoproc_queue_id,uuid)
+                    um.cursor.execute(sql)
 
 
         except Exception as ex:
