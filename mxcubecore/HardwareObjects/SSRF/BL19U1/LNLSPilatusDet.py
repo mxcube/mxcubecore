@@ -726,38 +726,14 @@ class LNLSPilatusDet(AbstractDetector):
         try:
             with UsingMysql(log_time=True) as um:
 
-                if frame_number < 10:
-                    sql = "INSERT INTO job (nimage, src, dest, createtime, status, uuid ) VALUES (%d, '%s', '%s', '%s', '%s', '%s')" % (
-                        frame_number, path, path, completiontime, status, uuid)
-                    um.cursor.execute(sql)
-                    result = um.cursor.fetchall()
-                    logging.getLogger("HWR").debug("connect to mysql and result: %s", result)
-                else:
-                    sql = "select max(autopx_queue_id) as max_autopx_queue_id from job"
-                    um.cursor.execute(sql)
-                    max_autopx_queue_id = um.cursor.fetchall()
 
-                    print("max_autopx_queue_id:", max_autopx_queue_id[0]['max_autopx_queue_id'])
-                    max_autopx_queue_id = max_autopx_queue_id[0]['max_autopx_queue_id']
+                sql = "INSERT INTO job (nimage, src, dest, createtime, status, uuid ) VALUES (%d, '%s', '%s', '%s', '%s', '%s')" % (
+                    frame_number, path, path, completiontime, status, uuid)
+                um.cursor.execute(sql)
+                result = um.cursor.fetchall()
+                logging.getLogger("HWR").debug("connect to mysql and result: %s", result)
 
-                    if max_autopx_queue_id is not None:
-                        next_autopx_queue_id = max_autopx_queue_id + 1
-                    else:
-                        next_autopx_queue_id = 1
 
-                    logging.getLogger("HWR").debug("max_autopx_queue_id: %s , next_autopx_queue_id: %s",
-                                                   max_autopx_queue_id, next_autopx_queue_id)
-                    waiting = "waiting..."
-                    sql = "INSERT INTO job (nimage, src, dest, createtime, status, uuid, autopx_queue_id, xia2_xds_result, autoprocess_result, xia2_dials_result, autopx) VALUES (%d, '%s', '%s', '%s', '%s', '%s',%d, '%s', '%s', '%s', '%s')" % (
-                        frame_number, path, path, completiontime, status, uuid, next_autopx_queue_id, waiting, waiting,
-                        waiting, waiting)
-                    sql = "INSERT INTO job (nimage, src, dest, createtime, status, uuid, autopx_queue_id) VALUES (%d, '%s', '%s', '%s', '%s', '%s',%d)" % (
-                        frame_number, path, path, completiontime, status, uuid, next_autopx_queue_id)
-                    sql = "INSERT INTO job (nimage, src, dest, createtime, status, uuid, autopx_queue_id, autopx) VALUES (%d, '%s', '%s', '%s', '%s', '%s',%d, '%s')" % (
-                        frame_number, path, path, completiontime, status, uuid, next_autopx_queue_id, waiting)
-                    um.cursor.execute(sql)
-                    result = um.cursor.fetchall()
-                    logging.getLogger("HWR").debug("connect to mysql and result: %s", result)
 
 
 
