@@ -98,6 +98,9 @@ class JungfrauDetector(AbstractDetector):
     def send_software_trigger(self):
         self.dev.SoftwareTrigger()
 
+    def get_storage_cell_count(self):
+        return self.dev.storage_cell_count
+
     def get_minimum_exposure_time(self) -> float:
         """
         current minimum exposure time, in seconds, inclusive
