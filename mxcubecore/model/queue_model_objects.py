@@ -338,14 +338,6 @@ class Sample(TaskNode):
             return False
         return False
 
-    def has_protein_acronym(self):
-        try:
-            if hasattr(self.crystals[0], "protein_acronym"):
-                return True
-        except (AttributeError, IndexError):
-            return False
-        return False
-
     def get_name(self):
         return self._name
 
@@ -451,12 +443,10 @@ class Sample(TaskNode):
         if hasattr(lims_sample, "containerSampleChangerLocation") and hasattr(
             lims_sample, "sampleLocation"
         ):
-
             if (
                 lims_sample.containerSampleChangerLocation
                 and lims_sample.sampleLocation
             ):
-
                 self.lims_sample_location = int(lims_sample.sampleLocation)
                 self.lims_container_location = int(
                     lims_sample.containerSampleChangerLocation
@@ -655,7 +645,6 @@ class DataCollection(TaskNode):
         DataCollection.processing_methods = processing_methods
 
     def as_dict(self):
-
         acq = self.acquisitions[0]
         path_template = acq.path_template
         parameters = acq.acquisition_parameters
@@ -1486,7 +1475,6 @@ class Acquisition(object):
             self.acquisition_parameters.num_images
             + self.acquisition_parameters.first_image,
         ):
-
             path = os.path.join(
                 self.path_template.get_archive_directory(),
                 self.path_template.get_image_file_name(suffix="thumb.jpeg") % i,
@@ -1683,7 +1671,6 @@ class PathTemplate(object):
             if self.start_num < (
                 rh_pt.start_num + rh_pt.num_files
             ) and rh_pt.start_num < (self.start_num + self.num_files):
-
                 result = True
 
         return result
@@ -1693,7 +1680,6 @@ class PathTemplate(object):
         file_name_template = self.get_image_file_name()
 
         for i in range(self.start_num, self.start_num + self.num_files):
-
             file_locations.append(os.path.join(self.directory, file_name_template % i))
 
         return file_locations
@@ -1710,7 +1696,6 @@ class PathTemplate(object):
                 and path_template.num_files + path_template.start_num
                 <= self.num_files + self.start_num
             ):
-
                 result = True
         else:
             result = False
