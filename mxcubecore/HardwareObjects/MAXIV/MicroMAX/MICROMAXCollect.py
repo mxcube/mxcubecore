@@ -1211,6 +1211,19 @@ class MICROMAXCollect(DataCollect):
         self.display["file_name1"] = file_parameters["filename"]
         config["FilenamePattern"] = name_pattern
 
+        # for Jungfrau
+        sample_info = self.current_dc_parameters["sample_reference"]
+        cell = sample_info.get("cell", "0,0,0,0,0,0")
+        if cell == ",,,,,":
+            cell = "0,0,0,0,0,0"
+        cell_float = [float(x) for x in cell.split(",")]
+        config["UnitCellA"] = cell_float[0]
+        config["UnitCellB"] = cell_float[1]
+        config["UnitCellC"] = cell_float[2]
+        config["UnitCellAlpha"] = cell_float[3]
+        config["UnitCellBeta"] = cell_float[4]
+        config["UnitCellGamma"] = cell_float[5]
+
         # make sure the filewriter is enabled
         self.detector_hwobj.enable_filewriter()
         self.detector_hwobj.enable_stream()

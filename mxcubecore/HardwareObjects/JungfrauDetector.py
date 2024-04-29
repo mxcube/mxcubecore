@@ -62,6 +62,12 @@ class JungfrauDetector(AbstractDetector):
             "FilenamePattern": None,
             "PhotonEnergy": None,
             "TriggerMode": "exts",
+            "UnitCellA": None,
+            "UnitCellB": None,
+            "UnitCellC": None,
+            "UnitCellAlpha": None,
+            "UnitCellBeta": None,
+            "UnitCellGamma": None,
         }
 
     def init(self):
@@ -153,6 +159,12 @@ class JungfrauDetector(AbstractDetector):
         dev.detector_distance_mm = meter_to_mm(config["DetectorDistance"])
         dev.images_per_trigger = config["NbImages"]
         dev.ntrigger = config["NbTriggers"]
+        dev.unit_cell__a = config["UnitCellA"]
+        dev.unit_cell__b = config["UnitCellB"]
+        dev.unit_cell__c = config["UnitCellC"]
+        dev.unit_cell__alpha = config["UnitCellAlpha"]
+        dev.unit_cell__beta = config["UnitCellBeta"]
+        dev.unit_cell__gamma = config["UnitCellGamma"]
 
         exposure_time = sec_to_us(config["CountTime"])
         dev.summation = math.ceil(exposure_time / dev.frame_time_us)
