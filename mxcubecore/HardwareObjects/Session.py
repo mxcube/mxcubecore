@@ -281,8 +281,8 @@ class Session(HardwareObject):
 
         if sample_data_node:
             name = sample_data_node.name
-            if sample_data_node.has_protein_acronym():
-                protein_acronym = sample_data_node.crystals[0].protein_acronym
+            protein_acronym = sample_data_node.crystals[0].protein_acronym
+            if protein_acronym:
                 if name:
                     prefix = "%s-%s" % (protein_acronym, name)
                 else:
