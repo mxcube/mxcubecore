@@ -411,6 +411,27 @@ class MAXIVAutoProcessing(HardwareObject):
         self.log.info("TODO: fix store_image_in_lims_by_frame_num method for nimages>1")
         return
 
+    def gen_crystfel_geom(self, geom_dict, proc_dir):
+        geom_file = os.path.join(proc_dir, "cryst.geom")
+        self.log.info(
+            "generate crystfel geometry file, {}, with info {}".format(
+                geom_file, geom_dict
+            )
+        )
+
+    def generate_crystfel_input_files(self, det_config, sample_ref, proc_dir, auto_dir):
+        """
+        Descript. : generate input files to run crystfel for SSX experiment
+        """
+        geom_dict = {
+            "energy_ev": det_config["energy"],
+            "det_dist": det_config["DetectorDistance"],
+            "beam_cent_x": det_config["BeamCenterX"],
+            "beam_cent_y": det_config["BeamCenterY"],
+        }
+        self.gen_crystfel_geom(geom_dict, proc_dir)
+        # self.gen_indexamajig(cell_file = pdb_file, proc_dir)
+
     def generate_and_copy_thumbnails(self, data_path, frame_number):
         if self.gen_thumbnail_script is None:
             self.log.warning(
