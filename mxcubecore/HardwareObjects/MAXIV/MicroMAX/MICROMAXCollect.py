@@ -1043,7 +1043,7 @@ class MICROMAXCollect(DataCollect):
     def create_file_directories(self):
         """
         Method create directories for raw files and processing files.
-        Directories for xds.input and auto_processing are created
+        Directories for process input and auto_processing are created
         """
         self.create_directories(
             self.current_dc_parameters["fileinfo"]["directory"],
@@ -1051,12 +1051,12 @@ class MICROMAXCollect(DataCollect):
         )
 
         """create processing directories and img links"""
-        xds_directory, auto_directory = self.prepare_input_files()
+        proc_directory, auto_directory = self.prepare_input_files()
         try:
-            self.create_directories(xds_directory, auto_directory)
+            self.create_directories(proc_directory, auto_directory)
             # temporary, to improve
             os.system(
-                "chmod -R 770 %s %s" % (os.path.dirname(xds_directory), auto_directory)
+                "chmod -R 770 %s %s" % (os.path.dirname(proc_directory), auto_directory)
             )
             """todo, create link of imgs for auto_processing
             try:
@@ -1069,8 +1069,8 @@ class MICROMAXCollect(DataCollect):
         except Exception:
             logging.exception("Could not create processing file directory")
             return
-        if xds_directory:
-            self.current_dc_parameters["xds_dir"] = xds_directory
+        if proc_directory:
+            self.current_dc_parameters["xds_dir"] = proc_directory
         if auto_directory:
             self.current_dc_parameters["auto_dir"] = auto_directory
 
@@ -1080,32 +1080,37 @@ class MICROMAXCollect(DataCollect):
         """
         i = 1
         self.user_log.info(
-            "Creating XDS (MAXIV-BioMAX) processing input file directories"
+            "Creating (MAXIV-MicroMAX) processing input file directories"
         )
 
         while True:
-            xds_input_file_dirname = "xds_%s_%s_%d" % (
+            if self.ssx_mode:
+                prefix = "crystfel"
+            else:
+                prefix = "xds"
+            proc_input_file_dirname = "{}_{}_{}_{}".format(
+                prefix,
                 self.current_dc_parameters["fileinfo"]["prefix"],
                 self.current_dc_parameters["fileinfo"]["run_number"],
                 i,
             )
-            xds_directory = os.path.join(
+            proc_directory = os.path.join(
                 self.current_dc_parameters["fileinfo"]["directory"],
                 "process",
-                xds_input_file_dirname,
+                proc_input_file_dirname,
             )
-            if not os.path.exists(xds_directory):
+            if not os.path.exists(proc_directory):
                 break
             i += 1
         auto_directory = os.path.join(
             self.current_dc_parameters["fileinfo"]["process_directory"],
-            xds_input_file_dirname,
+            proc_input_file_dirname,
         )
         self.log.info(
-            "[COLLECT] Processing input file directories: XDS: %s, AUTO: %s"
-            % (xds_directory, auto_directory)
+            "[COLLECT] Processing input file directories: PROC: %s, AUTO: %s"
+            % (proc_directory, auto_directory)
         )
-        return xds_directory, auto_directory
+        return proc_directory, auto_directory
 
     def move_detector(self, value):
         """
