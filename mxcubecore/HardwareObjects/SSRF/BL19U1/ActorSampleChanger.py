@@ -211,6 +211,12 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         elif self.centring_method == "MANUAL":
             logging.getLogger("HWR").info("CENTRING_METHOD: MANUAL CENTRING")
 
+    def test_exception(self):
+        try:
+            raise ConnectionRefusedError
+        except Exception as e:
+            return e
+
     @if_running_sc
     @set_running_sc
     def exchange(self, newsample, wait=False):
@@ -229,7 +235,10 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
         # 清除oldsample 的 loaded属性
         self.get_loaded_sample()._set_loaded(False, True)  # def _set_loaded(self, loaded, has_been_loaded=None):
 
+
         self.emit("fsmConditionChanged", "sample_mounting_sample_changer", True)
+
+
 
         newBasket = int(newBasket)
         newSample = int(newSample)
@@ -249,12 +258,18 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
             # time.sleep(0.001)      #不知道为什么要有这行，但这行原来是time.sleep(0.01)拖漫了大概有14s的时间,改成0.001从2s变到5s左右
         print("self.emit(progressStep,int(step/2)) ended")
 
+
+
+
         print("oldSample!=newSample or oldBasket != newSample:", oldSample != newSample or oldBasket != newBasket)
         if oldSample != newSample or oldBasket != newBasket:
             # 判断真实命令是否发送成功,_ifcmdSucceeded可能是机械手的返回信息，或者是因为socket连接问题所返回的False,
             # 如果机械手返回信息有报错，在cmd函数中就会raise exception,然后会在if_ErrorCode函数中(转换为int?)传递过来
             self._ifcmdSucceeded = self._do_exchange(oldBasket, oldSample, newBasket, newSample)
             print("DEBUG!!!self._ifcmdSucceeded:", self._ifcmdSucceeded, type(self._ifcmdSucceeded))
+
+
+            # self._ifcmdSucceeded = self.test_exception() #测试bug用
 
             # 处理返回的_ifcmdSucceeded信息
             # 如果命令返回False说明是socket连接没有连上
