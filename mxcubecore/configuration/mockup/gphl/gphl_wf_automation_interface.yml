@@ -31,7 +31,7 @@
       # Minimum % intensity remaining at target resolution if using recommended dose budget
       # dose_budget = 2 * resolution**2 * log(100. / decay_limit) / relative_sensitivity
       maximum_dose_budget: 20	# (MGy). Maximum when calculating budget from resolution
-      characterisation_budget_fraction: 0.05	# Dose to use for characterisation
+      characterisation_budget_fraction: 0.05	# fraction of dose to use for characterisation
 
       # Strategy name, matching strategylib.nml.
       auto_acq_parameters: # (list of dict) automation parameters for acquisitions. Optional.
@@ -60,7 +60,7 @@
           # Will be used to select a matching indexing solution,
           # and to determine acquisition strategy.
           # If no matching indexing solution is found, these will be ignored.
-          # Must be given i first (charteacerisation) set of  auto_acq_parameters
+          # Must be given in first (characterisation) set of auto_acq_parameters
 #          crystal_classes:
 #            - "4I"
 #            - "422I"
