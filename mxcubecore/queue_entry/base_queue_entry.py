@@ -367,7 +367,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
         self.interleave_task = None
         self.interleave_items = None
         self.interleave_sw_list = None
-        self.interleave_stoped = None
+        self.interleave_stopped = None
 
     def execute(self):
         BaseQueueEntry.execute(self)
@@ -537,7 +537,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
 
         self._queue_controller.emit("queue_interleaved_started")
         for item_index, item in enumerate(self.interleave_sw_list):
-            if not self.interleave_stoped:
+            if not self.interleave_stopped:
                 self.get_view().setText(
                     1,
                     "Subwedge %d:%d)"
@@ -611,7 +611,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
 
                 self._queue_controller.emit("queue_interleaved_sw_done", (sig_data,))
 
-        if not self.interleave_stoped:
+        if not self.interleave_stopped:
             logging.getLogger("queue_exec").info(
                 "%s collection finished" % method_type.title()
             )
@@ -629,7 +629,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
     def stop(self):
         BaseQueueEntry.stop(self)
         if self.interleave_task:
-            self.interleave_stoped = True
+            self.interleave_stopped = True
             self.interleave_task.kill()
         self.get_view().setText(1, "Interleave stoped")
 
@@ -695,7 +695,7 @@ class SampleQueueEntry(BaseQueueEntry):
                     log.info("Sample already mounted")
             else:
                 msg = (
-                    "SampleQueuItemPolicy does not have any "
+                    "SampleQueueItemPolicy does not have any "
                     + "sample changer hardware object, cannot "
                     + "mount sample"
                 )
