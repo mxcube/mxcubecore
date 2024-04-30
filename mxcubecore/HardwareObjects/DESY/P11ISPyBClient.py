@@ -26,8 +26,6 @@ class P11ISPyBClient(ISPyBClient):
             "PROPOSAL NUMBER is %s" % self.simulated_prop_number
         )
 
-        self.loginType = "user"
-
     def update_data_collection(self, mx_collection, wait=False):
         mx_collection["beamline_name"] = "P11"
         ISPyBClient.update_data_collection(self, mx_collection, wait)
@@ -39,6 +37,10 @@ class P11ISPyBClient(ISPyBClient):
     def store_image(self, image_dict):
         self.prepare_image_for_lims(image_dict)
         return ISPyBClient.store_image(self, image_dict)
+
+    def store_robot_action(self, robot_action_dict):
+        # TODO ISPyB is not ready for now. This prevents from error 500 from the server.
+        pass
 
     def prepare_collect_for_lims(self, mx_collect_dict):
         # Attention! directory passed by reference. modified in place

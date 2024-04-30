@@ -53,7 +53,7 @@ class P11BackLight(AbstractNState):
 
     def __init__(self, name):
 
-        super(AbstractNState, self).__init__(name)
+        super().__init__(name)
 
         self.cmd_open_close = None
         self.cmd_started = 0
@@ -72,7 +72,7 @@ class P11BackLight(AbstractNState):
             self.chan_value.connect_signal("update", self.update_light_state)
 
         self.update_light_state(self.chan_value.get_value())
-        super(AbstractNState, self).init()
+        super().init()
 
     def get_value(self):
         return self.update_light_state()

@@ -1,156 +1,29 @@
 {
     "schema": {
-        "definitions": {
-            "image_width": [
-                {
-                    "enum": [
-                        "0.02"
-                    ],
-                    "title": "0.02",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "0.03"
-                    ],
-                    "title": "0.03",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "0.04"
-                    ],
-                    "title": "0.04",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "0.05"
-                    ],
-                    "title": "0.05",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "0.06"
-                    ],
-                    "title": "0.06",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "0.08"
-                    ],
-                    "title": "0.08",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "0.1"
-                    ],
-                    "title": "0.1",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "0.12"
-                    ],
-                    "title": "0.12",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "0.15"
-                    ],
-                    "title": "0.15",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "0.2"
-                    ],
-                    "title": "0.2",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "0.3"
-                    ],
-                    "title": "0.3",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "0.4"
-                    ],
-                    "title": "0.4",
-                    "type": "string"
-                }
-            ],
-            "recentring_mode": [
-                {
-                    "enum": [
-                        "Re-centre when orientation changes"
-                    ],
-                    "title": "Re-centre when orientation changes",
-                    "type": "string"
-                }
-            ],
-            "snapshot_count": [
-                {
-                    "enum": [
-                        "0"
-                    ],
-                    "title": "0",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "1"
-                    ],
-                    "title": "1",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "2"
-                    ],
-                    "title": "2",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "4"
-                    ],
-                    "title": "4",
-                    "type": "string"
-                }
-            ]
-        },
         "properties": {
             "Characterisation": {
                 "default": 12.4,
                 "maximum": 20,
                 "minimum": 4,
-                "readonly": true,
+                "readOnly": true,
                 "title": "Characterisation beam energy (keV)",
                 "type": "number"
             },
             "_info": {
                 "default": "Experiment length:    6.0\u00b0\n\nSweep :  kappa=   11.0\u00b0,  kappa_phi=   22.0\u00b0,  phi=    0.0\u00b0,  sweep width=    1.2\u00b0\n                                               phi=   45.0\u00b0,  sweep width=    1.2\u00b0\n                                               phi=   90.0\u00b0,  sweep width=    1.2\u00b0\n                                               phi=  135.0\u00b0,  sweep width=    1.2\u00b0\n                                               phi=  180.0\u00b0,  sweep width=    1.2\u00b0",
-                "readonly": true,
+                "readOnly": true,
                 "type": "textdisplay"
             },
             "dose_budget": {
-                "default": 12.227057407626583,
+                "default": 12.227347511926178,
                 "minimum": 0.0,
-                "readonly": true,
+                "readOnly": true,
                 "title": "Dose budget (MGy)",
                 "type": "number"
             },
             "experiment_time": {
                 "default": 2.4,
-                "readonly": true,
+                "readOnly": true,
                 "title": "Experiment duration (s)",
                 "type": "number"
             },
@@ -162,32 +35,52 @@
                 "type": "number"
             },
             "image_width": {
-                "$ref": "#/definitions/image_width",
                 "default": "0.1",
+                "enum": [
+                    "0.02",
+                    "0.03",
+                    "0.04",
+                    "0.05",
+                    "0.06",
+                    "0.08",
+                    "0.1",
+                    "0.12",
+                    "0.15",
+                    "0.2",
+                    "0.3",
+                    "0.4"
+                ],
                 "title": "Oscillation range",
                 "type": "string"
             },
             "recentring_mode": {
-                "$ref": "#/definitions/recentring_mode",
                 "default": "Re-centre when orientation changes",
+                "enum": [
+                    "Re-centre when orientation changes"
+                ],
                 "type": "string"
             },
             "resolution": {
-                "default": 2.0999949456276994,
-                "maximum": 2.942352157399316,
-                "minimum": 0.9035138162988328,
-                "readonly": true,
+                "default": 2.1000198581609832,
+                "maximum": 8.774863360734335,
+                "minimum": 1.5484097058129351,
+                "readOnly": true,
                 "title": "Detector resolution (\u00c5)",
                 "type": "number"
             },
             "snapshot_count": {
-                "$ref": "#/definitions/snapshot_count",
                 "default": "2",
+                "enum": [
+                    "0",
+                    "1",
+                    "2",
+                    "4"
+                ],
                 "title": "Number of snapshots",
                 "type": "string"
             },
             "transmission": {
-                "default": 6.598412136654653,
+                "default": 6.602276814944947,
                 "maximum": 100.0,
                 "minimum": 0.001,
                 "title": "Transmission (%)",
@@ -196,7 +89,7 @@
             "use_dose": {
                 "default": 0.6114,
                 "minimum": 1e-06,
-                "readonly": false,
+                "readOnly": false,
                 "title": "Characterisation dose (MGy)",
                 "type": "number"
             }

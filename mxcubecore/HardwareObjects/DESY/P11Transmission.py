@@ -18,7 +18,7 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-__copyright__ = """ Copyright © 2010 - 2023 by MXCuBE Collaboration """
+__copyright__ = """ Copyright © 2010 - 2024 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
 
@@ -35,7 +35,7 @@ log = logging.getLogger("HWR")
 
 class P11Transmission(AbstractTransmission):
     def __init__(self, name):
-        super(P11Transmission, self).__init__(name)
+        super().__init__(name)
 
         self.chan_read_value = None
         self.chan_set_value = None

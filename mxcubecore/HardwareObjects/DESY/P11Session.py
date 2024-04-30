@@ -18,7 +18,7 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-__copyright__ = """ Copyright © 2010 - 2023 by MXCuBE Collaboration """
+__copyright__ = """ Copyright © 2010 - 2024 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
 import os
@@ -41,11 +41,11 @@ class P11Session(Session):
     default_archive_folder = "raw"
 
     def __init__(self, *args):
-        super(P11Session, self).__init__(*args)
+        super().__init__(*args)
 
     def init(self):
 
-        super(P11Session, self).init()
+        super().init()
 
         self.settings_file = self.get_property("p11_settings_file")
         self.operation_mode = self.get_property("mode")
@@ -85,8 +85,19 @@ class P11Session(Session):
         self.beamtime_info["rootPath"] = PATH_FALLBACK
 
     def is_beamtime_open(self):
-        return True
-        # return self.is_writable_dir( os.path.join(PATH_BEAMTIME, self.raw_data_folder_name) )
+        self.log.debug("=========== CHECKING IF BEAMTIME ID IS OPEN... ============")
+        if self.is_writable_dir(os.path.join(PATH_BEAMTIME, self.raw_data_folder_name)):
+            self.log.debug(
+                "=========== BEAMTIME IS OPEN (/gpfs/current exists) ============"
+            )
+        else:
+            self.log.debug(
+                "=========== NO BEMTIME ID IS OPEN (check /gpfs/current) ============"
+            )
+
+        return self.is_writable_dir(
+            os.path.join(PATH_BEAMTIME, self.raw_data_folder_name)
+        )
 
     def is_commissioning_open(self):
         return self.is_writable_dir(
@@ -110,6 +121,9 @@ class P11Session(Session):
         if self.is_beamtime_open():
             info = self.get_beamtime_info()
             return info["proposalId"]
+
+    def get_beamtime_info(self):
+        return self.beamtime_info
 
     def read_beamtime_info(self):
         self.log.debug("=========== READING BEAMTIME INFO ============")

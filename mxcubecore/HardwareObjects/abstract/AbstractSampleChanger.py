@@ -407,7 +407,6 @@ class SampleChanger(Container, HardwareObject):
         Wait for currently running task to finish.
         """
         with Timeout(timeout, RuntimeError("Timeout waiting end of task")):
-
             while not self.is_task_finished():
                 sleep(0.1)
 

@@ -26,16 +26,14 @@ import logging
 import sys
 import traceback
 import time
-import logging
 import gevent
+import copy
 
 from collections import namedtuple
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.model import queue_model_objects
-from mxcubecore.model.queue_model_enumerables import (
-    CENTRING_METHOD,
-)
+from mxcubecore.model.queue_model_enumerables import CENTRING_METHOD, EXPERIMENT_TYPE
 
 from mxcubecore.HardwareObjects import autoprocessing
 
@@ -472,7 +470,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                         self.interleave_items.append(interleave_item)
 
                         if task_model.inverse_beam_num_images is not None:
-                            inverse_beam_item = copy(interleave_item)
+                            inverse_beam_item = copy.deepcopy(interleave_item)
                             inverse_beam_item["data_model"] = interleave_item[
                                 "data_model"
                             ].copy()
@@ -789,14 +787,7 @@ def mount_sample(view, data_model, centring_done_cb, async_result):
     # "xtalSnapshotBefore": data_model.get_snapshot_filename(prefix="before"),
     # "xtalSnapshotAfter": data_model.get_snapshot_filename(prefix="after")}
 
-    # This is a possible solution how to deal with two devices that
-    # can move sample on beam (sample changer, plate holder, in future
-    # also harvester)
-    # TODO make sample_Changer_one, sample_changer_two
-    if HWR.beamline.diffractometer.in_plate_mode():
-        sample_mount_device = HWR.beamline.plate_manipulator
-    else:
-        sample_mount_device = HWR.beamline.sample_changer
+    sample_mount_device = HWR.beamline.sample_changer
 
     if hasattr(sample_mount_device, "__TYPE__"):
         if sample_mount_device.__TYPE__ in ["Marvin", "CATS"]:

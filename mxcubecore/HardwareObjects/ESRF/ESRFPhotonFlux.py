@@ -84,7 +84,7 @@ class ESRFPhotonFlux(AbstractFlux):
         """Poll the flux every 2 seconds"""
         while True:
             self.re_emit_values()
-            gevent.sleep(0.5)
+            gevent.sleep(3)
 
     def get_value(self):
         """Calculate the flux value as function of a reading"""
@@ -96,8 +96,14 @@ class ESRFPhotonFlux(AbstractFlux):
         if counts == -9999:
             counts = 0.0
 
-        egy = HWR.beamline.energy.get_value()
-        calib = self._flux_calc.calc_flux_factor(egy * 1000.0)[self._counter.diode.name]
+        try:
+            egy = HWR.beamline.energy.get_value()
+            calib = self._flux_calc.calc_flux_factor(egy * 1000.0)[
+                self._counter.diode.name
+            ]
+        except AttributeError:
+            egy = 0
+            calib = 0
 
         try:
             label = self._aperture.get_value().name
@@ -130,4 +136,7 @@ class ESRFPhotonFlux(AbstractFlux):
                                               (default);
                              if timeout is None: wait forever.
         """
-        return self.beam_check_obj.wait_for_beam(timeout)
+        try:
+            return self.beam_check_obj.wait_for_beam(timeout)
+        except AttributeError:
+            return True

@@ -202,7 +202,6 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
             StoreEnergyScanThread, HWR.beamline.lims, self.energy_scan_parameters
         )
 
-    # def do_chooch(self, elt, edge, directory, archive_directory, prefix):
     def do_chooch(self, elt, edge, directory, archive_directory, prefix):
         self.energy_scan_parameters["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
 

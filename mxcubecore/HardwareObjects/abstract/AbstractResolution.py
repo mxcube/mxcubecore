@@ -84,11 +84,37 @@ class AbstractResolution(AbstractMotor):
 
     def get_limits(self):
         """Return resolution low and high limits.
+
+        Args:
+            wavelength: Returns the limits for given wavelength if
+                        passed, current wavelength is otherwised used
+
         Returns:
             (tuple): two floats tuple (low limit, high limit).
         """
         _low, _high = self._hwr_detector.distance.get_limits()
-        return (self.distance_to_resolution(_low), self.distance_to_resolution(_high))
+
+        return (
+            self.distance_to_resolution(_low),
+            self.distance_to_resolution(_high),
+        )
+
+    def get_limits_for_wavelength(self, wavelength: float):
+        """Return resolution low and high limits.
+
+        Args:
+            wavelength: Returns the limits for given wavelength if
+                        passed, current wavelength is otherwised used
+
+        Returns:
+            (tuple): two floats tuple (low limit, high limit).
+        """
+        _low, _high = self._hwr_detector.distance.get_limits()
+
+        return (
+            self.distance_to_resolution(_low, wavelength=wavelength),
+            self.distance_to_resolution(_high, wavelength=wavelength),
+        )
 
     def set_limits(self, limits):
         """Resolution limits are not settable.

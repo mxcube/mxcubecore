@@ -60,7 +60,6 @@ class Xtal(Sample.Sample):
     __LOGIN_PROPERTY__ = "Login"
 
     def __init__(self, drop, index):
-        # Sample.__init__(self, drop, Xtal._get_xtal_address(drop, index), False)
         super(Xtal, self).__init__(drop, Xtal._get_xtal_address(drop, index), False)
         self._drop = drop
         self._index = index
@@ -222,7 +221,9 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         self.timeout = 3  # default timeout
         self.plate_location = None
         self.crims_url = None
+        self.crims_user_agent = None
         self.plate_barcode = None
+        self.harvester_key = None
 
     def init(self):
         """
@@ -231,8 +232,11 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         self.num_cols = self.get_property("numCols")
         self.num_rows = self.get_property("numRows")
         self.num_drops = self.get_property("numDrops")
+        self.crims_url = self.get_property("crimsWsRoot")
+        self.crims_user_agent = self.get_property("crimsUserAgent")
         self.plate_barcode = self.get_property("PlateBarcode")
         self.plate_label = self.get_property("plateLabel")
+        self.harvester_key = self.get_property("harvesterKey")
         self.reference_pos_x = self.get_property("referencePosX")
         if not self.reference_pos_x:
             self.reference_pos_x = 0.5
@@ -440,7 +444,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         self._wait_device_ready()
 
     def _load_data(self, barcode):
-        processing_plan = Crims.get_processing_plan(barcode, self.crims_url)
+        processing_plan = Crims.get_processing_plan(barcode, self.crims_url, self.crims_user_agent, self.harvester_key)
 
         if processing_plan is None:
             msg = "No information about plate with barcode %s found in CRIMS" % barcode

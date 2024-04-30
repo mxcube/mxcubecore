@@ -19,7 +19,7 @@
 
 """P11Shutter"""
 
-from enum import Enum, unique
+from enum import Enum
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractNState
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 
@@ -28,14 +28,8 @@ __credits__ = ["DESY P11"]
 __license__ = "LGPLv3+"
 __category__ = "General"
 
-from enum import Enum, unique
+from enum import Enum
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
-
-
-@unique
-class FastShutterValues(Enum):
-    OPEN = "Open"
-    CLOSED = "Closed"
 
 
 class P11FastShutter(AbstractNState):
@@ -43,33 +37,40 @@ class P11FastShutter(AbstractNState):
     P11 BakcLight define interface to Tango backlight at DESY P11
     """
 
-    VALUES = FastShutterValues
-
     default_open_time = 8
     default_close_time = 3
 
     def __init__(self, name):
 
-        super(AbstractNState, self).__init__(name)
+        super().__init__(name)
         self.chan_value = None
 
     def init(self):
         """Initilise the predefined values"""
 
+        self._initialise_values()
         self.chan_value = self.get_channel_object("value")
 
         if self.chan_value is not None:
             self.chan_value.connect_signal("update", self.update_fast_shutter)
 
         self.update_fast_shutter(self.chan_value.get_value())
-        super(AbstractNState, self).init()
+        super().init()
+
+    def _initialise_values(self):
+        """Add additional, known in advance states to VALUES"""
+        values_dict = {item.name: item.value for item in self.VALUES}
+        values_dict.update({"OPEN": "Open", "CLOSED": "Closed"})
+        self.VALUES = Enum("ValueEnum", values_dict)
 
     def get_value(self):
         return self.update_fast_shutter()
 
+    @property
     def is_open(self):
         return self.get_value() == self.VALUES.OPEN
 
+    @property
     def is_closed(self):
         return self.get_value() == self.VALUES.CLOSED
 

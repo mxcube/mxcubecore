@@ -54,7 +54,6 @@ class Xtal(Sample):
     __LOGIN_PROPERTY__ = "Login"
 
     def __init__(self, drop, index):
-        # Sample.__init__(self, drop, Xtal._get_xtal_address(drop, index), False)
         super(Xtal, self).__init__(drop, Xtal._get_xtal_address(drop, index), False)
         self._drop = drop
         self._index = index
@@ -217,6 +216,7 @@ class PlateManipulator(SampleChanger):
         self.timeout = 3  # default timeout
         self.plate_location = None
         self.crims_url = None
+        self.crims_user_agent = None
         self.plate_barcode = None
         self.harvester_key = None
         self.processing_plan = None
@@ -256,6 +256,7 @@ class PlateManipulator(SampleChanger):
         self.stored_pos_y = 0.5
         self.plate_label = self.get_property("plateLabel")
         self.crims_url = self.get_property("crimsWsRoot")
+        self.crims_user_agent = self.get_property("crimsUserAgent")
         self.plate_barcode = self.get_property("PlateBarcode")
         self.harvester_key = self.get_property("harvesterKey")
 
@@ -535,7 +536,7 @@ class PlateManipulator(SampleChanger):
         self._wait_device_ready()
 
     def _load_data(self, plate_barcode):
-        processing_plan = Crims.get_processing_plan(plate_barcode, self.crims_url, self.harvester_key)
+        processing_plan = Crims.get_processing_plan(plate_barcode, self.crims_url, self.crims_user_agent, self.harvester_key)
         if processing_plan is None:
             msg = "No information about plate with barcode %s found in CRIMS" % plate_barcode
             logging.getLogger("user_level_log").error(msg)

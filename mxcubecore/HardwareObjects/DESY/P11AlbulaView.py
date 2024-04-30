@@ -18,7 +18,9 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-__copyright__ = """ Copyright © 2010 - 2023 by MXCuBE Collaboration """
+from mxcubecore.BaseHardwareObjects import HardwareObject
+
+__copyright__ = """ Copyright © 2010 - 2024 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
 
@@ -26,10 +28,8 @@ import sys
 import time
 from PIL import Image
 
-
 sys.path.append("/opt/dectris/albula/4.0/python/")
 
-from mxcubecore.BaseHardwareObjects import HardwareObject
 
 try:
     from dectris import albula
@@ -99,7 +99,7 @@ class P11AlbulaView(HardwareObject):
             self.eigerThread.clearMonitorBuffer()
             self.eigerThread.setMonitorDiscardNew(True)
 
-        super(LiveView, self).start()
+        super().start()
 
     def stop(self, interval=0.0):
 

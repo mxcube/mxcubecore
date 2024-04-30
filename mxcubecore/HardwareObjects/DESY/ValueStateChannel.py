@@ -23,7 +23,7 @@ from mxcubecore.BaseHardwareObjects import HardwareObject
 
 class ValueStateChannel(HardwareObject):
     def __init__(self, name):
-        super(ValueStateChannel, self).__init__(name)
+        super().__init__(name)
 
     def init(self):
 

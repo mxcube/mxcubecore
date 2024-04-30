@@ -47,7 +47,7 @@ class Resolution(AbstractResolution):
             timeout(float): optional - timeout [s],
                              if timeout is None: wait forever (default).
         """
-        # The precision depoends on the difference between the current
+        # The precision depends on the difference between the current
         # resolution and the target value - the smaller the difference,
         # the better the precision.
         # We move twice to get the closet possible to the requested resolution.

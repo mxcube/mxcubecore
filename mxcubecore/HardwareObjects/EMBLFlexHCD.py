@@ -378,7 +378,7 @@ class EMBLFlexHCD(SampleChanger):
     def _set_loaded_sample_and_prepare(self, sample, previous_sample):
         res = False
 
-        if not -1 in sample and sample != previous_sample:
+        if -1 not in sample and sample != previous_sample:
             self._set_loaded_sample(self.get_sample_with_address(sample))
             self._prepare_centring_task()
             res = True
@@ -546,7 +546,7 @@ class EMBLFlexHCD(SampleChanger):
             _tt = time.time()
             self._wait_busy(300)
             logging.getLogger("HWR").info(f"Waited SC activity {time.time() - _tt}")
-        except:
+        except Exception:
             for msg in self.get_robot_exceptions():
                 logging.getLogger("user_level_log").error(msg)
             raise
@@ -587,8 +587,6 @@ class EMBLFlexHCD(SampleChanger):
         return self._set_loaded_sample_and_prepare(loaded_sample, previous_sample)
 
     def _do_unload(self, sample=None):
-        HWR.beamline.diffractometer.set_phase("Transfer")
-
         self._execute_cmd_exporter(
             "unloadSample",
             sample.get_cell_no(),

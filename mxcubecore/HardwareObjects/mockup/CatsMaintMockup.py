@@ -291,8 +291,8 @@ class CatsMaintMockup(Equipment):
         }
 
         cmd_state = {
-            "powerOn": (not self._powered) and _ready,
-            "powerOff": (self._powered) and _ready,
+            "PowerOn": (not self._powered) and _ready,
+            "PowerOff": (self._powered) and _ready,
             "regulon": (not self._regulating) and _ready,
             "openlid1": (not self._lid1state) and self._powered and _ready,
             "closelid1": self._lid1state and self._powered and _ready,
@@ -321,8 +321,8 @@ class CatsMaintMockup(Equipment):
             [
                 "Power",
                 [
-                    ["powerOn", "PowerOn", "Switch Power On"],
-                    ["powerOff", "PowerOff", "Switch Power Off"],
+                    ["PowerOn", "PowerOn", "Switch Power On"],
+                    ["PowerOff", "PowerOff", "Switch Power Off"],
                     ["regulon", "Regulation On", "Swich LN2 Regulation On"],
                 ],
             ],
@@ -396,9 +396,9 @@ class CatsMaintMockup(Equipment):
             else:
                 raise Exception("Cannot detect type of TOOL in Cats. Command ignored")
 
-        if cmd_name == "powerOn":
+        if cmd_name == "PowerOn":
             self._do_power_state(True)
-        if cmd_name == "powerOff":
+        if cmd_name == "PowerOff":
             self._do_power_state(False)
 
         if cmd_name == "regulon":

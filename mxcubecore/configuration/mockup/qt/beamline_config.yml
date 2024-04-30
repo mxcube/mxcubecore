@@ -35,7 +35,7 @@ _objects:
     - safety_shutter: safety-shutter-mockup.xml
     - fast_shutter: fast-shutter-mockup.xml
     - sample_changer: sample-changer-mockup.xml
-    # NBNB TODO remove plate_manipulater and treat as another smaple changer
+    # NBNB TODO remove plate_manipulater and treat as another sample changer
     - plate_manipulator: plate-manipulator-mockup.xml
     - diffractometer: diffractometer-mockup.xml
     - sample_view: sample-view.xml

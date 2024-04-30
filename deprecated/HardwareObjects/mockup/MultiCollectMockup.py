@@ -157,10 +157,15 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
     ):
         return
 
-    def prepare_oscillation(self, start, osc_range, exptime, npass):
+    def prepare_oscillation(
+        self, start, osc_range, exptime, number_of_images, shutterless, first_frame
+    ):
         return (start, start + osc_range)
 
-    def do_oscillation(self, start, end, exptime, npass):
+
+    def do_oscillation(
+        self, start, end, exptime, number_of_images, shutterless, first_frame
+    ):
         gevent.sleep(exptime)
 
     def start_acquisition(self, exptime, npass, first_frame):

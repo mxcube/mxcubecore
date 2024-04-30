@@ -91,9 +91,6 @@ class EDNACharacterisation(AbstractCharacterisation):
                 logging.getLogger("queue_exec").info(
                     "Received characterisation results via XMLRPC"
                 )
-                # logging.getLogger("queue_exec").info([self.characterisationResult])
-                # with open("/tmp/EDNA_results.xml", "w") as f:
-                #     f.write(self.characterisationResult)
                 self.result = XSDataResultMXCuBE.parseString(
                     self.characterisationResult
                 )
@@ -265,8 +262,9 @@ class EDNACharacterisation(AbstractCharacterisation):
         for img_num in range(int(acquisition_parameters.num_images)):
             image_file = XSDataImage()
             path = XSDataString()
-            path.setValue(path_str % (img_num + 1))
-            image_file.setPath(path)
+            path.value = path_str % (img_num + 1)
+            image_file.path = path
+            image_file.number = XSDataInteger(img_num + 1)
             data_set.addImageFile(image_file)
 
         edna_input.addDataSet(data_set)
@@ -372,7 +370,11 @@ class EDNACharacterisation(AbstractCharacterisation):
                 # and update the members the needs to be changed. Keeping
                 # the directories of the reference collection.
                 ref_pt = reference_image_collection.acquisitions[0].path_template
+
                 acq.path_template = copy.deepcopy(ref_pt)
+                acq.path_template.directory = "/".join(
+                    ref_pt.directory.split("/")[0:-2]
+                )
                 acq.path_template.wedge_prefix = "w" + str(i + 1)
                 acq.path_template.reference_image_prefix = str()
 

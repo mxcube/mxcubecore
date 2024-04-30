@@ -1,35 +1,29 @@
 {
     "lattice": {
-        "options": {
-            "value_dict": {
-                "Cubic": "Cubic",
-                "cF": "cF",
-                "cI": "cI",
-                "cP": "cP"
-            }
-        },
+        "enum": [
+            "cP",
+            "cF",
+            "cI",
+            "Cubic"
+        ],
         "value": "cI"
     },
     "point_groups": {
-        "options": {
-            "value_dict": {
-                "23": "23",
-                "23|432": "23|432",
-                "432": "432"
-            }
-        },
+        "enum": [
+            "23",
+            "432",
+            "23|432"
+        ],
         "value": "23|432"
     },
     "space_group": {
-        "options": {
-            "value_dict": {
-                "": "",
-                "I213": "I213",
-                "I23": "I23",
-                "I4132": "I4132",
-                "I432": "I432"
-            }
-        },
+            "enum": [
+            "",
+            "I23",
+            "I213",
+            "I432",
+            "I4132"
+        ],
         "value": ""
     }
 }

@@ -123,7 +123,7 @@ class ConfiguredObject:
     # NB this function must be re-implemented in nested subclasses
     @property
     def all_roles(self) -> Tuple[str]:
-        """Tuple of all content object roles, indefinition and loading order
+        """Tuple of all content object roles, in definition and loading order
 
         Returns:
             Tuple[str]: Content object roles
@@ -472,31 +472,16 @@ class HardwareObjectNode:
         Returns:
             Union[HardwareObject, None]: Hardware object.
         """
-        object = None
-        obj: Self = self
-        objects = []
         role = str(role).lower()
+        objects = [self]
 
-        while True:
-            if role in obj._objects_by_role:
-                return obj._objects_by_role[role]
+        for curr in objects:
+            result = curr._objects_by_role.get(role)
+            if result is None:
+                objects.extend(obj for obj in curr if obj)
 
-            for object in obj:
-                objects.append(object)
-
-            try:
-                obj = objects.pop()
-            except IndexError:
-                break
             else:
-                object = obj.get_object_by_role(role)
-                if object is not None:
-                    return object
-
-                if len(objects) > 0:
-                    obj = objects.pop()
-                else:
-                    break
+                return result
 
     def objects_names(self) -> List[Union[str, None]]:
         """Return hardware object names.

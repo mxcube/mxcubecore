@@ -18,6 +18,9 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
+
+"""Sardana Control System  """
+
 from __future__ import absolute_import
 
 import logging
@@ -44,10 +47,15 @@ from mxcubecore.CommandContainer import (
     ConnectionError,
 )
 
-from PyTango import DevFailed, ConnectionFailed
-import PyTango
+# This is a site specific module where some of the dependencies might not be capture by the ``pyproject.toml`` during installation
 
-# from mxcubecore.TaskUtils import task
+try:
+    from PyTango import DevFailed, ConnectionFailed
+    import PyTango
+except Exception:
+    logging.getLogger("HWR").warning("Pytango is not available in this computer.")
+
+#
 
 try:
     from sardana.taurus.core.tango.sardana import registerExtensions
@@ -101,6 +109,8 @@ class AttributeEvent:
 
 
 class SardanaObject(object):
+    """Sardana Object"""
+
     _eventsQueue = queue.Queue()
     _eventReceivers = {}
 
@@ -121,6 +131,7 @@ class SardanaObject(object):
 
 
 class SardanaMacro(CommandObject, SardanaObject, ChannelObject):
+    """Sardana macro"""
 
     macroStatusAttr = None
     INIT, STARTED, RUNNING, DONE = range(4)
@@ -243,6 +254,8 @@ class SardanaMacro(CommandObject, SardanaObject, ChannelObject):
         return
 
     def update(self, event):
+        """update the macro command status: ``commandCanExecute``, ``commandReady``, ``commandNotReady``, ``commandReplyArrive``, ``commandReplyAbort`` and ``commandFailed``"""
+
         data = event.event[2]
 
         try:
@@ -319,6 +332,8 @@ class SardanaMacro(CommandObject, SardanaObject, ChannelObject):
 
 
 class SardanaCommand(CommandObject):
+    """SardanaCommand"""
+
     def __init__(self, name, command, taurusname=None, username=None, **kwargs):
         CommandObject.__init__(self, name, username, **kwargs)
 
@@ -376,10 +391,11 @@ class SardanaCommand(CommandObject):
 
 
 class SardanaChannel(ChannelObject, SardanaObject):
+    """Creates a Sardana Channel"""
+
     def __init__(
         self, name, attribute_name, username=None, uribase=None, polling=None, **kwargs
     ):
-
         super(SardanaChannel, self).__init__(name, username, **kwargs)
 
         class ChannelInfo(object):

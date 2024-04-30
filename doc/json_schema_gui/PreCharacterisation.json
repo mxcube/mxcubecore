@@ -1,28 +1,10 @@
 {
     "schema": {
-        "definitions": {
-            "strategy": [
-                {
-                    "enum": [
-                        "Char_6_5_multitrigger"
-                    ],
-                    "title": "Char_6_5_multitrigger",
-                    "type": "string"
-                },
-                {
-                    "enum": [
-                        "Char_4_by_10"
-                    ],
-                    "title": "Char_4_by_10",
-                    "type": "string"
-                }
-            ]
-        },
         "properties": {
             "cell_a": {
                 "default": 133.8562,
                 "minimum": 0,
-                "readonly": true,
+                "readOnly": true,
                 "title": "a",
                 "type": "number"
             },
@@ -30,14 +12,14 @@
                 "default": 90.0,
                 "maximum": 180,
                 "minimum": 0,
-                "readonly": true,
+                "readOnly": true,
                 "title": "\u03b1",
                 "type": "number"
             },
             "cell_b": {
                 "default": 133.8562,
                 "minimum": 0,
-                "readonly": true,
+                "readOnly": true,
                 "title": "b",
                 "type": "number"
             },
@@ -45,14 +27,14 @@
                 "default": 90.0,
                 "maximum": 180,
                 "minimum": 0,
-                "readonly": true,
+                "readOnly": true,
                 "title": "\u03b2",
                 "type": "number"
             },
             "cell_c": {
                 "default": 127.4557,
                 "minimum": 0,
-                "readonly": true,
+                "readOnly": true,
                 "title": "c",
                 "type": "number"
             },
@@ -60,7 +42,7 @@
                 "default": 120.0,
                 "maximum": 180,
                 "minimum": 0,
-                "readonly": true,
+                "readOnly": true,
                 "title": "\u03b3",
                 "type": "number"
             },
@@ -72,48 +54,49 @@
                 "type": "number"
             },
             "input_space_group": {
-                "default": "R32",
-                "readonly": true,
+                "default": "H32",
+                "readOnly": true,
                 "title": "Space Group",
                 "type": "string"
             },
             "lattice": {
                 "default": "hR",
+                "enum": [
+                    "",
+                    "aP",
+                    "Triclinic",
+                    "mP",
+                    "mC",
+                    "mI",
+                    "Monoclinic",
+                    "oP",
+                    "oC",
+                    "oF",
+                    "oI",
+                    "Orthorhombic",
+                    "tP",
+                    "tI",
+                    "Tetragonal",
+                    "hP",
+                    "hR",
+                    "Hexagonal",
+                    "cP",
+                    "cF",
+                    "cI",
+                    "Cubic"
+                ],
                 "title": "Crystal lattice",
-                "value_dict": {
-                    "": "",
-                    "Cubic": "Cubic",
-                    "Hexagonal": "Hexagonal",
-                    "Monoclinic": "Monoclinic",
-                    "Orthorhombic": "Orthorhombic",
-                    "Tetragonal": "Tetragonal",
-                    "Triclinic": "Triclinic",
-                    "aP": "aP",
-                    "cF": "cF",
-                    "cI": "cI",
-                    "cP": "cP",
-                    "hP": "hP",
-                    "hR": "hR",
-                    "mC": "mC",
-                    "mI": "mI",
-                    "mP": "mP",
-                    "oC": "oC",
-                    "oF": "oF",
-                    "oI": "oI",
-                    "oP": "oP",
-                    "tI": "tI",
-                    "tP": "tP"
-                }
+                "type": "string"
             },
             "point_groups": {
                 "default": "32",
-                "hidden": true,
+                "enum": [
+                    "3",
+                    "32",
+                    "3|32"
+                ],
                 "title": "Point Groups",
-                "value_dict": {
-                    "3": "3",
-                    "32": "32",
-                    "3|32": "3|32"
-                }
+                "type": "string"
             },
             "relative_rad_sensitivity": {
                 "default": 1.0,
@@ -123,33 +106,38 @@
             },
             "resolution": {
                 "default": 2.1,
-                "maximum": 2.942352157399316,
-                "minimum": 0.9035138162988328,
+                "maximum": 8.774863360734335,
+                "minimum": 1.5484097058129351,
                 "title": "Resolution",
                 "type": "number"
             },
             "space_group": {
-                "default": "R32",
+                "default": "H32",
+                "enum": [
+                    "",
+                    "P3",
+                    "P31",
+                    "P32",
+                    "H3",
+                    "P312",
+                    "P321",
+                    "P3112",
+                    "P3121",
+                    "P3212",
+                    "P3221",
+                    "H32"
+                ],
                 "title": "Space Group",
-                "value_dict": {
-                    "": "",
-                    "P3": "P3",
-                    "P31": "P31",
-                    "P3112": "P3112",
-                    "P312": "P312",
-                    "P3121": "P3121",
-                    "P32": "P32",
-                    "P321": "P321",
-                    "P3212": "P3212",
-                    "P3221": "P3221",
-                    "R3": "R3",
-                    "R32": "R32"
-                }
+                "type": "string"
             },
             "strategy": {
-                "$ref": "#/definitions/strategy",
                 "default": "Char_6_5_multitrigger",
-                "title": "Characterisation strategy"
+                "enum": [
+                    "Char_6_5_multitrigger",
+                    "Char_4_by_10"
+                ],
+                "title": "Characterisation strategy",
+                "type": "string"
             },
             "use_cell_for_processing": {
                 "default": true,

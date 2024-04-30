@@ -1,6 +1,7 @@
 """
 FLEX HCD maintenance mockup.
 """
+
 from mxcubecore.BaseHardwareObjects import Equipment
 import ast
 
@@ -91,6 +92,7 @@ class FlexHCDMaintenance(Equipment):
         :rtype: None
         """
         self._sc.change_gripper(gripper=args)
+        self.emit("gripperChanged")
 
     def _do_reset_sample_number(self):
         """

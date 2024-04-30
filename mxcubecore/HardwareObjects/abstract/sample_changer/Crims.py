@@ -4,22 +4,20 @@ import requests
 from PIL import Image
 from io import BytesIO
 
-try:
-    from urllib import urlopen
-except ImportError:
-    from urllib.request import urlopen
+import urllib
 
 
 def get_image(url):
-    f = urlopen(url)
+    f = urllib.request.urlopen(url)
     img = f.read()
     return img
 
 
 def get_image_size(url):
-    img_data = requests.get(url).content    
+    img_data = requests.get(url).content
     im = Image.open(BytesIO(img_data))
     return (im.size)
+
 
 class CrimsXtal:
     def __init__(self, *args):
@@ -48,13 +46,13 @@ class CrimsXtal:
             try:
                 if self.image_url.startswith("http://"):
                     self.image_url = "https://" + self.image_url[7]
-                image_string = urlopen(self.image_url).read()
+                image_string = urllib.request.urlopen(self.image_url).read()
                 return image_string
             except Exception:
                 return
-    
+
     def get_image_size(self):
-        img_data = requests.get(self.image_url).content    
+        img_data = requests.get(self.image_url).content
         im = Image.open(BytesIO(img_data))
         return (im.size)
 
@@ -62,6 +60,7 @@ class CrimsXtal:
         if len(self.summary_url == 0):
             return None
         return self.summary_url
+
 
 class Plate:
     def __init__(self, *args):
@@ -75,18 +74,21 @@ class ProcessingPlan:
         self.plate = Plate()
 
 
-def get_processing_plan(barcode, crims_url, harvester_key):
+def get_processing_plan(barcode, crims_url, crims_user_agent, harvester_key):
     processing_plan = None
     try:
-        url = crims_url
-        url = (
-            crims_url
-            + barcode
-            + "/plans/xml"
-            + "?harvester-key=%s" % harvester_key
-        )
-        f = urlopen(url)
-        xml = f.read()
+        xml = None
+        url = f"{crims_url}{barcode}/plans/xml"
+
+        headers = {
+            'User-Agent' : crims_user_agent,
+            'harvester-key' : harvester_key,
+        }
+
+        req = urllib.request.Request(url, data=None, headers=headers)
+
+        with urllib.request.urlopen(req) as response:
+            xml = response.read()
 
         tree = et.fromstring(xml)
 
@@ -122,5 +124,37 @@ def get_processing_plan(barcode, crims_url, harvester_key):
                 processing_plan.plate.xtal_list.append(xtal)
         return processing_plan
     except Exception as ex:
-        print("Error on getting processing plan because of:  %s" %str(ex))
+        print("Error on getting processing plan because of: %s" % str(ex))
         return processing_plan
+
+
+def send_data_collection_info_to_crims(
+    crims_url: str,
+    crystaluuid: str,
+    datacollectiongroupid: str,
+    dcid: str,
+    proposal: str,
+    rest_token: str,
+    crims_key: str
+) -> str:
+    try:
+
+        url = (
+            f"{crims_url}{crystaluuid}/dcgroupid/{datacollectiongroupid}/dcid/"
+            f"{dcid}/mx/{proposal}/token/{rest_token}?janitor_key={crims_key}"
+        )
+
+        # data = {
+        #     "crystal_uuid": str(crystaluuid),
+        #     "datacollectionGroupId": str(datacollectiongroupid),
+        #     "dcid": str(dcid),
+        #     "mx": str(proposal),
+        #     "token": str(rest_token),
+        # }
+        response = requests.get(url, timeout=900)
+        # response = post(url, data=data, timeout=900)
+        print(response.text)
+        return response.text
+    except Exception as ex:
+        msg = "POST to %s failed reason %s" % (url, str(ex))
+        return msg

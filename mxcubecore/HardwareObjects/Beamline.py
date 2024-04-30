@@ -240,7 +240,6 @@ class Beamline(ConfiguredObject):
 
         return _path
 
-
     # Signal handling functions:
     def emit(self, signal: Union[str, object, Any], *args) -> None:
         """Emit signal. Accepts both multiple args and a single tuple of args.
@@ -290,7 +289,6 @@ class Beamline(ConfiguredObject):
         return self._objects.get("machine_info")
 
     __content_roles.append("machine_info")
-
 
     @property
     def authenticator(self):
@@ -459,9 +457,35 @@ class Beamline(ConfiguredObject):
     __content_roles.append("sample_changer_maintenance")
 
     @property
+    def harvester(self):
+        """Harvester Hardware object
+        can be a sample or plate holder
+
+        Returns:
+            Optional[AbstractHarvester]:
+        """
+        return self._objects.get("harvester")
+
+    __content_roles.append("harvester")
+
+    @property
+    def harvester_maintenance(self):
+        """harvester maintenance Hardware object
+
+        Returns:
+            Optional[Harvester]:
+        """
+        return self._objects.get("harvester_maintenance")
+
+    __content_roles.append("harvester_maintenance")
+
+    @property
     def plate_manipulator(self):
-        """Plate Manuipulator Hardware object
-        NBNB TODO REMOVE THIS and treat as an alternative sample changer instead.
+        """**DEPRECATED**
+        Plate Manipulator Hardware object
+        NBNB TODO REMOVE THIS From qt version usage and
+        and call HWR.beamline.sample_changer instead as plate_manipulator being
+        treated as an alternative sample changer.
 
         Returns:
             Optional[AbstractSampleChanger]:
@@ -774,10 +798,6 @@ class Beamline(ConfiguredObject):
 
         acq_parameters = queue_model_objects.AcquisitionParameters()
 
-        #logging.getLogger("HWR").debug(f"""
-            #Beamline object. Getting acquisition parameters for acquisition type {acquisition_type}
-        #""")
-
         params = self.default_acquisition_parameters["default"].copy()
         if acquisition_type != "default":
             dd0 = self.default_acquisition_parameters.get(acquisition_type)
@@ -790,25 +810,28 @@ class Beamline(ConfiguredObject):
 
                 params.update(dd0)
 
-        #logging.getLogger("HWR").debug(f"""
-              #params are {params}
-        #""")
-
         for tag, val in params.items():
             setattr(acq_parameters, tag, val)
 
         motor_positions = self.diffractometer.get_positions()
-        osc_start = (
-            None
-            if not params["osc_start"]
-            else motor_positions.get("phi", params["osc_start"])
-        )
-        acq_parameters.osc_start = osc_start
-        kappa = motor_positions.get("kappa", False)
-        kappa = kappa if kappa else None
-        acq_parameters.kappa = round(float(kappa), 2) if kappa else None
-        kappa_phi = motor_positions.get("kappa_phi", False)
-        acq_parameters.kappa_phi = round(float(kappa_phi), 2) if kappa_phi else None
+        osc_start = motor_positions.get("phi")
+        if osc_start is None:
+            acq_parameters.osc_start = params.get("osc_start")
+        else:
+            acq_parameters.osc_start = osc_start
+
+        kappa = motor_positions.get("kappa")
+        if kappa is None:
+            acq_parameters.kappa = None
+        else:
+            acq_parameters.kappa = round(float(kappa), 2)
+
+        kappa_phi = motor_positions.get("kappa_phi")
+        if kappa_phi is None:
+            acq_parameters.kappa_phi = None
+        else:
+            acq_parameters.kappa_phi = round(float(kappa_phi), 2)
+
         try:
             acq_parameters.resolution = self.resolution.get_value()
         except Exception:

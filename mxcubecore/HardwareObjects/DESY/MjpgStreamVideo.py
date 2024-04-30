@@ -968,7 +968,7 @@ class MjpgStreamVideo(AbstractVideoDevice, Device):
                 # image.setOffset(QPoint(300,300))
                 # self.image = QPixmap.fromImage(image)
                 self.image = QPixmap.fromImage(
-                    image.scaled(self.display_width, self.display_height)
+                    image.scaled(int(self.display_width), int(self.display_height))
                 )
                 self.emit("imageReceived", self.image)
             # gevent.sleep(0.1)

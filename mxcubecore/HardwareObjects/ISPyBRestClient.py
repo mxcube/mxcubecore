@@ -100,6 +100,15 @@ class ISPyBRestClient(HardwareObject):
             msg = "Authenticated to LIMS token is: %s" % self.__rest_root
             logging.getLogger("ispyb_client").debug(msg)
 
+    def get_rest_token(self):
+        """
+        Get the LIMS rest_token
+
+        :returns:  REST token
+        """
+        self.__update_rest_token()
+        return self.__rest_token
+
     def sample_link(self):
         """
         Get the LIMS link to sample information

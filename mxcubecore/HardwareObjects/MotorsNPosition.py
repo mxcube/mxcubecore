@@ -22,7 +22,6 @@ __copyright__ = """ Copyright © 2010 - 2023 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
 
-import copy
 from collections import OrderedDict
 
 from mxcubecore.HardwareObjects.abstract.AbstractActuator import AbstractActuator
@@ -121,30 +120,15 @@ class MotorsNPosition(AbstractActuator):
     def get_position_list(self):
         return list(self._positions.keys())
 
-    def get_properties_(self, position_index, property_name):
+    def get_property_value_by_index(self, position_index=None, property_name=None):
         """
-             returns property with name property_name for position_index 
-             if position_index is None returns OrderedDict with property_name for all positions
-             if property_name is None returns dictionary with all properties for position_index
-             if both position_index and property_name are None returns all properties of object
+        Returns the value of the property with the given property_name at the specified position_index.
+        If the property_name or position_index is invalid, returns None.
         """
-        if position_index is None and property_name is None:
-            retprop = copy.copy(self._properties)
-        elif position_index is None:
-            retprop = OrderedDict()
-            for name in self._positions:
-                property_value = self._properties[name].get(property_name, None)
-                retprop[name] = property_value
-        elif position_index >= 0 and position_index < len(self._positions):
-            name = list(self._positions.keys())[position_index]
-            if property_name is None:
-                retprop = self._properties[name]
-            else:
-                retprop = self._properties[name].get(property_name, None)
-        else:
-            return None
-
-        return retprop
+        if position_index is not None and 0 <= position_index < len(self._positions):
+            position_name = list(self._positions.keys())[position_index]
+            return self._properties.get(position_name, {}).get(property_name)
+        return None
 
     def get_value(self):
         return self.update_multi_value()
@@ -158,17 +142,13 @@ class MotorsNPosition(AbstractActuator):
         """
 
         # by posname - alias
-        posidx = -1
-        for name in self._positions:
-            posidx += 1
-            if posname == self.get_properties_(posidx, "posname"):
+        for posidx, name in enumerate(self._positions):
+            if posname == self.get_property_value_by_index(posidx, "posname"):
                 self._set_value(posidx)
                 return
 
         # by name - label
-        posidx = -1
-        for name in self._positions:
-            posidx += 1
+        for posidx, name in enumerate(self._positions):
             if posname == name:
                 self._set_value(posidx)
                 return
@@ -203,25 +183,16 @@ class MotorsNPosition(AbstractActuator):
 
     def update_multi_value(self):
         current_idx = -1
-        posidx = -1
+        current_pos = {
+            motorname: self.motor_hwobjs[motorname].get_value()
+            for motorname in self.motorlist
+        }
 
-        current_pos = {}
-
-        #if self.name().lower() == "/pinhole":
-            #self.log.debug("updating pinhole position")
-
-        for motorname in self.motorlist:
-            current_pos[motorname] = self.motor_hwobjs[motorname].get_value()
-            if self.name().lower() == "/pinhole":
-                self.log.debug(
-                    "   - position for %s is %s" % (motorname, current_pos[motorname])
-                )
-
-        for name in self._positions:
-            posidx += 1
+        for idx, name in enumerate(self._positions):
             for motorname in self.motorlist:
                 if motorname not in self._positions[name]:
                     continue
+
                 position = self._positions[name][motorname]
                 cur_pos = current_pos[motorname]
                 delta = self.deltas[motorname]
@@ -229,17 +200,16 @@ class MotorsNPosition(AbstractActuator):
                 if abs(cur_pos - position) > delta:
                     break
             else:
-                # found
-                #self.log.debug(" Found position %s for object %s" % (name, self.name()))
                 for motorname in self.motorlist:
                     position = self._positions[name][motorname]
                     self.log.debug("     - motor %s is at %s" % (motorname, position))
-                current_idx = posidx
+                current_idx = idx
                 break
 
         if current_idx != self.current_index:
             self.current_index = current_idx
             self.update_value(current_idx)
+
         return current_idx
 
     def update_multi_state(self):

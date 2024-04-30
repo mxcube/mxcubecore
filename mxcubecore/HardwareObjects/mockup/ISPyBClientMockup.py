@@ -43,13 +43,6 @@ class ISPyBClientMockup(HardwareObject):
         Init method declared by HardwareObject.
         """
         self.lims_rest = self.get_object_by_role("lims_rest")
-        self.authServerType = self.get_property("authServerType") or "ldap"
-        if self.authServerType == "ldap":
-            # Initialize ldap
-            self.ldap_connection = self.get_object_by_role("ldapServer")
-            if self.ldap_connection is None:
-                logging.getLogger("HWR").debug("LDAP Server is not available")
-
         self.beamline_name = HWR.beamline.session.beamline_name
 
         try:

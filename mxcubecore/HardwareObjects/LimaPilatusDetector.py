@@ -162,11 +162,9 @@ class LimaPilatusDetector(AbstractDetector):
         mesh_num_lines,
     ):
         if mesh:
-            trigger_mode = "EXTERNAL_GATE"
-        # elif osc_range < 1e-4:
-        #    trigger_mode = "INTERNAL_TRIGGER"
+            trigger_mode = self.get_property("mesh_trigger_mode", "EXTERNAL_GATE")
         else:
-            trigger_mode = "EXTERNAL_TRIGGER"
+            trigger_mode = self.get_property("osc_trigger_mode", "EXTERNAL_GATE")
 
         diffractometer_positions = HWR.beamline.diffractometer.get_positions()
         self.start_angles = list()
