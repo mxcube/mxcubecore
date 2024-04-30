@@ -724,7 +724,10 @@ class GphlWorkflow(HardwareObjectYaml):
         self._queue_entry = queue_entry
         data_model = queue_entry.get_data_model()
 
-        self._workflow_queue = gevent.queue.Queue()
+        if HWR.beamline.gphl_connection is None:
+            raise RuntimeError(
+                "Cannot execute workflow - GphlWorkflowConnection not found"
+            )
         HWR.beamline.gphl_connection.open_connection()
 
         if data_model.wftype == "transcal":
@@ -745,7 +748,7 @@ class GphlWorkflow(HardwareObjectYaml):
         else:
             params = self.query_pre_strategy_params()
             if params is StopIteration:
-                self.workflow_failed()
+                self.workflow_aborted()
                 return
         use_preset_spotdir = self.settings.get("use_preset_spotdir")
         if use_preset_spotdir:
@@ -760,7 +763,6 @@ class GphlWorkflow(HardwareObjectYaml):
                 raise ValueError(
                     "use_preset_spotdir was set for non-emulation sample"
                 )
-
 
         cell_tags = (
             "cell_a",
@@ -787,14 +789,13 @@ class GphlWorkflow(HardwareObjectYaml):
             # Set detector distance and resolution
             distance = data_model.detector_setting.axisSettings["Distance"]
             HWR.beamline.detector.distance.set_value(distance, timeout=30)
-        # self.test_dialog()
+
+        self._workflow_queue = gevent.queue.Queue()
 
     def execute(self):
 
-        if HWR.beamline.gphl_connection is None:
-            raise RuntimeError(
-                "Cannot execute workflow - GphlWorkflowConnection not found"
-            )
+        if self._workflow_queue is None:
+            return
 
         # Fork off workflow server process
         HWR.beamline.gphl_connection.start_workflow(
@@ -870,7 +871,6 @@ class GphlWorkflow(HardwareObjectYaml):
         self._workflow_queue = None
         if HWR.beamline.gphl_connection is not None:
             HWR.beamline.gphl_connection.workflow_ended()
-            # HWR.beamline.gphl_connection.close_connection()
 
     def update_state(self, state=None):
         """
@@ -889,7 +889,8 @@ class GphlWorkflow(HardwareObjectYaml):
     def workflow_aborted(self, payload=None, correlation_id=None):
         logging.getLogger("user_level_log").warning("GΦL Workflow aborted.")
         self.update_specific_state(self.SPECIFIC_STATES.ABORTED)
-        self._workflow_queue.put_nowait(StopIteration)
+        if self._workflow_queue:
+            self._workflow_queue.put_nowait(StopIteration)
 
     def workflow_completed(self, payload=None, correlation_id=None):
         logging.getLogger("user_level_log").info("GΦL Workflow completed.")

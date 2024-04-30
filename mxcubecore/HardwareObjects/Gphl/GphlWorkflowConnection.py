@@ -174,8 +174,9 @@ class GphlWorkflowConnection(HardwareObjectYaml):
 
     def open_connection(self):
 
-        if self._gateway is not None:
-            logging.getLogger("HWR").debug("GΦL connection is already open")
+        if self._gateway is None:
+            logging.getLogger("HWR").debug("Opening GΦL connection")
+        else:
             return
 
         params = self.connection_parameters
