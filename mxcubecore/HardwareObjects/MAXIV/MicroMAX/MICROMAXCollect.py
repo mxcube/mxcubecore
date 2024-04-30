@@ -462,7 +462,16 @@ class MICROMAXCollect(DataCollect):
             try:
                 self.detector_hwobj.wait_config_done()
                 self.detector_hwobj.start_acquisition()
-                self.detector_hwobj.wait_ready()
+
+                #
+                # Don't wait for ready state when using Jungfrau detector.
+                # Jungfrau's arm operation is blocking, thus we know that arming is done
+                # when we get here. Jungfrau goes into 'BUSY' state when armed, so
+                # the wait_ready() will block forever.
+                #
+                if self.detector_hwobj.get_property("model") != "JUNGFRAU":
+                    self.detector_hwobj.wait_ready()
+
             except Exception as ex:
                 self.log.error("[COLLECT] Detector Error: %s" % ex)
                 raise RuntimeError("[COLLECT] Detector error while arming.")
