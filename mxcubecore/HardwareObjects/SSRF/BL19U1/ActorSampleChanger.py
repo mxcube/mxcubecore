@@ -415,7 +415,7 @@ class ActorSampleChanger(AbstractSampleChanger.SampleChanger):
 
         # 判断md2
         self.check_MD2_state()
-        self.check_MD2_Magnet()
+        # self.check_MD2_Magnet()
 
         self.emit("fsmConditionChanged", "sample_mounting_sample_changer", True)
         previous_sample = self.get_loaded_sample()
