@@ -1369,12 +1369,17 @@ class MICROMAXCollect(DataCollect):
         Descript.: prepare beamline for a new sample,
         """
         self.log.info("[HWR] Preparing beamline for a new sample.")
-        if manual_mode:
-            self.close_detector_cover()
-            self.diffractometer_hwobj.set_phase("Transfer")
-            self.close_safety_shutter()
 
-        self.move_detector(DET_SAFE_POSITION)
+        self.close_detector_cover()
+
+        # HVE head is recognized as PLATE by the MD3. We do nothing for those two cases
+        if manual_mode and not (
+            self.diffractometer_hwobj.head_type == GenericDiffractometer.HEAD_TYPE_PLATE
+        ):
+            self.diffractometer_hwobj.set_phase("Transfer")
+            self.move_detector(DET_SAFE_POSITION)
+
+        self.close_safety_shutter()
 
     def _update_image_to_display(self):
         fname1 = "/mxn/groups/sw/mxsw/albula_autoload/to_display"
