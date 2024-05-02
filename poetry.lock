@@ -1788,7 +1788,7 @@ files = [
 name = "pytango"
 version = "9.4.1"
 description = "A python binding for the Tango control system"
-optional = true
+optional = false
 python-versions = ">=3.6"
 files = [
     {file = "pytango-9.4.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:947c75256efd1c02f59d8b1a5dd5e2b2e0c844fadf6439681f02b71f12f22dec"},
@@ -2547,4 +2547,4 @@ tango = ["PyTango"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<3.11"
-content-hash = "32153909850af238b4a54263fc6be10c05e73fa25c3129cb264468100bce86f9"
+content-hash = "643ee355bfd753eb799ccf37f899043c2ce90e73805fc7373a207e867d384076"
