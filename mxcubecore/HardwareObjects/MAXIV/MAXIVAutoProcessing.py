@@ -29,6 +29,7 @@ import errno
 import subprocess
 import json
 from textwrap import dedent
+from string import Template
 
 from XSDataAutoprocv1_0 import XSDataAutoprocInput
 from mxcubecore.BaseHardwareObjects import HardwareObject
@@ -51,6 +52,31 @@ class MAXIVAutoProcessing(HardwareObject):
             None  # generate XDS.INP for processing pipelines
         )
         self.gen_autoproc_path = None
+        self.crystfel_geom_temp = {}
+        self.crystfel_index_temp = None
+        self.spg_dict = None
+
+    def read_file(self, file_path):
+        try:
+            with open(file_path, "r") as fin:
+                content = fin.read()
+        except Exception as ex:
+            self.log.warning(
+                "[AutoProcessing] error with reading file {}, {}".format(file_path, ex)
+            )
+            return None
+        return content
+
+    def read_spg_dictionary(self, spg_file=None):
+        spg_list = []
+        with open(spg_file, "r") as infile:
+            for line in infile:
+                tmp = line.strip().split("'")
+                tmp2 = tmp[0].split()
+                spg_list.append(
+                    {"num": int(tmp2[0]), "short_name": tmp2[3], "full_name": tmp[1]}
+                )
+        return spg_list
 
     def init(self):
         """
@@ -72,6 +98,25 @@ class MAXIVAutoProcessing(HardwareObject):
             "gen_thumbnail_script",
             "/mxn/groups/sw/mxsw/mxcube_scripts/generate_thumbnail",
         )
+        jf_temp_path = self.get_property(
+            "crystfel_geom_temp_path_jungfrau",
+            "/mxn/groups/sw/mxsw/mxcube_scripts/template/jungfrau_geom_temp.txt",
+        )
+        self.crystfel_geom_temp["jungfrau"] = Template(self.read_file(jf_temp_path))
+
+        eiger_temp_path = self.get_property(
+            "crystfel_geom_temp_path_eiger",
+            "/mxn/groups/sw/mxsw/mxcube_scripts/template/eiger_geom_temp.txt",
+        )
+        self.crystfel_geom_temp["eiger"] = Template(self.read_file(eiger_temp_path))
+        index_temp_path = self.get_property(
+            "crystfel_index_temp_path",
+            "/mxn/groups/sw/mxsw/mxcube_scripts/template/crystfel_index_temp.txt",
+        )
+        self.crystfel_index_temp = Template(self.read_file(index_temp_path))
+        spg_dict_file = self.get_property("spacegroup_dictionary_file", None)
+        if spg_dict_file is not None:
+            self.spg_dict = self.read_spg_dictionary(spg_file=spg_dict_file)
 
     def execute_autoprocessing(self, process_event, params_dict, frame_number):
         """
@@ -411,26 +456,75 @@ class MAXIVAutoProcessing(HardwareObject):
         self.log.info("TODO: fix store_image_in_lims_by_frame_num method for nimages>1")
         return
 
-    def gen_crystfel_geom(self, geom_dict, proc_dir):
-        geom_file = os.path.join(proc_dir, "cryst.geom")
+    def gen_file_from_template(self, input_dict, template, output):
+        try:
+            content = template.safe_substitute(input_dict)
+            with open(output, "w") as fout:
+                fout.write(content)
+        except Exception:
+            self.log.exception("[AutoProcessing] Error generating input file")
+        self.log.info("[AutoProcessing] Generate input file {}".format(output))
+
+    def find_spg_full_name(self, value):
+        spg = list(filter(lambda spg: spg["short_name"] == value, self.spg_dict))
+        return spg[0]["full_name"]
+
+    def generate_pdb(self, sample_ref, output_file):
+        # dataCollectionId =  str(params_dict['collection_id'])
+        cell = sample_ref.get("cell", "0,0,0,0,0,0")
+        if cell == ",,,,," or cell[0:5] == "0,0,0":
+            return None
+        space_group = sample_ref.get("spacegroup", 0)
+        # Undefined and None can be from ISPyB
+        if space_group == "" or space_group == "None" or space_group == "Undefined":
+            return None
         self.log.info(
-            "generate crystfel geometry file, {}, with info {}".format(
-                geom_file, geom_dict
-            )
+            "[AutoProcessing] Input spacegroup is space_group {}".format(space_group)
         )
+        space_group = str(space_group).replace(" ", "")
+        spg_full_name = self.find_spg_full_name(space_group)
+        self.log.info(
+            "[AutoProcessing] Input spacegroup is space_group {}".format(spg_full_name)
+        )
+        # write cell parameters in PDB format
+        cell_float = [float(x) for x in cell.split(",")]
+        pdb = "CRYST1"
+        for i in range(3):
+            pdb += "{:>9}".format("{:.3f}".format(cell_float[i]))
+        for i in range(3, 6):
+            pdb += "{:>7}".format("{:.2f}".format(cell_float[i]))
+        pdb += " {:<11}{:>4}".format(spg_full_name, 1)
+        with open(output_file, "w") as f:
+            f.write(pdb)
+        return output_file
 
     def generate_crystfel_input_files(self, det_config, sample_ref, proc_dir, auto_dir):
         """
         Descript. : generate input files to run crystfel for SSX experiment
         """
         geom_dict = {
-            "energy_ev": det_config["energy"],
+            "energy_ev": det_config["PhotonEnergy"],
             "det_dist": det_config["DetectorDistance"],
             "beam_cent_x": det_config["BeamCenterX"],
             "beam_cent_y": det_config["BeamCenterY"],
         }
-        self.gen_crystfel_geom(geom_dict, proc_dir)
-        # self.gen_indexamajig(cell_file = pdb_file, proc_dir)
+        geom_file = os.path.join(proc_dir, "detector.geom")
+        self.gen_file_from_template(
+            geom_dict, self.crystfel_geom_temp["jungfrau"], geom_file
+        )
+        pdb_file = os.path.join(proc_dir, "cell.pdb")
+        pdb_file_final = self.generate_pdb(sample_ref, pdb_file)
+        index_file = os.path.join(proc_dir, "indexamajig.sh")
+        if pdb_file_final is not None:
+            index_dict = {
+                "indexing": "--indexing=xgandalf",
+                "cell": " -p {}".format(pdb_file_final),
+            }
+        else:
+            index_dict = {
+                "indexing": "--indexing=mosflm",
+            }
+        self.gen_file_from_template(index_dict, self.crystfel_index_temp, index_file)
 
     def generate_and_copy_thumbnails(self, data_path, frame_number):
         if self.gen_thumbnail_script is None:
