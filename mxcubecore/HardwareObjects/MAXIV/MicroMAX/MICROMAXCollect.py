@@ -679,6 +679,7 @@ class MICROMAXCollect(DataCollect):
             and overlap == 0
             and num_images >= self.NIMAGES_TRIGGER_AUTO_PROC
             and not self.in_interleave
+            and not self.ssx_mode
         ):
             gevent.spawn(self.trigger_auto_processing, "after", 0)
 
@@ -935,6 +936,8 @@ class MICROMAXCollect(DataCollect):
         self.log.info("[COLLECT] Generating input files for launching crystfel")
         if self.autoprocessing_hwobj is not None:
             try:
+                current_energy = self.energy_hwobj.get_current_energy()
+                det_config["PhotonEnergy"] = current_energy * 1000.0
                 self.autoprocessing_hwobj.generate_crystfel_input_files(
                     det_config,
                     self.current_dc_parameters["sample_reference"],
