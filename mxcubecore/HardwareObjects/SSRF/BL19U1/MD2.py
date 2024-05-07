@@ -379,10 +379,10 @@ class MD2(Microdiff.Microdiff):
         # params += "%0.3f\t" % (mesh_range["horizontal_range"] / 1000.0)   # TODO check why BIOMAX used to pass micrometers
         # # Set negative pitch to move CT towards the left because it starts from grid top left corner
         # params += "%0.3f\t" % (mesh_range["vertical_range"] / 1000.0)
-        #改，放大两倍,
-        params += "%0.3f\t" % (2*mesh_range["horizontal_range"] / 1000.0)  # TODO check why BIOMAX used to pass micrometers
+        #改，放大两倍,20240507,改回，不放大了
+        params += "%0.3f\t" % (mesh_range["horizontal_range"] / 1000.0)  # TODO check why BIOMAX used to pass micrometers
         # Set negative pitch to move CT towards the left because it starts from grid top left corner
-        params += "%0.3f\t" % (2*mesh_range["vertical_range"] / 1000.0)
+        params += "%0.3f\t" % (mesh_range["vertical_range"] / 1000.0)
         params += "%0.3f\t" % start
         # params += "%0.3f\t" % positions["phiy"]
         params += "%0.3f\t" % mesh_center_topRightPoint_phiy    #改
@@ -495,7 +495,8 @@ class MD2(Microdiff.Microdiff):
         # "sampy": round(sampy, 4),
         # 其中phi ， phiz 不变, 需要知道sampx 和 sampy 和 phiy 的位置
         # phiy 的位置可以根据move_to_beam的代码得知，
-        # 但sampx与sampy的具体位置不知道，只能得到centring vertical的值
+        # 但sampx与sampy的具体位置不知道，只能得到centring vertical的值,因此需要先通过move_to_beam实际移动过去，再分别读取
+        #   sampx 和 sampy
 
 
         logging.getLogger("HWR.MX3").info("get into get_centred_point_from_coord in MD2")

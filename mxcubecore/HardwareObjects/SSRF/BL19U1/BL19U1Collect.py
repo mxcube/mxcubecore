@@ -1368,6 +1368,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
          - nb lines
          - nb frames per line
          - invert direction (boolean)  # NOT YET DONE
+         此处的shape是从data_collection.py中手动传输过来的
          """
 
         # TODO the hack below overrides the num_lines from queue entry
@@ -1381,7 +1382,11 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         # TODO the hack below overrides the mesh_total_nb_frames from queue entry
         self.mesh_total_nb_frames = shape.get("num_cols") * shape.get("num_rows") # mesh_total_nb_frames
 
-        self.mesh_range = {"horizontal_range": mesh_range_param[0]*2, "vertical_range": mesh_range_param[1]*2}
+        # 下面这行代码不对，mesh_range_param[0]与[1]对应react传过来在mxcube画布上的绝对长宽，与zoom无关，而mesh_range应该与zoom有关
+        # self.mesh_range = {"horizontal_range": mesh_range_param[0]*2, "vertical_range": mesh_range_param[1]*2}
+        # 改为直接根据格子*50来计算
+        self.mesh_range = {"horizontal_range": shape.get("num_cols")*50, "vertical_range": shape.get("num_rows")*50}
+
         self.mesh_center = mesh_center_param
 
         self.shape = shape
