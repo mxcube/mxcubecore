@@ -159,7 +159,7 @@ class TangoChannel(ChannelObject):
         username=None,
         polling=None,
         timeout=10000,
-        **kwargs
+        **kwargs,
     ):
         ChannelObject.__init__(self, name, username, **kwargs)
 
@@ -173,13 +173,6 @@ class TangoChannel(ChannelObject):
         self.timeout = int(timeout)
         self.read_as_str = kwargs.get("read_as_str", False)
         self._device_initialized = gevent.event.Event()
-        #logging.getLogger("HWR").debug(
-        #    "creating Tango attribute %s/%s, polling=%s, timeout=%d",
-        #    self.device_name,
-        #    self.attribute_name,
-        #    polling,
-        #    self.timeout,
-        #)
         self.init_device()
         self.continue_init(None)
         """

@@ -139,7 +139,6 @@ force-exclude = '''
 #
   | deprecated/HardwareObjects/SpecScan.py
   | deprecated/HardwareObjects/mockup/MultiCollectMockup.py
-  | mxcubecore/Command/Tango.py
   | mxcubecore/HardwareObjects/ALBA/ALBAEpsActuator.py
   | mxcubecore/HardwareObjects/ALBA/ALBAFastShutter.py
   | deprecated/HardwareObjects/Server/__init__.py
