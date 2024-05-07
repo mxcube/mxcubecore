@@ -39,6 +39,8 @@ import numpy
 
 gevent_version = list(map(int, gevent.__version__.split(".")))
 
+log = logging.getLogger("HWR")
+
 try:
     import PyTango
     from PyTango.gevent import DeviceProxy
@@ -277,15 +279,24 @@ class TangoChannel(ChannelObject):
         TangoChannel._tangoEventsProcessingTimer.send()
 
     def poll(self):
+        def read_attr():
+            if self.read_as_str:
+                value = self.raw_device.read_attribute(
+                    self.attribute_name, PyTango.DeviceAttribute.ExtractAs.String
+                ).value
+            else:
+                value = self.raw_device.read_attribute(self.attribute_name).value
 
-        if self.read_as_str:
-            value = self.raw_device.read_attribute(
-                self.attribute_name, PyTango.DeviceAttribute.ExtractAs.String
-            ).value
-        else:
-            value = self.raw_device.read_attribute(self.attribute_name).value
+            return value
 
-        return value
+        while True:
+            try:  # in case of tango communication errors, retry reading the attribute
+                return read_attr()
+            except PyTango.CommunicationFailed:
+                log.warning(
+                    f"error polling {self.raw_device} {self.attribute_name} attribute, retrying.",
+                    exc_info=True,
+                )
 
     def poll_failed(self, e, poller_id):
         self.emit("update", None)
