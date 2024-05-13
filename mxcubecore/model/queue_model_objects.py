@@ -2519,7 +2519,7 @@ class GphlWorkflow(TaskNode):
             " energy:%s keV, total_strategy_length:%s deg, exposure_time:%s s, "
             "image_width:%s deg, dose_rate: %s"
         )
-        raise UserWarning(
+        logging.getLogger("HWR").warning(
             msg % (energy, total_strategy_length, exposure_time, image_width, dose_rate)
         )
         return 0
