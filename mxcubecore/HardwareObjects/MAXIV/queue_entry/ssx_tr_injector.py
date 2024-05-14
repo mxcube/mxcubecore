@@ -33,6 +33,12 @@ class InjectorUserCollectionParameters(BaseModel):
     resolution: float = Field()
     laser_pulse_delay: float = Field(0, title="Laser pulse delay (s)")
     laser_pulse_width: float = Field(0, title="Laser pulse width (s)")
+    cellA: float = Field(0, title="Cell A")
+    cellB: float = Field(0, title="Cell B")
+    cellC: float = Field(0, title="Cell C")
+    cellAlpha: float = Field(0, title="Cell α")
+    cellBeta: float = Field(0, title="Cell β")
+    cellGamma: float = Field(0, title="Cell γ")
 
 
 class SsxTrInjectorQueueModel(DataCollection):
@@ -66,6 +72,14 @@ class InjectorTaskParameters(BaseModel):
                     "exp_time",
                     "resolution",
                     "energy",
+                    "laser_pulse_delay",
+                    "laser_pulse_width",
+                    "cellAlpha",
+                    "cellA",
+                    "cellBeta",
+                    "cellB",
+                    "cellGamma",
+                    "cellC",
                     "*",
                 ],
                 "ui:submitButtonOptions": {

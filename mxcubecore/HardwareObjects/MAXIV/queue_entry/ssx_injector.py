@@ -21,6 +21,12 @@ class InjectorUserCollectionParameters(BaseModel):
     num_images: int = Field(1000, gt=0, lt=10000000, title="Number of images")
     energy: float = Field()
     resolution: float = Field()
+    cellA: float = Field(0, title="Cell A")
+    cellB: float = Field(0, title="Cell B")
+    cellC: float = Field(0, title="Cell C")
+    cellAlpha: float = Field(0, title="Cell α")
+    cellBeta: float = Field(0, title="Cell β")
+    cellGamma: float = Field(0, title="Cell γ")
 
 
 class SsxInjectorQueueModel(DataCollection):
@@ -47,13 +53,17 @@ class InjectorTaskParameters(BaseModel):
                     "exp_time",
                     "resolution",
                     "energy",
+                    "cellA",
+                    "cellAlpha",
+                    "cellB",
+                    "cellBeta",
+                    "cellC",
+                    "cellGamma",
                     "*",
                 ],
                 "ui:submitButtonOptions": {
                     "norender": "true",
                 },
-                "sub_sampling": {"ui:readonly": "true"},
-                "frequency": {"ui:readonly": "true"},
             }
         )
 

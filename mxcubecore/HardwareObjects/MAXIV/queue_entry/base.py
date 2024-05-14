@@ -67,6 +67,12 @@ class AbstractSsxQueueEntry(BaseQueueEntry):
             return (
                 uc_params.exp_time,
                 uc_params.num_images,
+                uc_params.cellA,
+                uc_params.cellB,
+                uc_params.cellC,
+                uc_params.cellAlpha,
+                uc_params.cellBeta,
+                uc_params.cellGamma,
                 col_params.energy,
                 col_params.resolution,
                 dc_dict["path"],
@@ -84,6 +90,12 @@ class AbstractSsxQueueEntry(BaseQueueEntry):
         (
             exp_time,
             num_images,
+            cell_a,
+            cell_b,
+            cell_c,
+            cell_alpha,
+            cell_beta,
+            cell_gamma,
             energy,
             resolution,
             root_dir,
@@ -117,6 +129,12 @@ class AbstractSsxQueueEntry(BaseQueueEntry):
         det_cfg["NbTriggers"] = num_triggers
         det_cfg["CountTime"] = exp_time
         det_cfg["FilenamePattern"] = str(Path(root_dir, f"{path_prefix}_{run_number}"))
+        det_cfg["UnitCellA"] = cell_a
+        det_cfg["UnitCellB"] = cell_b
+        det_cfg["UnitCellC"] = cell_c
+        det_cfg["UnitCellAlpha"] = cell_alpha
+        det_cfg["UnitCellBeta"] = cell_beta
+        det_cfg["UnitCellGamma"] = cell_gamma
         detector.prepare_acquisition(det_cfg)
 
         #
