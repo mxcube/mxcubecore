@@ -547,7 +547,7 @@ class Point(Shape):
 
     def set_id(self, id_num):
         Shape.set_id(self, id_num)
-        self.cp_list[0].index = self.id
+        self.cp_list[0].index = self.name
 
     def as_dict(self):
         d = Shape.as_dict(self)
@@ -575,6 +575,9 @@ class Line(Shape):
         self.t = "L"
         self.label = "Line"
         self.set_id(Line.SHAPE_COUNT)
+
+    def set_id(self, id_num):
+        Shape.set_id(self, id_num)
 
     def get_centred_positions(self):
         return [self.start_cpos, self.end_cpos]
@@ -644,7 +647,6 @@ class Grid(Shape):
 
     def set_id(self, id_num):
         Shape.set_id(self, id_num)
-        self.cp_list[0].index = self.id
 
     def set_result(self, result_data):
         self.result = result_data
@@ -661,7 +663,6 @@ class Grid(Shape):
         beam_pos = HWR.beamline.beam.get_beam_position_on_screen()
         size_x, size_y, shape, _label = HWR.beamline.beam.get_value()
 
-        # MXCuBE - 2 WF compatability
         d["x1"] = -float((beam_pos[0] - d["screen_coord"][0]) / pixels_per_mm[0])
         d["y1"] = -float((beam_pos[1] - d["screen_coord"][1]) / pixels_per_mm[1])
         d["steps_x"] = d["num_cols"]
