@@ -993,7 +993,11 @@ class MICROMAXCollect(DataCollect):
         Descript. : important to make sure it's passed, as we
                     don't open the fast shutter in MXCuBE
         """
-        self.diffractometer_hwobj.open_fast_shutter()
+        try:
+            self.diffractometer_hwobj.open_fast_shutter()
+        except Exception:
+            self.user_log.exception("Error opening fast shutter.")
+            raise
 
     def close_fast_shutter(self):
         """
