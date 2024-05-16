@@ -88,8 +88,8 @@
 
 
   <!-- Properties -->
-  <default_beam_x>1229</default_beam_x>
-  <default_beam_y>1331</default_beam_y>
+  <default_beam_x>452</default_beam_x>
+  <default_beam_y>531</default_beam_y>
    <!--default_beam_x>0</default_beam_x>
   <default_beam_y>0</default_beam_y-->
   <!--object hwrid="/dtox" role="detector_distance"/-->
@@ -97,12 +97,12 @@
   <humidityThreshold>20.0</humidityThreshold>
   <tolerance>0.2</tolerance>
   <type>pilatus</type>
-  <model>6M</model>
+  <model>1M</model>
   <manufacturer>DECTRIS</manufacturer>
   <px>0.172</px>
   <py>0.172</py>
-  <width>2463</width>
-  <height>2527</height>
+  <width>981</width>
+  <height>1043</height>
   <hasShutterless>True</hasShutterless>
   <file_suffix>cbf</file_suffix>
   <trigger_mode>exts</trigger_mode>
@@ -114,8 +114,8 @@
   <beam>
     <ax>0.000336</ax>
     <ay>0.001161</ay>
-    <bx>1232</bx>
-    <by>1264</by>
+    <bx>452</bx>
+    <by>531</by>
     <!--bx>0</bx>
     <by>0</by-->
   </beam>

@@ -21,6 +21,8 @@ import epics
 
 from mxcubecore.utils.pymysql_comm import UsingMysql
 
+DISTANCE_DETECTOR_FIX = 160000
+DISTANCE_DETECTOR_RBV_FIX = 160
 
 class LNLSPilatusDet(AbstractDetector):
     DET_THRESHOLD = 'det_threshols_energy'
@@ -266,12 +268,15 @@ class LNLSPilatusDet(AbstractDetector):
             float: detector distance
         """
         value = float(self.get_channel_value(self.DET_DETDIST))
+        value = DISTANCE_DETECTOR_FIX # 固定值
         return value
 
     def set_detector_distance(self, det_distance):
         """
         Set detector distance and returns whether it was successful or not.
         """
+        return True # 固定值
+
         try:
             float(det_distance)
         except Exception as e:
@@ -701,9 +706,10 @@ class LNLSPilatusDet(AbstractDetector):
         # self.set_channel_value("det_phi_omega_incr", file_template)
         self.set_channel_value("det_phi_oscill_axis", self.header["Oscillation_axis"])
         self.set_channel_value("det_num_oscill", self.header["N_oscillations"])
-        self.set_channel_value("det_beam_x", 1229.00)
+        self.set_channel_value("det_beam_x", 432)
         # self.set_channel_value("det_beam_y", 1331.00)
-        beamy = self.get_beamy()
+    #    beamy = self.get_beamy()
+        beamy = 484
         self.set_channel_value("det_beam_y", beamy)
         # self.set_channel_value("det_cbf_template_file", file_template)
 
@@ -981,6 +987,7 @@ class LNLSPilatusDet(AbstractDetector):
         self.emit("statusChanged", self.status)
 
     def set_cam1_distance(self):
+        return #固定值
         try:
             value = self.get_channel_value(self.DET_DETDIST)
             logging.getLogger("HWR").info("get epics detect distance: %s", value)
@@ -1015,7 +1022,8 @@ class LNLSPilatusDet(AbstractDetector):
             logging.getLogger("HWR").info("set detect distance: %s", ex)
 
     def getDistnaceRtnValue(self):
-        rtnValue = self.get_channel_value(self.DET_DETDIST_RBV)
+        # rtnValue = self.get_channel_value(self.DET_DETDIST_RBV)
+        rtnValue = DISTANCE_DETECTOR_RBV_FIX #固定值
         if rtnValue > 1000:
             rtnValue = rtnValue / 1000
         logging.getLogger("HWR").info("RBV value: %s" % str(rtnValue))
