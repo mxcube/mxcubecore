@@ -21,7 +21,7 @@ import epics
 
 from mxcubecore.utils.pymysql_comm import UsingMysql
 
-DISTANCE_DETECTOR_FIX = 160000
+DISTANCE_DETECTOR_FIX = 160
 DISTANCE_DETECTOR_RBV_FIX = 160
 
 class LNLSPilatusDet(AbstractDetector):

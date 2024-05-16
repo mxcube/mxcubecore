@@ -67,9 +67,10 @@
   <channel type="epics" name="det_cbf_template_file">BL19U1:cam1:CbfTemplateFile</channel>
   <channel type="epics" name="det_filename">BL19U1:cam1:FileName</channel>
   <channel type="epics" name="det_filenumber">BL19U1:cam1:FileNumber</channel>
-  <channel type="epics" name="detectorDistance">19U:TABLE:DETH</channel>
-  <channel type="epics" name="detectorDistance_RBV">19U:TABLE:DETH.RBV</channel>
-  <channel type="epics" name="cam1_distance">BL19U1:cam1:DetDist</channel>
+<!--  先注释调下面三个关于探测器距离的pv-->
+<!--  <channel type="epics" name="detectorDistance">19U:TABLE:DETH</channel>-->
+<!--  <channel type="epics" name="detectorDistance_RBV">19U:TABLE:DETH.RBV</channel>-->
+<!--  <channel type="epics" name="cam1_distance">BL19U1:cam1:DetDist</channel>-->
 
 <!--  FilterTransm-->
 <!--  <channel type="epics" name="saving_mode">BL19U1:cam1:</channel>-->

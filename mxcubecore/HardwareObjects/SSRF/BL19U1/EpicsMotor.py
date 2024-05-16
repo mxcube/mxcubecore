@@ -41,14 +41,17 @@ __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
-
+DISTANCE_DETECTOR_FIX = 160000
 class EpicsMotor(AbstractMotor):
     """Epics Motor implementation"""
 
     def __init__(self, name):
         AbstractMotor.__init__(self, name)
-        self.motor_position_channel = None
-        self.motor_position_channel_RBV = None
+        # self.motor_position_channel = None
+        # self.motor_position_channel_RBV = None
+        # 固定值
+        self.motor_position_channel = DISTANCE_DETECTOR_FIX
+        self.motor_position_channel_RBV = DISTANCE_DETECTOR_FIX
         self.motor_position = None
         self._nominal_limits = None, None
         self.cam1_distance = None
@@ -56,13 +59,14 @@ class EpicsMotor(AbstractMotor):
     def init(self):
         """Initialise the motor"""
         AbstractMotor.init(self)
-        self.motor_position_channel = self.get_channel_object("detectorDistance")
-        self.motor_position_channel.connectSignal("update", self.update_value)
-        self.motor_position_channel.connectSignal("valueChanged", self.update_value)
-
-        self.motor_position_channel_RBV = self.get_channel_object("detectorDistance_RBV")
-        self.motor_position_channel_RBV.connectSignal("update", self.update_value)
-        self.motor_position_channel_RBV.connectSignal("valueChanged", self.update_value)
+        # 固定值
+        # self.motor_position_channel = self.get_channel_object("detectorDistance")
+        # self.motor_position_channel.connectSignal("update", self.update_value)
+        # self.motor_position_channel.connectSignal("valueChanged", self.update_value)
+        #
+        # self.motor_position_channel_RBV = self.get_channel_object("detectorDistance_RBV")
+        # self.motor_position_channel_RBV.connectSignal("update", self.update_value)
+        # self.motor_position_channel_RBV.connectSignal("valueChanged", self.update_value)
 
         self.motor_position = self.get_value()
         limits = self.getProperty("default_limits")
@@ -111,6 +115,7 @@ class EpicsMotor(AbstractMotor):
         Returns:
             float: Motor position.
         """
+        return DISTANCE_DETECTOR_FIX/1000 # 固定值
         if self.actuator_name == "dtox":
             value = self.motor_position_channel_RBV.getValue()/1000
         else:
@@ -152,12 +157,16 @@ class EpicsMotor(AbstractMotor):
         #     self.motor_position_channel.setValue() * 1000
         # else:
         #     self.motor_position_channel.setValue(value)
-        self.motor_position_channel.setValue(value)
+
+        # 固定值
+        value = DISTANCE_DETECTOR_FIX
+        # self.motor_position_channel.setValue(value)
         self.update_value(value)
 
 
     def abort(self):
         """Stop the motor movement"""
+        return  # 固定值
         self.motor_position_channel.setValue('abort')
 
     def name(self):
