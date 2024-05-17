@@ -263,6 +263,9 @@ class Beamline(HardwareObject):
     def _init(self) -> None:
         """Object initialisation - executed *before* loading contents"""
 
+        # Enable phase control
+        self.enable_phase_control = True
+
     def init(self):
         """Object initialisation - executed *after* loading contents"""
 
