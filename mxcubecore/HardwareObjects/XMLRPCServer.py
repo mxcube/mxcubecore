@@ -172,16 +172,11 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.setCharacterisationResult)
 
         # Register functions from modules specified in <apis> element
-        if self.has_object("apis"):
-            apis = next(self.get_objects("apis"))
-            for api in apis.get_objects("api"):
-                recurse = api.get_property("recurse")
-                if recurse is None:
-                    recurse = True
+        apis = next(self.get_property("apis"), ())
+        for api in apis.get("api"):
+            recurse = api.get("recurse", True)
 
-                self._register_module_functions(
-                    api.get_property("module"), recurse=recurse
-                )
+            self._register_module_functions(api.get("module"), recurse=recurse)
 
         self.xmlrpc_server_task = gevent.spawn(self._server.serve_forever)
         self.beamcmds_hwobj = self.get_object_by_role("beamcmds")

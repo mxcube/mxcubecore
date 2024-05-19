@@ -482,7 +482,7 @@ class Camera(BaseHardwareObjects.HardwareObject):
                             # img.save(*args)
                         except Exception:
                             logging.getLogger("HWR").exception(
-                                "%s: could not save snapshot", self.name()
+                                "%s: could not save snapshot", self.id
                             )
                         else:
                             if len(args):
@@ -490,7 +490,7 @@ class Camera(BaseHardwareObjects.HardwareObject):
                                     img.save(*args)
                                 except Exception:
                                     logging.getLogger("HWR").exception(
-                                        "%s: could not save snapshot", self.name()
+                                        "%s: could not save snapshot", self.id
                                     )
                                 else:
                                     return True
@@ -499,7 +499,7 @@ class Camera(BaseHardwareObjects.HardwareObject):
                     else:
                         logging.getLogger("HWR").error(
                             "%s: could not take snapshot: sorry PIL is not available :-(",
-                            self.name(),
+                            self.id,
                         )
                     return False
 
@@ -835,7 +835,7 @@ class Camera(BaseHardwareObjects.HardwareObject):
                             # img.save(*args)
                         except Exception:
                             logging.getLogger("HWR").exception(
-                                "%s: could not save snapshot", self.name()
+                                "%s: could not save snapshot", self.id
                             )
                         else:
                             if len(args):
@@ -843,7 +843,7 @@ class Camera(BaseHardwareObjects.HardwareObject):
                                     img.save(*args)
                                 except Exception:
                                     logging.getLogger("HWR").exception(
-                                        "%s: could not save snapshot", self.name()
+                                        "%s: could not save snapshot", self.id
                                     )
                                 else:
                                     return True
@@ -852,7 +852,7 @@ class Camera(BaseHardwareObjects.HardwareObject):
                     else:
                         logging.getLogger("HWR").error(
                             "%s: could not take snapshot: sorry PIL is not available :-(",
-                            self.name(),
+                            self.id,
                         )
                     return False
 
