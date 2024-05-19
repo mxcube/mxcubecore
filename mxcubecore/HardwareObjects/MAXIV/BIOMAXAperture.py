@@ -24,7 +24,7 @@ class BIOMAXAperture(MicrodiffAperture):
     def moveToPosition(self, positionName):
         logging.getLogger().debug(
             "%s: trying to move %s to %s:%f",
-            self.name(),
+            self.id,
             self.motor_name,
             positionName,
             self.predefinedPositions[positionName],

@@ -54,7 +54,7 @@ class MicrodiffSamplePseudo(MD2Motor):
 
     def motorStateChanged(self, state):
         logging.getLogger().debug(
-            "%s: in motorStateChanged: motor state changed to %s", self.name(), state
+            "%s: in motorStateChanged: motor state changed to %s", self.id, state
         )
         self.emit("stateChanged", (self.motorState,))
 

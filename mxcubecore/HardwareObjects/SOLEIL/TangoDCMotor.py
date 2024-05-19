@@ -93,7 +93,7 @@ class TangoDCMotor(HardwareObject):
                 self.old_value = value
             except Exception:
                 logging.getLogger("HWR").error(
-                    "%s: TangoDCMotor not responding, %s", self.name(), ""
+                    "%s: TangoDCMotor not responding, %s", self.id, ""
                 )
                 self.old_value = value
 
@@ -194,7 +194,7 @@ class TangoDCMotor(HardwareObject):
         return retvalue
 
     def get_motor_mnemonic(self):
-        return self.name()
+        return self.name
 
     def _set_value(self, value):
         """Move the motor to the required position

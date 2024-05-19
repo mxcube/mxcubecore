@@ -81,7 +81,7 @@ class BlissHutchTrigger(BaseHardwareObjects.HardwareObject):
 
     def macro(self, entering_hutch, **kwargs):
         logging.info(
-            "%s: %s hutch", self.name(), "entering" if entering_hutch else "leaving"
+            "%s: %s hutch", self.id, "entering" if entering_hutch else "leaving"
         )
         ctrl_obj = self.get_object_by_role("controller")
         ctrl_obj.hutch_actions(entering_hutch, hutch_trigger=True, **kwargs)

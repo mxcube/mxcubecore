@@ -112,11 +112,11 @@ You can get and set the values of simple properties by normal `obj.attr` syntax,
 which will also get you normal, non-property attributes.
 The `get_properties` method returns a dictionary of all properties and their values,
 and the `get_property` method behaves as `get_properties().get`.
-Direct setting of properties internally calls the `set_property` function,
+Direct setting of properties internally calls the `_set_property` function,
 and this function automatically converts strings to `int`, `float` or `bool` if possible.
 
 There are additional ways of accessing contained objects.
-`get_objects` and `has_object` take as input the object name
+`_get_objects` and `has_object` take as input the object name
 As currently coded (was it always thus?) the name is equal to the role name used to add the object.
 An XML-configured object is also coded to mimic a Python list and dictionary of contained objects,
 so that `anObject[ii]`

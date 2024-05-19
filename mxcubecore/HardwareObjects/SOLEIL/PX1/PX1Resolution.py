@@ -151,7 +151,7 @@ class PX1Resolution(HardwareObject):
             self.stop_command()
         except Exception:
             logging.getLogger("HWR").err(
-                "%s: PX1Resolution.stop: error while trying to stop!", self.name()
+                "%s: PX1Resolution.stop: error while trying to stop!", self.id
             )
 
     def re_emit_values(self):
