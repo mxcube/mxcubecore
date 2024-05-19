@@ -383,52 +383,6 @@ class TestHardwareObjectNode:
         assert HardwareObjectNode.user_file_directory == new_path
         assert hw_obj_node.user_file_directory == new_path
 
-    @pytest.mark.parametrize("name", ("test_node_two",))
-    def test_set_name(self, hw_obj_node: HardwareObjectNode, name: str):
-        """Test "set_name" method.
-
-        Args:
-            hw_obj_node (HardwareObjectNode): Object instance.
-            name (str): Name.
-        """
-
-        # Basic check to make sure the initial return value is a string
-        assert isinstance(hw_obj_node.name(), str)
-
-        # Call method
-        hw_obj_node.set_name(name=name)
-
-        # Confirm node name has been updated correctly
-        assert hw_obj_node.name() == name
-
-    @pytest.mark.parametrize("roles", (("slits", "queue", "session"),))
-    def test_get_roles(
-        self,
-        mocker: "MockerFixture",
-        hw_obj_node: HardwareObjectNode,
-        roles: Tuple[str],
-    ):
-        """Test "get_roles" method.
-
-        Args:
-            mocker (MockerFixture): Instance of the Pytest mocker fixture.
-            hw_obj_node (HardwareObjectNode): Object instance.
-            roles (Tuple[str]): Roles.
-        """
-
-        # We are only worrying about the dictionary keys,
-        # as the item values are not being read by the "get_roles" method.
-        role_values = dict([(key, None) for key in roles])
-
-        # Patch "_objects_by_role" attribute to test with known values
-        mocker.patch.dict(hw_obj_node._objects_by_role, values=role_values, clear=True)
-
-        # Call method
-        res = hw_obj_node.get_roles()
-
-        # Check output list of roles matched test input
-        assert tuple(res) == roles
-
     @pytest.mark.parametrize(
         ("initial_path", "new_path"),
         (("/mnt/data/old_path", "/mnt/data/new_path"),),
@@ -462,35 +416,6 @@ class TestHardwareObjectNode:
 
         # Validate path updated
         assert hw_obj_node._path == new_path
-
-    @pytest.mark.parametrize("path", ("/mnt/data/file.xml",))
-    def test_get_xml_path(
-        self,
-        mocker: "MockerFixture",
-        hw_obj_node: HardwareObjectNode,
-        path: str,
-    ):
-        """Test "get_xml_path" method.
-
-        Args:
-            mocker (MockerFixture): Instance of the Pytest mocker fixture.
-            hw_obj_node (HardwareObjectNode): Object instance.
-            path (str): XML path.
-        """
-
-        # Patch "_xml_path" attribute to set known values
-        mocker.patch.object(
-            hw_obj_node,
-            "_xml_path",
-            new=path,
-            create=True,
-        )
-
-        # Call method
-        res = hw_obj_node.get_xml_path()
-
-        # Validate correct path returned
-        assert res == path
 
     @pytest.mark.parametrize(
         ("objects", "count"),
@@ -871,7 +796,7 @@ class TestHardwareObjectNode:
         initial_obj_names: List[str],
         initial_objects: List[List[Union[HardwareObject, None]]],
     ):
-        """Test "add_object" method.
+        """Test "_add_object" method.
 
         Args:
             mocker (MockerFixture): Instance of the Pytest mocker fixture.
@@ -911,7 +836,7 @@ class TestHardwareObjectNode:
             _initial_value = None
 
         # Call method
-        hw_obj_node.add_object(name=name, hw_object=hw_object, role=role)
+        hw_obj_node._add_object(name=name, hw_object=hw_object, role=role)
 
         _objects_names: List[str] = getattr(
             hw_obj_node,
@@ -1011,7 +936,7 @@ class TestHardwareObjectNode:
         initial_obj_names: List[str],
         initial_objects: List[List[Union[HardwareObject, None]]],
     ):
-        """Test "get_objects" method.
+        """Test "_get_objects" method.
 
         Args:
             mocker (MockerFixture): Instance of the Pytest mocker fixture.
@@ -1043,7 +968,7 @@ class TestHardwareObjectNode:
         )
 
         # Call method
-        res = list(hw_obj_node.get_objects(object_name=name))
+        res = list(hw_obj_node._get_objects(object_name=name))
 
         if name in _objects_names:
             # Check output list matches expectations
@@ -1192,7 +1117,7 @@ class TestHardwareObjectNode:
         value: Any,
         output_value: Union[str, int, float, bool],
     ):
-        """Test "set_property" method.
+        """Test "_set_property" method.
 
         Args:
             mocker (MockerFixture): Instance of the Pytest mocker fixture.
@@ -1207,7 +1132,7 @@ class TestHardwareObjectNode:
         set_property_path_patch = mocker.patch.object(PropertySet, "set_property_path")
 
         # Call method, always returns None
-        hw_obj_node.set_property(name=name, value=value)
+        hw_obj_node._set_property(name=name, value=value)
 
         # Check "PropertySet.__setitem__" patch was called with expected value
         setitem_patch.assert_called_once_with(*(str(name), output_value))

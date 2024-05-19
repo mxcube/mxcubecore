@@ -330,7 +330,7 @@ class CommandContainer:
         """
         channel = self.__channels.get(channel_name)
         if channel is None and not optional:
-            msg = "%s: Unable to get channel %s" % (self.name(), channel_name)
+            msg = "%s: Unable to get channel %s" % (self.id, channel_name)
             logging.getLogger("user_level_log").error(msg)
             # raise Exception(msg)
         return channel
@@ -396,7 +396,7 @@ class CommandContainer:
             except Exception:
                 logging.getLogger().error(
                     "%s: cannot add channel %s (hint: check attributes)",
-                    self.name(),
+                    self.id,
                     channel_name,
                 )
         elif channel_type.lower() == "taco":
@@ -413,7 +413,7 @@ class CommandContainer:
             except Exception:
                 logging.getLogger().error(
                     "%s: cannot add channel %s (hint: check attributes)",
-                    self.name(),
+                    self.id,
                     channel_name,
                 )
         elif channel_type.lower() == "tango":
@@ -430,14 +430,14 @@ class CommandContainer:
             except ConnectionError:
                 logging.getLogger().error(
                     "%s: could not connect to device server %s (hint: is it running ?)",
-                    self.name(),
+                    self.id,
                     attributes_dict["tangoname"],
                 )
                 raise ConnectionError
             except Exception:
                 logging.getLogger().exception(
                     "%s: cannot add channel %s (hint: check attributes)",
-                    self.name(),
+                    self.id,
                     channel_name,
                 )
         elif channel_type.lower() == "exporter":
@@ -459,7 +459,7 @@ class CommandContainer:
             except Exception:
                 logging.getLogger().exception(
                     "%s: cannot add exporter channel %s (hint: check attributes)",
-                    self.name(),
+                    self.id,
                     channel_name,
                 )
         elif channel_type.lower() == "epics":
@@ -470,7 +470,7 @@ class CommandContainer:
             except Exception:
                 logging.getLogger().exception(
                     "%s: cannot add EPICS channel %s (hint: check PV name)",
-                    self.name(),
+                    self.id,
                     channel_name,
                 )
         elif channel_type.lower() == "tine":
@@ -487,7 +487,7 @@ class CommandContainer:
             except Exception:
                 logging.getLogger("HWR").exception(
                     "%s: cannot add TINE channel %s (hint: check attributes)",
-                    self.name(),
+                    self.id,
                     channel_name,
                 )
 
@@ -504,7 +504,7 @@ class CommandContainer:
 
                 logging.getLogger().debug(
                     "Creating a sardanachannel - %s / %s / %s",
-                    self.name(),
+                    self.id,
                     channel_name,
                     str(attributes_dict),
                 )
@@ -515,7 +515,7 @@ class CommandContainer:
             except Exception:
                 logging.getLogger().exception(
                     "%s: cannot add SARDANA channel %s (hint: check PV name)",
-                    self.name(),
+                    self.id,
                     channel_name,
                 )
 
@@ -533,7 +533,7 @@ class CommandContainer:
             except Exception:
                 logging.getLogger("HWR").exception(
                     "%s: cannot add Mockup channel %s (hint: check attributes)",
-                    self.name(),
+                    self.id,
                     channel_name,
                 )
 
@@ -659,7 +659,7 @@ class CommandContainer:
             except KeyError as err:
                 logging.getLogger().error(
                     '%s: cannot add command: missing "%s" property',
-                    self.name(),
+                    self.id,
                     err.args[0],
                 )
                 return
@@ -682,7 +682,7 @@ class CommandContainer:
             except Exception:
                 logging.getLogger().exception(
                     '%s: could not add command "%s" (hint: check command attributes)',
-                    self.name(),
+                    self.id,
                     cmd_name,
                 )
         elif cmd_type.lower() == "taco":
@@ -699,7 +699,7 @@ class CommandContainer:
             except Exception:
                 logging.getLogger().exception(
                     '%s: could not add command "%s" (hint: check command attributes)',
-                    self.name(),
+                    self.id,
                     cmd_name,
                 )
         elif cmd_type.lower() == "tango":
@@ -715,14 +715,14 @@ class CommandContainer:
             except ConnectionError:
                 logging.getLogger().error(
                     "%s: could not connect to device server %s (hint: is it running ?)",
-                    self.name(),
+                    self.id,
                     attributes_dict["tangoname"],
                 )
                 raise ConnectionError
             except Exception:
                 logging.getLogger().exception(
                     '%s: could not add command "%s" (hint: check command attributes)',
-                    self.name(),
+                    self.id,
                     cmd_name,
                 )
 
@@ -745,7 +745,7 @@ class CommandContainer:
             except Exception:
                 logging.getLogger().exception(
                     "%s: cannot add command %s (hint: check attributes)",
-                    self.name(),
+                    self.id,
                     cmd_name,
                 )
         elif cmd_type.lower() == "epics":
@@ -756,7 +756,7 @@ class CommandContainer:
             except Exception:
                 logging.getLogger().exception(
                     "%s: cannot add EPICS channel %s (hint: check PV name)",
-                    self.name(),
+                    self.id,
                     cmd_name,
                 )
 
@@ -806,7 +806,7 @@ class CommandContainer:
                 else:
                     logging.getLogger().error(
                         "%s: incomplete sardana command declaration. ignored",
-                        self.name(),
+                        self.id,
                     )
 
             from mxcubecore.Command.Sardana import (
@@ -820,14 +820,14 @@ class CommandContainer:
                 except ConnectionError:
                     logging.getLogger().error(
                         "%s: could not connect to sardana door %s (hint: is it running ?)",
-                        self.name(),
+                        self.id,
                         attributes_dict["doorname"],
                     )
                     raise ConnectionError
                 except Exception:
                     logging.getLogger().exception(
                         '%s: could not add command "%s" (hint: check command attributes)',
-                        self.name(),
+                        self.id,
                         cmd_name,
                     )
             elif cmd_type == "command" and taurusname is not None:
@@ -836,19 +836,19 @@ class CommandContainer:
                 except ConnectionError:
                     logging.getLogger().error(
                         "%s: could not connect to sardana device %s (hint: is it running ?)",
-                        self.name(),
+                        self.id,
                         taurusname,
                     )
                     raise ConnectionError
                 except Exception:
                     logging.getLogger().exception(
                         '%s: could not add command "%s" (hint: check command attributes)',
-                        self.name(),
+                        self.id,
                         cmd_name,
                     )
             else:
                 logging.getLogger().error(
-                    "%s: incomplete sardana command declaration. ignored", self.name()
+                    "%s: incomplete sardana command declaration. ignored", self.id
                 )
 
         elif cmd_type.lower() == "pool":
@@ -864,14 +864,14 @@ class CommandContainer:
             except ConnectionError:
                 logging.getLogger().error(
                     "%s: could not connect to device server %s (hint: is it running ?)",
-                    self.name(),
+                    self.id,
                     attributes_dict["tangoname"],
                 )
                 raise ConnectionError
             except Exception:
                 logging.getLogger().exception(
                     '%s: could not add command "%s" (hint: check command attributes)',
-                    self.name(),
+                    self.id,
                     cmd_name,
                 )
         elif cmd_type.lower() == "tine":
@@ -888,7 +888,7 @@ class CommandContainer:
             except Exception:
                 logging.getLogger().exception(
                     '%s: could not add command "%s" (hint: check command attributes)',
-                    self.name(),
+                    self.id,
                     cmd_name,
                 )
 
@@ -900,7 +900,7 @@ class CommandContainer:
             except Exception:
                 logging.getLogger().exception(
                     '%s: could not add command "%s" (hint: check command attributes)',
-                    self.name(),
+                    self.id,
                     cmd_name,
                 )
 
@@ -909,11 +909,11 @@ class CommandContainer:
 
             if not isinstance(arg1, dict):
                 i = 1
-                for arg in arg1.get_objects("argument"):
-                    on_change = arg.get_property("onchange")
+                for arg in arg1.get_property("argument"):
+                    on_change = arg.get("onchange")
                     if on_change is not None:
                         on_change = (on_change, weakref.ref(self))
-                    value_from = arg.get_property("valuefrom")
+                    value_from = arg.get("valuefrom")
                     if value_from is not None:
                         value_from = (value_from, weakref.ref(self))
 
@@ -922,48 +922,49 @@ class CommandContainer:
                     except IndexError:
                         try:
                             new_command.add_argument(
-                                arg.get_property("name"),
-                                arg.type,
+                                arg.get("name"),
+                                arg["type"],
                                 onchange=on_change,
                                 valuefrom=value_from,
                             )
                         except AttributeError:
                             logging.getLogger().error(
                                 '%s, command "%s": could not add argument %d, missing type or name',
-                                self.name(),
+                                self.id,
                                 cmd_name,
                                 i,
                             )
                             continue
                     else:
                         if isinstance(combo_items, list):
-                            combo_items = []
+                            ll1 = []
                             for item in combo_items:
                                 name = item.get_property("name")
                                 value = item.get_property("value")
                                 if name is None or value is None:
                                     logging.getLogger().error(
                                         "%s, command '%s': could not add argument %d, missing combo item name or value",
-                                        self.name(),
+                                        self.id,
                                         cmd_name,
                                         i,
                                     )
                                     continue
                                 else:
-                                    combo_items.append((name, value))
+                                    ll1.append((name, value))
+                            combo_items = ll1
                         else:
                             name = combo_items.get_property("name")
                             value = combo_items.get_property("value")
                             if name is None or value is None:
-                                combo_items = ((name, value),)
-                            else:
                                 logging.getLogger().error(
                                     "%s, command '%s': could not add argument %d, missing combo item name or value",
-                                    self.name(),
+                                    self.id,
                                     cmd_name,
                                     i,
                                 )
                                 continue
+                            else:
+                                combo_items = ((name, value),)
 
                         new_command.add_argument(
                             arg.get_property("name"),

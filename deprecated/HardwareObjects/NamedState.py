@@ -65,13 +65,13 @@ class NamedState(HardwareObject):
             self.emit(signal, (self.get_state(),))
 
     def stateChanged(self, channelValue):
-        logging.info("hw NamedState %s. got new value %s" % (self.name(), channelValue))
+        logging.info("hw NamedState %s. got new value %s" % (self.id, channelValue))
         self.set_is_ready(True)
         self.emit("stateChanged", (self.get_state(),))
 
     def hardwareStateChanged(self, channelValue):
         logging.info(
-            "hw NamedState %s. Hardware state is now %s" % (self.name(), channelValue)
+            "hw NamedState %s. Hardware state is now %s" % (self.id, channelValue)
         )
         self.hdw_state = channelValue
         self.emit("hardwareStateChanged", (self.hdw_state,))
