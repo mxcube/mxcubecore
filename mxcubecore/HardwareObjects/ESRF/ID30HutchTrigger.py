@@ -66,7 +66,7 @@ class ID30HutchTrigger(BaseHardwareObjects.HardwareObject):
 
     def macro(self, entering_hutch, old={"dtox": None, "aperture": None}):
         logging.info(
-            "%s: %s hutch", self.name(), "entering" if entering_hutch else "leaving"
+            "%s: %s hutch", self.id, "entering" if entering_hutch else "leaving"
         )
         eh_controller = self.get_object_by_role("eh_controller")
         if not entering_hutch:

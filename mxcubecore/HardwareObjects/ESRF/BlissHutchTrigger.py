@@ -69,14 +69,14 @@ class BlissHutchTrigger(AbstractNState):
             self._proxy = DeviceProxy(tango_device)
         except DevFailed as _traceback:
             last_error = _traceback[-1]
-            msg = f"{self.name()}: {last_error['desc']}"
+            msg = f"{self.id}: {last_error['desc']}"
             raise RuntimeError(msg)
 
         pss = self.get_property("pss_card_ch")
         try:
             self.card, self.channel = map(int, pss.split("/"))
         except AttributeError:
-            msg = f"{self.name()}: cannot find PSS number"
+            msg = f"{self.id}: cannot find PSS number"
             raise RuntimeError(msg)
 
         # polling interval [s]

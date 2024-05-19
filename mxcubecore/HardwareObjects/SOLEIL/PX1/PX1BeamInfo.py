@@ -47,7 +47,7 @@ class PX1BeamInfo(Equipment):
             self.beamx_chan = self.get_channel_object("beamsizex")
         except KeyError:
             logging.getLogger().warning(
-                "%s: cannot connect to beamsize x channel ", self.name()
+                "%s: cannot connect to beamsize x channel ", self.id
             )
 
         try:
@@ -55,7 +55,7 @@ class PX1BeamInfo(Equipment):
             self.beamy_chan.connect_signal("update", self.beamsize_x_changed)
         except KeyError:
             logging.getLogger().warning(
-                "%s: cannot connect to beamsize y channel ", self.name()
+                "%s: cannot connect to beamsize y channel ", self.id
             )
 
         self.zoomMotor = self.get_deviceby_role("zoom")

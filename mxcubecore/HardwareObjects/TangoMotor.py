@@ -201,7 +201,7 @@ class TangoMotor(AbstractMotor):
         :param value: float
         :return:
         """
-        self.log.debug("TangoMotor.py - Moving motor %s to %s" % (self.name(), value))
+        self.log.debug("TangoMotor.py - Moving motor %s to %s" % (self.id, value))
         if self.is_simulation:
              self.simulated_pos = value
         else:
@@ -222,14 +222,14 @@ class TangoMotor(AbstractMotor):
     def _update_state(self):
         gevent.sleep(0.5)
         motor_state = self.chan_state.get_value()
-        self.log.debug(" reading motor state for %s is %s" % (self.name(), str(motor_state)))
+        self.log.debug(" reading motor state for %s is %s" % (self.id, str(motor_state)))
         self.motor_state_changed(motor_state)
-            
+
     def update_value(self, value=None):
         """Updates motor position"""
         if value is None:
             value = self.get_value()
-        self.latest_value = value 
+        self.latest_value = value
         super(TangoMotor, self).update_value(value)
 
     def get_motor_mnemonic(self):

@@ -28,6 +28,7 @@ from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
 from typing import Union, Any
+from warnings import warn
 from mxcubecore.dispatcher import dispatcher
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
@@ -135,11 +136,6 @@ class Beamline(ConfiguredObject):
         # 2D-points, (none centred positions)
         self.enable_2d_points = True
 
-        # Dictionary with the python id of hardwareobject as key
-        # and the "dotted/attribute path" to hardwareobject from the
-        # Beamline object
-        self._hardware_object_id_dict = {}
-
     def init(self):
         """Object initialisation - executed *after* loading contents"""
         # Validate acquisition parameters
@@ -169,76 +165,12 @@ class Beamline(ConfiguredObject):
         self._hardware_object_id_dict = self._get_id_dict()
 
     def get_id(self, ho: HardwareObject) -> str:
-        """
-        Returns "dotted path/attribute" which is unique within the context of
-        HardwareRepository
-
-        Args:
-            ho: The hardware object for which to get the id
-
-        Returns:
-            "dotted path/attribute"
-        """
-        return self._hardware_object_id_dict.get(ho)
+        warn("Beamline.get_id is Deprecated. Use hwobj.id instead")
+        return ho.id
 
     def get_hardware_object(self, _id: str) -> Union[HardwareObject, None]:
-        """
-        Returns the HardwareObject with the given id
-
-        Args:
-            _id: "attribute path" / id of HardwareObject
-        Returns:
-            HardwareObject with the given id
-        """
-        found_ho = None
-
-        for current_ho, current_id in self._hardware_object_id_dict.items():
-            if current_id == _id:
-                found_ho = current_ho
-
-        return found_ho
-
-    def _get_id_dict(self) -> dict:
-        """
-        Wrapper function used to call the recursive method used to find all
-        HardwareObjects accessible from the Beamline object.
-        """
-        result = {}
-
-        for ho_name in self.all_roles:
-            ho = self._objects.get(ho_name)
-
-            if ho:
-                result[ho] = ho_name
-                self._get_id_dict_rec(ho, ho_name, result)
-
-        return result
-
-    def _get_id_dict_rec(
-        self, ho: HardwareObject, _path: str = "", result: dict = {}
-    ) -> str:
-        """
-        Recurses through all the roles of ho and constructs its corresponding
-        "dotted path/attribute"
-
-        Args:
-            ho (HardwareObject): The HardwareObject to get the id for
-            _path (str): Current path (used in recursion)
-            result: A dictionary where the key is the id of the HardwareObject
-                    and the value its dotted path.
-
-        Returns:
-            (str): Dotted path for the given HardwareObject
-        """
-        if hasattr(ho, "get_roles"):
-            for role in ho.get_roles():
-                child_ho = ho.get_object_by_role(role)
-                if child_ho not in result:
-                    result[child_ho] = self._get_id_dict_rec(
-                        child_ho, f"{_path}.{role}", result
-                    )
-
-        return _path
+        warn("Beamline.get_hardware_object is Deprecated. Use get_by_id instead")
+        return self.get_by_id(_id)
 
     # Signal handling functions:
     def emit(self, signal: Union[str, object, Any], *args) -> None:
@@ -268,16 +200,6 @@ class Beamline(ConfiguredObject):
             raise RuntimeError(
                 "Signal %s is not connected" % signal
             )
-
-    # NB this function must be re-implemented in nested subclasses
-    @property
-    def all_roles(self):
-        """Tuple of all content object roles, indefinition and loading order
-
-        Returns:
-            tuple[text_str, ...]
-        """
-        return super(Beamline, self).all_roles + tuple(self.__content_roles)
 
     @property
     def machine_info(self):
@@ -902,17 +824,7 @@ class Beamline(ConfiguredObject):
         return self.characterisation.get_default_characterisation_parameters()
 
     def force_emit_signals(self):
-        for role in self.all_roles:
-            hwobj = getattr(self, role)
-            if hwobj is not None:
-                try:
-                    hwobj.force_emit_signals()
-                    for attr in dir(hwobj):
-                        if not attr.startswith("_"):
-                            if hasattr(getattr(hwobj, attr), "force_emit_signals"):
-                                child_hwobj = getattr(hwobj, attr)
-                                child_hwobj.force_emit_signals()
-                except BaseException as ex:
-                    logging.getLogger("HWR").error(
-                        "Unable to call force_emit_signals (%s)" % str(ex)
-                    )
+        hwobjs = list(self.objects_by_role().values())
+        for hwobj in hwobjs:
+            hwobj.force_emit_signals()
+            hwobjs.extend(hwobj.objects_by_role().values())

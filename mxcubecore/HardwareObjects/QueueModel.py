@@ -425,7 +425,8 @@ class QueueModel(HardwareObject):
         of dictionaries. Information about samples and baskets is not saved
         """
         if not filename:
-            filename = os.path.join(self.user_file_directory, "queue_active.dat")
+            # filename = os.path.join(self.user_file_directory, "queue_active.dat")
+            filename = "queue_active.dat"
 
         items_to_save = []
 

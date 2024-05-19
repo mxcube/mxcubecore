@@ -377,13 +377,13 @@ class HardwareObjectHandler(ContentHandler):
                             )
                 elif name == self.property:
                     del self.objects[-1]  # remove empty object
-                    self.objects[-1].set_property(name, self.buffer)
+                    self.objects[-1]._set_property(name, self.buffer)
                 else:
                     if len(self.objects) == 1:
                         return
 
                     if len(self.objects) > 1:
-                        self.objects[-2].add_object(
+                        self.objects[-2]._add_object(
                             name, self.objects[-1], role=self.element_role
                         )
                     if len(self.objects) > 0:

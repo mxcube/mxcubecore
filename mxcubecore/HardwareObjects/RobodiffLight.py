@@ -16,7 +16,7 @@ class RobodiffLight(Device, AbstractMotor):
         controller = self.get_object_by_role("controller")
 
         self._state = None
-        self.username = self.name()
+        self.username = self.name
         self.wago_controller = getattr(controller, self.wago)
         self.command_key = self.get_property("cmd")
         self.in_key = self.get_property("is_in")

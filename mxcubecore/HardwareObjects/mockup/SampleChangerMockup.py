@@ -142,9 +142,9 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
         :rtype: None
         """
         named_samples = {}
-        if self.has_object("test_sample_names"):
-            for tag, val in self["test_sample_names"].get_properties().items():
-                named_samples[val] = tag
+        dd1 = self.get_property("test_sample_names")
+        if dd1:
+            named_samples.update(dd1)
 
         for basket_index in range(self.no_of_baskets):
             basket = self.get_components()[basket_index]

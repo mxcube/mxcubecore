@@ -84,7 +84,7 @@ class SardanaMotor(AbstractMotor, HardwareObject):
             logging.getLogger("HWR").info(
                 "Undefined property actuator_name in xml. Applying name during instance creation."
             )
-            self.actuator_name = self.name()
+            self.actuator_name = self.name
 
         self.threshold = self.get_property("threshold", self.threshold_default)
         logging.getLogger("HWR").debug(

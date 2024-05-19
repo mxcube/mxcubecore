@@ -63,8 +63,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         d["shape_history"] = (
             HWR.beamline.sample_view.name() if HWR.beamline.sample_view else None
         )
-        d["session"] = HWR.beamline.session.name() if HWR.beamline.session else None
-        d["lims_client_hwobj"] = HWR.beamline.lims.name() if HWR.beamline.lims else None
+        d["session"] = HWR.beamline.session.name if HWR.beamline.session else None
+        d["lims_client_hwobj"] = HWR.beamline.lims.name if HWR.beamline.lims else None
         return d
 
     def execute(self):
