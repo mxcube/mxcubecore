@@ -86,14 +86,14 @@ class ID232HutchTrigger(BaseHardwareObjects.HardwareObject):
 
     def macro(self, entering_hutch, old={"dtox": None}):
         logging.info(
-            "%s: %s hutch", self.name(), "entering" if entering_hutch else "leaving"
+            "%s: %s hutch", self.id, "entering" if entering_hutch else "leaving"
         )
         dtox = HWR.beamline.detector.distance
         udiff_ctrl = self.get_object_by_role("predefined")
         ctrl_obj = self.get_object_by_role("controller")
         if not entering_hutch:
             if old["dtox"] is not None:
-                print("Moving %s to %g" % (dtox.name(), old["dtox"]))
+                print("Moving %s to %g" % (dtox.id, old["dtox"]))
                 dtox.set_value(old["dtox"])
             self.flex_device.eval("flex.user_port(0)")
             self.flex_device.eval("flex.robot_port(1)")

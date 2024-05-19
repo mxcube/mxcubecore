@@ -867,7 +867,7 @@ class TestHardwareObjectNode:
         initial_obj_names: List[str],
         initial_objects: List[List[Union[HardwareObject, None]]],
     ):
-        """Test "add_object" method.
+        """Test "_add_object" method.
 
         Args:
             mocker (MockerFixture): Instance of the Pytest mocker fixture.
@@ -907,7 +907,7 @@ class TestHardwareObjectNode:
             _initial_value = None
 
         # Call method
-        hw_obj_node.add_object(name=name, hw_object=hw_object, role=role)
+        hw_obj_node._add_object(name=name, hw_object=hw_object, role=role)
 
         _objects_names: List[str] = getattr(
             hw_obj_node,
@@ -1007,7 +1007,7 @@ class TestHardwareObjectNode:
         initial_obj_names: List[str],
         initial_objects: List[List[Union[HardwareObject, None]]],
     ):
-        """Test "get_objects" method.
+        """Test "_get_objects" method.
 
         Args:
             mocker (MockerFixture): Instance of the Pytest mocker fixture.
@@ -1039,7 +1039,7 @@ class TestHardwareObjectNode:
         )
 
         # Call method
-        res = list(hw_obj_node.get_objects(object_name=name))
+        res = list(hw_obj_node._get_objects(object_name=name))
 
         if name in _objects_names:
             # Check output list matches expectations
@@ -1188,7 +1188,7 @@ class TestHardwareObjectNode:
         value: Any,
         output_value: Union[str, int, float, bool],
     ):
-        """Test "set_property" method.
+        """Test "_set_property" method.
 
         Args:
             mocker (MockerFixture): Instance of the Pytest mocker fixture.
@@ -1203,7 +1203,7 @@ class TestHardwareObjectNode:
         set_property_path_patch = mocker.patch.object(PropertySet, "set_property_path")
 
         # Call method, always returns None
-        hw_obj_node.set_property(name=name, value=value)
+        hw_obj_node._set_property(name=name, value=value)
 
         # Check "PropertySet.__setitem__" patch was called with expected value
         setitem_patch.assert_called_once_with(*(str(name), output_value))

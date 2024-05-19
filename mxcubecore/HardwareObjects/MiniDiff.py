@@ -471,14 +471,13 @@ class MiniDiff(Equipment):
 
     def getCalibrationData(self, offset):
         if self.zoomMotor is not None:
-            if self.zoomMotor.has_object("positions"):
-                for position in self.zoomMotor["positions"]:
-                    if abs(position.offset - offset) <= self.zoomMotor.delta:
-                        calibrationData = position["calibrationData"]
-                        return (
-                            float(calibrationData.pixelsPerMmY) or 0,
-                            float(calibrationData.pixelsPerMmZ) or 0,
-                        )
+            for position in self.zoomMotor.get_property("positions", ()):
+                if abs(position["offset"] - offset) <= self.zoomMotor.delta:
+                    calibrationData = position["calibrationData"]
+                    return (
+                        float(calibrationData.pixelsPerMmY) or 0,
+                        float(calibrationData.pixelsPerMmZ) or 0,
+                    )
         return (None, None)
 
     def get_pixels_per_mm(self):

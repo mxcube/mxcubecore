@@ -80,7 +80,7 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
             self.actuator_channel.connect_signal("update", self.stateChanged)
         except KeyError:
             logging.getLogger().warning(
-                "%s: cannot report EPS Actuator State", self.name()
+                "%s: cannot report EPS Actuator State", self.id
             )
 
         try:

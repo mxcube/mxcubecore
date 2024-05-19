@@ -66,7 +66,7 @@ class PX2BeamInfo(Equipment):
             self.chanBeamSizeX.connect_signal("update", self.beamSizeXChanged)
         except KeyError:
             logging.getLogger().warning(
-                "%s: cannot connect to beamsize x channel ", self.name()
+                "%s: cannot connect to beamsize x channel ", self.id
             )
 
         try:
@@ -74,7 +74,7 @@ class PX2BeamInfo(Equipment):
             self.chanBeamSizeY.connect_signal("update", self.beamSizeYChanged)
         except KeyError:
             logging.getLogger().warning(
-                "%s: cannot connect to beamsize y channel ", self.name()
+                "%s: cannot connect to beamsize y channel ", self.id
             )
 
         try:
@@ -82,7 +82,7 @@ class PX2BeamInfo(Equipment):
             self.chanBeamPosX.connect_signal("update", self.beamPosXChanged)
         except KeyError:
             logging.getLogger().warning(
-                "%s: cannot connect to beamposition x channel ", self.name()
+                "%s: cannot connect to beamposition x channel ", self.id
             )
 
         try:
@@ -90,7 +90,7 @@ class PX2BeamInfo(Equipment):
             self.chanBeamPosY.connect_signal("update", self.beamPosYChanged)
         except KeyError:
             logging.getLogger().warning(
-                "%s: cannot connect to beamposition z channel ", self.name()
+                "%s: cannot connect to beamposition z channel ", self.id
             )
 
         self.zoomMotor = self.get_deviceby_role("zoom")

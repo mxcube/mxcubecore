@@ -108,18 +108,18 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         d = BaseQueueEntry.__getstate__(self)
 
         d["data_analysis_hwobj"] = (
-            HWR.beamline.characterisation.name()
+            HWR.beamline.characterisation.name
             if HWR.beamline.characterisation
             else None
         )
         d["diffractometer_hwobj"] = (
-            HWR.beamline.diffractometer.name() if HWR.beamline.diffractometer else None
+            HWR.beamline.diffractometer.name if HWR.beamline.diffractometer else None
         )
         d["queue_model_hwobj"] = (
-            HWR.beamline.queue_model.name() if HWR.beamline.queue_model else None
+            HWR.beamline.queue_model.name if HWR.beamline.queue_model else None
         )
         d["session_hwobj"] = (
-            HWR.beamline.session.name() if HWR.beamline.session else None
+            HWR.beamline.session.name if HWR.beamline.session else None
         )
 
         return d

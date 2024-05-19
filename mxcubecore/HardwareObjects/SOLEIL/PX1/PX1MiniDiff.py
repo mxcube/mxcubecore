@@ -155,7 +155,7 @@ class PX1MiniDiff(GenericDiffractometer):
             for motor in motor_pos:
                 position = motor_pos[motor]
                 logging.getLogger("HWR").debug(
-                    "   - motor is %s - going to %s" % (motor.name(), position)
+                    "   - motor is %s - going to %s" % (motor.id, position)
                 )
 
             self.emit_progress_message("Moving sample to centred position...")
@@ -234,7 +234,7 @@ class PX1MiniDiff(GenericDiffractometer):
                 motor_positions_copy[motor] = position
 
             logging.getLogger("HWR").debug(
-                "  / moving motor. %s to %s" % (motor.name(), position)
+                "  / moving motor. %s to %s" % (motor.id, position)
             )
             self.wait_device_ready(timeout)
             try:
