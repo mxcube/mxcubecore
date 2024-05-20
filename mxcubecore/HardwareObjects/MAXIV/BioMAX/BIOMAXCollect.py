@@ -14,6 +14,7 @@ from mxcubecore.TaskUtils import task
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 from mxcubecore.HardwareObjects.MAXIV.DataCollect import DataCollect
+from mxcubecore.HardwareObjects.MAXIV.SciCatPlugin import SciCatPlugin
 
 
 class BIOMAXCollect(DataCollect):
@@ -51,7 +52,7 @@ class BIOMAXCollect(DataCollect):
         self.display = {}
         self.stop_display = False
 
-        self.datacatalog_enabled = True
+        self.scicat_enabled = True
         self.datacatalog_url = None
         self.datacatalog_token = None
         self.collection_uuid = ""
@@ -83,17 +84,17 @@ class BIOMAXCollect(DataCollect):
         self.session_hwobj = self.get_object_by_role("session")
         self.datacatalog_url = self.get_property("datacatalog_url", None)
         self.datacatalog_token = self.get_property("datacatalog_token", None)
-        self.datacatalog_enabled = self.get_property("datacatalog_enabled", True)
+        self.scicat_enabled = self.get_property("scicat_enabled", False)
+        if self.scicat_enabled:
+            self.scicat_hwobj = SciCatPlugin()
+            self.log.info("[COLLECT] SciCat Datacatalog enabled")
+        else:
+            self.scicat_hwobj = None
+            self.log.warning("[COLLECT] SciCat Datacatalog not enabled")
+
         self.shape_history_hwobj = self.get_object_by_role("shape_history")
         self.dozor_hwobj = self.get_object_by_role("dozor")
         self.polarisation = float(self.get_property("polarisation", 0.99))
-
-        if self.datacatalog_enabled:
-            logging.getLogger("HWR").info(
-                "[COLLECT] Datacatalog enabled, url: %s" % self.datacatalog_url
-            )
-        else:
-            logging.getLogger("HWR").warning("[COLLECT] Datacatalog not enabled")
 
         self.safety_shutter_hwobj = self.get_object_by_role("safety_shutter")
         # todo
@@ -379,13 +380,10 @@ class BIOMAXCollect(DataCollect):
             "[COLLECT] Generating UUID: %s" % self.collection_uuid
         )
 
-        # try:
-        #    self.detector_hwobj.set_collection_uuid(self.collection_uuid)
-        # except Exception as ex:
-        #    logging.getLogger("HWR").warning("[COLLECT] Error setting UUID in the detector: %s" % ex)
-        if self.datacatalog_enabled:
+        if self.scicat_enabled:
             try:
-                self.store_datacollection_uuid_datacatalog()
+                proposalId = self.session_hwobj.proposal_number
+                self.scicat_hwobj.start_scan(proposalId, self.current_dc_parameters)
             except Exception as ex:
                 logging.getLogger("HWR").warning(
                     "[COLLECT] Error sending uuid to data catalog: %s" % ex
@@ -768,8 +766,8 @@ class BIOMAXCollect(DataCollect):
                 except Exception as ex:
                     print(ex)
 
-        if self.datacatalog_enabled:
-            self.store_datacollection_datacatalog()
+        if self.scicat_enabled:
+            self.scicat_hwobj.end_scan(self.current_dc_parameters)
 
     def post_collection_store_image(self):
         # we store the first and the last images, TODO: every 45 degree
@@ -1516,182 +1514,13 @@ class BIOMAXCollect(DataCollect):
             time.sleep(frequency)
 
     def enable_datacatalog(self, enable):
-        self.datacatalog_enabled = enable
-
-    def store_datacollection_uuid_datacatalog(self):
-        msg = {}
-        files = []
-
-        # Get the data and proposal number
-        collection = self.current_dc_parameters
-        proposal_number = self.session_hwobj.proposal_number
-
-        # Create the files variable as an array like ["/data/biomax/proposal1/file1.txt","/data/biomax/proposal1/file2.txt"]
-        try:
-            # Default of 100 images per h5 file.
-            num_files = int(
-                math.ceil(
-                    collection["oscillation_sequence"][0]["number_of_images"] / 100.0
-                )
-            )
-            template = collection.get("fileinfo").get("template")
-            directory = collection.get("fileinfo").get("directory")
-            filename = template.replace("%06d", "%s") % "master"
-            # Master file
-            files.append(os.path.join(directory, filename))
-            # Data files
-            for num in range(1, num_files + 1):
-                files.append(os.path.join(directory, template % num))
-        except Exception as ex:
-            logging.getLogger("HWR").error("[HWR] Error during data catalog: %s" % ex)
-
-        # Create dict of required data for SciCat
-        try:
-            msg["creationTime"] = time.time()
-            msg["proposalId"] = proposal_number
-            msg["uuid"] = self.collection_uuid
-            msg["event"] = "biomax-experiment-began"
-            msg["sourceFolder"] = directory
-            msg["scientificMetadata"] = dict()
-            msg["dataFormat"] = "HDF5 / NeXus"
-            msg["files"] = files
-            msg["datasetName"] = filename
-            msg["description"] = "%s collection in Biomax for Sample %s" % (
-                collection.get("experiment_type"),
-                collection.get("blSampleId"),
-            )
-            msg["sampleId"] = collection.get("blSampleId")
-        except Exception as ex:
-            logging.getLogger("HWR").error(
-                "[HWR] Error during data catalog, cannot create initial message: %s"
-                % ex
-            )
-
-        logging.getLogger("HWR").info(
-            "[HWR] Sending collection started info to the data catalog: %s" % msg
-        )
-
-        headers = {
-            "content-type": "application/json",
-            "api-key": self.datacatalog_token,
-        }
-
-        if self.datacatalog_url:
-            try:
-                requests.post(
-                    self.datacatalog_url, data=json.dumps(msg), headers=headers
-                )
-            except Exception as ex:
-                logging.getLogger("HWR").error(
-                    "[HWR] Error sending collection started info to the data catalog: %s %s"
-                    % (self.datacatalog_url, ex)
-                )
+        self.scicat_enabled = enable
+        if self.scicat_enabled:
+            self.scicat_hwobj = SciCatPlugin()
+            self.log.info("[COLLECT] SciCat Datacatalog enabled")
         else:
-            logging.getLogger("HWR").error(
-                "[HWR] Error sending collection started info to the data catalog: No datacatalog URL specified"
-            )
-
-    def store_datacollection_datacatalog(self):
-        """
-        Send the data collection parameters to the data catalog. In the form:
-            msg = {
-                "uuid": "f5ed1b14-3e70-43ce-b561-8902e5e31422",
-                "event": "biomax-experiment-ended",
-
-               # scientific data relevant to the experiment
-               "scientificMetadata": {
-                   "some_energy": {value: "4.2", unit: "eV"},
-                   "some_distance": {value: "42", unit: "um"},
-                   "some_time": {value: "300", unit: "ms"},
-                },
-            }
-        """
-        msg = {}
-        collection = self.current_dc_parameters
-
-        skip_values = ["fileinfo", "auto_dir", "EDNA_files_dir", "xds_dir"]
-        scientificMetadata = dict()
-
-        for item in collection:
-            if item in skip_values:
-                continue
-
-            elif type(collection[item]) is dict or type(collection[item]) is list:
-                for subitem in collection[item]:
-                    if type(subitem) is dict:
-                        for subsubitem in subitem:
-                            title = "%s: %s" % (item, subsubitem)
-                            smd = self._scientificmetadatawriter(
-                                title, subsubitem, subitem[subsubitem]
-                            )
-                            scientificMetadata.update(smd)
-                    else:
-                        title = "%s: %s" % (item, subitem)
-                        smd = self._scientificmetadatawriter(
-                            title, subitem, collection[item][subitem]
-                        )
-                        scientificMetadata.update(smd)
-
-            else:
-                smd = self._scientificmetadatawriter(item, item, collection[item])
-                scientificMetadata.update(smd)
-
-        msg["event"] = "biomax-experiment-ended"
-        msg["uuid"] = self.collection_uuid
-        msg["scientificMetadata"] = scientificMetadata
-
-        logging.getLogger("HWR").info(
-            "[HWR] Sending collection info to the data catalog: %s" % msg
-        )
-
-        headers = {
-            "content-type": "application/json",
-            "api-key": self.datacatalog_token,
-        }
-
-        if self.datacatalog_url:
-            try:
-                requests.post(
-                    self.datacatalog_url, data=json.dumps(msg), headers=headers
-                )
-            except Exception as ex:
-                logging.getLogger("HWR").error(
-                    "[HWR] Error sending collection info to the data catalog: %s %s"
-                    % (self.datacatalog_url, ex)
-                )
-        else:
-            logging.getLogger("HWR").error(
-                "[HWR] Error sending collection info to the data catalog: No datacatalog URL specified"
-            )
-
-    def _scientificmetadatawriter(self, title, label, value):
-        units = {
-            "energy": "keV",
-            "sampx": "mm",
-            "sampy": "mm",
-            "focus": "mm",
-            "phi": "deg",
-            "kappa": "deg",
-            "kappa_phi": "deg",
-            "phiz": "deg",
-            "phiy": "deg",
-            "wavelength": "angstrom",
-            "slitGapHorizontal": "mm",
-            "detectorDistance": "mm",
-            "undulatorGap1": "mm",
-            "beamSizeAtSampleX": "mm",
-            "beamSizeAtSampleY": "mm",
-            "resolution": "angstrom",
-            # "flux": "ph/s"
-        }
-
-        unit = ""
-        if label in units:
-            unit = units[label]
-
-        smd = {title: {"value": value, "unit": unit}}
-
-        return smd
+            self.scicat_hwobj = None
+            self.log.warning("[COLLECT] SciCat Datacatalog not enabled")
 
     def get_resolution_at_corner(self):
         return self.resolution_hwobj.get_value_at_corner()
