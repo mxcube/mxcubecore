@@ -23,6 +23,14 @@ DEFAULT_PHASE_TIMEOUT = 60
 
 class MICROMAXMD3Injector(MICROMAXMD3):
 
+    def __init__(self, *args):
+        """
+        Description:
+        """
+        super().__init__(*args)
+        self.phase_pos_dict = {}
+        self.phases = {}
+
     def init(self):
         super().init()
         self.phases = {"DataCollection": 
@@ -31,6 +39,7 @@ class MICROMAXMD3Injector(MICROMAXMD3):
                 "capillary": "BEAM",
                 "aperture": "BEAM",
                 "back_light": "OUT",
+                "cameraExposure": 40000,
                 },
                 "Centring":
                 {
@@ -38,6 +47,7 @@ class MICROMAXMD3Injector(MICROMAXMD3):
                 "capillary": "PARK",
                 "aperture": "OFF",
                 "back_light": "IN",
+                "cameraExposure": 20000,
                 },
                 "Transfer":
                 {
@@ -45,6 +55,7 @@ class MICROMAXMD3Injector(MICROMAXMD3):
                 "capillary": "PARK",
                 "aperture": "OFF",
                 "back_light": "OUT",
+                "cameraExposure": 40000,
                 },
                 "BeamLocation":
                 {
@@ -52,6 +63,7 @@ class MICROMAXMD3Injector(MICROMAXMD3):
                 "capillary": "OFF",
                 "aperture": "OFF",
                 "back_light": "OUT",
+                "cameraExposure": 1000,
                 },
         }
         self.phase_pos_dict = {
@@ -59,7 +71,9 @@ class MICROMAXMD3Injector(MICROMAXMD3):
             "capillary": None,
             "aperture": None,
             "back_light": None,
+            "cameraExposure": None,
         }
+        self.update_current_phase()
 
     def current_phase_changed(self, current_phase):
 
@@ -75,6 +89,7 @@ class MICROMAXMD3Injector(MICROMAXMD3):
         pos["capillary"] = self.channel_dict["CapillaryPosition"].get_value()
         pos["aperture"] = self.channel_dict["AperturePosition"].get_value()
         pos["back_light"] = self.back_light_switch.get_value().name # IN our OUT
+        pos["cameraExposure"] = self.channel_dict["CameraExposure"].get_value()
         return pos
 
     def switch_back_light(self, value):
@@ -104,7 +119,10 @@ class MICROMAXMD3Injector(MICROMAXMD3):
 
     def set_organ_pos(self, motor_name, pos_name):
         try:
-            name = "{}Position".format(motor_name.capitalize())
+            if motor_name =="cameraExposure":
+                name = "CameraExposure"
+            else:
+                name = "{}Position".format(motor_name.capitalize())
             self.channel_dict[name].set_value(pos_name)
             self.wait_device_ready(DEFAULT_PHASE_TIMEOUT)
         except Exception as ex:
@@ -137,7 +155,7 @@ class MICROMAXMD3Injector(MICROMAXMD3):
                     motor_pos = new_phase_pos["beamstop"]
                     self.set_organ_pos("beamstop", motor_pos)
 
-            organ_list = ["aperture", "capillary"] #"back_light"]
+            organ_list = ["aperture", "capillary", "cameraExposure"] #"back_light"]
             for organ in organ_list:
                 if new_phase_pos[organ] != current_phase_pos[organ]:
                     motor_pos = new_phase_pos[organ]
