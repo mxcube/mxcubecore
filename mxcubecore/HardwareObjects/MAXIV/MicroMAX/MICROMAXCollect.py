@@ -503,12 +503,6 @@ class MICROMAXCollect(DataCollect):
                     osc_start, osc_end, shutterless_exptime, 1, wait=True
                 )
             self.log.debug("data_collection_hook OSC Done")
-
-            try:
-                self.detector_hwobj.stop_acquisition()
-            except Exception as ex:
-                self.log.error("[COLLECT] Detector error stopping acquisition: %s" % ex)
-
             self.emit("collectImageTaken", oscillation_parameters["number_of_images"])
         except RuntimeError as ex:
             self.data_collection_cleanup()
@@ -519,6 +513,8 @@ class MICROMAXCollect(DataCollect):
             self.data_collection_cleanup()
             raise Exception("data collection hook failed... ", sys.exc_info()[0])
         finally:
+            self.log.info("Requesting detector to stop data acquisition.")
+            self.detector_hwobj.stop_acquisition()
             self.close_detector_cover()
 
     def get_mesh_num_lines(self):
