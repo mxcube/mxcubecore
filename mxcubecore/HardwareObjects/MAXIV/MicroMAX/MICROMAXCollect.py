@@ -11,9 +11,8 @@ import json
 import gevent
 import time
 import math
-import PyTango
 import sys
-
+from tango import DeviceProxy
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.TaskUtils import task
 from mxcubecore.HardwareObjects.GenericDiffractometer import GenericDiffractometer
@@ -1135,10 +1134,27 @@ class MICROMAXCollect(DataCollect):
         )
         return proc_directory, auto_directory
 
+    def _power_on_dtox(self):
+        #
+        # an ugly hack to power on the detector distance ICEPap motor
+        #
+        # * figure out motor's tango name base on detector model
+        # * set it's 'PowerOn' attribute to True
+        #
+        def get_motor_slug():
+            model = self.detector_hwobj.get_property("model")
+            if model == "JUNGFRAU":
+                return "zo"
+            return "zi"
+
+        dev = DeviceProxy(f"b312a-e06/dia/tabled-01-{get_motor_slug()}")
+        dev.PowerOn = True
+
     def move_detector(self, value):
         """
         Descript. : move detector to the set distance
         """
+        self._power_on_dtox()
         lower_limit, upper_limit = self.get_detector_distance_limits()
         self.log.info(
             "...................value %s, detector movement start..... %s"
