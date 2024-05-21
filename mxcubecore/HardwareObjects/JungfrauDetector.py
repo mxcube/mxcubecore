@@ -220,3 +220,6 @@ class JungfrauDetector(AbstractDetector):
     def disarm(self):
         # Jungfrau does not support disarming, so no-op
         pass
+
+    def pedestal(self):
+        self.dev.Pedestal()

@@ -1,55 +1,48 @@
 import logging
-import gevent
-import tango
-
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.CommandContainer import CommandObject
-from mxcubecore.HardwareObjects.BeamlineActions import (
-    BeamlineActions,
-)
+from mxcubecore.HardwareObjects.BeamlineActions import BeamlineActions
 
-DET_SAFE_POSITION = 500  # mm
+
+log = logging.getLogger("HWR")
 
 
 class PrepareOpenHutch:
     """
-    Prepare beamline for opening the hutch door
+    Prepare beamline for opening the hutch door.
 
-    Close safety shutter, close detector cover and move detector to a safe area
+    - close safety shutter
+    - close detector cover
+    - move detector to a safe position
+    - put MD3 into 'Transfer' phase
+    - if jungfrau is used, take pedestal
     """
 
     def __call__(self, *args, **kw):
         try:
-            logging.getLogger("HWR").info(
-                "Preparing experimental hutch for door openning."
-            )
-            if (
-                HWR.beamline.safety_shutter is not None
-                and HWR.beamline.safety_shutter.getShutterState() == "opened"
-            ):
-                logging.getLogger("HWR").info("Closing safety shutter...")
-                HWR.safety_shutter.closeShutter()
-                while HWR.beamline.safety_shutter.getShutterState() == "opened":
-                    gevent.sleep(0.1)
+            collect = HWR.beamline.collect
+            diffractometer = HWR.beamline.diffractometer
+            detector = HWR.beamline.detector
 
-            logging.getLogger("HWR").info("Closing detector cover...")
+            log.info("Preparing experimental hutch for door opening.")
 
-            close_det_cover = CloseDetectorCover()
-            close_det_cover()
-            if HWR.beamline.detector is not None:
-                logging.getLogger("HWR").info("Moving detector to safe area...")
-                try:
-                    HWR.beamline.detector.distance_motor_hwobj.set_value(
-                        DET_SAFE_POSITION
-                    )
-                except Exception:
-                    logging.getLogger("HWR").warning(
-                        "Could not move detector to safe position"
-                    )
+            collect.close_safety_shutter()
+            collect.close_detector_cover()
+
+            log.info("Setting diffractometer to transfer phase.")
+            diffractometer.wait_device_ready()
+            diffractometer.set_phase("Transfer")
+
+            log.info("Moving detector to safe position.")
+            collect.move_detector_to_safe_position()
+
+            if detector.get_property("model") == "JUNGFRAU":
+                log.info("Collecting Jungfrau pedestal.")
+                detector.pedestal()
+
         except Exception as ex:
-            logging.getLogger("HWR").exception(
-                "Could not PrepareOpenHutch. Error was {}".format(ex)
-            )
+            # Explicitly add raised exception into the log message,
+            # so that it is shown to the user in the beamline action UI log.
+            log.exception(f"Error preparing to open hutch.\nError was: '{str(ex)}'")
 
 
 class CloseDetectorCover:
