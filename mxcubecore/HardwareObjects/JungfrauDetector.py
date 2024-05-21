@@ -143,6 +143,18 @@ class JungfrauDetector(AbstractDetector):
             file_name = Path(config["FilenamePattern"])
             return str(file_name.relative_to(DATA_ROOT_DIR))
 
+        def maybe_set(attr: str, conf_name: str):
+            """
+            Optionally set tango device attribute from the config dictionary.
+
+            If config value is None, don't set.
+            If config value is not None, write its value to the specified attribute.
+            """
+            val = config[conf_name]
+            if val is None:
+                return
+            setattr(dev, attr, val)
+
         # make sure that detector is in 'idle' mode,
         # otherwise we won't be able to arm it
         self.stop_acquisition()
@@ -159,12 +171,13 @@ class JungfrauDetector(AbstractDetector):
         dev.detector_distance_mm = meter_to_mm(config["DetectorDistance"])
         dev.images_per_trigger = config["NbImages"]
         dev.ntrigger = config["NbTriggers"]
-        dev.unit_cell__a = config["UnitCellA"]
-        dev.unit_cell__b = config["UnitCellB"]
-        dev.unit_cell__c = config["UnitCellC"]
-        dev.unit_cell__alpha = config["UnitCellAlpha"]
-        dev.unit_cell__beta = config["UnitCellBeta"]
-        dev.unit_cell__gamma = config["UnitCellGamma"]
+
+        maybe_set("unit_cell__a", "UnitCellA")
+        maybe_set("unit_cell__b", "UnitCellB")
+        maybe_set("unit_cell__c", "UnitCellC")
+        maybe_set("unit_cell__alpha", "UnitCellAlpha")
+        maybe_set("unit_cell__beta", "UnitCellBeta")
+        maybe_set("unit_cell__gamma", "UnitCellGamma")
 
         exposure_time = sec_to_us(config["CountTime"])
         dev.summation = math.ceil(exposure_time / dev.frame_time_us)

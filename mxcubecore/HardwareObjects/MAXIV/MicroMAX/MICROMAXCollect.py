@@ -20,6 +20,7 @@ from mxcubecore.HardwareObjects.MAXIV.DataCollect import (
     DataCollect,
     open_tango_shutter,
     close_tango_shutter,
+    parse_unit_cell_params,
 )
 from mxcubecore.HardwareObjects.MAXIV.SciCatPlugin import SciCatPlugin
 from abstract.AbstractCollect import AbstractCollect
@@ -1254,16 +1255,15 @@ class MICROMAXCollect(DataCollect):
         # for Jungfrau
         if self.detector_hwobj.get_property("model") == "JUNGFRAU":
             sample_info = self.current_dc_parameters["sample_reference"]
-            cell = sample_info.get("cell", "0,0,0,0,0,0")
-            if cell == ",,,,,":
-                cell = "0,0,0,0,0,0"
-            cell_float = [float(x) for x in cell.split(",")]
-            config["UnitCellA"] = cell_float[0]
-            config["UnitCellB"] = cell_float[1]
-            config["UnitCellC"] = cell_float[2]
-            config["UnitCellAlpha"] = cell_float[3]
-            config["UnitCellBeta"] = cell_float[4]
-            config["UnitCellGamma"] = cell_float[5]
+            cell = sample_info.get("cell", ",,,,,")
+            (
+                config["UnitCellA"],
+                config["UnitCellB"],
+                config["UnitCellC"],
+                config["UnitCellAlpha"],
+                config["UnitCellBeta"],
+                config["UnitCellGamma"],
+            ) = parse_unit_cell_params(cell)
 
         # make sure the filewriter is enabled
         self.detector_hwobj.enable_filewriter()
