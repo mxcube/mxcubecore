@@ -136,6 +136,10 @@ class Beamline(ConfiguredObject):
         # 2D-points, (none centred positions)
         self.enable_2d_points = True
 
+    def _init(self) -> None:
+        """Object initialisation - executed *before* loading contents"""
+        pass
+
     def init(self):
         """Object initialisation - executed *after* loading contents"""
         # Validate acquisition parameters
@@ -824,7 +828,7 @@ class Beamline(ConfiguredObject):
         return self.characterisation.get_default_characterisation_parameters()
 
     def force_emit_signals(self):
-        hwobjs = list(self.objects_by_role().values())
+        hwobjs = list(self.objects_by_role.values())
         for hwobj in hwobjs:
             hwobj.force_emit_signals()
-            hwobjs.extend(hwobj.objects_by_role().values())
+            hwobjs.extend(hwobj.objects_by_role.values())

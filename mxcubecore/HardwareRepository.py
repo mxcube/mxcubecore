@@ -142,7 +142,8 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
     if not msg0:
         try:
             # instantiate object
-            result = cls(name=role, hwobj_container=_container, **initialise_class)
+            result = cls(name=role, **initialise_class)
+            result._hwobj_container = _container
         except Exception:
             if _container:
                 msg0 = "Error instantiating %s" % cls.__name__
@@ -175,7 +176,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
 
         if _objects:
             # Set configuration with non-object properties.
-            result._config = result.HOCOnfig(**_objects)
+            result._config = result.HOConfig(**_objects)
 
             load_time = 1000 * (time.time() - start_time)
             msg1 = "Start loading contents:"
@@ -199,7 +200,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
                         class_name1 = "None"
                     else:
                         class_name1 = hwobj.__class__.__name__
-                        _attach_xml_objects(result, hwobj, role)
+                        _attach_xml_objects(result, hwobj, role1)
                 except Exception as ex:
                     msg1 = "Loading error (%s)" % str(ex)
                     class_name = ""
@@ -234,24 +235,25 @@ def _attach_xml_objects(container, hwobj, role):
     """Recursively attach XML-configured object to container as role
 
     NBNB guard against duplicate objects"""
-    hwobj._config = hwobj.HOCOnfig(**hwobj._get_properties())
+
     hwobj._hwobj_container = container
     hwobj._name = role
+    hwobj._config = hwobj.HOConfig(**hwobj.get_properties())
     setattr(container._config, role, hwobj)
     objects_by_role = hwobj._objects_by_role
     for role2, hwobj2 in objects_by_role.items():
         _attach_xml_objects(hwobj, hwobj2, role2)
-    for tag in hwobj._objects_names:
+    for tag in hwobj._objects_names():
         if tag not in objects_by_role:
             # Complex object, not contained hwobj
             objs = list(hwobj._get_objects(tag))
             setattr(hwobj.config, tag, list(_convert_xml_property(obj) for obj in objs))
 
 def _convert_xml_property(hwobj):
-    """Convert compelx xmkl-configured object"""
+    """Convert complex xml-configured object"""
     result = {}
-    result.update(hwobj._get_properties())
-    for tag in hwobj._objects_names:
+    result.update(hwobj.get_properties())
+    for tag in hwobj._objects_names():
         # NB this does NOT allow having HardwareObjects inside complex properties
         objs = list(hwobj._get_objects(tag))
         result[tag] = list(_convert_xml_property(obj) for obj in objs)
@@ -272,13 +274,13 @@ def add_hardware_objects_dirs(ho_dirs):
                 sys.path.insert(0, new_ho_dir)
 #
 #
-# def set_user_file_directory(user_file_directory):
-#     """Sets user file directory.
-#
-#     Args:
-#         user_file_directory (str): absolute path to user file directory
-#     """
-#     BaseHardwareObjects.HardwareObjectNode.set_user_file_directory(user_file_directory)
+def set_user_file_directory(user_file_directory):
+    """Sets user file directory.
+
+    Args:
+        user_file_directory (str): absolute path to user file directory
+    """
+    BaseHardwareObjects.HardwareObjectNode.set_user_file_directory(user_file_directory)
 
 
 def init_hardware_repository(configuration_path):
@@ -461,7 +463,7 @@ class __HardwareRepositoryClient:
 
                     dispatcher.send("hardwareObjectLoaded", hwobj_name, self)
 
-                    def hardwareObjectDeleted(name=hwobj_instance.name()):
+                    def hardwareObjectDeleted(name=hwobj_instance.name):
                         logging.getLogger("HWR").debug(
                             "%s Hardware Object has been deleted from Hardware Repository",
                             name,
@@ -487,12 +489,12 @@ class __HardwareRepositoryClient:
                         logging.getLogger("HWR").exception(
                             'Cannot initialize Hardware Object "%s"', hwobj_name
                         )
-                        self.invalid_hardware_objects.add(hwobj_instance.name())
+                        self.invalid_hardware_objects.add(hwobj_instance.name)
                         hwobj_instance = None
                         comment = "Failed to init class"
                     else:
                         if hwobj_instance.load_name in self.invalid_hardware_objects:
-                            self.invalid_hardware_objects.remove(hwobj_instance.name())
+                            self.invalid_hardware_objects.remove(hwobj_instance.name)
 
                         self.hardware_objects[hwobj_instance.load_name] = hwobj_instance
                 else:
