@@ -177,9 +177,8 @@ class GphlWorkflow(HardwareObjectYaml):
         self._queue_entry = None
 
         # Configuration data - set on load
-        self.workflows = OrderedDict()
-        self.settings = {}
-        self.test_crystals = {}
+        self.settings = self.get_property("settings", {})
+
         # auxiliary data structure from configuration. Set in init
         self.workflow_strategies = OrderedDict()
 
@@ -248,7 +247,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
         # Set standard configurable file paths
         file_paths = self.file_paths
-        ss0 = HWR.beamline.gphl_connection.software_paths["gphl_beamline_config"]
+        ss0 = HWR.beamline.gphl_connection.config.software_paths["gphl_beamline_config"]
         file_paths["gphl_beamline_config"] = ss0
         file_paths["transcal_file"] = os.path.join(ss0, "transcal.nml")
         file_paths["diffractcal_file"] = os.path.join(ss0, "diffractcal.nml")
@@ -267,7 +266,7 @@ class GphlWorkflow(HardwareObjectYaml):
             beamline_hook = "py4j::"
 
         # Consolidate workflow options
-        for title, workflow in self.workflows.items():
+        for title, workflow in self.config.workflows.items():
             workflow["wfname"] = title
 
             opt0 = workflow.get("options", {})
@@ -302,7 +301,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
     def get_available_workflows(self):
         """Get list of workflow description dictionaries."""
-        return copy.deepcopy(self.workflows)
+        return copy.deepcopy(self.config.workflows)
 
     def query_pre_strategy_params(self, choose_lattice=None):
         """Query pre_strategy parameters.
@@ -805,7 +804,7 @@ class GphlWorkflow(HardwareObjectYaml):
         # NB - this is really initialising, but we want to do it aftrer WF start
         # since here the directory we want is set
         self.recentring_file = os.path.join(
-            HWR.beamline.gphl_connection.software_paths["GPHL_WDIR"], "recen.nml"
+            HWR.beamline.gphl_connection.config.software_paths["GPHL_WDIR"], "recen.nml"
         )
 
 
@@ -1758,10 +1757,12 @@ class GphlWorkflow(HardwareObjectYaml):
         recen_executable = HWR.beamline.gphl_connection.get_executable("recen")
         # Get environmental variables
         envs = {}
-        GPHL_XDS_PATH = HWR.beamline.gphl_connection.software_paths.get("GPHL_XDS_PATH")
+        GPHL_XDS_PATH = HWR.beamline.gphl_connection.config.software_paths.get(
+            "GPHL_XDS_PATH"
+        )
         if GPHL_XDS_PATH:
             envs["GPHL_XDS_PATH"] = GPHL_XDS_PATH
-        GPHL_CCP4_PATH = HWR.beamline.gphl_connection.software_paths.get(
+        GPHL_CCP4_PATH = HWR.beamline.gphl_connection.config.software_paths.get(
             "GPHL_CCP4_PATH"
         )
         if GPHL_CCP4_PATH:
@@ -2657,7 +2658,7 @@ class GphlWorkflow(HardwareObjectYaml):
         """
         crystal_file_name = "crystal.nml"
         result = []
-        sample_dir = HWR.beamline.gphl_connection.software_paths.get(
+        sample_dir = HWR.beamline.gphl_connection.config.software_paths.get(
             "gphl_test_samples"
         )
         serial = 0
@@ -2745,7 +2746,7 @@ class GphlWorkflow(HardwareObjectYaml):
         if sample_name:
             if sample_name.startswith(self.TEST_SAMPLE_PREFIX):
                 sample_name = sample_name[len(self.TEST_SAMPLE_PREFIX)+1:]
-            sample_dir = HWR.beamline.gphl_connection.software_paths.get(
+            sample_dir = HWR.beamline.gphl_connection.config.software_paths.get(
                 "gphl_test_samples"
             )
             if not sample_dir:

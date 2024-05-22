@@ -278,14 +278,14 @@ class CollectEmulator(CollectMockup):
         simcal_executive = gphl_connection.get_executable("simcal")
         simcal_licence_dir = (
             gphl_connection.get_bdg_licence_dir("simcal")
-            or gphl_connection.software_paths["GPHL_INSTALLATION"]
+            or gphl_connection.config.software_paths["GPHL_INSTALLATION"]
         )
         # # Get environmental variables.
         envs = {"autoPROC_home": simcal_licence_dir}
-        GPHL_XDS_PATH = gphl_connection.software_paths.get("GPHL_XDS_PATH")
+        GPHL_XDS_PATH = gphl_connection.config.software_paths.get("GPHL_XDS_PATH")
         if GPHL_XDS_PATH:
             envs["GPHL_XDS_PATH"] = GPHL_XDS_PATH
-        GPHL_CCP4_PATH = gphl_connection.software_paths.get("GPHL_CCP4_PATH")
+        GPHL_CCP4_PATH = gphl_connection.config.software_paths.get("GPHL_CCP4_PATH")
         if GPHL_CCP4_PATH:
             envs["GPHL_CCP4_PATH"] = GPHL_CCP4_PATH
         text_type = conversion.text_type
