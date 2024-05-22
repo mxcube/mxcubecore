@@ -173,18 +173,19 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
     if not msg0:
         # Recursively load contained objects (of any type that the system can support)
         _objects = configuration.pop("_objects", {})
+        # Set configuration with non-object properties.
+        result._config = result.HOConfig(**configuration)
 
         if _objects:
-            # Set configuration with non-object properties.
-            result._config = result.HOConfig(**_objects)
-
             load_time = 1000 * (time.time() - start_time)
             msg1 = "Start loading contents:"
             _table.append(
                 (role, class_name, configuration_file, "%.1d" % load_time, msg1)
             )
             msg0 = "Done loading contents"
+
         for role1, config_file in _objects.items():
+
             fname, fext = os.path.splitext(config_file)
             if fext in (".yaml", ".yml"):
                 load_from_yaml(
@@ -193,22 +194,20 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
             elif fext == ".xml":
                 msg1 = ""
                 time0 = time.time()
+                class_name1 = "None"
                 try:
                     hwobj = _instance.get_hardware_object(fname)
                     if hwobj is None:
                         msg1 = "No object loaded"
-                        class_name1 = "None"
                     else:
                         class_name1 = hwobj.__class__.__name__
                         _attach_xml_objects(result, hwobj, role1)
                 except Exception as ex:
                     msg1 = "Loading error (%s)" % str(ex)
-                    class_name = ""
                 load_time = 1000 * (time.time() - time0)
                 _table.append(
                     (role1, class_name1, config_file, "%.1d" % load_time, msg1)
                 )
-
     if not msg0:
         if _container:
             setattr(_container._config, role, result)
@@ -216,6 +215,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
             # Initialise object
             result.init()
         except Exception:
+            raise
             if _container:
                 msg0 = "Error in %s.init()" % cls.__name__
             else:
