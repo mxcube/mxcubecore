@@ -79,6 +79,9 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         :type entry: QueueEntry
         :raises: RuntimeError, if the queue is already running when called
         """
+        logging.getLogger("HWR").debug(
+            "get in execute in QueueManager.py"
+        )  # 添加
         if self._running:
             raise RuntimeError("Can't call excute on a queue that is already running")
 
@@ -96,6 +99,9 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             else:
                 task = gevent.spawn(self.__execute_entry, entry)
                 task.link((lambda _t: self._queue_end()))
+        logging.getLogger("HWR").debug(
+            "get out execute in QueueManager.py"
+        )  # 添加
 
     def _set_in_queue_flag(self):
         """
@@ -152,10 +158,17 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         return status
 
     def __execute_task(self):
+        logging.getLogger("HWR").debug(
+            "get in __execute_task()"
+        )  # 添加
         self._running = True
         # self.emit('centringAllowed', (False, ))
         try:
             for qe in self._queue_entry_list:
+                logging.getLogger("HWR").debug(
+                    "queue entry in list: "
+                )  # 添加
+                print(qe)
                 try:
                     self.__execute_entry(qe)
                 except (base_queue_entry.QueueAbortedException, Exception) as ex:
@@ -178,6 +191,9 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         finally:
             self._running = False
             self.emit("queue_execution_finished", (None,))
+            logging.getLogger("HWR").debug(
+                "get out __execute_task "
+            )  # 添加
 
     def __execute_entry(self, entry):
         logging.getLogger("HWR").debug(
