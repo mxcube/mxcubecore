@@ -104,7 +104,6 @@ class SsxTrInjectorQueueEntry(AbstractSsxQueueEntry):
         #
 
         ssx_cfg = pandabox.SSXInjectConfig(
-            enable_jungfrau=True,
             enable_custom_output=True,
             custom_output_delay=sec_to_ms(params.laser_pulse_delay),
             custom_output_pulse_width=sec_to_ms(params.laser_pulse_width),

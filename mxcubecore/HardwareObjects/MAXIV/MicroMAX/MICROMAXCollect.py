@@ -16,6 +16,7 @@ from tango import DeviceProxy
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.TaskUtils import task
 from mxcubecore.HardwareObjects.GenericDiffractometer import GenericDiffractometer
+from mxcubecore.HardwareObjects.MAXIV import pandabox
 from mxcubecore.HardwareObjects.MAXIV.DataCollect import (
     DataCollect,
     open_tango_shutter,
@@ -23,7 +24,7 @@ from mxcubecore.HardwareObjects.MAXIV.DataCollect import (
     parse_unit_cell_params,
 )
 from mxcubecore.HardwareObjects.MAXIV.SciCatPlugin import SciCatPlugin
-from abstract.AbstractCollect import AbstractCollect
+from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
@@ -253,6 +254,7 @@ class MICROMAXCollect(DataCollect):
                 )
                 self.user_log.error(msg)
 
+            self._configure_pandabox()
             self.close_fast_shutter()
             self.close_detector_cover()
             self.open_safety_shutter()
@@ -472,7 +474,7 @@ class MICROMAXCollect(DataCollect):
                 # when we get here. Jungfrau goes into 'BUSY' state when armed, so
                 # the wait_ready() will block forever.
                 #
-                if self.detector_hwobj.get_property("model") != "JUNGFRAU":
+                if not self._is_jungfrau():
                     self.detector_hwobj.wait_ready()
 
             except Exception as ex:
@@ -1147,6 +1149,20 @@ class MICROMAXCollect(DataCollect):
         dev = DeviceProxy(f"b312a-e06/dia/tabled-01-{get_motor_slug()}")
         dev.PowerOn = True
 
+    def _is_jungfrau(self) -> bool:
+        """
+        return true if we are using Jungfrau detector
+        """
+        detector_model = self.detector_hwobj.get_property("model")
+        return detector_model == "JUNGFRAU"
+
+    def _configure_pandabox(self):
+        jungfrau_used = self._is_jungfrau()
+        cfg = pandabox.OSCConfig(
+            enable_jungfrau=jungfrau_used, enable_eiger=not jungfrau_used
+        )
+        pandabox.load_osc_schema(cfg)
+
     def move_detector(self, value):
         """
         Descript. : move detector to the set distance
@@ -1252,8 +1268,9 @@ class MICROMAXCollect(DataCollect):
         self.display["file_name1"] = file_parameters["filename"]
         config["FilenamePattern"] = name_pattern
 
-        # for Jungfrau
-        if self.detector_hwobj.get_property("model") == "JUNGFRAU":
+        if self._is_jungfrau():
+            # when Jungfrau detector is used, include user specified unit cell
+            # parameters in the acquisition config sent to the detector
             sample_info = self.current_dc_parameters["sample_reference"]
             cell = sample_info.get("cell", ",,,,,")
             (

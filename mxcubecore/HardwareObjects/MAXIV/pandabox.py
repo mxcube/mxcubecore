@@ -12,15 +12,39 @@ log = logging.getLogger("HWR")
 @dataclass
 class SSXInjectConfig:
     enable_eiger: bool = False
-    enable_jungfrau: bool = False
     enable_custom_output: bool = False
     custom_output_delay: float = 0.0
     custom_output_pulse_width: float = 0.0
     max_triggers: int = 0
 
 
+@dataclass
+class OSCConfig:
+    enable_eiger: bool = False
+    enable_jungfrau: bool = False
+
+
 def _get_tango_dev():
     return DeviceProxy(TANGO_DEVICE)
+
+
+def _load_schema(dev: DeviceProxy, schema_name: str):
+    # avoid reloading schema if it is already loaded,
+    # this way we don't reset attributes to default values,
+    # allowing users to tweak parameters outside MXCuBE
+    if dev.Schema != schema_name:
+        dev.Schema = schema_name
+
+
+def load_osc_schema(conf: OSCConfig):
+    log.info(f"[PandABox] configuring 'osc' schema with {conf}")
+
+    dev = _get_tango_dev()
+
+    _load_schema(dev, "osc")
+
+    dev.EnableEiger = conf.enable_eiger
+    dev.EnableJungfrau = conf.enable_jungfrau
 
 
 def load_ssx_inject_schema(conf: SSXInjectConfig):
@@ -28,11 +52,7 @@ def load_ssx_inject_schema(conf: SSXInjectConfig):
 
     dev = _get_tango_dev()
 
-    # avoid reloading schema if it is already loaded,
-    # this way we don't reset attributes to default values,
-    # allowing users to tweak parameters outside MXCuBE
-    if dev.Schema != "ssx_inject":
-        dev.Schema = "ssx_inject"
+    _load_schema(dev, "ssx_inject")
 
     dev.EnableEiger = conf.enable_eiger
     dev.EnableCustomOutput = conf.enable_custom_output
