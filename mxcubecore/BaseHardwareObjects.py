@@ -121,6 +121,7 @@ class ConfiguredObject:
             obj = self
             while obj._hwobj_container:
                 names.append(obj.name)
+                obj = obj._hwobj_container
             return ".".join(reversed(names))
         else:
             return ""
@@ -143,10 +144,6 @@ class ConfiguredObject:
                 break
         #
         return result
-
-    def init(self) -> None:
-        """Object initialisation - executed *after* loading contents"""
-        pass
 
     @property
     def objects_by_role(self) -> Dict[str, Union[Self, None]]:
@@ -651,6 +648,9 @@ class HardwareObjectMixin(CommandContainer):
         # List of member names (methods) to be exported (Set at configuration stage)
         self._exports_config_list = []
 
+        self.log: "Logger" = logging.getLogger("HWR").getChild(self.__class__.__name__)
+        self.user_log: "Logger" = logging.getLogger("user_log_level")
+
     def __bool__(self) -> Literal[True]:
         return True
 
@@ -669,6 +669,9 @@ class HardwareObjectMixin(CommandContainer):
 
         For ConfiguredObjects called after loading contained objects.
         """
+        self._exports_config_list.extend(
+            ast.literal_eval(self.get_property("exports", "[]").strip())
+        )
         self._exports = dict.fromkeys(self._exports_config_list, {})
 
         # Add methods that are exported programatically
@@ -1037,28 +1040,6 @@ class HardwareObject(ConfiguredObject, HardwareObjectNode, HardwareObjectMixin):
         ConfiguredObject.__init__(self, rootName)
         HardwareObjectNode.__init__(self, rootName)
         HardwareObjectMixin.__init__(self)
-        self.log: "Logger" = logging.getLogger("HWR").getChild(self.__class__.__name__)
-        self.user_log: "Logger" = logging.getLogger("user_log_level")
-        self.__exports: Dict[str, Any] = {}
-        self.__pydantic_models: Dict[str, Type["BaseModel"]] = {}
-        self._exported_attributes: Dict[str, Any] = {}
-        self._exports_config_list = []
-
-    @property
-    def exported_attributes(self) -> Dict[str, Any]:
-        """Get exported attributes.
-
-        Returns:
-            Dict[str, Any]: Exported attributes.
-        """
-        return self._exported_attributes
-
-    def init(self) -> None:
-        """Hardware object init."""
-        self._exports_config_list.extend(
-            ast.literal_eval(self.get_property("exports", "[]").strip())
-        )
-        HardwareObjectMixin.init(self)
 
     def __getstate__(self) -> str:
 
