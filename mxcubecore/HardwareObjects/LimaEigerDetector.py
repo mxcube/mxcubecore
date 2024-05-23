@@ -113,7 +113,7 @@ class LimaEigerDetector(AbstractDetector):
         mesh_num_lines,
     ):
         """
-        diffractometer_positions = HWR.beamline.diffractometer.get_positions()
+        diffractometer_positions = HWR.beamline.config.diffractometer.get_positions()
         self.start_angles = list()
         for i in range(number_of_images):
             self.start_angles.append("%0.4f deg." % (start + osc_range * i))
@@ -132,11 +132,11 @@ class LimaEigerDetector(AbstractDetector):
             self.header["Phi"] = "0.0000 deg."
             self.header["Kappa"] = "0.0000 deg."
         self.header["Alpha"] = "0.0000 deg."
-        self.header["Polarization"] = HWR.beamline.collect.bl_config.polarisation
+        self.header["Polarization"] = HWR.beamline.config.collect.bl_config.polarisation
         self.header["Detector_2theta"] = "0.0000 deg."
         self.header["Angle_increment"] = "%0.4f deg." % osc_range
-        self.header["Transmission"] = HWR.beamline.transmission.get_value()
-        self.header["Flux"] = HWR.beamline.flux.get_value()
+        self.header["Transmission"] = HWR.beamline.config.transmission.get_value()
+        self.header["Flux"] = HWR.beamline.config.flux.get_value()
         self.header["Detector_Voffset"] = "0.0000 m"
         self.header["Energy_range"] = "(0, 0) eV"
         self.header["Trim_directory:"] = "(nil)"
@@ -160,15 +160,15 @@ class LimaEigerDetector(AbstractDetector):
             "beam_center_x=%s" % (beam_x),
             "beam_center_y=%s" % (beam_y),
             "detector_distance=%s"
-            % (HWR.beamline.detector.distance.get_value() / 1000.0),
+            % (HWR.beamline.config.detector.distance.get_value() / 1000.0),
             "omega_start=%0.4f" % start,
             "omega_increment=%0.4f" % osc_range,
-            "wavelength=%s" % HWR.beamline.energy.get_wavelength(),
+            "wavelength=%s" % HWR.beamline.config.energy.get_wavelength(),
         ]
         # either we set the wavelength, or we set the energy_threshold
         # up to now we were doing both (lost of time)
-        # "wavelength=%s" % HWR.beamline.energy.get_wavelength(),
-        # self.set_energy_threshold(HWR.beamline.energy.get_value())
+        # "wavelength=%s" % HWR.beamline.config.energy.get_wavelength(),
+        # self.set_energy_threshold(HWR.beamline.config.energy.get_value())
 
         self.get_channel_object("saving_common_header").set_value(header_info)
 

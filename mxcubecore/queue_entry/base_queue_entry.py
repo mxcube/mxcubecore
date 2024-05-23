@@ -396,18 +396,18 @@ class TaskGroupQueueEntry(BaseQueueEntry):
             if task_model.interleave_num_images:
                 init_ref_images = task_model.interleave_num_images
                 group_data = {
-                    "sessionId": HWR.beamline.session.session_id,
+                    "sessionId": HWR.beamline.config.session.session_id,
                     "experimentType": "Collect - Multiwedge",
                 }
             elif task_model.inverse_beam_num_images:
                 init_ref_images = task_model.inverse_beam_num_images
                 group_data = {
-                    "sessionId": HWR.beamline.session.session_id,
+                    "sessionId": HWR.beamline.config.session.session_id,
                     "experimentType": "Collect - Multiwedge",
                 }
             else:
                 group_data = {
-                    "sessionId": HWR.beamline.session.session_id,
+                    "sessionId": HWR.beamline.config.session.session_id,
                     "experimentType": "OSC",
                 }
 
@@ -427,7 +427,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                 )
 
             try:
-                gid = HWR.beamline.lims._store_data_collection_group(group_data)
+                gid = HWR.beamline.config.lims._store_data_collection_group(group_data)
                 self.get_data_model().lims_group_id = gid
             except Exception as ex:
                 msg = (
@@ -523,11 +523,11 @@ class TaskGroupQueueEntry(BaseQueueEntry):
             empty_cpos = queue_model_objects.CentredPosition()
             param_list = queue_model_objects.to_collect_dict(
                 interleave_item["data_model"],
-                HWR.beamline.session,
+                HWR.beamline.config.session,
                 sample,
                 cpos if cpos != empty_cpos else None,
             )
-            # HWR.beamline.collect.prepare_interleave(
+            # HWR.beamline.config.collect.prepare_interleave(
             #    interleave_item["data_model"], param_list
             # )
 
@@ -659,10 +659,10 @@ class SampleQueueEntry(BaseQueueEntry):
 
         # Only execute samples with collections and when sample changer is used
         if len(self.get_data_model().get_children()) != 0 and sc_used:
-            if HWR.beamline.diffractometer.in_plate_mode():
+            if HWR.beamline.config.diffractometer.in_plate_mode():
                 return
             else:
-                mount_device = HWR.beamline.sample_changer
+                mount_device = HWR.beamline.config.sample_changer
 
             if mount_device is not None:
                 log.info("Loading sample " + str(self._data_model.location))
@@ -744,7 +744,7 @@ class SampleQueueEntry(BaseQueueEntry):
                     )
 
         try:
-            programs = HWR.beamline.collect["auto_processing"]
+            programs = HWR.beamline.config.collect["auto_processing"]
             autoprocessing.start(programs, "end_multicollect", params)
         except KeyError:
             pass
@@ -766,7 +766,7 @@ class BasketQueueEntry(BaseQueueEntry):
 
 def mount_sample(view, data_model, centring_done_cb, async_result):
     view.setText(1, "Loading sample")
-    HWR.beamline.sample_view.clear_all()
+    HWR.beamline.config.sample_view.clear_all()
     log = logging.getLogger("queue_exec")
 
     loc = data_model.location
@@ -781,13 +781,13 @@ def mount_sample(view, data_model, centring_done_cb, async_result):
         "dewarLocation": loc[0],
         "sampleBarcode": data_model.code,
         "sampleId": data_model.lims_id,
-        "sessionId": HWR.beamline.session.session_id,
+        "sessionId": HWR.beamline.config.session.session_id,
         "startTime": time.strftime("%Y-%m-%d %H:%M:%S"),
     }
     # "xtalSnapshotBefore": data_model.get_snapshot_filename(prefix="before"),
     # "xtalSnapshotAfter": data_model.get_snapshot_filename(prefix="after")}
 
-    sample_mount_device = HWR.beamline.sample_changer
+    sample_mount_device = HWR.beamline.config.sample_changer
 
     if hasattr(sample_mount_device, "__TYPE__"):
         if sample_mount_device.__TYPE__ in ["Marvin", "CATS"]:
@@ -817,7 +817,7 @@ def mount_sample(view, data_model, centring_done_cb, async_result):
         robot_action_dict["message"] = "Sample was not loaded"
         robot_action_dict["status"] = "ERROR"
 
-    HWR.beamline.lims.store_robot_action(robot_action_dict)
+    HWR.beamline.config.lims.store_robot_action(robot_action_dict)
 
     if not sample_mount_device.has_loaded_sample():
         # Disables all related collections
@@ -826,7 +826,7 @@ def mount_sample(view, data_model, centring_done_cb, async_result):
         raise QueueSkippEntryException("Sample not loaded", "")
     else:
         view.setText(1, "Sample loaded")
-        dm = HWR.beamline.diffractometer
+        dm = HWR.beamline.config.diffractometer
         if dm is not None:
             if hasattr(sample_mount_device, "__TYPE__"):
                 if sample_mount_device.__TYPE__ in (

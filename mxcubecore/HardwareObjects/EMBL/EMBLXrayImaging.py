@@ -146,46 +146,46 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         QtGraphicsManager.init(self)
 
         self.disconnect(
-            HWR.beamline.sample_view.camera, "imageReceived", self.camera_image_received
+            HWR.beamline.config.sample_view.camera, "imageReceived", self.camera_image_received
         )
 
         self.disconnect(
-            HWR.beamline.diffractometer,
+            HWR.beamline.config.diffractometer,
             "minidiffStateChanged",
             self.diffractometer_state_changed,
         )
         self.disconnect(
-            HWR.beamline.diffractometer,
+            HWR.beamline.config.diffractometer,
             "centringStarted",
             self.diffractometer_centring_started,
         )
         self.disconnect(
-            HWR.beamline.diffractometer,
+            HWR.beamline.config.diffractometer,
             "centringAccepted",
             self.create_centring_point,
         )
         self.disconnect(
-            HWR.beamline.diffractometer,
+            HWR.beamline.config.diffractometer,
             "centringSuccessful",
             self.diffractometer_centring_successful,
         )
         self.disconnect(
-            HWR.beamline.diffractometer,
+            HWR.beamline.config.diffractometer,
             "centringFailed",
             self.diffractometer_centring_failed,
         )
         self.disconnect(
-            HWR.beamline.diffractometer,
+            HWR.beamline.config.diffractometer,
             "pixelsPerMmChanged",
             self.diffractometer_pixels_per_mm_changed,
         )
         self.disconnect(
-            HWR.beamline.diffractometer,
+            HWR.beamline.config.diffractometer,
             "omegaReferenceChanged",
             self.diffractometer_omega_reference_changed,
         )
         self.disconnect(
-            HWR.beamline.diffractometer,
+            HWR.beamline.config.diffractometer,
             "minidiffPhaseChanged",
             self.diffractometer_phase_changed,
         )
@@ -275,8 +275,8 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         QtGraphicsManager.mouse_clicked(self, pos_x, pos_y, left_click)
         if self.centering_started:
             self.motor_positions["phi"] = self.omega_angle
-            HWR.beamline.diffractometer.set_static_positions(self.motor_positions)
-            HWR.beamline.diffractometer.image_clicked(pos_x, pos_y)
+            HWR.beamline.config.diffractometer.set_static_positions(self.motor_positions)
+            HWR.beamline.config.diffractometer.image_clicked(pos_x, pos_y)
             self.centering_started -= 1
         if not self.centering_started:
             self.set_centring_state(False)
@@ -344,7 +344,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         pos_x = self.graphics_move_beam_mark_item.end_coord[0]
         pos_y = self.graphics_move_beam_mark_item.end_coord[1]
 
-        HWR.beamline.diffractometer.set_imaging_beam_position(pos_x, pos_y)
+        HWR.beamline.config.diffractometer.set_imaging_beam_position(pos_x, pos_y)
         logging.getLogger("GUI").info(
             "Imaging beam position set to %d, %d" % (pos_x, pos_y)
         )
@@ -405,7 +405,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
                     tine.set("/P14/P14DetTrans/P14detHor2", "Move.START", target)
             # TODO add later wait
             time.sleep(3)
-            HWR.beamline.detector.distance.set_value(
+            HWR.beamline.config.detector.distance.set_value(
                 im_params.detector_distance, timeout=30
             )
             logging.getLogger("GUI").info("Imaging: Detector distance set")
@@ -420,7 +420,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         self.cmd_collect_start_angle(acq_params.osc_start)
         self.cmd_collect_range(acq_params.osc_range)
         self.cmd_collect_in_queue(acq_params.in_queue != False)
-        shutter_name = HWR.beamline.detector.get_shutter_name()
+        shutter_name = HWR.beamline.config.detector.get_shutter_name()
         self.cmd_collect_shutter(shutter_name)
 
         self.cmd_collect_ff_num_images(im_params.ff_num_images)
@@ -445,12 +445,12 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         self.set_osc_start(acq_params.osc_start)
 
         self.current_dc_parameters = qmo.to_collect_dict(
-            data_model, HWR.beamline.session, qmo.Sample()
+            data_model, HWR.beamline.config.session, qmo.Sample()
         )[0]
         self.current_dc_parameters["status"] = "Running"
         self.current_dc_parameters["comments"] = ""
 
-        self.motor_positions = HWR.beamline.diffractometer.get_positions()
+        self.motor_positions = HWR.beamline.config.diffractometer.get_positions()
         self.take_crystal_snapshots()
 
         self.store_data_collection_in_lims()
@@ -579,7 +579,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
     def move_motors(self, motor_position_dict):
         """Move to centred position"""
         if motor_position_dict:
-            HWR.beamline.diffractometer.move_motors(motor_position_dict)
+            HWR.beamline.config.diffractometer.move_motors(motor_position_dict)
 
     def trigger_auto_processing(self, process_event, frame_number):
         pass
@@ -699,7 +699,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         # osc_seq = self.config_dict["collect"]["oscillation_sequence"][0]
         # angle = osc_seq["start"] + index * osc_seq["range"]
         # self.motor_positions["phi"] = angle
-        # HWR.beamline.diffractometer.set_static_positions(self.motor_positions)
+        # HWR.beamline.config.diffractometer.set_static_positions(self.motor_positions)
         # self.graphics_omega_reference_item.set_phi_position(angle)
         self.current_image_index = index
 
@@ -784,7 +784,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         raw_filename_list = []
         ff_filename_list = []
         self.config_dict = {}
-        self.omega_start = HWR.beamline.diffractometer.get_omega_position()
+        self.omega_start = HWR.beamline.config.diffractometer.get_omega_position()
         self.motor_positions = None
         self.image_reading_thread = None
 
@@ -805,7 +805,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
                     self.config_dict = json.load(f)
                 ff_ssim = self.config_dict["ff_ssim"]
                 self.motor_positions = deepcopy(self.config_dict["motor_pos"])
-                HWR.beamline.diffractometer.set_static_positions(self.motor_positions)
+                HWR.beamline.config.diffractometer.set_static_positions(self.motor_positions)
             else:
                 logging.getLogger("user_level_log").error(
                     "Imaging: Unable to open config file %s" % config_path
@@ -946,17 +946,17 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         # osc_seq = self.config_dict["collect"]["oscillation_sequence"][0]
         # angle = osc_seq["start"] + index * osc_seq["range"]
         self.motor_positions["phi"] = self.omega_angle
-        HWR.beamline.diffractometer.set_static_positions(self.motor_positions)
+        HWR.beamline.config.diffractometer.set_static_positions(self.motor_positions)
 
-        HWR.beamline.diffractometer.start_centring_method(
-            HWR.beamline.diffractometer.CENTRING_METHOD_IMAGING
+        HWR.beamline.config.diffractometer.start_centring_method(
+            HWR.beamline.config.diffractometer.CENTRING_METHOD_IMAGING
         )
 
     def start_n_centering(self):
         self.centering_started = 100
         self.set_centring_state(True)
-        HWR.beamline.diffractometer.start_centring_method(
-            HWR.beamline.diffractometer.CENTRING_METHOD_IMAGING_N
+        HWR.beamline.config.diffractometer.start_centring_method(
+            HWR.beamline.config.diffractometer.CENTRING_METHOD_IMAGING_N
         )
 
 

@@ -86,12 +86,12 @@ class RedisClient(HardwareObject):
             )
 
         try:
-            self.connect(HWR.beamline.flux, "fluxChanged", self.flux_changed)
+            self.connect(HWR.beamline.config.flux, "fluxChanged", self.flux_changed)
         except Exception:
             pass
 
-        self.proposal_id = HWR.beamline.session.get_proposal()
-        self.beamline_name = HWR.beamline.session.beamline_name
+        self.proposal_id = HWR.beamline.config.session.get_proposal()
+        self.beamline_name = HWR.beamline.config.session.beamline_name
 
         if self.active:
             self.init_beamline_setup()
@@ -103,7 +103,7 @@ class RedisClient(HardwareObject):
 
     def save_queue_task(self):
         """Queue saving tasks"""
-        selected_model, queue_list = HWR.beamline.queue_model.get_queue_as_json_list()
+        selected_model, queue_list = HWR.beamline.config.queue_model.get_queue_as_json_list()
         self.redis_client.set(
             "mxcube:%s:%s:queue_model" % (self.proposal_id, self.beamline_name),
             selected_model,
@@ -127,10 +127,10 @@ class RedisClient(HardwareObject):
                 "mxcube:%s:%s:queue_current" % (self.proposal_id, self.beamline_name)
             )
             if selected_model is not None:
-                HWR.beamline.queue_model.select_model(selected_model)
-                HWR.beamline.queue_model.load_queue_from_json_list(
+                HWR.beamline.config.queue_model.select_model(selected_model)
+                HWR.beamline.config.queue_model.load_queue_from_json_list(
                     eval(serialized_queue),
-                    snapshot=HWR.beamline.sample_view.get_scene_snapshot(),
+                    snapshot=HWR.beamline.config.sample_view.get_scene_snapshot(),
                 )
 
             self.active = True
@@ -144,7 +144,7 @@ class RedisClient(HardwareObject):
                 "RedisClient: Graphics saved at "
                 + "mxcube:%s:%s:graphics" % (self.proposal_id, self.beamline_name)
             )
-            graphic_objects = HWR.beamline.sample_view.dump_shapes()
+            graphic_objects = HWR.beamline.config.sample_view.dump_shapes()
             self.redis_client.set(
                 "mxcube:%s:%s:graphics" % (self.proposal_id, self.beamline_name),
                 jsonpickle.encode(graphic_objects),
@@ -157,7 +157,7 @@ class RedisClient(HardwareObject):
                 graphics_objects = self.redis_client.get(
                     "mxcube:%s:%s:graphics" % (self.proposal_id, self.beamline_name)
                 )
-                HWR.beamline.sample_view.load_shapes(
+                HWR.beamline.config.sample_view.load_shapes(
                     jsonpickle.decode(graphics_objects)
                 )
                 logging.getLogger("HWR").debug("RedisClient: Graphics loaded")

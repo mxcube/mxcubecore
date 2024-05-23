@@ -72,10 +72,10 @@ class SampleCentringQueueEntry(BaseQueueEntry):
             dd0["kappa_phi"] = kappa_phi
         if dd0:
             if (
-                not hasattr(HWR.beamline.diffractometer, "in_kappa_mode")
-                or HWR.beamline.diffractometer.in_kappa_mode()
+                not hasattr(HWR.beamline.config.diffractometer, "in_kappa_mode")
+                or HWR.beamline.config.diffractometer.in_kappa_mode()
             ):
-                HWR.beamline.diffractometer.move_motors(dd0)
+                HWR.beamline.config.diffractometer.move_motors(dd0)
 
         motor_positions = dict(
             tt0
@@ -83,14 +83,14 @@ class SampleCentringQueueEntry(BaseQueueEntry):
             if tt0[1] is not None
         )
         if motor_positions:
-            HWR.beamline.diffractometer.move_motors(motor_positions)
+            HWR.beamline.config.diffractometer.move_motors(motor_positions)
 
         log.warning(
             "Please center a new or select an existing point and press continue."
         )
         self.get_queue_controller().pause(True)
 
-        shapes = list(HWR.beamline.sample_view.get_selected_shapes())
+        shapes = list(HWR.beamline.config.sample_view.get_selected_shapes())
 
         if shapes:
             pos = shapes[0]
@@ -103,7 +103,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
             log.info(msg)
 
             # Create a centred positions of the current position
-            pos_dict = HWR.beamline.diffractometer.get_positions()
+            pos_dict = HWR.beamline.config.diffractometer.get_positions()
             cpos = queue_model_objects.CentredPosition(pos_dict)
 
         self._data_model.set_centring_result(cpos)

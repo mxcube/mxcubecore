@@ -56,7 +56,7 @@ class ScanMockup(HardwareObject):
         self._min, self._max = ast.literal_eval(self.get_property("min_max", "(0, 10)"))
         self._sample_rate = self.get_property("sample_rate", 0.5)
 
-        HWR.beamline.data_publisher.register(
+        HWR.beamline.config.data_publisher.register(
             "mockupscan",
             "MOCK SCAN",
             "diode",
@@ -73,12 +73,12 @@ class ScanMockup(HardwareObject):
     def _generate_points(self):
         points = 0
 
-        HWR.beamline.data_publisher.start("mockupscan")
+        HWR.beamline.config.data_publisher.start("mockupscan")
 
         while points < self._npoints:
             self._current_value = random.uniform(self._min, self._max)
 
-            HWR.beamline.data_publisher.pub(
+            HWR.beamline.config.data_publisher.pub(
                 "mockupscan",
                 one_d_data(points * self._sample_rate, self._current_value),
             )
@@ -86,7 +86,7 @@ class ScanMockup(HardwareObject):
             gevent.sleep(self._sample_rate)
             points += 1
 
-        HWR.beamline.data_publisher.stop("mockupscan")
+        HWR.beamline.config.data_publisher.stop("mockupscan")
 
     def start(self):
         """

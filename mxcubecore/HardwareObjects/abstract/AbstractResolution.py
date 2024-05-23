@@ -52,13 +52,13 @@ class AbstractResolution(AbstractMotor):
         super().init()
 
         self._hwr_detector = (
-            self.get_object_by_role("detector") or HWR.beamline.detector
+            self.get_object_by_role("detector") or HWR.beamline.config.detector
         )
 
         self.connect(self._hwr_detector.distance, "stateChanged", self.update_state)
         self.connect(self._hwr_detector.distance, "valueChanged", self.update_distance)
-        self.connect(HWR.beamline.energy, "valueChanged", self.update_energy)
-        self.connect(HWR.beamline.energy, "stateChanged", self.update_state)
+        self.connect(HWR.beamline.config.energy, "valueChanged", self.update_energy)
+        self.connect(HWR.beamline.config.energy, "stateChanged", self.update_state)
 
         self.update_state(self.get_state())
 
@@ -144,7 +144,7 @@ class AbstractResolution(AbstractMotor):
         Returns:
             (float): Resolution [Å]
         """
-        wavelength = wavelength or HWR.beamline.energy.get_wavelength()
+        wavelength = wavelength or HWR.beamline.config.energy.get_wavelength()
         try:
             ttheta = atan(radius / distance)
             if ttheta:
@@ -176,7 +176,7 @@ class AbstractResolution(AbstractMotor):
             (float): distance [mm].
         """
         resolution = resolution or self._nominal_value
-        wavelength = wavelength or HWR.beamline.energy.get_wavelength()
+        wavelength = wavelength or HWR.beamline.config.energy.get_wavelength()
 
         try:
             distance = self._hwr_detector.get_radius() / (
@@ -213,8 +213,8 @@ class AbstractResolution(AbstractMotor):
         Args:
             value(float): Energy [keV]
         """
-        value = value or HWR.beamline.energy.get_value()
-        _wavelength = HWR.beamline.energy.calculate_wavelength(value)
+        value = value or HWR.beamline.config.energy.get_value()
+        _wavelength = HWR.beamline.config.energy.calculate_wavelength(value)
         _distance = self._hwr_detector.distance.get_value()
         _radius = self._hwr_detector.get_radius(_distance)
         try:

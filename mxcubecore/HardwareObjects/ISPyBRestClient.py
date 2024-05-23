@@ -37,8 +37,8 @@ class ISPyBRestClient(HardwareObject):
         self.beamline_name = None
 
     def init(self):
-        if HWR.beamline.session:
-            self.beamline_name = HWR.beamline.session.beamline_name
+        if HWR.beamline.config.session:
+            self.beamline_name = HWR.beamline.config.session.beamline_name
         else:
             self.beamline_name = "ID:TEST"
 
@@ -130,8 +130,8 @@ class ISPyBRestClient(HardwareObject):
         if self.base_result_url is not None and did:
             path = "mx/#/mx/proposal/{pcode}{pnumber}/datacollection/datacollectionid/{did}/main"
             path = path.format(
-                pcode=HWR.beamline.session.proposal_code,
-                pnumber=HWR.beamline.session.proposal_number,
+                pcode=HWR.beamline.config.session.proposal_code,
+                pnumber=HWR.beamline.config.session.proposal_number,
                 did=did,
             )
 
@@ -153,9 +153,9 @@ class ISPyBRestClient(HardwareObject):
         url = url.format(
             rest_root=self.__rest_root,
             token=str(self.__rest_token),
-            pcode=HWR.beamline.session.proposal_code,
-            pnumber=HWR.beamline.session.proposal_number,
-            sid=HWR.beamline.session.session_id,
+            pcode=HWR.beamline.config.session.proposal_code,
+            pnumber=HWR.beamline.config.session.proposal_number,
+            sid=HWR.beamline.config.session.session_id,
         )
 
         try:
@@ -180,8 +180,8 @@ class ISPyBRestClient(HardwareObject):
         url = url.format(
             rest_root=self.__rest_root,
             token=str(self.__rest_token),
-            pcode=HWR.beamline.session.proposal_code,
-            pnumber=HWR.beamline.session.proposal_number,
+            pcode=HWR.beamline.config.session.proposal_code,
+            pnumber=HWR.beamline.config.session.proposal_number,
             dc_id=dc_id,
         )
         try:
@@ -205,8 +205,8 @@ class ISPyBRestClient(HardwareObject):
                     url = url.format(
                         rest_root=self.__rest_root,
                         token=str(self.__rest_token),
-                        pcode=HWR.beamline.session.proposal_code,
-                        pnumber=HWR.beamline.session.proposal_number,
+                        pcode=HWR.beamline.config.session.proposal_code,
+                        pnumber=HWR.beamline.config.session.proposal_number,
                         step_id=step_id,
                     )
 
@@ -244,8 +244,8 @@ class ISPyBRestClient(HardwareObject):
         url = url.format(
             rest_root=self.__rest_root,
             token=str(self.__rest_token),
-            pcode=HWR.beamline.session.proposal_code,
-            pnumber=HWR.beamline.session.proposal_number,
+            pcode=HWR.beamline.config.session.proposal_code,
+            pnumber=HWR.beamline.config.session.proposal_number,
             dcid=collection_id,
         )
 
@@ -274,8 +274,8 @@ class ISPyBRestClient(HardwareObject):
         url = url.format(
             rest_root=self.__rest_root,
             token=str(self.__rest_token),
-            pcode=HWR.beamline.session.proposal_code,
-            pnumber=HWR.beamline.session.proposal_number,
+            pcode=HWR.beamline.config.session.proposal_code,
+            pnumber=HWR.beamline.config.session.proposal_number,
             image_id=image_id,
         )
 
@@ -307,8 +307,8 @@ class ISPyBRestClient(HardwareObject):
         url = url.format(
             rest_root=self.__rest_root,
             token=str(self.__rest_token),
-            pcode=HWR.beamline.session.proposal_code,
-            pnumber=HWR.beamline.session.proposal_number,
+            pcode=HWR.beamline.config.session.proposal_code,
+            pnumber=HWR.beamline.config.session.proposal_number,
             image_id=image_id,
         )
 

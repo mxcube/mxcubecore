@@ -326,18 +326,18 @@ class GenericDiffractometer(HardwareObject):
         self.cryo = self.get_object_by_role("cryo")
 
         # Hardware objects ----------------------------------------------------
-        # if HWR.beamline.sample_view.camera is not None:
-        #     self.image_height = HWR.beamline.sample_view.camera.get_height()
-        #     self.image_width = HWR.beamline.sample_view.camera.get_width()
+        # if HWR.beamline.config.sample_view.camera is not None:
+        #     self.image_height = HWR.beamline.config.sample_view.camera.get_height()
+        #     self.image_width = HWR.beamline.config.sample_view.camera.get_width()
         # else:
         #     logging.getLogger("HWR").debug(
         #         "Diffractometer: " + "Camera hwobj is not defined"
         #     )
 
-        if HWR.beamline.beam is not None:
-            self.beam_position = HWR.beamline.beam.get_beam_position_on_screen()
+        if HWR.beamline.config.beam is not None:
+            self.beam_position = HWR.beamline.config.beam.get_beam_position_on_screen()
             self.connect(
-                HWR.beamline.beam, "beamPosChanged", self.beam_position_changed
+                HWR.beamline.config.beam, "beamPosChanged", self.beam_position_changed
             )
         else:
             self.beam_position = [0, 0]
@@ -435,7 +435,7 @@ class GenericDiffractometer(HardwareObject):
                 )
 
         # sample changer -----------------------------------------------------
-        if HWR.beamline.sample_changer is None:
+        if HWR.beamline.config.sample_changer is None:
             logging.getLogger("HWR").warning(
                 "Diffractometer: Sample Changer is not defined"
             )
@@ -682,7 +682,7 @@ class GenericDiffractometer(HardwareObject):
         """
         if flag:
             # check both transfer_mode and sample_Changer
-            if HWR.beamline.sample_changer is None:
+            if HWR.beamline.config.sample_changer is None:
                 logging.getLogger("HWR").error(
                     "Diffractometer: Sample " + "Changer is not available"
                 )
@@ -783,13 +783,13 @@ class GenericDiffractometer(HardwareObject):
     #     return self.current_positions_dict.get("phi")
 
     def get_snapshot(self):
-        if HWR.beamline.sample_view:
-            return HWR.beamline.sample_view.take_snapshot()
+        if HWR.beamline.config.sample_view:
+            return HWR.beamline.config.sample_view.take_snapshot()
 
     def save_snapshot(self, filename):
         """ """
-        if HWR.beamline.sample_view:
-            return HWR.beamline.sample_view.save_snapshot(filename)
+        if HWR.beamline.config.sample_view:
+            return HWR.beamline.config.sample_view.save_snapshot(filename)
 
     def get_pixels_per_mm(self):
         """
@@ -897,7 +897,7 @@ class GenericDiffractometer(HardwareObject):
         while self.automatic_centring_try_count > 0:
             if self.use_sample_centring:
                 self.current_centring_procedure = sample_centring.start_auto(
-                    HWR.beamline.sample_view,
+                    HWR.beamline.config.sample_view,
                     {
                         "phi": self.centring_phi,
                         "phiy": self.centring_phiy,

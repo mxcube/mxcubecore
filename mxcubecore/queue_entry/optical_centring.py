@@ -40,12 +40,12 @@ class OpticalCentringQueueEntry(BaseQueueEntry):
 
     def execute(self):
         BaseQueueEntry.execute(self)
-        HWR.beamline.diffractometer.automatic_centring_try_count = (
+        HWR.beamline.config.diffractometer.automatic_centring_try_count = (
             self.get_data_model().try_count
         )
 
-        HWR.beamline.diffractometer.start_centring_method(
-            HWR.beamline.diffractometer.CENTRING_METHOD_AUTO, wait=True
+        HWR.beamline.config.diffractometer.start_centring_method(
+            HWR.beamline.config.diffractometer.CENTRING_METHOD_AUTO, wait=True
         )
 
     def pre_execute(self):

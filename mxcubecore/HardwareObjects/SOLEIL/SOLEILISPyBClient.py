@@ -59,7 +59,7 @@ class SOLEILISPyBClient(ISPyBClient):
 
         self.loginType = self.get_property("loginType") or "proposal"
         self.loginTranslate = self.get_property("loginTranslate") or True
-        self.beamline_name = HWR.beamline.session.beamline_name
+        self.beamline_name = HWR.beamline.config.session.beamline_name
         print("self.beamline_name init", self.beamline_name)
 
         self.ws_root = self.get_property("ws_root")
@@ -101,7 +101,7 @@ class SOLEILISPyBClient(ISPyBClient):
             logging.getLogger("HWR").exception(_CONNECTION_ERROR_MSG)
             return
         try:
-            proposals = HWR.beamline.session["proposals"]
+            proposals = HWR.beamline.config.session["proposals"]
 
             for proposal in proposals:
                 code = proposal.code
@@ -170,19 +170,19 @@ class SOLEILISPyBClient(ISPyBClient):
 
         prop = "EDNA_files_dir"
         path = mx_collect_dict[prop]
-        ispyb_path = HWR.beamline.session.path_to_ispyb(path)
+        ispyb_path = HWR.beamline.config.session.path_to_ispyb(path)
         mx_collect_dict[prop] = ispyb_path
 
         prop = "process_directory"
         path = mx_collect_dict["fileinfo"][prop]
-        ispyb_path = HWR.beamline.session.path_to_ispyb(path)
+        ispyb_path = HWR.beamline.config.session.path_to_ispyb(path)
         mx_collect_dict["fileinfo"][prop] = ispyb_path
 
         for i in range(4):
             try:
                 prop = "xtalSnapshotFullPath%d" % (i + 1)
                 path = mx_collect_dict[prop]
-                ispyb_path = HWR.beamline.session.path_to_ispyb(path)
+                ispyb_path = HWR.beamline.config.session.path_to_ispyb(path)
                 logging.debug("SOLEIL ISPyBClient - %s is %s " % (prop, ispyb_path))
                 mx_collect_dict[prop] = ispyb_path
             except Exception:
@@ -192,7 +192,7 @@ class SOLEILISPyBClient(ISPyBClient):
         for prop in ["jpegThumbnailFileFullPath", "jpegFileFullPath"]:
             try:
                 path = image_dict[prop]
-                ispyb_path = HWR.beamline.session.path_to_ispyb(path)
+                ispyb_path = HWR.beamline.config.session.path_to_ispyb(path)
                 image_dict[prop] = ispyb_path
             except Exception:
                 pass
@@ -215,7 +215,7 @@ def test():
     hwr = HWR.get_hardware_repository()
     hwr.connect()
 
-    db = HWR.beamline.lims
+    db = HWR.beamline.config.lims
 
     print("db", db)
     print("dir(db)", dir(db))

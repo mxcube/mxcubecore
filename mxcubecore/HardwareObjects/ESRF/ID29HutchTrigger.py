@@ -65,7 +65,7 @@ class ID29HutchTrigger(BaseHardwareObjects.HardwareObject):
         logging.info(
             "%s: %s hutch", self.id, "entering" if entering_hutch else "leaving"
         )
-        dtox = HWR.beamline.detector.distance
+        dtox = HWR.beamline.config.detector.distance
         if not entering_hutch:
             if old["dtox"] is not None:
                 dtox.set_value(old["dtox"])

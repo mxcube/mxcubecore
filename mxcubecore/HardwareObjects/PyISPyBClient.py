@@ -50,8 +50,8 @@ class PyISPyBClient(HardwareObject):
     def init(self):
         self._token_timestamp = None
 
-        if HWR.beamline.session:
-            self.beamline_name = HWR.beamline.session.beamline_name
+        if HWR.beamline.config.session:
+            self.beamline_name = HWR.beamline.config.session.beamline_name
         else:
             self.beamline_name = "ID:TEST"
 
@@ -105,17 +105,17 @@ class PyISPyBClient(HardwareObject):
     def get_current_beamline_values(self):
         return BeamlineParameters(
             **{
-                "energy": HWR.beamline.energy.get_value(),
-                "wavelength": HWR.beamline.energy.get_wavelength(),
-                "resolution": HWR.beamline.resolution.get_value(),
-                "transmission": HWR.beamline.transmission.get_value(),
-                "detector_distance": HWR.beamline.detector.distance.get_value(),
-                "beam_x": HWR.beamline.detector.get_beam_position()[0],
-                "beam_y": HWR.beamline.detector.get_beam_position()[1],
-                "beam_size_x": HWR.beamline.beam.get_beam_size()[0],
-                "beam_size_y": HWR.beamline.beam.get_beam_size()[1],
-                "beam_shape": HWR.beamline.beam.get_beam_shape(),
-                "energy_bandwidth": HWR.beamline.beam.get_property(
+                "energy": HWR.beamline.config.energy.get_value(),
+                "wavelength": HWR.beamline.config.energy.get_wavelength(),
+                "resolution": HWR.beamline.config.resolution.get_value(),
+                "transmission": HWR.beamline.config.transmission.get_value(),
+                "detector_distance": HWR.beamline.config.detector.distance.get_value(),
+                "beam_x": HWR.beamline.config.detector.get_beam_position()[0],
+                "beam_y": HWR.beamline.config.detector.get_beam_position()[1],
+                "beam_size_x": HWR.beamline.config.beam.get_beam_size()[0],
+                "beam_size_y": HWR.beamline.config.beam.get_beam_size()[1],
+                "beam_shape": HWR.beamline.config.beam.get_beam_shape(),
+                "energy_bandwidth": HWR.beamline.config.beam.get_property(
                     "energy_bandwidth", 0.1
                 ),
             }
@@ -124,13 +124,13 @@ class PyISPyBClient(HardwareObject):
     def get_additional_lims_values(self):
         return ISPYBCollectionPrameters(
             **{
-                "flux_start": HWR.beamline.flux.get_value(),
-                "flux_end": HWR.beamline.flux.get_value(),
+                "flux_start": HWR.beamline.config.flux.get_value(),
+                "flux_end": HWR.beamline.config.flux.get_value(),
                 "start_time": datetime.datetime.now(),
                 "end_time": datetime.datetime.now(),
-                "chip_model": HWR.beamline.collect.get_property("chip_model", ""),
-                "polarisation": HWR.beamline.beam.polarisation,
-                "mono_stripe": HWR.beamline.beam.get_property("mono_stripe", ""),
+                "chip_model": HWR.beamline.config.collect.get_property("chip_model", ""),
+                "polarisation": HWR.beamline.config.beam.polarisation,
+                "mono_stripe": HWR.beamline.config.beam.get_property("mono_stripe", ""),
             }
         )
 
@@ -149,7 +149,7 @@ class PyISPyBClient(HardwareObject):
     def create_ssx_data_collection_group(self, collection_parameters, session_id=None):
         self._update_token()
         sacronym, sname = collection_parameters.path_parameters.prefix.split("-")
-        session_id = session_id if session_id else int(HWR.beamline.session.session_id)
+        session_id = session_id if session_id else int(HWR.beamline.config.session.session_id)
 
         with pyispyb_client.ApiClient(self._configuration) as api_client:
             # Create an instance of the API class
@@ -240,7 +240,7 @@ class PyISPyBClient(HardwareObject):
                 "resolution": beamline_parameters.resolution,
                 "resolutionAtCorner": 0.0,
                 "flux_end": extra_lims_values.flux_end,
-                "detector_id": HWR.beamline.detector.get_property("detector_id"),
+                "detector_id": HWR.beamline.config.detector.get_property("detector_id"),
                 "startTime": extra_lims_values.start_time,
                 "endTime": extra_lims_values.end_time,
                 "repetitionRate": 0.0,

@@ -44,7 +44,7 @@ class Transmission(HardwareObject):
         return self.__matt.pos_read()
 
     def _set_value(self, value):
-        self.__matt.set_energy(HWR.beamline.energy.get_value())
+        self.__matt.set_energy(HWR.beamline.config.energy.get_value())
         self.__matt.transmission_set(value)
         self._update()
 
@@ -61,7 +61,7 @@ class Transmission(HardwareObject):
         self._update()
 
     def get_value(self):
-        self.__matt.set_energy(HWR.beamline.energy.get_value())
+        self.__matt.set_energy(HWR.beamline.config.energy.get_value())
         return self.__matt.transmission_get()
 
     def is_in(self, attenuator_index):

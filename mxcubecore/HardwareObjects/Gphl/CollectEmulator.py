@@ -50,9 +50,9 @@ class CollectEmulator(CollectMockup):
 
     # def init(self):
     #     CollectMockup.init(self)
-    #     # NBNB you get an error if you use 'HWR.beamline.session'
+    #     # NBNB you get an error if you use 'HWR.beamline.config.session'
     #     # session_hwobj = self.get_object_by_role("session")
-    #     session = HWR.beamline.session
+    #     session = HWR.beamline.config.session
     #     if session and self.has_object("override_data_directories"):
     #         dirs = self["override_data_directories"].get_properties()
     #         session.set_base_data_directories(**dirs)
@@ -71,7 +71,7 @@ class CollectEmulator(CollectMockup):
             # update with instrument data
             # You cannot do this at init time,
             # as GPhL_wporkflow is not yet inittialised then.
-            fp0 = HWR.beamline.gphl_workflow.file_paths.get("instrumentation_file")
+            fp0 = HWR.beamline.config.gphl_workflow.file_paths.get("instrumentation_file")
             instrument_input = f90nml.read(fp0)
 
             self.instrument_data = instrument_input["sdcp_instrument_list"]
@@ -124,7 +124,7 @@ class CollectEmulator(CollectMockup):
         (
             setup_data["det_org_x"],
             setup_data["det_org_y"],
-        ) = HWR.beamline.detector.get_beam_position()
+        ) = HWR.beamline.config.detector.get_beam_position()
 
         ll0 = self.instrument_data["gonio_axis_dirs"]
         setup_data["omega_axis"] = ll0[:3]
@@ -172,7 +172,7 @@ class CollectEmulator(CollectMockup):
 
         # update with diffractcal data
         # TODO check that this works also for updating segment list
-        fp0 = HWR.beamline.gphl_workflow.file_paths.get("diffractcal_file")
+        fp0 = HWR.beamline.config.gphl_workflow.file_paths.get("diffractcal_file")
         if os.path.isfile(fp0):
             diffractcal_data = f90nml.read(fp0)["sdcp_instrument_list"]
             for tag in setup_data.keys():
@@ -193,7 +193,7 @@ class CollectEmulator(CollectMockup):
                 resolution = dd.get("upper")
                 if resolution:
                     self.set_resolution(resolution)
-            detector_distance = HWR.beamline.detector.distance.get_value()
+            detector_distance = HWR.beamline.config.detector.distance.get_value()
         # Add sweeps
         sweeps = []
         compress_data = False
@@ -202,12 +202,12 @@ class CollectEmulator(CollectMockup):
             sweep = OrderedDict()
 
             energy = (
-                data_collect_parameters.get("energy") or HWR.beamline.energy.get_value()
+                data_collect_parameters.get("energy") or HWR.beamline.config.energy.get_value()
             )
             sweep["lambda"] = conversion.HC_OVER_E / energy
             sweep["res_limit"] = setup_data["res_limit_def"]
             sweep["exposure"] = osc["exposure_time"]
-            ll0 = HWR.beamline.gphl_workflow.translation_axis_roles
+            ll0 = HWR.beamline.config.gphl_workflow.translation_axis_roles
             sweep["trans_xyz"] = list(motors.get(x) or 0.0 for x in ll0)
             sweep["det_coord"] = detector_distance
             # NBNB hardwired for omega scan TODO
@@ -262,15 +262,15 @@ class CollectEmulator(CollectMockup):
     @task
     def data_collection_hook(self):
         """Spawns data emulation using gphl simcal"""
-        data_model = HWR.beamline.gphl_workflow._queue_entry.get_data_model()
+        data_model = HWR.beamline.config.gphl_workflow._queue_entry.get_data_model()
         if data_model.skip_collection:
             return
 
         data_collect_parameters = self.current_dc_parameters
 
-        if not HWR.beamline.gphl_workflow:
+        if not HWR.beamline.config.gphl_workflow:
             raise ValueError("Emulator requires GΦL workflow installation")
-        gphl_connection = HWR.beamline.gphl_connection
+        gphl_connection = HWR.beamline.config.gphl_connection
         if not gphl_connection:
             raise ValueError("Emulator requires GΦL connection installation")
 
@@ -293,7 +293,7 @@ class CollectEmulator(CollectMockup):
             envs[text_type(tag)] = text_type(val)
 
         # get crystal data
-        crystal_data, hklfile = HWR.beamline.gphl_workflow.get_emulation_crystal_data()
+        crystal_data, hklfile = HWR.beamline.config.gphl_workflow.get_emulation_crystal_data()
 
         input_data, compress_data = self._get_simcal_input(
             data_collect_parameters, crystal_data

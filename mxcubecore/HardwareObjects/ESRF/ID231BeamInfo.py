@@ -53,7 +53,7 @@ class BeamInfo(Equipment):
             logging.getLogger("HWR").debug("BeamInfo: slits not defined correctly")
         try:
             self.connect(
-                HWR.beamline.beam.beam_definer,
+                HWR.beamline.config.beam.beam_definer,
                 "definerPosChanged",
                 self.definer_pos_changed,
             )

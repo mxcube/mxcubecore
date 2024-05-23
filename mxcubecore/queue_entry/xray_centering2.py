@@ -39,7 +39,7 @@ class XrayCentering2QueueEntry(BaseQueueEntry):
 
     def execute(self):
         BaseQueueEntry.execute(self)
-        HWR.beamline.xray_centring.execute()
+        HWR.beamline.config.xray_centring.execute()
 
     def pre_execute(self):
         """Pre-execute. Set to new motor position, if any"""
@@ -60,12 +60,12 @@ class XrayCentering2QueueEntry(BaseQueueEntry):
         if pos_dict:
             # Some beamlines move centering motors while moving kappa, kappa_phi
             # Hence we need to move kappa, kappa_phi first.
-            HWR.beamline.diffractometer.move_motors(pos_dict)
+            HWR.beamline.config.diffractometer.move_motors(pos_dict)
         if motor_positions:
             # Move the rest of the motors, if needed
-            HWR.beamline.diffractometer.move_motors(motor_positions)
+            HWR.beamline.config.diffractometer.move_motors(motor_positions)
 
-        HWR.beamline.xray_centring.pre_execute(self)
+        HWR.beamline.config.xray_centring.pre_execute(self)
 
     def post_execute(self):
         """Post-execute. Store centring result in data model"""
@@ -73,13 +73,13 @@ class XrayCentering2QueueEntry(BaseQueueEntry):
 
         # Create a centred position object of the current position
         # and put it in the data model for future access.
-        pos_dict = HWR.beamline.diffractometer.get_positions()
+        pos_dict = HWR.beamline.config.diffractometer.get_positions()
         cpos = queue_model_objects.CentredPosition(pos_dict)
         self._data_model.set_centring_result(cpos)
 
         logging.getLogger("user_level_log").info("Finishing Xray centring")
 
-        HWR.beamline.xray_centring.post_execute()
+        HWR.beamline.config.xray_centring.post_execute()
 
     def get_type_str(self):
         return "X-ray centring"

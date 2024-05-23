@@ -108,18 +108,18 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         d = BaseQueueEntry.__getstate__(self)
 
         d["data_analysis_hwobj"] = (
-            HWR.beamline.characterisation.name
-            if HWR.beamline.characterisation
+            HWR.beamline.config.characterisation.name
+            if HWR.beamline.config.characterisation
             else None
         )
         d["diffractometer_hwobj"] = (
-            HWR.beamline.diffractometer.name if HWR.beamline.diffractometer else None
+            HWR.beamline.config.diffractometer.name if HWR.beamline.config.diffractometer else None
         )
         d["queue_model_hwobj"] = (
-            HWR.beamline.queue_model.name if HWR.beamline.queue_model else None
+            HWR.beamline.config.queue_model.name if HWR.beamline.config.queue_model else None
         )
         d["session_hwobj"] = (
-            HWR.beamline.session.name if HWR.beamline.session else None
+            HWR.beamline.config.session.name if HWR.beamline.config.session else None
         )
 
         return d
@@ -130,7 +130,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
     def execute(self):
         BaseQueueEntry.execute(self)
 
-        if HWR.beamline.characterisation is not None:
+        if HWR.beamline.config.characterisation is not None:
             if self.get_data_model().wait_result:
                 logging.getLogger("user_level_log").warning(
                     "Characterisation: Please wait ..."
@@ -152,19 +152,19 @@ class CharacterisationQueueEntry(BaseQueueEntry):
             log.info("Characterising, please wait ...")
             reference_image_collection = char.reference_image_collection
 
-            if HWR.beamline.characterisation is not None:
-                edna_input = HWR.beamline.characterisation.input_from_params(
+            if HWR.beamline.config.characterisation is not None:
+                edna_input = HWR.beamline.config.characterisation.input_from_params(
                     reference_image_collection, characterisation_parameters
                 )
 
-                self.edna_result = HWR.beamline.characterisation.characterise(
+                self.edna_result = HWR.beamline.config.characterisation.characterise(
                     edna_input
                 )
 
                 if self.edna_result:
                     log.info("Characterisation completed.")
 
-                    char.html_report = HWR.beamline.characterisation.get_html_report(
+                    char.html_report = HWR.beamline.config.characterisation.get_html_report(
                         self.edna_result
                     )
 
@@ -185,11 +185,11 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                             # default action
                             self.handle_diffraction_plan(self.edna_result, None)
                         else:
-                            collections = HWR.beamline.characterisation.dc_from_output(
+                            collections = HWR.beamline.config.characterisation.dc_from_output(
                                 self.edna_result, char.reference_image_collection
                             )
                             char.diffraction_plan.append(collections)
-                            HWR.beamline.queue_model.emit(
+                            HWR.beamline.config.queue_model.emit(
                                 "diff_plan_available", (char, collections)
                             )
 
@@ -224,21 +224,21 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         new_dcg_model.set_number(new_dcg_num)
         new_dcg_model.set_origin(char._node_id)
 
-        HWR.beamline.queue_model.add_child(sample_data_model, new_dcg_model)
+        HWR.beamline.config.queue_model.add_child(sample_data_model, new_dcg_model)
         if edna_collections is None:
-            edna_collections = HWR.beamline.characterisation.dc_from_output(
+            edna_collections = HWR.beamline.config.characterisation.dc_from_output(
                 edna_result, reference_image_collection
             )
         for edna_dc in edna_collections:
             path_template = edna_dc.acquisitions[0].path_template
-            run_number = HWR.beamline.queue_model.get_next_run_number(path_template)
+            run_number = HWR.beamline.config.queue_model.get_next_run_number(path_template)
             path_template.run_number = run_number
             path_template.compression = char.diff_plan_compression
 
             edna_dc.set_enabled(char.run_diffraction_plan)
             edna_dc.set_name(path_template.get_prefix())
             edna_dc.set_number(path_template.run_number)
-            HWR.beamline.queue_model.add_child(new_dcg_model, edna_dc)
+            HWR.beamline.config.queue_model.add_child(new_dcg_model, edna_dc)
 
         return edna_collections
 
@@ -255,4 +255,4 @@ class CharacterisationQueueEntry(BaseQueueEntry):
 
     def stop(self):
         BaseQueueEntry.stop(self)
-        HWR.beamline.characterisation.stop()
+        HWR.beamline.config.characterisation.stop()

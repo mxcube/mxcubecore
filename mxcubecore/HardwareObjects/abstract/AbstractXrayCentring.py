@@ -28,12 +28,12 @@ __date__ = "25/03/2022"
 
 import abc
 
-from mxcubecore.BaseHardwareObjects import HardwareObjectYaml
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.model import queue_model_objects
 
 
-class AbstractXrayCentring(HardwareObjectYaml):
+class AbstractXrayCentring(HardwareObject):
     """Xray Centring Hardware Object. Set to Yaml configuration."""
 
     def __init__(self, name):
@@ -98,4 +98,4 @@ class AbstractXrayCentring(HardwareObjectYaml):
             parent_model_obj: Parent queue entry.
             child_model_obj: Child queue entry.
         """
-        HWR.beamline.queue_model.add_child(parent_model_obj, child_model_obj)
+        HWR.beamline.config.queue_model.add_child(parent_model_obj, child_model_obj)

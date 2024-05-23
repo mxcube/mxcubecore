@@ -173,13 +173,13 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
         self.move_beamline_energy(pk)
 
     def open_fast_shutter(self):
-        HWR.beamline.fast_shutter.openShutter()
+        HWR.beamline.config.fast_shutter.openShutter()
 
     def close_fast_shutter(self):
-        HWR.beamline.fast_shutter.closeShutter()
+        HWR.beamline.config.fast_shutter.closeShutter()
 
     def close_safety_shutter(self):
-        HWR.beamline.safety_shutter.closeShutter()
+        HWR.beamline.config.safety_shutter.closeShutter()
 
     def fluodet_prepare(self):
         self.fluodet_hwo.set_preset(float(self.integration_time))
@@ -256,7 +256,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
         self.scan_info["endEnergy"] = 0.0  # updated at the end of the scan
 
         try:
-            size_hor, size_ver = HWR.beamline.beam.get_beam_size()
+            size_hor, size_ver = HWR.beamline.config.beam.get_beam_size()
             size_hor *= 1000
             size_ver *= 1000
         except Exception:
@@ -620,7 +620,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
         handles.append(ax2.plot(chooch_graph_x, chooch_graph_y2, color="red"))
         canvas = FigureCanvasAgg(fig)
 
-        escan_ispyb_path = HWR.beamline.session.path_to_ispyb(archive_file_png_filename)
+        escan_ispyb_path = HWR.beamline.config.session.path_to_ispyb(archive_file_png_filename)
         self.scan_info["jpegChoochFileFullPath"] = str(escan_ispyb_path)
 
         try:
@@ -711,20 +711,20 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
 
     @task
     def store_energy_scan(self):
-        if HWR.beamline.lims:
+        if HWR.beamline.config.lims:
             scan_info = dict(self.scan_info)
             sample_id = scan_info["blSampleId"]
             scan_info.pop("blSampleId")
 
             self.log.debug("storing energy scan info in ISPyB")
-            db_ret = HWR.beamline.lims.storeEnergyScan(scan_info)
+            db_ret = HWR.beamline.config.lims.storeEnergyScan(scan_info)
             self.log.debug("stored %s" % str(db_ret))
 
             if sample_id is not None and db_ret is not None:
                 scan_id = db_ret["energyScanId"]
 
                 asoc = {"blSampleId": sample_id, "energyScanId": scan_id}
-                HWR.beamline.lims.associate_bl_sample_and_energy_scan(asoc)
+                HWR.beamline.config.lims.associate_bl_sample_and_energy_scan(asoc)
 
         if self.ruche_hwo:
             self.ruche_hwo.trigger_sync(self.escan_archivepng)

@@ -80,48 +80,48 @@ class SsxChipCollectionQueueEntry(BaseQueueEntry):
             fname_prefix = self._data_model._task_data.path_parameters.prefix
             fname_prefix += f"_block_{region[0]}_{region[1]}_"
 
-            HWR.beamline.diffractometer.set_phase("Centring", wait=True, timeout=120)
-            # HWR.beamline.diffractometer.wait_ready()
+            HWR.beamline.config.diffractometer.set_phase("Centring", wait=True, timeout=120)
+            # HWR.beamline.config.diffractometer.wait_ready()
             logging.getLogger("user_level_log").info(f"Acquiring {region} ...")
 
             if params.align_chip:
                 logging.getLogger("user_level_log").info(f"Aligning block {region}")
-                HWR.beamline.diffractometer.auto_align_ssx_block(region[0], region[1])
+                HWR.beamline.config.diffractometer.auto_align_ssx_block(region[0], region[1])
                 logging.getLogger("user_level_log").info(f"Aligned block {region}")
 
             logging.getLogger("user_level_log").info("Preparing detector")
 
-            HWR.beamline.detector.stop_acquisition()
-            HWR.beamline.detector.prepare_acquisition(
+            HWR.beamline.config.detector.stop_acquisition()
+            HWR.beamline.config.detector.prepare_acquisition(
                 400, params.exp_time, data_root_path, fname_prefix
             )
 
-            HWR.beamline.detector.wait_ready()
+            HWR.beamline.config.detector.wait_ready()
 
-            HWR.beamline.detector.start_acquisition()
+            HWR.beamline.config.detector.start_acquisition()
             logging.getLogger("user_level_log").info(
                 "Detector ready, waiting for trigger ..."
             )
-            HWR.beamline.diffractometer.wait_ready()
+            HWR.beamline.config.diffractometer.wait_ready()
 
             logging.getLogger("user_level_log").info(f"Preparing data collection")
-            HWR.beamline.diffractometer.set_phase(
+            HWR.beamline.config.diffractometer.set_phase(
                 "DataCollection", wait=True, timeout=120
             )
 
-            if HWR.beamline.control.safshut_oh2.state.name != "OPEN":
+            if HWR.beamline.config.control.safshut_oh2.state.name != "OPEN":
                 logging.getLogger("user_level_log").info(f"Opening OH2 safety shutter")
-                HWR.beamline.control.safshut_oh2.open()
+                HWR.beamline.config.control.safshut_oh2.open()
 
             logging.getLogger("user_level_log").info(f"Scanning {region} ...")
-            HWR.beamline.diffractometer.start_ssx_scan(params.sub_sampling)
-            HWR.beamline.diffractometer.wait_ready()
+            HWR.beamline.config.diffractometer.start_ssx_scan(params.sub_sampling)
+            HWR.beamline.config.diffractometer.wait_ready()
 
-            if HWR.beamline.control.safshut_oh2.state.name == "OPEN":
-                HWR.beamline.control.safshut_oh2.close()
+            if HWR.beamline.config.control.safshut_oh2.state.name == "OPEN":
+                HWR.beamline.config.control.safshut_oh2.close()
                 logging.getLogger("user_level_log").info("shutter closed")
 
-            HWR.beamline.detector.wait_ready()
+            HWR.beamline.config.detector.wait_ready()
             logging.getLogger("user_level_log").info(f"Acquired {region}")
 
     def pre_execute(self):

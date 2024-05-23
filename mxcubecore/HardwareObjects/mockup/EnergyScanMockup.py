@@ -216,14 +216,14 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         }
         self.scan_info["exposureTime"] = exptime
 
-        if HWR.beamline.transmission is not None:
-            self.scan_info["transmissionFactor"] = HWR.beamline.transmission.get_value()
+        if HWR.beamline.config.transmission is not None:
+            self.scan_info["transmissionFactor"] = HWR.beamline.config.transmission.get_value()
         else:
             self.scan_info["transmissionFactor"] = None
         size_hor = None
         size_ver = None
-        if HWR.beamline.beam is not None:
-            size_hor, size_ver = HWR.beamline.beam.get_beam_size()
+        if HWR.beamline.config.beam is not None:
+            size_hor, size_ver = HWR.beamline.config.beam.get_beam_size()
             size_hor = size_hor * 1000
             size_ver = size_ver * 1000
         self.scan_info["beamSizeHorizontal"] = size_hor
@@ -470,5 +470,5 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         """
         Descript. :
         """
-        if HWR.beamline.lims:
-            db_status = HWR.beamline.lims.storeEnergyScan(self.scan_info)
+        if HWR.beamline.config.lims:
+            db_status = HWR.beamline.config.lims.storeEnergyScan(self.scan_info)

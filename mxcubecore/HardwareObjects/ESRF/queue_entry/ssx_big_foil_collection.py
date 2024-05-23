@@ -87,13 +87,13 @@ class SsxBigFoilCollectionQueueEntry(SsxBaseQueueEntry):
         self._data_model._task_data.collection_parameters.num_images = num_images
         data_root_path, _ = self.get_data_path()
 
-        self.take_pedestal(HWR.beamline.collect.get_property("max_freq", 925))
+        self.take_pedestal(HWR.beamline.config.collect.get_property("max_freq", 925))
 
         logging.getLogger("user_level_log").info("Preparing detector")
-        HWR.beamline.detector.prepare_acquisition(
+        HWR.beamline.config.detector.prepare_acquisition(
             num_images, exp_time, data_root_path, fname_prefix
         )
-        HWR.beamline.detector.wait_ready()
+        HWR.beamline.config.detector.wait_ready()
 
         fname_prefix = self._data_model._task_data.path_parameters.prefix
         fname_prefix += f"_foil_"
@@ -114,17 +114,17 @@ class SsxBigFoilCollectionQueueEntry(SsxBaseQueueEntry):
 
         logging.getLogger("user_level_log").info(f"Defining region {region}")
 
-        HWR.beamline.diffractometer.define_ssx_scan_region(
+        HWR.beamline.config.diffractometer.define_ssx_scan_region(
             *region, params.nb_samples_per_line, params.nb_lines
         )
-        HWR.beamline.diffractometer.wait_ready()
-        HWR.beamline.diffractometer.set_phase("DataCollection", wait=True, timeout=120)
+        HWR.beamline.config.diffractometer.wait_ready()
+        HWR.beamline.config.diffractometer.set_phase("DataCollection", wait=True, timeout=120)
 
-        if HWR.beamline.control.safshut_oh2.state.name != "OPEN":
+        if HWR.beamline.config.control.safshut_oh2.state.name != "OPEN":
             logging.getLogger("user_level_log").info(f"Opening OH2 safety shutter")
-            HWR.beamline.control.safshut_oh2.open()
+            HWR.beamline.config.control.safshut_oh2.open()
 
-        HWR.beamline.detector.start_acquisition()
+        HWR.beamline.config.detector.start_acquisition()
         logging.getLogger("user_level_log").info(
             "Detector ready, waiting for trigger ..."
         )
@@ -132,19 +132,19 @@ class SsxBigFoilCollectionQueueEntry(SsxBaseQueueEntry):
         logging.getLogger("user_level_log").info(f"Acquiring {num_images}")
 
         try:
-            HWR.beamline.diffractometer.start_ssx_scan(params.sub_sampling)
-            HWR.beamline.diffractometer.wait_ready()
+            HWR.beamline.config.diffractometer.start_ssx_scan(params.sub_sampling)
+            HWR.beamline.config.diffractometer.wait_ready()
         except:
             msg = "Diffractometer failed! Waiting for detector to finish"
             logging.getLogger("user_level_log").error(msg)
-            HWR.beamline.detector.wait_ready()
+            HWR.beamline.config.detector.wait_ready()
             raise
 
-        if HWR.beamline.control.safshut_oh2.state.name == "OPEN":
-            HWR.beamline.control.safshut_oh2.close()
+        if HWR.beamline.config.control.safshut_oh2.state.name == "OPEN":
+            HWR.beamline.config.control.safshut_oh2.close()
             logging.getLogger("user_level_log").info("shutter closed")
 
-        HWR.beamline.detector.wait_ready()
+        HWR.beamline.config.detector.wait_ready()
         logging.getLogger("user_level_log").info(f"Acquired {region}")
 
     def pre_execute(self):

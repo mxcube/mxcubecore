@@ -49,7 +49,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         return cmd_obj(*args, wait=wait)
 
     def init(self):
-        self._detector = HWR.beamline.detector
+        self._detector = HWR.beamline.config.detector
 
         self.setControlObjects(
             diffractometer=self.get_object_by_role("diffractometer"),
@@ -73,24 +73,24 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         except KeyError:
             undulators = []
 
-        beam_div_hor, beam_div_ver = HWR.beamline.beam.get_beam_divergence()
+        beam_div_hor, beam_div_ver = HWR.beamline.config.beam.get_beam_divergence()
 
         self.setBeamlineConfiguration(
             synchrotron_name="ESRF",
             directory_prefix=self.get_property("directory_prefix"),
-            default_exposure_time=HWR.beamline.detector.get_property(
+            default_exposure_time=HWR.beamline.config.detector.get_property(
                 "default_exposure_time"
             ),
-            minimum_exposure_time=HWR.beamline.detector.get_property(
+            minimum_exposure_time=HWR.beamline.config.detector.get_property(
                 "minimum_exposure_time"
             ),
-            detector_fileext=HWR.beamline.detector.get_property("file_suffix"),
-            detector_type=HWR.beamline.detector.get_property("type"),
-            detector_manufacturer=HWR.beamline.detector.get_property("manufacturer"),
-            detector_model=HWR.beamline.detector.get_property("model"),
-            detector_binning_mode=HWR.beamline.detector.get_property("binning_mode"),
-            detector_px=HWR.beamline.detector.get_property("px"),
-            detector_py=HWR.beamline.detector.get_property("py"),
+            detector_fileext=HWR.beamline.config.detector.get_property("file_suffix"),
+            detector_type=HWR.beamline.config.detector.get_property("type"),
+            detector_manufacturer=HWR.beamline.config.detector.get_property("manufacturer"),
+            detector_model=HWR.beamline.config.detector.get_property("model"),
+            detector_binning_mode=HWR.beamline.config.detector.get_property("binning_mode"),
+            detector_px=HWR.beamline.config.detector.get_property("px"),
+            detector_py=HWR.beamline.config.detector.get_property("py"),
             undulators=undulators,
             focusing_optic=self.get_property("focusing_optic"),
             monochromator_type=self.get_property("monochromator"),
@@ -102,7 +102,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             input_files_server=self.get_property("input_files_server"),
         )
 
-        # self._detector.init(HWR.beamline.detector, self)
+        # self._detector.init(HWR.beamline.config.detector, self)
 
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True,))
@@ -110,7 +110,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     @task
     def data_collection_end_hook(self, data_collect_parameters):
         self._detector._emit_status()
-        HWR.beamline.lims.icat_client.create_mx_collection(data_collect_parameters)
+        HWR.beamline.config.lims.icat_client.create_mx_collection(data_collect_parameters)
 
     #     self._metadataClient.end(data_collect_parameters)
 
@@ -172,14 +172,14 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             return self.execute_command("do_oscillation", start, end, exptime, number_of_images)
 
     def set_wavelength(self, wavelength):
-        if HWR.beamline.tunable_wavelength:
-            return HWR.beamline.energy.set_wavelength(wavelength)
+        if HWR.beamline.config.tunable_wavelength:
+            return HWR.beamline.config.energy.set_wavelength(wavelength)
         else:
             return
 
     def set_energy(self, energy):
-        if HWR.beamline.tunable_wavelength:
-            return HWR.beamline.energy.set_value(energy)
+        if HWR.beamline.config.tunable_wavelength:
+            return HWR.beamline.config.energy.set_value(energy)
         else:
             return
 
@@ -187,7 +187,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         try:
             self.close_fast_shutter()
             self.stop_oscillation()
-            HWR.beamline.detector.stop_acquisition()
+            HWR.beamline.config.detector.stop_acquisition()
         except Exception:
             logging.getLogger("HWR").exception("")
 
@@ -211,7 +211,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             if isinstance(motor, string_types):
                 # find right motor object from motor role in diffractometer obj.
                 motor_role = motor
-                motor = HWR.beamline.diffractometer.get_deviceby_role(motor_role)
+                motor = HWR.beamline.config.diffractometer.get_deviceby_role(motor_role)
                 del motor_positions_copy[motor_role]
                 if motor is None:
                     continue
@@ -227,11 +227,11 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             time.sleep(0.02)
 
     def open_safety_shutter(self):
-        if HWR.beamline.safety_shutter.get_value().name == "CLOSED":
+        if HWR.beamline.config.safety_shutter.get_value().name == "CLOSED":
             try:
                 logging.getLogger("user_level_log").info("Opening safety shutter")
-                HWR.beamline.safety_shutter.set_value(
-                    HWR.beamline.safety_shutter.VALUES.OPEN, timeout=10
+                HWR.beamline.config.safety_shutter.set_value(
+                    HWR.beamline.config.safety_shutter.VALUES.OPEN, timeout=10
                 )
             except Exception:
                 logging.getLogger("HWR").exception("")
@@ -240,7 +240,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         state = False
 
         try:
-            state = HWR.beamline.safety_shutter.get_value().name == "OPEN"
+            state = HWR.beamline.config.safety_shutter.get_value().name == "OPEN"
         except Exception:
             logging.getLogger("HWR").exception("")
             state = True
@@ -249,10 +249,10 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     @task
     def close_safety_shutter(self):
-        if HWR.beamline.safety_shutter.get_value().name == "OPEN":
+        if HWR.beamline.config.safety_shutter.get_value().name == "OPEN":
             try:
-                HWR.beamline.safety_shutter.set_value(
-                    HWR.beamline.safety_shutter.VALUES.CLOSED
+                HWR.beamline.config.safety_shutter.set_value(
+                    HWR.beamline.config.safety_shutter.VALUES.CLOSED
                 )
             except Exception:
                 logging.getLogger("HWR").exception("")
@@ -293,7 +293,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             return self._detector.set_detector_filenames(frame_number, start, filename)
 
     def stop_oscillation(self):
-        HWR.beamline.diffractometer.abort_cmd()
+        HWR.beamline.config.diffractometer.abort_cmd()
 
     def start_acquisition(self, exptime, npass, first_frame, shutterless):
         if first_frame:
@@ -308,10 +308,10 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     def last_image_saved(self, total_time, exptime, num_images):
         # check here if fast shutter is open ?
-        if HWR.beamline.detector.status["acq_satus"] == "RUNNING":
+        if HWR.beamline.config.detector.status["acq_satus"] == "RUNNING":
             return int(total_time / exptime)
         else:
-            return HWR.beamline.detector.last_image_saved()
+            return HWR.beamline.config.detector.last_image_saved()
 
     def stop_acquisition(self):
         return self._detector.stop_acquisition()
@@ -444,24 +444,24 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                 stac_template.format(
                     omfilename=om_filename,
                     omtype=om_type,
-                    phi=HWR.beamline.diffractometer.phiMotor.get_value(),
-                    sampx=HWR.beamline.diffractometer.sampleXMotor.get_value(),
-                    sampy=HWR.beamline.diffractometer.sampleYMotor.get_value(),
-                    phiy=HWR.beamline.diffractometer.phiyMotor.get_value(),
+                    phi=HWR.beamline.config.diffractometer.phiMotor.get_value(),
+                    sampx=HWR.beamline.config.diffractometer.sampleXMotor.get_value(),
+                    sampy=HWR.beamline.config.diffractometer.sampleYMotor.get_value(),
+                    phiy=HWR.beamline.config.diffractometer.phiyMotor.get_value(),
                 )
             )
             stac_om_file.close()
             os.chmod(stac_om_input_file, 0o666)
 
     def get_wavelength(self):
-        return HWR.beamline.energy.get_wavelength()
+        return HWR.beamline.config.energy.get_wavelength()
 
     def get_undulators_gaps(self):
         all_gaps = {"Unknown": None}
         _gaps = {}
 
         try:
-            _gaps = HWR.beamline.undulators
+            _gaps = HWR.beamline.config.undulators
         except Exception:
             logging.getLogger("HWR").exception("Could not get undulator gaps")
         all_gaps.clear()
@@ -499,23 +499,23 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     #         return 0
 
     def get_machine_current(self):
-        if HWR.beamline.machine_info:
+        if HWR.beamline.config.machine_info:
             try:
-                return HWR.beamline.machine_info.get_current()
+                return HWR.beamline.config.machine_info.get_current()
             except Exception:
                 return -1
         else:
             return 0
 
     def get_machine_message(self):
-        if HWR.beamline.machine_info:
-            return HWR.beamline.machine_info.get_message()
+        if HWR.beamline.config.machine_info:
+            return HWR.beamline.config.machine_info.get_message()
         else:
             return ""
 
     def get_machine_fill_mode(self):
-        if HWR.beamline.machine_info:
-            return HWR.beamline.machine_info.get_fill_mode()
+        if HWR.beamline.config.machine_info:
+            return HWR.beamline.config.machine_info.get_fill_mode()
         else:
             """"""
 
@@ -531,7 +531,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                 return T
 
     def get_current_energy(self):
-        return HWR.beamline.energy.get_value()
+        return HWR.beamline.config.energy.get_value()
 
     def get_beam_centre(self):
         return (
@@ -550,13 +550,13 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         return True
 
     def sampleChangerHO(self):
-        return HWR.beamline.sample_changer
+        return HWR.beamline.config.sample_changer
 
     def diffractometer(self):
-        return HWR.beamline.diffractometer
+        return HWR.beamline.config.diffractometer
 
     def dbServerHO(self):
-        return HWR.beamline.lims
+        return HWR.beamline.config.lims
 
     def sanityCheck(self, collect_params):
         return

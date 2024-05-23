@@ -42,7 +42,7 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
     def execute(self):
         BaseQueueEntry.execute(self)
 
-        workflow_hwobj = HWR.beamline.workflow
+        workflow_hwobj = HWR.beamline.config.workflow
 
         # Start execution of a new workflow
         if str(workflow_hwobj.state.value) != "ON":
@@ -99,14 +99,14 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
         qc = self.get_queue_controller()
-        workflow_hwobj = HWR.beamline.workflow
+        workflow_hwobj = HWR.beamline.config.workflow
 
         qc.connect(workflow_hwobj, "stateChanged", self.workflow_state_handler)
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
         qc = self.get_queue_controller()
-        workflow_hwobj = HWR.beamline.workflow
+        workflow_hwobj = HWR.beamline.config.workflow
         qc.disconnect(workflow_hwobj, "stateChanged", self.workflow_state_handler)
         # reset state
         self.workflow_started = False
@@ -117,7 +117,7 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
 
     def stop(self):
         BaseQueueEntry.stop(self)
-        workflow_hwobj = HWR.beamline.workflow
+        workflow_hwobj = HWR.beamline.config.workflow
         workflow_hwobj.abort()
         self.get_view().setText(1, "Stopped")
         raise QueueAbortedException("Queue stopped", self)

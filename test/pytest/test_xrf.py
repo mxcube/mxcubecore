@@ -37,7 +37,7 @@ from mxcubecore.BaseHardwareObjects import HardwareObjectState
 @pytest.fixture
 def test_object(beamline):
     """Get the test object from beamline.yml"""
-    result = beamline.xrf_spectrum
+    result = beamline.config.xrf_spectrum
     yield result
 
 

@@ -63,7 +63,7 @@ and an `init()` function that is executed after configured parameters and contai
 The Beamline object (`HardwareRepository.beamline`) is a YAML-configured object,
 and is the starting point for finding other hardware objects.
 These may in turn contain other objects, so you can do e.g.
-`HardwareRepository.beamline.detector.distance` to get the detector distance motor object.
+`HardwareRepository.beamline.config.detector.distance` to get the detector distance motor object.
 Configured properties are similarly accessed as simple attributes, e,g, `beamline.default_acquisition_parameters`.
 Each `ConfiguredObject` has three special properties and one function to deal with the objects contained within it.
 These are:

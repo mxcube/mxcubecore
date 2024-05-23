@@ -47,7 +47,7 @@ class XrayCenteringQueueEntry(BaseQueueEntry):
         BaseQueueEntry.pre_execute(self)
         xray_centering = self.get_data_model()
         reference_image_collection = xray_centering.reference_image_collection
-        reference_image_collection.grid = HWR.beamline.sample_view.create_auto_grid()
+        reference_image_collection.grid = HWR.beamline.config.sample_view.create_auto_grid()
         reference_image_collection.acquisitions[
             0
         ].acquisition_parameters.centred_position = (

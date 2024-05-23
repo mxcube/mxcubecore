@@ -100,10 +100,10 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
             if status == "scanning":
                 logging.getLogger("GUI").info("Energy scan: Executing...")
 
-                if HWR.beamline.transmission is not None:
+                if HWR.beamline.config.transmission is not None:
                     self.scan_info[
                         "transmissionFactor"
-                    ] = HWR.beamline.transmission.get_value()
+                    ] = HWR.beamline.config.transmission.get_value()
                 else:
                     self.scan_info["transmissionFactor"] = None
             elif status == "ready":
@@ -213,8 +213,8 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         """
 
         if self.chan_scan_status.get_value() in ["ready", "unknown", "error"]:
-            if hasattr(HWR.beamline.energy, "release_break_bragg"):
-                HWR.beamline.energy.release_break_bragg()
+            if hasattr(HWR.beamline.config.energy, "release_break_bragg"):
+                HWR.beamline.config.energy.release_break_bragg()
 
             # if self.transmission_hwobj is not None:
             #    self.scan_info['transmissionFactor'] = self.transmission_hwobj.get_value()
@@ -226,8 +226,8 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
             self.scan_info["startTime"] = str(time.strftime("%Y-%m-%d %H:%M:%S"))
             size_hor = None
             size_ver = None
-            if HWR.beamline.beam is not None:
-                size_hor, size_ver = HWR.beamline.beam.get_beam_size()
+            if HWR.beamline.config.beam is not None:
+                size_hor, size_ver = HWR.beamline.config.beam.get_beam_size()
                 size_hor = size_hor * 1000
                 size_ver = size_ver * 1000
             self.scan_info["beamSizeHorizontal"] = size_hor
@@ -292,16 +292,16 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
             self.emit("energyScanFailed", ())
             self.emit("progressStop", ())
 
-            if hasattr(HWR.beamline.energy, "set_break_bragg"):
-                HWR.beamline.energy.set_break_bragg()
+            if hasattr(HWR.beamline.config.energy, "set_break_bragg"):
+                HWR.beamline.config.energy.set_break_bragg()
             self.scanning = False
             self.ready_event.set()
 
     def scanCommandAborted(self, *args):
         self.emit("energyScanFailed", ())
         self.emit("progressStop", ())
-        if hasattr(HWR.beamline.energy, "set_break_bragg"):
-            HWR.beamline.energy.set_break_bragg()
+        if hasattr(HWR.beamline.config.energy, "set_break_bragg"):
+            HWR.beamline.config.energy.set_break_bragg()
         self.scanning = False
         self.ready_event.set()
 
@@ -314,8 +314,8 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
             self.scan_info["endEnergy"] = self.scan_data[-1][1]
             self.emit("energyScanFinished", (self.scan_info,))
             self.emit("progressStop", ())
-            if hasattr(HWR.beamline.energy, "set_break_bragg"):
-                HWR.beamline.energy.set_break_bragg()
+            if hasattr(HWR.beamline.config.energy, "set_break_bragg"):
+                HWR.beamline.config.energy.set_break_bragg()
 
     def do_chooch(self, elt, edge, scan_directory, archive_directory, prefix):
         archive_file_prefix = str(os.path.join(archive_directory, prefix))
@@ -528,8 +528,8 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         return self.scan_data
 
     def store_energy_scan(self):
-        if HWR.beamline.lims:
-            db_status = HWR.beamline.lims.storeEnergyScan(self.scan_info)
+        if HWR.beamline.config.lims:
+            db_status = HWR.beamline.config.lims.storeEnergyScan(self.scan_info)
 
     def adjust_transmission(self, state):
         """
