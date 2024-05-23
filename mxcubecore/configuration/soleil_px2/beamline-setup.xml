@@ -1,10 +1,9 @@
 <object class="BeamlineSetup">
     <!-- Objects directly associatd with hardware -->
-    <object href="/diffractometer/diffractometer" role="diffractometer"/>
     <object href="/diffractometer/omega" role="omega_axis"/>
     <object href="/diffractometer/kappa" role="kappa_axis"/>
     <object href="/diffractometer/phi" role="kappa_phi_axis"/>
-    <object href="/singleton_objects/cats" role="sample_changer"/>    
+    <object href="/singleton_objects/cats" role="sample_changer"/>
     <object href="/singleton_motors/resolution" role="resolution"/>
     <object href="/singleton_motors/photon_energy" role="energy"/>
     <object href="/singleton_motors/transmission" role="transmission"/>
@@ -15,7 +14,7 @@
     <object href="/singleton_objects/session" role="session"/>
     <object href="/singleton_objects/dbconnection" role="lims_client"/>
     <object href="/singleton_objects/data-analysis" role="data_analysis"/>
-    
+
     <!-- Procedures and routines -->
     <object href="/mockups/energyscan-mockup" role="energyscan"/>
     <object href="/experimental_methods/diffraction_methods" role="collect"/>
