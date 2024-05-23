@@ -342,7 +342,7 @@ class Sample(TaskNode):
         return self._name
 
     def get_display_name(self):
-        display_name = HWR.beamline.session.get_default_prefix(self)
+        display_name = HWR.beamline.config.session.get_default_prefix(self)
         if self.lims_code:
             display_name += " (%s)" % self.lims_code
         if self.get_name():
@@ -475,7 +475,7 @@ class Sample(TaskNode):
             self.diffraction_plan = lims_sample.diffractionPlan
         else:
             self.diffraction_plan = lims_sample.get("diffractionPlan")
-        self.set_name(HWR.beamline.session.get_default_prefix(self))
+        self.set_name(HWR.beamline.config.session.get_default_prefix(self))
 
     def set_from_dict(self, p):
         self.code = p.get("code", "")
@@ -1347,15 +1347,15 @@ class XrayCentring2(TaskNode):
         if params["prefix"]:
             self.path_template.base_prefix = params["prefix"]
         else:
-            self.path_template.base_prefix = HWR.beamline.session.get_default_prefix(
+            self.path_template.base_prefix = HWR.beamline.config.session.get_default_prefix(
                 sample_model
             )
         self.path_template.num_files = 0
         self.path_template.directory = os.path.join(
-            HWR.beamline.session.get_base_image_directory(), params.get("subdir", "")
+            HWR.beamline.config.session.get_base_image_directory(), params.get("subdir", "")
         )
         self.path_template.process_directory = os.path.join(
-            HWR.beamline.session.get_base_process_directory(),
+            HWR.beamline.config.session.get_base_process_directory(),
             params.get("subdir", ""),
         )
 
@@ -1579,7 +1579,7 @@ class PathTemplate(object):
         return prefix
 
     def get_image_file_name(self, suffix=None):
-        file_name = HWR.beamline.detector.get_image_file_name(self)
+        file_name = HWR.beamline.config.detector.get_image_file_name(self)
         return file_name
 
     def get_image_path(self):
@@ -1615,7 +1615,7 @@ class PathTemplate(object):
             logging.getLogger("HWR").debug(
                 "PathTemplate (DESY) - (to be defined) directory is %s" % self.directory
             )
-            archive_directory = HWR.beamline.session.get_archive_directory()
+            archive_directory = HWR.beamline.config.session.get_archive_directory()
         elif PathTemplate.synchrotron_name == "ALBA":
             logging.getLogger("HWR").debug(
                 "PathTemplate (ALBA) - directory is %s" % self.directory
@@ -1685,7 +1685,7 @@ class PathTemplate(object):
         return file_locations
 
     def get_first_and_last_file(self):
-        return HWR.beamline.detector.get_first_and_last_file(self)
+        return HWR.beamline.config.detector.get_first_and_last_file(self)
 
     def is_part_of(self, path_template):
         result = False
@@ -1978,7 +1978,7 @@ class GphlWorkflow(TaskNode):
     def __init__(self):
         TaskNode.__init__(self)
 
-        workflow_hwobj = HWR.beamline.gphl_workflow
+        workflow_hwobj = HWR.beamline.config.gphl_workflow
 
         # Workflow start attributes
         self.path_template = PathTemplate()
@@ -2045,14 +2045,14 @@ class GphlWorkflow(TaskNode):
         # # Centring handling and MXCuBE-side flow
         self.set_requires_centring(False)
 
-        self.set_from_dict(workflow_hwobj.settings["defaults"])
+        self.set_from_dict(workflow_hwobj.config.settings["defaults"])
 
         # Set missing values from BL defaults and limits.
         # NB cannot be done till after all HO are initialised.
         bl_defaults = HWR.beamline.get_default_acquisition_parameters().as_dict()
         exposure_time = self.exposure_time or bl_defaults.get("exp_time", 0)
         self.exposure_time = max(
-            exposure_time, HWR.beamline.detector.get_exposure_time_limits()[0] or 0
+            exposure_time, HWR.beamline.config.detector.get_exposure_time_limits()[0] or 0
         )
         self.image_width = self.image_width or bl_defaults.get("osc_range", 0.1)
 
@@ -2146,7 +2146,7 @@ class GphlWorkflow(TaskNode):
             self.interleave_order = interleave_order
 
         # NB this is an internal dictionary. DO NOT MODIFY
-        settings = HWR.beamline.gphl_workflow.settings
+        settings = HWR.beamline.config.gphl_workflow.config.settings
 
         if energies:
             # Energies *reset* existing list, and there must be at least one
@@ -2168,7 +2168,7 @@ class GphlWorkflow(TaskNode):
                 role = energy_tags[iii]
                 wavelengths.append(
                     GphlMessages.PhasingWavelength(
-                        wavelength=HWR.beamline.energy.calculate_wavelength(energy),
+                        wavelength=HWR.beamline.config.energy.calculate_wavelength(energy),
                         role=role,
                     )
                 )
@@ -2181,19 +2181,19 @@ class GphlWorkflow(TaskNode):
         if self.detector_setting is None:
             resolution = resolution or self.aimed_resolution
         if resolution:
-            distance = HWR.beamline.resolution.resolution_to_distance(
+            distance = HWR.beamline.config.resolution.resolution_to_distance(
                 resolution, wavelength
             )
-            distance_limits = HWR.beamline.detector.distance.get_limits()
+            distance_limits = HWR.beamline.config.detector.distance.get_limits()
             if None in distance_limits:
                 distance_limits = (150, 500)
             if distance < distance_limits[0]:
                 distance = distance_limits[0]
-                resolution = HWR.beamline.resolution.distance_to_resolution(distance)
+                resolution = HWR.beamline.config.resolution.distance_to_resolution(distance)
             elif distance > distance_limits[1]:
                 distance = distance_limits[1]
-                resolution = HWR.beamline.resolution.distance_to_resolution(distance)
-            orgxy = HWR.beamline.detector.get_beam_position(distance, wavelength)
+                resolution = HWR.beamline.config.resolution.distance_to_resolution(distance)
+            orgxy = HWR.beamline.config.detector.get_beam_position(distance, wavelength)
 
             self.detector_setting = GphlMessages.BcsDetectorSetting(
                 resolution, orgxy=orgxy, Distance=distance
@@ -2265,7 +2265,7 @@ class GphlWorkflow(TaskNode):
         from mxcubecore.HardwareObjects.Gphl import GphlMessages
 
         # NB this is an internal dictionary. DO NOT MODIFY
-        settings = HWR.beamline.gphl_workflow.settings
+        settings = HWR.beamline.config.gphl_workflow.config.settings
 
         if exposure_time:
             self.exposure_time = float(exposure_time)
@@ -2293,7 +2293,7 @@ class GphlWorkflow(TaskNode):
                     role = energy_tags[iii + offset]
                     wavelengths.append(
                         GphlMessages.PhasingWavelength(
-                            wavelength=HWR.beamline.energy.calculate_wavelength(energy),
+                            wavelength=HWR.beamline.config.energy.calculate_wavelength(energy),
                             role=role,
                         )
                     )
@@ -2325,7 +2325,7 @@ class GphlWorkflow(TaskNode):
                 print("WARNING no GPHL_TEST_INPUT found. test using default values")
 
         # Set attributes directly from params
-        self.strategy_settings = HWR.beamline.gphl_workflow.workflow_strategies.get(
+        self.strategy_settings = HWR.beamline.config.gphl_workflow.workflow_strategies.get(
             params["strategy_name"]
         )
         if not self.strategy_settings:
@@ -2343,7 +2343,7 @@ class GphlWorkflow(TaskNode):
             if value:
                 setattr(self, tag, value)
 
-        settings = HWR.beamline.gphl_workflow.settings
+        settings = HWR.beamline.config.gphl_workflow.config.settings
         # NB settings is an internal attribute DO NOT MODIFY
 
         # Auto acquisition parameters
@@ -2373,21 +2373,21 @@ class GphlWorkflow(TaskNode):
                     "Parameters 'exposure_time', and 'image_width' are mandatory"
                     "when 'init_spot_dir' is set"
                 )
-            self.transmission = HWR.beamline.transmission.get_value()
+            self.transmission = HWR.beamline.config.transmission.get_value()
 
         # Path template and prefixes
         base_prefix = self.path_template.base_prefix = params.get(
             "prefix"
-        ) or HWR.beamline.session.get_default_prefix(sample_model)
+        ) or HWR.beamline.config.session.get_default_prefix(sample_model)
         self.set_name(base_prefix)
-        self.path_template.suffix = params.get("suffix") or HWR.beamline.session.suffix
+        self.path_template.suffix = params.get("suffix") or HWR.beamline.config.session.suffix
         self.path_template.num_files = 0
 
         self.path_template.directory = os.path.join(
-            HWR.beamline.session.get_base_image_directory(), params.get("subdir", "")
+            HWR.beamline.config.session.get_base_image_directory(), params.get("subdir", "")
         )
         self.path_template.process_directory = os.path.join(
-            HWR.beamline.session.get_base_process_directory(),
+            HWR.beamline.config.session.get_base_process_directory(),
             params.get("subdir", ""),
         )
 
@@ -2407,8 +2407,8 @@ class GphlWorkflow(TaskNode):
         self.space_group = self.input_space_group = crystal.space_group
 
         # Set to current wavelength for now - nothing else available
-        wavelength = HWR.beamline.energy.get_wavelength()
-        role = HWR.beamline.gphl_workflow.settings["default_beam_energy_tag"]
+        wavelength = HWR.beamline.config.energy.get_wavelength()
+        role = HWR.beamline.config.gphl_workflow.config.settings["default_beam_energy_tag"]
         self.wavelengths = (
             GphlMessages.PhasingWavelength(wavelength=wavelength, role=role),
         )
@@ -2505,10 +2505,10 @@ class GphlWorkflow(TaskNode):
         Returns:
             float: Maximum dose in MGy
         """
-        energy = energy or HWR.beamline.energy.calculate_energy(
+        energy = energy or HWR.beamline.config.energy.calculate_energy(
             self.wavelengths[0].wavelength
         )
-        dose_rate = HWR.beamline.gphl_workflow.maximum_dose_rate(energy)
+        dose_rate = HWR.beamline.config.gphl_workflow.maximum_dose_rate(energy)
         exposure_time = exposure_time or self.exposure_time
         image_width = image_width or self.image_width
         total_strategy_length = self.strategy_length * len(self.wavelengths)
@@ -2533,7 +2533,7 @@ class GphlWorkflow(TaskNode):
         resolution = resolution or self.detector_setting.resolution
         if not resolution:
             raise ValueError("No resolution set to calculate dose budget")
-        return HWR.beamline.gphl_workflow.resolution2dose_budget(
+        return HWR.beamline.config.gphl_workflow.resolution2dose_budget(
             resolution,
             decay_limit=self.decay_limit,
             maximum_dose_budget=self.maximum_dose_budget,
@@ -2580,7 +2580,7 @@ class XrayImaging(TaskNode):
 def addXrayCentring(parent_node, **centring_parameters):
     """Add Xray centring to queue."""
     xc_model = XrayCentring2(**centring_parameters)
-    HWR.beamline.queue_model.add_child(parent_node, xc_model)
+    HWR.beamline.config.queue_model.add_child(parent_node, xc_model)
     #
     return xc_model
 

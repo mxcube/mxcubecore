@@ -50,7 +50,6 @@ class ProcedureState(IntEnum):
 
 
 class AbstractProcedure(ConfiguredObject):
-    __content_roles = []
 
     _ARGS_CLASS = ()
     _KWARGS_CLASS = {}

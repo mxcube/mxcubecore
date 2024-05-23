@@ -43,7 +43,7 @@ class ID29PhotonFlux(Equipment):
             counts = 0
             logging.getLogger("HWR").exception("%s: could not get counts", self.name())
         try:
-            egy = HWR.beamline.energy.get_value() * 1000.0
+            egy = HWR.beamline.config.energy.get_value() * 1000.0
             calib = self.flux_calc.calc_flux_coef(egy)
         except Exception:
             logging.getLogger("HWR").exception("%s: could not get energy", self.name())

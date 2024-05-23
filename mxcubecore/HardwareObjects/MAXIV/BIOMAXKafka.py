@@ -33,7 +33,7 @@ class BIOMAXKafka(HardwareObject):
         """
         self.kafka_server = self.get_property("kafka_server")
         self.topic = self.get_property("topic")
-        self.beamline_name = HWR.beamline.session.beamline_name
+        self.beamline_name = HWR.beamline.config.session.beamline_name
         self.file = open("/tmp/kafka_errors.txt", "a")
         self.url = self.kafka_server + "/kafka"
 
@@ -52,9 +52,9 @@ class BIOMAXKafka(HardwareObject):
             {
                 "uuid": str(uuid.uuid4()),
                 "beamline": self.beamline_name,
-                "proposal": HWR.beamline.session.get_proposal(),  # e.g. MX20170251
-                "session": HWR.beamline.session.get_session_start_date(),  # 20171206
-                "userCategory": "visitors",  # HWR.beamline.session.get_user_category()  #staff or visitors
+                "proposal": HWR.beamline.config.session.get_proposal(),  # e.g. MX20170251
+                "session": HWR.beamline.config.session.get_session_start_date(),  # 20171206
+                "userCategory": "visitors",  # HWR.beamline.config.session.get_user_category()  #staff or visitors
                 "_v": "0",
             }
         )

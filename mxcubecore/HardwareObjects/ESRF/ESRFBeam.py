@@ -276,12 +276,12 @@ class ESRFBeam(AbstractBeam):
         if self._beam_position_on_screen == (0, 0):
             try:
                 _beam_position_on_screen = (
-                    HWR.beamline.diffractometer.get_beam_position()
+                    HWR.beamline.config.diffractometer.get_beam_position()
                 )
             except AttributeError:
                 _beam_position_on_screen = (
-                    HWR.beamline.sample_view.camera.get_width() / 2,
-                    HWR.beamline.sample_view.camera.get_height() / 2,
+                    HWR.beamline.config.sample_view.camera.get_width() / 2,
+                    HWR.beamline.config.sample_view.camera.get_height() / 2,
                 )
             self._beam_position_on_screen = _beam_position_on_screen
         return self._beam_position_on_screen

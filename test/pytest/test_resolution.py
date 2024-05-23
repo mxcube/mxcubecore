@@ -30,7 +30,7 @@ __license__ = "LGPLv3+"
 @pytest.fixture
 def test_object(beamline):
     """Use the resolution object from beamline-setup.yml"""
-    result = beamline.resolution
+    result = beamline.config.resolution
     yield result
 
 

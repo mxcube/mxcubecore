@@ -87,18 +87,18 @@ class ALBACollect(AbstractCollect):
 
         self.exp_type_dict = {"Mesh": "raster", "Helical": "Helical"}
 
-        det_px, det_py = HWR.beamline.detector.get_pixel_size()
-        beam_div_hor, beam_div_ver = HWR.beamline.beam.get_beam_divergence()
+        det_px, det_py = HWR.beamline.config.detector.get_pixel_size()
+        beam_div_hor, beam_div_ver = HWR.beamline.config.beam.get_beam_divergence()
 
         self.set_beamline_configuration(
             synchrotron_name="ALBA",
             directory_prefix=self.get_property("directory_prefix"),
-            default_exposure_time=HWR.beamline.detector.get_default_exposure_time(),
-            minimum_exposure_time=HWR.beamline.detector.get_minimum_exposure_time(),
-            detector_fileext=HWR.beamline.detector.get_file_suffix(),
-            detector_type=HWR.beamline.detector.get_detector_type(),
-            detector_manufacturer=HWR.beamline.detector.get_manufacturer(),
-            detector_model=HWR.beamline.detector.get_model(),
+            default_exposure_time=HWR.beamline.config.detector.get_default_exposure_time(),
+            minimum_exposure_time=HWR.beamline.config.detector.get_minimum_exposure_time(),
+            detector_fileext=HWR.beamline.config.detector.get_file_suffix(),
+            detector_type=HWR.beamline.config.detector.get_detector_type(),
+            detector_manufacturer=HWR.beamline.config.detector.get_manufacturer(),
+            detector_model=HWR.beamline.config.detector.get_model(),
             detector_px=det_px,
             detector_py=det_py,
             undulators=undulators,
@@ -121,11 +121,11 @@ class ALBACollect(AbstractCollect):
 
         logging.getLogger("HWR").info("  -- wait for devices to finish moving --")
         logging.getLogger("HWR").info("       + wait for resolution...")
-        HWR.beamline.resolution.wait_end_of_move()
+        HWR.beamline.config.resolution.wait_end_of_move()
         logging.getLogger("HWR").info("       + wait for detector distance...")
-        HWR.beamline.detector.wait_move_distance_done()
+        HWR.beamline.config.detector.wait_move_distance_done()
         logging.getLogger("HWR").info("       + wait for energy...")
-        HWR.beamline.energy.wait_move_energy_done()
+        HWR.beamline.config.energy.wait_move_energy_done()
 
         if self.aborted_by_user:
             self.emit_collection_failed("Aborted by user")
@@ -204,14 +204,14 @@ class ALBACollect(AbstractCollect):
                 nb_images=nb_images,
                 first_image_no=first_image_no,
             )
-            HWR.beamline.detector.start_collection()
+            HWR.beamline.config.detector.start_collection()
             self.collect_images(final_pos, nb_images, first_image_no)
         elif exp_type == "Characterization" and nb_images > 1:  # image one by one
             for imgno in range(nb_images):
                 final_pos = self.prepare_collection(
                     start_angle=omega_pos, nb_images=1, first_image_no=first_image_no
                 )
-                HWR.beamline.detector.start_collection()
+                HWR.beamline.config.detector.start_collection()
                 self.collect_images(final_pos, 1, first_image_no)
                 first_image_no += 1
                 omega_pos += 90
@@ -223,14 +223,14 @@ class ALBACollect(AbstractCollect):
         logging.getLogger("HWR").info(
             "collecting images, by moving omega to %s" % final_pos
         )
-        HWR.beamline.diffractometer.omega.set_value(final_pos)
+        HWR.beamline.config.diffractometer.omega.set_value(final_pos)
         self.wait_collection_done(nb_images, first_image_no)
         self.data_collection_end()
         self.collection_finished()
 
     def data_collection_end(self):
-        HWR.beamline.fast_shutter.cmdOut()
-        HWR.beamline.diffractometer.omega.set_velocity(60)
+        HWR.beamline.config.fast_shutter.cmdOut()
+        HWR.beamline.config.diffractometer.omega.set_velocity(60)
         self.unconfigure_ni()
 
     def data_collection_failed(self):
@@ -245,7 +245,7 @@ class ALBACollect(AbstractCollect):
         basedir = fileinfo["directory"]
 
         #  save omega velocity
-        self.saved_omega_velocity = HWR.beamline.diffractometer.omega.get_velocity()
+        self.saved_omega_velocity = HWR.beamline.config.diffractometer.omega.get_velocity()
 
         # create directories if needed
         self.check_directory(basedir)
@@ -271,9 +271,9 @@ class ALBACollect(AbstractCollect):
         gevent.sleep(1)
         logging.getLogger("HWR").info(
             " Waiting for diffractometer to be ready. Now %s"
-            % str(HWR.beamline.diffractometer.current_state)
+            % str(HWR.beamline.config.diffractometer.current_state)
         )
-        HWR.beamline.diffractometer.wait_device_ready(timeout=10)
+        HWR.beamline.config.diffractometer.wait_device_ready(timeout=10)
         logging.getLogger("HWR").info("             diffractometer is now ready.")
 
         # go to collect phase
@@ -283,7 +283,7 @@ class ALBACollect(AbstractCollect):
             )
             logging.getLogger("HWR").info(
                 "  diffractometer is now ready. Now %s"
-                % str(HWR.beamline.diffractometer.current_state)
+                % str(HWR.beamline.config.diffractometer.current_state)
             )
             success = self.go_to_collect()
             if not success:
@@ -292,7 +292,7 @@ class ALBACollect(AbstractCollect):
                 )
                 return False
 
-        detok = HWR.beamline.detector.prepare_acquisition(self.current_dc_parameters)
+        detok = HWR.beamline.config.detector.prepare_acquisition(self.current_dc_parameters)
 
         return detok
 
@@ -320,9 +320,9 @@ class ALBACollect(AbstractCollect):
         logging.getLogger("HWR").info(
             "  setting omega velocity to 60 to go to intial position"
         )
-        HWR.beamline.diffractometer.omega.set_velocity(60)
+        HWR.beamline.config.diffractometer.omega.set_velocity(60)
 
-        omega_acceltime = HWR.beamline.diffractometer.omega.get_acceleration()
+        omega_acceltime = HWR.beamline.config.diffractometer.omega.get_acceleration()
 
         safe_delta = 9.0 * omega_speed * omega_acceltime
 
@@ -330,21 +330,21 @@ class ALBACollect(AbstractCollect):
         final_pos = start_angle + total_dist + safe_delta
 
         logging.getLogger("HWR").info("Moving omega to initial position %s" % init_pos)
-        HWR.beamline.diffractometer.omega.set_value(init_pos)
+        HWR.beamline.config.diffractometer.omega.set_value(init_pos)
 
-        HWR.beamline.detector.prepare_collection(nb_images, first_image_no)
+        HWR.beamline.config.detector.prepare_collection(nb_images, first_image_no)
 
-        HWR.beamline.diffractometer.omega.wait_end_of_move(timeout=10)
+        HWR.beamline.config.diffractometer.omega.wait_end_of_move(timeout=10)
 
         logging.getLogger("HWR").info(
             "Moving omega finished at %s"
-            % HWR.beamline.diffractometer.omega.get_value()
+            % HWR.beamline.config.diffractometer.omega.get_value()
         )
 
         # program omega speed depending on exposure time
 
         logging.getLogger("HWR").info("Setting omega velocity to %s" % omega_speed)
-        HWR.beamline.diffractometer.omega.set_velocity(omega_speed)
+        HWR.beamline.config.diffractometer.omega.set_velocity(omega_speed)
         if omega_speed != 0:
             self.configure_ni(start_angle, total_dist)
 
@@ -371,7 +371,7 @@ class ALBACollect(AbstractCollect):
 
         # PROGRAM Image Headers
         # latency_time = 0.003
-        latency_time = HWR.beamline.detector.get_latency_time()
+        latency_time = HWR.beamline.config.detector.get_latency_time()
         limaexpt = exp_time - latency_time
 
         self.image_headers = {}
@@ -383,22 +383,22 @@ class ALBACollect(AbstractCollect):
         self.image_headers["Exposure_period"] = "%.4f" % exp_time
         self.image_headers["Start_angle"] = "%f deg." % start_angle
         self.image_headers["Angle_increment"] = "%f deg." % img_range
-        self.image_headers["Wavelength"] = HWR.beamline.energy.get_wavelength()
+        self.image_headers["Wavelength"] = HWR.beamline.config.energy.get_wavelength()
 
         self.image_headers["Detector_distance"] = "%.5f m" % (
-            HWR.beamline.detector.distance.get_value() / 1000.0
+            HWR.beamline.config.detector.distance.get_value() / 1000.0
         )
         self.image_headers["Detector_Voffset"] = "0 m"
 
         # NBNB TODO check if get_beam_position() (should be pixels)
         # matches beamx, beamy (should be mm)
-        beamx, beamy = HWR.beamline.detector.get_beam_position()
+        beamx, beamy = HWR.beamline.config.detector.get_beam_position()
         self.image_headers["Beam_xy"] = "(%.2f, %.2f) pixels" % (beamx, beamy)
 
         self.image_headers["Filter_transmission"] = "%.4f" % (
-            HWR.beamline.transmission.get_value() / 100.0
+            HWR.beamline.config.transmission.get_value() / 100.0
         )
-        self.image_headers["Flux"] = "%.4g" % HWR.beamline.flux.get_value()
+        self.image_headers["Flux"] = "%.4g" % HWR.beamline.config.flux.get_value()
         self.image_headers["Detector_2theta"] = "0.0000"
         self.image_headers["Polarization"] = "0.99"
         self.image_headers["Alpha"] = "0 deg."
@@ -414,10 +414,10 @@ class ALBACollect(AbstractCollect):
         self.image_headers["Image_path"] = ": %s" % basedir
 
         self.image_headers["Threshold_setting"] = (
-            "%0f eV" % HWR.beamline.detector.get_threshold()
+            "%0f eV" % HWR.beamline.config.detector.get_threshold()
         )
         self.image_headers["Gain_setting"] = "%s" % str(
-            HWR.beamline.detector.get_threshold_gain()
+            HWR.beamline.config.detector.get_threshold_gain()
         )
 
         self.image_headers["Tau"] = "%s s" % str(199.1e-09)
@@ -428,7 +428,7 @@ class ALBACollect(AbstractCollect):
             "p6m0108_E12661_T6330_vrf_m0p20.bin"
         )
 
-        HWR.beamline.detector.set_image_headers(self.image_headers, angle_info)
+        HWR.beamline.config.detector.set_image_headers(self.image_headers, angle_info)
 
     def wait_collection_done(self, nb_images, first_image_no):
 
@@ -440,7 +440,7 @@ class ALBACollect(AbstractCollect):
 
         if nb_images > 1:
             self.wait_save_image(first_image_no)
-        HWR.beamline.diffractometer.omega.wait_end_of_move(timeout=720)
+        HWR.beamline.config.diffractometer.omega.wait_end_of_move(timeout=720)
         self.wait_save_image(last_image_no)
 
     def wait_save_image(self, frame_number, timeout=25):
@@ -492,7 +492,7 @@ class ALBACollect(AbstractCollect):
     def check_shutters(self):
 
         # Check fast shutter
-        if HWR.beamline.fast_shutter.get_state() != 0:
+        if HWR.beamline.config.fast_shutter.get_state() != 0:
             return False
 
         # Check slow shutter
@@ -518,7 +518,7 @@ class ALBACollect(AbstractCollect):
         # data collection end (or abort)
         #
         logging.getLogger("HWR").info(" finishing data collection ")
-        HWR.beamline.fast_shutter.cmdOut()
+        HWR.beamline.config.fast_shutter.cmdOut()
         self.emit("progressStop")
 
     def check_directory(self, basedir):
@@ -550,8 +550,8 @@ class ALBACollect(AbstractCollect):
             ),
         )
 
-        HWR.beamline.detector.stop_collection()
-        HWR.beamline.diffractometer.omega.stop()
+        HWR.beamline.config.detector.stop_collection()
+        HWR.beamline.config.diffractometer.omega.stop()
         self.data_collection_end()
 
     def go_to_collect(self, timeout=180):
@@ -627,8 +627,8 @@ class ALBACollect(AbstractCollect):
         # prepare ALL shutters
 
         # close fast shutter
-        if HWR.beamline.fast_shutter.get_state() != 0:
-            HWR.beamline.fast_shutter.close()
+        if HWR.beamline.config.fast_shutter.get_state() != 0:
+            HWR.beamline.config.fast_shutter.close()
 
         # open slow shutter
         if self.slowshut_hwobj.get_state() != 1:
@@ -646,14 +646,14 @@ class ALBACollect(AbstractCollect):
         self.supervisor_hwobj.open_detector_cover()
 
     def open_fast_shutter(self):
-        # HWR.beamline.fast_shutter.open()
+        # HWR.beamline.config.fast_shutter.open()
         #   this function is empty for ALBA. we are not opening the fast shutter.
         #   on the contrary open_safety_shutter (equivalent to prepare_shutters in original
         #   collect macro will first close the fast shutter and open the other three
         pass
 
     def close_fast_shutter(self):
-        HWR.beamline.fast_shutter.cmdOut()
+        HWR.beamline.config.fast_shutter.cmdOut()
 
     def close_safety_shutter(self):
         #  we will not close safety shutter during collections
@@ -695,7 +695,7 @@ class ALBACollect(AbstractCollect):
         if not self.is_sampleview_phase():
             self.go_to_sampleview()
 
-        HWR.beamline.sample_view.save_snapshot(filename)
+        HWR.beamline.config.sample_view.save_snapshot(filename)
         logging.getLogger("HWR").debug(" - snapshot saved to %s" % filename)
 
     @task
@@ -703,7 +703,7 @@ class ALBACollect(AbstractCollect):
         """
         Descript. :
         """
-        HWR.beamline.diffractometer.move_motors(motor_position_dict)
+        HWR.beamline.config.diffractometer.move_motors(motor_position_dict)
 
     def create_file_directories(self):
         """
@@ -745,9 +745,9 @@ class ALBACollect(AbstractCollect):
         # pass wavelength needed in auto processing input files
 
         osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
-        osc_pars["wavelength"] = HWR.beamline.energy.get_wavelength()
+        osc_pars["wavelength"] = HWR.beamline.config.energy.get_wavelength()
 
-        HWR.beamline.offline_processing.create_input_files(
+        HWR.beamline.config.offline_processing.create_input_files(
             xds_directory, auto_directory, self.current_dc_parameters
         )
 
@@ -825,23 +825,23 @@ class ALBACollect(AbstractCollect):
         """
         Descript. :
         """
-        if HWR.beamline.beam is not None:
-            return HWR.beamline.beam.get_slits_gap()
+        if HWR.beamline.config.beam is not None:
+            return HWR.beamline.config.beam.get_slits_gap()
         return None, None
 
     def get_beam_shape(self):
         """
         Descript. :
         """
-        if HWR.beamline.beam is not None:
-            return HWR.beamline.beam.get_beam_shape()
+        if HWR.beamline.config.beam is not None:
+            return HWR.beamline.config.beam.get_beam_shape()
 
     def get_machine_current(self):
         """
         Descript. :
         """
-        if HWR.beamline.machine_info:
-            return HWR.beamline.machine_info.get_current()
+        if HWR.beamline.config.machine_info:
+            return HWR.beamline.config.machine_info.get_current()
         else:
             return 0
 
@@ -849,8 +849,8 @@ class ALBACollect(AbstractCollect):
         """
         Descript. :
         """
-        if HWR.beamline.machine_info:
-            return HWR.beamline.machine_info.get_message()
+        if HWR.beamline.config.machine_info:
+            return HWR.beamline.config.machine_info.get_message()
         else:
             return ""
 
@@ -858,7 +858,7 @@ class ALBACollect(AbstractCollect):
         """
         Descript. :
         """
-        if HWR.beamline.machine_info:
+        if HWR.beamline.config.machine_info:
             return "FillMode not/impl"
             # fill_mode = str(self.machine_info_hwobj.get_message())
             # return fill_mode[:20]
@@ -868,7 +868,7 @@ class ALBACollect(AbstractCollect):
     def trigger_auto_processing(self, event, frame):
         if event == "after":
             dc_pars = self.current_dc_parameters
-            HWR.beamline.offline_processing.trigger_auto_processing(dc_pars)
+            HWR.beamline.config.offline_processing.trigger_auto_processing(dc_pars)
 
 
 def test_hwo(hwo):

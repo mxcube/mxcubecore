@@ -198,7 +198,7 @@ class ISPyBClient(HardwareObject):
                 logging.getLogger("HWR").debug("LDAP Server is not available")
 
         self.loginTranslate = self.get_property("loginTranslate") or True
-        self.beamline_name = HWR.beamline.session.beamline_name
+        self.beamline_name = HWR.beamline.config.session.beamline_name
 
         self.ws_root = self.get_property("ws_root")
         self.ws_username = self.get_property("ws_username")
@@ -311,8 +311,8 @@ class ISPyBClient(HardwareObject):
 
         # Add the porposal codes defined in the configuration xml file
         # to a directory. Used by translate()
-        if hasattr(HWR.beamline.session, "proposals"):
-            for proposal in HWR.beamline.session["proposals"]:
+        if hasattr(HWR.beamline.config.session, "proposals"):
+            for proposal in HWR.beamline.config.session["proposals"]:
                 code = proposal.code
                 self._translations[code] = {}
                 try:
@@ -826,7 +826,7 @@ class ISPyBClient(HardwareObject):
         else:
             todays_session = {}
 
-        is_inhouse = HWR.beamline.session.is_inhouse(
+        is_inhouse = HWR.beamline.config.session.is_inhouse(
             prop["Proposal"]["code"], prop["Proposal"]["number"]
         )
         return {

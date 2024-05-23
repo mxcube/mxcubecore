@@ -29,10 +29,10 @@ __license__ = "LGPLv3+"
 
 @pytest.fixture
 def sample_view(beamline):
-    assert beamline.sample_view is not None, "sample_view is None (not initialized)"
+    assert beamline.config.sample_view is not None, "sample_view is None (not initialized)"
 
     # Add a shape to work with
-    beamline.sample_view.add_shape_from_mpos(
+    beamline.config.sample_view.add_shape_from_mpos(
         [
             {
                 "phi": 0,
@@ -48,7 +48,7 @@ def sample_view(beamline):
         "P",
     )
 
-    beamline.sample_view.add_shape_from_mpos(
+    beamline.config.sample_view.add_shape_from_mpos(
         [
             {
                 "phi": 0,
@@ -73,7 +73,7 @@ def sample_view(beamline):
         "L",
     )
 
-    beamline.sample_view.add_shape_from_mpos(
+    beamline.config.sample_view.add_shape_from_mpos(
         [
             {
                 "phi": 0,
@@ -89,7 +89,7 @@ def sample_view(beamline):
         "G",
     )
 
-    yield beamline.sample_view
+    yield beamline.config.sample_view
 
 
 def test_sample_view_get_shape(sample_view):

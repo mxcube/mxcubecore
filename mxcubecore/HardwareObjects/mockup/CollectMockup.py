@@ -132,8 +132,8 @@ class CollectMockup(AbstractCollect):
         """
         Descript. :
         """
-        if HWR.beamline.offline_processing is not None:
-            HWR.beamline.offline_processing.execute_autoprocessing(
+        if HWR.beamline.config.offline_processing is not None:
+            HWR.beamline.config.offline_processing.execute_autoprocessing(
                 process_event,
                 self.current_dc_parameters,
                 frame_number,
@@ -149,14 +149,14 @@ class CollectMockup(AbstractCollect):
 
     @task
     def _take_crystal_snapshot(self, filename):
-        HWR.beamline.sample_view.save_scene_snapshot(filename)
+        HWR.beamline.config.sample_view.save_scene_snapshot(filename)
 
     @task
     def _take_crystal_animation(self, animation_filename, duration_sec=1):
         """Rotates sample by 360 and composes a gif file
         Animation is saved as the fourth snapshot
         """
-        HWR.beamline.sample_view.save_scene_animation(animation_filename, duration_sec)
+        HWR.beamline.config.sample_view.save_scene_animation(animation_filename, duration_sec)
 
     # @task
     # def move_motors(self, motor_position_dict):
@@ -169,7 +169,7 @@ class CollectMockup(AbstractCollect):
     def move_motors(self, motor_position_dict):
         # TODO We copy, as dictionary is reset in move_motors. CLEAR UP!!
         # TODO clear up this confusion between move_motors and moveMotors
-        HWR.beamline.diffractometer.move_motors(motor_position_dict.copy())
+        HWR.beamline.config.diffractometer.move_motors(motor_position_dict.copy())
 
     def prepare_input_files(self):
         """
@@ -204,19 +204,19 @@ class CollectMockup(AbstractCollect):
 
     # rhfogh Added to improve interaction with UI and persistence of values
     def set_wavelength(self, wavelength):
-        HWR.beamline.energy.set_wavelength(wavelength)
+        HWR.beamline.config.energy.set_wavelength(wavelength)
 
     def set_energy(self, energy):
-        HWR.beamline.energy.set_value(energy)
+        HWR.beamline.config.energy.set_value(energy)
 
     def set_resolution(self, new_resolution):
-        HWR.beamline.resolution.set_value(new_resolution)
+        HWR.beamline.config.resolution.set_value(new_resolution)
 
     def set_transmission(self, transmission):
-        HWR.beamline.transmission.set_value(transmission)
+        HWR.beamline.config.transmission.set_value(transmission)
 
     def move_detector(self, detector_distance):
-        HWR.beamline.detector.distance.set_value(detector_distance)
+        HWR.beamline.config.detector.distance.set_value(detector_distance)
 
     def get_undulators_gaps(self):
         return {"u29": 10}

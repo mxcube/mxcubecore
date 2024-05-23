@@ -100,7 +100,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         self.beamsize = self.get_object_by_role("beamsize")
         self.transmission = self.get_object_by_role("transmission")
         self.ready_event = gevent.event.Event()
-        if HWR.beamline.lims is None:
+        if HWR.beamline.config.lims is None:
             logging.getLogger("HWR").warning(
                 "EnergyScan: you should specify the database hardware object"
             )
@@ -121,16 +121,16 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         return pars
 
     def open_safety_shutter(self, timeout=None):
-        HWR.beamline.safety_shutter.openShutter()
+        HWR.beamline.config.safety_shutter.openShutter()
         with gevent.Timeout(
             timeout, RuntimeError("Timeout waiting for safety shutter to open")
         ):
-            while HWR.beamline.safety_shutter.getShutterState() == "closed":
+            while HWR.beamline.config.safety_shutter.getShutterState() == "closed":
                 time.sleep(0.1)
 
     def close_safety_shutter(self, timeout=None):
-        HWR.beamline.safety_shutter.closeShutter()
-        while HWR.beamline.safety_shutter.getShutterState() == "opened":
+        HWR.beamline.config.safety_shutter.closeShutter()
+        while HWR.beamline.config.safety_shutter.getShutterState() == "opened":
             time.sleep(0.1)
 
     def escan_prepare(self):
@@ -161,7 +161,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
 
     def move_energy(self, energy):
         try:
-            HWR.beamline.energy.set_value(energy)
+            HWR.beamline.config.energy.set_value(energy)
         except Exception:
             self.emit("energyScanFailed", ())
             raise RuntimeError("Cannot move energy")
@@ -182,7 +182,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         return elements
 
     def storeEnergyScan(self):
-        if HWR.beamline.lims is None:
+        if HWR.beamline.config.lims is None:
             return
         try:
             int(self.energy_scan_parameters["sessionId"])
@@ -199,7 +199,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         self.energy_scan_parameters.pop("atomic_nb")
 
         gevent.spawn(
-            StoreEnergyScanThread, HWR.beamline.lims, self.energy_scan_parameters
+            StoreEnergyScanThread, HWR.beamline.config.lims, self.energy_scan_parameters
         )
 
     def do_chooch(self, elt, edge, directory, archive_directory, prefix):

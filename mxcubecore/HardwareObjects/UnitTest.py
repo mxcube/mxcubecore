@@ -40,31 +40,31 @@ class TestMethods(unittest.TestCase):
     def test_get_value(self):
         logging.getLogger("HWR").debug("UnitTest: Testing return values...")
         self.assertIn(
-            type(BEAMLINE.energy.get_value()),
+            type(BEAMLINE.config.energy.get_value()),
             (float, int),
             "Energy hwobj | get_current_energy() returns float",
         )
 
         logging.getLogger("HWR").debug("UnitTest: Testing transmission hwobj")
         self.assertIn(
-            type(BEAMLINE.transmission.get_value()),
+            type(BEAMLINE.config.transmission.get_value()),
             (float, int),
             "Transmission hwobj | get_value() returns float",
         )
 
         logging.getLogger("HWR").debug("UnitTest: Testing aperture hwobj")
         self.assertIn(
-            type(BEAMLINE.beam.aperture.get_diameter_size()),
+            type(BEAMLINE.config.beam.aperture.get_diameter_size()),
             (float, int),
             "Aperture | get_diameter_size() returns float",
         )
         self.assertIn(
-            type(BEAMLINE.beam.aperture.get_diameter_size_list()),
+            type(BEAMLINE.config.beam.aperture.get_diameter_size_list()),
             (list, tuple),
             "Aperture | get_diameter_size_list() returns list or tuple",
         )
         self.assertIn(
-            type(BEAMLINE.beam.aperture.get_position_list()),
+            type(BEAMLINE.config.beam.aperture.get_position_list()),
             (list, tuple),
             "Aperture | get_position_list() returns list or tuple",
         )
@@ -72,7 +72,7 @@ class TestMethods(unittest.TestCase):
     def test_get_limits(self):
         logging.getLogger("HWR").debug("UnitTest: Testing limits...")
         self.assertIsInstance(
-            BEAMLINE.energy.get_limits(),
+            BEAMLINE.config.energy.get_limits(),
             list,
             "Energy hwobj | get_energy_limits() returns list with two floats",
         )
@@ -80,7 +80,7 @@ class TestMethods(unittest.TestCase):
     def test_get_state(self):
         logging.getLogger("HWR").debug("UnitTest: Testing states...")
         self.assertIsInstance(
-            BEAMLINE.transmission.getAttState(),
+            BEAMLINE.config.transmission.getAttState(),
             str,
             "Transmission hwobj | getAttState() returns int",
         )

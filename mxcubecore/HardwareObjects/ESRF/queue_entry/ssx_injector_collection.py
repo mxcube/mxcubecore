@@ -78,33 +78,33 @@ class SsxInjectorCollectionQueueEntry(SsxBaseQueueEntry):
         self._data_model._task_data.collection_parameters.num_images = num_images
         data_root_path, _ = self.get_data_path()
 
-        self.take_pedestal(HWR.beamline.collect.get_property("max_freq", 925))
+        self.take_pedestal(HWR.beamline.config.collect.get_property("max_freq", 925))
 
-        HWR.beamline.detector.prepare_acquisition(
+        HWR.beamline.config.detector.prepare_acquisition(
             num_images, exp_time, data_root_path, fname_prefix
         )
-        HWR.beamline.detector.wait_ready()
+        HWR.beamline.config.detector.wait_ready()
 
         self.start_processing("INJECTOR")
 
-        HWR.beamline.diffractometer.set_phase("DataCollection")
-        HWR.beamline.diffractometer.wait_ready()
+        HWR.beamline.config.diffractometer.set_phase("DataCollection")
+        HWR.beamline.config.diffractometer.wait_ready()
 
-        if HWR.beamline.control.safshut_oh2.state.name != "OPEN":
+        if HWR.beamline.config.control.safshut_oh2.state.name != "OPEN":
             logging.getLogger("user_level_log").info(f"Opening OH2 safety shutter")
-            HWR.beamline.control.safshut_oh2.open()
+            HWR.beamline.config.control.safshut_oh2.open()
 
         logging.getLogger("user_level_log").info(f"Acquiring ...")
-        HWR.beamline.detector.start_acquisition()
-        HWR.beamline.diffractometer.start_still_ssx_scan(num_images, sub_sampling)
+        HWR.beamline.config.detector.start_acquisition()
+        HWR.beamline.config.diffractometer.start_still_ssx_scan(num_images, sub_sampling)
 
         logging.getLogger("user_level_log").info(
             f"Waiting for acqusition to finish ..."
         )
         time.sleep(num_images * exp_time)
 
-        HWR.beamline.diffractometer.wait_ready()
-        HWR.beamline.detector.wait_ready()
+        HWR.beamline.config.diffractometer.wait_ready()
+        HWR.beamline.config.detector.wait_ready()
         logging.getLogger("user_level_log").info(f"Acquired {num_images} images")
 
     def pre_execute(self):

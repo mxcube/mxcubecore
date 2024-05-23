@@ -25,20 +25,20 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
 
     def init(self):
         self.setControlObjects(
-            diffractometer=HWR.beamline.diffractometer,
-            sample_changer=HWR.beamline.sample_changer,
-            lims=HWR.beamline.lims,
-            safety_shutter=HWR.beamline.safety_shutter,
-            machine_current=HWR.beamline.machine_info,
-            cryo_stream=HWR.beamline.cryo,
-            energy=HWR.beamline.energy,
-            resolution=HWR.beamline.resolution,
-            detector_distance=HWR.beamline.detector.distance,
-            transmission=HWR.beamline.transmission,
-            undulators=HWR.beamline.undulators,
-            flux=HWR.beamline.flux,
-            detector=HWR.beamline.detector,
-            beam_info=HWR.beamline.beam,
+            diffractometer=HWR.beamline.config.diffractometer,
+            sample_changer=HWR.beamline.config.sample_changer,
+            lims=HWR.beamline.config.lims,
+            safety_shutter=HWR.beamline.config.safety_shutter,
+            machine_current=HWR.beamline.config.machine_info,
+            cryo_stream=HWR.beamline.config.cryo,
+            energy=HWR.beamline.config.energy,
+            resolution=HWR.beamline.config.resolution,
+            detector_distance=HWR.beamline.config.detector.distance,
+            transmission=HWR.beamline.config.transmission,
+            undulators=HWR.beamline.config.undulators,
+            flux=HWR.beamline.config.flux,
+            detector=HWR.beamline.config.detector,
+            beam_info=HWR.beamline.config.beam,
         )
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True,))

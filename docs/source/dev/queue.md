@@ -62,8 +62,8 @@ group_entry = qe.TaskGroupQueueEntry(view, group_model)
 dc_model = qmo.DataCollection()
 dc_entry = qe.DataCollectionQueueEntry(view, dc_model)
 
-HWR.beamline.queue_model.add_child(sample_model, group_model)
-HWR.beamline.queue_model.add_child(group_model, dc_model)
+HWR.beamline.config.queue_model.add_child(sample_model, group_model)
+HWR.beamline.config.queue_model.add_child(group_model, dc_model)
 
 sample_entry.enqueue(group_entry)
 group_entry.enqueue(dc_entry)

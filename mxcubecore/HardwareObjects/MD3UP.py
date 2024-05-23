@@ -93,7 +93,7 @@ class MD3UP(Microdiff.Microdiff):
             elif end > hi_lim:
                 raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
 
-        dead_time = HWR.beamline.detector.get_deadtime()
+        dead_time = HWR.beamline.config.detector.get_deadtime()
 
         self.scan_detector_gate_pulse_enabled.set_value(True)
         self.scan_detector_gate_pulse_readout_time.set_value(dead_time * 1000)
@@ -172,7 +172,7 @@ class MD3UP(Microdiff.Microdiff):
         wait=False,
     ):
         self.scan_detector_gate_pulse_enabled.set_value(True)
-        dead_time = HWR.beamline.detector.get_deadtime()
+        dead_time = HWR.beamline.config.detector.get_deadtime()
         self.scan_detector_gate_pulse_readout_time.set_value(dead_time * 1000)
         self.move_motors(mesh_center.as_dict())
         positions = self.get_positions()
@@ -267,7 +267,7 @@ class MD3UP(Microdiff.Microdiff):
         if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
             return 0, 0
 
-        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
+        beam_pos_x, beam_pos_y = HWR.beamline.config.beam.get_beam_position_on_screen()
         dx = (x - beam_pos_x) / self.pixelsPerMmY
         dy = (y - beam_pos_y) / self.pixelsPerMmZ
 
@@ -363,7 +363,7 @@ class MD3UP(Microdiff.Microdiff):
 
         sx, sy = numpy.dot(numpy.array([0, dsy]), numpy.array(chiRot))
 
-        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
+        beam_pos_x, beam_pos_y = HWR.beamline.config.beam.get_beam_position_on_screen()
         x = (sx + phiy) * self.pixelsPerMmY + beam_pos_x
         y = (sy + phiz) * self.pixelsPerMmZ + beam_pos_y
 
@@ -377,7 +377,7 @@ class MD3UP(Microdiff.Microdiff):
         if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
             return 0, 0
 
-        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
+        beam_pos_x, beam_pos_y = HWR.beamline.config.beam.get_beam_position_on_screen()
         dx = (x - beam_pos_x) / self.pixelsPerMmY
         dy = (y - beam_pos_y) / self.pixelsPerMmZ
 

@@ -73,8 +73,8 @@ class ISPyBRestClientMockup(HardwareObject):
 
     def init(self):
 
-        if HWR.beamline.session:
-            self.beamline_name = HWR.beamline.session.beamline_name
+        if HWR.beamline.config.session:
+            self.beamline_name = HWR.beamline.config.session.beamline_name
         else:
             self.beamline_name = "ID:TEST"
 
@@ -135,8 +135,8 @@ class ISPyBRestClientMockup(HardwareObject):
         if self.base_result_url is not None:
             path = "/#/mx/{pcode}{pnumber}/datacollection/datacollectionid/{did}/main"
             path = path.format(
-                pcode=HWR.beamline.session.proposal_code,
-                pnumber=HWR.beamline.session.proposal_number,
+                pcode=HWR.beamline.config.session.proposal_code,
+                pnumber=HWR.beamline.config.session.proposal_number,
                 did=did,
             )
 

@@ -101,7 +101,7 @@ class LimaDetectorMockup:
         energy,
         still,
     ):
-        diffractometer_positions = HWR.beamline.diffractometer.get_positions()
+        diffractometer_positions = HWR.beamline.config.diffractometer.get_positions()
         self.start_angles = list()
         for i in range(number_of_images):
             self.start_angles.append("%0.4f deg." % (start + osc_range * i))

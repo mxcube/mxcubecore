@@ -259,19 +259,19 @@ class P11SampleChanger(SampleChanger):
         self.log.debug("Preparing load")
         self.log.debug("   - asking diffractometer to save state")
 
-        HWR.beamline.diffractometer.save_position("mount")
+        HWR.beamline.config.diffractometer.save_position("mount")
 
         self.log.debug("   - asking diffractometer to go to transfer phase")
 
         try:
-            HWR.beamline.diffractometer.goto_transfer_phase()
-            HWR.beamline.diffractometer.wait_phase()
+            HWR.beamline.config.diffractometer.goto_transfer_phase()
+            HWR.beamline.config.diffractometer.wait_phase()
 
             if not wash:
                 self.log.debug("  setting zoom to 0  before loading")
-                HWR.beamline.diffractometer.zoom.set_zoom_value(0)
+                HWR.beamline.config.diffractometer.zoom.set_zoom_value(0)
                 self.log.debug("  clearing images ")
-                HWR.beamline.sample_view.clear_all_shapes()
+                HWR.beamline.config.sample_view.clear_all_shapes()
                 self.log.debug("  done")
 
         except Exception as e:
@@ -282,7 +282,7 @@ class P11SampleChanger(SampleChanger):
 
     def cleanup_load(self):
         self.log.debug("Loading finished. Restoring previous conditions")
-        HWR.beamline.diffractometer.restore_position("mount")
+        HWR.beamline.config.diffractometer.restore_position("mount")
         # TODO: state handling. for now. this should be update automatically
         self._set_state(SampleChangerState.Ready)
 

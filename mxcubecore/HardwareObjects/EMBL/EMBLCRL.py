@@ -69,8 +69,8 @@ class EMBLCRL(HardwareObject):
         self.cmd_set_crl_value = self.get_command_object("cmdSetLenses")
         self.cmd_set_trans_value = self.get_command_object("cmdSetTrans")
 
-        self.energy_value = HWR.beamline.energy.get_value()
-        self.connect(HWR.beamline.energy, "stateChanged", self.energy_state_changed)
+        self.energy_value = HWR.beamline.config.energy.get_value()
+        self.connect(HWR.beamline.config.energy, "stateChanged", self.energy_state_changed)
 
         self.beam_focusing_hwobj = self.get_object_by_role("beam_focusing")
         if self.beam_focusing_hwobj is not None:
@@ -135,7 +135,7 @@ class EMBLCRL(HardwareObject):
             and state != self.energy_state
             and self.current_mode == "Automatic"
         ):
-            self.energy_value = HWR.beamline.energy.get_value()
+            self.energy_value = HWR.beamline.config.energy.get_value()
             self.set_according_to_energy()
         self.energy_state = state
 
@@ -145,7 +145,7 @@ class EMBLCRL(HardwareObject):
         selected_combination = None
         # crl_value = [0, 0, 0, 0, 0, 0]
 
-        self.energy_value = HWR.beamline.energy.get_value()
+        self.energy_value = HWR.beamline.config.energy.get_value()
         for combination_index in range(1, 65):
             current_abs = abs(
                 self.energy_value
