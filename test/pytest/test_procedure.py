@@ -5,9 +5,9 @@ from mxcubecore.model import procedure_model
 
 
 def test_procedure_init(beamline):
-    assert beamline.mock_procedure is not None, (
-        "MockProcedure hardware objects is None (not initialized)"
-    )
+    assert (
+        beamline.config.mock_procedure is not None
+    ), "MockProcedure hardware objects is None (not initialized)"
     # The methods are defined with abc.abstractmethod which will raise
     # an exception if the method is not defined. So there is no need to test for
     # the presence of each method
@@ -15,17 +15,17 @@ def test_procedure_init(beamline):
 
 def test_procedure_start(beamline):
     data = procedure_model.MockDataModel(**{"exposure_time": 5})
-    beamline.mock_procedure.start(data)
+    beamline.config.mock_procedure.start(data)
     gevent.sleep(1)
-    assert beamline.mock_procedure.state == ProcedureState.BUSY
-    beamline.mock_procedure.wait()
-    assert beamline.mock_procedure.state == ProcedureState.READY
+    assert beamline.config.mock_procedure.state == ProcedureState.BUSY
+    beamline.config.mock_procedure.wait()
+    assert beamline.config.mock_procedure.state == ProcedureState.READY
 
 
 def test_procedure_stop(beamline):
     data = procedure_model.MockDataModel(**{"exposure_time": 5})
-    beamline.mock_procedure.start(data)
+    beamline.config.mock_procedure.start(data)
     gevent.sleep(1)
-    assert beamline.mock_procedure.state == ProcedureState.BUSY
-    beamline.mock_procedure.stop()
-    assert beamline.mock_procedure.state == ProcedureState.READY
+    assert beamline.config.mock_procedure.state == ProcedureState.BUSY
+    beamline.config.mock_procedure.stop()
+    assert beamline.config.mock_procedure.state == ProcedureState.READY
