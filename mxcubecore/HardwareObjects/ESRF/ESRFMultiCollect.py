@@ -172,13 +172,13 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             return self.execute_command("do_oscillation", start, end, exptime, number_of_images)
 
     def set_wavelength(self, wavelength):
-        if HWR.beamline.tunable_wavelength:
+        if HWR.beamline.config.tunable_wavelength:
             return HWR.beamline.energy.set_wavelength(wavelength)
         else:
             return
 
     def set_energy(self, energy):
-        if HWR.beamline.tunable_wavelength:
+        if HWR.beamline.config.tunable_wavelength:
             return HWR.beamline.energy.set_value(energy)
         else:
             return
@@ -461,7 +461,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         _gaps = {}
 
         try:
-            _gaps = HWR.beamline.undulators
+            _gaps = HWR.beamline.config.undulators
         except Exception:
             logging.getLogger("HWR").exception("Could not get undulator gaps")
         all_gaps.clear()

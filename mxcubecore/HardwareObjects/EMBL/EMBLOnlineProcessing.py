@@ -495,7 +495,7 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
            self.all_frames_dozor_is = False
            self.all_frames_batch_processed = False
            self.is_count = 0
-           self.batch_count = 0 
+           self.batch_count = 0
 
     def dozor_average_i_changed(self, average_i_value):
         if self.started:
@@ -733,7 +733,7 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
         acq_params = self.data_collection.acquisitions[0].acquisition_parameters
 
         sample_basename   = self.params_dict["template"].split("/")[-1].split("_%d_%0")[0]
-        # stream_filename   = sample_basename + "_crystfel_xgandalf.stream" 
+        # stream_filename   = sample_basename + "_crystfel_xgandalf.stream"
         stream_filename   = sample_basename + cell_name_tag + "_crystfel.stream"
         geom_filename     = "crystfel_detector.geom"
         cell_filename     = "crystfel_cell" + cell_name_tag + ".cell"

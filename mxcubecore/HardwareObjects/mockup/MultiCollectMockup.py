@@ -35,7 +35,7 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
             resolution=HWR.beamline.resolution,
             detector_distance=HWR.beamline.detector.distance,
             transmission=HWR.beamline.transmission,
-            undulators=HWR.beamline.undulators,
+            undulators=HWR.beamline.config.undulators,
             flux=HWR.beamline.flux,
             detector=HWR.beamline.detector,
             beam_info=HWR.beamline.beam,

@@ -359,7 +359,7 @@ class LNLSDiffractometer(GenericDiffractometer):
         if y <= (- x + 1152):
             dir_goniox = 1
         else:
-            dir_goniox = -1         
+            dir_goniox = -1
         move_goniox = dir_goniox * drx_goniox
         # mm to move
         move_goniox = move_goniox / self.pixels_per_mm_x

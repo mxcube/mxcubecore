@@ -453,7 +453,7 @@ class P11Collect(AbstractCollect):
         angles for characterisation.
 
         :param start_angle: The starting angle for the characterisation acquisition
-        :param img_range: The `img_range` parameter represents the range of angles over which the single image 
+        :param img_range: The `img_range` parameter represents the range of angles over which the single image
         will be collected
         :param nimages: The parameter `nimages` represents the number of images to be collected during
         the characterisation process (1, 2, 4).

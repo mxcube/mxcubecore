@@ -2025,7 +2025,7 @@ class GphlWorkflow(TaskNode):
         # # Centring handling and MXCuBE-side flow
         self.set_requires_centring(False)
 
-        self.set_from_dict(workflow_hwobj.settings["defaults"])
+        self.set_from_dict(workflow_hwobj.config.settings["defaults"])
 
         # Set missing values from BL defaults and limits.
         # NB cannot be done till after all HO are initialised.
@@ -2132,7 +2132,7 @@ class GphlWorkflow(TaskNode):
             self.interleave_order = interleave_order
 
         # NB this is an internal dictionary. DO NOT MODIFY
-        settings = HWR.beamline.gphl_workflow.settings
+        settings = HWR.beamline.gphl_workflow.config.settings
 
         if energies:
             # Energies *reset* existing list, and there must be at least one
@@ -2251,7 +2251,7 @@ class GphlWorkflow(TaskNode):
         from mxcubecore.HardwareObjects.Gphl import GphlMessages
 
         # NB this is an internal dictionary. DO NOT MODIFY
-        settings = HWR.beamline.gphl_workflow.settings
+        settings = HWR.beamline.gphl_workflow.config.settings
 
         if exposure_time:
             self.exposure_time = float(exposure_time)
@@ -2329,7 +2329,7 @@ class GphlWorkflow(TaskNode):
             if value:
                 setattr(self, tag, value)
 
-        settings = HWR.beamline.gphl_workflow.settings
+        settings = HWR.beamline.gphl_workflow.config.settings
         # NB settings is an internal attribute DO NOT MODIFY
 
         # Auto acquisition parameters
@@ -2394,7 +2394,7 @@ class GphlWorkflow(TaskNode):
 
         # Set to current wavelength for now - nothing else available
         wavelength = HWR.beamline.energy.get_wavelength()
-        role = HWR.beamline.gphl_workflow.settings["default_beam_energy_tag"]
+        role = HWR.beamline.gphl_workflow.config.settings["default_beam_energy_tag"]
         self.wavelengths = (
             GphlMessages.PhasingWavelength(wavelength=wavelength, role=role),
         )

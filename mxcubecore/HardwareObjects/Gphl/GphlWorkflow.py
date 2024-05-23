@@ -41,7 +41,7 @@ import gevent.queue
 import f90nml
 
 from mxcubecore.dispatcher import dispatcher
-from mxcubecore.BaseHardwareObjects import HardwareObjectYaml
+from mxcubecore.BaseHardwareObjects import HardwareObject, ConfiguredObject
 from mxcubecore.model import queue_model_objects
 from mxcubecore.model import crystal_symmetry
 from mxcubecore.queue_entry import QUEUE_ENTRY_STATUS
@@ -155,7 +155,7 @@ for ll0 in (
         alternative_lattices[tag] = ll0
 
 
-class GphlWorkflow(HardwareObjectYaml):
+class GphlWorkflow(HardwareObject):
     """Global Phasing workflow runner."""
 
     SPECIFIC_STATES = GphlWorkflowStates
@@ -169,15 +169,21 @@ class GphlWorkflow(HardwareObjectYaml):
     PARAMETERS_READY = "PARAMETERS_READY"
     PARAMETERS_CANCELLED = "PARAMETERS_CANCELLED"
 
+    class HOConfig(ConfiguredObject.HOConfig):
+        """Temporary replacement for Pydantic class
+
+        Required during transition, as long as we do nto have teh fields defined"""
+
+        # Defaults - should be replaced by proper Pydantic
+        workflows = {}
+        settings = {}
+
     def __init__(self, name):
         super().__init__(name)
 
         # Needed to allow methods to put new actions on the queue
         # And as a place to get hold of other objects
         self._queue_entry = None
-
-        # Configuration data - set on load
-        self.settings = self.get_property("settings", {})
 
         # auxiliary data structure from configuration. Set in init
         self.workflow_strategies = OrderedDict()
@@ -259,7 +265,7 @@ class GphlWorkflow(HardwareObjectYaml):
         self.translation_axis_roles = instrument_data["gonio_centring_axis_names"]
 
         # Adapt configuration data - must be done after file_paths setting
-        if HWR.beamline.gphl_connection.ssh_options:
+        if HWR.beamline.gphl_connection.config.ssh_options:
             # We are running workflow through ssh - set beamline url
             beamline_hook = "py4j:%s:" % socket.gethostname()
         else:
@@ -442,7 +448,7 @@ class GphlWorkflow(HardwareObjectYaml):
         fields["use_cell_for_processing"] = {
             "title": "Use for indexing",
             "type": "boolean",
-            "default": self.settings["defaults"]["use_cell_for_processing"],
+            "default": self.config.settings["defaults"]["use_cell_for_processing"],
         }
         resolution = data_model.aimed_resolution or HWR.beamline.resolution.get_value()
         resolution = round(resolution, resolution_decimals)
@@ -484,10 +490,10 @@ class GphlWorkflow(HardwareObjectYaml):
             if ll0:
                 energy_tag = ll0[0]
             else:
-                energy_tag = self.settings["default_beam_energy_tag"]
+                energy_tag = self.config.settings["default_beam_energy_tag"]
         else:
             # Characterisation
-            strategies = self.settings["characterisation_strategies"]
+            strategies = self.config.settings["characterisation_strategies"]
             fields["strategy"]["default"] = strategies[0]
             fields["strategy"]["title"] = "Characterisation strategy"
             fields["strategy"]["enum"] = strategies
@@ -749,7 +755,7 @@ class GphlWorkflow(HardwareObjectYaml):
             if params is StopIteration:
                 self.workflow_aborted()
                 return
-        use_preset_spotdir = self.settings.get("use_preset_spotdir")
+        use_preset_spotdir = self.config.settings.get("use_preset_spotdir")
         if use_preset_spotdir:
             spotdir = self.get_emulation_sample_dir()
             if spotdir:
@@ -958,7 +964,7 @@ class GphlWorkflow(HardwareObjectYaml):
             sweep_group_counts[sweep.sweepGroup] = count
 
         energy_tags = strategy_settings.get("beam_energy_tags") or (
-            self.settings["default_beam_energy_tag"],
+            self.config.settings["default_beam_energy_tag"],
         )
         # NBNB HACK - this needs to eb done properly
         # Used for determining whether to query wedge width
@@ -1007,7 +1013,7 @@ class GphlWorkflow(HardwareObjectYaml):
             lines = ["Experiment length: %6.1f°" % data_model.strategy_length]
             beam_energies = OrderedDict((("Characterisation", initial_energy),))
             dose_label = "Characterisation dose (MGy)"
-            if not self.settings.get("recentre_before_start"):
+            if not self.config.settings.get("recentre_before_start"):
                 # replace planned orientation with current orientation
                 current_pos_dict = HWR.beamline.diffractometer.get_positions()
                 dd0 = list(axis_setting_dicts.values())[0]
@@ -1042,7 +1048,7 @@ class GphlWorkflow(HardwareObjectYaml):
         # Set up image width pulldown
         allowed_widths = geometric_strategy.allowedWidths
         if not allowed_widths:
-            allowed_widths = list(self.settings.get("default_image_widths"))
+            allowed_widths = list(self.config.settings.get("default_image_widths"))
             allowed_widths.sort()
             logging.getLogger("HWR").info(
                 "No allowed image widths returned by strategy - use defaults"
@@ -1168,7 +1174,7 @@ class GphlWorkflow(HardwareObjectYaml):
             fields["wedge_width"] = {
                 "title": "Wedge width (°)",
                 "type": "number",
-                "default": self.settings.get("default_wedge_width", 15),
+                "default": self.config.settings.get("default_wedge_width", 15),
                 "minimum": 0.1,
                 "maximum": 7200,
             }
@@ -1195,7 +1201,7 @@ class GphlWorkflow(HardwareObjectYaml):
         # recentring mode:
         labels = list(RECENTRING_MODES.keys())
         modes = list(RECENTRING_MODES.values())
-        default_recentring_mode = self.settings.get("default_recentring_mode", "sweep")
+        default_recentring_mode = self.config.settings.get("default_recentring_mode", "sweep")
         if default_recentring_mode == "scan" or default_recentring_mode not in modes:
             raise ValueError(
                 "invalid default recentring mode '%s' " % default_recentring_mode
@@ -1346,7 +1352,7 @@ class GphlWorkflow(HardwareObjectYaml):
         if value:
             image_width = float(value)
         else:
-            image_width = self.settings.get("default_image_width", default_image_width)
+            image_width = self.config.settings.get("default_image_width", default_image_width)
         result[tag] = image_width
         # exposure_time OK as is
         tag = "repetition_count"
@@ -1412,7 +1418,7 @@ class GphlWorkflow(HardwareObjectYaml):
             )
         else:
             default_image_width = list(
-                self.settings.get("default_image_widths")
+                self.config.settings.get("default_image_widths")
             )[0]
 
         # get parameters and initial transmission/use_dose
@@ -1601,7 +1607,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
         # Check if sample is currently centred, and centre first sweep if not
         if (
-            self.settings.get("recentre_before_start")
+            self.config.settings.get("recentre_before_start")
             and not gphl_workflow_model.characterisation_done
         ):
             # Sample has never been centred reliably.
@@ -1631,7 +1637,7 @@ class GphlWorkflow(HardwareObjectYaml):
             # Get translation setting from recentring or current (MAY be used)
             if has_recentring_file:
                 # calculate first sweep recentring from okp
-                tol = self.settings.get("angular_tolerance", 1.0)
+                tol = self.config.settings.get("angular_tolerance", 1.0)
                 translation_settings = self.calculate_recentring(
                     okp, ref_xyz=current_xyz, ref_okp=current_okp
                 )
@@ -1843,7 +1849,7 @@ class GphlWorkflow(HardwareObjectYaml):
     def collect_data(self, payload, correlation_id):
         collection_proposal = payload
 
-        angular_tolerance = float(self.settings.get("angular_tolerance", 1.0))
+        angular_tolerance = float(self.config.settings.get("angular_tolerance", 1.0))
         queue_manager = self._queue_entry.get_queue_controller()
 
         gphl_workflow_model = self._queue_entry.get_data_model()
@@ -1873,7 +1879,7 @@ class GphlWorkflow(HardwareObjectYaml):
         sweep_offset = geometric_strategy.sweepOffset
         scan_count = len(scans)
 
-        if repeat_count and sweep_offset and self.settings.get("use_multitrigger"):
+        if repeat_count and sweep_offset and self.config.settings.get("use_multitrigger"):
             # commpress unrolled multi-trigger sweep
             # NBNB as of 202103 this is only allowed for a single sweep
             #
@@ -2024,7 +2030,7 @@ class GphlWorkflow(HardwareObjectYaml):
             gphl_workflow_model.current_rotation_id = rotation_id
 
 
-            if repeat_count and sweep_offset and self.settings.get("use_multitrigger"):
+            if repeat_count and sweep_offset and self.config.settings.get("use_multitrigger"):
                 # Multitrigger sweep - add in parameters.
                 # NB if we are here ther can be only one scan
                 acq_parameters.num_triggers = scan_count
@@ -2616,8 +2622,8 @@ class GphlWorkflow(HardwareObjectYaml):
         assuming an increase in B factor of 1A^2/MGy
 
         """
-        max_budget = maximum_dose_budget or self.settings.get("maximum_dose_budget", 20)
-        decay_limit = decay_limit or self.settings.get("decay_limit", 25)
+        max_budget = maximum_dose_budget or self.config.settings.get("maximum_dose_budget", 20)
+        decay_limit = decay_limit or self.config.settings.get("decay_limit", 25)
         result = 2 * resolution * resolution * math.log(100.0 / decay_limit)
         #
         return min(result, max_budget) / relative_rad_sensitivity

@@ -37,7 +37,7 @@ from py4j.protocol import Py4JJavaError
 from mxcubecore.utils import conversion
 from mxcubecore.HardwareObjects.Gphl import GphlMessages
 
-from mxcubecore.BaseHardwareObjects import HardwareObjectYaml
+from mxcubecore.BaseHardwareObjects import HardwareObject, ConfiguredObject
 from mxcubecore import HardwareRepository as HWR
 
 # NB this is patching the original socket module in to avoid the
@@ -78,10 +78,24 @@ __license__ = "LGPLv3+"
 __author__ = "Rasmus H Fogh"
 
 
-class GphlWorkflowConnection(HardwareObjectYaml):
+class GphlWorkflowConnection(HardwareObject):
     """
     This HO acts as a gateway to the Global Phasing workflow engine.
     """
+
+    class HOConfig(ConfiguredObject.HOConfig):
+        """Temporary replacement for Pydantic class
+
+        Required during transition, as long as we do nto have teh fields defined"""
+
+        # Defaults - should be replaced by proper Pydantic
+        software_paths = {}
+        software_properties = {}
+        directory_locations = {}
+        gphl_subdir = "GPHL"
+        gphl_persistname = "persistence"
+        ssh_options = {}
+        connection_parameters = {}
 
     def __init__(self, name):
         super().__init__(name)
@@ -98,20 +112,14 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         self._running_process = None
         self.collect_emulator_process = None
 
-        # Configured parameters
-        self.ssh_options = self.get_property("ssh_options", {})
-        self.gphl_subdir = self.get_property("gphl_subdir", "GPHL")
-        self.gphl_persistname = self.get_property("gphl_persistname", "persistence")
-        self.connection_parameters = self.get_property("connection_parameters", {})
-
         self.update_state(self.STATES.UNKNOWN)
 
     def init(self):
         super().init()
 
         # Adapt connections if we are running via ssh
-        if self.ssh_options:
-            self.connection_parameters["python_address"] = socket.gethostname()
+        if self.config.ssh_options:
+            self.config.connection_parameters["python_address"] = socket.gethostname()
 
         # Adapt paths and properties to use directory_locations
         locations = self.config.directory_locations
@@ -178,7 +186,7 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         else:
             return
 
-        params = self.connection_parameters
+        params = self.config.connection_parameters
 
         python_parameters = {}
         val = params.get("python_address")
@@ -226,13 +234,13 @@ class GphlWorkflowConnection(HardwareObjectYaml):
 
         # Cannot be done in init, where the api.sessions link is not yet ready
         self.config.software_paths["GPHL_WDIR"] = os.path.join(
-            HWR.beamline.session.get_base_process_directory(), self.gphl_subdir
+            HWR.beamline.session.get_base_process_directory(), self.config.gphl_subdir
         )
 
         strategy_settings = workflow_model_obj.strategy_settings
-        wf_settings = HWR.beamline.gphl_workflow.settings
+        wf_settings = HWR.beamline.gphl_workflow.config.settings
 
-        ssh_options = self.ssh_options
+        ssh_options = self.config.ssh_options
         in_shell = bool(ssh_options)
         if in_shell:
             ssh_options = ssh_options.copy()
@@ -282,7 +290,7 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         if "prefix" in workflow_options:
             workflow_options["prefix"] = path_template.base_prefix
         workflow_options["wdir"] = self.config.software_paths["GPHL_WDIR"]
-        workflow_options["persistname"] = self.gphl_persistname
+        workflow_options["persistname"] = self.config.gphl_persistname
 
         # Set the workflow root subdirectory parameter from the base image directory
         image_root = os.path.abspath(HWR.beamline.session.get_base_image_directory())
