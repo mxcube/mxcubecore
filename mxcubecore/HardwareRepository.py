@@ -67,6 +67,12 @@ beamline = None
 BEAMLINE_CONFIG_FILE = "beamline_config.yml"
 
 
+# Temporary hack to export yaml config file verions after loading
+# Set to an existing directory to trigger output of yaml config files
+# EXPORT_CONFIG_DIR = "/home/rhfogh/pycharm/mock_config_dirs_tmp"
+EXPORT_CONFIG_DIR = None
+
+
 def load_from_yaml(configuration_file, role, _container=None, _table=None):
     """
 
@@ -227,9 +233,28 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
 
     if _container is None:
         print(make_table(column_names, _table))
+    elif EXPORT_CONFIG_DIR:
+        # temporary hack
+        _export_draft_config_file(result)
     #
     return result
 
+def _export_draft_config_file(hwobj):
+    result = {
+        "_initialise_class" : {
+            "class": "%s.%s" % (hwobj.__class__.__module__, hwobj.__class__.__name__),
+        },
+    }
+    objects_by_role = hwobj.objects_by_role
+    if objects_by_role:
+        objects = result["_objects"] = {}
+        for role, obj in objects_by_role.items():
+            objects[role] = "%s.yml" % obj.id
+    for tag, val in hwobj.config.model_dump().items():
+        if tag not in objects_by_role:
+            result[tag] = val
+    fp = open(os.path.join(EXPORT_CONFIG_DIR, "%s.yml" % hwobj.id), "w")
+    yaml.dump(result, fp)
 
 def _attach_xml_objects(container, hwobj, role):
     """Recursively attach XML-configured object to container as role
@@ -246,8 +271,15 @@ def _attach_xml_objects(container, hwobj, role):
     for tag in hwobj._objects_names():
         if tag not in objects_by_role:
             # Complex object, not contained hwobj
-            objs = list(hwobj._get_objects(tag))
-            setattr(hwobj.config, tag, list(_convert_xml_property(obj) for obj in objs))
+            objs = list(_convert_xml_property(obj) for obj in hwobj._get_objects(tag))
+            if len(objs) == 1:
+                setattr(hwobj.config, tag, objs[0])
+            else:
+                setattr(hwobj.config, tag, objs)
+    #
+    if EXPORT_CONFIG_DIR:
+        # temporary hack
+        _export_draft_config_file(hwobj)
 
 
 def _convert_xml_property(hwobj):

@@ -1,5 +1,4 @@
 <object class="Qt4_GraphicsManager">
-   <object href="/minidiff" role="diffractometer"/>
    <object href="/beam-info" role="beam_info"/>
    <object href="/ge1350c" role="camera"/>
 </object>
