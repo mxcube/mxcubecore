@@ -204,8 +204,6 @@ class Beamline(ConfiguredObject):
 
         acq_parameters = queue_model_objects.AcquisitionParameters()
 
-        print ('@~@~ default_acquisition_parameters', self.config.default_acquisition_parameters)
-
         params = self.config.default_acquisition_parameters["default"].copy()
         if acquisition_type != "default":
             dd0 = self.config.default_acquisition_parameters.get(acquisition_type)

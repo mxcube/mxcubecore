@@ -215,7 +215,7 @@ class QtGraphicsManager(AbstractSampleView):
         self.graphics_view.keyPressedSignal.connect(self.key_pressed)
         self.graphics_view.wheelSignal.connect(self.mouse_wheel_scrolled)
 
-        self.diffractometer_hwobj = self.get_object_by_role("diffractometer")
+        self.diffractometer_hwobj = HWR.beamline.config.diffractometer
         self.graphics_view.resizeEvent = self.resizeEvent
 
         if self.diffractometer_hwobj is not None:

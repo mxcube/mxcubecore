@@ -5,7 +5,6 @@
   <object hwrid="/udiff_zoom" role="zoom"/>
   <object hwrid="/udiff_frontlight" role="frontlight"/>
   <object hwrid="/udiff_light" role="backlight"/>
-  <object hwrid="/diffractometer-mockup" role="diffractometer"/>
 
   <!--- Autmoatically hide grid when 5 deg from defined angle -->
   <hide_grid_threshold>5</hide_grid_threshold>
