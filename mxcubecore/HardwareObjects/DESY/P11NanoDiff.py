@@ -170,7 +170,6 @@ class P11NanoDiff(GenericDiffractometer):
         self.update_phase()
         self.update_zoom_calibration()
 
-        # self.beam_position = self.update_beam_position()
         self.update_beam_position()
         self.nclicks = 3
         self.step = 120
@@ -195,7 +194,6 @@ class P11NanoDiff(GenericDiffractometer):
             self.emit(
                 "pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y),)
             )
-        # self._update_state(DiffractometerState.Ready)
 
     def execute_server_task(self, method, timeout=30, *args):
         return
@@ -215,14 +213,13 @@ class P11NanoDiff(GenericDiffractometer):
         request_arguments["to_predict"] = HWR.beamline.sample_view.camera.get_last_jpeg()
         image_jpeg = request_arguments["to_predict"]
         image_jpeg = simplejpeg.decode_jpeg(image_jpeg)
-        # request_arguments["model_img_size"] = model_img_size
         request_arguments['description'] = ['foreground', 'crystal', 'loop_inside', 'loop', ['crystal', 'loop'], ['crystal', 'loop', 'stem']]
         request_arguments["save"] = False
         request_arguments["prefix"] = "predicted"
         _start = time.time()
 
-        # analysis = get_predictions(request_arguments,host="max-wng034" ,port=23475)
-        analysis = get_predictions(request_arguments,host="max-p3a018" ,port=23475)
+        analysis = get_predictions(request_arguments,host="max-wng034" ,port=23475)
+        # analysis = get_predictions(request_arguments,host="max-p3a018" ,port=23475)
         original_image_shape = analysis['original_image_shape']
         sizeOfPictureY, sizeOfPictureX = original_image_shape[:2]
         description = analysis['descriptions'][0]
@@ -264,8 +261,6 @@ class P11NanoDiff(GenericDiffractometer):
         self.goto_centring_phase()
         self.log.debug("Automatic 3 click centring")
         self.emit_progress_message("AI centring. Please wait...")
-
-        # Prototype using MURKO
 
         # Define Zoom:
         zoom_hwobj = self.motor_hwobj_dict["zoom"]
@@ -326,7 +321,7 @@ class P11NanoDiff(GenericDiffractometer):
     def automatic_centring(self):
         """Automatic centring procedure"""
 
-        self.auto_ai_routine(0)
+        # self.auto_ai_routine(0)
         # self.auto_ai_routine(0)
         #TODO: check the scaling change and reference image coordinates after zoom update.
         # check coordinates -move to the beam
@@ -337,6 +332,7 @@ class P11NanoDiff(GenericDiffractometer):
         
         self.current_centring_procedure = gevent.spawn(self.auto_ai_routine, 0)        
         self.current_centring_procedure.link(self.centring_done)
+        
 
         # self.emit_progress_message("Moving sample to centred position...")
         # self.emit_centring_moving()
