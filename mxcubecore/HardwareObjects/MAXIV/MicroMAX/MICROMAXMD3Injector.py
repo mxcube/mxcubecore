@@ -100,6 +100,14 @@ class MICROMAXMD3Injector(MICROMAXMD3):
             back_light.set_value(back_light.VALUES.OUT)
         self.wait_device_ready(DEFAULT_PHASE_TIMEOUT)
 
+    def switch_front_light(self, value):
+        front_light = self.front_light_switch
+        if value=="IN":
+            front_light.set_value(front_light.VALUES.IN)
+        elif value == "OUT":
+            front_light.set_value(front_light.VALUES.OUT)
+        self.wait_device_ready(DEFAULT_PHASE_TIMEOUT)
+
     def update_current_phase(self):
         pos = self.get_current_phase_positions()
         if pos == self.phases["DataCollection"]:
@@ -111,7 +119,7 @@ class MICROMAXMD3Injector(MICROMAXMD3):
         elif pos == self.phases["BeamLocation"]:
             current_phase = "BeamLocation"
         else:
-            current_phase = "DataCollection"#"UNKNOWN"
+            current_phase = "UNKNOWN"
         if current_phase != self.current_phase:
             logging.getLogger("HWR").info("MD3 phase changed to {} from {}".format(current_phase, self.current_phase))
             self.current_phase = current_phase
@@ -126,7 +134,7 @@ class MICROMAXMD3Injector(MICROMAXMD3):
             elif motor_name =="cameraExposure":
                 name = "CameraExposure"
             else:
-                name = "{}Position".format(motor_name.capitalize())
+                name = "{}{}Position".format(motor_name[0].upper(), motor_name[1:])
             self.channel_dict[name].set_value(pos_name)
             self.wait_device_ready(DEFAULT_PHASE_TIMEOUT)
         except Exception as ex:
@@ -134,27 +142,42 @@ class MICROMAXMD3Injector(MICROMAXMD3):
             raise Exception("")
             logging.getLogger("HWR").error(error_msg)
 
+    def set_scintillator(self, value):
+        try:
+            self.channel_dict["ScintillatorVerticalPosition"].set_value(value)
+            self.wait_device_ready(DEFAULT_PHASE_TIMEOUT)
+        except Exception as ex:
+            error_msg = "[MICROMAXMD3] Error while moving scintillatorY to {}".format(value, ex)
+            raise Exception("")
+            logging.getLogger("HWR").error(error_msg)
 
     def set_phase(self, phase, wait=False, timeout=None):
         try:
             if self.current_phase == "UNKNOWN":
                 self.wait_device_ready(DEFAULT_PHASE_TIMEOUT) 
                 self.current_phase = self.get_current_phase()
-                if self.current_phase == "UNKNOWN":
-                    raise Exception(
-                        "Cannot determine the current MD3 phase, please set to DataCollection phase in MD3 application"
-                    )
             # now MD3 should be in ready state and we can safely change the phase
             self.close_fast_shutter()
             time.sleep(1)
             current_phase_pos = self.get_current_phase_positions()
+            if self.current_phase == "UNKNOWN":
+                logging.getLogger("HWR").warning(
+                    "Cannot determine the current MD3 phase, please set to DataCollection phase in MD3 application"
+                )
+                self.set_organ_pos("scintillatorVertical", -90)
+                self.set_organ_pos("beamstop", "PARK")
+                self.switch_back_light('OUT')
+                self.set_organ_pos("capillary", "PARK")
+
             new_phase_pos = self.phases[phase]
 
             if self.current_phase== "BeamLocation":
                 # move scintillator
-                self.set_organ_pos("scintillator", "PARK")
+                #self.set_organ_pos("scintillator", "PARK")
+                self.set_organ_pos("scintillatorVertical", -90)
                 self.focus_motor_hwobj.set_value(0)
                 self.wait_device_ready(DEFAULT_PHASE_TIMEOUT)
+                self.set_organ_pos("AlignmentTable", "STORED")
 
             if new_phase_pos["beamstop"] != current_phase_pos["beamstop"]:
                 if phase != "DataCollection":
@@ -175,12 +198,17 @@ class MICROMAXMD3Injector(MICROMAXMD3):
             if phase == "DataCollection":
                 motor_pos = new_phase_pos["beamstop"]
                 self.set_organ_pos("beamstop", motor_pos)
+                self.switch_front_light('IN')
 
             if phase== "BeamLocation":
+                self.set_organ_pos("alignmentTable", "CLEAR_SCINTILLATOR")
                 # move scintillator
                 self.focus_motor_hwobj.set_value(2)
                 self.wait_device_ready(DEFAULT_PHASE_TIMEOUT)
-                self.set_organ_pos("scintillator", "SCINTILLATOR")
+                self.set_organ_pos("scintillatorVertical", 0.48)
+                #one cannot move it via exporter :(
+                #self.set_organ_pos("beamstopDistance", 6.863)
+                self.switch_front_light('OUT')
 
         except Exception as ex:
             error_msg = "[MICROMAXMD3] Error while changing MD3 phase from {} to {}, {}".format(
@@ -202,3 +230,15 @@ class MICROMAXMD3Injector(MICROMAXMD3):
         log.warning("[MAXIVMD3]: by pass md3 abort")
         pass
 
+
+    def finish_calculate_flux(self, ori_motors, ori_phase="DataCollection"):
+        self.set_phase(ori_phase, wait=True, timeout=200)
+        self.wait_ready(10)
+        if ori_phase == "DataCollection":
+            self.channel_dict["BeamstopPosition"].set_value("BEAM")
+        self.wait_ready(10)
+        ori_motors.pop('phi')
+        if ori_motors is not None:
+            self.move_motors(ori_motors)
+            self.wait_ready(10)
+ 

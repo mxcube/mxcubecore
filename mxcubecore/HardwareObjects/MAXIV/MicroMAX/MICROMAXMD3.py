@@ -139,3 +139,50 @@ class MICROMAXMD3(MAXIVMD3):
             "[MICROMAXMD3] MD3 raster oscillation finished, task result %s."
             % str(task_info)
         )
+
+    def set_calculate_flux_phase(self):
+        if self.head_type == GenericDiffractometer.HEAD_TYPE_MINIKAPPA:
+            motors = [
+                "phi",
+                "focus",
+                "phiz",
+                "phiy",
+                "sampx",
+                "sampy",
+                "kappa",
+                "kappa_phi",
+            ]
+        else:
+            motors = ["phi", "focus", "phiz", "phiy", "sampx", "sampy"]
+        ori_motors = {}
+
+        for motor in motors:
+            try:
+                ori_motors[motor] = self.motor_hwobj_dict[motor].get_value()
+            except:
+                pass
+        ori_phase = self.current_phase
+        if self.current_phase != "DataCollection":
+            self.set_phase("DataCollection", wait=True, timeout=200)
+        self.motor_hwobj_dict['phiz'].set_value(2)
+        self.set_organ_pos("beamstopZ", -10)
+        self.wait_ready(10)
+        return ori_motors, ori_phase
+
+    def set_organ_pos(self, motor_name, pos_name):
+        try:
+            if motor_name =="beamstop":
+                self.command_dict["setBeamstopPosition"](pos_name)
+                self.wait_device_ready(DEFAULT_PHASE_TIMEOUT)
+                return
+            elif motor_name =="cameraExposure":
+                name = "CameraExposure"
+            else:
+                name = "{}{}Position".format(motor_name[0].upper(), motor_name[1:])
+            self.channel_dict[name].set_value(pos_name)
+            self.wait_device_ready(DEFAULT_PHASE_TIMEOUT)
+        except Exception as ex:
+            error_msg = "[MICROMAXMD3] Error while moving {} to {}, {}".format(motor_name, pos_name, ex)
+            raise Exception("")
+            logging.getLogger("HWR").error(error_msg)
+
