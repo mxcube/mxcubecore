@@ -52,8 +52,10 @@ from tango import DeviceProxy
 
 sys.path.insert(1, "/gpfs/local/shared/MXCuBE/murko/December2023/murko")
 from murko import get_predictions #get_loop_bbox, get_most_likely_click, get_predictions
+from murko import plot_analysis
 import numpy as np
-
+import datetime
+import simplejpeg
 
 
 @unique
@@ -211,13 +213,16 @@ class P11NanoDiff(GenericDiffractometer):
 
         request_arguments = {}
         request_arguments["to_predict"] = HWR.beamline.sample_view.camera.get_last_jpeg()
+        image_jpeg = request_arguments["to_predict"]
+        image_jpeg = simplejpeg.decode_jpeg(image_jpeg)
         # request_arguments["model_img_size"] = model_img_size
         request_arguments['description'] = ['foreground', 'crystal', 'loop_inside', 'loop', ['crystal', 'loop'], ['crystal', 'loop', 'stem']]
         request_arguments["save"] = False
         request_arguments["prefix"] = "predicted"
         _start = time.time()
 
-        analysis = get_predictions(request_arguments, port=89011)
+        # analysis = get_predictions(request_arguments,host="max-wng034" ,port=23475)
+        analysis = get_predictions(request_arguments,host="max-p3a018" ,port=23475)
         original_image_shape = analysis['original_image_shape']
         sizeOfPictureY, sizeOfPictureX = original_image_shape[:2]
         description = analysis['descriptions'][0]
@@ -243,11 +248,14 @@ class P11NanoDiff(GenericDiffractometer):
                 % (v, h)
             )
 
+            
         else:
             print("Loop not found. Click to the center.")
 
             v = 0.5
             h = 0.5
+
+        plot_analysis([image_jpeg], analysis, image_paths=["/home/p11user/murko/"+str(time.time())+".jpg"])
 
         return h, v 
 
@@ -319,7 +327,7 @@ class P11NanoDiff(GenericDiffractometer):
         """Automatic centring procedure"""
 
         self.auto_ai_routine(0)
-        self.auto_ai_routine(0)
+        # self.auto_ai_routine(0)
         #TODO: check the scaling change and reference image coordinates after zoom update.
         # check coordinates -move to the beam
 
@@ -378,7 +386,7 @@ class P11NanoDiff(GenericDiffractometer):
             "*******************************Autocentering with AI is started================="
         )
 
-        # self.current_centring_method == GenericDiffractometer.CENTRING_METHOD_AUTO
+        self.current_centring_method == GenericDiffractometer.CENTRING_METHOD_AUTO
 
         self.log.debug("STARTING AI CENTRING")
 
@@ -431,7 +439,6 @@ class P11NanoDiff(GenericDiffractometer):
 
 
             calibration = np.array([1./self.pixels_per_mm_y, 1./self.pixels_per_mm_x]) #self.camera.get_calibration()
-            #omega = self.goniometer.get_omega_position()
             omega = self.centring_phi.motor.get_value()
 
             vertical_clicks.append(y)
@@ -455,7 +462,7 @@ class P11NanoDiff(GenericDiffractometer):
                     print("***********************", str(dev_gonio.State()))
                     time.sleep(0.1)
                 self.centring_phi.set_value(omega+step)
-                # self.goniometer.set_position({"Omega": omega + step})
+
                 while str(dev_gonio.State()) != "ON":
                     print("***********************", str(dev_gonio.State()))
                     time.sleep(0.1)
@@ -469,21 +476,7 @@ class P11NanoDiff(GenericDiffractometer):
 
         angles = np.radians(omegas)
 
-        # # if self.get_current_centring_method() != CENTRING_METHOD.REFRACTIVE:
-        # initial_parameters = [4.0, 25.0, 0.05]
-        # fit_y = minimize(
-        #     self.circle_model_residual,
-        #     initial_parameters,
-        #     method="nelder-mead",
-        #     args=(angles, vertical_discplacements),
-        # )
-
-        # c, r, alpha = fit_y.x
-        # c *= 1e-3
-        # r *= 1.0e-3
-        # v = {"c": c, "r": r, "alpha": alpha}
-
-        # else:
+       
         initial_parameters = lmfit.Parameters()
         initial_parameters.add_many(
             ("c", 0.0, True, -5e3, +5e3, None, None),
@@ -501,7 +494,6 @@ class P11NanoDiff(GenericDiffractometer):
             method="nelder",
             args=(angles, vertical_discplacements),
         )
-        # self.log.info(fit_report(fit_y))
         optimal_params = fit_y.params
         v = optimal_params.valuesdict()
         c = v["c"]
@@ -583,171 +575,6 @@ class P11NanoDiff(GenericDiffractometer):
         self.ai_finished = True
 
         return result_position
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        # n_points = 3
-        # phi_range = 360 / n_points
-
-        # self.ai_finished = False
-
-        # X = []
-        # Y = []
-        # PHI = []
-
-        # beam_xc, beam_yc = self.beam_position
-        # self.log.debug("STARTING AI CENTRING")
-
-        # motor_positions = {
-        #     "phiy": self.centring_phiy.motor.get_value(),
-        #     "phiz": self.centring_phiz.motor.get_value(),
-        #     "sampx": self.centring_sampx.motor.get_value(),
-        #     "sampy": self.centring_sampy.motor.get_value(),
-        #     "phi": self.centring_phi.motor.get_value(),
-        # }
-
-        # phi_mot = self.centring_phi.motor
-        # phi_start_pos = phi_mot.get_value()
-
-        # for click in range(n_points):
-        #     print("================ Click:", click)
-
-        #     dev_gonio = DeviceProxy("p11/servomotor/eh.1.01")
-
-        #     _start = time.time()
-        #     snapshot_filename = os.path.join(
-        #         tempfile.gettempdir(), "mxcube_sample_snapshot_" + str(click) + ".png"
-        #     )
-
-        #     # Small size
-        #     # HWR.beamline.sample_view.save_snapshot(snapshot_filename, overlay=True, bw=True)
-
-        #     # # Full size
-        #     HWR.beamline.sample_view.save_snapshot(
-        #         snapshot_filename, overlay=False, bw=True
-        #     )
-
-        #     while not os.path.exists(snapshot_filename):
-        #         time.sleep(0.1)
-
-        #     x_click, y_click = self.predict_click_pix(snapshot_filename)
-        #     print("Most probable click at the pixel coordinates:", x_click, y_click)
-        #     print("Current run time %.4f seconds" % (time.time() - _start))
-
-        #     # # Small = 680, 512 (if overlay=True)
-        #     # x, y =  x_click, y_click
-
-        #     # Full size= 2264, 1824
-        #     x = x_click * 680
-        #     y = y_click * 512
-
-        #     X.append(x)
-        #     Y.append(y)
-        #     PHI.append(phi_mot.get_value())
-
-        #     #os.system("display /tmp/test_default_model_img_size_256x320_comparison.png") #+snapshot_filename.split(".png")[0]+"_default_model_img_size_256x320_comparison.png")
-        #     #os.system("rm "+snapshot_filename)
-        #     print("************************", X, Y, PHI)
-
-        #     if click < n_points - 1:
-        #         phi_mot.set_value_relative(phi_range)
-        #         gevent.sleep(2)
-        #         while str(dev_gonio.State()) != "ON":
-        #             print("***********************", str(dev_gonio.State()))
-        #             time.sleep(0.1)
-
-        # #  [363, 371, 377] [300, 244, 238] [390.00002216708185, 509.99999776030194, 510.0000358958955] - auto
-        # # [349, 341, 342] [255, 244, 265] [91.8808518778272, 210.29110711859207, 329.99999372629446]
-
-        # phi_mot.set_value(phi_start_pos)
-        # gevent.sleep(1)
-        # phi_mot.wait_ready()
-
-        # print("*******************", X, Y, PHI)
-
-        # DX = []
-        # DY = []
-        # ANG = []
-
-        # P = []
-        # Q = []
-
-        # for i in range(n_points):
-        #     dx = X[i] - beam_xc
-        #     dy = Y[i] - beam_yc
-        #     ang = math.radians(PHI[i])
-
-        #     DX.append(dx)
-        #     DY.append(dy)
-        #     ANG.append(ang)
-
-        # for i in range(n_points):
-        #     y0 = DY[i]
-        #     ang0 = ANG[i]
-        #     if i < (n_points - 1):
-        #         y1 = DY[i + 1]
-        #         ang1 = ANG[i + 1]
-        #     else:
-        #         y1 = DY[0]
-        #         ang1 = ANG[0]
-
-        #     p = (y0 * math.sin(ang1) - y1 * math.sin(ang0)) / math.sin(ang1 - ang0)
-        #     q = (y0 * math.cos(ang1) - y1 * math.cos(ang0)) / math.sin(ang1 - ang0)
-
-        #     P.append(p)
-        #     Q.append(q)
-
-        # x_s = -sum(Q) / n_points
-        # y_s = sum(P) / n_points
-        # z_s = sum(DX) / n_points
-
-        # x_d_mm = x_s / self.pixels_per_mm_y
-        # y_d_mm = y_s / self.pixels_per_mm_y
-        # z_d_mm = z_s / self.pixels_per_mm_x
-
-        # x_d = self.centring_sampx.mm_to_units(x_d_mm)
-        # y_d = self.centring_sampy.mm_to_units(y_d_mm)
-        # z_d = self.centring_phiy.mm_to_units(z_d_mm)
-
-        # sampx_mot = self.centring_sampx.motor
-        # sampy_mot = self.centring_sampy.motor
-        # phiy_mot = self.centring_phiy.motor
-
-        # x_pos = sampx_mot.get_value() + x_d
-        # y_pos = sampy_mot.get_value() + y_d
-        # z_pos = phiy_mot.get_value() + z_d
-
-        # motor_positions["phiy"] = z_pos
-        # motor_positions["sampx"] = x_pos
-        # motor_positions["sampy"] = y_pos
-
-        # self.ai_finished = True
-
-        # return motor_positions
 
     def is_ready(self):
         """
@@ -861,109 +688,12 @@ class P11NanoDiff(GenericDiffractometer):
         self.current_centring_procedure = gevent.spawn(self.manual_centring)
         self.current_centring_procedure.link(self.centring_done)
 
-
-    # def manual_centring(self, phi_range=120, n_points=3):
-    #     """
-    #     Descript. :
-    #     """
-    #     X = []
-    #     Y = []
-    #     PHI = []
-
-    #     beam_xc, beam_yc = self.beam_position
-    #     self.log.debug("STARTING Manual Centring")
-
-    #     motor_positions = {
-    #         "phiy": self.centring_phiy.motor.get_value(),
-    #         "phiz": self.centring_phiz.motor.get_value(),
-    #         "sampx": self.centring_sampx.motor.get_value(),
-    #         "sampy": self.centring_sampy.motor.get_value(),
-    #         "phi": self.centring_phi.motor.get_value(),
-    #     }
-
-    #     phi_mot = self.centring_phi.motor
-    #     phi_start_pos = phi_mot.get_value()
-
-    #     for click in range(n_points):
-    #         self.user_clicked_event = AsyncResult()
-    #         x, y = self.user_clicked_event.get()
-    #         if click < 2:
-    #             phi_mot.set_value_relative(phi_range)
-
-    #         X.append(x)
-    #         Y.append(y)
-    #         PHI.append(phi_mot.get_value())
-
-    #         print("************************", X, Y, PHI)
-
-    #     # phi_mot.set_value(phi_start_pos)
-    #     # gevent.sleep(2)
-    #     # phi_mot.wait_ready()
-
-    #     DX = []
-    #     DY = []
-    #     ANG = []
-
-    #     P = []
-    #     Q = []
-
-    #     for i in range(n_points):
-    #         dx = X[i] - beam_xc
-    #         dy = Y[i] - beam_yc
-    #         ang = math.radians(PHI[i])
-
-    #         DX.append(dx)
-    #         DY.append(dy)
-    #         ANG.append(ang)
-
-    #     for i in range(n_points):
-    #         y0 = DY[i]
-    #         ang0 = ANG[i]
-    #         if i < (n_points - 1):
-    #             y1 = DY[i + 1]
-    #             ang1 = ANG[i + 1]
-    #         else:
-    #             y1 = DY[0]
-    #             ang1 = ANG[0]
-
-    #         p = (y0 * math.sin(ang1) - y1 * math.sin(ang0)) / math.sin(ang1 - ang0)
-    #         q = (y0 * math.cos(ang1) - y1 * math.cos(ang0)) / math.sin(ang1 - ang0)
-
-    #         P.append(p)
-    #         Q.append(q)
-
-    #     x_s = -sum(Q) / n_points
-    #     y_s = sum(P) / n_points
-    #     z_s = sum(DX) / n_points
-
-    #     x_d_mm = x_s / self.pixels_per_mm_y
-    #     y_d_mm = y_s / self.pixels_per_mm_y
-    #     z_d_mm = z_s / self.pixels_per_mm_x
-
-    #     x_d = self.centring_sampx.mm_to_units(x_d_mm)
-    #     y_d = self.centring_sampy.mm_to_units(y_d_mm)
-    #     z_d = self.centring_phiy.mm_to_units(z_d_mm)
-
-    #     sampx_mot = self.centring_sampx.motor
-    #     sampy_mot = self.centring_sampy.motor
-    #     phiy_mot = self.centring_phiy.motor
-
-    #     x_pos = sampx_mot.get_value() + x_d
-    #     y_pos = sampy_mot.get_value() + y_d
-    #     z_pos = phiy_mot.get_value() + z_d
-
-    #     motor_positions["phiy"] = z_pos
-    #     motor_positions["sampx"] = x_pos
-    #     motor_positions["sampy"] = y_pos
-    #     return motor_positions
-
     def circle_model(self, angles, c, r, alpha):
         return c + r * np.cos(angles - alpha)
 
     def circle_model_residual(self, parameters, angles, data):
         c, r, alpha = parameters
         model = self.circle_model(angles, c, r, alpha)
-        # return 1./(2*len(model)) * np.sum(np.sum(np.abs(data - model)**2))
         return self.cost(data, model, normalize=True)
 
     def circle_model_residual2(self, parameters, angles, data):
@@ -1030,11 +760,9 @@ class P11NanoDiff(GenericDiffractometer):
         logging.getLogger("user_level_log").info("starting manual centring")
         _start = time.time()
         result_position = {}
-        #self.goniometer.insert_backlight()
-        #self.goniometer.extract_frontlight()
 
 
-        reference_position = self.get_positions() #self.goniometer.get_aligned_position()
+        reference_position = self.get_positions()
 
         vertical_clicks = []
         horizontal_clicks = []
@@ -1064,8 +792,7 @@ class P11NanoDiff(GenericDiffractometer):
             self.user_clicked_event = gevent.event.AsyncResult()
             x, y = self.user_clicked_event.get()
             image = HWR.beamline.sample_view.camera.get_last_jpeg()
-            calibration = np.array([1./self.pixels_per_mm_y, 1./self.pixels_per_mm_x]) #self.camera.get_calibration()
-            #omega = self.goniometer.get_omega_position()
+            calibration = np.array([1./self.pixels_per_mm_y, 1./self.pixels_per_mm_x])
             omega = self.centring_phi.motor.get_value()
 
             vertical_clicks.append(y)
@@ -1085,74 +812,48 @@ class P11NanoDiff(GenericDiffractometer):
 
             if k <= n_clicks:
                 self.centring_phi.set_value(omega+step)
-                # self.goniometer.set_position({"Omega": omega + step})
 
         end_clicks = time.time()
 
         name_pattern = "%s_%s" % (os.getuid(), time.asctime().replace(" ", "_"))
         directory = "%s/manual_optical_alignment" % os.getenv("HOME")
 
-        # save_history_command = "history_saver.py -s %.2f -e %.2f -d %s -n %s &" % (
-        #     start_clicks,
-        #     end_clicks,
-        #     directory,
-        #     name_pattern,
-        # )
-        #
-        # self.log.info("save_history_command: %s" % save_history_command)
-        # os.system(save_history_command)
-
         vertical_discplacements = np.array(vertical_discplacements) * 1.0e3
 
         angles = np.radians(omegas)
 
-        if self.get_current_centring_method() != CENTRING_METHOD.REFRACTIVE:
-            initial_parameters = [4.0, 25.0, 0.05]
-            fit_y = minimize(
-                self.circle_model_residual,
-                initial_parameters,
-                method="nelder-mead",
-                args=(angles, vertical_discplacements),
-            )
+        initial_parameters = lmfit.Parameters()
+        initial_parameters.add_many(
+            ("c", 0.0, True, -5e3, +5e3, None, None),
+            ("r", 0.0, True, 0.0, 4e3, None, None),
+            ("alpha", -np.pi / 3, True, -2 * np.pi, 2 * np.pi, None, None),
+            ("front", 0.01, True, 0.0, 1.0, None, None),
+            ("back", 0.005, True, 0.0, 1.0, None, None),
+            ("n", 1.31, True, 1.29, 1.33, None, None),
+            ("beta", 0.0, True, -2 * np.pi, +2 * np.pi, None, None),
+        )
 
-            c, r, alpha = fit_y.x
-            c *= 1e-3
-            r *= 1.0e-3
-            v = {"c": c, "r": r, "alpha": alpha}
+        fit_y = lmfit.minimize(
+            self.refractive_model_residual,
+            initial_parameters,
+            method="nelder",
+            args=(angles, vertical_discplacements),
+        )
 
-        else:
-            initial_parameters = lmfit.Parameters()
-            initial_parameters.add_many(
-                ("c", 0.0, True, -5e3, +5e3, None, None),
-                ("r", 0.0, True, 0.0, 4e3, None, None),
-                ("alpha", -np.pi / 3, True, -2 * np.pi, 2 * np.pi, None, None),
-                ("front", 0.01, True, 0.0, 1.0, None, None),
-                ("back", 0.005, True, 0.0, 1.0, None, None),
-                ("n", 1.31, True, 1.29, 1.33, None, None),
-                ("beta", 0.0, True, -2 * np.pi, +2 * np.pi, None, None),
-            )
+        optimal_params = fit_y.params
+        v = optimal_params.valuesdict()
+        c = v["c"]
+        r = v["r"]
+        alpha = v["alpha"]
+        front = v["front"]
+        back = v["back"]
+        n = v["n"]
+        beta = v["beta"]
 
-            fit_y = lmfit.minimize(
-                self.refractive_model_residual,
-                initial_parameters,
-                method="nelder",
-                args=(angles, vertical_discplacements),
-            )
-            self.log.info(fit_report(fit_y))
-            optimal_params = fit_y.params
-            v = optimal_params.valuesdict()
-            c = v["c"]
-            r = v["r"]
-            alpha = v["alpha"]
-            front = v["front"]
-            back = v["back"]
-            n = v["n"]
-            beta = v["beta"]
-
-            c *= 1.0e-3
-            r *= 1.0e-3
-            front *= 1.0e-3
-            back *= 1.0e-3
+        c *= 1.0e-3
+        r *= 1.0e-3
+        front *= 1.0e-3
+        back *= 1.0e-3
 
         horizontal_center = np.mean(horizontal_displacements)
 
@@ -1199,12 +900,6 @@ class P11NanoDiff(GenericDiffractometer):
         if not os.path.isdir(directory):
             os.makedirs(directory)
 
-        # images_filename = "%s_images.h5" % template
-        # images_file = h5py.File(images_filename, "w")
-        # images_file.create_dataset(
-        #     "images", data=np.array(images), compression="lzf", dtype=np.uint8
-        # )
-        # images_file.close()
 
         clicks_filename = "%s_clicks.pickle" % template
         f = open(clicks_filename, "wb")
@@ -1841,7 +1536,7 @@ class P11NanoDiff(GenericDiffractometer):
             motor_hwobj = self.motor_hwobj_dict.get(motor)
             if None in (motor_hwobj, position):
                 continue
-            motor_hwobj.set_value(position)
+            motor_hwobj.set_value(position, timeout=None)
         gevent.sleep(0.1)
         self.wait_device_ready(timeout)
         self.log.debug(f"  translation movements DONE")
@@ -1857,7 +1552,7 @@ class P11NanoDiff(GenericDiffractometer):
             motor_hwobj = self.motor_hwobj_dict.get(motor)
             if None in (motor_hwobj, position):
                 continue
-            motor_hwobj.set_value(position)
+            motor_hwobj.set_value(position, timeout=None)
         gevent.sleep(0.1)
         self.wait_device_ready(timeout)
         self.log.debug(f"  alignment movements DONE")
@@ -1869,7 +1564,7 @@ class P11NanoDiff(GenericDiffractometer):
             if None not in (motor_hwobj, position):
                 if abs(motor_hwobj.get_value() - position) > 1.e-4:
                     
-                    motor_hwobj.set_value(position)
+                    motor_hwobj.set_value(position, timeout=None)
                     gevent.sleep(0.1)
                     
             self.log.debug("   phi move DONE")
