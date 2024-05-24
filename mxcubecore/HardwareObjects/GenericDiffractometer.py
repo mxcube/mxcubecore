@@ -836,7 +836,7 @@ class GenericDiffractometer(HardwareObject):
             self.reject_centring()
 
     def start_manual_centring(self, sample_info=None, wait_result=None):
-        self.emit_progress_message("Manual 3 click centring...")
+        self.emit_progress_message("%s centring..." % self.CENTRING_METHOD_MANUAL)
         if self.use_sample_centring:
             self.current_centring_procedure = sample_centring.start(
                 {
