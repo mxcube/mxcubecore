@@ -60,11 +60,11 @@ class P11NanoDiff(GenericDiffractometer):
     Descript. :
     """
 
-    def __init__(self, *args):
+    def __init__(self, name):
         """
         Descript. :
         """
-        GenericDiffractometer.__init__(self, *args)
+        super().__init__(name)
 
         self.PHASE_STATES = PhaseStates
 
