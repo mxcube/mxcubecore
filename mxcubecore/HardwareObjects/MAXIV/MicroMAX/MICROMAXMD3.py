@@ -182,7 +182,9 @@ class MICROMAXMD3(MAXIVMD3):
             self.channel_dict[name].set_value(pos_name)
             self.wait_device_ready(DEFAULT_PHASE_TIMEOUT)
         except Exception as ex:
-            error_msg = "[MICROMAXMD3] Error while moving {} to {}, {}".format(motor_name, pos_name, ex)
-            raise Exception("")
+            error_msg = "[MICROMAXMD3] Error while moving {} to {}, {}".format(
+                motor_name, pos_name, ex
+            )
             logging.getLogger("HWR").error(error_msg)
+            raise
 

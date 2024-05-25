@@ -201,7 +201,8 @@ class MICROMAXMD3Injector(MICROMAXMD3):
                 self.switch_front_light('IN')
 
             if phase== "BeamLocation":
-                self.set_organ_pos("alignmentTable", "CLEAR_SCINTILLATOR")
+                self.phiz_motor_hwobj.set_value(5)
+                self.wait_device_ready(DEFAULT_PHASE_TIMEOUT)
                 # move scintillator
                 self.focus_motor_hwobj.set_value(2)
                 self.wait_device_ready(DEFAULT_PHASE_TIMEOUT)
