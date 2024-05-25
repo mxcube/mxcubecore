@@ -27,9 +27,11 @@ from mxcubecore.HardwareObjects.abstract.AbstractNState import BaseValueEnum
 redis_flag = False
 try:
     import redis
+
     redis_flag = True
 except:
-    print('impossible to import redis')
+    print("impossible to import redis")
+
 
 class P11Zoom(AbstractNState):
     def __init__(self, name):
@@ -45,9 +47,9 @@ class P11Zoom(AbstractNState):
         self._pixels_per_mm = self.get_property("pixels_per_mm")
         self._overview_pixels_per_mm = self.get_property("overview_pixels_per_mm")
         self.camera_hwobj = self.get_object_by_role("camera")
-        
+
         self.connect(self.camera_hwobj, "zoomChanged", self.zoom_value_changed)
-       
+
         if self.camera_hwobj is None:
             self.log.debug("P11Zoom.py - cannot connect to camera hardware object")
 
@@ -64,7 +66,6 @@ class P11Zoom(AbstractNState):
 
     def get_value(self):
         return self.get_zoom()
-
 
     def _set_value(self, value):
         self.set_zoom(value)
@@ -85,8 +86,8 @@ class P11Zoom(AbstractNState):
         pixels_per_mm = [int(px_per_mm * scale), int(px_per_mm * scale)]
 
         if redis_flag:
-            print('saving calibration to redis', pixels_per_mm)
-            self.redis.set('pixels_per_mm', str(pixels_per_mm))
+            print("saving calibration to redis", pixels_per_mm)
+            self.redis.set("pixels_per_mm", str(pixels_per_mm))
 
         return pixels_per_mm
 
@@ -108,11 +109,11 @@ class P11Zoom(AbstractNState):
         return self.closest_zoom, self.get_zoom()
 
     def zoom_value_changed(self, value):
-        print('zoom_value_changed')
+        print("zoom_value_changed")
         self.current_value = value
         self.update_value(value)
         self.update_zoom()
-        #self.get_pixels_per_mm()
+        # self.get_pixels_per_mm()
 
     def update_zoom(self):
 
@@ -134,5 +135,3 @@ class P11Zoom(AbstractNState):
             self.emit("predefinedPositionChanged", (self.closest_zoom, value))
         else:
             self.emit("predefinedPositionChanged", (None, None))
-
-
