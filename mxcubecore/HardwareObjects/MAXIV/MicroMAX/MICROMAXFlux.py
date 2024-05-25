@@ -4,7 +4,7 @@ import numpy as np
 import logging
 import time
 import gevent
-
+import tango
 
 
 class MICROMAXFlux(AbstractFlux):
@@ -33,7 +33,7 @@ class MICROMAXFlux(AbstractFlux):
         self.air_model = np.array(self.air_coeff)
 
         self.e = 1.6022e-16
-        self.al_length = 1
+        self.al_thickness = 1632 # um
         self.airsample_length = 0
         self.detdiode_length = 45.
 
@@ -46,35 +46,23 @@ class MICROMAXFlux(AbstractFlux):
         self.shutter_hwobj = None
         self.shutter_state = None
         self.timeout = 10
-        self.ori_motors = None
-        self.ori_phase = None
 
         self.current_flux = 0.0
         self.flux_density = -1.0
         self.flux_density_energy = 0.0
         self.channel_value = 0.0
-        self.check_beam_result = False
-        self.flux_aem = None
-        self.flux_aem_dev = None
+
+        self.opt_diode = {}
+        self.diode = {}
+        self.det_mot = {}
 
     def init(self):
         self.logger = logging.getLogger("HWR")
         
-        self.cmd_macro = self.getCommandObject('calculate_flux_mxcube')
-        self.cmd_macro.connectSignal('macroResultUpdated', self.macro_finished)
-
-        self.check_beam_macro = self.getCommandObject('checkbeam')
-        # is the following really needed? mmm...
-        self.check_beam_macro.connectSignal('macroResultUpdated', self.macro_finished)
-        self.energy_hwobj = self.getObjectByRole('energy')
-        self.connect(self.energy_hwobj, "energyChanged", \
-             self.energy_changed)
+        self.energy_hwobj = self.get_object_by_role('energy')
         self.detector_hwobj = HWR.beamline.detector
-        self.detector_distance_hwobj = HWR.beamline.detector.distance
-        self.detector_cover_hwobj = self.getObjectByRole("detector_cover")
-        self.diffractometer_hwobj = HWR.beamline.diffractometer_hwobj
-        self.beam_info_hwobj = self.getObjectByRole("beam_info")
-
+        self.diffractometer_hwobj = HWR.beamline.diffractometer
+        self.beam_info_hwobj = self.get_object_by_role("beam_info")
         self.energy_mot = tango.DeviceProxy('pseudomotor/mono_energy_ctrl/1')
         self.opt_diode["ch1"] = tango.DeviceProxy("expchan/albaem_ctrl_02/2")
         self.opt_diode["ch2"] = tango.DeviceProxy("expchan/albaem_ctrl_02/3")
@@ -90,41 +78,10 @@ class MICROMAXFlux(AbstractFlux):
         return self.current_flux
 
     def get_instant_flux(self):
-        """
-        calculate the current flux, complete version
-         1. Close fast shutter
-         4. Set MD3 phase and beamstop and motor positions
-         5. Ensure detector cover is closed
-         6. Measure flux value (sardana macro call and some math)
-         7. Put MD3 back to normal position
-        """
-
-        try:
-            self.diffractometer_hwobj.close_fast_shutter()
-            self.logger.info("Fast shutter closed!")
-        except Exception as ex:
-            self.logger.error("Cannot close fast shutter! %s", str(ex))
-            return
-
-        # set MD3 phase
-        try:
-            self.ori_motors, self.ori_phase = self.diffractometer_hwobj.set_calculate_flux_phase()
-        except Exception as ex:
-            self.logger.error("Cannot set MD3 phase for flux calculatio! %s", str(ex))
-            return
-
-        # check detector cover is closed
-        try:
-            if self.detector_cover_hwobj.readShutterState() == 'opened':
-                logging.getLogger("HWR").info("Closing the detector cover")
-                self.detector_cover_hwobj.closeShutter()
-        except:
-            logging.getLogger("HWR").exception("Could not close the detector cover")
-            return
 
         # get_instant_flux
         try:
-            self.current_flux = self.get_instant_flux()
+            self.current_flux = self._get_instant_flux()
         except Exception as ex:
             self.logger.error("ERROR acquiring! %s", str(ex))
 
@@ -134,7 +91,6 @@ class MICROMAXFlux(AbstractFlux):
         except Exception as ex:
             self.logger.error("Cannot close fast shutter! %s", str(ex))
 
-        self.diffractometer_hwobj.finish_calculate_flux(self.ori_motors, self.ori_phase)
 
     def wait_safety_shutter_open(self):
         with gevent.Timeout(10, RuntimeError('Timeout waiting for safety shutter open')):
@@ -160,67 +116,43 @@ class MICROMAXFlux(AbstractFlux):
         flux = current / spectra_resp / (1.6e-19 * energy)
         air_transmission = self.transmit(dist * 1000.0, energy / 1000.0, self.air_coeff)
         al_transmission = self.transmit(self.al_thickness, energy / 1000.0, self.al_coeff)
-        print("Air transmission is {}".format(air_transmission))
+        print("Air transmission is {} al_transmission is {}".format(air_transmission, al_transmission))
         full_flux = flux / air_transmission
         return full_flux
 
 
-    def _get_instant_flux(self, scale=1.0, adjust_atten = 1):
+    def calc_flux(self):
         """
-        calculate the current flux, a simpler and faster version
-         - assuming safety shutter is open
-         - no check of beam stability   
+        det can be "jungfrau" or "eiger"
         """
-        energy = self.energy_hwobj.getCurrentEnergy()
-
-        self.logger.info("Start to measure flux")
-        try:
-            # measure dark current, no need to adjust attenuation
-            self.acquire(adjust_atten = 0)
-            current_offset = self.channel_value
-        except Exception as ex:
-            self.logger.error("ERROR reading offset! %s", str(ex))
-            return -101
-
-        self.logger.info("Current Offset: {}".format(current_offset))
-
-        try:
-            self.diffractometer_hwobj.open_fast_shutter()
-            self.wait_fast_shutter_open()
-            self.logger.info("Fast shutter opened!")
-        except Exception as ex:
-            self.logger.error("Cannot open fast shutter! %s", str(ex))
-            return -102
-
-        time.sleep(2)
-
-        try:
-            self.acquire(adjust_atten = adjust_atten)
-        except Exception as ex:
-            self.logger.error("ERROR Acquiring! %s", str(ex))
-            self.diffractometer_hwobj.close_fast_shutter()
-            return -103
-        self.diffractometer_hwobj.close_fast_shutter()
-        current_meas = self.channel_value
-        self.logger.info("Current Measurement: {}".format(current_meas))
-
-        current = current_meas - current_offset
-
-        air_length = self.detector_distance_hwobj.getPosition() * 1000 + \
-            self.airsample_length
-        total_transmission = self.transmit(self.al_length, energy, self.al_model) *\
-            self.transmit(air_length, energy, self.air_model)
-
-        sipha_absorp = 1 - self.transmit(self.detdiode_length, energy, self.sipha_model)
-
-        flux = self.si_diode_flux(current, total_transmission, sipha_absorp, energy)
-
-        if flux < 0: flux = 0
-        # multiply the flux value by 1000 due to some issue with AlbaEM
-        flux = flux * 1000 * scale
-        if flux < 50000000:
-            flux = 0
-        self.current_flux = "{:.2E}".format(flux)
-        self.flux_value_changed()
-        self.logger.info("Flux Measurement: {}".format(flux))
+        energy_ev = self.energy_hwobj.get_current_energy() * 1000.0
+        tmp = self.detector_hwobj.get_property("model")
+        det = tmp.lower()
+        det_dist = self.det_mot[det].Position
+        current = self.diode[det].InstantCurrent
+        """
+        energy_ev = 12500
+        current = 6.70E-04
+        det_dist = 900
+        """
+        flux = self._calc_flux(energy_ev, det_dist, current)
+        print("Current on the detector photodiode is {}".format(current))
         return flux
+
+    def check_beam_opt(self):
+        energy_ev = self.energy_hwobj.get_current_energy() *1000.0
+        msg = ""
+        total = 0.0
+        for i in range(1,5):
+            ch_id = "ch{}".format(i)
+            current = self.opt_diode[ch_id].InstantCurrent
+            msg += " {} {},".format(ch_id, current)
+            total+= current
+        flux = total * ( -0.534515 * energy_ev * energy_ev * energy_ev * energy_ev - \
+               43197.6 * energy_ev * energy_ev * energy_ev + 5.13449e+09 * energy_ev * energy_ev \
+               - 4.39169e+13 * energy_ev + 1.14591e+17)
+        final_msg = "The currents on b312a-o06-ctl-aemhv-01 are {} sum value is {}".format(msg, total)
+        print(final_msg)
+        print("Estimated flux is {:.2e} ph/s".format(flux))
+        return final_msg, flux
+
