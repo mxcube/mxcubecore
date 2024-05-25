@@ -46,9 +46,8 @@ from mxcubecore.TaskUtils import task
 from tango import DeviceProxy
 
 sys.path.insert(1, "/gpfs/local/shared/MXCuBE/murko")
-from murko import (
-    get_predictions, plot_analysis
-)  
+from murko import get_predictions, plot_analysis
+
 
 @unique
 class PhaseStates(Enum):
@@ -201,9 +200,7 @@ class P11NanoDiff(GenericDiffractometer):
     def predict_click_pix(self, frame):
 
         request_arguments = {}
-        request_arguments[
-            "to_predict"
-        ] = frame
+        request_arguments["to_predict"] = frame
         image_jpeg = request_arguments["to_predict"]
         image_jpeg = simplejpeg.decode_jpeg(image_jpeg)
         request_arguments["description"] = [
@@ -220,7 +217,7 @@ class P11NanoDiff(GenericDiffractometer):
 
         # Select here the host and port where murko server is running
         analysis = get_predictions(request_arguments, host="max-p3a018", port=23475)
-        
+
         original_image_shape = analysis["original_image_shape"]
         sizeOfPictureY, sizeOfPictureX = original_image_shape[:2]
         description = analysis["descriptions"][0]
@@ -256,11 +253,7 @@ class P11NanoDiff(GenericDiffractometer):
         directory = "%s/murko" % os.getenv("HOME")
 
         template = os.path.join(directory, name_pattern)
-        plot_analysis(
-            [image_jpeg],
-            analysis,
-            image_paths=[template],
-        )
+        plot_analysis([image_jpeg], analysis, image_paths=[template])
 
         return h, v
 
@@ -270,10 +263,10 @@ class P11NanoDiff(GenericDiffractometer):
         self.log.debug("Automatic 3 click centring")
         self.emit_progress_message("AI centring. Please wait...")
 
-        # Define Zoom: temporary disable for now. 
-        #It will use whatewer the zoo is selected.
-        #zoom_hwobj = self.motor_hwobj_dict["zoom"]
-        #zoom_hwobj.camera_hwobj.set_zoom(zoom)
+        # Define Zoom: temporary disable for now.
+        # It will use whatewer the zoo is selected.
+        # zoom_hwobj = self.motor_hwobj_dict["zoom"]
+        # zoom_hwobj.camera_hwobj.set_zoom(zoom)
 
         motor_pos = self.automatic_ai_centring()
         self.move_to_centred_position(motor_pos)
@@ -332,7 +325,6 @@ class P11NanoDiff(GenericDiffractometer):
         self.current_centring_procedure = gevent.spawn(self.auto_ai_routine, 0)
         self.current_centring_procedure.link(self.centring_done)
 
-
     def automatic_ai_centring(
         self,
         n_clicks=3,
@@ -342,18 +334,14 @@ class P11NanoDiff(GenericDiffractometer):
         centringy_direction=1.0,
     ):
         """Automatic centring procedure"""
-        self.log.debug(
-            "** Autocentering with murko is started **"
-        )
+        self.log.debug("** Autocentering with murko is started **")
 
         self.current_centring_method == GenericDiffractometer.CENTRING_METHOD_AUTO
         logging.getLogger("user_level_log").info("starting AI centring")
         _start = time.time()
         result_position = {}
 
-        reference_position = (
-            self.get_positions()
-        )
+        reference_position = self.get_positions()
 
         vertical_clicks = []
         horizontal_clicks = []
@@ -413,13 +401,12 @@ class P11NanoDiff(GenericDiffractometer):
             dev_gonio = DeviceProxy("p11/servomotor/eh.1.01")
             if k <= n_clicks:
                 while str(dev_gonio.State()) != "ON":
-                   time.sleep(0.1)
+                    time.sleep(0.1)
                 self.centring_phi.set_value(omega + step)
 
                 while str(dev_gonio.State()) != "ON":
                     time.sleep(0.1)
 
-      
         vertical_discplacements = np.array(vertical_discplacements) * 1.0e3
         angles = np.radians(omegas)
 
@@ -495,7 +482,6 @@ class P11NanoDiff(GenericDiffractometer):
             "move_vector_dictionary": move_vector_dictionary,
         }
 
-
         name_pattern = "%s_%s" % (os.getuid(), time.asctime().replace(" ", "_"))
         directory = "%s/manual_optical_alignment" % os.getenv("HOME")
 
@@ -509,9 +495,7 @@ class P11NanoDiff(GenericDiffractometer):
         pickle.dump(results, f)
         f.close()
 
-        self.log.info(
-            "AI finished in %.3f seconds" % (time.time() - _start)
-        )
+        self.log.info("AI finished in %.3f seconds" % (time.time() - _start))
 
         result_position = {}
         result_position["phi"] = reference_position["phi"]
@@ -551,7 +535,6 @@ class P11NanoDiff(GenericDiffractometer):
         Descript. :
         """
         return
-        
 
     def refresh_omega_reference_position(self):
         """
