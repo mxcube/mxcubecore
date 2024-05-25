@@ -45,6 +45,15 @@ class PrepareOpenHutch:
             log.exception(f"Error preparing to open hutch.\nError was: '{str(ex)}'")
 
 
+class MeasureFlux:
+    def __call__(self, *args, **kw):
+        """
+        calculate flux at sample position
+        """
+        flux_at_sample = HWR.beamline.collect.get_instant_flux()
+        log.info(f"Flux at sample position is {flux_at_sample:.2e} ph/s")
+
+
 class CloseDetectorCover:
     def __call__(self, *args, **kw):
         """
