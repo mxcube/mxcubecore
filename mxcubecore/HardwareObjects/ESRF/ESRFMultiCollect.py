@@ -320,27 +320,25 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def prepare_input_files(
         self, files_directory, prefix, run_number, process_directory
     ):
-        i = 1
 
-        while True:
-            xds_input_file_dirname = "xds_%s_run%s_%d" % (prefix, run_number, i)
-            autoprocessing_input_file_dirname = "autoprocessing_%s_run%s_%d" % (
-                prefix,
-                run_number,
-                i,
-            )
+        autoprocessing_input_file_dirname = "autoprocessing"
+        autoprocessing_directory = os.path.join(
+            process_directory, autoprocessing_input_file_dirname
+        )
+        xds_input_file_dirname = "xds_%s_run%s" % (prefix, run_number,)
+        mosflm_input_file_dirname = "mosflm_%s_run%s" % (prefix, run_number)
+        hkl2000_dirname = "hkl2000_%s_run%s" % (prefix, run_number)
+
+        i = 1
+        while os.path.exists(autoprocessing_directory):
+            autoprocessing_input_file_dirname = "autoprocessing_%d" % i
             autoprocessing_directory = os.path.join(
                 process_directory, autoprocessing_input_file_dirname
             )
-
-            if not os.path.exists(autoprocessing_directory):
-                break
-
+            xds_input_file_dirname = "xds_%s_run%s_%d" % (prefix, run_number, i)
+            mosflm_input_file_dirname = "mosflm_%s_run%s_%d" % (prefix, run_number, i)
+            hkl2000_dirname = "hkl2000_%s_run%s_%d" % (prefix, run_number, i)
             i += 1
-
-        mosflm_input_file_dirname = "mosflm_%s_run%s_%d" % (prefix, run_number, i)
-
-        hkl2000_dirname = "hkl2000_%s_run%s_%d" % (prefix, run_number, i)
 
         self.raw_data_input_file_dir = os.path.join(
             files_directory, "process", xds_input_file_dirname
