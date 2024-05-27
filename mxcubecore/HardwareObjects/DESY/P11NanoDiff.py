@@ -220,13 +220,16 @@ class P11NanoDiff(GenericDiffractometer):
         _start = time.time()
 
         # Select here the host and port where murko server is running
-        analysis = get_predictions(request_arguments, host="max-p3a018", port=23475)
+        murko_host = os.getenv("MURKO_HOST")
+        murko_port = int(os.getenv("MURKO_PORT"))
+        analysis = get_predictions(request_arguments, host=murko_host, port=murko_port)
 
         original_image_shape = analysis["original_image_shape"]
         sizeOfPictureY, sizeOfPictureX = original_image_shape[:2]
         description = analysis["descriptions"][0]
-        self.log.debug("Client got all predictions in %.4f seconds" %
-                       (time.time() - _start))
+        self.log.debug(
+            "Client got all predictions in %.4f seconds" % (time.time() - _start)
+        )
         anything_in_the_picture = description["present"]
 
         if anything_in_the_picture:
@@ -340,7 +343,7 @@ class P11NanoDiff(GenericDiffractometer):
         self.log.debug("** Autocentering with murko is started **")
 
         self.current_centring_method == GenericDiffractometer.CENTRING_METHOD_AUTO
-        logging.getLogger("user_level_log").info("starting AI centring")
+        logging.getLogger("user_level_log").info("Starting AI centring")
         _start = time.time()
         result_position = {}
 
@@ -366,18 +369,14 @@ class P11NanoDiff(GenericDiffractometer):
         else:
             step = 360.0 / (n_clicks)
 
-        logging.getLogger("user_level_log").info("default centring step %.2f" % (step))
+        logging.getLogger("user_level_log").info("Default centring step %.2f" % (step))
 
         for k in range(n_clicks):
             image = HWR.beamline.sample_view.camera.last_jpeg
             x_click, y_click = self.predict_click_pix(image)
-           
-            # # Small = 680, 512 (if overlay=True)
-            # x, y =  x_click, y_click
 
-            # Full size= 2264, 1824
-            x = x_click * 680
-            y = y_click * 512
+            x = x_click * int(os.getenv("MURKO_SIZEX"))
+            y = y_click * int(os.getenv("MURKO_SIZEY"))
 
             calibration = np.array(
                 [1.0 / self.pixels_per_mm_y, 1.0 / self.pixels_per_mm_x]
@@ -689,7 +688,7 @@ class P11NanoDiff(GenericDiffractometer):
         """
         Descript. :
         """
-        logging.getLogger("user_level_log").info("starting manual centring")
+        logging.getLogger("user_level_log").info("Starting manual centring")
         _start = time.time()
         result_position = {}
 
@@ -707,7 +706,7 @@ class P11NanoDiff(GenericDiffractometer):
             n_clicks = self.nclicks
 
         logging.getLogger("user_level_log").info(
-            "expected number of clicks %d" % (n_clicks)
+            "Expected number of clicks %d" % (n_clicks)
         )
 
         if self.step is not None:
@@ -715,9 +714,7 @@ class P11NanoDiff(GenericDiffractometer):
         else:
             step = 360.0 / (n_clicks)
 
-        logging.getLogger("user_level_log").info("default centring step %.2f" % (step))
-
-        start_clicks = time.time()
+        logging.getLogger("user_level_log").info("Default centring step %.2f" % (step))
 
         for k in range(n_clicks):
             self.user_clicked_event = gevent.event.AsyncResult()
@@ -745,8 +742,6 @@ class P11NanoDiff(GenericDiffractometer):
 
             if k <= n_clicks:
                 self.centring_phi.set_value(omega + step)
-
-        end_clicks = time.time()
 
         name_pattern = "%s_%s" % (os.getuid(), time.asctime().replace(" ", "_"))
         directory = "%s/manual_optical_alignment" % os.getenv("HOME")
