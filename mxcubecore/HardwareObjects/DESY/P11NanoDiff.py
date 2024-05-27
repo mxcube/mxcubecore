@@ -371,10 +371,7 @@ class P11NanoDiff(GenericDiffractometer):
         for k in range(n_clicks):
             image = HWR.beamline.sample_view.camera.last_jpeg
             x_click, y_click = self.predict_click_pix(image)
-            self.log.debug(
-                "Most probable click at the pixel coordinates:", x_click, y_click)
-            self.log.debug("Current run time %.4f seconds" % (time.time() - _start))
-
+           
             # # Small = 680, 512 (if overlay=True)
             # x, y =  x_click, y_click
 
