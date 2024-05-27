@@ -221,29 +221,30 @@ class P11NanoDiff(GenericDiffractometer):
         original_image_shape = analysis["original_image_shape"]
         sizeOfPictureY, sizeOfPictureX = original_image_shape[:2]
         description = analysis["descriptions"][0]
-        print("Client got all predictions in %.4f seconds" % (time.time() - _start))
+        self.log.debug("Client got all predictions in %.4f seconds" %
+                       (time.time() - _start))
         anything_in_the_picture = description["present"]
 
         if anything_in_the_picture == 1:
             loop_present, r, c, h, w = description["aoi_bbox"]
             if loop_present:
-                print(
+                self.log.debug(
                     "Loop found! Its bounding box parameters in fractional coordianates are: center (vertical %.3f, horizontal %.3f), height %.3f, width %.3f"
                     % (r, c, h, w)
                 )
             else:
-                print("loop not found !")
+                self.log.debug("loop not found !")
 
             most_likely_click = description["most_likely_click"]
 
             v, h = most_likely_click
-            print(
+            self.log.debug(
                 "Most likely click in fractional coordinates: (vertical %.3f, horizontal %.3f)"
                 % (v, h)
             )
 
         else:
-            print("Loop not found. Click to the center.")
+            self.log.debug("Loop not found. Click to the center.")
 
             v = 0.5
             h = 0.5
@@ -264,7 +265,7 @@ class P11NanoDiff(GenericDiffractometer):
         self.emit_progress_message("AI centring. Please wait...")
 
         # Define Zoom: temporary disable for now.
-        # It will use whatewer the zoo is selected.
+        # It will use whatewer zoom is selected.
         # zoom_hwobj = self.motor_hwobj_dict["zoom"]
         # zoom_hwobj.camera_hwobj.set_zoom(zoom)
 
@@ -368,8 +369,9 @@ class P11NanoDiff(GenericDiffractometer):
         for k in range(n_clicks):
             image = HWR.beamline.sample_view.camera.last_jpeg
             x_click, y_click = self.predict_click_pix(image)
-            print("Most probable click at the pixel coordinates:", x_click, y_click)
-            print("Current run time %.4f seconds" % (time.time() - _start))
+            self.log.debug(
+                "Most probable click at the pixel coordinates:", x_click, y_click)
+            self.log.debug("Current run time %.4f seconds" % (time.time() - _start))
 
             # # Small = 680, 512 (if overlay=True)
             # x, y =  x_click, y_click
@@ -1218,7 +1220,7 @@ class P11NanoDiff(GenericDiffractometer):
 
         # If the pinhole is Down set pinhole to 200
         if self.pinhole_hwobj.get_position() == "Down":
-            print("Pinhole is down. Setting pinhole to 200.")
+            self.log.debug("Pinhole is down. Setting pinhole to 200.")
             self.pinhole_hwobj.set_position("200")
 
         # restore pinhole position is the role of save / restore at mounting
