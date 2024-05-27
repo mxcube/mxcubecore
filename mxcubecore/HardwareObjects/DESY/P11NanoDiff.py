@@ -18,6 +18,7 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
+from murko import get_predictions, plot_analysis
 __copyright__ = """ Copyright © 2010 - 2024 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 import logging
@@ -46,7 +47,6 @@ from mxcubecore.TaskUtils import task
 from tango import DeviceProxy
 
 sys.path.insert(1, "/gpfs/local/shared/MXCuBE/murko")
-from murko import get_predictions, plot_analysis
 
 
 @unique
@@ -366,7 +366,7 @@ class P11NanoDiff(GenericDiffractometer):
         logging.getLogger("user_level_log").info("default centring step %.2f" % (step))
 
         for k in range(n_clicks):
-            image = HWR.beamline.sample_view.camera.get_last_jpeg()
+            image = HWR.beamline.sample_view.camera.last_jpeg
             x_click, y_click = self.predict_click_pix(image)
             print("Most probable click at the pixel coordinates:", x_click, y_click)
             print("Current run time %.4f seconds" % (time.time() - _start))
@@ -721,7 +721,7 @@ class P11NanoDiff(GenericDiffractometer):
         for k in range(n_clicks):
             self.user_clicked_event = gevent.event.AsyncResult()
             x, y = self.user_clicked_event.get()
-            image = HWR.beamline.sample_view.camera.get_last_jpeg()
+            image = HWR.beamline.sample_view.camera.last_jpeg
             calibration = np.array(
                 [1.0 / self.pixels_per_mm_y, 1.0 / self.pixels_per_mm_x]
             )

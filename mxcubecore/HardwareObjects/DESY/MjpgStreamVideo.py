@@ -938,9 +938,6 @@ class MjpgStreamVideo(AbstractVideoDevice, Device):
             return QImage.fromData(image).mirrored(fliph, flipv)
         return None
 
-    def get_last_jpeg(self):
-        return self.last_jpeg
-
     def refresh_video(self):
         """
         Descript. : reads new image into member variable, scales it and emits
