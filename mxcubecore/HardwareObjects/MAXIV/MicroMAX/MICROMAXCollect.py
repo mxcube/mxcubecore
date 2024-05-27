@@ -1398,7 +1398,7 @@ class MICROMAXCollect(DataCollect):
             flux = -1
         return flux
 
-    def get_instant_flux(self, keep_position=False):
+    def get_instant_flux(self, keep_position=True):
         """
         Descript. : get the instant flux value, w/o checking beamstability
         this method assuming that the MD3 is already in datacollection phase
