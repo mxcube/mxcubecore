@@ -18,35 +18,39 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-from murko import get_predictions, plot_analysis
 __copyright__ = """ Copyright © 2010 - 2024 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
-import logging
-import sys
-import os
-import math
-import time
-import gevent
-import sample_centring
-import numpy as np
-import simplejpeg
-import lmfit
-import pickle
-from enum import Enum, unique
 
-if sys.version_info[0] >= 3:
-    unicode = str
 
-from mxcubecore import HardwareRepository as HWR
-from mxcubecore.BaseHardwareObjects import HardwareObjectState
+from tango import DeviceProxy
+from mxcubecore.TaskUtils import task
 from mxcubecore.HardwareObjects.GenericDiffractometer import (
     DiffractometerState,
     GenericDiffractometer,
 )
-from mxcubecore.TaskUtils import task
-from tango import DeviceProxy
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
+from mxcubecore import HardwareRepository as HWR
+from enum import Enum, unique
+import pickle
+import lmfit
+import simplejpeg
+import numpy as np
+import sample_centring
+import gevent
+import time
+import math
+import os
+import sys
+import logging
 
-sys.path.insert(1, "/gpfs/local/shared/MXCuBE/murko")
+
+murko_path = os.getenv("MURKO_PATH")
+sys.path.insert(1, murko_path)
+from murko import get_predictions, plot_analysis
+
+
+if sys.version_info[0] >= 3:
+    unicode = str
 
 
 @unique
@@ -225,7 +229,7 @@ class P11NanoDiff(GenericDiffractometer):
                        (time.time() - _start))
         anything_in_the_picture = description["present"]
 
-        if anything_in_the_picture == 1:
+        if anything_in_the_picture:
             loop_present, r, c, h, w = description["aoi_bbox"]
             if loop_present:
                 self.log.debug(
@@ -236,13 +240,11 @@ class P11NanoDiff(GenericDiffractometer):
                 self.log.debug("loop not found !")
 
             most_likely_click = description["most_likely_click"]
-
             v, h = most_likely_click
             self.log.debug(
                 "Most likely click in fractional coordinates: (vertical %.3f, horizontal %.3f)"
                 % (v, h)
             )
-
         else:
             self.log.debug("Loop not found. Click to the center.")
 
