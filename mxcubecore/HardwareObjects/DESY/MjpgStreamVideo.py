@@ -24,29 +24,25 @@ __license__ = "GPL"
 
 
 import gevent
+import json
+import traceback
 
 try:
     from httplib import HTTPConnection
 except ImportError:
     from http.client import HTTPConnection
-import json
-import traceback
 
 try:
     import redis
 
     redis_flag = True
-    print(redis.__file__)
-except:
+except ImportError:
     traceback.print_exc()
-    print("Impossible to import redis")
     redis_flag = False
 
 from mxcubecore.utils.qt_import import QImage, QPixmap, QPoint
 from mxcubecore.utils.conversion import string_types
-
 from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import AbstractVideoDevice
-
 from mxcubecore.BaseHardwareObjects import Device
 
 
@@ -817,8 +813,6 @@ class MjpgStreamVideo(AbstractVideoDevice, Device):
         else:
             self.using_overview = False
 
-            print("setting zoom to %s" % zoom)
-
             limits = self.get_zoom_min_max()
             if zoom < limits[0] or zoom > limits[1]:
                 return
@@ -866,10 +860,6 @@ class MjpgStreamVideo(AbstractVideoDevice, Device):
             w_i = int(self.get_cmd_info(self.IN_CMD_AVT_WIDTH)["value"])
             h_i = int(self.get_cmd_info(self.IN_CMD_AVT_HEIGHT)["value"])
 
-            print("zoom: %s" % zoom)
-            print("pos_x (%s, %s) - pos_y (%s,%s) " % (pos_x, x_i, pos_y, y_i))
-            print("width (%s, %s) - height (%s,%s) " % (width, w_i, height, h_i))
-            print("emit zoomChanged", zoom)
             self.emit("zoomChanged", zoom)
 
             if (
@@ -887,9 +877,7 @@ class MjpgStreamVideo(AbstractVideoDevice, Device):
         self.changing_pars = False
         zoom = self.get_zoom()
         if redis_flag:
-            print("changing zoom", zoom)
             self.redis.set("zoom", zoom)
-        print("emiting zoomChanged now")
         self.emit("zoomChanged", zoom)
 
     def get_zoom(self):
@@ -992,10 +980,7 @@ class MjpgStreamVideo(AbstractVideoDevice, Device):
 
             image = self.get_new_image()
             if image is not None:
-                # image.setOffset(QPoint(300,300))
-                # self.image = QPixmap.fromImage(image)
                 self.image = QPixmap.fromImage(
                     image.scaled(int(self.display_width), int(self.display_height))
                 )
                 self.emit("imageReceived", self.image)
-            # gevent.sleep(0.1)
