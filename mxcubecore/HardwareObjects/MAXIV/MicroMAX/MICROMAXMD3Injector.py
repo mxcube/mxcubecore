@@ -134,17 +134,6 @@ class MICROMAXMD3Injector(MICROMAXMD3):
             raise Exception("")
             logging.getLogger("HWR").error(error_msg)
 
-    def set_scintillator(self, value):
-        try:
-            self.channel_dict["ScintillatorVerticalPosition"].set_value(value)
-            self.wait_device_ready(DEFAULT_PHASE_TIMEOUT)
-        except Exception as ex:
-            error_msg = "[MICROMAXMD3] Error while moving scintillatorY to {}".format(
-                value, ex
-            )
-            raise Exception("")
-            logging.getLogger("HWR").error(error_msg)
-
     def set_phase(self, phase, wait=False, timeout=None):
         try:
             if self.current_phase == "UNKNOWN":
