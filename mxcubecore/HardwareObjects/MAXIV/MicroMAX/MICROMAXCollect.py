@@ -16,7 +16,7 @@ from tango import DeviceProxy
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.TaskUtils import task
 from mxcubecore.HardwareObjects.GenericDiffractometer import GenericDiffractometer
-from mxcubecore.HardwareObjects.MAXIV import pandabox
+from mxcubecore.HardwareObjects.MAXIV.MicroMAX import pandabox
 from mxcubecore.HardwareObjects.MAXIV.DataCollect import (
     DataCollect,
     open_tango_shutter,

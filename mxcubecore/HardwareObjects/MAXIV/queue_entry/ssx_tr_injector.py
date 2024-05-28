@@ -11,7 +11,7 @@ from mxcubecore.model.common import (
     LegacyParameters,
     StandardCollectionParameters,
 )
-from mxcubecore.HardwareObjects.MAXIV import pandabox
+from mxcubecore.HardwareObjects.MAXIV.MicroMAX import pandabox
 from .base import AbstractSsxQueueEntry, restore_beamline
 
 
