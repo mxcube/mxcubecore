@@ -110,7 +110,6 @@
   <buffer>/ramdisk</buffer>
 <!--  <buffer>/data/images</buffer>-->
   <user>det</user>
-<!--  <control>10.30.61.81</control>-->
   <control>10.30.61.81</control>
   <beam>
     <ax>0.000336</ax>
