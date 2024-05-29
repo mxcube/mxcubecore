@@ -67,9 +67,10 @@
   <channel type="epics" name="det_cbf_template_file">BL19U1:cam1:CbfTemplateFile</channel>
   <channel type="epics" name="det_filename">BL19U1:cam1:FileName</channel>
   <channel type="epics" name="det_filenumber">BL19U1:cam1:FileNumber</channel>
-  <channel type="epics" name="detectorDistance">19U:TABLE:DETH</channel>
-  <channel type="epics" name="detectorDistance_RBV">19U:TABLE:DETH.RBV</channel>
-  <channel type="epics" name="cam1_distance">BL19U1:cam1:DetDist</channel>
+<!--  先注释调下面三个关于探测器距离的pv-->
+<!--  <channel type="epics" name="detectorDistance">19U:TABLE:DETH</channel>-->
+<!--  <channel type="epics" name="detectorDistance_RBV">19U:TABLE:DETH.RBV</channel>-->
+<!--  <channel type="epics" name="cam1_distance">BL19U1:cam1:DetDist</channel>-->
 
 <!--  FilterTransm-->
 <!--  <channel type="epics" name="saving_mode">BL19U1:cam1:</channel>-->
@@ -88,8 +89,8 @@
 
 
   <!-- Properties -->
-  <default_beam_x>1229</default_beam_x>
-  <default_beam_y>1331</default_beam_y>
+  <default_beam_x>452</default_beam_x>
+  <default_beam_y>531</default_beam_y>
    <!--default_beam_x>0</default_beam_x>
   <default_beam_y>0</default_beam_y-->
   <!--object hwrid="/dtox" role="detector_distance"/-->
@@ -97,12 +98,12 @@
   <humidityThreshold>20.0</humidityThreshold>
   <tolerance>0.2</tolerance>
   <type>pilatus</type>
-  <model>6M</model>
+  <model>1M</model>
   <manufacturer>DECTRIS</manufacturer>
   <px>0.172</px>
   <py>0.172</py>
-  <width>2463</width>
-  <height>2527</height>
+  <width>981</width>
+  <height>1043</height>
   <hasShutterless>True</hasShutterless>
   <file_suffix>cbf</file_suffix>
   <trigger_mode>exts</trigger_mode>
@@ -110,13 +111,12 @@
   <buffer>/ramdisk</buffer>
 <!--  <buffer>/data/images</buffer>-->
   <user>det</user>
-<!--  <control>10.30.61.81</control>-->
   <control>10.30.61.81</control>
   <beam>
     <ax>0.000336</ax>
     <ay>0.001161</ay>
-    <bx>1232</bx>
-    <by>1264</by>
+    <bx>452</bx>
+    <by>531</by>
     <!--bx>0</bx>
     <by>0</by-->
   </beam>
