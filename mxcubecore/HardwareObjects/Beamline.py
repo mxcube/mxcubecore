@@ -112,6 +112,8 @@ class Beamline(ConfiguredObject):
         resolution = None
         sample_changer = None
         sample_changer_maintenance = None
+        harvester = None
+        harvester_maintenance = None
         plate_manipulator = None
         session = None
         lims = None
