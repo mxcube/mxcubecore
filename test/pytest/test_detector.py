@@ -32,7 +32,7 @@ __license__ = "LGPLv3+"
 @pytest.fixture
 def test_object(beamline):
     """Use the detector object from beamline"""
-    result = beamline.config.detector
+    result = beamline.detector
     yield result
     # Cleanup code here - restores starting state for next call:
     # NBNB TODO

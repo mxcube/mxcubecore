@@ -73,7 +73,7 @@ class BeamlineTestMockup(HardwareObject):
 
         self.ready_event = gevent.event.Event()
 
-        self.beamline_name = HWR.beamline.config.session.beamline_name
+        self.beamline_name = HWR.beamline.session.beamline_name
 
         self.test_directory = self.get_property("results_directory")
         if self.test_directory is None:
@@ -212,7 +212,7 @@ class BeamlineTestMockup(HardwareObject):
         """Text one"""
         result = {}
 
-        current_energy = HWR.beamline.config.energy.get_value()
+        current_energy = HWR.beamline.energy.get_value()
 
         result["result_bit"] = current_energy < 12
         result["result_short"] = "Test passed (energy = %.2f)" % current_energy

@@ -83,18 +83,18 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
         self.exp_type_dict = {"Mesh": "raster", "Helical": "Helical"}
 
-        det_px, det_py = HWR.beamline.config.detector.get_pixel_size()
-        beam_div_hor, beam_div_ver = HWR.beamline.config.beam.get_beam_divergence()
+        det_px, det_py = HWR.beamline.detector.get_pixel_size()
+        beam_div_hor, beam_div_ver = HWR.beamline.beam.get_beam_divergence()
 
         self.set_beamline_configuration(
             synchrotron_name="SOLEIL",
             directory_prefix=self.get_property("directory_prefix"),
-            default_exposure_time=HWR.beamline.config.detector.get_default_exposure_time(),
-            minimum_exposure_time=HWR.beamline.config.detector.get_minimum_exposure_time(),
-            detector_fileext=HWR.beamline.config.detector.get_file_suffix(),
-            detector_type=HWR.beamline.config.detector.get_detector_type(),
-            detector_manufacturer=HWR.beamline.config.detector.get_manufacturer(),
-            detector_model=HWR.beamline.config.detector.get_model(),
+            default_exposure_time=HWR.beamline.detector.get_default_exposure_time(),
+            minimum_exposure_time=HWR.beamline.detector.get_minimum_exposure_time(),
+            detector_fileext=HWR.beamline.detector.get_file_suffix(),
+            detector_type=HWR.beamline.detector.get_detector_type(),
+            detector_manufacturer=HWR.beamline.detector.get_manufacturer(),
+            detector_model=HWR.beamline.detector.get_model(),
             detector_px=det_px,
             detector_py=det_py,
             undulators=undulators,
@@ -206,7 +206,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
     def start_standard_collection(self):
         self.emit("collectStarted", (self.owner, 1))
-        HWR.beamline.config.detector.start_collection()
+        HWR.beamline.detector.start_collection()
         self.collect_device.Start()
 
     def follow_collection_progress(self):
@@ -276,7 +276,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
         self.collect_device.imagePath = basedir
         self.collect_device.imageWidth = osc_range
 
-        HWR.beamline.config.detector.set_image_headers(["Angle_increment %.4f" % osc_range])
+        HWR.beamline.detector.set_image_headers(["Angle_increment %.4f" % osc_range])
 
         return True
 
@@ -323,7 +323,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
             self.collect_device.prepareCollect()
             self.wait_collect_ready()
 
-            HWR.beamline.config.detector.set_image_headers(["Start_angle %.4f" % start])
+            HWR.beamline.detector.set_image_headers(["Start_angle %.4f" % start])
             self.collect_device.Start()
 
             # file names to wait for
@@ -361,8 +361,8 @@ class PX1Collect(AbstractCollect, HardwareObject):
         # data collection end (or abort)
         #
         logging.getLogger("HWR").info("PX1Collect: finishing data collection ")
-        HWR.beamline.config.diffractometer.omega.stop()
-        HWR.beamline.config.fast_shutter.closeShutter()
+        HWR.beamline.diffractometer.omega.stop()
+        HWR.beamline.fast_shutter.closeShutter()
 
         self.emit("progressStop")
 
@@ -390,8 +390,8 @@ class PX1Collect(AbstractCollect, HardwareObject):
             ),
         )
 
-        HWR.beamline.config.detector.stop_collection()
-        HWR.beamline.config.diffractometer.omega.stop()
+        HWR.beamline.detector.stop_collection()
+        HWR.beamline.diffractometer.omega.stop()
         self.data_collection_end()
 
     def set_helical_pos(self, arg):
@@ -433,7 +433,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
         self.lightarm_hwobj.adjustLightLevel()
         time.sleep(0.3)  # allow time to refresh display after
 
-        HWR.beamline.config.sample_view.save_snapshot(filename)
+        HWR.beamline.sample_view.save_snapshot(filename)
         logging.getLogger("HWR").debug("PX1Collect:  - snapshot saved to %s" % filename)
 
     def generate_thumbnails(self, filename, jpeg_filename, thumbnail_filename):
@@ -599,7 +599,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
             )
             return False
 
-        detok = HWR.beamline.config.detector.prepare_collection(self.current_dc_parameters)
+        detok = HWR.beamline.detector.prepare_collection(self.current_dc_parameters)
         if not detok:
             logging.getLogger("user_level_log").info(
                 "Cannot prepare detector for collection. Aborted"
@@ -618,7 +618,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
         return True
 
     def diffractometer_prepare_collection(self):
-        HWR.beamline.config.diffractometer.wait_device_ready(timeout=10)
+        HWR.beamline.diffractometer.wait_device_ready(timeout=10)
 
         # go to collect phase
         if not self.is_collect_phase():
@@ -633,15 +633,15 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
         ax, ay, bx, by = self.get_beam_configuration()
 
-        dist = HWR.beamline.config.detector.distance.get_value()
-        wavlen = HWR.beamline.config.energy.get_wavelength()
+        dist = HWR.beamline.detector.distance.get_value()
+        wavlen = HWR.beamline.energy.get_wavelength()
 
         start_angle = osc_seq["start"]
         nb_images = osc_seq["number_of_images"]
         img_range = osc_seq["range"]
         exp_time = osc_seq["exposure_time"]
 
-        kappa_angle = HWR.beamline.config.diffractometer.kappa.get_value()
+        kappa_angle = HWR.beamline.diffractometer.kappa.get_value()
 
         _settings = [
             ["Wavelength %.5f", wavlen],
@@ -662,15 +662,15 @@ class PX1Collect(AbstractCollect, HardwareObject):
         # _settings.append(["Phi %.4f", start])
         # elif self.oscaxis == "Omega":
         _settings.append(
-            ["Phi %.4f", HWR.beamline.config.diffractometer.kappa_phi.get_value()]
+            ["Phi %.4f", HWR.beamline.diffractometer.kappa_phi.get_value()]
         )
         _settings.append(["Chi %.4f", start_angle])
-        HWR.beamline.config.detector.set_image_headers(_settings)
+        HWR.beamline.detector.set_image_headers(_settings)
 
     def check_shutters(self):
         # Check safety shutter
         if self.check_shutter_opened(
-            HWR.beamline.config.safety_shutter, "Safety shutter"
+            HWR.beamline.safety_shutter, "Safety shutter"
         ) and self.check_shutter_opened(self.frontend_hwobj, "Front end"):
             return True
         else:
@@ -700,7 +700,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
             return False
 
     def close_fast_shutter(self):
-        HWR.beamline.config.fast_shutter.closeShutter()
+        HWR.beamline.fast_shutter.closeShutter()
 
     def close_safety_shutter(self):
         pass
@@ -790,16 +790,16 @@ class PX1Collect(AbstractCollect, HardwareObject):
         """
         Descript. :
         """
-        HWR.beamline.config.diffractometer.move_motors(motor_position_dict)
+        HWR.beamline.diffractometer.move_motors(motor_position_dict)
 
     def get_undulators_gaps(self):
         """
         Descript. : return gaps as dict. In our case we have one gap,
                     others are 0
         """
-        if HWR.beamline.config.energy:
+        if HWR.beamline.energy:
             try:
-                u20_gap = HWR.beamline.config.energy.getCurrentUndulatorGap()
+                u20_gap = HWR.beamline.energy.getCurrentUndulatorGap()
                 return {"u20": u20_gap}
             except Exception:
                 return {}
@@ -810,23 +810,23 @@ class PX1Collect(AbstractCollect, HardwareObject):
         """
         Descript. :
         """
-        if HWR.beamline.config.beam is not None:
-            return HWR.beamline.config.beam.get_slits_gap()
+        if HWR.beamline.beam is not None:
+            return HWR.beamline.beam.get_slits_gap()
         return None, None
 
     def get_beam_shape(self):
         """
         Descript. :
         """
-        if HWR.beamline.config.beam is not None:
-            return HWR.beamline.config.beam.get_beam_shape()
+        if HWR.beamline.beam is not None:
+            return HWR.beamline.beam.get_beam_shape()
 
     def get_machine_current(self):
         """
         Descript. :
         """
-        if HWR.beamline.config.machine_info:
-            return HWR.beamline.config.machine_info.get_current()
+        if HWR.beamline.machine_info:
+            return HWR.beamline.machine_info.get_current()
         else:
             return 0
 
@@ -834,8 +834,8 @@ class PX1Collect(AbstractCollect, HardwareObject):
         """
         Descript. :
         """
-        if HWR.beamline.config.machine_info:
-            return HWR.beamline.config.machine_info.get_message()
+        if HWR.beamline.machine_info:
+            return HWR.beamline.machine_info.get_message()
         else:
             return ""
 
@@ -843,8 +843,8 @@ class PX1Collect(AbstractCollect, HardwareObject):
         """
         Descript. :
         """
-        if HWR.beamline.config.machine_info:
-            return HWR.beamline.config.machine_info.get_fill_mode()
+        if HWR.beamline.machine_info:
+            return HWR.beamline.machine_info.get_fill_mode()
         else:
             return ""
 

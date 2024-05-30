@@ -43,7 +43,7 @@ class ISPyBClientMockup(HardwareObject):
         Init method declared by HardwareObject.
         """
         self.lims_rest = self.get_object_by_role("lims_rest")
-        self.beamline_name = HWR.beamline.config.session.beamline_name
+        self.beamline_name = HWR.beamline.session.beamline_name
 
         try:
             self.base_result_url = self.get_property("base_result_url").strip()
@@ -200,7 +200,7 @@ class ISPyBClientMockup(HardwareObject):
             logging.getLogger("HWR").debug("getting local contact for %s" % session_id)
             localcontact = self.get_session_local_contact(session_id)
 
-        is_inhouse = HWR.beamline.config.session.is_inhouse(
+        is_inhouse = HWR.beamline.session.is_inhouse(
             prop["Proposal"]["code"], prop["Proposal"]["number"]
         )
         return {
@@ -365,7 +365,7 @@ class ISPyBClientMockup(HardwareObject):
     def get_samples(self, proposal_id, session_id):
 
         # Try GPhL emulation samples, if available
-        gphl_workflow = HWR.beamline.config.gphl_workflow
+        gphl_workflow = HWR.beamline.gphl_workflow
         if gphl_workflow is not None:
             sample_dicts = gphl_workflow.get_emulation_samples()
             if sample_dicts:

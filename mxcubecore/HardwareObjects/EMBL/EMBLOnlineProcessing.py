@@ -189,8 +189,8 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
         input_file.setReversing_rotation(
             XSDataBoolean(self.params_dict["reversing_rotation"])
         )
-        input_file.setPixelMin(XSDataInteger(HWR.beamline.config.detector.get_pixel_min()))
-        input_file.setPixelMax(XSDataInteger(HWR.beamline.config.detector.get_pixel_max()))
+        input_file.setPixelMin(XSDataInteger(HWR.beamline.detector.get_pixel_min()))
+        input_file.setPixelMax(XSDataInteger(HWR.beamline.detector.get_pixel_max()))
         input_file.setBeamstopSize(XSDataDouble(HWR.beamline.beamstop.get_size()))
         input_file.setBeamstopDistance(XSDataDouble(HWR.beamline.beamstop.get_distance()))
         input_file.setBeamstopDirection(

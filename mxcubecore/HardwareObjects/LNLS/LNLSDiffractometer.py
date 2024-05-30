@@ -309,9 +309,9 @@ class LNLSDiffractometer(GenericDiffractometer):
         Descript. :
         """
         self.emit("minidiffStateChanged", "testState")
-        if HWR.beamline.config.beam:
-            HWR.beamline.config.beam.beam_pos_hor_changed(300)
-            HWR.beamline.config.beam.beam_pos_ver_changed(200)
+        if HWR.beamline.beam:
+            HWR.beamline.beam.beam_pos_hor_changed(300)
+            HWR.beamline.beam.beam_pos_ver_changed(200)
 
     def start_auto_focus(self):
         """
@@ -325,7 +325,7 @@ class LNLSDiffractometer(GenericDiffractometer):
         Returns: dict of motor positions
         """
         # Update beam position
-        self.beam_position[0], self.beam_position[1] = HWR.beamline.config.beam.get_beam_position_on_screen()
+        self.beam_position[0], self.beam_position[1] = HWR.beamline.beam.get_beam_position_on_screen()
 
         print(("moving to beam position: %d %d" % (
             self.beam_position[0],

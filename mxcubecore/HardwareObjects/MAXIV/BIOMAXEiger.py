@@ -724,7 +724,7 @@ def test():
 
     hwr = HWR.get_hardware_repository()
     hwr.connect()
-    detector = HWR.beamline.config.detector
+    detector = HWR.beamline.detector
 
     config = {
         "OmegaStart": 0,

@@ -103,12 +103,12 @@ class PX2Guillotine(BaseHardwareObjects.Device):
             self.pss = self.get_object_by_role("pss")
 
             self.connect(
-                HWR.beamline.config.detector.distance,
+                HWR.beamline.detector.distance,
                 "valueChanged",
                 self.shutterStateChanged,
             )
             self.connect(
-                HWR.beamline.config.detector.distance,
+                HWR.beamline.detector.distance,
                 "valueChanged",
                 self.updateDetectorDistance,
             )
@@ -158,7 +158,7 @@ class PX2Guillotine(BaseHardwareObjects.Device):
         if state == "Transfer":
             self.goToSecurityDistance()
         if state == "Collect":
-            HWR.beamline.config.detector.distance.set_value(180)
+            HWR.beamline.detector.distance.set_value(180)
 
     def updateGuillotine(self, value):
         # if open door close guillotine but test distance
@@ -182,15 +182,15 @@ class PX2Guillotine(BaseHardwareObjects.Device):
         )
         if self.isInsert():
             if not self.checkDistance():
-                HWR.beamline.config.detector.distance.set_value(self._d_security)
+                HWR.beamline.detector.distance.set_value(self._d_security)
                 time.sleep(2.0)
-                while HWR.beamline.config.detector.distance.motorIsMoving():
+                while HWR.beamline.detector.distance.motorIsMoving():
                     time.sleep(0.5)
                 self._Extract()
                 time.sleep(0.2)
-                HWR.beamline.config.detector.distance.set_value(currentDistance)
+                HWR.beamline.detector.distance.set_value(currentDistance)
                 time.sleep(2.0)
-                while HWR.beamline.config.detector.distance.motorIsMoving():
+                while HWR.beamline.detector.distance.motorIsMoving():
                     time.sleep(0.5)
             else:
                 self._Extract()
@@ -211,10 +211,10 @@ class PX2Guillotine(BaseHardwareObjects.Device):
 
     def goToSecurityDistance(self):
         if self._currentDistance < self._d_home:
-            HWR.beamline.config.detector.distance.set_value(self._d_home)
+            HWR.beamline.detector.distance.set_value(self._d_home)
         if str(self.shutChannel.value) == "EXTRACT":
             self._Insert()
-        while HWR.beamline.config.detector.distance.motorIsMoving():
+        while HWR.beamline.detector.distance.motorIsMoving():
             time.sleep(0.5)
 
     def isShutterOk(self):

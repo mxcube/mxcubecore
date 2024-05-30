@@ -150,7 +150,7 @@ def test():
     hwr = HWR.get_hardware_repository()
     hwr.connect()
 
-    sess = HWR.beamline.config.session
+    sess = HWR.beamline.session
 
     sess.set_user_info("mx2014", "143301", "14330", "20100023")
 

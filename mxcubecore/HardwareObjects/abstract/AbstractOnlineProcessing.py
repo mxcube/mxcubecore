@@ -166,7 +166,7 @@ class AbstractOnlineProcessing(HardwareObject):
         self.params_dict["process_root_directory"] = process_directory
         self.params_dict["archive_root_directory"] = archive_directory
         self.params_dict["result_file_path"] = archive_directory
-        self.params_dict["collection_id"] = HWR.beamline.config.collect.collection_id
+        self.params_dict["collection_id"] = HWR.beamline.collect.collection_id
 
         if workflow_step_directory:
             process_directory += workflow_step_directory
@@ -355,7 +355,7 @@ class AbstractOnlineProcessing(HardwareObject):
             snapshot_filename (str): filename
         """
         try:
-            HWR.beamline.config.collect._take_crystal_snapshot(snapshot_filename)
+            HWR.beamline.collect._take_crystal_snapshot(snapshot_filename)
             logging.getLogger("HWR").info(
                 f"Online processing: Snapshot {snapshot_filename} saved."
             )
@@ -392,7 +392,7 @@ class AbstractOnlineProcessing(HardwareObject):
                 logging.getLogger("GUI").info(
                     "Xray centering: Moving to the best position"
                 )
-                HWR.beamline.config.diffractometer.move_motors(
+                HWR.beamline.diffractometer.move_motors(
                     self.results_aligned["center_mass"], timeout=15
                 )
                 logging.getLogger("GUI").info(
@@ -454,7 +454,7 @@ class AbstractOnlineProcessing(HardwareObject):
                 workflow_id,
                 workflow_mesh_id,
                 grid_info_id,
-            ) = HWR.beamline.config.lims.store_workflow(self.params_dict)
+            ) = HWR.beamline.lims.store_workflow(self.params_dict)
 
             self.params_dict["workflow_id"] = workflow_id
             self.params_dict["workflow_mesh_id"] = workflow_mesh_id
@@ -473,19 +473,19 @@ class AbstractOnlineProcessing(HardwareObject):
             else:
                 self.workflow_info = None
 
-            HWR.beamline.config.collect.update_lims_with_workflow(
+            HWR.beamline.collect.update_lims_with_workflow(
                 workflow_id, self.params_dict["snapshot_path"]
             )
 
-            HWR.beamline.config.lims.store_workflow_step(self.params_dict)
+            HWR.beamline.lims.store_workflow_step(self.params_dict)
             if len(best_positions) > 0:
-                HWR.beamline.config.collect._store_image_in_lims_by_frame_num(
+                HWR.beamline.collect._store_image_in_lims_by_frame_num(
                     best_positions[0]["index"]
                 )
             log.info("Online processing: Results saved in ISPyB")
 
-        HWR.beamline.config.lims.set_image_quality_indicators_plot(
-            HWR.beamline.config.collect.collection_id,
+        HWR.beamline.lims.set_image_quality_indicators_plot(
+            HWR.beamline.collect.collection_id,
             self.params_dict["cartography_path"],
             self.params_dict["csv_file_path"],
         )
@@ -682,7 +682,7 @@ class AbstractOnlineProcessing(HardwareObject):
         # ---------------------------------------------------------------------
         # Writes results in the csv file
         try:
-            det_pixel_size = HWR.beamline.config.detector.get_pixel_size()
+            det_pixel_size = HWR.beamline.detector.get_pixel_size()
             with open(self.params_dict["csv_file_path"], "w") as processing_csv_file:
                 processing_csv_file.write(
                     "%s,%d,%d,%d,%d,%d,%s,%d,%d\n"
@@ -772,7 +772,7 @@ class AbstractOnlineProcessing(HardwareObject):
                 )[0]
                 self.results_aligned[
                     "center_mass"
-                ] = HWR.beamline.config.diffractometer.get_point_from_line(
+                ] = HWR.beamline.diffractometer.get_point_from_line(
                     centred_positions[0],
                     centred_positions[1],
                     center_x,
@@ -821,7 +821,7 @@ class AbstractOnlineProcessing(HardwareObject):
                         # TODO make this nicer
                         # num_images = self.data_collection.acquisitions[0].acquisition_parameters.num_images - 1
                         # (point_one, point_two) = self.data_collection.get_centred_positions()
-                        # cpos = HWR.beamline.config.diffractometer.get_point_from_line(point_one, point_two, index, num_images)
+                        # cpos = HWR.beamline.diffractometer.get_point_from_line(point_one, point_two, index, num_images)
                     best_position["col"] = col
                     best_position["row"] = row
                     best_position["cpos"] = cpos

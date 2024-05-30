@@ -74,7 +74,7 @@ class ESRFPhotonFlux(AbstractFlux):
             self.beam_check_obj = getattr(controller, beam_check)
 
         try:
-            HWR.beamline.config.safety_shutter.connect("stateChanged", self.update_value)
+            HWR.beamline.safety_shutter.connect("stateChanged", self.update_value)
         except AttributeError as err:
             raise RuntimeError("Safety shutter is not configured") from err
 
@@ -97,7 +97,7 @@ class ESRFPhotonFlux(AbstractFlux):
             counts = 0.0
 
         try:
-            egy = HWR.beamline.config.energy.get_value()
+            egy = HWR.beamline.energy.get_value()
             calib = self._flux_calc.calc_flux_factor(egy * 1000.0)[
                 self._counter.diode.name
             ]

@@ -98,4 +98,4 @@ class AbstractXrayCentring(HardwareObject):
             parent_model_obj: Parent queue entry.
             child_model_obj: Child queue entry.
         """
-        HWR.beamline.config.queue_model.add_child(parent_model_obj, child_model_obj)
+        HWR.beamline.queue_model.add_child(parent_model_obj, child_model_obj)

@@ -227,7 +227,7 @@ class AbstractDetector(HardwareObject):
             wavelength = (
                 wavelength
                 if wavelength is not None
-                else HWR.beamline.config.energy.get_wavelength()
+                else HWR.beamline.energy.get_wavelength()
             )
 
             metadata = self.get_metadata()

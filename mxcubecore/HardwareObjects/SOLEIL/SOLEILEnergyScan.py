@@ -95,7 +95,7 @@ class SOLEILEnergyScan(Equipment):
             self.previousResolution = None
             self.lastResolution = None
 
-            if HWR.beamline.config.lims is None:
+            if HWR.beamline.lims is None:
                 logging.getLogger("HWR").warning(
                     "EnergyScan: you should specify the database hardware object"
                 )
@@ -134,16 +134,16 @@ class SOLEILEnergyScan(Equipment):
                 )
                 self.moveEnergy = None
 
-            if HWR.beamline.config.energy is not None:
-                HWR.beamline.config.energy.connect("valueChanged", self.energyPositionChanged)
-                HWR.beamline.config.energy.connect("stateChanged", self.energyStateChanged)
-                HWR.beamline.config.energy.connect("limitsChanged", self.energyLimitsChanged)
-            if HWR.beamline.config.resolution is None:
+            if HWR.beamline.energy is not None:
+                HWR.beamline.energy.connect("valueChanged", self.energyPositionChanged)
+                HWR.beamline.energy.connect("stateChanged", self.energyStateChanged)
+                HWR.beamline.energy.connect("limitsChanged", self.energyLimitsChanged)
+            if HWR.beamline.resolution is None:
                 logging.getLogger("HWR").warning(
                     "EnergyScan: no resolution motor (unable to restore it after moving the energy)"
                 )
             else:
-                HWR.beamline.config.resolution.connect(
+                HWR.beamline.resolution.connect(
                     "valueChanged", self.resolutionPositionChanged
                 )
 
@@ -174,9 +174,9 @@ class SOLEILEnergyScan(Equipment):
         self.lastResolution = res
 
     def energyStateChanged(self, state):
-        if state == HWR.beamline.config.energy.READY:
-            if HWR.beamline.config.resolution is not None:
-                HWR.beamline.config.resolution.dist2res()
+        if state == HWR.beamline.energy.READY:
+            if HWR.beamline.resolution is not None:
+                HWR.beamline.resolution.dist2res()
 
     # Handler for spec connection
     def sConnected(self):
@@ -667,13 +667,13 @@ class SOLEILEnergyScan(Equipment):
         self.xanes.saveRaw()
         self.xanes.saveResults()
 
-        # if HWR.beamline.config.lims is None:
+        # if HWR.beamline.lims is None:
         # return
         # try:
         # session_id=int(self.scanInfo['sessionId'])
         # except:
         # return
-        # gevent.spawn(StoreEnergyScanThread, HWR.beamline.config.lims,self.scanInfo)
+        # gevent.spawn(StoreEnergyScanThread, HWR.beamline.lims,self.scanInfo)
         logging.info("SOLEILEnergyScan storeEnergyScan OK")
         # self.storeScanThread.start()
 
@@ -683,9 +683,9 @@ class SOLEILEnergyScan(Equipment):
     # Move energy commands
 
     def get_current_energy(self):
-        if HWR.beamline.config.energy is not None:
+        if HWR.beamline.energy is not None:
             try:
-                return HWR.beamline.config.energy.get_value()
+                return HWR.beamline.energy.get_value()
             except Exception:
                 logging.getLogger("HWR").exception("EnergyScan: couldn't read energy")
                 return None
@@ -702,15 +702,15 @@ class SOLEILEnergyScan(Equipment):
 
     def getEnergyLimits(self):
         lims = None
-        if HWR.beamline.config.energy is not None:
-            if HWR.beamline.config.energy.is_ready():
-                lims = HWR.beamline.config.energy.get_limits()
+        if HWR.beamline.energy is not None:
+            if HWR.beamline.energy.is_ready():
+                lims = HWR.beamline.energy.get_limits()
         return lims
 
     def get_wavelength(self):
-        if HWR.beamline.config.energy is not None:
+        if HWR.beamline.energy is not None:
             try:
-                return self.energy2wavelength(HWR.beamline.config.energy.get_value())
+                return self.energy2wavelength(HWR.beamline.energy.get_value())
             except Exception:
                 logging.getLogger("HWR").exception("EnergyScan: couldn't read energy")
                 return None
@@ -719,9 +719,9 @@ class SOLEILEnergyScan(Equipment):
 
     def getWavelengthLimits(self):
         limits = None
-        if HWR.beamline.config.energy is not None:
-            if HWR.beamline.config.energy.is_ready():
-                limits = HWR.beamline.config.energy.get_wavelength_limits()
+        if HWR.beamline.energy is not None:
+            if HWR.beamline.energy.is_ready():
+                limits = HWR.beamline.energy.get_wavelength_limits()
         return limits
 
     def startMoveEnergy(self, value, wait=True):
@@ -733,7 +733,7 @@ class SOLEILEnergyScan(Equipment):
             return False
 
         try:
-            curr_energy = HWR.beamline.config.energy.get_value()
+            curr_energy = HWR.beamline.energy.get_value()
         except Exception:
             logging.getLogger("HWR").exception(
                 "EnergyScan: couldn't get current energy"
@@ -743,7 +743,7 @@ class SOLEILEnergyScan(Equipment):
         if value != curr_energy:
             logging.getLogger("HWR").info("Moving energy: checking limits")
             try:
-                lims = HWR.beamline.config.energy.get_limits()
+                lims = HWR.beamline.energy.get_limits()
             except Exception:
                 logging.getLogger("HWR").exception(
                     "EnergyScan: couldn't get energy limits"
@@ -755,9 +755,9 @@ class SOLEILEnergyScan(Equipment):
             if in_limits:
                 logging.getLogger("HWR").info("Moving energy: limits ok")
                 self.previousResolution = None
-                if HWR.beamline.config.resolution is not None:
+                if HWR.beamline.resolution is not None:
                     try:
-                        self.previousResolution = HWR.beamline.config.resolution.get_value()
+                        self.previousResolution = HWR.beamline.resolution.get_value()
                     except Exception:
                         logging.getLogger("HWR").exception(
                             "EnergyScan: couldn't get current resolution"
@@ -853,10 +853,10 @@ class SOLEILEnergyScan(Equipment):
         return (self.previousResolution, self.lastResolution)
 
     def restoreResolution(self):
-        if HWR.beamline.config.resolution is not None:
+        if HWR.beamline.resolution is not None:
             if self.previousResolution is not None:
                 try:
-                    HWR.beamline.config.resolution.set_value(self.previousResolution)
+                    HWR.beamline.resolution.set_value(self.previousResolution)
                 except Exception:
                     return (False, "Error trying to move the detector")
                 else:

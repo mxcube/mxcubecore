@@ -40,26 +40,26 @@ class GphlWorkflowQueueEntry(BaseQueueEntry):
             self.get_data_model().strategy_name
         )
         logging.getLogger("user_level_log").info(msg)
-        HWR.beamline.config.gphl_workflow.execute()
+        HWR.beamline.gphl_workflow.execute()
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
-        if not HWR.beamline.config.gphl_workflow.is_ready():
+        if not HWR.beamline.gphl_workflow.is_ready():
             logging.getLogger("user_level_log").warning(
                 "WARNING: GΦL workflow was not ready - cleaning up"
             )
-            HWR.beamline.config.gphl_workflow.post_execute()
-        HWR.beamline.config.gphl_workflow.pre_execute(self)
+            HWR.beamline.gphl_workflow.post_execute()
+        HWR.beamline.gphl_workflow.pre_execute(self)
         logging.getLogger("HWR").debug("Done GphlWorkflowQueueEntry.pre_execute")
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
         msg = "Finishing GΦL workflow (%s)" % (self.get_data_model().strategy_name)
         logging.getLogger("user_level_log").info(msg)
-        HWR.beamline.config.gphl_workflow.post_execute()
+        HWR.beamline.gphl_workflow.post_execute()
 
     def stop(self):
-        HWR.beamline.config.gphl_workflow.workflow_aborted("Dummy", "Dummy")
+        HWR.beamline.gphl_workflow.workflow_aborted("Dummy", "Dummy")
         BaseQueueEntry.stop(self)
         logging.getLogger("HWR").info("MXCuBE aborting current GΦL workflow")
         self.get_view().setText(1, "Stopped")

@@ -99,12 +99,12 @@ class BIOMAXMD3(GenericDiffractometer):
 
         try:
             self.zoom_centre = eval(self.get_property("zoom_centre"))
-            zoom = HWR.beamline.config.sample_view.camera.get_image_zoom()
+            zoom = HWR.beamline.sample_view.camera.get_image_zoom()
             if zoom is not None:
                 self.zoom_centre["x"] = self.zoom_centre["x"] * zoom
                 self.zoom_centre["y"] = self.zoom_centre["y"] * zoom
             self.beam_position = [self.zoom_centre["x"], self.zoom_centre["y"]]
-            HWR.beamline.config.beam.set_beam_position(self.beam_position)
+            HWR.beamline.beam.set_beam_position(self.beam_position)
         except Exception:
             self.zoom_centre = {"x": 0, "y": 0}
             logging.getLogger("HWR").warning(
@@ -131,7 +131,7 @@ class BIOMAXMD3(GenericDiffractometer):
 
         :returns: list with two floats
         """
-        zoom = HWR.beamline.config.sample_view.camera.get_image_zoom()
+        zoom = HWR.beamline.sample_view.camera.get_image_zoom()
         # return (0.5/self.channel_dict["CoaxCamScaleX"].get_value(),
         # 0.5/self.channel_dict["CoaxCamScaleY"].get_value())
         return (
@@ -144,7 +144,7 @@ class BIOMAXMD3(GenericDiffractometer):
         """
         # self.pixels_per_mm_x = 0.5/self.channel_dict["CoaxCamScaleX"].get_value()
         # self.pixels_per_mm_y = 0.5/self.channel_dict["CoaxCamScaleY"].get_value()
-        zoom = HWR.beamline.config.sample_view.camera.get_image_zoom()
+        zoom = HWR.beamline.sample_view.camera.get_image_zoom()
         self.pixels_per_mm_x = zoom / self.channel_dict["CoaxCamScaleX"].get_value()
         self.pixels_per_mm_y = zoom / self.channel_dict["CoaxCamScaleY"].get_value()
 
@@ -229,7 +229,7 @@ class BIOMAXMD3(GenericDiffractometer):
                         if -1 in (x, y):
                             continue
                         if y >= 0:
-                            if x < HWR.beamline.config.sample_view.camera.get_width() / 2:
+                            if x < HWR.beamline.sample_view.camera.get_width() / 2:
                                 x = 0
                                 self.centring_hwobj.appendCentringDataPoint(
                                     {
@@ -241,7 +241,7 @@ class BIOMAXMD3(GenericDiffractometer):
                                 )
                                 break
                             else:
-                                x = HWR.beamline.config.sample_view.camera.get_width()
+                                x = HWR.beamline.sample_view.camera.get_width()
                                 self.centring_hwobj.appendCentringDataPoint(
                                     {
                                         "X": (x - self.beam_position[0])
@@ -275,7 +275,7 @@ class BIOMAXMD3(GenericDiffractometer):
         """
         Description:
         """
-        imgStr = HWR.beamline.config.sample_view.camera.get_snapshot_img_str()
+        imgStr = HWR.beamline.sample_view.camera.get_snapshot_img_str()
         image = Image.open(io.BytesIO(imgStr))
         try:
             img = np.array(image)
@@ -283,7 +283,7 @@ class BIOMAXMD3(GenericDiffractometer):
             info, y, x = lucid.find_loop(
                 np.array(img_rot, order="C"), IterationClosing=6
             )
-            x = HWR.beamline.config.sample_view.camera.get_width() - x
+            x = HWR.beamline.sample_view.camera.get_width() - x
         except Exception:
             return -1, -1, 0
         if info == "Coord":
@@ -576,7 +576,7 @@ class BIOMAXMD3(GenericDiffractometer):
     def moveToBeam(self, x, y):
         try:
             self.emit_progress_message("Move to beam...")
-            pos_x, pos_y = HWR.beamline.config.beam.get_beam_position_on_screen()
+            pos_x, pos_y = HWR.beamline.beam.get_beam_position_on_screen()
             self.beam_position = (pos_x, pos_y)
             beam_xc = self.beam_position[0]
             beam_yc = self.beam_position[1]

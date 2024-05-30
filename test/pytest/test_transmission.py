@@ -30,7 +30,7 @@ import pytest
 @pytest.fixture
 def test_object(beamline):
     """Use the transmission object from beamline"""
-    result = beamline.config.transmission
+    result = beamline.transmission
     yield result
     # Cleanup code here - restores starting state for next call:
     # NBNB TODO
@@ -42,7 +42,7 @@ class TestTransmission(TestAbstractActuatorBase.TestAbstractActuatorBase):
     def test_transmission_attributes(self, beamline, test_object):
         """Test for attributes"""
         assert (
-            beamline.config.energy is not None
+            beamline.energy is not None
         ), "Transmission hardware object is None (not initialized)"
 
         value = test_object.get_value()

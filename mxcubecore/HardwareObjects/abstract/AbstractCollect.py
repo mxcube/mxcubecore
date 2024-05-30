@@ -95,24 +95,24 @@ class AbstractCollect(HardwareObject, object):
         except BaseException:
             pass
 
-        beam_div_hor, beam_div_ver = HWR.beamline.config.beam.get_beam_divergence()
+        beam_div_hor, beam_div_ver = HWR.beamline.beam.get_beam_divergence()
 
         self.set_beamline_configuration(
-            synchrotron_name=HWR.beamline.config.session.synchrotron_name,
+            synchrotron_name=HWR.beamline.session.synchrotron_name,
             directory_prefix=self.get_property("directory_prefix"),
-            default_exposure_time=HWR.beamline.config.detector.get_property(
+            default_exposure_time=HWR.beamline.detector.get_property(
                 "default_exposure_time"
             ),
-            minimum_exposure_time=HWR.beamline.config.detector.get_property(
+            minimum_exposure_time=HWR.beamline.detector.get_property(
                 "minimum_exposure_time"
             ),
-            detector_fileext=HWR.beamline.config.detector.get_property("fileSuffix"),
-            detector_type=HWR.beamline.config.detector.get_property("type"),
-            detector_manufacturer=HWR.beamline.config.detector.get_property("manufacturer"),
-            detector_model=HWR.beamline.config.detector.get_property("model"),
-            detector_px=HWR.beamline.config.detector.get_property("px"),
-            detector_py=HWR.beamline.config.detector.get_property("py"),
-            detector_binning_mode=HWR.beamline.config.detector.get_binning_mode(),
+            detector_fileext=HWR.beamline.detector.get_property("fileSuffix"),
+            detector_type=HWR.beamline.detector.get_property("type"),
+            detector_manufacturer=HWR.beamline.detector.get_property("manufacturer"),
+            detector_model=HWR.beamline.detector.get_property("model"),
+            detector_px=HWR.beamline.detector.get_property("px"),
+            detector_py=HWR.beamline.detector.get_property("py"),
+            detector_binning_mode=HWR.beamline.detector.get_binning_mode(),
             undulators=undulators,
             focusing_optic=self.get_property("focusing_optic"),
             monochromator_type=self.get_property("monochromator"),
@@ -195,7 +195,7 @@ class AbstractCollect(HardwareObject, object):
                 # No centring point defined
                 # create point based on the current position
                 current_diffractometer_position = (
-                    HWR.beamline.config.diffractometer.get_positions()
+                    HWR.beamline.diffractometer.get_positions()
                 )
                 for motor in self.current_dc_parameters["motors"].keys():
                     self.current_dc_parameters["motors"][
@@ -440,36 +440,36 @@ class AbstractCollect(HardwareObject, object):
         """
         Descript. :
         """
-        if HWR.beamline.config.energy is not None:
-            return HWR.beamline.config.energy.get_wavelength()
+        if HWR.beamline.energy is not None:
+            return HWR.beamline.energy.get_wavelength()
 
     def get_detector_distance(self):
         """
         Descript. :
         """
-        if HWR.beamline.config.detector is not None:
-            return HWR.beamline.config.detector.distance.get_value()
+        if HWR.beamline.detector is not None:
+            return HWR.beamline.detector.distance.get_value()
 
     def get_resolution(self):
         """
         Descript. :
         """
-        if HWR.beamline.config.resolution is not None:
-            return HWR.beamline.config.resolution.get_value()
+        if HWR.beamline.resolution is not None:
+            return HWR.beamline.resolution.get_value()
 
     def get_transmission(self):
         """
         Descript. :
         """
-        if HWR.beamline.config.transmission is not None:
-            return HWR.beamline.config.transmission.get_value()
+        if HWR.beamline.transmission is not None:
+            return HWR.beamline.transmission.get_value()
 
     def get_beam_size(self):
         """
         Descript. :
         """
-        if HWR.beamline.config.beam is not None:
-            return HWR.beamline.config.beam.get_beam_size()
+        if HWR.beamline.beam is not None:
+            return HWR.beamline.beam.get_beam_size()
         else:
             return None, None
 
@@ -477,8 +477,8 @@ class AbstractCollect(HardwareObject, object):
         """
         Descript. :
         """
-        if HWR.beamline.config.beam is not None:
-            return HWR.beamline.config.beam.get_slits_gap()
+        if HWR.beamline.beam is not None:
+            return HWR.beamline.beam.get_slits_gap()
         return None, None
 
     def get_undulators_gaps(self):
@@ -486,14 +486,14 @@ class AbstractCollect(HardwareObject, object):
         Descript. :
         """
         return {}
-        # return HWR.beamline.config.energy.get_undulator_gaps()
+        # return HWR.beamline.energy.get_undulator_gaps()
 
     def get_machine_current(self):
         """
         Descript. :
         """
-        if HWR.beamline.config.machine_info:
-            return HWR.beamline.config.machine_info.get_current()
+        if HWR.beamline.machine_info:
+            return HWR.beamline.machine_info.get_current()
         else:
             return 0
 
@@ -501,8 +501,8 @@ class AbstractCollect(HardwareObject, object):
         """
         Descript. :
         """
-        if HWR.beamline.config.machine_info:
-            return HWR.beamline.config.machine_info.get_message()
+        if HWR.beamline.machine_info:
+            return HWR.beamline.machine_info.get_message()
         else:
             return ""
 
@@ -510,8 +510,8 @@ class AbstractCollect(HardwareObject, object):
         """
         Descript. :
         """
-        if HWR.beamline.config.machine_info:
-            fill_mode = str(HWR.beamline.config.machine_info.get_message())
+        if HWR.beamline.machine_info:
+            fill_mode = str(HWR.beamline.machine_info.get_message())
             return fill_mode[:20]
         else:
             return ""
@@ -565,13 +565,13 @@ class AbstractCollect(HardwareObject, object):
         """
         Descript. :
         """
-        lims = HWR.beamline.config.lims
+        lims = HWR.beamline.lims
         if lims and lims.is_connected() and not self.current_dc_parameters["in_interleave"]:
             try:
                 self.current_dc_parameters[
                     "synchrotronMode"
                 ] = self.get_machine_fill_mode()
-                (collection_id, detector_id,) = HWR.beamline.config.lims.store_data_collection(
+                (collection_id, detector_id,) = HWR.beamline.lims.store_data_collection(
                     self.current_dc_parameters, self.bl_config
                 )
                 self.current_dc_parameters["collection_id"] = collection_id
@@ -588,16 +588,16 @@ class AbstractCollect(HardwareObject, object):
         Descript. :
         """
         params = self.current_dc_parameters
-        if HWR.beamline.config.lims and not params["in_interleave"]:
-            params["flux"] = HWR.beamline.config.flux.get_value()
+        if HWR.beamline.lims and not params["in_interleave"]:
+            params["flux"] = HWR.beamline.flux.get_value()
             params["flux_end"] = params["flux"]
             params["totalAbsorbedDose"] = self.get_total_absorbed_dose()
-            params["wavelength"] = HWR.beamline.config.energy.get_wavelength()
-            params["detectorDistance"] = HWR.beamline.config.detector.distance.get_value()
-            params["resolution"] = HWR.beamline.config.resolution.get_value()
-            params["transmission"] = HWR.beamline.config.transmission.get_value()
-            beam_centre_x, beam_centre_y = HWR.beamline.config.detector.get_beam_position()
-            pixel_x, pixel_y = HWR.beamline.config.detector.get_pixel_size()
+            params["wavelength"] = HWR.beamline.energy.get_wavelength()
+            params["detectorDistance"] = HWR.beamline.detector.distance.get_value()
+            params["resolution"] = HWR.beamline.resolution.get_value()
+            params["transmission"] = HWR.beamline.transmission.get_value()
+            beam_centre_x, beam_centre_y = HWR.beamline.detector.get_beam_position()
+            pixel_x, pixel_y = HWR.beamline.detector.get_pixel_size()
             params["xBeam"] = beam_centre_x * pixel_x
             params["yBeam"] = beam_centre_y * pixel_y
             und = self.get_undulators_gaps()
@@ -607,16 +607,16 @@ class AbstractCollect(HardwareObject, object):
                 if key in und:
                     params["undulatorGap%d" % (i)] = und[key]
                     i += 1
-            params["resolutionAtCorner"] = HWR.beamline.config.resolution.get_value_at_corner()
-            beam_size_x, beam_size_y = HWR.beamline.config.beam.get_beam_size()
+            params["resolutionAtCorner"] = HWR.beamline.resolution.get_value_at_corner()
+            beam_size_x, beam_size_y = HWR.beamline.beam.get_beam_size()
             params["beamSizeAtSampleX"] = beam_size_x
             params["beamSizeAtSampleY"] = beam_size_y
-            params["beamShape"] = HWR.beamline.config.beam.get_beam_shape()
+            params["beamShape"] = HWR.beamline.beam.get_beam_shape()
             hor_gap, vert_gap = self.get_slit_gaps()
             params["slitGapHorizontal"] = hor_gap
             params["slitGapVertical"] = vert_gap
             try:
-                HWR.beamline.config.lims.update_data_collection(params)
+                HWR.beamline.lims.update_data_collection(params)
             except BaseException:
                 logging.getLogger("HWR").exception(
                     "Could not update data collection in LIMS"
@@ -626,15 +626,15 @@ class AbstractCollect(HardwareObject, object):
         """
         Descript. :
         """
-        lims = HWR.beamline.config.lims
+        lims = HWR.beamline.lims
         if lims and lims.is_connected() and not self.current_dc_parameters["in_interleave"]:
-            HWR.beamline.config.lims.update_bl_sample(self.current_lims_sample)
+            HWR.beamline.lims.update_bl_sample(self.current_lims_sample)
 
     def store_image_in_lims(self, frame_number, motor_position_id=None):
         """
         Descript. :
         """
-        lims = HWR.beamline.config.lims
+        lims = HWR.beamline.lims
         if lims and lims.is_connected() and not self.current_dc_parameters["in_interleave"]:
             file_location = self.current_dc_parameters["fileinfo"]["directory"]
             image_file_template = self.current_dc_parameters["fileinfo"]["template"]
@@ -669,7 +669,7 @@ class AbstractCollect(HardwareObject, object):
                 lims_image["jpegThumbnailFileFullPath"] = jpeg_thumbnail_full_path
             if motor_position_id:
                 lims_image["motorPositionId"] = motor_position_id
-            image_id = HWR.beamline.config.lims.store_image(lims_image)
+            image_id = HWR.beamline.lims.store_image(lims_image)
             return image_id
 
     def update_lims_with_workflow(self, workflow_id, grid_snapshot_filename):
@@ -680,7 +680,7 @@ class AbstractCollect(HardwareObject, object):
         :param grid_snapshot_filename: grid snapshot file path
         :type grid_snapshot_filename: string
         """
-        lims = HWR.beamline.config.lims
+        lims = HWR.beamline.lims
         if lims and lims.is_connected():
             try:
                 self.current_dc_parameters["workflow_id"] = workflow_id
@@ -688,7 +688,7 @@ class AbstractCollect(HardwareObject, object):
                     self.current_dc_parameters[
                         "xtalSnapshotFullPath3"
                     ] = grid_snapshot_filename
-                HWR.beamline.config.lims.update_data_collection(self.current_dc_parameters)
+                HWR.beamline.lims.update_data_collection(self.current_dc_parameters)
             except BaseException:
                 logging.getLogger("HWR").exception(
                     "Could not store data collection into ISPyB"
@@ -706,20 +706,20 @@ class AbstractCollect(HardwareObject, object):
 
         self.current_dc_parameters["blSampleId"] = sample_id
 
-        if HWR.beamline.config.diffractometer.in_plate_mode():
+        if HWR.beamline.diffractometer.in_plate_mode():
             # TODO store plate location in lims
             pass
-        elif HWR.beamline.config.sample_changer:
+        elif HWR.beamline.sample_changer:
             try:
                 self.current_dc_parameters[
                     "actualSampleBarcode"
-                ] = HWR.beamline.config.sample_changer.getLoadedSample().getID()
+                ] = HWR.beamline.sample_changer.getLoadedSample().getID()
                 self.current_dc_parameters["actualContainerBarcode"] = (
-                    HWR.beamline.config.sample_changer.getLoadedSample().getContainer().getID()
+                    HWR.beamline.sample_changer.getLoadedSample().getContainer().getID()
                 )
 
                 logging.getLogger("user_level_log").info("Getting loaded sample coords")
-                basket, vial = HWR.beamline.config.sample_changer.getLoadedSample().getCoords()
+                basket, vial = HWR.beamline.sample_changer.getLoadedSample().getCoords()
 
                 self.current_dc_parameters["actualSampleSlotInContainer"] = vial
                 self.current_dc_parameters["actualContainerSlotInSC"] = basket
@@ -789,10 +789,10 @@ class AbstractCollect(HardwareObject, object):
                 ] = snapshot_filename
                 self._take_crystal_snapshot(snapshot_filename)
                 if number_of_snapshots > 1:
-                    HWR.beamline.config.diffractometer.move_omega_relative(90)
+                    HWR.beamline.diffractometer.move_omega_relative(90)
 
         if (
-            not HWR.beamline.config.diffractometer.in_plate_mode()
+            not HWR.beamline.diffractometer.in_plate_mode()
             and self.current_dc_parameters.get("take_video")
         ):
             # Add checkbox to allow enable/disable creation of gif

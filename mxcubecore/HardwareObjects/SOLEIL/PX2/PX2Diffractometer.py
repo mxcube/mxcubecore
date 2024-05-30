@@ -414,7 +414,7 @@ class PX2Diffractometer(GenericDiffractometer):
             GenericDiffractometer.PHASE_TRANSFER,
             GenericDiffractometer.PHASE_BEAM,
         ):
-            detector_distance = HWR.beamline.config.detector.distance.get_value()
+            detector_distance = HWR.beamline.detector.distance.get_value()
             logging.getLogger("HWR").debug(
                 "Diffractometer current phase: %s " % self.current_phase
                 + "selected phase: %s " % phase
@@ -422,7 +422,7 @@ class PX2Diffractometer(GenericDiffractometer):
             )
             if detector_distance < 350:
                 logging.getLogger("GUI").info("Moving detector to safe distance")
-                HWR.beamline.config.detector.distance.set_value(350)
+                HWR.beamline.detector.distance.set_value(350)
                 self.detector.insert_protective_cover()
 
         if timeout is not None:
@@ -639,7 +639,7 @@ class PX2Diffractometer(GenericDiffractometer):
         for k in range(n_clicks):
             self.user_clicked_event = gevent.event.AsyncResult()
             x, y = self.user_clicked_event.get()
-            image = HWR.beamline.config.sample_view.camera.get_last_image()
+            image = HWR.beamline.sample_view.camera.get_last_image()
             calibration = self.camera.get_calibration()
             omega = self.goniometer.get_omega_position()
 
@@ -1127,7 +1127,7 @@ class PX2Diffractometer(GenericDiffractometer):
         """
         Description:
         """
-        image_array = HWR.beamline.config.sample_view.get_snapshot(return_as_array=True)
+        image_array = HWR.beamline.sample_view.get_snapshot(return_as_array=True)
         (info, x, y) = lucid.find_loop(image_array)
         surface_score = 10
         return x, y, surface_score

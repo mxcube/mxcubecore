@@ -166,7 +166,7 @@ class LimaPilatusDetector(AbstractDetector):
         else:
             trigger_mode = self.get_property("osc_trigger_mode", "EXTERNAL_GATE")
 
-        diffractometer_positions = HWR.beamline.config.diffractometer.get_positions()
+        diffractometer_positions = HWR.beamline.diffractometer.get_positions()
         self.start_angles = list()
         for i in range(number_of_images):
             self.start_angles.append("%0.4f deg." % (start + osc_range * i))
@@ -184,17 +184,17 @@ class LimaPilatusDetector(AbstractDetector):
         self.header["Phi"] = "%0.4f deg." % kappa_phi
         self.header["Kappa"] = "%0.4f deg." % kappa
         self.header["Alpha"] = "0.0000 deg."
-        self.header["Polarization"] = HWR.beamline.config.collect.bl_config.polarisation
+        self.header["Polarization"] = HWR.beamline.collect.bl_config.polarisation
         self.header["Detector_2theta"] = "0.0000 deg."
         self.header["Angle_increment"] = "%0.4f deg." % osc_range
-        self.header["Transmission"] = HWR.beamline.config.transmission.get_value()
+        self.header["Transmission"] = HWR.beamline.transmission.get_value()
 
-        self.header["Flux"] = HWR.beamline.config.flux.get_value()
+        self.header["Flux"] = HWR.beamline.flux.get_value()
         self.header["Beam_xy"] = "(%.2f, %.2f) pixels" % self.get_beam_position()
         self.header["Detector_Voffset"] = "0.0000 m"
         self.header["Energy_range"] = "(0, 0) eV"
         self.header["Detector_distance"] = "%f m" % (self.distance.get_value() / 1000.0)
-        self.header["Wavelength"] = "%f A" % HWR.beamline.config.energy.get_wavelength()
+        self.header["Wavelength"] = "%f A" % HWR.beamline.energy.get_wavelength()
         self.header["Trim_directory:"] = "(nil)"
         self.header["Flat_field:"] = "(nil)"
         self.header["Excluded_pixels:"] = " badpix_mask.tif"
@@ -208,7 +208,7 @@ class LimaPilatusDetector(AbstractDetector):
         self.reset()
         self.wait_ready()
 
-        self.set_energy_threshold(HWR.beamline.config.energy.get_value())
+        self.set_energy_threshold(HWR.beamline.energy.get_value())
 
         self.set_channel_value("acq_trigger_mode", trigger_mode)
 
@@ -339,7 +339,7 @@ class LimaPilatusDetector(AbstractDetector):
             None,
             1,
             "",
-            HWR.beamline.config.energy.get_value(),
+            HWR.beamline.energy.get_value(),
             "INTERNAL_TRIGGER",
         )
         self.start_acquisition()

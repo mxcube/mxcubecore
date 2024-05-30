@@ -247,7 +247,7 @@ class AbstractMultiCollect(object):
 
     @task
     def take_crystal_snapshots(self, number_of_snapshots):
-        HWR.beamline.config.diffractometer.take_snapshots(number_of_snapshots, wait=True)
+        HWR.beamline.diffractometer.take_snapshots(number_of_snapshots, wait=True)
 
     def get_sample_info_from_parameters(self, parameters):
         """Returns sample_id, sample_location and sample_code from data collection parameters"""
@@ -437,11 +437,11 @@ class AbstractMultiCollect(object):
             jpeg_thumbnail_file_template = None
 
         # database filling
-        if HWR.beamline.config.lims:
+        if HWR.beamline.lims:
             data_collect_parameters["collection_start_time"] = time.strftime(
                 "%Y-%m-%d %H:%M:%S"
             )
-            if HWR.beamline.config.machine_info is not None:
+            if HWR.beamline.machine_info is not None:
                 logging.getLogger("user_level_log").info(
                     "Getting synchrotron filling mode"
                 )
@@ -451,7 +451,7 @@ class AbstractMultiCollect(object):
             data_collect_parameters["status"] = "failed"
 
             logging.getLogger("user_level_log").info("Storing data collection in LIMS")
-            (self.collection_id, detector_id) = HWR.beamline.config.lims.store_data_collection(
+            (self.collection_id, detector_id) = HWR.beamline.lims.store_data_collection(
                 data_collect_parameters, self.bl_config
             )
 
@@ -485,13 +485,13 @@ class AbstractMultiCollect(object):
         )
         data_collect_parameters["blSampleId"] = sample_id
 
-        if HWR.beamline.config.sample_changer is not None:
+        if HWR.beamline.sample_changer is not None:
             try:
                 data_collect_parameters[
                     "actualSampleBarcode"
-                ] = HWR.beamline.config.sample_changer.get_loaded_sample().get_id()
+                ] = HWR.beamline.sample_changer.get_loaded_sample().get_id()
                 data_collect_parameters["actualContainerBarcode"] = (
-                    HWR.beamline.config.sample_changer.get_loaded_sample()
+                    HWR.beamline.sample_changer.get_loaded_sample()
                     .get_container()
                     .get_id()
                 )
@@ -500,7 +500,7 @@ class AbstractMultiCollect(object):
                 (
                     basket,
                     vial,
-                ) = HWR.beamline.config.sample_changer.get_loaded_sample().get_coords()
+                ) = HWR.beamline.sample_changer.get_loaded_sample().get_coords()
 
                 data_collect_parameters["actualSampleSlotInContainer"] = vial
                 data_collect_parameters["actualContainerSlotInSC"] = basket
@@ -554,7 +554,7 @@ class AbstractMultiCollect(object):
         data_collect_parameters["actualCenteringPosition"] = positions_str.strip()
 
         self.move_motors(motors_to_move_before_collect)
-        HWR.beamline.config.diffractometer.save_centring_positions()
+        HWR.beamline.diffractometer.save_centring_positions()
 
         # take snapshots, then assign centring status (which contains images) to
         # centring_info variable
@@ -563,14 +563,14 @@ class AbstractMultiCollect(object):
         if take_snapshots:
             logging.getLogger("user_level_log").info("Taking sample snapshosts")
             self._take_crystal_snapshots(take_snapshots)
-        centring_info = HWR.beamline.config.diffractometer.get_centring_status()
+        centring_info = HWR.beamline.diffractometer.get_centring_status()
         # move *again* motors, since taking snapshots may change positions
         logging.getLogger("user_level_log").info(
             "Moving motors to centered position: %r", motors_to_move_before_collect
         )
         self.move_motors(motors_to_move_before_collect)
 
-        if HWR.beamline.config.lims:
+        if HWR.beamline.lims:
             try:
                 if self.current_lims_sample:
                     self.current_lims_sample[
@@ -579,7 +579,7 @@ class AbstractMultiCollect(object):
                     logging.getLogger("user_level_log").info(
                         "Updating sample information in LIMS"
                     )
-                    HWR.beamline.config.lims.update_bl_sample(self.current_lims_sample)
+                    HWR.beamline.lims.update_bl_sample(self.current_lims_sample)
             except Exception:
                 logging.getLogger("HWR").exception(
                     "Could not update sample information in LIMS"
@@ -636,7 +636,7 @@ class AbstractMultiCollect(object):
             except Exception:
                 data_collect_parameters["centeringMethod"] = None
 
-        if HWR.beamline.config.lims:
+        if HWR.beamline.lims:
             try:
                 logging.getLogger("user_level_log").info(
                     "Updating data collection in LIMS"
@@ -648,7 +648,7 @@ class AbstractMultiCollect(object):
                     data_collect_parameters["oscillation_sequence"][0][
                         "phiStart"
                     ] = current_diffractometer_position["kappa_phi"]
-                HWR.beamline.config.lims.update_data_collection(data_collect_parameters)
+                HWR.beamline.lims.update_data_collection(data_collect_parameters)
             except Exception:
                 logging.getLogger("HWR").exception(
                     "Could not update data collection in LIMS"
@@ -709,7 +709,7 @@ class AbstractMultiCollect(object):
                 "Setting transmission to %f", data_collect_parameters["transmission"]
             )
             try:
-                HWR.beamline.config.transmission.set_value(
+                HWR.beamline.transmission.set_value(
                     data_collect_parameters["transmission"], timeout=30
                 )
             except RuntimeError:
@@ -724,7 +724,7 @@ class AbstractMultiCollect(object):
                 "Setting wavelength to %f", data_collect_parameters["wavelength"]
             )
             try:
-                HWR.beamline.config.energy.set_wavelength(
+                HWR.beamline.energy.set_wavelength(
                     data_collect_parameters["wavelength"], timeout=600
                 )
             except RuntimeError:
@@ -738,7 +738,7 @@ class AbstractMultiCollect(object):
                 "Setting energy to %f", data_collect_parameters["energy"]
             )
             try:
-                HWR.beamline.config.energy.set_value(
+                HWR.beamline.energy.set_value(
                     data_collect_parameters["energy"], timeout=60 * 10
                 )
             except RuntimeError:
@@ -753,8 +753,8 @@ class AbstractMultiCollect(object):
                 "Setting resolution to %f", resolution
             )
             try:
-                HWR.beamline.config.diffractometer.open_detector_cover()
-                HWR.beamline.config.resolution.set_value(resolution, timeout=3500)
+                HWR.beamline.diffractometer.open_detector_cover()
+                HWR.beamline.resolution.set_value(resolution, timeout=3500)
             except RuntimeError:
                 logging.getLogger("user_level_log").info(
                     "Failed to set resolution to %f", resolution
@@ -765,7 +765,7 @@ class AbstractMultiCollect(object):
                 "Moving detector to %f", data_collect_parameters["detector_distance"]
             )
             try:
-                HWR.beamline.config.detector.distance.set_value(
+                HWR.beamline.detector.distance.set_value(
                     oscillation_parameters["detector_distance"], timeout=3500
                 )
             except RuntimeError:
@@ -789,7 +789,7 @@ class AbstractMultiCollect(object):
             check_cryo = self.get_property("check_cryo", False)
 
             if check_flux:
-                HWR.beamline.config.flux.wait_for_beam()
+                HWR.beamline.flux.wait_for_beam()
 
             # Wait for cryo
             # from time to time cryo does not answer
@@ -799,7 +799,7 @@ class AbstractMultiCollect(object):
                     logging.getLogger("user_level_log").info(
                         "Cryo temperature reading ..."
                     )
-                    cryo_temp = HWR.beamline.config.diffractometer.cryostream.get_value()
+                    cryo_temp = HWR.beamline.diffractometer.cryostream.get_value()
                     if cryo_temp > cryo_threshold:
                         logging.getLogger("user_level_log").info(
                             "Cryo temperature too high ..."
@@ -817,27 +817,27 @@ class AbstractMultiCollect(object):
             npass = oscillation_parameters["number_of_passes"]
 
             # update LIMS
-            if HWR.beamline.config.lims:
+            if HWR.beamline.lims:
                 try:
                     logging.getLogger("user_level_log").info(
                         "Gathering data for LIMS update"
                     )
-                    data_collect_parameters["flux"] = HWR.beamline.config.flux.get_value()
+                    data_collect_parameters["flux"] = HWR.beamline.flux.get_value()
                     data_collect_parameters["flux_end"] = data_collect_parameters[
                         "flux"
                     ]
                     data_collect_parameters[
                         "wavelength"
-                    ] = HWR.beamline.config.energy.get_wavelength()
+                    ] = HWR.beamline.energy.get_wavelength()
                     data_collect_parameters[
                         "detectorDistance"
-                    ] = HWR.beamline.config.detector.distance.get_value()
+                    ] = HWR.beamline.detector.distance.get_value()
                     data_collect_parameters[
                         "resolution"
-                    ] = HWR.beamline.config.resolution.get_value()
+                    ] = HWR.beamline.resolution.get_value()
                     data_collect_parameters[
                         "transmission"
-                    ] = HWR.beamline.config.transmission.get_value()
+                    ] = HWR.beamline.transmission.get_value()
                     beam_centre_x, beam_centre_y = self.get_beam_centre()
                     data_collect_parameters["xBeam"] = beam_centre_x
                     data_collect_parameters["yBeam"] = beam_centre_y
@@ -863,7 +863,7 @@ class AbstractMultiCollect(object):
                     logging.getLogger("user_level_log").info(
                         "Updating data collection in LIMS"
                     )
-                    HWR.beamline.config.lims.update_data_collection(
+                    HWR.beamline.lims.update_data_collection(
                         data_collect_parameters, wait=True
                     )
                     logging.getLogger("user_level_log").info(
@@ -874,7 +874,7 @@ class AbstractMultiCollect(object):
                         "Could not store data collection into LIMS"
                     )
 
-            if HWR.beamline.config.lims and self.bl_config.input_files_server:
+            if HWR.beamline.lims and self.bl_config.input_files_server:
                 logging.getLogger("user_level_log").info(
                     "Asking for input files writing"
                 )
@@ -974,14 +974,14 @@ class AbstractMultiCollect(object):
                             self.write_image(j == 1)
 
                         # Store image in lims
-                        if HWR.beamline.config.lims:
+                        if HWR.beamline.lims:
                             if self.store_image_in_lims(frame, j == wedge_size, j == 1):
                                 lims_image = {
                                     "dataCollectionId": self.collection_id,
                                     "fileName": filename,
                                     "fileLocation": file_location,
                                     "imageNumber": frame,
-                                    "measuredIntensity": HWR.beamline.config.flux.get_value(),
+                                    "measuredIntensity": HWR.beamline.flux.get_value(),
                                     "synchrotronCurrent": self.get_machine_current(),
                                     "machineMessage": self.get_machine_message(),
                                     "temperature": self.get_cryo_temperature(),
@@ -994,7 +994,7 @@ class AbstractMultiCollect(object):
                                     ] = jpeg_thumbnail_full_path
 
                                 try:
-                                    HWR.beamline.config.lims.store_image(lims_image)
+                                    HWR.beamline.lims.store_image(lims_image)
                                 except Exception:
                                     logging.getLogger("HWR").exception(
                                         "Could not store store image in LIMS"
@@ -1068,7 +1068,7 @@ class AbstractMultiCollect(object):
                         # if _total_time_spent > (wedge_size * (exptime + 0.005)) * 4:
                         #    msg = "Data collection failure, detector not responding"
                         #    logging.getLogger("user_level_log").info(msg)
-                        #    HWR.beamline.config.detector.recover_from_failure()
+                        #    HWR.beamline.detector.recover_from_failure()
                         #    raise RuntimeError(msg)
 
             # Bug fix for MD2/3(UP): diffractometer still has things to do even after the last frame is taken (decelerate motors and
@@ -1164,10 +1164,10 @@ class AbstractMultiCollect(object):
                         )
                     )
 
-                if HWR.beamline.config.lims:
-                    data_collect_parameters["flux_end"] = HWR.beamline.config.flux.get_value()
+                if HWR.beamline.lims:
+                    data_collect_parameters["flux_end"] = HWR.beamline.flux.get_value()
                     try:
-                        HWR.beamline.config.lims.update_data_collection(
+                        HWR.beamline.lims.update_data_collection(
                             data_collect_parameters
                         )
                     except Exception:

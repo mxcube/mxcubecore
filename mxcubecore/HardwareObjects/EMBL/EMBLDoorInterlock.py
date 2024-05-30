@@ -149,9 +149,9 @@ class EMBLDoorInterlock(Device):
            It doesn't matter what we are sending in the command
            as long as it is a one char
         """
-        if HWR.beamline.config.diffractometer is not None:
-            detector_distance = HWR.beamline.config.detector.distance
-            if HWR.beamline.config.diffractometer.in_plate_mode():
+        if HWR.beamline.diffractometer is not None:
+            detector_distance = HWR.beamline.detector.distance
+            if HWR.beamline.diffractometer.in_plate_mode():
                 if detector_distance is not None:
                     if detector_distance.get_value() < 780:
                         detector_distance.set_value(800, timeout=None)
@@ -164,8 +164,8 @@ class EMBLDoorInterlock(Device):
                         detector_distance.set_value(1100)
                         gevent.sleep(1)
             try:
-                HWR.beamline.config.diffractometer.set_phase(
-                    HWR.beamline.config.diffractometer.PHASE_TRANSFER, timeout=None
+                HWR.beamline.diffractometer.set_phase(
+                    HWR.beamline.diffractometer.PHASE_TRANSFER, timeout=None
                 )
             except Exception:
                 logging.getLogger("GUI").error(

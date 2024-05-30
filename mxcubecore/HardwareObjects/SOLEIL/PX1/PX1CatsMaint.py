@@ -52,7 +52,7 @@ class PX1CatsMaint(CatsMaint):
             logging.getLogger("HWR").debug("Unloading sample first")
             self.cats_hwo._do_unload()
             time.sleep(3)
-            while HWR.beamline.config.sample_changer._is_device_busy():
+            while HWR.beamline.sample_changer._is_device_busy():
                 time.sleep(0.3)
 
         logging.getLogger("HWR").debug("Running the home command (home/open) now")

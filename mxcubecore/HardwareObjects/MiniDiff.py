@@ -295,7 +295,7 @@ class MiniDiff(Equipment):
                 str(self.name()),
             )
 
-        if HWR.beamline.config.sample_changer is None:
+        if HWR.beamline.sample_changer is None:
             logging.getLogger("HWR").warning(
                 "MiniDiff: sample changer is not defined in minidiff equipment %s",
                 str(self.name()),
@@ -303,7 +303,7 @@ class MiniDiff(Equipment):
         else:
             try:
                 self.connect(
-                    HWR.beamline.config.sample_changer,
+                    HWR.beamline.sample_changer,
                     "sampleIsLoaded",
                     self.sampleChangerSampleIsLoaded,
                 )
@@ -438,7 +438,7 @@ class MiniDiff(Equipment):
             and self.phiMotor is not None
             and self.phizMotor is not None
             and self.phiyMotor is not None
-            and HWR.beamline.config.sample_view.camera is not None
+            and HWR.beamline.sample_view.camera is not None
         )
 
     def in_plate_mode(self):
@@ -485,7 +485,7 @@ class MiniDiff(Equipment):
         return self.pixelsPerMmY, self.pixelsPerMmZ
 
     def getBeamInfo(self, callback=None):
-        beam_info = HWR.beamline.config.beam.get_beam_info()
+        beam_info = HWR.beamline.beam.get_beam_info()
         if callable(callback):
             callback(beam_info)
         return beam_info
@@ -547,7 +547,7 @@ class MiniDiff(Equipment):
 
         if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
             return 0, 0
-        beam_pos_x, beam_pos_y = HWR.beamline.config.beam.get_beam_position_on_screen()
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
         dx = (x - beam_pos_x) / self.pixelsPerMmY
         dy = (y - beam_pos_y) / self.pixelsPerMmZ
 
@@ -712,7 +712,7 @@ class MiniDiff(Equipment):
     def start_manual_centring(self, sample_info=None):
         logging.getLogger("HWR").info("Starting centring procedure ...")
 
-        beam_pos_x, beam_pos_y = HWR.beamline.config.beam.get_beam_position_on_screen()
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
 
         self.wait_ready(5)
 
@@ -778,7 +778,7 @@ class MiniDiff(Equipment):
         )
         chiRot.shape = (2, 2)
         sx, sy = numpy.dot(numpy.array([0, dsy]), numpy.array(chiRot))  # .I))
-        beam_pos_x, beam_pos_y = HWR.beamline.config.beam.get_beam_position_on_screen()
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
 
         x = sx + (phiy * self.pixelsPerMmY) + beam_pos_x
         y = sy + (phiz * self.pixelsPerMmZ) + beam_pos_y
@@ -786,7 +786,7 @@ class MiniDiff(Equipment):
         return float(x), float(y)
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
-        beam_pos_x, beam_pos_y = HWR.beamline.config.beam.get_beam_position_on_screen()
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
         dx = (x - beam_pos_x) / self.pixelsPerMmY
         dy = (y - beam_pos_y) / self.pixelsPerMmZ
 
@@ -884,13 +884,13 @@ class MiniDiff(Equipment):
                 )
 
     def start_auto_centring(self, sample_info=None, loop_only=False):
-        beam_pos_x, beam_pos_y = HWR.beamline.config.beam.get_beam_position_on_screen()
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
 
         self.set_phase("centring", wait=True)
 
         self.wait_ready(30)
         self.current_centring_procedure = sample_centring.start_auto(
-            HWR.beamline.config.sample_view,
+            HWR.beamline.sample_view,
             {
                 "phi": self.centringPhi,
                 "phiy": self.centringPhiy,
@@ -1027,7 +1027,7 @@ class MiniDiff(Equipment):
             time.sleep(0.1)
 
     def take_snapshots(self, image_count, wait=False):
-        HWR.beamline.config.sample_view.camera.forceUpdate = True
+        HWR.beamline.sample_view.camera.forceUpdate = True
 
         snapshotsProcedure = gevent.spawn(
             take_snapshots,
@@ -1047,7 +1047,7 @@ class MiniDiff(Equipment):
             self.centringStatus["images"] = snapshotsProcedure.get()
 
     def snapshotsDone(self, snapshotsProcedure):
-        HWR.beamline.config.sample_view.camera.forceUpdate = False
+        HWR.beamline.sample_view.camera.forceUpdate = False
 
         try:
             self.centringStatus["images"] = snapshotsProcedure.get()

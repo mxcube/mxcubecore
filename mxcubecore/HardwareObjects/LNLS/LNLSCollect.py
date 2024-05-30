@@ -29,7 +29,7 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
             safety_shutter=self.get_object_by_role("safety_shutter"),
             machine_current=self.get_object_by_role("machine_current"),
             cryo_stream=self.get_object_by_role("cryo_stream"),
-            energy=HWR.beamline.config.energy,
+            energy=HWR.beamline.energy,
             resolution=self.get_object_by_role("resolution"),
             detector_distance=self.get_object_by_role("detector_distance"),
             transmission=self.get_object_by_role(
@@ -166,7 +166,7 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
 
             # Store values for clean up
             logging.getLogger("HWR").info("[Clean up] Configuring...")
-            omega = HWR.beamline.config.diffractometer.motor_hwobj_dict.get("phi")
+            omega = HWR.beamline.diffractometer.motor_hwobj_dict.get("phi")
             if omega is None:
                 logging.getLogger("HWR").error("[Clean up] Could not get omega motor.")
             else:

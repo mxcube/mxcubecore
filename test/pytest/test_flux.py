@@ -30,7 +30,7 @@ import pytest
 @pytest.fixture
 def test_object(beamline):
     """Use the flux object from beamline"""
-    result = beamline.config.flux
+    result = beamline.flux
     yield result
 
 

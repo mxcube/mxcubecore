@@ -45,7 +45,7 @@ class ID30BPhotonFlux(AbstractFlux):
         """Initialisation"""
         super(ID30BPhotonFlux, self).init()
         controller = self.get_object_by_role("controller")
-        # ultimately it should be HWR.beamline.config.diffractometer.aperture
+        # ultimately it should be HWR.beamline.diffractometer.aperture
         self._aperture = self.get_object_by_role("aperture")
 
         try:
@@ -62,7 +62,7 @@ class ID30BPhotonFlux(AbstractFlux):
         else:
             self._counter = self.get_object_by_role("counter")
 
-        HWR.beamline.config.safety_shutter.connect("stateChanged", self.update_value)
+        HWR.beamline.safety_shutter.connect("stateChanged", self.update_value)
 
     def get_value(self):
         """Calculate the flux value as function of a reading
@@ -74,7 +74,7 @@ class ID30BPhotonFlux(AbstractFlux):
         if counts == -9999:
             counts = 0.0
 
-        egy = HWR.beamline.config.energy.get_value() * 1000.0
+        egy = HWR.beamline.energy.get_value() * 1000.0
         calib = self._flux_calc.calc_flux_factor(egy)[self._counter.name]
 
         try:

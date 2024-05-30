@@ -177,12 +177,12 @@ class HarvesterMaintenance(HardwareObject):
         # For some reason the Harvester return READY too soon
         # approximately 40 Second sooner
         gevent.sleep(40)
-        sample_mount_device = HWR.beamline.config.sample_changer
+        sample_mount_device = HWR.beamline.sample_changer
         mount_current_sample = sample_mount_device.load_a_pin_for_calibration()
 
         if mount_current_sample:
             try:
-                md = HWR.beamline.config.diffractometer
+                md = HWR.beamline.diffractometer
                 md._wait_ready()
 
                 sample_drift_x = float(self._harvester.get_last_sample_drift_offset_x())
@@ -237,7 +237,7 @@ class HarvesterMaintenance(HardwareObject):
         goes to end (True) or had and exception (False)
         """
         try:
-            md = HWR.beamline.config.diffractometer
+            md = HWR.beamline.diffractometer
 
             motor_pos_dict = {
                 "focus": md.focusMotor.get_value(),

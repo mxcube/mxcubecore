@@ -43,7 +43,7 @@ class LNLSTransmission(EPICSActuator, AbstractTransmission):
     def init(self):
         """Override method."""
         AbstractTransmission.init(self)
-        self.energy = HWR.beamline.config.energy
+        self.energy = HWR.beamline.energy
 
     def get_value(self):
         """Override method."""

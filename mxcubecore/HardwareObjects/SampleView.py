@@ -44,14 +44,14 @@ class SampleView(AbstractSampleView):
         self._last_oav_image = None
 
         self.hide_grid_threshold = self.get_property("hide_grid_threshold", 5)
-        for motor_name, motor_ho in HWR.beamline.config.diffractometer.get_motors().items():
+        for motor_name, motor_ho in HWR.beamline.diffractometer.get_motors().items():
             if motor_ho:
                 motor_ho.connect("stateChanged", self._update_shape_positions)
 
     def _update_shape_positions(self, *args, **kwargs):
 
         for shape in self.get_shapes():
-            shape.update_position(HWR.beamline.config.diffractometer.motor_positions_to_screen)
+            shape.update_position(HWR.beamline.diffractometer.motor_positions_to_screen)
 
         self.emit("shapesChanged")
 
@@ -532,7 +532,7 @@ class Grid(Shape):
         self.set_id(Grid.SHAPE_COUNT)
 
     def update_position(self, transform):
-        phi_pos = HWR.beamline.config.diffractometer.omega.get_value() % 360
+        phi_pos = HWR.beamline.diffractometer.omega.get_value() % 360
         _d = abs((self.get_centred_position().phi % 360) - phi_pos)
 
         if min(_d, 360 - _d) > self.shapes_hw_object.hide_grid_threshold:
@@ -574,9 +574,9 @@ class Grid(Shape):
         # replace cpos_list with the motor positions
         d["motor_positions"] = self.cp_list[0].as_dict()
 
-        pixels_per_mm = HWR.beamline.config.diffractometer.get_pixels_per_mm()
-        beam_pos = HWR.beamline.config.beam.get_beam_position_on_screen()
-        size_x, size_y, shape, _label = HWR.beamline.config.beam.get_value()
+        pixels_per_mm = HWR.beamline.diffractometer.get_pixels_per_mm()
+        beam_pos = HWR.beamline.beam.get_beam_position_on_screen()
+        size_x, size_y, shape, _label = HWR.beamline.beam.get_value()
 
         # MXCuBE - 2 WF compatability
         d["x1"] = -float((beam_pos[0] - d["screen_coord"][0]) / pixels_per_mm[0])

@@ -104,7 +104,7 @@ def queue_update_result(server_hwobj, node_id, html_report):
 
 def queue_get_full_path(server_hwobj, suddir, tag):
     """ """
-    return HWR.beamline.config.session.get_full_path(subdir, tag)
+    return HWR.beamline.session.get_full_path(subdir, tag)
 
 
 def queue_get_model_code(server_hwobj):

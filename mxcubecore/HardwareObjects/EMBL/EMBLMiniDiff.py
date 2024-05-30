@@ -313,7 +313,7 @@ class EMBLMiniDiff(GenericDiffractometer):
             or self.current_phase
             in (GenericDiffractometer.PHASE_TRANSFER, GenericDiffractometer.PHASE_BEAM)
         ):
-            detector_distance = HWR.beamline.config.detector.distance.get_value()
+            detector_distance = HWR.beamline.detector.distance.get_value()
             logging.getLogger("HWR").debug(
                 "Diffractometer current phase: %s " % self.current_phase
                 + "selected phase: %s" % phase
@@ -321,7 +321,7 @@ class EMBLMiniDiff(GenericDiffractometer):
             )
             if detector_distance < 350:
                 logging.getLogger("GUI").info("Moving detector to safe distance")
-                HWR.beamline.config.detector.distance.set_value(350, timeout=20)
+                HWR.beamline.detector.distance.set_value(350, timeout=20)
 
         if timeout is not None:
             _start = time.time()
