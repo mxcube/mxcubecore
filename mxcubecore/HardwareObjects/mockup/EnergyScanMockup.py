@@ -403,9 +403,10 @@ class EnergyScanMockup(AbstractEnergyScan):
 
     def get_elements(self):
         elements = []
+
         try:
-            for el in self["elements"]:
-                elements.append({"symbol": el.symbol, "energy": el.energy})
+            for el in self.config.elements["element"]:
+                elements.append({"symbol": el["symbol"], "energy": el["energy"]})
         except IndexError:
             pass
         return elements
