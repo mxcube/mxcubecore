@@ -100,7 +100,8 @@ configuration:
       # Multiple acquisitions in order - characterisation then main
       # passed to set_pre_strategy_params and set_pre_acquisition_params
       # NB as long as we only acquire either characterisation+main or diffractcal
-      # the code will use list[0] for the first acquisition and list[-1] for the main one
+      # the code will use list[0] for the first acquisition and
+      # list[-1] for the main one
     auto_acq_parameters:
       # For characterisation acquisition
       - exposure_time: 0.02

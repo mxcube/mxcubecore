@@ -210,12 +210,12 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
                 warn(
                     f"load_from_yaml Class {_container.__class__.__name__} has no attribute {role}"
                 )
+            _container._roles.append(role)
             setattr(_container, role, result)
         try:
             # Initialise object
             result.init()
         except Exception:
-            raise
             if _container:
                 msg0 = "Error in %s.init()" % cls.__name__
             else:
@@ -256,8 +256,9 @@ def _attach_xml_objects(container, hwobj, role):
 
     hwobj._hwobj_container = container
     hwobj._name = role
+    container._roles.append(role)
     hwobj._config = hwobj.HOConfig(**hwobj.get_properties())
-    setattr(container._config, role, hwobj)
+    setattr(container, role, hwobj)
     objects_by_role = hwobj._objects_by_role
     for role2, hwobj2 in objects_by_role.items():
         _attach_xml_objects(hwobj, hwobj2, role2)
