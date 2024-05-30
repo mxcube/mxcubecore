@@ -200,7 +200,6 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
                         class_name1 = hwobj.__class__.__name__
                         _attach_xml_objects(result, hwobj, role1)
                 except Exception as ex:
-                    raise
                     msg1 = "Loading error (%s)" % str(ex)
                 load_time = 1000 * (time.time() - time0)
                 _table.append(
