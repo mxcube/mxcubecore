@@ -1,5 +1,4 @@
 %YAML 1.2
 ---
 
-_initialise_class:
-  class: mxcubecore.HardwareObjects.mockup.XrayCentringMockup.XrayCentringMockup
+class: mxcubecore.HardwareObjects.mockup.XrayCentringMockup.XrayCentringMockup
