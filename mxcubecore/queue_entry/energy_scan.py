@@ -51,7 +51,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
     def execute(self):
         BaseQueueEntry.execute(self)
 
-        if HWR.beamline.config.energy_scan:
+        if HWR.beamline.energy_scan:
             energy_scan = self.get_data_model()
             self.get_view().setText(1, "Starting energy scan")
 
@@ -64,17 +64,17 @@ class EnergyScanQueueEntry(BaseQueueEntry):
                 sample_lims_id = None
 
             self.energy_scan_task = gevent.spawn(
-                HWR.beamline.config.energy_scan.start_energy_scan,
+                HWR.beamline.energy_scan.start_energy_scan,
                 energy_scan.element_symbol,
                 energy_scan.edge,
                 energy_scan.path_template.directory,
                 energy_scan.path_template.get_prefix(),
-                HWR.beamline.config.session.session_id,
+                HWR.beamline.session.session_id,
                 sample_lims_id,
             )
 
-        HWR.beamline.config.energy_scan.ready_event.wait()
-        HWR.beamline.config.energy_scan.ready_event.clear()
+        HWR.beamline.energy_scan.ready_event.wait()
+        HWR.beamline.energy_scan.ready_event.clear()
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
@@ -83,21 +83,21 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         qc = self.get_queue_controller()
 
         qc.connect(
-            HWR.beamline.config.energy_scan,
+            HWR.beamline.energy_scan,
             "scanStatusChanged",
             self.energy_scan_status_changed,
         )
 
         qc.connect(
-            HWR.beamline.config.energy_scan, "energyScanStarted", self.energy_scan_started
+            HWR.beamline.energy_scan, "energyScanStarted", self.energy_scan_started
         )
 
         qc.connect(
-            HWR.beamline.config.energy_scan, "energyScanFinished", self.energy_scan_finished
+            HWR.beamline.energy_scan, "energyScanFinished", self.energy_scan_finished
         )
 
         qc.connect(
-            HWR.beamline.config.energy_scan, "energyScanFailed", self.energy_scan_failed
+            HWR.beamline.energy_scan, "energyScanFailed", self.energy_scan_failed
         )
 
     def post_execute(self):
@@ -105,21 +105,21 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         qc = self.get_queue_controller()
 
         qc.disconnect(
-            HWR.beamline.config.energy_scan,
+            HWR.beamline.energy_scan,
             "scanStatusChanged",
             self.energy_scan_status_changed,
         )
 
         qc.disconnect(
-            HWR.beamline.config.energy_scan, "energyScanStarted", self.energy_scan_started
+            HWR.beamline.energy_scan, "energyScanStarted", self.energy_scan_started
         )
 
         qc.disconnect(
-            HWR.beamline.config.energy_scan, "energyScanFinished", self.energy_scan_finished
+            HWR.beamline.energy_scan, "energyScanFinished", self.energy_scan_finished
         )
 
         qc.disconnect(
-            HWR.beamline.config.energy_scan, "energyScanFailed", self.energy_scan_failed
+            HWR.beamline.energy_scan, "energyScanFailed", self.energy_scan_failed
         )
 
         if self._failed:
@@ -150,7 +150,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
             chooch_graph_y1,
             chooch_graph_y2,
             title,
-        ) = HWR.beamline.config.energy_scan.do_chooch(
+        ) = HWR.beamline.energy_scan.do_chooch(
             energy_scan.element_symbol,
             energy_scan.edge,
             energy_scan.path_template.directory,
@@ -188,7 +188,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         energy_scan.result.chooch_graph_y2 = chooch_graph_y2
         energy_scan.result.title = title
         try:
-            energy_scan.result.data = HWR.beamline.config.energy_scan.get_scan_data()
+            energy_scan.result.data = HWR.beamline.energy_scan.get_scan_data()
         except Exception:
             pass
 
@@ -219,7 +219,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
 
         try:
             # self.get_view().setText(1, 'Stopping ...')
-            HWR.beamline.config.energy_scan.cancelEnergyScan()
+            HWR.beamline.energy_scan.cancelEnergyScan()
 
             if self.centring_task:
                 self.centring_task.kill(block=False)

@@ -87,7 +87,7 @@ class BlissHutchTrigger(BaseHardwareObjects.HardwareObject):
         ctrl_obj.hutch_actions(entering_hutch, hutch_trigger=True, **kwargs)
 
         # open the flexHCD ports
-        sample_changer = HWR.beamline.config.sample_changer
+        sample_changer = HWR.beamline.sample_changer
         if sample_changer:
             if entering_hutch:
                 sample_changer.prepare_hutch(robot_port=0)

@@ -8,7 +8,7 @@ class MicrodiffFocusMotor(ExpMotor):
 
     def init(self):
 
-        if HWR.beamline.config.diffractometer.in_plate_mode():
+        if HWR.beamline.diffractometer.in_plate_mode():
             self.actuator_name = self.get_property("centring_focus")
         else:
             self.actuator_name = self.get_property("alignment_focus")

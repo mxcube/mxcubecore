@@ -63,7 +63,7 @@ class AbstractXRFSpectrum(HardwareObject):
     def init(self):
         """Initialisation"""
         self.default_integration_time = self.get_property("default_integration_time", 3)
-        self.lims = HWR.beamline.config.lims
+        self.lims = HWR.beamline.lims
         if not self.lims:
             logging.getLogger().warning("XRFSpectrum: no lims set")
 
@@ -197,16 +197,16 @@ class AbstractXRFSpectrum(HardwareObject):
     def spectrum_command_finished(self):
         """Actions to do if spectrum acquired."""
         self.spectrum_info_dict["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
-        if HWR.beamline.config.transmission:
+        if HWR.beamline.transmission:
             self.spectrum_info_dict[
                 "beamTransmission"
-            ] = HWR.beamline.config.transmission.get_value()
-        if HWR.beamline.config.energy:
-            self.spectrum_info_dict["energy"] = HWR.beamline.config.energy.get_value()
-        if HWR.beamline.config.flux:
-            self.spectrum_info_dict["flux"] = HWR.beamline.config.flux.get_value()
-        if HWR.beamline.config.beam:
-            size = HWR.beamline.config.beam.get_value()
+            ] = HWR.beamline.transmission.get_value()
+        if HWR.beamline.energy:
+            self.spectrum_info_dict["energy"] = HWR.beamline.energy.get_value()
+        if HWR.beamline.flux:
+            self.spectrum_info_dict["flux"] = HWR.beamline.flux.get_value()
+        if HWR.beamline.beam:
+            size = HWR.beamline.beam.get_value()
             self.spectrum_info_dict["beamSizeHorizontal"] = size[0]
             self.spectrum_info_dict["beamSizeVertical"] = size[1]
         self.spectrum_analyse()

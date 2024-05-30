@@ -21,14 +21,14 @@ class MD2MultiCollect(ESRFMultiCollect):
         self._detector.shutterless = data_collect_parameters["shutterless"]
 
         try:
-            comment = HWR.beamline.config.sample_changer.get_crystal_id()
+            comment = HWR.beamline.sample_changer.get_crystal_id()
             data_collect_parameters["comment"] = comment
         except Exception:
             pass
 
     @task
     def get_beam_size(self):
-        return HWR.beamline.config.beam.beam_width, HWR.beamline.config.beam.beam_height
+        return HWR.beamline.beam.beam_width, HWR.beamline.beam.beam_height
 
     @task
     def get_slit_gaps(self):
@@ -38,10 +38,10 @@ class MD2MultiCollect(ESRFMultiCollect):
 
     @task
     def get_beam_shape(self):
-        return HWR.beamline.config.beam.get_value()[2].name
+        return HWR.beamline.beam.get_value()[2].name
 
     def get_resolution_at_corner(self):
-        return HWR.beamline.config.resolution.get_value_at_corner()
+        return HWR.beamline.resolution.get_value_at_corner()
 
     def ready(*motors):
         return not any([m.motorIsMoving() for m in motors])
@@ -50,7 +50,7 @@ class MD2MultiCollect(ESRFMultiCollect):
     def move_motors(self, motors_to_move_dict):
         # We do not want to modify the input dict
         motor_positions_copy = motors_to_move_dict.copy()
-        diffr = HWR.beamline.config.diffractometer
+        diffr = HWR.beamline.diffractometer
         for tag in ("kappa", "kappa_phi", "zoom"):
             if tag in motor_positions_copy:
                 del motor_positions_copy[tag]
@@ -59,16 +59,16 @@ class MD2MultiCollect(ESRFMultiCollect):
 
     @task
     def take_crystal_snapshots(self, number_of_snapshots):
-        if HWR.beamline.config.diffractometer.in_plate_mode():
+        if HWR.beamline.diffractometer.in_plate_mode():
             if number_of_snapshots > 0:
                 number_of_snapshots = 1
         else:
             # this has to be done before each chage of phase
-            HWR.beamline.config.diffractometer.save_centring_positions()
+            HWR.beamline.diffractometer.save_centring_positions()
             # not going to centring phase if in plate mode (too long)
-            HWR.beamline.config.diffractometer.set_phase("Centring", wait=True, timeout=600)
+            HWR.beamline.diffractometer.set_phase("Centring", wait=True, timeout=600)
 
-        HWR.beamline.config.diffractometer.take_snapshots(number_of_snapshots, wait=True)
+        HWR.beamline.diffractometer.take_snapshots(number_of_snapshots, wait=True)
 
     def do_prepare_oscillation(self, *args, **kwargs):
         # set the detector cover out
@@ -80,7 +80,7 @@ class MD2MultiCollect(ESRFMultiCollect):
         except:
             logging.getLogger("HWR").exception("Could close detector cover")
 
-        diffr = HWR.beamline.config.diffractometer
+        diffr = HWR.beamline.diffractometer
 
         # send again the command as MD2 software only handles one
         # centered position!!
@@ -112,7 +112,7 @@ class MD2MultiCollect(ESRFMultiCollect):
                 start, end, exptime, number_of_images, self.helical_pos, wait=True
             )
         elif self.mesh:
-            det = HWR.beamline.config.detector
+            det = HWR.beamline.detector
             latency_time = det.get_property("latecy_time_mesh") or det.get_deadtime()
             sequence_trigger = self.get_property("lima_sequnce_trigger_mode") or False
 
@@ -173,11 +173,11 @@ class MD2MultiCollect(ESRFMultiCollect):
         )
 
     def open_fast_shutter(self):
-        fs = HWR.beamline.config.fast_shutter
+        fs = HWR.beamline.fast_shutter
         fs.set_value(fs.VALUES.OPEN)
 
     def close_fast_shutter(self):
-        fs = HWR.beamline.config.fast_shutter
+        fs = HWR.beamline.fast_shutter
         fs.set_value(fs.VALUES.CLOSED)
 
     def set_helical(self, helical_on):
@@ -217,8 +217,8 @@ class MD2MultiCollect(ESRFMultiCollect):
         return
 
     def get_beam_centre(self):
-        pixel_x, pixel_y = HWR.beamline.config.detector.get_pixel_size()
-        bcx, bcy = HWR.beamline.config.detector.get_beam_position()
+        pixel_x, pixel_y = HWR.beamline.detector.get_pixel_size()
+        bcx, bcy = HWR.beamline.detector.get_beam_position()
         return [bcx * pixel_x, bcy * pixel_y]
 
     @task

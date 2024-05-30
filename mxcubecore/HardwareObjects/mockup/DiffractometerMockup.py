@@ -292,9 +292,9 @@ class DiffractometerMockup(GenericDiffractometer):
         Descript. :
         """
         self.emit("minidiffStateChanged", "testState")
-        if HWR.beamline.config.beam:
-            HWR.beamline.config.beam.beam_pos_hor_changed(300)
-            HWR.beamline.config.beam.beam_pos_ver_changed(200)
+        if HWR.beamline.beam:
+            HWR.beamline.beam.beam_pos_hor_changed(300)
+            HWR.beamline.beam.beam_pos_ver_changed(200)
 
     def start_auto_focus(self):
         """

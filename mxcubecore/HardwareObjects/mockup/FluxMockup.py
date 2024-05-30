@@ -58,8 +58,8 @@ class FluxMockup(AbstractFlux):
         Emits:
            valueChanged (float): The new flux value
         """
-        beam_size = HWR.beamline.config.beam.get_beam_size()
-        transmission = HWR.beamline.config.transmission.get_value()
+        beam_size = HWR.beamline.beam.get_beam_size()
+        transmission = HWR.beamline.transmission.get_value()
         flux = self.default_value * (1 + 0.001 * random()) * transmission / 100.0
 
         self.measured_flux_list = [

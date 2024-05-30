@@ -28,7 +28,7 @@ __license__ = "LGPLv3+"
 @pytest.fixture
 def test_object(beamline):
     """Use the machine_info object from beamline"""
-    result = beamline.config.machine_info
+    result = beamline.machine_info
     yield result
     # Cleanup code here - restores starting state for next call:
     # NBNB TODO

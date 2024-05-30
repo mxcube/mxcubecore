@@ -240,9 +240,9 @@ class EdnaWorkflow(HardwareObject):
         start_URL = os.path.join(
             "/BES", "bridge", "rest", "processes", self.workflow_name, "RUN"
         )
-        self.dict_parameters["initiator"] = HWR.beamline.config.session.endstation_name
-        self.dict_parameters["sessionId"] = HWR.beamline.config.session.session_id
-        self.dict_parameters["externalRef"] = HWR.beamline.config.session.get_proposal()
+        self.dict_parameters["initiator"] = HWR.beamline.session.endstation_name
+        self.dict_parameters["sessionId"] = HWR.beamline.session.session_id
+        self.dict_parameters["externalRef"] = HWR.beamline.session.get_proposal()
         self.dict_parameters["token"] = self.token
         start_URL = os.path.join(
             "http://{0}:{1}".format(self.bes_host, self.bes_port),

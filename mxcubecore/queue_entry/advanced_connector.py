@@ -57,11 +57,11 @@ class AdvancedConnectorQueueEntry(BaseQueueEntry):
 
                 # logging.getLogger("user_level_log").info(\
                 #    "Moving to the best position")
-                # HWR.beamline.config.diffractometer.move_motors(best_cpos)
+                # HWR.beamline.diffractometer.move_motors(best_cpos)
                 # gevent.sleep(2)
 
                 logging.getLogger("user_level_log").info("Rotating 90 degrees")
-                HWR.beamline.config.diffractometer.move_omega_relative(90)
+                HWR.beamline.diffractometer.move_omega_relative(90)
                 logging.getLogger("user_level_log").info("Creating a helical line")
 
                 gevent.sleep(2)
@@ -69,7 +69,7 @@ class AdvancedConnectorQueueEntry(BaseQueueEntry):
                     auto_line,
                     cpos_one,
                     cpos_two,
-                ) = HWR.beamline.config.sample_view.create_auto_line()
+                ) = HWR.beamline.sample_view.create_auto_line()
                 helical_model.acquisitions[
                     0
                 ].acquisition_parameters.osc_start = cpos_one.phi

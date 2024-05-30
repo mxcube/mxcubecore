@@ -19,12 +19,12 @@ class SOLEILRuche(HardwareObject):
             logging.getLogger().info(
                 "<SOLEIL Ruche> username: %s  user_id: %s projuser: %s"
                 % (
-                    HWR.beamline.config.session.username,
-                    HWR.beamline.config.session.user_id,
-                    HWR.beamline.config.session.projuser,
+                    HWR.beamline.session.username,
+                    HWR.beamline.session.user_id,
+                    HWR.beamline.session.projuser,
                 )
             )
-            if HWR.beamline.config.session.user_id is None:
+            if HWR.beamline.session.user_id is None:
                 return
         except Exception:
             pass
@@ -42,7 +42,7 @@ class SOLEILRuche(HardwareObject):
         logging.getLogger().info(
             "<SOLEIL Ruche> - triggering data sync on directory %s" % path_to_sync
         )
-        ruche_info = HWR.beamline.config.session.get_ruche_info(path_to_sync)
+        ruche_info = HWR.beamline.session.get_ruche_info(path_to_sync)
         try:
             sync_filename = time.strftime(
                 "%Y_%m_%d-%H_%M_%S", time.localtime(time.time())

@@ -43,17 +43,17 @@ class XrayImagingQueueEntry(BaseQueueEntry):
 
     def execute(self):
         BaseQueueEntry.execute(self)
-        HWR.beamline.config.imaging.execute(self.get_data_model())
+        HWR.beamline.imaging.execute(self.get_data_model())
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
 
         queue_controller = self.get_queue_controller()
         queue_controller.connect(
-            HWR.beamline.config.imaging, "collectImageTaken", self.image_taken
+            HWR.beamline.imaging, "collectImageTaken", self.image_taken
         )
         queue_controller.connect(
-            HWR.beamline.config.imaging, "collectFailed", self.collect_failed
+            HWR.beamline.imaging, "collectFailed", self.collect_failed
         )
 
         data_model = self.get_data_model()
@@ -62,23 +62,23 @@ class XrayImagingQueueEntry(BaseQueueEntry):
             gid = data_model.get_parent().lims_group_id
             data_model.lims_group_id = gid
 
-        HWR.beamline.config.imaging.pre_execute(self.get_data_model())
+        HWR.beamline.imaging.pre_execute(self.get_data_model())
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
-        HWR.beamline.config.imaging.post_execute(self.get_data_model())
+        HWR.beamline.imaging.post_execute(self.get_data_model())
 
         queue_controller = self.get_queue_controller()
         queue_controller.disconnect(
-            HWR.beamline.config.imaging, "collectImageTaken", self.image_taken
+            HWR.beamline.imaging, "collectImageTaken", self.image_taken
         )
         queue_controller.disconnect(
-            HWR.beamline.config.imaging, "collectFailed", self.collect_failed
+            HWR.beamline.imaging, "collectFailed", self.collect_failed
         )
 
     def stop(self):
         BaseQueueEntry.stop(self)
-        HWR.beamline.config.imaging.stop_collect()
+        HWR.beamline.imaging.stop_collect()
 
     def collect_failed(self, message):
         # this is to work around the remote access problem

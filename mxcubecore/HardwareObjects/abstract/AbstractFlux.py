@@ -85,11 +85,11 @@ class AbstractFlux(AbstractActuator):
         Returns:
             (float): (photons / mm^2) - average flux density over beam area.
         """
-        beam_size = HWR.beamline.config.beam.get_beam_size()
+        beam_size = HWR.beamline.beam.get_beam_size()
         flux = self.get_value()
         result = None
         if flux and all(beam_size):
             result = flux / (beam_size[0] * beam_size[1])
             if transmission is not None:
-                result *= transmission / HWR.beamline.config.transmission.get_value()
+                result *= transmission / HWR.beamline.transmission.get_value()
         return result

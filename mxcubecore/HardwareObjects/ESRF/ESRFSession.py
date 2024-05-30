@@ -57,7 +57,7 @@ class ESRFSession(Session.Session):
         )
 
         # Check collects in queue not yet collected
-        for pt in HWR.beamline.config.queue_model.get_path_templates():
+        for pt in HWR.beamline.queue_model.get_path_templates():
             if pt[1].directory.startswith(full_path[:-1]):
                 run_num += 1
 

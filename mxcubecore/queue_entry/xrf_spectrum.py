@@ -55,21 +55,21 @@ class XrfSpectrumQueueEntry(BaseQueueEntry):
         """Execute"""
         super().execute()
 
-        if HWR.beamline.config.xrf_spectrum is not None:
+        if HWR.beamline.xrf_spectrum is not None:
             xrf_spectrum = self.get_data_model()
             self.get_view().setText(1, "Starting xrf spectrum")
 
             path_template = xrf_spectrum.path_template
-            HWR.beamline.config.xrf_spectrum.start_spectrum(
+            HWR.beamline.xrf_spectrum.start_spectrum(
                 integration_time=xrf_spectrum.count_time,
                 data_dir=xrf_spectrum.path_template.directory,
                 archive_dir=xrf_spectrum.path_template.get_archive_directory(),
                 prefix=f"{path_template.get_prefix()}_{path_template.run_number}",
-                session_id=HWR.beamline.config.session.session_id,
+                session_id=HWR.beamline.session.session_id,
                 blsample_id=xrf_spectrum._node_id,
             )
-            HWR.beamline.config.xrf_spectrum._ready_event.wait()
-            HWR.beamline.config.xrf_spectrum._ready_event.clear()
+            HWR.beamline.xrf_spectrum._ready_event.wait()
+            HWR.beamline.xrf_spectrum._ready_event.clear()
         else:
             logging.getLogger("user_level_log").info(
                 "XRFSpectrum not defined in beamline setup"
@@ -82,24 +82,24 @@ class XrfSpectrumQueueEntry(BaseQueueEntry):
         self._failed = False
         qctrl = self.get_queue_controller()
         qctrl.connect(
-            HWR.beamline.config.xrf_spectrum,
+            HWR.beamline.xrf_spectrum,
             "xrfSpectrumStatusChanged",
             self.xrf_spectrum_status_changed,
         )
 
-        qctrl.connect(HWR.beamline.config.xrf_spectrum, "stateChanged", self.xrf_state_handler)
+        qctrl.connect(HWR.beamline.xrf_spectrum, "stateChanged", self.xrf_state_handler)
 
     def post_execute(self):
         """Post-execution actions"""
         qctrl = self.get_queue_controller()
         qctrl.disconnect(
-            HWR.beamline.config.xrf_spectrum,
+            HWR.beamline.xrf_spectrum,
             "xrfSpectrumStatusChanged",
             self.xrf_spectrum_status_changed,
         )
 
         qctrl.disconnect(
-            HWR.beamline.config.xrf_spectrum, "stateChanged", self.xrf_state_handler
+            HWR.beamline.xrf_spectrum, "stateChanged", self.xrf_state_handler
         )
         if self._failed:
             raise QueueAbortedException("Queue stopped", self)
@@ -120,14 +120,14 @@ class XrfSpectrumQueueEntry(BaseQueueEntry):
         Raises:
              QueueExecutionException: If procedure failed.
         """
-        state = state or HWR.beamline.config.xrf_spectrum.get_state()
-        if state == HWR.beamline.config.xrf_spectrum.STATES.BUSY:
+        state = state or HWR.beamline.xrf_spectrum.get_state()
+        if state == HWR.beamline.xrf_spectrum.STATES.BUSY:
             logging.getLogger("user_level_log").info("XRF spectrum started.")
             self.get_view().setText(1, "In progress")
-        if state == HWR.beamline.config.xrf_spectrum.STATES.READY:
+        if state == HWR.beamline.xrf_spectrum.STATES.READY:
             logging.getLogger("user_level_log").info("XRF spectrum finished.")
             self.get_view().setText(1, "Done")
-        if state == HWR.beamline.config.xrf_spectrum.STATES.FAULT:
+        if state == HWR.beamline.xrf_spectrum.STATES.FAULT:
             self._failed = True
             self.get_view().setText(1, "Failed")
             self.status = QUEUE_ENTRY_STATUS.FAILED

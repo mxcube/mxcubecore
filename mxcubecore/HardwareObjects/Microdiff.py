@@ -470,7 +470,7 @@ class Microdiff(MiniDiff.MiniDiff):
             elif end > hi_lim:
                 raise ValueError("Scan end above the allowed value %f" % hi_lim)
 
-        dead_time = HWR.beamline.config.detector.get_deadtime()
+        dead_time = HWR.beamline.detector.get_deadtime()
 
         self.scan_detector_gate_pulse_enabled.set_value(True)
         self.scan_detector_gate_pulse_readout_time.set_value(dead_time * 1000)
@@ -552,7 +552,7 @@ class Microdiff(MiniDiff.MiniDiff):
         wait=False,
     ):
         self.scan_detector_gate_pulse_enabled.set_value(True)
-        dead_time = HWR.beamline.config.detector.get_deadtime()
+        dead_time = HWR.beamline.detector.get_deadtime()
         self.scan_detector_gate_pulse_readout_time.set_value(dead_time * 1000)
         self.move_motors(mesh_center.as_dict())
         positions = self.get_positions()
@@ -701,7 +701,7 @@ class Microdiff(MiniDiff.MiniDiff):
             MiniDiff.MiniDiff.move_to_beam(self, x, y)
         else:
             try:
-                beam_pos_x, beam_pos_y = HWR.beamline.config.beam.get_beam_position_on_screen()
+                beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
 
                 self.centringVertical.set_value_relative(
                     self.centringPhiz.direction
@@ -722,7 +722,7 @@ class Microdiff(MiniDiff.MiniDiff):
     def start_manual_centring(self, sample_info=None):
         self._wait_ready(5)
 
-        beam_pos_x, beam_pos_y = HWR.beamline.config.beam.get_beam_position_on_screen()
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
 
         logging.getLogger("HWR").info("Starting centring procedure ...")
 

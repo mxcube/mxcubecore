@@ -66,7 +66,7 @@ class XrfSpectrum(Equipment):
             self.doSpectrum.connect_signal("connected", self.sConnected)
             self.doSpectrum.connect_signal("disconnected", self.sDisconnected)
 
-        if HWR.beamline.config.lims is None:
+        if HWR.beamline.lims is None:
             logging.getLogger().warning(
                 "XRFSpectrum: you should specify the database hardware object"
             )
@@ -270,8 +270,8 @@ class XrfSpectrum(Equipment):
             except Exception:
                 mcaConfig = {}
                 # self.spectrumInfo["beamTransmission"] =  self.transmission_hwobj.get_value()
-                self.spectrumInfo["energy"] = HWR.beamline.config.energy.get_value()
-                beam_info = HWR.beamline.config.beam.get_beam_info()
+                self.spectrumInfo["energy"] = HWR.beamline.energy.get_value()
+                beam_info = HWR.beamline.beam.get_beam_info()
                 self.spectrumInfo["beamSizeHorizontal"] = beam_info["size_x"]
                 self.spectrumInfo["beamSizeVertical"] = beam_info["size_y"]
                 mcaConfig["att"] = self.spectrumInfo["beamTransmission"]
@@ -307,9 +307,9 @@ class XrfSpectrum(Equipment):
         self.emit("spectrumStatusChanged", (status,))
 
     def storeXrfSpectrum(self):
-        logging.getLogger().debug("db connection %r", HWR.beamline.config.lims)
+        logging.getLogger().debug("db connection %r", HWR.beamline.lims)
         logging.getLogger().debug("spectrum info %r", self.spectrumInfo)
-        if HWR.beamline.config.lims is None:
+        if HWR.beamline.lims is None:
             return
         try:
             int(self.spectrumInfo["sessionId"])
@@ -318,7 +318,7 @@ class XrfSpectrum(Equipment):
         self.spectrumInfo["blSampleId"]
         self.spectrumInfo.pop("blSampleId")
 
-        HWR.beamline.config.lims.storeXfeSpectrum(self.spectrumInfo)
+        HWR.beamline.lims.storeXfeSpectrum(self.spectrumInfo)
 
     def updateXrfSpectrum(self, spectrum_id, jpeg_spectrum_filename):
         pass
@@ -352,10 +352,10 @@ class XrfSpectrum(Equipment):
         return os.path.join(self.cfgpath, "%skeV.cfg" % cfgname)
 
     def _doSpectrum(self, ct, filename, wait=True):
-        HWR.beamline.config.energy.get_value()
+        HWR.beamline.energy.get_value()
         if not ct:
             ct = 5
-        safshut = HWR.beamline.config.safety_shutter
+        safshut = HWR.beamline.safety_shutter
         # stop the procedure if hutch not searched
         stat = safshut.getShutterState()
         if stat == "disabled":
@@ -368,11 +368,11 @@ class XrfSpectrum(Equipment):
         fluodet_ctrl.actuatorIn()
         # open the safety and the fast shutter
         safshut.openShutter()
-        init_transm = HWR.beamline.config.transmission.get_value()
+        init_transm = HWR.beamline.transmission.get_value()
         ret = self._findAttenuation(ct)
         self.ctrl_hwobj.diffractometer.msclose()
         fluodet_ctrl.actuatorOut()
-        HWR.beamline.config.transmission.set_value(init_transm)
+        HWR.beamline.transmission.set_value(init_transm)
         return ret
 
     def _findAttenuation(self, ct):
@@ -386,7 +386,7 @@ class XrfSpectrum(Equipment):
         )
 
         # put in max attenuation
-        HWR.beamline.config.transmission.set_value(0)
+        HWR.beamline.transmission.set_value(0)
 
         self.ctrl_hwobj.diffractometer.msopen()
         self.mca_hwobj.start_acq()
@@ -402,7 +402,7 @@ class XrfSpectrum(Equipment):
         for i in tf:
             self.mca_hwobj.clear_spectrum()
             logging.getLogger("user_level_log").info("Setting transmission to %g" % i)
-            HWR.beamline.config.transmission.set_value(i)
+            HWR.beamline.transmission.set_value(i)
             self.mca_hwobj.start_acq()
             time.sleep(ct)
             ic = sum(self.mca_hwobj.read_roi_data()) / ct
@@ -411,7 +411,7 @@ class XrfSpectrum(Equipment):
                 self.ctrl_hwobj.diffractometer.msclose()
                 self.spectrumInfo[
                     "beamTransmission"
-                ] = HWR.beamline.config.transmission.get_value()
+                ] = HWR.beamline.transmission.get_value()
                 logging.getLogger("user_level_log").info(
                     "Transmission used for spectra: %g"
                     % self.spectrumInfo["beamTransmission"]

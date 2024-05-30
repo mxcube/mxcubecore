@@ -195,7 +195,7 @@ class MXCuBEMetadataClient(object):
         else:
             self._emailReplyTo = None
 
-        self._beamline = HWR.beamline.config.session.endstation_name
+        self._beamline = HWR.beamline.session.endstation_name
 
     def reportStackTrace(self):
         (exc_type, exc_value, exc_traceback) = sys.exc_info()
@@ -245,7 +245,7 @@ class MXCuBEMetadataClient(object):
             and self._metaExperimentName is not None
         ):
             try:
-                self._proposal = HWR.beamline.config.session.get_proposal()
+                self._proposal = HWR.beamline.session.get_proposal()
                 # Create proxy object
                 self._metadataManagerClient = MetadataManagerClient(
                     self._metadataManagerName, self._metaExperimentName
@@ -478,12 +478,12 @@ class MXCuBEMetadataClient(object):
         dictMetadata["MX_motors_name"] = motorNames
         dictMetadata["MX_motors_value"] = motorPositions
         # Detector distance
-        distance = HWR.beamline.config.detector.distance.get_value()
+        distance = HWR.beamline.detector.distance.get_value()
         if distance is not None:
             dictMetadata["MX_detectorDistance"] = distance
         # Aperture
-        if HWR.beamline.config.beam is not None and HWR.beamline.config.beam.aperture is not None:
-            dictMetadata["MX_aperture"] = HWR.beamline.config.beam.aperture.get_value()
+        if HWR.beamline.beam is not None and HWR.beamline.beam.aperture is not None:
+            dictMetadata["MX_aperture"] = HWR.beamline.beam.aperture.get_value()
         return dictMetadata
 
 

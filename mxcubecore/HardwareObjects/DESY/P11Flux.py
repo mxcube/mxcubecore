@@ -50,8 +50,8 @@ class P11Flux(AbstractFlux):
 
     def measure_flux(self):
         """Measures intesity"""
-        beam_size = HWR.beamline.config.beam.get_beam_size()
-        transmission = HWR.beamline.config.transmission.get_value()
+        beam_size = HWR.beamline.beam.get_beam_size()
+        transmission = HWR.beamline.transmission.get_value()
         flux = self.default_flux * (1 + random())
 
         self.measured_flux_list = [

@@ -72,7 +72,7 @@ class TestCollectionQueueEntry(SsxBaseQueueEntry):
         super().execute()
         debug(self._data_model._task_data)
 
-        data_root_path = HWR.beamline.config.session.get_image_directory(
+        data_root_path = HWR.beamline.session.get_image_directory(
             os.path.join(
                 self._data_model._task_data.path_parameters.subdir,
                 self._data_model._task_data.path_parameters.experiment_type,
@@ -80,7 +80,7 @@ class TestCollectionQueueEntry(SsxBaseQueueEntry):
         )
 
         process_path = os.path.join(
-            HWR.beamline.config.session.get_base_process_directory(),
+            HWR.beamline.session.get_base_process_directory(),
             self._data_model._task_data.path_parameters.subdir,
         )
 
@@ -93,8 +93,8 @@ class TestCollectionQueueEntry(SsxBaseQueueEntry):
             close_fds=True,
         ).wait()
 
-        dcg = HWR.beamline.config.lims.pyispyb.create_ssx_data_collection_group()
-        HWR.beamline.config.lims.pyispyb.create_ssx_data_collection(dcg)
+        dcg = HWR.beamline.lims.pyispyb.create_ssx_data_collection_group()
+        HWR.beamline.lims.pyispyb.create_ssx_data_collection(dcg)
 
     def pre_execute(self):
         super().pre_execute()

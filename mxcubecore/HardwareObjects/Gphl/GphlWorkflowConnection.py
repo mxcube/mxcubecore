@@ -234,11 +234,11 @@ class GphlWorkflowConnection(HardwareObject):
 
         # Cannot be done in init, where the api.sessions link is not yet ready
         self.config.software_paths["GPHL_WDIR"] = os.path.join(
-            HWR.beamline.config.session.get_base_process_directory(), self.config.gphl_subdir
+            HWR.beamline.session.get_base_process_directory(), self.config.gphl_subdir
         )
 
         strategy_settings = workflow_model_obj.strategy_settings
-        wf_settings = HWR.beamline.config.gphl_workflow.config.settings
+        wf_settings = HWR.beamline.gphl_workflow.config.settings
 
         ssh_options = self.config.ssh_options
         in_shell = bool(ssh_options)
@@ -293,11 +293,11 @@ class GphlWorkflowConnection(HardwareObject):
         workflow_options["persistname"] = self.config.gphl_persistname
 
         # Set the workflow root subdirectory parameter from the base image directory
-        image_root = os.path.abspath(HWR.beamline.config.session.get_base_image_directory())
+        image_root = os.path.abspath(HWR.beamline.session.get_base_image_directory())
         if strategy_settings["wftype"] != "transcal":
             workflow_options[
                 "appdir"
-            ] = HWR.beamline.config.session.get_base_process_directory()
+            ] = HWR.beamline.session.get_base_process_directory()
             rootsubdir = path_template.directory[len(image_root) :]
             if rootsubdir.startswith(os.path.sep):
                 rootsubdir = rootsubdir[1:]

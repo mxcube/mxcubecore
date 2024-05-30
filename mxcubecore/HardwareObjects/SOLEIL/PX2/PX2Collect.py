@@ -99,23 +99,23 @@ class PX2Collect(AbstractCollect, HardwareObject):
         except Exception:
             pass
 
-        beam_div_hor, beam_div_ver = HWR.beamline.config.beam.get_beam_divergence()
+        beam_div_hor, beam_div_ver = HWR.beamline.beam.get_beam_divergence()
 
         self.set_beamline_configuration(
             synchrotron_name="SOLEIL",
             directory_prefix=self.get_property("directory_prefix"),
-            default_exposure_time=HWR.beamline.config.detector.get_property(
+            default_exposure_time=HWR.beamline.detector.get_property(
                 "default_exposure_time"
             ),
-            minimum_exposure_time=HWR.beamline.config.detector.get_property(
+            minimum_exposure_time=HWR.beamline.detector.get_property(
                 "minimum_exposure_time"
             ),
-            detector_fileext=HWR.beamline.config.detector.get_property("fileSuffix"),
-            detector_type=HWR.beamline.config.detector.get_property("type"),
-            detector_manufacturer=HWR.beamline.config.detector.get_property("manufacturer"),
-            detector_model=HWR.beamline.config.detector.get_property("model"),
-            detector_px=HWR.beamline.config.detector.get_property("px"),
-            detector_py=HWR.beamline.config.detector.get_property("py"),
+            detector_fileext=HWR.beamline.detector.get_property("fileSuffix"),
+            detector_type=HWR.beamline.detector.get_property("type"),
+            detector_manufacturer=HWR.beamline.detector.get_property("manufacturer"),
+            detector_model=HWR.beamline.detector.get_property("model"),
+            detector_px=HWR.beamline.detector.get_property("px"),
+            detector_py=HWR.beamline.detector.get_property("py"),
             undulators=undulators,
             focusing_optic=self.get_property("focusing_optic"),
             monochromator_type=self.get_property("monochromator"),
@@ -314,8 +314,8 @@ class PX2Collect(AbstractCollect, HardwareObject):
         """
         Descript. :
         """
-        if HWR.beamline.config.offline_processing is not None:
-            HWR.beamline.config.offline_processing.execute_autoprocessing(
+        if HWR.beamline.offline_processing is not None:
+            HWR.beamline.offline_processing.execute_autoprocessing(
                 process_event,
                 self.current_dc_parameters,
                 frame_number,
@@ -324,14 +324,14 @@ class PX2Collect(AbstractCollect, HardwareObject):
 
     @task
     def _take_crystal_snapshot(self, filename):
-        HWR.beamline.config.sample_view.save_snapshot(filename)
+        HWR.beamline.sample_view.save_snapshot(filename)
 
     @task
     def _take_crystal_animation(self, animation_filename, duration_sec):
         """Rotates sample by 360 and composes a gif file
            Animation is saved as the fourth snapshot
         """
-        HWR.beamline.config.sample_view.save_scene_animation(animation_filename, duration_sec)
+        HWR.beamline.sample_view.save_scene_animation(animation_filename, duration_sec)
 
     @task
     def move_motors(self, motor_position_dict):

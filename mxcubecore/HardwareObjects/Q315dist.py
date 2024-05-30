@@ -14,7 +14,7 @@ class Q315dist(BaseHardwareObjects.Equipment):
 
         self.connect(self.detm, "stateChanged", self.detmStateChanged)
         self.connect(
-            HWR.beamline.config.detector.distance, "limitsChanged", self.dtoxLimitsChanged
+            HWR.beamline.detector.distance, "limitsChanged", self.dtoxLimitsChanged
         )
         self.connect(self.detm, "valueChanged", self.detmPositionChanged)
 
@@ -38,7 +38,7 @@ class Q315dist(BaseHardwareObjects.Equipment):
                 return getattr(self.detm, attr)
             else:
                 # logging.getLogger().info("calling dtox %s", attr)
-                return getattr(HWR.beamline.config.detector.distance, attr)
+                return getattr(HWR.beamline.detector.distance, attr)
         else:
             raise AttributeError(attr)
 

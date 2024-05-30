@@ -215,7 +215,7 @@ class QtGraphicsManager(AbstractSampleView):
         self.graphics_view.keyPressedSignal.connect(self.key_pressed)
         self.graphics_view.wheelSignal.connect(self.mouse_wheel_scrolled)
 
-        self.diffractometer_hwobj = HWR.beamline.config.diffractometer
+        self.diffractometer_hwobj = HWR.beamline.diffractometer
         self.graphics_view.resizeEvent = self.resizeEvent
 
         if self.diffractometer_hwobj is not None:
@@ -275,16 +275,16 @@ class QtGraphicsManager(AbstractSampleView):
                 "GraphicsManager: Diffractometer hwobj not defined"
             )
 
-        if HWR.beamline.config.beam is not None:
-            self.beam_info_dict = HWR.beamline.config.beam.get_beam_info_dict()
-            self.beam_position = HWR.beamline.config.beam.get_beam_position_on_screen()
+        if HWR.beamline.beam is not None:
+            self.beam_info_dict = HWR.beamline.beam.get_beam_info_dict()
+            self.beam_position = HWR.beamline.beam.get_beam_position_on_screen()
             self.connect(
-                HWR.beamline.config.beam, "beamPosChanged", self.beam_position_changed
+                HWR.beamline.beam, "beamPosChanged", self.beam_position_changed
             )
-            self.connect(HWR.beamline.config.beam, "beamInfoChanged", self.beam_info_changed)
+            self.connect(HWR.beamline.beam, "beamInfoChanged", self.beam_info_changed)
 
             self.beam_info_changed(self.beam_info_dict)
-            self.beam_position_changed(HWR.beamline.config.beam.get_beam_position_on_screen())
+            self.beam_position_changed(HWR.beamline.beam.get_beam_position_on_screen())
         else:
             logging.getLogger("HWR").error(
                 "GraphicsManager: BeamInfo hwobj not defined"
@@ -1712,7 +1712,7 @@ class QtGraphicsManager(AbstractSampleView):
         self.in_move_beam_mark_state = False
         self.graphics_move_beam_mark_item.hide()
         self.graphics_view.graphics_scene.update()
-        HWR.beamline.config.beam.set_beam_position(
+        HWR.beamline.beam.set_beam_position(
             self.graphics_move_beam_mark_item.end_coord[0],
             self.graphics_move_beam_mark_item.end_coord[1],
         )
@@ -1729,7 +1729,7 @@ class QtGraphicsManager(AbstractSampleView):
         self.graphics_beam_define_item.hide()
         self.graphics_view.graphics_scene.update()
         self.emit("infoMsg", "")
-        HWR.beamline.config.beam.set_slits_gap(
+        HWR.beamline.beam.set_slits_gap(
             self.graphics_beam_define_item.width_microns,
             self.graphics_beam_define_item.height_microns,
         )
@@ -2013,7 +2013,7 @@ class QtGraphicsManager(AbstractSampleView):
 
     def refresh_camera(self):
         """Not called, To be deleted"""
-        self.beam_info_dict = HWR.beamline.config.beam.get_info_dict()
+        self.beam_info_dict = HWR.beamline.beam.get_info_dict()
         self.beam_info_changed(self.beam_info_dict)
 
     def select_lines_and_grids(self):
@@ -2107,7 +2107,7 @@ class QtGraphicsManager(AbstractSampleView):
         beam info.
         """
         beam_shape_dict = self.detect_object_shape()
-        HWR.beamline.config.beam.set_beam_position(
+        HWR.beamline.beam.set_beam_position(
             beam_shape_dict["center"][0], beam_shape_dict["center"][1]
         )
         # self.graphics_beam_item.set_detected_beam_position(beam_shape_dict)
