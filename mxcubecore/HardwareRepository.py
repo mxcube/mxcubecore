@@ -108,20 +108,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
         # Load the configuration file
         with open(configuration_path, "r") as fp0:
             configuration = yaml.load(fp0)
-
-        # Get actual class
-        initialise_class = configuration.pop("_initialise_class", None)
-        if not initialise_class:
-            if _container:
-                msg0 = "No '_initialise_class' tag"
-            else:
-                # at top lavel we want to get the actual error
-                raise ValueError(
-                    "%s file lacks  '_initialise_class' tag" % configuration_file
-                )
-
-    if not msg0:
-        class_import = initialise_class.pop("class", None)
+        class_import = configuration.pop("class", None)
         if not class_import:
             if _container:
                 msg0 = "No 'class' tag"
@@ -148,7 +135,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
     if not msg0:
         try:
             # instantiate object
-            result = cls(name=role, **initialise_class)
+            result = cls(name=role)
             result._hwobj_container = _container
         except Exception:
             if _container:
@@ -178,11 +165,12 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
 
     if not msg0:
         # Recursively load contained objects (of any type that the system can support)
-        _objects = configuration.pop("_objects", {})
+        objects = configuration.pop("objects", {})
+        config =  configuration.pop("configuration", {})
         # Set configuration with non-object properties.
-        result._config = result.HOConfig(**configuration)
+        result._config = result.HOConfig(**config)
 
-        if _objects:
+        if objects:
             load_time = 1000 * (time.time() - start_time)
             msg1 = "Start loading contents:"
             _table.append(
@@ -190,7 +178,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
             )
             msg0 = "Done loading contents"
 
-        for role1, config_file in _objects.items():
+        for role1, config_file in objects.items():
 
             fname, fext = os.path.splitext(config_file)
             if fext == ".yml":
@@ -241,18 +229,17 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
 
 def _export_draft_config_file(hwobj):
     result = {
-        "_initialise_class" : {
-            "class": "%s.%s" % (hwobj.__class__.__module__, hwobj.__class__.__name__),
-        },
+        "class": "%s.%s" % (hwobj.__class__.__module__, hwobj.__class__.__name__),
     }
     objects_by_role = hwobj.objects_by_role
     if objects_by_role:
-        objects = result["_objects"] = {}
+        objects = result["objects"] = {}
         for role, obj in objects_by_role.items():
             objects[role] = "%s.yml" % obj.id
+    config = result["configuration"] ={}
     for tag, val in hwobj.config.model_dump().items():
         if tag not in objects_by_role:
-            result[tag] = val
+            config[tag] = val
     fp = open(os.path.join(EXPORT_CONFIG_DIR, "%s.yml" % hwobj.id), "w")
     yaml.dump(result, fp)
 
