@@ -45,6 +45,8 @@ from mxcubecore.dispatcher import dispatcher
 from mxcubecore import BaseHardwareObjects
 from mxcubecore import HardwareObjectFileParser
 
+from warnings import warn
+
 if TYPE_CHECKING:
     from mxcubecore.BaseHardwareObjects import HardwareObject
 
@@ -204,7 +206,9 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
                 )
     if not msg0:
         if _container:
-            setattr(_container._config, role, result)
+            if not hasattr(_container, role):
+                warn("load_from_yaml Class %s has no attribute %s" % _container.__class__.__name__, role)
+            setattr(_container, role, result)
         try:
             # Initialise object
             result.init()
