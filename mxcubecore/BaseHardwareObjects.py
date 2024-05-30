@@ -21,6 +21,7 @@
 from __future__ import absolute_import
 
 import ast
+import copy
 import enum
 import logging
 import typing
@@ -99,7 +100,7 @@ class ConfiguredObject:
             self.__dict__.update(kwargs)
 
         def model_dump(self):
-            return self.__dict__.copy()
+            return copy.deepcopy(self.__dict__)
 
     def __init__(
         self, name: str, hwobj_container: Optional["ConfiguredObject"] = None
@@ -112,6 +113,7 @@ class ConfiguredObject:
         self._name = name
         self._config: Optional["ConfiguredObject.HOConfig"] = None
         self._hwobj_container: Optional[ConfiguredObject] = hwobj_container
+        self._roles = []
 
     def __getattr__(self, attr):
         return getattr(self.__dict__["_config"], attr)
@@ -149,7 +151,7 @@ class ConfiguredObject:
     def get_by_id(self, _id: str) -> "ConfiguredObject":
         result = self
         for name in _id.split("."):
-            result = getattr(result._config, name)
+            result = getattr(result, name)
             if result is None:
                 break
         #
@@ -164,31 +166,27 @@ class ConfiguredObject:
         Returns:
             OrderedDict[str, Union[Self, None]]: Contained objects mapped by role.
         """
-        if self._config is not None:
-            return dict(
-                tpl
-                for tpl in self._config.model_dump().items()
-                if isinstance(tpl[1], ConfiguredObject)
-            )
-        elif isinstance(self, HardwareObjectNode):
-            # NBNB TEMPORARY for transition to yaml configuration only
-            return self._objects_by_role.copy()
+        result = {}
+        for tag in self._roles:
+            if hasattr(self, tag):
+                result[tag] = getattr(self, tag)
+            else:
+                raise ValueError(
+                    "%s object has no attribute %s" % (self.__class__.__name__, tag)
+                )
+        #
+        return result
 
     def get_properties(self) -> Dict[str, Any]:
         """Get configured properties (not roles)"""
         if self._config is not None:
-            return dict(
-                tpl
-                for tpl in self._config.model_dump().items()
-                if not isinstance(tpl[1], ConfiguredObject) and tpl[1] is not None
-            )
-
+            return self._config.model_dump()
         elif isinstance(self, HardwareObjectNode):
             # NBNB TEMPORARY for transition to yaml configuration only
             return HardwareObjectNode.get_properties(self)
 
     def get_property(self, name: str, default_value: Optional[Any] = None) -> Any:
-        """Get property value or contained HardwareObject.
+        """Get property value .
 
         Args:
             name (str): Name
@@ -198,11 +196,10 @@ class ConfiguredObject:
             Any: Property value.
         """
         if self._config is not None:
-            return (
-                getattr(self._config, name)
-                if hasattr(self._config, name)
-                else default_value
-            )
+            if hasattr(self._config, name):
+                return getattr(self._config, name)
+            else:
+                return default_value
         elif isinstance(self, HardwareObjectNode):
             # NBNB TEMPORARY for transition to yaml configuration only
             return HardwareObjectNode.get_property(self, name, default_value)
@@ -213,11 +210,7 @@ class ConfiguredObject:
         Returns:
             List[str]: List of hardware object roles.
         """
-        warnings.warn(
-            "%s.get_roles is deprecated. Avoid, or use objects_by_role instead"
-            % self.__class__.__name__
-        )
-        return list(self.objects_by_role.keys())
+        return list(self._roles)
 
     def print_log(
         self,
