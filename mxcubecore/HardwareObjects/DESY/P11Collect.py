@@ -396,7 +396,11 @@ class P11Collect(AbstractCollect):
         finally:
             self.add_h5_info(self.latest_h5_filename)
             self.acquisition_cleanup()
-            self.log.debug("STARTING PROCESSING")
+
+        # Show the latest image after collection
+        latest_image = HWR.beamline.detector.get_eiger_name_pattern()
+        latest_image = f"/gpfs{latest_image}_master.h5"
+        self.adxv_notify(latest_image)
 
     def collect_std_collection(self, start_angle, stop_angle):
         """
@@ -713,8 +717,7 @@ class P11Collect(AbstractCollect):
         processing. It is an integer value that represents the number of frames to be processed
         :return: The function does not return any value.
         """
-        self.log.debug("Writing HDF% file header final information")
-        self.add_h5_info(self.latest_h5_filename)
+        
         self.log.debug("Triggering auto processing")
 
         dc_pars = self.current_dc_parameters
