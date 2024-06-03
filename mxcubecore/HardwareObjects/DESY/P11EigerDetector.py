@@ -261,3 +261,6 @@ class P11EigerDetector(AbstractDetector):
         values = list(dev.get_attribute_config(attr).enum_labels)
         no = dev.read_attribute(attr).value
         return values[no]
+
+    def get_eiger_name_pattern(self):
+        return self.writer_dev.NamePattern
