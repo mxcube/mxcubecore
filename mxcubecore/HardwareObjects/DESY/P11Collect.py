@@ -31,6 +31,9 @@ import logging
 import traceback
 import h5py
 import numpy as np
+import psutil
+import subprocess
+import time
 
 
 from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
@@ -381,6 +384,18 @@ class P11Collect(AbstractCollect):
             self.log.debug("#COLLECT# Starting detector")
             HWR.beamline.detector.start_acquisition()
 
+            # Check whether the live view monitoring is on. Restart if needed.
+            process_name = os.getenv("MXCUBE_LIVEVIEW_NAME")
+            command = [os.getenv("MXCUBE_LIVEVIEW")]
+            if self.is_process_running(process_name) and self.is_process_running(
+                "adxv"
+            ):
+                print(f"{process_name} is already running.")
+            else:
+                os.system(f"killall -9 {process_name}")
+                print(f"{process_name} is not running. Starting...")
+                self.start_process(command)
+
             if collection_type == "Characterization":
                 self.log.debug("STARTING CHARACTERISATION")
                 self.collect_characterisation(
@@ -503,6 +518,21 @@ class P11Collect(AbstractCollect):
             logging.getLogger("HWR").exception("")
         else:
             pass
+
+    def is_process_running(self, process_name):
+        for proc in psutil.process_iter():
+            if proc.name() == process_name:
+                return True
+        return False
+
+    def start_process(self, command):
+        subprocess.Popen(
+            command,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            stdin=subprocess.DEVNULL,
+            close_fds=True,
+        )
 
     def acquisition_cleanup(self):
         """
@@ -717,7 +747,7 @@ class P11Collect(AbstractCollect):
         processing. It is an integer value that represents the number of frames to be processed
         :return: The function does not return any value.
         """
-        
+
         self.log.debug("Triggering auto processing")
 
         dc_pars = self.current_dc_parameters
