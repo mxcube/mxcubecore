@@ -32,8 +32,6 @@ from XSDataCommon import XSDataInteger
 from XSDataCommon import XSDataSize
 from XSDataCommon import XSDataString
 
-import triggerUtils
-
 # from edna_test_data import EDNA_DEFAULT_INPUT
 # from edna_test_data import EDNA_TEST_DATA
 
@@ -83,11 +81,9 @@ class P11EDNACharacterisation(EDNACharacterisation):
         self.log.debug('=======EDNA========== IN="%s"' % inputxml)
         self.log.debug('=======EDNA========== OUT="%s"' % outputxml)
 
-        btHelper = triggerUtils.Trigger()
-        ssh = btHelper.get_ssh_command()
-        sbatch = btHelper.get_sbatch_command(
+        ssh = HWR.beamline.session.get_ssh_command()
+        sbatch = HWR.beamline.session.get_sbatch_command(
             jobname_prefix="edna",
-            job_dependency="singleton",
             logfile_path=process_directory.replace("/gpfs", "/beamline/p11")
             + "/edna.log",
         )
@@ -273,7 +269,7 @@ class P11EDNACharacterisation(EDNACharacterisation):
         )
 
         image_dir = path_template.directory.replace(
-            "/gpfs/current", triggerUtils.get_beamtime_metadata()[2]
+            "/gpfs/current", HWR.beamline.session.get_beamtime_metadata()[2]
         )
 
         logging.info(image_dir)
