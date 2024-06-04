@@ -34,6 +34,7 @@ import numpy as np
 import psutil
 import subprocess
 import time
+import gevent
 
 
 from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
@@ -69,6 +70,7 @@ class P11Collect(AbstractCollect):
 
         self.latest_frames = None
         self.acq_speed = None
+        self.total_angle_range = None
 
         if None in [
             self.lower_bound_ch,
@@ -204,6 +206,7 @@ class P11Collect(AbstractCollect):
             self.move_to_centered_position()
 
             # ----------------------------------------------------------------
+            self.emit("progressStep", 2)
             # Set data collection parameters
 
             if "transmission" in self.current_dc_parameters:
@@ -293,8 +296,12 @@ class P11Collect(AbstractCollect):
         exp_time = osc_pars["exposure_time"]
         self.acq_speed = img_range / exp_time
 
+        self.total_angle_range = abs(stop_angle - start_angle)
+
         if not self.diffractometer_prepare_collection():
             raise RuntimeError("Cannot prepare diffractometer for collection")
+
+        self.emit("progressStep", 5)
 
         try:
             self.log.debug("############# #COLLECT# Opening detector cover")
@@ -408,6 +415,12 @@ class P11Collect(AbstractCollect):
                 )
             else:
                 self.log.debug("STARTING STANDARD COLLECTION")
+                duration = self.total_angle_range / self.acq_speed
+                start_time = time.time()
+
+                # Start the progress emitter in a separate greenlet
+                gevent.spawn(self.progress_emitter, start_time, duration)
+
                 self.collect_std_collection(start_angle, stop_angle)
 
         except RuntimeError:
@@ -420,6 +433,18 @@ class P11Collect(AbstractCollect):
         latest_image = HWR.beamline.detector.get_eiger_name_pattern()
         latest_image = f"/gpfs{latest_image}_master.h5"
         self.adxv_notify(latest_image)
+
+    def progress_emitter(self, start_time, duration):
+        while True:
+            elapsed_time = time.time() - start_time
+            progress = (elapsed_time / duration) * 100
+
+            if progress >= 100:
+                progress = 98
+                self.emit("progressStep", progress)
+                break
+            self.emit("progressStep", progress)
+            gevent.sleep(1)  # Non-blocking sleep
 
     def collect_std_collection(self, start_angle, stop_angle):
         """
@@ -492,9 +517,8 @@ class P11Collect(AbstractCollect):
             # self.omega_mv(init_pos, self.default_speed)
 
             self.collect_std_collection(start_at, stop_angle)
-            self.log.debug(
-                "======= collect_characterisation  Waiting ======================================="
-            )
+
+            self.emit("progressStep", int(120 / (nimages) * (img_no + 1)))
 
     def adxv_notify(self, image_filename, image_num=1):
         """
