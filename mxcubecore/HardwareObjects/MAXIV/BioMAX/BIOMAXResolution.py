@@ -81,7 +81,7 @@ class BIOMAXResolution(AbstractResolution):
         if dist is None:
             dist = self.dtox.get_value()
 
-        return "%.3f" % self._calc_res(self.det_radius, dist)
+        return round(self._calc_res(self.det_radius, dist), 3)
 
     def get_value(self):
         return self.dist2res(self.dtox.get_value())
