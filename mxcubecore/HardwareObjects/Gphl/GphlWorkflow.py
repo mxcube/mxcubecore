@@ -786,7 +786,7 @@ class GphlWorkflow(HardwareObjectYaml):
         else:
             # Set detector distance and resolution
             distance = data_model.detector_setting.axisSettings["Distance"]
-            HWR.beamline.detector.distance.set_value(distance, timeout=30)
+            HWR.beamline.detector.distance.set_value(distance, timeout=50)
         # self.test_dialog()
 
     def execute(self):
@@ -2617,15 +2617,16 @@ class GphlWorkflow(HardwareObjectYaml):
             float: Maximum dose rate in MGy/s
         """
         energy = energy or HWR.beamline.energy.get_value()
-        flux_density = HWR.beamline.flux.get_average_flux_density(transmission=100.0)
-        if flux_density:
-            return (
-                flux_density
-                * HWR.beamline.flux.get_dose_rate_per_photon_per_mmsq(energy)
-                * 1.0e-6  # convert to MGy
-            )
-        else:
-            return 0
+        flux = HWR.beamline.flux
+        if flux:
+            flux_density = flux.get_average_flux_density(transmission=100.0)
+            if flux_density:
+                return (
+                    flux_density
+                    * flux.get_dose_rate_per_photon_per_mmsq(energy)
+                    * 1.0e-6  # convert to MGy
+                )
+        return 0
 
 
     def get_emulation_samples(self):
