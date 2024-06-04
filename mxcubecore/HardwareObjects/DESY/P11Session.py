@@ -22,12 +22,13 @@ __copyright__ = """ Copyright © 2010 - 2024 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
 import os
-from select import EPOLL_CLOEXEC
 import time
 import json
+import glob
+import yaml
 from datetime import date
-
-from Session import Session
+from select import EPOLL_CLOEXEC
+from mxcubecore.HardwareObjects.Session import Session
 
 from configparser import ConfigParser
 
@@ -76,6 +77,11 @@ class P11Session(Session):
             raw_folder=self.raw_data_folder_name,
             process_folder=self.processed_data_folder_name,
             archive_folder=self.default_archive_folder,
+        )
+
+        self.beamtime_metadata_file = self.locate_metadata_file()
+        self.beamline, self.beamtime, self.remote_data_dir, self.user_name, self.user_sshkey, self.slurm_reservation, self.slurm_partition, self.slurm_node = self.parse_metadata_file(
+            self.beamtime_metadata_file
         )
 
     def info_set_defaults(self):
@@ -147,9 +153,6 @@ class P11Session(Session):
                 break
             else:
                 return None
-                # if ety.is_file() and ety.name.startswith('commissioning-metadata'):
-                #     self.beamtime_info.update( self.load_info(ety.path) )
-                #     self.beamtime_info['rootPath'] = PATH_COMMISSIONING
 
         return self.read_load_info(fname)
 
@@ -178,33 +181,12 @@ class P11Session(Session):
 
         return self.base_directory
 
-        # if self.is_inhouse():
-        #    user_category = "inhouse"
-        #    directory = os.path.join(
-        #        self.base_directory,
-        #        self.endstation_name,
-        #        user_category,
-        #        self.get_proposal(),
-        #    )
-        # else:
-        #    user_category = "visitor"
-        #    directory = os.path.join(
-        #        self.base_directory,
-        #        user_category,
-        #        self.get_proposal(),
-        #        self.endstation_name,
-        #    )
-        #
-        # return directory
-
     def get_base_image_directory(self):
         """
         :returns: The base path for images.
         :rtype: str
         """
         return os.path.join(self.get_base_data_directory(), self.raw_data_folder_name)
-        # self.session_file_name, \
-        # self.start_time)
 
     def get_base_process_directory(self):
         """
@@ -214,8 +196,6 @@ class P11Session(Session):
         return os.path.join(
             self.get_base_data_directory(), self.processed_data_folder_name
         )
-        # self.session_file_name, \
-        # self.start_time)
 
     def get_archive_directory(self):
         """
@@ -223,8 +203,6 @@ class P11Session(Session):
         :rtype: str
         """
         return os.path.join(self.get_base_data_directory(), self.default_archive_folder)
-        # self.session_file_name, \
-        # self.start_time)
 
     def path_to_ispyb(self, path):
         ispyb_template = self["file_info"].get_property("ispyb_directory_template")
@@ -235,3 +213,139 @@ class P11Session(Session):
 
     def is_writable_dir(self, folder):
         return os.path.isdir(folder) and os.access(folder, os.F_OK | os.W_OK)
+
+    def locate_metadata_file(self, root_dir="/gpfs"):
+
+        try:
+            beamtime_dirs = [
+                path
+                for path in [
+                    os.path.join(root_dir, entry) for entry in os.listdir(root_dir)
+                ]
+                if os.path.isdir(path) and not path.endswith("local")
+            ]
+        except OSError as e:
+            print(e)
+            raise FileNotFoundError(
+                "Root directory does not exist: " + str(root_dir)
+            ) from e
+        metadata_files = []
+        for curr_dir in beamtime_dirs + [root_dir]:
+            curr_dir_metadata_files = glob.glob("{0}/*metadata*.json".format(curr_dir))
+            metadata_files.extend(curr_dir_metadata_files)
+        if len(metadata_files) != 1:
+            raise FileNotFoundError("Unique metadata JSON file not found")
+        return metadata_files[0]
+
+    def parse_metadata_file(self, metadatafile_path):
+
+        beamline = ""
+        beamtime = ""
+        coredatadir = ""
+        temp_user_name = ""
+        temp_user_sshkeyfile = ""
+        slurm_reservation = ""
+        slurm_partition = ""
+        reserved_nodes = []
+        with open(metadatafile_path, "r") as mdfile:
+            try:
+                md = yaml.safe_load(mdfile)
+                if "beamline" in md:
+                    beamline = str(md["beamline"])
+                if "beamtimeId" in md:
+                    beamtime = str(md["beamtimeId"])
+                elif "id" in md:
+                    beamtime = str(md["id"])
+                if "corePath" in md:
+                    coredatadir = str(md["corePath"])
+                if "onlineAnalysis" in md:
+                    temp_user_name = str(md["onlineAnalysis"]["userAccount"])
+                    temp_user_sshkeyfile = str(
+                        md["onlineAnalysis"]["sshPrivateKeyPath"]
+                    )
+                    slurm_reservation = str(md["onlineAnalysis"]["slurmReservation"])
+                    slurm_partition = str(md["onlineAnalysis"]["slurmPartition"])
+                    reserved_nodes = md["onlineAnalysis"]["reservedNodes"]
+            except:
+                raise RuntimeError(
+                    "JSON parsing of metadata file failed", metadatafile_path
+                )
+
+        if not beamline:
+            raise RuntimeError("Beamline ID not found", metadatafile_path)
+        if not beamtime:
+            raise RuntimeError("Beamtime ID not found", metadatafile_path)
+        if not coredatadir:
+            raise RuntimeError(
+                "Data location on remote filesystem unknown", metadatafile_path
+            )
+        if not temp_user_name:
+            raise RuntimeError(
+                "Temporary account for online analysis unknown ", metadatafile_path
+            )
+        if not temp_user_sshkeyfile:
+            raise RuntimeError(
+                "SSH key for online analysis account not found", metadatafile_path
+            )
+        if not slurm_reservation:
+            raise RuntimeError(
+                "Slurm reservation for online analysis not found", metadatafile_path
+            )
+        if not slurm_partition:
+            raise RuntimeError(
+                "Slurm partition for online analysis not found", metadatafile_path
+            )
+        if not reserved_nodes:
+            raise RuntimeError(
+                "Reserved node(s) for online analysis not found", metadatafile_path
+            )
+        else:
+            temp_user_sshkeyfile = os.path.join(
+                os.path.dirname(metadatafile_path), temp_user_sshkeyfile
+            )
+            slurm_node = str(reserved_nodes[0])
+
+        return (
+            beamline,
+            beamtime,
+            coredatadir,
+            temp_user_name,
+            temp_user_sshkeyfile,
+            slurm_reservation,
+            slurm_partition,
+            slurm_node,
+        )
+
+    def get_beamtime_metadata(self, root_dir="/gpfs"):
+
+        metadata_file = self.locate_metadata_file(root_dir)
+        return self.parse_metadata_file(metadata_file)
+
+    def get_ssh_command(self):
+
+        ssh_command = "/usr/bin/ssh"
+        ssh_opts_general = "-o BatchMode=yes -o CheckHostIP=no -o StrictHostKeyChecking=no -o GSSAPIAuthentication=no -o GSSAPIDelegateCredentials=no -o PasswordAuthentication=no -o PubkeyAuthentication=yes -o PreferredAuthentications=publickey -o ConnectTimeout=10"
+        ssh_opts_user = "-l {0}".format(self.user_name)
+        ssh_opts_key = "-i {0}".format(self.user_sshkey)
+        ssh_opts_host = self.slurm_node
+        ssh_command += " {0} {1} {2} {3}".format(
+            ssh_opts_general, ssh_opts_key, ssh_opts_user, ssh_opts_host
+        )
+        return ssh_command
+
+    def get_sbatch_command(
+        self, jobname_prefix="onlineanalysis", logfile_path="/dev/null"
+    ):
+        sbatch_command = "/usr/bin/sbatch"
+        sbatch_opts_jobname = "{0}_{1.beamline}_{1.beamtime}".format(
+            jobname_prefix, self
+        )
+
+        sbatch_opts_logfile = logfile_path
+
+        sbatch_opts = "--partition={0.slurm_partition} --reservation={0.slurm_reservation} --job-name={1} --output={2}".format(
+            self, sbatch_opts_jobname, sbatch_opts_logfile
+        )
+
+        sbatch_command += " {0}".format(sbatch_opts)
+        return sbatch_command
