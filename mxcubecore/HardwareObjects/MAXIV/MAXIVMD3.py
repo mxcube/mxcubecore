@@ -243,13 +243,23 @@ class MAXIVMD3(GenericDiffractometer):
         """
         self.emit("minidiffStateChanged", (state,))
 
-    def open_fast_shutter(self):
-        logging.getLogger("HWR").info("Openning fast shutter")
+    def open_fast_shutter(self, timeout=2):
+        logging.getLogger("HWR").info("Opening fast shutter")
         self.fast_shutter_channel.set_value(True)
+        with gevent.Timeout(
+            timeout, RuntimeError("Timeout waiting for safety shutter to open")
+        ):
+            while not self.is_fast_shutter_open():
+                gevent.sleep(0.2)
 
-    def close_fast_shutter(self):
+    def close_fast_shutter(self, timeout=2):
         logging.getLogger("HWR").info("Closing fast shutter")
         self.fast_shutter_channel.set_value(False)
+        with gevent.Timeout(
+            timeout, RuntimeError("Timeout waiting for safety shutter to close")
+        ):
+            while self.is_fast_shutter_open():
+                gevent.sleep(0.2)
 
     def move_fluo_in(self, wait=True):
         logging.getLogger("HWR").info("Moving Fluo detector in")
