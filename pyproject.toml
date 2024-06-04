@@ -45,7 +45,8 @@ gipc = "^1.6.0"
 py4j = "0.10.9.7"
 f90nml = "1.4.3"
 lucid3 = "^3.0.0"
-PyTango = { version = "^9.3.6"}
+loopfinder = {version = "^2.0.0", optional = true}
+PyTango = { version = "^9.3.6", optional = true }
 python-ldap = "^3.4.0"
 requests = "^2.31.0"
 colorama = "^0.4.6"
@@ -66,6 +67,7 @@ sphinxcontrib-mermaid = "^0.9.2"
 
 [tool.poetry.extras]
 tango = ["PyTango"]
+maxiv = ["loopfinder"]
 
 [tool.autoflake]
 #

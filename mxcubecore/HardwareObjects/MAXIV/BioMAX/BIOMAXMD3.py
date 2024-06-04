@@ -5,6 +5,7 @@ import numpy as np
 from PIL import Image
 import cv2
 import os
+from loopfinder.motion import CentringNavigator
 from mxcubecore.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer,
     DiffractometerState,
@@ -29,19 +30,39 @@ class BIOMAXMD3(MAXIVMD3):
 
         self.zoom_centre = eval(self.get_property("zoom_centre"))
 
-    def wait_stable_loop(self, wait_time):
-        logging.getLogger("user_level_log").info("Waiting loop to be stable...")
-        img_bef = self._get_image_array()
+    def get_camera_image(self):
+        """Get the current image from the md3 camera as a numpy array"""
+        self.wait_device_ready(10)
+        img_buf, w, h = self.camera_hwobj.get_image_array()
+        return img_buf.reshape(h, w, 3)
+
+    def get_center_pos(self):
+        """Returns the current motor positions except for zoom level. Used for loop centering"""
+        cpos = self.get_positions()
+        cpos.pop("zoom", None)
+        return cpos
+
+    def wait_stable_loop(self, wait_time: int) -> None:
+        logging.getLogger("user_level_log").info("Waiting for loop to be stable...")
+        img_bef = self.get_camera_image()
         timer = 0
         wait_int = 2
         while timer < wait_time:
             time.sleep(wait_int)
-            img_after = self._get_image_array()
+            img_after = self.get_camera_image()
             diff = cv2.absdiff(img_bef, img_after)
             if diff.max() < 100:
                 logging.getLogger("user_level_log").info(
                     "No obvious drift, loop is relatively stable"
                 )
+                return
+            img_bef = img_after
+            timer += wait_int
+        logging.getLogger("user_level_log").info(
+            "Loop is still drifting, have waited {}s, give up and continue with collection".format(
+                wait_time
+            )
+        )
         self.update_zoom_calibration()
 
     def current_phase_changed(self, current_phase):
@@ -151,37 +172,58 @@ class BIOMAXMD3(MAXIVMD3):
         self.omega_reference_add_constraint()
         return self.centring_hwobj.centeredPosition(return_by_name=False)
 
-    def automatic_centring_old(self):
-        """Automatic centring procedure. Rotates n times and executes
-        centring algorithm. Optimal scan position is detected.
+    def blinded_by_the_lights(self, img: np.ndarray, threshold=1000) -> bool:
         """
+        returns True if img is overexposed, which happens right after the backlight comes on.
+        Default threshold is callibrated based on backlight level 1.
+        tested on 12 normally exposed images, and 13 overexposed images.
+        maximum white_count for normally exposed images was 111
+        minimum for overexposed was 718495
+        """
+        # I said ooooo
+        gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        white_count = (gray == 255).sum()
+        return white_count > threshold
 
-        surface_score_list = []
-        self.zoom_motor_hwobj.move_to_position("Zoom 1")
-        self.wait_device_ready(3)
-        self.centring_hwobj.initCentringProcedure()
-        for image in range(BIOMAXMD3.AUTOMATIC_CENTRING_IMAGES):
-            x, y, score = self.find_loop()
-            if x > -1 and y > -1:
-                self.centring_hwobj.appendCentringDataPoint(
-                    {
-                        "X": (x - self.beam_position[0]) / self.pixels_per_mm_x,
-                        "Y": (y - self.beam_position[1]) / self.pixels_per_mm_y,
-                    }
-                )
-                return
-            img_bef = img_after
-            timer += wait_int
-        logging.getLogger("user_level_log").info(
-            "Loop is still drifting, have waited {}s, give up and continue with collection".format(
-                wait_time
-            )
+    def wait_for_backlight(self, poll_period=0.1) -> None:
+        """
+        Sleeps until the camera is no longer blinded by the backlight.
+        """
+        logging.getLogger("HWR").info("waiting for backlight to settle down")
+        while self.blinded_by_the_lights(self.get_camera_image()):
+            time.sleep(poll_period)
+            # until I feel your touch
+        logging.getLogger("HWR").info("backlight seems to have settled")
+
+    def center_loop(self, patience: int = 100, tolerance_mm: float = 0.02) -> bool:
+        """
+        Parameters:
+            patience: how many steps it will take before giving up
+            tolerance_mm: acceptable distance from center.
+                higher => faster centering, lower precision
+        Returns:
+            True on success, False if it ran out of patience.
+        """
+        nav = CentringNavigator(
+            target_coordinates=tuple(self.beam_position),
+            tolerance=tolerance_mm * self.pixels_per_mm_x,
         )
-        logging.getLogger("user_level_log").info(
-            "Loop is still drifting, have waited {}s, give up and continue with collection".format(
-                wait_time
-            )
+        for i in range(patience):
+            img = self.get_camera_image()
+            step = nav.next_step(img)
+            logging.getLogger("HWR").debug(f"step {i}/{patience} - {step}")
+            if step.finished():
+                return True
+            if step.rotate:
+                self.phi_motor_hwobj.moveRelative(step.rotate)
+                self.wait_device_ready(10)
+            if step.x_to_center or step.y_to_center:
+                self.move_to_beam(step.x_to_center, step.y_to_center)
+                self.wait_device_ready(10)
+        logging.getLogger("HWR").debug(
+            f"center_loop ran out of patience ({patience}) with tolerance {tolerance_mm} mm"
         )
+        return False
 
     def automatic_centring(self):
         self.wait_device_ready(10)
@@ -195,125 +237,17 @@ class BIOMAXMD3(MAXIVMD3):
         self.zoom_motor_hwobj.set_value("Zoom 1")
         self.wait_device_ready(20)
         self.back_light.move(1)
-        self.wait_device_ready(2)
         self.omega_reference_motor.move(self.omega_reference_par["position"])
-        self.wait_device_ready(2)
-        centred_pos = self.pre_align_loop()
-
-        # temporary implementation for testing the drift issue
-        # Note, we also need to increase the cent result timeout, scutils.py, line 179
-        # centring_result = async_result.get(timeout=300)
-        """
-        try:
-            dir_name = "/data/staff/ispybstorage/staff/jienan/drift_test"
-            counter = 0
-            while(counter < 120):
-                timestr = time.strftime("%Y%m%d-%H%M%S")
-                file_name = os.path.join(dir_name, "{}.jpg".format(timestr))
-                self.camera_hwobj.save_snapshot(file_name)
-                time.sleep(2)
-                counter += 2
-        except Exception as ex:
-           logging.error("MD3 exception while saving snapshots {}".format(ex))
-           pass
-        """
-
-        # now it runs lucid always, but should skip it if the pre_align_loop works well
+        self.wait_for_backlight()
+        self.wait_device_ready(20)
+        success = self.center_loop()
+        if not success:
+            logging.getLogger("user_level_log").error(
+                "Automatic loop centering failed!"
+            )
         self.wait_stable_loop(60)
-        # logging.info("start lucid auto loop centring...")
-        # centred_pos = self.do_automatic_centring(1)
+        centred_pos = self.get_center_pos()
         return centred_pos
-
-    def pre_align_loop(self):
-        cycle = 5
-        DIS_TO_CENTER_VERT = 0
-        DIS_TO_CENTER_HOR = 0
-        # temporary implementation for evalating the loop centring
-        self.take_snapshots_loop("before")
-        logging.getLogger("HWR").info("Start to pre-align the loop...")
-        logging.getLogger("user_level_log").info("Start to pre-align the loop...")
-        for i in range(cycle):
-            dis_to_center_hor, dis_to_center_vert = self.locate_loop()
-            if dis_to_center_hor == 0 and dis_to_center_vert == 0:
-                if i == cycle - 1:
-                    # still no loop detected with the last trial
-                    return None
-                dis_to_center_vert = self.zoom_centre["y"]
-
-            if abs(dis_to_center_vert) >= DIS_TO_CENTER_VERT:
-                self.move_loop_vert_relative(dis_to_center_vert)
-                dis_to_center_hor, dis_to_center_vert = self.locate_loop(loop_tip=True)
-                # return False
-            if abs(dis_to_center_hor) >= DIS_TO_CENTER_HOR:
-                self.move_loop_hor_relative(dis_to_center_hor)
-            self.phi_motor_hwobj.moveRelative(360.0 / cycle)
-            self.wait_device_ready(5)
-        # temporary implementation for evalating the loop centring
-        self.take_snapshots_loop("after")
-        cpos = self.get_positions()
-        cpos.pop("zoom", None)
-        return cpos
-
-    def locate_loop(self, loop_tip=False):
-        """
-        align the loop to within 200 pixels of the beam center
-        """
-        loop_int_threshold = 6000
-        if self.ref_img is None:
-            logging.warning(
-                "Reference image for the sample video is missing, skip the initial loop alignment!"
-            )
-            return
-        img_buf, w, h = self.camera_hwobj.get_image_array()
-        img = img_buf.reshape(h, w, 3)
-        gray_img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-        diff = self.ref_img - gray_img
-        diff_ver = np.sum(diff, axis=1)
-        diff_ver_threshold = np.where(diff_ver > loop_int_threshold)
-        diff_ver_max = -1
-        if diff_ver_threshold[0].size < 1:
-            dis_to_center_vert = 0
-        else:
-            diff_ver_max = diff_ver_threshold[0].max()
-            dis_to_center_vert = self.zoom_centre["y"] - diff_ver_max
-        if loop_tip and diff_ver_max > 0:
-            # only use the tip of the loop
-            diff_hor = np.sum(diff[max(0, diff_ver_max - 5) : diff_ver_max, :], axis=0)
-            diff_hor_threshold = np.where(diff_hor > 100)
-        else:
-            # use the full range
-            diff_hor = np.sum(diff, axis=0)
-            diff_hor_threshold = np.where(diff_hor > loop_int_threshold)
-
-        if diff_hor_threshold[0].size < 1:
-            dis_to_center_hor = 0
-        else:
-            if diff_ver_threshold[0].size < 1:
-                # if detected horizontally, move the sample down
-                dis_to_center_vert = self.zoom_centre["y"]
-            dis_to_center_hor = (
-                self.zoom_centre["x"]
-                - (diff_hor_threshold[0].min() + diff_hor_threshold[0].max()) / 2.0
-            )
-        return dis_to_center_hor, dis_to_center_vert
-
-    def move_loop_vert_relative(self, dis):
-        move_relative = dis / float(self.pixelsPerMmZ)
-        target_pos = self.phiy_motor_hwobj.getPosition() + move_relative
-        min_pos = -4.0
-        max_pos = 4.0
-        if target_pos < min_pos or target_pos > max_pos:
-            return False
-        self.phiy_motor_hwobj.moveRelative(move_relative)
-        self.wait_device_ready(5)
-        return True
-
-    def move_loop_hor_relative(self, dis):
-        cent_vertical_pos = self.cent_vertical_pseudo_motor.getValue() + dis / float(
-            self.pixelsPerMmY
-        )
-        self.cent_vertical_pseudo_motor.set_value(cent_vertical_pos)
-        self.wait_device_ready(5)
 
     def take_snapshots_loop(self, suffix):
         dir_name = "/data/staff/ispybstorage/staff/jienan"
