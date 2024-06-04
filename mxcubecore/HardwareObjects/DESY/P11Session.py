@@ -80,9 +80,16 @@ class P11Session(Session):
         )
 
         self.beamtime_metadata_file = self.locate_metadata_file()
-        self.beamline, self.beamtime, self.remote_data_dir, self.user_name, self.user_sshkey, self.slurm_reservation, self.slurm_partition, self.slurm_node = self.parse_metadata_file(
-            self.beamtime_metadata_file
-        )
+        (
+            self.beamline,
+            self.beamtime,
+            self.remote_data_dir,
+            self.user_name,
+            self.user_sshkey,
+            self.slurm_reservation,
+            self.slurm_partition,
+            self.slurm_node,
+        ) = self.parse_metadata_file(self.beamtime_metadata_file)
 
     def info_set_defaults(self):
         self.beamtime_info["beamtimeId"] = None
