@@ -131,8 +131,8 @@ class MICROMAXMD3Injector(MICROMAXMD3):
             error_msg = "[MICROMAXMD3] Error while moving {} to {}, {}".format(
                 motor_name, pos_name, ex
             )
-            raise Exception("")
             logging.getLogger("HWR").error(error_msg)
+            raise
 
     def set_phase(self, phase, wait=False, timeout=None):
         try:
