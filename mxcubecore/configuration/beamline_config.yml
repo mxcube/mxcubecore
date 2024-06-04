@@ -98,7 +98,22 @@ default_acquisition_parameters:
         skip_existing_images: true
         take_snapshots: true
         # NB 'compression' not added as apparently never used
-
+    datacollectiontest:
+        # Default values, also used for standard acquisition.
+        # Values not given in other dictionaries are taken from here
+        exp_time: 0.1        # exposure time
+        osc_start: 0.0  # Only used if no current angle can be found
+        osc_range: 1
+        num_passes: 1
+        first_image: 1
+        overlap: 0
+        num_images: 1
+        detector_mode: 1 # Remove as not in practice used ?
+        inverse_beam: false
+        take_dark_current: true
+        skip_existing_images: true
+        take_snapshots: true
+        # NB 'compression' not added as apparently never used
     helical:
         # Defaults for helical scan. Missing values are taken from default
         number_of_images: 100
@@ -136,6 +151,7 @@ acquisition_limit_values:
 
 available_methods:
     datacollection: True
+    datacollectiontest: True
     characterisation: True
     helical: True
     xrf: True
