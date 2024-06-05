@@ -78,6 +78,7 @@ class MotorsNPosition(AbstractActuator):
         self.current_index = None
 
         self._last_position_name = None
+        self._updating_multi_value = None
 
     def init(self):
         motorlist = self.get_property("motorlist").split(",")
@@ -172,8 +173,9 @@ class MotorsNPosition(AbstractActuator):
 
     def get_position(self):
         current_idx = self.get_value()
-        if current_idx != -1:
+        if current_idx is not None and current_idx != -1:
             return list(self._positions.keys())[current_idx]
+
 
     def motor_state_changed(self, state):
         self.update_multi_state()
@@ -182,6 +184,10 @@ class MotorsNPosition(AbstractActuator):
         self.update_multi_value()
 
     def update_multi_value(self):
+        if self._updating_multi_value:
+            return
+        self._updating_multi_value = True
+
         current_idx = -1
         current_pos = {
             motorname: self.motor_hwobjs[motorname].get_value()
@@ -209,6 +215,8 @@ class MotorsNPosition(AbstractActuator):
         if current_idx != self.current_index:
             self.current_index = current_idx
             self.update_value(current_idx)
+        
+        self._updating_multi_value = False
 
         return current_idx
 
