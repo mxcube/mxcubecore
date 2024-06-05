@@ -153,18 +153,23 @@ class P11EDNACharacterisation(EDNACharacterisation):
         while not os.path.exists(waitforxml):
             time.sleep(1)
 
-    def wait_for_file(self,file_path, timeout=60, check_interval=1):
+    def wait_for_file(self, file_path, timeout=60, check_interval=1):
         start_time = time.time()
         while not os.path.exists(file_path):
             elapsed_time = time.time() - start_time
             if elapsed_time >= timeout:
-                self.log.debug(f"Timeout reached. File '{file_path}' not found within {timeout} seconds.")
-                raise RuntimeWarning(f"Timeout reached. File '{file_path}' not found within {timeout} seconds.")
-            self.log.info(f"Waiting for file '{file_path}'... ({elapsed_time:.1f}/{timeout} seconds elapsed)")
+                self.log.debug(
+                    f"Timeout reached. File '{file_path}' not found within {timeout} seconds."
+                )
+                raise RuntimeWarning(
+                    f"Timeout reached. File '{file_path}' not found within {timeout} seconds."
+                )
+            self.log.info(
+                f"Waiting for file '{file_path}'... ({elapsed_time:.1f}/{timeout} seconds elapsed)"
+            )
             time.sleep(check_interval)
         self.log.info(f"File '{file_path}' found.")
 
-    
     def input_from_params(self, data_collection, char_params):
         edna_input = XSDataInputMXCuBE.parseString(self.edna_default_input)
 
