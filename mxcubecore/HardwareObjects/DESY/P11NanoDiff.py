@@ -1459,90 +1459,73 @@ class P11NanoDiff(GenericDiffractometer):
 
         self.update_phase()
 
+    # Helper function to move individual motors
+    def move_motor(self, motor_name, position, motor_dict, timeout):
+        if motor_name in motor_dict:
+            self.log.debug(f"Moving motor '{motor_name}' to position {position}")
+            motor_hwobj = self.motor_hwobj_dict.get(motor_name)
+            if motor_hwobj and position is not None:
+                motor_hwobj.set_value(position, timeout=None)
+                gevent.sleep(0.1)
+                self.wait_device_ready(timeout)
+                self.log.debug(f"'{motor_name}' movement DONE")
+
     def move_motors(self, motor_positions, timeout=15):
         """
-        Moves diffractometer motors to the requested positions
+        Moves diffractometer motors to the requested positions.
 
-        :param motors_dict: dictionary with motor names or hwobj
-                            and target values.
-        :type motors_dict: dict
         """
+
+        # Check if motor_positions is None
+        if motor_positions is None:
+            self.log.debug("motor_positions is None")
+            return
+
+        # Convert to dictionary if not already one
         if not isinstance(motor_positions, dict):
-            motor_positions = motor_positions.as_dict()
-
-        self.wait_device_ready(timeout)
-
-        for motor in ["phiy", "phiz"]:
-            if motor not in motor_positions:
-                continue
-            position = motor_positions[motor]
-            self.log.debug(
-                f"first moving translation motor '{motor}' to position {position}"
-            )
-
-            motor_hwobj = self.motor_hwobj_dict.get(motor)
-            if None in (motor_hwobj, position):
-                continue
-            motor_hwobj.set_value(position, timeout=None)
-        gevent.sleep(0.1)
-        self.wait_device_ready(timeout)
-        self.log.debug(f"  translation movements DONE")
-
-        for motor in ["sampx", "sampy"]:
-            if motor not in motor_positions:
-                continue
-            position = motor_positions[motor]
-            self.log.debug(
-                f"then moving alignment motor '{motor}' to position {position}"
-            )
-
-            motor_hwobj = self.motor_hwobj_dict.get(motor)
-            if None in (motor_hwobj, position):
-                continue
-            motor_hwobj.set_value(position, timeout=None)
-        gevent.sleep(0.1)
-        self.wait_device_ready(timeout)
-        self.log.debug(f"  alignment movements DONE")
-
-        if "phi" in motor_positions:
-            self.log.debug(f"finally moving motor 'phi' to position {position}")
-            position = motor_positions["phi"]
-            motor_hwobj = self.motor_hwobj_dict.get("phi")
-            if None not in (motor_hwobj, position):
-                if abs(motor_hwobj.get_value() - position) > 1.0e-4:
-
-                    motor_hwobj.set_value(position, timeout=None)
-                    gevent.sleep(0.1)
-
-            self.log.debug("   phi move DONE")
-
-        # is there anything left?
-        for motor in motor_positions.keys():
-            if motor in ["phiy", "phiz", "phi", "sampx", "sampy"]:
-                continue
-            position = motor_positions[motor]
-            self.log.debug(f"moving remaining motor {motor} to position {position}")
-            """
-            if isinstance(motor, (str, unicode)):
-                logging.getLogger("HWR").debug(" Moving %s to %s" % (motor, position))
-            else:
-                logging.getLogger("HWR").debug(
-                    " Moving %s to %s" % (str(motor.name()), position)
+            try:
+                motor_positions = motor_positions.as_dict()
+            except RuntimeWarning:
+                self.log.rror(
+                    "motor_positions is not a dict and cannot be converted using as_dict()"
                 )
-            """
-            if isinstance(motor, (str, unicode)):
-                motor_role = motor
-                motor = self.motor_hwobj_dict.get(motor_role)
-                # del motor_positions[motor_role]
-                if None in (motor, position):
-                    continue
-                # motor_positions[motor] = position
-            motor.set_value(position)
+                return
+
         self.wait_device_ready(timeout)
 
-        if self.delay_state_polling is not None and self.delay_state_polling > 0:
-            # delay polling for state in the
-            # case of controller not reporting MOVING inmediately after cmd
+        # Move translation motors
+        for motor in ["phiy", "phiz"]:
+            if motor in motor_positions:
+                self.move_motor(motor, motor_positions[motor], motor_positions, timeout)
+
+        # Move alignment motors
+        for motor in ["sampx", "sampy"]:
+            if motor in motor_positions:
+                self.move_motor(motor, motor_positions[motor], motor_positions, timeout)
+
+        # Move 'phi' motor separately
+        if "phi" in motor_positions:
+            phi_position = motor_positions["phi"]
+            self.log.debug(f"Finally moving motor 'phi' to position {phi_position}")
+            motor_hwobj = self.motor_hwobj_dict.get("phi")
+            if (
+                motor_hwobj
+                and phi_position is not None
+                and abs(motor_hwobj.get_value() - phi_position) > 1.0e-4
+            ):
+                motor_hwobj.set_value(phi_position, timeout=None)
+                gevent.sleep(0.1)
+                self.log.debug("Phi movement DONE")
+
+        # Move any remaining motors
+        for motor, position in motor_positions.items():
+            if motor not in ["phiy", "phiz", "phi", "sampx", "sampy"]:
+                self.move_motor(motor, motor_positions[motor], motor_positions, timeout)
+
+        # Delay polling for state in the
+        # case of controller not reporting MOVING inmediately after cmd
+        if self.delay_state_polling and self.delay_state_polling > 0:
             gevent.sleep(self.delay_state_polling)
 
+        # Final check to ensure all devices are ready
         self.wait_device_ready(timeout)
