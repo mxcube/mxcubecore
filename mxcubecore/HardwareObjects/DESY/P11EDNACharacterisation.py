@@ -327,26 +327,84 @@ class P11EDNACharacterisation(EDNACharacterisation):
         acquisition_parameters = data_collection.acquisitions[0].acquisition_parameters
         path_template = data_collection.acquisitions[0].path_template
 
-        # Make sure there is a proper path conversion between different mount points
+        # NB!: path template is in queue_model_objects.py
         logging.info(
-            "======= Characterisation path template ====%s", path_template.directory
+            "======= Characterisation path template directory ====%s",
+            path_template.directory,
+        )
+        logging.info(
+            "======= Characterisation path template process_directory ====%s",
+            path_template.process_directory,
+        )
+        logging.info(
+            "======= Characterisation path template xds_dir ====%s",
+            path_template.xds_dir,
+        )
+        logging.info(
+            "======= Characterisation path template base_prefix ====%s",
+            path_template.base_prefix,
+        )
+        logging.info(
+            "======= Characterisation path template mad_prefix ====%s",
+            path_template.mad_prefix,
+        )
+        logging.info(
+            "======= Characterisation path template reference_image_prefix ====%s",
+            path_template.reference_image_prefix,
+        )
+        logging.info(
+            "======= Characterisation path template wedge_prefix ====%s",
+            path_template.wedge_prefix,
+        )
+        logging.info(
+            "======= Characterisation path template run_number ====%s",
+            str(path_template.run_number),
+        )
+        logging.info(
+            "======= Characterisation path template suffix ====%s", path_template.suffix
+        )
+        logging.info(
+            "======= Characterisation path template precision ====%s",
+            str(path_template.precision),
+        )
+        logging.info(
+            "======= Characterisation path template start_num ====%s",
+            str(path_template.start_num),
+        )
+        logging.info(
+            "======= Characterisation path template num_files ====%s",
+            str(path_template.num_files),
+        )
+        logging.info(
+            "======= Characterisation path template compression ====%s",
+            path_template.compression,
         )
 
-        # image_dir = path_template.directory.replace(
-        #     "/gpfs/current", HWR.beamline.session.get_beamtime_metadata()[2]
-        # )
-        image_dir = path_template.directory.replace(
-            "/gpfs/current", "/beamline/p11/current"
+        # Make sure there is a proper path conversion between different mount points
+
+        # This is where the folder with h5 files is located.
+        # It is straightforward to construct it from xds_dir
+        image_dir = path_template.xds_dir.replace(
+            "/gpfs/current/processed/", "/beamline/p11/current/raw/"
+        ).replace("/edna", "")
+
+        # Here is actual path to the *.h5 data are defined:
+        # It is expected to be %5d (4 zeros), but files are generated %6d (5 leading zeros).
+        # It also requires _data_%6d.h5
+        # TODO: Fix elsewhere.
+        path_str = os.path.join(
+            image_dir, path_template.get_image_file_name().replace("%05d", "data_%06d")
         )
-
-        logging.info(image_dir)
-
-        path_str = os.path.join(image_dir, path_template.get_image_file_name())
-        logging.info(path_template.xds_dir)
+        logging.info(
+            "======= Characterisation path of what image filename is expected ====%s",
+            path_template.get_image_file_name(),
+        )
+        logging.info(
+            "======= Characterisation path where to search for images ====%s", path_str
+        )
 
         # NB!: Directories at this point are created elswhere (data_collection_hook)
         # xds_dir at this point already has all the needed substitutions.
-
         characterisation_dir = path_template.xds_dir
 
         for img_num in range(int(acquisition_parameters.num_images)):
@@ -354,6 +412,10 @@ class P11EDNACharacterisation(EDNACharacterisation):
             path = XSDataString()
             path.value = path_str % (img_num + 1)
             image_file.path = path
+            print(
+                "++++++++++++++++++++++++++++++++++++ EDNA FILE INPUT H PATH",
+                image_file.path.value,
+            )
             image_file.number = XSDataInteger(img_num + 1)
             data_set.addImageFile(image_file)
 
