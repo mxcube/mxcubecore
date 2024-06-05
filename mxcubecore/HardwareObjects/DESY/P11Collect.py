@@ -327,13 +327,13 @@ class P11Collect(AbstractCollect):
                     + "%s_%d" % (prefix, runno),
                 )
 
-                # Filepath to the EDNA processing
-                # filepath = os.path.join(basepath,"%s_%d" % (prefix, runno))
+                # # Filepath to the EDNA processing
+                # filepath = os.path.join(basepath, "%s_%d" % (prefix, runno))
 
                 # setting up xds_dir for characterisation (used there internally to create dirs)
-                self.current_dc_parameters["xds_dir"] = os.path.join(
-                    basepath, "%s_%d" % (prefix, runno)
-                )
+                # self.current_dc_parameters["xds_dir"] = os.path.join(
+                #     basepath, "%s_%d" % (prefix, runno)
+                # )
 
                 self.log.debug(
                     "======= CURRENT FILEPATH: "
@@ -373,9 +373,6 @@ class P11Collect(AbstractCollect):
                     + "/"
                     + "%s_%d" % (prefix, runno),
                 )
-
-                # Filepath to work with EDNA
-                # filepath = os.path.join(basepath,"%s_%d" % (prefix, runno))
 
                 self.log.debug(
                     "======= CURRENT FILEPATH: "
@@ -776,188 +773,99 @@ class P11Collect(AbstractCollect):
         """
 
         self.log.debug("Triggering auto processing")
-
-        dc_pars = self.current_dc_parameters
-        collection_type = dc_pars["experiment_type"]
+        collection_type = self.current_dc_parameters["experiment_type"]
         self.log.debug(
             "=============== Supported experiment types: ===========\n"
-            + str(dc_pars["experiment_type"])
+            + str(self.current_dc_parameters["experiment_type"])
         )
 
-        if collection_type == "Characterization":
+        # NB!: CHaracterisation processing is started within P11EDNACharacterisation._run_edna()
+        # Mosflm and EDNA are started from there.
+        if collection_type == "OSC":
             self.log.debug(
-                "==== AUTOPROCESSING CHARACTERISATION IN PROGRESS =========="
+                "==== AUTOPROCESSING STANDARD PROCESSING IS IN PROGRESS =========="
             )
 
             resolution = self.get_resolution()
             frames = self.latest_frames
 
             image_dir_local, filename = os.path.split(self.latest_h5_filename)
-            # AG: Image dir at this point is located locally. This path is not seen on the MAXWELL. Path needs to be converted.
-            # /gpfs/current/ to  get_beamline_metadata()[2]
+
             image_dir = image_dir_local.replace(
                 "/gpfs/current", HWR.beamline.session.get_beamtime_metadata()[2]
             )
             process_dir = image_dir.replace("/raw/", "/processed/")
             process_dir_local = image_dir_local.replace("/raw/", "/processed/")
-            mosflm_path = os.path.join(process_dir, "mosflm")
-            mosflm_path_local = os.path.join(process_dir_local, "mosflm")
-            self.log.debug('============MOSFLM======== mosflm_path="%s"' % mosflm_path)
+            xdsapp_path = os.path.join(process_dir, "xdsapp")
+            xdsapp_path_local = os.path.join(process_dir_local, "xdsapp")
+            self.log.debug('============XDSAPP======== xdsapp_path="%s"' % xdsapp_path)
             self.log.debug(
-                '============MOSFLM======== mosflm_path_local="%s"' % mosflm_path_local
+                '============XDSAPP======== xdsapp_path_local="%s"' % xdsapp_path_local
             )
 
-            ssh = HWR.beamline.session.get_ssh_command()
-
             try:
-                self.mkdir_with_mode(mosflm_path_local, mode=0o777)
+                self.mkdir_with_mode(xdsapp_path_local, mode=0o777)
                 self.log.debug(
-                    "=========== MOSFLM ============ Mosflm directory created"
+                    "=========== XDSAPP ============ XDSAPP directory created"
                 )
 
             except OSError:
                 self.log.debug(sys.exc_info())
-                self.log.debug("Cannot create mosflm directory")
+                self.log.debug("Cannot create XDSAPP directory")
 
             base_process_dir = self.base_dir(process_dir_local, "processed")
             datasets_file = os.path.join(base_process_dir, "datasets.txt")
 
             # add to datasets.txt for presenterd
             try:
-                open(datasets_file, "a").write(
-                    mosflm_path_local.split("/gpfs/current/processed/")[1] + "\n"
+                open(datasets_file, "a", encoding="utf-8").write(
+                    xdsapp_path_local.split("/gpfs/current/processed/")[1] + "\n"
                 )
-            except RuntimeWarning as err_msg:
+            except RuntimeError as err_msg:
                 self.log.debug("Cannot write to datasets.txt")
-                self.log.debug(sys.exc_info(), err_msg)
+                self.log.debug(sys.exc_info())
 
             # create call
             ssh = HWR.beamline.session.get_ssh_command()
             sbatch = HWR.beamline.session.get_sbatch_command(
-                jobname_prefix="mosflm",
-                logfile_path=mosflm_path.replace(
+                jobname_prefix="xdsapp",
+                logfile_path=xdsapp_path.replace(
                     HWR.beamline.session.get_beamtime_metadata()[2],
                     "/beamline/p11/current",
                 )
-                + "/mosflm.log",
+                + "/xdsapp.log",
             )
 
+            self.log.debug(
+                "=============== XDSAPP ================"
+                + xdsapp_path.replace(
+                    HWR.beamline.session.get_beamtime_metadata()[2],
+                    "/beamline/p11/current",
+                )
+            )
             cmd = (
-                "/asap3/petra3/gpfs/common/p11/processing/mosflm_sbatch.sh "
-                + "{imagepath:s} {filename:s} {processpath:s} {frames:d} {res:f}"
+                "/asap3/petra3/gpfs/common/p11/processing/xdsapp_sbatch.sh "
+                + "{imagepath:s} {processpath:s} {res:f}"
             ).format(
-                imagepath=image_dir,
-                filename=filename,
-                processpath=mosflm_path.replace(
+                imagepath=image_dir + "/" + filename,
+                processpath=xdsapp_path.replace(
                     HWR.beamline.session.get_beamtime_metadata()[2],
                     "/beamline/p11/current",
                 ),
-                frames=frames,
                 res=resolution,
             )
-            self.log.debug('=======MOSFLM========== ssh="%s"' % ssh)
-            self.log.debug('=======MOSFLM========== sbatch="%s"' % sbatch)
-            self.log.debug('=======MOSFLM========== executing process cmd="%s"' % cmd)
+
             self.log.debug(
-                '=======MOSFLM========== {ssh:s} "{sbatch:s} --wrap \\"{cmd:s}\\""'.format(
+                '{ssh:s} "{sbatch:s} --wrap \\"{cmd:s}\\""'.format(
                     ssh=ssh, sbatch=sbatch, cmd=cmd
                 )
             )
 
             os.system(
-                '{ssh:s} "{sbatch:s} --wrap \\"{cmd:s}"\\"'.format(
+                '{ssh:s} "{sbatch:s} --wrap \\"{cmd:s}\\""'.format(
                     ssh=ssh, sbatch=sbatch, cmd=cmd
                 )
             )
-        else:
-            if collection_type == "OSC":
-                self.log.debug(
-                    "==== AUTOPROCESSING STANDARD PROCESSING IS IN PROGRESS =========="
-                )
-
-                resolution = self.get_resolution()
-                frames = self.latest_frames
-
-                image_dir_local, filename = os.path.split(self.latest_h5_filename)
-
-                image_dir = image_dir_local.replace(
-                    "/gpfs/current", HWR.beamline.session.get_beamtime_metadata()[2]
-                )
-                process_dir = image_dir.replace("/raw/", "/processed/")
-                process_dir_local = image_dir_local.replace("/raw/", "/processed/")
-                xdsapp_path = os.path.join(process_dir, "xdsapp")
-                xdsapp_path_local = os.path.join(process_dir_local, "xdsapp")
-                self.log.debug(
-                    '============XDSAPP======== xdsapp_path="%s"' % xdsapp_path
-                )
-                self.log.debug(
-                    '============XDSAPP======== xdsapp_path_local="%s"'
-                    % xdsapp_path_local
-                )
-
-                try:
-                    self.mkdir_with_mode(xdsapp_path_local, mode=0o777)
-                    self.log.debug(
-                        "=========== XDSAPP ============ XDSAPP directory created"
-                    )
-
-                except OSError:
-                    self.log.debug(sys.exc_info())
-                    self.log.debug("Cannot create XDSAPP directory")
-
-                base_process_dir = self.base_dir(process_dir_local, "processed")
-                datasets_file = os.path.join(base_process_dir, "datasets.txt")
-
-                # add to datasets.txt for presenterd
-                try:
-                    open(datasets_file, "a", encoding="utf-8").write(
-                        xdsapp_path_local.split("/gpfs/current/processed/")[1] + "\n"
-                    )
-                except RuntimeError as err_msg:
-                    self.log.debug("Cannot write to datasets.txt")
-                    self.log.debug(sys.exc_info())
-
-                # create call
-                ssh = HWR.beamline.session.get_ssh_command()
-                sbatch = HWR.beamline.session.get_sbatch_command(
-                    jobname_prefix="xdsapp",
-                    logfile_path=xdsapp_path.replace(
-                        HWR.beamline.session.get_beamtime_metadata()[2],
-                        "/beamline/p11/current",
-                    )
-                    + "/xdsapp.log",
-                )
-
-                self.log.debug(
-                    "=============== XDSAPP ================"
-                    + xdsapp_path.replace(
-                        HWR.beamline.session.get_beamtime_metadata()[2],
-                        "/beamline/p11/current",
-                    )
-                )
-                cmd = (
-                    "/asap3/petra3/gpfs/common/p11/processing/xdsapp_sbatch.sh "
-                    + "{imagepath:s} {processpath:s} {res:f}"
-                ).format(
-                    imagepath=image_dir + "/" + filename,
-                    processpath=xdsapp_path.replace(
-                        HWR.beamline.session.get_beamtime_metadata()[2],
-                        "/beamline/p11/current",
-                    ),
-                    res=resolution,
-                )
-
-                self.log.debug(
-                    '{ssh:s} "{sbatch:s} --wrap \\"{cmd:s}\\""'.format(
-                        ssh=ssh, sbatch=sbatch, cmd=cmd
-                    )
-                )
-
-                os.system(
-                    '{ssh:s} "{sbatch:s} --wrap \\"{cmd:s}\\""'.format(
-                        ssh=ssh, sbatch=sbatch, cmd=cmd
-                    )
-                )
 
     def diffractometer_prepare_collection(self):
 
@@ -1149,11 +1057,16 @@ class P11Collect(AbstractCollect):
             self.current_dc_parameters["fileinfo"]["process_directory"],
         )
 
+        collection_type = self.current_dc_parameters["experiment_type"]
+
         """create processing directories and img links"""
         xds_directory, auto_directory = self.prepare_input_files()
         try:
-            self.create_directories(xds_directory, auto_directory)
-            os.system("chmod -R 777 %s %s" % (xds_directory, auto_directory))
+            if collection_type == "Characterisation":
+                pass
+            else:
+                self.create_directories(xds_directory, auto_directory)
+                os.system("chmod -R 777 %s %s" % (xds_directory, auto_directory))
         except Exception:
             logging.exception("Could not create processing file directory")
             return

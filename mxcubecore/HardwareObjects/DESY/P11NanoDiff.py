@@ -951,6 +951,7 @@ class P11NanoDiff(GenericDiffractometer):
 
     def move_omega(self, angle):
         self.wait_omega_on()
+        self.wait_omega()
         self.motor_hwobj_dict["phi"].set_value(angle)
 
     def wait_omega_on(self, timeout=30):

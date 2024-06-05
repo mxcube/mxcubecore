@@ -264,3 +264,8 @@ class P11EigerDetector(AbstractDetector):
 
     def get_eiger_name_pattern(self):
         return self.writer_dev.NamePattern
+
+    def get_latest_local_master_image_name(self):
+        latest_image = self.get_eiger_name_pattern()
+        latest_image = f"/gpfs{latest_image}_master.h5"
+        return latest_image
