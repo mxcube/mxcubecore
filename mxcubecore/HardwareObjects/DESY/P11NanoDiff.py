@@ -22,7 +22,7 @@ __copyright__ = """ Copyright © 2010 - 2024 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
 
-from tango import DeviceProxy
+from tango import DeviceProxy, DevFailed
 from mxcubecore.TaskUtils import task
 from mxcubecore.HardwareObjects.GenericDiffractometer import (
     DiffractometerState,
@@ -946,17 +946,36 @@ class P11NanoDiff(GenericDiffractometer):
         return (-360, 360)
 
     def move_omega_relative(self, relative_angle):
+        self.wait_omega_on()
         self.motor_hwobj_dict["phi"].set_value_relative(relative_angle, 5)
 
     def move_omega(self, angle):
-        # self.wait_omega()
-
-        # Explicit check here. Quick fix for now.
-        dev_gonio = DeviceProxy("p11/servomotor/eh.1.01")
-        while str(dev_gonio.State()) != "ON":
-            time.sleep(0.1)
-
+        self.wait_omega_on()
         self.motor_hwobj_dict["phi"].set_value(angle)
+
+    def wait_omega_on(self, timeout=30):
+        """
+        Wait until the omega device finishes its movement and reaches the "ON" state.
+        """
+        dev_omega = DeviceProxy("p11/servomotor/eh.1.01")
+        start_time = time.time()
+
+        while True:
+            try:
+                current_state = str(dev_omega.State())
+                if current_state == "ON":
+                    logging.info("Omega device has finished movement and is now ON.")
+                    break
+            except DevFailed as e:
+                logging.error(f"Error communicating with the omega device: {e}")
+
+            if time.time() - start_time > timeout:
+                logging.error(
+                    "Timeout while waiting for omega device to finish movement and turn ON."
+                )
+                break
+
+            time.sleep(0.1)
 
     def get_omega_position(self):
         return self.motor_hwobj_dict["phi"].get_value()
