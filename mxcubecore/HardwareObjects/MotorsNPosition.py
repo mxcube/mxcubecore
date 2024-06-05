@@ -176,7 +176,6 @@ class MotorsNPosition(AbstractActuator):
         if current_idx is not None and current_idx != -1:
             return list(self._positions.keys())[current_idx]
 
-
     def motor_state_changed(self, state):
         self.update_multi_state()
 
@@ -215,7 +214,7 @@ class MotorsNPosition(AbstractActuator):
         if current_idx != self.current_index:
             self.current_index = current_idx
             self.update_value(current_idx)
-        
+
         self._updating_multi_value = False
 
         return current_idx
