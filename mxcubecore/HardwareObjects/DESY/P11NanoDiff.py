@@ -1470,7 +1470,7 @@ class P11NanoDiff(GenericDiffractometer):
                 self.wait_device_ready(timeout)
                 self.log.debug(f"'{motor_name}' movement DONE")
 
-    def move_motors(self, motor_positions, timeout=15):
+    def move_motors(self, motor_positions, timeout=10):
         """
         Moves diffractometer motors to the requested positions.
 
@@ -1479,7 +1479,7 @@ class P11NanoDiff(GenericDiffractometer):
         # Check if motor_positions is None
         if motor_positions is None:
             self.log.debug("motor_positions is None")
-            return
+            pass
 
         # Convert to dictionary if not already one
         if not isinstance(motor_positions, dict):
@@ -1490,8 +1490,6 @@ class P11NanoDiff(GenericDiffractometer):
                     "motor_positions is not a dict and cannot be converted using as_dict()"
                 )
                 return
-
-        self.wait_device_ready(timeout)
 
         # Move translation motors
         for motor in ["phiy", "phiz"]:
