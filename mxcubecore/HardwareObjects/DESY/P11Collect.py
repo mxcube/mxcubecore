@@ -173,11 +173,6 @@ class P11Collect(AbstractCollect):
             log.info("Collection: Storing data collection in LIMS")
             self.store_data_collection_in_lims()
 
-            log.info(
-                "Collection: Creating directories for raw images and processing files"
-            )
-            self.create_file_directories()
-
             log.info("Collection: Getting sample info from parameters")
             self.get_sample_info()
 
@@ -317,6 +312,10 @@ class P11Collect(AbstractCollect):
 
             self.log.debug("#COLLECT# Programming detector for data collection")
             if collection_type == "Characterization":
+                self.log.info(
+                    "Collection: Creating directories for raw images and processing files EDNA and MOSFLM"
+                )
+                self.create_characterisation_directories()
                 # Filepath for the presenterd to work
                 filepath = os.path.join(
                     basepath,
@@ -330,7 +329,7 @@ class P11Collect(AbstractCollect):
                 # # Filepath to the EDNA processing
                 # filepath = os.path.join(basepath, "%s_%d" % (prefix, runno))
 
-                # setting up xds_dir for characterisation (used there internally to create dirs)
+                # # setting up xds_dir for characterisation (used there internally to create dirs)
                 # self.current_dc_parameters["xds_dir"] = os.path.join(
                 #     basepath, "%s_%d" % (prefix, runno)
                 # )
@@ -364,6 +363,11 @@ class P11Collect(AbstractCollect):
                     exp_time, nframes, angle_inc, filepath
                 )
             else:
+                self.log.info(
+                    "Collection: Creating directories for raw images and processing files"
+                )
+                self.create_file_directories()
+
                 # Filepath to work with presenterd
                 filepath = os.path.join(
                     basepath,
@@ -1047,6 +1051,37 @@ class P11Collect(AbstractCollect):
             return False
         return path
 
+    def create_characterisation_directories(self):
+        """
+        Method create directories for raw files and processing files for EDNA and MOSFLM.
+        """
+        self.create_directories(
+            self.current_dc_parameters["fileinfo"]["directory"],
+            self.current_dc_parameters["fileinfo"]["process_directory"],
+        )
+
+        collection_type = HWR.beamline.collect.current_dc_parameters["experiment_type"]
+        print("************** PREPARING FOLDERS FOR COLLECTION TYPE", collection_type)
+
+        """create processing directories and img links"""
+        xds_directory, auto_directory = self.prepare_input_files()
+        xds_directory = xds_directory.replace("/rotational_", "/screening_").replace(
+            "/xdsapp", "/edna"
+        )
+        auto_directory = auto_directory.replace("/rotational_", "/screening_").replace(
+            "/xdsapp", "/edna"
+        )
+        try:
+            self.create_directories(xds_directory, auto_directory)
+            os.system("chmod -R 777 %s %s" % (xds_directory, auto_directory))
+        except Exception:
+            logging.exception("Could not create processing file directory")
+            return
+        if xds_directory:
+            self.current_dc_parameters["xds_dir"] = xds_directory
+        if auto_directory:
+            self.current_dc_parameters["auto_dir"] = auto_directory
+
     def create_file_directories(self):
         """
         Method create directories for raw files and processing files.
@@ -1057,16 +1092,11 @@ class P11Collect(AbstractCollect):
             self.current_dc_parameters["fileinfo"]["process_directory"],
         )
 
-        collection_type = self.current_dc_parameters["experiment_type"]
-
         """create processing directories and img links"""
         xds_directory, auto_directory = self.prepare_input_files()
         try:
-            if collection_type == "Characterisation":
-                pass
-            else:
-                self.create_directories(xds_directory, auto_directory)
-                os.system("chmod -R 777 %s %s" % (xds_directory, auto_directory))
+            self.create_directories(xds_directory, auto_directory)
+            os.system("chmod -R 777 %s %s" % (xds_directory, auto_directory))
         except Exception:
             logging.exception("Could not create processing file directory")
             return

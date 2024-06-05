@@ -144,8 +144,8 @@ class P11EDNACharacterisation(EDNACharacterisation):
         :param outputxml: Path to the output XML file that will be generated.
         """
         self.log.debug(f'=======EDNA========== PROCESS DIRECTORY="{process_directory}"')
-        self.log.debug(f'=======EDNA========== IN (FUNCTION INPUT)="{inputxml}"')
-        self.log.debug(f'=======EDNA========== OUT (FUNCTION INPUT)="{outputxml}"')
+        self.log.debug(f'=======EDNA========== IN (XML INPUT)="{inputxml}"')
+        self.log.debug(f'=======EDNA========== OUT (XML OUTPUT)="{outputxml}"')
 
         ssh = HWR.beamline.session.get_ssh_command()
         sbatch = HWR.beamline.session.get_sbatch_command(
@@ -156,13 +156,11 @@ class P11EDNACharacterisation(EDNACharacterisation):
 
         inxml = inputxml.replace("/gpfs", "/beamline/p11")
         outxml = outputxml.replace(
-            "/gpfs/current/raw", "/beamline/p11/current/processed"
-        ).replace("EDNAOutput_", "edna/EDNAOutput_")
-        processpath = (
-            process_directory.replace(
-                "/gpfs/current/raw", "/beamline/p11/current/processed"
-            )
-            + "/edna"
+            "/gpfs/current/processed", "/beamline/p11/current/processed"
+        )
+
+        processpath = process_directory.replace(
+            "/gpfs/current/processed", "/beamline/p11/current/processed"
         )
 
         self.log.debug(
@@ -179,9 +177,7 @@ class P11EDNACharacterisation(EDNACharacterisation):
         self.log.debug(f'=======EDNA========== {ssh} "{sbatch} --wrap \\"{cmd}\\""')
         logging.info(f'{ssh} "{sbatch} --wrap \\"{cmd}\\""')
 
-        waitforxml = outputxml.replace("EDNAOutput_", "edna/EDNAOutput_").replace(
-            "/raw/", "/processed/"
-        )
+        waitforxml = outputxml.replace("/raw/", "/processed/")
         self.log.debug(f"=======EDNA========== WAITING FOR OUTPUTXML IN {waitforxml}")
 
         self.log.debug(f'=======EDNA Script========== {ssh} "{cmd}"')
@@ -348,11 +344,10 @@ class P11EDNACharacterisation(EDNACharacterisation):
         path_str = os.path.join(image_dir, path_template.get_image_file_name())
         logging.info(path_template.xds_dir)
 
-        characterisation_dir = path_template.xds_dir.replace(
-            "/autoprocessing_", "/characterisation_"
-        )
+        # NB!: Directories at this point are created elswhere (data_collection_hook)
+        # xds_dir at this point already has all the needed substitutions.
 
-        os.makedirs(characterisation_dir, mode=0o755, exist_ok=True)
+        characterisation_dir = path_template.xds_dir
 
         for img_num in range(int(acquisition_parameters.num_images)):
             image_file = XSDataImage()
@@ -398,12 +393,9 @@ class P11EDNACharacterisation(EDNACharacterisation):
 
         try:
             html_report = str(edna_result.getHtmlPage().getPath().getValue())
+            html_report = html_report.replace("/beamline/p11", "/gpfs")
 
         except AttributeError:
             pass
-
-        html_report = html_report.replace("/beamline/p11", "/gpfs").replace(
-            "/EDApplication_", "/edna/EDApplication"
-        )
 
         return html_report
