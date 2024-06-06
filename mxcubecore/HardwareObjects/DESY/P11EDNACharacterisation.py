@@ -1,4 +1,5 @@
 import os
+import re
 import logging
 import time
 
@@ -327,7 +328,7 @@ class P11EDNACharacterisation(EDNACharacterisation):
         acquisition_parameters = data_collection.acquisitions[0].acquisition_parameters
         path_template = data_collection.acquisitions[0].path_template
 
-        # NB!: path template is in queue_model_objects.py
+        # NB!: path_template content is in queue_model_objects.py
         logging.info(
             "======= Characterisation path template directory ====%s",
             path_template.directory,
@@ -368,7 +369,7 @@ class P11EDNACharacterisation(EDNACharacterisation):
             str(path_template.precision),
         )
         logging.info(
-            "======= Characterisation path template start_num ====%s",
+            "======= Characterisation path template sta/beamline/p11/current/raw/jkjhl/ref-manually-mounted/screening_001/ref-manually-mounted_1_000001.h5rt_num ====%s",
             str(path_template.start_num),
         )
         logging.info(
@@ -388,13 +389,22 @@ class P11EDNACharacterisation(EDNACharacterisation):
             "/gpfs/current/processed/", "/beamline/p11/current/raw/"
         ).replace("/edna", "")
 
+        # This is needed because EDNA needs to concert eiger2cbf in place
+        # The directory is created by local user, EDNA process is executed by another without
+        # access rights.
+        raw_char_directory = path_template.xds_dir.replace(
+            "/gpfs/current/processed/", "/gpfs/current/raw/"
+        ).replace("/edna", "")
+        os.system(f"chmod +777 {raw_char_directory}")
+
         # Here is actual path to the *.h5 data are defined:
         # It is expected to be %5d (4 zeros), but files are generated %6d (5 leading zeros).
         # It also requires _data_%6d.h5
         # TODO: Fix elsewhere.
-        path_str = os.path.join(
-            image_dir, path_template.get_image_file_name().replace("%05d", "data_%06d")
-        )
+        path_template.precision = 6
+
+        path_str = os.path.join(image_dir, path_template.get_image_file_name())
+
         logging.info(
             "======= Characterisation path of what image filename is expected ====%s",
             path_template.get_image_file_name(),
@@ -407,20 +417,20 @@ class P11EDNACharacterisation(EDNACharacterisation):
         # xds_dir at this point already has all the needed substitutions.
         characterisation_dir = path_template.xds_dir
 
+        # pattern = r"(_\d{6}\.h5)$"
+
         for img_num in range(int(acquisition_parameters.num_images)):
             image_file = XSDataImage()
             path = XSDataString()
             path.value = path_str % (img_num + 1)
             image_file.path = path
-            print(
-                "++++++++++++++++++++++++++++++++++++ EDNA FILE INPUT H PATH",
-                image_file.path.value,
-            )
+            image_file.path.value,
             image_file.number = XSDataInteger(img_num + 1)
             data_set.addImageFile(image_file)
 
         edna_input.addDataSet(data_set)
         edna_input.process_directory = characterisation_dir
+
         return edna_input
 
     def mkdir_with_mode(self, directory, mode):
