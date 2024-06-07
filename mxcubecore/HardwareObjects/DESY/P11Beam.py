@@ -31,6 +31,8 @@ class P11Beam(AbstractBeam):
     def __init__(self, *args):
         super().__init__(*args)
 
+        self.pinhole_hwobj = self.get_object_by_role("pinhole")
+
         self._beam_size_dict = {"aperture": [9999, 9999], "slits": [9999, 9999]}
 
         self._beam_position_on_screen = [340, 256]
@@ -105,3 +107,7 @@ class P11Beam(AbstractBeam):
 
         self.evaluate_beam_info()
         self.re_emit_values()
+
+    def get_pinhole_size(self):
+        # Keep it default as the pinhole and beamsize interaction is locked for now
+        return 200
