@@ -36,7 +36,7 @@ class Oxford700(AbstractActuator):
         controller = self.get_object_by_role("controller")
         cryostat = self.get_property("cryostat")
         self.interval = self.get_property("interval") or 10
-        self.ctrl = getattr(controller, cryostat)
+        self.ctrl = controller.config.get(cryostat)
         if self.ctrl:
             gevent.spawn(self._do_polling)
             self._hw_ctrl = self.ctrl.controller._hw_controller
