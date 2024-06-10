@@ -418,7 +418,7 @@ class P11Collect(AbstractCollect):
                 )
 
                 # # Adding h5 info for
-                #TODO: Keep it commented before the characterisation header info in HDF5 will be checked.
+                # TODO: Keep it commented before the characterisation header info in HDF5 will be checked.
                 # start_angles_collected = []
                 # for nf in range(nframes):
                 #     start_angles_collected.append(start_angle + nf * angle_inc)
@@ -557,6 +557,9 @@ class P11Collect(AbstractCollect):
             for node in nodes:
                 if node in f:
                     del f[node]
+            # Keep it here as it is not clear if it is needed.
+            # It was used in CC to fix the issue with the data processing
+
             # # fix detector orientation
             # ds = f.get(u"entry/instrument/detector/module/fast_pixel_direction")
             # ds.attrs[u"vector"] = [1., 0., 0.]
@@ -588,162 +591,86 @@ class P11Collect(AbstractCollect):
                 "******************************************************* WRITING to H5 FAILED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
             )
 
-    # def add_h5_info(self, h5file):
-    #     """
-    #     Add information to an HDF5 file.
+    def writeInfo_char(
+        self,
+        path,
+        name,
+        startangle,
+        frames,
+        degreesperframe,
+        imageinterval,
+        exposuretime,
+    ):
+        # Put it in a raw
 
-    #     :param h5file: The name or path of the HDF5 file.
-    #     """
-    #     self.log.debug("========== Writing H5 info ==============")
+        INFO_TXT = (
+            "run type:            screening\n"
+            + "run name:            {name:s}\n"
+            + "start angle:         {startangle:.2f}deg\n"
+            + "frames:              {frames:d}\n"
+            + "degrees/frame:       {degreesperframe:.2f}deg\n"
+            + "image interval:      {imageinterval:.2f}deg\n"
+            + "exposure time:       {exposuretime:.3f}ms\n"
+            + "energy:              {energy:.3f}keV\n"
+            + "wavelength:          {wavelength:.3f}A\n"
+            + "detector distance:   {detectordistance:.2f}mm\n"
+            + "resolution:          {resolution:.2f}A\n"
+            + "aperture:            {pinholeDiameter:d}um\n"
+            + "focus:               {focus:s}\n"
+            + "filter transmission: {filterTransmission:.3f}%\n"
+            + "filter thickness:    {filterThickness:d}um\n"
+            + "ring current:        {beamCurrent:.3f}mA\n"
+            + "\n"
+            + "For exact flux reading, please consult the staff."
+            + "Typical flux of P11 at 12 keV with 100 mA ring current "
+            + "(beam area is defined by selected pinhole in flat beam, in "
+            + "focused mode typically pinhole of 200 um is used and beam "
+            + "areas is defined by focusing state):\n"
+            + "\n"
+            + "Focus       Beam area (um)  Flux (ph/s)\n"
+            + "Flat        200 x 200       2e12\n"
+            + "Flat        100 x 100       5e11\n"
+            + "Flat          50 x 50       1.25e11\n"
+            + "Flat          20 x 20       2e10\n"
+            + "Focused     200 x 200       4.4e12\n"
+            + "Focused     100 x 100       9.9e12\n"
+            + "Focused       50 x 50       9.9e12\n"
+            + "Focused       20 x 20       9.9e12\n"
+            + "Focused         9 x 4       8.7e12\n"
+        )
 
-    #     # Wait for the HDF5 file to appear with a timeout
-    #     start_time = time.time()
-    #     while not os.path.exists(h5file):
-    #         if time.time() - start_time > 15:
-    #             raise IOError(
-    #                 "Cannot add info to HDF5 file. Timeout waiting for file on disk."
-    #             )
-    #         time.sleep(0.5)
+        energy = HWR.beamline.energy.get_value()
+        wavelength = 12.3984 / (energy)  # in Angstrom
+        resolution = HWR.beamline.resolution.get_value()
+        detectordistance = HWR.beamline.detector.get_eiger_detector_distance()
+        transmission = self.get_filter_transmission()
+        filter_thickness = self.get_filter_thickness()
+        pinhole_diameter = HWR.beamline.beam.get_pinhole_size()
+        focus = HWR.beamline.beam.get_beam_size()
 
-    #     try:
-    #         with h5py.File(h5file, "r+") as h5fd:
-    #             # Create or get the 'entry/source' group
-    #             source_group = self.get_or_create_group(h5fd, "entry/source")
-    #             source_group.attrs["NX_class"] = np.array("NXsource", dtype="S")
-
-    #             # Create or get datasets within the 'entry/source' group
-    #             self.create_or_get_dataset(
-    #                 source_group, "name", np.array("PETRA III, DESY", dtype="S")
-    #             )
-
-    #             # Create or get the 'entry/instrument' group
-    #             instrument_group = self.get_or_create_group(h5fd, "entry/instrument")
-
-    #             # Create or get datasets within the 'entry/instrument' group
-    #             self.create_or_get_dataset(
-    #                 instrument_group, "name", np.array("P11", dtype="S")
-    #             )
-
-    #             # Create or get the 'entry/instrument/attenuator' group
-    #             attenuator_group = self.get_or_create_group(
-    #                 instrument_group, "attenuator"
-    #             )
-    #             attenuator_group.attrs["NX_class"] = np.array("NXattenuator", dtype="S")
-
-    #             # Create or get datasets within the 'entry/instrument/attenuator' group
-    #             self.create_or_get_dataset(
-    #                 attenuator_group, "thickness", self.get_filter_thickness()
-    #             )
-    #             self.create_or_get_dataset(
-    #                 attenuator_group, "type", np.array("Aluminum", dtype="S")
-    #             )
-    #             self.create_or_get_dataset(
-    #                 attenuator_group,
-    #                 "attenuator_transmission",
-    #                 self.get_filter_transmission(),
-    #             )
-
-    #             # Keep it here as it is not clear if it is needed.
-    #             # It was used in CC to fix the issue with the data processing
-    #             # h5fd["entry/sample/transformations/omega"].attrs["vector"] = [
-    #             #     1.0,
-    #             #     0.0,
-    #             #     0.0,
-    #             # ]
-    #             # h5fd["entry/instrument/detector/module/fast_pixel_direction"].attrs[
-    #             #     "vector"
-    #             # ] = [1.0, 0.0, 0.0]
-    #             # h5fd["entry/instrument/detector/module/slow_pixel_direction"].attrs[
-    #             #     "vector"
-    #             # ] = [0.0, 1.0, 0.0]
-
-    #             # # Delete unwanted nodes
-    #             # unwanted_nodes = [
-    #             #     "entry/sample/goniometer/phi",
-    #             #     "entry/sample/goniometer/phi_end",
-    #             #     "entry/sample/goniometer/phi_range_average",
-    #             #     "entry/sample/goniometer/phi_range_total",
-    #             # ]
-
-    #             unwanted_nodes = [
-    #             "entry/sample/goniometer/phi",
-    #             "entry/sample/goniometer/phi_end",
-    #             "entry/sample/goniometer/phi_range_average",
-    #             "entry/sample/goniometer/phi_range_total"]
-    #             for node in unwanted_nodes:
-    #                 if node in h5fd:
-    #                     del h5fd[node]
-    #     except RuntimeWarning as err_msg:
-    #         self.log.debug(f"Error while adding info to HDF5 file: {str(err_msg)}")
-    #         self.log.debug(traceback.format_exc())
-
-    # def writeInfo_char(self, path, name, startangle, frames, degreesperframe, imageinterval, exposuretime, ):
-    #     # Put it in a raw
-
-    #     INFO_TXT = (
-    #     "run type:            screening\n"self.get_filter_thickness()
-    #     + "run name:            {name:s}\n"
-    #     + "start angle:         {startangle:.2f}deg\n"
-    #     + "frames:              {frames:d}\n"
-    #     + "degrees/frame:       {degreesperframe:.2f}deg\n"
-    #     + "image interval:      {imageinterval:.2f}deg\n"
-    #     + "exposure time:       {exposuretime:.3f}ms\n"
-    #     + "energy:              {energy:.3f}keV\n"
-    #     + "wavelength:          {wavelength:.3f}A\n"
-    #     + "detector distance:   {detectordistance:.2f}mm\n"
-    #     + "resolution:          {resolution:.2f}A\n"
-    #     + "aperture:            {pinholeDiameter:d}um\n"
-    #     + "focus:               {focus:s}\n"
-    #     + "filter transmission: {filterTransmission:.3f}%\n"
-    #     + "filter thickness:    {filterThickness:d}um\n"
-    #     + "ring current:        {beamCurrent:.3f}mA\n"
-    #     + "\n"
-    #     + "For exact flux reading, please consult the staff."
-    #     + "Typical flux of P11 at 12 keV with 100 mA ring current "
-    #     + "(beam area is defined by selected pinhole in flat beam, in "
-    #     + "focused mode typically pinhole of 200 um is used and beam "
-    #     + "areas is defined by focusing state):\n"
-    #     + "\n"
-    #     + "Focus       Beam area (um)  Flux (ph/s)\n"
-    #     + "Flat        200 x 200       2e12\n"
-    #     + "Flat        100 x 100       5e11\n"
-    #     + "Flat          50 x 50       1.25e11\n"
-    #     + "Flat          20 x 20       2e10\n"
-    #     + "Focused     200 x 200       4.4e12\n"
-    #     + "Focused     100 x 100       9.9e12\n"
-    #     + "Focused       50 x 50       9.9e12\n"
-    #     + "Focused       20 x 20       9.9e12\n"
-    #     + "Focused         9 x 4       8.7e12\n"
-    # )
-
-    #     energy = HWR.beamline.energy.get_value()
-    #     wavelength = 12.3984/(energy) #in Angstrom
-    #     resolution = HWR.beamline.resolution.get_value()
-    #     detectordistance = HWR.beamline.detector.get_eiger_detector_distance()
-
-    #     output = self.INFO_TXT.format(
-    #         name = name,
-    #         startangle = startangle,
-    #         frames = frames,
-    #         degreesperframe = self.parameters["degreesperframe"],
-    #         imageinterval = imageinterval,
-    #         exposuretime = self.parameters["exposureperiod"] * 1000,
-    #         energy = energy,
-    #         wavelength = wavelength,
-    #         detectordistance = detectordistance,
-    #         resolution = resolution,
-    #         pinholeDiameter = int(self.parameters["pinholeDiameter"]),
-    #         focus = self.parameters["focus"],
-    #         filterTransmission = self.parameters["filterTransmission"]*100,
-    #         filterThickness = int(self.parameters["filterThickness"]),
-    #         beamCurrent = self.parameters["beamCurrent"]
-    #     )
-    #     try:
-    #         f = open(path + "/info.txt", "w")
-    #         f.write(output)
-    #         f.close()
-    #     except:
-    #         self.emit(SIGNAL("logSignal(PyQt_PyObject)"),"Unable to write info file.")
+        output = self.INFO_TXT.format(
+            name=name,
+            startangle=startangle,
+            frames=frames,
+            degreesperframe=degreesperframe,
+            imageinterval=imageinterval,
+            exposuretime=exposuretime * 1000,
+            energy=energy,
+            wavelength=wavelength,
+            detectordistance=detectordistance,
+            resolution=resolution,
+            pinholeDiameter=int(pinhole_diameter),
+            focus=str(focus),
+            filterTransmission=int(transmission) * 100,
+            filterThickness=int(filter_thickness),
+            beamCurrent=100,
+        )
+        try:
+            f = open(path + "/info.txt", "w")
+            f.write(output)
+            f.close()
+        except:
+            self.log.debug("Unable to write info file.")
 
     def collect_std_collection(self, start_angle, stop_angle):
         """
