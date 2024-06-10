@@ -514,11 +514,11 @@ class BIOMAXCollect(DataCollect):
                 osc_range,
             ) in self.triggers_to_collect:
                 osc_end = osc_start + osc_range * nframes_per_trigger
-            self.display_task = gevent.spawn(self._update_image_to_display)
-            self.progress_task = gevent.spawn(self._update_task_progress)
-            self.oscillation_task = self.oscil(
-                osc_start, osc_end, shutterless_exptime, 1, wait=True
-            )
+                self.display_task = gevent.spawn(self._update_image_to_display)
+                self.progress_task = gevent.spawn(self._update_task_progress)
+                self.oscillation_task = self.oscil(
+                    osc_start, osc_end, shutterless_exptime, 1, wait=True
+                )
             try:
                 self.detector_hwobj.stop_acquisition()
             except Exception as ex:
