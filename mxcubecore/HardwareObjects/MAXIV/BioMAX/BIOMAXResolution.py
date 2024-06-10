@@ -103,7 +103,7 @@ class BIOMAXResolution(AbstractResolution):
         Args:
             value (float): target value [Å]
         """
-        distance = self.dist2res(value)
+        distance = self.res2dist(value)
         msg = "Move resolution to {} ({} mm)".format(value, distance)
         logging.getLogger().info(msg)
         self.dtox.set_value(float(distance))
