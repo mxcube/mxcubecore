@@ -98,7 +98,7 @@ class P11Flux(AbstractFlux):
         )
 
         self.log.debug(
-            f"Estimated flux for beam size {max(beam_size[0] * 1000, beam_size[0] * 1000)}, pinhole size {current_pinhole}, energy {energy} eV and current {current} mA: {flux:.2e} ph/s"
+            f"Estimated flux for beam size {max(beam_size[0] * 1000, beam_size[0] * 1000)}, pinhole size {current_pinhole}, transmission {transmission}, energy {energy} eV and current {current} mA: {flux:.2e} ph/s"
         )
 
     def estimate_flux_with_reference(
