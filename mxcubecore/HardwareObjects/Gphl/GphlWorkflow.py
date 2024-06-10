@@ -1453,7 +1453,7 @@ class GphlWorkflow(HardwareObjectYaml):
                     elif wftype != "diffractcal":
                         # This is characterisation
                         new_dose *= gphl_workflow_model.characterisation_budget_fraction
-                    if new_dose > maximum_dose:
+                    if new_dose > maximum_dose or not maximum_dose:
                         transmission = 100
                         new_dose = maximum_dose
                     else:
@@ -1470,7 +1470,10 @@ class GphlWorkflow(HardwareObjectYaml):
             # Need setting before query
             gphl_workflow_model.image_width = default_image_width
             maximum_dose = gphl_workflow_model.calc_maximum_dose()
-            transmission = 100 * use_dose / maximum_dose
+            if maximum_dose:
+                transmission = 100 * use_dose / maximum_dose
+            else:
+                transmission = HWR.beamline.transmission.get_value()
             if transmission > 100:
                 if gphl_workflow_model.characterisation_done or wftype == "diffractcal":
                     # We are not in characterisation.
