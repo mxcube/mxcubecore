@@ -2518,10 +2518,10 @@ class GphlWorkflow(TaskNode):
             "WARNING: Dose could not be calculated from:\n"
             " energy:%s keV, total_strategy_length:%s deg, exposure_time:%s s, "
             "image_width:%s deg, dose_rate: %s"
-        )
-        raise UserWarning(
-            msg % (energy, total_strategy_length, exposure_time, image_width, dose_rate)
-        )
+        ) % (energy, total_strategy_length, exposure_time, image_width, dose_rate)
+
+        logging.getLogger("HWR").warning(msg)
+        logging.getLogger("user_level_log").warning(msg)
         return 0
 
     def recommended_dose_budget(self, resolution=None):
