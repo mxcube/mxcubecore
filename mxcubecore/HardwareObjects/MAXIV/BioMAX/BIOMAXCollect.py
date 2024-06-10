@@ -1578,8 +1578,8 @@ class BIOMAXCollect(DataCollect):
                 )
 
     def correct_omega_in_master_file(self, filename, overlap):
-        script = "/mxn/groups/biomax/wmxsoft/scripts_mxcube/omega_correction/correct_omega.py"
-        cmd = "ssh b-biomax-eiger-dc-1 python %s -f %s -o %f &" % (
+        script = "/mxn/groups/biomax/wmxsoft/scripts_mxcube/omega_correction/correct_omega_2024.py"
+        cmd = "ssh clu0-fe-0 python %s -f %s -o %f &" % (
             script,
             filename,
             -overlap,
