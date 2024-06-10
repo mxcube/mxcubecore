@@ -433,19 +433,26 @@ class BIOMAXCollect(DataCollect):
         osc_range = oscillation_parameters["range"]
         nframes = oscillation_parameters["number_of_images"]
         overlap = oscillation_parameters["overlap"]
+        ntriggers =  oscillation_parameters["num_triggers"]
         triggers_to_collect = []
 
         if overlap > 0 or overlap < 0:
             # currently for characterization, only collect one image at each omega
             # position
-            ntriggers = nframes
-            nframes_per_trigger = 1
+            if ntriggers < 1:
+                ntriggers = nframes
+                nframes_per_trigger = 1
+            else:
+                nframes_per_trigger = oscillation_parameters["num_images_per_trigger"]
+
+            self.char = True
+
             for trigger_num in range(1, ntriggers + 1):
                 triggers_to_collect.append(
                     (osc_start, trigger_num, nframes_per_trigger, osc_range)
                 )
                 osc_start += osc_range * nframes_per_trigger - overlap
-            self.char = True
+
         elif self.current_dc_parameters["experiment_type"] == "Mesh":
             logging.getLogger("HWR").info(
                 "osc_start %s, nframes %s, osc_range %s num_lines %s"
