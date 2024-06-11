@@ -935,6 +935,8 @@ class GphlWorkflow(HardwareObjectYaml):
 
         # Number of decimals for rounding use_dose values
         use_dose_decimals = 4
+        # Number of decimals for rounding exposure times
+        exposure_time_decimals = 6
 
         data_model = self._queue_entry.get_data_model()
         initial_energy = HWR.beamline.energy.calculate_energy(
@@ -1253,7 +1255,7 @@ class GphlWorkflow(HardwareObjectYaml):
                     "exposure_time": {
                         "ui:options": {
                             "update_on_change": True,
-                            "decimals": 4,
+                            "decimals": exposure_time_decimals,
                         }
                     },
                     "use_dose": {
@@ -3003,7 +3005,7 @@ class GphlWorkflow(HardwareObjectYaml):
                     max_exposure = exposure_limits[1]
                     if max_exposure and new_exposure_time > max_exposure:
                         # exposure_time over max; set dose to highest achievable dose
-                        new_exposure_time = max_exposure
+                        new_exposure_time = max_exposure * 0.99999
                     new_experiment_time = (
                         experiment_time * new_exposure_time / exposure_time
                     )
@@ -3023,6 +3025,7 @@ class GphlWorkflow(HardwareObjectYaml):
                     min_exposure = exposure_limits[0]
                     if min_exposure and new_exposure_time < min_exposure:
                         # exposure_time below min; reduce new transmission to match
+                        new_exposure_time *= 1.001
                         new_transmission = (
                             transmission * new_exposure_time / min_exposure
                         )

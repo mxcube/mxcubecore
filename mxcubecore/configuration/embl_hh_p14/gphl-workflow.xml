@@ -18,8 +18,8 @@
     <!-- Default wedge width in degrees, for interleaved data collection -->
     <default_wedge_width>15</default_wedge_width>
 
-    <!-- Percentage of dose budget to use in characterisation.  -->
-    <characterisation_budget_percent>5</characterisation_budget_percent>
+    <!-- Fraction of dose budget to use in characterisation.  -->
+    <characterisation_budget_fraction>0.05</characterisation_budget_fraction>
 
     <characterisation_strategies>
         InitialCharacterisation_6_5

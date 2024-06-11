@@ -33,7 +33,7 @@
 
     <!-- Force GPhL workflow to use current energy value always.  -->
     <!-- Any non-empty value is True -->
-    <characterisation_budget_percent>5</characterisation_budget_percent>
+    <characterisation_budget_fraction>0.05</characterisation_budget_fraction>
 
     <characterisation_strategies>
         InitialCharacterisation_6_5
