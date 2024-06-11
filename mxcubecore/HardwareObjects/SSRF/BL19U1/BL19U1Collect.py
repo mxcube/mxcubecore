@@ -577,7 +577,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             oscillation_parameters = self.current_dc_parameters["oscillation_sequence"][0]
 
             self.open_detector_cover()
-
+            logging.getLogger("HWR").info("[Detector_Cover] open detector cover finished")
             # if (HWR.beamline.safety_shutter.getShutterState() != "opened"):
             #     raise RuntimeError("[COLLECT] Error: the safety shutter is not open. "
             #                        "Please do it manually")
@@ -590,7 +590,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
                 # HWR.beamline.detector.wait_config_done()
                 # gevent.sleep(3)
                 ######## need check dettector status ---------------
-
+                logging.getLogger("HWR").info("[Detector] trigger starting acquisition")
                 HWR.beamline.detector.start_acquisition()
                 # Check that detector state was correctly armed by start_acquisition()
                 ##### gevent.sleep(3)
@@ -616,7 +616,12 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
 
                 # self.display_task = gevent.spawn(self._update_image_to_display)
                 self.progress_task = gevent.spawn(self._update_task_progress)
+
+                oscial_start_time = time.time()
                 self.oscil(osc_start, osc_end, shutterless_exptime, 1, wait=True)
+                oscial_take_time = time.time() - oscial_start_time
+                logging.getLogger("HWR").debug("[COLLECT] MD2 takes %f s. " %(oscial_take_time))
+
             try:
                 # disarm is necessary to get the last image even if the good number of triggers arrived
                 #HWR.beamline.detector.disarm()
@@ -1663,25 +1668,20 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         #HWR.beamline.detector.set_wavelength(value)
         #return HWR.beamline.detector.prepare_acquisition(config)
 
-        #修改，增加判断，是否是charactoristic方式，如果是,暴光时间改变,一般暴光时间在0.2-0.3，所以这里相对的改一下
         if len(self.triggers_to_collect) != 1 and self.current_dc_parameters["experiment_type"]!="Mesh":
-            if 0<config["frame_time"]<=0.5:
-                exp_time = 7
-            elif 0.5<config["frame_time"]<1:
-                exp_time = 10
-            elif config["frame_time"]>1:
-                exp_time = 10 + config["frame_time"]
-            logging.getLogger("HWR").info("charactoristic way, exposure time extend to 4.5/3 times")
+            logging.getLogger("HWR").debug("the config[frame_time]: %d " %(config["frame_time"]))
+            exp_time = config["frame_time"]
             return HWR.beamline.detector.prepare_acquisition(0,
                                                              config["omega_start"],
                                                              config["omega_increment"],
-                                                             exp_time/4,
+                                                             exp_time,
                                                              0,
-                                                             config["nimages"],
+                                                             int(config["nimages"]/config["nimages"]),
                                                              "",
                                                              False,
                                                              0
                                                              )
+        logging.getLogger("HWR").debug("the config[frame_time]: %d " %(config["frame_time"]))
         return HWR.beamline.detector.prepare_acquisition(0,
                                                          config["omega_start"],
                                                          config["omega_increment"],

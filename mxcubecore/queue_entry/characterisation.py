@@ -137,6 +137,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                 )
                 self.start_char()
             else:
+                # 目前走的是这里，而且是真实收集完之后才会走这边
                 logging.getLogger("user_level_log").info(
                     "Characterisation: Started in the background"
                 )

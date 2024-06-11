@@ -766,6 +766,10 @@ class LNLSPilatusDet(AbstractDetector):
                     "[HWR] INFO ======== detector status: %s"
                     % (self.get_channel_value("det_status"))
                 )
+            logging.getLogger("HWR").info(
+                "[HWR] INFO ======== detector status: %s, the detector is ready"
+                % (self.get_channel_value("det_status"))
+            )
         # pass
 
     def getfilenumber(self):

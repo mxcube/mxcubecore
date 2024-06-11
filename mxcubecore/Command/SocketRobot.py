@@ -295,7 +295,8 @@ class StandardClientRobot:
             pack = encode(cmd) + _bytes([ETX])
             print(pack)
             self.__sock.send(pack)
-        except SocketError:
+        # except SocketError:
+        except Exception:
             self.disconnect()
 
     ##################################################改过##########################################
