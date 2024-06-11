@@ -571,7 +571,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         """
         Descript. : main collection command
         """
-
+        data_collection_hook_start = time.time()
         try:
             self._collecting = True
             oscillation_parameters = self.current_dc_parameters["oscillation_sequence"][0]
@@ -585,26 +585,38 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             # TODO: investigate gevent.timeout exception handing, this wait is to ensure
             # that conf is done before arming
             time.sleep(2)
-            try:
-                ######## need check dettector status ---------------
-                # HWR.beamline.detector.wait_config_done()
-                # gevent.sleep(3)
-                ######## need check dettector status ---------------
-                logging.getLogger("HWR").info("[Detector] trigger starting acquisition")
-                HWR.beamline.detector.start_acquisition()
-                # Check that detector state was correctly armed by start_acquisition()
-                ##### gevent.sleep(3)
-                # HWR.beamline.detector.wait_ready()
-            except Exception as ex:
-                logging.getLogger("HWR").error("[COLLECT] Detector Error: %s", ex)
-                raise RuntimeError("[COLLECT] Detector error while arming.")
+            for i in range(len(self.triggers_to_collect)):
+                (
+                    osc_start,
+                    trigger_num,
+                    nframes_per_trigger,
+                    osc_range,
+                ) = self.triggers_to_collect[i]
 
-            for (
-                osc_start,
-                trigger_num,
-                nframes_per_trigger,
-                osc_range,
-            ) in self.triggers_to_collect:
+                logging.getLogger("HWR").info("[Collection] collection loop : %d " %(i+1))
+                if i > 0:
+
+                    HWR.beamline.detector.wait_ready()
+                    # self.prepare_detector(i+1)
+
+                try:
+                    ######## need check dettector status ---------------
+                    # HWR.beamline.detector.wait_config_done()
+                    # gevent.sleep(3)
+                    ######## need check dettector status ---------------
+                    logging.getLogger("HWR").info("[Detector] trigger starting acquisition")
+                    HWR.beamline.detector.start_acquisition()
+                    # Check that detector state was correctly armed by start_acquisition()
+                    ##### gevent.sleep(3)
+                    HWR.beamline.detector.wait_armed()
+                except Exception as ex:
+                    logging.getLogger("HWR").error("[COLLECT] Detector Error: %s", ex)
+                    raise RuntimeError("[COLLECT] Detector error while arming.")
+
+
+
+
+
 
                 # Line below is only for shutterless EXTS mode
                 shutterless_exptime = oscillation_parameters["exposure_time"] * nframes_per_trigger
@@ -660,6 +672,8 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
                 self.emit(
                     "collectImageTaken", self.last_image_saved()
                 )
+
+
         except RuntimeError as ex:
             HWR.beamline.detector.stop_acquisition()
             self.data_collection_cleanup()
@@ -670,6 +684,8 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             self.data_collection_cleanup()
             logging.getLogger("HWR").error("Unexpected error:", sys.exc_info()[0])
             raise Exception("data collection hook failed... ", sys.exc_info()[0])
+        data_collection_hook_finish = time.time() - data_collection_hook_start
+        logging.getLogger("HWR").debug("[COLLECT] data_collection_hook takes %f s. " %(data_collection_hook_finish))
 
     def get_mesh_num_lines(self):
         return self.mesh_num_lines
@@ -1546,7 +1562,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         detfilenumber = self.get_det_filenumber()
         return number - detfilenumber + 1
 
-    def prepare_detector(self):
+    def prepare_detector(self,times=1):
         """
         经过测试，如果是characteristic方式收集，self.triggers_to_collect会是一个长度为4或2的list
         普通data collection方式收集，就是长度为一的list
@@ -1568,7 +1584,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             trigger_num,
             nframes_per_trigger,
             osc_range,
-        ) = self.triggers_to_collect[0]
+        ) = self.triggers_to_collect[times-1]
 
         if self.current_dc_parameters["experiment_type"] == "Mesh":
             if HWR.beamline.detector.is_exte_enabled(): #没进这个条件

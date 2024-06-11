@@ -761,7 +761,7 @@ class LNLSPilatusDet(AbstractDetector):
         with gevent.Timeout(timeout, RuntimeError("Detector not ready")):
             # unarmed (Ready): 0, armed: 1
             while self.get_channel_value("det_status") != 0:
-                time.sleep(1)
+                gevent.sleep(1)
                 logging.getLogger("HWR").info(
                     "[HWR] INFO ======== detector status: %s"
                     % (self.get_channel_value("det_status"))
@@ -771,6 +771,20 @@ class LNLSPilatusDet(AbstractDetector):
                 % (self.get_channel_value("det_status"))
             )
         # pass
+    def wait_armed(self, timeout=35):
+        with gevent.Timeout(timeout, RuntimeError("Detector not ready")):
+            # unarmed (Ready): 0, armed: 1
+            while self.get_channel_value("det_status") != 1:
+                gevent.sleep(1)
+                logging.getLogger("HWR").info(
+                    "[HWR] INFO ======== detector status: %s"
+                    % (self.get_channel_value("det_status"))
+                )
+            logging.getLogger("HWR").info(
+                "[HWR] INFO ======== detector status: %s, the detector is armed"
+                % (self.get_channel_value("det_status"))
+            )
+
 
     def getfilenumber(self):
         number = self.get_channel_value("det_filenumber")
