@@ -61,7 +61,7 @@ settings:
         # Default values for queue_model_objects.GphlWorkflow attributes
 
         # Default wedge width in degrees, for interleaved data collection
-        wedge_width: 15
+        wedge_width: 30
         # Default number of snapshots to take when centring: 0, 1, 2, or 4
         snapshot_count: 2
         #        Default recentring mode. Possibilities are sweep/scan/start/none, default is sweep:
@@ -149,6 +149,8 @@ settings:
     # Properties applied after the java command - syntax as above-->
     # Note that irrelevant properties are simply ignored.-->
     workflow_properties:
+
+#            file.endcodng: UTF-8
 
         # If set, run after-acquisition processing in detatched mode
         co.gphl.wf.process.detach: true

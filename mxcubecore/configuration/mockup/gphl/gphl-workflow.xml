@@ -38,8 +38,8 @@
     <!-- Maximum dose budget to propose when converting from resolution, in MGy-->
     <maximum_dose_budget>20</maximum_dose_budget>
 
-    <!-- Percentage of dose budget to propose for use in characterisation.  -->
-    <characterisation_budget_percent>5</characterisation_budget_percent>
+    <!-- Fraction of dose budget to propose for use in characterisation.  -->
+    <characterisation_budget_fraction>0.05</characterisation_budget_fraction>
 
 
     <!-- Characterisation strategies popup. -->
