@@ -111,3 +111,18 @@ class P11Beam(AbstractBeam):
     def get_pinhole_size(self):
         # Keep it default as the pinhole and beamsize interaction is locked for now
         return 200
+
+    def get_beam_focus_label(self):
+
+        value = self.mirror_idx_ch.get_value()
+
+        if value not in self.focus_sizes:
+            value = -1
+            return "UNKNOWN mirror index"
+        else:
+            curr_size_item = self.focus_sizes[value]
+            self.log.debug(
+                f"    current mirror focus is {curr_size_item['label']}: {curr_size_item['size']}"
+            )
+
+            return curr_size_item["label"]
