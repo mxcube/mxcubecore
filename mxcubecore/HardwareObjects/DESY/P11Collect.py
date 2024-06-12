@@ -426,10 +426,35 @@ class P11Collect(AbstractCollect):
                 #     self.latest_h5_filename, start_angles_collected, img_range
                 # )
 
+                latest_image = HWR.beamline.detector.get_eiger_name_pattern()
+                latest_local_path = os.path.dirname(f"/gpfs{latest_image}_master.h5")
+                latest_local_name = f"/gpfs{latest_image}_master.h5".split("/")[-1]
+                self.write_info_txt(
+                    latest_local_path,
+                    latest_local_name,
+                    start_angle,
+                    nframes,
+                    img_range,
+                    stop_angle - start_angle,
+                    exp_time,
+                    "screening",
+                )
+
             else:
                 self.log.debug("STARTING STANDARD COLLECTION")
                 duration = self.total_angle_range / self.acq_speed
                 start_time = time.time()
+
+                latest_image = HWR.beamline.detector.get_eiger_name_pattern()
+                latest_local_path = os.path.dirname(f"/gpfs{latest_image}_master.h5")
+                latest_local_name = f"/gpfs{latest_image}_master.h5".split("/")[-1]
+
+                print(
+                    "+++++++++++++++++++++++++++++ latest local path", latest_local_path
+                )
+                print(
+                    "+++++++++++++++++++++++++++++ latest local name", latest_local_name
+                )
 
                 # Start the progress emitter in a separate greenlet
                 gevent.spawn(self.progress_emitter, start_time, duration)
@@ -437,6 +462,17 @@ class P11Collect(AbstractCollect):
                 self.collect_std_collection(start_angle, stop_angle)
 
                 self.add_h5_info_standard_data_collection(self.latest_h5_filename)
+
+                self.write_info_txt(
+                    latest_local_path,
+                    latest_local_name,
+                    start_angle,
+                    nframes,
+                    img_range,
+                    stop_angle - start_angle,
+                    exp_time,
+                    "regular",
+                )
 
         except RuntimeError:
             self.log.error(traceback.format_exc())
@@ -591,7 +627,7 @@ class P11Collect(AbstractCollect):
                 "******************************************************* WRITING to H5 FAILED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
             )
 
-    def writeInfo_char(
+    def write_info_txt(
         self,
         path,
         name,
@@ -600,11 +636,12 @@ class P11Collect(AbstractCollect):
         degreesperframe,
         imageinterval,
         exposuretime,
+        run_type,
     ):
         # Put it in a raw
 
         INFO_TXT = (
-            "run type:            screening\n"
+            "run type:            {run_type:s}\n"
             + "run name:            {name:s}\n"
             + "start angle:         {startangle:.2f}deg\n"
             + "frames:              {frames:d}\n"
@@ -643,12 +680,13 @@ class P11Collect(AbstractCollect):
         wavelength = 12.3984 / (energy)  # in Angstrom
         resolution = HWR.beamline.resolution.get_value()
         detectordistance = HWR.beamline.detector.get_eiger_detector_distance()
-        transmission = self.get_filter_transmission()
-        filter_thickness = self.get_filter_thickness()
+        transmission = HWR.beamline.transmission.get_value()
+        filter_thickness = self.get_filter_thickness() * 1000
         pinhole_diameter = HWR.beamline.beam.get_pinhole_size()
-        focus = HWR.beamline.beam.get_beam_size()
+        focus = HWR.beamline.beam.get_beam_focus_label()
 
-        output = self.INFO_TXT.format(
+        output = INFO_TXT.format(
+            run_type=run_type,
             name=name,
             startangle=startangle,
             frames=frames,
@@ -661,16 +699,17 @@ class P11Collect(AbstractCollect):
             resolution=resolution,
             pinholeDiameter=int(pinhole_diameter),
             focus=str(focus),
-            filterTransmission=int(transmission) * 100,
+            filterTransmission=int(transmission),
             filterThickness=int(filter_thickness),
             beamCurrent=100,
         )
-        try:
-            f = open(path + "/info.txt", "w")
-            f.write(output)
-            f.close()
-        except:
-            self.log.debug("Unable to write info file.")
+        print(
+            "===================================== WRITING INFO.TXT TO=============",
+            path + "/info.txt",
+        )
+        f = open(path + "/info.txt", "w")
+        f.write(output)
+        f.close()
 
     def collect_std_collection(self, start_angle, stop_angle):
         """
