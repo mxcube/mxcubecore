@@ -1,33 +1,33 @@
 name: Coverage Report
 on:
   pull_request:
+    paths-ignore:
+      - "doc/**"
+      - "docs/**"
     types: [opened, reopened, synchronize]
-    paths:
-      - '**.py'
 jobs:
   pytest-coverage:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v4
+    - name: Set up conda environment with micromamba
+      uses: mamba-org/setup-micromamba@v1
       with:
-        python-version: "3.10"
+        cache-environment: true
+        environment-file: conda-environment-dev.yml
+        post-cleanup: all
 
     - name: Install dependencies
-      run: |
-        sudo apt-get update && sudo apt-get install -y libsasl2-dev libldap2-dev libssl-dev
-        python -m pip install --upgrade pip
-        python -m pip install poetry --user
-        python -m poetry install --extras=tango
+      run: "${MAMBA_EXE} run --name mxcubecore poetry install --only=dev,main --extras=tango"
 
     - name: Run and write pytest
       run: |
         set -o pipefail
-        poetry run pytest --cov=mxcubecore --junitxml=pytest.xml --cov-report=term-missing:skip-covered | tee pytest-coverage.txt
+        ${MAMBA_EXE} run --name mxcubecore pytest --cov=mxcubecore --junitxml=pytest.xml --cov-report=term-missing:skip-covered | tee pytest-coverage.txt
 
     - name: Pytest coverage comment
       id: coverage-comment
@@ -40,7 +40,7 @@ jobs:
 
     - name: Check the output coverage
       run: |
-        echo "Coverage Percantage - ${{ steps.coverage-comment.outputs.coverage }}"
+        echo "Coverage Percentage - ${{ steps.coverage-comment.outputs.coverage }}"
         echo "Coverage Warnings - ${{ steps.coverage-comment.outputs.warnings }}"
         echo "Coverage Errors - ${{ steps.coverage-comment.outputs.errors }}"
         echo "Coverage Failures - ${{ steps.coverage-comment.outputs.failures }}"
