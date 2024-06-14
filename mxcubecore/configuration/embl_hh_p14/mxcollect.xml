@@ -44,7 +44,7 @@
   <undulators>
    <undulator>
      <type>u29</type>
-     <object_uri></object_uri>
+     <device_uri></device_uri>
      <gap_index>0</gap_index>
     </undulator>
    </undulators>
