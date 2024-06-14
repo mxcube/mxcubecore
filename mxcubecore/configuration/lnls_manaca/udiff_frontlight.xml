@@ -1,7 +1,7 @@
-<device class="LNLS.EPICSActuator">
+<object class="LNLS.EPICSActuator">
     <channel type="epics" name="epicsActuator_val">MNC:B:LUCIOLE01:LIGHT_CH2</channel>
     <channel type="epics" name="epicsActuator_rbv" polling="500">MNC:B:LUCIOLE01:LIGHT_CH2</channel>
     <username>FrontLight</username>
     <motor_name>FrontLight</motor_name>
     <!-- <GUIstep>1</GUIstep> This have to be defined on the GUI at the moment.-->
-</device>
+</object>

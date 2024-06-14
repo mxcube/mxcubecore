@@ -3,7 +3,7 @@
   <object href="/detector-distance" role="detector_distance"/>
 
   <tangoname>bl13/eh/pilatuslima</tangoname>
-  <device_specific>bl13/eh/pilatusspecific</device_specific>
+  <object_specific>bl13/eh/pilatusspecific</object_specific>
 
   <manufacturer>DECTRIS</manufacturer>
   <model>6M_F</model>

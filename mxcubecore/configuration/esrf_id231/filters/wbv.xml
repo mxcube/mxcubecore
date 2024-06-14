@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<device class="FilterAxis">
+<object class="FilterAxis">
    <username>B.Viewer</username>
    <motor>/oh1/wbv</motor>
    <filter>
@@ -26,4 +26,4 @@
      <username>PyroC 8</username>
      <offset>5</offset>
    </filter> 
-</device>
+</object>

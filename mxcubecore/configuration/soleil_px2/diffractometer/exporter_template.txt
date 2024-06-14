@@ -1,4 +1,4 @@
-<device class="${class}">
+<object class="${class}">
     <exporter_address>${exporter_address}</exporter_address>
     <actuator_name>${actuator_name}</actuator_name>
     <username>${actuator_name}</username>
@@ -12,4 +12,4 @@
     <command type="exporter" name="get${actuator_name}DynamicLimits">getMotorDynamicLimits</command>
     <command type="exporter" name="get_limits">getMotorLimits</command>
     <command type="exporter" name="get_max_speed">getMotorMaxSpeed</command>
-</device>
+</object>

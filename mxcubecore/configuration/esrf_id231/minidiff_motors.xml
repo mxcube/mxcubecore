@@ -1,26 +1,26 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<equipment>
+<object>
   <username>Diffractometer</username>
   <motors>
   <phi-shutter>
-      <device role="phi" hwrid="/eh1/phi"></device>
-      <device role="phiz" hwrid="/eh1/phiz"></device>  
-      <device hwrid="/eh1/shuty"></device>
-      <device hwrid="/eh1/shutz"></device>
-      <device hwrid="/eh1/shut"></device>
+      <object role="phi" hwrid="/eh1/phi"></object>
+      <object role="phiz" hwrid="/eh1/phiz"></object>  
+      <object hwrid="/eh1/shuty"></object>
+      <object hwrid="/eh1/shutz"></object>
+      <object hwrid="/eh1/shut"></object>
   </phi-shutter>
   <sample>
-      <device role="zoom" hwrid="/eh1/zoom"></device>
-      <device role="light" hwrid="/eh1/light"></device>
-      <device role="focus" hwrid="/eh1/focus"></device>
-      <device role="phiy" hwrid="/eh1/length"></device>  
-      <device role="sampx" hwrid="/eh1/sampx"></device>
-      <device role="sampy" hwrid="/eh1/sampy"></device>
+      <object role="zoom" hwrid="/eh1/zoom"></object>
+      <object role="light" hwrid="/eh1/light"></object>
+      <object role="focus" hwrid="/eh1/focus"></object>
+      <object role="phiy" hwrid="/eh1/length"></object>  
+      <object role="sampx" hwrid="/eh1/sampx"></object>
+      <object role="sampy" hwrid="/eh1/sampy"></object>
   </sample>
   <others>
-      <device hwrid="/eh1/bstopy"></device>
-      <device role="bstopz" hwrid="/eh1/bstopz"></device>  
-      <device hwrid="/eh1/DtoX"></device>  
+      <object hwrid="/eh1/bstopy"></object>
+      <object role="bstopz" hwrid="/eh1/bstopz"></object>  
+      <object hwrid="/eh1/DtoX"></object>  
   </others>
   </motors>
-</equipment>
+</object>

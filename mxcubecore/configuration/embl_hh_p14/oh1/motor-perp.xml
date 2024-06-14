@@ -6,15 +6,15 @@
 
   <username>Pitch2nd</username>
   <stepLimits>[0.0005, 0.001]</stepLimits>
-</device -->
+</object -->
 
 
 
-<device class = "EMBLPiezoMotor">
+<object class = "EMBLPiezoMotor">
   <channel type="tine" name="axisPosition" tinename="/P14/p14mono.cdi/PitchCrrntPos">RECV</channel>
   <command type="tine" name="cmdMoveFirst" tinename="/P14/p14mono.cdi/PitchPos">SEND</command>
   <command type="tine" name="cmdMoveSecond" tinename="/P14/p14mono.cdi/SetPitch">SEND</command>
 
   <username>Perp</username>
   <stepLimits>[0.0005, 0.0013]</stepLimits>
-</device>
+</object>

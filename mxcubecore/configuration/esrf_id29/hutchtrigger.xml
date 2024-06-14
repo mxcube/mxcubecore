@@ -1,4 +1,4 @@
-<device class = "HutchTrigger">
+<object class = "HutchTrigger">
   <specversion>lid292:exp</specversion>
   <!-- <taconame>//aries/exp/id29-cr1/sl0</taconame> -->
   <tangoname>orion:10000/exp/id29-cr1/sl0</tangoname>
@@ -7,4 +7,4 @@
   <command type="spec" name="macro">hutchtrigger</command>
   <channel type="spec" name="status">HUTCH_TRIGGER_STATUS</channel>
   <channel type="spec" name="msg">HUTCH_TRIGGER_MESSAGE</channel>
-</device>
+</object>

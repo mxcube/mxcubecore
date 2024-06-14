@@ -47,12 +47,12 @@
     <autocentring_ap>20</autocentring_ap>
     <undulator>
       <type>u35</type>
-      <device_uri>//aries/id/id/23</device_uri>
+      <object_uri>//aries/id/id/23</object_uri>
       <gap_index>0</gap_index> 
     </undulator>
     <undulator>
       <type>u20</type>
-      <device_uri>//aries/id/id/23</device_uri>
+      <object_uri>//aries/id/id/23</object_uri>
       <gap_index>2</gap_index>
     </undulator>
     <detector>

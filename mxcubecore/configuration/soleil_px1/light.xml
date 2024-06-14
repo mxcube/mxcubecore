@@ -1,4 +1,4 @@
-<device class="TangoDCMotor">
+<object class="TangoDCMotor">
   <username>Back Light</username>
   <tangoname>i10-c-cx1/ex/light.1</tangoname>
   <actuator_name>BackLight</actuator_name>
@@ -8,4 +8,4 @@
   <interval>1000</interval>
   <GUIstep>10.</GUIstep>
   <object role="environment" href="/px1environment" /> 
-</device>
+</object>

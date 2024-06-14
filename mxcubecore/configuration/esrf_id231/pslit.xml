@@ -1,17 +1,17 @@
-<equipment>
+<object>
   <username>Prim Slit</username>
   <motors>
     <pseudo>
-      <device hwrid="/oh1/psvo"/>
-      <device hwrid="/oh1/psvg"/>
-      <device hwrid="/oh1/psho"/>
-      <device hwrid="/oh1/pshg"/>
+      <object hwrid="/oh1/psvo"/>
+      <object hwrid="/oh1/psvg"/>
+      <object hwrid="/oh1/psho"/>
+      <object hwrid="/oh1/pshg"/>
     </pseudo>
     <real>
-      <device hwrid="/oh1/psu"/>
-      <device hwrid="/oh1/psd"/>
-      <device hwrid="/oh1/psf"/>
-      <device hwrid="/oh1/psb"/>
+      <object hwrid="/oh1/psu"/>
+      <object hwrid="/oh1/psd"/>
+      <object hwrid="/oh1/psf"/>
+      <object hwrid="/oh1/psb"/>
     </real>
   </motors>
   <procedures>
@@ -20,4 +20,4 @@
     <procedure hwrid="/procedures/a2scan"/>
     <procedure hwrid="/procedures/d2scan"/>
   </procedures>
-</equipment>
+</object>

@@ -1,6 +1,6 @@
-<device class="SOLEILRuche">
+<object class="SOLEILRuche">
 
    <sync_dir>/nfs/archive_spool</sync_dir>
    <object hwrid="/session" role="session"/>
 
-</device>
+</object>

@@ -1,7 +1,7 @@
-<device class = "PX1Attenuator">
+<object class = "PX1Attenuator">
   <username>Attenuators by Primary Slits</username>
   <tangoname>i10-c-c00/ex/fp_parser</tangoname>
   <channel type="tango" polling="1000" name="parser">TrueTrans_FP</channel>
   <channel type="tango" polling="1000" name="state">State</channel>
   <interval>1000</interval>
-</device>
+</object>

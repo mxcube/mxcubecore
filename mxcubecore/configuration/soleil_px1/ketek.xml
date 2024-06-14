@@ -1,4 +1,4 @@
-<device class="Ketek">
+<object class="Ketek">
 
    <tangoname>i10-c-cx1/dt/ketek.2</tangoname>
 
@@ -15,5 +15,5 @@
    <command type="tango" name="insert" tangoname="i10-c-cx1/dt/dtc_sdd.1-pos">Insert</command>
    <command type="tango" name="extract" tangoname="i10-c-cx1/dt/dtc_sdd.1-pos">Extract</command>
 
-</device>
+</object>
 

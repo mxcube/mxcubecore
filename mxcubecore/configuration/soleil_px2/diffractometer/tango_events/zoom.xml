@@ -1,4 +1,4 @@
-<device class="MicrodiffMotor">
+<object class="MicrodiffMotor">
     <tangoname>i11-ma-cx1/ex/md2</tangoname>
     <actuator_name>Zoom</actuator_name>
     <username>Zoom</username>
@@ -12,4 +12,4 @@
     <command type="tango" polling="events" name="getZoomDynamicLimits">getMotorDynamicLimits</command>
     <command type="tango" polling="events" name="get_limits">getMotorLimits</command>
     <command type="tango" polling="events" name="get_max_speed">getMotorMaxSpeed</command>
-</device>
+</object>

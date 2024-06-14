@@ -1,4 +1,4 @@
-<device class="ExporterZoom">
+<object class="ExporterZoom">
   <exporter_address>pe2bsd01.embl-hamburg.de:9001</exporter_address>
   <actuator_name>Zoom</actuator_name>
-</device>
+</object>

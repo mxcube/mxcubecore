@@ -1,6 +1,6 @@
-<device class="LNLS.EPICSNState">
+<object class="LNLS.EPICSNState">
      <channel type="epics" name="epicsActuator_val">MNC:B:RIO01:9474E:bo0</channel>
      <channel type="epics" name="epicsActuator_rbv" polling="500">MNC:B:RIO01:9474E:bo0</channel>
      <username>Microdiff backlight</username>
      <values>{"in": True, "out": False}</values>
- </device>
+ </object>

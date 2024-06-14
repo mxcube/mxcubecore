@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<device class="PX1Configuration">
+<object class="PX1Configuration">
    <use_edna>False</use_edna>
    <pin_length>18.0</pin_length>
    <centring_points>3</centring_points>
    <centring_phi_increment>120</centring_phi_increment>
    <centring_sample_type>LOOP</centring_sample_type>
-</device>
+</object>

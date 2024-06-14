@@ -1,4 +1,4 @@
-<device class="LNLS.EPICSMotor">
+<object class="LNLS.EPICSMotor">
     <channel type="epics" name="epicsActuator_val">MNC:B:PB05:m5.VAL</channel>
     <channel type="epics" name="epicsActuator_rbv" polling="500">MNC:B:PB05:m5.RBV</channel>
     <channel type="epics" name="epicsMotor_rlv">MNC:B:PB05:m5.RLV</channel>
@@ -12,4 +12,4 @@
     <motor_name>CentringY</motor_name>
     <GUIstep>0.01</GUIstep>
     <unit>1e-5</unit>
-</device>
+</object>

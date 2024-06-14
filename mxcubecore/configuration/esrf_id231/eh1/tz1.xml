@@ -1,6 +1,6 @@
-<device class = "SpecMotor">
+<object class = "SpecMotor">
   <username>Vert Front</username>
   <specname>tz1</specname>
   <specversion>lid232:eh1</specversion>
   <GUIstep>0.100</GUIstep>
-</device>
+</object>

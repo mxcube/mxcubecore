@@ -1,7 +1,7 @@
-<device class = "SpecMotor">
+<object class = "SpecMotor">
   <username>Aperture Vertical</username>
   <specname>apz</specname>
   <specversion>lid232:eh1</specversion>
   <GUIstep>0.002</GUIstep>
   <unit>1e-3</unit>
-</device>
+</object>

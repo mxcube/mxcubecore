@@ -1,16 +1,16 @@
-<equipment>
+<object>
   <username>Exp Table</username>
   <motors>
     <pseudo>
-      <device hwrid="/exp/thgt" role="height"/>
-      <device hwrid="/exp/txtilt" role="roll"/>
-      <device hwrid="/exp/tytilt" role="ytilt"/>
+      <object hwrid="/exp/thgt" role="height"/>
+      <object hwrid="/exp/txtilt" role="roll"/>
+      <object hwrid="/exp/tytilt" role="ytilt"/>
     </pseudo>
     <real>
-      <device hwrid="/exp/tz1"/>
-      <device hwrid="/exp/tz2"/>
-      <device hwrid="/exp/tz3"/>
-      <device hwrid="/exp/ttrans" role="translation"/>
+      <object hwrid="/exp/tz1"/>
+      <object hwrid="/exp/tz2"/>
+      <object hwrid="/exp/tz3"/>
+      <object hwrid="/exp/ttrans" role="translation"/>
     </real>
     <!-- <height>thgt</height>
     <trans>ttrans</trans>
@@ -24,4 +24,4 @@
     <procedure hwrid="/procedures/a2scan"/>
     <procedure hwrid="/procedures/d2scan"/>
   </procedures>
-</equipment>
+</object>

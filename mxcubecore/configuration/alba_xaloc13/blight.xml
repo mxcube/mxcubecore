@@ -1,4 +1,4 @@
-<device class="ALBAZoomMotor">
+<object class="ALBAZoomMotor">
   <username>BLightZoom</username>
   <taurusname>ioregister/eh_zoom_tangoior_ctrl/2</taurusname>
   <alias>blight</alias>
@@ -8,4 +8,4 @@
   <channel type="sardana" name="labels">Labels</channel>
   <interval>200</interval>
   <threshold>0.001</threshold>
-</device>
+</object>

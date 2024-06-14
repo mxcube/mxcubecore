@@ -1,4 +1,4 @@
-<equipment class="DiffractometerMockup">
+<object class="DiffractometerMockup">
   <object href="/diff-omega-mockup" role="phi"/>
   <object href="/diff-kappa-mockup" role="kappa"/>
   <object href="/diff-kappaphi-mockup" role="kappa_phi"/>
@@ -19,4 +19,4 @@
   <!-- MD3 -->
   <grid_direction>{"fast": (0, 1), "slow": (1, 0), "omega_ref": 0}</grid_direction>
   <exports>["abort", "status", "my_fancy_function", "my_other_funny_function"]</exports>
-</equipment>
+</object>

@@ -1,4 +1,4 @@
-<equipment class = "DetectorMockup">
+<object class = "DetectorMockup">
   <object hwrid="/dtox" role="detector_distance"/>
   <tempThreshold>33.5</tempThreshold>
   <humidityThreshold>20.0</humidityThreshold>
@@ -12,4 +12,4 @@
   <height>4271</height>
   <hasShutterless>True</hasShutterless>
   <fileSuffix>cbf</fileSuffix>
-</equipment>
+</object>

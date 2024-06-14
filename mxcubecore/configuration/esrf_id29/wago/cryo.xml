@@ -1,8 +1,8 @@
-<device class = "WagoPneu">
+<object class = "WagoPneu">
   <username>CRYO</username>
   <taconame>id29/wcid29b/wc</taconame>
   <wagoidin>cryoin</wagoidin>
   <wagoidout>cryobck</wagoidout>
   <logic>-1</logic>
   <interval>2000</interval>
-</device>
+</object>

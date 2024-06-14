@@ -1,15 +1,15 @@
-<equipment>
+<object>
   <username>Mono</username>
   <motors>
   <pseudo>
-      <device hwrid="/oh1/energy"/>
-      <device hwrid="/eh1/lambda"/>
-      <device hwrid="/oh1/u35"/>
+      <object hwrid="/oh1/energy"/>
+      <object hwrid="/eh1/lambda"/>
+      <object hwrid="/oh1/u35"/>
   </pseudo>
   <real>
-      <device hwrid="/oh1/mono"/>
-      <device hwrid="/oh1/push111"/>  
+      <object hwrid="/oh1/mono"/>
+      <object hwrid="/oh1/push111"/>  
   </real>
   </motors>
   <specname>basil:oh1</specname>
-</equipment>
+</object>

@@ -1,4 +1,4 @@
-<device class="LNLS.LNLSMotor">
+<object class="LNLS.LNLSMotor">
     <!-- Channels -->
     <channel type="epics" name="epicsActuator_val">SOL:S:m4.VAL</channel>
     <channel type="epics" name="epicsActuator_rbv" polling="500">SOL:S:m4.RBV</channel>
@@ -14,4 +14,4 @@
     <motor_name>AlignmentX</motor_name>
     <GUIstep>0.1</GUIstep>
     <unit>1e-3</unit>
-</device>
+</object>

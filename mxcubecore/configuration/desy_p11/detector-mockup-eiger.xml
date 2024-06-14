@@ -1,4 +1,4 @@
-<equipment class = "DetectorMockup">
+<object class = "DetectorMockup">
   <tempThreshold>33.5</tempThreshold>
   <humidityThreshold>20.0</humidityThreshold>
   <tolerance>0.2</tolerance>
@@ -12,4 +12,4 @@
   <hasShutterless>True</hasShutterless>
   <fileSuffix>h5</fileSuffix>
   <object hwrid="/detector-distance-mockup" role="detector_distance"/>
-</equipment>
+</object>

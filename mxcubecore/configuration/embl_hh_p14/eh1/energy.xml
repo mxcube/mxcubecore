@@ -1,4 +1,4 @@
-<device class = "TINEEnergy">
+<object class = "TINEEnergy">
   <command type="tine" name="cmdSetEnergy" tinename="/P14/Energy/P14Energy">TgtEnergy</command>
 
   <channel type="tine" name="chanEnergy" tinename="/P14/Energy/P14Energy">Energy</channel>
@@ -6,5 +6,5 @@
   <channel type="tine" name="chanLimitHigh" tinename="/P14/Energy/P14Energy">ELimitHigh</channel>   
   <channel type="tine" name="chanStatus" tinename="/P14/Energy/P14Energy">Status</channel>
   <tunableEnergy>True</tunableEnergy>
-</device>
+</object>
 

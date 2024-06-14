@@ -1,8 +1,8 @@
-<device class = "MicrodiffMotor">
+<object class = "MicrodiffMotor">
   <username>Phi</username>
   <!--<specname>phi</specname>
   <specversion>lid292:exp</specversion>-->
   <tangoname>id29/microdiff/1</tangoname>
   <actuator_name>Omega</actuator_name>
   <GUIstep>90</GUIstep>
-</device>
+</object>

@@ -1,8 +1,8 @@
-<device class="InOut">
+<object class="InOut">
   <username>Microdiff light</username>
   <specversion>lid292:exp</specversion>
   <offset>0</offset>
   <command type="spec" name="set_in">flighton()</command>
   <command type="spec" name="set_out">flightoff()</command>
   <channel type="tango" name="state" tangoname="tango://microdiff29new:18001/embl/md/1#dbase=no" polling="500">FrontLightIsOn</channel>
-</device>
+</object>

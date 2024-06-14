@@ -1,4 +1,4 @@
-<device class="MiniKappaCorrection">
+<object class="MiniKappaCorrection">
    <kappa>
       <direction>[0.287606,0.287606,-0.913545]</direction>
       <!--position>[0.581607, 0.542426, -2.15786]</position-->
@@ -9,4 +9,4 @@
       <!--position>[-0.254882,-0.020743,-0.000462]</position-->
       <position>[0.045545504,-0.06830043858,-1.369085147]</position>
    </phi>
-</device>
+</object>

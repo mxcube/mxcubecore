@@ -1,4 +1,4 @@
-<device class="CentringMath">
+<object class="CentringMath">
   <!--
   Gonio axes are in a real physical order
   --> 
@@ -62,4 +62,4 @@
         <direction>[0, 1, 0]</direction>
      </axis>
   </cameraAxes>
-</device>
+</object>

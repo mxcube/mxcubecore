@@ -3,12 +3,12 @@
   <BCM_PARS>
     <undulator>
       <type>u29</type>
-      <device_uri></device_uri>
+      <object_uri></object_uri>
       <gap_index>0</gap_index>
     </undulator>
     <undulator>
       <type></type>
-      <device_uri></device_uri>
+      <object_uri></object_uri>
       <gap_index>0</gap_index>
     </undulator>
     <detector_radius>211.8</detector_radius>

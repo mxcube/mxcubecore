@@ -1,4 +1,4 @@
-<device class="EMBLSafetyShutter">
+<object class="EMBLSafetyShutter">
   <channel type="tine" name="chanCollectStatus" tinename="/P13/collection/mx-standard" attach="event">status</channel>
   <channel type="tine" name="chanStateOpen" tinename="/P13/ics/shutter-secondary" attach="event">state-open</channel>
   <channel type="tine" name="chanStateClosed" tinename="/P13/ics/shutter-secondary" attach="event">state-closed</channel>
@@ -14,4 +14,4 @@
 
   
   <useShutter>True</useShutter>
-</device>
+</object>

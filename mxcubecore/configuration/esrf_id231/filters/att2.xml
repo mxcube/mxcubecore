@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<device class="FilterAxis">
+<object class="FilterAxis">
    <username>Axis 2</username>
    <motor>/oh1/att2</motor>
    <filter>
@@ -26,4 +26,4 @@
      <username>Al 2.71</username>
      <offset>5</offset>
    </filter>
-</device>
+</object>

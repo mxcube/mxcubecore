@@ -1,4 +1,4 @@
-<device class="AdscTemperature">
+<object class="AdscTemperature">
   <taconame>id23/adsc/1</taconame>
   <interval>60000</interval>
-</device>
+</object>

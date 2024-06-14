@@ -1,4 +1,4 @@
-<device class="LNLS.EPICSMotor">
+<object class="LNLS.EPICSMotor">
     <channel type="epics" name="epicsActuator_val">MNC:B:PB05:m3.VAL</channel>
     <channel type="epics" name="epicsActuator_rbv" polling="500">MNC:B:PB05:m3.RBV</channel>
     <channel type="epics" name="epicsMotor_rlv">MNC:B:PB05:m3.RLV</channel>
@@ -12,4 +12,4 @@
     <motor_name>AlignmentZ</motor_name>
     <GUIstep>1.0</GUIstep>
     <unit>1e-3</unit>
-</device>
+</object>

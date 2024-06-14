@@ -1,4 +1,4 @@
-<equipment class = "ALBACats">
+<object class = "ALBACats">
 
   <username>Cats</username>
   <tangoname>bl13/eh/cats</tangoname>    
@@ -34,5 +34,5 @@
 
   <command type="tango" name="_cmdScanSample">barcode</command>
 
-</equipment>
+</object>
 

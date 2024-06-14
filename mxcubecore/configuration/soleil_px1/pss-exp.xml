@@ -1,5 +1,5 @@
-<device class = "PX1Pss">
+<object class = "PX1Pss">
   <username>expPss</username>
   <tangoname>I10-C-CE/PSS/DB_DATA</tangoname>
   <channel type="tango" polling="1000" name="state">memInt</channel>
-</device>
+</object>

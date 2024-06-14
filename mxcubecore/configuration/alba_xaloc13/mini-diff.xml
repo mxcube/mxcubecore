@@ -1,4 +1,4 @@
-<equipment class="ALBAMiniDiff">
+<object class="ALBAMiniDiff">
  
   <taurusname>bl13/eh/diff</taurusname>
 
@@ -48,4 +48,4 @@
 
   <delay_state_polling>0.2</delay_state_polling>
 
-</equipment>
+</object>

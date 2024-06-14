@@ -1,8 +1,8 @@
-<device class = "XBpm">
+<object class = "XBpm">
   <username>XBPM</username>
   <taconame>id23/oxbpm/231</taconame>
   <interval>1000</interval>
-</device>
+</object>
 
 
 

@@ -1,5 +1,5 @@
-<device class = "SpecMotor">
+<object class = "SpecMotor">
   <username>tor03</username>
   <specname>tor03</specname>
   <specversion>p1-id29:8888</specversion>
-</device>
+</object>

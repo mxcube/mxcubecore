@@ -1,5 +1,5 @@
 <object class="EMBLBeamlineTest">
-    <device_list>/opt/embl-hh/etc/p13/app/mxcube/HardwareObjects.xml/p13devicesList.csv</device_list>
+    <object_list>/opt/embl-hh/etc/p13/app/mxcube/HardwareObjects.xml/p13devicesList.csv</object_list>
     <object hwrid="/oh1/motor-pitch-hfm" role="horizontal_motor"/>
     <object hwrid="/oh1/motor-pitch-vfm" role="vertical_motor"/>
 

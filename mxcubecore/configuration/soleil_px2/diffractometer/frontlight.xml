@@ -1,7 +1,7 @@
-<device class="MicrodiffLight">
+<object class="MicrodiffLight">
     <exporter_address>172.19.10.119:9001</exporter_address>
     <actuator_name>FrontLight</actuator_name>
     <channel type="exporter" name="chanLightValue">FrontLightLevel</channel>
     <channel type="exporter" name="chanLightIsOn">FrontLightIsOn</channel>
     <limits>[0, 100]</limits>
-</device>
+</object>

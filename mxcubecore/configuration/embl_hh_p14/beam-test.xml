@@ -1,7 +1,7 @@
-<equipment class="BeamTestTool">
+<object class="BeamTestTool">
     <defaultCsvFileName>/opt/embl-hh/etc/p14/app/beamline-test-tool/p14devicesList.csv</defaultCsvFileName>
     <focusing>/eh1/beamFocusing</focusing>
 <!--    <object href="/ppu-control" role="ppu_control"/> -->
     <!-->Available: {'Cm': 'Communication with devices', 'Focus': 'Beam focusing', 'PPU': 'PPU test', 'Profile': 'Beam profile'} <-->
     <testDict>{'Com': 'Communication with devices', 'Focus': 'Beam focusing', 'PPU': 'PPU test', 'Profile': 'Beam profile', 'Center': 'Beam center', 'Sample': 'Sample crystal'}</testDict>
-</equipment>
+</object>

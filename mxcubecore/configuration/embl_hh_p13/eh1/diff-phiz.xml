@@ -1,4 +1,4 @@
-<device class="ExporterMotor">
+<object class="ExporterMotor">
   <exporter_address>p13md201.embl-hamburg.de:9001</exporter_address>
   <actuator_name>AlignmentZ</actuator_name>
-</device>
+</object>

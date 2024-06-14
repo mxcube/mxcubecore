@@ -1,4 +1,4 @@
-<equipment class = "SampleChangerMockup">
+<object class = "SampleChangerMockup">
  <!-- SC3 commands and channels -->
  <test_sample_names>
   <!-- Sample names to show in UI and matching addresses.   -->
@@ -17,4 +17,4 @@
   <emulate-thermolysin>2:02</emulate-thermolysin>
   <emulate-germanate>2:03</emulate-germanate>
  </test_sample_names>
-</equipment>
+</object>

@@ -1,4 +1,4 @@
-<device class="TINEMotor">
+<object class="TINEMotor">
   <command type="tine" name="setPosition" tinename="/PE2/collection/distance">move</command>
   <command type="tine" name="stopAxis" tinename="/PE2/collection/distance">stop</command>
   <channel type="tine" name="axisState" tinename="/PE2/collection/distance">state2</channel>
@@ -8,4 +8,4 @@
   <epsilon>0.01</epsilon>
   <verboseUpdate>False</verboseUpdate>
   <maxMotorPosition>1000</maxMotorPosition>
-</device>
+</object>

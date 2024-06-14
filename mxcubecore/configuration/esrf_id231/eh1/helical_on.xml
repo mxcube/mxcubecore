@@ -1,7 +1,7 @@
-<device class="InOut">
+<object class="InOut">
   <username></username>
   <specversion>lid232:eh1</specversion>
   <command type="spec" name="set_out">helical_oscil_off</command>
   <command type="spec" name="set_in">helical_oscil_on</command>
   <channel type="spec" name="state">HELICAL_OSCIL</channel>
-</device>
+</object>

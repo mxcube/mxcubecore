@@ -1,4 +1,4 @@
-<equipment class = "PX1Pilatus">
+<object class = "PX1Pilatus">
 
   <tangoname>i10-c-cx1/dt/pilatus</tangoname>
 
@@ -23,4 +23,4 @@
 
   <file_suffix>cbf</file_suffix>
 
-</equipment>
+</object>

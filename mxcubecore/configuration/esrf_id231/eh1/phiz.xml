@@ -1,7 +1,7 @@
-<device class = "SpecMotor">
+<object class = "SpecMotor">
   <username>Phi Vert</username>
   <specname>phiz</specname>
   <specversion>lid232:eh1</specversion>
   <GUIstep>0.100</GUIstep>
   <unit>1e-3</unit>
-</device>
+</object>

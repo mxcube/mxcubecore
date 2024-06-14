@@ -1,4 +1,4 @@
-<device class="NamedState">
+<object class="NamedState">
     <username>Phase</username>
     <tangoname>i11-ma-cx1/ex/md2</tangoname>
     <channel type="tango" polling="1000" name="state">CurrentPhase</channel>
@@ -19,4 +19,4 @@
        </state>
     </states>
    <object href="/singleton_objects/guillotine" role="guillotine"/>
-</device>
+</object>

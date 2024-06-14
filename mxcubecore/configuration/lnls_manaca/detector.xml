@@ -1,4 +1,4 @@
-<equipment class = "LNLS.LNLSPilatusDet">
+<object class = "LNLS.LNLSPilatusDet">
   <!-- Channels -->
   <channel type="epics" name="det_threshols_energy">MX2:cam1:ThresholdEnergy</channel>
   <channel type="epics" name="det_wavelength">MX2:cam1:Wavelength</channel>
@@ -28,4 +28,4 @@
   <height>4271</height>
   <hasShutterless>True</hasShutterless>
   <fileSuffix>cbf</fileSuffix>
-</equipment>
+</object>

@@ -1,4 +1,4 @@
-<equipment class = "Marvin">
+<object class = "Marvin">
 	<!--channel type="tine" name="chanSampleIsLoaded" tinename="/P14/MD3/MD3_0" timeout="500" verbose="True" attach="datachange">SampleIsLoaded</channel-->
    <channel type="tine" name="chanSampleIsLoaded" tinename="/P14/MD3/MD3_0" timeout="500" verbose="False" attach="datachange">SampleIsLoaded</channel>
    <channel type="tine" name="chanStatusList" tinename="/P14/P14SC/P14Marvin">MarvinStatus</channel>
@@ -25,4 +25,4 @@
 
    <useUpdateTimer>False</useUpdateTimer>
    <log_filename>/opt/embl-hh/var/log/mxcube/marvin.log</log_filename>
-</equipment>
+</object>

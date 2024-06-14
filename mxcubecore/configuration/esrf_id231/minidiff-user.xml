@@ -1,29 +1,29 @@
-<equipment class="MiniDiff">
+<object class="MiniDiff">
   <username>Diffractometer</username>
   <command type="spec" version="lid232:eh1" name="centerbeam">centerbeam</command>
-  <device hwrid="/ccd/ge1350c" role="camera" />
+  <object hwrid="/ccd/ge1350c" role="camera" />
   <motors>
   <phi-shutter>
-      <device hwrid="/eh1/phi"    role="phi"/>
-      <device hwrid="/eh1/phiz"   role="phiz"/>  
-      <device hwrid="/eh1/shuty"/>
-      <device hwrid="/eh1/shutz"/>
-      <device hwrid="/eh1/shut"/>
+      <object hwrid="/eh1/phi"    role="phi"/>
+      <object hwrid="/eh1/phiz"   role="phiz"/>  
+      <object hwrid="/eh1/shuty"/>
+      <object hwrid="/eh1/shutz"/>
+      <object hwrid="/eh1/shut"/>
   </phi-shutter>
   <sample>
-      <device hwrid="/eh1/zoom"  role="zoom"/>
-      <device hwrid="/eh1/light" role="light"/>
-      <device hwrid="/eh1/focus" role="focus"/>
-      <device hwrid="/eh1/length" role="phiy"/> 
-      <device hwrid="/eh1/sampx" role="sampx"/>
-      <device hwrid="/eh1/sampy" role="sampy"/>
+      <object hwrid="/eh1/zoom"  role="zoom"/>
+      <object hwrid="/eh1/light" role="light"/>
+      <object hwrid="/eh1/focus" role="focus"/>
+      <object hwrid="/eh1/length" role="phiy"/> 
+      <object hwrid="/eh1/sampx" role="sampx"/>
+      <object hwrid="/eh1/sampy" role="sampy"/>
   </sample>
   <others>
-      <device hwrid="/eh1/bstopy"/>
-      <device hwrid="/eh1/bstopz"/>  
-      <device hwrid="/eh1/DtoX"/>  
-      <device hwrid="/eh1/camx"/>
-      <device hwrid="/eh1/camz"/>
+      <object hwrid="/eh1/bstopy"/>
+      <object hwrid="/eh1/bstopz"/>  
+      <object hwrid="/eh1/DtoX"/>  
+      <object hwrid="/eh1/camx"/>
+      <object hwrid="/eh1/camz"/>
   </others>
   </motors>
   <procedures>
@@ -32,4 +32,4 @@
     <procedure hwrid="/procedures/a2scan"/>
     <procedure hwrid="/procedures/d2scan"/>
   </procedures>
-</equipment>
+</object>

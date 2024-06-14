@@ -1,4 +1,4 @@
-<device class="PX1DetectorDistance">
+<object class="PX1DetectorDistance">
 
   <username>Detector Distance</username>
 
@@ -14,4 +14,4 @@
   <command type="tango" name="stop">Stop</command>
 
   <interval>1000</interval>
-</device>
+</object>

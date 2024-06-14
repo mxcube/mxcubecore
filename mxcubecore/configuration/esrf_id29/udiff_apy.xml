@@ -1,5 +1,5 @@
-<device class="MicrodiffMotor">
+<object class="MicrodiffMotor">
   <username>apy</username>
   <exporter_address>microdiff29new:9001</exporter_address>
   <actuator_name>ApertureHorizontal</actuator_name>
-</device>
+</object>

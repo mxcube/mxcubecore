@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<device class="WagoCounter">
+<object class="WagoCounter">
   <username>DM3</username>
   <taconame>id23/wcid231c/wc</taconame>
   <wagoname>dm3</wagoname>
   <gainfactor>10</gainfactor>
   <interval>1200</interval>
-</device>
+</object>

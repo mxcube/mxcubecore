@@ -1,6 +1,6 @@
-<device class = "SpecMotor">
+<object class = "SpecMotor">
   <username>Hor trans</username>
   <specname>m2</specname>
   <specversion>basil:oh1</specversion>
   <GUIstep>1.000</GUIstep>
-</device>
+</object>

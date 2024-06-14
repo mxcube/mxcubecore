@@ -1,8 +1,8 @@
-<device class="InOut">
+<object class="InOut">
   <username>Rontec detector</username>
   <specversion>lid292:exp</specversion>
   <command type="spec" name="set_out">fldetout</command>
   <command type="spec" name="set_in">fldetin</command>
   <channel type="tango" name="state" tangoname="tango://microdiff29new:18001/embl/md/1#dbase=no" polling="500">FluoDetectorIsBack</channel>
   <offset>1</offset>
-</device>
+</object>

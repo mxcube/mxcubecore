@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<device class="SpecMotorWPositions">
+<object class="SpecMotorWPositions">
   <username>Zoom</username>
   <specname>zoom</specname>
   <delta>0.001</delta>
@@ -60,4 +60,4 @@
       </calibrationData>
     </position>
   </positions>
-</device>
+</object>

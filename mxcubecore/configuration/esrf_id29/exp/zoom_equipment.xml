@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<equipment class="MultiplePositions">
+<object class="MultiplePositions">
   <username>Zoom </username>
   <amplitude>10</amplitude>
   <motors>
-    <device role="zoom" hwrid="/exp/zoom"></device>
+    <object role="zoom" hwrid="/exp/zoom"></object>
   </motors>
   <deltas>
     <zoom>0.1</zoom>
@@ -90,4 +90,4 @@
       <beamy>288</beamy>
     </position>
   </positions>
-</equipment>
+</object>

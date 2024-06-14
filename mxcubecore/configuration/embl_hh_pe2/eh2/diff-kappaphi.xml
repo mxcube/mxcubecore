@@ -1,4 +1,4 @@
-<device class="MotorMockup">
+<object class="MotorMockup">
   <actuator_name>Phi</actuator_name>
   <default_value>0</default_value>
-</device>
+</object>

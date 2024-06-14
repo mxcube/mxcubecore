@@ -1,4 +1,4 @@
-<device class="LNLS.LNLSEnergy">
+<object class="LNLS.LNLSEnergy">
   <username>energy</username>
   <motor_name>energy</motor_name>
   <default_value>-1</default_value>
@@ -6,4 +6,4 @@
   <!-- Energy setting not allowed for now.-->
   <channel type="epics" name="epicsActuator_val">nope</channel>
   <channel type="epics" name="epicsActuator_rbv" polling="500">MNC:A:DCM01:GonRxEnergy_RBV</channel>
-</device>
+</object>

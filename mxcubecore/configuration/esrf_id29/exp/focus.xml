@@ -1,6 +1,6 @@
-<device class = "SpecMotor">
+<object class = "SpecMotor">
   <username>Focus</username>
   <specname>phix</specname>
   <GUIstep>0.05</GUIstep>
   <specversion>lid292:exp</specversion>
-</device>
+</object>

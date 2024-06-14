@@ -1,4 +1,4 @@
-<equipment class = "ALBACatsMaint">
+<object class = "ALBACatsMaint">
   <username>CatsMaint</username>
   <tangoname>bl13/eh/cats</tangoname>    
   
@@ -19,5 +19,5 @@
   <channel type="tango" name="_chnBarcode" polling="2000">Barcode</channel>
   <channel type="tango" name="_chnAtHome" polling="2000">do_PRO6_RAH</channel>
 
-</equipment>
+</object>
 

@@ -1,21 +1,21 @@
-<equipment class = "Filters">
+<object class = "Filters">
   <username>OH1 Filters</username>
   <axis> 
-     <device hwrid="/filters/mbv2"/>
+     <object hwrid="/filters/mbv2"/>
   </axis>
   <axis> 
-     <device hwrid="/filters/dm2"/>
+     <object hwrid="/filters/dm2"/>
   </axis>
   <axis> 
-     <device hwrid="/filters/mbv1"/>
+     <object hwrid="/filters/mbv1"/>
   </axis>
   <axis> 
-     <device hwrid="/filters/wbv"/>
+     <object hwrid="/filters/wbv"/>
   </axis>
   <axis> 
-     <device hwrid="/filters/att2"/>
+     <object hwrid="/filters/att2"/>
   </axis>
   <axis> 
-     <device hwrid="/filters/att1"/>
+     <object hwrid="/filters/att1"/>
   </axis>
-</equipment>
+</object>

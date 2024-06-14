@@ -1,4 +1,4 @@
-<device class = "TINEMotor">
+<object class = "TINEMotor">
   <channel type="tine" name="axisPosition" tinename="/P14/P14KB/VFM_Pitch" attach="datachange">position</channel>
   <channel type="tine" name="axisState" tinename="/P14/P14KB/VFM_Pitch">status</channel>
   <command type="tine" name="setPosition" tinename="/P14/P14KB/VFM_Pitch">MOVE.Start</command>
@@ -6,4 +6,4 @@
 
   <username>VFMpitch</username>
   <stepLimits>[0.0005, 0.0013]</stepLimits>
-</device>
+</object>

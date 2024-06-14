@@ -1,5 +1,5 @@
-<device class="CameraMockup">
+<object class="CameraMockup">
   <username>Mockup Camera</username>
   <source>/txo/Projects/MX/mxcube3/ExampleFiles/fakeimg.jpg</source>
   <interval>60</interval>
-</device>
+</object>

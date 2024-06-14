@@ -1,8 +1,8 @@
-<device class = "Frontend">
+<object class = "Frontend">
   <username>Front End</username>
   <tangoname>orion:10000/fe/id/23</tangoname>
   <command type="tango" name="Open">Automatic</command>
   <command type="tango" name="Close">Close</command>
   <channel type="tango" name="State" polling="2000">State</channel>
   <channel type="tango" name="AutoModeTime" polling="2000">Auto_Mode_Time</channel>
-</device>
+</object>

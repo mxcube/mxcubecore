@@ -1,8 +1,8 @@
-<device class="SardanaMotor">
+<object class="SardanaMotor">
     <username>EnergyDirect</username>
     <actuator_name>EnergyDirect</actuator_name>
     <taurusname>energy</taurusname>
     <threshold>0.005</threshold>
     <interval>2000</interval>
-</device>
+</object>
 

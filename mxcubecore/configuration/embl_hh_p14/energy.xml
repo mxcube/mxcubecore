@@ -1,4 +1,4 @@
-<device class = "EMBLEnergy">
+<object class = "EMBLEnergy">
   <command type="tine" name="cmdSetEnergy" tinename="/P14/Energy/P14Energy">TgtEnergy</command>
   <channel type="tine" name="chanEnergy" tinename="/P14/Energy/P14Energy">Energy</channel>
   <channel type="tine" name="chanStatus" tinename="/P14/Energy/P14Energy" attach="datachange" timeout="100">Status</channel>
@@ -33,5 +33,5 @@
   <!-- <ctrlytes>(1, 11)</ctrlBytes> -->
   <!-- <defaultEnergy>12.7</defaultEnergy>  -->
   <staticLimits>[6.0, 30.0]</staticLimits>
-</device>
+</object>
 

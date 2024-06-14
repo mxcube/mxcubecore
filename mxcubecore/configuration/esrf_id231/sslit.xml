@@ -1,17 +1,17 @@
-<equipment>
+<object>
   <username>Sec Slit</username>
   <motors>
     <pseudo>
-      <device hwrid="/oh1/ssvo"/>
-      <device hwrid="/oh1/ssvg"/>
-      <device hwrid="/oh1/ssho"/>
-      <device hwrid="/oh1/sshg"/>
+      <object hwrid="/oh1/ssvo"/>
+      <object hwrid="/oh1/ssvg"/>
+      <object hwrid="/oh1/ssho"/>
+      <object hwrid="/oh1/sshg"/>
     </pseudo>
     <real>
-      <device hwrid="/oh1/ssu"/>
-      <device hwrid="/oh1/ssd"/>
-      <device hwrid="/oh1/ssf"/>
-      <device hwrid="/oh1/ssb"/>
+      <object hwrid="/oh1/ssu"/>
+      <object hwrid="/oh1/ssd"/>
+      <object hwrid="/oh1/ssf"/>
+      <object hwrid="/oh1/ssb"/>
     </real>
   </motors>
   <procedures>
@@ -20,4 +20,4 @@
     <procedure hwrid="/procedures/a2scan"/>
     <procedure hwrid="/procedures/d2scan"/>
   </procedures>
-</equipment>
+</object>

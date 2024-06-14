@@ -3,7 +3,7 @@
 <edna_default_file>/users/blissadm/local/HardwareRepository/edna_defaults.xml</edna_default_file>
 <fluxSource>currentFlux</fluxSource>
 
-  <device href="/mxlocal" role="beamline_pars"/>
-  <device href="/mxcollect" role="dataCollect"/>
+  <object href="/mxlocal" role="beamline_pars"/>
+  <object href="/mxcollect" role="dataCollect"/>
 
 </procedure>

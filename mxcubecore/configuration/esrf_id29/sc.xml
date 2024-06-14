@@ -1,4 +1,4 @@
-<equipment class = "ESRFSC3">
+<object class = "ESRFSC3">
   <username>Sample Changer</username>
   
   <!-- SC3 commands and channels -->
@@ -30,6 +30,6 @@
   <channel type="spec" name="OperationalFlags">SC_MD_FLAGS</channel>
 
   <!-- other related hardware from minidiff --> 
-  <device hwrid="/wago/cryo"  role="Cryo"/>
-  <device hwrid="/udiff_light" role="Light"/>
-</equipment>
+  <object hwrid="/wago/cryo"  role="Cryo"/>
+  <object hwrid="/udiff_light" role="Light"/>
+</object>

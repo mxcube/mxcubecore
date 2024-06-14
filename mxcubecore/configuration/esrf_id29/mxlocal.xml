@@ -46,12 +46,12 @@
   <BCM_PARS>
     <undulator>
       <type>u35u</type>
-      <device_uri>//aries/id/id/29</device_uri>
+      <object_uri>//aries/id/id/29</object_uri>
       <gap_index>0</gap_index>
     </undulator>
     <undulator>
       <type>u21d</type>
-      <device_uri>//aries/id/id/29</device_uri>
+      <object_uri>//aries/id/id/29</object_uri>
       <gap_index>2</gap_index>
     </undulator>
     <diffractometer>

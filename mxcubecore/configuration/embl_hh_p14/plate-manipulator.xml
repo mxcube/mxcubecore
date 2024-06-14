@@ -1,4 +1,4 @@
-<equipment class = "PlateManipulator">
+<object class = "PlateManipulator">
    <exporter_address>p14md302.embl-hamburg.de:9001</exporter_address>
    <command type="exporter" name="startMovePlateToLocation">startMovePlateToLocation</command>
    <channel type="exporter" name="PlateLocation">PlateLocation</channel>
@@ -19,5 +19,5 @@
 
    <referencePosX>0.75</referencePosX>
    <useUpdateTimer>False</useUpdateTimer>
-</equipment>
+</object>
 

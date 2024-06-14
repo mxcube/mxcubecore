@@ -1,10 +1,10 @@
-<device class="Camera">
+<object class="Camera">
   <username>Prosilica GE1350C</username>
   <tangoname>id23/ge1350c/1</tangoname>
   <taconame>tango:id23/ge1350c-taco/1</taconame>
   <imagetype>bayer:rg</imagetype>
   <interval>40</interval>
-</device>
+</object>
 
 <!--
 Screen size is 680x512

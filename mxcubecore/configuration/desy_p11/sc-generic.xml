@@ -1,4 +1,4 @@
-<equipment class = "sample_changer.SC3">
+<object class = "sample_changer.SC3">
 <!--PMSC  or SC3-->
   <username>Sample Changer / Test</username>
   <exporter_address></exporter_address>    
@@ -35,4 +35,4 @@
   <command_load_sample>startMovePlateToShelf</command_load_sample>  
   <command_select_sample>startMovePlateToShelf</command_select_sample>
 -->
-</equipment>
+</object>

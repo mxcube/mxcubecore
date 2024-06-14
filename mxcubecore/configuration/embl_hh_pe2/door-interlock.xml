@@ -1,4 +1,4 @@
-<device class="EMBLDoorInterlock">
+<object class="EMBLDoorInterlock">
   <object href="/mini-diff" role="diffractometer"/>
 
   <channel type="tine" name="chanStateBreakable" tinename="/P14/ics/interlock-EH2" attach="datachange" >state-breakable</channel>
@@ -8,4 +8,4 @@
   <channel type="tine" name="chanIcsErrorOne" tinename="/P14/ics/state" attach="datachange" timeout="100">error</channel>
   <channel type="tine" name="chanCmdBreakError" tinename="/P14/ics/interlock-EH2" attach="datachange" timeout="100">break</channel>
   <useDoorInterlock>True</useDoorInterlock>
-</device>
+</object>

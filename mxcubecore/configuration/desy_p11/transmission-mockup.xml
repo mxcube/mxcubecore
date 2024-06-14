@@ -1,4 +1,4 @@
-<device class = "TransmissionMockup">
+<object class = "TransmissionMockup">
   <username>Transmission</username>
   <atte>
      <label>Test 1</label>
@@ -8,4 +8,4 @@
      <label>Test 2</label>
      <bits>2</bits>
   </atte>
-</device>
+</object>

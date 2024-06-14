@@ -1,4 +1,4 @@
-<device class="EMBLDoorInterlock">
+<object class="EMBLDoorInterlock">
   <channel type="tine" name="chanStateBreakable" tinename="/P14/ics/interlock-EH1" attach="datachange" >state-breakable</channel>
   <channel type="tine" name="chanStateLocked" tinename="/P14/ics/interlock-EH1" attach="datachange" >state-locked</channel>
   <command type="tine" name="cmdBreak" tinename="/P14/ics/interlock-EH1" timeout="1000">break</command>
@@ -10,4 +10,4 @@
   <beforeUnlockCommands>[{"address":"/P14/MD3/MD3_0","property":"startSetPhase","type":"query","argument":"Transfer"}]</beforeUnlockCommands>
   -->
    <useDoorInterlock>True</useDoorInterlock>
-</device>
+</object>

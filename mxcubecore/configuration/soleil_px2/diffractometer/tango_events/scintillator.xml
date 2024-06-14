@@ -1,4 +1,4 @@
-<device class="NamedState">
+<object class="NamedState">
     <username>Scintillator</username>
     <tangoname>i11-ma-cx1/ex/md2</tangoname>
     <channel type="tango" polling="events" name="state">ScintillatorPosition</channel>
@@ -14,4 +14,4 @@
           <name>PHOTODIODE</name>
        </state>
     </states>
-</device>
+</object>

@@ -1,4 +1,4 @@
-<equipment class="BeamSlitBox">
+<object class="BeamSlitBox">
     <focModeEq>/eh1/beamFocusing</focModeEq>	
     <shape>rectangle</shape>
     <focModes>['Unfocused', 'Horizontal', 'Vertical', 'Double']</focModes>	
@@ -40,5 +40,5 @@
 	  </motor>
        </motors>
     </gapV>  
-    <device hwrid="/eh1/attocubeMotors/attoGroup" role="attocubeMotors"/> 
-</equipment>
+    <object hwrid="/eh1/attocubeMotors/attoGroup" role="attocubeMotors"/> 
+</object>

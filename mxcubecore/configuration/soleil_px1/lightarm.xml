@@ -1,4 +1,4 @@
-<device class="PX1TangoLight">
+<object class="PX1TangoLight">
     <username>Light Arm</username>
     <offset>0</offset>
     <channel type="tango" name="attributeName" tangoname="i10-c-cx1/ex/light.1-pos" polling="1000">isInserted</channel>
@@ -10,7 +10,7 @@
     <object href="/px1environment" role="px1environment" />
     <object href="/zoom" role="zoom" />
     <object href="/light" role="intensity" />
-</device>
+</object>
 
 
 

@@ -1,4 +1,4 @@
-<device class="PX1Environment">
+<object class="PX1Environment">
   <username>PX1Environment</username>
   <tangoname>i10-c-cx1/ex/PX1Environment</tangoname> 
 
@@ -13,4 +13,4 @@
   <command type="tango" name="GoToTransfertPhase">GoToTransfertPhase</command>
   <command type="tango" name="GoToVisuSamplePhase">GoToVisuSamplePhase</command>
   <command type="tango" name="GoToFluoScanPhase">GoToFluoXPhase</command>
-</device>
+</object>

@@ -1,10 +1,10 @@
-<device class = "WagoTemp">
+<object class = "WagoTemp">
   <username>Mono Temp 2</username>
   <taconame>id29/wcid29c/wc</taconame>
   <wagoname>LN2_out</wagoname>
   <wagochan>0</wagochan>
   <interval>2000</interval>
-</device>
+</object>
 
 
 

@@ -1,4 +1,4 @@
-<device class="InOut">
+<object class="InOut">
   <username>Scintilator</username>
   <specversion>lid292:exp</specversion>
   <command type="spec" name="set_in">scinton</command>
@@ -6,4 +6,4 @@
   <channel type="tango" name="state" tangoname="tango://microdiff29new:18001/embl/md/1#dbase=no" polling="500">ScintillatorPosition</channel>
    <offset>0</offset>
    <private_state>{"PARK":"out", "SCINTILLATOR":"in"}</private_state>
-</device>
+</object>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<device class="FilterAxis">
+<object class="FilterAxis">
    <username>Mirror Beam V.</username>
    <motor>/oh1/mbv2</motor>
    <filter>
@@ -14,4 +14,4 @@
      <username>Diode</username>
      <offset>5.07</offset>
    </filter>
-</device>
+</object>
