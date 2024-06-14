@@ -20,6 +20,10 @@ jobs:
 
       - name: "Checkout"
         uses: "actions/checkout@v4"  # tested with v4.1.0
+        with:
+          # With shallow clone the "Last updated" timestamp can not get computed
+          # See "Caveats" at https://pypi.org/project/sphinx-last-updated-by-git
+          fetch-depth: 0
 
       - name: "Set up Python 3.8"
         uses: "actions/setup-python@v4"  # tested with v4.7.0
