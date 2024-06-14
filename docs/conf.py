@@ -10,7 +10,6 @@
 import datetime
 import importlib.metadata
 
-
 PROJECT_PACKAGE_NAME = "mxcubecore"
 PROJECT_PACKAGE_METADATA = importlib.metadata.metadata(PROJECT_PACKAGE_NAME)
 
@@ -101,6 +100,12 @@ extensions.append("sphinx.ext.viewcode")
 extensions.append("myst_parser")
 
 myst_enable_extensions = ("fieldlist",)
+
+
+# -- Options for sphinx_last_updated_by_git
+# https://pypi.org/project/sphinx-last-updated-by-git/
+
+extensions.append("sphinx_last_updated_by_git")
 
 
 # EOF
