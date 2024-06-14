@@ -43,10 +43,10 @@ paired backlight intensity (slave IOR)
 
 Example Hardware Object XML file :
 ==================================
-<device class="ALBAZoomMotorAutoBrightness">
+<object class="ALBAZoomMotorAutoBrightness">
   <object role="zoom" hwrid="/zoom"></object>
   <object role="blight" hwrid="/blight"></object>
-</device>
+</object>
 """
 
 from mxcubecore import BaseHardwareObjects

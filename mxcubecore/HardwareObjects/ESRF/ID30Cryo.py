@@ -1,10 +1,10 @@
-from mxcubecore.BaseHardwareObjects import Device
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.TaskUtils import task
 import time
 import gevent
 
 
-class ID30Cryo(Device):
+class ID30Cryo(HardwareObject):
     states = {0: "out", 1: "in"}
 
     def __init__(self, name):

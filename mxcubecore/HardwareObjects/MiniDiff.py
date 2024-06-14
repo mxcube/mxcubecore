@@ -11,7 +11,7 @@ import json
 from typing import Union
 from pydantic import ValidationError
 
-from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.TaskUtils import task
 from mxcubecore.HardwareObjects import sample_centring
 from mxcubecore.model import queue_model_objects as qmo
@@ -102,7 +102,7 @@ def take_snapshots(number_of_snapshots, light, light_motor, phi, zoom, drawing):
     return centredImages
 
 
-class MiniDiff(Equipment):
+class MiniDiff(HardwareObject):
     MANUAL3CLICK_MODE = "Manual 3-click"
     C3D_MODE = "Computer automatic"
     # MOVE_TO_BEAM_MODE = "Move to Beam"

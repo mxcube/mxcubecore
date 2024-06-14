@@ -22,7 +22,7 @@
 """
 Example of xml config file
 
-<device class="MotorMockup">
+<object class="MotorMockup">
   <username>Mock motor</username>
   <actuator_name>mock_motor</actuator_name>
   <!-- for the mockup only -->
@@ -30,7 +30,7 @@ Example of xml config file
   <velocity>100</velocity>
   <wrap_range>None</wrap_range>
   <default_limits>[-360, 360]</default_limits>
-</device>
+</object>
 """
 
 import time

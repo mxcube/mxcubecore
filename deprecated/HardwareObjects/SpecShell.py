@@ -7,7 +7,7 @@ template:
 """
 
 import logging
-from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 try:
     import SpecClient_gevent as SpecClient
@@ -28,7 +28,7 @@ class SpecOutputVar(QObject, SpecClient.SpecVariable.SpecVariableA):
             self.emit(PYSIGNAL("outputReceived"), (value,))
 
 
-class SpecShell(Equipment):
+class SpecShell(HardwareObject):
     def __init__(self, *args):
         Equipment.__init__(self, *args)
         self.isSpecReady = False

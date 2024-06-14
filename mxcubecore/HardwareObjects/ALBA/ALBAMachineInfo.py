@@ -45,13 +45,13 @@ Based on EMBL HwObj
 
 Example Hardware Object XML file :
 ==================================
-<equipment class="ALBAMachineInfo">
+<object class="ALBAMachineInfo">
     <username>Mach</username>
     <taurusname>mach/ct/gateway</taurusname>
     <channel type="sardana" name="MachStatus" polling="1000">State</channel>
     <channel type="sardana" name="MachCurrent" polling="1000">Current</channel>
     <channel type="sardana" name="TopUpRemaining" polling="1000">TopUpRemaining</channel>
-</equipment>
+</object>
 """
 
 import logging
@@ -60,7 +60,7 @@ from gevent import spawn
 from urllib2 import urlopen
 from datetime import datetime, timedelta
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 __author__ = "Jordi Andreu"
@@ -72,7 +72,7 @@ __email__ = "jandreu[at]cells.es"
 __status__ = "Draft"
 
 
-class ALBAMachineInfo(Equipment):
+class ALBAMachineInfo(HardwareObject):
     """
     Descript. : Displays actual information about the machine status.
     """

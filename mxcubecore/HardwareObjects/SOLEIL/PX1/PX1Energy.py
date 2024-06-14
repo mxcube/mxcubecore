@@ -1,6 +1,6 @@
 # from qt import *
 
-from mxcubecore.BaseHardwareObjects import Device
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
 
 from mxcubecore.Command.Tango import DeviceProxy

@@ -1,51 +1,51 @@
-from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 """
 Move the beamstop or the capillary, using the exporter protocol
 Example xml file:
-<equipment class="MicrodiffBeamstop">
+<object class="MicrodiffBeamstop">
   <username>Beamstop</username>
-  <device role="beamstop" hwrid="/udiff_beamstop"></device>
+  <object role="beamstop" hwrid="/udiff_beamstop"></object>
   <save_cmd_name>saveBeamstopBeamPosition</save_cmd_name>
   <motors>
-    <device role="horizontal" hwrid="/bstopy"></device>
-    <device role="vertical" hwrid="/bstopz"></device>
+    <object role="horizontal" hwrid="/bstopy"></object>
+    <object role="vertical" hwrid="/bstopz"></object>
   </motors>
-</equipment>
+</object>
 
 Example udiff_beamstop.xml
-<device class="MicrodiffInOut">
+<object class="MicrodiffInOut">
   <username>Beamstop</username>
   <exporter_address>wid30bmd2s:9001</exporter_address>
   <cmd_name>BeamstopPosition</cmd_name>
   <private_state>{"OFF":"out", "BEAM":"in"}</private_state>
   <timeout>100</timeout>
-</device>
+</object>
 
 Example bstopy.xml (for bstopz only the motor name changes)
-<device class="MD2Motor">
+<object class="MD2Motor">
   <username>bstopy</username>
   <exporter_address>wid30bmd2s:9001</exporter_address>
   <actuator_name>BeamstopY</actuator_name>
   <GUIstep>0.01</GUIstep>
    <unit>1e-3</unit>
-</device>
+</object>
 
 When used with capillary, only the command and motor names change.
 Example capillary xml file:
-<equipment class="MicrodiffBeamstop">
+<object class="MicrodiffBeamstop">
   <username>Capillary</username>
-  <device role="beamstop" hwrid="/udiff_capillary"></device>
+  <object role="beamstop" hwrid="/udiff_capillary"></object>
   <save_cmd_name>saveCapillaryBeamPosition</save_cmd_name>
   <motors>
-    <device role="horizontal" hwrid="/capy"></device>
-    <device role="vertical" hwrid="/capz"></device>
+    <object role="horizontal" hwrid="/capy"></object>
+    <object role="vertical" hwrid="/capz"></object>
   </motors>
-</equipment>
+</object>
 """
 
 
-class MicrodiffBeamstop(Equipment):
+class MicrodiffBeamstop(HardwareObject):
     def init(self):
         self.beamstop = self.get_object_by_role("beamstop")
         self.beamstop.state_attr.connect_signal("update", self.checkPosition)

@@ -1,7 +1,7 @@
-from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
-class RobodiffFShut(Equipment):
+class RobodiffFShut(HardwareObject):
     def __init__(self, name):
         Equipment.__init__(self, name)
 

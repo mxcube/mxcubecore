@@ -3,7 +3,7 @@ from mxcubecore import HardwareRepository as HWR
 import logging
 import gevent
 
-from mxcubecore.BaseHardwareObjects import Device
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.Command.Tango import TangoCommand
 
 from PyTango import DeviceProxy
@@ -14,7 +14,7 @@ import numpy
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import MotorStates
 
 
-class TangoDCMotor(Device):
+class TangoDCMotor(HardwareObject):
 
     MOVESTARTED = 0
     NOTINITIALIZED = 0

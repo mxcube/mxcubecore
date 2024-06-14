@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import logging
-from mxcubecore.BaseHardwareObjects import Device
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
-class PX1Pss(Device):
+class PX1Pss(HardwareObject):
 
     states = {0: "not ready", 1: "ready"}
 

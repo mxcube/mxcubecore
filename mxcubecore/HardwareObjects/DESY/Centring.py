@@ -25,7 +25,7 @@ __license__ = "LGPLv3+"
 import gevent
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore.BaseHardwareObjects import Device
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from gevent import Timeout
 import numpy
 
@@ -37,7 +37,7 @@ from PyTango import DeviceProxy
 last_centred_position = [200, 200]
 
 
-class Centring(Device):
+class Centring(HardwareObject):
     """
     Description:     This class controls the operation of Tango Motor
     """

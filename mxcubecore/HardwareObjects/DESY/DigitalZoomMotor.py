@@ -25,7 +25,7 @@ __license__ = "GPL"
 
 
 import logging
-from mxcubecore.BaseHardwareObjects import Device
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import MotorStates
 
@@ -34,11 +34,11 @@ class DigitalZoomMotor(AbstractMotor, Device):
     """
     Works with camera devices which provide
     zoom_exists, set_zoom, get_zoom and get_zoom_min_max
-    <device class="DigitalZoomMotor">
+    <object class="DigitalZoomMotor">
         <username>Zoom</username>
         <actuator_name>Zoom</actuator_name>
         <object href="/mjpg-stream-video" role="camera"/>
-    </device>
+    </object>
     """
 
     def __init__(self, name):

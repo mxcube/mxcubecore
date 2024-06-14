@@ -36,13 +36,13 @@ from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import (
 Hardare objects allows to access Axis camera jpg frames via direct http requests.
 
 Example xml:
-<device class="AxisCamera">
+<object class="AxisCamera">
    <interval>1000</interval>
    <address>ADDRESS_OF_THE_CAMERA/axis-cgi/jpg/image.cgi</address>
    <user>USER</user>
    <password>PASSWORD</password>
    <image_size>(600, 480)</image_size>
-</device>
+</object>
 """
 
 

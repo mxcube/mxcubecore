@@ -19,7 +19,7 @@
 
 import logging
 import gevent
-from mxcubecore.BaseHardwareObjects import Device
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
 
 
@@ -28,7 +28,7 @@ __license__ = "LGPLv3+"
 __category__ = "General"
 
 
-class EMBLDoorInterlock(Device):
+class EMBLDoorInterlock(HardwareObject):
 
     DoorInterlockState = {
         3: "unlocked",
@@ -60,7 +60,7 @@ class EMBLDoorInterlock(Device):
         self.door_interlock_state = "unknown"
 
         self.use_door_interlock = self.get_property("useDoorInterlock", True)
-        
+
         self.chan_state_locked = self.get_channel_object("chanStateLocked")
         self.chan_state_locked.connect_signal("update", self.state_locked_changed)
         self.chan_state_breakable = self.get_channel_object("chanStateBreakable")

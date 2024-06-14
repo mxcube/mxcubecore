@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 import logging
 import time
-from mxcubecore.BaseHardwareObjects import Device
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from PyTango import DeviceProxy
 
 """Complex means we are not using SimpleDevice"""
 
 
-class SOLEILPss(Device):
+class SOLEILPss(HardwareObject):
     states = {0: "not ready", 1: "ready"}
 
     READ_CMD, READ_OUT = (0, 1)

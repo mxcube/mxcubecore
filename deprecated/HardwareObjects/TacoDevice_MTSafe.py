@@ -276,7 +276,7 @@ def dev_tcpudp(mdevname, mode):
         if Dev_deb[0] == 1:
             print(loc_c_pt)
         if (mode != "tcp") and (mode != "udp"):
-            print("usage: dev_tcpudp(<device_name>,udp|tcp)")
+            print("usage: dev_tcpudp(<object_name>,udp|tcp)")
             return 0
         try:
             ret = esrf_tcpudp(loc_c_pt, mode)

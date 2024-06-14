@@ -33,7 +33,7 @@ in the XML file.
 
 Example Hardware Object XML file :
 ==================================
-<device class="Qt4_LimaVideo">
+<object class="Qt4_LimaVideo">
    <type>basler</type>
    <encoding>yuv422p</encoding>
    <address>84.89.227.6</address>
@@ -41,7 +41,7 @@ Example Hardware Object XML file :
    <exposure>0.01</exposure>
    <mirror>(False, False)</mirror>
    <interval>30</interval>
-</device>
+</object>
 """
 import os
 import time

@@ -1,10 +1,10 @@
 import os
 
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.BaseHardwareObjects import Device
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
-class PX1Configuration(Device):
+class PX1Configuration(HardwareObject):
     def init(self):
         self.use_edna_value = self.get_property("use_edna")
         self.pin_length = self.get_property("pin_length")

@@ -4,11 +4,11 @@ import os
 import time
 import gevent.event
 import gevent
-from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
 
 
-class XrfSpectrum(Equipment):
+class XrfSpectrum(HardwareObject):
     def init(self):
 
         self.scanning = None

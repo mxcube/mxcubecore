@@ -10,7 +10,7 @@ Test the HardwareObjects.ISARAMaint sample changer maintenance hardware object.
 """
 
 
-class _ISARA(Device):
+class _ISARA(HardwareObject):
     """
     A small tango device used for testing ISARAMaint hardware object.
 

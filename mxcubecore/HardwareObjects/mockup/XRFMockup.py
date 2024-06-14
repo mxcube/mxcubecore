@@ -3,13 +3,13 @@ import gevent
 import time
 import numpy
 
-from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.TaskUtils import cleanup
 
 SCAN_LENGTH = 500
 
 
-class XRFMockup(Equipment):
+class XRFMockup(HardwareObject):
     def init(self):
         self.ready_event = gevent.event.Event()
         self.spectrumInfo = {}

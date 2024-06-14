@@ -3,7 +3,7 @@ EPICS implementation of AbstractMotor.
 
 Example of xml file:
 
-<device class="LNLS.EPICSMotor">
+<object class="LNLS.EPICSMotor">
     <channel type="epics" name="epicsActuator_val">SOL:S:m1.VAL</channel>
     <channel type="epics" name="epicsActuator_rbv" polling="500">SOL:S:m1.RBV</channel>
     <channel type="epics" name="epicsMotor_rlv">SOL:S:m1.RLV</channel>
@@ -17,7 +17,7 @@ Example of xml file:
     <motor_name>Omega</motor_name>
     <unit>1e-3</unit>
     <GUIstep>90</GUIstep>
-</device>
+</object>
 """
 import logging
 import time

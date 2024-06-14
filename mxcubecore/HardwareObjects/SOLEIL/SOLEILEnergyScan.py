@@ -9,12 +9,12 @@ import Xane
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
-from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.TaskUtils import cleanup
 from mxcubecore import HardwareRepository as HWR
 
 
-class SOLEILEnergyScan(Equipment):
+class SOLEILEnergyScan(HardwareObject):
     def init(self):
         logging.getLogger("HWR").info(
             "#############################    EnergyScan: INIT HWOBJ  ###################"

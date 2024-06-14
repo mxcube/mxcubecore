@@ -18,7 +18,7 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-from mxcubecore.BaseHardwareObjects import Device
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 __author__ = "Jan Meyer"
@@ -29,7 +29,7 @@ __license__ = "GPL"
 
 class MotorWPositions(AbstractMotor, Device):
     """
-    <device class="MotorWPositions">
+    <object class="MotorWPositions">
         <username>Dummy</username>
         <motors>
             <object role="rolename" href="/dummy"></object>
@@ -47,7 +47,7 @@ class MotorWPositions(AbstractMotor, Device):
                 <rolename>1.23</rolename>
             </position>
         </positions>
-    </device>
+    </object>
     """
 
     def __init__(self, name):

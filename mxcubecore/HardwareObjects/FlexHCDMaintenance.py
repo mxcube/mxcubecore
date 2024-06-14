@@ -2,7 +2,7 @@
 FLEX HCD maintenance mockup.
 """
 
-from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import HardwareObject
 import ast
 
 
@@ -25,7 +25,7 @@ TOOL_TO_STR = {
 }
 
 
-class FlexHCDMaintenance(Equipment):
+class FlexHCDMaintenance(HardwareObject):
 
     __TYPE__ = "FLEX_HCD"
     NO_OF_LIDS = 3

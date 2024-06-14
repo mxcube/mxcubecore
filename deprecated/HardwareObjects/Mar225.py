@@ -1,7 +1,7 @@
-from mxcubecore.BaseHardwareObjects import Device
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
-class Mar225(Device):
+class Mar225(HardwareObject):
     def __init__(self, name):
         Device.__init__(self, name)
 

@@ -1,9 +1,9 @@
-from mxcubecore.BaseHardwareObjects import Device
+from mxcubecore.BaseHardwareObjects import HardwareObject
 import math
 import numpy as np
 
 
-class MiniKappaCorrection(Device):
+class MiniKappaCorrection(HardwareObject):
     """
     this will work on numbers only!
     """

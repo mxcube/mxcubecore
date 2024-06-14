@@ -1,10 +1,10 @@
-from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.TaskUtils import task
 import time
 from PyTango.gevent import DeviceProxy
 
 
-class ID30A3PhotonFlux(Equipment):
+class ID30A3PhotonFlux(HardwareObject):
     def __init__(self, *args, **kwargs):
         Equipment.__init__(self, *args, **kwargs)
 

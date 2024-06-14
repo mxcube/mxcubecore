@@ -19,11 +19,11 @@ beamInfoChanged
 """
 
 import logging
-from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
 
 
-class BeamInfo(Equipment):
+class BeamInfo(HardwareObject):
     def __init__(self, *args):
         Equipment.__init__(self, *args)
 

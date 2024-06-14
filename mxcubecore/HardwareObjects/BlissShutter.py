@@ -28,7 +28,7 @@ Example xml file:
   <name>safshut</name>
   <type>tango</type>
   <object href="/bliss" role="controller"/>
-</device>
+</object>
 """
 from enum import Enum, unique
 import gevent

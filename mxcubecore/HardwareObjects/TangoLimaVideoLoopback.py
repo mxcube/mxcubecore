@@ -2,13 +2,13 @@
 
 Example configuration:
 ----------------------
-<device class="TangoLimaVideo">
+<object class="TangoLimaVideo">
   <username>Prosilica 1350C</username>
   <tangoname>id23/limaccd/minidiff2</tangoname>
   <bpmname>id23/limabeamviewer/minidiff2</bpmname>
   <interval>15</interval>
   <video_mode>RGB24</video_mode>
-</device>
+</object>
 
 If video mode is not specified, BAYER_RG16 is used by default.
 """

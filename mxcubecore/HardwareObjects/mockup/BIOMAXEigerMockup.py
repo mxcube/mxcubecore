@@ -26,10 +26,10 @@ import logging
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.TaskUtils import task, cleanup, error_cleanup
-from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
-class BIOMAXEigerMockup(Equipment):
+class BIOMAXEigerMockup(HardwareObject):
     """
     Description: Eiger hwobj based on tango
     """

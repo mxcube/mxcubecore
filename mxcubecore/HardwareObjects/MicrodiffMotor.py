@@ -9,14 +9,14 @@ class MD2TimeoutError(Exception):
 
 """
 Example xml file:
-<device class="MicrodiffMotor">
+<object class="MicrodiffMotor">
   <username>phiy</username>
   <exporter_address>wid30bmd2s:9001</exporter_address>
   <actuator_name>AlignmentY</actuator_name>
   <GUIstep>1.0</GUIstep>
   <unit>-1e-3</unit>
   <resolution>1e-2</resolution>
-</device>
+</object>
 """
 
 

@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """Tango Shutter Hardware Object
 Example XML:
-<device class = "TangoShutter">
+<object class = "TangoShutter">
   <username>label for users</username>
   <command type="tango" tangoname="my device" name="Open">Open</command>
   <command type="tango" tangoname="my device" name="Close">Close</command>
   <channel type="tango" name="State" tangoname="my device" polling="1000">State</channel>
-</device>
+</object>
 
 """
 

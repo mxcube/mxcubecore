@@ -20,14 +20,14 @@
 """
 Microdiff with Exporter implementation of AbstartNState
 Example xml file:
-<device class="ExporterNState">
+<object class="ExporterNState">
   <username>Fluorescence Detector</username>
   <exporter_address>wid30bmd2s:9001</exporter_address>
   <value_channel_name>FluoDetectorIsBack</value_channel_name>
   <state_channel_name>State</state_channel_name>
   <values>{"IN": False, "OUT": True}</values>
   <value_state>True</value_state>
-</device>
+</object>
 """
 from enum import Enum
 from gevent import Timeout, sleep

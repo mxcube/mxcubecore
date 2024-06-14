@@ -52,12 +52,12 @@ information). Value limits are included
 
 Example Hardware Object XML file :
 ==================================
-<device class="MachineInfo">
+<object class="MachineInfo">
     <updateIntervalS>120</updateIntervalS>
     <discPath>/home</discPath>
     <limits>{'current':90, 'temp': 25, 'hum': 60, 'intens': 0.1,
              'discSizeGB': 20}</limits>
-</device>
+</object>
 """
 import os
 import time

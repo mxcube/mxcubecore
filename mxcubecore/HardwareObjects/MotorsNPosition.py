@@ -31,7 +31,7 @@ from mxcubecore.BaseHardwareObjects import HardwareObjectState
 
 class MotorsNPosition(AbstractActuator):
     """
-    <device class="MotorsNState">
+    <object class="MotorsNState">
         <username>Dummy</username>
 
         <motors>
@@ -60,7 +60,7 @@ class MotorsNPosition(AbstractActuator):
             </position>
         </positions>
 
-    </device>
+    </object>
     """
 
     default_delta = 0.01

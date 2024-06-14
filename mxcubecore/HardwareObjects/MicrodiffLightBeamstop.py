@@ -3,14 +3,14 @@ Combine setting the back light IN with moving the beamstop out.
 This is used to set the back light in/out faster, than using
 the phase CENTRING - the beamstop motor moves only if needed.
 Example xml file:
-<device class="MicrodiffLightBeamstop">
+<object class="MicrodiffLightBeamstop">
   <username>Back Light</username>
   <exporter_address>wid30bmd2s:9001</exporter_address>
   <actuator_name>BackLightIsOn</actuator_name>
   <values>{"IN": True, "OUT": False}</values>
   <use_hwstate>True</use_hwstate>
   <object role="beamstop" href="/udiff_beamstop"/>
-</device>
+</object>
 """
 
 from mxcubecore.HardwareObjects.ExporterNState import ExporterNState
