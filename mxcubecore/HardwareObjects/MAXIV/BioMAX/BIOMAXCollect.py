@@ -16,9 +16,12 @@ from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 from mxcubecore.HardwareObjects.MAXIV.DataCollect import DataCollect
 from mxcubecore.HardwareObjects.MAXIV.SciCatPlugin import SciCatPlugin
 
-CORRECT_OMEGA_SCRIPT = "/mxn/groups/biomax/wmxsoft/scripts_mxcube/omega_correction/correct_omega_2024.py"
+CORRECT_OMEGA_SCRIPT = (
+    "/mxn/groups/biomax/wmxsoft/scripts_mxcube/omega_correction/correct_omega_2024.py"
+)
 GENERATE_THUMBNAIL_SCRIPT = "/mxn/groups/sw/mxsw/mxcube_scripts/generate_thumbnail"
 HPC_FE_HOST = "clu0-fe-0"
+
 
 class BIOMAXCollect(DataCollect):
     """
@@ -538,6 +541,24 @@ class BIOMAXCollect(DataCollect):
                 # self.close_safety_shutter()
             self.close_detector_cover()
             self.emit("collectImageTaken", oscillation_parameters["number_of_images"])
+
+            # XRAY CENTERING RELATED
+            if self.current_dc_parameters["experiment_type"] == "LineScan":
+                self.user_log.info(
+                    "Images are taken, waiting for Xray Centering Analysis to locate the crystal"
+                )
+                self.wait_for_xray_center_result(self.get_current_shape_id())
+            elif self.current_dc_parameters["experiment_type"] == "Mesh":
+                shape_id = self.get_current_shape_id()
+                shape = HWR.beamine.sample_view.get_shape(shape_id).as_dict()
+                num_cols = shape.get("num_cols")
+                num_rows = shape.get("num_rows")
+                if num_cols * num_rows < 10000:
+                    self.user_log.info(
+                        "Images are taken, waiting for Xray Centering Analysis to locate the crystal"
+                    )
+                    self.wait_for_xray_center_result(self.get_current_shape_id())
+
         except RuntimeError as ex:
             self.data_collection_cleanup()
             logging.getLogger("HWR").error("[COLLECT] Runtime Error: %s" % ex)
@@ -582,7 +603,7 @@ class BIOMAXCollect(DataCollect):
                 % self.get_mesh_total_nb_frames()
             )
             shape_id = self.get_current_shape_id()
-            shape = self.shape_history_hwobj.get_shape(shape_id).as_dict()
+            shape = HWR.beamline.sample_view.get_shape(shape_id).as_dict()
             range_x = shape.get("num_cols") * shape.get("cell_width") / 1000.0
             range_y = shape.get("num_rows") * shape.get("cell_height") / 1000.0
             self.diffractometer_hwobj.raster_scan(
@@ -608,7 +629,7 @@ class BIOMAXCollect(DataCollect):
         ]
         if self.current_dc_parameters.get("experiment_type") == "Mesh":
             shape_id = self.get_current_shape_id()
-            shape = self.shape_history_hwobj.get_shape(shape_id).as_dict()
+            shape = HWR.beamline.sample_view.get_shape(shape_id).as_dict()
             num_cols = shape.get("num_cols")
             num_rows = shape.get("num_rows")
             num_images = num_cols * num_rows
@@ -1555,7 +1576,7 @@ class BIOMAXCollect(DataCollect):
             self.current_dc_parameters[
                 "resolutionAtCorner"
             ] = self.get_resolution_at_corner()
-            beam_size_x, beam_size_y = self.get_beam_size()
+            beam_size_x, beam_size_y = HWR.beamline.beam.get_beam_size()
             self.current_dc_parameters["beamSizeAtSampleX"] = beam_size_x
             self.current_dc_parameters["beamSizeAtSampleY"] = beam_size_y
             self.current_dc_parameters["beamShape"] = self.get_beam_shape()
@@ -1579,5 +1600,62 @@ class BIOMAXCollect(DataCollect):
 
     def correct_omega_in_master_file(self, filename, overlap):
         cmd = f"ssh {HPC_FE_HOST} {CORRECT_OMEGA_SCRIPT} {filename} {-overlap}"
-        logging.getLogger("HWR").info("Correcting Omega in master file. Command to run is %s" % cmd)
+        logging.getLogger("HWR").info(
+            "Correcting Omega in master file. Command to run is %s" % cmd
+        )
         os.system(cmd)
+
+    def wait_for_xray_center_result(self, shape_id):
+        # is there an issue if one re-runs the collection?
+        with gevent.Timeout(
+            30, Exception("Timeout waiting for Xray Centering Analysis result")
+        ):
+            shape = HWR.beamline.sample_view.get_shape(shape_id)
+            while not shape.get_result():
+                gevent.sleep(0.5)
+        if shape.result_center is not None:
+            center_x = shape.result_center["x"]
+            if shape.t == "L":
+                center_y = 0
+                pos_1 = self.helical_pos["1"]
+                save_point = True
+            else:
+                center_y = shape.result_center["y"]
+                save_point = False
+            self.move_to_centered_position()
+            self.diffractometer_hwobj.wait_device_ready(5)
+            self.move_to_xray_center(
+                cent_x=center_x, cent_y=center_y, save_point=save_point
+            )
+            self.xray_center_found = True
+        else:
+            self.xray_center_found = False
+            msg = "No crystal is identified from the X-ray centering result!!"
+            logging.getLogger("HWR").info(msg)
+            self.user_log.error(msg)
+            self.emit_collection_failed(msg)
+
+    def move_to_xray_center(self, cent_x=0, cent_y=0, save_point=False):
+        # cent_x, cent_y is the cell value, not absolute value
+        beam_size_x, beam_size_y = HWR.beamline.beam.get_beam_size()
+        x_mm = cent_x * beam_size_x
+        y_mm = cent_y * beam_size_y
+        logging.getLogger("HWR").info(
+            "Should move sample by x {} mm, y {} mm to center it".format(x_mm, y_mm)
+        )
+        self.user_log.info(
+            "Crystal is identified from Xray diffraction and will be moved to the beam center"
+        )
+        self.diffractometer_hwobj.wait_device_ready(5)
+        self.diffractometer_hwobj.omega.moveRelative(-y_mm)
+        self.diffractometer_hwobj.wait_device_ready(5)
+        self.diffractometer_hwobj.move_cent_vertical_relative(-x_mm)
+        self.diffractometer_hwobj.save_centered_position()
+        cpos = self.diffractometer_hwobj.last_centered_position
+        if save_point:
+            self.diffractometer_hwobj.centring_status["motors"] = cpos
+            self.diffractometer_hwobj.centring_status["valid"] = True
+            self.diffractometer_hwobj.accept_centring()
+        logging.getLogger("HWR").info(
+            "Centring positions saved. Motors: {}".format(cpos)
+        )
