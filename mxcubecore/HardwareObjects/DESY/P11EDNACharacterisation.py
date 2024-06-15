@@ -370,7 +370,7 @@ class P11EDNACharacterisation(EDNACharacterisation):
             str(path_template.precision),
         )
         logging.info(
-            "======= Characterisation path template sta/beamline/p11/current/raw/jkjhl/ref-manually-mounted/screening_001/ref-manually-mounted_1_000001.h5rt_num ====%s",
+            "======= Characterisation path template start_num ====%s",
             str(path_template.start_num),
         )
         logging.info(
