@@ -684,6 +684,7 @@ class P11Collect(AbstractCollect):
         filter_thickness = self.get_filter_thickness() * 1000
         pinhole_diameter = HWR.beamline.beam.get_pinhole_size()
         focus = HWR.beamline.beam.get_beam_focus_label()
+        current = str(HWR.beamline.machine_info.get_current())
 
         output = INFO_TXT.format(
             run_type=run_type,
@@ -701,7 +702,7 @@ class P11Collect(AbstractCollect):
             focus=str(focus),
             filterTransmission=int(transmission),
             filterThickness=int(filter_thickness),
-            beamCurrent=100,
+            beamCurrent=float(current),
         )
         print(
             "===================================== WRITING INFO.TXT TO=============",
