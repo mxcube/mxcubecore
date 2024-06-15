@@ -2,6 +2,7 @@ import os
 import re
 import logging
 import time
+import copy
 
 from mxcubecore.model import queue_model_objects as qmo
 from mxcubecore.model import queue_model_enumerables as qme
@@ -432,6 +433,147 @@ class P11EDNACharacterisation(EDNACharacterisation):
         edna_input.process_directory = characterisation_dir
 
         return edna_input
+
+    def dc_from_output(self, edna_result, reference_image_collection):
+        data_collections = []
+
+        crystal = copy.deepcopy(reference_image_collection.crystal)
+        ref_proc_params = reference_image_collection.processing_parameters
+        processing_parameters = copy.deepcopy(ref_proc_params)
+
+        try:
+            char_results = edna_result.getCharacterisationResult()
+            edna_strategy = char_results.getStrategyResult()
+            collection_plan = edna_strategy.getCollectionPlan()[0]
+            wedges = collection_plan.getCollectionStrategy().getSubWedge()
+        except Exception:
+            pass
+        else:
+            try:
+                resolution = (
+                    collection_plan.getStrategySummary().getResolution().getValue()
+                )
+                resolution = round(resolution, 3)
+            except AttributeError:
+                resolution = None
+
+            try:
+                transmission = (
+                    collection_plan.getStrategySummary().getAttenuation().getValue()
+                )
+                transmission = round(transmission, 2)
+            except AttributeError:
+                transmission = None
+
+            try:
+                screening_id = edna_result.getScreeningId().getValue()
+            except AttributeError:
+                screening_id = None
+
+            for i in range(0, len(wedges)):
+                wedge = wedges[i]
+                exp_condition = wedge.getExperimentalCondition()
+                goniostat = exp_condition.getGoniostat()
+                beam = exp_condition.getBeam()
+
+                acq = qmo.Acquisition()
+                acq.acquisition_parameters = (
+                    HWR.beamline.get_default_acquisition_parameters()
+                )
+                acquisition_parameters = acq.acquisition_parameters
+
+                acquisition_parameters.centred_position = reference_image_collection.acquisitions[
+                    0
+                ].acquisition_parameters.centred_position
+
+                acq.path_template = HWR.beamline.get_default_path_template()
+
+                # Use the same path template as the reference_collection
+                # and update the members the needs to be changed. Keeping
+                # the directories of the reference collection.
+                ref_pt = reference_image_collection.acquisitions[0].path_template
+
+                acq.path_template = copy.deepcopy(ref_pt)
+
+                # This part was removing the "raw" from final directory and failing to collect data from EDNA-generated diffraction plan.
+                # Keep it here until it is clear that it is not propagating further.
+                # acq.path_template.directory = "/".join(
+                #     ref_pt.directory.split("/")[0:-2]
+                # )
+
+                acq.path_template.wedge_prefix = "w" + str(i + 1)
+                acq.path_template.reference_image_prefix = str()
+
+                if resolution:
+                    acquisition_parameters.resolution = resolution
+
+                if transmission:
+                    acquisition_parameters.transmission = transmission
+
+                if screening_id:
+                    acquisition_parameters.screening_id = screening_id
+
+                try:
+                    acquisition_parameters.osc_start = (
+                        goniostat.getRotationAxisStart().getValue()
+                    )
+                except AttributeError:
+                    pass
+
+                try:
+                    acquisition_parameters.osc_end = (
+                        goniostat.getRotationAxisEnd().getValue()
+                    )
+                except AttributeError:
+                    pass
+
+                try:
+                    acquisition_parameters.osc_range = (
+                        goniostat.getOscillationWidth().getValue()
+                    )
+                except AttributeError:
+                    pass
+
+                try:
+                    num_images = int(
+                        abs(
+                            acquisition_parameters.osc_end
+                            - acquisition_parameters.osc_start
+                        )
+                        / acquisition_parameters.osc_range
+                    )
+
+                    acquisition_parameters.first_image = 1
+                    acquisition_parameters.num_images = num_images
+                    acq.path_template.num_files = num_images
+                    acq.path_template.start_num = 1
+
+                except AttributeError:
+                    pass
+
+                try:
+                    acquisition_parameters.transmission = (
+                        beam.getTransmission().getValue()
+                    )
+                except AttributeError:
+                    pass
+
+                try:
+                    acquisition_parameters.energy = round(
+                        (123_984.0 / beam.getWavelength().getValue()) / 10000.0, 4
+                    )
+                except AttributeError:
+                    pass
+
+                try:
+                    acquisition_parameters.exp_time = beam.getExposureTime().getValue()
+                except AttributeError:
+                    pass
+
+                dc = qmo.DataCollection([acq], crystal, processing_parameters)
+                data_collections.append(dc)
+
+        return data_collections
 
     def mkdir_with_mode(self, directory, mode):
         """
