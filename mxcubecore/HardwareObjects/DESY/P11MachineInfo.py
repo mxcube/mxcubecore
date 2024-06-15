@@ -42,7 +42,7 @@ from mxcubecore.HardwareObjects.abstract.AbstractMachineInfo import AbstractMach
 class P11MachineInfo(AbstractMachineInfo):
     """Simulates the behaviour of an accelerator information"""
 
-    default_current = 100  # [mA]
+    default_current = 69.58  # [mA]
     default_message = "Beam Delivered"
     default_lifetime = 45  # hours Lifetime
     default_topup_remaining = 70  # [s]
