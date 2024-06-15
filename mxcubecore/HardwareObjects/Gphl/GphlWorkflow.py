@@ -1879,6 +1879,7 @@ class GphlWorkflow(HardwareObjectYaml):
         last_orientation = ()
         maxdev = -1
         snapshotted_rotation_ids = set()
+        scan_numbers = {}
         for scan in scans:
             sweep = scan.sweep
             acq = queue_model_objects.Acquisition()
@@ -1944,9 +1945,17 @@ class GphlWorkflow(HardwareObjectYaml):
                 )
             ss0 = filename_params.get("run")
             path_template.run_number = int(ss0) if ss0 else 1
-            path_template.base_prefix = filename_params.get("prefix", "")
             path_template.start_num = acq_parameters.first_image
             path_template.num_files = acq_parameters.num_images
+            prefix = filename_params.get("prefix", "")
+            if path_template.suffix == "h5":
+                # Add scan number to prefix for interleaved hdf5 files (only)
+                # NBNB Tempoary fix, pending solution to hdf5 interleaving problem
+                scan_no = scan_numbers.get(prefix, 0) + 1
+                scan_numbers[prefix] = scan_no
+                if scan_no > 1:
+                    prefix += "_scan%s" % scan_no
+            path_template.base_prefix = prefix
 
             key = (
                 path_template.base_prefix,
