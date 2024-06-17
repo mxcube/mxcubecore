@@ -1229,6 +1229,10 @@ class BIOMAXCollect(DataCollect):
         """
         config["OmegaStart"] = osc_start  # oscillation_parameters["start"]
         config["OmegaIncrement"] = osc_range  # oscillation_parameters["range"]
+        config["KappaStart"] = self.diffractometer_hwobj.kappa.get_value()
+        config["KappaIncrement"] = 0.0
+        config["PhiStart"] = self.diffractometer_hwobj.kappa_phi.get_value()
+        config["PhiIncrement"] = 0.0
         (
             beam_centre_x,
             beam_centre_y,
