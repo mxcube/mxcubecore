@@ -121,6 +121,10 @@ code base
  * Pixels are to be used for beam location (center)
  * Datetime YYYY-MM-DD HH:MM:SS(.ff) ,possibly with hundreds of seconds (ff), and with 24 hour clock.
 
+When writing code that converts between different units,
+it is recommended to use utility functions from {py:mod}`mxcubecore.utils.units` module.
+This will to aid in the readability of the code.
+
 #### Value update signals/callbacks
 The "valueChanged" and "stateChanged" signals should be used when a HardwareObjects value or state
 has been changed. Defined in for instance the base class [HardwareObject](https://github.com/mxcube/HardwareRepository/blob/ea8369ab2c08dbe539fd92ffee18fd21bb3a81b8/BaseHardwareObjects.py#L666), [AbstractMotor](https://github.com/mxcube/HardwareRepository/blob/master/HardwareObjects/abstract/AbstractMotor.py) and
