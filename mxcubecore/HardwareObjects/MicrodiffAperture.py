@@ -168,6 +168,6 @@ class MicrodiffAperture(ExporterNState):
             _nam = value.name
 
             if _nam not in ["IN", "OUT", "UNKNOWN"]:
-                values.append(_nam[1:])
+                values.append(_nam)
 
         return values
