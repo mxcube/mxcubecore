@@ -37,23 +37,30 @@ import gevent
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractMachineInfo import AbstractMachineInfo
+from PyTango import DeviceProxy
 
 
 class P11MachineInfo(AbstractMachineInfo):
     """Simulates the behaviour of an accelerator information"""
 
-    default_current = 69.58  # [mA]
-    default_message = "Beam Delivered"
-    default_lifetime = 45  # hours Lifetime
-    default_topup_remaining = 70  # [s]
+    default_current = 100.0  # [mA]
+    default_message = "Machine message is not updated"
+    default_lifetime = 1.85  # hours Lifetime
+    default_maschine_energy = 6.08 #GeV
 
     def init(self):
         """Initialise some parameters and update routine."""
         super().init()
+
+             
+        self.devPathGlobal = "PETRA/globals/keyword"
+        self.devGlobal = DeviceProxy(self.devPathGlobal)
+
         self._current = self.default_current
         self._message = self.default_message
         self._lifetime = self.default_lifetime
-        self._topup_remaining = self.default_topup_remaining
+        self._maschine_energy = self.default_maschine_energy
+
         self._run()
 
     def _run(self):
@@ -61,30 +68,10 @@ class P11MachineInfo(AbstractMachineInfo):
         gevent.spawn(self._update_me)
 
     def _update_me(self):
-        """Simulate change of different parameters"""
-        self.t0 = time.time()
-
-        while True:
-            gevent.sleep(5)
-            elapsed = time.time() - self.t0
-            self._topup_remaining = abs((self.default_topup_remaining - elapsed) % 300)
-            if self._topup_remaining < 60:
-                self._message = f"ATTENTION: topup in {self._topup_remaining} s"
-                self.attention = True
-            else:
-                self._message = self.default_message
-                self.attention = False
-
-            self._current = f"{(self.default_current - (3 - self._topup_remaining / 100.0) * 5):3.2f}"
-
-            values = {}
-            values["message"] = self._message
-            values["topup_remaining"] = self._topup_remaining
-            values["attention"] = self.attention
-
-            # current and lifetime should be configured in the xml file
-            values.update(self.get_value())
-            self.update_value(values)
+        self._current = self.devGlobal.read_attribute("BeamCurrent").value
+        self._message =  self.devGlobal.read_attribute("MessageText").value
+        self._lifetime =  self.devGlobal.read_attribute("BeamLifetime").value
+        self._maschine_energy = self.devGlobal.read_attribute("Energy").value
 
     def get_current(self) -> float:
         """Override method."""
@@ -94,14 +81,13 @@ class P11MachineInfo(AbstractMachineInfo):
         """Override method."""
         return self._lifetime
 
-    def get_topup_remaining(self) -> float:
-        """Override method."""
-        return self._topup_remaining
-
     def get_message(self) -> str:
         """Override method."""
         return self._message
 
+    def get_maschine_energy(self) -> float:
+        """Override method."""
+        return self._maschine_energy
 
 def test():
     """Test routine"""
