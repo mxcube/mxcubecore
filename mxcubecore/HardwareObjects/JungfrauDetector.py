@@ -1,5 +1,4 @@
 import math
-from pathlib import Path
 from tango import DeviceProxy, DevState
 from mxcubecore.utils.units import us_to_sec, sec_to_us, ev_to_kev, meter_to_mm
 from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
@@ -10,7 +9,6 @@ TANGO_TIMEOUT_MS = 6000
 
 # time to wait between reading detector state, in seconds
 STATE_POLL_INTERVAL = 0.4
-DATA_ROOT_DIR = Path("/data/visitors/micromax")
 
 TANGO_TO_HWO_STATES = {
     DevState.ON: HardwareObjectState.READY,
@@ -139,10 +137,6 @@ class JungfrauDetector(AbstractDetector):
         pass
 
     def prepare_acquisition(self, config):
-        def get_file_prefix():
-            file_name = Path(config["FilenamePattern"])
-            return str(file_name.relative_to(DATA_ROOT_DIR))
-
         def maybe_set(attr: str, conf_name: str):
             """
             Optionally set tango device attribute from the config dictionary.
@@ -187,8 +181,12 @@ class JungfrauDetector(AbstractDetector):
         dev.write_attribute("omega__vector__#2", 1.0)
         dev.write_attribute("omega__vector__#3", 0.0)
 
-        # set where file should be written
-        dev.file_prefix = get_file_prefix()
+        #
+        # set where file should be written,
+        # Jungfrau takes paths without the leading '/',
+        # e.g. '/foo/bar/muu' must be specified as 'foo/bar/muu'
+        #
+        dev.file_prefix = config["FilenamePattern"][1:]
 
         #
         # Arm detector
