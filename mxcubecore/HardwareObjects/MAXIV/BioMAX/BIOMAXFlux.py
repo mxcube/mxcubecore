@@ -345,6 +345,13 @@ class BIOMAXFlux(AbstractFlux):
             self.flux_density = -1.0
             self.logger.error("ERROR calculating flux density %s", str(ex))
 
+    def get_average_flux_density(self, transmission=None):
+        flux_at_100 = self.flux_density
+        if flux_at_100 < 0:
+            return None
+        ref_transmission = transmission or HWR.beamline.transmission.get_value()
+        return flux_at_100 * ref_transmission / 100.0
+
     def estimate_flux(self):
         """
         flux estimation based on BCU. Derived from the biomax macro which estimates the flux from
