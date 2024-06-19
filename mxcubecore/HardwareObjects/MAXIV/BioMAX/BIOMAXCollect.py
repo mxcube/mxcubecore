@@ -409,7 +409,7 @@ class BIOMAXCollect(DataCollect):
                 "DataCollection", wait=True, timeout=200
             )
 
-        self.flux_before_collect = self.get_instant_flux()
+        self.flux_before_collect = 0 #self.get_instant_flux()
         self.flux_after_collect = None
         # flux value is a string
         if float(self.flux_before_collect) < 1:
