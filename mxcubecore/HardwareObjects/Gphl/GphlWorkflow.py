@@ -320,6 +320,8 @@ class GphlWorkflow(HardwareObjectYaml):
         data_model = self._queue_entry.get_data_model()
         strategy_settings = data_model.strategy_settings
         space_group = data_model.space_group or ""
+        if space_group == "None":
+            space_group = ""
         if choose_lattice:
             header, soldict, select_row = self.parse_indexing_solution(choose_lattice)
             lattice = list(soldict.values())[select_row].bravaisLattice
@@ -1949,7 +1951,7 @@ class GphlWorkflow(HardwareObjectYaml):
             path_template.start_num = acq_parameters.first_image
             path_template.num_files = acq_parameters.num_images
             prefix = filename_params.get("prefix", "")
-            if path_template.suffix == "h5":
+            if path_template.suffix.endswith("h5"):
                 # Add scan number to prefix for interleaved hdf5 files (only)
                 # NBNB Tempoary fix, pending solution to hdf5 interleaving problem
                 scan_no = scan_numbers.get(prefix, 0) + 1
@@ -1957,7 +1959,6 @@ class GphlWorkflow(HardwareObjectYaml):
                 if scan_no > 1:
                     prefix += "_scan%s" % scan_no
             path_template.base_prefix = prefix
-
             key = (
                 path_template.base_prefix,
                 path_template.run_number,
