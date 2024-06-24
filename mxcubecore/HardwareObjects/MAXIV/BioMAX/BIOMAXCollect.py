@@ -594,7 +594,7 @@ class BIOMAXCollect(DataCollect):
                 wait=wait,
             )
         else:
-            self.diffractometer_hwobj.osc_scan(start, end, exptime, wait=wait)
+            self.diffractometer_hwobj.do_oscillation_scan(start, end, exptime, wait=wait)
 
     def _update_task_progress(self):
         logging.getLogger("HWR").info("[BIOMAXCOLLECT] update task progress launched")
