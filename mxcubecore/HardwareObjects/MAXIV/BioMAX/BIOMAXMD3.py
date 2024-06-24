@@ -192,7 +192,7 @@ class BIOMAXMD3(MAXIVMD3):
             )
             self.set_phase("Centring", wait=True, timeout=200)
         # make sure the back light factor is 1, zoom level is 1, before loop centering
-        self.zoom_motor_hwobj.moveToPosition("Zoom 1")
+        self.zoom_motor_hwobj.set_value("Zoom 1")
         self.wait_device_ready(20)
         self.back_light.move(1)
         self.wait_device_ready(2)
