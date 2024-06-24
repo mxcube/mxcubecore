@@ -6,10 +6,10 @@ import math
 import requests
 import uuid
 import json
-import re
 import PyTango
 import sys
 
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.TaskUtils import task
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
@@ -65,38 +65,42 @@ class BIOMAXCollect(DataCollect):
         Descript. :
         """
         self.ready_event = gevent.event.Event()
-        self.diffractometer_hwobj = self.get_object_by_role("diffractometer")
-        self.lims_client_hwobj = self.get_object_by_role("lims_client")
-        self.machine_info_hwobj = self.get_object_by_role("mach_info")
-        self.energy_hwobj = self.get_object_by_role("energy")
-        self.resolution_hwobj = self.get_object_by_role("resolution")
-        self.detector_hwobj = self.get_object_by_role("detector")
-        self.flux_hwobj = self.get_object_by_role("flux")
-        self.autoprocessing_hwobj = self.get_object_by_role("auto_processing")
-        self.beam_info_hwobj = self.get_object_by_role("beam_info")
-        self.transmission_hwobj = self.get_object_by_role("transmission")
-        self.sample_changer_hwobj = self.get_object_by_role("sample_changer")
-        self.sample_changer_maint_hwobj = self.get_object_by_role(
-            "sample_changer_maintenance"
-        )
+        self.diffractometer_hwobj = HWR.beamline.diffractometer
+        self.lims_client_hwobj = HWR.beamline.lims
+        self.machine_info_hwobj = HWR.beamline.machine_info
+        self.energy_hwobj = HWR.beamline.energy
+        self.resolution_hwobj = HWR.beamline.resolution
+        self.detector_hwobj = HWR.beamline.detector
+        self.flux_hwobj = HWR.beamline.flux
+        self.autoprocessing_hwobj = HWR.beamline.online_processing
+        self.beam_info_hwobj = HWR.beamline.beam
+        self.transmission_hwobj = HWR.beamline.transmission
+        self.sample_changer_hwobj = HWR.beamline.sample_changer
+        self.sample_changer_maint_hwobj = HWR.beamline.sample_changer_maintenance
         self.dtox_hwobj = self.get_object_by_role("dtox")
-        self.detector_cover_hwobj = self.get_object_by_role("detector_cover")
-        self.session_hwobj = self.get_object_by_role("session")
+        self.session_hwobj = HWR.beamline.session
         self.datacatalog_url = self.get_property("datacatalog_url", None)
         self.datacatalog_token = self.get_property("datacatalog_token", None)
         self.scicat_enabled = self.get_property("scicat_enabled", False)
         if self.scicat_enabled:
-            self.scicat_hwobj = SciCatPlugin()
-            self.log.info("[COLLECT] SciCat Datacatalog enabled")
+            try:
+                self.scicat_hwobj = SciCatPlugin()
+                self.log.info("[COLLECT] SciCat Datacatalog enabled")
+            except Exception as ex:
+                self.log.warning(
+                    "[COLLECT] SciCat Datacatalog not initialized. Error was {}".format(
+                        ex
+                    )
+                )
         else:
             self.scicat_hwobj = None
             self.log.warning("[COLLECT] SciCat Datacatalog not enabled")
 
-        self.shape_history_hwobj = self.get_object_by_role("shape_history")
+        self.shape_history_hwobj = HWR.beamline.sample_view
         self.dozor_hwobj = self.get_object_by_role("dozor")
         self.polarisation = float(self.get_property("polarisation", 0.99))
+        self.safety_shutter_hwobj = HWR.beamline.safety_shutter
 
-        self.safety_shutter_hwobj = self.get_object_by_role("safety_shutter")
         # todo
         # self.fast_shutter_hwobj = self.get_object_by_role("fast_shutter")
         # self.cryo_stream_hwobj = self.get_object_by_role("cryo_stream")
@@ -409,7 +413,7 @@ class BIOMAXCollect(DataCollect):
                 "DataCollection", wait=True, timeout=200
             )
 
-        self.flux_before_collect = 0 #self.get_instant_flux()
+        self.flux_before_collect = 0  # self.get_instant_flux()
         self.flux_after_collect = None
         # flux value is a string
         if float(self.flux_before_collect) < 1:
@@ -433,7 +437,7 @@ class BIOMAXCollect(DataCollect):
         osc_range = oscillation_parameters["range"]
         nframes = oscillation_parameters["number_of_images"]
         overlap = oscillation_parameters["overlap"]
-        ntriggers =  oscillation_parameters["num_triggers"]
+        ntriggers = oscillation_parameters["num_triggers"]
         triggers_to_collect = []
 
         if overlap > 0 or overlap < 0:
@@ -963,9 +967,15 @@ class BIOMAXCollect(DataCollect):
             % self.current_dc_parameters
         )
         logging.getLogger("HWR").info("[COLLECT] Launching MAXIV Autoprocessing")
-        if self.autoprocessing_hwobj is not None:
-            self.autoprocessing_hwobj.execute_autoprocessing(
+        autoprocess_hwobj = HWR.beamline.online_processing
+        if autoprocess_hwobj:
+            autoprocess_hwobj.execute_autoprocessing(
                 process_event, self.current_dc_parameters, frame_number
+            )
+        else:
+            logging.getLogger("HWR").warn(
+                "[COLLECT] No MAXIV Autoprocessing config: `autoprocess_hwobj=%s`",
+                autoprocess_hwobj,
             )
 
     def get_beam_centre(self):
@@ -1269,9 +1279,6 @@ class BIOMAXCollect(DataCollect):
         #    file_parameters["template"] = image_file_template
         file_parameters["filename"] = "%s_master.h5" % name_pattern
         self.display["file_name1"] = file_parameters["filename"]
-        self.display["file_name2"] = re.sub(
-            "^/mxn/biomax-eiger-dc-1", "/localdata", file_parameters["filename"]
-        )
 
         # os.path.join(file_parameters["directory"], image_file_template)
         config["FilenamePattern"] = name_pattern
