@@ -804,7 +804,8 @@ class BIOMAXCollect(DataCollect):
 
     def generate_and_copy_thumbnails(self, data_path, frame_number):
         #  generare diffraction thumbnails
-        image_file_template = self.current_dc_parameters["fileinfo"]["template"]
+        file_template = self.current_dc_parameters["fileinfo"]["template"]
+        image_file_template = file_template.replace("master", "data_%06d")
         archive_directory = self.current_dc_parameters["fileinfo"]["archive_directory"]
         thumb_filename = "%s.thumb.jpeg" % os.path.splitext(image_file_template)[0]
         jpeg_thumbnail_file_template = os.path.join(archive_directory, thumb_filename)
@@ -817,24 +818,8 @@ class BIOMAXCollect(DataCollect):
         logging.getLogger("HWR").info(
             "[COLLECT] Generating thumbnails, data path: %s" % data_path
         )
-        input_file = data_path
-        binfactor = 1
-        nimages = 1
-        first_image = frame_number - 1
-        rootname, ext = os.path.splitext(input_file)
-        rings = [0.25, 0.50, 0.75, 1.00, 1.25]
-        script = "/mxn/groups/biomax/wmxsoft/scripts_mxcube/EigerDataSet.py"
-        cmd = (
-            "ssh b-biomax-eiger-dc-1 python %s -input %s -binfactor %d -output %s -start %d -nimages %d &"
-            % (
-                script,
-                input_file,
-                binfactor,
-                jpeg_thumbnail_full_path,
-                first_image,
-                nimages,
-            )
-        )
+        script = "/mxn/groups/sw/mxsw/mxcube_scripts/generate_thumbnail"
+        cmd = f"ssh clu0-fe-0 {script} {data_path} {nimages} {jpeg_thumbnail_full_path}"
         logging.getLogger("HWR").info(cmd)
         os.system(cmd)
 
