@@ -1212,6 +1212,11 @@ class P11NanoDiff(GenericDiffractometer):
             gevent.sleep(0.5)
 
     def is_collect_phase(self):
+        if self.get_phase() == GenericDiffractometer.PHASE_COLLECTION:
+            return True
+        else:
+            self.wait_phase()
+            
         return self.get_phase() == GenericDiffractometer.PHASE_COLLECTION
 
     def goto_collect_phase(self, wait=True):
