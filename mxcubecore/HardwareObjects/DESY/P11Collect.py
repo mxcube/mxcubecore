@@ -947,8 +947,6 @@ class P11Collect(AbstractCollect):
             thick3 = self.filter_server.Filter3Thickness
 
             thickness = int(thick1) + int(thick2) + int(thick3)
-            print("++++++++++++++++++++++++++++++++++++++ Filter THickness", thickness)
-
             return float(thickness) / 1_000_000
         else:
             return -1
