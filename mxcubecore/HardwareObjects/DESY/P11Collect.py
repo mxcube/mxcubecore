@@ -980,44 +980,7 @@ class P11Collect(AbstractCollect):
         else:
             return -1
 
-    def generate_xds_template(self):
-        """
-        The function generates an XDS template by executing a command on a remote server.
-        """
-        self.log.debug(
-            "============== Generating XDS template.============================"
-        )
-
-        h5file = self.latest_h5_filename
-
-        basedir, fname = os.path.split(h5file)
-
-        self.log.debug(
-            "============== BASEDIR for Generating XDS template "
-            + str(basedir)
-            + "============================"
-        )
-
-        process_dir = basedir.replace("/raw/", "/processed/") + "/manual"
-        self.mkdir_with_mode(process_dir, mode=0o777)
-
-        rel_image_dir = self.get_relative_path(process_dir, basedir)
-        rel_image_path = os.path.join(rel_image_dir, fname)
-
-        cmd_tpl = (
-            "\"sleep 20; module load xdsapp/3.1.9; cd '{processpath:s}'; "
-            + "generate_XDS.INP '{imagepath:s}'\" >/dev/null 2>&1\n"
-        )
-
-        cmd = cmd_tpl.format(imagepath=h5file, processpath=process_dir)
-        os.system("ssh -n -f p11user@haspp11eval01 " + cmd)
-        self.log.debug(
-            "============== "
-            + "ssh -n -f p11user@haspp11eval01 "
-            + cmd
-            + "============================"
-        )
-
+  
     def xdsapp_maxwell(self):
         self.log.debug("==== XDSAPP AUTOPROCESSING IS STARTED ==========")
 
