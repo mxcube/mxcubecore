@@ -424,12 +424,12 @@ class P11Collect(AbstractCollect):
 
                 # # Adding h5 info for
                 # TODO: Keep it commented before the characterisation header info in HDF5 will be checked.
-                # start_angles_collected = []
-                # for nf in range(nframes):
-                #     start_angles_collected.append(start_angle + nf * angle_inc)
-                # self.add_h5_info_characterisation(
-                #     self.latest_h5_filename, start_angles_collected, img_range
-                # )
+                start_angles_collected = []
+                for nf in range(nframes):
+                    start_angles_collected.append(start_angle + nf * angle_inc)
+                self.add_h5_info_characterisation(
+                    self.latest_h5_filename, start_angles_collected, img_range
+                )
 
                 latest_image = HWR.beamline.detector.get_eiger_name_pattern()
                 latest_local_path = os.path.dirname(f"/gpfs{latest_image}_master.h5")
@@ -440,7 +440,7 @@ class P11Collect(AbstractCollect):
                     start_angle,
                     nframes,
                     img_range,
-                    stop_angle - start_angle,
+                    angle_inc,
                     exp_time,
                     "screening",
                 )
@@ -633,72 +633,138 @@ class P11Collect(AbstractCollect):
         exposuretime,
         run_type,
     ):
-        # Put it in a raw
+        if run_type == "regular":
 
-        INFO_TXT = (
-            "run type:            {run_type:s}\n"
-            + "run name:            {name:s}\n"
-            + "start angle:         {startangle:.2f}deg\n"
-            + "frames:              {frames:d}\n"
-            + "degrees/frame:       {degreesperframe:.2f}deg\n"
-            + "image interval:      {imageinterval:.2f}deg\n"
-            + "exposure time:       {exposuretime:.3f}ms\n"
-            + "energy:              {energy:.3f}keV\n"
-            + "wavelength:          {wavelength:.3f}A\n"
-            + "detector distance:   {detectordistance:.2f}mm\n"
-            + "resolution:          {resolution:.2f}A\n"
-            + "aperture:            {pinholeDiameter:d}um\n"
-            + "focus:               {focus:s}\n"
-            + "filter transmission: {filterTransmission:.3f}%\n"
-            + "filter thickness:    {filterThickness:d}um\n"
-            + "ring current:        {beamCurrent:.3f}mA\n"
-            + "\n"
-            + "For exact flux reading, please consult the staff."
-            + "Typical flux of P11 at 12 keV with 100 mA ring current "
-            + "(beam area is defined by selected pinhole in flat beam, in "
-            + "focused mode typically pinhole of 200 um is used and beam "
-            + "areas is defined by focusing state):\n"
-            + "\n"
-            + "Focus       Beam area (um)  Flux (ph/s)\n"
-            + "Flat        200 x 200       2e12\n"
-            + "Flat        100 x 100       5e11\n"
-            + "Flat          50 x 50       1.25e11\n"
-            + "Flat          20 x 20       2e10\n"
-            + "Focused     200 x 200       4.4e12\n"
-            + "Focused     100 x 100       9.9e12\n"
-            + "Focused       50 x 50       9.9e12\n"
-            + "Focused       20 x 20       9.9e12\n"
-            + "Focused         9 x 4       8.7e12\n"
-        )
+            INFO_TXT = (
+                "run type:            {run_type:s}\n"
+                + "run name:            {name:s}\n"
+                + "start angle:         {startangle:.2f}deg\n"
+                + "frames:              {frames:d}\n"
+                + "degrees/frame:       {degreesperframe:.2f}deg\n"
+                + "exposure time:       {exposuretime:.3f}ms\n"
+                + "energy:              {energy:.3f}keV\n"
+                + "wavelength:          {wavelength:.3f}A\n"
+                + "detector distance:   {detectordistance:.2f}mm\n"
+                + "resolution:          {resolution:.2f}A\n"
+                + "aperture:            {pinholeDiameter:d}um\n"
+                + "focus:               {focus:s}\n"
+                + "filter transmission: {filterTransmission:.3f}%\n"
+                + "filter thickness:    {filterThickness:d}um\n"
+                + "ring current:        {beamCurrent:.3f}mA\n"
+                + "\n"
+                + "For exact flux reading, please consult the staff."
+                + "Typical flux of P11 at 12 keV with 100 mA ring current "
+                + "(beam area is defined by selected pinhole in flat beam, in "
+                + "focused mode typically pinhole of 200 um is used and beam "
+                + "areas is defined by focusing state):\n"
+                + "\n"
+                + "Focus       Beam area (um)  Flux (ph/s)\n"
+                + "Flat        200 x 200       2e12\n"
+                + "Flat        100 x 100       5e11\n"
+                + "Flat          50 x 50       1.25e11\n"
+                + "Flat          20 x 20       2e10\n"
+                + "Focused     200 x 200       4.4e12\n"
+                + "Focused     100 x 100       9.9e12\n"
+                + "Focused       50 x 50       9.9e12\n"
+                + "Focused       20 x 20       9.9e12\n"
+                + "Focused         9 x 4       8.7e12\n"
+            )
 
-        energy = HWR.beamline.energy.get_value()
-        wavelength = 12.3984 / (energy)  # in Angstrom
-        resolution = HWR.beamline.resolution.get_value()
-        detectordistance = HWR.beamline.detector.get_eiger_detector_distance()
-        transmission = HWR.beamline.transmission.get_value()
-        filter_thickness = self.get_filter_thickness_in_mm()
-        pinhole_diameter = HWR.beamline.beam.get_pinhole_size()
-        focus = HWR.beamline.beam.get_beam_focus_label()
-        current = HWR.beamline.machine_info.get_current()
+            energy = HWR.beamline.energy.get_value()
+            wavelength = 12.3984 / (energy)  # in Angstrom
+            resolution = HWR.beamline.resolution.get_value()
+            detectordistance = HWR.beamline.detector.get_eiger_detector_distance()
+            transmission = HWR.beamline.transmission.get_value()
+            filter_thickness = self.get_filter_thickness_in_mm()
+            pinhole_diameter = HWR.beamline.beam.get_pinhole_size()
+            focus = HWR.beamline.beam.get_beam_focus_label()
+            current = HWR.beamline.machine_info.get_current()
 
-        output = INFO_TXT.format(
-            run_type=run_type,
-            name=name,
-            startangle=startangle,
-            frames=frames,
-            degreesperframe=degreesperframe,
-            imageinterval=imageinterval,
-            exposuretime=exposuretime * 1000,
-            energy=energy,
-            wavelength=wavelength,
-            detectordistance=detectordistance,
-            resolution=resolution,
-            pinholeDiameter=int(pinhole_diameter),
-            focus=str(focus),
-            filterTransmission=int(transmission),
-            filterThickness=int(filter_thickness),
-            beamCurrent=float(current),
-        )
+            output = INFO_TXT.format(
+                run_type=run_type,
+                name=name,
+                startangle=startangle,
+                frames=frames,
+                degreesperframe=degreesperframe,
+                exposuretime=exposuretime * 1000,
+                energy=energy,
+                wavelength=wavelength,
+                detectordistance=detectordistance,
+                resolution=resolution,
+                pinholeDiameter=int(pinhole_diameter),
+                focus=str(focus),
+                filterTransmission=int(transmission),
+                filterThickness=int(filter_thickness),
+                beamCurrent=float(current),
+            )
+            
+        else:
+            INFO_TXT = (
+                "run type:            {run_type:s}\n"
+                + "run name:            {name:s}\n"
+                + "start angle:         {startangle:.2f}deg\n"
+                + "frames:              {frames:d}\n"
+                + "degrees/frame:       {degreesperframe:.2f}deg\n"
+                + "image interval:      {imageinterval:.2f}deg\n"
+                + "exposure time:       {exposuretime:.3f}ms\n"
+                + "energy:              {energy:.3f}keV\n"
+                + "wavelength:          {wavelength:.3f}A\n"
+                + "detector distance:   {detectordistance:.2f}mm\n"
+                + "resolution:          {resolution:.2f}A\n"
+                + "aperture:            {pinholeDiameter:d}um\n"
+                + "focus:               {focus:s}\n"
+                + "filter transmission: {filterTransmission:.3f}%\n"
+                + "filter thickness:    {filterThickness:d}um\n"
+                + "ring current:        {beamCurrent:.3f}mA\n"
+                + "\n"
+                + "For exact flux reading, please consult the staff."
+                + "Typical flux of P11 at 12 keV with 100 mA ring current "
+                + "(beam area is defined by selected pinhole in flat beam, in "
+                + "focused mode typically pinhole of 200 um is used and beam "
+                + "areas is defined by focusing state):\n"
+                + "\n"
+                + "Focus       Beam area (um)  Flux (ph/s)\n"
+                + "Flat        200 x 200       2e12\n"
+                + "Flat        100 x 100       5e11\n"
+                + "Flat          50 x 50       1.25e11\n"
+                + "Flat          20 x 20       2e10\n"
+                + "Focused     200 x 200       4.4e12\n"
+                + "Focused     100 x 100       9.9e12\n"
+                + "Focused       50 x 50       9.9e12\n"
+                + "Focused       20 x 20       9.9e12\n"
+                + "Focused         9 x 4       8.7e12\n"
+            )
+
+            energy = HWR.beamline.energy.get_value()
+            wavelength = 12.3984 / (energy)  # in Angstrom
+            resolution = HWR.beamline.resolution.get_value()
+            detectordistance = HWR.beamline.detector.get_eiger_detector_distance()
+            transmission = HWR.beamline.transmission.get_value()
+            filter_thickness = self.get_filter_thickness_in_mm()
+            pinhole_diameter = HWR.beamline.beam.get_pinhole_size()
+            focus = HWR.beamline.beam.get_beam_focus_label()
+            current = HWR.beamline.machine_info.get_current()
+
+            output = INFO_TXT.format(
+                run_type=run_type,
+                name=name,
+                startangle=startangle,
+                frames=frames,
+                degreesperframe=degreesperframe,
+                imageinterval=imageinterval,
+                exposuretime=exposuretime * 1000,
+                energy=energy,
+                wavelength=wavelength,
+                detectordistance=detectordistance,
+                resolution=resolution,
+                pinholeDiameter=int(pinhole_diameter),
+                focus=str(focus),
+                filterTransmission=int(transmission),
+                filterThickness=int(filter_thickness),
+                beamCurrent=float(current),
+            )
+            
+        
         f = open(path + "/info.txt", "w")
         f.write(output)
         f.close()
