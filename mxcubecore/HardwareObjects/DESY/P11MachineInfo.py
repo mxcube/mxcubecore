@@ -46,13 +46,12 @@ class P11MachineInfo(AbstractMachineInfo):
     default_current = 100.0  # [mA]
     default_message = "Machine message is not updated"
     default_lifetime = 1.85  # hours Lifetime
-    default_maschine_energy = 6.08 #GeV
+    default_maschine_energy = 6.08  # GeV
 
     def init(self):
         """Initialise some parameters and update routine."""
         super().init()
 
-             
         self.devPathGlobal = "PETRA/globals/keyword"
         self.devGlobal = DeviceProxy(self.devPathGlobal)
 
@@ -69,8 +68,8 @@ class P11MachineInfo(AbstractMachineInfo):
 
     def _update_me(self):
         self._current = self.devGlobal.read_attribute("BeamCurrent").value
-        self._message =  self.devGlobal.read_attribute("MessageText").value
-        self._lifetime =  self.devGlobal.read_attribute("BeamLifetime").value
+        self._message = self.devGlobal.read_attribute("MessageText").value
+        self._lifetime = self.devGlobal.read_attribute("BeamLifetime").value
         self._maschine_energy = self.devGlobal.read_attribute("Energy").value
 
     def get_current(self) -> float:
@@ -88,6 +87,7 @@ class P11MachineInfo(AbstractMachineInfo):
     def get_maschine_energy(self) -> float:
         """Override method."""
         return self._maschine_energy
+
 
 def test():
     """Test routine"""
