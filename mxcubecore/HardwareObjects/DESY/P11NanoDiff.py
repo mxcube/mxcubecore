@@ -255,9 +255,9 @@ class P11NanoDiff(GenericDiffractometer):
             h = 0.5
 
         # Save the debug results
-        name_pattern = "%s_%s.jpg" % (os.getuid(), time.asctime().replace(" ", "_"))
-        directory = "%s/murko" % os.getenv("HOME")
-
+        name_pattern = f"{os.getuid()}_{time.asctime().replace(' ', '_')}.jpg"
+        directory = f"{os.getenv('HOME')}/murko"
+        os.makedirs(directory, exist_ok=True)
         template = os.path.join(directory, name_pattern)
         plot_analysis([image_jpeg], analysis, image_paths=[template])
 
@@ -1216,7 +1216,7 @@ class P11NanoDiff(GenericDiffractometer):
             return True
         else:
             self.wait_phase()
-            
+
         return self.get_phase() == GenericDiffractometer.PHASE_COLLECTION
 
     def goto_collect_phase(self, wait=True):
