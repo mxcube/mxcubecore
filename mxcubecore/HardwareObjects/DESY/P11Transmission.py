@@ -42,7 +42,6 @@ class P11Transmission(AbstractTransmission):
         self.chan_state = None
 
     def init(self):
-
         limits = self.get_property("limits", None)
 
         try:
@@ -83,7 +82,6 @@ class P11Transmission(AbstractTransmission):
         return self.chan_read_value.get_value() * 100.0
 
     def state_changed(self, state=None):
-
         if state is None:
             state = self.chan_state.get_value()
 

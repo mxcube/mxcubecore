@@ -26,7 +26,6 @@ class ValueStateChannel(HardwareObject):
         super().__init__(name)
 
     def init(self):
-
         self.yellow_states = self.green_states = self.red_states = None
         self.yellow_limits = self.red_limits = None
 

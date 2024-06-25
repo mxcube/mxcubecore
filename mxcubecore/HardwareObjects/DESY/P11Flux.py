@@ -39,7 +39,6 @@ class P11Flux(AbstractFlux):
         self.current_flux_dict = {}
 
     def init(self):
-
         # Here are reference flux values from the config file
         # Those are values at which flux is measured
         self.default_flux = self.get_property("defaultFlux")

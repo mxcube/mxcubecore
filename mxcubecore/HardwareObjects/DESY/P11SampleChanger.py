@@ -35,7 +35,6 @@ from mxcubecore import HardwareRepository as HWR
 
 
 class P11SampleChanger(SampleChanger):
-
     __TYPE__ = "P11SC"
     NO_OF_BASKETS = 23
     NO_OF_SAMPLES_IN_BASKET = 16
@@ -180,7 +179,6 @@ class P11SampleChanger(SampleChanger):
 
         # Do a chained load in this case
         if self.has_loaded_sample():
-
             # Do first an unload in this case
             if (sample is None) or (sample == self.get_loaded_sample()):
                 raise Exception(
@@ -211,7 +209,6 @@ class P11SampleChanger(SampleChanger):
         return self.get_loaded_sample()
 
     def _load(self, sample_no):
-
         self.log.debug("   - checking if conditions (except cryo) are all fulfilled")
         if not self.check_pre_conditions():
             raise Exception("conditions for loading not met")
@@ -242,7 +239,6 @@ class P11SampleChanger(SampleChanger):
         )
 
     def _unload(self):
-
         self.log.debug("   - checking if conditions (except cryo) are all fulfilled")
         if not self.check_pre_conditions():
             raise Exception("conditions for loading not met")

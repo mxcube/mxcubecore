@@ -70,7 +70,6 @@ class P11Beam(AbstractBeam):
         return None, None
 
     def mirror_state_changed(self, state=None):
-
         if state is None:
             state = self.get_beam_info_state()
 
@@ -88,7 +87,6 @@ class P11Beam(AbstractBeam):
         return _state
 
     def mirror_idx_changed(self, value=None):
-
         if value is None:
             value = self.mirror_idx_ch.get_value()
 
@@ -113,7 +111,6 @@ class P11Beam(AbstractBeam):
         return 200
 
     def get_beam_focus_label(self):
-
         value = self.mirror_idx_ch.get_value()
 
         if value not in self.focus_sizes:

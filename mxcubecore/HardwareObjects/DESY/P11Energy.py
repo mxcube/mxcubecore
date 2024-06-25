@@ -30,7 +30,6 @@ log = logging.getLogger("HWR")
 
 
 class P11Energy(AbstractEnergy):
-
     _default_energy = 12.0
 
     def __init__(self, name):

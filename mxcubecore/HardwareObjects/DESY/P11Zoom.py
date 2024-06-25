@@ -43,7 +43,6 @@ class P11Zoom(AbstractNState):
         AbstractNState.__init__(self, name)
 
     def init(self):
-
         self._pixels_per_mm = self.get_property("pixels_per_mm")
         self._overview_pixels_per_mm = self.get_property("overview_pixels_per_mm")
         self.camera_hwobj = self.get_object_by_role("camera")
@@ -116,12 +115,10 @@ class P11Zoom(AbstractNState):
         # self.get_pixels_per_mm()
 
     def update_zoom(self):
-
         dist = None
         value = self.get_value()
 
         for zoom in self.VALUES:
-
             if value == 0:
                 self.closest_zoom = zoom
                 break

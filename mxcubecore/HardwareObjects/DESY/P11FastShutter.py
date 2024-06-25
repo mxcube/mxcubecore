@@ -41,7 +41,6 @@ class P11FastShutter(AbstractNState):
     default_close_time = 3
 
     def __init__(self, name):
-
         super().__init__(name)
         self.chan_value = None
 

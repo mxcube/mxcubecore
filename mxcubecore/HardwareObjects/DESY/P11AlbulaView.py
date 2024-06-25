@@ -38,12 +38,10 @@ except:
 
 
 class P11AlbulaView(HardwareObject):
-
     default_interval = 0.5  # secs
     stoptimer = -1.0
 
     def init(self):
-
         self.alive = False
         self.stream = False
         self.viewer = None
@@ -102,7 +100,6 @@ class P11AlbulaView(HardwareObject):
         super().start()
 
     def stop(self, interval=0.0):
-
         if self.stoptimer < 0.0 and interval > 0.0:
             self.stoptimer = interval
             return
@@ -133,7 +130,6 @@ class P11AlbulaView(HardwareObject):
         self.alive = True
 
         while self.alive:
-
             # hdf5
             wavelength = 12398.4 / energy
 
@@ -225,7 +221,6 @@ class P11AlbulaView(HardwareObject):
 
 
 if __name__ == "__main__":
-
     lv = LiveView()
     lv.start()
     time.sleep(200)

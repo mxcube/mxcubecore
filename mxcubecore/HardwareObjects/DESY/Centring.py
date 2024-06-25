@@ -64,7 +64,6 @@ class Centring(HardwareObject):
         print("-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
 
     def initCentringProcedure(self):
-
         print("initCentringProcedure(self)")
         """
         Descript. : call before starting rotate-click sequence

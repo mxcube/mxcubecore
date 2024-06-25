@@ -38,14 +38,12 @@ PATH_FALLBACK = "/gpfs/local"
 
 
 class P11Session(Session):
-
     default_archive_folder = "raw"
 
     def __init__(self, *args):
         super().__init__(*args)
 
     def init(self):
-
         super().init()
 
         self.settings_file = self.get_property("p11_settings_file")
@@ -222,7 +220,6 @@ class P11Session(Session):
         return os.path.isdir(folder) and os.access(folder, os.F_OK | os.W_OK)
 
     def locate_metadata_file(self, root_dir="/gpfs"):
-
         try:
             beamtime_dirs = [
                 path
@@ -245,7 +242,6 @@ class P11Session(Session):
         return metadata_files[0]
 
     def parse_metadata_file(self, metadatafile_path):
-
         beamline = ""
         beamtime = ""
         coredatadir = ""
@@ -324,12 +320,10 @@ class P11Session(Session):
         )
 
     def get_beamtime_metadata(self, root_dir="/gpfs"):
-
         metadata_file = self.locate_metadata_file(root_dir)
         return self.parse_metadata_file(metadata_file)
 
     def get_ssh_command(self):
-
         ssh_command = "/usr/bin/ssh"
         ssh_opts_general = "-o BatchMode=yes -o CheckHostIP=no -o StrictHostKeyChecking=no -o GSSAPIAuthentication=no -o GSSAPIDelegateCredentials=no -o PasswordAuthentication=no -o PubkeyAuthentication=yes -o PreferredAuthentications=publickey -o ConnectTimeout=10"
         ssh_opts_user = "-l {0}".format(self.user_name)
