@@ -313,6 +313,9 @@ class P11Collect(AbstractCollect):
 
             self.log.debug("#COLLECT# Programming detector for data collection")
             if collection_type == "Characterization":
+
+                # From current class, prepares metadata taken from current osc parameters.
+                self.prepare_characterization()
                 self.log.info(
                     "Collection: Creating directories for raw images and processing files EDNA and MOSFLM"
                 )
@@ -365,6 +368,8 @@ class P11Collect(AbstractCollect):
                 )
 
             else:
+                # From current class, prepares metadata taken from current osc parameters.
+                self.prepare_std_collection(start_angle, img_range)
                 self.log.info(
                     "Collection: Creating directories for raw images and processing files"
                 )
@@ -449,13 +454,6 @@ class P11Collect(AbstractCollect):
                 latest_local_path = os.path.dirname(f"/gpfs{latest_image}_master.h5")
                 latest_local_name = f"/gpfs{latest_image}_master.h5".split("/")[-1]
 
-                print(
-                    "+++++++++++++++++++++++++++++ latest local path", latest_local_path
-                )
-                print(
-                    "+++++++++++++++++++++++++++++ latest local name", latest_local_name
-                )
-
                 # Start the progress emitter in a separate greenlet
                 gevent.spawn(self.progress_emitter, start_time, duration)
 
@@ -499,9 +497,7 @@ class P11Collect(AbstractCollect):
     def add_h5_info_standard_data_collection(self, imagepath):
 
         time.sleep(1)
-        print(
-            "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++add h5 info"
-        )
+        self.log.debug("adding h5 info for standard data collection")
         try:
             f = h5py.File(imagepath, "r+")
             # source and instrument
@@ -523,6 +519,10 @@ class P11Collect(AbstractCollect):
                 dtype="f8",
                 data=float(self.get_filter_transmission()),
             )
+
+            # Keep it here as it is not clear if it is needed.
+            # It was used in CC to fix the issue with the data processing
+
             # #fix rotation axis and detector orientation
             # ds = f.get(u"entry/sample/transformations/omega")
             # ds.attrs[u"vector"] = [1., 0., 0.]
@@ -541,19 +541,15 @@ class P11Collect(AbstractCollect):
                 if node in f:
                     del f[node]
             f.close()
-        except:
-            print(
-                "******************************************************* WRITING to H5 FAILED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-            )
+        except RuntimeWarning:
+            self.log.debug("writing header to H5 FAILED!")
 
     def add_h5_info_characterisation(
         self, imagepath, start_angles_collected, degreesperframe
     ):
 
         time.sleep(1)
-        print(
-            "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++add h5 info"
-        )
+        self.log.debug("adding h5 info for characterisation")
         try:
             f = h5py.File(imagepath, "r+")
             # source and instrument
@@ -593,6 +589,7 @@ class P11Collect(AbstractCollect):
             for node in nodes:
                 if node in f:
                     del f[node]
+
             # Keep it here as it is not clear if it is needed.
             # It was used in CC to fix the issue with the data processing
 
@@ -622,10 +619,8 @@ class P11Collect(AbstractCollect):
                 "omega_range_average", dtype="f8", data=float(degreesperframe)
             )
             f.close()
-        except:
-            print(
-                "******************************************************* WRITING to H5 FAILED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-            )
+        except RuntimeWarning:
+            self.log.debug("writing header to H5 characterisation FAILED!")
 
     def write_info_txt(
         self,
@@ -681,7 +676,7 @@ class P11Collect(AbstractCollect):
         resolution = HWR.beamline.resolution.get_value()
         detectordistance = HWR.beamline.detector.get_eiger_detector_distance()
         transmission = HWR.beamline.transmission.get_value()
-        filter_thickness = self.get_filter_thickness() * 1000
+        filter_thickness = self.get_filter_thickness_in_mm()
         pinhole_diameter = HWR.beamline.beam.get_pinhole_size()
         focus = HWR.beamline.beam.get_beam_focus_label()
         current = HWR.beamline.machine_info.get_current()
@@ -703,10 +698,6 @@ class P11Collect(AbstractCollect):
             filterTransmission=int(transmission),
             filterThickness=int(filter_thickness),
             beamCurrent=float(current),
-        )
-        print(
-            "===================================== WRITING INFO.TXT TO=============",
-            path + "/info.txt",
         )
         f = open(path + "/info.txt", "w")
         f.write(output)
@@ -890,8 +881,26 @@ class P11Collect(AbstractCollect):
             thick3 = self.filter_server.Filter3Thickness
 
             thickness = int(thick1) + int(thick2) + int(thick3)
+            print("++++++++++++++++++++++++++++++++++++++ Filter THickness", thickness)
 
             return float(thickness) / 1_000_000
+        else:
+            return -1
+
+    def get_filter_thickness_in_mm(self):
+        """
+        The function `get_filter_thickness` calculates the total thickness of three filters.
+        :return: the total thickness of the filters in meters. If the filter server is not available, it
+        returns -1.
+        """
+        if self.filter_server:
+            thick1 = self.filter_server.Filter1Thickness
+            thick2 = self.filter_server.Filter2Thickness
+            thick3 = self.filter_server.Filter3Thickness
+
+            thickness = int(thick1) + int(thick2) + int(thick3)
+
+            return int(thickness)
         else:
             return -1
 
