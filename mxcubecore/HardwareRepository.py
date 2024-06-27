@@ -72,7 +72,7 @@ BEAMLINE_CONFIG_FILE = "beamline_config.yml"
 # Temporary hack to export yaml config file verions after loading
 # Set to an existing directory to trigger output of yaml config files
 # EXPORT_CONFIG_DIR = "/home/rhfogh/pycharm/mock_config_dirs_tmp"
-EXPORT_CONFIG_DIR = None
+EXPORT_CONFIG_DIR = "/tmp/mock_config_dirs_tmp"
 
 
 def load_from_yaml(configuration_file, role, _container=None, _table=None):

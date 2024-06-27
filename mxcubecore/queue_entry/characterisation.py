@@ -118,9 +118,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         d["queue_model_hwobj"] = (
             HWR.beamline.queue_model.name if HWR.beamline.queue_model else None
         )
-        d["session_hwobj"] = (
-            HWR.beamline.session.name if HWR.beamline.session else None
-        )
+        d["session_hwobj"] = HWR.beamline.session.name if HWR.beamline.session else None
 
         return d
 

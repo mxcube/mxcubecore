@@ -24,7 +24,6 @@ import typing
 import ast
 import enum
 import copy
-from collections import OrderedDict
 import logging
 from gevent import event, Timeout
 import pydantic
@@ -40,7 +39,6 @@ from typing import (
     Tuple,
     Type,
     Optional,
-    OrderedDict as TOrderedDict,
 )
 from typing_extensions import Self, Literal
 from warnings import warn
@@ -93,7 +91,7 @@ class ConfiguredObject:
             return copy.deepcopy(self.__dict__)
 
     def __init__(
-        self, name: str, hwobj_container: Optional["ConfiguredObject"]=None
+        self, name: str, hwobj_container: Optional["ConfiguredObject"] = None
     ) -> None:
         """
         Args:
@@ -117,7 +115,7 @@ class ConfiguredObject:
     def id(self):
         """dot-separated role names defining path from beamline object to here
 
-        NB beamline.id == '' """
+        NB beamline.id == ''"""
         if self._hwobj_container:
             names = []
             obj = self
@@ -219,7 +217,6 @@ class ConfiguredObject:
             getattr(logging.getLogger(log_type), level)(msg)
 
 
-
 class PropertySet(dict):
     """Property Set"""
 
@@ -305,7 +302,6 @@ class HardwareObjectNode:
         """
         return self.__name
 
-
     def set_path(self, path: str) -> None:
         """Set the 'path' of the Hardware Object in the XML file describing it
         (the path follows the XPath syntax)
@@ -331,7 +327,7 @@ class HardwareObjectNode:
     def __setattr__(self, attr: str, value: Any) -> None:
         try:
             config = self.__dict__.get("_config")
-            if (attr not in self.__dict__ and config and attr in config.model_dump()):
+            if attr not in self.__dict__ and config and attr in config.model_dump():
                 warn("%s.__setattr__ is Deprecated. Avoid" % self.__class__.__name__)
                 self._set_property(attr, value)
             else:
@@ -480,6 +476,7 @@ class HardwareObjectNode:
             self.__objects.append([hw_object])
         else:
             self.__objects[index].append(hw_object)
+
     #
 
     def _get_objects(
@@ -581,7 +578,6 @@ class HardwareObjectNode:
             Any: Property value.
         """
         return self._property_set.get(str(name), default_value)
-
 
     def get_properties(self) -> PropertySet:
         """Get properties - for XML-config implementation loading only
@@ -1046,7 +1042,6 @@ class HardwareObject(ConfiguredObject, HardwareObjectNode, HardwareObjectMixin):
 
         # NBNB Needs updating
 
-
         obj = get_hardware_repository().get_hardware_object(name)
         self.__dict__.update(obj.__dict__)
 
@@ -1106,6 +1101,7 @@ class HardwareObject(ConfiguredObject, HardwareObjectNode, HardwareObjectMixin):
         from .HardwareRepository import get_hardware_repository
 
         return get_hardware_repository().xml_source[self.load_name]
+
 
 HardwareObjectYaml = HardwareObject
 
