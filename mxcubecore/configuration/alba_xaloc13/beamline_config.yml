@@ -1,3 +1,8 @@
+---
+
+# yamllint disable rule:comments-indentation
+# yamllint disable rule:indentation
+
 # FIRST DRAFT of ALAB xaloc13 configuration. TO BE EDITED
 
 # The class to initialise, and init parameters
@@ -15,8 +20,8 @@ _initialise_class:
 # would need those added (e.g. the centring methods)
 #
 _objects:
-    # The !!o0map and the lines starting with '- ' give you an *orderd* dictionary
-    # And thus a reproducible loading order
+  # The !!o0map and the lines starting with '- ' give you an *orderd* dictionary
+  # And thus a reproducible loading order
   !!omap
     # The values are the file paths to the configuration file for the
     # object, relative to the configuration file path(s)
@@ -103,7 +108,7 @@ acquisition_limit_values:
         - 6000.0
     osc_range:         # (degrees)
         - -2165.0
-        -  2165.0
+        - 2165.0
     number_of_images:  # (int)
         - 1
         - 9999

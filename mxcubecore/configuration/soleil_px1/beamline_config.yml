@@ -1,3 +1,7 @@
+---
+
+# yamllint disable rule:comments-indentation
+
 # FIRST DRAFT of SOLEIL px1 configuration. TO BE EDITED
 
 # The class to initialise, and init parameters
@@ -15,8 +19,9 @@ _initialise_class:
 # would need those added (e.g. the centring methods)
 #
 _objects:
-    # The !!o0map and the lines starting with '- ' give you an *orderd* dictionary
-    # And thus a reproducible loading order
+  # The !!o0map and the lines starting with '- ' give you an *orderd* dictionary
+  # And thus a reproducible loading order
+  # yamllint disable-line rule:indentation
   !!omap
     # The values are the file paths to the configuration file for the
     # object, relative to the configuration file path(s)
@@ -58,9 +63,9 @@ _objects:
     - characterisation: data-analysis.xml
     # - beam_realign: # Skipped - optional
 # Non-object attributes:
-#advanced_methods:
-#    - MeshScan
-#    - XrayCentering
+# advanced_methods:
+#     - MeshScan
+#     - XrayCentering
 tunable_wavelength: true
 disable_num_passes: false
 run_number: 1
@@ -112,7 +117,7 @@ acquisition_limit_values:
         - 0.01
         - 10.0
     osc_range:         # (degrees)
-        -  -0.0
+        - -0.0
         - 760.0
     number_of_images:  # (int)
         - 1

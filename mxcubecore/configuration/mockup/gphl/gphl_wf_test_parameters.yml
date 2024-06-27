@@ -1,3 +1,11 @@
+---
+
+  # yamllint disable rule:colons
+  # yamllint disable rule:comments
+  # yamllint disable rule:comments-indentation
+  # yamllint disable rule:indentation
+  # yamllint disable rule:line-length
+
   ### Calling interface (for automation)
   # This section is specific to the automated MXCuBE-web version, intended for MASSIF-1.
   # It shows the interfaces between the Global Phasing workflow and a calling
@@ -119,6 +127,7 @@
 # and resets transmission and maybe exposure time
 #          repetition_count: 1
 #          snapshot_count: 2
+          # yamllint disable-line rule:truthy
           skip_collection: True  # Causes GPhL collection simulation (only!) to do nothing
 
     # Other parameters are set (ultimately) from ISPyB. These are all optional:

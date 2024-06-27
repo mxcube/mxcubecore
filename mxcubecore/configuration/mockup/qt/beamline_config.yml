@@ -1,3 +1,8 @@
+---
+
+# yamllint disable rule:comments-indentation
+# yamllint disable rule:indentation
+
 # The class to initialise, and init parameters
 _initialise_class:
     class: mxcubecore.HardwareObjects.Beamline.Beamline
@@ -89,8 +94,8 @@ default_acquisition_parameters:
     characterisation:
         # Defaults for chareacterisation. Missing values are taken from default
         osc_range: 1
-        opt_sad: False
-        account_rad_damage: True
+        opt_sad: False  # yamllint disable-line rule:truthy
+        account_rad_damage: True  # yamllint disable-line rule:truthy
         strategy_complexity: 0
         max_crystal_vdim: 1.0
         min_crystal_vdim: 1.0

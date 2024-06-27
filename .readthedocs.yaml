@@ -25,6 +25,7 @@ build:
     - "git fetch --unshallow || true"
     - "mamba env create --file conda-environment-dev.yml --force"
     - "mamba run --name mxcubecore poetry install --only=docs,main"
+    # yamllint disable-line rule:line-length
     - "mamba run --name mxcubecore sphinx-build -T -E -b html -c ./docs/ ./docs/source/ ${READTHEDOCS_OUTPUT}/html/"
 
 
