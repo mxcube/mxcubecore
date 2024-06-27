@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel, Field, Extra
 
 
@@ -27,7 +28,7 @@ class BeamInterpolationConfiguration(BaseModel):
 
 class AbstractDetectorConfiguration(BaseModel):  # , extra=Extra.forbid):
     file_suffix: str = Field("h5", descriptiom="File name extension/suffix")
-    beam: BeamInterpolationConfiguration
+    beam: Optional[BeamInterpolationConfiguration]
     has_shutterless: bool = Field(True)
     height: int
     width: int
@@ -36,6 +37,6 @@ class AbstractDetectorConfiguration(BaseModel):  # , extra=Extra.forbid):
     model: str
     px: float
     py: float
-    roi_modes: list
+    roi_modes: Optional[list]
     temp_threshold: float
     tolerance: float
