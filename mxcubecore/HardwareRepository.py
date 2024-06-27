@@ -72,7 +72,7 @@ BEAMLINE_CONFIG_FILE = "beamline_config.yml"
 # Temporary hack to export yaml config file verions after loading
 # Set to an existing directory to trigger output of yaml config files
 # EXPORT_CONFIG_DIR = "/home/rhfogh/pycharm/mock_config_dirs_tmp"
-EXPORT_CONFIG_DIR = None
+EXPORT_CONFIG_DIR = "/tmp/mock_config_dirs_tmp"
 
 
 def load_from_yaml(configuration_file, role, _container=None, _table=None):
@@ -130,6 +130,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
                 print(
                     "Encountered Exception (continuing):\n%s" % traceback.format_exc()
                 )
+                raise
             else:
                 # at top level we want to get the actual error
                 raise
@@ -168,8 +169,9 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
     if not msg0:
         # Recursively load contained objects (of any type that the system can support)
         objects = configuration.pop("objects", {})
-        config =  configuration.pop("configuration", {})
+        config = configuration.pop("configuration", {})
         # Set configuration with non-object properties.
+
         result._config = result.HOConfig(**config)
 
         if objects:
@@ -207,7 +209,11 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
     if not msg0:
         if _container:
             if not hasattr(_container, role):
-                warn("load_from_yaml Class %s has no attribute %s" % _container.__class__.__name__, role)
+                warn(
+                    "load_from_yaml Class %s has no attribute %s"
+                    % _container.__class__.__name__,
+                    role,
+                )
             _container._roles.append(role)
             setattr(_container, role, result)
         try:
@@ -227,9 +233,11 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
         print(make_table(column_names, _table))
     elif EXPORT_CONFIG_DIR:
         # temporary hack
-        _export_draft_config_file(result)
+        if result:
+            _export_draft_config_file(result)
     #
     return result
+
 
 def _export_draft_config_file(hwobj):
     result = {
@@ -239,13 +247,19 @@ def _export_draft_config_file(hwobj):
     if objects_by_role:
         objects = result["objects"] = {}
         for role, obj in objects_by_role.items():
-            objects[role] = "%s.yml" % obj.id
-    config = result["configuration"] ={}
+            try:
+                objects[role] = "%s.yml" % obj.id
+            except:
+                logging.getLogger("HWR").exception("")
+
+    config = result["configuration"] = {}
     for tag, val in hwobj.config.model_dump().items():
         if tag not in objects_by_role:
             config[tag] = val
+
     fp = open(os.path.join(EXPORT_CONFIG_DIR, "%s.yml" % hwobj.id), "w")
     yaml.dump(result, fp)
+
 
 def _attach_xml_objects(container, hwobj, role):
     """Recursively attach XML-configured object to container as role
@@ -255,6 +269,7 @@ def _attach_xml_objects(container, hwobj, role):
     hwobj._hwobj_container = container
     hwobj._name = role
     container._roles.append(role)
+
     hwobj._config = hwobj.HOConfig(**hwobj.get_properties())
     setattr(container, role, hwobj)
     objects_by_role = hwobj._objects_by_role
@@ -271,7 +286,9 @@ def _attach_xml_objects(container, hwobj, role):
     #
     if EXPORT_CONFIG_DIR:
         # temporary hack
-        _export_draft_config_file(hwobj)
+        if hwobj:
+            _export_draft_config_file(hwobj)
+
 
 def _convert_xml_property(hwobj):
     """Convert complex xml-configured object"""
@@ -283,6 +300,7 @@ def _convert_xml_property(hwobj):
         result[tag] = list(_convert_xml_property(obj) for obj in objs)
     #
     return result
+
 
 def add_hardware_objects_dirs(ho_dirs):
     """Adds directories with xml/yaml config files
@@ -296,6 +314,8 @@ def add_hardware_objects_dirs(ho_dirs):
         for new_ho_dir in reversed(new_ho_dirs):
             if new_ho_dir not in sys.path:
                 sys.path.insert(0, new_ho_dir)
+
+
 #
 #
 def set_user_file_directory(user_file_directory):

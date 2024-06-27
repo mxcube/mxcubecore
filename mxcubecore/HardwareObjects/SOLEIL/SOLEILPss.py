@@ -47,8 +47,6 @@ class SOLEILPss(Device):
         return self.get_state(self.stateChan.get_value())
 
     def value_changed(self, value):
-        logging.getLogger("HWR").info(
-            "%s: SOLEILPss.valueChanged, %s", self.id, value
-        )
+        logging.getLogger("HWR").info("%s: SOLEILPss.valueChanged, %s", self.id, value)
         state = self.get_state(value)
         self.emit("wagoStateChanged", (state,))

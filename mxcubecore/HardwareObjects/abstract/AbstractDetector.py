@@ -55,6 +55,7 @@ import ast
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.model.queue_model_objects import PathTemplate
+from mxcubecore.model.configmodel import AbstractDetectorConfiguration
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -62,8 +63,11 @@ __license__ = "LGPLv3+"
 
 class AbstractDetector(HardwareObject):
     """Common base class for detectors"""
+    HOConfig = AbstractDetectorConfiguration
 
     __metaclass__ = abc.ABCMeta
+
+
 
     def __init__(self, name):
         super().__init__(name)

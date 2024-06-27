@@ -107,7 +107,7 @@ class EdnaWorkflow(HardwareObject):
     def state_changed(self, new_value):
         new_value = str(new_value)
         logging.getLogger("HWR").debug(
-            "%s: state changed to %r", str(self.name()), new_value
+            "%s: state changed to %r", str(self.name), new_value
         )
         self.emit("stateChanged", (new_value,))
 
