@@ -8,14 +8,17 @@ from gevent import Timeout
 """
 Interfaces Sardana Motor objects.
 taurusname is the only obligatory property.
-<device class="SardanaMotor">
+
+.. code-block:: xml
+
+ <object class="SardanaMotor">
     <taurusname>dmot01</taurusname>
     <username>Dummy</username>
     <actuator_name>dummy_motor</actuator_name>
     <threshold>0.005</threshold>
     <move_threshold>0.005</move_threshold>
     <interval>2000</interval>
-</device>
+ </object>
 """
 
 
@@ -34,7 +37,7 @@ class SardanaMotorState(enum.Enum):
     INVALID = HardwareObjectState.FAULT
 
 
-class SardanaMotor(AbstractMotor, HardwareObject):
+class SardanaMotor(AbstractMotor):
     suffix_position = "Position"
     suffix_state = "State"
     suffix_stop = "Stop"
@@ -42,8 +45,7 @@ class SardanaMotor(AbstractMotor, HardwareObject):
     suffix_acceleration = "Acceleration"
 
     def __init__(self, name):
-        AbstractMotor.__init__(self, name)
-        HardwareObject.__init__(self, name)
+        super().__init__(name)
         self.stop_command = None
         self.position_channel = None
         self.state_channel = None
@@ -237,9 +239,3 @@ class SardanaMotor(AbstractMotor, HardwareObject):
             return self.acceleration_channel.get_value()
         except Exception:
             return None
-
-
-def test_hwo(hwo):
-    print(("Position for %s is: %s" % (hwo.username, hwo.get_value())))
-    print(("Velocity for %s is: %s" % (hwo.username, hwo.get_velocity())))
-    print(("Acceleration for %s is: %s" % (hwo.username, hwo.get_acceleration())))
