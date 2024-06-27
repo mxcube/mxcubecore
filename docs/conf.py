@@ -88,6 +88,11 @@ extensions.append("sphinx.ext.napoleon")
 
 napoleon_numpy_docstring = False
 
+napoleon_custom_sections = (
+    ("Emits", "params_style"),  # For signals emitted by hardware objects
+    ("Hardware object properties", "params_style"),
+)
+
 
 # -- Options for sphinx.ext.viewcode
 # https://www.sphinx-doc.org/en/master/usage/extensions/viewcode.html

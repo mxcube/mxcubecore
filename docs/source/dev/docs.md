@@ -79,3 +79,25 @@ The
 extension is enabled to handle docstrings within the Python code
 and it is configured for
 [Google-style docstrings](https://google.github.io/styleguide/pyguide.html#s3.8-comments-and-docstrings).
+
+Two custom docstring section titles are available to document *hardware objects*:
+
+* `Emits` for signals emitted by *hardware objects*;
+* and `Hardware object properties`
+  for the configuration settings of hardware object properties.
+
+They can be used like in this example:
+
+```python
+class Thing(HardwareObject):
+    """Some thing.
+
+    Hardware object properties:
+        colour (str):
+            The colour of the thing.
+
+    Emits:
+        isReady (bool):
+            Emitted when the readiness state changes.
+    """
+```
