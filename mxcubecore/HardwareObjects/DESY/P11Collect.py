@@ -1363,7 +1363,7 @@ class P11Collect(AbstractCollect):
                         "Collection: Error creating snapshot directory"
                     )
 
-            number_of_snapshots = 1  # 4
+            number_of_snapshots = self.current_dc_parameters['take_snapshots']
             logging.getLogger("user_level_log").info(
                 "Collection: Taking %d sample snapshot(s)" % number_of_snapshots
             )

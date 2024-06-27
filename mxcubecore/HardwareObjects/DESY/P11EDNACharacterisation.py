@@ -185,7 +185,7 @@ class P11EDNACharacterisation(EDNACharacterisation):
         self.log.debug(f'=======EDNA Script========== {ssh} "{cmd}"')
         os.system(f'{ssh} "{cmd}"')
 
-        self.wait_for_file(waitforxml, timeout=10)
+        self.wait_for_file(waitforxml, timeout=60)
 
     def wait_for_file(self, file_path, timeout=60, check_interval=1):
         start_time = time.time()
