@@ -171,6 +171,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
         objects = configuration.pop("objects", {})
         config = configuration.pop("configuration", {})
         # Set configuration with non-object properties.
+
         result._config = result.HOConfig(**config)
 
         if objects:
@@ -232,7 +233,8 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
         print(make_table(column_names, _table))
     elif EXPORT_CONFIG_DIR:
         # temporary hack
-        _export_draft_config_file(result)
+        if result:
+            _export_draft_config_file(result)
     #
     return result
 
@@ -245,11 +247,16 @@ def _export_draft_config_file(hwobj):
     if objects_by_role:
         objects = result["objects"] = {}
         for role, obj in objects_by_role.items():
-            objects[role] = "%s.yml" % obj.id
+            try:
+                objects[role] = "%s.yml" % obj.id
+            except:
+                logging.getLogger("HWR").exception("")
+
     config = result["configuration"] = {}
     for tag, val in hwobj.config.model_dump().items():
         if tag not in objects_by_role:
             config[tag] = val
+
     fp = open(os.path.join(EXPORT_CONFIG_DIR, "%s.yml" % hwobj.id), "w")
     yaml.dump(result, fp)
 
@@ -262,6 +269,7 @@ def _attach_xml_objects(container, hwobj, role):
     hwobj._hwobj_container = container
     hwobj._name = role
     container._roles.append(role)
+
     hwobj._config = hwobj.HOConfig(**hwobj.get_properties())
     setattr(container, role, hwobj)
     objects_by_role = hwobj._objects_by_role
@@ -278,7 +286,8 @@ def _attach_xml_objects(container, hwobj, role):
     #
     if EXPORT_CONFIG_DIR:
         # temporary hack
-        _export_draft_config_file(hwobj)
+        if hwobj:
+            _export_draft_config_file(hwobj)
 
 
 def _convert_xml_property(hwobj):
