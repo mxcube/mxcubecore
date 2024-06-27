@@ -35,8 +35,9 @@ import os
 import time
 import importlib
 import traceback
-from typing import Union, TYPE_CHECKING
+from typing import Union, Optional, TYPE_CHECKING
 from datetime import datetime
+from pathlib import Path
 
 from ruamel.yaml import YAML
 
@@ -69,13 +70,13 @@ beamline = None
 BEAMLINE_CONFIG_FILE = "beamline_config.yml"
 
 
-# Temporary hack to export yaml config file verions after loading
-# Set to an existing directory to trigger output of yaml config files
-# EXPORT_CONFIG_DIR = "/home/rhfogh/pycharm/mock_config_dirs_tmp"
-EXPORT_CONFIG_DIR = None
-
-
-def load_from_yaml(configuration_file, role, _container=None, _table=None):
+def load_from_yaml(
+    configuration_file,
+    role,
+    yaml_export_directory: Optional[Path] = None,
+    _container=None,
+    _table=None,
+):
     """
 
     Args:
@@ -170,6 +171,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
         objects = configuration.pop("objects", {})
         config = configuration.pop("configuration", {})
         # Set configuration with non-object properties.
+
         result._config = result.HOConfig(**config)
 
         if objects:
@@ -185,7 +187,11 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
             fname, fext = os.path.splitext(config_file)
             if fext == ".yml":
                 hwobj = load_from_yaml(
-                    config_file, role=role1, _container=result, _table=_table
+                    config_file,
+                    role=role1,
+                    yaml_export_directory=yaml_export_directory,
+                    _container=result,
+                    _table=_table,
                 )
                 _instance.hardware_objects[f"/{hwobj.load_name}"] = hwobj
             elif fext == ".xml":
@@ -198,7 +204,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
                         msg1 = "No object loaded"
                     else:
                         class_name1 = hwobj.__class__.__name__
-                        _attach_xml_objects(result, hwobj, role1)
+                        _attach_xml_objects(yaml_export_directory, result, hwobj, role1)
                 except Exception as ex:
                     msg1 = "Loading error (%s)" % str(ex)
                 load_time = 1000 * (time.time() - time0)
@@ -230,14 +236,18 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
 
     if _container is None:
         print(make_table(column_names, _table))
-    elif EXPORT_CONFIG_DIR:
-        # temporary hack
-        _export_draft_config_file(result)
-    #
+    elif yaml_export_directory:
+        if result:
+            _export_draft_config_file(yaml_export_directory, result)
+
     return result
 
 
-def _export_draft_config_file(hwobj):
+def _export_draft_config_file(dest_dir: Path, hwobj):
+    def write_yaml(data, file_name: str):
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        yaml.dump(data, Path(dest_dir, file_name))
+
     result = {
         "class": "%s.%s" % (hwobj.__class__.__module__, hwobj.__class__.__name__),
     }
@@ -245,16 +255,20 @@ def _export_draft_config_file(hwobj):
     if objects_by_role:
         objects = result["objects"] = {}
         for role, obj in objects_by_role.items():
-            objects[role] = "%s.yml" % obj.id
+            try:
+                objects[role] = "%s.yml" % obj.id
+            except:
+                logging.getLogger("HWR").exception("")
+
     config = result["configuration"] = {}
     for tag, val in hwobj.config.model_dump().items():
         if tag not in objects_by_role:
             config[tag] = val
-    fp = open(os.path.join(EXPORT_CONFIG_DIR, "%s.yml" % hwobj.id), "w")
-    yaml.dump(result, fp)
+
+    write_yaml(result, "%s.yml" % hwobj.id)
 
 
-def _attach_xml_objects(container, hwobj, role):
+def _attach_xml_objects(yaml_export_directory: Optional[Path], container, hwobj, role):
     """Recursively attach XML-configured object to container as role
 
     NBNB guard against duplicate objects"""
@@ -262,11 +276,12 @@ def _attach_xml_objects(container, hwobj, role):
     hwobj._hwobj_container = container
     hwobj._name = role
     container._roles.append(role)
+
     hwobj._config = hwobj.HOConfig(**hwobj.get_properties())
     setattr(container, role, hwobj)
     objects_by_role = hwobj._objects_by_role
     for role2, hwobj2 in objects_by_role.items():
-        _attach_xml_objects(hwobj, hwobj2, role2)
+        _attach_xml_objects(yaml_export_directory, hwobj, hwobj2, role2)
     for tag in hwobj._objects_names():
         if tag not in objects_by_role:
             # Complex object, not contained hwobj
@@ -276,9 +291,10 @@ def _attach_xml_objects(container, hwobj, role):
             else:
                 setattr(hwobj.config, tag, objs)
     #
-    if EXPORT_CONFIG_DIR:
+    if yaml_export_directory:
         # temporary hack
-        _export_draft_config_file(hwobj)
+        if hwobj:
+            _export_draft_config_file(yaml_export_directory, hwobj)
 
 
 def _convert_xml_property(hwobj):
@@ -318,12 +334,17 @@ def set_user_file_directory(user_file_directory):
     BaseHardwareObjects.HardwareObjectNode.set_user_file_directory(user_file_directory)
 
 
-def init_hardware_repository(configuration_path):
+def init_hardware_repository(
+    configuration_path: str,
+    yaml_export_directory: Optional[Path] = None,
+):
     """Initialise hardweare repository - must be run at program start
 
     Args:
         configuration_path (str): PATHSEP-separated string of directories
         giving configuration file lookup path
+        yaml_export_directory: if specified, loaded hardware objects configuration
+        will be written to this directory, as YAML files
 
     Returns:
 
@@ -353,7 +374,11 @@ def init_hardware_repository(configuration_path):
     logging.getLogger("HWR").info("Hardware repository: %s", configuration_path)
     _instance = __HardwareRepositoryClient(configuration_path)
     _instance.connect()
-    beamline = load_from_yaml(BEAMLINE_CONFIG_FILE, role="beamline")
+    beamline = load_from_yaml(
+        BEAMLINE_CONFIG_FILE,
+        role="beamline",
+        yaml_export_directory=yaml_export_directory,
+    )
 
 
 def uninit_hardware_repository():
