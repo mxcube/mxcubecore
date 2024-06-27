@@ -1,3 +1,5 @@
+---
+
 name: mxcubecore
 channels:
   - conda-forge

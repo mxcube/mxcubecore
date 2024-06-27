@@ -1,5 +1,7 @@
+---
+
 name: Pytest
-on:
+on:  # yamllint disable-line rule:truthy
   pull_request:
     types: [opened, reopened, synchronize]
     paths:
@@ -19,6 +21,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install openldap
+        # yamllint disable-line rule:line-length
         run: sudo apt-get update && sudo apt-get install -y libldap2-dev libsasl2-dev slapd ldap-utils tox lcov valgrind
 
       - name: Install dependencies

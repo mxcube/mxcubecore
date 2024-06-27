@@ -1,3 +1,6 @@
+---
+
+
 # The class to initialise, and init parameters
 _initialise_class:
     class: mxcubecore.HardwareObjects.Beamline.Beamline
@@ -46,7 +49,7 @@ _objects:
     - collect: collect-mockup.xml
     - xrf_spectrum: xrf-spectrum-mockup.xml
     - energy_scan: energyscan-mockup.xml
-#    - imaging: xray-imaging.xml # Only in EMBL as of 201907
+    # - imaging: xray-imaging.xml # Only in EMBL as of 201907
     - gphl_connection: gphl-setup.yml
     - gphl_workflow: gphl-workflow.yml
     # - centring: centring.xml
@@ -57,8 +60,8 @@ _objects:
     # - beam_realign: # Skipped - optional
 # Non-object attributes:
 advanced_methods:
-  - MeshScan
-  - XrayCentering
+    - MeshScan
+    - XrayCentering
 tunable_wavelength: true
 disable_num_passes: false
 run_online_processing: false
@@ -88,8 +91,8 @@ default_acquisition_parameters:
     characterisation:
         # Defaults for chareacterisation. Missing values are taken from default
         osc_range: 1
-        opt_sad: False
-        account_rad_damage: True
+        opt_sad: False  # yamllint disable-line rule:truthy
+        account_rad_damage: True  # yamllint disable-line rule:truthy
         strategy_complexity: 0
         strategy_program: Optimal
         max_crystal_vdim: 1.0

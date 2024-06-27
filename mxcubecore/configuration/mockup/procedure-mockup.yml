@@ -1,3 +1,5 @@
+---
+
 # The class to initialise, and init parameters
 _initialise_class:
     class: mxcubecore.HardwareObjects.mockup.ProcedureMockup.ProcedureMockup

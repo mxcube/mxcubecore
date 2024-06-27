@@ -1,5 +1,7 @@
+---
+
 name: Create/Update Tag
-on:
+on:  # yamllint disable-line rule:truthy
   push:
     branches:
       - develop
@@ -7,6 +9,7 @@ jobs:
   create-version-tag:
     runs-on: ubuntu-latest
     steps:
+    # yamllint disable-line rule:indentation
     - uses: actions/checkout@v3
       with:
         token: ${{ secrets.CI_TOKEN }}
@@ -34,10 +37,12 @@ jobs:
         poetry publish
     - name: Read package version
       id: set-tag
+      # yamllint disable rule:line-length
       run: |
         pip install --upgrade pip
         pip install toml
         echo ::set-output name=tag_name::v$(python -c 'import toml; print(toml.load("./pyproject.toml")["tool"]["poetry"]["version"])')
+      # yamllint enable rule:line-length
 
     - name: Check tag exists
       id: check-tag-exists

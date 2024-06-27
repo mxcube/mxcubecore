@@ -1,15 +1,22 @@
+---
+
 name: Coverage Report
-on:
+
+on:  # yamllint disable-line rule:truthy
   pull_request:
     types: [opened, reopened, synchronize]
     paths:
       - '**.py'
+
 jobs:
   pytest-coverage:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
+
     steps:
+
+    # yamllint disable-line rule:indentation
     - uses: actions/checkout@v3
 
     - name: Set up Python 3.10
@@ -18,16 +25,20 @@ jobs:
         python-version: "3.10"
 
     - name: Install dependencies
+      # yamllint disable rule:line-length
       run: |
         sudo apt-get update && sudo apt-get install -y libsasl2-dev libldap2-dev libssl-dev
         python -m pip install --upgrade pip
         python -m pip install poetry --user
         python -m poetry install --extras=tango
+      # yamllint enable rule:line-length
 
     - name: Run and write pytest
+      # yamllint disable rule:line-length
       run: |
         set -o pipefail
         poetry run pytest --cov=mxcubecore --junitxml=pytest.xml --cov-report=term-missing:skip-covered | tee pytest-coverage.txt
+      # yamllint enable rule:line-length
 
     - name: Pytest coverage comment
       id: coverage-comment

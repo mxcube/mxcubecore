@@ -1,3 +1,8 @@
+---
+
+  # yamllint disable rule:comments-indentation
+  # yamllint disable rule:line-length
+
   ### Calling interface (for automation)
   # This section is specific to the automated MXCuBE-web version, intended for MASSIF-1.
   # It shows the interfaces between the Global Phasing workflow and a calling
@@ -7,34 +12,35 @@
   # The parameters are a node ID and a task dictionary.
   # The parameters relevant for GΦL  are, in yaml notation:
 
+  # yamllint disable-line rule:indentation
   task:
 
     parameters:
       # Process control and ???
-      wfpath: Gphl			# Mandatory – specifies  GΦL workflow
-      automation_mode: MASSIF1	# Optional,  defaults to None (manual)
-      shape:  some_shape_name		# Used for EDNA workflow, I do not know  what for
+      wfpath: Gphl  # Mandatory – specifies  GΦL workflow
+      automation_mode: MASSIF1  # Optional,  defaults to None (manual)
+      shape: some_shape_name  # Used for EDNA workflow, I do not know  what for
 
       # Strategy control
-      strategy_name:  "Native data collection"	# (str) Mandatory.
+      strategy_name: "Native data collection"  # (str) Mandatory.
       # Options are: ‘Native data collection’, ‘Phasing (SAD)’
       # ‘Two-wavelength MAD’, ‘Three-wavelength MAD’, ‘Diffractometer calibration’
 
       # directory and file names. All optional, default to session default
       # See File Locations in manual
-      prefix: <path_template.base_prefix>		# (str)
-      suffix: <path_template.suffix>		# (str) Optional
-      subdir: <Image path subdirectory>		# (str) Optional
+      prefix: <path_template.base_prefix>  # (str)
+      suffix: <path_template.suffix>  # (str) Optional
+      subdir: <Image path subdirectory>  # (str) Optional
 
       # Optional, overriding configured defaults:
-      decay_limit: 25	#  (%).
+      decay_limit: 25  # (%).
       # Minimum % intensity remaining at target resolution if using recommended dose budget
       # dose_budget = 2 * resolution**2 * log(100. / decay_limit) / relative_sensitivity
-      maximum_dose_budget: 20	# (MGy). Maximum when calculating budget from resolution
-      characterisation_budget_fraction: 0.05	# Dose to use for characterisation
+      maximum_dose_budget: 20  # (MGy). Maximum when calculating budget from resolution
+      characterisation_budget_fraction: 0.05  # Dose to use for characterisation
 
       # Strategy name, matching strategylib.nml.
-      auto_acq_parameters: # (list of dict) automation parameters for acquisitions. Optional.
+      auto_acq_parameters:  # (list of dict) automation parameters for acquisitions. Optional.
         # The standard workflows have two acquisitions, characterisation and main;
         # diffractometer calibration has only one, and future workflows may have more.
         # The dictionaries are applied to the acquisitions in order;
@@ -48,7 +54,7 @@
         # init_spot_dir, if set, turns off the workflow-driven characterisation
         # resolution, energies, and transmission are taken from the current values in this case
         # unless explicitly set
-        - exposure_time: 0.04 # (s) Optional, default configured. Mandatory if init_spot_dir is set
+        - exposure_time: 0.04  # (s) Optional, default configured. Mandatory if init_spot_dir is set
           image_width: 0.1    # (°) Optional, default configured. Mandatory if init_spot_dir is set
 #          use_dose: 20.0 # (MGy) NB Optional, for entire experiment. Overrides, dose budget
 #          transmission: 100.0 # (%) NB Optional  Overrides use_dose. Defaults to current valuee if init_spot_dir is set
@@ -72,17 +78,17 @@
         # This example lists all options, for documentation purposes
         # All are optional (except when init_spot_dir is set) and should normally
         # be left empty so the default is used.
-        - resolution: 1.7 # (Å) Optional. Defaults to current value, or to diffraction plan aimed_resolution
-          energies: (12.4,) # tuple(keV) List of energies  to use in experiment. two or three for MAD (only).
+        - resolution: 1.7  # (Å) Optional. Defaults to current value, or to diffraction plan aimed_resolution
+          energies: (12.4,)  # tuple(keV) List of energies  to use in experiment. two or three for MAD (only).
           # First wavelength will be used for calculating strategies, dose budget, etc.
           # Optional, except for MAD - will default to current beamline energy.
-          exposure_time: 0.04 # (s) Optional, default configured. Mandatory if init_spot_dir is set
-          image_width: 0.1    # (°) Optional, default configured. Mandatory if init_spot_dir is set
-          wedge_width: 15.0 # (°)  Optional, default configured. Wedge  width (for interleaving)
-          snapshot_count: 2 # Optional, default configured.
-          use_dose: 20.0 # (MGy) NB Optional, for entire experiment. Defaults to calculated dose budget
+          exposure_time: 0.04  # (s) Optional, default configured. Mandatory if init_spot_dir is set
+          image_width: 0.1  # (°) Optional, default configured. Mandatory if init_spot_dir is set
+          wedge_width: 15.0  # (°)  Optional, default configured. Wedge  width (for interleaving)
+          snapshot_count: 2  # Optional, default configured.
+          use_dose: 20.0  # (MGy) NB Optional, for entire experiment. Defaults to calculated dose budget
           # and resets transmission and maybe exposure time
-          transmission: 80.0 # (%) NB Optional  Overrides use_dose. Defaults to current valuee if init_spot_dir is set
+          transmission: 80.0  # (%) NB Optional  Overrides use_dose. Defaults to current valuee if init_spot_dir is set
           # Otherwise is set from dose budget and resolution.
           # If set this value will reset the dose budget
           # Strategy variant
@@ -94,12 +100,12 @@
           # startign point. Used to override XDS cell, symmetry determination
           use_cell_for_processing: false
 
-          strategy_options: # (dict) parameters strategy calculation (stratcal). See below
+          strategy_options:  # (dict) parameters strategy calculation (stratcal). See below
 
 #             strategy options. Control the stratcal strategy calculation program.
 #             maximum_chi is automaticaly reduced to match kappa motor limits.
             maximum_chi: 48.0  # (°) Optional. Maximum chi value allowed for strategies. Default 48
-            angular tolerance: 1.0 # (°) Optional. Tolerance to distinguish strategy orientations
+            angular tolerance: 1.0  # (°) Optional. Tolerance to distinguish strategy orientations
 
     # Other parameters are set (ultimately) from ISPyB. These are all optional:
     # From crystal description:

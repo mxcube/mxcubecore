@@ -1,3 +1,7 @@
+---
+
+# yamllint disable rule:comments
+# yamllint disable rule:line-length
 
 _initialise_class:
     class: mxcubecore.HardwareObjects.Gphl.GphlWorkflowConnection.GphlWorkflowConnection
@@ -5,8 +9,8 @@ _initialise_class:
 directory_locations:
     # Directory locations. Can also be used with ${} syntax in this file
     GPHL_INSTALLATION: /alt/rhfogh/Software/GPhL/gphl_release
-#    GPHL_INSTALLATION: /alt/rhfogh/Software/GPhL/nightly_20230823/Files_workflow_TRUNK_alpha-bdg
-#    GPHL_INSTALLATION: /alt/rhfogh/Software/GPhL/nightly_20230602/Files_workflow_BETA_beta-academic
+    # GPHL_INSTALLATION: /alt/rhfogh/Software/GPhL/nightly_20230823/Files_workflow_TRUNK_alpha-bdg
+    # GPHL_INSTALLATION: /alt/rhfogh/Software/GPhL/nightly_20230602/Files_workflow_BETA_beta-academic
 
 
 # If set, run workflow through ssh with selected options

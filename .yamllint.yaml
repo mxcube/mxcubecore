@@ -1,0 +1,8 @@
+---
+
+extends: default
+
+rules:
+  # Match line length to the one set by `black` the Python formatter
+  line-length:
+    max: 88
