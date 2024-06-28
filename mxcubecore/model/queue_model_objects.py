@@ -2129,7 +2129,13 @@ class GphlWorkflow(TaskNode):
         from mxcubecore.HardwareObjects.Gphl import GphlMessages
 
         if space_group:
-            self.space_group = space_group
+            if space_group in crystal_symmetry.SPACEGROUP_MAP:
+                self.space_group = space_group
+            else:
+                raise ValueError(
+                    "Invalid space group %s, not in crystal_symmetry.SPACEGROUP_MAP"
+                    % space_group
+                )
         else:
             space_group = self.space_group
         if crystal_classes:
@@ -2518,10 +2524,10 @@ class GphlWorkflow(TaskNode):
             "WARNING: Dose could not be calculated from:\n"
             " energy:%s keV, total_strategy_length:%s deg, exposure_time:%s s, "
             "image_width:%s deg, dose_rate: %s"
-        )
-        logging.getLogger("HWR").warning(
-            msg % (energy, total_strategy_length, exposure_time, image_width, dose_rate)
-        )
+        ) % (energy, total_strategy_length, exposure_time, image_width, dose_rate)
+
+        logging.getLogger("HWR").warning(msg)
+        logging.getLogger("user_level_log").warning(msg)
         return 0
 
     def recommended_dose_budget(self, resolution=None):
