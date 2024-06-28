@@ -788,7 +788,7 @@ class GphlWorkflow(HardwareObjectYaml):
         else:
             # Set detector distance and resolution
             distance = data_model.detector_setting.axisSettings["Distance"]
-            HWR.beamline.detector.distance.set_value(distance, timeout=30)
+            HWR.beamline.detector.distance.set_value(distance, timeout=50)
 
         self._workflow_queue = gevent.queue.Queue()
 
@@ -1444,10 +1444,10 @@ class GphlWorkflow(HardwareObjectYaml):
                 transmission = parameters.get("transmission")
                 maximum_dose = gphl_workflow_model.calc_maximum_dose(
                     image_width=image_width,
-                )
+                ) or 0
                 if transmission:
                     new_dose = maximum_dose * transmission / 100
-                else:
+                elif maximum_dose:
                     new_dose = parameters.get(
                         "use_dose", gphl_workflow_model.recommended_dose_budget()
                     )
@@ -1462,6 +1462,13 @@ class GphlWorkflow(HardwareObjectYaml):
                     else:
                         transmission = 100 * new_dose / maximum_dose
                     parameters["transmission"] = transmission
+
+                else:
+                    # We should not be here, but if we cannot calculate flux, ...
+                    new_dose = 0
+                    parameters["transmission"] = (
+                        HWR.beamline.transmission.get_value()
+                    )
         else:
             # set gphl_workflow_model.transmission (initial value for interactive mode)
             use_dose = gphl_workflow_model.recommended_dose_budget()
@@ -1473,7 +1480,10 @@ class GphlWorkflow(HardwareObjectYaml):
             # Need setting before query
             gphl_workflow_model.image_width = default_image_width
             maximum_dose = gphl_workflow_model.calc_maximum_dose()
-            transmission = 100 * use_dose / maximum_dose
+            if maximum_dose:
+                transmission = 100 * use_dose / maximum_dose
+            else:
+                transmission = HWR.beamline.transmission.get_value()
             if transmission > 100:
                 if gphl_workflow_model.characterisation_done or wftype == "diffractcal":
                     # We are not in characterisation.
@@ -1948,13 +1958,11 @@ class GphlWorkflow(HardwareObjectYaml):
             path_template.start_num = acq_parameters.first_image
             path_template.num_files = acq_parameters.num_images
             prefix = filename_params.get("prefix", "")
-            if path_template.suffix == "h5":
+            if path_template.suffix.endswith("h5"):
                 # Add scan number to prefix for interleaved hdf5 files (only)
                 # NBNB Tempoary fix, pending solution to hdf5 interleaving problem
-                scan_no = scan_numbers.get(prefix, 0) + 1
-                scan_numbers[prefix] = scan_no
-                if scan_no > 1:
-                    prefix += "_scan%s" % scan_no
+                scan_numbers[prefix] = scan_no = scan_numbers.get(prefix, 0) + 1
+                prefix += "_s%s" % scan_no
             path_template.base_prefix = prefix
 
             key = (
@@ -2629,15 +2637,16 @@ class GphlWorkflow(HardwareObjectYaml):
             float: Maximum dose rate in MGy/s
         """
         energy = energy or HWR.beamline.energy.get_value()
-        flux_density = HWR.beamline.flux.get_average_flux_density(transmission=100.0)
-        if flux_density:
-            return (
-                flux_density
-                * HWR.beamline.flux.get_dose_rate_per_photon_per_mmsq(energy)
-                * 1.0e-6  # convert to MGy
-            )
-        else:
-            return 0
+        flux = HWR.beamline.flux
+        if flux:
+            flux_density = flux.get_average_flux_density(transmission=100.0)
+            if flux_density:
+                return (
+                    flux_density
+                    * flux.get_dose_rate_per_photon_per_mmsq(energy)
+                    * 1.0e-6  # convert to MGy
+                )
+        return 0
 
 
     def get_emulation_samples(self):
