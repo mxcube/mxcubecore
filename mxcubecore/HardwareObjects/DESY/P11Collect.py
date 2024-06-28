@@ -402,7 +402,8 @@ class P11Collect(AbstractCollect):
                 )
 
             self.log.debug("#COLLECT# Starting detector")
-            HWR.beamline.detector.start_acquisition()
+            # Arm command happens here
+            # HWR.beamline.detector.start_acquisition()
 
             # Check whether the live view monitoring is on. Restart if needed.
             process_name = os.getenv("MXCUBE_LIVEVIEW_NAME")
@@ -422,8 +423,7 @@ class P11Collect(AbstractCollect):
                     start_angle, img_range, nframes, angle_inc, exp_time
                 )
 
-                # # Adding h5 info for
-                # TODO: Keep it commented before the characterisation header info in HDF5 will be checked.
+                # Adding h5 info for characterisation
                 start_angles_collected = []
                 for nf in range(nframes):
                     start_angles_collected.append(start_angle + nf * angle_inc)
@@ -457,6 +457,11 @@ class P11Collect(AbstractCollect):
                 # Start the progress emitter in a separate greenlet
                 gevent.spawn(self.progress_emitter, start_time, duration)
 
+                
+                HWR.beamline.diffractometer.wait_omega()
+                
+                # Arm the detector here. For characterisation it is a bit different.
+                HWR.beamline.detector.start_acquisition()
                 self.collect_std_collection(start_angle, stop_angle)
 
                 self.add_h5_info_standard_data_collection(self.latest_h5_filename)
@@ -768,37 +773,24 @@ class P11Collect(AbstractCollect):
         f = open(path + "/info.txt", "w")
         f.write(output)
         f.close()
-
-    def collect_std_collection(self, start_angle, stop_angle):
+    
+    def prepare_characterization(self):
         """
-        The function collects data from a standard acquisition by moving the omega motor from a start
-        angle to a stop angle.
-
-        :param start_angle: The starting angle for the collection
-        :param stop_angle: The stop_angle parameter is the final angle at which the collection should
-        stop
+        The function prepares for characterization data collection by setting the start angle and angle
+        increment for the detector.
+        :return: a boolean value of True.
         """
-        HWR.beamline.diffractometer.wait_omega()
+        self.log.debug("Preparing for characterization data collection.")
 
-        start_pos = start_angle - self.turnback_time * self.acq_speed
-        stop_pos = stop_angle + self.turnback_time * self.acq_speed
+        # Add start angle to the header
+        osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
+        start_angle = osc_pars["start"]
+        HWR.beamline.detector.set_eiger_start_angle(start_angle)
 
-        self.log.debug("#COLLECT# Running OMEGA through the std acquisition")
-        if start_angle <= stop_angle:
-            self.lower_bound_ch.set_value(start_angle)
-            self.upper_bound_ch.set_value(stop_angle)
-
-        else:
-            self.lower_bound_ch.set_value(stop_angle)
-            self.upper_bound_ch.set_value(start_angle)
-
-        self.omega_mv(start_pos, self.default_speed)
-        self.acq_arm_cmd()
-        self.omega_mv(stop_pos, self.acq_speed)
-        time.sleep(0.5)
-        self.acq_off_cmd()
-        self.acq_window_off_cmd()
-        self.omega_mv(stop_angle, self.acq_speed)
+        # Add angle increment to the header
+        osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
+        img_range = osc_pars["range"]
+        HWR.beamline.detector.set_eiger_angle_increment(img_range)
 
     def collect_characterisation(
         self, start_angle, img_range, nimages, angle_inc, exp_time
@@ -830,6 +822,9 @@ class P11Collect(AbstractCollect):
 
             self.log.debug("collecting image %s, angle %f" % (img_no, start_at))
 
+            if img_no==0:
+                HWR.beamline.detector.start_acquisition()
+
             # Keep it here for now. It is not clear if it is needed.
             # if start_at >= stop_angle:
             #     init_pos = start_at  # - self.acq_speed * self.turnback_time
@@ -842,6 +837,63 @@ class P11Collect(AbstractCollect):
             self.collect_std_collection(start_at, stop_angle)
 
             self.emit("progressStep", int(120 / (nimages) * (img_no + 1)))
+
+    def prepare_std_collection(self, start_angle, img_range):
+        """
+        The function prepares a standard collection by setting the start angle and angle increment in
+        the header of the Eiger detector.
+
+        :param start_angle: The start_angle parameter represents the starting angle of the standard collection
+        sequence. It is used to also set the start angle in the header of the detector.
+        :param img_range: The `img_range` parameter represents the range of angles over which the
+        detector will collect single image. It is used to set the angle increment in the header of the Eiger
+        detector
+        :return: a boolean value of True.
+        """
+        # Add start angle to the header
+        osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
+        start_angle = osc_pars["start"]
+        HWR.beamline.detector.set_eiger_start_angle(start_angle)
+
+        # Add angle increment to the header
+        osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
+        img_range = osc_pars["range"]
+        HWR.beamline.detector.set_eiger_angle_increment(img_range)
+    
+    def collect_std_collection(self, start_angle, stop_angle):
+        """
+        The function collects data from a standard acquisition by moving the omega motor from a start
+        angle to a stop angle.
+
+        :param start_angle: The starting angle for the collection
+        :param stop_angle: The stop_angle parameter is the final angle at which the collection should
+        stop
+        """
+
+        start_pos = start_angle - self.turnback_time * self.acq_speed
+        stop_pos = stop_angle + self.turnback_time * self.acq_speed
+
+        self.log.debug("#COLLECT# Running OMEGA through the std acquisition")
+        if start_angle <= stop_angle:
+            self.lower_bound_ch.set_value(start_angle)
+            self.upper_bound_ch.set_value(stop_angle)
+
+        else:
+            self.lower_bound_ch.set_value(stop_angle)
+            self.upper_bound_ch.set_value(start_angle)
+        
+
+
+        self.omega_mv(start_pos, self.default_speed)
+        self.acq_arm_cmd()
+        self.omega_mv(stop_pos, self.acq_speed)
+        time.sleep(0.5)
+        self.acq_off_cmd()
+        self.acq_window_off_cmd()
+        self.omega_mv(stop_angle, self.acq_speed)
+
+    
+
 
     def adxv_notify(self, image_filename, image_num=1):
         """
@@ -1097,28 +1149,6 @@ class P11Collect(AbstractCollect):
 
         return HWR.beamline.diffractometer.is_collect_phase()
 
-    def prepare_std_collection(self, start_angle, img_range):
-        """
-        The function prepares a standard collection by setting the start angle and angle increment in
-        the header of the Eiger detector.
-
-        :param start_angle: The start_angle parameter represents the starting angle of the standard collection
-        sequence. It is used to also set the start angle in the header of the detector.
-        :param img_range: The `img_range` parameter represents the range of angles over which the
-        detector will collect single image. It is used to set the angle increment in the header of the Eiger
-        detector
-        :return: a boolean value of True.
-        """
-        # Add start angle to the header
-        osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
-        start_angle = osc_pars["start"]
-        HWR.beamline.detector.set_eiger_start_angle(start_angle)
-
-        # Add angle increment to the header
-        osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
-        img_range = osc_pars["range"]
-        HWR.beamline.detector.set_eiger_angle_increment(img_range)
-
     def omega_mv(self, target, speed):
         """
         The function sets the velocity of the omega motor, moves the omega motor to a target position,
@@ -1131,24 +1161,6 @@ class P11Collect(AbstractCollect):
         HWR.beamline.diffractometer.set_omega_velocity(speed)
         HWR.beamline.diffractometer.move_omega(target)
         HWR.beamline.diffractometer.wait_omega()
-
-    def prepare_characterization(self):
-        """
-        The function prepares for characterization data collection by setting the start angle and angle
-        increment for the detector.
-        :return: a boolean value of True.
-        """
-        self.log.debug("Preparing for characterization data collection.")
-
-        # Add start angle to the header
-        osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
-        start_angle = osc_pars["start"]
-        HWR.beamline.detector.set_eiger_start_angle(start_angle)
-
-        # Add angle increment to the header
-        osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
-        img_range = osc_pars["range"]
-        HWR.beamline.detector.set_eiger_angle_increment(img_range)
 
     def get_relative_path(self, path1, path2):
         """
