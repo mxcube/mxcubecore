@@ -457,9 +457,8 @@ class P11Collect(AbstractCollect):
                 # Start the progress emitter in a separate greenlet
                 gevent.spawn(self.progress_emitter, start_time, duration)
 
-                
                 HWR.beamline.diffractometer.wait_omega()
-                
+
                 # Arm the detector here. For characterisation it is a bit different.
                 HWR.beamline.detector.start_acquisition()
                 self.collect_std_collection(start_angle, stop_angle)
@@ -702,7 +701,7 @@ class P11Collect(AbstractCollect):
                 filterThickness=int(filter_thickness),
                 beamCurrent=float(current),
             )
-            
+
         else:
             INFO_TXT = (
                 "run type:            {run_type:s}\n"
@@ -768,12 +767,11 @@ class P11Collect(AbstractCollect):
                 filterThickness=int(filter_thickness),
                 beamCurrent=float(current),
             )
-            
-        
+
         f = open(path + "/info.txt", "w")
         f.write(output)
         f.close()
-    
+
     def prepare_characterization(self):
         """
         The function prepares for characterization data collection by setting the start angle and angle
@@ -822,7 +820,7 @@ class P11Collect(AbstractCollect):
 
             self.log.debug("collecting image %s, angle %f" % (img_no, start_at))
 
-            if img_no==0:
+            if img_no == 0:
                 HWR.beamline.detector.start_acquisition()
 
             # Keep it here for now. It is not clear if it is needed.
@@ -859,7 +857,7 @@ class P11Collect(AbstractCollect):
         osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
         img_range = osc_pars["range"]
         HWR.beamline.detector.set_eiger_angle_increment(img_range)
-    
+
     def collect_std_collection(self, start_angle, stop_angle):
         """
         The function collects data from a standard acquisition by moving the omega motor from a start
@@ -881,8 +879,6 @@ class P11Collect(AbstractCollect):
         else:
             self.lower_bound_ch.set_value(stop_angle)
             self.upper_bound_ch.set_value(start_angle)
-        
-
 
         self.omega_mv(start_pos, self.default_speed)
         self.acq_arm_cmd()
@@ -891,9 +887,6 @@ class P11Collect(AbstractCollect):
         self.acq_off_cmd()
         self.acq_window_off_cmd()
         self.omega_mv(stop_angle, self.acq_speed)
-
-    
-
 
     def adxv_notify(self, image_filename, image_num=1):
         """
@@ -1032,7 +1025,6 @@ class P11Collect(AbstractCollect):
         else:
             return -1
 
-  
     def xdsapp_maxwell(self):
         self.log.debug("==== XDSAPP AUTOPROCESSING IS STARTED ==========")
 
@@ -1111,6 +1103,89 @@ class P11Collect(AbstractCollect):
             )
         )
 
+    def autoproc_maxwell(self):
+        self.log.debug("==== AUTOPROC AUTOPROCESSING IS STARTED ==========")
+
+        resolution = self.get_resolution()
+
+        image_dir_local, filename = os.path.split(self.latest_h5_filename)
+
+        image_dir = image_dir_local.replace(
+            "/gpfs/current", HWR.beamline.session.get_beamtime_metadata()[2]
+        )
+        process_dir = image_dir.replace("/raw/", "/processed/")
+        process_dir_local = image_dir_local.replace("/raw/", "/processed/")
+        autoproc_path = os.path.join(process_dir, "autoproc")
+        autoproc_path_local = os.path.join(process_dir_local, "autoproc")
+        self.log.debug(
+            '============AUTOPROC======== autoproc_path="%s"' % autoproc_path
+        )
+        self.log.debug(
+            '============AUTOPROC======== autoproc_path_local="%s"'
+            % autoproc_path_local
+        )
+
+        try:
+            self.mkdir_with_mode(autoproc_path_local, mode=0o777)
+            self.log.debug(
+                "=========== AUTOPROC ============ autoproc directory created"
+            )
+
+        except OSError:
+            self.log.debug(sys.exc_info())
+            self.log.debug("Cannot create AUTOPROC directory")
+
+        base_process_dir = self.base_dir(process_dir_local, "processed")
+        datasets_file = os.path.join(base_process_dir, "datasets.txt")
+
+        # add to datasets.txt for presenterd
+        try:
+            open(datasets_file, "a", encoding="utf-8").write(
+                autoproc_path_local.split("/gpfs/current/processed/")[1] + "\n"
+            )
+        except RuntimeError as err_msg:
+            self.log.debug("Cannot write to datasets.txt")
+            self.log.debug(sys.exc_info())
+
+        # create call
+        ssh = HWR.beamline.session.get_ssh_command()
+        sbatch = HWR.beamline.session.get_sbatch_command(
+            jobname_prefix="autoproc",
+            logfile_path=autoproc_path.replace(
+                HWR.beamline.session.get_beamtime_metadata()[2], "/beamline/p11/current"
+            )
+            + "/autoproc.log",
+        )
+
+        self.log.debug(
+            "=============== AUTOPROC ================"
+            + autoproc_path.replace(
+                HWR.beamline.session.get_beamtime_metadata()[2], "/beamline/p11/current"
+            )
+        )
+        cmd = (
+            "/asap3/petra3/gpfs/common/p11/processing/autoproc_sbatch.sh "
+            + "{imagepath:s} {processpath:s}"
+        ).format(
+            imagepath=image_dir + "/" + filename,
+            processpath=autoproc_path.replace(
+                HWR.beamline.session.get_beamtime_metadata()[2], "/beamline/p11/current"
+            )
+            + "/processing",
+        )
+
+        self.log.debug(
+            '{ssh:s} "{sbatch:s} --wrap \\"{cmd:s}\\""'.format(
+                ssh=ssh, sbatch=sbatch, cmd=cmd
+            )
+        )
+
+        os.system(
+            '{ssh:s} "{sbatch:s} --wrap \\"{cmd:s}\\""'.format(
+                ssh=ssh, sbatch=sbatch, cmd=cmd
+            )
+        )
+
     def trigger_auto_processing(self, process_event=None, frame_number=None):
         """
         The function `trigger_auto_processing` triggers auto processing based on the experiment type and
@@ -1134,6 +1209,7 @@ class P11Collect(AbstractCollect):
         # NB!: CHaracterisation processing is started within P11EDNACharacterisation._run_edna()
         # Mosflm and EDNA are started from there.
         self.xdsapp_maxwell()
+        self.autoproc_maxwell()
 
     def diffractometer_prepare_collection(self):
 
@@ -1375,7 +1451,7 @@ class P11Collect(AbstractCollect):
                         "Collection: Error creating snapshot directory"
                     )
 
-            number_of_snapshots = self.current_dc_parameters['take_snapshots']
+            number_of_snapshots = self.current_dc_parameters["take_snapshots"]
             logging.getLogger("user_level_log").info(
                 "Collection: Taking %d sample snapshot(s)" % number_of_snapshots
             )
