@@ -210,6 +210,7 @@ class P11EigerDetector(AbstractDetector):
 
     def start_acquisition(self):
         self.eiger_dev.Arm()
+        self.wait_ready()
 
     def stop_acquisition(self):
         self.eiger_dev.Abort()
