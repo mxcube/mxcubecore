@@ -184,9 +184,10 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
 
             fname, fext = os.path.splitext(config_file)
             if fext in (".yaml", ".yml"):
-                load_from_yaml(
+                hwobj = load_from_yaml(
                     config_file, role=role1, _container=result, _table=_table
                 )
+                _instance.hardware_objects[f"/{hwobj.load_name}"] = hwobj
             elif fext == ".xml":
                 msg1 = ""
                 time0 = time.time()
