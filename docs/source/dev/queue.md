@@ -91,9 +91,9 @@ A queue entry has a state internally called `status` that indicates the state of
 
 While running the queue, it emits a set of signals/events via `self.emit`. The signals are:
 
-- queue_entry_execute_finished: When a queue entry finishes execution for any given reason, the queue entry in question and one of the strings (Failed, Successful, Skipped or Aborted) are passed with the signal.
-- queue_stopped: When the queue was stopped
-- queue_paused: When the queue was/is paused
+- `queue_entry_execute_finished`: When a queue entry finishes execution for any given reason, the queue entry in question and one of the strings (Failed, Successful, Skipped or Aborted) are passed with the signal.
+- `queue_stopped`: When the queue was stopped
+- `queue_paused`: When the queue was/is paused
 
 The exception `QueueSkippEntryException` can be raised at any time to skip to the next entry in the queue. Raising `QueueSkippEntryException` will skip to the next entry at the same level as the current node, meaning that all child nodes will be skipped as well. The
 status of the skipped queue entry will be set to `SKIPPED` and `queue_entry_execute_finished` will be emitted with `Skipped`
