@@ -10,10 +10,11 @@ To enable automatic data collection over several samples, there is a need to ass
 *Typical structure of a queue for conventional colletions with sample changer containing pins with samples.*
 ```
 
-**_NOTE:_** There are no constraints on the structure of the tree. However, today: the top level always contains sample nodes,
+```{attention}
+There are no constraints on the structure of the tree. However, today: the top level always contains sample nodes,
 and the nesting occurs at the group level. The depth of nesting is commonly 3 - Sample -
 Data collection group - Datacollection.Workflows and more complex data collection strategies might however use more levels. Group is the name given to a node that groups together several other nodes, for instance, data collections. A group is just like any other node and can have its behavior defined in an `execute` method. A group can, for instance, commonly be a workflow that consists of several different steps.
-
+```
 
 ```{figure} /assets/queue_complex_node_concept.svg
 :width: 400
@@ -77,3 +78,44 @@ When the Web interface was designed, the scientists wanted to change some aspect
 On a technical level, there is a tight coupling between the `QueueEntry` base class and a Qt view object that makes the creation of the `QueueEntry` object slightly different between the two user interfaces (Qt and Web). To handle the tight coupling to Qt, a `Mock` object is used in the web version instead of a Qt View. The Qt interface can access the view directly via a reference, something that is impossible in the Web interface. Because the view and the `QueueEntry` do not execute in the same process, updates to the view in the web version are instead done through signals passed over websockets to the client.
 
 ## Execution
+As mentioned above, the execution order is depth first, so that all the children of a node are executed before the node's siblings. Each node has a `execute` method that defines its main logic and `pre_execute` and `post_execute`.
+
+A queue entry has a state internally called `status` that indicates the state of execution; the state can be one of ["SUCCESS", "WARNING", "FAILED", "SKIPPED", "RUNNING", "NOT_EXECUTED"].
+
+ - `SUCCESS`: The item was executed successfully, indicated with a green color in the UI
+ - `WARNING`: The item was executed successfully, but there was a problem with, for instance, processing. For example, a characterization that finishes without a collection plan or a collection without diffraction. Warning is indicated in yellow in the UI
+ - `FAILED`: The execution failed, indicated with red in the UI
+ - `SKIPPED`: Item was skipped, indicated with red in the UI
+ - `RUNNING`: Item is currently being executed, indicated with blue in the UI
+ - `NOT_EXECUTED`: Item has not yet been executed; the default item color is gray.
+
+While running the queue, it emits a set of signals/events via `self.emit`. The signals are:
+
+- queue_entry_execute_finished: When a queue entry finishes execution for any given reason, the queue entry in question and one of the strings (Failed, Successful, Skipped or Aborted) are passed with the signal.
+- queue_stopped: When the queue was stopped
+- queue_paused: When the queue was/is paused
+
+The exception `QueueSkippEntryException` can be raised at any time to skip to the next entry in the queue. Raising QueueSkippEntryException` will skip to the next entry at the same level as the current node, meaning that all child nodes will be skipped as well. The
+status of the skipped queue entry will be set to `SKIPPED` and `queue_entry_execute_finished` will be emitted with `Skipped`
+
+Aborting the execution of the queue is done by raising `QueueAbortedException`. The status of the queue entry will be "FAILED" and `queue_entry_execute_finished` will be emitted with `Aborted`. The exception is re-raised after being handled.
+
+The exception `QueueExecutionException` can be raised to handle an error and skip to the
+next entry. The status of the skipped queue entry will be set to `FAILED` and `queue_entry_execute_finished` will be emitted with `Failed`. The difference between `QueueSkippEntryException` is that the status is set to `Failed` instead of skipped.
+
+Any other exception that occurs during queue entry execution will be handled in the `handle_exception` method of the executing entry, and the queue will be stopped.
+
+## Dynamically loaded queue entries
+After some years of use, the developer community has found that some aspects of the queue can be improved. The queue was originally designed with a certain degree of flexibility in mind; it was thought that the queue was going to need to be extended with new collection protocols occasionally, but that  that the number of protocols would remain quite limited. Furthermore, the model layer `QueueModel` objects were designed as pure data-carrying objects with the intent that these objects could be instantiated from serialized data passed over an RPC protocol. The `QueueModel` objects were also originally designed to run on Python 2.4 (that was used at the time) and had no real support for typing these data-carrying objects. The Python dictionary data structure is often used to pass the data to various parts of the application. An approach that was adapted partly because the dictionary structure is simple to serialize to a string, but also because the already existing collection routines were already using dictionaries to pass data internally.
+
+A new kind of "dynamic" queue entry that can be  loaded  on demand has been introduced to solve some of these limitations. The new queue entry has the following properties:
+
+- Can be self-contained within a single Python file, defining the collection protocol
+- Can be loaded on demand by
+- The data model is defined by a schema, via Python type hints
+- The data model only contains data
+- The data model and its schema are JSON-serializable
+
+The new system makes it very easy to add a new collection protocol by simply adding a Python file in a certain directory (the `site_entry_path`) that is scanned when the application starts. The data model is also better defined and, to a certain extent, self-documenting. The data and the schema can easily be passed over a message queue protocol, or RPC solution. The user interface for the collection protocols can, in many cases, be automatically generated via the schema. Making it possible to add a new collection protocol without updating the user interface.
+
+### Creating a "dynamic" queue entry
