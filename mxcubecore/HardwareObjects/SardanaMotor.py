@@ -144,10 +144,11 @@ class SardanaMotor(AbstractMotor):
         self.update_state()
         self.update_value()
 
-    def get_state(self):
-        """Get the motor state.
+    def get_state(self) -> HardwareObjectState:
+        """Get the motor state
+
         Returns:
-            (enum 'HardwareObjectState'): Motor state.
+            Motor state
         """
         try:
             _state = self.state_channel.get_value()
@@ -164,9 +165,10 @@ class SardanaMotor(AbstractMotor):
             state = self.STATES.UNKNOWN
         return self.update_state(state)
 
-    def is_ready(self):
+    def is_ready(self) -> bool:
         """
-        Descript. : True if the motor is ready
+        Returns:
+            True if the motor is ready
         """
         return self.get_state() == HardwareObjectState.READY
 
@@ -175,13 +177,14 @@ class SardanaMotor(AbstractMotor):
             while not self.is_ready():
                 time.sleep(0.1)
 
-    def is_moving(self):
+    def is_moving(self) -> bool:
         """
-        Descript. : True if the motor is currently moving
+        Returns:
+            True if the motor is currently moving
         """
         return self.get_state() == HardwareObjectState.BUSY
 
-    def wait_end_of_move(self, timeout=None):
+    def wait_end_of_move(self, timeout: float = None) -> None:
         """
         Wait till the motor stops
         """
