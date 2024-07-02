@@ -26,7 +26,6 @@ retreiving nodes are all done via this object. It is possbile to
 handle several models by using register_model and select_model.
 """
 
-import os
 import json
 import logging
 import jsonpickle
