@@ -78,7 +78,7 @@ When the Web interface was designed, the scientists wanted to change some aspect
 On a technical level, there is a tight coupling between the `QueueEntry` base class and a Qt view object that makes the creation of the `QueueEntry` object slightly different between the two user interfaces (Qt and Web). To handle the tight coupling to Qt, a `Mock` object is used in the web version instead of a Qt View. The Qt interface can access the view directly via a reference, something that is impossible in the Web interface. Because the view and the `QueueEntry` do not execute in the same process, updates to the view in the web version are instead done through signals passed over websockets to the client.
 
 ## Execution
-As mentioned above, the execution order is depth first, so that all the children of a node are executed before the node's siblings. Each node has a `execute` method that defines its main logic and `pre_execute` and `post_execute`.
+As mentioned above, the execution order is depth first, so that all the children of a node are executed before the node's siblings. Each node has a `execute` method that defines its main logic and `pre_execute` and `post_execute` methods that are run before and after the main `execute` method. The `execute` and `pre_execute` methods of an entry runs before the `execute` method of its children. The `post_execute` method of an entry will run after its children have executed.
 
 A queue entry has a state internally called `status` that indicates the state of execution; the state can be one of:
 
@@ -106,14 +106,14 @@ next entry. The status of the skipped queue entry will be set to `FAILED` and `q
 Any other exception that occurs during queue entry execution will be handled in the `handle_exception` method of the executing entry, and the queue will be stopped.
 
 ## Dynamically loaded queue entries
-After some years of use, the developer community has found that some aspects of the queue can be improved. The queue was originally designed with a certain degree of flexibility in mind; it was initially thought that the queue was to be extended with new collection protocols occasionally, but that  that the number of protocols would remain quite limited. Furthermore, the model layer `QueueModel` objects were designed as pure data-carrying objects with the intent that these objects could be instantiated from serialized data passed over an RPC protocol. The `QueueModel` objects were also originally designed to run on Python 2.4 (that was used at the time) and had no real support for typing these data-carrying objects. The Python dictionary data structure is often used to pass the data to various parts of the application. An approach that was adapted partly because the dictionary structure is simple to serialize to a string, but also because the already existing collection routines were already using dictionaries to pass data internally.
+After some years of use, the developer community has found that some aspects of the queue can be improved. The queue was originally designed with a certain degree of flexibility in mind; it was initially thought that the queue was to be extended with new collection protocols occasionally, but that that the number of protocols would remain quite limited. Furthermore, the model layer `QueueModel` objects were designed as pure data-carrying objects with the intent that these objects could be instantiated from serialized data passed over an RPC protocol. The `QueueModel` objects were also originally designed to run on Python 2.4 (that was used at the time) with limimited support for typing. The `QueueModel` objects are often converted to Python dictionary data structures and passed to various parts of the application. An approach that was adapted partly because the dictionary structure is simple to serialize to a string, but also because the already existing collection routines were already using dictionaries to pass data internally.
 
 With time, the `QueueModel` objects were extended with methods, deviating from the initial idea of them as purely data-carrying. This, to some extent, breaks compatibility with RPC protocols. Furthermore, the dictionaries not being well-defined or immutable quickly become a source of uncertainty.
 
-A new kind of "dynamic" queue entry that can be  loaded  on demand has been introduced to solve some of these limitations. The new queue entry has the following properties:
+A new kind of "dynamic" queue entry that can be loaded on demand has been introduced to solve some of these limitations. The new queue entry has the following properties:
 
 - Can be self-contained within a single Python file defining the collection protocol
-- Can be loaded on demand
+- Can be loaded on demand by the application
 - The data model is defined by a schema (JSON Schema), via Python type hints
 - The data model only contains data
 - The data model and its schema are JSON-serializable
@@ -121,3 +121,88 @@ A new kind of "dynamic" queue entry that can be  loaded  on demand has been intr
 The new system makes it very easy to add a new collection protocol by simply adding a Python file in a certain directory (the `site_entry_path`) that is scanned when the application starts. The data model is also better defined and, to a certain extent, self-documenting. The data and the schema can easily be passed over a message queue protocol, or RPC solution. The user interface for the collection protocols can, in many cases, be automatically generated via the schema. Making it possible to add a new collection protocol without updating the user interface.
 
 ### Creating a "dynamic" queue entry
+```{attention}
+The dynamic queue entry is still beeing developed and some parts especially the `DATA_MODEL` mentioned below are subject to
+change.
+```
+
+The `QueueManager` looks for queue entries in the directory `mxcubecore/queue_entry`. A site-specific folder can be configured via the option `site_entry_path`. Setting `site_entry_path` will add the path `mxcubecore/HardwareObjects/[site_entry_path]/queue_entry` to the lookup path.
+
+```
+<object class="QueueManager" role="Queue">
+  <!-- where SITE is for instance ALBA|DESSY|ESRF ... -->
+  <site_entry_path>"SITE"</site_entry_path>
+</object>
+```
+
+A queue entry needs to follow a certain convention for it to be picked by the loader. The loader will search through the modules in the lookup path and look for a class with the same name as the module and the suffix `QueueEntry` appended to it. For example, the class name for an entry in a module with the name `test_collection.py` would be `TestCollectionQueueEntry`. See the example `test_collection.py` in `mxcubecore/queue_entry`.
+
+As with any queue entry in MXCuBE the "dynamic" queue entry also has to inherit `BaseQueueEntry` and be associated with a `QueueModel` object, for instance `DataCollection`. Using BaseQueueEntry and DataCollection making the "dynamic" queue entries behave as native queue entries. The big difference between the `dynamic` and the native queue entry lies in how the data model is defined and passed. The native queue entry uses a set of the classes defined in queue_model_objects, whereas the "dynamic" entries use a single `Pydantic` model. The excerpt from the example collection `test_collection.py` illustrates the similarities between the native and "dynamic" queue entries.
+
+```
+# Using BaseQueueEntry and DataCollection making the "Dynmaic" queue entries behave as
+# native queue entries
+
+from mxcubecore.queue_entry.base_queue_entry import BaseQueueEntry
+from mxcubecore.model.queue_model_objects import (
+    DataCollection,
+)
+
+class TestCollectionQueueModel(DataCollection):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+class TestCollectionQueueEntry(BaseQueueEntry):
+    """
+    Defines the behaviour of a data collection.
+    """
+
+    # The four class variables below are specific to "dynamic" queue entries
+    QMO = TestCollectionQueueModel
+    DATA_MODEL = TestCollectionTaskParameters
+    NAME = "Test collection"
+    REQUIRES = ["point", "line", "no_shape", "chip", "mesh"]
+
+    def __init__(self, view, data_model: TestCollectionQueueModel):
+        super().__init__(view=view, data_model=data_model)
+
+    def execute(self):
+        super().execute()
+        debug(self._data_model._task_data)
+
+    def pre_execute(self):
+        super().pre_execute()
+
+    def post_execute(self):
+        super().post_execute()
+```
+
+The part that differ from the naitve queue entry is the four class variables `QMO`, `DATA_MODEL`, `NAME` and `REQUIRES`.
+
+- `QMO`: (Queue model object) is used internally to tell which QueueModel object this entry is assocaited with so that the entry can be added to [MODEL_QUEUE_ENTRY_MAPPINGS](https://github.com/mxcube/mxcubecore/blob/develop/mxcubecore/queue_entry/__init__.py#L83)
+- `DATA_MODEL`: Specifies the Pydantic model
+- `NAME`: The name of the queue entry (also the name displayed to the user)
+- `REQUIRES`: A set of prerequsits that needs to be fullfilled for this entry
+
+#### Dynamic queue entry data model
+The data model `DATA_MODEL` needs to be a pydantic model; inherit `pydantic.BaseModel` and have the following four attributes:
+`path_parameters`, `common_parameters`, `collection_parameters`, `user_collection_parameters` and `legacy_parameters`.
+
+```
+class TestCollectionTaskParameters(BaseModel):
+    path_parameters: PathParameters
+    common_parameters: CommonCollectionParamters
+    collection_parameters: StandardCollectionParameters
+    user_collection_parameters: TestUserCollectionParameters
+    legacy_parameters: LegacyParameters
+```
+
+The task parameters have currently been split into four different parts:
+
+- `path_parameters`: Parameters realted to the data path, complements the `PathTemplate` object
+- `common_parameters`: Parameters that are common between differnt kinds of collection protocols
+- `collection_parameters`: Collection parameters for the specific protocol
+- `user_collection_parameters`: Collection parameters relevant to the user complements `collection_parameters`
+- `legacy_parameters`: Parameters that are still beeing passed arround in the application but not used (for backward compatability)
+
+For a complete example see: [test_collection.py](https://github.com/mxcube/mxcubecore/blob/develop/mxcubecore/queue_entry/test_collection.py)
