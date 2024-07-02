@@ -1,13 +1,13 @@
 ---
 
-  ### Calling interface (for automation)
-  # This section is specific to the automated MXCuBE-web version, intended for MASSIF-1.
-  # It shows the interfaces between the Global Phasing workflow and a calling
-  # automation program running through MXCuBE,.
+### Calling interface (for automation)
+# This section is specific to the automated MXCuBE-web version, intended for MASSIF-1.
+# It shows the interfaces between the Global Phasing workflow and a calling
+# automation program running through MXCuBE,.
 
-  # Adding a GΦL workflow is done in the same way as adding an EDNA workflow.
-  # The parameters are a node ID and a task dictionary.
-  # The parameters relevant for GΦL  are, in yaml notation:
+# Adding a GΦL workflow is done in the same way as adding an EDNA workflow.
+# The parameters are a node ID and a task dictionary.
+# The parameters relevant for GΦL  are, in yaml notation:
 
 task:
 
