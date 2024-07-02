@@ -80,7 +80,7 @@ On a technical level, there is a tight coupling between the `QueueEntry` base cl
 ## Execution
 As mentioned above, the execution order is depth first, so that all the children of a node are executed before the node's siblings. Each node has a `execute` method that defines its main logic and `pre_execute` and `post_execute`.
 
-A queue entry has a state internally called `status` that indicates the state of execution; the state can be one of ["SUCCESS", "WARNING", "FAILED", "SKIPPED", "RUNNING", "NOT_EXECUTED"].
+A queue entry has a state internally called `status` that indicates the state of execution; the state can be one of:
 
  - `SUCCESS`: The item was executed successfully, indicated with a green color in the UI
  - `WARNING`: The item was executed successfully, but there was a problem with, for instance, processing. For example, a characterization that finishes without a collection plan or a collection without diffraction. Warning is indicated in yellow in the UI
