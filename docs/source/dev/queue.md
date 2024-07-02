@@ -106,13 +106,15 @@ next entry. The status of the skipped queue entry will be set to `FAILED` and `q
 Any other exception that occurs during queue entry execution will be handled in the `handle_exception` method of the executing entry, and the queue will be stopped.
 
 ## Dynamically loaded queue entries
-After some years of use, the developer community has found that some aspects of the queue can be improved. The queue was originally designed with a certain degree of flexibility in mind; it was thought that the queue was going to need to be extended with new collection protocols occasionally, but that the number of protocols would remain quite limited. Furthermore, the model layer `QueueModel` objects were designed as pure data-carrying objects with the intent that these objects could be instantiated from serialized data passed over an RPC protocol. The `QueueModel` objects were also originally designed to run on Python 2.4 (that was used at the time) and had no real support for typing these data-carrying objects. The Python dictionary data structure is often used to pass the data to various parts of the application. An approach that was adapted partly because the dictionary structure is simple to serialize to a string, but also because the already existing collection routines were already using dictionaries to pass data internally.
+After some years of use, the developer community has found that some aspects of the queue can be improved. The queue was originally designed with a certain degree of flexibility in mind; it was initially thought that the queue was to be extended with new collection protocols occasionally, but that  that the number of protocols would remain quite limited. Furthermore, the model layer `QueueModel` objects were designed as pure data-carrying objects with the intent that these objects could be instantiated from serialized data passed over an RPC protocol. The `QueueModel` objects were also originally designed to run on Python 2.4 (that was used at the time) and had no real support for typing these data-carrying objects. The Python dictionary data structure is often used to pass the data to various parts of the application. An approach that was adapted partly because the dictionary structure is simple to serialize to a string, but also because the already existing collection routines were already using dictionaries to pass data internally.
+
+With time, the `QueueModel` objects were extended with methods, deviating from the initial idea of them as purely data-carrying. This, to some extent, breaks compatibility with RPC protocols. Furthermore, the dictionaries not being well-defined or immutable quickly become a source of uncertainty.
 
 A new kind of "dynamic" queue entry that can be  loaded  on demand has been introduced to solve some of these limitations. The new queue entry has the following properties:
 
-- Can be self-contained within a single Python file, defining the collection protocol
-- Can be loaded on demand by
-- The data model is defined by a schema, via Python type hints
+- Can be self-contained within a single Python file defining the collection protocol
+- Can be loaded on demand
+- The data model is defined by a schema (JSON Schema), via Python type hints
 - The data model only contains data
 - The data model and its schema are JSON-serializable
 
