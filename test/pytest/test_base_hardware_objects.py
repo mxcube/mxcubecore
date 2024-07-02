@@ -279,52 +279,6 @@ class TestHardwareObjectNode:
         assert HardwareObjectNode.user_file_directory == new_path
         assert hw_obj_node.user_file_directory == new_path
 
-    @pytest.mark.parametrize("name", ("test_node_two",))
-    def test_set_name(self, hw_obj_node: HardwareObjectNode, name: str):
-        """Test "set_name" method.
-
-        Args:
-            hw_obj_node (HardwareObjectNode): Object instance.
-            name (str): Name.
-        """
-
-        # Basic check to make sure the initial return value is a string
-        assert isinstance(hw_obj_node.name(), str)
-
-        # Call method
-        hw_obj_node.set_name(name=name)
-
-        # Confirm node name has been updated correctly
-        assert hw_obj_node.name() == name
-
-    @pytest.mark.parametrize("roles", (("slits", "queue", "session"),))
-    def test_get_roles(
-        self,
-        mocker: "MockerFixture",
-        hw_obj_node: HardwareObjectNode,
-        roles: Tuple[str],
-    ):
-        """Test "get_roles" method.
-
-        Args:
-            mocker (MockerFixture): Instance of the Pytest mocker fixture.
-            hw_obj_node (HardwareObjectNode): Object instance.
-            roles (Tuple[str]): Roles.
-        """
-
-        # We are only worrying about the dictionary keys,
-        # as the item values are not being read by the "get_roles" method.
-        role_values = dict([(key, None) for key in roles])
-
-        # Patch "_objects_by_role" attribute to test with known values
-        mocker.patch.dict(hw_obj_node._objects_by_role, values=role_values, clear=True)
-
-        # Call method
-        res = hw_obj_node.get_roles()
-
-        # Check output list of roles matched test input
-        assert tuple(res) == roles
-
     @pytest.mark.parametrize(
         ("initial_path", "new_path"),
         (("/mnt/data/old_path", "/mnt/data/new_path"),),
@@ -358,35 +312,6 @@ class TestHardwareObjectNode:
 
         # Validate path updated
         assert hw_obj_node._path == new_path
-
-    @pytest.mark.parametrize("path", ("/mnt/data/file.xml",))
-    def test_get_xml_path(
-        self,
-        mocker: "MockerFixture",
-        hw_obj_node: HardwareObjectNode,
-        path: str,
-    ):
-        """Test "get_xml_path" method.
-
-        Args:
-            mocker (MockerFixture): Instance of the Pytest mocker fixture.
-            hw_obj_node (HardwareObjectNode): Object instance.
-            path (str): XML path.
-        """
-
-        # Patch "_xml_path" attribute to set known values
-        mocker.patch.object(
-            hw_obj_node,
-            "_xml_path",
-            new=path,
-            create=True,
-        )
-
-        # Call method
-        res = hw_obj_node.get_xml_path()
-
-        # Validate correct path returned
-        assert res == path
 
     @pytest.mark.parametrize(
         ("objects", "count"),
