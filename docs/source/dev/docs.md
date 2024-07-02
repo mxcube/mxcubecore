@@ -57,6 +57,8 @@ sphinx-build -M html docs/source docs/build -c docs
 
 The theme used is [*furo*](https://pypi.org/project/furo/).
 
+### Markup
+
 The default markup language for Sphinx is
 [*reStructuredText*](https://docutils.sourceforge.io/rst.html).
 The [usage of *Markdown*](https://www.sphinx-doc.org/en/master/usage/markdown.html)
@@ -67,6 +69,8 @@ the Sphinx documentation focuses on the Restructuredtext notation only.
 To learn how to use these features in Markdown documents,
 one should refer to the MyST documentation.
 The docstrings in Python code are still to be written with Restructuredtext syntax, though.
+
+### Python code
 
 The documentation system is configured to generate {doc}`API documentation </dev/api>`
 based on the Python code.
@@ -79,3 +83,41 @@ The
 extension is enabled to handle docstrings within the Python code
 and it is configured for
 [Google-style docstrings](https://google.github.io/styleguide/pyguide.html#s3.8-comments-and-docstrings).
+
+### Diagrams
+
+The
+[*`sphinxcontrib-mermaid`*](https://pypi.org/project/sphinxcontrib-mermaid)
+extension is enabled to allow embedding [*Mermaid* diagrams](https://mermaid.js.org/)
+in the documentation.
+
+For example the following code in a Markdown document:
+
+~~~markdown
+```{mermaid}
+sequenceDiagram
+participant Alice
+participant Bob
+Alice->John: Hello John, how are you?
+```
+~~~
+
+or the following in a ReStructuredText document:
+
+```restructuredtext
+.. mermaid::
+
+    sequenceDiagram
+    participant Alice
+    participant Bob
+    Alice->John: Hello John, how are you?
+```
+
+produce the following diagram:
+
+```{mermaid}
+sequenceDiagram
+participant Alice
+participant Bob
+Alice->John: Hello John, how are you?
+```
