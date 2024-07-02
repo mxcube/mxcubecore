@@ -11,7 +11,7 @@ taurusname is the only obligatory property.
 
 .. code-block:: xml
 
- <object class="SardanaMotor">
+   <object class="SardanaMotor">
     <taurusname>dmot01</taurusname>
     <username>Dummy</username>
     <actuator_name>dummy_motor</actuator_name>
