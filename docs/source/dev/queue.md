@@ -95,7 +95,7 @@ While running the queue, it emits a set of signals/events via `self.emit`. The s
 - queue_stopped: When the queue was stopped
 - queue_paused: When the queue was/is paused
 
-The exception `QueueSkippEntryException` can be raised at any time to skip to the next entry in the queue. Raising QueueSkippEntryException` will skip to the next entry at the same level as the current node, meaning that all child nodes will be skipped as well. The
+The exception `QueueSkippEntryException` can be raised at any time to skip to the next entry in the queue. Raising `QueueSkippEntryException` will skip to the next entry at the same level as the current node, meaning that all child nodes will be skipped as well. The
 status of the skipped queue entry will be set to `SKIPPED` and `queue_entry_execute_finished` will be emitted with `Skipped`
 
 Aborting the execution of the queue is done by raising `QueueAbortedException`. The status of the queue entry will be "FAILED" and `queue_entry_execute_finished` will be emitted with `Aborted`. The exception is re-raised after being handled.
