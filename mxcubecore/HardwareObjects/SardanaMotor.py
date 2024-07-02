@@ -18,7 +18,7 @@ taurusname is the only obligatory property.
     <threshold>0.005</threshold>
     <move_threshold>0.005</move_threshold>
     <interval>2000</interval>
- </object>
+   </object>
 """
 
 
