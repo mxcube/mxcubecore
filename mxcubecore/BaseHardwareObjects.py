@@ -24,7 +24,6 @@ import typing
 import ast
 import enum
 import copy
-from collections import OrderedDict
 import logging
 from gevent import event, Timeout
 import pydantic
@@ -40,7 +39,6 @@ from typing import (
     Tuple,
     Type,
     Optional,
-    OrderedDict as TOrderedDict,
 )
 from typing_extensions import Self, Literal
 from warnings import warn
