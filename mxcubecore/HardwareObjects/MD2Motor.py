@@ -84,9 +84,7 @@ class MD2Motor(AbstractMotor):
 
     def motorStateChanged(self, state):
         logging.getLogger().debug(
-            "{}: in motorStateChanged: motor state changed to {}".format(
-                self.id, state
-            )
+            "{}: in motorStateChanged: motor state changed to {}".format(self.id, state)
         )
         self.emit("stateChanged", (state,))
 
