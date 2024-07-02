@@ -102,6 +102,12 @@ extensions.append("myst_parser")
 myst_enable_extensions = ("fieldlist",)
 
 
+# -- Options for sphinxcontrib.mermaid
+# https://pypi.org/project/sphinxcontrib-mermaid/
+
+extensions.append("sphinxcontrib.mermaid")
+
+
 # -- Options for sphinx_last_updated_by_git
 # https://pypi.org/project/sphinx-last-updated-by-git/
 
