@@ -183,7 +183,7 @@ class SardanaMotor(AbstractMotor):
 
     def wait_end_of_move(self, timeout=None):
         """
-        Descript. : waits till the motor stops
+        Wait till the motor stops
         """
         with Timeout(timeout):
             # Wait a bit to ensure the motor started moving
