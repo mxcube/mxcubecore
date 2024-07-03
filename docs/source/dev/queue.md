@@ -105,6 +105,12 @@ next entry. The status of the skipped queue entry will be set to `FAILED` and `q
 
 Any other exception that occurs during queue entry execution will be handled in the `handle_exception` method of the executing entry, and the queue will be stopped.
 
+### Nesting of nodes and execution
+There are, as mentioned in the introduction, no constraints on the depth of the queue. An item will execute its main body of logic defined in the `exeute` method and then run its child items. The process will continue until there are no more child items to execute, and then continue with the siblings of the parent of the last executed item.
+
+#### Web interface and nesting of items
+The web interface has a flat, non-hierarchical, representation of the queue where the child items of a node are displayed under its parent item. The parent item will remain running, highlighted in blue, while the child items are being processed. An item will be highlighted in green when successfully executed and in red if something went wrong.
+
 ## Dynamically loaded queue entries
 After some years of use, the developer community has found that some aspects of the queue can be improved. The queue was originally designed with a certain degree of flexibility in mind; it was initially thought that the queue was to be extended with new collection protocols occasionally, but that that the number of protocols would remain quite limited. Furthermore, the model layer `QueueModel` objects were designed as pure data-carrying objects with the intent that these objects could be instantiated from serialized data passed over an RPC protocol. The `QueueModel` objects were also originally designed to run on Python 2.4 (that was used at the time) with limimited support for typing. The `QueueModel` objects are often converted to Python dictionary data structures and passed to various parts of the application. An approach that was adapted partly because the dictionary structure is simple to serialize to a string, but also because the already existing collection routines were already using dictionaries to pass data internally.
 
@@ -116,11 +122,11 @@ A new kind of "dynamic" queue entry that can be loaded on demand has been introd
 - Can be loaded on demand by the application
 - The data model is defined by a schema (JSON Schema), via Python type hints
 - The data model only contains data
-- The data model and its schema are JSON-serializable
+- The data model and its schema are JSON-serializable and hence easy to use in message passing protocols
 
 The new system makes it very easy to add a new collection protocol by simply adding a Python file in a certain directory (the `site_entry_path`) that is scanned when the application starts. The data model is also better defined and, to a certain extent, self-documenting. The data and the schema can easily be passed over a message queue protocol, or RPC solution. The user interface for the collection protocols can, in many cases, be automatically generated via the schema. Making it possible to add a new collection protocol without updating the user interface.
 
-### Creating a "dynamic" queue entry
+#### Creating a "dynamic" queue entry
 ```{attention}
 The dynamic queue entry is still beeing developed and some parts especially the `DATA_MODEL` mentioned below are subject to
 change.
@@ -177,14 +183,14 @@ class TestCollectionQueueEntry(BaseQueueEntry):
         super().post_execute()
 ```
 
-The part that differ from the naitve queue entry is the four class variables `QMO`, `DATA_MODEL`, `NAME` and `REQUIRES`.
+The part that differ from the native queue entry is the four class variables `QMO`, `DATA_MODEL`, `NAME` and `REQUIRES`.
 
 - `QMO`: (Queue model object) is used internally to tell which QueueModel object this entry is assocaited with so that the entry can be added to [MODEL_QUEUE_ENTRY_MAPPINGS](https://github.com/mxcube/mxcubecore/blob/develop/mxcubecore/queue_entry/__init__.py#L83)
 - `DATA_MODEL`: Specifies the Pydantic model
 - `NAME`: The name of the queue entry (also the name displayed to the user)
 - `REQUIRES`: A set of prerequsits that needs to be fullfilled for this entry
 
-#### Dynamic queue entry data model
+*Dynamic queue entry data model*
 The data model `DATA_MODEL` needs to be a pydantic model; inherit `pydantic.BaseModel` and have the following four attributes:
 `path_parameters`, `common_parameters`, `collection_parameters`, `user_collection_parameters` and `legacy_parameters`.
 
