@@ -1,3 +1,5 @@
+import json
+
 from pydantic import BaseModel, Field
 from devtools import debug
 
@@ -38,6 +40,10 @@ class TestCollectionTaskParameters(BaseModel):
     @staticmethod
     def update_dependent_fields(field_data):
         return {}
+
+    @staticmethod
+    def ui_schema():
+        return json.dumps({})
 
 
 class TestCollectionQueueModel(DataCollection):
