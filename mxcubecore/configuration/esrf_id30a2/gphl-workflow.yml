@@ -1,4 +1,8 @@
+# %YAML 1.2
 ---
+
+# NB This file should be ignored until the branch is merged back into develop. rhfogh.
+# Meanwhile leave the yamllint as it is
 
 # yamllint disable rule:comments-indentation
 # yamllint disable rule:hyphens
@@ -106,7 +110,7 @@ settings:
         # File name prefix for workflow log files
         co.gphl.wf.persistName: wf
 
-        # Switch to pass log to stdout. Defaults to True
+        # Switch to pass log to stdout. Defaults to true
         # co.gphl.wf.logStdout: false
 
     # Properties applied after the java command - syntax as above-->
@@ -121,7 +125,7 @@ settings:
         # co.gphl.wf.procRootCheck: false
 
         # Parameters to individual applications
-        # Switch devMod to True to activate development parameters
+        # Switch devMod to true to activate development parameters
         # NB needed as of 20210802 to pass stratcal parameters strategy_type and variant
         co.gphl.wf.devMode: true
         # For stratcal configuration switches edit run_stratcal_wrap.py script instead-->

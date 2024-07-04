@@ -53,7 +53,7 @@ if TYPE_CHECKING:
 yaml = YAML(typ="safe", pure=True)
 # The following are not needed for load, but define the default style.
 yaml.default_flow_style = False
-yaml.indent(mapping=4, sequence=4, offset=2)
+yaml.indent(mapping=2, sequence=4, offset=2)
 
 
 __copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
