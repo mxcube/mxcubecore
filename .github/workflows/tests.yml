@@ -1,7 +1,8 @@
+# %YAML 1.2
 ---
 
 name: Pytest
-on:  # yamllint disable-line rule:truthy
+on:
   pull_request:
     types: [opened, reopened, synchronize]
     paths:
