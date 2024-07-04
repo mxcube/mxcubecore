@@ -58,5 +58,7 @@ class TestAperture(TestAbstractNStateBase):
         for label in test_object.get_diameter_size_list():
             test_object.set_value(test_object.VALUES[label])
             test_object.update_value(test_object.VALUES[label])
-            assert float(test_object.VALUES[label].value[0]) == test_object.get_size(label)
+            assert float(test_object.VALUES[label].value[0]) == test_object.get_size(
+                label
+            )
             assert test_object.VALUES[label] == test_object.get_value()
