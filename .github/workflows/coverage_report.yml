@@ -1,8 +1,9 @@
+# %YAML 1.2
 ---
 
 name: Coverage Report
 
-on:  # yamllint disable-line rule:truthy
+on:
   pull_request:
     types: [opened, reopened, synchronize]
     paths:
@@ -16,45 +17,44 @@ jobs:
 
     steps:
 
-    # yamllint disable-line rule:indentation
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.10"
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
 
-    - name: Install dependencies
-      # yamllint disable rule:line-length
-      run: |
-        sudo apt-get update && sudo apt-get install -y libsasl2-dev libldap2-dev libssl-dev
-        python -m pip install --upgrade pip
-        python -m pip install poetry --user
-        python -m poetry install --extras=tango
-      # yamllint enable rule:line-length
+      - name: Install dependencies
+        # yamllint disable rule:line-length
+        run: |
+          sudo apt-get update && sudo apt-get install -y libsasl2-dev libldap2-dev libssl-dev
+          python -m pip install --upgrade pip
+          python -m pip install poetry --user
+          python -m poetry install --extras=tango
+        # yamllint enable rule:line-length
 
-    - name: Run and write pytest
-      # yamllint disable rule:line-length
-      run: |
-        set -o pipefail
-        poetry run pytest --cov=mxcubecore --junitxml=pytest.xml --cov-report=term-missing:skip-covered | tee pytest-coverage.txt
-      # yamllint enable rule:line-length
+      - name: Run and write pytest
+        # yamllint disable rule:line-length
+        run: |
+          set -o pipefail
+          poetry run pytest --cov=mxcubecore --junitxml=pytest.xml --cov-report=term-missing:skip-covered | tee pytest-coverage.txt
+        # yamllint enable rule:line-length
 
-    - name: Pytest coverage comment
-      id: coverage-comment
-      uses: MishaKav/pytest-coverage-comment@v1.1.40
-      with:
-        repo-token: ${{ secrets.CI_TOKEN }}
-        pytest-coverage-path: ./pytest-coverage.txt
-        junitxml-path: ./pytest.xml
-        report-only-changed-files: true
+      - name: Pytest coverage comment
+        id: coverage-comment
+        uses: MishaKav/pytest-coverage-comment@v1.1.40
+        with:
+          repo-token: ${{ secrets.CI_TOKEN }}
+          pytest-coverage-path: ./pytest-coverage.txt
+          junitxml-path: ./pytest.xml
+          report-only-changed-files: true
 
-    - name: Check the output coverage
-      run: |
-        echo "Coverage Percantage - ${{ steps.coverage-comment.outputs.coverage }}"
-        echo "Coverage Warnings - ${{ steps.coverage-comment.outputs.warnings }}"
-        echo "Coverage Errors - ${{ steps.coverage-comment.outputs.errors }}"
-        echo "Coverage Failures - ${{ steps.coverage-comment.outputs.failures }}"
-        echo "Coverage Skipped - ${{ steps.coverage-comment.outputs.skipped }}"
-        echo "Coverage Tests - ${{ steps.coverage-comment.outputs.tests }}"
-        echo "Coverage Time - ${{ steps.coverage-comment.outputs.time }}"
+      - name: Check the output coverage
+        run: |
+          echo "Coverage Percantage - ${{ steps.coverage-comment.outputs.coverage }}"
+          echo "Coverage Warnings - ${{ steps.coverage-comment.outputs.warnings }}"
+          echo "Coverage Errors - ${{ steps.coverage-comment.outputs.errors }}"
+          echo "Coverage Failures - ${{ steps.coverage-comment.outputs.failures }}"
+          echo "Coverage Skipped - ${{ steps.coverage-comment.outputs.skipped }}"
+          echo "Coverage Tests - ${{ steps.coverage-comment.outputs.tests }}"
+          echo "Coverage Time - ${{ steps.coverage-comment.outputs.time }}"
