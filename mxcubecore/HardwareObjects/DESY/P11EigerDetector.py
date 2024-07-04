@@ -173,7 +173,7 @@ class P11EigerDetector(AbstractDetector):
 
         self.eiger_dev.write_attribute("CountTime", float(exptime))
         self.eiger_dev.write_attribute("FrameTime", float(exptime))
-        self.eiger_dev.write_attribute("TriggerStartDelay", 0.003)
+        self.eiger_dev.write_attribute("TriggerStartDelay", 0.005)
 
         if filepath.startswith("/gpfs"):
             filepath = filepath[len("/gpfs") :]
