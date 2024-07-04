@@ -46,7 +46,6 @@ from mxcubecore.Command.Tango import DeviceProxy
 FILE_TIMEOUT = 5
 
 
-
 class P11Collect(AbstractCollect):
     def __init__(self, *args):
         super().__init__(*args)
