@@ -1,3 +1,4 @@
+%YAML 1.2
 ---
 
 # The class to initialise, and init parameters
@@ -93,8 +94,8 @@ configuration:
     characterisation:
       # Defaults for chareacterisation. Missing values are taken from default
       osc_range: 1
-      opt_sad: False  # yamllint disable-line rule:truthy
-      account_rad_damage: True  # yamllint disable-line rule:truthy
+      opt_sad: false
+      account_rad_damage: true
       strategy_complexity: 0
       max_crystal_vdim: 1.0
       min_crystal_vdim: 1.0
