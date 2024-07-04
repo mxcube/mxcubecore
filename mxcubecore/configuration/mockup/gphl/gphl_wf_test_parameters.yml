@@ -1,3 +1,4 @@
+%YAML 1.2
 ---
 
 ### Calling interface (for automation)
@@ -79,7 +80,7 @@ task:
         # relative_rad_sensitivity: 1.0    # default value 1.0
         # Pass input cell and symmetry to XDS and processing and force their use as
         # starting point. Used to override XDS cell, symmetry determination
-        # use_cell_for_processing: False   # default value False
+        # use_cell_for_processing: false   # default value false
         exposure_time: 0.04  # (s) Optional, default configured.
         # Mandatory if init_spot_dir is set
         image_width: 0.1    # (°) Optional, default configured.
@@ -116,7 +117,7 @@ task:
         #   maximum_chi: 48.0
         # Pass input cell and symmetry to XDS and processing and force their use as
         # starting point. Used to override XDS cell, symmetry determination
-        # use_cell_for_processing: False   # default value False
+        # use_cell_for_processing: false   # default value false
         exposure_time: 0.04  # (s) Optional, default configured.
         # Mandatory if init_spot_dir is set
         image_width: 0.1    # (°) Optional, default configured.
@@ -128,8 +129,7 @@ task:
         # Defaults to calculated dose budget. May reset transmission and exposure time
         # repetition_count: 1
         # snapshot_count: 2
-        # yamllint disable-line rule:truthy
-        skip_collection: True  # Causes GPhL collection simulation (only!) to do nothing
+        skip_collection: true  # Causes GPhL collection simulation (only!) to do nothing
 
         # Other parameters are set (ultimately) from ISPyB. These are all optional:
         # From crystal description:
