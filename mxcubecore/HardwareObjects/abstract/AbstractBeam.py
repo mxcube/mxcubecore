@@ -19,19 +19,20 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
-AbstracBeam class - methods to define the size and shape of the beam, its presence.
+AbstracBeam class - methods to define the size and shape of the beam.
 
 emits:
 - beamSizeChanged (self._beam_width, self._beam_height)
 - beamInfoChanged (self._beam_info_dict.copy())
 """
 
-__copyright__ = """ Copyright © 2016 - 2022 by MXCuBE Collaboration """
+__copyright__ = """ Copyright © by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
 
 import abc
 import sys
+from warnings import warn
 from enum import Enum, unique
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
@@ -85,7 +86,7 @@ class AbstractBeam(HardwareObject):
         _divergence_vertical = self.get_property("beam_divergence_vertical")
         _divergence_horizontal = self.get_property("beam_divergence_horizontal")
         self._beam_divergence = (_divergence_horizontal, _divergence_vertical)
-        self._beam_position_on_screen = (0, 0)
+        self._beam_position_on_screen = [0, 0]
 
     @property
     def aperture(self):
@@ -113,15 +114,13 @@ class AbstractBeam(HardwareObject):
         Returns:
             (tuple): Beam divergence (horizontal, vertical) [μm]
         """
-        if self._definer:
-            return self._definer.get_divergence()
         return self._beam_divergence
 
     def get_available_size(self):
         """Get the available predefined beam definers configuration.
         Returns:
             (dict): Dictionary {"type": (list), "values": (list)}, where
-               "type": the definer type
+               "type": the definer type ("aperture", "slits","definer")
                "values": List of available beam size difinitions,
                          according to the "type".
         Raises:
@@ -153,6 +152,11 @@ class AbstractBeam(HardwareObject):
             beam_height (float): requested beam height in microns
             beam_shape (BeamShape enum): requested beam shape
         """
+        warn(
+            "set_beam_size_shape is deprecated. Use set_value() instead",
+            DeprecationWarning,
+        )
+
         if beam_shape == BeamShape.RECTANGULAR:
             self._slits.set_horizontal_gap(beam_width)
             self._slits.set_vertical_gap(beam_height)
@@ -164,7 +168,7 @@ class AbstractBeam(HardwareObject):
         Returns:
             (tuple): Position (x, y) [pixel]
         """
-        # TODO move this method to AbstractSampleView
+        # (TODO) move this method to AbstractSampleView
         return self._beam_position_on_screen
 
     def set_beam_position_on_screen(self, beam_x_y):
@@ -183,30 +187,36 @@ class AbstractBeam(HardwareObject):
 
     def evaluate_beam_info(self):
         """
-        Method called if aperture, slits or focusing has been changed
-        Returns: dictionary, {size_x: 0.1, size_y: 0.1, shape: BeamShape enum}
+        Method called if aperture, slits or focusing has been changed.
+        Evaluates which of the beam size defining devices determins the size.
+        Returns:
+            (tuple): Beam info dictionary (dict), type of the definer (str).
+                     {size_x: float, size_y: float, shape: BeamShape enum},
         """
+        _shape = BeamShape.UNKNOWN
+        _size = min(self._beam_size_dict.values())
+        key = [k for k, v in self._beam_size_dict.items() if v == _size]
 
-        size_x = min(
-            self._beam_size_dict["aperture"][0], self._beam_size_dict["slits"][0]
-        )
-        size_y = min(
-            self._beam_size_dict["aperture"][1], self._beam_size_dict["slits"][1]
-        )
-
-        self._beam_width = size_x
-        self._beam_height = size_y
-
-        if tuple(self._beam_size_dict["aperture"]) < tuple(
-            self._beam_size_dict["slits"]
-        ):
-            self._beam_shape = BeamShape.ELIPTICAL
+        if len(key) == 1:
+            _label = key[0]
         else:
-            self._beam_shape = BeamShape.RECTANGULAR
+            if self._definer_type in key:
+                _label = self._definer_type
+            else:
+                _label = "UNKNOWN"
 
-        self._beam_info_dict["size_x"] = size_x
-        self._beam_info_dict["size_y"] = size_y
-        self._beam_info_dict["shape"] = self._beam_shape
+        if _label == "slits":
+            _shape = BeamShape.RECTANGULAR
+        else:
+            _shape = BeamShape.ELIPTICAL
+
+        self._beam_width = _size[0]
+        self._beam_height = _size[1]
+        self._beam_shape = _shape
+        self._beam_info_dict["size_x"] = _size[0]
+        self._beam_info_dict["size_y"] = _size[1]
+        self._beam_info_dict["shape"] = _shape
+        self._beam_info_dict["label"] = _label
 
         return self._beam_info_dict
 

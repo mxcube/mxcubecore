@@ -18,14 +18,15 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
-xml example:
+Example xml_ configuration:
 
-<object class="ApertureMockup">
-  <username>aperture</username>
-  <values>{"A5": (5, 0.11), A10": (10, 0.15), "A20": (20, 0.3), "A30": (30, 0.63), "A50": (50, 0.9), "A100": (100, 1)}</values>
-  <position_list>["BEAM", "OFF", "PARK"]</position_list>
-  <diameter_size_list>[5, 10, 20, 30, 50, 100]</diameter_size_list>
-</object>
+.. code-block:: xml
+
+ <object class="ApertureMockup">
+   <username>aperture</username>
+   <values>{"A5": (5, 0.11), A10": (10, 0.15), "A20": (20, 0.3), "A30": (30, 0.63), "A50": (50, 0.9), "A100": (100, 1)}</values>
+   <position_list>["BEAM", "OFF", "PARK"]</position_list>
+ </object>
 """
 from enum import Enum
 from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
@@ -36,6 +37,8 @@ __license__ = "LGPLv3+"
 
 
 class ApertureMockup(AbstractNState, ActuatorMockup):
+    """Mockup file for aperture as Nstate actuator"""
+
     def init(self):
         super().init()
         # check if we have values other that UKNOWN (no values in config)
@@ -94,14 +97,14 @@ class ApertureMockup(AbstractNState, ActuatorMockup):
         if isinstance(label, str):
             try:
                 return float(self.VALUES[label].value[0])
-            except (KeyError, ValueError, IndexError):
-                raise RuntimeError("Unknown aperture size")
+            except (KeyError, ValueError, IndexError) as err:
+                raise RuntimeError("Unknown aperture size") from err
         try:
             return float(label.value[0])
-        except (ValueError, IndexError):
+        except (ValueError, IndexError) as err:
             if self.inout_obj:
                 return None
-            raise RuntimeError("Unknown aperture size")
+            raise RuntimeError("Unknown aperture size") from err
 
     def get_diameter_size_list(self):
         """Get the list of values to be visible. Hide IN, OUT and UNKNOWN.
@@ -113,6 +116,6 @@ class ApertureMockup(AbstractNState, ActuatorMockup):
             _nam = value.name
 
             if _nam not in ["IN", "OUT", "UNKNOWN"]:
-                values.append(_nam[1:])
+                values.append(_nam)
 
         return values
