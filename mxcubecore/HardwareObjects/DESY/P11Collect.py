@@ -46,6 +46,7 @@ from mxcubecore.Command.Tango import DeviceProxy
 FILE_TIMEOUT = 5
 
 
+
 class P11Collect(AbstractCollect):
     def __init__(self, *args):
         super().__init__(*args)
@@ -848,7 +849,7 @@ class P11Collect(AbstractCollect):
         detector
         :return: a boolean value of True.
         """
-        # Add start angle to the header
+        # Add start angle to the headerp11user
         osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
         start_angle = osc_pars["start"]
         HWR.beamline.detector.set_eiger_start_angle(start_angle)
