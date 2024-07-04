@@ -1,3 +1,4 @@
+%YAML 1.2
 ---
 
 # The class to initialise, and init parameters
@@ -127,12 +128,12 @@ acquisition_limit_values:
     - 240.0
 
 available_methods:
-  datacollection: True  # yamllint disable-line rule:truthy
-  characterisation: True  # yamllint disable-line rule:truthy
-  helical: True  # yamllint disable-line rule:truthy
-  xrf_scan: True  # yamllint disable-line rule:truthy
-  energy_scan: True  # yamllint disable-line rule:truthy
-  mesh_scan: fals
+  datacollection: true
+  characterisation: true
+  helical: true
+  xrf_scan: true
+  energy_scan: true
+  mesh_scan: false
 
 undulators:
   - type: PPU35C_GAP
