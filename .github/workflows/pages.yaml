@@ -8,8 +8,8 @@ concurrency:
   group: "pages"
 
 on:
-  push:
-  pull_request:
+  push: null
+  pull_request: null
 
 jobs:
 
