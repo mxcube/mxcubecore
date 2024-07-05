@@ -40,7 +40,7 @@ try:
     yaml = YAML(typ="safe", pure=True)
     # The following are not needed for load, but define the default style.
     yaml.default_flow_style = False
-    yaml.indent(mapping=4, sequence=4, offset=2)
+    yaml.indent(mapping=2, sequence=4, offset=2)
 except Exception:
     logging.getLogger("HWR").warning(
         "Cannot import dependencies needed for GPHL workflows - GPhL workflows might not work"
