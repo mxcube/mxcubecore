@@ -2089,8 +2089,6 @@ class GphlWorkflow(HardwareObjectYaml):
         if data_model.automation_mode:
 
             # Handle resolution
-            if not data_model.aimed_resolution:
-                raise ValueError("aimed_resolution must be set in automation mode")
             # Resets detector_setting to match aimed_resolution
             data_model.detector_setting = None
             # NB resets detector_setting
