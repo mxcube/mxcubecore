@@ -23,7 +23,7 @@ Data collection group - Datacollection.Workflows and more complex data collectio
 *A nested strucutre, A group (Group1) with several sub groups each with several data collections. Group 1 could for instance be a workflow carrying out multiple sets of data collections (each set in its own group)*
 ```
 
-The execution order is depth first, so that all the children of a node are executed before the node's siblings. Each node has a `execute` method that defines its main logic and `pre_execute`and `post_execute` methods that are executed before and after the main `execute` method. There are also means to stop, pause and skip entries (by raising `QueueSkippEntryException`).
+The execution order is depth first, so that all the children of a node are executed before the node's siblings. Each node has a `execute` method that defines its main logic and `pre_execute`and `post_execute` methods that are executed before and after the main `execute` method. There are also means to stop, pause and skip entries (by raising `QueueSkipEntryException`).
 
 This design was thought to map well to the semantics of how data is collected with a sample changer and the upload of metadata to LIMS. The sample changer has a number of samples, each having a set of data collections (child nodes). The results are uploaded to the lims system after each data collection, (`post_execute`). Workflow engines can further group native collection protocols into grouping nodes, which in turn can be used as building blocks for even more complex collection strategies.
 
@@ -95,13 +95,13 @@ While running the queue, it emits a set of signals/events via `self.emit`. The s
 - `queue_stopped`: When the queue was stopped
 - `queue_paused`: When the queue was/is paused
 
-The exception `QueueSkippEntryException` can be raised at any time to skip to the next entry in the queue. Raising `QueueSkippEntryException` will skip to the next entry at the same level as the current node, meaning that all child nodes will be skipped as well. The
+The exception `QueueSkipEntryException` can be raised at any time to skip to the next entry in the queue. Raising `QueueSkipEntryException` will skip to the next entry at the same level as the current node, meaning that all child nodes will be skipped as well. The
 status of the skipped queue entry will be set to `SKIPPED` and `queue_entry_execute_finished` will be emitted with `Skipped`
 
 Aborting the execution of the queue is done by raising `QueueAbortedException`. The status of the queue entry will be "FAILED" and `queue_entry_execute_finished` will be emitted with `Aborted`. The exception is re-raised after being handled.
 
 The exception `QueueExecutionException` can be raised to handle an error and skip to the
-next entry. The status of the skipped queue entry will be set to `FAILED` and `queue_entry_execute_finished` will be emitted with `Failed`. The difference between `QueueSkippEntryException` is that the status is set to `Failed` instead of skipped.
+next entry. The status of the skipped queue entry will be set to `FAILED` and `queue_entry_execute_finished` will be emitted with `Failed`. The difference between `QueueSkipEntryException` is that the status is set to `Failed` instead of skipped.
 
 Any other exception that occurs during queue entry execution will be handled in the `handle_exception` method of the executing entry, and the queue will be stopped.
 
