@@ -61,7 +61,7 @@ class QueueAbortedException(QueueExecutionException):
     pass
 
 
-class QueueSkippEntryException(QueueExecutionException):
+class QueueSkipEntryException(QueueExecutionException):
     pass
 
 
@@ -686,7 +686,7 @@ class SampleQueueEntry(BaseQueueEntry):
                         )
                         log.error(msg)
                         self.status = QUEUE_ENTRY_STATUS.FAILED
-                        if isinstance(e, QueueSkippEntryException):
+                        if isinstance(e, QueueSkipEntryException):
                             raise
                         else:
                             raise QueueExecutionException(str(e), self)
@@ -805,7 +805,7 @@ def mount_sample(view, data_model, centring_done_cb, async_result):
                 # This is to preserve backward compatibility (load_sample was supposed to return None);
                 # if sample could not be loaded, but no exception is raised, let's skip
                 # the sample
-                raise QueueSkippEntryException(
+                raise QueueSkipEntryException(
                     "Sample changer could not load sample", ""
                 )
 
@@ -822,7 +822,7 @@ def mount_sample(view, data_model, centring_done_cb, async_result):
         # Disables all related collections
         view.setOn(False)
         view.setText(1, "Sample not loaded")
-        raise QueueSkippEntryException("Sample not loaded", "")
+        raise QueueSkipEntryException("Sample not loaded", "")
     else:
         view.setText(1, "Sample loaded")
         dm = HWR.beamline.diffractometer
@@ -862,7 +862,7 @@ def mount_sample(view, data_model, centring_done_cb, async_result):
                 else:
                     view.setText(1, "Centring failed !")
                     if centring_method == CENTRING_METHOD.FULLY_AUTOMATIC:
-                        raise QueueSkippEntryException(
+                        raise QueueSkipEntryException(
                             "Could not center sample, skipping", ""
                         )
                     else:

@@ -218,7 +218,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                 entry.status = QUEUE_ENTRY_STATUS.SUCCESS
                 self.emit("queue_entry_execute_finished", (entry, "Successful"))
                 self.emit("statusMessage", ("status", "", "ready"))
-        except base_queue_entry.QueueSkippEntryException as ex:
+        except base_queue_entry.QueueSkipEntryException as ex:
             logging.getLogger("HWR").warning(
                 "encountered Exception (continuing):\n%s" % ex.stack_trace or ex.message
             )
