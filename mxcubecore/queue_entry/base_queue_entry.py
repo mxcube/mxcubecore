@@ -22,6 +22,7 @@ inherits QueueEntryContainer. This makes it possible to arrange and
 execute queue entries in a hierarchical manner.
 """
 
+import logging
 import sys
 import traceback
 import time
