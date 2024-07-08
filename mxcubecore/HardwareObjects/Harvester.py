@@ -543,7 +543,7 @@ class Harvester(HardwareObject):
                     logging.getLogger("user_level_log").error(
                         "Harvester could not Harvest sample, Stopping queue"
                     )
-                    raise queue_entry.QueueSkippEntryException(
+                    raise queue_entry.QueueSkipEntryException(
                         "Harvester could not Harvest sample", ""
                     )
             else:
@@ -556,7 +556,7 @@ class Harvester(HardwareObject):
                     logging.getLogger("user_level_log").error(
                         "There is no more Pins in the Harvester, Stopping queue"
                     )
-                    raise queue_entry.QueueSkippEntryException(
+                    raise queue_entry.QueueSkipEntryException(
                         "Harvester could not Harvest sample", ""
                     )
         elif self.get_number_of_available_pin() == 0 and self._ready_to_transfer():
@@ -571,7 +571,7 @@ class Harvester(HardwareObject):
             logging.getLogger("user_level_log").error(
                 "There is no more Pins in the Harvester, Stopping queue"
             )
-            raise queue_entry.QueueSkippEntryException(
+            raise queue_entry.QueueSkipEntryException(
                 "There is no more Pins in the Harvester, Stopping queue", ""
             )
 
