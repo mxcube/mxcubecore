@@ -31,9 +31,7 @@ from mxcubecore.HardwareObjects.EMBL import EMBLQueueEntry
 # These two queue entries, for the moment violates the convention above and
 # should eventually be changed
 from mxcubecore.queue_entry.xrf_spectrum import XrfSpectrumQueueEntry
-from mxcubecore.queue_entry.characterisation import (
-    CharacterisationGroupQueueEntry,
-)
+from mxcubecore.queue_entry.characterisation import CharacterisationGroupQueueEntry
 
 __all__ = []
 MODEL_QUEUE_ENTRY_MAPPINGS = {}

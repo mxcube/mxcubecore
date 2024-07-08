@@ -20,9 +20,7 @@ import logging
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.model import queue_model_objects
 
-from mxcubecore.queue_entry.base_queue_entry import (
-    BaseQueueEntry,
-)
+from mxcubecore.queue_entry.base_queue_entry import BaseQueueEntry
 
 __credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3+"

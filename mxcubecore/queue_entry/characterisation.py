@@ -22,14 +22,9 @@ import gevent
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.model import queue_model_objects
 
-from mxcubecore.queue_entry.base_queue_entry import (
-    BaseQueueEntry,
-    QUEUE_ENTRY_STATUS,
-)
+from mxcubecore.queue_entry.base_queue_entry import BaseQueueEntry, QUEUE_ENTRY_STATUS
 
-from mxcubecore.queue_entry.data_collection import (
-    DataCollectionQueueEntry,
-)
+from mxcubecore.queue_entry.data_collection import DataCollectionQueueEntry
 
 __credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3+"
