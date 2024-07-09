@@ -2,7 +2,7 @@
 
 name: Linting & Code Quality
 
-on:
+"on":
   pull_request:
     types: [opened, reopened, synchronize]
 
