@@ -6,7 +6,7 @@ name: "Pages"
 concurrency:
   group: "pages"
 
-on:
+"on":
   push: null
   pull_request: null
 

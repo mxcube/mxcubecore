@@ -1,7 +1,7 @@
 ---
 
 name: Create/Update Tag
-on:
+"on":
   push:
     branches:
       - develop
