@@ -51,7 +51,8 @@ class P11Flux(AbstractFlux):
 
     def get_value(self):
         """Get flux at current transmission in units of photons/s"""
-
+        # TODO: Once the motor movements are involved, check the logic.
+        self.measure_flux()
         return self.current_flux_dict["flux"]
 
     def measure_flux(self):
