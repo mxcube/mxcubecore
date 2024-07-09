@@ -1,7 +1,7 @@
 ---
 
 name: Pytest
-on:
+"on":
   pull_request:
     types: [opened, reopened, synchronize]
     paths:
