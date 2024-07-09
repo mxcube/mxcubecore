@@ -231,6 +231,8 @@ class P11EDNACharacterisation(EDNACharacterisation):
             pass
 
         try:
+            # Flux get_value() subsequently executing measure_flux() to fill in the dictionary
+
             beam.setFlux(XSDataFlux(HWR.beamline.flux.get_value()))
         except AttributeError:
             pass
@@ -470,7 +472,16 @@ class P11EDNACharacterisation(EDNACharacterisation):
             except AttributeError:
                 screening_id = None
 
-            for i in range(0, len(wedges)):
+            # GB merging wedges wedges
+            osc_very_end = (
+                wedges[-1]
+                .getExperimentalCondition()
+                .getGoniostat()
+                .getRotationAxisEnd()
+                .getValue()
+            )
+
+            for i in range(0, 1):  # GB len(wedges)):
                 wedge = wedges[i]
                 exp_condition = wedge.getExperimentalCondition()
                 goniostat = exp_condition.getGoniostat()
@@ -501,7 +512,7 @@ class P11EDNACharacterisation(EDNACharacterisation):
                 #     ref_pt.directory.split("/")[0:-2]
                 # )
 
-                acq.path_template.wedge_prefix = "w" + str(i + 1)
+                # acq.path_template.wedge_prefix = "w" + str(i + 1)
                 acq.path_template.reference_image_prefix = str()
 
                 if resolution:
@@ -519,13 +530,15 @@ class P11EDNACharacterisation(EDNACharacterisation):
                     )
                 except AttributeError:
                     pass
-
+                """ GB:
                 try:
                     acquisition_parameters.osc_end = (
                         goniostat.getRotationAxisEnd().getValue()
                     )
                 except AttributeError:
                     pass
+                """
+                acquisition_parameters.osc_end = osc_very_end
 
                 try:
                     acquisition_parameters.osc_range = (
