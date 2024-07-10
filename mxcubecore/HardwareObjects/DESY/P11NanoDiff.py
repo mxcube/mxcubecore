@@ -954,6 +954,21 @@ class P11NanoDiff(GenericDiffractometer):
         self.wait_omega()
         self.motor_hwobj_dict["phi"].set_value(angle)
 
+        #Code below is calibration so that angle is always stays within 360 degrees.
+        #TODO: check the behaviour
+        #currentAngle = self.get_omega_position()
+        #
+        #if currentAngle < 0:
+        #    currentAngle = abs(currentAngle)
+        #    loadAngleNew = currentAngle % 360
+        #    self.omega_calibrate(-loadAngleNew)
+        #    self.motor_hwobj_dict["phi"].set_value(angle)
+        #else:
+        #    loadAngleNew = currentAngle % 360
+        #    self.omega_calibrate(loadAngleNew)
+        #    self.motor_hwobj_dict["phi"].set_value(angle)
+        
+
     def wait_omega_on(self, timeout=30):
         """
         Wait until the omega device finishes its movement and reaches the "ON" state.
