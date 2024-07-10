@@ -187,6 +187,18 @@ class P11EDNACharacterisation(EDNACharacterisation):
 
         self.wait_for_file(waitforxml, timeout=60)
 
+
+        # Update datasets.txt file for presenterd
+        base_process_dir ="/gpfs/current/processed" 
+        datasets_file = os.path.join(base_process_dir, "datasets.txt")
+        try:
+            with open(datasets_file, "a") as file:
+                file.write(
+                    f"{process_directory.split('/gpfs/current/processed/')[1]}\n"
+                )
+        except (OSError, RuntimeWarning) as err:
+            self.log.debug(f"Cannot write to datasets.txt: {err}")
+
     def wait_for_file(self, file_path, timeout=60, check_interval=1):
         start_time = time.time()
         while not os.path.exists(file_path):
