@@ -65,6 +65,7 @@ class P11Collect(AbstractCollect):
         self.upper_bound_ch = self.get_channel_object("acq_upper_bound")
 
         self.acq_arm_cmd = self.get_command_object("acq_arm")
+        self.acq_abort = self.get_command_object("acq_abort")
         self.acq_on_cmd = self.get_command_object("acq_on")
         self.acq_off_cmd = self.get_command_object("acq_off")
         self.acq_window_off_cmd = self.get_command_object("acq_window_off")
@@ -402,9 +403,7 @@ class P11Collect(AbstractCollect):
                 )
 
             self.log.debug("#COLLECT# Starting detector")
-            # Arm command happens here
-            # HWR.beamline.detector.start_acquisition()
-
+            
             # Check whether the live view monitoring is on. Restart if needed.
             process_name = os.getenv("MXCUBE_LIVEVIEW_NAME")
             command = [os.getenv("MXCUBE_LIVEVIEW")]
@@ -883,11 +882,18 @@ class P11Collect(AbstractCollect):
         self.omega_mv(start_pos, self.default_speed)
         self.acq_arm_cmd()
         self.omega_mv(stop_pos, self.acq_speed)
-        time.sleep(0.5)
-        self.acq_off_cmd()
-        self.acq_window_off_cmd()
-        self.omega_mv(stop_angle, self.acq_speed)
+        self.stop_motion()
+        
+        #This part is probabbly not needed because in the
+        #post measurement angle and speed are set to 0
+        #self.omega_mv(stop_angle, self.acq_speed)
+        #self.stop_motion()
 
+    def stop_motion(self):
+        self.acq_abort()
+        self.acq_window_off_cmd()
+        self.acq_off_cmd()
+    
     def adxv_notify(self, image_filename, image_num=1):
         """
         The `adxv_notify` function sends a notification to an ADXV to load an image file and
@@ -939,11 +945,6 @@ class P11Collect(AbstractCollect):
         try:
             HWR.beamline.detector.stop_acquisition()
             HWR.beamline.diffractometer.wait_omega()
-            # =================
-            # It is probably already finished in a standard collection.
-            self.acq_off_cmd()
-            self.acq_window_off_cmd()
-            # ==================
             HWR.beamline.diffractometer.set_omega_velocity(self.default_speed)
             self.log.debug("#COLLECT# Closing detector cover")
             HWR.beamline.diffractometer.detector_cover_close(wait=True)
