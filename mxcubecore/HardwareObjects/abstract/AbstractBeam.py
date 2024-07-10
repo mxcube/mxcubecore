@@ -44,7 +44,7 @@ class BeamShape(Enum):
 
     UNKNOWN = "unknown"
     RECTANGULAR = "rectangular"
-    ELIPTICAL = "ellipse"
+    ELLIPTICAL = "ellipse"
 
 
 class AbstractBeam(HardwareObject):
@@ -58,6 +58,7 @@ class AbstractBeam(HardwareObject):
         self._aperture = None
         self._slits = None
         self._definer = None
+        self._definer_type = None
 
         self._beam_size_dict = {
             "aperture": [sys.float_info.max, sys.float_info.max],
@@ -69,7 +70,7 @@ class AbstractBeam(HardwareObject):
         self._beam_shape = BeamShape.UNKNOWN
         self._beam_label = None
         self._beam_divergence = (None, None)
-        self._beam_position_on_screen = [None, None]  # TODO move to sample_view
+        self._beam_position_on_screen = [None, None]
 
         self._beam_info_dict = {
             "size_x": self._beam_width,
@@ -87,6 +88,7 @@ class AbstractBeam(HardwareObject):
         _divergence_horizontal = self.get_property("beam_divergence_horizontal")
         self._beam_divergence = (_divergence_horizontal, _divergence_vertical)
         self._beam_position_on_screen = [0, 0]
+        self._definer_type = self.get_property("definer_type")
 
     @property
     def aperture(self):
@@ -144,6 +146,16 @@ class AbstractBeam(HardwareObject):
         self.evaluate_beam_info()
         return self._beam_width, self._beam_height
 
+    def set_value(self, size=None):
+        """Set the beam size.
+        Args:
+            size (list): Width, heigth [um] or
+                  (str): Aperture or definer name.
+        Raises:
+            NotImplementedError
+        """
+        raise NotImplementedError
+
     def set_beam_size_shape(self, beam_width, beam_height, beam_shape):
         """
         Sets beam size and shape
@@ -160,7 +172,7 @@ class AbstractBeam(HardwareObject):
         if beam_shape == BeamShape.RECTANGULAR:
             self._slits.set_horizontal_gap(beam_width)
             self._slits.set_vertical_gap(beam_height)
-        elif beam_shape == BeamShape.ELIPTICAL:
+        elif beam_shape == BeamShape.ELLIPTICAL:
             self._aperture.set_diameter_size(beam_width)
 
     def get_beam_position_on_screen(self):
@@ -190,8 +202,9 @@ class AbstractBeam(HardwareObject):
         Method called if aperture, slits or focusing has been changed.
         Evaluates which of the beam size defining devices determins the size.
         Returns:
-            (tuple): Beam info dictionary (dict), type of the definer (str).
-                     {size_x: float, size_y: float, shape: BeamShape enum},
+            (dict): Beam info dictionary (dict), type of the definer (str).
+                     {size_x: float, size_y: float,
+                      shape: BeamShape enum, label: str},
         """
         _shape = BeamShape.UNKNOWN
         _size = min(self._beam_size_dict.values())
@@ -208,7 +221,7 @@ class AbstractBeam(HardwareObject):
         if _label == "slits":
             _shape = BeamShape.RECTANGULAR
         else:
-            _shape = BeamShape.ELIPTICAL
+            _shape = BeamShape.ELLIPTICAL
 
         self._beam_width = _size[0]
         self._beam_height = _size[1]

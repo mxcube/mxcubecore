@@ -115,7 +115,7 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
         if beam_label == "slits":
             assert beam_shape == BeamShape.RECTANGULAR
         else:
-            assert beam_shape == BeamShape.ELIPTICAL
+            assert beam_shape == BeamShape.ELLIPTICAL
             assert beam_label == f"A{max_diameter}"
 
         if test_object.slits is not None:
@@ -128,13 +128,13 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
         if beam_label == "slits":
             assert beam_shape == BeamShape.RECTANGULAR
         else:
-            assert beam_shape == BeamShape.ELIPTICAL
+            assert beam_shape == BeamShape.ELLIPTICAL
             assert beam_label == f"A{max_diameter}"
 
     def test_set_aperture_diameters(self, test_object):
         """
         Set large slit gaps and in the sequence select all aperture diameters.
-        Beam shape is eliptical and size defined by the selected aperture.
+        Beam shape is elliptical and size defined by the selected aperture.
         """
         if test_object.aperture is None:
             return
@@ -151,7 +151,7 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
             beam_width, beam_height, beam_shape, beam_label = test_object.get_value()
             # get_value returns size in mm, aperture diameters are in microns
             assert beam_width == beam_height == _val.value[0] / 1000.0
-            assert beam_shape == BeamShape.ELIPTICAL
+            assert beam_shape == BeamShape.ELLIPTICAL
             assert beam_label == aperture_diameter
 
     def test_set_slit_gaps(self, test_object):

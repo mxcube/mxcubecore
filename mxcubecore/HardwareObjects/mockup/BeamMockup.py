@@ -56,14 +56,17 @@ class BeamMockup(AbstractBeam):
         self._aperture = self.get_object_by_role("aperture")
         if self._aperture:
             _definer_type = "aperture"
+            self._aperture.connect("valueChanged", self.aperture_diameter_changed)
 
         self._slits = self.get_object_by_role("slits")
         if self._slits:
             _definer_type = "slits"
+            self._slits.connect("valueChanged", self.slits_gap_changed)
 
         self._definer = self.get_object_by_role("definer")
         if self._definer:
             _definer_type = "definer"
+            self._definer.connect("valueChanged", self._re_emit_values)
 
         self._definer_type = self.get_property("definer_type") or _definer_type
 
@@ -73,15 +76,6 @@ class BeamMockup(AbstractBeam):
 
         self.re_emit_values()
         self.emit("beamPosChanged", (self._beam_position_on_screen,))
-
-        if self._aperture:
-            self._aperture.connect("valueChanged", self.aperture_diameter_changed)
-
-        if self._definer:
-            self._definer.connect("valueChanged", self._re_emit_values)
-
-        if self._slits:
-            self._slits.connect("valueChanged", self.slits_gap_changed)
 
     def _re_emit_values(self, *args, **kwargs):
         self.re_emit_values()
@@ -253,6 +247,7 @@ class BeamMockup(AbstractBeam):
         Raises:
             RuntimeError: Beam definer not configured
                           Size out of the limits.
+            TypeError: Wrong size type.
         """
         if self._definer_type in (self._slits, "slits"):
             if not isinstance(size, list):
