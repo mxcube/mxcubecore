@@ -1172,7 +1172,7 @@ class P11Collect(AbstractCollect):
 
         # NB!: CHaracterisation processing is started within P11EDNACharacterisation._run_edna()
         # Mosflm and EDNA are started from there.
-        # self.xdsapp_maxwell()
+        self.xdsapp_maxwell()
         self.autoproc_maxwell()
 
     def diffractometer_prepare_collection(self):
@@ -1188,21 +1188,6 @@ class P11Collect(AbstractCollect):
         )
 
         return HWR.beamline.diffractometer.is_collect_phase()
-
-    def omega_mv(self, target, speed):
-        """
-        The function sets the velocity of the omega motor, moves the omega motor to a target position,
-        and waits for the movement to complete.
-
-        :param target: The target parameter is the desired position or angle that you want the omega
-        motor to move to.
-        :param speed: The speed parameter is the desired velocity at which the omega motor should move
-        """
-        HWR.beamline.diffractometer.set_omega_velocity(speed)
-        time.sleep(0.15)
-        HWR.beamline.diffractometer.move_omega(target)
-        time.sleep(0.1)
-        HWR.beamline.diffractometer.wait_omega_on()
 
     def get_relative_path(self, path1, path2):
         """
