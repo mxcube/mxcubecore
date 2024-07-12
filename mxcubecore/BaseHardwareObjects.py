@@ -27,6 +27,8 @@ from collections import OrderedDict
 import logging
 from gevent import event, Timeout
 import pydantic
+import warnings
+
 from typing import (
     TYPE_CHECKING,
     Callable,
@@ -1137,6 +1139,10 @@ class Device(HardwareObject):
     (NOTREADY, READY) = (0, 1)  # device states
 
     def __init__(self, name):
+        warnings.warn(
+            "class Device is Deprecated and will be removed",
+            DeprecationWarning,
+        )
         HardwareObject.__init__(self, name)
 
         self.state = Device.NOTREADY
@@ -1228,6 +1234,10 @@ class Equipment(HardwareObject, DeviceContainer):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         DeviceContainer.__init__(self)
+        warnings.warn(
+            "class Equipment is Deprecated and will be removed",
+            DeprecationWarning,
+        )
 
         self.__ready = None
 
