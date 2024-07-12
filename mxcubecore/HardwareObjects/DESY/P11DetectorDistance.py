@@ -146,15 +146,13 @@ class P11DetectorDistance(AbstractMotor):
 
         self.chan_position.set_value(value)
 
-        
-
         # Wait until motor is reachiung the actual distance within tolerance.
         tolerance = 1.0  # mm Actual tolerance is within 0.3 range.
         while abs(self.get_value() - value) >= tolerance:
             _state = self.chan_state.get_value()
             if _state == "ON":
-                    state = self.STATES.READY
-                    break
+                state = self.STATES.READY
+                break
             elif _state == "MOVING":
                 state = self.STATES.BUSY
             else:
