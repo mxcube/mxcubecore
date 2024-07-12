@@ -1,17 +1,17 @@
-<equipment class="EnergyScan">
+<object class="EnergyScan">
   <specversion>lid292:exp</specversion>
   <command type="spec" name="do_energy_scan">eprodc_do_energy_scan</command>
   <channel type="spec" name="scanStatusMsg">eprodc_energy_scan_msg</channel>
   <channel type="spec" name="hc_over_e">hc_over_e</channel>
   <channel type="spec" name="escan_args">MXCOLLECT_PARS</channel>
-  <device hwrid="/oh/motors/energy" role="energy"/>
-  <device hwrid="/resolution" role="resolution"/>
+  <object hwrid="/oh/motors/energy" role="energy"/>
+  <object hwrid="/resolution" role="resolution"/>
   <command type="spec" name="moveEnergy">prodc_set_mono</command>
-  <device hwrid="/dbconnection" role="dbserver"/>
-  <device hwrid="/attenuators" role="transmission"/>
-  <device hwrid="/cryospy" role="cryostream"/>
-  <device hwrid="/mach" role="machcurrent"/>
-  <device hwrid="/udiff_rontec" role="fluodetector"/>
+  <object hwrid="/dbconnection" role="dbserver"/>
+  <object hwrid="/attenuators" role="transmission"/>
+  <object hwrid="/cryospy" role="cryostream"/>
+  <object hwrid="/mach" role="machcurrent"/>
+  <object hwrid="/udiff_rontec" role="fluodetector"/>
   <elements>
     <element>
       <symbol>Mn</symbol>
@@ -148,4 +148,4 @@
       <directory>rm</directory>
     </defaultenergy>
   </mad>
-</equipment>
+</object>

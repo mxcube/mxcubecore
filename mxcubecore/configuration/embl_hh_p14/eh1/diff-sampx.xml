@@ -1,4 +1,4 @@
-<device class="ExporterMotor">
+<object class="ExporterMotor">
   <exporter_address>p14md302.embl-hamburg.de:9001</exporter_address>
   <actuator_name>CentringX</actuator_name>
-</device>
+</object>

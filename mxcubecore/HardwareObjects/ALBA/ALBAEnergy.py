@@ -1,10 +1,10 @@
 import logging
 
-from mxcubecore.BaseHardwareObjects import Device
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
 
 
-class ALBAEnergy(Device):
+class ALBAEnergy(HardwareObject):
     def __init__(self, *args):
         Device.__init__(self, *args)
         self.energy_position = None

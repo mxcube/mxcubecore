@@ -4,14 +4,14 @@ import time
 
 from mxcubecore.Command.Tango import DeviceProxy
 
-from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 DETECTOR_DIAMETER = 424.0
 
 NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT = (0, 1, 2, 3, 4, 5)
 
 
-class PX1Resolution(Equipment):
+class PX1Resolution(HardwareObject):
 
     stateDict = {
         "UNKNOWN": 0,

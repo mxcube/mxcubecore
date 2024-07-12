@@ -1,7 +1,7 @@
-<device class="SardanaMotor">
+<object class="SardanaMotor">
   <username>Resolution</username>
   <taurusname>rescomp</taurusname>
   <actuator_name>Resolution</actuator_name>
   <guistep>45</guistep>
   <!-- interval>500</interval -->
-</device>
+</object>

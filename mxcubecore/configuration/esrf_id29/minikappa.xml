@@ -1,4 +1,4 @@
-<equipment>
+<object>
   <username>Minikappa</username>
   <command>
     <type>spec</type>
@@ -23,11 +23,11 @@
   <command type="spec" name="KappaOff">SCKappaOff</command>
   <channel type="spec" name="KappaInUse">KAPPA_IN_USE</channel>
   <motors>
-    <device hwrid="/udiff_omega" role="omega"/>
-    <device hwrid="/udiff_kappa" role="kappa"/>
-    <device hwrid="/udiff_kappaphi" role="phi"/>
-    <device hwrid="/udiff_sampx" role="-X"/>
-    <device hwrid="/udiff_sampy" role="Y"/>
-    <device hwrid="/udiff_phiy" role="Z"/>
+    <object hwrid="/udiff_omega" role="omega"/>
+    <object hwrid="/udiff_kappa" role="kappa"/>
+    <object hwrid="/udiff_kappaphi" role="phi"/>
+    <object hwrid="/udiff_sampx" role="-X"/>
+    <object hwrid="/udiff_sampy" role="Y"/>
+    <object hwrid="/udiff_phiy" role="Z"/>
   </motors>
-</equipment>
+</object>

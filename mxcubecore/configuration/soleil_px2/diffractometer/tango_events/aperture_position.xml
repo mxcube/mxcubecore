@@ -1,4 +1,4 @@
-<device class="NamedState">
+<object class="NamedState">
     <username>Position</username>
     <tangoname>i11-ma-cx1/ex/md2</tangoname>
     <channel type="tango" polling="events" name="state">AperturePosition</channel>
@@ -14,4 +14,4 @@
           <name>OFF</name>
        </state>
     </states>
-</device>
+</object>

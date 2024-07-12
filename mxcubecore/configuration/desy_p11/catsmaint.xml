@@ -1,4 +1,4 @@
-<equipment class = "sample_changer.CatsMaint">
+<object class = "sample_changer.CatsMaint">
   <username>CatsMaint</username>
   <tangoname>bl141/cats/1</tangoname>    
   
@@ -19,5 +19,5 @@
   <channel type="tango" name="_chnLid3State" polling="events">di_Lid3Open</channel>
 
   <channel type="tango" name="_chnPathRunning" polling="events">PathRunning</channel>
-</equipment>
+</object>
 

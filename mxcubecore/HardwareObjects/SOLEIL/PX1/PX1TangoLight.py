@@ -2,11 +2,11 @@ import logging
 import time
 import gevent
 
-from mxcubecore.BaseHardwareObjects import Device
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.Command.Tango import DeviceProxy
 
 
-class PX1TangoLight(Device):
+class PX1TangoLight(HardwareObject):
     def __init__(self, name):
         Device.__init__(self, name)
         self.currentState = "unknown"

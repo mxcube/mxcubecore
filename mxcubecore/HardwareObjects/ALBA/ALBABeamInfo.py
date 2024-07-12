@@ -20,10 +20,10 @@ beamPosChanged
 """
 
 import logging
-from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
-class ALBABeamInfo(Equipment):
+class ALBABeamInfo(HardwareObject):
     """
     Description:
     """

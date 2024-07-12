@@ -1,7 +1,7 @@
 import logging
 import math
 import gevent
-from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 """
 Example xml file:
@@ -21,7 +21,7 @@ If used, the controller should have method moveEnergy.
 """
 
 
-class Energy(Equipment):
+class Energy(HardwareObject):
     def init(self):
         self.ready_event = gevent.event.Event()
         self.energy_motor = None

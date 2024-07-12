@@ -1,4 +1,4 @@
-<device class="${class}">
+<object class="${class}">
     <tangoname>${tangoname}</tangoname>
     <actuator_name>${actuator_name}</actuator_name>
     <username>${actuator_name}</username>
@@ -12,4 +12,4 @@
     <command type="tango" polling="events" name="get${actuator_name}DynamicLimits">getMotorDynamicLimits</command>
     <command type="tango" polling="events" name="get_limits">getMotorLimits</command>
     <command type="tango" polling="events" name="get_max_speed">getMotorMaxSpeed</command>
-</device>
+</object>

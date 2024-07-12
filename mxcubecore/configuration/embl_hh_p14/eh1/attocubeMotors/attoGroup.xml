@@ -1,4 +1,4 @@
-<device class="MotorsGroup">
+<object class="MotorsGroup">
     <username>attocubeMotors</username>	
     <serverAddr>/P14/P14Atto</serverAddr>
     <groupAddr>/Sl4Out</groupAddr>
@@ -54,5 +54,5 @@
           <focusingModes>{'Unfocused': -9196, 'Horizontal': -9196, 'Vertical': -24119, 'Double': -110400}</focusingModes>
         </motor>
     </motors>
-</device>
+</object>
 

@@ -1,4 +1,4 @@
-<device class="LNLS.EPICSMotor">
+<object class="LNLS.EPICSMotor">
     <channel type="epics" name="epicsActuator_val">SOL:S:m3.VAL</channel>
     <channel type="epics" name="epicsActuator_rbv" polling="500">SOL:S:m3.RBV</channel>
     <channel type="epics" name="epicsMotor_rlv">SOL:S:m3.RLV</channel>
@@ -10,4 +10,4 @@
     <channel type="epics" name="epicsMotor_egu">SOL:S:m3.EGU</channel>
     <username>Kappa Phi</username>
     <motor_name>Phi</motor_name>
-</device>
+</object>

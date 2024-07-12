@@ -1,4 +1,4 @@
-<device class="EdnaWorkflow">
+<object class="EdnaWorkflow">
   <tangoname>id23eh1/workflowexecutor/1</tangoname>
   <username>edna workflow tango server</username>
   <command type="tango" name="start">Start</command>
@@ -12,4 +12,4 @@
   <command type="tango" name="get_available_workflows">GetAvailableWorkflows</command>
   <channel type="tango" name="state" polling="500">StateAttribute</channel> 
   <channel type="tango" name="current_actor" polling="500">RunningActorName</channel> 
-</device>
+</object>

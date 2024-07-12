@@ -1,7 +1,7 @@
-<device class="EMBLAperture">
+<object class="EMBLAperture">
    <tangoname>i11-ma-cx1/ex/md2</tangoname>
    <channel type="tango" polling="1000" name="CurrentApertureDiameterIndex">CurrentApertureDiameterIndex</channel>
    <channel type="tango" polling="1000" name="ApertureDiameters">ApertureDiameters</channel>
    <channel type="tango" polling="1000" name="AperturePosition">AperturePosition</channel>
    <channel type="tango" polling="1000" name="State">State</channel>
-</device>
+</object>

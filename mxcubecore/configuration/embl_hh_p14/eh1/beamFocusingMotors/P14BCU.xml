@@ -1,4 +1,4 @@
-<device class="EMBLMotorsGroup">
+<object class="EMBLMotorsGroup">
     <username>P14BCU</username>
     <serverAddr>/P14/P14BCU</serverAddr>
     <groupAddr>/ShutterTrans</groupAddr>
@@ -18,5 +18,5 @@
           <focusingModes>{'Collimated': -0.015, 'Double': -0.050, 'Imaging': -0.015}</focusingModes>
         </motor>
     </motors>
-</device>
+</object>
 

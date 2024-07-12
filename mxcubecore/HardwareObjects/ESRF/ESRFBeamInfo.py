@@ -6,9 +6,9 @@ from mxcubecore import HardwareRepository as HWR
 XML example file
 <object class="ESRF.ESRFBeamInfo">
   <defaultBeamDivergence></defaultBeamDivergence>
-  <device role="camera" hwrid="/prosilica_md2"/>
-  <device role="aperture" hwrid="/udiff_aperturemot"/>
-  <device role="diffractometer" hwrid="/udiff" />
+  <object role="camera" hwrid="/prosilica_md2"/>
+  <object role="aperture" hwrid="/udiff_aperturemot"/>
+  <object role="diffractometer" hwrid="/udiff" />
   <!-- Positions and slits format: X Y -->
   <beam_position>322 243</beam_position>
   <beam_size_slits>0.04 0.04</beam_size_slits>

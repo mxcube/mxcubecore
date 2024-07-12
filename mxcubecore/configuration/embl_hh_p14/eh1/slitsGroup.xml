@@ -1,4 +1,4 @@
-<device class="EMBLMotorsGroup">
+<object class="EMBLMotorsGroup">
     <username>slitsMotors</username>	
     <serverAddr>/P14/P14Atto</serverAddr>
     <groupAddr>/Sl4Out</groupAddr>
@@ -54,5 +54,5 @@
           <focusingModes>{'Collimated': -295000, 'Double': -253729, 'Imaging': -484874}</focusingModes>
         </motor>
     </motors>
-</device>
+</object>
 

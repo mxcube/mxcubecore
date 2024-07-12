@@ -1,4 +1,4 @@
-<equipment class = "PX1CatsMaint">
+<object class = "PX1CatsMaint">
   <username>CatsMaint</username>
   <tangoname>i10-c-cx1/ex/catscryotong</tangoname>    
 
@@ -60,5 +60,5 @@
   <channel type="tango" polling="events" tangoname="i10-c-cx1/ex/cats" name="_chnPowered">Powered</channel>
   <channel type="tango" polling="events" tangoname="i10-c-cx1/ex/cats" name="_chnMessage">Message</channel>
 
-</equipment>
+</object>
 

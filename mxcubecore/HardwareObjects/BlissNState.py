@@ -21,12 +21,12 @@
 """
 bliss implementation of AbstartNState
 Example xml file:
-<device class="BlissNState">
+<object class="BlissNState">
   <username>Detector Cover</username>
   <actuator_name>detcover</>
   <object href="/bliss" role="controller"/>
   <values>{"IN": "IN", "OUT": "OUT"}</values>
-</device>
+</object>
 """
 from enum import Enum
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import MotorStates

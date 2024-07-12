@@ -1,4 +1,4 @@
-<device class="EMBLPPUControl">
+<object class="EMBLPPUControl">
   <channel type="tine" name="chanAllStatus" tinename="/P14/ppu/ppu-cmd" attach="datachange" timeout="100">all-status-running</channel>
   <channel type="tine" name="chanAllRestart" tinename="/P14/ppu/ppu-cmd" attach="datachange">all-restart-running</channel> 
 
@@ -7,4 +7,4 @@
   <command type="tine" name="cmdFurkaRestart" tinename="/P14/ppu/ppu-cmd">furka-restart-self</command>
   <executionState>Execution in progress</executionState>
   <errorState>ERROR</errorState>
-</device>
+</object>

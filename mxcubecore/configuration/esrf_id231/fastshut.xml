@@ -1,6 +1,6 @@
-<device>
+<object>
   <specversion>lid232:eh1</specversion>
   <command type="spec" name="set in">specific_open_fast_shutter</command>
   <command type="spec" name="set out">specific_close_fast_shutter</command>
   <channel type="spec" name="dev_state">FAST_SHUTTER_STATE</channel>
-</device>
+</object>

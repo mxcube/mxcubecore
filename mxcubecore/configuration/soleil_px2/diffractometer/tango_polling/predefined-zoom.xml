@@ -1,4 +1,4 @@
-<device class="MicrodiffZoom">
+<object class="MicrodiffZoom">
     <tangoname>i11-ma-cx1/ex/md2</tangoname>
     <actuator_name>Zoom</actuator_name>
     <channel type="tango" polling="1000" name="predefined_position">CoaxialCameraZoomValue</channel>
@@ -10,4 +10,4 @@
     <command type="tango" name="getZoomDynamicLimits">getMotorDynamicLimits</command>
     <command type="tango" name="get_limits">getMotorLimits</command>
     <command type="tango" name="get_max_speed">getMotorMaxSpeed</command>
-</device>
+</object>

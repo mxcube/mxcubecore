@@ -1,4 +1,4 @@
-<device class="LNLS.EPICSMotor">
+<object class="LNLS.EPICSMotor">
     <channel type="epics" name="epicsActuator_val">SOL:S:m5.VAL</channel>
     <channel type="epics" name="epicsActuator_rbv" polling="500">SOL:S:m5.RBV</channel>
     <channel type="epics" name="epicsMotor_rlv">SOL:S:m5.RLV</channel>
@@ -11,4 +11,4 @@
     <username>PhiY</username>
     <motor_name>AlignmentY</motor_name>
     <unit>1e-5</unit>
-</device>
+</object>

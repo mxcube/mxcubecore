@@ -1,4 +1,4 @@
-<device class="MicrodiffMotor">
+<object class="MicrodiffMotor">
     <exporter_address>172.19.10.119:9001</exporter_address>
     <actuator_name>CapillaryHorizontal</actuator_name>
     <username>CapillaryHorizontal</username>
@@ -12,4 +12,4 @@
     <command type="exporter" name="getCapillaryHorizontalDynamicLimits">getMotorDynamicLimits</command>
     <command type="exporter" name="get_limits">getMotorLimits</command>
     <command type="exporter" name="get_max_speed">getMotorMaxSpeed</command>
-</device>
+</object>

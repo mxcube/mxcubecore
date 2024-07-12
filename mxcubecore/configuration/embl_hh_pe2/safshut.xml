@@ -1,4 +1,4 @@
-<device class="EMBLSafetyShutter">
+<object class="EMBLSafetyShutter">
   <channel type="tine" name="chanCollectStatus" tinename="/PE2/collection/mx-standard" attach="event" >status</channel>
   <channel type="tine" name="chanStateOpen" tinename="/P14/ics/shutter-PE2" attach="event" >state-open</channel>
   <channel type="tine" name="chanStateClosed" tinename="/P14/ics/shutter-PE2" attach="event" >state-closed</channel>
@@ -10,4 +10,4 @@
   <command type="tine" name="cmdClose" tinename="/P14/ics/shutter-PE2" timeout="2000">close</command>
   <command type="tine" name="cmdOpen" tinename="/P14/ics/shutter-PE2" timeout="2000">open</command>
   <useShutter>True</useShutter>
-</device>
+</object>

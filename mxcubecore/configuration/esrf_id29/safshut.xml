@@ -1,7 +1,7 @@
-<device class = "TangoShutter">
+<object class = "TangoShutter">
   <username>SafShut</username>
   <tangoname>id29/v-bsh/1</tangoname>
   <command type="tango" name="Open">Open</command>
   <command type="tango" name="Close">Close</command>
   <channel type="tango" name="State" polling="1000">State</channel>
-</device>
+</object>

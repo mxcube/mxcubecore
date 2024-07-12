@@ -31,7 +31,7 @@ __license__ = "LGPLv3+"
 __author__ = "rhfogh"
 __date__ = "12/06/2023"
 
-minikappa_xml_template = """<device class="MiniKappaCorrection">
+minikappa_xml_template = """<object class="MiniKappaCorrection">
    <kappa>
       <direction>%(kappa_axis)s</direction>
       <position>%(kappa_position)s</position>
@@ -40,7 +40,7 @@ minikappa_xml_template = """<device class="MiniKappaCorrection">
       <direction>%(phi_axis)s</direction>
       <position>%(phi_position)s</position>
    </phi>
-</device>"""
+</object>"""
 
 transcal_nml_template = """&SDCP_INSTRUMENT_LIST
 TRANS_CALIBRATION_NAME='transcal_p14'

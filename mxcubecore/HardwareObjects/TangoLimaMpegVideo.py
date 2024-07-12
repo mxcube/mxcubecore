@@ -4,13 +4,13 @@ Lima Tango Device Servers
 
 Example configuration:
 
-<device class="TangoLimaMpegVideo">
+<object class="TangoLimaMpegVideo">
   <username>Prosilica 1350C</username>
   <tangoname>id23/limaccd/minidiff</tangoname>
   <bpmname>id23/limabeamviewer/minidiff</bpmname>
   <exposure_time>0.05</exposure_time>
   <video_mode>RGB24</video_mode>
-</device>
+</object>
 """
 
 import os

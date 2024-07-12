@@ -1,4 +1,4 @@
-<device class="MotorWPositions">
+<object class="MotorWPositions">
     <username>Zoom</username>
     <motors>
         <object role="zoom" href="/zoom"></object>
@@ -20,4 +20,4 @@
             <zoom>2</zoom>
         </position>
     </positions>
-</device>
+</object>

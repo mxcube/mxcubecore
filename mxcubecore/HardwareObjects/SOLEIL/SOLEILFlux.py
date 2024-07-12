@@ -1,9 +1,9 @@
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.BaseHardwareObjects import Device
+from mxcubecore.BaseHardwareObjects import HardwareObject
 import PyTango
 
 
-class SOLEILFlux(Device):
+class SOLEILFlux(HardwareObject):
     def __init__(self, name):
         Device.__init__(self, name)
 

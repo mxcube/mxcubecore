@@ -1,4 +1,4 @@
 <unit type="macro" class="slit">
-  <equipment hwrid="pslit"/>
-  <equipment hwrid="sslit"/>
+  <object hwrid="pslit"/>
+  <object hwrid="sslit"/>
 </unit>

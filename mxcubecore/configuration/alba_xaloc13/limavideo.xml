@@ -1,4 +1,4 @@
-<device class="Qt4_TangoLimaVideo">
+<object class="Qt4_TangoLimaVideo">
 <!-- device class="Qt4_LimaVideo"-->
    <type>basler</type>
    <encoding>yuv422p</encoding>
@@ -18,4 +18,4 @@
    <width>900</width>
    <height>670</height>
 
-</device>
+</object>

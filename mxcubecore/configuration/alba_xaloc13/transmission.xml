@@ -1,6 +1,6 @@
-<device class="ALBATransmission">
+<object class="ALBATransmission">
   <username>Transmission</username>
   <taurusname>motor/eh_mbattransmot_ctrl/1</taurusname>
   <channel type="sardana" name="transmission" polling="events">Position</channel>
   <channel type="sardana" name="state" polling="events">State</channel>
-</device>
+</object>

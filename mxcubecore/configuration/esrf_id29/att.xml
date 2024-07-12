@@ -1,7 +1,7 @@
-<equipment class = "Filters">
+<object class = "Filters">
   <username>OH Filters</username>
   <axis>
-    <device class="FilterAxis">
+    <object class="FilterAxis">
       <username>attb</username>
       <motor>/oh/motors/attb</motor>
       <filter>
@@ -20,10 +20,10 @@
        <username>2mm Al / 2mm PyroC</username>
        <offset>3</offset>
       </filter>
-   </device>
+   </object>
   </axis>
   <axis>
-    <device class="FilterAxis">
+    <object class="FilterAxis">
       <username>attm</username>
       <motor>/oh/motors/attm</motor>
       <filter>
@@ -42,10 +42,10 @@
        <username>5mm PyroC</username>
        <offset>3</offset>
       </filter>
-   </device>
+   </object>
   </axis>
   <axis>
-    <device class="FilterAxis">
+    <object class="FilterAxis">
       <username>attf</username>
       <motor>/oh/motors/attf</motor>
       <filter>
@@ -64,6 +64,6 @@
        <username>BlackDiamond_0.8mm</username>
        <offset>3</offset>
       </filter>
-    </device>
+    </object>
   </axis>
-</equipment>
+</object>

@@ -1,5 +1,5 @@
-<device class="Cryo">
+<object class="Cryo">
   <username>Cryo</username>
   <taconame>id29/cryospy/1</taconame>
   <interval>1000</interval>
-</device>
+</object>

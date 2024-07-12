@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<equipment class="Microdiff">
+<object class="Microdiff">
   <username>Microdiff</username>
-  <device role="camera" hwrid="/ccd/prosilica_md2"></device>
+  <object role="camera" hwrid="/ccd/prosilica_md2"></object>
   <autoCentering>
     <debugLevel>1</debugLevel>
     <centring_server>id29/mxautocentring/1</centring_server>
@@ -63,24 +63,24 @@
   </resetPosition>
   <motors>
     <phi>
-      <device role="phi" hwrid="/udiff_omega"></device>
-      <device role="phiz" hwrid="/udiff_phiz"></device>
+      <object role="phi" hwrid="/udiff_omega"></object>
+      <object role="phiz" hwrid="/udiff_phiz"></object>
     </phi>
     <sample>
-      <device role="zoom" hwrid="/udiff_zoom"/>
-      <device role="lightLevel" hwrid="/udiff_lightmot"/>
-      <device role="lightInOut" hwrid="/udiff_light"/>
-      <device role="focus" hwrid="/udiff_phix"/>
-      <device role="phiy" hwrid="/udiff_phiy"/>
-      <device role="sampx" hwrid="/udiff_sampx"/>
-      <device role="sampy" hwrid="/udiff_sampy"/>
-      <device role="kappa" hwrid="/udiff_kappa"/>
-      <device role="kappa_phi" hwrid="/udiff_kappaphi"/>
+      <object role="zoom" hwrid="/udiff_zoom"/>
+      <object role="lightLevel" hwrid="/udiff_lightmot"/>
+      <object role="lightInOut" hwrid="/udiff_light"/>
+      <object role="focus" hwrid="/udiff_phix"/>
+      <object role="phiy" hwrid="/udiff_phiy"/>
+      <object role="sampx" hwrid="/udiff_sampx"/>
+      <object role="sampy" hwrid="/udiff_sampy"/>
+      <object role="kappa" hwrid="/udiff_kappa"/>
+      <object role="kappa_phi" hwrid="/udiff_kappaphi"/>
     </sample>
     <more>
-      <device hwrid="/exp/DtoX"/>
-      <device hwrid="/exp/shuty"/>
-      <device hwrid="/exp/shutz"/>
+      <object hwrid="/exp/DtoX"/>
+      <object hwrid="/exp/shuty"/>
+      <object hwrid="/exp/shutz"/>
     </more>
   </motors>
   <aperture>/udiff_aperturemot</aperture>
@@ -91,4 +91,4 @@
   <channel version="lid292:exp" type="spec" name="auto_crystal_centring_enabled">ENABLE_AUTO_CRYSTAL_CENTRING</channel>
   <channel version="lid292:exp" type="spec" name="playback_centring_enabled">ENABLE_PLAYBACK_CENTRING</channel>
   <command version="lid292:exp" type="spec" name="getBeamInfo">getMxBeamInfo</command>
-</equipment>
+</object>

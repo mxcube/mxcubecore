@@ -1,4 +1,4 @@
-<device class="NamedState">
+<object class="NamedState">
     <username>Scintillator</username>
     <exporter_address>172.19.10.119:9001</exporter_address>
     <channel type="exporter" name="state">ScintillatorPosition</channel>
@@ -14,4 +14,4 @@
           <name>PHOTODIODE</name>
        </state>
     </states>
-</device>
+</object>

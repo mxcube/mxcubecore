@@ -1,6 +1,6 @@
-<device class = "SpecMotor">
+<object class = "SpecMotor">
   <username>Vertical</username>
   <specname>ver</specname>
   <specversion>lid292:exp</specversion>
   <unit>1e-3</unit>
-</device>
+</object>

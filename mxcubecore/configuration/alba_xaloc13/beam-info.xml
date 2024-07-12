@@ -1,4 +1,4 @@
-<equipment class="ALBABeamInfo">
+<object class="ALBABeamInfo">
     <taurusname>bl13/ct/variables</taurusname>
   
     <channel type="sardana" name="BeamPositionHorizontal">ImageCenterX</channel>
@@ -8,4 +8,4 @@
     
     <beam_divergence_horizontal>230.0</beam_divergence_horizontal>
     <beam_divergence_vertical>150.0</beam_divergence_vertical>
-</equipment>
+</object>

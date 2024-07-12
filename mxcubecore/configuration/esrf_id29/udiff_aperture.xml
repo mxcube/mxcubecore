@@ -1,4 +1,4 @@
-<device class="InOut">
+<object class="InOut">
   <username>Microdiff aperture</username>
   <specversion>lid292:exp</specversion>
   <offset>2</offset>
@@ -6,4 +6,4 @@
   <command type="spec" name="set_out">apertureout</command>
   <channel type="tango" name="state" tangoname="tango://microdiff29new:18001/embl/md/1#dbase=no" polling="500">AperturePosition</channel>
   <private_state>{"OFF":"out","BEAM":"in"}</private_state>
-</device>
+</object>

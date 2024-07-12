@@ -1,7 +1,7 @@
-<equipment>
+<object>
     <specversion>lid292:exp</specversion>
     <command type="spec" name="mesh">mx_oscscan_mesh</command>
     <command type="spec" name="a2scan">mx_oscscan_a2scan</command>
     <command type="spec" name="ltinit">ltinit</command>
     <command type="spec" name="ltscan">mx_oscscan_ltscan</command>
-</equipment>
+</object>

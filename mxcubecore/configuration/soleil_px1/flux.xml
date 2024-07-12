@@ -1,6 +1,6 @@
-<device class="ChannelObject">
+<object class="ChannelObject">
   <username>flux</username>
   <tangoname>i10-c-cx1/ex/flux</tangoname> 
   <channel type="tango" polling="2000" name="channel">flux</channel>
   <channel type="tango" polling="2000" name="state">State</channel>
-</device>
+</object>

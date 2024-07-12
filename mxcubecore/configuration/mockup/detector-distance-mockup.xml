@@ -1,8 +1,8 @@
-<device class="MotorMockup">
+<object class="MotorMockup">
   <actuator_name>detdist</actuator_name>
   <username>Detector distance</username>
   <default_value>500</default_value>
   <velocity>100</velocity>
   <tolerance>0.01</tolerance>
   <default_limits>[150, 1000]</default_limits>
-</device>
+</object>

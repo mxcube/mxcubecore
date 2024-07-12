@@ -26,11 +26,11 @@ import copy
 import logging
 
 from mxcubecore.TaskUtils import task
-from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
 
 
-class BIOMAXEiger(Equipment):
+class BIOMAXEiger(HardwareObject):
     """
     Description: Eiger hwobj based on tango
     """

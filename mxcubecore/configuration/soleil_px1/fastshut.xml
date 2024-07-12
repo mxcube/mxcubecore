@@ -1,4 +1,4 @@
-<device class="SOLEILShutter">
+<object class="SOLEILShutter">
   <username>FastShutter</username>
 
   <tangoname>i10-c-cx1/ex/spishutter-pos</tangoname>
@@ -7,4 +7,4 @@
   <command type="tango" name="Open">Open</command>
   <command type="tango" name="Close">Close</command>
 
-</device>
+</object>

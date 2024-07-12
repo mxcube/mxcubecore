@@ -3,12 +3,12 @@ import logging
 import math
 from calc_flux import CalculateFlux
 from PyTango.gevent import DeviceProxy
-from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.TaskUtils import task
 from mxcubecore import HardwareRepository as HWR
 
 
-class ID23PhotonFlux(Equipment):
+class ID23PhotonFlux(HardwareObject):
     def __init__(self, *args, **kwargs):
         Equipment.__init__(self, *args, **kwargs)
         self.threshold = []

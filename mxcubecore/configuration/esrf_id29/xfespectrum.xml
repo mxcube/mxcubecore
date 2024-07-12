@@ -1,4 +1,4 @@
-<equipment class="XfeSpectrum">
+<object class="XfeSpectrum">
   <specversion>lid292:exp</specversion>
   <command type="spec" name="doSpectrum">eprodc_xfespectrum</command>
   <channel type="spec" name="spectrumStatusMsg">eprodc_energy_scan_msg</channel>
@@ -6,5 +6,5 @@
   <channel type="spec" name="config_data">XFE_CONFIG</channel>
   <channel type="spec" name="mca_data" dispatchMode="None">XFE_DATA</channel>
   <channel type="spec" name="calib_data" dispatchMode="None">XFE_CALIB</channel>
-  <device hwrid="/dbconnection" role="dbserver"/>
-</equipment>
+  <object hwrid="/dbconnection" role="dbserver"/>
+</object>

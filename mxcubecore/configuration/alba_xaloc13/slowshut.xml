@@ -1,6 +1,6 @@
-<device class="ALBAEpsActuator">
+<object class="ALBAEpsActuator">
   <username>Slow Shutter</username>
   <taurusname>bl13/ct/eps-plc-01</taurusname>
   <channel type="sardana" polling="events" name="actuator">slowshu</channel>
   <states>Open,Closed</states>
-</device>
+</object>

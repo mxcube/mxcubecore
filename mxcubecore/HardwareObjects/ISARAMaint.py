@@ -1,6 +1,6 @@
 from typing import Optional
 from tango import DeviceProxy, DevFailed
-from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 """
 The sample changer maintenance hardware object for ISARA2 robot.
@@ -63,7 +63,7 @@ def _get_isara_command_error(ex: DevFailed) -> Optional[str]:
     return None
 
 
-class ISARAMaint(Equipment):
+class ISARAMaint(HardwareObject):
     def __init__(self, name):
         super().__init__(name)
 

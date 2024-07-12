@@ -1,20 +1,20 @@
-<equipment>
+<object>
   <username>Mirror</username>
   <motors>
     <pseudo>
-      <device hwrid="/oh1/roll"/>
-      <device hwrid="/oh1/tory"/>
-      <device hwrid="/oh1/yaw"/>
-      <device hwrid="/oh1/mben"/>
-      <device hwrid="/oh1/torh"/>
-      <device hwrid="/oh1/mtt"/>
+      <object hwrid="/oh1/roll"/>
+      <object hwrid="/oh1/tory"/>
+      <object hwrid="/oh1/yaw"/>
+      <object hwrid="/oh1/mben"/>
+      <object hwrid="/oh1/torh"/>
+      <object hwrid="/oh1/mtt"/>
     </pseudo>
     <real>
-      <device hwrid="/oh1/tor01f"/>
-      <device hwrid="/oh1/tor02b"/>
-      <device hwrid="/oh1/tor03b"/>
-      <device hwrid="/oh1/mtf"/>
-      <device hwrid="/oh1/mtb"/>
+      <object hwrid="/oh1/tor01f"/>
+      <object hwrid="/oh1/tor02b"/>
+      <object hwrid="/oh1/tor03b"/>
+      <object hwrid="/oh1/mtf"/>
+      <object hwrid="/oh1/mtb"/>
     </real>
   </motors>
   <procedures>
@@ -23,4 +23,4 @@
     <procedure hwrid="/procedures/a2scan"/>
     <procedure hwrid="/procedures/d2scan"/>
   </procedures>
-</equipment>
+</object>

@@ -52,7 +52,7 @@ the LimaVideoDevice module instead
 [Configuration]
 Example Hardware Object XML file :
 ==================================
-<device class="QtLimaVideo">
+<object class="QtLimaVideo">
    <type>basler</type>
    <encoding>yuv422p</encoding>
    <tangoname>bl13/eh/lima_oav</tangoname>
@@ -60,7 +60,7 @@ Example Hardware Object XML file :
    <exposure>0.01</exposure>
    <mirror>(False, False)</mirror>
    <interval>30</interval>
-</device>
+</object>
 """
 from __future__ import print_function
 import struct

@@ -1,17 +1,17 @@
-<equipment class="PX1EnergyScan">
+<object class="PX1EnergyScan">
 
     <mono_dev>i10-c-c02/op/mono1</mono_dev>
     <ble_dev>i10-c-c00/ex/beamlineenergy</ble_dev>
     <fp_dev>i10-c-c00/ex/fp_parser</fp_dev>
 
-    <device hwrid="/ketek" role="fluodet"/>
-    <device hwrid="/fastshut" role="fast_shutter"/>
-    <device hwrid="/safety_shutter" role="safety_shutter"/>
-    <device hwrid="/px1environment" role="px1environment"/>
-    <device hwrid="/beam-info" role="beaminfo"/>
-    <device hwrid="/session" role="session"/>
-    <device hwrid="/ruche" role="ruche"/>
-    <device hwrid="/dbconnection" role="dbserver"/>
+    <object hwrid="/ketek" role="fluodet"/>
+    <object hwrid="/fastshut" role="fast_shutter"/>
+    <object hwrid="/safety_shutter" role="safety_shutter"/>
+    <object hwrid="/px1environment" role="px1environment"/>
+    <object hwrid="/beam-info" role="beaminfo"/>
+    <object hwrid="/session" role="session"/>
+    <object hwrid="/ruche" role="ruche"/>
+    <object hwrid="/dbconnection" role="dbserver"/>
     
     <normalization_diode>i10-c-c03/dt/xbpm_diode.2</normalization_diode>
 
@@ -228,4 +228,4 @@
             <energy>L</energy>
         </element>
     </elements>
-</equipment>
+</object>

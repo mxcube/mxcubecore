@@ -1,7 +1,7 @@
-<equipment class="EMBLBeam">
-	<device hwrid="/eh1/diff-aperture" role="aperture"/>
-	<device hwrid="/eh1/beamFocusing" role="beam_focusing"/>
-    <device hwrid="/eh1/slits" role="slits"/>
+<object class="EMBLBeam">
+	<object hwrid="/eh1/diff-aperture" role="aperture"/>
+	<object hwrid="/eh1/beamFocusing" role="beam_focusing"/>
+    <object hwrid="/eh1/slits" role="slits"/>
     <exporter_address>p14md302.embl-hamburg.de:9001</exporter_address>
     <!-- <channel type="exporter" name="BeamPositionHorizontal">BeamPositionHorizontal</channel>
     <channel type="exporter" name="BeamPositionVertical">BeamPositionVertical</channel> -->
@@ -11,4 +11,4 @@
     <channel type="exporter" name="BeamSizeMicrons">BeamSizeMicrons</channel>
     <channel type="exporter" name="BeamShapeEllipse">BeamShapeEllipse</channel> 
     <defaultBeamDivergence>(12.0, 5.0)</defaultBeamDivergence>
-</equipment>
+</object>

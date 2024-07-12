@@ -27,7 +27,7 @@ from mxcubecore.TaskUtils import task, cleanup
 from xabs_lib import McMaster
 from mxcubecore.Command.Tango import DeviceProxy
 
-from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
 
 

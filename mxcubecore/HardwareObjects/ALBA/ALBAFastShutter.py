@@ -1,12 +1,12 @@
 """Tango Shutter Hardware Object
 Example XML::
 
-  <device class="ALBAEpsActuator">
+  <object class="ALBAEpsActuator">
     <username>Photon Shutter</username>
     <taurusname>bl13/ct/eps-plc-01</taurusname>
     <channel type="sardana" polling="events" name="actuator">pshu</channel>
     <states>Open,Closed</states>
-  </device>
+  </object>
 
 
 Public Interface:

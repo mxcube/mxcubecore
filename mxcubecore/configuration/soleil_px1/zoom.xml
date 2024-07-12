@@ -1,7 +1,7 @@
 <!-- md2-zoomlevel has zoomlevel, backlightlevel and the frontlinelevel but not pixelsize and beamposition -->
 <!-- <?xml version="1.0" encoding="iso-8859-1"?> -->
 <!-- device class="TangoMotorWPositionsPX2" -->
-<device class="TangoDCMotorWPositions">
+<object class="TangoDCMotorWPositions">
     <username>Zoom</username>
        <tangoname>i10-c-cx1/ex/zoom.1-mt_tz</tangoname> 
     <focus>PhiTableXAxisPosition</focus>
@@ -132,4 +132,4 @@
       </calibrationData>
     </position>
   </positions>
-</device>
+</object>

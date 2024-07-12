@@ -43,7 +43,7 @@ except ImportError:
 from mxcubecore.utils.qt_import import QImage, QPixmap, QPoint
 from mxcubecore.utils.conversion import string_types
 from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import AbstractVideoDevice
-from mxcubecore.BaseHardwareObjects import Device
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 class MjpgStreamVideo(AbstractVideoDevice, Device):

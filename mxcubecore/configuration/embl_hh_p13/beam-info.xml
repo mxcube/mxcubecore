@@ -1,5 +1,5 @@
-<equipment class="EMBLBeamInfo">
-    <device hwrid="/eh1/diff-aperture" role="aperture"/>
+<object class="EMBLBeamInfo">
+    <object hwrid="/eh1/diff-aperture" role="aperture"/>
 
     <exporter_address>p13md201.embl-hamburg.de:9001</exporter_address>
     <!--channel type="exporter" name="BeamPositionHorizontal">BeamPositionHorizontal</channel>
@@ -11,5 +11,5 @@
     <channel type="exporter" name="BeamShapeEllipse">BeamShapeEllipse</channel> 
 
     <defaultBeamDivergence>(230.0, 150.0)</defaultBeamDivergence>
-</equipment>
+</object>
 

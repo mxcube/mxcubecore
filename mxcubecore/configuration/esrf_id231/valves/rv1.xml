@@ -1,5 +1,5 @@
-<device class = "Valve">
+<object class = "Valve">
   <username>Valve RV1</username>
   <taconame>id23/rv/1</taconame>
   <interval>2000</interval>
-</device>
+</object>

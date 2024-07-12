@@ -1,9 +1,9 @@
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.BaseHardwareObjects import Device
+from mxcubecore.BaseHardwareObjects import HardwareObject
 import logging
 
 
-class ALBASupervisor(Device):
+class ALBASupervisor(HardwareObject):
     def __init__(self, *args):
         Device.__init__(self, *args)
 

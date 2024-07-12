@@ -13,8 +13,8 @@ This object manages the movement of several motors to predefined positions.
                         position but the user value of the motors concerned
 
 <motors>
-    <device role="role1" ... :list of motors to be moved to reach a predefined
-    <device role="role2" ...  position. the "role" will be used to referenced
+    <object role="role1" ... :list of motors to be moved to reach a predefined
+    <object role="role2" ...  position. the "role" will be used to referenced
         ...                   the motors in the definitions of the predefined
 <motors>                      positions
 
@@ -100,11 +100,11 @@ SIGNAL
                     The parameter is the name of this position.
 
 TEMPLATE
-<equipment class="MultiplePositions">
+<object class="MultiplePositions">
     <username>VLM Zoom</username>
     <mode>absolute</mode>
     <motors>
-        <device role="zoom" hwrid="/berru/zoom"></device>
+        <object role="zoom" hwrid="/berru/zoom"></object>
     </motors>
 
     <deltas>
@@ -137,18 +137,18 @@ TEMPLATE
             <beamy>200</beamy>
         </position>
     </positions>
-</equipment>"""
+</object>"""
 
 try:
     from xml.etree import cElementTree  # python2.5
 except ImportError:
     import cElementTree
 
-from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import HardwareObject
 import logging
 
 
-class MultiplePositions(Equipment):
+class MultiplePositions(HardwareObject):
     def init(self):
         try:
             self.mode

@@ -14,7 +14,7 @@ Vicente Rey - add support for ISARA Model
 import logging
 
 from mxcubecore.TaskUtils import task
-from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 import gevent
 import time
@@ -47,7 +47,7 @@ TOOL_TO_STR = {
 }
 
 
-class CatsMaint(Equipment):
+class CatsMaint(HardwareObject):
 
     __TYPE__ = "CATS"
     NO_OF_LIDS = 3

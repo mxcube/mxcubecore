@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<equipment class="LNLS.LNLSDiffractometer">
+<object class="LNLS.LNLSDiffractometer">
   <object role="focus" hwrid="./udiff_phiz"></object>
   <object role="zoom" hwrid="./udiff_zoom"></object>
   <object role="phi" hwrid="./udiff_omega"></object>
@@ -41,4 +41,4 @@
 
   <phaseList>["Transfer","Centring","BeamLocation", "DataCollection"]</phaseList>
   <headType>MiniKappa</headType>
-</equipment>
+</object>

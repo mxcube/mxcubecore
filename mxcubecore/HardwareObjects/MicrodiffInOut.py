@@ -1,5 +1,5 @@
 import logging
-from mxcubecore.BaseHardwareObjects import Device
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import MotorStates
 import time
 
@@ -7,17 +7,17 @@ import time
 Use the exporter to set different MD2 actuators in/out.
 If private_state not specified, True will be send to set in and False for out.
 Example xml file:
-<device class="MicrodiffInOut">
+<object class="MicrodiffInOut">
   <username>Scintilator</username>
   <exporter_address>wid30bmd2s:9001</exporter_address>
   <cmd_name>ScintillatorPosition</cmd_name>
   <private_state>{"PARK":"out", "SCINTILLATOR":"in"}</private_state>
   <use_hwstate>True</use_hwstate>
-</device>
+</object>
 """
 
 
-class MicrodiffInOut(Device):
+class MicrodiffInOut(HardwareObject):
     def __init__(self, name):
         Device.__init__(self, name)
         self.actuatorState = "unknown"

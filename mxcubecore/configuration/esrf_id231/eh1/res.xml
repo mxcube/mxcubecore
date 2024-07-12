@@ -1,7 +1,7 @@
-<equipment class="Resolution">
-  <device hwrid="/eh1/DtoX" role="detm"/>
-  <device hwrid="/eh1/DtoX" role="detector_distance"/>
-  <device hwrid="/oh1/energy" role="energy"/>
+<object class="Resolution">
+  <object hwrid="/eh1/DtoX" role="detm"/>
+  <object hwrid="/eh1/DtoX" role="detector_distance"/>
+  <object hwrid="/oh1/energy" role="energy"/>
   <command type="spec" version="lid232:eh1" name="detector_radius">_getRadius</command>
-</equipment>
+</object>
 

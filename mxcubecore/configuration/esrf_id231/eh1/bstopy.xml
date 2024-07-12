@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<device class="SpecMotor">
+<object class="SpecMotor">
   <username>BeamStop Hor</username>
   <specname>bstopy</specname>
   <specversion>lid232:eh1</specversion>
   <GUIstep>0.01</GUIstep>
-</device>
+</object>

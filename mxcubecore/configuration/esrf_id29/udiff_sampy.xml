@@ -1,7 +1,7 @@
-<device class="MicrodiffMotor">
+<object class="MicrodiffMotor">
   <username>sampx</username>
   <exporter_address>microdiff29new:9001</exporter_address>
   <actuator_name>CentringY</actuator_name>
   <GUIstep>0.01</GUIstep>
   <unit>1e-3</unit>
-</device>
+</object>

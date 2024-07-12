@@ -1,13 +1,13 @@
 """
 EPICS implementation of AbstractNState.
 Example xml file:
-<device class="LNLS.LNLSInOut">
+<object class="LNLS.LNLSInOut">
   <channel type="epics" name="epicsActuator_val">SOL:S:m4.SET</channel>
   <channel type="epics" name="epicsActuator_rbv" polling="500">SOL:S:m4.SET</channel>
   <username>Microdiff backlight</username>
   <motor_name>BackLightIsOn</motor_name>
   <values>{"in": True, "out": False}</values>
-</device>
+</object>
 """
 import logging
 

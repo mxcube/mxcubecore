@@ -1,4 +1,4 @@
-<device class="EMBLMotorsGroup">
+<object class="EMBLMotorsGroup">
     <username>P14DetTrans</username>
     <serverAddr>/P14/P14DetTrans</serverAddr>
     <groupAddr>/P14DetHor1</groupAddr>
@@ -54,5 +54,5 @@
           <focusingModes>{'Collimated': 0.4500, 'Double': 1.7990, 'Imaging': 0.4500}</focusingModes>
         </motor>
     </motors>
-</device>
+</object>
 

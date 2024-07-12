@@ -1,4 +1,4 @@
-<device class="PhotonFlux">
+<object class="PhotonFlux">
   <username>Photon flux</username>
   <cnt>i0</cnt>
   <channel type="taco" name="counts" taconame="id23/wct_231/1" polling="3000" compare="False">DevCntReadAll</channel>
@@ -6,6 +6,6 @@
   <channel type="spec" name="calibration" version="lid232:eh1">CALIBRATED_DIODE</channel>
   <channel type="spec" name="aperture" version="lid232:eh1">APERTURE_COEF</channel>
   <channel type="spec" name="flag" version="lid232:eh1">FLUX_CALCULATION_FLAG</channel>
-  <device role="shutter" href="/safshut"/>
-  <device role="energy" href="/oh1/energy"/>
-</device> 
+  <object role="shutter" href="/safshut"/>
+  <object role="energy" href="/oh1/energy"/>
+</object> 

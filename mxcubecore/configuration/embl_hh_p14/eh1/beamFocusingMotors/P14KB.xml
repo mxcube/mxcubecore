@@ -1,4 +1,4 @@
-<device class="EMBLMotorsGroup">
+<object class="EMBLMotorsGroup">
     <username>P14KB</username>
     <serverAddr>/P14/P14KB</serverAddr>
     <groupAddr>/HFM_Pitch</groupAddr>
@@ -30,5 +30,5 @@
           <focusingModes>{'Collimated': 1.500, 'Double': 0.1163, 'Imaging': 1.500}</focusingModes>
         </motor>
     </motors>
-</device>
+</object>
 

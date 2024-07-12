@@ -1,5 +1,5 @@
-<device class = "CameraCcd">
+<object class = "CameraCcd">
   <username>Matrox Meteor, 1st camera</username>
   <taconame>id23/meteor2/0</taconame>
   <interval>200</interval>
-</device>
+</object>

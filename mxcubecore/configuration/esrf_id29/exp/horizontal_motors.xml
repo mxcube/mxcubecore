@@ -1,5 +1,5 @@
-<equipment>
+<object>
   <motors>
-    <device role="horizontal" href="/udiff_phiy"/> 
+    <object role="horizontal" href="/udiff_phiy"/> 
   </motors>
-</equipment>
+</object>

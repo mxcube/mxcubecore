@@ -36,10 +36,10 @@ import gevent
 import time
 
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
-class MachInfoMockup(Equipment):
+class MachInfoMockup(HardwareObject):
     default_current = 200  # milliamps
     default_lifetime = 45  # hours Lifetime
     default_message = "Beam Delivered"

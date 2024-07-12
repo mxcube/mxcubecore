@@ -1,4 +1,4 @@
-<device class = "PX1Resolution">
+<object class = "PX1Resolution">
 
   <username>Resolution</username>
 
@@ -15,4 +15,4 @@
 
   <object href="/energy" role="energy" />
 
-</device>
+</object>

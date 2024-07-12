@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<equipment class="MinidiffAperture">
+<object class="MinidiffAperture">
     <username>Aperture</username>
     <mode>absolute</mode>
     <motors>
-        <device role="apy" hwrid="/eh1/apy"></device>
-        <device role="apz" hwrid="/eh1/apz"></device>
+        <object role="apy" hwrid="/eh1/apy"></object>
+        <object role="apz" hwrid="/eh1/apz"></object>
     </motors>
     <deltas>
         <apy>0.0005</apy>
@@ -47,4 +47,4 @@
             <apz>1.4947</apz>
         </position>
     </positions>
-</equipment>
+</object>

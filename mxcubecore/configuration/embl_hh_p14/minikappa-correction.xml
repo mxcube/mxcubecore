@@ -1,4 +1,4 @@
-<device class="MiniKappaCorrection">
+<object class="MiniKappaCorrection">
    <kappa>
       <!-- ORIGINAL MD3 Minikappa direction>direction>[0.287606,0.287606,-0.913545]</direction -->
       <!-- ORIGINAL MD3 Minikappa  position>[-0.083453947345,-0.15278782895,-0.22471079235]</position-->
@@ -15,4 +15,4 @@
       <!-- New values from 20230614 -->
       <position>[-0.30189923342,-0.13673559665,23.572857735]</position>
    </phi>
-</device>
+</object>

@@ -1,4 +1,4 @@
-<device class="NamedState">
+<object class="NamedState">
     <username>Phase</username>
     <exporter_address>172.19.10.119:9001</exporter_address>
     <channel type="exporter" name="state">CurrentPhase</channel>
@@ -19,4 +19,4 @@
        </state>
     </states>
    <object href="/singleton_objects/guillotine" role="guillotine"/>
-</device>
+</object>

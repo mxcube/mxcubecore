@@ -1,4 +1,4 @@
-<equipment class="EMBLMachineInfo">
+<object class="EMBLMachineInfo">
     <object href="/session" role="session"/>
     <object href="/safshut" role="shutter"/>
  
@@ -13,4 +13,4 @@
     <limits>{'current':75, 'temp': 25, 'hum': 60, 'intens': 5e-8}</limits>
     <hutchTempAddress>G47cS9:K:KL:P14EH2RaTIW_ai</hutchTempAddress>
     <hutchHumAddress>G47cS9:K:KL:P14EH2RaF_ai</hutchHumAddress>
-</equipment>
+</object>

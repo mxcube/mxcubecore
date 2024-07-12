@@ -1,11 +1,11 @@
-<device class = "WagoPneu">
+<object class = "WagoPneu">
   <username>RONTEC</username>
   <taconame>id23/wcid231f/wc</taconame>
   <wagoidin>fldin</wagoidin>
   <wagoidout>fldbck</wagoidout>
   <logic>-1</logic>
   <interval>1000</interval>
-</device>
+</object>
 
 
 

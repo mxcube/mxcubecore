@@ -1,4 +1,4 @@
-<equipment class="EMBLMachineInfo">
+<object class="EMBLMachineInfo">
     <updateIntervalS>120</updateIntervalS>		
     <limits>{'current':75, 'temp': 25, 'hum': 60, 'intens': 5e-8}</limits>
     <hutchTempAddress>G47cS9:K:KL:P14EH1RaTIW_ai</hutchTempAddress>
@@ -18,4 +18,4 @@
     <!--
     <channel type="tine" name="framesAverageI" tinename="/P14/tioga/tioga">dozor-average-i</channel>
     -->
-</equipment>
+</object>

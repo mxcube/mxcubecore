@@ -50,7 +50,7 @@ statuses,... by one read.
 
 Example Hardware Object XML file :
 ==================================
-<device class="MotorsGroup">
+<object class="MotorsGroup">
     <username>P14BCU</username>                     - used to identify group
     <serverAddr>/P14/P14BCU</serverAddr>            - tine server address
     <groupAddr>/ShutterTrans</groupAddr>            - motors group address
@@ -72,7 +72,7 @@ Example Hardware Object XML file :
           'Vertical': 0.22, 'Double': 0.22}</focusingModes>
         </motor>
     </motors>
-</device>
+</object>
 """
 
 
@@ -82,7 +82,7 @@ import logging
 import gevent
 
 import tine
-from mxcubecore.BaseHardwareObjects import Device
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 __credits__ = ["EMBL Hamburg"]
@@ -90,7 +90,7 @@ __license__ = "LGPLv3+"
 __category__ = "Motor"
 
 
-class EMBLMotorsGroup(Device):
+class EMBLMotorsGroup(HardwareObject):
     """
     EMBLMotorsGroup
     """

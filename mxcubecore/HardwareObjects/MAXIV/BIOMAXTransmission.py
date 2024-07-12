@@ -1,9 +1,9 @@
 import gevent
-from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
 
 
-class BIOMAXTransmission(Equipment):
+class BIOMAXTransmission(HardwareObject):
     def init(self):
         self.ready_event = gevent.event.Event()
         self.moving = None

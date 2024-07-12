@@ -37,10 +37,10 @@ import gevent
 import time
 import PyTango
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
-class MachInfo(Equipment):
+class MachInfo(HardwareObject):
     default_current = 0
     default_lifetime = 0
     default_message = ""

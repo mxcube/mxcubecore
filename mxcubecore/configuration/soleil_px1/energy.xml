@@ -1,4 +1,4 @@
-<device class = "PX1Energy">
+<object class = "PX1Energy">
     <username>Energy</username>
 
     <tangoname>i10-c-c00/ex/beamlineenergy</tangoname>
@@ -11,4 +11,4 @@
 
     <interval>1000</interval>
     <backlash>False</backlash>
-</device>
+</object>

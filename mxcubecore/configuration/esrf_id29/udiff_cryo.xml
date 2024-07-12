@@ -1,8 +1,8 @@
-<device class="InOut">
+<object class="InOut">
   <username>Cryostream</username>
   <specversion>lid292:exp</specversion>
   <command type="spec" name="set_out">cryout</command>
   <command type="spec" name="set_in">cryoin</command>
   <channel type="tango" name="state" tangoname="tango://microdiff29new:18001/embl/md/1#dbase=no" polling="500">CryoIsBack</channel>
   <offset>1</offset>
-</device>
+</object>

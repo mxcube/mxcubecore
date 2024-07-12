@@ -1,6 +1,6 @@
-<device class = "SpecMotor">
+<object class = "SpecMotor">
   <username>BeamStop Vert</username>
   <specname>bstopz</specname>
   <specversion>lid232:eh1</specversion>
   <GUIstep>0.01</GUIstep>
-</device>
+</object>

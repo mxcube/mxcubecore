@@ -7,14 +7,14 @@ The interface is otherwise exactly the same as the ALBAEpsActuator
 
 Example XML::
 
-  <device class="ALBAFrontEnd">
+  <object class="ALBAFrontEnd">
     <username>Front Shutter</username>
     <taurusname>bl13/ct/eps-plc-01</taurusname>
     <channel type="sardana" polling="events" name="actuator">fe_open</channel>
     <channel type="sardana" name="open_command">OPEN_FE</channel>
     <channel type="sardana" name="close_command">CLOSE_FE</channel>
     <states>Open,Closed</states>
-  </device>
+  </object>
 
 """
 

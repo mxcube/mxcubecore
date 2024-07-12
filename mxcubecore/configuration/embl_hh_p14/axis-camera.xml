@@ -1,5 +1,5 @@
-<device class="QtAxisCamera">
+<object class="QtAxisCamera">
    <interval>1000</interval>
    <address>http://p14axiscameh.embl-hamburg.de/axis-cgi/jpg/image.cgi?resolution=CIF</address>
    <image_size>(352, 288)</image_size>
-</device>
+</object>

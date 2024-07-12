@@ -1,4 +1,4 @@
-<device class="EMBLBeamstop">
+<object class="EMBLBeamstop">
   <username>Beamstop</username>
   <exporter_address>pe2bsd01.embl-hamburg.de:9001</exporter_address>
   <channel type="exporter" name="BeamstopDistance">BeamstopDistance</channel>
@@ -6,4 +6,4 @@
   <defaultBeamstopSize>1.5</defaultBeamstopSize>
   <!--defaultBeamstopDistance>34.0</defaultBeamstopDistance-->
   <defaultBeamstopDirection>Y</defaultBeamstopDirection>
-</device>
+</object>

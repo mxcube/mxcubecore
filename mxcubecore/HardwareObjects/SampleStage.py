@@ -1,8 +1,8 @@
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
-class SampleStage(Equipment):
+class SampleStage(HardwareObject):
     def init(self):
         self.__axis = []
         for token in self:

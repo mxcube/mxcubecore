@@ -1,10 +1,10 @@
-<device class = "WagoCounter">
+<object class = "WagoCounter">
   <username>DM2</username>
   <taconame>id23/wcid231b/wc</taconame>
   <wagoname>dm2</wagoname>
   <gainfactor>10</gainfactor>
   <interval>1100</interval>
-</device>
+</object>
 
 
 

@@ -1,4 +1,4 @@
-<device class = "PX1Attenuator">
+<object class = "PX1Attenuator">
   <username>Filters</username>
 
   <tangoname>i10-c-c00/ex/att_parser</tangoname>
@@ -6,4 +6,4 @@
   <channel type="tango" polling="2000" name="state">State</channel>
   <interval>2000</interval>
 
-</device>
+</object>

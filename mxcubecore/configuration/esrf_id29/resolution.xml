@@ -1,7 +1,7 @@
-<equipment class="Resolution">
-  <device hwrid="/exp/xtod" role="detm"/>
-  <device hwrid="/exp/xtod" role="detector_distance"/>
-  <device hwrid="/oh/motors/energy" role="energy"/>
+<object class="Resolution">
+  <object hwrid="/exp/xtod" role="detm"/>
+  <object hwrid="/exp/xtod" role="detector_distance"/>
+  <object hwrid="/oh/motors/energy" role="energy"/>
   <command type="spec" version="lid292:exp" name="detector_radius">_getRadius</command>
-</equipment>
+</object>
 

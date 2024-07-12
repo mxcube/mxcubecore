@@ -1,4 +1,4 @@
-<device class="LNLS.EPICSMotor">
+<object class="LNLS.EPICSMotor">
     <channel type="epics" name="epicsActuator_val">MNC:B:PB05:m8.VAL</channel>
     <channel type="epics" name="epicsActuator_rbv" polling="500">MNC:B:PB05:m8.RBV</channel>
     <channel type="epics" name="epicsMotor_rlv">MNC:B:PB05:m8.RLV</channel>
@@ -12,4 +12,4 @@
     <motor_name>Omega</motor_name>
     <unit>1e-3</unit>
     <GUIstep>90</GUIstep>
-</device>
+</object>

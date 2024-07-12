@@ -17,24 +17,24 @@ beamPosChanged
 
 [Example XML file]
 
-<device class = "BeaminfoPX2">
+<object class = "BeaminfoPX2">
   <username>Beamstop</username>
   <channel type="tango" tangoname="i11-ma-cx1/ex/md2" polling="1000" name="beamsizex">BeamSizeHorizontal</channel>
   <channel type="tango" tangoname="i11-ma-cx1/ex/md2" polling="1000" name="beamsizey">BeamSizeVertical</channel>
   <channel type="tango" tangoname="i11-ma-cx1/ex/md2" polling="1000" name="positionx">BeamPositionHorizontal</channel>
   <channel type="tango" tangoname="i11-ma-cx1/ex/md2" polling="1000" name="positiony">BeamPositionVertical</channel>
   <object  role="zoom"  hwrid="/zoom"></object>
-</device>
+</object>
 
 
 
 """
 
 import logging
-from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
-class PX2BeamInfo(Equipment):
+class PX2BeamInfo(HardwareObject):
     def __init__(self, *args):
         Equipment.__init__(self, *args)
 

@@ -30,10 +30,10 @@ __license__ = "LGPLv3"
 """
 xml example:
 
-<device class="ApertureMockup">
+<object class="ApertureMockup">
   <position_list>["BEAM", "OFF", "PARK"]</position_list>
   <diameter_size_list>[5, 10, 20, 30, 50, 100]</diameter_size_list>
-</device>
+</object>
 """
 
 DEFAULT_POSITION_LIST = ("BEAM", "OFF", "PARK")

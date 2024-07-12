@@ -1,6 +1,6 @@
-<device class = "SpecMotor">
+<object class = "SpecMotor">
   <username>Vertical Beamsize</username>
   <specname>s1v</specname>
   <specversion>lid292:exp</specversion>
   <GUIstep>0.1</GUIstep>
-</device>
+</object>

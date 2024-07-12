@@ -1,7 +1,7 @@
 """Class for cameras connected to framegrabbers run by Taco Device Servers
 
 template:
-  <device class = "Camera">
+  <object class = "Camera">
     <username>user label</username>
     <!-- <taconame>device server name (//host/.../.../...)</taconame> -->
     <interval>polling interval (in ms.)</interval>
@@ -13,7 +13,7 @@ template:
         <pixelsPerMmZ>pixels per mm (Z axis)</pixelsPerMmZ>
       </calibrationData>
     </calibration> -->
-  </device>
+  </object>
 """
 from mxcubecore import BaseHardwareObjects
 from mxcubecore import CommandContainer

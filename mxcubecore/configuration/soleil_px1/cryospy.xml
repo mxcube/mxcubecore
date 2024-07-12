@@ -1,6 +1,6 @@
-<device class="TangoCryo">
+<object class="TangoCryo">
   <username>Cryo</username>
   <channel type="tango" polling="2000" tangoname="i10-c-cx1/ex/cryostream700" name="temperature">sampleTemp</channel>
   <channel type="tango" polling="2000" tangoname="i10-c-cx1/ex/cryostream700" name="state">State</channel>
   <channel type="tango" polling="2000" tangoname="i10-c-cx1/vi/dewar" name="n2level">LN2_Level</channel>
-</device>
+</object>

@@ -1,4 +1,4 @@
-<equipment class = "sample_changer.Cats90">
+<object class = "sample_changer.Cats90">
   <username>Cats</username>
   <tangoname>bl141/cats/1</tangoname>    
   <!-- specify the number of lids here to support different models-->
@@ -29,5 +29,5 @@
   <channel type="tango" name="_chnSampleBarcode" polling="events">Barcode</channel>
   <channel type="tango" name="_chnPathRunning" polling="events">PathRunning</channel>
   <channel type="tango" name="_chnSampleIsDetected" polling="events">di_PRI1_GFM</channel>
-</equipment>
+</object>
 

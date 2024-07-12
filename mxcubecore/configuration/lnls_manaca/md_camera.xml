@@ -1,4 +1,4 @@
-<device class="LNLS.LNLSCamera">
+<object class="LNLS.LNLSCamera">
     <!-- Channels -->
     <channel type="epics" name="epicsCameraSample_data" auto_monitor="False">MNC:B:BZOOM:image1:ArrayData</channel>
     <channel type="epics" name="epicsCameraSample_img_pixel_size">MNC:B:BZOOM:image1:ArraySize0_RBV</channel>
@@ -20,4 +20,4 @@
     <username>Camera</username>
     <source>/usr/local/src/mxcube/ExampleFiles/fakeimg.jpg</source>
     <interval>100</interval>
-</device>
+</object>

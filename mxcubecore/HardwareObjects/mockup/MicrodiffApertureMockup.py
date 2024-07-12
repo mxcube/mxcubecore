@@ -1,9 +1,9 @@
 # from MD2Motor import MD2Motor
-from mxcubecore.BaseHardwareObjects import Device
+from mxcubecore.BaseHardwareObjects import HardwareObject
 import math
 
 
-class MicrodiffApertureMockup(Device):
+class MicrodiffApertureMockup(HardwareObject):
     def init(self):
         self.actuator_name = "CurrentApertureDiameter"
         self.motor_pos_attr_suffix = "Index"

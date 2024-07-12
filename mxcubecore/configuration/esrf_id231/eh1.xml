@@ -1,42 +1,42 @@
-<equipment>
+<object>
   <username>eh1</username>
   <motors>
-<device hwrid="/eh1/tz2"/>
-<device hwrid="/eh1/tz1"/>
-<device hwrid="/eh1/tz3"/>
-<device hwrid="/eh1/ttf"/>
-<device hwrid="/eh1/ttb"/>
-<device hwrid="/eh1/thgt"/>
-<device hwrid="/eh1/txtilt"/>
-<device hwrid="/eh1/tytilt"/>
-<device hwrid="/eh1/ttr"/>
-<device hwrid="/eh1/tztilt"/>
-<device hwrid="/eh1/tftilt"/>
-<device hwrid="/eh1/energy"/>
-<device hwrid="/eh1/s1v"/>
-<device hwrid="/eh1/t1v"/>
-<device hwrid="/eh1/s1h"/>
-<device hwrid="/eh1/t1h"/>
-<device hwrid="/eh1/s2v"/>
-<device hwrid="/eh1/t2v"/>
-<device hwrid="/eh1/s2h"/>
-<device hwrid="/eh1/t2h"/>
-<device hwrid="/eh1/shuty"/>
-<device hwrid="/eh1/shutz"/>
-<device hwrid="/eh1/shut"/>
-<device hwrid="/eh1/focus"/>
-<device hwrid="/eh1/length"/>
-<device hwrid="/eh1/phiz"/>
-<device hwrid="/eh1/phi"/>
-<device hwrid="/eh1/sampx"/>
-<device hwrid="/eh1/sampy"/>
-<device hwrid="/eh1/bstopy"/>
-<device hwrid="/eh1/bstopz"/>
-<device hwrid="/eh1/zoom"/>
-<device hwrid="/eh1/anal"/>
-<device hwrid="/eh1/camx"/>
-<device hwrid="/eh1/camz"/>
-<device hwrid="/eh1/DtoX"/>
+<object hwrid="/eh1/tz2"/>
+<object hwrid="/eh1/tz1"/>
+<object hwrid="/eh1/tz3"/>
+<object hwrid="/eh1/ttf"/>
+<object hwrid="/eh1/ttb"/>
+<object hwrid="/eh1/thgt"/>
+<object hwrid="/eh1/txtilt"/>
+<object hwrid="/eh1/tytilt"/>
+<object hwrid="/eh1/ttr"/>
+<object hwrid="/eh1/tztilt"/>
+<object hwrid="/eh1/tftilt"/>
+<object hwrid="/eh1/energy"/>
+<object hwrid="/eh1/s1v"/>
+<object hwrid="/eh1/t1v"/>
+<object hwrid="/eh1/s1h"/>
+<object hwrid="/eh1/t1h"/>
+<object hwrid="/eh1/s2v"/>
+<object hwrid="/eh1/t2v"/>
+<object hwrid="/eh1/s2h"/>
+<object hwrid="/eh1/t2h"/>
+<object hwrid="/eh1/shuty"/>
+<object hwrid="/eh1/shutz"/>
+<object hwrid="/eh1/shut"/>
+<object hwrid="/eh1/focus"/>
+<object hwrid="/eh1/length"/>
+<object hwrid="/eh1/phiz"/>
+<object hwrid="/eh1/phi"/>
+<object hwrid="/eh1/sampx"/>
+<object hwrid="/eh1/sampy"/>
+<object hwrid="/eh1/bstopy"/>
+<object hwrid="/eh1/bstopz"/>
+<object hwrid="/eh1/zoom"/>
+<object hwrid="/eh1/anal"/>
+<object hwrid="/eh1/camx"/>
+<object hwrid="/eh1/camz"/>
+<object hwrid="/eh1/DtoX"/>
     </motors>
     <procedures>
     <procedure hwrid="/procedures/ascan"/>
@@ -44,4 +44,4 @@
     <procedure hwrid="/procedures/a2scan"/>
     <procedure hwrid="/procedures/d2scan"/>
   </procedures>
-</equipment>
+</object>
