@@ -984,7 +984,7 @@ class P11NanoDiff(GenericDiffractometer):
     def set_pso_control_arm(self, start_angle, stop_angle):
         """This Method sets the Tango Device Server "proxyGoniometer" into the PSOcontrolArm mode.
         For this mode, there is a  contact(pin) on controller, which will be set to High(Low)
-        State, to trigger "start acquisition"("end acquisition") events of Detector-FastShutter.    
+        State, to trigger "start acquisition"("end acquisition") events of Detector-FastShutter.
         """
         try:
             if start_angle <= stop_angle:
@@ -1553,7 +1553,6 @@ class P11NanoDiff(GenericDiffractometer):
         # Check if motor_positions is None
         if motor_positions is None:
             self.log.debug("motor_positions is None")
-            pass
 
         # Convert to dictionary if not already one
         if not isinstance(motor_positions, dict):
