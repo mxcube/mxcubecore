@@ -168,6 +168,33 @@ class P11NanoDiff(GenericDiffractometer):
         self.nclicks = 3
         self.step = 120
 
+        self.lower_bound_ch = self.get_channel_object("acq_lower_bound")
+        self.upper_bound_ch = self.get_channel_object("acq_upper_bound")
+
+        self.acq_arm_cmd = self.get_command_object("acq_arm")
+        self.acq_abort = self.get_command_object("acq_abort")
+        self.acq_on_cmd = self.get_command_object("acq_on")
+        self.acq_off_cmd = self.get_command_object("acq_off")
+        self.acq_window_off_cmd = self.get_command_object("acq_window_off")
+
+        # if None in [
+        #     self.lower_bound_ch,
+        #     self.upper_bound_ch,
+        #     self.acq_arm_cmd,
+        #     self.acq_on_cmd,
+        #     self.acq_off_cmd,
+        #     self.acq_window_off_cmd,
+        # ]:
+        #     self.init_ok = False
+        #     self.log.debug("lower_bound_ch: %s" % self.lower_bound_ch)
+        #     self.log.debug("upper_bound_ch: %s" % self.upper_bound_ch)
+        #     self.log.debug("acq_arm_cmd: %s" % self.acq_arm_cmd)
+        #     self.log.debug("acq_on_cmd: %s" % self.acq_on_cmd)
+        #     self.log.debug("acq_off_cmd: %s" % self.acq_off_cmd)
+        #     self.log.debug("acq_window_off_cmd: %s" % self.acq_window_off_cmd)
+        # else:
+        #     self.init_ok = True
+
     def update_beam_position(self):
         zoom_hwobj = self.motor_hwobj_dict["zoom"]
         image_dimensions = zoom_hwobj.camera_hwobj.get_image_dimensions()
@@ -945,29 +972,55 @@ class P11NanoDiff(GenericDiffractometer):
     def get_scan_dynamic_limits(self, speed=None):
         return (-360, 360)
 
+    def stop_motion(self):
+        self.acq_abort()
+        self.acq_window_off_cmd()
+        self.acq_off_cmd()
+
     def move_omega_relative(self, relative_angle):
         self.wait_omega_on()
         self.motor_hwobj_dict["phi"].set_value_relative(relative_angle, 5)
+
+    def set_pso_control_arm(self, start_angle, stop_angle):
+        """This Method sets the Tango Device Server "proxyGoniometer" into the PSOcontrolArm mode.
+        For this mode, there is a  contact(pin) on controller, which will be set to High(Low)
+        State, to trigger "start acquisition"("end acquisition") events of Detector-FastShutter.    
+        """
+        try:
+            if start_angle <= stop_angle:
+                self.lower_bound_ch.set_value(start_angle)
+                self.upper_bound_ch.set_value(stop_angle)
+            else:
+                self.lower_bound_ch.set_value(stop_angle)
+                self.upper_bound_ch.set_value(start_angle)
+
+            self.acq_arm_cmd()
+        except:
+            print(
+                "++++++++++++++++++++++++++++++++++++++++++++++++ ERROR setting the PSO********************************************************"
+            )
 
     def move_omega(self, angle):
         self.wait_omega_on()
         self.wait_omega()
         self.motor_hwobj_dict["phi"].set_value(angle)
 
-        #Code below is calibration so that angle is always stays within 360 degrees.
-        #TODO: check the behaviour
-        #currentAngle = self.get_omega_position()
-        #
-        #if currentAngle < 0:
-        #    currentAngle = abs(currentAngle)
-        #    loadAngleNew = currentAngle % 360
-        #    self.omega_calibrate(-loadAngleNew)
-        #    self.motor_hwobj_dict["phi"].set_value(angle)
-        #else:
-        #    loadAngleNew = currentAngle % 360
-        #    self.omega_calibrate(loadAngleNew)
-        #    self.motor_hwobj_dict["phi"].set_value(angle)
-        
+    def move_omega_with_calibration(self, angle):
+        self.wait_omega_on()
+
+        # Code below is calibration so that angle is always stays within 360 degrees.
+        # TODO: check the behaviour
+        currentAngle = self.get_omega_position()
+
+        if currentAngle < 0:
+            currentAngle = abs(currentAngle)
+            loadAngleNew = currentAngle % 360
+            self.omega_calibrate(-loadAngleNew)
+            self.motor_hwobj_dict["phi"].set_value(angle)
+        else:
+            loadAngleNew = currentAngle % 360
+            self.omega_calibrate(loadAngleNew)
+            self.motor_hwobj_dict["phi"].set_value(angle)
 
     def wait_omega_on(self, timeout=30):
         """

@@ -35,7 +35,6 @@ import psutil
 import subprocess
 import time
 import gevent
-import math
 
 
 from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
@@ -61,36 +60,9 @@ class P11Collect(AbstractCollect):
         self.filter_server = DeviceProxy(self.filter_server_name)
         self.mono_server = DeviceProxy(self.mono_server_name)
 
-        self.lower_bound_ch = self.get_channel_object("acq_lower_bound")
-        self.upper_bound_ch = self.get_channel_object("acq_upper_bound")
-
-        self.acq_arm_cmd = self.get_command_object("acq_arm")
-        self.acq_abort = self.get_command_object("acq_abort")
-        self.acq_on_cmd = self.get_command_object("acq_on")
-        self.acq_off_cmd = self.get_command_object("acq_off")
-        self.acq_window_off_cmd = self.get_command_object("acq_window_off")
-
         self.latest_frames = None
         self.acq_speed = None
         self.total_angle_range = None
-
-        if None in [
-            self.lower_bound_ch,
-            self.upper_bound_ch,
-            self.acq_arm_cmd,
-            self.acq_on_cmd,
-            self.acq_off_cmd,
-            self.acq_window_off_cmd,
-        ]:
-            self.init_ok = False
-            self.log.debug("lower_bound_ch: %s" % self.lower_bound_ch)
-            self.log.debug("upper_bound_ch: %s" % self.upper_bound_ch)
-            self.log.debug("acq_arm_cmd: %s" % self.acq_arm_cmd)
-            self.log.debug("acq_on_cmd: %s" % self.acq_on_cmd)
-            self.log.debug("acq_off_cmd: %s" % self.acq_off_cmd)
-            self.log.debug("acq_window_off_cmd: %s" % self.acq_window_off_cmd)
-        else:
-            self.init_ok = True
 
     @task
     def move_motors(self, motor_position_dict):
@@ -264,10 +236,10 @@ class P11Collect(AbstractCollect):
             self.data_collection_cleanup()
 
     def data_collection_hook(self):
-        if not self.init_ok:
-            raise RuntimeError(
-                "P11Collect. - object initialization failed. COLLECTION not possible"
-            )
+        # if not self.init_ok:
+        #     raise RuntimeError(
+        #         "P11Collect. - object initialization failed. COLLECTION not possible"
+        #     )
 
         dc_pars = self.current_dc_parameters
         collection_type = dc_pars["experiment_type"]
@@ -403,7 +375,7 @@ class P11Collect(AbstractCollect):
                 )
 
             self.log.debug("#COLLECT# Starting detector")
-            
+
             # Check whether the live view monitoring is on. Restart if needed.
             process_name = os.getenv("MXCUBE_LIVEVIEW_NAME")
             command = [os.getenv("MXCUBE_LIVEVIEW")]
@@ -421,6 +393,11 @@ class P11Collect(AbstractCollect):
                 self.collect_characterisation(
                     start_angle, img_range, nframes, angle_inc, exp_time
                 )
+
+                # Move to 0 with defauld speed (fast)
+                HWR.beamline.diffractometer.set_omega_velocity(self.default_speed)
+                time.sleep(0.1)
+                HWR.beamline.diffractometer.move_omega(0)
 
                 # Adding h5 info for characterisation
                 start_angles_collected = []
@@ -456,11 +433,16 @@ class P11Collect(AbstractCollect):
                 # Start the progress emitter in a separate greenlet
                 gevent.spawn(self.progress_emitter, start_time, duration)
 
-                HWR.beamline.diffractometer.wait_omega()
+                # HWR.beamline.diffractometer.wait_omega()
 
                 # Arm the detector here. For characterisation it is a bit different.
                 HWR.beamline.detector.start_acquisition()
                 self.collect_std_collection(start_angle, stop_angle)
+
+                # Move to 0 with defauld speed (fast)
+                HWR.beamline.diffractometer.set_omega_velocity(self.default_speed)
+                time.sleep(0.1)
+                HWR.beamline.diffractometer.move_omega(0)
 
                 self.add_h5_info_standard_data_collection(self.latest_h5_filename)
 
@@ -810,8 +792,6 @@ class P11Collect(AbstractCollect):
             "#COLLECT# Running OMEGA through the characteristation acquisition"
         )
 
-        self.omega_mv(start_angle, self.default_speed)
-
         for img_no in range(nimages):
             self.log.debug("collecting image %s" % img_no)
             start_at = start_angle + angle_inc * img_no
@@ -821,15 +801,6 @@ class P11Collect(AbstractCollect):
 
             if img_no == 0:
                 HWR.beamline.detector.start_acquisition()
-
-            # Keep it here for now. It is not clear if it is needed.
-            # if start_at >= stop_angle:
-            #     init_pos = start_at  # - self.acq_speed * self.turnback_time
-            #     # init_pos = start_at - 1.5
-            # else:
-            #     init_pos = start_at  # + self.acq_speed * self.turnback_time
-            #     # init_pos = start_at + 1.5
-            # self.omega_mv(init_pos, self.default_speed)
 
             self.collect_std_collection(start_at, stop_angle)
 
@@ -867,33 +838,26 @@ class P11Collect(AbstractCollect):
         stop
         """
 
+        # Spin-up ans sin-down is handled here:
         start_pos = start_angle - self.turnback_time * self.acq_speed
         stop_pos = stop_angle + self.turnback_time * self.acq_speed
 
+        # Emulating the same sequence as in CC
+
         self.log.debug("#COLLECT# Running OMEGA through the std acquisition")
-        if start_angle <= stop_angle:
-            self.lower_bound_ch.set_value(start_angle)
-            self.upper_bound_ch.set_value(stop_angle)
+        HWR.beamline.diffractometer.wait_omega_on()
+        HWR.beamline.diffractometer.set_omega_velocity(self.default_speed)
+        time.sleep(0.15)
+        HWR.beamline.diffractometer.move_omega(start_pos)
+        time.sleep(0.1)
+        HWR.beamline.diffractometer.wait_omega_on()
+        time.sleep(0.1)
+        HWR.beamline.diffractometer.set_pso_control_arm(start_angle, stop_angle)
+        time.sleep(0.15)
+        HWR.beamline.diffractometer.set_omega_velocity(self.acq_speed)
+        time.sleep(0.1)
+        HWR.beamline.diffractometer.move_omega(stop_pos)
 
-        else:
-            self.lower_bound_ch.set_value(stop_angle)
-            self.upper_bound_ch.set_value(start_angle)
-
-        self.omega_mv(start_pos, self.default_speed)
-        self.acq_arm_cmd()
-        self.omega_mv(stop_pos, self.acq_speed)
-        self.stop_motion()
-        
-        #This part is probabbly not needed because in the
-        #post measurement angle and speed are set to 0
-        #self.omega_mv(stop_angle, self.acq_speed)
-        #self.stop_motion()
-
-    def stop_motion(self):
-        self.acq_abort()
-        self.acq_window_off_cmd()
-        self.acq_off_cmd()
-    
     def adxv_notify(self, image_filename, image_num=1):
         """
         The `adxv_notify` function sends a notification to an ADXV to load an image file and
@@ -949,8 +913,7 @@ class P11Collect(AbstractCollect):
             self.log.debug("#COLLECT# Closing detector cover")
             HWR.beamline.diffractometer.detector_cover_close(wait=True)
 
-            # Move omega to 0 at the end
-            self.omega_mv(0, self.default_speed)
+            HWR.beamline.diffractometer.stop_motion()
 
         except RuntimeError:
             self.log.error(traceback.format_exc())
@@ -1209,7 +1172,7 @@ class P11Collect(AbstractCollect):
 
         # NB!: CHaracterisation processing is started within P11EDNACharacterisation._run_edna()
         # Mosflm and EDNA are started from there.
-        self.xdsapp_maxwell()
+        # self.xdsapp_maxwell()
         self.autoproc_maxwell()
 
     def diffractometer_prepare_collection(self):
@@ -1236,8 +1199,10 @@ class P11Collect(AbstractCollect):
         :param speed: The speed parameter is the desired velocity at which the omega motor should move
         """
         HWR.beamline.diffractometer.set_omega_velocity(speed)
+        time.sleep(0.15)
         HWR.beamline.diffractometer.move_omega(target)
-        HWR.beamline.diffractometer.wait_omega()
+        time.sleep(0.1)
+        HWR.beamline.diffractometer.wait_omega_on()
 
     def get_relative_path(self, path1, path2):
         """

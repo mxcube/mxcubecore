@@ -187,9 +187,8 @@ class P11EDNACharacterisation(EDNACharacterisation):
 
         self.wait_for_file(waitforxml, timeout=60)
 
-
         # Update datasets.txt file for presenterd
-        base_process_dir ="/gpfs/current/processed" 
+        base_process_dir = "/gpfs/current/processed"
         datasets_file = os.path.join(base_process_dir, "datasets.txt")
         try:
             with open(datasets_file, "a") as file:
