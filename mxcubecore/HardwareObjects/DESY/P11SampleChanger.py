@@ -117,9 +117,6 @@ class P11SampleChanger(SampleChanger):
     def is_powered(self):
         return True
 
-    def load_sample(self, holder_length, sample_location=None, wait=False):
-        self.load(sample_location, wait)
-
     def wash(self, wait=False):
         if not self.has_loaded_sample():
             self.user_log.debug("No sample is mounted. Wash command not possible")
