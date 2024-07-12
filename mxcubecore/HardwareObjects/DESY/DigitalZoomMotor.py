@@ -30,7 +30,7 @@ from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import MotorStates
 
 
-class DigitalZoomMotor(AbstractMotor, Device):
+class DigitalZoomMotor(AbstractMotor, HardwareObject):
     """
     Works with camera devices which provide
     zoom_exists, set_zoom, get_zoom and get_zoom_min_max
@@ -72,7 +72,8 @@ class DigitalZoomMotor(AbstractMotor, Device):
                 "DigitalZoomMotor: digital zoom is not supported " "by camera object"
             )
 
-        self.set_is_ready(self.get_state() == MotorStates.READY)
+        if MotorStates.READY:
+            self.is_ready()
 
     def update_state(self):
         """
