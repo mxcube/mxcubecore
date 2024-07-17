@@ -71,21 +71,51 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
             beam_height, (int, float)
         ), "Vertical beam size has to be int or float"
 
+    def test_get_defined_beam_size(self, test_object):
+        """Check the defined beam size values for each definer type"""
+        if test_object.definer:
+            test_object._definer_type = "definer"
+            _vals = test_object.get_defined_beam_size()
+            _list = test_object.definer.get_predefined_positions_list()
+            assert _vals["label"] == _list
+
+        if test_object.aperture:
+            test_object._definer_type = "aperture"
+            _vals = test_object.get_defined_beam_size()
+            _list = test_object.aperture.get_diameter_size_list()
+            assert _vals["label"] == _list
+
+        if test_object.slits:
+            test_object._definer_type = "slits"
+            _range = test_object.get_defined_beam_size()
+            assert _range["label"] == ["low", "high"]
+            _low_w, _low_h = test_object.slits.get_min_limits()
+            _high_w, _high_h = test_object.slits.get_max_limits()
+            assert _range["size"] == [[_low_w, _low_h], [_high_w, _high_h]]
+
     def test_get_available_size(self, test_object):
         """Check the available beam size values for each definer type"""
+        if test_object.definer:
+            test_object._definer_type = "definer"
+            _vals = test_object.get_available_size()
+            _list = test_object.definer.get_predefined_positions_list()
+            assert _vals["type"][0] == "definer"
+            assert _vals["values"] == _list
+
         if test_object.aperture:
             test_object._definer_type = "aperture"
             _vals = test_object.get_available_size()
             _list = test_object.aperture.get_diameter_size_list()
+            assert _vals["type"][0] == "aperture"
             assert _vals["values"] == _list
-            assert _vals["type"] == ["enum"]
+
         if test_object.slits:
             test_object._definer_type = "slits"
-            _range = test_object.get_available_size()
-            assert _range["type"] == ["range", "range"]
+            _vals = test_object.get_available_size()
+            assert _vals["type"] == ["width", "height"]
             _low_w, _low_h = test_object.slits.get_min_limits()
             _high_w, _high_h = test_object.slits.get_max_limits()
-            assert _range["values"] == [_low_w, _high_w, _low_h, _high_h]
+            assert _vals["values"] == [_low_w, _high_w, _low_h, _high_h]
 
     def test_evaluate_beam_size(self, test_object):
         """
