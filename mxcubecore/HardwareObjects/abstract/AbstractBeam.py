@@ -119,12 +119,23 @@ class AbstractBeam(HardwareObject):
         return self._beam_divergence
 
     def get_available_size(self):
-        """Get the available predefined beam definers configuration.
+        """Get the available beam definers configuration.
         Returns:
             (dict): Dictionary {"type": (list), "values": (list)}, where
                "type": the definer type ("aperture", "slits","definer")
                "values": List of available beam size difinitions,
                          according to the "type".
+        Raises:
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+    def get_defined_beam_size(self):
+        """Get the predefined beam labels and size.
+        Returns:
+            (dict): Dictionary wiith list of avaiable beam size labels
+                    and the corresponding size (width,height) tuples.
+                    {"label": [str, str, ...], "size": [(w,h), (w,h), ...]}
         Raises:
             NotImplementedError
         """

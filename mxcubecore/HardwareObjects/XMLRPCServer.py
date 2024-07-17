@@ -12,15 +12,15 @@ import shutil
 import inspect
 import pkgutil
 import types
-import gevent
 import socket
 import time
+import xml
 import json
 import atexit
 import jsonpickle
-import xml
 
 from functools import reduce
+import gevent
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
@@ -57,7 +57,7 @@ class XMLRPCServer(HardwareObject):
         self.xmlrpc_prefixes = set()
         self.current_entry_task = None
         self.host = None
-        self.use_token = True
+        self.use_token = None
 
         atexit.register(self.close)
         self.gphl_workflow_status = None
@@ -77,7 +77,7 @@ class XMLRPCServer(HardwareObject):
         self.host = host
         self.port = self.get_property("port")
 
-        self.use_token = self.get_property("use_token", True)
+        self.use_token = self.get_property("use_token", False)
 
         try:
             self.open()
@@ -141,6 +141,9 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.cryo_temperature)
         self._server.register_function(self.flux)
         self._server.register_function(self.check_for_beam)
+        self._server.register_function(self.set_beam_size)
+        self._server.register_function(self.get_beam_size)
+        self._server.register_function(self.get_available_beam_size)
         self._server.register_function(self.set_aperture)
         self._server.register_function(self.get_aperture)
         self._server.register_function(self.get_aperture_list)
@@ -190,8 +193,7 @@ class XMLRPCServer(HardwareObject):
         except Exception as ex:
             logging.getLogger("HWR").exception(str(ex))
             raise
-        else:
-            return True
+        return True
 
     def _add_to_queue(self, task, set_on=True):
         """
@@ -220,8 +222,7 @@ class XMLRPCServer(HardwareObject):
         except Exception as ex:
             logging.getLogger("HWR").exception(str(ex))
             raise
-        else:
-            return True
+        return True
 
     def start_queue(self):
         """
@@ -235,8 +236,7 @@ class XMLRPCServer(HardwareObject):
         except Exception as ex:
             logging.getLogger("HWR").exception(str(ex))
             raise
-        else:
-            return True
+        return True
 
     def log_message(self, message, level="info"):
         """
@@ -285,8 +285,7 @@ class XMLRPCServer(HardwareObject):
         except Exception as ex:
             logging.getLogger("HWR").exception(str(ex))
             raise
-        else:
-            return node_id
+        return node_id
 
     def _model_get_node(self, node_id):
         """
@@ -298,8 +297,7 @@ class XMLRPCServer(HardwareObject):
         except Exception as ex:
             logging.getLogger("HWR").exception(str(ex))
             raise
-        else:
-            return node
+        return node
 
     def queue_execute_entry_with_id(self, node_id, use_async=False):
         """
@@ -320,8 +318,7 @@ class XMLRPCServer(HardwareObject):
         except Exception as ex:
             logging.getLogger("HWR").exception(str(ex))
             raise
-        else:
-            return True
+        return True
 
     def queue_set_workflow_lims_id(self, node_id, lims_id):
         """
@@ -511,6 +508,32 @@ class XMLRPCServer(HardwareObject):
 
     def check_for_beam(self):
         return HWR.beamline.flux.is_beam()
+
+    def set_beam_size(self, size):
+        """Set the beam size.
+        Args:
+            size (list): Width, heigth or
+                 (str): Size label.
+        """
+        HWR.beamline.beam.set_value(size)
+        return True
+
+    def get_beam_size(self):
+        """Get the beam size [um], its shape and label.
+        Returns:
+            (tuple):  (width, heigth, shape, label), with types
+                      (float, float, str, str)
+        """
+        return HWR.beamline.beam.get_value_xml()
+
+    def get_available_beam_size(self):
+        """Get the available predefined beam sizes.
+        Returns:
+            (dict): Dictionary wiith list of avaiable beam size labels
+                    and the corresponding size (width,height) tuples.
+                    {"label": [str, str, ...], "size": [(w,h), (w,h), ...]}
+        """
+        return HWR.beamline.beam.get_defined_beam_size()
 
     def set_aperture(self, pos_name):
         HWR.beamline.beam.set_value(pos_name)
