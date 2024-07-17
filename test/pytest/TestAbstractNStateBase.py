@@ -62,7 +62,7 @@ class TestAbstractNStateBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
         if test_object.read_only:
             return
 
-        values = list(val for val in test_object.VALUES if val != "UNKNOWN")
+        values = list(val for val in test_object.VALUES if val.name != "UNKNOWN")
         val1, val2 = values[:2]
 
         # Must be set first so the next command causes a change
@@ -77,7 +77,7 @@ class TestAbstractNStateBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
         if test_object.read_only:
             return
 
-        values = list(val for val in test_object.VALUES if val != "UNKNOWN")
+        values = list(val for val in test_object.VALUES if val.name != "UNKNOWN")
         val1, val2 = values[:2]
 
         # Must be set first so the next command causes a change

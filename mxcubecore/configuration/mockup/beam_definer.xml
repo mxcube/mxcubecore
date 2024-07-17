@@ -1,0 +1,7 @@
+<object class="BeamDefinerMockup">
+  <username>Beam Definer</username>
+  <object hwrid="/beam_size_ver" role="beam_size_ver" />
+  <object hwrid="/beam_size_hor" role="beam_size_hor" />
+  <values>{"50x50": (0.05, 0.05), "100x100": (0.1, 0.1), "20x5": (0.02, 0.005)}</values>
+  <default_size_name>50x50</default_size_name>
+</object>

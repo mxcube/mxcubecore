@@ -27,7 +27,7 @@ from mxcubecore.HardwareObjects.abstract.AbstractBeam import BeamShape
 
 import pytest
 
-__copyright__ = """ Copyright © by MXCuBE Collaboration """
+__copyright__ = """ Copyright © 2016 - 2022 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
 
@@ -116,7 +116,8 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
             assert beam_shape == BeamShape.RECTANGULAR
         else:
             assert beam_shape == BeamShape.ELLIPTICAL
-            assert beam_label == f"A{max_diameter}"
+            if test_object._definer_type == "aperture":
+                assert beam_label == f"A{max_diameter}"
 
         if test_object.slits is not None:
             test_object.slits.set_horizontal_gap(0.2)
@@ -129,7 +130,8 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
             assert beam_shape == BeamShape.RECTANGULAR
         else:
             assert beam_shape == BeamShape.ELLIPTICAL
-            assert beam_label == f"A{max_diameter}"
+            if test_object._definer_type == "aperture":
+                assert beam_label == f"A{max_diameter}"
 
     def test_set_aperture_diameters(self, test_object):
         """
@@ -183,3 +185,40 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
         assert target_height == beam_height
         beam_shape = test_object.get_beam_shape()
         assert beam_shape == BeamShape.RECTANGULAR
+
+    def test_set_definer_size(self, test_object):
+        """
+        Set large slit gaps and max aperture size.
+        Beam shape is elliptical and size defined by the selected definer.
+        """
+        if test_object.definer is None:
+            return
+
+        test_object._definer_type = "definer"
+        if test_object.slits is not None:
+            test_object.slits.set_horizontal_gap(1)
+            test_object.slits.set_vertical_gap(1)
+
+        if test_object.aperture:
+            _list = []
+            for val in test_object.aperture.get_diameter_size_list():
+                _list.append(int(test_object.aperture.VALUES[val].value[0]))
+            max_diameter = max(_list)
+            test_object.aperture.set_value(
+                test_object.aperture.VALUES[f"A{max_diameter}"], timeout=2
+            )
+
+        for dsize in test_object.definer.VALUES:
+            if dsize.name != "UNKNOWN":
+                test_object.definer.set_value(dsize, timeout=2)
+
+                (
+                    beam_width,
+                    beam_height,
+                    beam_shape,
+                    beam_label,
+                ) = test_object.get_value()
+                assert beam_width == dsize.value[0]
+                assert beam_height == dsize.value[1]
+                assert beam_shape == BeamShape.ELLIPTICAL
+                assert beam_label == dsize.name
