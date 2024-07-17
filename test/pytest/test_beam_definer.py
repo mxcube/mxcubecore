@@ -28,7 +28,6 @@ from test.pytest.TestAbstractNStateBase import TestAbstractNStateBase
 __copyright__ = """ Copyright © by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
-
 @pytest.fixture
 def test_object(beamline):
     """Use the beam object from beamline"""
