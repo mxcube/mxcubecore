@@ -29,7 +29,8 @@ class MD2MultiCollect(ESRFMultiCollect):
 
     @task
     def get_beam_size(self):
-        return HWR.beamline.beam.beam_width, HWR.beamline.beam.beam_height
+        _width, _height, _, _ = HWR.beamline.beam.get_value()
+        return _width, _height
 
     @task
     def get_slit_gaps(self):
