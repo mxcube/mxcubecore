@@ -107,6 +107,8 @@ class BIOMAXEiger(AbstractDetector):
             "NbTriggers": None,
             "ImagesPerFile": None,
             "RoiMode": None,
+            # enable 'all' header details by default
+            "HeaderDetail": "all",
             "FilenamePattern": None,
             "PhotonEnergy": None,
             "TriggerMode": "exts",
@@ -412,12 +414,6 @@ class BIOMAXEiger(AbstractDetector):
     def get_collection_uuid(self):
         return self.get_value("CollectionUUID")
 
-    def get_header_detail(self):
-        """
-        Detail of header data to be sent.
-        """
-        return self.get_value("HeaderDetail")
-
     def get_header_appendix(self):
         """
         Data that is appended to the header data
@@ -510,15 +506,6 @@ class BIOMAXEiger(AbstractDetector):
 
     def set_collection_uuid(self, col_uuid):
         self.set_value("CollectionUUID", col_uuid)
-
-    def set_header_detail(self, value):
-        """
-        Detail of header data to be sent.
-        """
-        if value not in ["all", "basic", "none"]:
-            logging.getLogger("HWR").error("Cannot set stream header detail")
-            return
-        self.set_value("HeaderDetail", value)
 
     def set_header_appendix(self, value):
         """
