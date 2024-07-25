@@ -1,9 +1,6 @@
 import json
 
 from pydantic import BaseModel, Field
-from devtools import debug
-
-from mxcubecore import HardwareRepository as HWR
 from mxcubecore.queue_entry.base_queue_entry import BaseQueueEntry
 
 from mxcubecore.model.common import (
@@ -66,7 +63,6 @@ class TestCollectionQueueEntry(BaseQueueEntry):
 
     def execute(self):
         super().execute()
-        debug(self._data_model._task_data)
 
     def pre_execute(self):
         super().pre_execute()
