@@ -242,8 +242,8 @@ class BaseQueueEntry(QueueEntryContainer):
     def set_view(self, view, view_set_queue_entry=True):
         """
         Sets the view of this queue entry to <view>. Makes the
-        correspodning bi-directional connection if view_set_queue_entry
-        is set to True. Which is normaly case, it can be usefull with
+        corresponding bidirectional connection if view_set_queue_entry
+        is set to True. Which is normally case, it can be useful with
         'uni-directional' connection in some rare cases.
 
         :param view: The view to associate with this entry
@@ -275,7 +275,7 @@ class BaseQueueEntry(QueueEntryContainer):
 
     def set_enabled(self, state):
         """
-        Enables or disables this entry, controls wether this item
+        Enables or disables this entry, controls if this item
         should be executed (enabled) or not (disabled)
 
         :param state: Enabled if state is True otherwise disabled.

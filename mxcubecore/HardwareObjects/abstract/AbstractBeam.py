@@ -19,7 +19,7 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
-AbstracBeam class - methods to define the size and shape of the beam.
+AbstractBeam class - methods to define the size and shape of the beam.
 
 emits:
 - beamSizeChanged (self._beam_width, self._beam_height)

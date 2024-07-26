@@ -150,7 +150,7 @@ class QueueModel(HardwareObject):
         Adds the child node <child>. Raises the exception TypeError
         if child is not of type TaskNode.
 
-        Moves the child (reparents it) if it already has a parent.
+        Moves the child (re-parents it) if it already has a parent.
 
         :param child: TaskNode to add
         :type child: TaskNode

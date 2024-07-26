@@ -269,7 +269,7 @@ def set_user_file_directory(user_file_directory):
 
 
 def init_hardware_repository(configuration_path):
-    """Initialise hardweare repository - must be run at program start
+    """Initialise hardware repository - must be run at program start
 
     Args:
         configuration_path (str): PATHSEP-separated string of directories
