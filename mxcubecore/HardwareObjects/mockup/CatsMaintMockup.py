@@ -44,7 +44,7 @@ class CatsMaintMockup(HardwareObject):
     """
 
     def __init__(self, *args, **kwargs):
-        Equipment.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self._state = "READY"
         self._running = 0
