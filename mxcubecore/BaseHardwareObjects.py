@@ -1138,6 +1138,12 @@ class Device(HardwareObject):
 
     (NOTREADY, READY) = (0, 1)  # device states
 
+    def __init_subclass__(cls, **kwargs):
+        warnings.warn(
+            f"{cls.__name__} will be deprecated.", DeprecationWarning, stacklevel=2
+        )
+        super().__init_subclass__(**kwargs)
+
     def __init__(self, name):
         warnings.warn(
             "class Device is Deprecated and will be removed",
@@ -1230,6 +1236,12 @@ class Equipment(HardwareObject, DeviceContainer):
 
     NB This class needs refactoring. Since many (soon: all??) contained
      objects are no longer of class Device, the code in here is unlikely to work."""
+
+    def __init_subclass__(cls, **kwargs):
+        warnings.warn(
+            f"{cls.__name__} will be deprecated.", DeprecationWarning, stacklevel=2
+        )
+        super().__init_subclass__(**kwargs)
 
     def __init__(self, name):
         HardwareObject.__init__(self, name)
