@@ -134,13 +134,19 @@ class AbstractSsxQueueEntry(BaseQueueEntry):
         det_cfg["NbTriggers"] = num_triggers
         det_cfg["CountTime"] = exp_time
         det_cfg["FilenamePattern"] = str(Path(root_dir, f"{path_prefix}_{run_number}"))
-        det_cfg["UnitCellA"] = cell_a
-        det_cfg["UnitCellB"] = cell_b
-        det_cfg["UnitCellC"] = cell_c
-        det_cfg["UnitCellAlpha"] = cell_alpha
-        det_cfg["UnitCellBeta"] = cell_beta
-        det_cfg["UnitCellGamma"] = cell_gamma
+        if collect.is_jungfrau():
+            # unit cell parameters are Jungfrau specific,
+            # Eiger does not support them
+            det_cfg["UnitCellA"] = cell_a
+            det_cfg["UnitCellB"] = cell_b
+            det_cfg["UnitCellC"] = cell_c
+            det_cfg["UnitCellAlpha"] = cell_alpha
+            det_cfg["UnitCellBeta"] = cell_beta
+            det_cfg["UnitCellGamma"] = cell_gamma
+
         detector.prepare_acquisition(det_cfg)
+        detector.wait_config_done()
+        detector.start_acquisition()
 
         #
         # create CrystFEL input files

@@ -54,6 +54,11 @@ class InjectorTaskParameters(BaseModel):
 
     @staticmethod
     def update_dependent_fields(field_data):
+        if not HWR.beamline.collect.is_jungfrau():
+            # TODO: figure out how num_images and num_trigger field
+            # should behave when Eiger is used
+            return field_data
+
         #
         # Jungfrau specific hacks
         #

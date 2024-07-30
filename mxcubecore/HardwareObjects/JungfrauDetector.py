@@ -99,7 +99,7 @@ class JungfrauDetector(AbstractDetector):
     # This is not part of the AbstractDetector API,
     # probably software triggering should be done differently.
     #
-    def send_software_trigger(self):
+    def trigger(self):
         self.dev.SoftwareTrigger()
 
     def get_storage_cell_count(self):
