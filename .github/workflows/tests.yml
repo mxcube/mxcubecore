@@ -6,6 +6,8 @@ name: Pytest
     types: [opened, reopened, synchronize]
     paths:
       - '**.py'
+      - 'pyproject.toml'
+      - 'poetry.lock'
 jobs:
   Python:
     runs-on: ubuntu-latest
