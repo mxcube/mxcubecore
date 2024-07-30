@@ -8,7 +8,7 @@ dependencies:
 
   ### Runtime dependencies
 
-  - python >=3.8,<3.11
+  - python >=3.8,<3.12
 
   # We install `python-ldap` from conda because it is "hard" to install.
   # On PyPI it is not available as *wheel*, only as *sdist* which requires to be built
