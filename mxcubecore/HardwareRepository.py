@@ -215,9 +215,7 @@ def load_from_yaml(
         if _container:
             if not hasattr(_container, role):
                 warn(
-                    "load_from_yaml Class %s has no attribute %s"
-                    % _container.__class__.__name__,
-                    role,
+                    f"load_from_yaml Class {_container.__class__.__name__} has no attribute {role}"
                 )
             _container._roles.append(role)
             setattr(_container, role, result)
