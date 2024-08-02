@@ -22,23 +22,15 @@ class Session(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
 
-        self.synchrotron_name = None
-        self.beamline_name = None
-
         self.session_id = None
         self.proposal_code = None
         self.proposal_number = None
         self.proposal_id = None
         self.in_house_users = []
-        self.endstation_name = None
         self.session_start_date = None
         self.user_group = ""
         self.email_extension = None
-        self.template = None
-
         self.default_precision = 5
-        self.suffix = None
-
         self.base_directory = None
         self.base_process_directory = None
         self.base_archive_directory = None
@@ -46,47 +38,51 @@ class Session(HardwareObject):
         self.raw_data_folder_name = default_raw_data_folder
         self.processed_data_folder_name = default_processed_data_folder
 
-    # Framework-2 method, inherited from HardwareObject and called
-    # by the framework after the object has been initialized.
+    @property
+    def synchrotron_name(self) -> str:
+        return self.config.synchrotron_name
+
+    @property
+    def beamline_name(self) -> str:
+        return self.config.beamline_name
+
+    @property
+    def endstation_name(self) -> str:
+        return self.config.endstation_name
+
     def init(self):
-        self.synchrotron_name = self.get_property("synchrotron_name")
-        self.beamline_name = self.get_property("beamline_name")
-        self.endstation_name = self.get_property("endstation_name").lower()
+        def get_inhouse_proposals():
+            """
+            get the optional 'inhouse_users' config property
 
-        self.suffix = self["file_info"].get_property("file_suffix")
-        self.template = self["file_info"].get_property("file_template")
+            return the property, or an empty list if the property is not specified
+            """
+            inhouse_users = self.get_property("inhouse_users")
+            if inhouse_users:
+                return inhouse_users.get("proposal", [])
 
-        base_directory = self["file_info"].get_property("base_directory")
+            # property not specified
+            return []
 
-        base_process_directory = self["file_info"].get_property(
-            "processed_data_base_directory"
-        )
+        file_info = self.config.file_info
 
-        base_archive_directory = self["file_info"].get_property(
-            "archive_base_directory"
-        )
-
-        folder_name = self["file_info"].get_property("raw_data_folder_name")
+        folder_name = file_info.get("raw_data_folder_name")
         if folder_name and folder_name.strip():
             self.raw_data_folder_name = folder_name
 
-        folder_name = self["file_info"].get_property("processed_data_folder_name")
+        folder_name = file_info.get("processed_data_folder_name")
         if folder_name and folder_name.strip():
             self.processed_data_folder_name = folder_name
 
-        archive_folder = self["file_info"].get_property("archive_folder")
+        archive_folder = file_info.get("archive_folder")
         if archive_folder:
             archive_folder = archive_folder.strip()
         if not archive_folder:
             archive_folder = default_archive_folder
-        try:
-            inhouse_proposals = self["inhouse_users"]["proposal"]
-            for prop in inhouse_proposals:
-                self.in_house_users.append(
-                    (prop.get_property("code"), str(prop.get_property("number")))
-                )
-        except KeyError:
-            pass
+
+        self.in_house_users = [
+            (prop["code"], str(prop["number"])) for prop in get_inhouse_proposals()
+        ]
 
         email_extension = self.get_property("email_extension")
         if email_extension:
@@ -99,21 +95,23 @@ class Session(HardwareObject):
                 pass
 
         self.set_base_data_directories(
-            base_directory,
-            base_process_directory,
-            base_archive_directory,
+            file_info["base_directory"],
+            file_info["processed_data_base_directory"],
+            file_info["archive_base_directory"],
             raw_folder=self.raw_data_folder_name,
             process_folder=self.processed_data_folder_name,
             archive_folder=archive_folder,
         )
 
         try:
-            precision = int(self["file_info"].get_property("precision", ""))
+            precision = int(file_info.get("precision", ""))
         except ValueError:
             precision = self.default_precision
 
         PathTemplate.set_precision(precision)
-        PathTemplate.set_path_template_style(self.synchrotron_name, self.template)
+        PathTemplate.set_path_template_style(
+            self.synchrotron_name, file_info.get("file_template")
+        )
 
     def set_base_data_directories(
         self,
@@ -322,14 +320,7 @@ class Session(HardwareObject):
         return subdir.replace(":", "-")
 
     def get_archive_directory(self):
-        archive_directory = os.path.join(
-            self["file_info"].get_property("archive_base_directory"),
-            self["file_info"].get_property("archive_folder"),
-        )
-
-        archive_directory = PathTemplate.get_archive_directory()
-
-        return archive_directory
+        return PathTemplate.get_archive_directory()
 
     def get_proposal(self):
         """
