@@ -82,7 +82,7 @@ class ConfiguredObject:
     class HOConfig:
         """Temporary replacement for Pydantic class
 
-        Required during transition, as long as we do nto have teh fields defined"""
+        Required during transition, as long as we don't have the fields defined"""
 
         def __init__(self, **kwargs):
             self.__dict__.update(kwargs)
