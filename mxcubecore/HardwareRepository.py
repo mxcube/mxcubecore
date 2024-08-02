@@ -277,20 +277,11 @@ def _attach_xml_objects(yaml_export_directory: Optional[Path], container, hwobj,
     hwobj._name = role
     container._roles.append(role)
 
-    hwobj._config = hwobj.HOConfig(**hwobj.get_properties())
     setattr(container, role, hwobj)
     objects_by_role = hwobj._objects_by_role
     for role2, hwobj2 in objects_by_role.items():
         _attach_xml_objects(yaml_export_directory, hwobj, hwobj2, role2)
-    for tag in hwobj._objects_names():
-        if tag not in objects_by_role:
-            # Complex object, not contained hwobj
-            objs = list(_convert_xml_property(obj) for obj in hwobj._get_objects(tag))
-            if len(objs) == 1:
-                setattr(hwobj.config, tag, objs[0])
-            else:
-                setattr(hwobj.config, tag, objs)
-    #
+
     if yaml_export_directory:
         # temporary hack
         if hwobj:
@@ -307,6 +298,26 @@ def _convert_xml_property(hwobj):
         result[tag] = list(_convert_xml_property(obj) for obj in objs)
     #
     return result
+
+
+def _create_config_for_xml_hwobj(hwobj: BaseHardwareObjects.HardwareObjectNode):
+    """
+    Populate hwobj._config attribute for an HWOBJ loaded with XML configure file.
+
+    This allows to access HWOBJ configuration uniformly for both YAML and XML
+    configured objects, using its 'config' attribute.
+    """
+    hwobj._config = hwobj.HOConfig(**hwobj.get_properties())
+
+    objects_by_role = hwobj._objects_by_role
+    for tag in hwobj._objects_names():
+        if tag not in objects_by_role:
+            # Complex object, not contained hwobj
+            objs = list(_convert_xml_property(obj) for obj in hwobj._get_objects(tag))
+            if len(objs) == 1:
+                setattr(hwobj.config, tag, objs[0])
+            else:
+                setattr(hwobj.config, tag, objs)
 
 
 def add_hardware_objects_dirs(ho_dirs):
@@ -542,6 +553,7 @@ class __HardwareRepositoryClient:
                         comment = "Failed to add all commands and/or channels"
 
                     try:
+                        _create_config_for_xml_hwobj(hwobj_instance)
                         hwobj_instance._init()
                         hwobj_instance.init()
                         class_name = str(hwobj_instance.__module__)
