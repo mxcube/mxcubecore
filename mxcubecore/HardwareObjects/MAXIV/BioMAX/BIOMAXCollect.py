@@ -16,6 +16,9 @@ from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 from mxcubecore.HardwareObjects.MAXIV.DataCollect import DataCollect
 from mxcubecore.HardwareObjects.MAXIV.SciCatPlugin import SciCatPlugin
 
+CORRECT_OMEGA_SCRIPT = "/mxn/groups/biomax/wmxsoft/scripts_mxcube/omega_correction/correct_omega_2024.py"
+GENERATE_THUMBNAIL_SCRIPT = "/mxn/groups/sw/mxsw/mxcube_scripts/generate_thumbnail"
+HPC_FE_HOST = "clu0-fe-0"
 
 class BIOMAXCollect(DataCollect):
     """
@@ -820,8 +823,7 @@ class BIOMAXCollect(DataCollect):
         logging.getLogger("HWR").info(
             "[COLLECT] Generating thumbnails, data path: %s" % data_path
         )
-        script = "/mxn/groups/sw/mxsw/mxcube_scripts/generate_thumbnail"
-        cmd = f"ssh clu0-fe-0 {script} {data_path} {frame_number} {jpeg_thumbnail_full_path}"
+        cmd = f"ssh {HPC_FE_HOST} {GENERATE_THUMBNAIL_SCRIPT} {data_path} {frame_number} {jpeg_thumbnail_full_path}"
         logging.getLogger("HWR").info(cmd)
         os.system(cmd)
 
@@ -1576,11 +1578,6 @@ class BIOMAXCollect(DataCollect):
                 )
 
     def correct_omega_in_master_file(self, filename, overlap):
-        script = "/mxn/groups/biomax/wmxsoft/scripts_mxcube/omega_correction/correct_omega_2024.py"
-        cmd = "ssh clu0-fe-0 python %s -f %s -o %f &" % (
-            script,
-            filename,
-            -overlap,
-        )
-        logging.getLogger("HWR").info(" the cmd going to run is %s " % cmd)
+        cmd = f"ssh {HPC_FE_HOST} {CORRECT_OMEGA_SCRIPT} {filename} {-overlap}"
+        logging.getLogger("HWR").info("Correcting Omega in master file. Command to run is %s" % cmd)
         os.system(cmd)
