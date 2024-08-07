@@ -49,6 +49,10 @@ class AbstractNState(AbstractActuator):
         """Initilise the predefined values"""
         super().init()
         self.initialise_values()
+        # default_value should be an Enum, if defined
+        if self.default_value and not isinstance(self.default_value, Enum):
+            self.default_value = self.value_to_enum(self.default_value)
+            self.update_value(self.default_value)
 
     def validate_value(self, value):
         """Check if the value is one of the predefined values.
@@ -87,17 +91,18 @@ class AbstractNState(AbstractActuator):
         except (ValueError, TypeError):
             pass
 
-    def value_to_enum(self, value):
+    def value_to_enum(self, value, idx=0):
         """Tranform a value to Enum
         Args:
            value(str, int, float, tuple): value
+           idx(int): Index in the value, if tuple
         Returns:
             (Enum): Enum member, corresponding to the value or UNKNOWN.
         """
         for enum_var in self.VALUES.__members__.values():
             if value == enum_var.value:
                 return enum_var
-            if isinstance(enum_var.value, tuple) and value == enum_var.value[0]:
+            if isinstance(enum_var.value, tuple) and value == enum_var.value[idx]:
                 return enum_var
 
         return self.VALUES.UNKNOWN
