@@ -22,7 +22,7 @@ import json
 import os
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.model import queue_model_objects
-from mxcubecore.model.queue_model_objects import DataCollection
+from mxcubecore.model.queue_model_objects import DataCollection, Acquisition
 
 from mxcubecore.HardwareObjects.SampleView import Grid, Line, Point
 
@@ -47,13 +47,24 @@ from mxcubecore.queue_entry.data_collection import DataCollectionQueueEntry
 
 class XRayCenteringUserCollectionParameters(BaseModel):
     exp_time: float = Field(100e-4, gt=0, lt=1, title="Exposure time (s)")
-    num_images: int = Field(1000, gt=0, lt=10000000, title="Number of images")
     energy: float = Field()
     resolution: float = Field()
+    transmission: float = Field()
 
 
 class XrayCenteringQueueModel(DataCollection):
-    pass
+    def __init__(
+        self,
+        acquisition_list=None,
+        crystal=None,
+        processing_parameters=None,
+        name="",
+        task_data=None,
+    ):
+        super().__init__(
+            acquisition_list, crystal, processing_parameters, name, task_data
+        )
+        self._origin = "MX3"
 
 
 class XrayCenteringTaskParameters(BaseModel):
@@ -69,7 +80,6 @@ class XrayCenteringTaskParameters(BaseModel):
 
     @staticmethod
     def ui_schema():
-        print("ui_schema")
         schema = json.dumps(
             {
                 "ui:order": [
@@ -84,7 +94,6 @@ class XrayCenteringTaskParameters(BaseModel):
                 },
             }
         )
-        print(schema)
         return schema
 
 
@@ -100,7 +109,10 @@ class BiomaxXrayCenteringQueueEntry(DataCollectionQueueEntry):
 
     def __init__(self, view=None, data_model=None, view_set_queue_entry=True):
         BaseQueueEntry.__init__(self, view, data_model, view_set_queue_entry)
+        defaults = HWR.beamline.get_default_acquisition_parameters()
+        data_model.acquisitions[0].acquisition_parameters = defaults
         self.mesh_model = data_model  ## Datacollection model
+        self.mesh_model.set_experiment_type(EXPERIMENT_TYPE.MESH)
         self.in_queue = False
         self.shapes = None
         self.collect_hwobj = None
@@ -127,11 +139,9 @@ class BiomaxXrayCenteringQueueEntry(DataCollectionQueueEntry):
             self.mesh_qe.execute()
 
             # maybe should add a check of the result to see if it should continue or not
-            print(self.diffractometer_hwobj, dir(self.diffractometer_hwobj))
             # self.diffractometer_hwobj.phi.set_value_relative(90)
             self.diffractometer_hwobj.omega.set_value_relative(90)
             self.diffractometer_hwobj.wait_device_ready(5)
-            print(HWR.beamline.beam, dir(HWR.beamline.beam))
             # bx, by = HWR.beamline.beam.get_beam_position()
             bx, by = HWR.beamline.beam.get_beam_position_on_screen()
             beam_pos = self.diffractometer_hwobj.get_centred_point_from_coord(
@@ -155,9 +165,9 @@ class BiomaxXrayCenteringQueueEntry(DataCollectionQueueEntry):
             end_pos = self.diffractometer_hwobj.get_positions()
 
             # now we recreate the helical positions
-            acq_1 = queue_model_objects.Acquisition()
+            acq_1 = Acquisition()
             acq_1.acquisition_parameters.set_from_dict({"centred_position": end_pos})
-            acq_2 = queue_model_objects.Acquisition()
+            acq_2 = Acquisition()
             acq_2.acquisition_parameters.set_from_dict({"centred_position": start_pos})
             path_template = self.mesh_model.acquisitions[0].path_template
             acq_1.path_template = path_template
@@ -234,7 +244,7 @@ class BiomaxXrayCenteringQueueEntry(DataCollectionQueueEntry):
         self.helical_qe = DataCollectionQueueEntry(view=Mock())
 
         self.enqueue(self.helical_qe)
-        self.helical_model = queue_model_objects.DataCollection()
+        self.helical_model = DataCollection()
         self.helical_model._parent = self.get_data_model().get_parent()
         self.helical_qe.xray = False
 
