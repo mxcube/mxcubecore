@@ -19,14 +19,18 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """ Photon fluc calculations
-Example xml file:
-<object class="ESRF.ESRFPhotonFlux">
-  <username>Photon flux</username>
-  <object role="controller" href="/bliss"/>
-  <object role="aperture" href="/udiff_aperture"/>
-  <counter_name>i0</counter_name>
-  <beam_check_name>checkbeam</beam_check_name>
-</object>
+Example xml_ configuration:
+
+.. code-block:: xml
+
+ <object class="ESRF.ESRFPhotonFlux">
+   <username>Photon flux</username>
+   <object role="controller" href="/bliss"/>
+   <object role="aperture" href="/udiff_aperture"/>
+   <counter_name>i0</counter_name>
+   <beam_check_name>checkbeam</beam_check_name>
+   <object role="check_beam" href="/check_beam"/>
+ </object>
 """
 import logging
 import gevent
@@ -44,7 +48,8 @@ class ESRFPhotonFlux(AbstractFlux):
         self._flux_calc = None
         self._aperture = None
         self.threshold = None
-        self.beam_check_obj = None
+        self._beam_check_obj = None
+        self._checkbeam_obj = None
 
     def init(self):
         """Initialisation"""
@@ -71,7 +76,9 @@ class ESRFPhotonFlux(AbstractFlux):
         beam_check = self.get_property("beam_check_name")
 
         if beam_check:
-            self.beam_check_obj = getattr(controller, beam_check)
+            self._beam_check_obj = getattr(controller, beam_check)
+
+        self._checkbeam_obj = self.get_object_by_role("check_beam")
 
         try:
             HWR.beamline.safety_shutter.connect("stateChanged", self.update_value)
@@ -121,12 +128,13 @@ class ESRFPhotonFlux(AbstractFlux):
 
         return counts
 
+    @property
     def check_beam(self):
         """Check if there is beam
         Returns:
             (bool): True if beam present, False otherwise
         """
-        return self.beam_check_obj.check_beam()
+        return self._beam_check_obj.check_beam()
 
     def wait_for_beam(self, timeout=None):
         """Wait until beam present
@@ -136,7 +144,14 @@ class ESRFPhotonFlux(AbstractFlux):
                                               (default);
                              if timeout is None: wait forever.
         """
-        try:
-            return self.beam_check_obj.wait_for_beam(timeout)
-        except AttributeError:
-            return True
+        if self._checkbeam_obj:
+            try:
+                check = self._checkbeam_obj.get_value().value
+            except AttributeError:
+                check = False
+            if check is True:
+                try:
+                    return self._beam_check_obj.wait_for_beam(timeout)
+                except AttributeError:
+                    return True
+        return True
