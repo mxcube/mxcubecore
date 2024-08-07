@@ -127,7 +127,7 @@ class HWObjActuatorCommand(CommandObject):
             elif self._running:
                 self.emit("commandReplyArrived", (str(self.name()), res))
 
-        self.running = False
+        self._running = False
 
     def value(self):
         """Return the current command vaue.
