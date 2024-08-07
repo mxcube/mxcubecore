@@ -182,7 +182,10 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             self.online_processing_task = None
 
             try:
-                if dc.experiment_type is EXPERIMENT_TYPE.HELICAL:
+                if dc.experiment_type in (
+                    EXPERIMENT_TYPE.HELICAL,
+                    EXPERIMENT_TYPE.LINE_SCAN,
+                ):
                     acq_1, acq_2 = (dc.acquisitions[0], dc.acquisitions[1])
                     HWR.beamline.collect.set_helical(True)
                     HWR.beamline.collect.set_mesh(False)

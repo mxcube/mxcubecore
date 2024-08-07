@@ -41,9 +41,10 @@ ExperimentType = namedtuple(
         "COLLECT_MULTIWEDGE",
         "STILL",
         "IMAGING",
+        "LINE_SCAN",
     ],
 )
-EXPERIMENT_TYPE = ExperimentType(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+EXPERIMENT_TYPE = ExperimentType(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
 EXPERIMENT_TYPE_STR = ExperimentType(
     "SAD",
     "SAD - Inverse Beam",
@@ -57,6 +58,7 @@ EXPERIMENT_TYPE_STR = ExperimentType(
     "Collect - Multiwedge",
     "Still",
     "Imaging",
+    "LineScan",
 )
 
 StrategyOption = namedtuple("StrategyOption", ["AVG"])
