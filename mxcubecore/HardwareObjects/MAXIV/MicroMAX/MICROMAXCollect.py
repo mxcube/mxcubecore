@@ -19,8 +19,6 @@ from mxcubecore.HardwareObjects.GenericDiffractometer import GenericDiffractomet
 from mxcubecore.HardwareObjects.MAXIV.MicroMAX import pandabox
 from mxcubecore.HardwareObjects.MAXIV.DataCollect import (
     DataCollect,
-    open_tango_shutter,
-    close_tango_shutter,
     parse_unit_cell_params,
 )
 from mxcubecore.HardwareObjects.MAXIV.SciCatPlugin import SciCatPlugin
@@ -29,8 +27,6 @@ from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 DET_SAFE_POSITION = 500
-# max time we wait for detector cover to open or close, in seconds
-DETECTOR_COVER_TIMEOUT = 10.0
 
 
 class MICROMAXCollect(DataCollect):
@@ -960,50 +956,6 @@ class MICROMAXCollect(DataCollect):
         """
         if self.beam_info_hwobj is not None:
             return self.beam_info_hwobj.get_beam_shape()
-
-    def open_detector_cover(self):
-        """
-        send 'open' request to the detector cover and wait until it's open
-        """
-        try:
-            self.log.info("Opening the detector cover.")
-            open_tango_shutter(
-                self.detector_cover_hwobj, DETECTOR_COVER_TIMEOUT, "detector cover"
-            )
-        except Exception:
-            self.log.exception("Could not open the detector cover")
-            raise RuntimeError("[COLLECT] Could not open the detector cover.")
-
-    def close_detector_cover(self):
-        """
-        send 'close' request to the detector cover and wait until it's closed
-        """
-        try:
-            self.log.info("Closing the detector cover")
-            close_tango_shutter(
-                self.detector_cover_hwobj, DETECTOR_COVER_TIMEOUT, "detector cover"
-            )
-        except Exception:
-            self.log.exception("Could not close the detector cover")
-
-    def open_fast_shutter(self):
-        """
-        Descript. : important to make sure it's passed, as we
-                    don't open the fast shutter in MXCuBE
-        """
-        try:
-            self.diffractometer_hwobj.open_fast_shutter()
-        except Exception:
-            self.user_log.exception("Error opening fast shutter.")
-            raise
-
-    def close_fast_shutter(self):
-        """
-        Descript. :
-        """
-        # to do, close the fast shutter as early as possible in case
-        # MD3 fails to do so
-        self.diffractometer_hwobj.close_fast_shutter()
 
     @task
     def _take_crystal_snapshot(self, filename):

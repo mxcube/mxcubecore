@@ -84,6 +84,7 @@ class BIOMAXCollect(DataCollect):
         self.sample_changer_hwobj = HWR.beamline.sample_changer
         self.sample_changer_maint_hwobj = HWR.beamline.sample_changer_maintenance
         self.dtox_hwobj = self.get_object_by_role("dtox")
+        self.detector_cover_hwobj = self.get_object_by_role("detector_cover")
         self.session_hwobj = HWR.beamline.session
         self.datacatalog_url = self.get_property("datacatalog_url", None)
         self.datacatalog_token = self.get_property("datacatalog_token", None)
@@ -1003,42 +1004,6 @@ class BIOMAXCollect(DataCollect):
         """
         if self.beam_info_hwobj is not None:
             return self.beam_info_hwobj.get_beam_shape()
-
-    def open_detector_cover(self):
-        """
-        Descript. :
-        """
-        try:
-            logging.getLogger("HWR").info("Openning the detector cover.")
-            self.detector_cover_hwobj.openShutter()
-            time.sleep(1)  # make sure the cover is up before the data collection stars
-        except:
-            logging.getLogger("HWR").exception("Could not open the detector cover")
-            raise RuntimeError("[COLLECT] Could not open the detector cover.")
-
-    def close_detector_cover(self):
-        """
-        Descript. :
-        """
-        try:
-            logging.getLogger("HWR").info("Closing the detector cover")
-            self.detector_cover_hwobj.close()
-        except:
-            logging.getLogger("HWR").exception("Could not close the detector cover")
-
-    def open_fast_shutter(self):
-        """
-        Descript. : important to make sure it"s passed, as we
-                    don't open the fast shutter in MXCuBE
-        """
-        pass
-
-    def close_fast_shutter(self):
-        """
-        Descript. :
-        """
-        # to do, close the fast shutter as early as possible in case
-        # MD3 fails to do so
 
     @task
     def _take_crystal_snapshot(self, filename):

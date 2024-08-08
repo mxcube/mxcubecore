@@ -13,6 +13,8 @@ import socket
 
 # max time we wait for safety shutter to open, in seconds
 SAFETY_SHUTTER_TIMEOUT = 5.0
+# max time we wait for detector cover to open or close, in seconds
+DETECTOR_COVER_TIMEOUT = 10.0
 
 
 def _poll_until(condition: Callable, timeout: float, timeout_error_messge: str):
@@ -85,6 +87,50 @@ class DataCollect(AbstractCollect, HardwareObject):
         close_tango_shutter(
             self.safety_shutter_hwobj, SAFETY_SHUTTER_TIMEOUT, "safety shutter"
         )
+
+    def open_detector_cover(self):
+        """
+        send 'open' request to the detector cover and wait until it's open
+        """
+        try:
+            self.log.info("Opening the detector cover.")
+            open_tango_shutter(
+                self.detector_cover_hwobj, DETECTOR_COVER_TIMEOUT, "detector cover"
+            )
+        except Exception:
+            self.log.exception("Could not open the detector cover")
+            raise RuntimeError("[COLLECT] Could not open the detector cover.")
+
+    def close_detector_cover(self):
+        """
+        send 'close' request to the detector cover and wait until it's closed
+        """
+        try:
+            self.log.info("Closing the detector cover")
+            close_tango_shutter(
+                self.detector_cover_hwobj, DETECTOR_COVER_TIMEOUT, "detector cover"
+            )
+        except Exception:
+            self.log.exception("Could not close the detector cover")
+
+    def open_fast_shutter(self):
+        """
+        Descript. : important to make sure it's passed, as we
+                    don't open the fast shutter in MXCuBE
+        """
+        try:
+            self.diffractometer_hwobj.open_fast_shutter()
+        except Exception:
+            self.user_log.exception("Error opening fast shutter.")
+            raise
+
+    def close_fast_shutter(self):
+        """
+        Descript. :
+        """
+        # to do, close the fast shutter as early as possible in case
+        # MD3 fails to do so
+        self.diffractometer_hwobj.close_fast_shutter()
 
     def get_mxcube_server_ip(self):
         """
