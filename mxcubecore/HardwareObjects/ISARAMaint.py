@@ -156,8 +156,9 @@ class ISARAMaint(HardwareObject):
         self._update_state()
 
     def _position_name_updated(self, position_name):
-        self._position_name = position_name.lower()
-        self._update_state()
+        if position_name:
+            self._position_name = position_name.lower()
+            self._update_state()
 
     def _message_updated(self, message):
         self._message = message
