@@ -134,6 +134,9 @@ class BIOMAXEnergy(AbstractEnergy):
         logging.getLogger("user_level_log").info("Requested value is out of limits")
         return False
 
+    def _set_value(self, value):
+        self.move_energy(value)
+
     def move_energy(self, energy, wait=True, check_beam_end=True):
         current_en = self.get_current_energy()
         pos = math.fabs(current_en - energy)
