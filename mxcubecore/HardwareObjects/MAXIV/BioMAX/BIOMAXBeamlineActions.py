@@ -73,7 +73,7 @@ class CloseDetectorCover:
         """
         try:
             logging.getLogger("HWR").info("Closing the detector cover")
-            HWR.beamline.detector.close_cover()
+            HWR.beamline.collect.close_detector_cover()
         except Exception as ex:
             logging.getLogger("HWR").exception(
                 "Could not close the detector cover. Error was {}".format(ex)
@@ -87,7 +87,7 @@ class OpenDetectorCover:
         """
         try:
             logging.getLogger("HWR").info("Opening the detector cover")
-            HWR.beamline.detector.open_cover()
+            HWR.beamline.collect.open_detector_cover()
         except Exception as ex:
             logging.getLogger("HWR").exception(
                 "Could not open the detector cover. Error was {}".format(ex)
