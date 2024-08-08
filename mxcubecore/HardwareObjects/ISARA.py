@@ -337,6 +337,18 @@ class ISARA(SampleChanger):
             )
             pres = self._chnBasketPresence.get_value()
 
+        self._chnInSoak = self.get_channel_object("_chnInSoak")
+        if self._chnInSoak is None:
+            self._chnInSoak = self.add_channel(
+                {
+                    "type": "tango",
+                    "name": "_chnInSoak",
+                    "tangoname": self.tangoname,
+                    "polling": 1000,
+                },
+                "InSoak",
+            )
+
         #
         # determine Cats geometry and prepare objects
         #
