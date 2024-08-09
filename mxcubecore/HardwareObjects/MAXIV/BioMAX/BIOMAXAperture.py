@@ -134,11 +134,15 @@ class BIOMAXAperture(AbstractActuator):
     def position_changed(self, position):
         self.emit("valueChanged", position)
 
-    def diameter_changed(self, diameter):
-        self._current_diameter_index = diameter
-        self.emit("valueChanged", diameter)
-        self.emit(
-            "diameterIndexChanged",
-            self._current_diameter_index,
-            self._diameter_size_list[self._current_diameter_index] / 1000.0,
-        )
+    def diameter_changed(self, diameter_index):
+        self._current_diameter_index = diameter_index
+        current_diameter = self._diameter_size_list[self._current_diameter_index]
+        self.emit("value_changed", current_diameter)
+
+    def get_value(self):
+        """Read the actuator position.
+
+        Returns:
+            value: Actuator position.
+        """
+        return self.get_diameter_size()
