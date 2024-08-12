@@ -50,7 +50,7 @@ class AbstractNState(AbstractActuator):
         super().init()
         self.initialise_values()
         # default_value should be an Enum, if defined
-        if self.default_value and not isinstance(self.default_value, Enum):
+        if self.default_value is not None and not isinstance(self.default_value, Enum):
             self.default_value = self.value_to_enum(self.default_value)
             self.update_value(self.default_value)
 
