@@ -194,6 +194,7 @@ def load_from_yaml(
                     _table=_table,
                 )
                 _instance.hardware_objects[f"/{hwobj.load_name}"] = hwobj
+                _attach_objects(yaml_export_directory, result, hwobj, role1)
             elif fext == ".xml":
                 msg1 = ""
                 time0 = time.time()
@@ -204,7 +205,7 @@ def load_from_yaml(
                         msg1 = "No object loaded"
                     else:
                         class_name1 = hwobj.__class__.__name__
-                        _attach_xml_objects(yaml_export_directory, result, hwobj, role1)
+                        _attach_objects(yaml_export_directory, result, hwobj, role1)
                 except Exception as ex:
                     msg1 = "Loading error (%s)" % str(ex)
                 load_time = 1000 * (time.time() - time0)
@@ -268,8 +269,8 @@ def _export_draft_config_file(dest_dir: Path, hwobj):
     write_yaml(result, "%s.yml" % hwobj.id)
 
 
-def _attach_xml_objects(yaml_export_directory: Optional[Path], container, hwobj, role):
-    """Recursively attach XML-configured object to container as role
+def _attach_objects(yaml_export_directory: Optional[Path], container, hwobj, role):
+    """Recursively attach object to container as role
 
     NBNB guard against duplicate objects"""
 
@@ -280,7 +281,7 @@ def _attach_xml_objects(yaml_export_directory: Optional[Path], container, hwobj,
     setattr(container, role, hwobj)
     objects_by_role = hwobj._objects_by_role
     for role2, hwobj2 in objects_by_role.items():
-        _attach_xml_objects(yaml_export_directory, hwobj, hwobj2, role2)
+        _attach_objects(yaml_export_directory, hwobj, hwobj2, role2)
 
     if yaml_export_directory:
         # temporary hack
