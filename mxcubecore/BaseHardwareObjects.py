@@ -511,11 +511,11 @@ class HardwareObjectNode:
         Returns:
             Union[HardwareObject, None]: Hardware object.
         """
-        warn(
-            "%s.get_object_by_role is deprecated. Use get_property instead"
-            % self.__class__.__name__
-        )
         role = str(role).lower()
+        warn(
+            f"{self.__class__.__name__}.get_object_by_role is deprecated. "
+            f"Use attribute '{role}' to access this object."
+        )
         objects = [self]
 
         for curr in objects:
