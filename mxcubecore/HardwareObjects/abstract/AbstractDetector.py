@@ -84,13 +84,10 @@ class AbstractDetector(HardwareObject):
         self._metadata = {}
 
     def init(self):
-        """Initialise some common paramerters"""
+        """Initialise some common parameters"""
         super().init()
 
-        try:
-            self._metadata = dict(self["beam"].get_properties())
-        except KeyError:
-            pass
+        self._metadata = self.get_property("beam", {})
 
         self._images_per_file = self.get_property("images_per_file", 100)
 
