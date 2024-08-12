@@ -19,25 +19,31 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
-Concrete Implementation of AbstartNState
-Example xml_ configuration:
+Concrete Implementation of AbstartNState - overloads the get_value
+and _set_value abstract methods.
+Example xml configuration:
 
 .. code-block:: xml
 
- <object class="GenericNState">
-   <username>Check Beam</username>
-   <actuator_name>checkbeam</actuator_name>
-   <values>{"TRUE": True, "FALSE": False}</values>
+ <object class="NState">
+   <username>Beam Monitoring</username>
+   <actuator_name>beam_monitor</actuator_name>
+   <values>{"ENABLED": True, "DISABLED": False}</values>
  </object>
 """
 from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
 
+__copyright__ = """ Copyright © by the MXCuBE collaboration """
+__license__ = "LGPLv3+"
 
-class GenericNState(AbstractNState):
+
+class NState(AbstractNState):
+    """Overload get_value and _set_value abstract methods"""
+
     def get_value(self):
         """Get the device value
         Returns:
-            (Enum): Enum member, corresponding to the value or UNKNOWN.
+            (Enum): VALUES Enum member
         """
         return self._nominal_value
 
