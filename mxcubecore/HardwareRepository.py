@@ -174,7 +174,7 @@ def load_from_yaml(
 
         result._config = result.HOConfig(**config)
 
-        if objects:
+        if _container is None:
             load_time = 1000 * (time.time() - start_time)
             msg1 = "Start loading contents:"
             _table.append(
