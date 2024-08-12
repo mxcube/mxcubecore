@@ -516,6 +516,26 @@ class HardwareObjectNode:
             f"{self.__class__.__name__}.get_object_by_role is deprecated. "
             f"Use attribute '{role}' to access this object."
         )
+
+        #
+        # A hack to emulate get_object_by_role() for objects loaded from YAML config files.
+        #
+        # When HWOBJ is loaded from YAML, we don't populate it's '_objects_by_role' dictionary,
+        # thus that normal code path to look-up and object by role does not work.
+        #
+        # However, objects are attached to the parent object via attribute assignment. Try accessing
+        # using that attribute.
+        #
+        try:
+            obj = getattr(self, role, None)
+            if obj is not None:
+                return obj
+        except AttributeError:
+            pass
+
+        #
+        # Look-up object by role the old way.
+        #
         objects = [self]
 
         for curr in objects:
