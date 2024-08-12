@@ -18,7 +18,7 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-""" Photon fluc calculations
+""" Photon flux calculations
 Example xml_ configuration:
 
 .. code-block:: xml
@@ -29,7 +29,7 @@ Example xml_ configuration:
    <object role="aperture" href="/udiff_aperture"/>
    <counter_name>i0</counter_name>
    <beam_check_name>checkbeam</beam_check_name>
-   <object role="check_beam" href="/check_beam"/>
+   <object role="monitor_beam" href="/monitor_beam"/>
  </object>
 """
 import logging
@@ -49,7 +49,7 @@ class ESRFPhotonFlux(AbstractFlux):
         self._aperture = None
         self.threshold = None
         self._beam_check_obj = None
-        self._checkbeam_obj = None
+        self._monitorbeam_obj = None
 
     def init(self):
         """Initialisation"""
@@ -78,7 +78,7 @@ class ESRFPhotonFlux(AbstractFlux):
         if beam_check:
             self._beam_check_obj = getattr(controller, beam_check)
 
-        self._checkbeam_obj = self.get_object_by_role("check_beam")
+        self._monitorbeam_obj = self.get_object_by_role("monitor_beam")
 
         try:
             HWR.beamline.safety_shutter.connect("stateChanged", self.update_value)
@@ -144,9 +144,9 @@ class ESRFPhotonFlux(AbstractFlux):
                                               (default);
                              if timeout is None: wait forever.
         """
-        if self._checkbeam_obj:
+        if self._monitorbeam_obj:
             try:
-                check = self._checkbeam_obj.get_value().value
+                check = self._monitorbeam_obj.get_value().value
             except AttributeError:
                 check = False
             if check is True:

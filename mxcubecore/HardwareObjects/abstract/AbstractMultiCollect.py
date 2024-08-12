@@ -785,11 +785,9 @@ class AbstractMultiCollect(object):
             flux_threshold = self.get_property("flux_threshold", 0)
             cryo_threshold = self.get_property("cryo_threshold", 0)
 
-            check_flux = self.get_property("check_flux", False)
             check_cryo = self.get_property("check_cryo", False)
 
-            if check_flux:
-                HWR.beamline.flux.wait_for_beam()
+            HWR.beamline.flux.wait_for_beam()
 
             # Wait for cryo
             # from time to time cryo does not answer
