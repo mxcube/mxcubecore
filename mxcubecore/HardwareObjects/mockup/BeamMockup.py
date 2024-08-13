@@ -53,22 +53,36 @@ class BeamMockup(AbstractBeam):
         """Initialize hardware"""
         super().init()
 
-        self._aperture = self.get_object_by_role("aperture")
-        if self._aperture:
+        #
+        # backward compatibility hack to support loading from XML config file
+        #
+        # when loading from YAML configuration file,
+        # the attributes will be automatically set to the specified child HWOBJs
+        #
+        # when loading from XML, it does not happen, so fall back to get_object_by_role()
+        #
+        if self.aperture is None:
+            self.aperture = self.get_object_by_role("aperture")
+
+        if self.slits is None:
+            self.slits = self.get_object_by_role("slits")
+
+        if self.definer is None:
+            self.definer = self.get_object_by_role("definer")
+
+        if self.aperture:
             _definer_type = "aperture"
-            self._aperture.connect("valueChanged", self.aperture_diameter_changed)
+            self.aperture.connect("valueChanged", self.aperture_diameter_changed)
 
-        self._slits = self.get_object_by_role("slits")
-        if self._slits:
+        if self.slits:
             _definer_type = "slits"
-            self._slits.connect("valueChanged", self.slits_gap_changed)
+            self.slits.connect("valueChanged", self.slits_gap_changed)
 
-        self._definer = self.get_object_by_role("definer")
-        if self._definer:
+        if self.definer:
             _definer_type = "definer"
-            self._definer.connect("valueChanged", self._re_emit_values)
+            self.definer.connect("valueChanged", self._re_emit_values)
 
-        self._definer_type = self.get_property("definer_type") or _definer_type
+        self._definer_type = self.get_property("definer_type", _definer_type)
 
         self._beam_position_on_screen = literal_eval(
             self.get_property("beam_position", "[318, 238]")

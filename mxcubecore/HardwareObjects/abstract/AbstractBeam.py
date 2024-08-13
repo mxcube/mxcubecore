@@ -55,9 +55,9 @@ class AbstractBeam(HardwareObject):
     def __init__(self, name):
         super().__init__(name)
 
-        self._aperture = None
-        self._slits = None
-        self._definer = None
+        self.aperture = None
+        self.slits = None
+        self.definer = None
         self._definer_type = None
 
         self._beam_size_dict = {
@@ -89,27 +89,6 @@ class AbstractBeam(HardwareObject):
         self._beam_divergence = (_divergence_horizontal, _divergence_vertical)
         self._beam_position_on_screen = [0, 0]
         self._definer_type = self.get_property("definer_type")
-
-    @property
-    def aperture(self):
-        """
-        Returns aperture hwobj
-        """
-        return self._aperture
-
-    @property
-    def slits(self):
-        """
-        Returns slits hwobj
-        """
-        return self._slits
-
-    @property
-    def definer(self):
-        """
-        Beam definer device, equipment like focusing optics, CRLs, and etc.
-        """
-        return self._definer
 
     def get_beam_divergence(self):
         """Get the beam divergence.
@@ -181,10 +160,10 @@ class AbstractBeam(HardwareObject):
         )
 
         if beam_shape == BeamShape.RECTANGULAR:
-            self._slits.set_horizontal_gap(beam_width)
-            self._slits.set_vertical_gap(beam_height)
+            self.slits.set_horizontal_gap(beam_width)
+            self.slits.set_vertical_gap(beam_height)
         elif beam_shape == BeamShape.ELLIPTICAL:
-            self._aperture.set_diameter_size(beam_width)
+            self.aperture.set_diameter_size(beam_width)
 
     def get_beam_position_on_screen(self):
         """Get the beam position
