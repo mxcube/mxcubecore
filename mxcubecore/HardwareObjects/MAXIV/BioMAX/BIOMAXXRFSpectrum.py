@@ -80,15 +80,15 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         """
         self.ready_event = gevent.event.Event()
 
-        self.energy_hwobj = self.get_object_by_role("energy")
-        self.safety_shutter_hwobj = self.get_object_by_role("safety_shutter")
-        self.beam_info_hwobj = self.get_object_by_role("beam_info")
-        self.transmission_hwobj = self.get_object_by_role("transmission")
+        self.energy_hwobj = HWR.beamline.energy
+        self.safety_shutter_hwobj = HWR.beamline.safety_shutter
+        self.beam_info_hwobj = HWR.beamline.beam
+        self.transmission_hwobj = HWR.beamline.transmission
         if self.transmission_hwobj is None:
             logging.getLogger("HWR").warning("Transmission hwobj not defined")
-        self.flux_hwobj = self.get_object_by_role("flux")
-        self.db_connection_hwobj = self.get_object_by_role("lims_client")
-        self.diffractometer_hwobj = self.get_object_by_role("diffractometer")
+        self.flux_hwobj = HWR.beamline.flux
+        self.db_connection_hwobj = HWR.beamline.lims
+        self.diffractometer_hwobj = HWR.beamline.diffractometer
         self.current_phi = None
         try:
             self.xspress3 = tango.DeviceProxy("b311a-e/dia/xfs-01")
@@ -121,7 +121,7 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         # saving attributes
         self.xspress3.WriteHdf5 = True
         # save the image at the user directory
-        self.xspress3.DestinationFileName = self.spectrum_info_dict["scanFileFullPath"]
+        self.xspress3.DestinationFileName = self.spectrum_info_dict["filename"]
 
     def prepare_panda(self, trig_time):
         """
@@ -160,6 +160,25 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             ):
                 while self.xspress3.State().name == "RUNNING":
                     gevent.sleep(0.2)
+
+    def get_filename(self, directory: str, prefix: str) -> str:
+        """Create file template.
+
+        Args:
+            directory: directory name (full path)
+        Returns:
+            File template
+        """
+        _pattern = f"xrf_{prefix}_%02d"
+        filename_pattern = os.path.join(directory, _pattern)
+        filename = filename_pattern % 1
+
+        i = 2
+        while os.path.isfile(filename):
+            filename = filename_pattern % i
+            i = i + 1
+
+        return filename
 
     def prepare_directories(self, ct, spectrum_directory, archive_directory, prefix):
         if not os.path.isdir(archive_directory):
@@ -203,7 +222,6 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             (archive_file_template, "html")
         )
 
-        self.spectrum_info_dict["filename"] = prefix
         self.spectrum_info_dict["scanFileFullPath"] = spectrum_file_dat_filename
         self.spectrum_info_dict["jpegScanFileFullPath"] = archive_file_png_filename
         self.spectrum_info_dict["exposureTime"] = ct
@@ -310,25 +328,26 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             "Transmission adjusted at %s" % str(final_transmission)
         )
 
-    def startXrfSpectrum(
-        self,
-        ct,
-        spectrum_directory,
-        archive_directory,
-        prefix,
-        session_id=None,
-        blsample_id=None,
-        cpos=None,
-        adjust_transmission=True,
-    ):
-        """
-        Descript. :
+    def _execute_spectrum(
+        self, integration_time: float = None, filename: str = None
+    ) -> bool:
+        """Local XRF spectrum sequence.
+
+        Args:
+            integration_time: MCA integration time in seconds.
+            filename: Data file (full path).
+        Returns:
+            Procedure executed correctly (True) or error (False)
         """
         self.ready_event.clear()
         self.stop_flag = False
         self.spectrum_running = True
 
-        filename = os.path.join(spectrum_directory, prefix) + ".h5"
+        filename = filename or self.spectrum_info_dict["filename"]
+        integration_time = integration_time or self.default_integration_time
+        spectrum_directory = self.spectrum_info_dict["spectrum_directory"]
+        archive_directory = self.spectrum_info_dict["archive_directory"]
+        prefix = self.spectrum_info_dict["prefix"]
         if os.path.exists(filename):
             logging.getLogger("HWR").debug(
                 "XRF Sprectrum aborted, file already exists on disk {}".format(filename)
@@ -344,55 +363,33 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
                 "DataCollection", wait=True, timeout=200
             )
 
-        # and move to the centred positions after phase change
-        if cpos:
-            logging.getLogger("HWR").info("Moving to centring position")
-            self.diffractometer_hwobj.move_to_motors_positions(cpos, wait=True)
-        else:
-            logging.getLogger("HWR").warning("Valid centring position not found")
+        logging.getLogger("HWR").warning("Valid centring position not found")
 
         try:
             self.open_safety_shutter()
         except Exception as ex:
             logging.getLogger("HWR").error("Open safety shutter: error %s" % str(ex))
 
-        if ct <= 0:
-            ct = 0.1
+        if integration_time <= 0:
+            integration_time = 0.1
 
-        logging.getLogger("HWR").info(
-            "Starting XRF Spectrum with parameters ct: %s \
-         spectrum_directory %s,\
-         archive_directory %s,\
-         prefix %s\
-         session_id %s \
-         blsample_id %s \
-         adjust_transmission %s"
-            % (
-                ct,
-                spectrum_directory,
-                archive_directory,
-                prefix,
-                session_id,
-                blsample_id,
-                adjust_transmission,
-            )
-        )
+        logging.getLogger("HWR").info(self.spectrum_info_dict)
 
-        self.spectrum_info_dict = {"sessionId": session_id, "blSampleId": blsample_id}
         try:
-            self.prepare_directories(ct, spectrum_directory, archive_directory, prefix)
+            self.prepare_directories(
+                integration_time, spectrum_directory, archive_directory, prefix
+            )
 
             self.diffractometer_hwobj.move_fluo_in()
 
-            if adjust_transmission:
-                self.prepare_transmission(ct)
+            self.prepare_transmission(integration_time)
 
             logging.getLogger("HWR").info("Preparing fluorescence detector")
             logging.getLogger("user_level_log").info("Preparing fluorescence detector")
 
             # this time we save data to disk
             self.prepare_detector()  # change defaults in mxcube UI
-            self.prepare_panda(ct)
+            self.prepare_panda(integration_time)
             # colibri shutter is closed at this point, but we need to open the fast shutter of the md3
             self.diffractometer_hwobj.open_fast_shutter()
 
@@ -401,7 +398,7 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             self.emit("xrfSpectrumStarted", ())
 
             self.execute_spectrum_command(
-                ct, self.spectrum_info_dict["scanFileFullPath"], adjust_transmission
+                integration_time, self.spectrum_info_dict["filename"]
             )
         except Exception as ex:
             logging.getLogger("HWR").error("XRFSpectrum: error %s" % str(ex))
@@ -411,7 +408,7 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
 
         self.spectrum_command_finished()
 
-    def execute_spectrum_command(self, count_sec, filename, adjust_transmission=True):
+    def execute_spectrum_command(self, count_sec, filename):
         logging.getLogger("HWR").info("Acquiring spectrum")
         logging.getLogger("user_level_log").info("Acquiring spectrum")
         try:
@@ -440,18 +437,11 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             # The minimum energy is phosphor emission (ca. 2000 eV)
             lowerlim = 180
             output = ""
-            data_folder = self.spectrum_info_dict["scanFileFullPath"]
-            logging.getLogger("HWR").info("Reading data from {}".format(data_folder))
+            filename = self.spectrum_info_dict["filename"]
+            logging.getLogger("HWR").info("Reading data from {}".format(filename))
             time.sleep(5)
-            #           try:
-            # 	        with gevent.Timeout(5, Exception("Timeout waiting for data file")):
-            # 		    while not os.path.exists(data_folder):
-            # 		        gevent.sleep(0.5)
-            #            except Exception as ex:
-            #                logging.getLogger("HWR").error(ex)
-            #                raise
 
-            with h5py.File(data_folder, "r") as spectrum_file:
+            with h5py.File(filename, "r") as spectrum_file:
                 # reading the spectrum h5 file from the saved directory
                 self.spectrum_data = spectrum_file["entry"]["instrument"]["xspress3"][
                     "data"
@@ -519,8 +509,8 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             else:
                 peaks = []
             try:
-                prop = data_folder.split("/")[4]
-                sample = data_folder.split("raw")[1]
+                prop = filename.split("/")[4]
+                sample = filename.split("raw")[1]
                 tt = "Prop: {}\n".format(prop)
                 tt += "Sample: {}\n".format(sample)
             except Exception:
@@ -543,8 +533,13 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             beam_size = self.beam_info_hwobj.get_beam_size()
             self.spectrum_info_dict["beamSizeHorizontal"] = int(beam_size[0] * 1000)
             self.spectrum_info_dict["beamSizeVertical"] = int(beam_size[1] * 1000)
-
-            self.spectrum_info_dict["flux"] = self.flux_hwobj.estimate_flux()
+            try:
+                self.spectrum_info_dict["flux"] = self.flux_hwobj.estimate_flux()
+            except Exception as ex:
+                logging.getLogger("HWR").warning(
+                    "Error retrieving flux value {}".format(ex)
+                )
+                self.spectrum_info_dict["flux"] = 0.0
             x = np.arange(5, 20, 0.01)
             plt.plot(x, self.spectrum_data[500:2000])
             plt.xlabel("Energy (keV)")
@@ -554,8 +549,12 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             plt.text(12, 0.4 * ymax, tt)
             plt.savefig(self.spectrum_info_dict["jpegScanFileFullPath"])
             # and save as well into data folder
-            data_folder = os.path.dirname(self.spectrum_info_dict["scanFileFullPath"])
-            plt.savefig(os.path.join(data_folder, self.spectrum_info_dict["filename"]))
+            data_folder = self.spectrum_info_dict["spectrum_directory"]
+            plt.savefig(
+                os.path.join(
+                    data_folder, self.spectrum_info_dict["jpegScanFileFullPath"]
+                )
+            )
 
             logging.getLogger("HWR").info(
                 "XRFSpectrum: Rendering spectrum to PNG file : %s",
@@ -646,4 +645,11 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         """
         logging.getLogger("HWR").debug("XRFSpectrum info %r", self.spectrum_info_dict)
         if self.db_connection_hwobj:
-            return self.db_connection_hwobj.storeXfeSpectrum(self.spectrum_info_dict)
+            try:
+                return self.db_connection_hwobj.storeXfeSpectrum(
+                    self.spectrum_info_dict
+                )
+            except Exception as ex:
+                logging.getLogger("HWR").warning(
+                    "Cannot save XRFSpectrum info to Ispyb %s", ex
+                )
