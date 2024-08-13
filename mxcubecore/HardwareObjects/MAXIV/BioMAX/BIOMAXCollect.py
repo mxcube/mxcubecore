@@ -699,20 +699,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                     "[BIOMAXCOLLECT] XDS file: %s"
                     % self.current_dc_parameters["xds_dir"]
                 )
-                # Wait for the master file
-                self.wait_for_file_copied(data_path)
-                os.system(
-                    "cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/generate_xds_inp.sh %s &"
-                    % (self.current_dc_parameters["xds_dir"], data_path)
-                )
-                logging.getLogger("HWR").info(
-                    "[BIOMAXCOLLECT] AUTO file: %s"
-                    % self.current_dc_parameters["auto_dir"]
-                )
-                os.system(
-                    "cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/generate_xds_inp_auto.sh %s &"
-                    % (self.current_dc_parameters["auto_dir"], data_path)
-                )
                 if (
                     self.current_dc_parameters["experiment_type"] in ("OSC", "Helical")
                     and self.current_dc_parameters["oscillation_sequence"][0]["overlap"]
