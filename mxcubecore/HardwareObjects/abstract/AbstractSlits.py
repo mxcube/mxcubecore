@@ -31,12 +31,12 @@ __version__ = "2.3"
 class AbstractSlits(HardwareObject, object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, *args):
+    def __init__(self, name: str):
         warn(
             "AbstractSlits is deprecated. Use specific motors instead",
             DeprecationWarning,
         )
-        HardwareObject.__init__(self, *args)
+        HardwareObject.__init__(self, name)
 
         self._value = [None, None]
         self._min_limits = [None, None]
