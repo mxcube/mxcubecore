@@ -222,6 +222,8 @@ class AbstractResolution(AbstractMotor):
             if ttheta:
                 self._nominal_value = _wavelength / (2 * sin(ttheta / 2))
                 self.emit("valueChanged", (self._nominal_value,))
+            # finally update the limits as wavelength changed
+            self.update_limits()
         except (TypeError, ZeroDivisionError):
             logging.getLogger().exception("Error while calculating resolution")
 
