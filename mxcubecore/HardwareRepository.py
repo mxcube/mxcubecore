@@ -683,19 +683,6 @@ class __HardwareRepositoryClient:
         """Return a Procedure given its name (see get_hardware_object())"""
         return self.get_hardware_object(procedure_name)
 
-    # def get_connection(self, connection_name):
-    #     """Return the Connection object for a Spec connection, given its name
-    #
-    #     Parameters :
-    #       connectionName -- a Spec version name ('host:port' string)
-    #
-    #     Return :
-    #       the corresponding SpecConnection object
-    #     """
-    #     connections_manager = SpecConnectionsManager.SpecConnectionsManager()
-    #
-    #     return connections_manager.get_connection(connection_name)
-
     def is_device(self, name):
         """Check if a Hardware Object is a Device
 
