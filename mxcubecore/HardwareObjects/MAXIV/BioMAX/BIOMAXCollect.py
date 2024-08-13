@@ -708,7 +708,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                     ]
                     >= self.NIMAGES_TRIGGER_AUTO_PROC
                 ):
-                    self.trigger_auto_processing("after", self.current_dc_parameters, 0)
+                    self.trigger_auto_processing("after", 0)
             except Exception as ex:
                 logging.getLogger("HWR").error(
                     "[COLLECT] Error creating XDS files, %s" % ex
