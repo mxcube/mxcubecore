@@ -253,3 +253,14 @@ class MAXIVISPyBClient(ISPyBClient):
                 "Session": {},
                 "status": {"code": "error"},
             }
+
+    def dc_link(self, cid):
+        """
+        Get the LIMS link the data collection with id <id>.
+
+        :param str did: Data collection ID
+        :returns: The link to the data collection
+        """
+        url = HWR.beamline.lims.lims_rest.dc_link(cid)
+
+        return url
