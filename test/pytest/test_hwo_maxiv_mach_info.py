@@ -2,7 +2,7 @@ import math
 import pytest
 from gevent.event import Event
 from tango.server import Device, attribute, command
-from tango.test_context import DeviceTestContext, MultiDeviceTestContext
+from tango.test_context import MultiDeviceTestContext
 from mxcubecore.HardwareObjects.MAXIV.MachInfo import MachInfo
 
 
