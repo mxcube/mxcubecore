@@ -48,23 +48,29 @@ class BeamMockup(AbstractBeam):
             self.get_property("beam_position", "[318, 238]")
         )
 
-        self._aperture = self.get_object_by_role("aperture")
-        if self._aperture is not None:
+        if self.aperture is None:
+            # backward compatibility hack to support loading from XML config file
+            self.aperture = self.get_object_by_role("aperture")
+
+        if self.aperture is not None:
             self.connect(
-                self._aperture,
+                self.aperture,
                 "diameterIndexChanged",
                 self.aperture_diameter_changed,
             )
 
-            ad = self._aperture.get_diameter_size() / 1000.0
+            ad = self.aperture.get_diameter_size() / 1000.0
             self._beam_size_dict["aperture"] = [ad, ad]
-            self._beam_info_dict["label"] = self._aperture.get_diameter_size()
+            self._beam_info_dict["label"] = self.aperture.get_diameter_size()
 
-        self._slits = self.get_object_by_role("slits")
-        if self._slits is not None:
-            self.connect(self._slits, "valueChanged", self.slits_gap_changed)
+        if self.slits is None:
+            # backward compatibility hack to support loading from XML config file
+            self.slits = self.get_object_by_role("slits")
 
-            sx, sy = self._slits.get_gaps()
+        if self.slits is not None:
+            self.connect(self.slits, "valueChanged", self.slits_gap_changed)
+
+            sx, sy = self.slits.get_gaps()
             self._beam_size_dict["slits"] = [sx, sy]
 
         self.evaluate_beam_info()
@@ -121,20 +127,20 @@ class BeamMockup(AbstractBeam):
             width_microns (int):
             height_microns (int):
         """
-        if self._slits:
-            self._slits.set_horizontal_gap(width_microns / 1000.0)
-            self._slits.set_vertical_gap(height_microns / 1000.0)
+        if self.slits:
+            self.slits.set_horizontal_gap(width_microns / 1000.0)
+            self.slits.set_vertical_gap(height_microns / 1000.0)
 
     def get_aperture_pos_name(self):
         """
         Returns (str): name of current aperture position
         """
-        if self._aperture:
-            return self._aperture.get_current_pos_name()
+        if self.aperture:
+            return self.aperture.get_current_pos_name()
 
     def get_available_size(self):
-        aperture_list = self._aperture.get_diameter_size_list()
+        aperture_list = self.aperture.get_diameter_size_list()
         return {"type": "enum", "values": aperture_list}
 
     def set_value(self, value):
-        self._aperture.set_diameter_size(value)
+        self.aperture.set_diameter_size(value)

@@ -25,8 +25,8 @@ __credits__ = ["MXCuBE collaboration"]
 
 
 class SlitsMockup(AbstractSlits):
-    def __init__(self, *args):
-        AbstractSlits.__init__(self, *args)
+    def __init__(self, name: str):
+        AbstractSlits.__init__(self, name)
 
     def init(self):
         self._value = [0.05, 0.05]
