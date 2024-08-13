@@ -1575,15 +1575,11 @@ class PathTemplate(object):
         :returns: Archive directory
         """
         folders = self.directory.split("/")
-        if PathTemplate.synchrotron_name == "MAXLAB":
-            archive_directory = self.directory
-            archive_directory = archive_directory.replace(
-                "/data/data1/visitor", "/data/ispyb"
+        if PathTemplate.synchrotron_name == "MAXIV":
+            folders = self.directory.split("/")
+            archive_directory = os.path.join(
+                PathTemplate.archive_base_directory, *folders[2:]
             )
-            archive_directory = archive_directory.replace(
-                "/data/data1/inhouse", "/data/ispyb"
-            )
-            archive_directory = archive_directory.replace("/data/data1", "/data/ispyb")
 
         elif PathTemplate.synchrotron_name == "EMBL-HH":
             archive_directory = os.path.join(
@@ -1630,6 +1626,7 @@ class PathTemplate(object):
             archive_directory = os.path.join(
                 PathTemplate.archive_base_directory, *folders[1:]
             )
+
         return archive_directory
 
     def __eq__(self, path_template):
