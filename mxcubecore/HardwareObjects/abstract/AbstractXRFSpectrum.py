@@ -65,6 +65,7 @@ class AbstractXRFSpectrum(HardwareObject):
         """Initialisation"""
         self.default_integration_time = self.get_property("default_integration_time", 3)
         self.file_suffix = self.get_property("file_suffix", "dat")
+
         self.lims = HWR.beamline.lims
         if not self.lims:
             logging.getLogger().warning("XRFSpectrum: no lims set")
@@ -93,6 +94,7 @@ class AbstractXRFSpectrum(HardwareObject):
         self.spectrum_info_dict = {"sessionId": session_id, "blSampleId": blsample_id}
         integration_time = integration_time or self.default_integration_time
         self.spectrum_info_dict["exposureTime"] = integration_time
+        self.spectrum_info_dict["prefix"] = prefix
         self.spectrum_info_dict["filename"] = ""
         # Create the data and the archive directory (if needed) and files
         if data_dir:
@@ -101,6 +103,7 @@ class AbstractXRFSpectrum(HardwareObject):
                 return False
             filename = self.get_filename(data_dir, prefix)
             self.spectrum_info_dict["filename"] = filename + "." + self.file_suffix
+            self.spectrum_info_dict["spectrum_directory"] = os.path.dirname(filename)
         if archive_dir:
             if not self.create_directory(archive_dir):
                 self.update_state(self.STATES.FAULT)
@@ -112,6 +115,7 @@ class AbstractXRFSpectrum(HardwareObject):
             self.spectrum_info_dict["jpegScanFileFullPath"] = filename + ".png"
             self.spectrum_info_dict["annotatedPymcaXfeSpectrum"] = filename + ".html"
             self.spectrum_info_dict["fittedDataFileFullPath"] = filename + "_peaks.csv"
+            self.spectrum_info_dict["archive_directory"] = archive_dir
 
         self.spectrum_info_dict["startTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
         self.update_state(self.STATES.BUSY)
