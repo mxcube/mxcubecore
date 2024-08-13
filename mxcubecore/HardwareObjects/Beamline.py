@@ -749,6 +749,17 @@ class Beamline(ConfiguredObject):
 
     __content_roles.append("image_tracking")
 
+    @property
+    def argus(self):
+        """Argus object
+
+        Returns:
+            Optional[HardwareObject]:
+        """
+        return self._objects.get("argus")
+
+    __content_roles.append("argus")
+
     # Procedures
 
     @property
