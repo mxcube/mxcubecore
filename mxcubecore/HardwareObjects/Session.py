@@ -241,7 +241,7 @@ class Session(HardwareObject):
 
         if sub_dir:
             sub_dir = sub_dir.replace(" ", "").replace(":", "-")
-            directory = os.path.join(directory, sub_dir) + "/"
+            directory = os.path.join(directory, sub_dir, "")
 
         return directory
 
