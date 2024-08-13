@@ -243,10 +243,6 @@ class BIOMAXCollect(DataCollect):
                         logging.getLogger("HWR").exception(
                             "Collection: Error creating archive directory"
                         )
-
-                os.chmod(archive_directory, 0o777)
-                for file in snapshots_files:
-                    os.chmod(file, 0o777)
             except Exception as ex:
                 log.error(
                     "[COLLECT] Archive directory preparation failed. Data collection continues. Error was: %s"
