@@ -1378,7 +1378,9 @@ class BIOMAXCollect(DataCollect):
         Descript. :
         """
         try:
-            return self.machine_info_hwobj.get_current()
+            curr = self.machine_info_hwobj.get_current()
+            curr = curr.split(" ")[0]  # remove units
+            return curr
         except:
             return None
 
