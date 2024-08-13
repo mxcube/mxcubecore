@@ -42,7 +42,7 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         GenericDiffractometer.__init__(self, *args)
 
-    def init(self) -> bool:
+    def init(self):
         """
         Descript. :
         """
