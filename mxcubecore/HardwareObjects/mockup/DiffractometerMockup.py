@@ -36,11 +36,26 @@ class DiffractometerMockup(GenericDiffractometer):
     Descript. :
     """
 
-    def __init__(self, *args):
+    def __init__(self, name):
         """
         Descript. :
         """
-        GenericDiffractometer.__init__(self, *args)
+        GenericDiffractometer.__init__(self, name)
+
+        # child object slots
+        self.backlight = None
+        self.backlightswitch = None
+        self.beamstop_distance = None
+        self.focus = None
+        self.frontlight = None
+        self.frontlightswitch = None
+        self.kappa = None
+        self.kappa_phi = None
+        self.phi = None
+        self.phiy = None
+        self.phiz = None
+        self.sampx = None
+        self.sampy = None
 
     def init(self):
         """
