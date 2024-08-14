@@ -33,7 +33,7 @@ class BIOMAXMD3(MAXIVMD3):
     def get_camera_image(self):
         """Get the current image from the md3 camera as a numpy array"""
         self.wait_device_ready(10)
-        img_buf, w, h = self.camera_hwobj.get_image_array()
+        img_buf, w, h = HWR.beamline.sample_view.camera.get_image_array()
         return img_buf.reshape(h, w, 3)
 
     def get_center_pos(self):
@@ -204,6 +204,9 @@ class BIOMAXMD3(MAXIVMD3):
         Returns:
             True on success, False if it ran out of patience.
         """
+        zoom = HWR.beamline.sample_view.camera.get_image_zoom()
+        self.pixels_per_mm_x = zoom / self.channel_dict["CoaxCamScaleX"].get_value()
+        self.pixels_per_mm_y = zoom / self.channel_dict["CoaxCamScaleY"].get_value()
         nav = CentringNavigator(
             target_coordinates=tuple(self.beam_position),
             tolerance=tolerance_mm * self.pixels_per_mm_x,
@@ -215,11 +218,12 @@ class BIOMAXMD3(MAXIVMD3):
             if step.finished():
                 return True
             if step.rotate:
-                self.phi_motor_hwobj.moveRelative(step.rotate)
+                self.phi_motor_hwobj.set_value_relative(step.rotate)
                 self.wait_device_ready(10)
             if step.x_to_center or step.y_to_center:
                 self.move_to_beam(step.x_to_center, step.y_to_center)
                 self.wait_device_ready(10)
+            gevent.sleep(0.5)
         logging.getLogger("HWR").debug(
             f"center_loop ran out of patience ({patience}) with tolerance {tolerance_mm} mm"
         )
@@ -234,10 +238,11 @@ class BIOMAXMD3(MAXIVMD3):
             )
             self.set_phase("Centring", wait=True, timeout=200)
         # make sure the back light factor is 1, zoom level is 1, before loop centering
-        self.zoom_motor_hwobj.set_value("Zoom 1")
+        self.zoom_motor_hwobj.set_value(self.zoom_motor_hwobj.VALUES.LEVEL1)
         self.wait_device_ready(20)
-        self.back_light.move(1)
-        self.omega_reference_motor.move(self.omega_reference_par["position"])
+        # back light is always in in centring phase
+        # self.back_light.move(1)
+        self.omega_reference_motor.set_value(self.omega_reference_par["position"])
         self.wait_for_backlight()
         self.wait_device_ready(20)
         success = self.center_loop()
