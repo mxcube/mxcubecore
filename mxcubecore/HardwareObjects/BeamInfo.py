@@ -33,7 +33,7 @@ class BeamInfo(HardwareObject):
         """
         Descrip. :
         """
-        Equipment.__init__(self, *args)
+        super().__init__(*args)
 
         self.aperture_hwobj = None
         self.beam_definer = None

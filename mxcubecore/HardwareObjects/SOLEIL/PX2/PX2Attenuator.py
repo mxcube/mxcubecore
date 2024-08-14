@@ -21,7 +21,7 @@ class PX2Attenuator(HardwareObject):
     }
 
     def __init__(self, name):
-        Device.__init__(self, name)
+        super().__init__(name)
 
         self.labels = []
         self.attno = 0

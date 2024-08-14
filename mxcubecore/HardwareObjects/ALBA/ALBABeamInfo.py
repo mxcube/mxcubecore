@@ -32,7 +32,7 @@ class ALBABeamInfo(HardwareObject):
         """
         Descrip. :
         """
-        Equipment.__init__(self, *args)
+        super().__init__(*args)
 
         self.aperture_hwobj = None
         self.slits_hwobj = None

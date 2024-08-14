@@ -97,7 +97,7 @@ class EMBLMotorsGroup(HardwareObject):
 
     def __init__(self, name):
 
-        Device.__init__(self, name)
+        super().__init__(name)
         self.server_address = None
         self.group_address = None
         self.motors_list = None

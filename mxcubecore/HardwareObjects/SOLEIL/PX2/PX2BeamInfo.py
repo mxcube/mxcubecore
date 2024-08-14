@@ -36,7 +36,7 @@ from mxcubecore.BaseHardwareObjects import HardwareObject
 
 class PX2BeamInfo(HardwareObject):
     def __init__(self, *args):
-        Equipment.__init__(self, *args)
+        super().__init__(*args)
 
         self.beam_position = [328, 220]  # [None, None]
         self.beam_size = [0.010, 0.005]  # [None, None]

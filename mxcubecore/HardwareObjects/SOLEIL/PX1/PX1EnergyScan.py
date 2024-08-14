@@ -46,7 +46,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
 
     def __init__(self, name):
         AbstractEnergyScan.__init__(self)
-        Equipment.__init__(self, name)
+        super().__init__(name)
 
         self.scanning = False
         self.stopping = False

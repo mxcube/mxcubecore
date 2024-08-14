@@ -8,7 +8,7 @@ from PyTango import DeviceProxy
 
 class TangoKeithleyPhotonFlux(HardwareObject):
     def __init__(self, *args, **kwargs):
-        Equipment.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def init(self):
         self.get_object_by_role("controller")

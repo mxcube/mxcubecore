@@ -10,7 +10,7 @@ from mxcubecore import HardwareRepository as HWR
 
 class ID29PhotonFlux(HardwareObject):
     def __init__(self, *args, **kwargs):
-        Equipment.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def init(self):
         self.counter = self.get_object_by_role("counter")

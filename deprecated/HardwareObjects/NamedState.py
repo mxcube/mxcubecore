@@ -25,7 +25,7 @@ import logging
 
 class NamedState(HardwareObject):
     def __init__(self, name):
-        Device.__init__(self, name)
+        super().__init__(name)
         self.stateList = []
 
     def _init(self):

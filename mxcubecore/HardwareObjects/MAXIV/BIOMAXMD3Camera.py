@@ -28,7 +28,7 @@ class BIOMAXMD3Camera(HardwareObject):
     }
 
     def __init__(self, name):
-        Device.__init__(self, name)
+        super().__init__(name)
         self.set_is_ready(True)
 
     def init(self):

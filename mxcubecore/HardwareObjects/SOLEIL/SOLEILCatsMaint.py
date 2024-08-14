@@ -36,7 +36,7 @@ class SOLEILCatsMaint(HardwareObject):
 
     def __init__(self, *args, **kwargs):
         logging.info("CatsMaint: __init__")
-        Equipment.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def init(self):
         logging.info("CatsMaint: init")

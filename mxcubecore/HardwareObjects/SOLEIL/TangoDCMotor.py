@@ -38,7 +38,7 @@ class TangoDCMotor(HardwareObject):
 
         # State values as expected by Motor bricks
 
-        Device.__init__(self, name)
+        super().__init__(name)
         self.GUIstep = 0.1
         self.motor_states = MotorStates()
 

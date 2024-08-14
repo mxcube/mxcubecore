@@ -10,7 +10,7 @@ from mxcubecore import HardwareRepository as HWR
 
 class ID23PhotonFlux(HardwareObject):
     def __init__(self, *args, **kwargs):
-        Equipment.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.threshold = []
 
     def init(self):

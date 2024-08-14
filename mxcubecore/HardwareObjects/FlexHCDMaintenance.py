@@ -34,7 +34,7 @@ class FlexHCDMaintenance(HardwareObject):
     """
 
     def __init__(self, *args, **kwargs):
-        Equipment.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def init(self):
         self._sc = self.get_object_by_role("sample_changer")

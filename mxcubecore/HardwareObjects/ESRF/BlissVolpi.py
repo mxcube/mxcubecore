@@ -5,7 +5,7 @@ from bliss.config import static
 class BlissVolpi(HardwareObject):
     def __init__(self, name):
         # AbstractMotor.__init__(self, name)
-        Device.__init__(self, name)
+        super().__init__(name)
 
     def init(self):
         self.username = self.volpi_name

@@ -6,7 +6,7 @@ from mxcubecore import HardwareRepository as HWR
 
 class ALBAEnergy(HardwareObject):
     def __init__(self, *args):
-        Device.__init__(self, *args)
+        super().__init__(*args)
         self.energy_position = None
         self.wavelength_position = None
 

@@ -18,7 +18,7 @@ class GrobSampleChanger(HardwareObject):
     ALWAYS_ALLOW_MOUNTING = True
 
     def __init__(self, *args, **kwargs):
-        Equipment.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def init(self):
         self._procedure = ""

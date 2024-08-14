@@ -43,7 +43,7 @@ class DigitalZoomMotor(AbstractMotor, Device):
 
     def __init__(self, name):
         AbstractMotor.__init__(self, name)
-        Device.__init__(self, name)
+        super().__init__(name)
         self.camera = None
 
     def init(self):

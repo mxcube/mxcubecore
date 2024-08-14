@@ -78,7 +78,7 @@ class XalocMachineInfo(HardwareObject):
     """
 
     def __init__(self, name):
-        Equipment.__init__(self, name)
+        super().__init__(name)
         """
         Descript. :
         """

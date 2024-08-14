@@ -18,7 +18,7 @@ Example xml file:
 
 class MicrodiffInOutMockup(HardwareObject):
     def __init__(self, name):
-        Device.__init__(self, name)
+        super().__init__(name)
         self.actuatorState = "unknown"
         self.username = "unknown"
         # default timeout - 3 sec
