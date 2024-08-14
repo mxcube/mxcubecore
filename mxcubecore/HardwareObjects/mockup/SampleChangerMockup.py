@@ -12,8 +12,8 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
     NO_OF_BASKETS = 5
     NO_OF_SAMPLES_IN_BASKET = 10
 
-    def __init__(self, *args, **kwargs):
-        super(SampleChangerMockup, self).__init__(self.__TYPE__, False, *args, **kwargs)
+    def __init__(self, name):
+        super(SampleChangerMockup, self).__init__(self.__TYPE__, False, name)
 
     def init(self):
         self._selected_sample = -1
