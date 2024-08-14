@@ -186,14 +186,22 @@ def load_from_yaml(
 
             fname, fext = os.path.splitext(config_file)
             if fext == ".yml":
-                hwobj = load_from_yaml(
-                    config_file,
-                    role=role1,
-                    yaml_export_directory=yaml_export_directory,
-                    _container=result,
-                    _table=_table,
-                )
-                _instance.hardware_objects[f"/{hwobj.load_name}"] = hwobj
+                fname = f"/{fname}"
+
+                # check if we already loaded this configuration file
+                hwobj = _instance.hardware_objects.get(fname)
+
+                if hwobj is None:
+                    # not loaded yet
+                    hwobj = load_from_yaml(
+                        config_file,
+                        role=role1,
+                        yaml_export_directory=yaml_export_directory,
+                        _container=result,
+                        _table=_table,
+                    )
+                    _instance.hardware_objects[fname] = hwobj
+
             elif fext == ".xml":
                 msg1 = ""
                 time0 = time.time()
