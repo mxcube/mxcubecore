@@ -195,7 +195,7 @@ class BIOMAXMD3(MAXIVMD3):
             # until I feel your touch
         logging.getLogger("HWR").info("backlight seems to have settled")
 
-    def center_loop(self, patience: int = 100, tolerance_mm: float = 0.02) -> bool:
+    def center_loop(self, patience: int = 100, tolerance_mm: float = 0.05) -> bool:
         """
         Parameters:
             patience: how many steps it will take before giving up
@@ -223,7 +223,7 @@ class BIOMAXMD3(MAXIVMD3):
             if step.x_to_center or step.y_to_center:
                 self.move_to_beam(step.x_to_center, step.y_to_center)
                 self.wait_device_ready(10)
-            gevent.sleep(0.5)
+            gevent.sleep(0.2)
         logging.getLogger("HWR").debug(
             f"center_loop ran out of patience ({patience}) with tolerance {tolerance_mm} mm"
         )
