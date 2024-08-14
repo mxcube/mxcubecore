@@ -130,6 +130,20 @@ class MAXIVMD3(GenericDiffractometer):
         except:
             logging.getLogger("HWR").debug("Cannot set sc mode, use_sc: ", str(use_sc))
 
+        try:
+            self.omega_reference_par = eval(self.get_property("omega_reference"))
+            self.omega_reference_motor = self.get_object_by_role(
+                self.omega_reference_par["motor_name"]
+            )
+            if self.omega_reference_motor is not None:
+                self.connect(
+                    self.omega_reference_motor,
+                    "value_hanged",
+                    self.omega_reference_motor_moved,
+                )
+        except Exception as ex:
+            logging.getLogger("HWR").warning("Omega axis is not defined. {}".format(ex))
+
     ## ------------------------------- ##
     ##      TASK ID MANAGEMENT         ##
     ## ------------------------------- ##
