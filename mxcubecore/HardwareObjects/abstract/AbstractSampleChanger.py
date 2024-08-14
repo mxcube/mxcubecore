@@ -209,11 +209,9 @@ class SampleChanger(Container, HardwareObject):
     TASK_FINISHED_EVENT = "taskFinished"
     CONTENTS_UPDATED_EVENT = "contentsUpdated"
 
-    def __init__(self, type_, scannable, *args, **kwargs):
+    def __init__(self, type_, scannable, name):
         super().__init__(type_, None, type_, scannable)
-        if len(args) == 0:
-            args = (type_,)
-        HardwareObject.__init__(self, *args, **kwargs)
+        HardwareObject.__init__(self, name)
         self.state = -1
         self.status = ""
         self._set_state(SampleChangerState.Unknown)
