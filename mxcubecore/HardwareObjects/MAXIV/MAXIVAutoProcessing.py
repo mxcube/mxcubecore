@@ -616,7 +616,6 @@ class MAXIVAutoProcessing(HardwareObject):
             # temp fix for ispyb permission issues
             try:
                 session_dir = os.path.join(archive_directory, "../../../")
-                os.system("chmod -R 777 %s" % (session_dir))
             except Exception as ex:
                 self.log.warning(
                     "Could not change permissions on ispyb storage, error was {}".format(
