@@ -537,24 +537,6 @@ class GenericDiffractometer(HardwareObject):
         return self.motor_hwobj_dict.get("phi")
 
     @property
-    def kappa(self):
-        """kappa motor object
-
-        Returns:
-            AbstractActuator
-        """
-        return self.motor_hwobj_dict.get("kappa")
-
-    @property
-    def kappa_phi(self):
-        """kappa_phi motor object
-
-        Returns:
-            AbstractActuator
-        """
-        return self.motor_hwobj_dict.get("kappa_phi")
-
-    @property
     def centring_x(self):
         """centring_x motor object
 
