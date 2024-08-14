@@ -38,7 +38,7 @@ class BIOMAXEigerMockup(HardwareObject):
         """
         Descrip. :
         """
-        Equipment.__init__(self, *args)
+        super().__init__(*args)
 
         self.device = None
         self.file_suffix = None

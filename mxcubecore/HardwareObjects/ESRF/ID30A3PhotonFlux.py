@@ -6,7 +6,7 @@ from PyTango.gevent import DeviceProxy
 
 class ID30A3PhotonFlux(HardwareObject):
     def __init__(self, *args, **kwargs):
-        Equipment.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def init(self):
         controller = self.get_object_by_role("controller")

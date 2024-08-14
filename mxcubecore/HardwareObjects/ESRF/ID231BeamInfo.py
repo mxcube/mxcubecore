@@ -25,7 +25,7 @@ from mxcubecore import HardwareRepository as HWR
 
 class BeamInfo(HardwareObject):
     def __init__(self, *args):
-        Equipment.__init__(self, *args)
+        super().__init__(*args)
 
         self.beam_size_slits = [9999, 9999]
         self.beam_size_aperture = [9999, 9999]

@@ -8,7 +8,7 @@ CRYO_STATUS = ["OFF", "SATURATED", "READY", "WARNING", "FROZEN", "UNKNOWN"]
 
 class ESRFCryoMon(HardwareObject):
     def __init__(self, *args, **kwargs):
-        Device.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.n2level = None
         self.temp = None

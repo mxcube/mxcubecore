@@ -78,7 +78,7 @@ class ALBAMachineInfo(HardwareObject):
     """
 
     def __init__(self, name):
-        Equipment.__init__(self, name)
+        super().__init__(name)
         self.logger = logging.getLogger("HWR MachineInfo")
         self.logger.info("__init__()")
 

@@ -52,7 +52,7 @@ class MotorWPositions(AbstractMotor, Device):
 
     def __init__(self, name):
         AbstractMotor.__init__(self, name)
-        Device.__init__(self, name)
+        super().__init__(name)
         self.predefined_positions = {}
         self.motor = None
         self.delta = 0.001

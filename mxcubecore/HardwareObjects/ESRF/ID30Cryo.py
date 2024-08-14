@@ -8,7 +8,7 @@ class ID30Cryo(HardwareObject):
     states = {0: "out", 1: "in"}
 
     def __init__(self, name):
-        Device.__init__(self, name)
+        super().__init__(name)
 
     def init(self):
         controller = self.get_object_by_role("controller")

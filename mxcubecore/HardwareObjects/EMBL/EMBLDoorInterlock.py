@@ -40,7 +40,7 @@ class EMBLDoorInterlock(HardwareObject):
 
     def __init__(self, name):
 
-        Device.__init__(self, name)
+        super().__init__(name)
 
         self.use_door_interlock = None
         self.door_interlock_state = None

@@ -19,7 +19,7 @@ Example xml file:
 
 class MicrodiffInOut(HardwareObject):
     def __init__(self, name):
-        Device.__init__(self, name)
+        super().__init__(name)
         self.actuatorState = "unknown"
         self.username = "unknown"
         # default timeout - 5 sec

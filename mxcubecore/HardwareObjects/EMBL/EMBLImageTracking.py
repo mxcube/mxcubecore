@@ -37,7 +37,7 @@ class EMBLImageTracking(HardwareObject):
     """
 
     def __init__(self, *args):
-        Device.__init__(self, *args)
+        super().__init__(*args)
 
         self.state = None
         self.state_dict = {"image_tracking": False, "filter_frames": False}

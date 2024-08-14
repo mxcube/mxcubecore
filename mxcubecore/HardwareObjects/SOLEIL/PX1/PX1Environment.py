@@ -72,7 +72,7 @@ class EnvironemntState:
 
 class PX1Environment(HardwareObject):
     def __init__(self, name):
-        Device.__init__(self, name)
+        super().__init__(name)
         self.auth = None
         self.device = None
 

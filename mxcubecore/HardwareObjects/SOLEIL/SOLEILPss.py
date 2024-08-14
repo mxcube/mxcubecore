@@ -13,7 +13,7 @@ class SOLEILPss(HardwareObject):
     READ_CMD, READ_OUT = (0, 1)
 
     def __init__(self, name):
-        Device.__init__(self, name)
+        super().__init__(name)
 
         self.wagoState = "unknown"
         self.__oldValue = None

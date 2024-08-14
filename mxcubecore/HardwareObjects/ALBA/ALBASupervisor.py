@@ -5,7 +5,7 @@ import logging
 
 class ALBASupervisor(HardwareObject):
     def __init__(self, *args):
-        Device.__init__(self, *args)
+        super().__init__(*args)
 
     def init(self):
         self.state_chan = self.get_channel_object("state")

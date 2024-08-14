@@ -28,7 +28,7 @@ __category__ = "General"
 
 class EMBLBeamstop(Device, AbstractMotor):
     def __init__(self, name):
-        Device.__init__(self, name)
+        super().__init__(name)
 
         self.distance = None
         self.default_size = None

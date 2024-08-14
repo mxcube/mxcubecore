@@ -108,7 +108,7 @@ class MiniDiff(HardwareObject):
     # MOVE_TO_BEAM_MODE = "Move to Beam"
 
     def __init__(self, *args):
-        Equipment.__init__(self, *args)
+        super().__init__(*args)
 
         qmo.CentredPosition.set_diffractometer_motor_names(
             "phi",

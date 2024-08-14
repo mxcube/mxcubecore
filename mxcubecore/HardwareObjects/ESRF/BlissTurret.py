@@ -4,7 +4,7 @@ from bliss.config import static
 
 class BlissTurret(HardwareObject):
     def __init__(self, name):
-        Device.__init__(self, name)
+        super().__init__(name)
 
     def init(self):
         self.username = self.turret_name

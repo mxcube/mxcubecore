@@ -5,7 +5,7 @@ import PyTango
 
 class SOLEILFlux(HardwareObject):
     def __init__(self, name):
-        Device.__init__(self, name)
+        super().__init__(name)
 
     def init(self):
         self.flux_channel = self.get_channel_object("flux")
