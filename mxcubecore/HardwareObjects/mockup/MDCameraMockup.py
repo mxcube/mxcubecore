@@ -17,23 +17,25 @@ class MDCameraMockup(BaseHardwareObjects.Device):
     def __init__(self, name):
         BaseHardwareObjects.Device.__init__(self, name)
 
-    def _init(self):
         self._format = "MPEG1"
         self.stream_hash = "abc123"
         self.udiffVER_Ok = False
         self.badimg = 0
         self.pollInterval = 500
         self.connected = False
-        self.image_name = self.get_property("image_name")
-        self.image = HWR.get_hardware_repository().find_in_repository(self.image_name)
+
+    def init(self):
+        logging.getLogger("HWR").info("initializing camera object")
+
+        image_name = self.get_property("image_name")
+        self.image = HWR.get_hardware_repository().find_in_repository(image_name)
         self.set_is_ready(True)
         self._video_stream_process = None
         self._current_stream_size = "0, 0"
 
-    def init(self):
-        logging.getLogger("HWR").info("initializing camera object")
         if self.get_property("interval"):
             self.pollInterval = self.get_property("interval")
+
         self.stopper = False  # self.polling_timer(self.pollInterval, self.poll)
         gevent.spawn(self.poll)
 
