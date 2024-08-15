@@ -67,7 +67,6 @@ class SampleView(AbstractSampleView):
 
     def init(self):
         super(SampleView, self).init()
-        self._camera = self.get_object_by_role("camera")
         self._last_oav_image = None
 
         self.hide_grid_threshold = self.get_property("hide_grid_threshold", 5)
