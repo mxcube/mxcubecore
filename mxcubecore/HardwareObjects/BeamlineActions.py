@@ -166,8 +166,8 @@ class AnnotatedCommand(CommandObject):
 
 
 class BeamlineActions(HardwareObject):
-    def __init__(self, *args):
-        HardwareObject.__init__(self, *args)
+    def __init__(self, name):
+        HardwareObject.__init__(self, name)
         self._annotated_commands = []
         self._annotated_command_dict = {}
         self._command_list = []
