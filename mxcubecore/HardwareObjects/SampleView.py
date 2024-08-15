@@ -39,7 +39,6 @@ class SampleView(AbstractSampleView):
 
     def init(self):
         super(SampleView, self).init()
-        self._camera = self.get_object_by_role("camera")
         self._ui_snapshot_cb = None
         self._last_oav_image = None
 
