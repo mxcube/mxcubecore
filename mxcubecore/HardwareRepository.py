@@ -193,7 +193,9 @@ def load_from_yaml(
                     _container=result,
                     _table=_table,
                 )
-                _instance.hardware_objects[f"/{hwobj.load_name}"] = hwobj
+                if hwobj:
+                    # only add if we successfully loaded the object
+                    _instance.hardware_objects[f"/{hwobj.load_name}"] = hwobj
             elif fext == ".xml":
                 msg1 = ""
                 time0 = time.time()
