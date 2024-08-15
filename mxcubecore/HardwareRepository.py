@@ -200,7 +200,8 @@ def load_from_yaml(
                         _container=result,
                         _table=_table,
                     )
-                    _instance.hardware_objects[fname] = hwobj
+                    if hwobj:
+                        _instance.hardware_objects[fname] = hwobj
 
             elif fext == ".xml":
                 msg1 = ""
