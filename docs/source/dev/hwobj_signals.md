@@ -38,7 +38,7 @@ From the {py:class}`HardwareObjectMixin` class (removing extra lines for brevity
         dispatcher.send(signal, self, *args)
 ```
 
-So, in a custom hardware object, since it inherits from {py:class}`HardwareObject`, one only needs to call: 
+So, in a custom hardware object, since it inherits from {py:class}`HardwareObject`, one only needs to call:
 ```
 self.emit('my_signal', new_value)
 ```
@@ -136,7 +136,7 @@ class HO1(HardwareObject):
         gevent.spawn(self.update_value)
 
     def stop(self):
-        self.run = False	
+        self.run = False
 ```
 
 and a data consumer:
@@ -175,11 +175,11 @@ In [1]: from mxcubecore import HardwareRepository as hwr
    ...: ho2 = hwrTest.get_hardware_object("/ho2")
 2024-03-18 12:20:18,434 |INFO   | Hardware repository: ['/Users/mikegu/Documents/MXCUBE/mxcubecore_upstream/mxcubecore/configuration/mockup/test']
 +======================================================================================+
-| role             | Class      | file                   | Time (ms)| Comment                   
+| role             | Class      | file                   | Time (ms)| Comment
 +======================================================================================+
-| beamline         | Beamline   | beamline_config.yml    | 9        | Start loading contents:   
-| mock_procedure   | None       | procedure-mockup.yml   | 0        | File not found            
-| beamline         | Beamline   | beamline_config.yml    | 9        | Done loading contents     
+| beamline         | Beamline   | beamline_config.yml    | 9        | Start loading contents:
+| mock_procedure   | None       | procedure-mockup.yml   | 0        | File not found
+| beamline         | Beamline   | beamline_config.yml    | 9        | Done loading contents
 +======================================================================================+
 
 In [2]: ho1.start()
@@ -207,7 +207,7 @@ As you can see, the second hardware object receives and processes first one's si
 
 ## General signals List
 
-The following tables list the generic signals as well as the signals from some of the most important hardware objects. 
+The following tables list the generic signals as well as the signals from some of the most important hardware objects.
 >Additional signal could be emitted by other hardware objects. For example, "energyScanFinished" by the energy scan object, and similars. For the shake of keeping this document digestable not all the signals are listed.
 
 
@@ -336,4 +336,3 @@ motor_positions = {
 | centringAccepted |    | "centringAccepted", (bool: accepted, dict:centring_status) | |
 | centringSnapshots |    | "centringSnapshots", boolean | |
 | progressMessage |    | "progressMessage", msg | |
-
