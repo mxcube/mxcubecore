@@ -387,7 +387,7 @@ class BIOMAXCollect(DataCollect):
             "[COLLECT] Generating UUID: %s" % self.collection_uuid
         )
 
-        if self.scicat_enabled:
+        if self.scicat_enabled and not self.session_hwobj.is_proprietary():
             try:
                 proposalId = self.session_hwobj.proposal_number
                 self.scicat_hwobj.start_scan(proposalId, self.current_dc_parameters)
@@ -800,7 +800,7 @@ class BIOMAXCollect(DataCollect):
                 except Exception as ex:
                     print(ex)
 
-        if self.scicat_enabled:
+        if self.scicat_enabled and not self.session_hwobj.is_proprietary():
             self.scicat_hwobj.end_scan(self.current_dc_parameters)
 
     def post_collection_store_image(self):
