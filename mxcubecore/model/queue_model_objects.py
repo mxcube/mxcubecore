@@ -1160,6 +1160,7 @@ class XRFSpectrum(TaskNode):
         self.set_requires_centring(True)
         self.centred_position = cpos
         self.adjust_transmission = True
+        self.shape = None
 
         if not sample:
             self.sample = Sample()

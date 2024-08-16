@@ -54,11 +54,12 @@ class XrfSpectrumQueueEntry(BaseQueueEntry):
     def execute(self):
         """Execute"""
         super().execute()
-
         if HWR.beamline.xrf_spectrum is not None:
             xrf_spectrum = self.get_data_model()
+            if xrf_spectrum.shape is not None:
+                point = HWR.beamline.sample_view.get_shape(xrf_spectrum.shape)
+                xrf_spectrum.centred_position = point.get_centred_position()
             self.get_view().setText(1, "Starting xrf spectrum")
-
             path_template = xrf_spectrum.path_template
             HWR.beamline.xrf_spectrum.start_spectrum(
                 integration_time=xrf_spectrum.count_time,
@@ -67,6 +68,7 @@ class XrfSpectrumQueueEntry(BaseQueueEntry):
                 prefix=f"{path_template.get_prefix()}_{path_template.run_number}",
                 session_id=HWR.beamline.session.session_id,
                 blsample_id=xrf_spectrum._node_id,
+                cpos=xrf_spectrum.centred_position,
             )
             HWR.beamline.xrf_spectrum._ready_event.wait()
             HWR.beamline.xrf_spectrum._ready_event.clear()

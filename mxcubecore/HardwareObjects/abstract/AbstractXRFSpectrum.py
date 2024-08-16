@@ -59,6 +59,7 @@ class AbstractXRFSpectrum(HardwareObject):
         self.lims = None
         self.spectrum_info_dict = {}
         self.default_integration_time = None
+        self.cpos = None
 
     def init(self):
         """Initialisation"""
@@ -76,8 +77,9 @@ class AbstractXRFSpectrum(HardwareObject):
         archive_dir=None,
         session_id=None,
         blsample_id=None,
+        cpos=None,
     ):
-        """Start the procedure. Called by the queu_model.
+        """Start the procedure. Called by the queue_model.
 
         Args:
             integration_time (float): Inregration time [s].
@@ -87,6 +89,7 @@ class AbstractXRFSpectrum(HardwareObject):
             session_id (int): Session ID number (from ISpyB)
             blsample_id (int): Sample ID number (from ISpyB)
         """
+        self.cpos = cpos
         self.spectrum_info_dict = {"sessionId": session_id, "blSampleId": blsample_id}
         integration_time = integration_time or self.default_integration_time
         self.spectrum_info_dict["exposureTime"] = integration_time
