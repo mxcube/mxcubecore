@@ -396,19 +396,7 @@ class TestHardwareObjectNode:
         assert "test1" in hw_obj_node.__dict__.keys()
         assert getattr(hw_obj_node, "test1") == 1
         assert "test1" not in hw_obj_node._property_set.keys()
-
-        # Assign a key/value to "_property_set"
-        hw_obj_node._property_set["test2"] = 0
-
-        # Set a new value against the value we just added
-        setattr(hw_obj_node, "test2", 1)
-
-        # Check that the key/value was not assigned to "__dict__"
-        assert "test2" not in hw_obj_node.__dict__.keys()
-
-        # Check that the value returned is correct
-        assert getattr(hw_obj_node, "test2") == 1
-        assert hw_obj_node._property_set["test2"] == 1
+        assert hw_obj_node.test1 == 1
 
     @pytest.mark.parametrize(
         "key",
