@@ -112,6 +112,49 @@ class TestConfiguredObject:
             ConfiguredObject,
         )
 
+    @pytest.mark.parametrize(
+        "level",
+        (
+            "debug",
+            "error",
+            "warning",
+            "info",
+            "flange",
+        ),
+    )
+    def test_print_log(
+        self,
+        mocker: "MockerFixture",
+        configured_object: ConfiguredObject,
+        level: str,
+    ):
+        """Test "print_log" method.
+
+        Args:
+            mocker (MockerFixture): Instance of the Pytest mocker fixture.
+            hw_obj_node (HardwareObjectNode): Object instance.
+            level (str): Logging level.
+        """
+
+        # Patch "logging.getLogger" to intercept calls
+        logger_patch = MagicMock(spec=Logger)
+        get_logger_patch = mocker.patch("logging.getLogger", return_value=logger_patch)
+
+        _log_type = f"{level.upper()}_TEST"
+        _message = f"Test {level.capitalize()} Entry."
+
+        # Call method, output is always going to be "None"
+        configured_object.print_log(log_type=_log_type, level=level, msg=_message)
+
+        # All tests should make at least one call to patched "logging.getLogger"
+        get_logger_patch.assert_called_with(*(_log_type,))
+
+        logger_level_patch: Union[MagicMock, None] = getattr(logger_patch, level, None)
+        if logger_level_patch is not None:
+            # If the logging level exists, check that it was called with our message
+            logger_level_patch: MagicMock
+            logger_level_patch.assert_called_once_with(*(_message,))
+
 
 class TestPropertySet:
     """Run tests for "PropertySet" class"""
@@ -1028,49 +1071,6 @@ class TestHardwareObjectNode:
 
         # Call method and verify output matches initial values
         assert hw_obj_node.get_properties() == initial_properties
-
-    @pytest.mark.parametrize(
-        "level",
-        (
-            "debug",
-            "error",
-            "warning",
-            "info",
-            "flange",
-        ),
-    )
-    def test_print_log(
-        self,
-        mocker: "MockerFixture",
-        hw_obj_node: HardwareObjectNode,
-        level: str,
-    ):
-        """Test "print_log" method.
-
-        Args:
-            mocker (MockerFixture): Instance of the Pytest mocker fixture.
-            hw_obj_node (HardwareObjectNode): Object instance.
-            level (str): Logging level.
-        """
-
-        # Patch "logging.getLogger" to intercept calls
-        logger_patch = MagicMock(spec=Logger)
-        get_logger_patch = mocker.patch("logging.getLogger", return_value=logger_patch)
-
-        _log_type = f"{level.upper()}_TEST"
-        _message = f"Test {level.capitalize()} Entry."
-
-        # Call method, output is always going to be "None"
-        hw_obj_node.print_log(log_type=_log_type, level=level, msg=_message)
-
-        # All tests should make at least one call to patched "logging.getLogger"
-        get_logger_patch.assert_called_with(*(_log_type,))
-
-        logger_level_patch: Union[MagicMock, None] = getattr(logger_patch, level, None)
-        if logger_level_patch is not None:
-            # If the logging level exists, check that it was called with our message
-            logger_level_patch: MagicMock
-            logger_level_patch.assert_called_once_with(*(_message,))
 
 
 class TestHardwareObjectMixin:
