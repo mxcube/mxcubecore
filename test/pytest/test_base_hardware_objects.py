@@ -93,7 +93,7 @@ def hw_obj_yml() -> Generator[HardwareObjectYaml, None, None]:
         Generator[HardwareObjectYaml, None, None]: New object instance.
     """
 
-    hw_obj_yml = HardwareObjectYaml(name="RootObject")
+    hw_obj_yml = HardwareObjectYaml("RootObject")
     yield hw_obj_yml
 
 
@@ -926,9 +926,7 @@ class TestHardwareObjectNode:
         if role.lower() in hw_obj_node._objects_by_role:
             assert res == hw_obj_node._objects_by_role[role.lower()]
         elif not None in _objects and sub_obj_role:
-            assert isinstance(res, HardwareObject) and res.name() == "TestHWObj3"
-        # else:
-        #     assert res is None
+            assert isinstance(res, HardwareObject) and res.name == "TestHWObj3"
 
     @pytest.mark.parametrize(
         "initial_obj_names",
