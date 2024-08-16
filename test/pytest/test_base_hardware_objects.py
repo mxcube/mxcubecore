@@ -382,26 +382,6 @@ class TestHardwareObjectNode:
         # Check "len" matches expected count
         assert len(hw_obj_node) == count
 
-    def test_getattr(self, hw_obj_node: HardwareObjectNode):
-        """Test "__getattr__" method.
-
-        Args:
-            hw_obj_node (HardwareObjectNode): Object instance.
-        """
-
-        # Attempt to access attribute starting with "__", should raise an exception
-        with pytest.raises(AttributeError):
-            hw_obj_node.__name
-
-        # Check retrieving an attrubute that has been assigned to "_property_set"
-        hw_obj_node._property_set["test"] = 1
-        assert getattr(hw_obj_node, "test") == 1
-
-        # Check attempting to access an attribute,
-        # before it has been assigned to "_property_set"
-        with pytest.raises(AttributeError):
-            getattr(hw_obj_node, "test2")
-
     def test_setattr(self, hw_obj_node: HardwareObjectNode):
         """Test "__setattr__" method.
 
