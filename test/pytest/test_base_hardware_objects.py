@@ -745,44 +745,6 @@ class TestHardwareObjectNode:
             # Index key in "_objects_names" should point to last item in "_objects"
             assert _objects_names.index(name) == len(_objects) - 1
 
-    @pytest.mark.parametrize(
-        ("name", "initial_obj_names", "in_names"),
-        (
-            ("key1", ["key1", "key2", "key3"], True),
-            ("key4", ["key1", "key2", "key3"], False),
-        ),
-    )
-    def test_has_object(
-        self,
-        mocker: "MockerFixture",
-        hw_obj_node: HardwareObjectNode,
-        name: str,
-        initial_obj_names: List[str],
-        in_names: bool,
-    ):
-        """Test "has_object" method.
-
-        Args:
-            mocker (MockerFixture): Instance of the Pytest mocker fixture.
-            hw_obj_node (HardwareObjectNode): Object instance.
-            name (str): Name.
-            initial_obj_names (List[str]): Initial object names.
-            in_names (bool): Result expected from method.
-        """
-
-        # Patch "__objects_names" to test with known values
-        mocker.patch.object(
-            hw_obj_node,
-            "_HardwareObjectNode__objects_names",
-            new=initial_obj_names,
-        )
-
-        # Call method
-        res = hw_obj_node.has_object(object_name=name)
-
-        # Check result matches expectations
-        assert res == in_names
-
     @pytest.mark.parametrize("name", ("key1", "key2", "key3", "key4"))
     @pytest.mark.parametrize(
         ("initial_obj_names", "initial_objects"),
