@@ -59,7 +59,6 @@ class AbstractActuator(HardwareObject):
             read-only flag, specified by XML property, otherwise `False`
     """
 
-
     __metaclass__ = abc.ABCMeta
 
     unit = None
