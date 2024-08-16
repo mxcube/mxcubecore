@@ -825,8 +825,8 @@ class TestCommandContainer:
             optional (bool): Whether an error should be logged where no result is returned.
         """
 
-        # Patch "name" to test in isolation
-        mocker.patch.object(cmd_container, "name", create=True, return_value="test")
+        # Patch "id" to test in isolation
+        mocker.patch.object(cmd_container, "id", create=True, return_value="test")
 
         # Patch "__channels" with known values to test
         mocker.patch.object(
