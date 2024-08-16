@@ -2,10 +2,8 @@
 ---
 
 # The class to initialise, and init parameters
-_initialise_class:
-  class: mxcubecore.HardwareObjects.Beamline.Beamline
-  # Further key-value pairs here will be passed to the class init
-  # mode: devel
+class:
+  mxcubecore.HardwareObjects.Beamline.Beamline
 
 # objects
 #
@@ -15,7 +13,7 @@ _initialise_class:
 # NBNB some objects that do not currently have their own config files
 # would need those added (e.g. the centring methods)
 #
-_objects:
+objects:
   # The !!o0map and the lines starting with '- ' give you an *ordered* dictionary
   # And thus a reproducible loading order
   !!omap
