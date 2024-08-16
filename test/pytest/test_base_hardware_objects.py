@@ -944,7 +944,7 @@ class TestHardwareObjectNode:
         hw_obj_node: HardwareObjectNode,
         initial_obj_names: List[str],
     ):
-        """Test "objects_names" method.
+        """Test "_objects_names" method.
 
         Args:
             mocker (MockerFixture): Instance of the Pytest mocker fixture.
@@ -960,7 +960,7 @@ class TestHardwareObjectNode:
         )
 
         # Call method and verify output matches initial values
-        assert hw_obj_node.objects_names() == initial_obj_names
+        assert hw_obj_node._objects_names() == initial_obj_names
 
     @pytest.mark.parametrize(
         ("name", "value", "output_value"),
