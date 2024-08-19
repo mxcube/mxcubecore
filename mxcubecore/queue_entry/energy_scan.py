@@ -55,6 +55,10 @@ class EnergyScanQueueEntry(BaseQueueEntry):
             energy_scan = self.get_data_model()
             self.get_view().setText(1, "Starting energy scan")
 
+            if energy_scan.shape is not None:
+                point = HWR.beamline.sample_view.get_shape(energy_scan.shape)
+                energy_scan.centred_position = point.get_centred_position()
+
             sample_model = self.get_data_model().get_sample_node()
 
             sample_lims_id = sample_model.lims_id
@@ -71,6 +75,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
                 energy_scan.path_template.get_prefix(),
                 HWR.beamline.session.session_id,
                 sample_lims_id,
+                cpos=energy_scan.centred_position,
             )
 
         HWR.beamline.energy_scan.ready_event.wait()

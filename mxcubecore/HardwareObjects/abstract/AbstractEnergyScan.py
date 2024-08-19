@@ -13,6 +13,7 @@ class AbstractEnergyScan(object):
         self.data_collect_task = None
         self._egyscan_task = None
         self.scanning = False
+        self.cpos = None
 
     def open_safety_shutter(self, timeout):
         """
@@ -141,7 +142,14 @@ class AbstractEnergyScan(object):
 
     # def start_energy_scan(
     def start_energy_scan(
-        self, element, edge, directory, prefix, session_id=None, blsample_id=None
+        self,
+        element,
+        edge,
+        directory,
+        prefix,
+        session_id=None,
+        blsample_id=None,
+        cpos=None,
     ):
         if self._egyscan_task and not self._egyscan_task.ready():
             raise RuntimeError("Scan already started.")
@@ -152,7 +160,7 @@ class AbstractEnergyScan(object):
         STATICPARS_DICT = self.get_static_parameters(
             self.get_property("config_file"), element, edge
         )
-
+        self.cpos = cpos
         self.energy_scan_parameters = STATICPARS_DICT
         self.energy_scan_parameters["element"] = element
         self.energy_scan_parameters["edge"] = edge

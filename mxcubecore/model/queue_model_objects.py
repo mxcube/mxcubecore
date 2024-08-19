@@ -1055,6 +1055,7 @@ class EnergyScan(TaskNode):
         self.comments = None
         self.set_requires_centring(True)
         self.centred_position = cpos
+        self.shape = None
 
         if not sample:
             self.sample = Sample()
