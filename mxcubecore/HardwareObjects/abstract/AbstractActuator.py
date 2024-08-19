@@ -22,7 +22,14 @@
 Defines the set/update value, get/set/update limits and validate_value
 methods and the get_value and _set_value abstract methods.
 Initialises the actuator_name, username, read_only and default_value properties.
-Emits signals valueChanged and limitsChanged.
+
+Emits:
+    valueChanged: during hwobj initialization and when setting a new value. Format: (valueChanged, new_value)
+    limitsChanged: emitted by update_limits if limits values are changed.
+                   Format:  (limitsChanged, (low, high))
+    stateChanged: emitted by force_emit_signals. Format: ("stateChanged", (new_state)
+
+Note: force_emit_signals emits all signals
 """
 
 import abc
@@ -37,7 +44,20 @@ __license__ = "LGPLv3+"
 
 
 class AbstractActuator(HardwareObject):
-    """Abstract actuator"""
+    """Abstract actuator
+
+    Attributes:
+        _nominal_value (float):
+            Current actuator value
+        default_value (float):
+            value specified by XML property, otherwise `None`
+        _nominal_limits (tuple):
+            values specified by XML property, otherwise `None`
+        actuator_name (str):
+            actuator name specified by XML property, otherwise `None`
+        read_only (bool):
+            read-only flag, specified by XML property, otherwise `False`
+    """
 
     __metaclass__ = abc.ABCMeta
 
@@ -72,6 +92,7 @@ class AbstractActuator(HardwareObject):
     @abc.abstractmethod
     def get_value(self):
         """Read the actuator position.
+
         Returns:
             value: Actuator position.
         """
@@ -79,6 +100,7 @@ class AbstractActuator(HardwareObject):
 
     def get_limits(self):
         """Return actuator low and high limits.
+
         Returns:
             (tuple): two elements (low limit, high limit) tuple.
         """
@@ -86,6 +108,7 @@ class AbstractActuator(HardwareObject):
 
     def set_limits(self, limits):
         """Set actuator low and high limits. Emits signal limitsChanged.
+
         Args:
             limits (tuple): two elements (low limit, high limit) tuple.
         Raises:
@@ -99,6 +122,7 @@ class AbstractActuator(HardwareObject):
 
     def validate_value(self, value):
         """Check if the value is within limits.
+
         Args:
             value(numerical): value
         Returns:
@@ -115,18 +139,20 @@ class AbstractActuator(HardwareObject):
     @abc.abstractmethod
     def _set_value(self, value):
         """Implementation of specific set actuator logic.
+
         Args:
             value: target value
         """
 
     def set_value(self, value, timeout=0):
         """Set actuator to value.
+
         Args:
             value: target value
             timeout (float): optional - timeout [s],
-                             If timeout == 0: return at once and do not wait
-                                              (default);
-                             if timeout is None: wait forever.
+                    If timeout == 0: return at once and do not wait (default);
+                    if timeout is None: wait forever.
+
         Raises:
             ValueError: Invalid value or attemp to set read only actuator.
             RuntimeError: Timeout waiting for status ready  # From wait_ready
@@ -144,6 +170,7 @@ class AbstractActuator(HardwareObject):
 
     def update_value(self, value=None):
         """Check if the value has changed. Emits signal valueChanged.
+
         Args:
             value: value
         """
@@ -156,6 +183,7 @@ class AbstractActuator(HardwareObject):
 
     def update_limits(self, limits=None):
         """Check if the limits have changed. Emits signal limitsChanged.
+
         Args:
             limits (tuple): two elements tuple (low limit, high limit).
         """
@@ -175,10 +203,10 @@ class AbstractActuator(HardwareObject):
         super(AbstractActuator, self).re_emit_values()
 
     def force_emit_signals(self):
-        """Forces to emit all signals.
+        """
+        Emit all signals.
 
-        Method is called from gui
-        Do not call it within HWR
+        This method is called from the GUI. Do not call it within the hardware object.
         """
         self.emit("valueChanged", (self.get_value(),))
         self.emit("limitsChanged", (self.get_limits(),))

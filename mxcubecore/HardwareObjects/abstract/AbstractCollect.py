@@ -132,7 +132,12 @@ class AbstractCollect(HardwareObject, object):
 
     def collect(self, owner, dc_parameters_list):
         """
-        Main collect method.
+        Main collect method. It spawns "do_collect" as well as ready event handling.
+
+        Args:
+            owner (str): owner instance
+            dc_parameters_list (list(dict)): list of dictionary containing all collection parameters
+
         """
         self.ready_event.clear()
         self.current_dc_parameters = dc_parameters_list[0]
@@ -143,7 +148,15 @@ class AbstractCollect(HardwareObject, object):
 
     def do_collect(self, owner):
         """
-        Actual collect sequence
+        Actually collect the sequence.
+
+        Args:
+            owner (str): owner instance
+
+        Emits:
+            collectReady:  ('collectReady', bool)
+            collectOscillationStarted:  ('collectOscillationStarted', dict)
+            progressInit:  ('progressInit', ("Collection", progress, bool))
         """
         log = logging.getLogger("user_level_log")
         log.info("Collection: Preparing to collect")
@@ -280,7 +293,13 @@ class AbstractCollect(HardwareObject, object):
         self.close_detector_cover()
 
     def collection_failed(self, failed_msg=None):
-        """Collection failed method"""
+        """Collection failed method
+
+        Emits:
+            collectOscillationFailed: ('collectOscillationFailed', dict)
+            progressStop: 'progressStop'
+
+        """
 
         if not failed_msg:
             failed_msg = "Data collection failed!"
@@ -305,7 +324,11 @@ class AbstractCollect(HardwareObject, object):
         self.ready_event.set()
 
     def collection_stopped(self):
-        """Collection stopped method"""
+        """Collection stopped method
+
+        Emits:
+            progressStop: 'progressStop'
+        """
 
         self.current_dc_parameters["status"] = "Stopped"
         self.current_dc_parameters["comments"] = "Stopped by the user"
@@ -317,7 +340,12 @@ class AbstractCollect(HardwareObject, object):
             self.data_collect_task.kill(block=False)
 
     def collection_finished(self):
-        """Collection finished beahviour"""
+        """Collection finished behaviour
+
+        Emits:
+            collectOscillationFinished: ('collectOscillationFinished', dict)
+            progressStop: 'progressStop'
+        """
 
         success_msg = "Data collection successful"
         self.current_dc_parameters["status"] = success_msg
@@ -369,67 +397,82 @@ class AbstractCollect(HardwareObject, object):
 
     def open_detector_cover(self):
         """
-        Descript. :
+        Opens detector cover
         """
         pass
 
     def open_safety_shutter(self):
         """
-        Descript. :
+        Opens safety shutter
         """
         pass
 
     def open_fast_shutter(self):
         """
-        Descript. :
+        Opens fast shutter
         """
         pass
 
     def close_fast_shutter(self):
         """
-        Descript. :
+        Closes fast shutter
         """
         pass
 
     def close_safety_shutter(self):
         """
-        Descript. :
+        Closes safety shutter
         """
         pass
 
     def close_detector_cover(self):
         """
-        Descript. :
+        Closes detector cover
         """
         pass
 
     def set_transmission(self, value):
         """
-        Descript. :
+        Set transmission
+
+        Args:
+            tranmsission (float): tranmission value to set
         """
         pass
 
     def set_wavelength(self, value):
         """
-        Descript. :
+        Set wavelength
+
+        Args:
+            wavelength (float): wavelength value to set
         """
         pass
 
     def set_energy(self, value):
         """
-        Descript. :
+        Set energy
+
+        Args:
+            energy (float): energy value to set
         """
         pass
 
     def set_resolution(self, value):
         """
-        Descript. :
+        Set resolution
+
+        Args:
+            resolution (float): resolution value to set
         """
         pass
 
     def move_detector(self, value):
         """
-        Descript. :
+        Moves detector distance motor
+
+        Args:
+            value (float): distance [mm]
         """
         pass
 
@@ -438,35 +481,50 @@ class AbstractCollect(HardwareObject, object):
 
     def get_wavelength(self):
         """
-        Descript. :
+        Get current wavelength
+
+        Returns:
+            wavelength (float): current beamline wavelength [Ä]
         """
         if HWR.beamline.energy is not None:
             return HWR.beamline.energy.get_wavelength()
 
     def get_detector_distance(self):
         """
-        Descript. :
+        Get current detector distance
+
+        Returns:
+            distance (float): current detector distance position [mm]
         """
         if HWR.beamline.detector is not None:
             return HWR.beamline.detector.distance.get_value()
 
     def get_resolution(self):
         """
-        Descript. :
+        Get current resolution
+
+        Returns:
+            resolution (float): current resolution [Å]
         """
         if HWR.beamline.resolution is not None:
             return HWR.beamline.resolution.get_value()
 
     def get_transmission(self):
         """
-        Descript. :
+        Get current beamline transmission
+
+        Returns:
+            transmission (float): current transmission
         """
         if HWR.beamline.transmission is not None:
             return HWR.beamline.transmission.get_value()
 
     def get_beam_size(self):
         """
-        Descript. :
+        Get beam size
+
+        Returns:
+            beam size (tuple): beam width, beam heigth
         """
         if HWR.beamline.beam is not None:
             return HWR.beamline.beam.get_beam_size()
@@ -475,7 +533,10 @@ class AbstractCollect(HardwareObject, object):
 
     def get_slit_gaps(self):
         """
-        Descript. :
+        Get slit gap distance
+
+        Returns:
+            slit gap (tuple): horizontal gap, vertical gap
         """
         if HWR.beamline.beam is not None:
             return HWR.beamline.beam.get_slits_gap()
@@ -483,14 +544,20 @@ class AbstractCollect(HardwareObject, object):
 
     def get_undulators_gaps(self):
         """
-        Descript. :
+        Get undulator gaps
+
+        Returns:
+            undulator gaps (dict)
         """
         return {}
         # return HWR.beamline.energy.get_undulator_gaps()
 
     def get_machine_current(self):
         """
-        Descript. :
+        Get machine current
+
+        Returns:
+            current (float): machine current [mA]
         """
         if HWR.beamline.machine_info:
             return HWR.beamline.machine_info.get_current()
@@ -499,7 +566,10 @@ class AbstractCollect(HardwareObject, object):
 
     def get_machine_message(self):
         """
-        Descript. :
+        Get machine message
+
+        Returns:
+            message (str): current machine message if any
         """
         if HWR.beamline.machine_info:
             return HWR.beamline.machine_info.get_message()
@@ -508,7 +578,10 @@ class AbstractCollect(HardwareObject, object):
 
     def get_machine_fill_mode(self):
         """
-        Descript. :
+        Get machine fill mode
+
+        Returns:
+            fill mode (str): machine filling mode
         """
         if HWR.beamline.machine_info:
             fill_mode = str(HWR.beamline.machine_info.get_message())
@@ -518,20 +591,26 @@ class AbstractCollect(HardwareObject, object):
 
     def get_measured_intensity(self):
         """
-        Descript. :
+        Get beam intensity
+
+        Returns:
+            intensity (float): beam intensity
         """
         return
 
     def get_cryo_temperature(self):
         """
-        Descript. :
+        Get cryogenic temperature
+
+        Returns:
+            temperature (float): current cryo temperature [K]
         """
         return
 
     def create_file_directories(self):
         """
-        Method create directories for raw files and processing files.
-        Directorie names for xds, mosflm and hkl are created
+        Method to create directories for raw and processing files.
+        Directory names for xds, mosflm and hkl are created
         """
         self.create_directories(
             self.current_dc_parameters["fileinfo"]["directory"],
@@ -544,7 +623,10 @@ class AbstractCollect(HardwareObject, object):
 
     def create_directories(self, *args):
         """
-        Descript. :
+        Creates folders on disk
+
+        Args:
+            directory (list(str)): list of directories to create
         """
         for directory in args:
             try:
@@ -563,7 +645,7 @@ class AbstractCollect(HardwareObject, object):
 
     def store_data_collection_in_lims(self):
         """
-        Descript. :
+        Stores current data collection information in lims database.
         """
         lims = HWR.beamline.lims
         if lims and lims.is_connected() and not self.current_dc_parameters["in_interleave"]:
@@ -585,7 +667,7 @@ class AbstractCollect(HardwareObject, object):
 
     def update_data_collection_in_lims(self):
         """
-        Descript. :
+        Updates current data collection information in lims database.
         """
         params = self.current_dc_parameters
         if HWR.beamline.lims and not params["in_interleave"]:
@@ -624,7 +706,7 @@ class AbstractCollect(HardwareObject, object):
 
     def store_sample_info_in_lims(self):
         """
-        Descript. :
+        Stores current sample information in lims database.
         """
         lims = HWR.beamline.lims
         if lims and lims.is_connected() and not self.current_dc_parameters["in_interleave"]:
@@ -632,7 +714,11 @@ class AbstractCollect(HardwareObject, object):
 
     def store_image_in_lims(self, frame_number, motor_position_id=None):
         """
-        Descript. :
+        Stores image information in lims database.
+
+        Args:
+            frame_number (int): frame number of the image within the data collection
+            motor_position_id (int): motor_position_id
         """
         lims = HWR.beamline.lims
         if lims and lims.is_connected() and not self.current_dc_parameters["in_interleave"]:
@@ -696,7 +782,8 @@ class AbstractCollect(HardwareObject, object):
 
     def get_sample_info(self):
         """
-        Descript. :
+        Gets current sample information in lims database. Information is stored in the internal
+        "current_dc_parameters" dictionary.
         """
         sample_info = self.current_dc_parameters.get("sample_reference")
         try:
@@ -732,7 +819,7 @@ class AbstractCollect(HardwareObject, object):
 
     def move_to_centered_position(self):
         """
-        Descript. :
+        Move motors to the centered position stored in "current_dc_parameters" dictionary.
         """
         positions_str = ""
         for motor, position in self.current_dc_parameters["motors"].items():
@@ -747,14 +834,16 @@ class AbstractCollect(HardwareObject, object):
     @abc.abstractmethod
     @task
     def move_motors(self, motor_position_dict):
-        """
-        Descript. :
+        """Moves motors to given positions
+
+        Args:
+            motor_position_dict (dict): key value with motor names and desired position
         """
         return
 
     def take_crystal_snapshots(self):
         """
-        Descript. :
+        Take crystal snapshots of the currently loaded sample
         """
         number_of_snapshots = self.current_dc_parameters["take_snapshots"]
         if self.current_dc_parameters["experiment_type"] == "Mesh":
@@ -880,12 +969,13 @@ class AbstractCollect(HardwareObject, object):
         self, num_lines, total_nb_frames, mesh_center_param, mesh_range_param
     ):
         """
-        sets the mesh scan parameters :
-         - vertcal range
-         - horizontal range
-         - nb lines
-         - nb frames per line
-         - invert direction (boolean)  # NOT YET DONE
+        sets the mesh scan parameters
+
+        Args:
+            num_lines (int)
+            total_nb_frames (int)
+            mesh_center_param (tuple)
+            mesh_range_param (tuple)
         """
         return
 

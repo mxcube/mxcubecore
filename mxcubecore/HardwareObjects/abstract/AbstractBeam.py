@@ -18,13 +18,6 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-"""
-AbstracBeam class - methods to define the size and shape of the beam, its presence.
-
-emits:
-- beamSizeChanged (self._beam_width, self._beam_height)
-- beamInfoChanged (self._beam_info_dict.copy())
-"""
 
 __copyright__ = """ Copyright © 2016 - 2022 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
@@ -47,7 +40,28 @@ class BeamShape(Enum):
 
 
 class AbstractBeam(HardwareObject):
-    """AbstractBeam class"""
+    """
+    AbstracBeam class - methods to define the size and shape of the beam, its presence.
+
+    Emits:
+        beamSizeChanged:  Format: ("beamSizeChanged", (width, height))
+        beamInfoChanged: Format: ("beamInfoChanged", beam_info_dict)
+        beamPosChanged: Format: ("beamPosChanged", (pos_x, pos_y))
+
+    Note: re_emit_values emits all signals
+
+    Attributes:
+        _aperture: reference to the aperture hardware object
+        _slits: reference to the slits hardware object
+        _definer: reference to the slits hardware object
+        _beam_size_dict (dict): dictionary containing min max of aperure, slits and definer
+        _beam_width (float): beam size in horizontal direction
+        _beam_height (float): beam size in vertical direction
+        _beam_shape (str): beam shape (rectangular, ellipse, unknown)
+        _beam_divergence (tuple): beam divergence in horizontal and vertical directions
+        _beam_position_on_screen (tuple): beam position in pixel units
+        _beam_info_dict (dict): dictionary containing size_x, size_y, shape, label
+    """
 
     __metaclass__ = abc.ABCMeta
 
@@ -110,6 +124,7 @@ class AbstractBeam(HardwareObject):
 
     def get_beam_divergence(self):
         """Get the beam divergence.
+
         Returns:
             (tuple): Beam divergence (horizontal, vertical) [μm]
         """
@@ -119,18 +134,19 @@ class AbstractBeam(HardwareObject):
 
     def get_available_size(self):
         """Get the available predefined beam definers configuration.
+
         Returns:
             (dict): Dictionary {"type": (list), "values": (list)}, where
                "type": the definer type
-               "values": List of available beam size difinitions,
-                         according to the "type".
+               "values": List of available beam size difinitions, according to the "type".
         Raises:
             NotImplementedError
         """
         raise NotImplementedError
 
     def get_beam_shape(self):
-        """
+        """Get beam shape
+
         Returns:
             beam_shape: Enum BeamShape
         """
@@ -138,7 +154,8 @@ class AbstractBeam(HardwareObject):
         return self._beam_shape
 
     def get_beam_size(self):
-        """
+        """Get beam size
+
         Returns:
             (tuple): two floats
         """
@@ -146,8 +163,8 @@ class AbstractBeam(HardwareObject):
         return self._beam_width, self._beam_height
 
     def set_beam_size_shape(self, beam_width, beam_height, beam_shape):
-        """
-        Sets beam size and shape
+        """Sets beam size and shape
+
         Args:
             beam_width (float): requested beam width in microns
             beam_height (float): requested beam height in microns
@@ -161,6 +178,7 @@ class AbstractBeam(HardwareObject):
 
     def get_beam_position_on_screen(self):
         """Get the beam position
+
         Returns:
             (tuple): Position (x, y) [pixel]
         """
@@ -169,21 +187,23 @@ class AbstractBeam(HardwareObject):
 
     def set_beam_position_on_screen(self, beam_x_y):
         """Set the beam position
+
         Returns:
             beam_x_y (tuple): Position (x, y) [pixel]
         """
         raise NotImplementedError
 
     def get_beam_info_dict(self):
-        """
+        """Get beam info dictionary
+
         Returns:
             (dict): copy of beam_info_dict
         """
         return self._beam_info_dict.copy()
 
     def evaluate_beam_info(self):
-        """
-        Method called if aperture, slits or focusing has been changed
+        """Method called if aperture, slits or focusing has been changed
+
         Returns: dictionary, {size_x: 0.1, size_y: 0.1, shape: BeamShape enum}
         """
 
@@ -213,6 +233,13 @@ class AbstractBeam(HardwareObject):
     def re_emit_values(self):
         """
         Reemits beamSizeChanged and beamInfoChanged signals
+
+        Emits:
+            beamSizeChanged:  ('beamSizeChanged', (width, height))
+
+            beamInfoChanged: ('beamInfoChanged', beam info dict)
+
+            beamPosChanged: ('beamPosChanged', beam position)
         """
         HardwareObject.re_emit_values(self)
         if self._beam_width != 9999 and self._beam_height != 9999:
