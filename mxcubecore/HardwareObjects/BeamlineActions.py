@@ -180,7 +180,7 @@ class BeamlineActions(HardwareObject):
         _cls_name = parts[-1]
         self._annotated_commands.append(_cls_name)
 
-        # Assume import from current module if only class name givien (no module)
+        # assume import from current module if only class name given (no module)
         if len(parts) == 1:
             _cls = getattr(sys.modules[__name__], _cls_name)
         else:
