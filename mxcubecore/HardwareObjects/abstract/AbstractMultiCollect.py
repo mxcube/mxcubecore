@@ -783,28 +783,12 @@ class AbstractMultiCollect(object):
             self.open_safety_shutter()
 
             flux_threshold = self.get_property("flux_threshold", 0)
-            cryo_threshold = self.get_property("cryo_threshold", 0)
 
-            check_cryo = self.get_property("check_cryo", False)
-
-            HWR.beamline.flux.wait_for_beam()
-
-            # Wait for cryo
-            # from time to time cryo does not answer
-            cryo_temp = 999
-            while check_cryo and cryo_temp > cryo_threshold:
-                try:
-                    logging.getLogger("user_level_log").info(
-                        "Cryo temperature reading ..."
-                    )
-                    cryo_temp = HWR.beamline.diffractometer.cryostream.get_value()
-                    if cryo_temp > cryo_threshold:
-                        logging.getLogger("user_level_log").info(
-                            "Cryo temperature too high ..."
-                        )
-                        gevent.sleep(0.5)
-                except:
-                    break
+            try:
+                HWR.beamline.flux.wait_for_beam()
+                HWR.beamline.cryo.wait_temperature()
+            except AttributeError:
+                pass
 
             logging.getLogger("user_level_log").info("Preparing intensity monitors")
             self.prepare_intensity_monitors()
