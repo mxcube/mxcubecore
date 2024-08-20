@@ -84,6 +84,9 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
             _vals = test_object.get_defined_beam_size()
             _list = test_object.aperture.get_diameter_size_list()
             assert _vals["label"] == _list
+            for val in _vals["size"]:
+                assert isinstance(val, tuple)
+                assert val[0] == val[1]
 
         if test_object.slits:
             test_object._definer_type = "slits"

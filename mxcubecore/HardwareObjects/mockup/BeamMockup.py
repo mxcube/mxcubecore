@@ -231,7 +231,10 @@ class BeamMockup(AbstractBeam):
             _nam = value.name
             if _nam not in ["IN", "OUT", "UNKNOWN"]:
                 labels.append(_nam)
-                values.append(value.value)
+                if self._definer_type == "aperture":
+                    values.append((value.value[0]/1000., value.value[0]/1000.))
+                else:
+                    values.append(value.value)
         return {"label": labels, "size": values}
 
     def get_available_size(self):
