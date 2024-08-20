@@ -358,12 +358,15 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             )
 
         # ensure proper MD3 phase
-        if self.diffractometer_hwobj.get_current_phase() != "DataCollection":
-            self.diffractometer_hwobj.set_phase(
-                "DataCollection", wait=True, timeout=200
-            )
+        if HWR.beamline.diffractometer.get_current_phase().value != "DataCollection":
+            HWR.beamline.diffractometer.set_phase("DataCollection", wait=True)
 
-        logging.getLogger("HWR").warning("Valid centring position not found")
+        # and move to the centred positions after phase change
+        if self.cpos:
+            logging.getLogger("HWR").info("Moving to centring position")
+            HWR.beamline.diffractometer.move_to_motors_positions(cpos, wait=True)
+        else:
+            logging.getLogger("HWR").warning("Valid centring position not found")
 
         try:
             self.open_safety_shutter()
