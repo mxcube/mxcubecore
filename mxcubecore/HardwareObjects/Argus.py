@@ -67,9 +67,29 @@ class Argus(HardwareObject):
         self.emit_last_response_change(response)
         return True
 
-    def start_process(self, name: List[str]):
+    def start_process(self, name: str, type: str, **args):
         print(f"Sending start process request for {name}")
-        response = self.stub.StartProcesses(pb2.StartProcessesRequest(names=name))
+        print(args)
+        process = pb2.ProcessInfo(
+            name=name,
+            type=type,
+            args=[arg for arg in args["args"]],
+        )
+        print(process.args)
+        response = self.stub.StartProcesses(
+            pb2.StartProcessesRequest(processes=[process])
+        )
+        self.emit_last_response_change(response)
+
+    def manage_process(self, name: str, command: str, wait_time: int, **args):
+        print(f"Sending manage request for command {command} of process {name}")
+        request = pb2.ManageProcessesRequest(
+            name=name,
+            order=command,
+            wait_time=wait_time,
+            args=[arg for arg in args["args"]],
+        )
+        response = self.stub.ManageProcesses(request)
         self.emit_last_response_change(response)
 
     def emit_last_response_change(self, response: any):
