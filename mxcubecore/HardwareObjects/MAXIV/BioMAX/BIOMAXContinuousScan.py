@@ -57,26 +57,16 @@ __email__ = "mikel.eguiraun[at]maxiv.lu.se"
 __status__ = "Production"
 
 
-class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
+class BIOMAXContinuousScan(AbstractEnergyScan):
     def __init__(self, name):
         """
         Descript. :
         """
-
         AbstractEnergyScan.__init__(self)
-        HardwareObject.__init__(self, name)
-
-        self.can_scan = None
         self.ready_event = None
-        self.stop_flag = False
-        self.scanning = False
         self.scan_data = None
-
-        # self.db_connection_hwobj = None
-        self.transmission_hwobj = None
-        self.energy_hwobj = None
-        self.safety_shutter_hwobj = None
-        self.prefix = None
+        self.initial_transmission_value = None
+        self.initial_energy_value = None
 
         # Lis harmonic jumps. Should not scan over these.
         self.Eh = [6000, 9060.0, 12610.0, 17270.0, 20400, 25000]
@@ -86,66 +76,17 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
         Descript. :
         """
         self.ready_event = gevent.event.Event()
-        self.scanInfo = {}
+        self.energy_scan_parameters = {}
         self.xray_table = open(
             "/mxn/groups/biomax/amptek/maxlab_macros/energy_edges.dat", "r"
         )
         self.remote_energy_table = open(
             "/mxn/groups/biomax/amptek/maxlab_macros/remote-energy.dat", "r"
         )
-        # to preserve snake_case in the file
-        self.startEnergyScan = self.start_energy_scan
-        self.cancelEnergyScan = self.cancel_energy_scan
-
-        self.db_connection_hwobj = self.get_object_by_role("lims_client")
-        if self.db_connection_hwobj is None:
-            logging.getLogger("HWR").warning(
-                "BIOMAXEnergyScan: Database hwobj not defined"
-            )
-
-        self.transmission_hwobj = self.get_object_by_role("transmission")
-        if self.transmission_hwobj is None:
-            self.can_scan = False
-            logging.getLogger("HWR").warning(
-                "BIOMAXEnergyScan: Transmission hwobj not defined"
-            )
-
-        self.energy_hwobj = self.get_object_by_role("energy")
-        if self.energy_hwobj is None:
-            self.can_scan = False
-            logging.getLogger("HWR").warning(
-                "BIOMAXEnergyScan: Energy hwobj not defined"
-            )
-
-        self.beam_info_hwobj = self.get_object_by_role("beam_info")
-        if self.beam_info_hwobj is None:
-            logging.getLogger("HWR").warning(
-                "BIOMAXEnergyScan: Beam Info hwobj not defined"
-            )
-
-        self.flux_hwobj = self.get_object_by_role("flux")
-        if self.flux_hwobj is None:
-            logging.getLogger("HWR").warning("BIOMAXEnergyScan: Flux hwobj not defined")
-
-        self.diffractometer_hwobj = self.get_object_by_role("diffractometer")
-        if self.diffractometer_hwobj is None:
-            self.can_scan = False
-            logging.getLogger("HWR").warning(
-                "BIOMAXEnergyScan: Diffractometer hwobj not defined"
-            )
-
-        try:
-            self.safety_shutter_hwobj = self.get_object_by_role("safety_shutter")
-        except KeyError:
-            logging.getLogger("HWR").warning(
-                "Energy: error initializing safety shutter"
-            )
 
         try:
             self.xspress3 = tango.DeviceProxy("b311a-e/dia/xfs-01")
-            self.can_scan = True
         except tango.DevFailed:
-            self.can_scan = False
             logging.getLogger("HWR").error(
                 "BIOMAXEnergyScan: unable to connect to Counter Device"
             )
@@ -153,14 +94,13 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
         try:
             self.pandabox = tango.DeviceProxy("b311a/tim/panda-01")
         except tango.DevFailed:
-            self.can_scan = False
             logging.getLogger("HWR").error("Unable to connect to pandabox")
 
         try:
             self.door = tango.DeviceProxy("biomax/door/01")
         except tango.DevFailed:
-            self.can_scan = False
             logging.getLogger("HWR").error("Unable to connect to sardana door device")
+
         try:
             self.pidx = tango.DeviceProxy("b311a/ctl/pid-01")
             self.pidx.set_timeout_millis(7000)
@@ -205,7 +145,7 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
         self.xspress3.nTriggers = 1
         self.xspress3.nFramesPerTrigger = 1
 
-    def run_sardana_macro(self, startEnergy, endEnergy, scan_file, scan_dir):
+    def run_sardana_macro(self, start_energy, end_energy, scan_file, scan_dir):
         # sardana macro will ensure the correc meas group!
         if self.door.state() != tango.DevState.ON:
             logging.getLogger("HWR").error(
@@ -214,8 +154,8 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
             raise RuntimeError("Unable to run scan macro, door is not ready")
         logging.getLogger("HWR").info(
             "Sardana macro: energyContScan_mx3 %s %s %s %s",
-            str(startEnergy),
-            str(endEnergy),
+            str(start_energy),
+            str(end_energy),
             scan_file,
             scan_dir,
         )
@@ -223,8 +163,8 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
         self.door.runMacro(
             [
                 "energyContScan_mx3",
-                str(startEnergy),
-                str(endEnergy),
+                str(start_energy),
+                str(end_energy),
                 scan_file,
                 scan_dir,
             ]
@@ -274,8 +214,6 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
         logging.getLogger("HWR").info("closing the colibri shutter")
         self.pandabox.CloseShutter()
 
-    #       self.pandabox.Arm() # to be checked its need
-
     def acq_detector(self, wait=True):
         """
         Start tango  device for the acquisition.
@@ -299,10 +237,10 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
                 while self.xspress3.State().name == "RUNNING":
                     gevent.sleep(0.2)
 
-    def prepare_transmission(self, element, edgeElement):
-        edge_energy, emission = self.calculate_emission_and_edge_energy(
-            element, edgeElement
-        )
+    def choose_attenuation(self, element, edge):
+        element = energy_scan_parameters["element"]
+        edge = energy_scan_parameters["edge"]
+        edge_energy, emission = self.calculate_emission_and_edge_energy(element, edge)
         _energy = edge_energy + 30
 
         # preparing the pandabox
@@ -320,7 +258,7 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
             logging.getLogger("HWR").info(
                 "Setting prepare transmission energy %s" % str(_energy)
             )
-            self.energy_hwobj.start_move_energy(_energy / 1000, check_beam=True)
+            HWR.beamline.energy.start_move_energy(_energy / 1000, check_beam=True)
         except Exception as ex:
             logging.getLogger("HWR").error("EnergyScan: cannot set scan Energy %s" % ex)
             return False
@@ -329,7 +267,7 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
             logging.getLogger("HWR").info(
                 "Setting start transmission %s" % str(SCAN_TRANSMISSION)
             )
-            self.transmission_hwobj.set_value(float(SCAN_TRANSMISSION), wait=True)
+            HWR.beamline.transmission.set_value(float(SCAN_TRANSMISSION), wait=True)
         except Exception as ex:
             logging.getLogger("HWR").error(
                 "EnergyScan: cannot set scan transmission %s" % ex
@@ -374,7 +312,7 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
             logging.getLogger("HWR").info(
                 "Setting transmission for energy scan %s" % str(transmission)
             )
-            self.transmission_hwobj.set_value(float(transmission), wait=True)
+            HWR.beamline.transmission.set_value(float(transmission), wait=True)
         except Exception as ex:
             logging.getLogger("HWR").error(
                 "EnergyScan: cannot set scan transmission %s" % ex
@@ -400,7 +338,26 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
                     "EnergyScan: error creating directory %s (%s)"
                     % (directory, str(ex))
                 )
-        return True
+
+        energy_scan_filename = self.energy_scan_parameters["filename"]
+        logging.getLogger("HWR").debug(
+            "BIOMAXEnergyScan: {}".format(energy_scan_filename)
+        )
+        if os.path.exists(energy_scan_filename):
+            logging.getLogger("HWR").debug(
+                "BIOMAXEnergyScan: Aborting execution, File already exists on disk {}".format(
+                    energy_scan_filename
+                )
+            )
+            logging.getLogger("user_level_log").error(
+                "BIOMAXEnergyScan: Aborting execution, File already exists on disk {}".format(
+                    energy_scan_filename
+                )
+            )
+            self.scan_command_aborted()
+            raise Exception(
+                "File already exists on disk {}".format(energy_scan_filename)
+            )
 
     def adjust_run_number(self, directory, prefix):
         energy_scan_file_prefix = str(os.path.join(directory, prefix))
@@ -417,7 +374,7 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
     def energy_values(self, central_energy):
         # if energy value is not given
         if central_energy == 0:
-            central_energy = self.energy_hwobj.get_current_energy()  # units?
+            central_energy = HWR.beamline.energy.get_current_energy()  # units?
         # defining energy range around the edge energy
         Es = central_energy - 50
         Ef = central_energy + 50
@@ -441,95 +398,36 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
 
         return Es, Ef
 
-    def start_energy_scan(
-        self,
-        element,
-        edgeElement,
-        directory,
-        prefix,
-        session_id=None,
-        blsample_id=None,
-        cpos=None,
-        exptime=0.1,
-    ):
+    def escan_prepare(self):
         """
-        Descript. :
+        Set the nesessary equipment in position for the scan. No need to know the escan paramets.
         """
-        self.ready_event.clear()
-        self.stop_flag = False
-        if not self.can_scan:
-            logging.getLogger("HWR").error("EnergyScan: unable to start energy scan")
-            self.scan_command_aborted()
-            return
 
-        energy_scan_filename = str(os.path.join(directory, prefix))
-        logging.getLogger("HWR").debug(
-            "BIOMAXEnergyScan: {}".format(energy_scan_filename)
-        )
-        if os.path.exists(energy_scan_filename):
-            logging.getLogger("HWR").debug(
-                "BIOMAXEnergyScan: Aborting execution, File already exists on disk {}".format(
-                    energy_scan_filename
-                )
-            )
-            logging.getLogger("user_level_log").error(
-                "BIOMAXEnergyScan: Aborting execution, File already exists on disk {}".format(
-                    energy_scan_filename
-                )
-            )
-            self.scan_command_aborted()
-            raise Exception(
-                "File already exists on disk {}".format(energy_scan_filename)
-            )
+        self.initial_transmission_value = HWR.beamline.transmission.get_att_factor()
+        self.initial_energy_value = HWR.beamline.energy.get_current_energy()
 
         # ensure proper MD3 phase
-        if self.diffractometer_hwobj.get_current_phase() != "DataCollection":
-            self.diffractometer_hwobj.set_phase(
-                "DataCollection", wait=True, timeout=200
-            )
+        if HWR.beamline.diffractometer.get_current_phase().value != "DataCollection":
+            HWR.beamline.diffractometer.set_phase("DataCollection", wait=True)
 
         # and move to the centred positions after phase change
-        if cpos:
+        if self.cpos:
             logging.getLogger("HWR").info("Moving to centring position")
-            self.diffractometer_hwobj.move_to_motors_positions(cpos, wait=True)
+            HWR.beamline.diffractometer.move_to_motors_positions(cpos, wait=True)
         else:
             logging.getLogger("HWR").warning("Valid centring position not found")
 
         try:
-            self.open_safety_shutter()
+            HWR.beamline.collect.open_safety_shutter()
         except Exception as ex:
             logging.getLogger("HWR").error("Open safety shutter: error %s" % str(ex))
 
-        initial_transmission_value = self.transmission_hwobj.get_att_factor()
-        initial_energy_value = self.energy_hwobj.get_current_energy()
+        HWR.beamline.diffractometer.move_fluo_in()
 
-        self.scanInfo = {
-            "sessionId": session_id,
-            "blSampleId": blsample_id,
-            "element": element,
-            "edgeEnergy": edgeElement,
-        }
-
-        self.scanInfo["exposureTime"] = 0.009  # defined in the sardana macro
-
-        prefix = self.adjust_run_number(directory, prefix)
-        file_name = prefix + ".h5"
-        full_file_path = str(os.path.join(directory, file_name))
-        self.scanInfo["filename"] = full_file_path  # dir + file name + h5
-        self.scan_data = []
-        logging.getLogger("HWR").info("Energy scan info: %s", str(self.scanInfo))
-
-        if not self.prepare_directory(directory):
-            return False
-
-        self.scan_command_started()
-
-        self.diffractometer_hwobj.move_fluo_in()
-
-        edge_energy, emission = self.calculate_emission_and_edge_energy(
-            element, edgeElement
-        )
+        edge_energy, emission = self.calculate_emission_and_edge_energy(element, edge)
         Es, Ef = self.energy_values(edge_energy)
+        self.energy_scan_parameters["Es"] = Es
+        self.energy_scan_parameters["Ef"] = Ef
         logging.getLogger("HWR").info("Preparing fluorescence detector")
 
         self.prepare_detector(emission)
@@ -537,20 +435,42 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
         self.pandabox.CloseShutter()
         # opening the fast shutter of MD3 as colibri shutter is now closed
         logging.getLogger("HWR").info("Openning MD3 fast shutter")
-        self.diffractometer_hwobj.open_fast_shutter()
+        HWR.beamline.diffractometer.open_fast_shutter()
 
-        if not self.prepare_transmission(element, edgeElement):
+        if not self.choose_attenuation(element, edge):
             return False
-        self.scanInfo["transmissionFactor"] = self.transmission_hwobj.get_att_factor()
+        self.energy_scan_parameters[
+            "transmissionFactor"
+        ] = HWR.beamline.transmission.get_att_factor()
+        self.energy_scan_parameters[
+            "exposureTime"
+        ] = 0.009  # defined in the sardana macro
+        directory = self.energy_scan_parameters["directory"]
+        prefix = self.adjust_run_number(directory, prefix)
+        file_name = prefix + ".h5"
+        full_file_path = str(os.path.join(directory, file_name))
+        self.energy_scan_parameters["filename"] = full_file_path  # dir + file name + h5
+        self.scan_data = []
+
+        logging.getLogger("HWR").info(
+            "Energy scan info: %s", str(self.energy_scan_parameters)
+        )
+        self.prepare_directory(directory)
 
         self.prepare_panda(exptime)
 
+    def execute_energy_scan(self, energy_scan_parameters):
+        """
+        Execute the raw scan sequence. Here is where you pass whatever
+        parameters you need to run the raw scan (e.g start/end energy,
+        counting time, energy step...).
+        """
         try:
             try:
                 logging.getLogger("HWR").info(
                     "Setting start energy %s" % str(Es / 1000)
                 )
-                self.energy_hwobj.start_move_energy(Es / 1000, check_beam=True)
+                HWR.beamline.energy.start_move_energy(Es / 1000, check_beam=True)
             except Exception as ex:
                 logging.getLogger("HWR").error(
                     "EnergyScan: cannot set scan Energy %s" % ex
@@ -560,58 +480,57 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
             self.stop_pid_controllers()
 
             logging.getLogger("HWR").info("Running sardana macro")
-            self.run_sardana_macro(Es, Ef, file_name, directory)
-
-        #    self.scan_command_finished(prefix, directory)
+            self.run_sardana_macro(
+                energy_scan_parameters["Es"],
+                energy_scan_parameters["Ef"],
+                energy_scan_parameters["file_name"],
+                energy_scan_parameters["directory"],
+            )
         except Exception as ex:
             logging.getLogger("HWR").error(
                 "EnergyScan: error in executing energy scan command %s" % ex
             )
             self.emit("energyScanFailed", ("Error in executing energy scan command",))
             self.scan_command_failed()
-            return False
 
+    def escan_postscan(self):
+        """
+        set the nesessary equipment in position after the scan
+        """
         self.closure()
 
         logging.getLogger("HWR").info(
             "Setting original energy %s" % str(initial_energy_value)
         )
-        self.energy_hwobj.start_move_energy(initial_energy_value, check_beam=False)
+        HWR.beamline.energy.start_move_energy(initial_energy_value, check_beam=False)
         logging.getLogger("HWR").info(
             "Setting original transmission %s" % str(initial_transmission_value)
         )
-        self.transmission_hwobj.set_value(float(initial_transmission_value), wait=True)
+        HWR.beamline.transmission.set_value(
+            float(initial_transmission_value), wait=True
+        )
 
         self.scan_command_finished(prefix, directory)
-        return True
 
     def cancel_energy_scan(self, *args):
         """
         Descript. :
         """
-        if self.scanning:
-            self.scan_command_aborted()
+        self.scan_command_aborted()
 
-    def scan_command_started(self, *args):
-        """
-        Descript. :
-        """
-        self.scanInfo["startTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
-        self.scanning = True
-        self.emit("energyScanStarted", ())
+    def escan_cleanup(self):
+        pass
 
     def scan_command_failed(self, *args):
         """
         Descript. :
         """
         logging.getLogger("HWR").error("BIOMAXEnergyScan: energy scan failed")
-        self.scanInfo["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
-        self.scanning = False
-        self.stop_flag = True
+        self.energy_scan_parameters["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
         logging.getLogger("HWR").info("Stopping Energy")
-        self.energy_hwobj.cancel_move_energy()
+        HWR.beamline.energy.cancel_move_energy()
         logging.getLogger("HWR").info("Stopping Transmission")
-        self.transmission_hwobj.stop()
+        HWR.beamline.transmission.stop()
 
         self.closure()
 
@@ -623,13 +542,6 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
         Descript. :
         """
         logging.getLogger("HWR").error("BIOMAXEnergyScan: energy scan aborted")
-        self.scanning = False
-        self.stop_flag = True
-        # logging.getLogger("HWR").info("Stopping Energy")
-        # self.energy_hwobj.cancelMoveEnergy()
-        # logging.getLogger("HWR").info("Stopping Transmission")
-        # self.transmission_hwobj.stop()
-
         self.closure()
 
         self.emit("energyScanFailed", ())
@@ -639,11 +551,11 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
         """
         Descript. :
         """
-        self.diffractometer_hwobj.wait_device_ready()
+        HWR.beamline.diffractometer.wait_device_ready()
         logging.getLogger("HWR").info("Closing fast shutter")
-        self.diffractometer_hwobj.close_fast_shutter()
+        HWR.beamline.diffractometer.close_fast_shutter()
         logging.getLogger("HWR").info("Moving out fluorescence detector")
-        self.diffractometer_hwobj.move_fluo_out(wait=False)
+        HWR.beamline.diffractometer.move_fluo_out(wait=False)
         logging.getLogger("HWR").info("Opening Colibri shutter")
         self.pandabox.OpenShutter()
         logging.getLogger("HWR").info("Startig PID controllers")
@@ -652,16 +564,15 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
         except tango.DevFailed:
             logging.getLogger("HWR").error("Cannot start PID controllers")
 
-    def read_raw_data(self, directory, prefix):
-        path = os.path.join(directory, prefix)
-        logging.getLogger("HWR").info("Waiting for result file %s" % path)
+    def read_raw_data(self, filename):
+        logging.getLogger("HWR").info("Waiting for result file %s" % filename)
 
         with gevent.Timeout(20, Exception("Timeout waiting for scan result file")):
-            while not os.path.exists(path):
+            while not os.path.exists(filename):
                 gevent.sleep(0.5)
 
         try:
-            file = h5py.File(path)
+            file = h5py.File(filename)
             measurement = file.get(file.keys()[0]).get("measurement")
             energy = measurement.get("pcap_energy_av").value
             counts = measurement.get("xspress3_mini_ct_dtc_1").value
@@ -674,7 +585,7 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
 
         try:
             if len(self.scan_data) != 0:
-                txt_path = os.path.join(directory, prefix + ".txt")
+                txt_path = os.path.join(filename + ".txt")
                 logging.getLogger("HWR").info(
                     "Saving scan data to txt file %s" % txt_path
                 )
@@ -686,61 +597,39 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
         """
         Descript. :
         """
-        with cleanup(self.ready_event.set):
-            self.scanInfo["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
-            logging.getLogger("HWR").debug("BIOMAXFlyEnergyScan: energy scan finished")
-            self.scanning = False
+        self.energy_scan_parameters["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
+        logging.getLogger("HWR").debug("BIOMAXFlyEnergyScan: energy scan finished")
 
-            self.read_raw_data(directory, prefix)
-            self.scanInfo["startEnergy"] = self.scan_data[0][0] / 1000
-            self.scanInfo["endEnergy"] = self.scan_data[-1][0] / 1000
-            beam_size = self.beam_info_hwobj.get_beam_size()
-            self.scanInfo["beamSizeHorizontal"] = int(beam_size[0] * 1000)
-            self.scanInfo["beamSizeVertical"] = int(beam_size[1] * 1000)
-            self.scanInfo["flux"] = self.flux_hwobj.estimate_flux()
+        self.read_raw_data(self.energy_scan_parameters["filename"])
+        self.energy_scan_parameters["startEnergy"] = self.scan_data[0][0] / 1000
+        self.energy_scan_parameters["endEnergy"] = self.scan_data[-1][0] / 1000
+        beam_size = HWR.beamline.beam.get_beam_size()
+        self.energy_scan_parameters["beamSizeHorizontal"] = int(beam_size[0] * 1000)
+        self.energy_scan_parameters["beamSizeVertical"] = int(beam_size[1] * 1000)
+        self.energy_scan_parameters["flux"] = HWR.beamline.flux.estimate_flux()
 
-            energy_scan_file_prefix = str(os.path.join(directory, prefix))
-            if "h5" not in energy_scan_file_prefix:
-                energy_scan_raw_file_name = os.path.extsep.join(
-                    (energy_scan_file_prefix, "h5")
-                )
-                energy_scan_png_file_name = os.path.extsep.join(
-                    (energy_scan_file_prefix, "png")
-                )
-            else:
-                energy_scan_raw_file_name = energy_scan_file_prefix
-                _tmp = energy_scan_file_prefix.split(".h5")[0]
-                energy_scan_png_file_name = os.path.extsep.join((_tmp, "png"))
+        filename = self.energy_scan_parameters["filename"]
+        if "h5" not in filename:
+            energy_scan_raw_file_name = os.path.extsep.join((filename, "h5"))
+            energy_scan_png_file_name = os.path.extsep.join((filename, "png"))
+        else:
+            energy_scan_raw_file_name = filename
+            _tmp = filename.split(".h5")[0]
+            energy_scan_png_file_name = os.path.extsep.join((_tmp, "png"))
 
-            self.scanInfo["scanFileFullPath"] = str(energy_scan_raw_file_name)
-            self.scanInfo["filename"] = energy_scan_raw_file_name
+        self.energy_scan_parameters["scanFileFullPath"] = str(energy_scan_raw_file_name)
 
-            plt.plot(*zip(*self.scan_data))
-            plt.savefig(energy_scan_png_file_name)
-            plt.close()
-            try:
-                self.store_energy_scan()
-            except Exception as ex:
-                print(ex)
-            self.emit("energyScanFinished", (self.scanInfo,))
-            logging.getLogger("HWR").debug(
-                "energyScanFinished signal emitted %r", self.scanInfo
-            )
-
-    def getElements(self):
-        """
-        Return list of dicts with element and energy level
-            [
-                {'symbol': 'Mn', 'energy': 'K'},
-                {'symbol': 'Fe', 'energy': 'K'
-            ]
-        """
-        elements = []
-        if self["elements"] is not None:
-            for el in self["elements"]:
-                elements.append({"symbol": el.symbol, "energy": el.energy})
-
-        return elements
+        plt.plot(*zip(*self.scan_data))
+        plt.savefig(energy_scan_png_file_name)
+        plt.close()
+        try:
+            self.store_energy_scan()
+        except Exception as ex:
+            print(ex)
+        self.emit("energyScanFinished", (self.energy_scan_parameters,))
+        logging.getLogger("HWR").debug(
+            "energyScanFinished signal emitted %r", self.energy_scan_parameters
+        )
 
     # Mad energies commands
     def getDefaultMadEnergies(self):
@@ -766,29 +655,39 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
         """
         Descript. :
         """
-        logging.getLogger("HWR").debug("EnergyScan info %r", self.scanInfo)
+        logging.getLogger("HWR").debug(
+            "EnergyScan info %r", self.energy_scan_parameters
+        )
 
-        blsampleid = self.scanInfo.get("blSampleId", None)
+        blsampleid = self.energy_scan_parameters.get("blSampleId", None)
         if blsampleid:
-            self.scanInfo.pop("blSampleId")
-        if self.db_connection_hwobj:
-            self.scanInfo["startTime"] = str(self.scanInfo["startTime"])
-            self.scanInfo["endTime"] = str(self.scanInfo["endTime"])
+            self.energy_scan_parameters.pop("blSampleId")
+        if HWR.beamline.lims:
+            self.energy_scan_parameters["startTime"] = str(
+                self.energy_scan_parameters["startTime"]
+            )
+            self.energy_scan_parameters["endTime"] = str(
+                self.energy_scan_parameters["endTime"]
+            )
             try:
-                db_status = self.db_connection_hwobj.storeEnergyScan(self.scanInfo)
+                db_status = HWR.beamline.lims.storeEnergyScan(
+                    self.energy_scan_parameters
+                )
             except Exception as ex:
                 logging.getLogger("HWR").warning(
                     "Energy scan store in lims failed %s" % str(ex)
                 )
                 db_status["energyScanId"] = -1
             energyscanid = int(db_status["energyScanId"])
-            self.scanInfo["energyScanId"] = energyscanid
-            logging.getLogger("HWR").debug("EnergyScan info %r", self.scanInfo)
+            self.energy_scan_parameters["energyScanId"] = energyscanid
+            logging.getLogger("HWR").debug(
+                "EnergyScan info %r", self.energy_scan_parameters
+            )
 
             if blsampleid is not None:
                 try:
                     asoc = {"blSampleId": blsampleid, "energyScanId": energyscanid}
-                    self.db_connection_hwobj.associateBLSampleAndEnergyScan(asoc)
+                    HWR.beamline.lims.associateBLSampleAndEnergyScan(asoc)
                 except Exception as ex:
                     logging.getLogger("HWR").warning(
                         "Energy scan store in lims failed %s" % str(ex)
@@ -806,12 +705,12 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
         return None
 
     # flake8: noqa: C901
-    def doChooch(self, elt, edge, scan_directory, archive_directory, prefix):
+    def do_chooch(self, elt, edge, scan_directory, archive_directory, prefix):
         logging.getLogger("HWR").info(
             "Doing Chooch, scan directory %s, prefix  %s" % (scan_directory, prefix)
         )
         # self.adjust_run_number() may update the prefix, so we use the prefix attribute instead
-        archive_file_prefix = str(os.path.join(archive_directory, self.prefix))
+        archive_file_prefix = str(os.path.join(archive_directory, prefix))
         data_filename = os.path.join(scan_directory, prefix)
         if "h5" not in data_filename:
             data_filename = data_filename + ".h5"
@@ -877,21 +776,21 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
                 "Energy scan: cannot save chooch results to file: %s" % ex
             )
         edge_energy, emission = self.calculate_emission_and_edge_energy(elt, edge)
-        self.scanInfo["edgeEnergy"] = edge_energy
-        self.th_edge = self.scanInfo["edgeEnergy"]
+        self.energy_scan_parameters["edgeEnergy"] = edge_energy
+        self.th_edge = self.energy_scan_parameters["edgeEnergy"]
 
-        self.scanInfo["peakEnergy"] = pk
-        self.scanInfo["inflectionEnergy"] = ip
-        self.scanInfo["remoteEnergy"] = rm
-        self.scanInfo["remoteFPrime"] = rmfprime
-        self.scanInfo["remoteFDoublePrime"] = rmfdoubleprime
-        self.scanInfo["peakFPrime"] = fpPeak
-        self.scanInfo["peakFDoublePrime"] = fppPeak
-        self.scanInfo["inflectionFPrime"] = fpInfl
-        self.scanInfo["inflectionFDoublePrime"] = fppInfl
-        self.scanInfo["comments"] = comm
-        self.scanInfo["choochFileFullPath"] = archive_file_efs_filename
-        self.scanInfo["workingDirectory"] = archive_directory
+        self.energy_scan_parameters["peakEnergy"] = pk
+        self.energy_scan_parameters["inflectionEnergy"] = ip
+        self.energy_scan_parameters["remoteEnergy"] = rm
+        self.energy_scan_parameters["remoteFPrime"] = rmfprime
+        self.energy_scan_parameters["remoteFDoublePrime"] = rmfdoubleprime
+        self.energy_scan_parameters["peakFPrime"] = fpPeak
+        self.energy_scan_parameters["peakFDoublePrime"] = fppPeak
+        self.energy_scan_parameters["inflectionFPrime"] = fpInfl
+        self.energy_scan_parameters["inflectionFDoublePrime"] = fppInfl
+        self.energy_scan_parameters["comments"] = comm
+        self.energy_scan_parameters["choochFileFullPath"] = archive_file_efs_filename
+        self.energy_scan_parameters["workingDirectory"] = archive_directory
 
         chooch_graph_x = []
         chooch_graph_y1 = []
@@ -955,7 +854,9 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
                 "Energy scan: cannot save chooch processing results to file: %s" % ex
             )
 
-        self.scanInfo["jpegChoochFileFullPath"] = str(archive_file_png_filename)
+        self.energy_scan_parameters["jpegChoochFileFullPath"] = str(
+            archive_file_png_filename
+        )
         try:
             logging.getLogger("HWR").info(
                 "Saving energy scan to archive directory for ISPyB : %s",
@@ -1002,25 +903,14 @@ class BIOMAXContinuousScan(AbstractEnergyScan, HardwareObject):
             title,
         )
 
-    def open_safety_shutter(self):
-        """
-        Descript. :
-        """
-        # todo add time out? if over certain time, then stop acquisiion and
-        # popup an error message
-        if self.safety_shutter_hwobj.get_state() == "opened":
-            return
-
-        logging.getLogger("HWR").info("Opening the safety shutter.")
-        self.safety_shutter_hwobj.open()
-
-        with gevent.Timeout(
-            5, RuntimeError("Could not open the safety shutter, timeout error")
-        ):
-            while self.safety_shutter_hwobj.get_state() == "closed":
-                gevent.sleep(0.2)
-
     def get_elements(self):
+        """
+        Return list of dicts with element and energy level
+            [
+                {'symbol': 'Mn', 'energy': 'K'},
+                {'symbol': 'Fe', 'energy': 'K'
+            ]
+        """
         elements = []
         try:
             for el in self["elements"]:
