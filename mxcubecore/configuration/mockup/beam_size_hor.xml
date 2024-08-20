@@ -1,0 +1,8 @@
+<device class="MotorMockupBis">
+  <actuator_name>beam_size_hor</actuator_name>
+  <username>Beam Width</username>
+  <default_value>0.1</default_value>
+  <velocity>100</velocity>
+  <tolerance>0.01</tolerance>
+  <default_limits>[-150, 150]</default_limits>
+</device>
