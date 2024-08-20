@@ -37,41 +37,84 @@ Each YAML-configured object has a `name` attribute,
 which is equal to the role that identifies the object within the containing object
 (the name of the Beamline object is `beamline`).
 
-YAML-configured objects must be subclasses of the `BaseHardwareObjects.ConfiguredObject` class.
-HardwareObjects proper (which excludes e.g. `Beamline` and procedures)
-are subclasses of `BaseHardwareObjects.HadwareObjectYaml`.
-The most complete example is the Beamline object and the comments in `beamline_config.yml`
-are the best guide to the syntax of YAML configuration files.
+The most complete example of a YAML-configured object is the `Beamline` object.
+The comments in `beamline_config.yml` are the best guide to the syntax of YAML configuration files.
 It is a key principle of YAML-configured classes that **all** attributes
 added in the configuration must match a pre-defined attribute coded in the class.
 This means that you can look in the class code to see which attributes are available.
-The only exception is the `_initialise_class` attribute at the start of the file.
-This dictionary contains the import name of the class that is to be created,
-and optionally parameters to be passed to the `init()` method of that class.
-The `_objects` attribute in the file gives the HardwareObjects that are contained in
+
+The only exception is the `class` attribute at the start of the YAML configuration file.
+This attribute specifies the import name of the class that is to be created.
+
+The `objects` dictionary in the file gives the HardwareObjects that are contained in
 (i.e. children of) the object.
 The dictionary key is the role name, and the value is the name of the configuration file.
-Each `role_name` must match a read-only property coded in the body of the class,
-and must be added to the `__content_roles` list of the class by the class code.
+Each `role_name` must match a read-only property coded in the body of the class.
 Note that classes are loaded and initialised in the order given by this list,
 so that there is a reproducible loading order.
 Contained objects can be defined as procedures, so that they are added to the list of procedures.
 Each YAML-configured class has an `_init()` method that is executed immediately after the object is created,
 and an `init()` function that is executed after configured parameters and contained objects have been loaded.
 
-### Accessing configuration data
+Below is an example YAML configuration file:
+
+```yaml
+class: ISPyBClientMockup.ISPyBClientMockup
+configuration:
+  base_result_url: https://your.limsresults.org
+  login_type: proposal
+objects:
+  lims_rest: lims_rest.yaml
+  session: session.yaml
+```
+
+This file specifies a hardware object, which is an instance of the `ISPyBClientMockup` class.
+That object will have two configuration properties `base_result_url` and `login_type`.
+Two child objects with roles `lims_rest` and `session` will be loaded from the specified configuration files.
+
+### Accessing configuration properties
+
+The contents of the `configuration` section will be available as a `config` attribute of the hardware object.
+It is also possible to access the configuration with the `get_property()` and `get_properties()` methods.
+Below is an example of how configuration can be read in the `init()` method of a hardware object.
+
+```python
+def init(self):
+    # access 'file_info' config property via 'config' attribute
+    file_info = self.config.file_info
+
+    # access 'file_info' config property via 'get_property()' method
+    file_info = self.get_property("file_info")
+
+    # get all of the object's config properties
+    all_props = self.get_properties()
+```
+
+Note that you should only access an object's configuration properties from its implementation class.
+The values of an object's configuration properties are considered implementation details of that hardware object.
+If access is required by outside code, then it should be provided by the object's client API.
+
+### Accessing child objects
+
+The `objects` dictionary in the YAML configuration file specifies the child objects.
+These child objects can be accessed via the parent object's `role_name` attribute.
+For example, if a hardware object is configured with this configuration file:
+
+```yaml
+class: Foo.Foo
+objects:
+  bar: gazonk.yaml
+```
+
+An instance of the `Foo` class will be created.
+This instance will have a child object with `bar` role, with configuration from `gazonk.yaml` file.
+That child object will be accessible with `foo.bar` python expression, where `foo` is the parent object.
+
 The Beamline object (`HardwareRepository.beamline`) is a YAML-configured object,
 and is the starting point for finding other hardware objects.
 These may in turn contain other objects, so you can do e.g.
 `HardwareRepository.beamline.detector.distance` to get the detector distance motor object.
-Configured properties are similarly accessed as simple attributes, e,g, `beamline.default_acquisition_parameters`.
-Each `ConfiguredObject` has three special properties and one function to deal with the objects contained within it.
-These are:
 
-- `all_roles`: a list of the roles (attribute names) of contained HardwareObjects, in loading order;
-- `all_objects_by_role`: an ordered dictionary of contained HardwareObjects;
-- `procedures` an ordered dictionary of HardwareObjects for procedures;
-- `replace_object()`: a method to replace an existing configured object at runtime with a new object.
 
 ## XML-configured objects
 ### Code and file structure
