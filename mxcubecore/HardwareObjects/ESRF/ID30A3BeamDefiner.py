@@ -124,5 +124,4 @@ class ID30A3BeamDefiner(ESRFBeamDefiner):
         if isinstance(value, Enum):
             value = value.name
 
-        #self.controller.set_value(self.ctrl_cfg[value], timeout=timeout)
         self.controller.set_value(self.beam_config[value][1], timeout=timeout)
