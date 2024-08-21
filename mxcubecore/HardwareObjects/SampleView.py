@@ -22,7 +22,9 @@ __license__ = "LGPLv3+"
 
 import copy
 from functools import reduce
-
+from PIL import Image
+from io import BytesIO
+import base64
 from mxcubecore.model import queue_model_objects
 
 from mxcubecore.HardwareObjects.abstract.AbstractSampleView import (
@@ -30,6 +32,30 @@ from mxcubecore.HardwareObjects.abstract.AbstractSampleView import (
 )
 
 from mxcubecore import HardwareRepository as HWR
+
+
+def combine_images(img1, img2):
+    if img1.size != img2.size:
+        raise ValueError("Images must be the same size")
+
+    combined_img = Image.new("RGB", img1.size)
+
+    pixels1 = img1.load()
+    pixels2 = img2.load()
+    combined_pixels = combined_img.load()
+
+    width, height = img1.size
+    for x in range(width):
+        for y in range(height):
+            pixel1 = pixels1[x, y]
+            pixel2 = pixels2[x, y]
+
+            if pixel2[0] <= 200 and pixel2[1] <= 60 and pixel2[2] <= 140:
+                combined_pixels[x, y] = pixel1
+            else:
+                combined_pixels[x, y] = pixel2
+
+    return combined_img
 
 
 class SampleView(AbstractSampleView):
@@ -102,6 +128,36 @@ class SampleView(AbstractSampleView):
             self.camera.take_snapshot(path, bw)
 
         self._last_oav_image = path
+
+    def take_snapshot(self, overlay_data=None, bw=False):
+        """Save a snapshot to file.
+        Args:
+            path (str): The filename.
+            overlay_data (str): base64 encoded image to lay over camera image
+            bw (bool): return grayscale image
+
+        Returns:
+            (BytesIO) overlayed camera image
+        """
+        data, width, height = self.camera.get_last_image()
+
+        img = Image.frombytes("RGB", (width, height), data)
+
+        if overlay_data:
+            overlay_data = base64.b64decode(overlay_data)
+            overlay_image = Image.open(BytesIO(overlay_data))
+            overlay_image = overlay_image.resize(
+                (width, height), Image.Resampling.LANCZOS
+            )
+            img = combine_images(img, overlay_image.convert("RGB"))
+
+        if bw:
+            img.convert("1")
+
+        buffered = BytesIO()
+        img.save(buffered, format="JPEG")
+
+        return buffered
 
     def get_last_image_path(self):
         return self._last_oav_image
