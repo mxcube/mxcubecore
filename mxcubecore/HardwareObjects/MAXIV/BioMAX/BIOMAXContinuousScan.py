@@ -62,7 +62,7 @@ class BIOMAXContinuousScan(AbstractEnergyScan):
         """
         Descript. :
         """
-        AbstractEnergyScan.__init__(self)
+        AbstractEnergyScan.__init__(self, name)
         self.ready_event = None
         self.scan_data = None
         self.initial_transmission_value = None
@@ -573,9 +573,9 @@ class BIOMAXContinuousScan(AbstractEnergyScan):
 
         try:
             file = h5py.File(filename)
-            measurement = file.get(file.keys()[0]).get("measurement")
-            energy = measurement.get("pcap_energy_av").value
-            counts = measurement.get("xspress3_mini_ct_dtc_1").value
+            measurement = file.get(list(file.keys())[0]).get("measurement")
+            energy = measurement.get("pcap_energy_av")[()]
+            counts = measurement.get("xspress3_mini_ct_dtc_1")[()]
             self.scan_data = np.column_stack((energy, counts))
         except Exception as ex:
             logging.getLogger("HWR").error("Error reading data file: %s" % str(ex))
@@ -742,7 +742,7 @@ class BIOMAXContinuousScan(AbstractEnergyScan):
 
         try:
             pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, chooch_graph_data = PyChooch.calc(
-                zip(x_array, y_array), elt, edge, archive_file_efs_filename
+                tuple(zip(x_array, y_array)), elt, edge, archive_file_efs_filename
             )
         except Exception:
             self.store_energy_scan()
