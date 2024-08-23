@@ -51,9 +51,9 @@ def poll_image(lima_tango_device, video_mode, FORMATS):
     return img, width, height
 
 
-class TangoLimaVideo(BaseHardwareObjects.Device):
+class TangoLimaVideo(BaseHardwareObjects.HardwareObject):
     def __init__(self, name):
-        BaseHardwareObjects.Device.__init__(self, name)
+        super().__init__(name)
         self.__brightnessExists = False
         self.__contrastExists = False
         self.__gainExists = False

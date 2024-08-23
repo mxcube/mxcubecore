@@ -16,7 +16,7 @@ import time
 from mxcubecore import HardwareRepository as HWR
 
 
-class SOLEILGuillotine(BaseHardwareObjects.Device):
+class SOLEILGuillotine(BaseHardwareObjects.HardwareObject):
     shutterState = {
         # 0:  'ON',
         # 1:  'OFF',
@@ -88,7 +88,7 @@ class SOLEILGuillotine(BaseHardwareObjects.Device):
     }
 
     def __init__(self, name):
-        BaseHardwareObjects.Device.__init__(self, name)
+        super().__init__(name)
         logging.info("Guillotine init ")
 
     def init(self):

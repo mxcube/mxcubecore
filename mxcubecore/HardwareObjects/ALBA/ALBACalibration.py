@@ -51,9 +51,9 @@ __email__ = "jandreu[at]cells.es"
 __status__ = "Draft"
 
 
-class ALBACalibration(BaseHardwareObjects.Device):
+class ALBACalibration(BaseHardwareObjects.HardwareObject):
     def __init__(self, name):
-        BaseHardwareObjects.Device.__init__(self, name)
+        super().__init__(name)
 
     def init(self):
 

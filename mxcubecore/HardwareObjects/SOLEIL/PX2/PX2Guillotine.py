@@ -16,7 +16,7 @@ from mxcubecore import BaseHardwareObjects
 from mxcubecore import HardwareRepository as HWR
 
 
-class PX2Guillotine(BaseHardwareObjects.Device):
+class PX2Guillotine(BaseHardwareObjects.HardwareObject):
     shutterState = {
         # 0:  'ON',
         # 1:  'OFF',
@@ -88,7 +88,7 @@ class PX2Guillotine(BaseHardwareObjects.Device):
     }
 
     def __init__(self, name):
-        BaseHardwareObjects.Device.__init__(self, name)
+        super().__init__(name)
         logging.info("Guillotine init ")
 
     def init(self):
