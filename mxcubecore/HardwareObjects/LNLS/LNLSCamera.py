@@ -28,7 +28,7 @@ CAMERA_IMG_PIXEL_SIZE = "epicsCameraSample_img_pixel_size"
 CAMERA_IMG_WIDTH = "epicsCameraSample_img_width"
 CAMERA_IMG_HEIGHT = "epicsCameraSample_img_height"
 
-class LNLSCamera(BaseHardwareObjects.Device):
+class LNLSCamera(BaseHardwareObjects.HardwareObject):
 
     def __init__(self,name):
         BaseHardwareObjects.Device.__init__(self,name)

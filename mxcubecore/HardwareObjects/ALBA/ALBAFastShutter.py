@@ -57,7 +57,7 @@ STATE_OUT, STATE_IN, STATE_MOVING, STATE_FAULT, STATE_ALARM, STATE_UNKNOWN = (
 )
 
 
-class ALBAFastShutter(BaseHardwareObjects.Device):
+class ALBAFastShutter(BaseHardwareObjects.HardwareObject):
 
     states = {
         STATE_OUT: "out",
@@ -71,7 +71,7 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
     default_state_strings = ["Out", "In"]
 
     def __init__(self, name):
-        BaseHardwareObjects.Device.__init__(self, name)
+        super().__init__(name)
 
     def init(self):
 

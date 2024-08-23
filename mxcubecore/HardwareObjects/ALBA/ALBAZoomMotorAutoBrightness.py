@@ -62,12 +62,12 @@ __email__ = "jandreu[at]cells.es"
 __status__ = "Draft"
 
 
-class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.Device, AbstractMotor):
+class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.HardwareObject, AbstractMotor):
 
     INIT, FAULT, READY, MOVING, ONLIMIT = range(5)
 
     def __init__(self, name):
-        BaseHardwareObjects.Device.__init__(self, name)
+        super().__init__(name)
 
     def init(self):
         logging.getLogger("HWR").debug("Initializing zoom motor autobrightness IOR")

@@ -75,15 +75,15 @@ class RGBType(ImageType):
         ImageType.__init__(self, "rgb")
 
 
-class Camera(BaseHardwareObjects.Device):
+class Camera(BaseHardwareObjects.HardwareObject):
     def _init(self):
         if self.get_property("tangoname"):
             # Tango device
             import PyTango
 
-            class TangoCamera(BaseHardwareObjects.Device):
+            class TangoCamera(BaseHardwareObjects.HardwareObject):
                 def __init__(self, name):
-                    BaseHardwareObjects.Device.__init__(self, name)
+                    super().__init__(name)
 
                 def oprint(self, msg):
                     print(("Camera.py--tango device-- %s" % msg))

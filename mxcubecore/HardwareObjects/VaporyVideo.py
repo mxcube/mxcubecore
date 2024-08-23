@@ -28,7 +28,7 @@ from mxcubecore import BaseHardwareObjects
 from mxcubecore.HardwareObjects.Camera import JpegType
 
 
-class VaporyVideo(BaseHardwareObjects.Device):
+class VaporyVideo(BaseHardwareObjects.HardwareObject):
     """
     Descript. :
     """
@@ -37,7 +37,7 @@ class VaporyVideo(BaseHardwareObjects.Device):
         """
         Descript. :
         """
-        BaseHardwareObjects.Device.__init__(self, name)
+        super().__init__(name)
         self.force_update = None
         self.image_dimensions = None
         self.image_polling = None
