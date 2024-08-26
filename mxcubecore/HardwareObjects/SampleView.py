@@ -333,8 +333,12 @@ class SampleView(AbstractSampleView):
         shape = self.get_shape(sid)
 
         if shape:
-            shape.set_result(result_data)
-            shape.result_data_path = data_file_path
+            if shape.result:
+                # append data
+                shape.result.update(result_data)
+            else:
+                shape.set_result(result_data)
+                shape.result_data_path = data_file_path
 
             self.emit("newGridResult", shape)
         else:
@@ -522,7 +526,7 @@ class Grid(Shape):
         self.num_cols = -1
         self.num_rows = -1
         self.selected = False
-        self.result = []
+        self.result = {}
         self.pixels_per_mm = [1, 1]
         self.beam_pos = [1, 1]
         self.beam_width = 0
@@ -564,7 +568,6 @@ class Grid(Shape):
 
     def set_result(self, result_data):
         self.result = result_data
-        self._result = result_data
 
     def get_result(self):
         return self.result
