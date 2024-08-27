@@ -149,18 +149,19 @@ class BeamMockup(AbstractBeam):
 
         return self._beam_width, self._beam_height, self._beam_shape, _label
 
-    def aperture_diameter_changed(self, name, size):
+    def aperture_diameter_changed(self, aperture):
         """
         Method called when the aperture diameter changes
         Args:
             name (str): diameter name.
-            size (float): diameter size in microns
         """
-        self.aperture.update_value(f"A{size}")
+
+        size = aperture.value[0]
+        self.aperture.update_value(aperture)
         self._beam_size_dict["aperture"] = [size, size]
-        name = name or f"A{int(size * 1000)}"
+        # name = name or f"A{int(size * 1000)}"
         self.evaluate_beam_info()
-        self._beam_info_dict["label"] = name
+        self._beam_info_dict["label"] = aperture.name
         self.re_emit_values()
 
     def slits_gap_changed(self, size):
