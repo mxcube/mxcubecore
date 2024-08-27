@@ -15,12 +15,10 @@ If video mode is not specified, BAYER_RG16 is used by default.
 import logging
 import time
 import struct
-import numpy
 import gevent
 import PyTango
 from PIL import Image
 import io
-import gipc
 
 from PyTango.gevent import DeviceProxy
 
