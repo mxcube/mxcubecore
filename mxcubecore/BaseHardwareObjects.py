@@ -778,6 +778,16 @@ class HardwareObjectMixin(CommandContainer):
         """
         return self._ready_event.is_set()
 
+    def set_is_ready(self, value: bool):
+        warnings.warn(
+            "set_is_ready method ported from Device is Deprecated and will be removed",
+            DeprecationWarning,
+        )
+        if value:
+            self.update_state(HardwareObjectState.READY)
+        else:
+            self.update_state(HardwareObjectState.OFF)
+
     def update_state(self, state: Optional[HardwareObjectState] = None) -> None:
         """Update self._state, and emit signal stateChanged if the state has changed.
 
