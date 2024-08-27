@@ -61,6 +61,14 @@ class AbstractNState(AbstractActuator):
         Returns:
             (bool): True if within the values.
         """
+        if not isinstance(value, self.VALUES):
+            # Handle the cases when value is of other type then self.VALUE enum type,
+            # for example when the member is specified as a string.
+            #
+            # Note, this if case can be dropped once we set the earliest supported
+            # version of python to 3.12.
+            return value in self.VALUES.__members__
+
         return value in self.VALUES
 
     def set_limits(self, limits):
