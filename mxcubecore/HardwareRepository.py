@@ -186,6 +186,14 @@ def load_from_yaml(
 
             fname, fext = os.path.splitext(config_file)
             if fext == ".yml":
+                fname = f"/{fname}"
+
+                # check if we already loaded this configuration file
+                if _instance.hardware_objects.get(fname) is not None:
+                    raise Exception(
+                        f"Configuration file '{config_file}', referenced in '{configuration_file}, "
+                        f"has been loaded earlier. Refusing to load it a second time."
+                    )
                 hwobj = load_from_yaml(
                     config_file,
                     role=role1,
@@ -195,7 +203,8 @@ def load_from_yaml(
                 )
                 if hwobj:
                     # only add if we successfully loaded the object
-                    _instance.hardware_objects[f"/{hwobj.load_name}"] = hwobj
+                    _instance.hardware_objects[fname] = hwobj
+
             elif fext == ".xml":
                 msg1 = ""
                 time0 = time.time()
