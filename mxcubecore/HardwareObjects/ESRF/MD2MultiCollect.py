@@ -64,16 +64,22 @@ class MD2MultiCollect(ESRFMultiCollect):
         HWR.beamline.diffractometer.take_snapshot(image_path_list)
 
     def do_prepare_oscillation(self, *args, **kwargs):
+        diffr = HWR.beamline.diffractometer
+
         # set the detector cover out
+        try:
+            diffr.open_detector_cover()
+        except Exception:
+            logging.getLogger("HWR").exception("Could not open detector cover")
+        """
         try:
             detcover = self.get_object_by_role("controller").detcover
 
             if detcover.state == "IN":
                 detcover.set_out(10)
         except:
-            logging.getLogger("HWR").exception("Could close detector cover")
-
-        diffr = HWR.beamline.diffractometer
+            logging.getLogger("HWR").exception("Could not open detector cover")
+        """
 
         # send again the command as MD2 software only handles one
         # centered position!!

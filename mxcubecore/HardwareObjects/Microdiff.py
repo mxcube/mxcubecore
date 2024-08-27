@@ -371,21 +371,21 @@ class Microdiff(MiniDiff.MiniDiff):
             while not self._ready():
                 time.sleep(0.5)
 
-    def open_detector_cover(self):
+    def open_detector_cover(self, timeout=10):
         try:
             detcover = self.get_object_by_role("controller").detcover
 
             if detcover.state == "IN":
-                detcover.set_out(10)
+                detcover.set_out(timeout)
         except AttributeError:
             logging.getLogger("HWR").exception("No detector cover configured")
 
-    def close_detector_cover(self):
+    def close_detector_cover(self, timeout=10):
         try:
             detcover = self.get_object_by_role("controller").detcover
 
             if detcover.state == "OUT":
-                detcover.set_in(10)
+                detcover.set_in(timeout)
         except AttributeError:
             logging.getLogger("HWR").exception("No detector cover configured")
 
