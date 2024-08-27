@@ -159,7 +159,6 @@ class BeamMockup(AbstractBeam):
         size = aperture.value[0]
         self.aperture.update_value(aperture)
         self._beam_size_dict["aperture"] = [size, size]
-        # name = name or f"A{int(size * 1000)}"
         self.evaluate_beam_info()
         self._beam_info_dict["label"] = aperture.name
         self.re_emit_values()
