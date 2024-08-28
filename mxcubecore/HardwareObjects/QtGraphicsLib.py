@@ -191,7 +191,6 @@ class GraphicsItem(qt_import.QGraphicsItem):
         :type beam_info: dict
         """
         self.beam_is_rectangle = beam_info.get("shape") == "rectangular"
-        # NBNB TODO fix to match correct way of setting unkown values
         self.beam_size_mm[0] = beam_info.get("size_x", 0) or 0
         self.beam_size_mm[1] = beam_info.get("size_y", 0) or 0
         if not math.isnan(self.pixels_per_mm[0]):
