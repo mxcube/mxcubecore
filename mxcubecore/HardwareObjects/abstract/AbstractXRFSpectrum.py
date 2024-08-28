@@ -239,4 +239,4 @@ class AbstractXRFSpectrum(HardwareObject):
     def spectrum_store_lims(self):
         """Store the data in lims, according to the existing data model."""
         if self.spectrum_info_dict.get("sessionId"):
-            self.lims.storeXfeSpectrum(self.spectrum_info_dict)
+            self.lims.store_xfe_spectrum(self.spectrum_info_dict)
