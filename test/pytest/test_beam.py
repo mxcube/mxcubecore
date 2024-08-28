@@ -181,7 +181,7 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
 
         for aperture_diameter in test_object.aperture.get_diameter_size_list():
             _val = test_object.aperture.VALUES[aperture_diameter]
-            test_object.aperture.set_value(_val, timeout=2)
+            test_object.set_value(aperture_diameter)
 
             beam_width, beam_height, beam_shape, beam_label = test_object.get_value()
             # get_value returns size in mm, aperture diameters are in microns
@@ -243,7 +243,7 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
 
         for dsize in test_object.definer.VALUES:
             if dsize.name != "UNKNOWN":
-                test_object.definer.set_value(dsize, timeout=2)
+                test_object.set_value(dsize.name)
 
                 (
                     beam_width,
