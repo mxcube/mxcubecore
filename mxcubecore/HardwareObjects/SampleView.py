@@ -25,6 +25,7 @@ from functools import reduce
 from PIL import Image
 from io import BytesIO
 import base64
+import numpy as np
 from mxcubecore.model import queue_model_objects
 
 from mxcubecore.HardwareObjects.abstract.AbstractSampleView import (
@@ -66,7 +67,6 @@ class SampleView(AbstractSampleView):
     def init(self):
         super(SampleView, self).init()
         self._camera = self.get_object_by_role("camera")
-        self._ui_snapshot_cb = None
         self._last_oav_image = None
 
         self.hide_grid_threshold = self.get_property("hide_grid_threshold", 5)
@@ -103,41 +103,52 @@ class SampleView(AbstractSampleView):
         """
         pass
 
-    def set_ui_snapshot_cb(self, fun):
-        self._ui_snapshot_cb = fun
+    def get_snapshot(self, overlay=None, bw=False, return_as_array=False):
+        """
+        Get snapshot
 
-    def get_snapshot(self, overlay=True, bw=False, return_as_array=False):
-        """Get snapshot(s)
         Args:
-            overlay(bool): Display shapes and other items on the snapshot
+            overlay(str): Image data with shapes and other items to display on the snapshot
             bw(bool): return grayscale image
             return_as_array(bool): return as np array
-        """
-        pass
 
-    def save_snapshot(self, path, overlay=True, bw=False):
-        """Save a snapshot to file.
+        Returns:
+            (BytesIO) snapshot as bytes image
+        """
+        img = self.take_snapshot(overlay_data=overlay, bw=bw)
+
+        if return_as_array:
+            return np.array(img)
+
+        buffered = BytesIO()
+        img.save(buffered, format="JPEG")
+
+        return buffered
+
+    def save_snapshot(self, path, overlay=None, bw=False):
+        """
+        Save a snapshot to file.
+
         Args:
             path (str): The filename.
-            overlay(bool): Display shapes and other items on the snapshot
+            overlay(str): Image data with shapes and other items to display on the snapshot
             bw(bool): return grayscale image
         """
-        if overlay:
-            self._ui_snapshot_cb(path, bw)
-        else:
-            self.camera.take_snapshot(path, bw)
+        img = self.take_snapshot(overlay_data=overlay, bw=bw)
+        img.save(path)
 
         self._last_oav_image = path
 
     def take_snapshot(self, overlay_data=None, bw=False):
-        """Save a snapshot to file.
+        """
+        Get snapshot with overlayed data.
+
         Args:
-            path (str): The filename.
             overlay_data (str): base64 encoded image to lay over camera image
             bw (bool): return grayscale image
 
         Returns:
-            (BytesIO) overlayed camera image
+            (Image) rgb or grayscale image
         """
         data, width, height = self.camera.get_last_image()
 
@@ -154,10 +165,7 @@ class SampleView(AbstractSampleView):
         if bw:
             img.convert("1")
 
-        buffered = BytesIO()
-        img.save(buffered, format="JPEG")
-
-        return buffered
+        return img
 
     def get_last_image_path(self):
         return self._last_oav_image

@@ -14,7 +14,7 @@ MAX_TRIES = 3
 SLOW_INTERVAL = 1000
 
 
-class MDCameraMockup(BaseHardwareObjects.Device):
+class MDCameraMockup(BaseHardwareObjects.HardwareObject):
     def __init__(self, name):
         super().__init__(name)
 

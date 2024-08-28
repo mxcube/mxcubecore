@@ -1082,7 +1082,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Descript. :
         """
         # take image from server
-        HWR.beamline.sample_view.take_snapshot(filename)
+        HWR.beamline.sample_view.save_snapshot(filename)
 
     def set_helical(self, helical_on):
         """
