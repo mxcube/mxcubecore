@@ -153,7 +153,7 @@ class BeamMockup(AbstractBeam):
         """
         Method called when the aperture diameter changes
         Args:
-            name (str): diameter name.
+            aperture (aperture(Enum)): Aperture enum.
         """
 
         size = aperture.value[0]
