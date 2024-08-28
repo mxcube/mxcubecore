@@ -59,17 +59,8 @@ class MD2MultiCollect(ESRFMultiCollect):
         diffr.move_sync_motors(motor_positions_copy, wait=True, timeout=200)
 
     @task
-    def take_crystal_snapshots(self, number_of_snapshots):
-        if HWR.beamline.diffractometer.in_plate_mode():
-            if number_of_snapshots > 0:
-                number_of_snapshots = 1
-        else:
-            # this has to be done before each chage of phase
-            HWR.beamline.diffractometer.save_centring_positions()
-            # not going to centring phase if in plate mode (too long)
-            HWR.beamline.diffractometer.set_phase("Centring", wait=True, timeout=600)
-
-        HWR.beamline.diffractometer.take_snapshots(number_of_snapshots, wait=True)
+    def take_crystal_snapshots(self, number_of_snapshots, image_path_list=[]):
+        HWR.beamline.diffractometer.new_take_snapshot(image_path_list)
 
     def do_prepare_oscillation(self, *args, **kwargs):
         # set the detector cover out

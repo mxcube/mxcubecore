@@ -6,6 +6,7 @@ import time
 
 import gevent
 import psutil
+from PIL import Image
 
 from mxcubecore import BaseHardwareObjects
 from mxcubecore import HardwareRepository as HWR
@@ -92,10 +93,9 @@ class MDCameraMockup(BaseHardwareObjects.HardwareObject):
     def imageType(self):
         return None
 
-    def takeSnapshot(self, snapshot_filename, bw=True):
-        return True
-
-    take_snapshot = takeSnapshot
+    def get_last_image(self):
+        image = Image.open(self.image)
+        return image.tobytes(), image.size[0], image.size[1]
 
     def get_available_stream_sizes(self):
         try:

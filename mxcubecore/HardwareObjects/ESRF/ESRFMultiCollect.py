@@ -47,6 +47,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     def init(self):
         self._detector = HWR.beamline.detector
+        self.number_of_snapshots = self.get_property("num_snapshots", 4)
 
         self.setControlObjects(
             diffractometer=self.get_object_by_role("diffractometer"),

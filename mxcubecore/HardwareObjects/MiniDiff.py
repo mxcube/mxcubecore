@@ -1024,6 +1024,19 @@ class MiniDiff(HardwareObject):
         ):
             time.sleep(0.1)
 
+    def new_take_snapshot(self, image_path_list: list) -> None:
+        if self.get_current_phase() != "Centring":
+            use_custom_snapshot_routine = self.get_property(
+                "custom_snapshot_script_dir", False
+            )
+
+            if not use_custom_snapshot_routine:
+                self.set_phase("Centring", wait=True, timeout=200)
+
+        for image_path in image_path_list:
+            HWR.beamline.sample_view.save_snapshot(path=image_path)
+            self.phiMotor.set_value_relative(90, timeout=5)
+
     def take_snapshots(self, image_count, wait=False):
         HWR.beamline.sample_view.camera.forceUpdate = True
 
