@@ -88,6 +88,8 @@ class AbstractMultiCollect(object):
         self.mesh_range = None
         self.mesh_center = None
 
+        self.number_of_snapshots = 4
+
     def setControlObjects(self, **control_objects):
         self.bl_control = BeamlineControl(**control_objects)
 
@@ -315,6 +317,41 @@ class AbstractMultiCollect(object):
             logging.getLogger("HWR").exception("")
         else:
             pass
+
+    def new_take_snapshots(self, dc_params):
+        # number_of_snapshots = dc_params.get("take_snapshots", 0)
+        snapshot_directory = dc_params["fileinfo"]["archive_directory"]
+
+        if HWR.beamline.diffractometer.in_plate_mode():
+            if number_of_snapshots > 0:
+                number_of_snapshots = 1
+
+        if not os.path.exists(snapshot_directory):
+            self.create_directories(snapshot_directory)
+
+        image_path_list = []
+
+        for snapshot_index in range(self.number_of_snapshots):
+            snapshot_filename = os.path.join(
+                snapshot_directory,
+                "%s_%s_%s.snapshot.jpeg"
+                % (
+                    dc_params["fileinfo"]["prefix"],
+                    dc_params["fileinfo"]["run_number"],
+                    (snapshot_index + 1),
+                ),
+            )
+
+            image_path_list.append(snapshot_filename)
+            dc_params["xtalSnapshotFullPath%i" % (snapshot_index + 1)] = (
+                snapshot_filename
+            )
+
+            logging.getLogger("user_level_log").info(
+                f"Taking {snapshot_index + 1} sample snapshot(s)"
+            )
+
+        HWR.beamline.diffractometer.new_take_snapshot(image_path_list)
 
     def _take_crystal_snapshots(self, number_of_snapshots):
         try:
@@ -563,11 +600,14 @@ class AbstractMultiCollect(object):
 
         # take snapshots, then assign centring status (which contains images) to
         # centring_info variable
-        take_snapshots = data_collect_parameters.get("take_snapshots", False)
+        # take_snapshots = data_collect_parameters.get("take_snapshots", False)
 
-        if take_snapshots:
-            logging.getLogger("user_level_log").info("Taking sample snapshosts")
-            self._take_crystal_snapshots(take_snapshots)
+        if self.number_of_snapshots:
+            logging.getLogger("user_level_log").info(
+                f"Taking sample ({self.number_of_snapshots}) snapshosts"
+            )
+            # self._take_crystal_snapshots(take_snapshots)
+            self.new_take_snapshots(data_collect_parameters)
         centring_info = HWR.beamline.diffractometer.get_centring_status()
         # move *again* motors, since taking snapshots may change positions
         logging.getLogger("user_level_log").info(
