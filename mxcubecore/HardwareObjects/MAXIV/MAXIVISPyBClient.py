@@ -4,6 +4,7 @@ from socket import gethostname
 from urllib.error import URLError
 from suds import WebFault
 from suds.sudsobject import asdict
+import ast
 
 from ISPyBClient import ISPyBClient
 from ISPyBClient import utf_encode, trace
@@ -253,6 +254,111 @@ class MAXIVISPyBClient(ISPyBClient):
                 "Session": {},
                 "status": {"code": "error"},
             }
+
+    @trace
+    def get_proposals_by_user(self, user_name):
+        """
+        Overriding method so we filter by Open state
+        """
+        proposal_list = []
+        res_proposal = []
+
+        if self._disabled:
+            return proposal_list
+
+        if self._shipping:
+            try:
+                proposals = ast.literal_eval(
+                    self._shipping.service.findProposalsByLoginName(user_name)
+                )
+
+                if proposal_list is not None:
+                    for proposal in proposals:
+                        if (
+                            proposal["type"].upper() in ["MX", "MB"]
+                            and proposal not in proposal_list
+                            and proposal["state"] == "Open"
+                        ):
+                            proposal_list.append(proposal)
+            except WebFault as e:
+                proposal_list = []
+                logging.getLogger("ispyb_client").exception(e.message)
+
+            proposal_list = newlist = sorted(
+                proposal_list, key=lambda k: int(k["proposalId"])
+            )
+
+            res_proposal = []
+            if len(proposal_list) > 0:
+                for proposal in proposal_list:
+                    proposal_code = proposal["code"]
+                    proposal_number = proposal["number"]
+
+                    # person
+                    try:
+                        person = self._shipping.service.findPersonByProposal(
+                            proposal_code, proposal_number
+                        )
+                        if not person:
+                            person = {}
+                    except WebFault as e:
+                        logging.getLogger("ispyb_client").exception(str(e))
+                        person = {}
+
+                    # lab
+                    try:
+                        lab = self._shipping.service.findLaboratoryByProposal(
+                            proposal_code, proposal_number
+                        )
+                        if not lab:
+                            lab = {}
+                    except WebFault as e:
+                        logging.getLogger("ispyb_client").exception(str(e))
+                        lab = {}
+
+                    # sessions
+                    try:
+                        res_sessions = (
+                            self._collection.service.findSessionsByProposalAndBeamLine(
+                                proposal_code, proposal_number, self.beamline_name
+                            )
+                        )
+                        sessions = []
+                        for session in res_sessions:
+                            if session is not None:
+                                try:
+                                    session.startDate = datetime.strftime(
+                                        session.startDate, "%Y-%m-%d %H:%M:%S"
+                                    )
+                                    session.endDate = datetime.strftime(
+                                        session.endDate, "%Y-%m-%d %H:%M:%S"
+                                    )
+                                except Exception:
+                                    pass
+                                sessions.append(utf_encode(asdict(session)))
+
+                    except WebFault as e:
+                        logging.getLogger("ispyb_client").exception(str(e))
+                        sessions = []
+
+                    res_proposal.append(
+                        {
+                            "Proposal": proposal,
+                            "Person": utf_encode(asdict(person)),
+                            "Laboratory": utf_encode(asdict(lab)),
+                            "Session": sessions,
+                        }
+                    )
+            else:
+                logging.getLogger("ispyb_client").warning(
+                    "No proposals for user %s found" % user_name
+                )
+        else:
+            logging.getLogger("ispyb_client").exception(
+                "Error in get_proposal: Could not connect to server,"
+                + " returning empty proposal"
+            )
+        return res_proposal
 
     def dc_link(self, cid):
         """
