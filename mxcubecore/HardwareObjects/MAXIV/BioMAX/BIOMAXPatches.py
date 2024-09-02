@@ -45,7 +45,7 @@ class BIOMAXPatches(HardwareObject):
         self.curr_dtox_pos = HWR.beamline.detector.distance.get_value()
         if (
             HWR.beamline.detector.distance is not None
-            and self.self.curr_dtox_pos < self.safe_position
+            and self.curr_dtox_pos < self.safe_position
         ):
             logging.getLogger("HWR").info(
                 "Moving detector to safe position before loading a sample."
@@ -191,7 +191,7 @@ class BIOMAXPatches(HardwareObject):
 
         if (
             HWR.beamline.diffractometer is not None
-            and HWR.beamline.diffractometer.get_current_phase().value != "Centring"
+            and HWR.beamline.diffractometer.get_current_phase() != "Centring"
         ):
             logging.getLogger("HWR").info("Changing diffractometer phase to Centring")
             logging.getLogger("user_level_log").info(
@@ -204,7 +204,7 @@ class BIOMAXPatches(HardwareObject):
             HWR.beamline.diffractometer.set_phase("Centring")
             logging.getLogger("HWR").info(
                 "Diffractometer phase changed, current phase: %s"
-                % HWR.beamline.diffractometer.get_current_phase().value
+                % HWR.beamline.diffractometer.get_current_phase()
             )
         else:
             logging.getLogger("HWR").info("Diffractometer already in Centring")
@@ -213,7 +213,7 @@ class BIOMAXPatches(HardwareObject):
             )
         sample_is_loaded = HWR.beamline.diffractometer.channel_dict[
             "SampleIsLoaded"
-        ].getValue()
+        ].get_value()
         if not sample_is_loaded:
             logging.getLogger("HWR").error(
                 "No sample detected on the goniometer, please check the camera!"
@@ -247,7 +247,7 @@ class BIOMAXPatches(HardwareObject):
         self.sc_recovery_after_timeout()
 
     def sc_in_soak(self):
-        return HWR.beamline.sample_changer._chnInSoak.getValue()
+        return HWR.beamline.sample_changer._chnInSoak.get_value()
 
     def init(self, *args):
         self.__load = HWR.beamline.sample_changer.load
