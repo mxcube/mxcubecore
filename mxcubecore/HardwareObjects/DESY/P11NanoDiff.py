@@ -177,23 +177,23 @@ class P11NanoDiff(GenericDiffractometer):
         self.acq_off_cmd = self.get_command_object("acq_off")
         self.acq_window_off_cmd = self.get_command_object("acq_window_off")
 
-        # if None in [
-        #     self.lower_bound_ch,
-        #     self.upper_bound_ch,
-        #     self.acq_arm_cmd,
-        #     self.acq_on_cmd,
-        #     self.acq_off_cmd,
-        #     self.acq_window_off_cmd,
-        # ]:
-        #     self.init_ok = False
-        #     self.log.debug("lower_bound_ch: %s" % self.lower_bound_ch)
-        #     self.log.debug("upper_bound_ch: %s" % self.upper_bound_ch)
-        #     self.log.debug("acq_arm_cmd: %s" % self.acq_arm_cmd)
-        #     self.log.debug("acq_on_cmd: %s" % self.acq_on_cmd)
-        #     self.log.debug("acq_off_cmd: %s" % self.acq_off_cmd)
-        #     self.log.debug("acq_window_off_cmd: %s" % self.acq_window_off_cmd)
-        # else:
-        #     self.init_ok = True
+        if None in [
+            self.lower_bound_ch,
+            self.upper_bound_ch,
+            self.acq_arm_cmd,
+            self.acq_on_cmd,
+            self.acq_off_cmd,
+            self.acq_window_off_cmd,
+        ]:
+            self.init_ok = False
+            self.log.debug("lower_bound_ch: %s" % self.lower_bound_ch)
+            self.log.debug("upper_bound_ch: %s" % self.upper_bound_ch)
+            self.log.debug("acq_arm_cmd: %s" % self.acq_arm_cmd)
+            self.log.debug("acq_on_cmd: %s" % self.acq_on_cmd)
+            self.log.debug("acq_off_cmd: %s" % self.acq_off_cmd)
+            self.log.debug("acq_window_off_cmd: %s" % self.acq_window_off_cmd)
+        else:
+            self.init_ok = True
 
     def update_beam_position(self):
         zoom_hwobj = self.motor_hwobj_dict["zoom"]

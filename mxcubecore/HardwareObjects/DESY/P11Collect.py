@@ -236,11 +236,7 @@ class P11Collect(AbstractCollect):
             self.data_collection_cleanup()
 
     def data_collection_hook(self):
-        # if not self.init_ok:
-        #     raise RuntimeError(
-        #         "P11Collect. - object initialization failed. COLLECTION not possible"
-        #     )
-
+        
         dc_pars = self.current_dc_parameters
         collection_type = dc_pars["experiment_type"]
 

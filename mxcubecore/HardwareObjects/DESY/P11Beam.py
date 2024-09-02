@@ -82,16 +82,13 @@ class P11Beam(AbstractBeam):
 
     def get_available_size(self):
         """Returns available beam sizes based on the current configuration."""
-        return {
-            "type": ["focus"],
-            "values": [self.focus_sizes]
-        }
+        return {"type": ["focus"], "values": [self.focus_sizes]}
 
     def get_defined_beam_size(self):
         """Implements the abstract method to return defined beam sizes."""
         return {
             "label": [item["label"] for item in self.focus_sizes.values()],
-            "size": [item["size"] for item in self.focus_sizes.values()]
+            "size": [item["size"] for item in self.focus_sizes.values()],
         }
 
     def set_value(self, size=None):
@@ -99,7 +96,9 @@ class P11Beam(AbstractBeam):
         if isinstance(size, list):
             self._beam_width, self._beam_height = size
         elif isinstance(size, str):
-            matching_size = next((v for k, v in self.focus_sizes.items() if v["label"] == size), None)
+            matching_size = next(
+                (v for k, v in self.focus_sizes.items() if v["label"] == size), None
+            )
             if matching_size:
                 self._beam_width, self._beam_height = matching_size["size"]
         self.evaluate_beam_info()
