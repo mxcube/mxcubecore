@@ -8,21 +8,16 @@ XIA2_XDS_QUEUE_ID = "xia2_XDS_queue_id"
 AUTOPX_QUEUE_ID = "autopx_queue_id"
 
 
-def insert_new_data_to_job(frame_number,path,dest,completiontime,status,uuid):
+def insert_new_data_to_job(frame_number,path,dest,completiontime,status,uuid,filename):
     try:
         with UsingMysql(log_time=True) as um:
 
-            sql = "INSERT INTO job (nimage, src, dest, createtime, status, uuid ) VALUES (%d, '%s', '%s', '%s', '%s', '%s')" % (
-                frame_number, path, path, completiontime, status, uuid)
+            sql = "INSERT INTO job (nimage, src, dest, createtime, status, uuid ,sample_name) VALUES (%d, '%s', '%s', '%s', '%s', '%s', '%s')" % (
+                frame_number, path, dest, completiontime, status, uuid, filename)
             um.cursor.execute(sql)
             result = um.cursor.fetchall()
             logging.getLogger("HWR").debug("[updateJobStatus from LNLSPilatusDet.py] connect to mysql and result: %s",
                                            result)
-
-
-
-
-
     except Exception as ex:
         logging.getLogger("HWR").error("[COLLECT] Data collection job update failure: %s", ex)
 

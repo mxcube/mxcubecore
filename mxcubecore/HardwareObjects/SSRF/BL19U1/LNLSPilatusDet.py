@@ -612,10 +612,12 @@ class LNLSPilatusDet(AbstractDetector):
     def set_detector_filenames(self, frame_number, start, filename, collect_uuid):
         try:
             logging.getLogger("HWR").info('=============Start set_detector_filenames')
+            logging.getLogger("HWR").info(f'filename of this collection is {filename}')
             # C:\haicoder\haicoder.txt -> ('C:\\haicoder\\haicoder', 'txt')
             prefix, suffix = os.path.splitext(os.path.basename(filename))
             prefix = "_".join(prefix.split("_")[:-1]) + "_"
             dirname = os.path.dirname(filename)
+
             if dirname.startswith(os.path.sep):
                 dirname = dirname[len(os.path.sep):]
 
@@ -674,7 +676,8 @@ class LNLSPilatusDet(AbstractDetector):
             self.set_image_header()
             logging.getLogger("HWR").info('=============END set_detector_filenames')
             ##############
-            self.updateJobStatus(frame_number, collect_uuid, saving_directory, 'START')
+            logging.getLogger("HWR").info(f'prefix and dirname of this collection are {filename}, {dirname}')
+            self.updateJobStatus(frame_number, collect_uuid, saving_directory, 'START',filename)
         except Exception as ex:
             logging.getLogger("HWR").error(
                 "[HWR] Error set_detector_filenames: %s"
@@ -713,7 +716,7 @@ class LNLSPilatusDet(AbstractDetector):
         value = 1286 - 0.0465 * distance / 1000
         return round(value, 2)
 
-    def updateJobStatus(self, frame_number, uuid, path, status):
+    def updateJobStatus(self, frame_number, uuid, path, status,filename):
         # data = {}
         # data['uuid'] = uuid
         # data['src'] = path
@@ -725,7 +728,7 @@ class LNLSPilatusDet(AbstractDetector):
         completiontime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 
-        insert_new_data_to_job(frame_number,path,path,completiontime,status,uuid)
+        insert_new_data_to_job(frame_number,path,path,completiontime,status,uuid,filename)
         # 将下面的代码整合成一个函数，见上一行代码
         # try:
         #     with UsingMysql(log_time=True) as um:
