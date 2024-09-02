@@ -20,7 +20,7 @@ from mxcubecore.HardwareObjects.abstract.AbstractDetector import (
 import epics
 
 from mxcubecore.utils.pymysql_comm import UsingMysql
-
+from mxcubecore.service.dataItem_service import insert_new_data_to_job
 
 class LNLSPilatusDet(AbstractDetector):
     DET_THRESHOLD = 'det_threshols_energy'
@@ -723,22 +723,26 @@ class LNLSPilatusDet(AbstractDetector):
         # addr = '{0}/job/insert'.format(cts.server_address)
         # response = requests.post(addr, json.dumps(data))
         completiontime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        try:
-            with UsingMysql(log_time=True) as um:
 
 
-                sql = "INSERT INTO job (nimage, src, dest, createtime, status, uuid ) VALUES (%d, '%s', '%s', '%s', '%s', '%s')" % (
-                    frame_number, path, path, completiontime, status, uuid)
-                um.cursor.execute(sql)
-                result = um.cursor.fetchall()
-                logging.getLogger("HWR").debug("[updateJobStatus from LNLSPilatusDet.py] connect to mysql and result: %s", result)
-
-
-
-
-
-        except Exception as ex:
-            logging.getLogger("HWR").error("[COLLECT] Data collection job update failure: %s", ex)
+        insert_new_data_to_job(frame_number,path,path,completiontime,status,uuid)
+        # 将下面的代码整合成一个函数，见上一行代码
+        # try:
+        #     with UsingMysql(log_time=True) as um:
+        #
+        #
+        #         sql = "INSERT INTO job (nimage, src, dest, createtime, status, uuid ) VALUES (%d, '%s', '%s', '%s', '%s', '%s')" % (
+        #             frame_number, path, path, completiontime, status, uuid)
+        #         um.cursor.execute(sql)
+        #         result = um.cursor.fetchall()
+        #         logging.getLogger("HWR").debug("[updateJobStatus from LNLSPilatusDet.py] connect to mysql and result: %s", result)
+        #
+        #
+        #
+        #
+        #
+        # except Exception as ex:
+        #     logging.getLogger("HWR").error("[COLLECT] Data collection job update failure: %s", ex)
 
     def start_acquisition(self):
         # try:

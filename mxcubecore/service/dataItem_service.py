@@ -1,11 +1,30 @@
 from mxcubecore.utils.pymysql_comm import UsingMysql
 from mxcubecore.utils.db import get_db_connection
+import logging
 
 AUTOPROC_QUEUE_ID = "autoprocess_queue_id"
 XIA2_DIALS_QUEUE_ID = "xia2_dials_queue_id"
 XIA2_XDS_QUEUE_ID = "xia2_XDS_queue_id"
 AUTOPX_QUEUE_ID = "autopx_queue_id"
 
+
+def insert_new_data_to_job(frame_number,path,dest,completiontime,status,uuid):
+    try:
+        with UsingMysql(log_time=True) as um:
+
+            sql = "INSERT INTO job (nimage, src, dest, createtime, status, uuid ) VALUES (%d, '%s', '%s', '%s', '%s', '%s')" % (
+                frame_number, path, path, completiontime, status, uuid)
+            um.cursor.execute(sql)
+            result = um.cursor.fetchall()
+            logging.getLogger("HWR").debug("[updateJobStatus from LNLSPilatusDet.py] connect to mysql and result: %s",
+                                           result)
+
+
+
+
+
+    except Exception as ex:
+        logging.getLogger("HWR").error("[COLLECT] Data collection job update failure: %s", ex)
 
 def get_queue_id(name:str):
     connection = get_db_connection()
@@ -26,6 +45,9 @@ def get_queue_id(name:str):
             return result[0][0]+1 if result[0][0] is not None else 1
     finally:
         connection.close()
+
+
+
 
 def insert_new_data_to_all_table(src, dest, status, sample_name, uuid, ion_chamber_intensity, start_angle,
                                  resolution, exposure, image_count, wavelength, distance, oscil_range, beam_x,
