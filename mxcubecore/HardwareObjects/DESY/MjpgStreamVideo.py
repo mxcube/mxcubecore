@@ -46,7 +46,7 @@ from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import AbstractVide
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
-class MjpgStreamVideo(AbstractVideoDevice, HardwareObject):
+class MjpgStreamVideo(AbstractVideoDevice):
     """
     Hardware object to capture images using mjpg-streamer
     and it's input_avt.so plugin for AVT Prosilica cameras.
