@@ -1256,6 +1256,18 @@ class MICROMAXCollect(DataCollect):
             "dozor_dict": dozor_dict,
             "collect_dict": collect_dict,
         }
+
+        #
+        # add sample 'space group' and 'unit cell' parameters to header appendix,
+        # if the user have specified them
+        #
+        sample_reference_dict = self.get_header_appendix_sample_reference_dict(
+            self.current_dc_parameters["sample_reference"]
+        )
+        if sample_reference_dict:
+            # user specified some sample reference params, add them to header appendix
+            header_appendix["sample_reference"] = sample_reference_dict
+
         self.detector_hwobj.set_header_appendix(json.dumps(header_appendix))
         return config
 

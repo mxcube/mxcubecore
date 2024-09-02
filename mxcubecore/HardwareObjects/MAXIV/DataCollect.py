@@ -139,3 +139,45 @@ class DataCollect(AbstractCollect, HardwareObject):
         """
         hostname = socket.gethostname()
         return socket.gethostbyname(hostname)
+
+    def get_header_appendix_sample_reference_dict(
+        self, sample_reference_params: dict
+    ) -> dict | None:
+        """
+        build the 'sample_reference' dictionary for the header appendix
+
+        returns the dictionary or None if no sample reference parameters specified
+        """
+
+        def filter_empty_vals(**key_vals) -> dict | None:
+            """
+            build dictionary with specified key-values,
+            don't include key-value pairs where value is None or ""
+
+            if the result is an empty dictionary, returns None
+            """
+            res = {k: v for k, v in key_vals.items() if v}
+            if len(res) == 0:
+                return None
+
+            return res
+
+        #
+        # deal with space group parameters
+        #
+        space_group = sample_reference_params.get("spacegroup", "")
+        if space_group != "":
+            # convert to PDB style of space group names
+            space_group = self.autoprocessing_hwobj.find_spg_full_name(space_group)
+
+        #
+        # deal with unit cell parameters
+        #
+        a, b, c, alpha, beta, gamma = parse_unit_cell_params(
+            sample_reference_params.get("cell", ",,,,,")
+        )
+        unit_cell = filter_empty_vals(
+            a=a, b=b, c=c, alpha=alpha, beta=beta, gamma=gamma
+        )
+
+        return filter_empty_vals(space_group=space_group, unit_cell=unit_cell)
