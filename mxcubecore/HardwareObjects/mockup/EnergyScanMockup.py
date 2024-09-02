@@ -164,11 +164,7 @@ chooch_graph_data = (
 )
 
 
-class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
-    def __init__(self, name):
-        AbstractEnergyScan.__init__(self)
-        HardwareObject.__init__(self, name)
-
+class EnergyScanMockup(AbstractEnergyScan):
     def init(self):
 
         self.ready_event = gevent.event.Event()
