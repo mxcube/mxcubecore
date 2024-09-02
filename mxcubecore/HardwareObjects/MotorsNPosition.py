@@ -184,7 +184,7 @@ class MotorsNPosition(AbstractActuator):
 
     def update_multi_value(self):
         if self._updating_multi_value:
-            return
+            pass
         self._updating_multi_value = True
 
         current_idx = -1
