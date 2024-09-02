@@ -40,9 +40,6 @@ PATH_FALLBACK = "/gpfs/local"
 class P11Session(Session):
     default_archive_folder = "raw"
 
-    def __init__(self, *args):
-        super().__init__(*args)
-
     def init(self):
         super().init()
 
