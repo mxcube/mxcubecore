@@ -22,7 +22,9 @@ __copyright__ = """ Copyright © 2010 - 2024 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
 from mxcubecore.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
-from mxcubecore.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
+
+# from mxcubecore.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
+from mxcubecore import HardwareRepository as HWR
 
 import logging
 
@@ -115,8 +117,16 @@ class P11Energy(AbstractEnergy):
         prog_value = value * 1000
         self.chan_autobrake.set_value(True)
         if self.get_state() == self.STATES.READY:
-            self.log.debug("Programming ENERGY to %s" % prog_value)
-            self.chan_energy.set_value(prog_value)
+
+            current_value = self.get_value()
+            if abs(current_value - value) < 0.01:
+                self.log.debug(
+                    "The difference between the current and desired energy values is less than 0.01. No change made."
+                )
+            else:
+                self.log.debug("Programming ENERGY to %s eV" % prog_value)
+                self.chan_energy.set_value(prog_value)
+                self.log.debug(f"Energy value set to {value} keV.")
 
     def get_value(self):
         """
@@ -135,9 +145,6 @@ class P11Energy(AbstractEnergy):
                 )
                 return None
         return value
-
-    # def get_limits(self):
-    # return my_limits
 
 
 def test_hwo(hwo):

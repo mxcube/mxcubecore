@@ -94,15 +94,8 @@ class P11Collect(AbstractCollect):
         """
         Descript. :
         """
-        current_value = HWR.beamline.energy.get_value()
-        if abs(current_value - value) < 0.01:
-            self.log.debug(
-                "The difference between the current and desired energy values is less than 0.01. No change made."
-            )
-        else:
-            HWR.beamline.energy.set_value(value)
-            self.log.debug(f"Energy value set to {value}.")
-
+        HWR.beamline.energy.set_value(value)
+        
     def set_resolution(self, value):
         """
         Descript. :
