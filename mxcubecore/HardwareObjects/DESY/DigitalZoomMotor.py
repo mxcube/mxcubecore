@@ -72,7 +72,6 @@ class DigitalZoomMotor(AbstractMotor, HardwareObject):
                 "DigitalZoomMotor: digital zoom is not supported " "by camera object"
             )
 
-
     def update_state(self):
         """
         Descript. : forces position update
