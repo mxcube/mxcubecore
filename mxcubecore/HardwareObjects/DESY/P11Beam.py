@@ -19,28 +19,18 @@
 """P11Beam"""
 
 from mxcubecore.HardwareObjects.abstract.AbstractBeam import AbstractBeam
+from mxcubecore.HardwareObjects.abstract.AbstractBeam import BeamShape
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
-from enum import Enum
 import numpy as np
-import sys
 
 __credits__ = ["DESY P11"]
 __license__ = "LGPLv3+"
 __category__ = "General"
 
 
-class BeamShape(Enum):
-    """Beam shape definitions"""
-
-    UNKNOWN = "unknown"
-    RECTANGULAR = "rectangular"
-    ELLIPTICAL = "ellipse"
-
-
 class P11Beam(AbstractBeam):
     def __init__(self, *args):
         super().__init__(*args)
-
 
     def init(self):
 
