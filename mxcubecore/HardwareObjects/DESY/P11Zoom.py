@@ -40,7 +40,7 @@ class P11Zoom(AbstractNState):
         self.closest_zoom = None
         self.redis = redis.StrictRedis()
 
-        AbstractNState.__init__(self, name)
+        super().__init__(name)
 
     def init(self):
         self._pixels_per_mm = self.get_property("pixels_per_mm")
