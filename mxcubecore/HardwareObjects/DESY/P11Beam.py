@@ -20,11 +20,21 @@
 
 from mxcubecore.HardwareObjects.abstract.AbstractBeam import AbstractBeam
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
-
+from enum import Enum
+import numpy as np
+import sys
 
 __credits__ = ["DESY P11"]
 __license__ = "LGPLv3+"
 __category__ = "General"
+
+
+class BeamShape(Enum):
+    """Beam shape definitions"""
+
+    UNKNOWN = "unknown"
+    RECTANGULAR = "rectangular"
+    ELLIPTICAL = "ellipse"
 
 
 class P11Beam(AbstractBeam):
@@ -32,9 +42,6 @@ class P11Beam(AbstractBeam):
         super().__init__(*args)
 
         self.pinhole_hwobj = self.get_object_by_role("pinhole")
-
-        self._beam_size_dict = {"aperture": [9999, 9999], "slits": [9999, 9999]}
-
         self._beam_position_on_screen = [340, 256]
 
         self.focus_sizes = {
@@ -45,6 +52,20 @@ class P11Beam(AbstractBeam):
             3: {"label": "50x50", "size": (0.05, 0.05)},
             4: {"label": "20x20", "size": (0.02, 0.02)},
             5: {"label": "4x9", "size": (0.009, 0.004)},
+        }
+
+        self._beam_size_dict = {
+            "aperture": [9999, 9999],
+            "slits": [9999, 9999],
+            "definer": [sys.float_info.max, sys.float_info.max],
+        }
+
+        self._beam_shape = BeamShape.ELLIPTICAL
+        self._beam_info_dict = {
+            "size_x": self._beam_width,
+            "size_y": self._beam_height,
+            "shape": self._beam_shape,
+            "label": self._beam_label,
         }
 
     def init(self):
@@ -59,12 +80,41 @@ class P11Beam(AbstractBeam):
         self.mirror_idx_changed()
         self.mirror_state_changed()
 
+    def get_available_size(self):
+        """Returns available beam sizes based on the current configuration."""
+        return {
+            "type": ["focus"],
+            "values": [self.focus_sizes]
+        }
+
+    def get_defined_beam_size(self):
+        """Implements the abstract method to return defined beam sizes."""
+        return {
+            "label": [item["label"] for item in self.focus_sizes.values()],
+            "size": [item["size"] for item in self.focus_sizes.values()]
+        }
+
+    def set_value(self, size=None):
+        """Implements the abstract method to set the beam size."""
+        if isinstance(size, list):
+            self._beam_width, self._beam_height = size
+        elif isinstance(size, str):
+            matching_size = next((v for k, v in self.focus_sizes.items() if v["label"] == size), None)
+            if matching_size:
+                self._beam_width, self._beam_height = matching_size["size"]
+        self.evaluate_beam_info()
+
+    def set_beam_position_on_screen(self, beam_x_y):
+        """Sets the beam position on the screen."""
+        self._beam_position_on_screen = beam_x_y
+        self.re_emit_values()
+
     def get_beam_info_state(self):
         if self.mirror_state_ch is not None:
             tango_state = self.mirror_state_ch.get_value()
             return self._convert_tango_state(tango_state)
 
-        return self.STATES_READY
+        return self.STATES.READY
 
     def get_slits_gap(self):
         return None, None
@@ -123,3 +173,42 @@ class P11Beam(AbstractBeam):
             )
 
             return curr_size_item["label"]
+
+    def evaluate_beam_info(self):
+        """
+        Method called if aperture, slits or focusing has been changed.
+        Evaluates which of the beam size defining devices determines the size.
+        Returns:
+            (dict): Beam info dictionary (dict), type of the definer (str).
+                     {size_x: float, size_y: float,
+                      shape: BeamShape enum, label: str},
+        """
+        _shape = BeamShape.UNKNOWN
+        # Convert the list of beam sizes to a NumPy array for easier manipulation
+        sizes = np.array(list(self._beam_size_dict.values()))
+        # Find the smallest size
+        _size = sizes.min(axis=0)
+        key = [k for k, v in self._beam_size_dict.items() if v == _size.tolist()]
+
+        if len(key) == 1:
+            _label = key[0]
+        else:
+            if self._definer_type in key:
+                _label = self._definer_type
+            else:
+                _label = "UNKNOWN"
+
+        if _label == "slits":
+            _shape = BeamShape.RECTANGULAR
+        else:
+            _shape = BeamShape.ELLIPTICAL
+
+        self._beam_width = _size[0]
+        self._beam_height = _size[1]
+        self._beam_shape = _shape
+        self._beam_info_dict["size_x"] = _size[0]
+        self._beam_info_dict["size_y"] = _size[1]
+        self._beam_info_dict["shape"] = _shape
+        self._beam_info_dict["label"] = _label
+
+        return self._beam_info_dict
