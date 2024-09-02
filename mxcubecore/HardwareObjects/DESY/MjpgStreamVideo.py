@@ -333,7 +333,7 @@ class MjpgStreamVideo(AbstractVideoDevice):
                 sensor_height = int(sensor_info["value"])
             self.sensor_dimensions = (sensor_width, sensor_height)
 
-        self.is_ready()
+        # self.is_ready()
         self.set_zoom(0)  # overview camera
 
     def http_get(self, query, host=None, port=None, path=None):

@@ -72,8 +72,6 @@ class DigitalZoomMotor(AbstractMotor, HardwareObject):
                 "DigitalZoomMotor: digital zoom is not supported " "by camera object"
             )
 
-        if MotorStates.READY:
-            self.is_ready()
 
     def update_state(self):
         """
