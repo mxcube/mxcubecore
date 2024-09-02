@@ -41,6 +41,9 @@ class P11Beam(AbstractBeam):
     def __init__(self, *args):
         super().__init__(*args)
 
+
+    def init(self):
+
         self.pinhole_hwobj = self.get_object_by_role("pinhole")
         self._beam_position_on_screen = [340, 256]
 
@@ -54,21 +57,6 @@ class P11Beam(AbstractBeam):
             5: {"label": "4x9", "size": (0.009, 0.004)},
         }
 
-        self._beam_size_dict = {
-            "aperture": [9999, 9999],
-            "slits": [9999, 9999],
-            "definer": [sys.float_info.max, sys.float_info.max],
-        }
-
-        self._beam_shape = BeamShape.ELLIPTICAL
-        self._beam_info_dict = {
-            "size_x": self._beam_width,
-            "size_y": self._beam_height,
-            "shape": self._beam_shape,
-            "label": self._beam_label,
-        }
-
-    def init(self):
         self.mirror_idx_ch = self.get_channel_object("beamsize")
         self.mirror_state_ch = self.get_channel_object("state")
 
