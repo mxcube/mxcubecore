@@ -404,7 +404,7 @@ class AbstractCollect(HardwareObject, object):
         pass
 
     def set_transmission(self, value):
-        """def get_beam_
+        """
         Descript. :
         """
         pass
