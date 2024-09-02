@@ -731,7 +731,7 @@ class LNLSPilatusDet(AbstractDetector):
                     frame_number, path, path, completiontime, status, uuid)
                 um.cursor.execute(sql)
                 result = um.cursor.fetchall()
-                logging.getLogger("HWR").debug("connect to mysql and result: %s", result)
+                logging.getLogger("HWR").debug("[updateJobStatus from LNLSPilatusDet.py] connect to mysql and result: %s", result)
 
 
 

@@ -252,9 +252,11 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             # if there is a phase change
 
 
-            log.debug("Collection: going to take snapshots...")
+            # log.debug("Collection: going to take snapshots...")
+            logging.getLogger("HWR").debug("Collection: going to take snapshots...")
             self.x17um_take_crystal_snapshots()
-            log.debug("Collection: snapshots taken")
+            # log.debug("Collection: snapshots taken")
+            logging.getLogger("HWR").debug("Collection: snapshots taken")
             # to fix permission issues
             snapshots_files = []
 
@@ -353,6 +355,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
                     sql = "UPDATE job SET autopx = '%s', xia2_xds_result = '%s',autoprocess_result = '%s', xia2_dials_result = '%s', autopx_queue_id = %d, xia2_xds_queue_id=%d,xia2_dials_queue_id=%d,autoprocess_queue_id=%d WHERE uuid = '%s'" % (
                         waiting,waiting,waiting,waiting,next_autopx_queue_id,next_xds_queue_id,next_dials_queue_id,next_autoproc_queue_id,uuid)
                     um.cursor.execute(sql)
+                    logging.getLogger("HWR").debug("[updateJobStatus from BL19U1Collect.py] connect to mysql and result: %s", result)
 
 
         except Exception as ex:
@@ -1161,6 +1164,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         HWR.beamline.diffractometer.wait_ready(1000)  # TODO check why sometimes the MD3 is in running state while we call movePhase
 
         if self.current_dc_parameters["take_snapshots"]:
+            logging.getLogger("HWR").debug("perpare ot take snapshots")
             # save the image to the data collection directory for the moment
             snapshot_directory = os.path.join(
                 self.current_dc_parameters["fileinfo"]["archive_directory"], "snapshot"
@@ -1361,6 +1365,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         """
         # take image from server
         # HWR.beamline.sample_view._camera.take_snapshot(filename)
+        logging.getLogger("HWR").debug("_take_crystal_snapshot() in BL19U1Collect.py")
         HWR.beamline.sample_view._camera.takeSnapshot(filename)
         # pass
 
