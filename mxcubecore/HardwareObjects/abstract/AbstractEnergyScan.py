@@ -103,7 +103,7 @@ class AbstractEnergyScan(HardwareObject):
         """
         pass
 
-    def choose_attenuation(self, energy_scan_parameters):
+    def choose_attenuation(self):
         """
         Procedure to set the minimal attenuation in order no preserve
         the sample. Should be done at the energy after the edge.
