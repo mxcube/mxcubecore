@@ -163,7 +163,10 @@ class AbstractEnergyScan(HardwareObject):
             self.get_property("config_file"), element, edge
         )
         self.cpos = cpos
+
         self.energy_scan_parameters = STATICPARS_DICT
+        if self.energy_scan_parameters is None:
+            self.energy_scan_parameters = {}
         self.energy_scan_parameters["element"] = element
         self.energy_scan_parameters["edge"] = edge
         self.energy_scan_parameters["directory"] = directory
