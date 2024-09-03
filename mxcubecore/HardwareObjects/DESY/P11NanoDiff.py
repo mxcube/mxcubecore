@@ -1319,8 +1319,6 @@ class P11NanoDiff(GenericDiffractometer):
         if wait:
             self.wait_phase()
 
-        # sampx to 0
-
     def goto_beam_phase(self, wait=True):
         self.phase_goingto = GenericDiffractometer.PHASE_BEAMLOCATION
 
