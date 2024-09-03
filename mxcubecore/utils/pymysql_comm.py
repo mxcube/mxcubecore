@@ -27,6 +27,7 @@ class UsingMysql(object):
             self._start = default_timer()
 
         conn = get_connection()
+        # use dict cursor , different from default(tuple)
         cursor = conn.cursor(pymysql.cursors.DictCursor)
         conn.autocommit = False
 

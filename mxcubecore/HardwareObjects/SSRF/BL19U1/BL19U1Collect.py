@@ -33,7 +33,7 @@ from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.SSRF.BL19U1.BL19U1DetCover import DetCover
 from mxcubecore.HardwareObjects.SSRF.BL19U1 import Constants as cts
 from mxcubecore.utils.pymysql_comm import UsingMysql
-from mxcubecore.service.dataItem_service import insert_dc_param_to_basic
+from mxcubecore.service.dataItem_service import insert_dc_param_to_basic,updateOtherTable
 
 class BL19U1Collect(AbstractCollect, HardwareObject):
     """
@@ -189,6 +189,8 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
     def do_collect(self, owner):
         """
         Actual collect sequence
+        似乎在收集时，这个py文件会先进入此函数
+
         如果是普通3-click收集，则current_dc_parameters of motors就是当前位置
         如果是raster scan方式收集，则current_dc_parameters of motors中的phiz位置和sampx位置会根据画的矩形而改变
         """
@@ -274,7 +276,8 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
                 print(ex)
             # prepare beamline for data acquisiion
 
-            self.prepare_acquisition()
+            # 在下面的准备函数调用中，会准备好如探测器距离等的各种状态，并将基本信息插入job和dc_basic表
+            job_id ,distance = self.prepare_acquisition()
             self.emit(
                 "collectOscillationStarted",
                 (owner, None, None, None, self.current_dc_parameters, None),
@@ -284,8 +287,10 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             #self.transfer_data() TODO add data transfer here
             self.emit_collection_finished()
 
-            print(self.collection_uuid)
-            self.updateOtherTable(self.collection_uuid, 'PENDING')
+            print("uuid: ",self.collection_uuid)
+            # 在这里插入数据到其他表
+            # self.updateOtherTable(self.collection_uuid, 'PENDING')
+            updateOtherTable(self.collection_uuid, 'PENDING',job_id,distance)
 
         except Exception as ex:
             logging.getLogger("HWR").error("[COLLECT] Data collection failed: %s", ex)
@@ -584,7 +589,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         self.move_to_centered_position()            #此处raster scan时，会移动到矩形的第一个位置点
 
         # HWR.beamline.diffractometer.save_centring_positions();
-
+        return job_id,distance
     # -------------------------------------------------------------------------------
 
     def prepare_triggers_to_collect(self):
