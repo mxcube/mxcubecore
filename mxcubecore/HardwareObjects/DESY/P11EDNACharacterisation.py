@@ -503,9 +503,11 @@ class P11EDNACharacterisation(EDNACharacterisation):
                 )
                 acquisition_parameters = acq.acquisition_parameters
 
-                acquisition_parameters.centred_position = reference_image_collection.acquisitions[
-                    0
-                ].acquisition_parameters.centred_position
+                acquisition_parameters.centred_position = (
+                    reference_image_collection.acquisitions[
+                        0
+                    ].acquisition_parameters.centred_position
+                )
 
                 acq.path_template = HWR.beamline.get_default_path_template()
 
