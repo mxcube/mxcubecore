@@ -27,12 +27,10 @@ def insert_new_data_to_job(frame_number,path,dest,completiontime,status,uuid,fil
 def insert_dc_param_to_basic(job_id,ion_chamber_intensity,start_angle,resolution,exposure,image_count,wavelength,uuid,distance,oscil_range):
     try:
         with UsingMysql(log_time=True) as um:
-            sql_collect_parameter = "insert into crystallography_data_basic (job_id,ion_chamber_intensity,start_angle,resolution,exposure,image_count,wavelength,uuid,distance,oscil_range) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)" % (
-                job_id, ion_chamber_intensity, start_angle, resolution, exposure, image_count, wavelength, uuid,distance, oscil_range)
-            um.cursor.execute(sql_collect_parameter)
-            result = um.cursor.fetchall()
-            logging.getLogger("HWR").debug("[insert_dc_param_to_basic] connect to mysql and result: %s",
-                                   result)
+            sql_collect_parameter = "insert into crystallography_data_basic (job_id,ion_chamber_intensity,start_angle,resolution,exposure,image_count,wavelength,uuid,distance,oscil_range) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+            um.cursor.execute(sql_collect_parameter,(job_id, ion_chamber_intensity, start_angle, resolution, exposure, image_count, wavelength, uuid,distance, oscil_range))
+            # result = um.cursor.fetchall()
+            logging.getLogger("HWR").debug("[insert_dc_param_to_basic from dataItem_service.py] connect to mysql succeeded")
     except Exception as ex:
         logging.getLogger("HWR").error("[COLLECT] insert_dc_param_to_basic failure: %s", ex)
 
@@ -140,3 +138,6 @@ def insert_new_data_to_all_table(src, dest, status, sample_name, uuid, ion_chamb
         connection.close()
 
 
+if __name__ == "__main__":
+    dc_basic_data = [75198,None,225.58,2.5,0.1,1,0.979,'c9294',508.9,1]
+    insert_dc_param_to_basic(*dc_basic_data)

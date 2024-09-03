@@ -33,7 +33,7 @@ from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.SSRF.BL19U1.BL19U1DetCover import DetCover
 from mxcubecore.HardwareObjects.SSRF.BL19U1 import Constants as cts
 from mxcubecore.utils.pymysql_comm import UsingMysql
-
+from mxcubecore.service.dataItem_service import insert_dc_param_to_basic
 
 class BL19U1Collect(AbstractCollect, HardwareObject):
     """
@@ -371,6 +371,11 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             % self.current_dc_parameters
         )
 
+        # 为了插入数据库数据，先声明一些变量
+        wl = None
+        resolution = None
+        distance = None
+
         self.stop_display = False
         log = logging.getLogger("user_level_log")
 
@@ -453,6 +458,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
                 raise Exception("[COLLECT] Error setting resolution: %s" % ex)
 
         elif "detector_distance" in self.current_dc_parameters:
+            distance = self.current_dc_parameters["detector_distance"]
             try:
                 log.info(
                     "Collection: Moving detector to %f",
@@ -512,10 +518,53 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         # _filename = '/', _subdir, '/', file_parameters["filename"]
         oscillation_parameters = self.current_dc_parameters["oscillation_sequence"][0]
 
+
         # 下行代码包括插入数据库操作，可以获取此次收集数据的job_id
         job_id = HWR.beamline.detector.set_detector_filenames(oscillation_parameters["number_of_images"],
                                                      oscillation_parameters["start_image_number"],
                                                      "".join(_filename), self.collection_uuid);
+
+        # 下面准备把收集的基本参数传入到 crystallography_data_basic 表
+
+
+        try:
+            distance = HWR.beamline.detector.getDistnaceRtnValue()
+        except Exception as e:
+            logging.getLogger("HWR").error("cannot get distance during insert dc basic data into db, error: ",e)
+        if "oscillation_sequence" in self.current_dc_parameters:
+            exposure = self.current_dc_parameters["oscillation_sequence"][0]['exposure_time']
+            image_count = self.current_dc_parameters["oscillation_sequence"][0]['number_of_images']
+            start_angle = self.current_dc_parameters["oscillation_sequence"][0]['start']
+            oscil_range = self.current_dc_parameters["oscillation_sequence"][0]['range']
+        else:
+            exposure = None
+            image_count = None
+            start_angle = None
+            oscil_range = None
+        if wl:
+            wl = round(wl,3)
+        if distance:
+            distance = round(distance,2)
+
+
+        dc_basic_param_to_table = [""]*10
+        dc_basic_param_to_table[0] = job_id         # job_id
+        dc_basic_param_to_table[1] = None             # ion_chamber_intensity
+        dc_basic_param_to_table[2] = start_angle    # start_angle
+        dc_basic_param_to_table[3] = resolution
+        dc_basic_param_to_table[4] = exposure
+        dc_basic_param_to_table[5] = image_count
+        dc_basic_param_to_table[6] = wl
+        dc_basic_param_to_table[7] = self.collection_uuid
+        dc_basic_param_to_table[8] = distance
+        dc_basic_param_to_table[9] = oscil_range
+        # for i in range(len(dc_basic_param_to_table)):
+        #     print(f"the {i}th dc_basic_param_to_table: {dc_basic_param_to_table[i]}")
+        # 插入收集时的基本参数到 crystallography_data_basic
+        insert_dc_param_to_basic(*dc_basic_param_to_table)
+
+
+
 
 
         # logging.getLogger("HWR").info("set detector filenames: %S" % "".join(_filename))
