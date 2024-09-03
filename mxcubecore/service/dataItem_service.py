@@ -9,17 +9,33 @@ AUTOPX_QUEUE_ID = "autopx_queue_id"
 
 
 def insert_new_data_to_job(frame_number,path,dest,completiontime,status,uuid,filename):
+    job_id = ""
     try:
         with UsingMysql(log_time=True) as um:
 
             sql = "INSERT INTO job (nimage, src, dest, createtime, status, uuid ,sample_name) VALUES (%d, '%s', '%s', '%s', '%s', '%s', '%s')" % (
                 frame_number, path, dest, completiontime, status, uuid, filename)
             um.cursor.execute(sql)
-            result = um.cursor.fetchall()
-            logging.getLogger("HWR").debug("[updateJobStatus from LNLSPilatusDet.py] connect to mysql and result: %s",
-                                           result)
+            job_id = um.cursor.lastrowid
+            logging.getLogger("HWR").debug("[updateJobStatus from LNLSPilatusDet.py] connect to mysql succeeded, job_id = %s",job_id)
+
     except Exception as ex:
         logging.getLogger("HWR").error("[COLLECT] Data collection job update failure: %s", ex)
+    return job_id
+
+
+def insert_dc_param_to_basic(job_id,ion_chamber_intensity,start_angle,resolution,exposure,image_count,wavelength,uuid,distance,oscil_range):
+    try:
+        with UsingMysql(log_time=True) as um:
+            sql_collect_parameter = "insert into crystallography_data_basic (job_id,ion_chamber_intensity,start_angle,resolution,exposure,image_count,wavelength,uuid,distance,oscil_range) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)" % (
+                job_id, ion_chamber_intensity, start_angle, resolution, exposure, image_count, wavelength, uuid,distance, oscil_range)
+            um.cursor.execute(sql_collect_parameter)
+            result = um.cursor.fetchall()
+            logging.getLogger("HWR").debug("[insert_dc_param_to_basic] connect to mysql and result: %s",
+                                   result)
+    except Exception as ex:
+        logging.getLogger("HWR").error("[COLLECT] insert_dc_param_to_basic failure: %s", ex)
+
 
 def get_queue_id(name:str):
     connection = get_db_connection()

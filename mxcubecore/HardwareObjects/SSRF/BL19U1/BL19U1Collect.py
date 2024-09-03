@@ -285,7 +285,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             self.emit_collection_finished()
 
             print(self.collection_uuid)
-            self.updateJobStatus(self.collection_uuid, 'PENDING')
+            self.updateOtherTable(self.collection_uuid, 'PENDING')
 
         except Exception as ex:
             logging.getLogger("HWR").error("[COLLECT] Data collection failed: %s", ex)
@@ -295,7 +295,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             self.close_fast_shutter()
             self.close_detector_cover()
 
-    def updateJobStatus(self, uuid, status):
+    def updateOtherTable(self, uuid, status):
         try:
             # data = {}
             # data['uuid'] = uuid
@@ -355,7 +355,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
                     sql = "UPDATE job SET autopx = '%s', xia2_xds_result = '%s',autoprocess_result = '%s', xia2_dials_result = '%s', autopx_queue_id = %d, xia2_xds_queue_id=%d,xia2_dials_queue_id=%d,autoprocess_queue_id=%d WHERE uuid = '%s'" % (
                         waiting,waiting,waiting,waiting,next_autopx_queue_id,next_xds_queue_id,next_dials_queue_id,next_autoproc_queue_id,uuid)
                     um.cursor.execute(sql)
-                    logging.getLogger("HWR").debug("[updateJobStatus from BL19U1Collect.py] connect to mysql and result: %s", result)
+                    logging.getLogger("HWR").debug("[updateOtherTable from BL19U1Collect.py] connect to mysql and result: %s", result)
 
 
         except Exception as ex:
@@ -511,9 +511,12 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         _filename = '/', _date, _subdir, '/', file_parameters["filename"]
         # _filename = '/', _subdir, '/', file_parameters["filename"]
         oscillation_parameters = self.current_dc_parameters["oscillation_sequence"][0]
-        HWR.beamline.detector.set_detector_filenames(oscillation_parameters["number_of_images"],
+
+        # 下行代码包括插入数据库操作，可以获取此次收集数据的job_id
+        job_id = HWR.beamline.detector.set_detector_filenames(oscillation_parameters["number_of_images"],
                                                      oscillation_parameters["start_image_number"],
                                                      "".join(_filename), self.collection_uuid);
+
 
         # logging.getLogger("HWR").info("set detector filenames: %S" % "".join(_filename))
         # move MD2 to DataCollection phase if it's not

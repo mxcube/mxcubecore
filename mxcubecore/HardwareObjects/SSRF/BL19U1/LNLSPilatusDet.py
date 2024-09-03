@@ -610,6 +610,7 @@ class LNLSPilatusDet(AbstractDetector):
 
     @task
     def set_detector_filenames(self, frame_number, start, filename, collect_uuid):
+        job_id = ""
         try:
             logging.getLogger("HWR").info('=============Start set_detector_filenames')
             logging.getLogger("HWR").info(f'filename of this collection is {filename}')
@@ -677,12 +678,14 @@ class LNLSPilatusDet(AbstractDetector):
             logging.getLogger("HWR").info('=============END set_detector_filenames')
             ##############
             logging.getLogger("HWR").info(f'prefix and dirname of this collection are {filename}, {dirname}')
-            self.updateJobStatus(frame_number, collect_uuid, saving_directory, 'START',filename)
+            job_id = self.updateJobStatus(frame_number, collect_uuid, saving_directory, 'START',filename)
         except Exception as ex:
             logging.getLogger("HWR").error(
                 "[HWR] Error set_detector_filenames: %s"
                 % (ex)
             )
+        return job_id
+
 
     def setFileNumber(self, number):
         self.set_channel_value("det_filenumber", number)
@@ -728,7 +731,9 @@ class LNLSPilatusDet(AbstractDetector):
         completiontime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 
-        insert_new_data_to_job(frame_number,path,path,completiontime,status,uuid,filename)
+        job_id = insert_new_data_to_job(frame_number,path,path,completiontime,status,uuid,filename)
+        return job_id
+
         # 将下面的代码整合成一个函数，见上一行代码
         # try:
         #     with UsingMysql(log_time=True) as um:
