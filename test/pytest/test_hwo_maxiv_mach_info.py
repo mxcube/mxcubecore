@@ -72,14 +72,12 @@ def mach_info():
     dev_ctx.start()
 
     mach_info = MachInfo("/machine_info")
-    mach_info.set_property(
-        "parameters",
-        "['current', 'fillmode', 'message', 'lifetime', 'injection', 'status']",
+
+    mach_info._config = mach_info.HOConfig(
+        mach_info=dev_ctx.get_device_access("test/device/billboard"),
+        current=dev_ctx.get_device_access("test/device/dcct"),
+        parameters="['current', 'fillmode', 'message', 'lifetime', 'injection', 'status']",
     )
-    mach_info.set_property(
-        "mach_info", dev_ctx.get_device_access("test/device/billboard")
-    )
-    mach_info.set_property("current", dev_ctx.get_device_access("test/device/dcct"))
 
     # listen for 'valueChanged' signal
     signal_sent = Event()
