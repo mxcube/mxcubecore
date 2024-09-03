@@ -358,13 +358,13 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             )
 
         # ensure proper MD3 phase
-        if HWR.beamline.diffractometer.get_current_phase().value != "DataCollection":
+        if HWR.beamline.diffractometer.get_current_phase() != "DataCollection":
             HWR.beamline.diffractometer.set_phase("DataCollection", wait=True)
 
         # and move to the centred positions after phase change
         if self.cpos:
-            logging.getLogger("HWR").info("Moving to centring position")
-            HWR.beamline.diffractometer.move_to_motors_positions(cpos, wait=True)
+            logging.getLogger("HWR").info("Moving to centring position {}".format(self.cpos.as_dict()))
+            HWR.beamline.diffractometer.move_to_motors_positions(self.cpos.as_dict(), wait=True)
         else:
             logging.getLogger("HWR").warning("Valid centring position not found")
 
@@ -442,7 +442,10 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             output = ""
             filename = self.spectrum_info_dict["filename"]
             logging.getLogger("HWR").info("Reading data from {}".format(filename))
-            time.sleep(5)
+
+            with gevent.Timeout(15, Exception("Timeout waiting for file")):
+                while not os.path.exists(filename):
+                     gevent.sleep(0.5)
 
             with h5py.File(filename, "r") as spectrum_file:
                 # reading the spectrum h5 file from the saved directory
@@ -647,8 +650,12 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         Descript. :
         """
         logging.getLogger("HWR").debug("XRFSpectrum info %r", self.spectrum_info_dict)
+
         if self.db_connection_hwobj:
             try:
+                self.spectrum_info_dict.pop("prefix")
+                self.spectrum_info_dict.pop("spectrum_directory")
+                self.spectrum_info_dict.pop("archive_directory")
                 return self.db_connection_hwobj.storeXfeSpectrum(
                     self.spectrum_info_dict
                 )
