@@ -260,8 +260,9 @@ class BIOMAXContinuousScan(AbstractEnergyScan):
             )
             HWR.beamline.energy.start_move_energy(_energy / 1000, check_beam=True)
         except Exception as ex:
-            logging.getLogger("HWR").error("EnergyScan: cannot set scan Energy %s" % ex)
-            return False
+            msg = "EnergyScan: cannot set scan Energy {}".format(ex)
+            logging.getLogger("HWR").error(msg)
+            raise RuntimeError(msg)
 
         try:
             logging.getLogger("HWR").info(
@@ -269,10 +270,9 @@ class BIOMAXContinuousScan(AbstractEnergyScan):
             )
             HWR.beamline.transmission.set_value(float(SCAN_TRANSMISSION), wait=True)
         except Exception as ex:
-            logging.getLogger("HWR").error(
-                "EnergyScan: cannot set scan transmission %s" % ex
-            )
-            return False
+            msg = "EnergyScan: cannot set scan transmission {}".format(ex)
+            logging.getLogger("HWR").error(msg)
+            raise RuntimeError(msg)
 
         self.acq_detector()  # only used for prepare transmission
         counts = self.xspress3.ReadDtcCounts_Window1([0, 1, 1])[0]
@@ -314,12 +314,9 @@ class BIOMAXContinuousScan(AbstractEnergyScan):
             )
             HWR.beamline.transmission.set_value(float(transmission), wait=True)
         except Exception as ex:
-            logging.getLogger("HWR").error(
-                "EnergyScan: cannot set scan transmission %s" % ex
-            )
-            return False
-
-        return True
+            msg = "EnergyScan: cannot set scan transmission {}".format(ex)
+            logging.getLogger("HWR").error(msg)
+            raise RuntimeError(msg)
 
     def prepare_directory(self, directory):
         if not os.path.isdir(directory):
@@ -439,8 +436,6 @@ class BIOMAXContinuousScan(AbstractEnergyScan):
         logging.getLogger("HWR").info("Openning MD3 fast shutter")
         HWR.beamline.diffractometer.open_fast_shutter()
 
-        if not self.choose_attenuation():
-            return False
         self.energy_scan_parameters[
             "transmissionFactor"
         ] = HWR.beamline.transmission.get_att_factor()
@@ -448,7 +443,9 @@ class BIOMAXContinuousScan(AbstractEnergyScan):
             "exposureTime"
         ] = 0.009  # defined in the sardana macro
         directory = self.energy_scan_parameters["directory"]
-        prefix = self.adjust_run_number(directory, self.energy_scan_parameters["prefix"])
+        prefix = self.adjust_run_number(
+            directory, self.energy_scan_parameters["prefix"]
+        )
         file_name = prefix + ".h5"
         full_file_path = str(os.path.join(directory, file_name))
         self.energy_scan_parameters["filename"] = full_file_path  # dir + file name + h5
@@ -470,9 +467,12 @@ class BIOMAXContinuousScan(AbstractEnergyScan):
         try:
             try:
                 logging.getLogger("HWR").info(
-                    "Setting start energy %s" % str(self.energy_scan_parameters["Es"] / 1000)
+                    "Setting start energy %s"
+                    % str(self.energy_scan_parameters["Es"] / 1000)
                 )
-                HWR.beamline.energy.start_move_energy(self.energy_scan_parameters["Es"] / 1000, check_beam=True)
+                HWR.beamline.energy.start_move_energy(
+                    self.energy_scan_parameters["Es"] / 1000, check_beam=True
+                )
             except Exception as ex:
                 logging.getLogger("HWR").error(
                     "EnergyScan: cannot set scan Energy %s" % ex
@@ -504,7 +504,9 @@ class BIOMAXContinuousScan(AbstractEnergyScan):
         logging.getLogger("HWR").info(
             "Setting original energy %s" % str(self.initial_energy_value)
         )
-        HWR.beamline.energy.start_move_energy(self.initial_energy_value, check_beam=False)
+        HWR.beamline.energy.start_move_energy(
+            self.initial_energy_value, check_beam=False
+        )
         logging.getLogger("HWR").info(
             "Setting original transmission %s" % str(initial_transmission_value)
         )
@@ -521,7 +523,7 @@ class BIOMAXContinuousScan(AbstractEnergyScan):
         self.scan_command_aborted()
 
     def escan_cleanup(self):
-        pass
+        self.closure()
 
     def scan_command_failed(self, *args):
         """
