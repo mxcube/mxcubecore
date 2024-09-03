@@ -363,8 +363,12 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
 
         # and move to the centred positions after phase change
         if self.cpos:
-            logging.getLogger("HWR").info("Moving to centring position {}".format(self.cpos.as_dict()))
-            HWR.beamline.diffractometer.move_to_motors_positions(self.cpos.as_dict(), wait=True)
+            logging.getLogger("HWR").info(
+                "Moving to centring position {}".format(self.cpos.as_dict())
+            )
+            HWR.beamline.diffractometer.move_to_motors_positions(
+                self.cpos.as_dict(), wait=True
+            )
         else:
             logging.getLogger("HWR").warning("Valid centring position not found")
 
@@ -430,8 +434,22 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         Descript. :
         """
         logging.getLogger("HWR").info("Sprectrum acquired, launching analysis")
+
+        self.spectrum_info_dict["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
+        if HWR.beamline.transmission:
+            self.spectrum_info_dict[
+                "beamTransmission"
+            ] = HWR.beamline.transmission.get_value()
+        if HWR.beamline.energy:
+            self.spectrum_info_dict["energy"] = HWR.beamline.energy.get_value()
+        if HWR.beamline.flux:
+            self.spectrum_info_dict["flux"] = HWR.beamline.flux.get_value()
+        if HWR.beamline.beam:
+            size = HWR.beamline.beam.get_value()
+            self.spectrum_info_dict["beamSizeHorizontal"] = size[0]
+            self.spectrum_info_dict["beamSizeVertical"] = size[1]
+
         with cleanup(self.ready_event.set):
-            self.spectrum_info_dict["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
             self.spectrum_running = False
 
             # We do not want to look at anything higher than the exciting energy
@@ -445,7 +463,7 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
 
             with gevent.Timeout(15, Exception("Timeout waiting for file")):
                 while not os.path.exists(filename):
-                     gevent.sleep(0.5)
+                    gevent.sleep(0.5)
 
             with h5py.File(filename, "r") as spectrum_file:
                 # reading the spectrum h5 file from the saved directory
@@ -532,20 +550,6 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             mca_config = {}
             # TODO: find peaks
 
-            self.spectrum_info_dict[
-                "beamTransmission"
-            ] = self.transmission_hwobj.get_att_factor()
-            self.spectrum_info_dict["energy"] = self.energy_hwobj.get_current_energy()
-            beam_size = self.beam_info_hwobj.get_beam_size()
-            self.spectrum_info_dict["beamSizeHorizontal"] = int(beam_size[0] * 1000)
-            self.spectrum_info_dict["beamSizeVertical"] = int(beam_size[1] * 1000)
-            try:
-                self.spectrum_info_dict["flux"] = self.flux_hwobj.estimate_flux()
-            except Exception as ex:
-                logging.getLogger("HWR").warning(
-                    "Error retrieving flux value {}".format(ex)
-                )
-                self.spectrum_info_dict["flux"] = 0.0
             x = np.arange(5, 20, 0.01)
             plt.plot(x, self.spectrum_data[500:2000])
             plt.xlabel("Energy (keV)")
@@ -567,41 +571,12 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
                 self.spectrum_info_dict["jpegScanFileFullPath"],
             )
             plt.close()
-            status = self.store_xrf_spectrum()
-            self.emit(
-                "xrfSpectrumFinished",
-                (
-                    self.spectrum_data,
-                    self.mca_calib,
-                    mca_config,
-                    status["xfeFluorescenceSpectrumId"],
-                ),
-            )
+
+        self.store_xrf_spectrum()
+
+        self.update_state(self.STATES.READY)
         logging.getLogger("HWR").info("XRF spectrum finished")
         logging.getLogger("user_level_log").info("XRF spectrum finished")
-
-    def spectrum_command_failed(self, *args):
-        """
-        Descript. :
-        """
-        logging.getLogger("HWR").error("BIOMAXEnergyScan: XRF scan failed")
-        self.spectrum_info_dict["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
-        self.spectrum_running = False
-        self.stop_flag = True
-        self.closure()
-        self.emit("xrfSpectrumFailed", ())
-        self.ready_event.set()
-
-    def spectrum_command_aborted(self, *args):
-        """
-        Descript. :
-        """
-        logging.getLogger("HWR").error("BIOMAXEnergyScan: XRF scan aborted")
-        self.spectrum_running = False
-        self.stop_flag = True
-        self.closure()
-        self.emit("xrfSpectrumFailed", ())
-        self.ready_event.set()
 
     def closure(self):
         """
@@ -614,15 +589,6 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         self.diffractometer_hwobj.move_fluo_out(wait=False)
         logging.getLogger("HWR").info("Opening Colibri shutter")
         self.pandabox.OpenShutter()
-
-    def cancel_spectrum(self, *args):
-        """
-        Descript. :
-        """
-        if self.spectrum_running:
-            self.spectrum_command_aborted()
-            # self.doSpectrum.abort()
-            self.ready_event.set()
 
     def open_safety_shutter(self):
         """
@@ -651,15 +617,12 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         """
         logging.getLogger("HWR").debug("XRFSpectrum info %r", self.spectrum_info_dict)
 
-        if self.db_connection_hwobj:
-            try:
-                self.spectrum_info_dict.pop("prefix")
-                self.spectrum_info_dict.pop("spectrum_directory")
-                self.spectrum_info_dict.pop("archive_directory")
-                return self.db_connection_hwobj.storeXfeSpectrum(
-                    self.spectrum_info_dict
-                )
-            except Exception as ex:
-                logging.getLogger("HWR").warning(
-                    "Cannot save XRFSpectrum info to Ispyb %s", ex
-                )
+        try:
+            self.spectrum_info_dict.pop("prefix")
+            self.spectrum_info_dict.pop("spectrum_directory")
+            self.spectrum_info_dict.pop("archive_directory")
+            return HWR.beamline.lims.storeXfeSpectrum(self.spectrum_info_dict)
+        except Exception as ex:
+            logging.getLogger("HWR").warning(
+                "Cannot save XRFSpectrum info to Ispyb %s", ex
+            )
