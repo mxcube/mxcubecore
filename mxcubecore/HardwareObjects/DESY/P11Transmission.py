@@ -110,8 +110,6 @@ class P11Transmission(AbstractTransmission):
         value = value / 100.0
         self.chan_set_value.set_value(value)
 
-        print("============== Setting transmission ==================")
-
         while self.get_state() == "MOVING":
             time.sleep(0.1)
             print("Changing transmission")
