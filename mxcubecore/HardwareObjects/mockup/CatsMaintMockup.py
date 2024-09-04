@@ -43,8 +43,8 @@ class CatsMaintMockup(HardwareObject):
     BESSY BL14.1 installation with 3 lids
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, name):
+        super().__init__(name)
 
         self._state = "READY"
         self._running = 0
