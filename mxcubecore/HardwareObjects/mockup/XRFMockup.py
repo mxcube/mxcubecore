@@ -10,6 +10,9 @@ SCAN_LENGTH = 500
 
 
 class XRFMockup(HardwareObject):
+    def __init__(self, name):
+        super().__init__(name)
+
     def init(self):
         self.ready_event = gevent.event.Event()
         self.spectrumInfo = {}
