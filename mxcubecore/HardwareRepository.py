@@ -269,7 +269,7 @@ def set_user_file_directory(user_file_directory):
 
 
 def init_hardware_repository(configuration_path):
-    """Initialise hardweare repository - must be run at program start
+    """Initialise hardware repository - must be run at program start
 
     Args:
         configuration_path (str): PATHSEP-separated string of directories
@@ -682,19 +682,6 @@ class __HardwareRepositoryClient:
     def get_procedure(self, procedure_name):
         """Return a Procedure given its name (see get_hardware_object())"""
         return self.get_hardware_object(procedure_name)
-
-    # def get_connection(self, connection_name):
-    #     """Return the Connection object for a Spec connection, given its name
-    #
-    #     Parameters :
-    #       connectionName -- a Spec version name ('host:port' string)
-    #
-    #     Return :
-    #       the corresponding SpecConnection object
-    #     """
-    #     connections_manager = SpecConnectionsManager.SpecConnectionsManager()
-    #
-    #     return connections_manager.get_connection(connection_name)
 
     def is_device(self, name):
         """Check if a Hardware Object is a Device

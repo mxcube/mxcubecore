@@ -4,12 +4,14 @@ import abc
 import logging
 import gevent
 from mxcubecore.TaskUtils import error_cleanup
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
-class AbstractEnergyScan(object):
+class AbstractEnergyScan(HardwareObject):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self):
+    def __init__(self, name):
+        super().__init__(name)
         self.data_collect_task = None
         self._egyscan_task = None
         self.scanning = False

@@ -290,9 +290,9 @@ class BeamMockup(AbstractBeam):
         if self._definer_type in (self.aperture, "aperture"):
             if not isinstance(size, str):
                 raise TypeError("Incorrect input value for aperture")
-            self.aperture.set_value(size)
+            self.aperture.set_value(self.aperture.VALUES[size], timeout=2)
 
         if self._definer_type in (self.definer, "definer"):
             if not isinstance(size, str):
                 raise TypeError("Incorrect input value for definer")
-            self.definer.set_value(size)
+            self.definer.set_value(self.definer.VALUES[size], timeout=2)

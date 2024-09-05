@@ -93,7 +93,6 @@ class AbstractXRFSpectrum(HardwareObject):
         self.spectrum_info_dict = {"sessionId": session_id, "blSampleId": blsample_id}
         integration_time = integration_time or self.default_integration_time
         self.spectrum_info_dict["exposureTime"] = integration_time
-        self.spectrum_info_dict["prefix"] = prefix
         self.spectrum_info_dict["filename"] = ""
         # Create the data and the archive directory (if needed) and files
         if data_dir:
@@ -102,7 +101,6 @@ class AbstractXRFSpectrum(HardwareObject):
                 return False
             filename = self.get_filename(data_dir, prefix)
             self.spectrum_info_dict["filename"] = filename + "." + self.file_suffix
-            self.spectrum_info_dict["spectrum_directory"] = os.path.dirname(filename)
         if archive_dir:
             if not self.create_directory(archive_dir):
                 self.update_state(self.STATES.FAULT)
@@ -114,7 +112,6 @@ class AbstractXRFSpectrum(HardwareObject):
             self.spectrum_info_dict["jpegScanFileFullPath"] = filename + ".png"
             self.spectrum_info_dict["annotatedPymcaXfeSpectrum"] = filename + ".html"
             self.spectrum_info_dict["fittedDataFileFullPath"] = filename + "_peaks.csv"
-            self.spectrum_info_dict["archive_directory"] = archive_dir
 
         self.spectrum_info_dict["startTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
         self.update_state(self.STATES.BUSY)
@@ -242,4 +239,4 @@ class AbstractXRFSpectrum(HardwareObject):
     def spectrum_store_lims(self):
         """Store the data in lims, according to the existing data model."""
         if self.spectrum_info_dict.get("sessionId"):
-            self.lims.storeXfeSpectrum(self.spectrum_info_dict)
+            self.lims.store_xfe_spectrum(self.spectrum_info_dict)
