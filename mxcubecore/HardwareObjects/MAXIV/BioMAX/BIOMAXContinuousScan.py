@@ -410,7 +410,9 @@ class BIOMAXContinuousScan(AbstractEnergyScan):
         # and move to the centred positions after phase change
         if self.cpos:
             logging.getLogger("HWR").info("Moving to centring position")
-            HWR.beamline.diffractometer.move_to_motors_positions(cpos, wait=True)
+            HWR.beamline.diffractometer.move_to_motors_positions(
+                self.cpos.as_dict(), wait=True
+            )
         else:
             logging.getLogger("HWR").warning("Valid centring position not found")
 
@@ -446,6 +448,7 @@ class BIOMAXContinuousScan(AbstractEnergyScan):
         prefix = self.adjust_run_number(
             directory, self.energy_scan_parameters["prefix"]
         )
+        self.energy_scan_parameters["prefix"] = prefix
         file_name = prefix + ".h5"
         full_file_path = str(os.path.join(directory, file_name))
         self.energy_scan_parameters["filename"] = full_file_path  # dir + file name + h5
@@ -508,13 +511,16 @@ class BIOMAXContinuousScan(AbstractEnergyScan):
             self.initial_energy_value, check_beam=False
         )
         logging.getLogger("HWR").info(
-            "Setting original transmission %s" % str(initial_transmission_value)
+            "Setting original transmission %s" % str(self.initial_transmission_value)
         )
         HWR.beamline.transmission.set_value(
-            float(initial_transmission_value), wait=True
+            float(self.initial_transmission_value), wait=True
         )
 
-        self.scan_command_finished(prefix, directory)
+        self.scan_command_finished(
+            self.energy_scan_parameters["prefix"],
+            self.energy_scan_parameters["directory"],
+        )
 
     def cancel_energy_scan(self, *args):
         """
@@ -610,7 +616,10 @@ class BIOMAXContinuousScan(AbstractEnergyScan):
         beam_size = HWR.beamline.beam.get_beam_size()
         self.energy_scan_parameters["beamSizeHorizontal"] = int(beam_size[0] * 1000)
         self.energy_scan_parameters["beamSizeVertical"] = int(beam_size[1] * 1000)
-        self.energy_scan_parameters["flux"] = HWR.beamline.flux.estimate_flux()
+        try:
+            self.energy_scan_parameters["flux"] = HWR.beamline.flux.estimate_flux()
+        except:
+            self.energy_scan_parameters["flux"] = 0.0
 
         filename = self.energy_scan_parameters["filename"]
         if "h5" not in filename:
@@ -629,7 +638,7 @@ class BIOMAXContinuousScan(AbstractEnergyScan):
         try:
             self.store_energy_scan()
         except Exception as ex:
-            print(ex)
+            logging.getLogger("HWR").error(ex)
         self.emit("energyScanFinished", (self.energy_scan_parameters,))
         logging.getLogger("HWR").debug(
             "energyScanFinished signal emitted %r", self.energy_scan_parameters
@@ -673,6 +682,7 @@ class BIOMAXContinuousScan(AbstractEnergyScan):
             self.energy_scan_parameters["endTime"] = str(
                 self.energy_scan_parameters["endTime"]
             )
+            db_status = None
             try:
                 db_status = HWR.beamline.lims.storeEnergyScan(
                     self.energy_scan_parameters
@@ -681,8 +691,10 @@ class BIOMAXContinuousScan(AbstractEnergyScan):
                 logging.getLogger("HWR").warning(
                     "Energy scan store in lims failed %s" % str(ex)
                 )
-                db_status["energyScanId"] = -1
-            energyscanid = int(db_status["energyScanId"])
+            if db_status:
+                energyscanid = int(db_status["energyScanId"])
+            else:
+                energyscanid = -1
             self.energy_scan_parameters["energyScanId"] = energyscanid
             logging.getLogger("HWR").debug(
                 "EnergyScan info %r", self.energy_scan_parameters
