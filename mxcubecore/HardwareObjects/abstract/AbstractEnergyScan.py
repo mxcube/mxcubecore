@@ -103,7 +103,7 @@ class AbstractEnergyScan(HardwareObject):
         """
         pass
 
-    def choose_attenuation(self, energy_scan_parameters):
+    def choose_attenuation(self):
         """
         Procedure to set the minimal attenuation in order no preserve
         the sample. Should be done at the energy after the edge.
@@ -157,13 +157,15 @@ class AbstractEnergyScan(HardwareObject):
             raise RuntimeError("Scan already started.")
 
         self.emit("energyScanStarted", ())
-        STATICPARS_DICT = {}
         # Set the energy from the element and edge parameters
         STATICPARS_DICT = self.get_static_parameters(
             self.get_property("config_file"), element, edge
         )
         self.cpos = cpos
-        self.energy_scan_parameters = STATICPARS_DICT
+        if STATICPARS_DICT is not None:
+            self.energy_scan_parameters = STATICPARS_DICT
+        else:
+            self.energy_scan_parameters = {}
         self.energy_scan_parameters["element"] = element
         self.energy_scan_parameters["edge"] = edge
         self.energy_scan_parameters["directory"] = directory
