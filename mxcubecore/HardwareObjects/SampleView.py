@@ -330,10 +330,26 @@ class SampleView(AbstractSampleView):
         return grid
 
     def set_grid_data(self, sid, result_data, data_file_path):
+        """
+        Sets grid rsult data for a shape with the specified id.
+
+        Args:
+            sid (str): The id of the shape to set grid data for.
+            result_data: The result data to set for the shape. Either a base64 encoded string for PNG/image
+            or a dictionary for RGB (keys are cell number and value RGBa list). Data is only updated if result is RGB based
+            data_file_path (str): The path to the data file associated with the result data.
+
+        Returns:
+            None
+
+        Raises:
+            AttributeError: If no shape with the specified id exists.
+        """
+
         shape = self.get_shape(sid)
 
         if shape:
-            if shape.result:
+            if shape.result and type(shape.result) == dict:
                 # append data
                 shape.result.update(result_data)
             else:
@@ -526,7 +542,9 @@ class Grid(Shape):
         self.num_cols = -1
         self.num_rows = -1
         self.selected = False
-        self.result = {}
+        # result is a base64 encoded string for PNG/image heatmap results
+        # or a dictionary (for RGB number based results)
+        self.result = None
         self.pixels_per_mm = [1, 1]
         self.beam_pos = [1, 1]
         self.beam_width = 0
