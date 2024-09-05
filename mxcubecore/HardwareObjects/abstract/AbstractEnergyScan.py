@@ -128,10 +128,10 @@ class AbstractEnergyScan(HardwareObject):
     # def do_energy_scan(self):
     def do_energy_scan(self):
         with error_cleanup(self.escan_cleanup):
-            self.escan_prepare()
             self.energy_scan_hook(self.energy_scan_parameters)
             self.open_safety_shutter(timeout=10)
             self.choose_attenuation()
+            self.escan_prepare()
             self.close_fast_shutter()
             logging.getLogger("HWR").debug("Doing the scan, please wait...")
             self.execute_energy_scan(self.energy_scan_parameters)
