@@ -78,7 +78,7 @@ class BIOMAXPatches(HardwareObject):
 
         if not HWR.beamline.sample_changer.is_powered():
             try:
-                HWR.beamline.sample_changer_maintenance.send_command("powerOn")
+                HWR.beamline.sample_changer_maintenance.send_command("PowerOn")
                 time.sleep(1)
                 HWR.beamline.sample_changer._wait_device_ready(30)
                 if not HWR.beamline.sample_changer.is_powered():
