@@ -471,7 +471,7 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
                     "data"
                 ][0, 0, :]
             if peaks_available:
-                peaks = detect_peaks.detect_peaks(
+                peaks = detect_peaks(
                     self.spectrum_data[lowerlim:upperlim], mph=8, mpd=40, threshold=4
                 )
                 logging.getLogger("HWR").info("Peaks: {}".format(peaks))
