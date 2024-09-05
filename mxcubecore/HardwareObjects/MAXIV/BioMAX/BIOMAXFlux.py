@@ -5,6 +5,7 @@ import gevent
 import gevent.event
 import PyTango
 from mxcubecore.HardwareObjects.abstract.AbstractFlux import AbstractFlux
+from mxcubecore import HardwareRepository as HWR
 
 """You may need to import monkey when you test standalone"""
 # from gevent import monkey
@@ -57,12 +58,10 @@ class BIOMAXFlux(AbstractFlux):
         self.airsample_length = 0
         self.detdiode_length = 45.0
 
-        self.detector_distance_hwobj = None
         self.energy_hwobj = None
         self.air_length = None
         self.energy = None
-        self.bcu_transmission_hwobj = None
-        self.shutter_hwobj = None
+        self.transmission_hwobj = None
         self.shutter_state = None
         self.timeout = 10
         self.ori_motors = None
@@ -88,17 +87,15 @@ class BIOMAXFlux(AbstractFlux):
         self.check_beam_macro.connect_signal("macroResultUpdated", self.macro_finished)
 
         self._event = gevent.event.Event()
-        self.detector_distance_hwobj = self.get_object_by_role("detector_distance")
-        self.energy_hwobj = self.get_object_by_role("energy")
+
+        self.energy_hwobj = HWR.beamline.energy
         self.connect(self.energy_hwobj, "energyChanged", self.energy_changed)
-        self.bcu_transmission_hwobj = self.get_object_by_role("transmission")
-        self.shutter_hwobj = self.get_object_by_role("shutter")
-        self.diffractometer_hwobj = self.get_object_by_role("diffractometer")
-        self.detector_cover_hwobj = self.get_object_by_role("detector_cover")
-        self.beam_info_hwobj = self.get_object_by_role("beam_info")
+        self.transmission_hwobj = HWR.beamline.transmission
+        self.diffractometer_hwobj = HWR.beamline.diffractometer
+        self.beam_info_hwobj = HWR.beamline.beam
 
         self.air_length = (
-            self.detector_distance_hwobj.get_value() * 1000 + self.airsample_length
+            HWR.beamline.detector.distance.get_value() * 1000 + self.airsample_length
         )
         self.flux_aem = self.get_property("flux_aem", None)
         if self.flux_aem is not None:
@@ -145,13 +142,13 @@ class BIOMAXFlux(AbstractFlux):
          7. Put MD3 back to normal position
         """
         energy = self.energy_hwobj.get_current_energy()
-        transmission = self.bcu_transmission_hwobj.get_att_factor()
+        transmission = self.transmission_hwobj.get_att_factor()
         self.check_beam_result = False
         self.logger.info("Flux calculation started!")
 
         # close fast shutter
         try:
-            self.diffractometer_hwobj.close_fast_shutter()
+            HWR.beamline.collect.close_fast_shutter()
             self.logger.info("Fast shutter closed!")
         except Exception as ex:
             self.logger.error("Cannot close fast shutter! %s", str(ex))
@@ -159,13 +156,10 @@ class BIOMAXFlux(AbstractFlux):
 
         # open safety shutter
         try:
-            self.shutter_state = self.shutter_hwobj.readShutterState()
-            if self.shutter_state != "opened":
-                self.shutter_hwobj.openShutter()
-                self.wait_safety_shutter_open()
-                self.logger.info("Safety shutter open!")
+            HWR.beamline.collect.open_safety_shutter()
+            self.logger.info("Safety shutter open!")
         except Exception as ex:
-            self.logger.error("Cannot close shutter! %s", str(ex))
+            self.logger.error("Cannot open safety shutter! %s", str(ex))
             return
 
         # checkbeam macro, it returns T/F
@@ -191,9 +185,7 @@ class BIOMAXFlux(AbstractFlux):
 
         # check detector cover is closed
         try:
-            if self.detector_cover_hwobj.readShutterState() == "opened":
-                logging.getLogger("HWR").info("Closing the detector cover")
-                self.detector_cover_hwobj.closeShutter()
+            HWR.beamline.collect.close_detector_cover()
         except:
             logging.getLogger("HWR").exception("Could not close the detector cover")
             return
@@ -205,26 +197,12 @@ class BIOMAXFlux(AbstractFlux):
             self.logger.error("ERROR acquiring! %s", str(ex))
 
         try:
-            self.diffractometer_hwobj.close_fast_shutter()
+            HWR.beamline.collect.close_fast_shutter()
             self.logger.info("Fast shutter closed!")
         except Exception as ex:
             self.logger.error("Cannot close fast shutter! %s", str(ex))
 
         self.diffractometer_hwobj.finish_calculate_flux(self.ori_motors, self.ori_phase)
-
-    def wait_safety_shutter_open(self):
-        with gevent.Timeout(
-            10, RuntimeError("Timeout waiting for safety shutter open")
-        ):
-            while self.shutter_hwobj.readShutterState() != "opened":
-                gevent.sleep(0.2)
-
-    def wait_fast_shutter_open(self, timeout=5):
-        with gevent.Timeout(
-            timeout, RuntimeError("Timeout waiting for safety shutter open")
-        ):
-            while not self.diffractometer_hwobj.is_fast_shutter_open():
-                gevent.sleep(0.2)
 
     def flux_value_changed(self):
         try:
@@ -274,7 +252,7 @@ class BIOMAXFlux(AbstractFlux):
          - no check of beam stability
         """
         energy = self.energy_hwobj.get_current_energy()
-        transmission = self.bcu_transmission_hwobj.get_att_factor()
+        transmission = self.transmission_hwobj.get_att_factor()
 
         self.logger.info("Start to measure flux")
         try:
@@ -287,8 +265,7 @@ class BIOMAXFlux(AbstractFlux):
         self.logger.info("Current Offset: {}".format(current_offset))
 
         try:
-            self.diffractometer_hwobj.open_fast_shutter()
-            self.wait_fast_shutter_open()
+            HWR.beamline.collect.open_fast_shutter()
             self.logger.info("Fast shutter opened!")
         except Exception as ex:
             self.logger.error("Cannot open fast shutter! %s", str(ex))
@@ -299,16 +276,16 @@ class BIOMAXFlux(AbstractFlux):
             self.acquire()
         except Exception as ex:
             self.logger.error("ERROR Acquiring! %s", str(ex))
-            self.diffractometer_hwobj.close_fast_shutter()
+            HWR.beamline.collect.close_fast_shutter()
             return -103
-        self.diffractometer_hwobj.close_fast_shutter()
+        HWR.beamline.collect.close_fast_shutter()
         current_meas = self.channel_value
         self.logger.info("Current Measurement: {}".format(current_meas))
 
         current = current_meas - current_offset
 
         air_length = (
-            self.detector_distance_hwobj.get_value() * 1000 + self.airsample_length
+            HWR.beamline.detector.distance.get_value() * 1000 + self.airsample_length
         )
         total_transmission = self.transmit(
             self.al_length, energy, self.al_model
@@ -335,7 +312,7 @@ class BIOMAXFlux(AbstractFlux):
     def update_flux_density(self):
         try:
             beamx, beamy = self.beam_info_hwobj.get_beam_size()  # in mm, float
-            transmission = self.bcu_transmission_hwobj.get_att_factor()  # string
+            transmission = self.transmission_hwobj.get_att_factor()  # string
             self.flux_density = (
                 float(self.current_flux) / float(transmission) / beamx / beamy / 10000
             )
