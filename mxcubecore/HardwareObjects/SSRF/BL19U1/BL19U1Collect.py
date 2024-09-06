@@ -1226,9 +1226,12 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             snapshot_directory = os.path.join(
                 self.current_dc_parameters["fileinfo"]["archive_directory"], "snapshot"
             )
+            logging.getLogger("HWR").debug(f"snapshot going to put in {snapshot_directory}")
+
             if not os.path.exists(snapshot_directory):
                 try:
                     self.create_directories(snapshot_directory)
+                    logging.getLogger("HWR").debug(f("snapshot directory created"))
                 except Exception:
                     logging.getLogger("HWR").exception("Collection: Error creating snapshot directory")
 
