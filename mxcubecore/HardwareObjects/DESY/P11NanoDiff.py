@@ -429,7 +429,7 @@ class P11NanoDiff(GenericDiffractometer):
             if k <= n_clicks:
                 while str(dev_gonio.State()) != "ON":
                     time.sleep(0.1)
-                self.centring_phi.set_value(omega + step)
+                self.centring_phi.set_value(omega + step, timeout=0)
 
                 while str(dev_gonio.State()) != "ON":
                     time.sleep(0.1)
@@ -768,7 +768,7 @@ class P11NanoDiff(GenericDiffractometer):
             logging.getLogger("HWR").info("click %d %f %f %f" % (k + 1, omega, x, y))
 
             if k <= n_clicks:
-                self.centring_phi.set_value(omega + step)
+                self.centring_phi.set_value(omega + step, timeout=None)
 
         name_pattern = "%s_%s" % (os.getuid(), time.asctime().replace(" ", "_"))
         directory = "%s/manual_optical_alignment" % os.getenv("HOME")
@@ -916,9 +916,9 @@ class P11NanoDiff(GenericDiffractometer):
         samp_y_pos = self.centring_sampy.motor.get_value() + samp_y
         phiy = self.centring_phiy.motor.get_value() + x_dist
 
-        self.centring_sampx.motor.set_value(samp_x_pos)
-        self.centring_sampy.motor.set_value(samp_y_pos)
-        self.centring_phiy.motor.set_value(phiy)
+        self.centring_sampx.motor.set_value(samp_x_pos, timeout=0)
+        self.centring_sampy.motor.set_value(samp_y_pos, timeout=0)
+        self.centring_phiy.motor.set_value(phiy, timeout=0)
 
     def start_move_to_beam(self, coord_x=None, coord_y=None, omega=None):
         """
@@ -1003,7 +1003,7 @@ class P11NanoDiff(GenericDiffractometer):
     def move_omega(self, angle):
         self.wait_omega_on()
         self.wait_omega()
-        self.motor_hwobj_dict["phi"].set_value(angle)
+        self.motor_hwobj_dict["phi"].set_value(angle, timeout=0)
 
     def move_omega_with_calibration(self, angle):
         self.wait_omega_on()
@@ -1016,11 +1016,11 @@ class P11NanoDiff(GenericDiffractometer):
             currentAngle = abs(currentAngle)
             loadAngleNew = currentAngle % 360
             self.omega_calibrate(-loadAngleNew)
-            self.motor_hwobj_dict["phi"].set_value(angle)
+            self.motor_hwobj_dict["phi"].set_value(angle, timeout=0)
         else:
             loadAngleNew = currentAngle % 360
             self.omega_calibrate(loadAngleNew)
-            self.motor_hwobj_dict["phi"].set_value(angle)
+            self.motor_hwobj_dict["phi"].set_value(angle, timeout=0)
 
     def wait_omega_on(self, timeout=30):
         """
