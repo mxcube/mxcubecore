@@ -29,9 +29,6 @@ __category__ = "General"
 
 
 class P11Beam(AbstractBeam):
-    def __init__(self, *args):
-        super().__init__(*args)
-
     def init(self):
 
         self.pinhole_hwobj = self.get_object_by_role("pinhole")

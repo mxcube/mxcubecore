@@ -185,7 +185,7 @@ class MotorsNPosition(AbstractActuator):
     def update_multi_value(self):
         if not self._updating_multi_value:
             self._updating_multi_value = True
-        
+
             current_idx = -1
             current_pos = {
                 motorname: self.motor_hwobjs[motorname].get_value()
@@ -206,7 +206,9 @@ class MotorsNPosition(AbstractActuator):
                 else:
                     for motorname in self.motorlist:
                         position = self._positions[name][motorname]
-                        self.log.debug("     - motor %s is at %s" % (motorname, position))
+                        self.log.debug(
+                            "     - motor %s is at %s" % (motorname, position)
+                        )
                     current_idx = idx
                     break
 
