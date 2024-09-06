@@ -183,41 +183,40 @@ class MotorsNPosition(AbstractActuator):
         self.update_multi_value()
 
     def update_multi_value(self):
-        if self._updating_multi_value:
-            pass
-        self._updating_multi_value = True
+        if not self._updating_multi_value:
+            self._updating_multi_value = True
+        
+            current_idx = -1
+            current_pos = {
+                motorname: self.motor_hwobjs[motorname].get_value()
+                for motorname in self.motorlist
+            }
 
-        current_idx = -1
-        current_pos = {
-            motorname: self.motor_hwobjs[motorname].get_value()
-            for motorname in self.motorlist
-        }
-
-        for idx, name in enumerate(self._positions):
-            for motorname in self.motorlist:
-                if motorname not in self._positions[name]:
-                    continue
-
-                position = self._positions[name][motorname]
-                cur_pos = current_pos[motorname]
-                delta = self.deltas[motorname]
-
-                if abs(cur_pos - position) > delta:
-                    break
-            else:
+            for idx, name in enumerate(self._positions):
                 for motorname in self.motorlist:
+                    if motorname not in self._positions[name]:
+                        continue
+
                     position = self._positions[name][motorname]
-                    self.log.debug("     - motor %s is at %s" % (motorname, position))
-                current_idx = idx
-                break
+                    cur_pos = current_pos[motorname]
+                    delta = self.deltas[motorname]
 
-        if current_idx != self.current_index:
-            self.current_index = current_idx
-            self.update_value(current_idx)
+                    if abs(cur_pos - position) > delta:
+                        break
+                else:
+                    for motorname in self.motorlist:
+                        position = self._positions[name][motorname]
+                        self.log.debug("     - motor %s is at %s" % (motorname, position))
+                    current_idx = idx
+                    break
 
-        self._updating_multi_value = False
+            if current_idx != self.current_index:
+                self.current_index = current_idx
+                self.update_value(current_idx)
 
-        return current_idx
+            self._updating_multi_value = False
+
+            return current_idx
 
     def update_multi_state(self):
 
