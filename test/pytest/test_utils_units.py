@@ -6,6 +6,7 @@ from mxcubecore.utils.units import (
     ev_to_kev,
     meter_to_mm,
     mm_to_meter,
+    um_to_mm,
     A_to_mA,
 )
 
@@ -38,6 +39,11 @@ def test_meter_to_mm():
 def test_mm_to_meter():
     assert isclose(mm_to_meter(1200), 1.2)
     assert isclose(mm_to_meter(10.5), 0.0105)
+
+
+def test_um_to_mm():
+    assert isclose(um_to_mm(5), 0.005)
+    assert isclose(um_to_mm(42.2), 0.0422)
 
 
 def test_A_to_mA():
