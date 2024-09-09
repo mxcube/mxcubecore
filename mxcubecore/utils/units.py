@@ -59,6 +59,13 @@ def mm_to_meter(millimeters: float) -> float:
     return millimeters / 1000.0
 
 
+def um_to_mm(micrometers: float) -> float:
+    """
+    convert micrometers (μm) to millimeters
+    """
+    return micrometers / 1000.0
+
+
 #
 # current units
 #
