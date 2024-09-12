@@ -121,7 +121,7 @@ class JungfrauDetector(AbstractDetector):
         """
         set energy, in KeV
         """
-        self.dev.photon_energy_keV = ev_to_kev(energy)
+        self.dev.incident_energy_keV = ev_to_kev(energy)
 
     def enable_filewriter(self):
         # we don't need to enable Jungfrau file writer,
@@ -158,8 +158,10 @@ class JungfrauDetector(AbstractDetector):
         #
 
         dev = self.dev
-        dev.omega__start = config["OmegaStart"]
-        dev.omega__step = config["OmegaIncrement"]
+        # hard-coded gonio name
+        dev.goniometer__name = "Omega"
+        dev.goniometer__start = config["OmegaStart"]
+        dev.goniometer__step = config["OmegaIncrement"]
         dev.beam_x_pxl = config["BeamCenterX"]
         dev.beam_y_pxl = config["BeamCenterY"]
         dev.detector_distance_mm = meter_to_mm(config["DetectorDistance"])
@@ -174,12 +176,15 @@ class JungfrauDetector(AbstractDetector):
         maybe_set("unit_cell__gamma", "UnitCellGamma")
 
         exposure_time = sec_to_us(config["CountTime"])
-        dev.summation = math.ceil(exposure_time / dev.frame_time_us)
+        # image_time_us has to be multiple of frame_time_us
+        dev.image_time_us = (
+            math.ceil(exposure_time / dev.frame_time_us) * dev.frame_time_us
+        )
 
         # hard-coded rotation axis
-        dev.write_attribute("omega__vector__#1", 0.0)
-        dev.write_attribute("omega__vector__#2", 1.0)
-        dev.write_attribute("omega__vector__#3", 0.0)
+        dev.write_attribute("goniometer__vector__#1", 0.0)
+        dev.write_attribute("goniometer__vector__#2", 1.0)
+        dev.write_attribute("goniometer__vector__#3", 0.0)
 
         #
         # set where file should be written,
@@ -202,7 +207,7 @@ class JungfrauDetector(AbstractDetector):
         current acquisition time, in seconds
         """
         dev = self.dev
-        acq_time_us = dev.images_per_trigger * dev.frame_time_us * dev.summation
+        acq_time_us = dev.images_per_trigger * dev.image_time_us
         return us_to_sec(acq_time_us)
 
     def wait_config_done(self):
