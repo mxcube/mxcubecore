@@ -1,81 +1,55 @@
-# encoding: utf-8
-#
-#  Project: MXCuBE
-#  https://github.com/mxcube
-#
-#  This file is part of MXCuBE software.
-#
-#  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU Lesser General Public License as published by
-#  the Free Software Foundation, either version 3 of the License, or
-#  (at your option) any later version.
-#
-#  MXCuBE is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU Lesser General Public License for more details.
-#
-#  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
-
-__copyright__ = """Copyright The MXCuBE Collaboration"""
-__license__ = "LGPLv3+"
-
-
-from mxcubecore.HardwareObjects.MotorsNPosition import MotorsNPosition
+from mxcubecore.HardwareObjects.NState import NState
 from configparser import ConfigParser
-
 import copy
 
 
-__credits__ = ["DESY P11"]
-__license__ = "LGPLv3+"
-__category__ = "General"
-
-
-class P11Pinhole(MotorsNPosition):
+class P11Pinhole(NState):
     def __init__(self, name):
-
         super().__init__(name)
-
         self._config_file = None
+        self._positions = {}  # Initialize the positions dictionary
 
     def init(self):
-        """Initilise the predefined values"""
-
-        # if simulation is set - open and close will be mere software flags
-
+        """Initialize the predefined values"""
         self._config_file = self.get_property("config_file")
-
         super().init()
+        self.load_positions()
 
     def load_positions(self):
-
         config = ConfigParser()
         config.read(self._config_file)
 
-        if not "Pinholes" in config:
+        if "Pinholes" not in config:
             return
 
         names = config["Pinholes"]["pinholesizelist"].split(",")
         names[0] = "Down"
 
-        units = ["micron"] * len(names)
-        units[0] = ""
-
         posnames = copy.copy(names)
-        posnames[1:] = ["{}um".format(posname) for posname in posnames[1:]]
+        posnames[1:] = [f"{posname}um" for posname in posnames[1:]]
 
         yposlist = map(int, config["Pinholes"]["pinholeyposlist"].split(","))
         zposlist = map(int, config["Pinholes"]["pinholezposlist"].split(","))
 
-        for name, posname, unit, ypos, zpos in zip(
-            names, posnames, units, yposlist, zposlist
-        ):
-            self._positions[name] = {}
-            self._properties[name] = {}
+        for name, posname, ypos, zpos in zip(names, posnames, yposlist, zposlist):
+            self._positions[name] = {
+                "pinholey": ypos,
+                "pinholez": zpos,
+                "posname": posname,
+            }
 
-            self._positions[name]["pinholey"] = ypos
-            self._positions[name]["pinholez"] = zpos
-            self._positions[name]["unit"] = unit
-            self._positions[name]["posname"] = posname
+    def get_position_list(self):
+        """Return the list of available positions."""
+        return list(self._positions.keys())
+
+    def get_value(self):
+        """Override get_value to return the current position."""
+        return self._positions
+
+    def _set_value(self, value):
+        """Override _set_value to change motor positions."""
+        if value in self._positions:
+            ypos = self._positions[value]["pinholey"]
+            zpos = self._positions[value]["pinholez"]
+            self.motor_hwobjs["pinholey"].set_value(ypos)
+            self.motor_hwobjs["pinholez"].set_value(zpos)
