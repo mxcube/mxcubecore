@@ -1,5 +1,6 @@
 from mxcubecore.HardwareObjects.NState import NState
 
+
 class P11Collimator(NState):
     def __init__(self, name):
         super().__init__(name)
@@ -30,5 +31,5 @@ class P11Collimator(NState):
         if value in self._positions:
             collimy = self._positions[value]["collimy"]
             collimz = self._positions[value]["collimz"]
-            self.motor_hwobjs['collimy'].set_value(collimy)
-            self.motor_hwobjs['collimz'].set_value(collimz)
+            self.motor_hwobjs["collimy"].set_value(collimy)
+            self.motor_hwobjs["collimz"].set_value(collimz)

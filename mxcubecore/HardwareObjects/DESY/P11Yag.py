@@ -1,5 +1,6 @@
 from mxcubecore.HardwareObjects.NState import NState
 
+
 class P11Yag(NState):
     def __init__(self, name):
         super().__init__(name)
@@ -31,5 +32,5 @@ class P11Yag(NState):
         if value in self._positions:
             yagx = self._positions[value]["yagx"]
             yagz = self._positions[value]["yagz"]
-            self.motor_hwobjs['yagx'].set_value(yagx)
-            self.motor_hwobjs['yagz'].set_value(yagz)
+            self.motor_hwobjs["yagx"].set_value(yagx)
+            self.motor_hwobjs["yagz"].set_value(yagz)

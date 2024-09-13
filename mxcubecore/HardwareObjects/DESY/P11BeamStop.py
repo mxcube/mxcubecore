@@ -1,5 +1,6 @@
 from mxcubecore.HardwareObjects.NState import NState
 
+
 class P11BeamStop(NState):
     def __init__(self, name):
         super().__init__(name)
@@ -31,6 +32,6 @@ class P11BeamStop(NState):
             bstopx = self._positions[value]["bstopx"]
             bstopy = self._positions[value]["bstopy"]
             bstopz = self._positions[value]["bstopz"]
-            self.motor_hwobjs['bstopx'].set_value(bstopx)
-            self.motor_hwobjs['bstopy'].set_value(bstopy)
-            self.motor_hwobjs['bstopz'].set_value(bstopz)
+            self.motor_hwobjs["bstopx"].set_value(bstopx)
+            self.motor_hwobjs["bstopy"].set_value(bstopy)
+            self.motor_hwobjs["bstopz"].set_value(bstopz)
