@@ -152,13 +152,13 @@ class P11DetectorDistance(AbstractMotor):
             _state = self.chan_state.get_value()
             if _state == "ON":
                 state = self.STATES.READY
+                self.update_state(state)
                 break
             elif _state == "MOVING":
                 state = self.STATES.BUSY
             else:
                 state = self.STATES.FAULT
             self.update_state(state)
-
             time.sleep(0.5)
 
     def get_limits(self):
