@@ -619,6 +619,8 @@ class DataCollection(TaskNode):
         self.workflow_id = None
         self.center_before_collect = False
         self.ispyb_group_data_collections = False
+        # The 'workflow_params' attribute is used for passing parameters
+        # from the automation workflows (BES) to ispyb-DRAC (see ICATLIMS.py)
         self.workflow_params = {}
 
     @staticmethod
