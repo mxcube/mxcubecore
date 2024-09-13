@@ -135,7 +135,6 @@ class P11Beam(AbstractBeam):
         return 200
 
     def get_beam_focus_label(self):
-        value = self.mirror_idx_ch.get_value()
 
         if value not in self.focus_sizes:
             value = -1
