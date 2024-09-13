@@ -2,6 +2,10 @@ import logging
 import ssl
 from mxcubecore.HardwareObjects.ISPyBClient import ISPyBClient
 from mxcubecore import HardwareRepository as HWR
+from suds import WebFault
+from urllib.error import URLError
+from suds.transport import TransportError
+
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -73,3 +77,36 @@ class P11ISPyBClient(ISPyBClient):
                 image_dict[prop] = ispyb_path
             except RuntimeWarning("Can not prepare image path fir LIMS for %s" % prop):
                 pass
+
+    def get_proposal(self, proposal_code, proposal_number):
+        logging.getLogger("HWR").debug(
+            "ISPyB. Obtaining proposal for code=%s / prop_number=%s"
+            % (proposal_code, proposal_number)
+        )
+
+        try:
+            if self._shipping:
+                # Attempt to fetch the proposal from ISPyB
+                proposal = self._shipping.service.findProposal(
+                    proposal_code, proposal_number
+                )
+            else:
+                raise URLError("Shipping service unavailable")
+
+            if proposal:
+                proposal["code"] = proposal_code
+                proposal["number"] = proposal_number
+                return {"Proposal": proposal, "status": {"code": "ok"}}
+        except (WebFault, URLError, TransportError) as e:
+            # Log the error and fallback
+            logging.getLogger("ispyb_client").exception(
+                "Error fetching proposal. Returning fallback values."
+            )
+            return {
+                "Proposal": {
+                    "code": proposal_code,
+                    "number": proposal_number,
+                    "title": "Unknown Proposal",
+                },
+                "status": {"code": "error", "msg": "ISPyB is not connected."},
+            }
