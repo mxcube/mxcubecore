@@ -18,9 +18,8 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-__copyright__ = """ Copyright © 2010 - 2023 by MXCuBE Collaboration """
+__copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
-
 
 from collections import OrderedDict
 

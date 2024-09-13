@@ -28,6 +28,7 @@ from mxcubecore.HardwareObjects.abstract.AbstractBeam import BeamShape
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 import numpy as np
 
+
 class P11Beam(AbstractBeam):
     def init(self):
 

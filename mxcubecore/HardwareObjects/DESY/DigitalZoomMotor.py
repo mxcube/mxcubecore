@@ -24,7 +24,6 @@ __author__ = "Jan Meyer"
 __email__ = "jan.meyer@desy.de"
 
 
-
 import logging
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
