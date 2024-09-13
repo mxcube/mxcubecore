@@ -1157,19 +1157,19 @@ class P11NanoDiff(GenericDiffractometer):
         start_wait = time.time()
         self.log.debug(
             "================= Wait whiile pinholes are not blocked whille going up. Pinhole now in the position "
-            + str(self.pinhole_hwobj.get_position())
+            + str(self.pinhole_hwobj.get_vvaluee())
         )
         while time.time() - start_wait < timeout:
             time.sleep(0.1)
 
             for st in pinhole_states:
                 if (
-                    self.pinhole_hwobj.get_position() == st
+                    self.pinhole_hwobj.get_value() == st
                     and not self.pinhole_hwobj.is_moving()
                 ):
                     self.log.debug(
                         "Pinhole has reached position "
-                        + str(self.pinhole_hwobj.get_position())
+                        + str(self.pinhole_hwobj.get_value())
                     )
                     break
                 else:
@@ -1305,7 +1305,7 @@ class P11NanoDiff(GenericDiffractometer):
         self.log.debug("=========  - checking pinhole ===============")
 
         # If the pinhole is Down set pinhole to 200
-        if self.pinhole_hwobj.get_position() == "Down":
+        if self.pinhole_hwobj.get_value() == "Down":
             self.log.debug("Pinhole is down. Setting pinhole to 200.")
             self.pinhole_hwobj.set_position("200")
 
@@ -1344,10 +1344,10 @@ class P11NanoDiff(GenericDiffractometer):
         cover_closed = self.detcover_hwobj.is_closed
         blight_in = self.backlight_hwobj.is_in()
         blight_out = self.backlight_hwobj.is_out()
-        collim = self.collimator_hwobj.get_position()
-        bstop = self.beamstop_hwobj.get_position()
-        pinh = self.pinhole_hwobj.get_position()
-        yag = self.yag_hwobj.get_position()
+        collim = self.collimator_hwobj.get_value()
+        bstop = self.beamstop_hwobj.get_value()
+        pinh = self.pinhole_hwobj.get_value()
+        yag = self.yag_hwobj.get_value()
 
         omega_moving = self.omega_hwobj.is_moving()
         cover_moving = self.detcover_hwobj.is_moving()
@@ -1463,7 +1463,7 @@ class P11NanoDiff(GenericDiffractometer):
         saved_position = {}
         for motname in self.save_motor_list:
             saved_position[motname] = self.motor_hwobj_dict[motname].get_value()
-        saved_position["pinhole"] = self.pinhole_hwobj.get_position()
+        saved_position["pinhole"] = self.pinhole_hwobj.get_value()
         saved_position["backlight"] = self.backlight_hwobj.get_value()
         self._saved_position[position_name] = saved_position
         self.log.debug("P11NanoDiff - saving positions for %s" % position_name)
