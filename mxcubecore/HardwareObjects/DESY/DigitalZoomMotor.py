@@ -1,3 +1,4 @@
+# encoding: utf-8
 #
 #  Project: MXCuBE
 #  https://github.com/mxcube
@@ -17,11 +18,11 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-
+__copyright__ = """Copyright The MXCuBE Collaboration"""
+__license__ = "LGPLv3+"
 __author__ = "Jan Meyer"
 __email__ = "jan.meyer@desy.de"
-__copyright__ = "(c)2016 DESY, FS-PE, P11"
-__license__ = "GPL"
+
 
 
 import logging

@@ -18,11 +18,10 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-from mxcubecore.BaseHardwareObjects import HardwareObject
-
-__copyright__ = """ Copyright © 2010 - 2024 by MXCuBE Collaboration """
+__copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
 
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 import sys
 import time

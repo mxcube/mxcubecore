@@ -1,3 +1,5 @@
+# encoding: utf-8
+#
 #  Project: MXCuBE
 #  https://github.com/mxcube
 #
@@ -16,17 +18,15 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-"""P11Beam"""
+__copyright__ = """Copyright The MXCuBE Collaboration"""
+__license__ = "LGPLv3+"
+__credits__ = ["DESY P11"]
+__category__ = "General"
 
 from mxcubecore.HardwareObjects.abstract.AbstractBeam import AbstractBeam
 from mxcubecore.HardwareObjects.abstract.AbstractBeam import BeamShape
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 import numpy as np
-
-__credits__ = ["DESY P11"]
-__license__ = "LGPLv3+"
-__category__ = "General"
-
 
 class P11Beam(AbstractBeam):
     def init(self):
