@@ -1,77 +1,116 @@
+import logging
 import gevent
-
-from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractMachineInfo import AbstractMachineInfo
-from PyTango import DeviceProxy
+from mxcubecore.HardwareObjects.TangoMachineInfo import TangoMachineInfo
 
 
-class P11MachineInfo(AbstractMachineInfo):
-    """Simulates the behaviour of an accelerator information"""
-
-    default_current = 100.0  # [mA]
-    default_message = "Machine message is not updated"
-    default_lifetime = 1.85  # hours Lifetime
-    default_maschine_energy = 6.08  # GeV
+class P11MachineInfo(TangoMachineInfo):
+    """MachineInfo for the P11 Beamline, using Tango channels for accelerator data."""
 
     def init(self):
-        """Initialise some parameters and update routine."""
+        """
+        Initializes the P11 machine info object.
+
+        This method sets up the Tango channels for 'current', 'message',
+        'lifetime', and 'energy', ensuring that all attributes have valid
+        Tango channels, and connects signals to update values.
+
+        Raises:
+            AttributeError: If any of the Tango channels are not properly set up.
+        """
         super().init()
 
-        self.devPathGlobal = "PETRA/globals/keyword"
-        self.devGlobal = DeviceProxy(self.devPathGlobal)
+        # Set the Tango channel names to match the device
+        self._mach_info_keys = ["current", "message", "lifetime", "energy"]
 
-        self._current = self.default_current
-        self._message = self.default_message
-        self._lifetime = self.default_lifetime
-        self._maschine_energy = self.default_maschine_energy
+        # Check if all defined attributes have a valid channel
+        self._check_attributes()
 
-        self._run()
+        # Connect signals to update attributes when the current changes
+        if hasattr(self, "current"):
+            self.current.connect_signal("update", self._update_value)
 
-    def _run(self):
-        """Spawn update routine."""
-        gevent.spawn(self._update_me)
+        # Setting initial machine state to READY
+        self.update_state(self.STATES.READY)
 
-    def _update_me(self):
-        self._current = self.devGlobal.read_attribute("BeamCurrent").value
-        self._message = self.devGlobal.read_attribute("MessageText").value
-        self._lifetime = self.devGlobal.read_attribute("BeamLifetime").value
-        self._maschine_energy = self.devGlobal.read_attribute("Energy").value
+    def _check_attributes(self, attr_list=None):
+        """
+        Ensures that all attributes in the configuration have valid Tango channels.
+
+        Args:
+            attr_list (list, optional): List of attribute keys to check. Defaults to None.
+
+        Raises:
+            AttributeError: If any attribute does not have a valid Tango channel.
+        """
+        attr_list = attr_list or self._mach_info_keys
+
+        for attr_key in attr_list:
+            try:
+                if not hasattr(self.get_channel_object(attr_key), "get_value"):
+                    attr_list.remove(attr_key)
+            except AttributeError:
+                attr_list.remove(attr_key)
+        self._mach_info_keys = attr_list
+
+    def _update_value(self, value):
+        """
+        Updates all machine attributes whenever a Tango signal is received.
+
+        Args:
+            value (any): The value received from the Tango signal.
+        """
+        self.update_value()
 
     def get_current(self) -> float:
-        """Override method."""
-        return self._current
+        """
+        Reads the current from the Tango channel.
 
-    def get_lifetime(self) -> float:
-        """Override method."""
-        return self._lifetime
+        Returns:
+            float: The current in milliamps (mA). Returns 0.0 in case of an error.
+        """
+        try:
+            return self.current.get_value()
+        except Exception as err:
+            logging.getLogger("HWR").exception(f"Error reading current: {err}")
+            return 0.0
 
     def get_message(self) -> str:
-        """Override method."""
-        return self._message
+        """
+        Reads the machine message from the Tango channel.
+
+        Returns:
+            str: A string containing the machine message.
+                 Returns 'Message unavailable' in case of an error.
+        """
+        try:
+            return self.message.get_value()
+        except Exception as err:
+            logging.getLogger("HWR").exception(f"Error reading message: {err}")
+            return "Message unavailable"
+
+    def get_lifetime(self) -> float:
+        """
+        Reads the beam lifetime from the Tango channel.
+
+        Returns:
+            float: The beam lifetime in hours. Returns 0.0 in case of an error.
+        """
+        try:
+            return self.lifetime.get_value()
+        except Exception as err:
+            logging.getLogger("HWR").exception(f"Error reading lifetime: {err}")
+            return 0.0
 
     def get_maschine_energy(self) -> float:
-        """Override method."""
-        return self._maschine_energy
+        """
+        Reads the machine energy from the Tango channel.
 
-
-def test():
-    """Test routine"""
-    import sys
-
-    hwr = HWR.get_hardware_repository()
-    hwr.connect()
-
-    conn = hwr.get_hardware_object(sys.argv[1])
-
-    print(("Machine current: ", conn.get_current()))
-    print(("Life time: ", conn.get_lifetime()))
-    print(("TopUp remaining: ", conn.get_topup_remaining()))
-    print(("Message: ", conn.get_message()))
-    print(("Values: ", conn.get_mach_info_dict()))
-
-    while True:
-        gevent.wait(timeout=0.1)
-
-
-if __name__ == "__main__":
-    test()
+        Returns:
+            float: The machine energy in GeV. Returns 0.0 in case of an error.
+        """
+        try:
+            return self.energy.get_value()
+        except Exception as err:
+            logging.getLogger("HWR").exception(f"Error reading energy: {err}")
+            return 0.0
