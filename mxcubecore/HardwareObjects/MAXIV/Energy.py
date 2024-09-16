@@ -21,7 +21,7 @@ def _ev_vals_to_kev(ev_vals: Iterable[float]) -> tuple[float]:
     return tuple(ev_to_kev(ev) for ev in ev_vals)
 
 
-class BIOMAXEnergy(AbstractEnergy):
+class Energy(AbstractEnergy):
     def __init__(self, *args, **kwargs):
         AbstractEnergy.__init__(self, *args, **kwargs)
 
