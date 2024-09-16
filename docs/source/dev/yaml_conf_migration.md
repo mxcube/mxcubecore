@@ -186,3 +186,11 @@ class Shanxi(HardwareObject):
     def __init__(self, name):
         super().__init__(name)
 ```
+
+## `set_property()` method removed
+
+The hardware object method `set_property()` has been removed.
+It is no longer possible to set hardware object configuration properties from python code.
+For static properties, move them to the hardware object configuration file.
+If your code is setting properties dynamically,
+you need to refactor the code to not rely on this deprecated feature.
