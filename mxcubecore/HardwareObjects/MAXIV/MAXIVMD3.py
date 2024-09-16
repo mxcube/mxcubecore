@@ -83,8 +83,9 @@ class MAXIVMD3(GenericDiffractometer):
         self.startCentringMethod = self.start_centring_method
 
         self.phi_motor_hwobj = self.motor_hwobj_dict["phi"]
-        self.phiz_motor_hwobj = self.motor_hwobj_dict["phiz"]
+        self.phix_motor_hwobj = self.motor_hwobj_dict["phix"]
         self.phiy_motor_hwobj = self.motor_hwobj_dict["phiy"]
+        self.phiz_motor_hwobj = self.motor_hwobj_dict["phiz"]
         self.zoom_motor_hwobj = self.motor_hwobj_dict["zoom"]
         self.focus_motor_hwobj = self.motor_hwobj_dict["focus"]
         self.sample_x_motor_hwobj = self.motor_hwobj_dict["sampx"]
