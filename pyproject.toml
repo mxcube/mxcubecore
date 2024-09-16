@@ -99,7 +99,6 @@ mxcubecore/HardwareObjects/LNLS/LNLSCollect.py,
 mxcubecore/HardwareObjects/LNLS/LNLSDetDistMotor.py,
 mxcubecore/HardwareObjects/Lima2Detector.py,
 mxcubecore/HardwareObjects/MAXIV/BIOMAXCollect.py,
-mxcubecore/HardwareObjects/MAXIV/BIOMAXEiger.py,
 mxcubecore/HardwareObjects/MAXIV/BIOMAXMD3Camera.py,
 mxcubecore/HardwareObjects/MAXIV/MAXIVAutoProcessing.py,
 mxcubecore/HardwareObjects/MAXIV/autoProcLauncher.py,
@@ -212,7 +211,6 @@ force-exclude = '''
   | mxcubecore/HardwareObjects/Lima2Detector.py
   | mxcubecore/HardwareObjects/Gphl/GphlWorkflow.py
   | mxcubecore/HardwareObjects/ISPyBClient.py
-  | mxcubecore/HardwareObjects/MAXIV/BIOMAXEiger.py
   | mxcubecore/HardwareObjects/MAXIV/BIOMAXMD3.py
   | mxcubecore/HardwareObjects/PlateManipulatorMaintenance.py
   | mxcubecore/HardwareObjects/MAXIV/BIOMAXCollect.py

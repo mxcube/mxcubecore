@@ -9,7 +9,7 @@ from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetecto
 from mxcubecore import HardwareRepository as HWR
 
 
-class BIOMAXEiger(AbstractDetector):
+class EigerDetector(AbstractDetector):
     """Eiger hwobj based on tango
     hardware status:
     ready:   ready for trigger (this is the state after an "Arm" command)
@@ -34,7 +34,7 @@ class BIOMAXEiger(AbstractDetector):
         self.energy_change_threshold_default = 20
 
     def init(self):
-        super(BIOMAXEiger, self).init()
+        super().init()
         tango_device = self.get_property("detector_device")
         self.file_suffix = self.get_property("file_suffix")
         self.default_exposure_time = self.get_property("default_exposure_time")
