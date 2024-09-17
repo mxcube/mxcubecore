@@ -33,6 +33,7 @@ import os
 import math
 import subprocess
 import socket
+import uuid
 from collections import OrderedDict
 
 import gevent
@@ -1689,6 +1690,10 @@ class GphlWorkflow(HardwareObjectYaml):
             rotation_settings = dict(
                 (role, current_pos_dict[role]) for role in sweepSetting.axisSettings
             )
+            orientation_id = gphl_workflow_model.workflow_params.get("orientation_id")
+            if orientation_id:
+                # We have a pre-existing orientation ID. Use it
+                rotation_settings["id_"] = orientation_id
             newRotation = GphlMessages.GoniostatRotation(**rotation_settings)
             translation_settings = dict(
                 (role, current_pos_dict.get(role))
@@ -1974,7 +1979,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
             # Handle orientations and (re) centring
             goniostatRotation = sweep.goniostatSweepSetting
-            rotation_id = goniostatRotation.id_
+            rotation_id = orientation_id = goniostatRotation.id_
             initial_settings = sweep.get_initial_settings()
             orientation = (
                 initial_settings.get("kappa"), initial_settings.get( "kappa_phi")
@@ -1994,12 +1999,13 @@ class GphlWorkflow(HardwareObjectYaml):
                 rotation_id == gphl_workflow_model.current_rotation_id
                 or (0 <= maxdev < angular_tolerance)
             ):
-                # Use same postion as previous sweep, set only omega start
+                # Use same position as previous sweep, set only omega start
                 acq_parameters.centred_position = queue_model_objects.CentredPosition(
                     {goniostatRotation.scanAxis: scan.start}
                 )
+                orientation_id = gphl_workflow_model.current_rotation_id
             else:
-                # New sweep, or recentriong_mode == scan
+                # New sweep, or recentring_mode == scan
                 # # We need to recentre
                 # Put centring on queue and collect using the resulting position
                 # NB this means that the actual translational axis positions
@@ -2035,6 +2041,28 @@ class GphlWorkflow(HardwareObjectYaml):
                     - sweep_offset
                 )
             data_collection = queue_model_objects.DataCollection([acq], crystal)
+            # Workflow parameters for ICAT / external workflow
+            # The 'if' statement is to allow this to work in multiple versions
+            if hasattr(data_collection, "workflow_params"):
+                wfp = gphl_workflow_model.workflow_params
+                if not wfp.get("workflow_name"):
+                    wfp["workflow_name"] = gphl_workflow_model.wfname
+                if not wfp.get("workflow_type"):
+                    wfp["workflow_type"] = gphl_workflow_model.wftype
+                if not wfp.get("workflow_uid"):
+                    wfp["workflow_uid"] = HWR.beamline.gphl_connection._enactment_id
+                if not wfp.get("position_id"):
+                    # As of 20240911 all workflows use a single position,
+                    wfp["position_id"] = str(uuid.uuid1())
+                if (
+                    gphl_workflow_model.wftype == "acquisition"
+                    and not gphl_workflow_model.characterisation_done
+                    and not wfp.get("characterisation_id")
+                ):
+                    wfp["characterisation_id"] = sweep.id_
+                wfp["orientation_id"] = orientation_id
+                data_collection.workflow_params.update(wfp)
+
             data_collections.append(data_collection)
 
             data_collection.set_enabled(True)
