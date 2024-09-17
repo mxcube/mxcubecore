@@ -1177,7 +1177,7 @@ class MICROMAXCollect(DataCollect):
         if self.current_dc_parameters["experiment_type"] == "Mesh":
             ntrigger = self.get_mesh_num_lines()
             # hardcoded values corresponds do md3 detector:
-            mesh_dict["start_corner"] = "top right"
+            mesh_dict["start_corner"] = "top-right"
             mesh_dict["scan_pattern"] = "zig-zag"
             mesh_dict["scan_orientation"] = "vertical"
         else:
