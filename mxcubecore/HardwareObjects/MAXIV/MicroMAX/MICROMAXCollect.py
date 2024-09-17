@@ -1173,8 +1173,13 @@ class MICROMAXCollect(DataCollect):
             osc_range,
         ) = self.triggers_to_collect[0]
 
+        mesh_dict = dict()
         if self.current_dc_parameters["experiment_type"] == "Mesh":
             ntrigger = self.get_mesh_num_lines()
+            # hardcoded values corresponds do md3 detector:
+            mesh_dict["start_corner"] = "top-right"
+            mesh_dict["scan_pattern"] = "zig-zag"
+            mesh_dict["scan_orientation"] = "vertical"
         else:
             ntrigger = len(self.triggers_to_collect)
         config = self.detector_hwobj.col_config
@@ -1251,6 +1256,7 @@ class MICROMAXCollect(DataCollect):
             "process_dir": self.current_dc_parameters["auto_dir"],
             "shape_id": self.current_dc_parameters["shape"],
             "mxcube_server": self.get_mxcube_server_ip(),
+            **mesh_dict,
         }
         header_appendix = {
             "dozor_dict": dozor_dict,
