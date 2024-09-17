@@ -26,7 +26,7 @@ import enum
 from collections import OrderedDict
 import logging
 from gevent import event, Timeout
-import pydantic
+from pydantic.v1 import create_model, Field
 import warnings
 
 from typing import (
@@ -50,7 +50,7 @@ from mxcubecore.CommandContainer import CommandContainer
 
 if TYPE_CHECKING:
     from logging import Logger
-    from pydantic import BaseModel
+    from pydantic.v1 import BaseModel
     from .CommandContainer import CommandObject
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
@@ -658,11 +658,11 @@ class HardwareObjectMixin(CommandContainer):
                 # Skipp return typehint
                 if _n != "return":
                     self._exports[attr_name].append(_n)
-                    fdict[_n] = (_t, pydantic.Field(alias=_n))
+                    fdict[_n] = (_t, Field(alias=_n))
 
             _models[attr_name] = (
-                pydantic.create_model(attr_name, **fdict),
-                pydantic.Field(alias=attr_name),
+                create_model(attr_name, **fdict),
+                Field(alias=attr_name),
             )
 
             self._pydantic_models[attr_name] = _models[attr_name][0]
@@ -672,7 +672,7 @@ class HardwareObjectMixin(CommandContainer):
                 attr_name
             ].schema_json()
 
-        model = pydantic.create_model(self.__class__.__name__, **_models)
+        model = create_model(self.__class__.__name__, **_models)
         self._pydantic_models["all"] = model
 
     def execute_exported_command(self, cmd_name: str, args: Dict[str, Any]) -> Any:

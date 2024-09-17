@@ -1,6 +1,6 @@
 import json
 
-from pydantic import BaseModel, Field
+from pydantic.v1 import BaseModel, Field
 from mxcubecore.queue_entry.base_queue_entry import BaseQueueEntry
 
 from mxcubecore.model.common import (

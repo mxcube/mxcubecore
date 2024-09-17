@@ -3,7 +3,7 @@ import logging
 import contextlib
 import enum
 import subprocess
-from pydantic import BaseModel, Field
+from pydantic.v1 import BaseModel, Field
 from devtools import debug
 
 from mxcubecore import HardwareRepository as HWR
