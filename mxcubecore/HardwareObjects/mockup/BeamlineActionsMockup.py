@@ -1,6 +1,6 @@
 from typing_extensions import Literal
 
-from pydantic import BaseModel, Field
+from pydantic.v1 import BaseModel, Field
 from mxcubecore.HardwareObjects.BeamlineActions import (
     BeamlineActions,
     AnnotatedCommand,

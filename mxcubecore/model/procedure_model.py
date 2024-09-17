@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 
-import pydantic
-from pydantic import Field
+from pydantic.v1 import BaseModel, Field
 
 
 class ValidationError(Exception):
     pass
 
 
-class BaseModel(pydantic.BaseModel):
+class BaseModel(BaseModel):
     def __init__(self, *args, **kwargs):
         try:
             super(BaseModel, self).__init__(*args, **kwargs)

@@ -6,7 +6,7 @@ import json
 import gevent
 
 from typing_extensions import Literal
-from pydantic import BaseModel, Field
+from pydantic.v1 import BaseModel, Field
 from devtools import debug
 
 from mxcubecore import HardwareRepository as HWR
