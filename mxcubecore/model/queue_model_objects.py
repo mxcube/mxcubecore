@@ -2022,6 +2022,9 @@ class GphlWorkflow(TaskNode):
         self.acquisition_dose = 0.0
         self.strategy_length = 0.0
 
+        # Workflow attributes - for passing to LIMS (conf Olof Svensson)
+        self.workflow_params = {}
+
         # # Centring handling and MXCuBE-side flow
         self.set_requires_centring(False)
 
@@ -2328,6 +2331,11 @@ class GphlWorkflow(TaskNode):
             value = params.get(tag)
             if value:
                 setattr(self, tag, value)
+
+        # For external workflow parameters (conf. Olof Svensson)
+        dd1 = params.get("workflow_params")
+        if dd1:
+            self.workflow_params.update(dd1)
 
         settings = HWR.beamline.gphl_workflow.settings
         # NB settings is an internal attribute DO NOT MODIFY
