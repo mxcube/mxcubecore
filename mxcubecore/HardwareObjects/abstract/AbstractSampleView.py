@@ -26,6 +26,7 @@ __license__ = "LGPLv3+"
 import abc
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.model.queue_model_enumerables import CENTRING_METHOD
 
 
 class AbstractSampleView(HardwareObject):
@@ -41,6 +42,7 @@ class AbstractSampleView(HardwareObject):
         self._frontlight = None
         self._backlight = None
         self._shapes = None
+        self._centring_method = CENTRING_METHOD.NONE
 
     @abc.abstractmethod
     def get_snapshot(self, overlay=True, bw=False, return_as_array=False):

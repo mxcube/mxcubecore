@@ -42,9 +42,6 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
     def get_log_filename(self):
         return self.log_filename
 
-    def load_sample(self, holder_length, sample_location=None, wait=False):
-        self.load(sample_location, wait)
-
     def load(self, sample, wait=False):
         self.emit("fsmConditionChanged", "sample_mounting_sample_changer", True)
         previous_sample = self.get_loaded_sample()
