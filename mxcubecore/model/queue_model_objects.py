@@ -24,6 +24,7 @@ Any object that inherits from TaskNode can be added to and handled by
 the QueueModel.
 """
 
+import ast
 import copy
 import logging
 import os
@@ -1705,6 +1706,7 @@ class AcquisitionParameters(object):
         self.skip_existing_images = False
         self.detector_binning_mode = str()
         self.detector_roi_mode = str()
+        self.detector_mode_list = self.get_detector_mode_list()
         self.induce_burn = False
         self.mesh_range = ()
         self.cell_counting = "zig-zag"
@@ -1753,6 +1755,7 @@ class AcquisitionParameters(object):
             "skip_existing_images": self.skip_existing_images,
             "detector_binning_mode": self.detector_binning_mode,
             "detector_roi_mode": self.detector_roi_mode,
+            "detector_mode_list": self.detector_mode_list,
             "induce_burn": self.induce_burn,
             "mesh_range": self.mesh_range,
             "mesh_snapshot": self.mesh_snapshot,
@@ -1770,6 +1773,11 @@ class AcquisitionParameters(object):
 
     def copy(self):
         return copy.deepcopy(self)
+
+    def get_detector_mode_list(self):
+        return ast.literal_eval(
+            HWR.beamline.detector.get_property("roi_mode_list", "[]")
+        )
 
 
 class XrayImagingParameters(object):
