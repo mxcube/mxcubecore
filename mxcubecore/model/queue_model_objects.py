@@ -1715,7 +1715,7 @@ class AcquisitionParameters(object):
         self.in_queue = False
         self.in_interleave = None
         self.sub_wedge_size = 10
-
+        self.disable_processing = False
         self.num_triggers = int()
         self.num_images_per_trigger = int()
         self.hare_num = 1
@@ -1765,6 +1765,7 @@ class AcquisitionParameters(object):
             "mesh_center": self.mesh_center,
             "cell_spacing": self.cell_spacing,
             "sub_wedge_size": self.sub_wedge_size,
+            "disable_processing": self.disable_processing,
         }
 
     def copy(self):
