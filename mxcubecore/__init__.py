@@ -52,7 +52,7 @@ def hwo_header_log(_func=None, *, level: int = logging.DEBUG):
                                 "HardwareObject instance's methods only")
             args = list(args)
             self = args.pop(0)
-
+            hwo_name = f' ({self.name().strip("/")})' if self.name() else ''
             # Remove named parameters which are not in the signature of the method
             code_obj = func.__code__
             kwargs = {k: v for k, v in kwargs.items()
@@ -63,8 +63,7 @@ def hwo_header_log(_func=None, *, level: int = logging.DEBUG):
             params_str = f"{args_str}{', ' if args and kwargs else ''}{kwargs_str}"
             method_name = func.__name__
             signature = f"{method_name}({params_str})"
-            self.log.log(level, f"In {signature}")
-
+            self.log.log(level, f"{hwo_name} In {signature}")
             retval = func(self, *args, **kwargs)
             return retval
         return fun_wrapper
