@@ -27,6 +27,9 @@ from mxcubecore.HardwareObjects.GenericDiffractometer import (
     DiffractometerState,
     GenericDiffractometer,
 )
+
+
+
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore import HardwareRepository as HWR
 from enum import Enum, unique
@@ -41,7 +44,6 @@ import math
 import os
 import sys
 import logging
-
 
 murko_path = os.getenv("MURKO_PATH")
 sys.path.insert(1, murko_path)
@@ -1195,17 +1197,22 @@ class P11NanoDiff(GenericDiffractometer):
         self.backlight_hwobj.set_in()
 
         self.log.debug("  - putting collimator down")
-        self.collimator_hwobj.set_position("Down")
+        """Move collimator to 'Down' position during centring phase."""
+        if self.collimator_hwobj is not None:
+            self.collimator_hwobj.set_value("down")  # Ensure "Down" is passed
+            self.log.info("Collimator moved to 'Down' position during centring phase")
+        else:
+            self.log.error("Collimator hardware object is not initialized")
 
         self.log.debug("  - setting beamstop out")
-        self.beamstop_hwobj.set_position("Out")
+        self.beamstop_hwobj.set_value("out")
 
         self.log.debug("  - moving yag down")
-        self.yag_hwobj.set_position("Out")
+        self.yag_hwobj.set_value("out")
 
         self.log.debug("  - moving pinhole down")
         if not self.ignore_pinhole:
-            self.pinhole_hwobj.set_position("Down")
+            self.pinhole_hwobj.set_value("Down")
 
         self.move_omega(0)
         self.wait_omega()
