@@ -7,13 +7,11 @@ __credits__ = ["MXCuBE collaboration"]
 
 
 class P11DoorInterlock(HardwareObject):
-    
-    
     def __init__(self, name):
         HardwareObject.__init__(self, name)
 
         self.door_interlock_state = None
-        self.simulationMode=False
+        self.simulationMode = False
 
     def init(self):
         self.door_interlock_state = self.STATES.READY
@@ -32,7 +30,7 @@ class P11DoorInterlock(HardwareObject):
 
     def unlock(self):
         self.breakInterlockEH()
-    
+
     def unlock_door_interlock(self):
         if self.door_interlock_state == "locked_active":
             self.door_interlock_state = "unlocked"
@@ -42,7 +40,7 @@ class P11DoorInterlock(HardwareObject):
         """Command to break the interlock by sending a request to a URL."""
         if not self.simulationMode:
             logging.info("Attempting to break interlock by opening EH")
-            url = "https://ics.desy.de//tineinterface/?action=write&deviceName=G11_2_AbrkIntrlk"
+            url = self.get_property("unlockEH_url")
             success = self.fetch_url(url)
             if success:
                 logging.info("EH opened successfully")
