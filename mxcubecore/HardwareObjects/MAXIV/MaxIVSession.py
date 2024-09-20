@@ -3,96 +3,23 @@ MAXIV Session hardware object.
 """
 import os
 import time
-import socket
 import logging
+from Session import Session
+from mxcubecore.model.queue_model_objects import PathTemplate
 
 try:
     from sdm import storage, SDM
 except ImportError:
     raise Exception("Cannot import SDM library.")
 
-from Session import Session
-from mxcubecore.model import queue_model_objects
-
 
 class MaxIVSession(Session):
-    def __init__(self, name):
-        Session.__init__(self, name)
-
     def init(self):
-        Session.init(self)
-        self.default_precision = "04"
-        self.login = ""
+        super().init()
         self.is_commissioning = False
-        self.remote_address = self.get_property("remote_address")
-        self.base_process_directory = self["file_info"].get_property(
-            "processed_data_base_directory"
-        )
 
-        self.raw_data_folder_name = self["file_info"].get_property(
-            "raw_data_folder_name"
-        )
-
-        self.processed_data_folder_name = self["file_info"].get_property(
-            "processed_data_folder_name"
-        )
-
-        try:
-            self.in_house_users = self.getProperty("inhouse_users").split(",")
-        except Exception:
-            self.in_house_users = []
-
-        try:
-            domain = socket.getfqdn().split(".")
-            self.email_extension = ".".join((domain[-2], domain[-1]))
-        except (TypeError, IndexError):
-            pass
-
-        if self.base_archive_directory:
-            # we initialize with an empty archive_folder, to be set once proposal is selected
-            queue_model_objects.PathTemplate.set_archive_path(
-                self.base_archive_directory, ""
-            )
-
-        queue_model_objects.PathTemplate.set_path_template_style(self.synchrotron_name)
-        queue_model_objects.PathTemplate.set_data_base_path(self.base_directory)
-
-        self.commissioning_fake_proposal = {
-            "Laboratory": {
-                "address": None,
-                "city": "Lund",
-                "laboratoryId": 312171,
-                "name": "Lund University",
-            },
-            "Person": {
-                "familyName": "commissioning",
-                "givenName": "",
-                "laboratoryId": 312171,
-                "login": "",
-                "personId": 0,
-            },
-            "Proposal": {
-                "code": "MX",
-                "number": time.strftime("%Y"),
-                "proposalId": "0",
-                "timeStamp": time.strftime("%Y%m%d"),
-                "title": "Commissioning Proposal",
-                "type": "MX",
-            },
-            "Session": [
-                {
-                    "is_inhouse": True,
-                    "beamlineName": "BioMAX",
-                    "comments": "Fake session for commissioning",
-                    "endDate": "2027-12-31 23:59:59",
-                    "nbShifts": 100,
-                    "proposalId": "0",
-                    "scheduled": 0,
-                    "sessionId": 0,
-                    "startDate": "2016-01-01 00:00:00",
-                }
-            ],
-        }
+        # we initialize with an empty archive_folder, to be set once proposal is selected
+        PathTemplate.set_archive_path(self.base_archive_directory, "")
 
     def set_in_commissioning(self, proposal_info):
         self.proposal_code = proposal_info["Proposal"]["code"]
@@ -170,7 +97,6 @@ class MaxIVSession(Session):
         logging.getLogger("HWR").info(
             "[MAX IV Session] Preparing Data directory for proposal %s" % proposal_info
         )
-        self.login = proposal_info["Person"]["login"]
         start_time = proposal_info.get("Session")[0].get("startDate")
 
         if start_time:
@@ -235,9 +161,7 @@ class MaxIVSession(Session):
 
         if self.base_archive_directory:
             archive_folder = "{}/{}".format(category, self.beamline_name.lower())
-            queue_model_objects.PathTemplate.set_archive_path(
-                self.base_archive_directory, archive_folder
-            )
+            PathTemplate.set_archive_path(self.base_archive_directory, archive_folder)
             _archive_path = os.path.join(self.base_archive_directory, archive_folder)
             logging.getLogger("HWR").info(
                 "[MAX IV Session] Archive directory configured: %s" % _archive_path
@@ -259,6 +183,4 @@ class MaxIVSession(Session):
         self.session_id = None
         self.proposal_code = None
         self.proposal_number = None
-
-        self.login = ""
         self.is_commissioning = False
