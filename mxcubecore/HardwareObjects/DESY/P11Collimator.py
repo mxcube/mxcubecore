@@ -2,6 +2,7 @@ import ast
 from mxcubecore.HardwareObjects.NState import NState
 from collections import OrderedDict
 
+
 class P11Collimator(NState):
     """Collimator hardware object class"""
 
@@ -18,11 +19,10 @@ class P11Collimator(NState):
 
         # Load positions from XML configuration
         self.load_positions()
-        
+
         # Set _positions for UI access
         self._positions = OrderedDict()
         self._positions = self.positions
-
 
     def load_positions(self):
         """Load predefined positions from the XML configuration."""

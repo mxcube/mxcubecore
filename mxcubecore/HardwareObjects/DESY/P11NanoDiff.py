@@ -1197,7 +1197,7 @@ class P11NanoDiff(GenericDiffractometer):
         self.backlight_hwobj.set_in()
 
         self.log.debug("  - putting collimator down")
-        self.collimator_hwobj.set_value("down") 
+        self.collimator_hwobj.set_value("down")
 
         self.log.debug("  - setting beamstop out")
         self.beamstop_hwobj.set_value("out")
@@ -1205,7 +1205,7 @@ class P11NanoDiff(GenericDiffractometer):
         self.log.debug("  - moving yag down")
         self.yag_hwobj.set_value("down")
         self.log.info("YAG moved to 'Down' position during centring phase")
-        
+
         self.log.debug("  - moving pinhole down")
         self.pinhole_hwobj.set_value("down")
         self.log.info("Pinhole moved to 'Down' position during centring phase")

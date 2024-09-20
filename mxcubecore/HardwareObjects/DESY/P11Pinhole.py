@@ -60,7 +60,7 @@ class P11Pinhole(AbstractNState):
         self.z_motor._set_value(position.get("pinholez"))
 
         # Wait for the motors to reach their positions
-        #self.wait_for_position()
+        # self.wait_for_position()
 
     def get_value(self):
         """Get the current pinhole position based on the primary motor."""

@@ -1,5 +1,4 @@
 import ast
-import time
 from mxcubecore.HardwareObjects.NState import NState
 
 
@@ -10,11 +9,12 @@ class P11YagDiode(NState):
 
         # Load motors based on the XML configuration
         self.z_motor = self.get_object_by_role("yagmotorz")
-        self.x_motor = self.get_object_by_role("yagmotorx")  # Uncomment if used in config
+        self.x_motor = self.get_object_by_role(
+            "yagmotorx"
+        )  # Uncomment if used in config
 
         self.log.info(f"YAG/Diode Z Motor initialized: {self.z_motor}")
         self.log.info(f"YAG/Diode X Motor initialized: {self.x_motor}")
-
 
         # Load and print available positions
         self.load_positions()
@@ -50,14 +50,11 @@ class P11YagDiode(NState):
         x_position = self.positions[value]["yagmotorx"]
         z_position = self.positions[value]["yagmotorz"]
 
-
         # Move motors to respective positions
         self.x_motor._set_value(x_position)
         self.z_motor._set_value(z_position)
         self.log.info(f"Setting  Yag/Diode to position: {value}")
-        
 
     def get_value(self):
         """Get the current position of the YAG diode (based on the z-axis motor)."""
         return self.z_motor.get_value()  # Return position from primary motor
-
