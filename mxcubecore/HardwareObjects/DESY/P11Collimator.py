@@ -106,8 +106,12 @@ class P11Collimator(NState):
         return abs(current_value - target_value) <= delta
 
     def is_moving(self):
-        """
-        Descript. : True if the motor is currently moving
+        """Return True if any motor is moving."""
+        return self.y_motor.is_moving() or self.z_motor.is_moving()
 
-        """
-        return self.z_motor.get_state() == HardwareObjectState.BUSY
+    def get_state(self):
+        """Determine the overall state of the collimator motor system."""
+        if self.is_moving():
+            return HardwareObjectState.BUSY
+        else:
+            return HardwareObjectState.READY

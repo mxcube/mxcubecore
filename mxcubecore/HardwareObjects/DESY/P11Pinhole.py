@@ -74,8 +74,6 @@ class P11Pinhole(NState):
         if value not in self.positions:
             raise ValueError(f"Invalid value {value}, not in available positions")
 
-        print("PINHOLE SET VALUE IS CALLED")
-
         position = self.positions[value]
 
         # Move each motor to the desired position
@@ -107,7 +105,12 @@ class P11Pinhole(NState):
         return list(self.positions.keys())
 
     def is_moving(self):
-        """
-        Descript. : True if the motor is currently moving
-        """
-        return self.get_state() == HardwareObjectState.BUSY
+        """Return True if any motor is moving."""
+        return self.y_motor.is_moving() or self.z_motor.is_moving()
+
+    def get_state(self):
+        """Determine the overall state of the pinhole motor system."""
+        if self.is_moving():
+            return HardwareObjectState.BUSY
+        else:
+            return HardwareObjectState.READY
