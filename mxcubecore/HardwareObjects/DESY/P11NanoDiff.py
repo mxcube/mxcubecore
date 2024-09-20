@@ -1214,9 +1214,6 @@ class P11NanoDiff(GenericDiffractometer):
         if not self.ignore_pinhole:
             self.pinhole_hwobj.set_value("Down")
 
-        self.move_omega(0)
-        self.wait_omega()
-
         if wait:
             self.wait_phase()
 
