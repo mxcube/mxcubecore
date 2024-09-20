@@ -745,8 +745,8 @@ class MICROMAXCollect(DataCollect):
         try:
             self.store_image_in_lims(1, collection=collection)
             self.generate_and_copy_thumbnails(collection["fileinfo"]["filename"], 1)
-        except Exception as ex:
-            self.log.error("Could not store images in lims, error was {}".format(ex))
+        except Exception:
+            self.log.exception("Could not store images in lims")
 
     def store_image_in_lims_by_frame_num(self, frame, motor_position_id=None):
         """
