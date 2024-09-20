@@ -13,8 +13,8 @@ class P11Collimator(AbstractNState):
         self.y_motor = self.get_object_by_role("collimatory")  # Y-axis motor
         self.z_motor = self.get_object_by_role("collimatorz")  # Z-axis motor
 
-        self.log.info(f"Y Motor initialized: {self.y_motor}")
-        self.log.info(f"Z Motor initialized: {self.z_motor}")
+        self.log.info(f"Collimator Y Motor initialized: {self.y_motor}")
+        self.log.info(f"Collimator Z Motor initialized: {self.z_motor}")
 
         # Load positions from XML configuration
         self.load_positions()

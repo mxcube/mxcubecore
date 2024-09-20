@@ -9,8 +9,12 @@ class P11YagDiode(AbstractNState):
         super().init()
 
         # Load motors based on the XML configuration
-        self.z_motor = self.get_object_by_role("yagz")
-        self.x_motor = self.get_object_by_role("yagx")  # Uncomment if used in config
+        self.z_motor = self.get_object_by_role("yagmotorz")
+        self.x_motor = self.get_object_by_role("yagmotorx")  # Uncomment if used in config
+
+        self.log.info(f"YAG/Diode Z Motor initialized: {self.z_motor}")
+        self.log.info(f"YAG/Diode X Motor initialized: {self.x_motor}")
+
 
         # Load and print available positions
         self.load_positions()
@@ -43,25 +47,17 @@ class P11YagDiode(AbstractNState):
             raise ValueError(f"No position found for {value}")
 
         # Move each motor to the desired position
-        x_position = position.get("yagx")
-        z_position = position.get("yagz")
+        x_position = self.positions[value]["yagmotorx"]
+        z_position = self.positions[value]["yagmotorz"]
+
 
         # Move motors to respective positions
-        if x_position is not None:
-            self.x_motor._set_value(x_position)
-        if z_position is not None:
-            self.z_motor._set_value(z_position)
-
-        # Wait for all motors to reach their positions
-        self.wait_for_position()
+        self.x_motor._set_value(x_position)
+        self.z_motor._set_value(z_position)
+        self.log.info(f"Setting  Yag/Diode to position: {value}")
+        
 
     def get_value(self):
         """Get the current position of the YAG diode (based on the z-axis motor)."""
         return self.z_motor.get_value()  # Return position from primary motor
 
-    def wait_for_position(self):
-        """Wait for all motors to reach their target positions."""
-        self.log.info("Waiting for YAG diode motors to reach their positions")
-        while any(motor.get_state() != "ON" for motor in [self.x_motor, self.z_motor]):
-            time.sleep(0.1)
-        self.log.info("YAG diode motors have reached their positions")
