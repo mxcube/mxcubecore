@@ -1,5 +1,7 @@
 import ast
 from mxcubecore.HardwareObjects.NState import NState
+from collections import OrderedDict
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
 
 
 class P11YagDiode(NState):
@@ -7,17 +9,20 @@ class P11YagDiode(NState):
         """Initialize the YAG diode motors and load positions from configuration."""
         super().init()
 
-        # Load motors based on the XML configuration
-        self.z_motor = self.get_object_by_role("yagmotorz")
-        self.x_motor = self.get_object_by_role(
-            "yagmotorx"
-        )  # Uncomment if used in config
+        self.z_motor = self.get_object_by_role("yagz")
+        self.x_motor = self.get_object_by_role("yagx")
+
+        self.load_positions()
+        self.load_deltas()
+
+        self.set_value("down")
+
+        # Set _positions for UI access
+        self._positions = OrderedDict()
+        self._positions = self.positions
 
         self.log.info(f"YAG/Diode Z Motor initialized: {self.z_motor}")
         self.log.info(f"YAG/Diode X Motor initialized: {self.x_motor}")
-
-        # Load and print available positions
-        self.load_positions()
 
     def load_positions(self):
         """Load predefined positions from the XML configuration."""
@@ -35,26 +40,58 @@ class P11YagDiode(NState):
             self.log.error(f"Error parsing YAG/Diode positions: {e}")
             raise ValueError("Invalid YAG/Diode positions format in the configuration.")
 
+    def load_deltas(self):
+        """Load individual motor deltas from the XML configuration explicitly."""
+        self.log.info("Loading deltas from config")
+
+        # Fetch individual deltas for each motor
+        delta_x = self.get_property("delta_yagmotorx")
+        delta_z = self.get_property("delta_yagmotorz")
+
+        # If a delta is not specified, fallback to a default delta value
+        self.deltas = {
+            "yagx": float(delta_x) if delta_x is not None else self.default_delta,
+            "yagz": float(delta_z) if delta_z is not None else self.default_delta,
+        }
+
+        # Log the deltas for each motor
+        for motorname, delta in self.deltas.items():
+            self.log.info(f"Delta for {motorname}: {delta}")
+
     def set_value(self, value):
-        """Move the YAG diode motors to the position corresponding to the given state."""
+        """Set the yag/diode to the specified position."""
+
         if value not in self.positions:
-            raise ValueError(f"Invalid position: {value}")
+            raise ValueError(f"Invalid state value: {value}")
 
-        # Retrieve positions from loaded configuration
-        position = self.positions.get(value)
+        x_position = self.positions[value]["yagx"]
+        z_position = self.positions[value]["yagz"]
 
-        if position is None:
-            raise ValueError(f"No position found for {value}")
-
-        # Move each motor to the desired position
-        x_position = self.positions[value]["yagmotorx"]
-        z_position = self.positions[value]["yagmotorz"]
-
-        # Move motors to respective positions
+        # Move the motors
         self.x_motor._set_value(x_position)
         self.z_motor._set_value(z_position)
-        self.log.info(f"Setting  Yag/Diode to position: {value}")
+        self.log.info(f"Setting collimator to position: {value}")
 
     def get_value(self):
-        """Get the current position of the YAG diode (based on the z-axis motor)."""
-        return self.z_motor.get_value()  # Return position from primary motor
+        """Get the current pinhole position based on the motor positions."""
+        current_x = self.x_motor.get_value()
+        current_z = self.z_motor.get_value()
+
+        for position_name, position in self.positions.items():
+            if self.is_within_deltas(
+                position.get("yagx"), current_x, "yagx"
+            ) and self.is_within_deltas(position.get("yagz"), current_z, "yagz"):
+                return position_name  # Return the matching position name
+
+    def is_within_deltas(self, target_value, current_value, motor_name):
+        """Check if the current motor position is within the delta tolerance for that specific motor."""
+        delta = self.deltas.get(motor_name)
+        if target_value is None or delta is None:
+            return False
+        return abs(current_value - target_value) <= delta
+
+    def is_moving(self):
+        """
+        Descript. : True if the motor is currently moving
+        """
+        return self.z_motor.get_state() == HardwareObjectState.BUSY

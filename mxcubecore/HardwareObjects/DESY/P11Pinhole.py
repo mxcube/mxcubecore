@@ -1,9 +1,9 @@
-from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
+from mxcubecore.HardwareObjects.NState import NState
 import ast
-import time
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
 
 
-class P11Pinhole(AbstractNState):
+class P11Pinhole(NState):
     def init(self):
         """Initialize the pinhole motors and load positions."""
         super().init()
@@ -18,6 +18,9 @@ class P11Pinhole(AbstractNState):
         # Log motor initialization
         self.log.info(f"Pinhole Y Motor initialized: {self.y_motor}")
         self.log.info(f"Pinhole Z Motor initialized: {self.z_motor}")
+
+        # Load deltas for each motor
+        self.load_deltas()
 
         # Set _positions for UI access
         self._positions = self.positions
@@ -48,10 +51,30 @@ class P11Pinhole(AbstractNState):
             self.log.error(f"Error parsing pinhole positions: {e}")
             raise ValueError("Invalid pinhole positions format in the configuration.")
 
+    def load_deltas(self):
+        """Load individual motor deltas from the XML configuration."""
+        self.log.info("Loading deltas from config")
+
+        # Fetch individual deltas for each motor
+        delta_y = self.get_property("delta_pinholey")
+        delta_z = self.get_property("delta_pinholez")
+
+        # If a delta is not specified, fallback to a default delta value
+        self.deltas = {
+            "pinholey": float(delta_y) if delta_y is not None else self.default_delta,
+            "pinholez": float(delta_z) if delta_z is not None else self.default_delta,
+        }
+
+        # Log the deltas for each motor
+        for motorname, delta in self.deltas.items():
+            self.log.info(f"Delta for {motorname}: {delta}")
+
     def set_value(self, value):
         """Move the pinhole motors to the given position."""
         if value not in self.positions:
             raise ValueError(f"Invalid value {value}, not in available positions")
+
+        print("PINHOLE SET VALUE IS CALLED")
 
         position = self.positions[value]
 
@@ -59,18 +82,32 @@ class P11Pinhole(AbstractNState):
         self.y_motor._set_value(position.get("pinholey"))
         self.z_motor._set_value(position.get("pinholez"))
 
-        # Wait for the motors to reach their positions
-        # self.wait_for_position()
-
     def get_value(self):
-        """Get the current pinhole position based on the primary motor."""
-        return self.y_motor.get_value()
+        """Get the current pinhole position based on the motor positions."""
+        current_y = self.y_motor.get_value()
+        current_z = self.z_motor.get_value()
 
-    def wait_for_position(self):
-        """Wait for motors to reach their target positions."""
-        while any(motor.get_state() != "ON" for motor in [self.y_motor, self.z_motor]):
-            time.sleep(0.1)
+        for position_name, position in self.positions.items():
+            if self.is_within_deltas(
+                position.get("pinholey"), current_y, "pinholey"
+            ) and self.is_within_deltas(
+                position.get("pinholez"), current_z, "pinholez"
+            ):
+                return position_name  # Return the matching position name
+
+    def is_within_deltas(self, target_value, current_value, motor_name):
+        """Check if the current motor position is within the delta tolerance for that specific motor."""
+        delta = self.deltas.get(motor_name)
+        if target_value is None or delta is None:
+            return False
+        return abs(current_value - target_value) <= delta
 
     def get_position_list(self):
         """Return the list of available pinhole positions."""
         return list(self.positions.keys())
+
+    def is_moving(self):
+        """
+        Descript. : True if the motor is currently moving
+        """
+        return self.get_state() == HardwareObjectState.BUSY

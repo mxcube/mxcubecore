@@ -1154,12 +1154,12 @@ class P11NanoDiff(GenericDiffractometer):
         self.motor_state_changed()
 
         # Extra waiting loop for the pinhole did not reached the top position because it is blocked.
-        pinhole_states = ["200", "100", "50", "20", "Down"]
+        pinhole_states = ["200", "100", "50", "20", "down"]
         timeout = 140
         start_wait = time.time()
         self.log.debug(
             "================= Wait whiile pinholes are not blocked whille going up. Pinhole now in the position "
-            + str(self.pinhole_hwobj.get_vvaluee())
+            + str(self.pinhole_hwobj.get_value())
         )
         while time.time() - start_wait < timeout:
             time.sleep(0.1)
@@ -1204,11 +1204,9 @@ class P11NanoDiff(GenericDiffractometer):
 
         self.log.debug("  - moving yag down")
         self.yag_hwobj.set_value("down")
-        self.log.info("YAG moved to 'Down' position during centring phase")
 
         self.log.debug("  - moving pinhole down")
         self.pinhole_hwobj.set_value("down")
-        self.log.info("Pinhole moved to 'Down' position during centring phase")
 
         if wait:
             self.wait_phase()
@@ -1239,6 +1237,7 @@ class P11NanoDiff(GenericDiffractometer):
             self.yag_hwobj.set_value("down")
 
             self.log.debug("  - moving pinhole down")
+
             if not self.ignore_pinhole:
                 self.pinhole_hwobj.set_value("down")
 
@@ -1305,34 +1304,26 @@ class P11NanoDiff(GenericDiffractometer):
         self.log.debug("=========  - checking pinhole ===============")
 
         # If the pinhole is Down set pinhole to 200
-        if self.pinhole_hwobj.get_value() == "Down":
+        if self.pinhole_hwobj.get_value() == "down":
             self.log.debug("Pinhole is down. Setting pinhole to 200.")
             self.pinhole_hwobj.set_value("200")
-
-        # restore pinhole position is the role of save / restore at mounting
-        # time. not of the collect phase
-        # self.pinhole_hwobj.set_position("In")
-
-        self.log.debug("  - checking gonio tower position ")
 
         if wait:
             self.wait_phase()
 
     def goto_beam_phase(self, wait=True):
-        self.phase_goingto = GenericDiffractometer.PHASE_BEAMLOCATION
+        self.phase_goingto = GenericDiffractometer.PHASE_BEAM
 
         self.log.debug(" SETTING BEAM LOCATION PHASE ")
 
-        self.log.debug("  - open detector cover")
-        self.detcover_hwobj.open(timeout=0)
         self.log.debug("  - setting backlight out")
-        self.backlight_hwobj.set_out()  # out
+        self.backlight_hwobj.set_out()
 
-        self.log.debug("  - putting collimator up")
         self.log.debug("  - setting beamstop in")
-        self.log.debug("  - moving scintillator down")
-        self.log.debug("  - checking pinhole ")
-        self.log.debug("  - checking gonio tower position ")
+        self.beamstop_hwobj.set_value("in")
+        self.log.debug("  - moving scintillator up")
+        self.yag_hwobj.set_value("yag")
+
         if wait:
             self.wait_phase()
 
@@ -1349,6 +1340,7 @@ class P11NanoDiff(GenericDiffractometer):
         pinh = self.pinhole_hwobj.get_value()
         yag = self.yag_hwobj.get_value()
 
+
         omega_moving = self.omega_hwobj.is_moving()
         cover_moving = self.detcover_hwobj.is_moving()
         light_moving = self.backlight_hwobj.is_moving()
@@ -1361,13 +1353,13 @@ class P11NanoDiff(GenericDiffractometer):
                 missing.append("lightin")
             if not cover_closed:
                 missing.append("cover_closed")
-            if not collim == "Down":
+            if not collim == "down":
                 missing.append("collim_down")
-            if not yag == "Out":
+            if not yag == "down":
                 missing.append("yag_out")
-            if not bstop == "Out":
+            if not bstop == "out":
                 missing.append("bstop_out")
-            if not pinh == "Down" and not self.ignore_pinhole:
+            if not pinh == "down" and not self.ignore_pinhole:
                 missing.append("pinh_down")
 
             if not missing:
@@ -1378,13 +1370,13 @@ class P11NanoDiff(GenericDiffractometer):
                 missing.append("lightout")
             if not cover_closed:
                 missing.append("cover_closed")
-            if not collim == "Down":
+            if not collim == "down":
                 missing.append("collim_down")
-            if not bstop == "Out":
+            if not bstop == "out":
                 missing.append("bstop_out")
-            if not yag == "Out":
+            if not yag == "down":
                 missing.append("yag_out")
-            if not pinh == "Down" and not self.ignore_pinhole:
+            if not pinh == "down" and not self.ignore_pinhole:
                 missing.append("pinh_down")
             if abs(omega_pos) >= 0.01:
                 missing.append("omega_zero")
@@ -1403,11 +1395,11 @@ class P11NanoDiff(GenericDiffractometer):
                 missing.append("lightout")
             # if not cover_open:
             #    missing.append("cover_opened")
-            if not collim == "Up":
+            if not collim == "up":
                 missing.append("collim_up")
-            if not bstop == "In":
+            if not bstop == "in":
                 missing.append("bstop_in")
-            if not yag == "Out":
+            if not yag == "down":
                 missing.append("yag_out")
 
             if not missing:
@@ -1492,7 +1484,7 @@ class P11NanoDiff(GenericDiffractometer):
 
         while (time.time() - t0) < timeout:
             busy = False
-            if not self.pinhole_hwobj.is_ready():
+            if self.pinhole_hwobj.is_moving():
                 busy = True
                 self.log.debug(" - pinhole is not ready")
             if self.backlight_hwobj.is_moving():

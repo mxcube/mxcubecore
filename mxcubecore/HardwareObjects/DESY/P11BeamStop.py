@@ -1,74 +1,100 @@
+from mxcubecore.HardwareObjects.NState import NState
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
 import ast
 import time
-from mxcubecore.HardwareObjects.NState import NState
 
 
 class P11BeamStop(NState):
+    default_delta = 0.1
+
     def init(self):
-        """Initialize the beamstop motors and load positions from configuration."""
+        """Initialize the BeamStop motors and load positions."""
         super().init()
 
-        # Load motors based on the XML configuration
         self.x_motor = self.get_object_by_role("bstopx")
-        self.y_motor = self.get_object_by_role("bstopy")  # Uncomment if used in config
-        self.z_motor = self.get_object_by_role("bstopz")  # Uncomment if used in config
 
-        # Load and print available positions
         self.load_positions()
+        self.load_deltas()
+
+        self.log.debug(f"Beamstop X Motor initialized: {self.x_motor}")
+        self.log.debug(f"Beamstop Y Motor not used")
+        self.log.debug(f"Beamstop Z Motor not used")
 
     def load_positions(self):
         """Load predefined positions from the XML configuration."""
-        self.log.info("Loading beamstop positions from config")
+        self.log.info("Loading BeamStop positions from config")
         positions_str = self.get_property("values")
+
+        if not positions_str:
+            self.log.error(
+                "No values for BeamStop positions found in the configuration."
+            )
+            raise ValueError("No BeamStop positions found in configuration")
 
         # Convert the string to a dictionary using ast.literal_eval
         try:
             self.positions = ast.literal_eval(positions_str)
             if isinstance(self.positions, dict):
-                self.log.info(f"Available beamstop positions: {self.positions}")
+                self.log.info(f"Available BeamStop positions: {self.positions}")
             else:
                 raise ValueError("Positions data is not a dictionary")
         except (SyntaxError, ValueError) as e:
-            self.log.error(f"Error parsing beamstop positions: {e}")
-            raise ValueError("Invalid beamstop positions format in the configuration.")
+            self.log.error(f"Error parsing BeamStop positions: {e}")
+            raise ValueError("Invalid BeamStop positions format in the configuration.")
+
+    def load_deltas(self):
+        """Load individual motor deltas from the XML configuration explicitly."""
+        self.log.info("Loading deltas from config")
+
+        # Fetch individual deltas for each motor
+        delta_bstopx = self.get_property("delta_bstopx")
+
+        # If a delta is not specified, fallback to a default delta value
+        self.deltas = {
+            "bstopx": float(delta_bstopx)
+            if delta_bstopx is not None
+            else self.default_delta,
+        }
+
+        # Log the deltas for each motor
+        for motorname, delta in self.deltas.items():
+            self.log.info(f"Delta for {motorname}: {delta}")
 
     def set_value(self, value):
-        """Move the beamstop motors to the position corresponding to the given state."""
+        """Move the BeamStop motors to the given position."""
         if value not in self.positions:
-            raise ValueError(f"Invalid position: {value}")
+            raise ValueError(f"Invalid value {value}, not in available positions")
 
-        # Retrieve positions from loaded configuration
-        position = self.positions.get(value)
+        position = self.positions[value]
 
-        if position is None:
-            raise ValueError(f"No position found for {value}")
-
-        # Move each motor to the desired position
-        x_position = position.get("bstopx")
-        y_position = position.get("bstopy")  # Optional
-        z_position = position.get("bstopz")  # Optional
-
-        # Move motors to respective positions
-        if x_position is not None:
-            self.x_motor._set_value(x_position)
-        # if y_position is not None:
-        #    self.y_motor._set_value(y_position)
-        # if z_position is not None:
-        #    self.z_motor._set_value(z_position)
-
-        # Wait for all motors to reach their positions
-        self.wait_for_position()
+        self.x_motor._set_value(position.get("bstopx"))
 
     def get_value(self):
-        """Get the current position of the beamstop (based on the x-axis motor)."""
-        return self.x_motor.get_value()  # Return position from primary motor
+        """Get the current BeamStop position based on the motor positions."""
+        current_x = self.x_motor.get_value()
+
+        for position_name, position in self.positions.items():
+            if self.is_within_deltas(position.get("bstopx"), current_x, "bstopx"):
+                return position_name  # Return the matching position name
+
+    def is_within_deltas(self, target_value, current_value, motor_name):
+        """Check if the current motor position is within the delta tolerance for that specific motor."""
+        delta = self.deltas.get(motor_name)
+        if target_value is None or delta is None:
+            return False
+        return abs(current_value - target_value) <= delta
+
+    def get_position_list(self):
+        """Return a list of available positions."""
+        return list(self.positions.keys())
 
     def wait_for_position(self):
-        """Wait for all motors to reach their target positions."""
-        self.log.info("Waiting for beamstop motors to reach their positions")
-        while any(
-            motor.get_state() != "ON"
-            for motor in [self.x_motor, self.y_motor, self.z_motor]
-        ):
+        """Wait for motors to reach their target positions."""
+        while any(motor.get_state() != "ON" for motor in [self.x_motor]):
             time.sleep(0.1)
-        self.log.info("Beamstop motors have reached their positions")
+
+    def is_moving(self):
+        """
+        Descript. : True if the motor is currently moving
+        """
+        return self.get_state() == HardwareObjectState.BUSY
