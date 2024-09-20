@@ -1,9 +1,9 @@
 import ast
 import time
-from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
+from mxcubecore.HardwareObjects.NState import NState
 
 
-class P11BeamStop(AbstractNState):
+class P11BeamStop(NState):
     def init(self):
         """Initialize the beamstop motors and load positions from configuration."""
         super().init()

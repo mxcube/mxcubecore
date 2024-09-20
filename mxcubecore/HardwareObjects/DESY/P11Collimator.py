@@ -1,8 +1,8 @@
 import ast
-from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
+from mxcubecore.HardwareObjects.NState import NState
+from collections import OrderedDict
 
-
-class P11Collimator(AbstractNState):
+class P11Collimator(NState):
     """Collimator hardware object class"""
 
     def init(self):
@@ -18,6 +18,11 @@ class P11Collimator(AbstractNState):
 
         # Load positions from XML configuration
         self.load_positions()
+        
+        # Set _positions for UI access
+        self._positions = OrderedDict()
+        self._positions = self.positions
+
 
     def load_positions(self):
         """Load predefined positions from the XML configuration."""
@@ -49,3 +54,7 @@ class P11Collimator(AbstractNState):
         self.y_motor._set_value(y_position)
         self.z_motor._set_value(z_position)
         self.log.info(f"Setting collimator to position: {value}")
+
+    def get_position_list(self):
+        """Return the list of available pinhole positions."""
+        return list(self.positions.keys())

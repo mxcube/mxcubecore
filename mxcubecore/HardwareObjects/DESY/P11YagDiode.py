@@ -1,9 +1,9 @@
 import ast
 import time
-from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
+from mxcubecore.HardwareObjects.NState import NState
 
 
-class P11YagDiode(AbstractNState):
+class P11YagDiode(NState):
     def init(self):
         """Initialize the YAG diode motors and load positions from configuration."""
         super().init()

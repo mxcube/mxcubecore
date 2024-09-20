@@ -15,6 +15,13 @@ class P11Pinhole(AbstractNState):
         self.y_motor = self.get_object_by_role("pinholey")
         self.z_motor = self.get_object_by_role("pinholez")
 
+        # Log motor initialization
+        self.log.info(f"Pinhole Y Motor initialized: {self.y_motor}")
+        self.log.info(f"Pinhole Z Motor initialized: {self.z_motor}")
+
+        # Set _positions for UI access
+        self._positions = self.positions
+
     def load_positions(self):
         """Load predefined positions from the XML configuration."""
         self.log.info("Loading pinhole positions from config")
@@ -63,3 +70,7 @@ class P11Pinhole(AbstractNState):
         """Wait for motors to reach their target positions."""
         while any(motor.get_state() != "ON" for motor in [self.y_motor, self.z_motor]):
             time.sleep(0.1)
+
+    def get_position_list(self):
+        """Return the list of available pinhole positions."""
+        return list(self.positions.keys())

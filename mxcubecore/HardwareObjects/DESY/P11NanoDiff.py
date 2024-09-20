@@ -1197,22 +1197,18 @@ class P11NanoDiff(GenericDiffractometer):
         self.backlight_hwobj.set_in()
 
         self.log.debug("  - putting collimator down")
-        """Move collimator to 'Down' position during centring phase."""
-        if self.collimator_hwobj is not None:
-            self.collimator_hwobj.set_value("down")  # Ensure "Down" is passed
-            self.log.info("Collimator moved to 'Down' position during centring phase")
-        else:
-            self.log.error("Collimator hardware object is not initialized")
+        self.collimator_hwobj.set_value("down") 
 
         self.log.debug("  - setting beamstop out")
         self.beamstop_hwobj.set_value("out")
 
         self.log.debug("  - moving yag down")
-        self.yag_hwobj.set_value("out")
-
+        self.yag_hwobj.set_value("down")
+        self.log.info("YAG moved to 'Down' position during centring phase")
+        
         self.log.debug("  - moving pinhole down")
-        if not self.ignore_pinhole:
-            self.pinhole_hwobj.set_value("Down")
+        self.pinhole_hwobj.set_value("down")
+        self.log.info("Pinhole moved to 'Down' position during centring phase")
 
         if wait:
             self.wait_phase()
@@ -1234,17 +1230,17 @@ class P11NanoDiff(GenericDiffractometer):
             self.backlight_hwobj.set_out()
 
             self.log.debug("  - putting collimator down")
-            self.collimator_hwobj.set_position("Down")
+            self.collimator_hwobj.set_value("down")
 
             self.log.debug("  - setting beamstop out")
-            self.beamstop_hwobj.set_position("Out")
+            self.beamstop_hwobj.set_value("out")
 
             self.log.debug("  - moving yag down")
-            self.yag_hwobj.set_position("Out")
+            self.yag_hwobj.set_value("down")
 
             self.log.debug("  - moving pinhole down")
             if not self.ignore_pinhole:
-                self.pinhole_hwobj.set_position("Down")
+                self.pinhole_hwobj.set_value("down")
 
             self.log.debug("  - moving omega to 0")
 
@@ -1302,16 +1298,16 @@ class P11NanoDiff(GenericDiffractometer):
 
         # self.detcover_hwobj.open()
         self.backlight_hwobj.set_out()
-        self.collimator_hwobj.set_position("Up")
-        self.beamstop_hwobj.set_position("In")
-        self.yag_hwobj.set_position("Out")
+        self.collimator_hwobj.set_value("up")
+        self.beamstop_hwobj.set_value("in")
+        self.yag_hwobj.set_value("down")
 
         self.log.debug("=========  - checking pinhole ===============")
 
         # If the pinhole is Down set pinhole to 200
         if self.pinhole_hwobj.get_value() == "Down":
             self.log.debug("Pinhole is down. Setting pinhole to 200.")
-            self.pinhole_hwobj.set_position("200")
+            self.pinhole_hwobj.set_value("200")
 
         # restore pinhole position is the role of save / restore at mounting
         # time. not of the collect phase
