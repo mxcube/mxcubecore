@@ -1,7 +1,5 @@
 """
 MAXIV Session hardware object.
-
-Adapting from original Session.py to adapt the names of data directories
 """
 import os
 import time
@@ -21,8 +19,6 @@ class MaxIVSession(Session):
     def __init__(self, name):
         Session.__init__(self, name)
 
-    # Framework-2 method, inherited from HardwareObject and called
-    # by the framework after the object has been initialized.
     def init(self):
         Session.init(self)
         self.default_precision = "04"
