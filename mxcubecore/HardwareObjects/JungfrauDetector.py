@@ -4,6 +4,9 @@ from mxcubecore.utils.units import us_to_sec, sec_to_us, ev_to_kev, meter_to_mm
 from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 
+# default value for 'images_per_file' config property
+DEFAULT_IMAGES_PER_FILE = 1000
+
 # custom tango reply timeout
 TANGO_TIMEOUT_MS = 6000
 
@@ -31,6 +34,8 @@ class JungfrauDetector(AbstractDetector):
 
     Hardware object properties:
         detector_device (str): name of the detector's tango device
+        images_per_file (int): number of images in a single HDF5 data file,
+                               if 0 then all images go into to a single data file
     """
 
     # pixel size in millimeters (75 µm)
@@ -70,6 +75,12 @@ class JungfrauDetector(AbstractDetector):
 
     def init(self):
         super().init()
+
+        # read the optional 'images_per_file' config property
+        self.col_config["ImagesPerFile"] = self.get_property(
+            "images_per_file", DEFAULT_IMAGES_PER_FILE
+        )
+
         self.dev = DeviceProxy(self.detector_device)
         # Arm() command can block for more than 3 seconds,
         # increase the default tango timeout
@@ -167,6 +178,7 @@ class JungfrauDetector(AbstractDetector):
         dev.detector_distance_mm = meter_to_mm(config["DetectorDistance"])
         dev.images_per_trigger = config["NbImages"]
         dev.ntrigger = config["NbTriggers"]
+        dev.images_per_file = config["ImagesPerFile"]
 
         maybe_set("unit_cell__a", "UnitCellA")
         maybe_set("unit_cell__b", "UnitCellB")
