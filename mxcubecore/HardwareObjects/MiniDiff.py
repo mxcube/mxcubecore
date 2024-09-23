@@ -1034,6 +1034,10 @@ class MiniDiff(HardwareObject):
                 self.set_phase("Centring", wait=True, timeout=200)
 
         for image_path in image_path_list:
+            snapshot_index = image_path_list.index(image_path)
+            logging.getLogger("user_level_log").info(
+                f"Taking {snapshot_index + 1} sample snapshot(s)"
+            )
             HWR.beamline.sample_view.save_snapshot(path=image_path)
             self.phiMotor.set_value_relative(90, timeout=5)
 

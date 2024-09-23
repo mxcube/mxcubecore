@@ -347,10 +347,6 @@ class AbstractMultiCollect(object):
                 snapshot_filename
             )
 
-            logging.getLogger("user_level_log").info(
-                f"Taking {snapshot_index + 1} sample snapshot(s)"
-            )
-
         HWR.beamline.diffractometer.new_take_snapshot(image_path_list)
 
     def _take_crystal_snapshots(self, number_of_snapshots):
