@@ -104,14 +104,14 @@ class AbstractXRFSpectrum(HardwareObject):
             filename = self.get_filename(data_dir, prefix)
             self.spectrum_info_dict["filename"] = filename + "." + self.file_suffix
             self.spectrum_info_dict["spectrum_directory"] = os.path.dirname(filename)
+            self.spectrum_info_dict["scanFileFullPath"] = (
+                filename + "." + self.file_suffix
+            )
         if archive_dir:
             if not self.create_directory(archive_dir):
                 self.update_state(self.STATES.FAULT)
                 return False
             filename = self.get_filename(archive_dir, prefix)
-            self.spectrum_info_dict["scanFileFullPath"] = (
-                filename + "." + self.file_suffix
-            )
             self.spectrum_info_dict["jpegScanFileFullPath"] = filename + ".png"
             self.spectrum_info_dict["annotatedPymcaXfeSpectrum"] = filename + ".html"
             self.spectrum_info_dict["fittedDataFileFullPath"] = filename + "_peaks.csv"
