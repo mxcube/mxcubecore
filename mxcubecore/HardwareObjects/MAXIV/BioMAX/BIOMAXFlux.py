@@ -98,14 +98,15 @@ class BIOMAXFlux(AbstractFlux):
     def macro_finished(self, *args):
         # listen to door.result once the macro finishes execution
         # in this case, checkbeam returns True/false and calculate_flux Float
-        self.macro_result = args[0]
-        try:
-            self.channel_value = float(self.macro_result)
-        except:
-            # string result
-            self.check_beam_result = self.macro_result
-        # self.logger.info("New channel value: %s" %str(self.channel_value))
-        self._event.set()
+        if args:
+            self.macro_result = args[0]
+            try:
+                self.channel_value = float(self.macro_result)
+            except:
+                # string result
+                self.check_beam_result = self.macro_result
+            # self.logger.info("New channel value: %s" %str(self.channel_value))
+            self._event.set()
 
     def acquire(self):
         time.sleep(0.1)
