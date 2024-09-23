@@ -6,7 +6,9 @@ import logging
 from mxcubecore.TaskUtils import task
 from mxcubecore.model.queue_model_objects import PathTemplate
 from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
-from mxcubecore import HardwareRepository as HWR
+
+# default value for 'images_per_file' config property
+DEFAULT_IMAGES_PER_FILE = 1000
 
 
 class EigerDetector(AbstractDetector):
@@ -108,7 +110,9 @@ class EigerDetector(AbstractDetector):
             "CountTime": None,
             "NbImages": None,
             "NbTriggers": None,
-            "ImagesPerFile": None,
+            "ImagesPerFile": self.get_property(
+                "images_per_file", DEFAULT_IMAGES_PER_FILE
+            ),
             "RoiMode": None,
             # enable 'all' header details by default
             "HeaderDetail": "all",

@@ -1199,11 +1199,6 @@ class MICROMAXCollect(DataCollect):
         config["NbImages"] = nframes_per_trigger
         config["NbTriggers"] = ntrigger
 
-        try:
-            config["ImagesPerFile"] = oscillation_parameters["images_per_file"]
-        except Exception:
-            config["ImagesPerFile"] = 100
-
         if nframes_per_trigger * ntrigger < config["ImagesPerFile"]:
             self.display["delay"] = (
                 nframes_per_trigger * ntrigger * oscillation_parameters["exposure_time"]
