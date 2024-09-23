@@ -666,9 +666,63 @@ class P11Collect(AbstractCollect):
                 beamCurrent=float(current),
             )
 
-        f = open(path + "/info.txt", "w")
-        f.write(output)
-        f.close()
+            f = open(path + "/info.txt", "w")
+            f.write(output)
+            f.close()
+
+        if run_type == "screening":
+
+            INFO_TXT = (
+                "run type:            {run_type:s}\n"
+                + "run name:            {name:s}\n"
+                + "start angle:         {startangle:.2f}deg\n"
+                + "frames:              {frames:d}\n"
+                + "degrees/frame:       {degreesperframe:.2f}deg\n"
+                + "exposure time:       {exposuretime:.3f}ms\n"
+                + "energy:              {energy:.3f}keV\n"
+                + "wavelength:          {wavelength:.3f}A\n"
+                + "detector distance:   {detectordistance:.2f}mm\n"
+                + "resolution:          {resolution:.2f}A\n"
+                + "aperture:            {pinholeDiameter:d}um\n"
+                + "focus:               {focus:s}\n"
+                + "filter transmission: {filterTransmission:.3f}%\n"
+                + "filter thickness:    {filterThickness:d}um\n"
+                + "ring current:        {beamCurrent:.3f}mA\n"
+                + "\n"
+                + "For exact flux reading, please consult the staff."
+            )
+
+            energy = HWR.beamline.energy.get_value()
+            wavelength = 12.3984 / (energy)  # in Angstrom
+            resolution = HWR.beamline.resolution.get_value()
+            detectordistance = HWR.beamline.detector.get_eiger_detector_distance()
+            transmission = HWR.beamline.transmission.get_value()
+            filter_thickness = self.get_filter_thickness_in_mm()
+            pinhole_diameter = HWR.beamline.beam.get_pinhole_size()
+            focus = HWR.beamline.beam.get_beam_focus_label()
+            current = HWR.beamline.machine_info.get_current()
+
+            output = INFO_TXT.format(
+                run_type=run_type,
+                name=name,
+                startangle=startangle,
+                frames=frames,
+                degreesperframe=degreesperframe,
+                exposuretime=exposuretime * 1000,
+                energy=energy,
+                wavelength=wavelength,
+                detectordistance=detectordistance,
+                resolution=resolution,
+                pinholeDiameter=int(pinhole_diameter),
+                focus=str(focus),
+                filterTransmission=int(transmission),
+                filterThickness=int(filter_thickness),
+                beamCurrent=float(current),
+            )
+
+            f = open(path + "/info.txt", "w")
+            f.write(output)
+            f.close()
 
     def prepare_characterization(self):
         """Prepares for characterization data collection by setting the start angle and angle increment for the detector."""
