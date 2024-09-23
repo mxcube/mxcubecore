@@ -58,10 +58,8 @@ class BIOMAXFlux(AbstractFlux):
         self.airsample_length = 0
         self.detdiode_length = 45.0
 
-        self.energy_hwobj = None
         self.air_length = None
         self.energy = None
-        self.transmission_hwobj = None
         self.shutter_state = None
         self.timeout = 10
         self.ori_motors = None
@@ -88,11 +86,7 @@ class BIOMAXFlux(AbstractFlux):
 
         self._event = gevent.event.Event()
 
-        self.energy_hwobj = HWR.beamline.energy
-        self.connect(self.energy_hwobj, "energyChanged", self.energy_changed)
-        self.transmission_hwobj = HWR.beamline.transmission
-        self.diffractometer_hwobj = HWR.beamline.diffractometer
-        self.beam_info_hwobj = HWR.beamline.beam
+        self.connect(HWR.beamline.energy, "energyChanged", self.energy_changed)
 
         self.air_length = (
             HWR.beamline.detector.distance.get_value() * 1000 + self.airsample_length
@@ -141,8 +135,8 @@ class BIOMAXFlux(AbstractFlux):
          6. Measure flux value (sardana macro call and some math)
          7. Put MD3 back to normal position
         """
-        energy = self.energy_hwobj.get_current_energy()
-        transmission = self.transmission_hwobj.get_att_factor()
+        energy = HWR.beamline.energy.get_current_energy()
+        transmission = HWR.beamline.transmission.get_att_factor()
         self.check_beam_result = False
         self.logger.info("Flux calculation started!")
 
@@ -178,7 +172,7 @@ class BIOMAXFlux(AbstractFlux):
             (
                 self.ori_motors,
                 self.ori_phase,
-            ) = self.diffractometer_hwobj.set_calculate_flux_phase()
+            ) = HWR.beamline.diffractometer.set_calculate_flux_phase()
         except Exception as ex:
             self.logger.error("Cannot set MD3 phase for flux calculatio! %s", str(ex))
             return
@@ -202,7 +196,9 @@ class BIOMAXFlux(AbstractFlux):
         except Exception as ex:
             self.logger.error("Cannot close fast shutter! %s", str(ex))
 
-        self.diffractometer_hwobj.finish_calculate_flux(self.ori_motors, self.ori_phase)
+        HWR.beamline.diffractometer.finish_calculate_flux(
+            self.ori_motors, self.ori_phase
+        )
 
     def flux_value_changed(self):
         try:
@@ -251,8 +247,8 @@ class BIOMAXFlux(AbstractFlux):
          - assuming safety shutter is open
          - no check of beam stability
         """
-        energy = self.energy_hwobj.get_current_energy()
-        transmission = self.transmission_hwobj.get_att_factor()
+        energy = HWR.beamline.energy.get_current_energy()
+        transmission = HWR.beamline.transmission.get_att_factor()
 
         self.logger.info("Start to measure flux")
         try:
@@ -311,12 +307,12 @@ class BIOMAXFlux(AbstractFlux):
 
     def update_flux_density(self):
         try:
-            beamx, beamy = self.beam_info_hwobj.get_beam_size()  # in mm, float
-            transmission = self.transmission_hwobj.get_att_factor()  # string
+            beamx, beamy = HWR.beamline.beam.get_beam_size()  # in mm, float
+            transmission = HWR.beamline.transmission.get_att_factor()  # string
             self.flux_density = (
                 float(self.current_flux) / float(transmission) / beamx / beamy / 10000
             )
-            self.flux_density_energy = self.energy_hwobj.get_current_energy()
+            self.flux_density_energy = HWR.beamline.energy.get_current_energy()
         except Exception as ex:
             self.current_flux = -1.0
             self.flux_density = -1.0
@@ -336,7 +332,7 @@ class BIOMAXFlux(AbstractFlux):
         so the flux at the sample will be less.
         as it's before the attenuator, so transmission is 100%
         """
-        energy = self.energy_hwobj.get_current_energy()
+        energy = HWR.beamline.energy.get_current_energy()
         energy_ev = energy * 1000
 
         if self.flux_aem_dev is None:
