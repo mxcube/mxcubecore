@@ -153,7 +153,12 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo, AbstractBeam.AbstractBeam):
         # return list(self.get_beam_info_dict().values())
         current_aperture = float(self.aperture_hwobj.get_diameter_size())
 
-        return current_aperture, current_aperture, BeamShape.ELIPTICAL, current_aperture
+        return (
+            current_aperture / 1000,
+            current_aperture / 1000,
+            BeamShape.ELIPTICAL,
+            current_aperture,
+        )
 
     def get_available_size(self):
         """getting the list of available diameter sizes for aperture.
@@ -267,7 +272,7 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo, AbstractBeam.AbstractBeam):
             list with two integers
         """
         self.evaluate_beam_info()
-        _ap = self.aperture_hwobj.get_diameter_size()
+        _ap = self.aperture_hwobj.get_diameter_size() / 1000
         return _ap, _ap
 
     def set_beam_position_on_screen(self, beam_x, beam_y):
