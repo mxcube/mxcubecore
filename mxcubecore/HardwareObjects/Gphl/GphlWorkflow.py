@@ -1615,6 +1615,7 @@ class GphlWorkflow(HardwareObjectYaml):
             )
             self._latest_translation_id = translation.id_
             self._recentrings.append(translation)
+            goniostatTranslations.append(translation)
             # Update current position
             current_okp = tuple(
                 current_pos_dict[role] for role in self.rotation_axis_roles
@@ -1658,16 +1659,19 @@ class GphlWorkflow(HardwareObjectYaml):
                 self._latest_translation_id = translation.id_
                 self._recentrings.append(translation)
                 gphl_workflow_model.current_rotation_id = sweepSetting.id_
+                goniostatTranslations.append(translation)
 
             else:
 
                 if recentring_mode == "none":
                     if has_recentring_file:
-                        # NB  if no recentring  but  MiniKappaCorrection this still OK
+                        # If we have recentring use it
+                        # If not, never mind, presumably we have MiniKappaCorrescion
                         translation = GphlMessages.GoniostatTranslation(
                             rotation=sweepSetting, **translation_settings
                         )
-                        self._latest_translation_id = None
+                        goniostatTranslations.append(translation)
+                    self._latest_translation_id = None
                 else:
                     if has_recentring_file:
                         settings.update(translation_settings)
@@ -1676,6 +1680,7 @@ class GphlWorkflow(HardwareObjectYaml):
                     self._latest_translation_id = translation.id_
                     self._recentrings.append(translation)
                     gphl_workflow_model.current_rotation_id = sweepSetting.id_
+                    goniostatTranslations.append(translation)
                     if recentring_mode == "start":
                         # We want snapshots in this mode,
                         # and the first sweepmis skipped in the loop below
@@ -1707,7 +1712,7 @@ class GphlWorkflow(HardwareObjectYaml):
             self._latest_translation_id = translation.id_
             self._recentrings.append(translation)
             gphl_workflow_model.current_rotation_id = newRotation.id_
-        goniostatTranslations.append(translation)
+            goniostatTranslations.append(translation)
 
         # calculate or determine centring for remaining sweeps
         for sweepSetting in sweepSettings[1:]:
