@@ -29,6 +29,7 @@ from gevent import monkey
 import matplotlib.pyplot as plt
 import numpy as np
 import h5py
+import glob
 
 from scipy.ndimage.filters import gaussian_filter1d
 
@@ -171,71 +172,16 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         Returns:
             File template
         """
+        prefix = prefix.split("_")[0]  # we ignore run_number
         _pattern = f"xrf_{prefix}_%02d"
         filename_pattern = os.path.join(directory, _pattern)
         filename = filename_pattern % 1
-
         i = 2
-        while os.path.isfile(filename):
+        while glob.glob(filename + ".*"):
             filename = filename_pattern % i
             i = i + 1
 
         return filename
-
-    def prepare_directories(self, ct, spectrum_directory, archive_directory, prefix):
-        if not os.path.isdir(archive_directory):
-            logging.getLogger("user_level_log").info(
-                "XRFSpectrum: creating directory %s" % archive_directory
-            )
-            logging.getLogger("HWR").debug(
-                "XRFSpectrum: creating directory %s" % archive_directory
-            )
-            try:
-                if not os.path.exists(archive_directory):
-                    os.makedirs(archive_directory)
-                if not os.path.exists(spectrum_directory):
-                    os.makedirs(spectrum_directory)
-            except OSError as diag:
-                logging.getLogger("HWR").error(
-                    "XRFSpectrum: error creating directory %s (%s)"
-                    % (archive_directory, str(diag))
-                )
-                logging.getLogger("user_level_log").error(
-                    "XRFSpectrum: error creating directory %s (%s)"
-                    % (archive_directory, str(diag))
-                )
-                self.emit("xrfSpectrumStatusChanged", ("Error creating directory",))
-                raise Exception(diag)
-
-        archive_file_template = os.path.join(archive_directory, prefix)
-        spectrum_file_template = os.path.join(spectrum_directory, prefix)
-        if os.path.exists(archive_file_template + ".h5"):
-            i = 1
-            while os.path.exists(archive_file_template + "%d.h5" % i):
-                i = i + 1
-            archive_file_template += "_%d" % i
-            spectrum_file_template += "_%d" % i
-            prefix += "_%d" % i
-
-        spectrum_file_dat_filename = os.path.extsep.join((spectrum_file_template, "h5"))
-        archive_file_dat_filename = os.path.extsep.join((archive_file_template, "h5"))
-        archive_file_png_filename = os.path.extsep.join((archive_file_template, "png"))
-        archive_file_html_filename = os.path.extsep.join(
-            (archive_file_template, "html")
-        )
-
-        self.spectrum_info_dict["scanFileFullPath"] = spectrum_file_dat_filename
-        self.spectrum_info_dict["jpegScanFileFullPath"] = archive_file_png_filename
-        self.spectrum_info_dict["exposureTime"] = ct
-        self.spectrum_info_dict[
-            "annotatedPymcaXfeSpectrum"
-        ] = archive_file_html_filename
-        logging.getLogger("HWR").debug(
-            "XRFSpectrum: spectrum data file is %s", spectrum_file_dat_filename
-        )
-        logging.getLogger("HWR").debug(
-            "XRFSpectrum: archive file is %s", archive_file_dat_filename
-        )
 
     def prepare_transmission(self, ct):
         """
@@ -385,10 +331,6 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         logging.getLogger("HWR").info(self.spectrum_info_dict)
 
         try:
-            self.prepare_directories(
-                integration_time, spectrum_directory, archive_directory, prefix
-            )
-
             self.diffractometer_hwobj.move_fluo_in()
 
             self.prepare_transmission(integration_time)
@@ -460,7 +402,7 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             # The minimum energy is phosphor emission (ca. 2000 eV)
             lowerlim = 180
             output = ""
-            filename = self.spectrum_info_dict["filename"]
+            filename = self.spectrum_info_dict["scanFileFullPath"]
             logging.getLogger("HWR").info("Reading data from {}".format(filename))
 
             with gevent.Timeout(15, Exception("Timeout waiting for file")):
