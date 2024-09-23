@@ -2,6 +2,7 @@ import logging
 from mxcubecore.HardwareObjects import BeamInfo
 from mxcubecore.HardwareObjects.abstract import AbstractBeam
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.utils.units import um_to_mm
 from enum import Enum, unique
 
 """You may need to import monkey when you test standalone"""
@@ -63,7 +64,7 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo, AbstractBeam.AbstractBeam):
                 "value_changed",
                 self.aperture_pos_changed,
             )
-            ad = self.aperture_hwobj.get_diameter_size() / 1000.0
+            ad = um_to_mm(self.aperture_hwobj.get_diameter_size())
             self._beam_size_dict["aperture"] = [ad, ad]
             self._beam_info_dict["label"] = self.aperture_hwobj.get_diameter_size()
         else:
@@ -76,8 +77,8 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo, AbstractBeam.AbstractBeam):
             self.beam_size_hor.connect("valueChanged", self.beam_size_hor_changed)
             self.beam_size_ver.connect("valueChanged", self.beam_size_ver_changed)
             self.beam_size_ver.connect("stateChanged", self.beam_size_state_changed)
-            self._beam_info_dict["size_y"] = self.beam_size_ver.get_value() / 1000
-            self._beam_info_dict["size_x"] = self.beam_size_hor.get_value() / 1000
+            self._beam_info_dict["size_y"] = um_to_mm(self.beam_size_ver.get_value())
+            self._beam_info_dict["size_x"] = um_to_mm(self.beam_size_hor.get_value())
 
         self.evaluate_beam_info()
         self.re_emit_values()
@@ -86,9 +87,9 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo, AbstractBeam.AbstractBeam):
     def evaluate_beam_info(self, *args):
         self.beam_info_dict["shape"] = "ellipse"
         current_aperture = float(self.aperture_hwobj.get_value())
-        self._beam_width = current_aperture / 1000
+        self._beam_width = um_to_mm(current_aperture)
         self.beam_info_dict["size_x"] = self._beam_width
-        self._beam_height = current_aperture / 1000
+        self._beam_height = um_to_mm(current_aperture)
         self.beam_info_dict["size_y"] = self._beam_height
         return self.beam_info_dict
 
@@ -100,8 +101,8 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo, AbstractBeam.AbstractBeam):
         """
         self.evaluate_beam_info()
         if self.beam_size_hor and self.beam_size_ver:
-            self._beam_info_dict["size_x"] = self.beam_size_hor.get_value() / 1000
-            self._beam_info_dict["size_y"] = self.beam_size_ver.get_value() / 1000
+            self._beam_info_dict["size_x"] = um_to_mm(self.beam_size_hor.get_value())
+            self._beam_info_dict["size_y"] = um_to_mm(self.beam_size_ver.get_value())
         self._beam_info_dict["label"] = self.aperture_hwobj.get_diameter_size()
         self.get_beam_shape()
         return self._beam_info_dict.copy()
@@ -154,8 +155,8 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo, AbstractBeam.AbstractBeam):
         current_aperture = float(self.aperture_hwobj.get_diameter_size())
 
         return (
-            current_aperture / 1000,
-            current_aperture / 1000,
+            um_to_mm(current_aperture),
+            um_to_mm(current_aperture),
             BeamShape.ELIPTICAL,
             current_aperture,
         )
@@ -272,7 +273,7 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo, AbstractBeam.AbstractBeam):
             list with two integers
         """
         self.evaluate_beam_info()
-        _ap = self.aperture_hwobj.get_diameter_size() / 1000
+        _ap = um_to_mm(self.aperture_hwobj.get_diameter_size())
         return _ap, _ap
 
     def set_beam_position_on_screen(self, beam_x, beam_y):
