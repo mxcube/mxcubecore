@@ -684,7 +684,7 @@ class LNLSPilatusDet(AbstractDetector):
                 "[HWR] Error set_detector_filenames: %s"
                 % (ex)
             )
-        return job_id
+        return job_id,saving_directory
 
 
     def setFileNumber(self, number):

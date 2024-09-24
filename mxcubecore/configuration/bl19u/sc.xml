@@ -1,6 +1,6 @@
 <equipment class="mxcubecore.HardwareObjects.SSRF.BL19U1.ActorSampleChanger">
 
-
+ 
 
     <subdir1-1>Sample-1-01/</subdir1-1>
     <prefix1-1>Sample-1-01</prefix1-1>
@@ -67,7 +67,7 @@
     <prefix2-15>Sample-2-15</prefix2-15>
     <subdir2-16>Sample-2-16/</subdir2-16>
     <prefix2-16>Sample-2-16</prefix2-16>
-
+    
     <subdir3-1>Sample-3-01/</subdir3-1>
     <prefix3-1>Sample-3-01</prefix3-1>
     <subdir3-2>Sample-3-02/</subdir3-2>
@@ -100,7 +100,7 @@
     <prefix3-15>Sample-3-15</prefix3-15>
     <subdir3-16>Sample-3-16/</subdir3-16>
     <prefix3-16>Sample-3-16</prefix3-16>
-
+    
     <subdir4-1>Sample-4-01/</subdir4-1>
     <prefix4-1>Sample-4-01</prefix4-1>
     <subdir4-2>Sample-4-02/</subdir4-2>
@@ -133,7 +133,7 @@
     <prefix4-15>Sample-4-15</prefix4-15>
     <subdir4-16>Sample-4-16/</subdir4-16>
     <prefix4-16>Sample-4-16</prefix4-16>
-
+    
     <subdir5-1>Sample-5-01/</subdir5-1>
     <prefix5-1>Sample-5-01</prefix5-1>
     <subdir5-2>Sample-5-02/</subdir5-2>

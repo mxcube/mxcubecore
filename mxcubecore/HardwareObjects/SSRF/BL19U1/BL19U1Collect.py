@@ -34,6 +34,7 @@ from mxcubecore.HardwareObjects.SSRF.BL19U1.BL19U1DetCover import DetCover
 from mxcubecore.HardwareObjects.SSRF.BL19U1 import Constants as cts
 from mxcubecore.utils.pymysql_comm import UsingMysql
 from mxcubecore.service.dataItem_service import insert_dc_param_to_basic,updateOtherTable
+import subprocess
 
 class BL19U1Collect(AbstractCollect, HardwareObject):
     """
@@ -524,8 +525,8 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         oscillation_parameters = self.current_dc_parameters["oscillation_sequence"][0]
 
 
-        # 下行代码包括插入数据库操作，可以获取此次收集数据的job_id
-        job_id = HWR.beamline.detector.set_detector_filenames(oscillation_parameters["number_of_images"],
+        # 下行代码包括插入数据库操作，可以获取此次收集数据的job_id,并且同时获取文件路径
+        job_id ,saving_directory = HWR.beamline.detector.set_detector_filenames(oscillation_parameters["number_of_images"],
                                                      oscillation_parameters["start_image_number"],
                                                      "".join(_filename), self.collection_uuid);
 
@@ -569,7 +570,26 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         insert_dc_param_to_basic(*dc_basic_param_to_table)
 
 
+        # put snapshot to be with raw data cbf
 
+        if self.current_dc_parameters['take_snapshots']:
+            snapshot_path = self.current_dc_parameters['xtalSnapshotFullPath1']
+            logging.getLogger('HWR').debug(f"the path of snapshot: {snapshot_path}")
+
+            logging.getLogger("HWR").info('=============Start subprocess')
+            logging.getLogger("HWR").info("scp %s %s@%s:%s"
+                % (snapshot_path, self.getProperty("ppu2_user"), self.getProperty("ppu2_ip"), "/datafarm"+saving_directory))
+            process_cp_snapshot = subprocess.Popen(
+                "scp %s %s@%s:%s"
+                % (snapshot_path, self.getProperty("ppu2_user"), self.getProperty("ppu2_ip"), "/datafarm"+saving_directory),
+                shell=True,
+                stdin=None,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                close_fds=True,
+            )
+            stdout,stderr = process_cp_snapshot.communicate()
+            logging.getLogger("HWR").debug(f"result of scp subprocess: {stdout.decode()},{stderr.decode()}")
 
 
         # logging.getLogger("HWR").info("set detector filenames: %S" % "".join(_filename))
@@ -1231,7 +1251,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             if not os.path.exists(snapshot_directory):
                 try:
                     self.create_directories(snapshot_directory)
-                    logging.getLogger("HWR").debug(f("snapshot directory created"))
+                    logging.getLogger("HWR").debug("snapshot directory created")
                 except Exception:
                     logging.getLogger("HWR").exception("Collection: Error creating snapshot directory")
 
