@@ -720,7 +720,6 @@ class P11NanoDiff(GenericDiffractometer):
 
         motor_positions = {
                 'phiy': self.centring_phiy.motor.get_value(),
-                'phiz': self.centring_phiz.motor.get_value(),
                 'sampx': self.centring_sampx.motor.get_value(),
                 'sampy': self.centring_sampy.motor.get_value(),
                 'phi': self.centring_phi.motor.get_value(),
