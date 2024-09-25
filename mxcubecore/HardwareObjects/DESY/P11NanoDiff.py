@@ -29,8 +29,6 @@ from mxcubecore.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer,
 )
 
-
-
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore import HardwareRepository as HWR
 from enum import Enum, unique
@@ -738,8 +736,6 @@ class P11NanoDiff(GenericDiffractometer):
             Y.append(y)
             PHI.append(phi_mot.get_value())
 
-            print("************************", X,Y,PHI)
-
         DX = []
         DY = []
         ANG = []
@@ -1112,26 +1108,28 @@ class P11NanoDiff(GenericDiffractometer):
 
         self.phase_goingto = GenericDiffractometer.PHASE_CENTRING
 
-        self.log.debug("  - close detector cover")
+        logging.getLogger("GUI").warning("Closing detector cover...")
         self.detcover_hwobj.close(timeout=0)
 
-        self.log.debug("  - setting backlight in")
+        logging.getLogger("GUI").warning("Setting backlight in...")
         self.backlight_hwobj.set_in()
 
-        self.log.debug("  - putting collimator down")
+        logging.getLogger("GUI").warning("Putting collimator down...")
         self.collimator_hwobj.set_value("down")
 
-        self.log.debug("  - setting beamstop out")
+        logging.getLogger("GUI").warning("Setting collimator out...")
         self.beamstop_hwobj.set_value("out")
 
-        self.log.debug("  - moving yag down")
+        logging.getLogger("GUI").warning("Moving yag down...")
         self.yag_hwobj.set_value("down")
 
-        self.log.debug("  - moving pinhole down")
+        logging.getLogger("GUI").warning("Moving pinhole down...")
         self.pinhole_hwobj.set_value("down")
 
         if wait:
             self.wait_phase()
+
+        logging.getLogger("GUI").info("Phase set is finished")
 
     def is_transfer_phase(self):
         return self.get_phase() == GenericDiffractometer.PHASE_TRANSFER
@@ -1212,27 +1210,29 @@ class P11NanoDiff(GenericDiffractometer):
 
         self.log.debug(" SETTING DATA COLLECTION PHASE ")
 
-        self.log.debug("  - setting backlight out")
+        logging.getLogger("GUI").warning("Moving pinhole out...")
         self.backlight_hwobj.set_out()
 
-        self.log.debug("  - putting collimator up")
+        logging.getLogger("GUI").warning("Moving collimator up...")
         self.collimator_hwobj.set_value("up")
 
-        self.log.debug("  - setting beamstop in")
+        logging.getLogger("GUI").warning("Moving beamstop in...")
         self.beamstop_hwobj.set_value("in")
 
-        self.log.debug("  - moving yag down")
+        logging.getLogger("GUI").warning("Moving yag down...")
         self.yag_hwobj.set_value("down")
 
         self.log.debug("=========  - checking pinhole ===============")
 
         # If the pinhole is Down set pinhole to 200
         if self.pinhole_hwobj.get_value() == "down":
-            self.log.debug("Pinhole is down. Setting pinhole to 200.")
+            logging.getLogger("GUI").warning("Pinhole is down. Setting pinhole to 200.")
             self.pinhole_hwobj.set_value("200")
 
         if wait:
             self.wait_phase()
+
+        logging.getLogger("GUI").info("Phase set is finished")
 
     def goto_beam_phase(self, wait=True):
         self.phase_goingto = GenericDiffractometer.PHASE_BEAM
