@@ -22,8 +22,6 @@ __copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
 
 from mxcubecore.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
-
-# from mxcubecore.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
 from mxcubecore import HardwareRepository as HWR
 
 import logging
