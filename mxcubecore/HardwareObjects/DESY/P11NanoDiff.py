@@ -740,10 +740,6 @@ class P11NanoDiff(GenericDiffractometer):
 
             print("************************", X,Y,PHI)
 
-        #phi_mot.set_value(phi_start_pos)
-        #gevent.sleep(2)
-        #phi_mot.wait_ready()
-
         DX = []
         DY = []
         ANG = []
@@ -1215,16 +1211,17 @@ class P11NanoDiff(GenericDiffractometer):
         self.phase_goingto = GenericDiffractometer.PHASE_COLLECTION
 
         self.log.debug(" SETTING DATA COLLECTION PHASE ")
-        # self.log.debug("  - open detector cover")
-        self.log.debug("  - setting backlight out")
-        self.log.debug("  - putting collimator up")
-        self.log.debug("  - setting beamstop in")
-        self.log.debug("  - moving yag down")
 
-        # self.detcover_hwobj.open()
+        self.log.debug("  - setting backlight out")
         self.backlight_hwobj.set_out()
+
+        self.log.debug("  - putting collimator up")
         self.collimator_hwobj.set_value("up")
+
+        self.log.debug("  - setting beamstop in")
         self.beamstop_hwobj.set_value("in")
+
+        self.log.debug("  - moving yag down")
         self.yag_hwobj.set_value("down")
 
         self.log.debug("=========  - checking pinhole ===============")
