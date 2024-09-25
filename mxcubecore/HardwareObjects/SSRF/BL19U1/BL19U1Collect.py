@@ -278,13 +278,13 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             # prepare beamline for data acquisiion
 
             # 在下面的准备函数调用中，会准备好如探测器距离等的各种状态，并将基本信息插入job和dc_basic表
-            job_id ,distance = self.prepare_acquisition()
+            job_id ,distance,_filename = self.prepare_acquisition()
             self.emit(
                 "collectOscillationStarted",
                 (owner, None, None, None, self.current_dc_parameters, None),
             )
 
-            self.data_collection_hook()
+            self.data_collection_hook(_filename)
             #self.transfer_data() TODO add data transfer here
             self.emit_collection_finished()
 
@@ -609,7 +609,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         self.move_to_centered_position()            #此处raster scan时，会移动到矩形的第一个位置点
 
         # HWR.beamline.diffractometer.save_centring_positions();
-        return job_id,distance
+        return job_id,distance,"".join(_filename)
     # -------------------------------------------------------------------------------
 
     def prepare_triggers_to_collect(self):
@@ -647,10 +647,11 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
 
         return triggers_to_collect
 
-    def data_collection_hook(self):
+    def data_collection_hook(self,_filename):
         """
         Descript. : main collection command
         """
+        logging.getLogger("HWR").debug(f"get in data_collection_hook, the self.triggers_to_collect is {self.triggers_to_collect}")
         data_collection_hook_start = time.time()
         try:
             self._collecting = True
@@ -674,6 +675,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
                 ) = self.triggers_to_collect[i]
 
                 logging.getLogger("HWR").info("[Collection] collection loop : %d " %(i+1))
+                HWR.beamline.detector.set_detector_filenames_characterisation(_filename,str(i+1))
                 if i > 0:
 
                     HWR.beamline.detector.wait_ready()

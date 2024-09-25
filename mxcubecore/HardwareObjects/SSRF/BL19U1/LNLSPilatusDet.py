@@ -607,6 +607,14 @@ class LNLSPilatusDet(AbstractDetector):
         # TODO check if there is equivalent  UUID with this API
         # self.set_channel_value("CollectionUUID", col_uuid)
         pass
+    @task
+    def set_detector_filenames_characterisation(self,filename,nth_cbf):
+        prefix, suffix = os.path.splitext(os.path.basename(filename))
+        prefix = "_".join(prefix.split("_")[:-1]) + "_"
+        filename = prefix.split(os.path.sep)[-1]    # os.path.sep is '/'
+        filename =filename + nth_cbf
+        self.set_channel_value("det_filename", filename)
+        logging.getLogger("HWR").info('=============filename is %s', filename)
 
     @task
     def set_detector_filenames(self, frame_number, start, filename, collect_uuid):
@@ -616,13 +624,15 @@ class LNLSPilatusDet(AbstractDetector):
             logging.getLogger("HWR").info(f'filename of this collection is {filename}')
             # C:\haicoder\haicoder.txt -> ('C:\\haicoder\\haicoder', 'txt')
             prefix, suffix = os.path.splitext(os.path.basename(filename))
+            logging.getLogger('HWR').debug(f'the prefix and suffix when set_detector_filenames are {prefix},{suffix} ')
             prefix = "_".join(prefix.split("_")[:-1]) + "_"
             dirname = os.path.dirname(filename)
-
             if dirname.startswith(os.path.sep):
                 dirname = dirname[len(os.path.sep):]
+            logging.getLogger('HWR').debug(f'the dirname when set_detector_filenames are {dirname}')
 
             saving_directory = os.path.join(self.getProperty("buffer"), dirname)
+            logging.getLogger('HWR').debug(f'the saving_directory when set_detector_filenames are {saving_directory}')
 
             logging.getLogger("HWR").info('=============Start subprocess')
             logging.getLogger("HWR").info("ssh %s@%s mkdir --parents %s" % (
@@ -648,7 +658,7 @@ class LNLSPilatusDet(AbstractDetector):
 
             # file_template = prefix.split(os.path.sep)[-1] + "%3.3d"+ "." + self.getProperty("file_suffix")
             # file_template = prefix.split(os.path.sep)[-1] + "." + self.getProperty("file_suffix")
-            filename = prefix.split(os.path.sep)[-1]
+            filename = prefix.split(os.path.sep)[-1]    # os.path.sep is '/'
             # filename = filename[:-2]
             self.set_channel_value("det_filename", filename)
             logging.getLogger("HWR").info('=============filename is %s', filename)
