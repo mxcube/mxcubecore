@@ -417,9 +417,15 @@ class BIOMAXContinuousScan(AbstractEnergyScan):
         # and move to the centred positions after phase change
         if self.cpos:
             logging.getLogger("HWR").info("Moving to centring position")
-            HWR.beamline.diffractometer.move_to_motors_positions(
-                self.cpos.as_dict(), wait=True
-            )
+            try:
+                HWR.beamline.diffractometer.move_to_motors_positions(
+                    self.cpos.as_dict(), wait=True
+                )
+            except ValueError as ex:
+                logging.getLogger("HWR").warning(
+                    "Could not move to centring position, {}".format(ex)
+                )
+
         else:
             logging.getLogger("HWR").warning("Valid centring position not found")
 
