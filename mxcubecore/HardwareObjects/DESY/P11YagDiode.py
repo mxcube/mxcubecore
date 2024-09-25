@@ -113,6 +113,10 @@ class P11YagDiode(NState):
             return False
         return abs(current_value - target_value) <= delta
 
+    def get_position_list(self):
+        """Return the list of available pinhole positions."""
+        return list(self.positions.keys())
+    
     def is_moving(self):
         """
         Descript. : True if the motor is currently moving
