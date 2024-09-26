@@ -38,8 +38,6 @@ class P11YagDiode(NState):
         self.load_positions()
         self.load_deltas()
 
-        self.set_value("down")
-
         # Set _positions for UI access
         self._positions = OrderedDict()
         self._positions = self.positions
@@ -116,7 +114,7 @@ class P11YagDiode(NState):
     def get_position_list(self):
         """Return the list of available pinhole positions."""
         return list(self.positions.keys())
-    
+
     def is_moving(self):
         """
         Descript. : True if the motor is currently moving
