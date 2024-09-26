@@ -194,7 +194,7 @@ class P11NanoDiff(GenericDiffractometer):
             self.log.debug("acq_window_off_cmd: %s" % self.acq_window_off_cmd)
         else:
             self.init_ok = True
-    
+
 
     def update_beam_position(self):
         zoom_hwobj = self.motor_hwobj_dict["zoom"]
@@ -1513,6 +1513,3 @@ class P11NanoDiff(GenericDiffractometer):
 
         # Final check to ensure all devices are ready
         self.wait_device_ready(timeout)
-
-
-
