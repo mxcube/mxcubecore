@@ -25,115 +25,121 @@ import logging
 import gevent
 from mxcubecore.HardwareObjects.abstract.AbstractMachineInfo import AbstractMachineInfo
 from mxcubecore.HardwareObjects.TangoMachineInfo import TangoMachineInfo
+from PyQt5.QtCore import QObject, pyqtSignal
+
+from PyQt5.QtCore import QObject, pyqtSignal
+from mxcubecore.HardwareObjects.TangoMachineInfo import TangoMachineInfo
 
 
-class P11MachineInfo(TangoMachineInfo):
-    """MachineInfo for the P11 Beamline, using Tango channels for accelerator data."""
+class P11MachineInfo(TangoMachineInfo, QObject):
+    # Declare the signal
+    valuesChanged = pyqtSignal(dict)
+
+    # Declare the signal
+    machineCurrentChanged = pyqtSignal(float, bool)
+
+    def __init__(self, *args, **kwargs):
+        """Initializes the P11MachineInfo and QObject."""
+        # Initialize both parent classes explicitly
+        TangoMachineInfo.__init__(
+            self, *args, **kwargs
+        )  # Initialize the TangoMachineInfo class
+        QObject.__init__(self)  # Initialize the QObject class
 
     def init(self):
-        """
-        Initializes the P11 machine info object.
-
-        This method sets up the Tango channels for 'current', 'message',
-        'lifetime', and 'energy', ensuring that all attributes have valid
-        Tango channels, and connects signals to update values.
-
-        Raises:
-            AttributeError: If any of the Tango channels are not properly set up.
-        """
+        """Initialize Tango channels for machine info."""
         super().init()
 
-        # Set the Tango channel names to match the device
-        self._mach_info_keys = ["current", "message", "lifetime", "energy"]
+        # Make sure the channels are set up properly
+        self.current = self.get_channel_object("current")
+        self.lifetime = self.get_channel_object("lifetime")
+        self.energy = self.get_channel_object("energy")
+        self.message = self.get_channel_object("message")
 
-        # Check if all defined attributes have a valid channel
-        self._check_attributes()
+        # Verify that the attributes are correctly initialized
+        logging.info(
+            f"Channels initialized: current={self.current}, lifetime={self.lifetime}, energy={self.energy}, message={self.message}"
+        )
 
-        # Connect signals to update attributes when the current changes
-        if hasattr(self, "current"):
-            self.current.connect_signal("update", self._update_value)
+    def emit_values(self):
+        """Emit the current machine info values."""
+        values_dict = {
+            "current": {
+                "title": "Current (mA)",
+                "value": self.get_current() or 0,  # Ensure value is not None
+            },
+            "lifetime": {"title": "Lifetime (h)", "value": self.get_lifetime() or 0},
+            "energy": {
+                "title": "Energy (GeV)",
+                "value": self.get_maschine_energy() or 0,
+            },
+            "message": {
+                "title": "Message",
+                "value": self.get_message() or "No message",
+            },
+        }
 
-        # Setting initial machine state to READY
-        self.update_state(self.STATES.READY)
+        logging.info(f"Emitting machine info values: {values_dict}")
+        self.valuesChanged.emit(values_dict)  # Emit the valuesChanged signal
 
-    def _check_attributes(self, attr_list=None):
-        """
-        Ensures that all attributes in the configuration have valid Tango channels.
-
-        Args:
-            attr_list (list, optional): List of attribute keys to check. Defaults to None.
-
-        Raises:
-            AttributeError: If any attribute does not have a valid Tango channel.
-        """
-        attr_list = attr_list or self._mach_info_keys
-
-        for attr_key in attr_list:
-            try:
-                if not hasattr(self.get_channel_object(attr_key), "get_value"):
-                    attr_list.remove(attr_key)
-            except AttributeError:
-                attr_list.remove(attr_key)
-        self._mach_info_keys = attr_list
-
-    def _update_value(self, value):
-        """
-        Updates all machine attributes whenever a Tango signal is received.
-
-        Args:
-            value (any): The value received from the Tango signal.
-        """
-        self.update_value()
-
-    def get_current(self) -> float:
-        """
-        Reads the current from the Tango channel.
-
-        Returns:
-            float: The current in milliamps (mA). Returns 0.0 in case of an error.
-        """
+    def get_value(self):
+        """Returns a dictionary of the current machine information."""
         try:
-            return self.current.get_value()
-        except Exception as err:
-            logging.getLogger("HWR").exception(f"Error reading current: {err}")
-            return 0.0
+            self._mach_info_dict = {}  # Initialize dictionary
 
-    def get_message(self) -> str:
-        """
-        Reads the machine message from the Tango channel.
+            # Fetch the current values from their respective methods
+            self._mach_info_dict["current"] = self.get_current() or 0
+            self._mach_info_dict["lifetime"] = self.get_lifetime() or 0
+            self._mach_info_dict["energy"] = self.get_maschine_energy() or 0
+            self._mach_info_dict["message"] = self.get_message() or "No message"
 
-        Returns:
-            str: A string containing the machine message.
-                 Returns 'Message unavailable' in case of an error.
-        """
+            logging.info(
+                f"Machine Info Dictionary: {self._mach_info_dict}"
+            )  # Log the populated dictionary
+            return self._mach_info_dict  # Return the dictionary with machine info
+
+        except Exception as e:
+            logging.error(f"Error getting machine values: {e}")
+            return {}  # Return empty dictionary if there's an error
+
+    def get_current(self):
         try:
-            return self.message.get_value()
-        except Exception as err:
-            logging.getLogger("HWR").exception(f"Error reading message: {err}")
+            current_value = (
+                self.current.get_value()
+            )  # Fetch the value from the Tango hardware
+            logging.info(f"Fetched current value: {current_value}")
+            return current_value
+        except AttributeError:
+            logging.error("Error reading 'current': Attribute 'current' not found.")
+            return 0
+
+    def get_lifetime(self):
+        try:
+            lifetime_value = self.lifetime.get_value()  # Fetch lifetime value
+            logging.info(f"Fetched lifetime value: {lifetime_value}")
+            return lifetime_value
+        except AttributeError:
+            logging.error("Error reading 'lifetime': Attribute 'lifetime' not found.")
+            return 0
+
+    def get_maschine_energy(self):
+        try:
+            energy_value = self.energy.get_value()  # Fetch energy value
+            logging.info(f"Fetched energy value: {energy_value}")
+            return energy_value
+        except AttributeError:
+            logging.error("Error reading 'energy': Attribute 'energy' not found.")
+            return 0
+
+    def get_message(self):
+        try:
+            message_value = self.message.get_value()  # Fetch message from hardware
+            logging.info(f"Fetched message: {message_value}")
+            return message_value
+        except AttributeError:
+            logging.error("Error reading 'message': Attribute 'message' not found.")
             return "Message unavailable"
 
-    def get_lifetime(self) -> float:
-        """
-        Reads the beam lifetime from the Tango channel.
-
-        Returns:
-            float: The beam lifetime in hours. Returns 0.0 in case of an error.
-        """
-        try:
-            return self.lifetime.get_value()
-        except Exception as err:
-            logging.getLogger("HWR").exception(f"Error reading lifetime: {err}")
-            return 0.0
-
-    def get_maschine_energy(self) -> float:
-        """
-        Reads the machine energy from the Tango channel.
-
-        Returns:
-            float: The machine energy in GeV. Returns 0.0 in case of an error.
-        """
-        try:
-            return self.energy.get_value()
-        except Exception as err:
-            logging.getLogger("HWR").exception(f"Error reading energy: {err}")
-            return 0.0
+    def update_current(self, current_value, in_range):
+        # Emit the signal with the current machine value and its range status
+        self.machineCurrentChanged.emit(current_value, in_range)
