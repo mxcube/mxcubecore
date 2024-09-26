@@ -88,7 +88,7 @@ class P11Zoom(AbstractNState):
         pixels_per_mm = [int(px_per_mm * scale), int(px_per_mm * scale)]
 
         if redis_flag:
-            self.log.debug("saving calibration to redis", pixels_per_mm)
+            print("saving calibration to redis", pixels_per_mm)
             self.redis.set("pixels_per_mm", str(pixels_per_mm))
 
         return pixels_per_mm

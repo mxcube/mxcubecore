@@ -66,6 +66,7 @@ class P11Flux(AbstractFlux):
         # TODO: Check pinhole from HWR.beamline.diffractometer
         current_pinhole = HWR.beamline.beam.get_pinhole_size()
         current = HWR.beamline.machine_info.get_current()
+        mess = HWR.beamline.machine_info.get_message()
 
         flux = (
             self.estimate_flux_with_reference(
