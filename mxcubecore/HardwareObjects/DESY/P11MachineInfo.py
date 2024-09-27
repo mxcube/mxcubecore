@@ -54,7 +54,7 @@ class P11MachineInfo(TangoMachineInfo, QObject):
     def periodic_update(self):
         while True:
             self.emit_values()
-            gevent.sleep(5)
+            gevent.sleep(3)
 
     def emit_values(self):
         """Emit the current machine info values."""
@@ -102,7 +102,6 @@ class P11MachineInfo(TangoMachineInfo, QObject):
             current_value = (
                 self.current.get_value()
             )  # Fetch the value from the Tango hardware
-            logging.info(f"Fetched current value: {current_value}")
             return round(current_value, 2)
         except AttributeError:
             logging.error("Error reading 'current': Attribute 'current' not found.")
@@ -111,7 +110,6 @@ class P11MachineInfo(TangoMachineInfo, QObject):
     def get_lifetime(self):
         try:
             lifetime_value = self.lifetime.get_value()  # Fetch lifetime value
-            logging.info(f"Fetched lifetime value: {lifetime_value}")
             return round(lifetime_value, 2)
         except AttributeError:
             logging.error("Error reading 'lifetime': Attribute 'lifetime' not found.")
@@ -120,7 +118,6 @@ class P11MachineInfo(TangoMachineInfo, QObject):
     def get_maschine_energy(self):
         try:
             energy_value = self.energy.get_value()  # Fetch energy value
-            logging.info(f"Fetched energy value: {energy_value}")
             return round(energy_value, 2)
         except AttributeError:
             logging.error("Error reading 'energy': Attribute 'energy' not found.")
@@ -129,7 +126,6 @@ class P11MachineInfo(TangoMachineInfo, QObject):
     def get_message(self):
         try:
             message_value = self.message.get_value()  # Fetch message from hardware
-            logging.info(f"Fetched message: {message_value}")
             return message_value
         except AttributeError:
             logging.error("Error reading 'message': Attribute 'message' not found.")
