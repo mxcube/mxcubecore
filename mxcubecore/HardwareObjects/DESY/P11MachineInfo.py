@@ -48,24 +48,13 @@ class P11MachineInfo(TangoMachineInfo, QObject):
         """Initialize Tango channels for machine info."""
         super().init()
 
-        # Make sure the channels are set up properly
-        self.current = self.get_channel_object("current")
-        self.lifetime = self.get_channel_object("lifetime")
-        self.energy = self.get_channel_object("energy")
-        self.message = self.get_channel_object("message")
-
-        # Verify that the attributes are correctly initialized
-        logging.info(
-            f"Channels initialized: current={self.current}, lifetime={self.lifetime}, energy={self.energy}, message={self.message}"
-        )
-
         self.emit_values()  # Emit initial values after init
         gevent.spawn(self.periodic_update)
 
     def periodic_update(self):
         while True:
             self.emit_values()
-            gevent.sleep(2)  # Adjust the interval as needed
+            gevent.sleep(5)
 
     def emit_values(self):
         """Emit the current machine info values."""
