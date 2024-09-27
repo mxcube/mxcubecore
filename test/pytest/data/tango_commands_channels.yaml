@@ -1,0 +1,21 @@
+# yamllint disable rule:empty-values
+%YAML 1.2
+---
+class: Dummy
+configuration: {}
+tango:
+  my/test/device:
+    commands:
+      # command with all default configs
+      plain:
+      # command with all supported configs
+      fancy:
+        name: "tango_cmd"
+    channels:
+      # channel with all default configs
+      simple:
+      # channel with all supported configs
+      delux:
+        attribute: "tango_attr"
+        timeout: 123
+        polling_period: 52

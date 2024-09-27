@@ -1,0 +1,20 @@
+# yamllint disable rule:empty-values
+%YAML 1.2
+---
+class: Duo
+configuration: {}
+exporter:
+  "example1.com:1111":
+    commands:
+      Ex1Plain:
+      Ex1Vanilla:
+    channels:
+      Ex1One:
+      Ex1Two:
+  "example2.com:2222":
+    commands:
+      Ex2Plain:
+      Ex2Vanilla:
+    channels:
+      Ex2One:
+      Ex2Two:
