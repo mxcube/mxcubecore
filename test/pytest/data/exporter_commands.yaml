@@ -1,0 +1,12 @@
+# yamllint disable rule:empty-values
+%YAML 1.2
+---
+class: Dummy
+configuration: {}
+exporter:
+  "example.com:4321":
+    commands:
+      Plain:
+      Fancy:
+        name: "spicy"
+      Third:

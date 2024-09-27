@@ -1,0 +1,11 @@
+# yamllint disable rule:empty-values
+%YAML 1.2
+---
+class: Dummy
+configuration: {}
+tango:
+  my/commands/device:
+    commands:
+      Go:
+      Stop:
+      Abort:
