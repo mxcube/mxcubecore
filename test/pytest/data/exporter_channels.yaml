@@ -1,0 +1,11 @@
+# yamllint disable rule:empty-values
+%YAML 1.2
+---
+class: Dummy
+configuration: {}
+exporter:
+  "kiwi.com:54321":
+    channels:
+      cairo:
+      luxor:
+      quena:
