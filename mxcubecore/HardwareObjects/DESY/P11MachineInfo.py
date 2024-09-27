@@ -25,10 +25,8 @@ import logging
 import gevent
 from mxcubecore.HardwareObjects.abstract.AbstractMachineInfo import AbstractMachineInfo
 from mxcubecore.HardwareObjects.TangoMachineInfo import TangoMachineInfo
-from PyQt5.QtCore import QObject, pyqtSignal
-
-from PyQt5.QtCore import QObject, pyqtSignal
 from mxcubecore.HardwareObjects.TangoMachineInfo import TangoMachineInfo
+from PyQt5.QtCore import QObject, pyqtSignal
 
 
 class P11MachineInfo(TangoMachineInfo, QObject):
@@ -60,6 +58,14 @@ class P11MachineInfo(TangoMachineInfo, QObject):
         logging.info(
             f"Channels initialized: current={self.current}, lifetime={self.lifetime}, energy={self.energy}, message={self.message}"
         )
+
+        self.emit_values()  # Emit initial values after init
+        gevent.spawn(self.periodic_update)
+
+    def periodic_update(self):
+        while True:
+            self.emit_values()
+            gevent.sleep(2)  # Adjust the interval as needed
 
     def emit_values(self):
         """Emit the current machine info values."""
@@ -108,7 +114,7 @@ class P11MachineInfo(TangoMachineInfo, QObject):
                 self.current.get_value()
             )  # Fetch the value from the Tango hardware
             logging.info(f"Fetched current value: {current_value}")
-            return current_value
+            return round(current_value, 2)
         except AttributeError:
             logging.error("Error reading 'current': Attribute 'current' not found.")
             return 0
@@ -117,7 +123,7 @@ class P11MachineInfo(TangoMachineInfo, QObject):
         try:
             lifetime_value = self.lifetime.get_value()  # Fetch lifetime value
             logging.info(f"Fetched lifetime value: {lifetime_value}")
-            return lifetime_value
+            return round(lifetime_value, 2)
         except AttributeError:
             logging.error("Error reading 'lifetime': Attribute 'lifetime' not found.")
             return 0
@@ -126,7 +132,7 @@ class P11MachineInfo(TangoMachineInfo, QObject):
         try:
             energy_value = self.energy.get_value()  # Fetch energy value
             logging.info(f"Fetched energy value: {energy_value}")
-            return energy_value
+            return round(energy_value, 2)
         except AttributeError:
             logging.error("Error reading 'energy': Attribute 'energy' not found.")
             return 0
