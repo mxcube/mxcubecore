@@ -59,18 +59,27 @@ and an `init()` function that is executed after configured parameters and contai
 Below is an example YAML configuration file:
 
 ```yaml
-class: ISPyBClientMockup.ISPyBClientMockup
+class: Orkhon.Erdenet
 configuration:
-  base_result_url: https://your.limsresults.org
-  login_type: proposal
+  altai: big
+  choir: 52
 objects:
-  lims_rest: lims_rest.yaml
+  darkhan: darkhan.yaml
   session: session.yaml
+tango:
+  "some/tango/device":
+    commands:
+      Open:
+      Close:
+    channels:
+      State:
 ```
 
-This file specifies a hardware object, which is an instance of the `ISPyBClientMockup` class.
-That object will have two configuration properties `base_result_url` and `login_type`.
-Two child objects with roles `lims_rest` and `session` will be loaded from the specified configuration files.
+This file specifies a hardware object, which is an instance of the `Erdenet` class from `Orkhon` module.
+That object will have two configuration properties `altai` and `choir`.
+Two child objects with roles `darkhan` and `session` will be loaded from the specified configuration files.
+The hardware object will also have access to command objects `Open` and `Close`, and a `State` channel object.
+See [Commands and Channels](commands_channels.md) section for details on how to specify command and channel bindings.
 
 ### Accessing configuration properties
 
