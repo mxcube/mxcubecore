@@ -35,6 +35,7 @@ class MAXIVMD3(GenericDiffractometer):
         "kappa": "Kappa",
         "kappa_phi": "Phi",
         "phi": "Omega",
+        "phix": "AlignmentX",
         "phiy": "AlignmentY",
         "phiz": "AlignmentZ",
         "sampx": "CentringX",
