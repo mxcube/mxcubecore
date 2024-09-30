@@ -220,32 +220,45 @@ class AbstractCollect(HardwareObject, object):
                 )
                 self.set_transmission(self.current_dc_parameters["transmission"])
 
-            if "wavelength" in self.current_dc_parameters:
+            wavelength = self.current_dc_parameters.get("wavelength")
+            energy = self.current_dc_parameters.get("energy")
+            detector_distance = self.current_dc_parameters.get("detector_distance")
+            dd0 = self.current_dc_parameters.get("resolution")
+            if dd0 and dd0.get('upper'):
+                resolution = dd0["upper"]
+            else:
+                resolution = None
+
+            if wavelength:
+                # Wavelength (not having a default) overrides energy
                 log.info(
                     "Collection: Setting wavelength to %.4f",
                     self.current_dc_parameters["wavelength"],
                 )
-                self.set_wavelength(self.current_dc_parameters["wavelength"])
-
-            elif "energy" in self.current_dc_parameters:
+                energy = HWR.beamline.energy.calculate_energy(wavelength)
+            elif energy:
                 log.info(
                     "Collection: Setting energy to %.4f",
                     self.current_dc_parameters["energy"],
                 )
-                self.set_energy(self.current_dc_parameters["energy"])
+                wavelength = HWR.beamline.energy.calculate_wavelength(energy)
+            if energy:
+                self.set_energy(energy)
 
-            dd = self.current_dc_parameters.get("resolution")
-            if dd and dd.get("upper"):
-                resolution = dd["upper"]
-                log.info("Collection: Setting resolution to %.3f", resolution)
-                self.set_resolution(resolution)
-
-            elif "detector_distance" in self.current_dc_parameters:
-                log.info(
-                    "Collection: Moving detector to %.2f",
-                    self.current_dc_parameters["detector_distance"],
+            if detector_distance:
+                # detector_distance (not having a default) overrides resolution
+                resolution = HWR.beamline.resolution.distance_to_resolution(
+                    detector_distance, wavelength
                 )
-                self.move_detector(self.current_dc_parameters["detector_distance"])
+                log.info(
+                    "Collection: Setting detector distance to %.2f", detector_distance,
+                )
+                self.set_resolution(resolution)
+            elif resolution:
+                log.info(
+                    "Collection: Setting resolution to %.2f", resolution,
+                )
+                self.set_resolution(resolution)
 
             # ----------------------------------------------------------------
             # Site specific implementation of a data collection
@@ -262,9 +275,8 @@ class AbstractCollect(HardwareObject, object):
             log.info("Collection: Updating data collection in LIMS")
             self.update_data_collection_in_lims()
 
-        except:
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            failed_msg = "Data collection failed!\n%s" % exc_value
+        except RuntimeError as e:
+            failed_msg = "Data collection failed!\n%s" % str(e)
             self.collection_failed(failed_msg)
         else:
             self.collection_finished()
@@ -425,13 +437,8 @@ class AbstractCollect(HardwareObject, object):
         """
         Descript. :
         """
-        pass
-
-    def move_detector(self, value):
-        """
-        Descript. :
-        """
-        pass
+        HWR.beamline.energy.wait_ready()
+        HWR.beamline.resolution.set_value(value)
 
     def get_total_absorbed_dose(self):
         return

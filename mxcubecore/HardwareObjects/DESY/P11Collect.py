@@ -63,7 +63,7 @@ class P11Collect(AbstractCollect):
     @task
     def move_motors(self, motor_position_dict):
         """Moves motors to the specified positions.
-        
+
         Args:
             motor_position_dict (dict): Dictionary containing motor positions.
         """
@@ -71,10 +71,10 @@ class P11Collect(AbstractCollect):
 
     def _take_crystal_snapshot(self, filename):
         """Takes a snapshot of the crystal and saves it to the given filename.
-        
+
         Args:
             filename (str): Path to save the crystal snapshot.
-        
+
         Raises:
             RuntimeError: If unable to move to the centring phase.
         """
@@ -95,7 +95,7 @@ class P11Collect(AbstractCollect):
 
     def set_transmission(self, value):
         """Sets the transmission value on the beamline.
-        
+
         Args:
             value (float): Transmission value to set.
         """
@@ -103,130 +103,20 @@ class P11Collect(AbstractCollect):
 
     def set_energy(self, value):
         """Sets the energy value on the beamline.
-        
+
         Args:
             value (float): Energy value to set.
         """
         HWR.beamline.energy.set_value(value)
-        
+
     def set_resolution(self, value):
         """Sets the resolution of the beamline.
-        
+
         Args:
             value (float): Resolution value to set.
         """
         if round(HWR.beamline.resolution.get_value(), 2) != round(value, 2):
-            HWR.beamline.resolution.set_value(value)
-
-    def do_collect(self, owner):
-        """Performs the data collection sequence.
-        
-        Args:
-            owner: Owner of the current data collection.
-
-        Raises:
-            RuntimeError: If collection preparation or execution fails.
-        """
-        log = logging.getLogger("user_level_log")
-        log.info("Collection: Preparing to collect")
-        self.emit("collectReady", (False,))
-        self.emit(
-            "collectOscillationStarted",
-            (owner, None, None, None, self.current_dc_parameters, None),
-        )
-        self.emit("progressInit", ("Collection", 100, False))
-        self.collection_id = None
-
-        try:
-            # Prepare data collection
-            self.open_detector_cover()
-            self.open_safety_shutter()
-            self.open_fast_shutter()
-
-            # Store information in LIMS
-            self.current_dc_parameters["status"] = "Running"
-            self.current_dc_parameters["collection_start_time"] = time.strftime(
-                "%Y-%m-%d %H:%M:%S"
-            )
-
-            logging.getLogger("HWR").info(
-                "Collection parameters: %s", str(self.current_dc_parameters)
-            )
-
-            log.info("Collection: Storing data collection in LIMS")
-            self.store_data_collection_in_lims()
-
-            log.info("Collection: Getting sample info from parameters")
-            self.get_sample_info()
-
-            log.info("Collection: Storing sample info in LIMS")
-            self.store_sample_info_in_lims()
-
-            if all(
-                item is None for item in self.current_dc_parameters["motors"].values()
-            ):
-                current_diffractometer_position = (
-                    HWR.beamline.diffractometer.get_positions()
-                )
-                for motor in self.current_dc_parameters["motors"].keys():
-                    self.current_dc_parameters["motors"][
-                        motor
-                    ] = current_diffractometer_position.get(motor)
-
-            # Move to the centered position and take crystal snapshots
-            log.info("Collection: Moving to centred position")
-            self.move_to_centered_position()
-            self.take_crystal_snapshots()
-            self.move_to_centered_position()
-
-            self.emit("progressStep", 2)
-            # Set data collection parameters
-            if "transmission" in self.current_dc_parameters:
-                log.info(
-                    "Collection: Setting transmission to %.2f",
-                    self.current_dc_parameters["transmission"],
-                )
-                self.set_transmission(self.current_dc_parameters["transmission"])
-
-            if "wavelength" in self.current_dc_parameters:
-                log.info(
-                    "Collection: Setting wavelength to %.4f",
-                    self.current_dc_parameters["wavelength"],
-                )
-                self.set_wavelength(self.current_dc_parameters["wavelength"])
-
-            elif "energy" in self.current_dc_parameters:
-                log.info(
-                    "Collection: Setting energy to %.4f",
-                    self.current_dc_parameters["energy"],
-                )
-                self.set_energy(self.current_dc_parameters["energy"])
-
-            dd = self.current_dc_parameters.get("resolution")
-            if dd and dd.get("upper"):
-                resolution = dd["upper"]
-                log.info("Collection: Setting resolution to %.3f", resolution)
-                self.set_resolution(resolution)
-
-            elif "detector_distance" in self.current_dc_parameters:
-                log.info(
-                    "Collection: Moving detector to %.2f",
-                    self.current_dc_parameters["detector_distance"],
-                )
-                self.move_detector(self.current_dc_parameters["detector_distance"])
-
-            self.data_collection_hook()
-
-            log.info("Collection: Updating data collection in LIMS")
-            self.update_data_collection_in_lims()
-
-        except RuntimeError as e:
-            failed_msg = "Data collection failed!\n%s" % str(e)
-            self.collection_failed(failed_msg)
-        else:
-            self.collection_finished()
-        finally:
-            self.data_collection_cleanup()
+            super().set_resolution(value)
 
     def data_collection_hook(self):
         """Handles site-specific data collection processes."""
@@ -761,11 +651,11 @@ class P11Collect(AbstractCollect):
             self.log.debug("collecting image %s, angle %f" % (img_no, start_at))
 
             #[WIP]
-            #NB! Another attemt to fix the misfires. 
+            #NB! Another attemt to fix the misfires.
             #Keep comments here until finished
             #Here is the previous implementation:
             #self.collect_std_collection(start_at, stop_angle)
-            
+
             #Here is sligthly modified standard data collection routine
             #Adjust the angle since each time we are starting with 90 degrees offset.
             start_pos = start_at - self.turnback_time * self.acq_speed
@@ -785,11 +675,11 @@ class P11Collect(AbstractCollect):
             HWR.beamline.diffractometer.set_omega_velocity(self.acq_speed)
             time.sleep(1)
 
-            #Arm the detector only once in the beginning. Set to wait 4 triggers. 
+            #Arm the detector only once in the beginning. Set to wait 4 triggers.
             if img_no == 0:
                 HWR.beamline.detector.start_acquisition()
                 time.sleep(3)
-            
+
             HWR.beamline.diffractometer.move_omega(stop_pos)
 
             self.emit("progressStep", int(120 / (nimages) * (img_no + 1)))
@@ -800,7 +690,7 @@ class P11Collect(AbstractCollect):
         Args:
             start_angle (float): Starting angle for the standard collection sequence.
             img_range (float): Angle increment for each frame.
-        
+
         Returns:
             bool: True if successful, False otherwise.
         """
@@ -835,7 +725,7 @@ class P11Collect(AbstractCollect):
         time.sleep(1)
         HWR.beamline.diffractometer.move_omega(stop_pos)
 
-    
+
     def adxv_notify(self, image_filename, image_num=1):
         """Sends a notification to an ADXV to load an image file and display a specific slab.
 

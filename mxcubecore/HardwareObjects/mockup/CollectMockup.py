@@ -209,14 +209,8 @@ class CollectMockup(AbstractCollect):
     def set_energy(self, energy):
         HWR.beamline.energy.set_value(energy)
 
-    def set_resolution(self, new_resolution):
-        HWR.beamline.resolution.set_value(new_resolution)
-
     def set_transmission(self, transmission):
         HWR.beamline.transmission.set_value(transmission)
-
-    def move_detector(self, detector_distance):
-        HWR.beamline.detector.distance.set_value(detector_distance)
 
     def get_undulators_gaps(self):
         return {"u29": 10}
