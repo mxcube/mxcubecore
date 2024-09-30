@@ -58,6 +58,16 @@ def get_queue_id(name:str):
 
 
 
+def updateRawImagesSnapshot(job_id,snapReady,snapUrl):
+    try:
+        with UsingMysql(log_time=True) as um:
+            sql = "update rawImages set snapReady = '%s',snapUrl = '%s' where job_id = '%s'" % (snapReady,snapUrl,job_id)
+            um.cursor.execute(sql)
+            # result = um.cursor.fetchall()
+            logging.getLogger("HWR").debug("[updateRawImagesSnapshot from dataItem_service.py] connect to mysql succeeded")
+            logging.getLogger("HWR").debug(sql)
+    except Exception as ex:
+        logging.getLogger("HWR").error("[updateRawImagesSnapshot from dataItem_service.py] updateRawImagesSnapshot failure: %s", ex)
 
 
 

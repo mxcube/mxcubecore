@@ -33,7 +33,7 @@ from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.SSRF.BL19U1.BL19U1DetCover import DetCover
 from mxcubecore.HardwareObjects.SSRF.BL19U1 import Constants as cts
 from mxcubecore.utils.pymysql_comm import UsingMysql
-from mxcubecore.service.dataItem_service import insert_dc_param_to_basic,updateOtherTable
+from mxcubecore.service.dataItem_service import insert_dc_param_to_basic,updateOtherTable,updateRawImagesSnapshot
 import subprocess
 import threading
 
@@ -293,6 +293,9 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             # 在这里插入数据到其他表
             # self.updateOtherTable(self.collection_uuid, 'PENDING')
             updateOtherTable(self.collection_uuid, 'PENDING',job_id,distance)
+            logging.getLogger("HWR").debug("UpdateOtherTable finish")
+
+
 
         except Exception as ex:
             logging.getLogger("HWR").error("[COLLECT] Data collection failed: %s", ex)
@@ -584,7 +587,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             remote_host_ip = self.getProperty("ppu2_ip")
 
             logging.getLogger("HWR").info('=============Start transfer_snapshot subprocess')
-            transfer_snapshot_thread = threading.Thread(target = self.transfer_snapshot,args=(user_name, remote_host_ip, snapshot_path_in_ppu2, snapshot_path, snapshot_path_in_ppu2_withname))
+            transfer_snapshot_thread = threading.Thread(target = self.transfer_snapshot,args=(user_name, remote_host_ip, snapshot_path_in_ppu2, snapshot_path, snapshot_path_in_ppu2_withname,dc_basic_param_to_table[0]))
             transfer_snapshot_thread.start()
 
 
@@ -612,7 +615,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
     # -------------------------------------------------------------------------------
 
 
-    def transfer_snapshot(self,user_name,remote_host_ip,snapshot_path_in_ppu2,snapshot_path,snapshot_path_in_ppu2_withname):
+    def transfer_snapshot(self,user_name,remote_host_ip,snapshot_path_in_ppu2,snapshot_path,snapshot_path_in_ppu2_withname,job_id):
         command = f'ssh {user_name}@{remote_host_ip} mkdir -p {snapshot_path_in_ppu2} && scp {snapshot_path} {user_name}@{remote_host_ip}:{snapshot_path_in_ppu2_withname}'
         logging.getLogger("HWR").info(command)
         process_cp_snapshot = subprocess.Popen(
@@ -628,6 +631,8 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         stdout, stderr = process_cp_snapshot.communicate()     # Popen()
         # stdout, stderr = process_cp_snapshot.stdout,process_cp_snapshot.stderr      # run()
         logging.getLogger("HWR").debug(f"result of scp transfer snapshot subprocess: {stdout.decode()},{stderr.decode()}")
+        # if not stderr:
+        #     updateRawImagesSnapshot(job_id,1,snapshot_path_in_ppu2_withname)
 
 
 
