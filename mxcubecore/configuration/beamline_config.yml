@@ -120,7 +120,7 @@ default_acquisition_parameters:
 
     characterisation:
         # Defaults for chareacterisation. Missing values are taken from default
-        exp_time: 0.05       # exposure time
+        exp_time: 0.1       # exposure time
         osc_range: 1
         overlap: -89
         num_images: 4

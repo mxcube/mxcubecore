@@ -35,6 +35,7 @@ from mxcubecore.HardwareObjects.SSRF.BL19U1 import Constants as cts
 from mxcubecore.utils.pymysql_comm import UsingMysql
 from mxcubecore.service.dataItem_service import insert_dc_param_to_basic,updateOtherTable
 import subprocess
+import threading
 
 class BL19U1Collect(AbstractCollect, HardwareObject):
     """
@@ -575,21 +576,19 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         if self.current_dc_parameters['take_snapshots']:
             snapshot_path = self.current_dc_parameters['xtalSnapshotFullPath1']
             logging.getLogger('HWR').debug(f"the path of snapshot: {snapshot_path}")
+            snapshot_name = snapshot_path.split('/')[-1]
+            snapshot_path_in_ppu2 = "/datafarm"+saving_directory+"/"
+            snapshot_path_in_ppu2_withname = "/datafarm"+saving_directory+"/"+snapshot_name
 
-            logging.getLogger("HWR").info('=============Start subprocess')
-            logging.getLogger("HWR").info("scp %s %s@%s:%s"
-                % (snapshot_path, self.getProperty("ppu2_user"), self.getProperty("ppu2_ip"), "/datafarm"+saving_directory))
-            process_cp_snapshot = subprocess.Popen(
-                "scp %s %s@%s:%s"
-                % (snapshot_path, self.getProperty("ppu2_user"), self.getProperty("ppu2_ip"), "/datafarm"+saving_directory),
-                shell=True,
-                stdin=None,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                close_fds=True,
-            )
-            stdout,stderr = process_cp_snapshot.communicate()
-            logging.getLogger("HWR").debug(f"result of scp subprocess: {stdout.decode()},{stderr.decode()}")
+            user_name = self.getProperty("ppu2_user")
+            remote_host_ip = self.getProperty("ppu2_ip")
+
+            logging.getLogger("HWR").info('=============Start transfer_snapshot subprocess')
+            transfer_snapshot_thread = threading.Thread(target = self.transfer_snapshot,args=(user_name, remote_host_ip, snapshot_path_in_ppu2, snapshot_path, snapshot_path_in_ppu2_withname))
+            transfer_snapshot_thread.start()
+
+
+
 
 
         # logging.getLogger("HWR").info("set detector filenames: %S" % "".join(_filename))
@@ -611,6 +610,26 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         # HWR.beamline.diffractometer.save_centring_positions();
         return job_id,distance,"".join(_filename)
     # -------------------------------------------------------------------------------
+
+
+    def transfer_snapshot(self,user_name,remote_host_ip,snapshot_path_in_ppu2,snapshot_path,snapshot_path_in_ppu2_withname):
+        command = f'ssh {user_name}@{remote_host_ip} mkdir -p {snapshot_path_in_ppu2} && scp {snapshot_path} {user_name}@{remote_host_ip}:{snapshot_path_in_ppu2_withname}'
+        logging.getLogger("HWR").info(command)
+        process_cp_snapshot = subprocess.Popen(
+        # run 是更新的对Popen的封装
+        # process_cp_snapshot = subprocess.run(
+            command,
+            shell=True,
+            stdin=None,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            close_fds=True,
+        )
+        stdout, stderr = process_cp_snapshot.communicate()     # Popen()
+        # stdout, stderr = process_cp_snapshot.stdout,process_cp_snapshot.stderr      # run()
+        logging.getLogger("HWR").debug(f"result of scp transfer snapshot subprocess: {stdout.decode()},{stderr.decode()}")
+
+
 
     def prepare_triggers_to_collect(self):
 
