@@ -243,7 +243,14 @@ class BIOMAXContinuousScan(AbstractEnergyScan):
         edge_energy, emission = self.calculate_emission_and_edge_energy(element, edge)
         _energy = edge_energy + 30
 
+        # preparing xspress3
+        logging.getLogger("HWR").info("Preparing fluorescence detector")
+
+        self.prepare_detector(emission)
+
         # preparing the pandabox
+        logging.getLogger("HWR").info("Preparing PandaBOX")
+
         self.pandabox.TriggerDomain = "TIME"
         self.pandabox.EncInUse = False
         self.pandabox.ExposureTime = 0.01
@@ -410,9 +417,15 @@ class BIOMAXContinuousScan(AbstractEnergyScan):
         # and move to the centred positions after phase change
         if self.cpos:
             logging.getLogger("HWR").info("Moving to centring position")
-            HWR.beamline.diffractometer.move_to_motors_positions(
-                self.cpos.as_dict(), wait=True
-            )
+            try:
+                HWR.beamline.diffractometer.move_to_motors_positions(
+                    self.cpos.as_dict(), wait=True
+                )
+            except ValueError as ex:
+                logging.getLogger("HWR").warning(
+                    "Could not move to centring position, {}".format(ex)
+                )
+
         else:
             logging.getLogger("HWR").warning("Valid centring position not found")
 
@@ -429,9 +442,7 @@ class BIOMAXContinuousScan(AbstractEnergyScan):
         Es, Ef = self.energy_values(edge_energy)
         self.energy_scan_parameters["Es"] = Es
         self.energy_scan_parameters["Ef"] = Ef
-        logging.getLogger("HWR").info("Preparing fluorescence detector")
 
-        self.prepare_detector(emission)
         logging.getLogger("HWR").info("closing the colibri shutter")
         self.pandabox.CloseShutter()
         # opening the fast shutter of MD3 as colibri shutter is now closed
