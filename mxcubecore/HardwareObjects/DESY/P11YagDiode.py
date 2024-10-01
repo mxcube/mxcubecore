@@ -21,71 +21,58 @@
 __copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
 
-from mxcubecore.HardwareObjects.NState import NState
 import ast
+from mxcubecore.HardwareObjects.NState import NState
+from collections import OrderedDict
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 
 
-class P11Pinhole(NState):
+class P11YagDiode(NState):
     def init(self):
-        """Initialize the pinhole motors and load positions."""
+        """Initialize the YAG diode motors and load positions from configuration."""
         super().init()
 
-        # Load the predefined pinhole positions from the XML
+        self.z_motor = self.get_object_by_role("yagz")
+        self.x_motor = self.get_object_by_role("yagx")
+
         self.load_positions()
-
-        # Load the motors
-        self.y_motor = self.get_object_by_role("pinholey")
-        self.z_motor = self.get_object_by_role("pinholez")
-
-        # Log motor initialization
-        self.log.info(f"Pinhole Y Motor initialized: {self.y_motor}")
-        self.log.info(f"Pinhole Z Motor initialized: {self.z_motor}")
-
-        # Load deltas for each motor
         self.load_deltas()
 
         # Set _positions for UI access
+        self._positions = OrderedDict()
         self._positions = self.positions
+
+        self.log.info(f"YAG/Diode Z Motor initialized: {self.z_motor}")
+        self.log.info(f"YAG/Diode X Motor initialized: {self.x_motor}")
 
     def load_positions(self):
         """Load predefined positions from the XML configuration."""
-        self.log.info("Loading pinhole positions from config")
+        self.log.info("Loading YAG/Diode positions from config")
         positions_str = self.get_property("values")
-
-        # Log the retrieved positions string
-        self.log.info(f"Retrieved positions: {positions_str}")
-
-        # Check if positions_str is None or empty
-        if positions_str is None:
-            self.log.error(
-                "No values for pinhole positions found in the configuration."
-            )
-            raise ValueError("No pinhole positions found in configuration")
 
         # Convert the string to a dictionary using ast.literal_eval
         try:
             self.positions = ast.literal_eval(positions_str)
             if isinstance(self.positions, dict):
-                self.log.info(f"Available pinhole positions: {self.positions}")
+                self.log.info(f"Available YAG/Diode positions: {self.positions}")
             else:
                 raise ValueError("Positions data is not a dictionary")
         except (SyntaxError, ValueError) as e:
-            self.log.error(f"Error parsing pinhole positions: {e}")
-            raise ValueError("Invalid pinhole positions format in the configuration.")
+            self.log.error(f"Error parsing YAG/Diode positions: {e}")
+            raise ValueError("Invalid YAG/Diode positions format in the configuration.")
 
     def load_deltas(self):
-        """Load individual motor deltas from the XML configuration."""
+        """Load individual motor deltas from the XML configuration explicitly."""
         self.log.info("Loading deltas from config")
 
         # Fetch individual deltas for each motor
-        delta_y = self.get_property("delta_pinholey")
-        delta_z = self.get_property("delta_pinholez")
+        delta_x = self.get_property("delta_yagmotorx")
+        delta_z = self.get_property("delta_yagmotorz")
 
         # If a delta is not specified, fallback to a default delta value
         self.deltas = {
-            "pinholey": float(delta_y) if delta_y is not None else self.default_delta,
-            "pinholez": float(delta_z) if delta_z is not None else self.default_delta,
+            "yagx": float(delta_x) if delta_x is not None else self.default_delta,
+            "yagz": float(delta_z) if delta_z is not None else self.default_delta,
         }
 
         # Log the deltas for each motor
@@ -93,27 +80,28 @@ class P11Pinhole(NState):
             self.log.info(f"Delta for {motorname}: {delta}")
 
     def set_value(self, value):
-        """Move the pinhole motors to the given position."""
+        """Set the yag/diode to the specified position."""
+
         if value not in self.positions:
-            raise ValueError(f"Invalid value {value}, not in available positions")
+            raise ValueError(f"Invalid state value: {value}")
 
-        position = self.positions[value]
+        x_position = self.positions[value]["yagx"]
+        z_position = self.positions[value]["yagz"]
 
-        # Move each motor to the desired position
-        self.y_motor._set_value(position.get("pinholey"))
-        self.z_motor._set_value(position.get("pinholez"))
+        # Move the motors
+        self.x_motor._set_value(x_position)
+        self.z_motor._set_value(z_position)
+        self.log.info(f"Setting collimator to position: {value}")
 
     def get_value(self):
         """Get the current pinhole position based on the motor positions."""
-        current_y = self.y_motor.get_value()
+        current_x = self.x_motor.get_value()
         current_z = self.z_motor.get_value()
 
         for position_name, position in self.positions.items():
             if self.is_within_deltas(
-                position.get("pinholey"), current_y, "pinholey"
-            ) and self.is_within_deltas(
-                position.get("pinholez"), current_z, "pinholez"
-            ):
+                position.get("yagx"), current_x, "yagx"
+            ) and self.is_within_deltas(position.get("yagz"), current_z, "yagz"):
                 return position_name  # Return the matching position name
 
     def is_within_deltas(self, target_value, current_value, motor_name):
@@ -128,12 +116,7 @@ class P11Pinhole(NState):
         return list(self.positions.keys())
 
     def is_moving(self):
-        """Return True if any motor is moving."""
-        return self.y_motor.is_moving() or self.z_motor.is_moving()
-
-    def get_state(self):
-        """Determine the overall state of the pinhole motor system."""
-        if self.is_moving():
-            return HardwareObjectState.BUSY
-        else:
-            return HardwareObjectState.READY
+        """
+        Descript. : True if the motor is currently moving
+        """
+        return self.z_motor.get_state() == HardwareObjectState.BUSY

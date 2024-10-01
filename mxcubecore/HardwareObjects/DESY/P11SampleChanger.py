@@ -18,7 +18,7 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-__copyright__ = """ Copyright © 2010 - 2024 by MXCuBE Collaboration """
+__copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
 
 
@@ -35,7 +35,6 @@ from mxcubecore import HardwareRepository as HWR
 
 
 class P11SampleChanger(SampleChanger):
-
     __TYPE__ = "P11SC"
     NO_OF_BASKETS = 23
     NO_OF_SAMPLES_IN_BASKET = 16
@@ -65,6 +64,9 @@ class P11SampleChanger(SampleChanger):
         self.load_cmd = self.get_command_object("mount")
         self.unload_cmd = self.get_command_object("unmount")
         self.wash_cmd = self.get_command_object("wash")
+        self.home_cmd = self.get_command_object("home")
+        self.cool_cmd = self.get_command_object("cool")
+        self.deice_cmd = self.get_command_object("deice")
 
         self.chan_current_sample = self.get_channel_object("current_sample")
         self.chan_current_sample.connect_signal("update", self.current_sample_changed)
@@ -119,6 +121,30 @@ class P11SampleChanger(SampleChanger):
 
     def load_sample(self, holder_length, sample_location=None, wait=False):
         self.load(sample_location, wait)
+
+    def home(self):
+        self.wait_sc_ready()
+        self.log.debug("OPERATING SC NOW (HOME) sample_changer")
+        self._set_state(SampleChangerState.Moving)
+        self.home_cmd()
+        self.wait_sc_ready()
+        self.emit("progressStop", ())
+
+    def cool(self):
+        self.wait_sc_move()
+        self.log.debug("OPERATING SC NOW (COOL) sample_changer")
+        self._set_state(SampleChangerState.Moving)
+        self.cool_cmd()
+        self.wait_sc_move()
+        self.emit("progressStop", ())
+
+    def deice(self):
+        self.wait_sc_move()
+        self.log.debug("OPERATING SC NOW (DE-ICING) sample_changer")
+        self._set_state(SampleChangerState.Moving)
+        self.deice_cmd()
+        self.wait_sc_move()
+        self.emit("progressStop", ())
 
     def wash(self, wait=False):
         if not self.has_loaded_sample():
@@ -180,7 +206,6 @@ class P11SampleChanger(SampleChanger):
 
         # Do a chained load in this case
         if self.has_loaded_sample():
-
             # Do first an unload in this case
             if (sample is None) or (sample == self.get_loaded_sample()):
                 raise Exception(
@@ -211,7 +236,6 @@ class P11SampleChanger(SampleChanger):
         return self.get_loaded_sample()
 
     def _load(self, sample_no):
-
         self.log.debug("   - checking if conditions (except cryo) are all fulfilled")
         if not self.check_pre_conditions():
             raise Exception("conditions for loading not met")
@@ -242,7 +266,6 @@ class P11SampleChanger(SampleChanger):
         )
 
     def _unload(self):
-
         self.log.debug("   - checking if conditions (except cryo) are all fulfilled")
         if not self.check_pre_conditions():
             raise Exception("conditions for loading not met")
@@ -417,6 +440,14 @@ class P11SampleChanger(SampleChanger):
             sample._set_holder_length(spl[4])
 
         self._set_state(SampleChangerState.Ready)
+
+    def wait_sc_move(self):
+        while True:
+            state = str(self.chan_state.get_value())
+            if state == "ON":
+                self._set_state(SampleChangerState.Ready)
+                break
+            time.sleep(0.05)
 
     def wait_sc_ready(self):
         t0 = last_printed = time.time()

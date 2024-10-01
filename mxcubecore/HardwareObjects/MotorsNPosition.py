@@ -18,9 +18,8 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-__copyright__ = """ Copyright © 2010 - 2023 by MXCuBE Collaboration """
+__copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
-
 
 from collections import OrderedDict
 
@@ -78,6 +77,7 @@ class MotorsNPosition(AbstractActuator):
         self.current_index = None
 
         self._last_position_name = None
+        self._updating_multi_value = None
 
     def init(self):
         motorlist = self.get_property("motorlist").split(",")
@@ -172,7 +172,7 @@ class MotorsNPosition(AbstractActuator):
 
     def get_position(self):
         current_idx = self.get_value()
-        if current_idx != -1:
+        if current_idx is not None and current_idx != -1:
             return list(self._positions.keys())[current_idx]
 
     def motor_state_changed(self, state):
@@ -183,32 +183,42 @@ class MotorsNPosition(AbstractActuator):
 
     def update_multi_value(self):
         current_idx = -1
-        current_pos = {
-            motorname: self.motor_hwobjs[motorname].get_value()
-            for motorname in self.motorlist
-        }
 
-        for idx, name in enumerate(self._positions):
-            for motorname in self.motorlist:
-                if motorname not in self._positions[name]:
-                    continue
+        if not self._updating_multi_value:
+            self._updating_multi_value = True
 
-                position = self._positions[name][motorname]
-                cur_pos = current_pos[motorname]
-                delta = self.deltas[motorname]
+            try:
+                current_pos = {
+                    motorname: self.motor_hwobjs[motorname].get_value()
+                    for motorname in self.motorlist
+                }
 
-                if abs(cur_pos - position) > delta:
-                    break
-            else:
-                for motorname in self.motorlist:
-                    position = self._positions[name][motorname]
-                    self.log.debug("     - motor %s is at %s" % (motorname, position))
-                current_idx = idx
-                break
+                for idx, name in enumerate(self._positions):
+                    for motorname in self.motorlist:
+                        if motorname not in self._positions[name]:
+                            continue
 
-        if current_idx != self.current_index:
-            self.current_index = current_idx
-            self.update_value(current_idx)
+                        position = self._positions[name][motorname]
+                        cur_pos = current_pos[motorname]
+                        delta = self.deltas[motorname]
+
+                        if abs(cur_pos - position) > delta:
+                            break
+                    else:
+                        for motorname in self.motorlist:
+                            position = self._positions[name][motorname]
+                            self.log.debug(
+                                "     - motor %s is at %s" % (motorname, position)
+                            )
+                        current_idx = idx
+                        break
+
+                if current_idx != self.current_index:
+                    self.current_index = current_idx
+                    self.update_value(current_idx)
+
+            finally:
+                self._updating_multi_value = False
 
         return current_idx
 

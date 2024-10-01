@@ -30,7 +30,7 @@ __category__ = "Motor"
 
 
 class TangoMotor(AbstractMotor):
-    """TINEMotor class defines motor in the TINE control system"""
+    """TangoMotor class defines motor in the Tango control system"""
 
     default_polling = 500
 
@@ -51,7 +51,7 @@ class TangoMotor(AbstractMotor):
         self.step_limits = None
 
     def init(self):
-        """Connects to all Tine channels and commands"""
+        """Connects to all Tango channels and commands"""
         self.polling = self.get_property("polling", TangoMotor.default_polling)
         self.actuator_name = self.get_property("actuator_name", self.name())
         self._tolerance = self.get_property("tolerance", 1e-3)

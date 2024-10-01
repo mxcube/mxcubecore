@@ -1,7 +1,7 @@
 # encoding: utf-8
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -16,10 +16,11 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-__credits__ = ["DESY P11"]
+__copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
+__credits__ = ["DESY P11"]
 __category__ = "Motor"
 
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
@@ -149,6 +150,16 @@ class P11DetectorDistance(AbstractMotor):
         # Wait until motor is reachiung the actual distance within tolerance.
         tolerance = 1.0  # mm Actual tolerance is within 0.3 range.
         while abs(self.get_value() - value) >= tolerance:
+            _state = self.chan_state.get_value()
+            if _state == "ON":
+                state = self.STATES.READY
+                self.update_state(state)
+                break
+            elif _state == "MOVING":
+                state = self.STATES.BUSY
+            else:
+                state = self.STATES.FAULT
+            self.update_state(state)
             time.sleep(0.5)
 
     def get_limits(self):

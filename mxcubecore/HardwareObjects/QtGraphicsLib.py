@@ -2772,7 +2772,9 @@ class GraphicsCameraFrame(qt_import.QGraphicsPixmapItem):
         """
         position = qt_import.QPointF(event.scenePos())
         self.scene().mouseClickedSignal.emit(
-            position.x(), position.y(), event.button() == qt_import.Qt.LeftButton
+            int(position.x()),
+            int(position.y()),
+            event.button() == qt_import.Qt.LeftButton,
         )
         self.update()
 
@@ -2783,7 +2785,7 @@ class GraphicsCameraFrame(qt_import.QGraphicsPixmapItem):
         :return:
         """
         position = qt_import.QPointF(event.scenePos())
-        self.scene().mouseDoubleClickedSignal.emit(position.x(), position.y())
+        self.scene().mouseDoubleClickedSignal.emit(int(position.x()), int(position.y()))
         self.update()
 
     def mouseReleaseEvent(self, event):
@@ -2793,5 +2795,5 @@ class GraphicsCameraFrame(qt_import.QGraphicsPixmapItem):
         :return:
         """
         position = qt_import.QPointF(event.scenePos())
-        self.scene().mouseReleasedSignal.emit(position.x(), position.y())
+        self.scene().mouseReleasedSignal.emit(int(position.x()), int(position.y()))
         self.update()

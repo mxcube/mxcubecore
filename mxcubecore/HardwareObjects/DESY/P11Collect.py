@@ -18,9 +18,8 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-__copyright__ = """ Copyright © 2010 - 2024 by MXCuBE Collaboration """
+__copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
-
 
 import errno
 import socket
@@ -33,8 +32,7 @@ import h5py
 import numpy as np
 import psutil
 import subprocess
-import time
-
+import gevent
 
 from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 from mxcubecore import HardwareRepository as HWR
@@ -49,50 +47,37 @@ class P11Collect(AbstractCollect):
         super().__init__(*args)
 
     def init(self):
-
+        """Initializes beamline collection parameters like default speed and server names."""
         super().init()
-
-        self.default_speed = self.get_property("omega_default_speed", 130)
-        self.turnback_time = self.get_property("turnback_time", 0.3)
+        self.default_speed = 120 #self.get_property("omega_default_speed", 130)
+        self.turnback_time = 0.5# self.get_property("turnback_time", 0.3)
         self.filter_server_name = self.get_property("filterserver")
         self.mono_server_name = self.get_property("monoserver")
         self.filter_server = DeviceProxy(self.filter_server_name)
         self.mono_server = DeviceProxy(self.mono_server_name)
 
-        self.lower_bound_ch = self.get_channel_object("acq_lower_bound")
-        self.upper_bound_ch = self.get_channel_object("acq_upper_bound")
-
-        self.acq_arm_cmd = self.get_command_object("acq_arm")
-        self.acq_on_cmd = self.get_command_object("acq_on")
-        self.acq_off_cmd = self.get_command_object("acq_off")
-        self.acq_window_off_cmd = self.get_command_object("acq_window_off")
-
         self.latest_frames = None
         self.acq_speed = None
-
-        if None in [
-            self.lower_bound_ch,
-            self.upper_bound_ch,
-            self.acq_arm_cmd,
-            self.acq_on_cmd,
-            self.acq_off_cmd,
-            self.acq_window_off_cmd,
-        ]:
-            self.init_ok = False
-            self.log.debug("lower_bound_ch: %s" % self.lower_bound_ch)
-            self.log.debug("upper_bound_ch: %s" % self.upper_bound_ch)
-            self.log.debug("acq_arm_cmd: %s" % self.acq_arm_cmd)
-            self.log.debug("acq_on_cmd: %s" % self.acq_on_cmd)
-            self.log.debug("acq_off_cmd: %s" % self.acq_off_cmd)
-            self.log.debug("acq_window_off_cmd: %s" % self.acq_window_off_cmd)
-        else:
-            self.init_ok = True
+        self.total_angle_range = None
 
     @task
     def move_motors(self, motor_position_dict):
+        """Moves motors to the specified positions.
+        
+        Args:
+            motor_position_dict (dict): Dictionary containing motor positions.
+        """
         HWR.beamline.diffractometer.move_motors(motor_position_dict)
 
     def _take_crystal_snapshot(self, filename):
+        """Takes a snapshot of the crystal and saves it to the given filename.
+        
+        Args:
+            filename (str): Path to save the crystal snapshot.
+        
+        Raises:
+            RuntimeError: If unable to move to the centring phase.
+        """
         self.log.debug("#COLLECT# taking crystal snapshot.")
 
         if not HWR.beamline.diffractometer.is_centring_phase():
@@ -109,27 +94,38 @@ class P11Collect(AbstractCollect):
         HWR.beamline.sample_view.save_snapshot(filename)
 
     def set_transmission(self, value):
-        """
-        Descript. :
+        """Sets the transmission value on the beamline.
+        
+        Args:
+            value (float): Transmission value to set.
         """
         HWR.beamline.transmission.set_value(value)
 
     def set_energy(self, value):
-        """
-        Descript. :
+        """Sets the energy value on the beamline.
+        
+        Args:
+            value (float): Energy value to set.
         """
         HWR.beamline.energy.set_value(value)
-
+        
     def set_resolution(self, value):
-        """
-        Descript. :
+        """Sets the resolution of the beamline.
+        
+        Args:
+            value (float): Resolution value to set.
         """
         if round(HWR.beamline.resolution.get_value(), 2) != round(value, 2):
             HWR.beamline.resolution.set_value(value)
 
     def do_collect(self, owner):
-        """
-        Actual collect sequence
+        """Performs the data collection sequence.
+        
+        Args:
+            owner: Owner of the current data collection.
+
+        Raises:
+            RuntimeError: If collection preparation or execution fails.
         """
         log = logging.getLogger("user_level_log")
         log.info("Collection: Preparing to collect")
@@ -142,16 +138,12 @@ class P11Collect(AbstractCollect):
         self.collection_id = None
 
         try:
-            # ----------------------------------------------------------------
             # Prepare data collection
-
             self.open_detector_cover()
             self.open_safety_shutter()
             self.open_fast_shutter()
 
-            # ----------------------------------------------------------------
             # Store information in LIMS
-
             self.current_dc_parameters["status"] = "Running"
             self.current_dc_parameters["collection_start_time"] = time.strftime(
                 "%Y-%m-%d %H:%M:%S"
@@ -164,11 +156,6 @@ class P11Collect(AbstractCollect):
             log.info("Collection: Storing data collection in LIMS")
             self.store_data_collection_in_lims()
 
-            log.info(
-                "Collection: Creating directories for raw images and processing files"
-            )
-            self.create_file_directories()
-
             log.info("Collection: Getting sample info from parameters")
             self.get_sample_info()
 
@@ -178,8 +165,6 @@ class P11Collect(AbstractCollect):
             if all(
                 item is None for item in self.current_dc_parameters["motors"].values()
             ):
-                # No centring point defined
-                # create point based on the current position
                 current_diffractometer_position = (
                     HWR.beamline.diffractometer.get_positions()
                 )
@@ -188,17 +173,14 @@ class P11Collect(AbstractCollect):
                         motor
                     ] = current_diffractometer_position.get(motor)
 
-            # ----------------------------------------------------------------
             # Move to the centered position and take crystal snapshots
-
             log.info("Collection: Moving to centred position")
             self.move_to_centered_position()
             self.take_crystal_snapshots()
             self.move_to_centered_position()
 
-            # ----------------------------------------------------------------
+            self.emit("progressStep", 2)
             # Set data collection parameters
-
             if "transmission" in self.current_dc_parameters:
                 log.info(
                     "Collection: Setting transmission to %.2f",
@@ -233,17 +215,7 @@ class P11Collect(AbstractCollect):
                 )
                 self.move_detector(self.current_dc_parameters["detector_distance"])
 
-            # ----------------------------------------------------------------
-            # Site specific implementation of a data collection
-
-            # In order to call the hook with original parameters
-            # before update_data_collection_in_lims changes them
-            # TODO check why this happens
-
             self.data_collection_hook()
-
-            # ----------------------------------------------------------------
-            # Store information in LIMS
 
             log.info("Collection: Updating data collection in LIMS")
             self.update_data_collection_in_lims()
@@ -257,11 +229,7 @@ class P11Collect(AbstractCollect):
             self.data_collection_cleanup()
 
     def data_collection_hook(self):
-        if not self.init_ok:
-            raise RuntimeError(
-                "P11Collect. - object initialization failed. COLLECTION not possible"
-            )
-
+        """Handles site-specific data collection processes."""
         dc_pars = self.current_dc_parameters
         collection_type = dc_pars["experiment_type"]
 
@@ -286,8 +254,12 @@ class P11Collect(AbstractCollect):
         exp_time = osc_pars["exposure_time"]
         self.acq_speed = img_range / exp_time
 
+        self.total_angle_range = abs(stop_angle - start_angle)
+
         if not self.diffractometer_prepare_collection():
             raise RuntimeError("Cannot prepare diffractometer for collection")
+
+        self.emit("progressStep", 5)
 
         try:
             self.log.debug("############# #COLLECT# Opening detector cover")
@@ -303,7 +275,14 @@ class P11Collect(AbstractCollect):
 
             self.log.debug("#COLLECT# Programming detector for data collection")
             if collection_type == "Characterization":
-                # Filepath for the presenterd to work
+
+                # Prepares metadata taken from current osc parameters.
+                self.prepare_characterization()
+                self.log.info(
+                    "Collection: Creating directories for raw images and processing files EDNA and MOSFLM"
+                )
+                self.create_characterisation_directories()
+                # Filepath for the presented data to work
                 filepath = os.path.join(
                     basepath,
                     prefix,
@@ -313,13 +292,6 @@ class P11Collect(AbstractCollect):
                     + "%s_%d" % (prefix, runno),
                 )
 
-                # Filepath to the EDNA processing
-                # filepath = os.path.join(basepath,"%s_%d" % (prefix, runno))
-
-                # setting up xds_dir for characterisation (used there internally to create dirs)
-                self.current_dc_parameters["xds_dir"] = os.path.join(
-                    basepath, "%s_%d" % (prefix, runno)
-                )
 
                 self.log.debug(
                     "======= CURRENT FILEPATH: "
@@ -349,8 +321,15 @@ class P11Collect(AbstractCollect):
                 HWR.beamline.detector.prepare_characterisation(
                     exp_time, nframes, angle_inc, filepath
                 )
+
             else:
-                # Filepath to work with presenterd
+                # Prepares metadata taken from current osc parameters.
+                self.prepare_std_collection(start_angle, img_range)
+                self.log.info(
+                    "Collection: Creating directories for raw images and processing files"
+                )
+                self.create_file_directories()
+
                 filepath = os.path.join(
                     basepath,
                     prefix,
@@ -359,9 +338,6 @@ class P11Collect(AbstractCollect):
                     + "/"
                     + "%s_%d" % (prefix, runno),
                 )
-
-                # Filepath to work with EDNA
-                # filepath = os.path.join(basepath,"%s_%d" % (prefix, runno))
 
                 self.log.debug(
                     "======= CURRENT FILEPATH: "
@@ -380,7 +356,6 @@ class P11Collect(AbstractCollect):
                 )
 
             self.log.debug("#COLLECT# Starting detector")
-            HWR.beamline.detector.start_acquisition()
 
             # Check whether the live view monitoring is on. Restart if needed.
             process_name = os.getenv("MXCUBE_LIVEVIEW_NAME")
@@ -399,74 +374,384 @@ class P11Collect(AbstractCollect):
                 self.collect_characterisation(
                     start_angle, img_range, nframes, angle_inc, exp_time
                 )
+
+                # Move to 0 with default speed (fast)
+                HWR.beamline.diffractometer.set_omega_velocity(self.default_speed)
+                time.sleep(0.1)
+                HWR.beamline.diffractometer.move_omega(0)
+
+                # Adding H5 info for characterization
+                start_angles_collected = []
+                for nf in range(nframes):
+                    start_angles_collected.append(start_angle + nf * angle_inc)
+                self.add_h5_info_characterisation(
+                    self.latest_h5_filename, start_angles_collected, img_range
+                )
+
+                latest_image = HWR.beamline.detector.get_eiger_name_pattern()
+                latest_local_path = os.path.dirname(f"/gpfs{latest_image}_master.h5")
+                latest_local_name = f"/gpfs{latest_image}_master.h5".split("/")[-1]
+                self.write_info_txt(
+                    latest_local_path,
+                    latest_local_name,
+                    start_angle,
+                    nframes,
+                    img_range,
+                    angle_inc,
+                    exp_time,
+                    "screening",
+                )
+
             else:
                 self.log.debug("STARTING STANDARD COLLECTION")
+                duration = self.total_angle_range / self.acq_speed
+                start_time = time.time()
+
+                latest_image = HWR.beamline.detector.get_eiger_name_pattern()
+                latest_local_path = os.path.dirname(f"/gpfs{latest_image}_master.h5")
+                latest_local_name = f"/gpfs{latest_image}_master.h5".split("/")[-1]
+
+                # Start the progress emitter in a separate greenlet
+                gevent.spawn(self.progress_emitter, start_time, duration)
+
+                HWR.beamline.diffractometer.wait_omega()
+
+                # Arm the detector here. For characterization it is a bit different.
+                HWR.beamline.detector.start_acquisition()
                 self.collect_std_collection(start_angle, stop_angle)
+
+                # Move to 0 with default speed (fast)
+                HWR.beamline.diffractometer.set_omega_velocity(self.default_speed)
+                time.sleep(0.1)
+                HWR.beamline.diffractometer.move_omega(0)
+
+                self.add_h5_info_standard_data_collection(self.latest_h5_filename)
+
+                self.write_info_txt(
+                    latest_local_path,
+                    latest_local_name,
+                    start_angle,
+                    nframes,
+                    img_range,
+                    stop_angle - start_angle,
+                    exp_time,
+                    "regular",
+                )
 
         except RuntimeError:
             self.log.error(traceback.format_exc())
         finally:
-            self.add_h5_info(self.latest_h5_filename)
             self.acquisition_cleanup()
 
-        # Show the latest image after collection
         latest_image = HWR.beamline.detector.get_eiger_name_pattern()
         latest_image = f"/gpfs{latest_image}_master.h5"
         self.adxv_notify(latest_image)
 
-    def collect_std_collection(self, start_angle, stop_angle):
+    def progress_emitter(self, start_time, duration):
+        """Emits progress steps during data collection.
+
+        Args:
+            start_time (float): Start time of the data collection.
+            duration (float): Estimated duration of the data collection.
         """
-        The function collects data from a standard acquisition by moving the omega motor from a start
-        angle to a stop angle.
+        while True:
+            elapsed_time = time.time() - start_time
+            progress = (elapsed_time / duration) * 100
 
-        :param start_angle: The starting angle for the collection
-        :param stop_angle: The stop_angle parameter is the final angle at which the collection should
-        stop
+            if progress >= 100:
+                progress = 98
+                self.emit("progressStep", progress)
+                break
+            self.emit("progressStep", progress)
+            gevent.sleep(1)  # Non-blocking sleep
+
+    def add_h5_info_standard_data_collection(self, imagepath):
+        """Adds metadata to the HDF5 file for a standard data collection.
+
+        Args:
+            imagepath (str): Path to the HDF5 file.
         """
-        HWR.beamline.diffractometer.wait_omega()
+        time.sleep(1)
+        self.log.debug("adding h5 info for standard data collection")
+        try:
+            f = h5py.File(imagepath, "r+")
+            # source and instrument
+            g = f.create_group("entry/source")
+            g.attrs["NX_class"] = np.array("NXsource", dtype="S")
+            g.create_dataset("name", data=np.array("PETRA III, DESY", dtype="S"))
+            g = f.get("entry/instrument")
+            g.create_dataset("name", data=np.array("P11", dtype="S"))
+            # attenuator
+            g = f.create_group("entry/instrument/attenuator")
+            g.attrs["NX_class"] = np.array("NXattenuator", dtype="S")
+            ds = g.create_dataset(
+                "thickness", dtype="f8", data=float(self.get_filter_thickness())
+            )
+            ds.attrs["units"] = np.array("m", dtype="S")
+            ds = g.create_dataset("type", data=np.array("Aluminum", dtype="S"))
+            ds = g.create_dataset(
+                "attenuator_transmission",
+                dtype="f8",
+                data=float(self.get_filter_transmission()),
+            )
 
-        start_pos = start_angle - self.turnback_time * self.acq_speed
-        stop_pos = stop_angle + self.turnback_time * self.acq_speed
+            # Keep it here as it is not clear if it is needed.
+            # It was used in CC to fix the issue with the data processing
 
-        self.log.debug("#COLLECT# Running OMEGA through the std acquisition")
-        if start_angle <= stop_angle:
-            self.lower_bound_ch.set_value(start_angle)
-            self.upper_bound_ch.set_value(stop_angle)
+            # #fix rotation axis and detector orientation
+            # ds = f.get(u"entry/sample/transformations/omega")
+            # ds.attrs[u"vector"] = [1., 0., 0.]
+            # ds = f.get(u"entry/instrument/detector/module/fast_pixel_direction")
+            # ds.attrs[u"vector"] = [1., 0., 0.]
+            # ds = f.get(u"entry/instrument/detector/module/slow_pixel_direction")
+            # ds.attrs[u"vector"] = [0., 1., 0.]
+            # delete phi angle info to avoid confusion
+            nodes = [
+                "entry/sample/goniometer/phi",
+                "entry/sample/goniometer/phi_end",
+                "entry/sample/goniometer/phi_range_average",
+                "entry/sample/goniometer/phi_range_total",
+            ]
+            for node in nodes:
+                if node in f:
+                    del f[node]
+            f.close()
+        except RuntimeWarning:
+            self.log.debug("writing header to H5 FAILED!")
+    def add_h5_info_characterisation(
+        self, imagepath, start_angles_collected, degreesperframe
+    ):
+        """Adds metadata to the HDF5 file for characterization data collection.
 
-        else:
-            self.lower_bound_ch.set_value(stop_angle)
-            self.upper_bound_ch.set_value(start_angle)
+        Args:
+            imagepath (str): Path to the HDF5 file.
+            start_angles_collected (list): List of angles at which images were collected.
+            degreesperframe (float): Number of degrees per frame collected.
+        """
+        time.sleep(1)
+        self.log.debug("adding h5 info for characterization")
+        try:
+            f = h5py.File(imagepath, "r+")
+            # source and instrument
+            g = f.create_group("entry/source")
+            g.attrs["NX_class"] = np.array("NXsource", dtype="S")
+            g.create_dataset("name", data=np.array("PETRA III, DESY", dtype="S"))
+            g = f.get("entry/instrument")
+            g.create_dataset("name", data=np.array("P11", dtype="S"))
+            # attenuator
+            g = f.create_group("entry/instrument/attenuator")
+            g.attrs["NX_class"] = np.array("NXattenuator", dtype="S")
+            ds = g.create_dataset(
+                "thickness", dtype="f8", data=float(self.get_filter_thickness())
+            )
+            ds.attrs["units"] = np.array("m", dtype="S")
+            ds = g.create_dataset("type", data=np.array("Aluminum", dtype="S"))
+            ds = g.create_dataset(
+                "attenuator_transmission",
+                dtype="f8",
+                data=float(self.get_filter_transmission()),
+            )
+            # delete existing angle info
+            nodes = [
+                "entry/sample/goniometer/omega",
+                "entry/sample/goniometer/omega_end",
+                "entry/sample/goniometer/omega_range_average",
+                "entry/sample/goniometer/omega_range_total",
+                "entry/sample/goniometer/phi",
+                "entry/sample/goniometer/phi_end",
+                "entry/sample/goniometer/phi_range_average",
+                "entry/sample/goniometer/phi_range_total",
+                "entry/sample/transformations/omega",
+                "entry/sample/transformations/omega_end",
+                "entry/sample/transformations/omega_range_average",
+                "entry/sample/transformations/omega_range_total",
+            ]
+            for node in nodes:
+                if node in f:
+                    del f[node]
 
-        self.omega_mv(start_pos, self.default_speed)
-        self.acq_arm_cmd()
-        self.omega_mv(stop_pos, self.acq_speed)
-        time.sleep(0.5)
-        self.acq_off_cmd()
-        self.acq_window_off_cmd()
-        self.omega_mv(stop_angle, self.acq_speed)
+            angles = []
+            angles_end = []
+            for angle in start_angles_collected:
+                angles.append(float(angle))
+                angles_end.append(float(angle + degreesperframe))
+            g = f.get("entry/sample/goniometer")
+            o = g.create_dataset("omega", dtype="f8", data=angles)
+            o.attrs["vector"] = [1.0, 0.0, 0.0]
+            g.create_dataset("omega_end", dtype="f8", data=angles_end)
+            g.create_dataset(
+                "omega_range_average", dtype="f8", data=float(degreesperframe)
+            )
+            g = f.get("entry/sample/transformations")
+            o = g.create_dataset("omega", dtype="f8", data=angles)
+            o.attrs["vector"] = [1.0, 0.0, 0.0]
+            g.create_dataset("omega_end", dtype="f8", data=angles_end)
+            g.create_dataset(
+                "omega_range_average", dtype="f8", data=float(degreesperframe)
+            )
+            f.close()
+        except RuntimeWarning:
+            self.log.debug("writing header to H5 characterization FAILED!")
+
+    def write_info_txt(
+        self,
+        path,
+        name,
+        startangle,
+        frames,
+        degreesperframe,
+        imageinterval,
+        exposuretime,
+        run_type,
+    ):
+        """Writes info about the data collection into a text file.
+
+        Args:
+            path (str): Directory path where the info file will be saved.
+            name (str): Name of the run.
+            startangle (float): Starting angle of the collection.
+            frames (int): Number of frames collected.
+            degreesperframe (float): Degrees per frame.
+            imageinterval (float): Interval between images.
+            exposuretime (float): Exposure time in milliseconds.
+            run_type (str): Type of run (e.g., 'regular' or 'screening').
+        """
+        if run_type == "regular":
+
+            INFO_TXT = (
+                "run type:            {run_type:s}\n"
+                + "run name:            {name:s}\n"
+                + "start angle:         {startangle:.2f}deg\n"
+                + "frames:              {frames:d}\n"
+                + "degrees/frame:       {degreesperframe:.2f}deg\n"
+                + "exposure time:       {exposuretime:.3f}ms\n"
+                + "energy:              {energy:.3f}keV\n"
+                + "wavelength:          {wavelength:.3f}A\n"
+                + "detector distance:   {detectordistance:.2f}mm\n"
+                + "resolution:          {resolution:.2f}A\n"
+                + "aperture:            {pinholeDiameter:d}um\n"
+                + "focus:               {focus:s}\n"
+                + "filter transmission: {filterTransmission:.3f}%\n"
+                + "filter thickness:    {filterThickness:d}um\n"
+                + "ring current:        {beamCurrent:.3f}mA\n"
+                + "\n"
+                + "For exact flux reading, please consult the staff."
+            )
+
+            energy = HWR.beamline.energy.get_value()
+            wavelength = 12.3984 / (energy)  # in Angstrom
+            resolution = HWR.beamline.resolution.get_value()
+            detectordistance = HWR.beamline.detector.get_eiger_detector_distance()
+            transmission = HWR.beamline.transmission.get_value()
+            filter_thickness = self.get_filter_thickness_in_mm()
+            pinhole_diameter = HWR.beamline.beam.get_pinhole_size()
+            focus = HWR.beamline.beam.get_beam_focus_label()
+            current = HWR.beamline.machine_info.get_current()
+
+            output = INFO_TXT.format(
+                run_type=run_type,
+                name=name,
+                startangle=startangle,
+                frames=frames,
+                degreesperframe=degreesperframe,
+                exposuretime=exposuretime * 1000,
+                energy=energy,
+                wavelength=wavelength,
+                detectordistance=detectordistance,
+                resolution=resolution,
+                pinholeDiameter=int(pinhole_diameter),
+                focus=str(focus),
+                filterTransmission=int(transmission),
+                filterThickness=int(filter_thickness),
+                beamCurrent=float(current),
+            )
+
+            f = open(path + "/info.txt", "w")
+            f.write(output)
+            f.close()
+
+        if run_type == "screening":
+
+            INFO_TXT = (
+                "run type:            {run_type:s}\n"
+                + "run name:            {name:s}\n"
+                + "start angle:         {startangle:.2f}deg\n"
+                + "frames:              {frames:d}\n"
+                + "degrees/frame:       {degreesperframe:.2f}deg\n"
+                + "exposure time:       {exposuretime:.3f}ms\n"
+                + "energy:              {energy:.3f}keV\n"
+                + "wavelength:          {wavelength:.3f}A\n"
+                + "detector distance:   {detectordistance:.2f}mm\n"
+                + "resolution:          {resolution:.2f}A\n"
+                + "aperture:            {pinholeDiameter:d}um\n"
+                + "focus:               {focus:s}\n"
+                + "filter transmission: {filterTransmission:.3f}%\n"
+                + "filter thickness:    {filterThickness:d}um\n"
+                + "ring current:        {beamCurrent:.3f}mA\n"
+                + "\n"
+                + "For exact flux reading, please consult the staff."
+            )
+
+            energy = HWR.beamline.energy.get_value()
+            wavelength = 12.3984 / (energy)  # in Angstrom
+            resolution = HWR.beamline.resolution.get_value()
+            detectordistance = HWR.beamline.detector.get_eiger_detector_distance()
+            transmission = HWR.beamline.transmission.get_value()
+            filter_thickness = self.get_filter_thickness_in_mm()
+            pinhole_diameter = HWR.beamline.beam.get_pinhole_size()
+            focus = HWR.beamline.beam.get_beam_focus_label()
+            current = HWR.beamline.machine_info.get_current()
+
+            output = INFO_TXT.format(
+                run_type=run_type,
+                name=name,
+                startangle=startangle,
+                frames=frames,
+                degreesperframe=degreesperframe,
+                exposuretime=exposuretime * 1000,
+                energy=energy,
+                wavelength=wavelength,
+                detectordistance=detectordistance,
+                resolution=resolution,
+                pinholeDiameter=int(pinhole_diameter),
+                focus=str(focus),
+                filterTransmission=int(transmission),
+                filterThickness=int(filter_thickness),
+                beamCurrent=float(current),
+            )
+
+            f = open(path + "/info.txt", "w")
+            f.write(output)
+            f.close()
+
+    def prepare_characterization(self):
+        """Prepares for characterization data collection by setting the start angle and angle increment for the detector."""
+        self.log.debug("Preparing for characterization data collection.")
+
+        osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
+        start_angle = osc_pars["start"]
+        HWR.beamline.detector.set_eiger_start_angle(start_angle)
+
+        img_range = osc_pars["range"]
+        HWR.beamline.detector.set_eiger_angle_increment(img_range)
 
     def collect_characterisation(
         self, start_angle, img_range, nimages, angle_inc, exp_time
     ):
-        """
-        The function `collect_characterisation` is used to collect a series of images at different
-        angles for characterisation.
+        """Collects a series of images at different angles for characterization.
 
-        :param start_angle: The starting angle for the characterisation acquisition
-        :param img_range: The `img_range` parameter represents the range of angles over which the single image 
-        will be collected
-        :param nimages: The parameter `nimages` represents the number of images to be collected during
-        the characterisation process (1, 2, 4).
-        :param angle_inc: The `angle_inc` parameter represents the increment in angle between each image
-        in the collection
-        :param exp_time: The `exp_time` parameter represents the exposure time for each image
+        Args:
+            start_angle (float): Starting angle for the characterization acquisition.
+            img_range (float): Range of angles over which a single image is collected.
+            nimages (int): Number of images to be collected during the characterization process.
+            angle_inc (float): Increment in angle between each image in the collection.
+            exp_time (float): Exposure time for each image.
         """
-
         self.log.debug(
-            "#COLLECT# Running OMEGA through the characteristation acquisition"
+            "#COLLECT# Running OMEGA through the characterization acquisition"
         )
 
-        self.omega_mv(start_angle, self.default_speed)
+        start_angle = int(start_angle)
 
         for img_no in range(nimages):
             self.log.debug("collecting image %s" % img_no)
@@ -475,29 +760,88 @@ class P11Collect(AbstractCollect):
 
             self.log.debug("collecting image %s, angle %f" % (img_no, start_at))
 
-            # Keep it here for now. It is not clear if it is needed.
-            # if start_at >= stop_angle:
-            #     init_pos = start_at  # - self.acq_speed * self.turnback_time
-            #     # init_pos = start_at - 1.5
-            # else:
-            #     init_pos = start_at  # + self.acq_speed * self.turnback_time
-            #     # init_pos = start_at + 1.5
-            # self.omega_mv(init_pos, self.default_speed)
+            #[WIP]
+            #NB! Another attemt to fix the misfires. 
+            #Keep comments here until finished
+            #Here is the previous implementation:
+            #self.collect_std_collection(start_at, stop_angle)
+            
+            #Here is sligthly modified standard data collection routine
+            #Adjust the angle since each time we are starting with 90 degrees offset.
+            start_pos = start_at - self.turnback_time * self.acq_speed
+            stop_pos = stop_angle + self.turnback_time * self.acq_speed
 
-            self.collect_std_collection(start_at, stop_angle)
-            self.log.debug(
-                "======= collect_characterisation  Waiting ======================================="
-            )
+            self.log.debug("#COLLECT# Running OMEGA through the std acquisition")
+            HWR.beamline.diffractometer.wait_omega_on()
+            HWR.beamline.diffractometer.set_omega_velocity(self.default_speed)
+            time.sleep(1)
+            HWR.beamline.diffractometer.move_omega(start_pos)
+            time.sleep(1)
+            HWR.beamline.diffractometer.wait_omega_on()
+            time.sleep(1)
+            # NB! angles reversed could work???
+            HWR.beamline.diffractometer.set_pso_control_arm(start_angle, stop_angle)
+            time.sleep(3)
+            HWR.beamline.diffractometer.set_omega_velocity(self.acq_speed)
+            time.sleep(1)
 
-    def adxv_notify(self, image_filename, image_num=1):
+            #Arm the detector only once in the beginning. Set to wait 4 triggers. 
+            if img_no == 0:
+                HWR.beamline.detector.start_acquisition()
+                time.sleep(3)
+            
+            HWR.beamline.diffractometer.move_omega(stop_pos)
+
+            self.emit("progressStep", int(120 / (nimages) * (img_no + 1)))
+
+    def prepare_std_collection(self, start_angle, img_range):
+        """Prepares a standard collection by setting the start angle and angle increment in the detector's header.
+
+        Args:
+            start_angle (float): Starting angle for the standard collection sequence.
+            img_range (float): Angle increment for each frame.
+        
+        Returns:
+            bool: True if successful, False otherwise.
         """
-        The `adxv_notify` function sends a notification to an ADXV to load an image file and
-        display a specific slab.
+        osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
+        start_angle = osc_pars["start"]
+        HWR.beamline.detector.set_eiger_start_angle(start_angle)
 
-        :param image_filename: The `image_filename` parameter is a string that represents the filename
-        of the image that needs to be loaded into ADXV
-        :param image_num: The `image_num` parameter is an optional parameter that specifies the image
-        number to be loaded in ADXV. If not provided, it defaults to 1, defaults to 1 (optional)
+        img_range = osc_pars["range"]
+        HWR.beamline.detector.set_eiger_angle_increment(img_range)
+
+    def collect_std_collection(self, start_angle, stop_angle):
+        """Performs the standard data collection by moving the omega motor from start to stop angle.
+
+        Args:
+            start_angle (float): Starting angle for the collection.
+            stop_angle (float): Stop angle for the collection.
+        """
+        start_pos = start_angle - self.turnback_time * self.acq_speed
+        stop_pos = stop_angle + self.turnback_time * self.acq_speed
+
+        self.log.debug("#COLLECT# Running OMEGA through the std acquisition")
+        HWR.beamline.diffractometer.wait_omega_on()
+        HWR.beamline.diffractometer.set_omega_velocity(self.default_speed)
+        time.sleep(1)
+        HWR.beamline.diffractometer.move_omega(start_pos)
+        time.sleep(1)
+        HWR.beamline.diffractometer.wait_omega_on()
+        time.sleep(1)
+        HWR.beamline.diffractometer.set_pso_control_arm(start_angle, stop_angle)
+        time.sleep(3)
+        HWR.beamline.diffractometer.set_omega_velocity(self.acq_speed)
+        time.sleep(1)
+        HWR.beamline.diffractometer.move_omega(stop_pos)
+
+    
+    def adxv_notify(self, image_filename, image_num=1):
+        """Sends a notification to an ADXV to load an image file and display a specific slab.
+
+        Args:
+            image_filename (str): Filename of the image to be loaded.
+            image_num (int, optional): Image number to load in ADXV. Defaults to 1.
         """
         logging.getLogger("HWR").info(f"ADXV notify {image_filename}")
         logging.getLogger("HWR").info(f"ADXV notify {image_num}")
@@ -517,12 +861,25 @@ class P11Collect(AbstractCollect):
             pass
 
     def is_process_running(self, process_name):
+        """Checks if a process is running by its name.
+
+        Args:
+            process_name (str): Name of the process to check.
+
+        Returns:
+            bool: True if the process is running, False otherwise.
+        """
         for proc in psutil.process_iter():
             if proc.name() == process_name:
                 return True
         return False
 
     def start_process(self, command):
+        """Starts a process with the specified command.
+
+        Args:
+            command (list): List of command arguments to start the process.
+        """
         subprocess.Popen(
             command,
             stdout=subprocess.DEVNULL,
@@ -532,119 +889,28 @@ class P11Collect(AbstractCollect):
         )
 
     def acquisition_cleanup(self):
-        """
-        The function `acquisition_cleanup` performs various cleanup tasks related to data acquisition,
-        such as setting the omega velocity, turning off acquisition and window commands, closing the
-        detector cover, and stopping the acquisition.
-        """
+        """Performs cleanup after data acquisition, including stopping the detector and resetting motor velocities."""
         try:
             HWR.beamline.detector.stop_acquisition()
             HWR.beamline.diffractometer.wait_omega()
-            # =================
-            # It is probably already finished in a standard collection.
-            self.acq_off_cmd()
-            self.acq_window_off_cmd()
-            # ==================
             HWR.beamline.diffractometer.set_omega_velocity(self.default_speed)
             self.log.debug("#COLLECT# Closing detector cover")
             HWR.beamline.diffractometer.detector_cover_close(wait=True)
 
-            # Move omega to 0 at the end
-            self.omega_mv(0, self.default_speed)
+            HWR.beamline.diffractometer.stop_motion()
 
         except RuntimeError:
             self.log.error(traceback.format_exc())
 
-    def add_h5_info(self, h5file):
-        """
-        Add information to an HDF5 file.
-
-        :param h5file: The name or path of the HDF5 file.
-        """
-        self.log.debug("========== Writing H5 info ==============")
-
-        # Wait for the HDF5 file to appear with a timeout
-        start_time = time.time()
-        while not os.path.exists(h5file):
-            if time.time() - start_time > 5:
-                raise IOError(
-                    "Cannot add info to HDF5 file. Timeout waiting for file on disk."
-                )
-            time.sleep(0.5)
-
-        try:
-            with h5py.File(h5file, "r+") as h5fd:
-                # Create or get the 'entry/source' group
-                source_group = self.get_or_create_group(h5fd, "entry/source")
-                source_group.attrs["NX_class"] = np.array("NXsource", dtype="S")
-
-                # Create or get datasets within the 'entry/source' group
-                self.create_or_get_dataset(
-                    source_group, "name", np.array("PETRA III, DESY", dtype="S")
-                )
-
-                # Create or get the 'entry/instrument' group
-                instrument_group = self.get_or_create_group(h5fd, "entry/instrument")
-
-                # Create or get datasets within the 'entry/instrument' group
-                self.create_or_get_dataset(
-                    instrument_group, "name", np.array("P11", dtype="S")
-                )
-
-                # Create or get the 'entry/instrument/attenuator' group
-                attenuator_group = self.get_or_create_group(
-                    instrument_group, "attenuator"
-                )
-                attenuator_group.attrs["NX_class"] = np.array("NXattenuator", dtype="S")
-
-                # Create or get datasets within the 'entry/instrument/attenuator' group
-                self.create_or_get_dataset(
-                    attenuator_group, "thickness", self.get_filter_thickness()
-                )
-                self.create_or_get_dataset(
-                    attenuator_group, "type", np.array("Aluminum", dtype="S")
-                )
-                self.create_or_get_dataset(
-                    attenuator_group,
-                    "attenuator_transmission",
-                    self.get_filter_transmission(),
-                )
-
-                # Keep it here as it is not clear if it is needed.
-                # It was used in CC to fix the issue with the data processing
-                # h5fd["entry/sample/transformations/omega"].attrs["vector"] = [
-                #     1.0,
-                #     0.0,
-                #     0.0,
-                # ]
-                # h5fd["entry/instrument/detector/module/fast_pixel_direction"].attrs[
-                #     "vector"
-                # ] = [1.0, 0.0, 0.0]
-                # h5fd["entry/instrument/detector/module/slow_pixel_direction"].attrs[
-                #     "vector"
-                # ] = [0.0, 1.0, 0.0]
-
-                # Delete unwanted nodes
-                unwanted_nodes = [
-                    "entry/sample/goniometer/phi",
-                    "entry/sample/goniometer/phi_end",
-                    "entry/sample/goniometer/phi_range_average",
-                    "entry/sample/goniometer/phi_range_total",
-                ]
-                for node in unwanted_nodes:
-                    if node in h5fd:
-                        del h5fd[node]
-        except RuntimeWarning as err_msg:
-            self.log.debug(f"Error while adding info to HDF5 file: {str(err_msg)}")
-            self.log.debug(traceback.format_exc())
-
     def get_or_create_group(self, parent_group, group_name):
-        """
-        Get or create a group within a parent group.
+        """Gets or creates a group within a parent group.
 
-        :param parent_group: The parent group where the new group will be created.
-        :param group_name: The name of the group to get or create.
-        :return: The group object.
+        Args:
+            parent_group (h5py.Group): The parent group where the new group will be created.
+            group_name (str): The name of the group to get or create.
+
+        Returns:
+            h5py.Group: The group object.
         """
         if group_name in parent_group:
             return parent_group[group_name]
@@ -652,12 +918,12 @@ class P11Collect(AbstractCollect):
             return parent_group.create_group(group_name)
 
     def create_or_get_dataset(self, group, dataset_name, dataset_data):
-        """
-        Create or get a dataset within a group.
+        """Creates or retrieves a dataset within a group.
 
-        :param group: The group where the dataset will be created or retrieved.
-        :param dataset_name: The name of the dataset.
-        :param dataset_data: The data to be stored in the dataset.
+        Args:
+            group (h5py.Group): The group where the dataset will be created or retrieved.
+            dataset_name (str): The name of the dataset.
+            dataset_data: The data to be stored in the dataset.
         """
         if dataset_name in group:
             dataset = group[dataset_name]
@@ -665,10 +931,26 @@ class P11Collect(AbstractCollect):
             dataset = group.create_dataset(dataset_name, data=dataset_data)
 
     def get_filter_thickness(self):
+        """Calculates the total thickness of three filters.
+
+        Returns:
+            float: The total thickness of the filters in meters. If the filter server is not available, it returns -1.
         """
-        The function `get_filter_thickness` calculates the total thickness of three filters.
-        :return: the total thickness of the filters in meters. If the filter server is not available, it
-        returns -1.
+        if self.filter_server:
+            thick1 = self.filter_server.Filter1Thickness
+            thick2 = self.filter_server.Filter2Thickness
+            thick3 = self.filter_server.Filter3Thickness
+
+            thickness = int(thick1) + int(thick2) + int(thick3)
+            return float(thickness) / 1_000_000
+        else:
+            return -1
+
+    def get_filter_thickness_in_mm(self):
+        """Calculates the total thickness of three filters in millimeters.
+
+        Returns:
+            int: The total thickness of the filters in millimeters. If the filter server is not available, it returns -1.
         """
         if self.filter_server:
             thick1 = self.filter_server.Filter1Thickness
@@ -677,259 +959,179 @@ class P11Collect(AbstractCollect):
 
             thickness = int(thick1) + int(thick2) + int(thick3)
 
-            return float(thickness) / 1_000_000
+            return int(thickness)
         else:
             return -1
 
     def get_filter_transmission(self):
-        """
-        The function returns the current transmission value from the filter server, or -1 if the filter
-        server is not available.
-        :return: The method is returning the current transmission value of the filter server. If the
-        filter server is not available, it returns -1.
+        """Gets the current transmission value from the filter server.
+
+        Returns:
+            float: The current transmission value. If the filter server is not available, it returns -1.
         """
         if self.filter_server:
             return self.filter_server.CurrentTransmission
         else:
             return -1
 
-    def generate_xds_template(self):
-        """
-        The function generates an XDS template by executing a command on a remote server.
-        """
+    def xdsapp_maxwell(self):
+        """Starts XDSAPP auto-processing on the Maxwell cluster."""
+        self.log.debug("==== XDSAPP AUTOPROCESSING IS STARTED ==========")
+
+        resolution = self.get_resolution()
+
+        image_dir_local, filename = os.path.split(self.latest_h5_filename)
+
+        image_dir = image_dir_local.replace(
+            "/gpfs/current", HWR.beamline.session.get_beamtime_metadata()[2]
+        )
+        process_dir = image_dir.replace("/raw/", "/processed/")
+        process_dir_local = image_dir_local.replace("/raw/", "/processed/")
+        xdsapp_path = os.path.join(process_dir, "xdsapp")
+        xdsapp_path_local = os.path.join(process_dir_local, "xdsapp")
+        self.log.debug('============XDSAPP======== xdsapp_path="%s"' % xdsapp_path)
         self.log.debug(
-            "============== Generating XDS template.============================"
+            '============XDSAPP======== xdsapp_path_local="%s"' % xdsapp_path_local
         )
 
-        h5file = self.latest_h5_filename
+        try:
+            self.mkdir_with_mode(xdsapp_path_local, mode=0o777)
+            self.log.debug("=========== XDSAPP ============ XDSAPP directory created")
 
-        basedir, fname = os.path.split(h5file)
+        except OSError:
+            self.log.debug(sys.exc_info())
+            self.log.debug("Cannot create XDSAPP directory")
 
-        self.log.debug(
-            "============== BASEDIR for Generating XDS template "
-            + str(basedir)
-            + "============================"
+        base_process_dir = self.base_dir(process_dir_local, "processed")
+        datasets_file = os.path.join(base_process_dir, "datasets.txt")
+
+        try:
+            open(datasets_file, "a", encoding="utf-8").write(
+                xdsapp_path_local.split("/gpfs/current/processed/")[1] + "\n"
+            )
+        except RuntimeError as err_msg:
+            self.log.debug("Cannot write to datasets.txt")
+            self.log.debug(sys.exc_info())
+
+        ssh = HWR.beamline.session.get_ssh_command()
+        sbatch = HWR.beamline.session.get_sbatch_command(
+            jobname_prefix="xdsapp",
+            logfile_path=xdsapp_path.replace(
+                HWR.beamline.session.get_beamtime_metadata()[2], "/beamline/p11/current"
+            )
+            + "/xdsapp.log",
         )
 
-        process_dir = basedir.replace("/raw/", "/processed/") + "/manual"
-        self.mkdir_with_mode(process_dir, mode=0o777)
-
-        rel_image_dir = self.get_relative_path(process_dir, basedir)
-        rel_image_path = os.path.join(rel_image_dir, fname)
-
-        cmd_tpl = (
-            "\"sleep 20; module load xdsapp/3.1.9; cd '{processpath:s}'; "
-            + "generate_XDS.INP '{imagepath:s}'\" >/dev/null 2>&1\n"
+        cmd = (
+            "/asap3/petra3/gpfs/common/p11/processing/xdsapp_sbatch.sh "
+            + "{imagepath:s} {processpath:s} {res:f}"
+        ).format(
+            imagepath=image_dir + "/" + filename,
+            processpath=xdsapp_path.replace(
+                HWR.beamline.session.get_beamtime_metadata()[2], "/beamline/p11/current"
+            ),
+            res=resolution,
         )
 
-        cmd = cmd_tpl.format(imagepath=h5file, processpath=process_dir)
-        os.system("ssh -n -f p11user@haspp11eval01 " + cmd)
+        os.system(
+            '{ssh:s} "{sbatch:s} --wrap \\"{cmd:s}\\""'.format(
+                ssh=ssh, sbatch=sbatch, cmd=cmd
+            )
+        )
+
+    def autoproc_maxwell(self):
+        """Starts AutoProc auto-processing on the Maxwell cluster."""
+        self.log.debug("==== AUTOPROC AUTOPROCESSING IS STARTED ==========")
+
+        resolution = self.get_resolution()
+
+        image_dir_local, filename = os.path.split(self.latest_h5_filename)
+
+        image_dir = image_dir_local.replace(
+            "/gpfs/current", HWR.beamline.session.get_beamtime_metadata()[2]
+        )
+        process_dir = image_dir.replace("/raw/", "/processed/")
+        process_dir_local = image_dir_local.replace("/raw/", "/processed/")
+        autoproc_path = os.path.join(process_dir, "autoproc")
+        autoproc_path_local = os.path.join(process_dir_local, "autoproc")
         self.log.debug(
-            "============== "
-            + "ssh -n -f p11user@haspp11eval01 "
-            + cmd
-            + "============================"
+            '============AUTOPROC======== autoproc_path="%s"' % autoproc_path
+        )
+        self.log.debug(
+            '============AUTOPROC======== autoproc_path_local="%s"'
+            % autoproc_path_local
+        )
+
+        try:
+            self.mkdir_with_mode(autoproc_path_local, mode=0o777)
+            self.log.debug(
+                "=========== AUTOPROC ============ autoproc directory created"
+            )
+
+        except OSError:
+            self.log.debug(sys.exc_info())
+            self.log.debug("Cannot create AUTOPROC directory")
+
+        base_process_dir = self.base_dir(process_dir_local, "processed")
+        datasets_file = os.path.join(base_process_dir, "datasets.txt")
+
+        try:
+            open(datasets_file, "a", encoding="utf-8").write(
+                autoproc_path_local.split("/gpfs/current/processed/")[1] + "\n"
+            )
+        except RuntimeError as err_msg:
+            self.log.debug("Cannot write to datasets.txt")
+            self.log.debug(sys.exc_info())
+
+        ssh = HWR.beamline.session.get_ssh_command()
+        sbatch = HWR.beamline.session.get_sbatch_command(
+            jobname_prefix="autoproc",
+            logfile_path=autoproc_path.replace(
+                HWR.beamline.session.get_beamtime_metadata()[2], "/beamline/p11/current"
+            )
+            + "/autoproc.log",
+        )
+
+        cmd = (
+            "/asap3/petra3/gpfs/common/p11/processing/autoproc_sbatch.sh "
+            + "{imagepath:s} {processpath:s}"
+        ).format(
+            imagepath=image_dir + "/" + filename,
+            processpath=autoproc_path.replace(
+                HWR.beamline.session.get_beamtime_metadata()[2], "/beamline/p11/current"
+            )
+            + "/processing",
+        )
+
+        os.system(
+            '{ssh:s} "{sbatch:s} --wrap \\"{cmd:s}\\""'.format(
+                ssh=ssh, sbatch=sbatch, cmd=cmd
+            )
         )
 
     def trigger_auto_processing(self, process_event=None, frame_number=None):
-        """
-        The function `trigger_auto_processing` triggers auto processing based on the experiment type and
-        performs different actions for characterization and OSC experiments.
+        """Triggers auto processing based on the experiment type.
 
-        :param process_event: The `process_event` parameter is an optional argument that specifies the
-        type of event that triggered the auto processing. It can be used to provide additional
-        information or context for the processing
-        :param frame_number: The `frame_number` parameter is used to specify the number of frames in the
-        processing. It is an integer value that represents the number of frames to be processed
-        :return: The function does not return any value.
+        Args:
+            process_event: Optional event that triggered the auto processing.
+            frame_number (int, optional): Number of frames to process.
         """
-
         self.log.debug("Triggering auto processing")
-
-        dc_pars = self.current_dc_parameters
-        collection_type = dc_pars["experiment_type"]
+        collection_type = self.current_dc_parameters["experiment_type"]
         self.log.debug(
             "=============== Supported experiment types: ===========\n"
-            + str(dc_pars["experiment_type"])
+            + str(self.current_dc_parameters["experiment_type"])
         )
 
-        if collection_type == "Characterization":
-            self.log.debug(
-                "==== AUTOPROCESSING CHARACTERISATION IN PROGRESS =========="
-            )
-
-            resolution = self.get_resolution()
-            frames = self.latest_frames
-
-            image_dir_local, filename = os.path.split(self.latest_h5_filename)
-            # AG: Image dir at this point is located locally. This path is not seen on the MAXWELL. Path needs to be converted.
-            # /gpfs/current/ to  get_beamline_metadata()[2]
-            image_dir = image_dir_local.replace(
-                "/gpfs/current", HWR.beamline.session.get_beamtime_metadata()[2]
-            )
-            process_dir = image_dir.replace("/raw/", "/processed/")
-            process_dir_local = image_dir_local.replace("/raw/", "/processed/")
-            mosflm_path = os.path.join(process_dir, "mosflm")
-            mosflm_path_local = os.path.join(process_dir_local, "mosflm")
-            self.log.debug('============MOSFLM======== mosflm_path="%s"' % mosflm_path)
-            self.log.debug(
-                '============MOSFLM======== mosflm_path_local="%s"' % mosflm_path_local
-            )
-
-            ssh = HWR.beamline.session.get_ssh_command()
-
-            try:
-                self.mkdir_with_mode(mosflm_path_local, mode=0o777)
-                self.log.debug(
-                    "=========== MOSFLM ============ Mosflm directory created"
-                )
-
-            except OSError:
-                self.log.debug(sys.exc_info())
-                self.log.debug("Cannot create mosflm directory")
-
-            base_process_dir = self.base_dir(process_dir_local, "processed")
-            datasets_file = os.path.join(base_process_dir, "datasets.txt")
-
-            # add to datasets.txt for presenterd
-            try:
-                open(datasets_file, "a").write(
-                    mosflm_path_local.split("/gpfs/current/processed/")[1] + "\n"
-                )
-            except RuntimeWarning as err_msg:
-                self.log.debug("Cannot write to datasets.txt")
-                self.log.debug(sys.exc_info(), err_msg)
-
-            # create call
-            ssh = HWR.beamline.session.get_ssh_command()
-            sbatch = HWR.beamline.session.get_sbatch_command(
-                jobname_prefix="mosflm",
-                logfile_path=mosflm_path.replace(
-                    HWR.beamline.session.get_beamtime_metadata()[2],
-                    "/beamline/p11/current",
-                )
-                + "/mosflm.log",
-            )
-
-            cmd = (
-                "/asap3/petra3/gpfs/common/p11/processing/mosflm_sbatch.sh "
-                + "{imagepath:s} {filename:s} {processpath:s} {frames:d} {res:f}"
-            ).format(
-                imagepath=image_dir,
-                filename=filename,
-                processpath=mosflm_path.replace(
-                    HWR.beamline.session.get_beamtime_metadata()[2],
-                    "/beamline/p11/current",
-                ),
-                frames=frames,
-                res=resolution,
-            )
-            self.log.debug('=======MOSFLM========== ssh="%s"' % ssh)
-            self.log.debug('=======MOSFLM========== sbatch="%s"' % sbatch)
-            self.log.debug('=======MOSFLM========== executing process cmd="%s"' % cmd)
-            self.log.debug(
-                '=======MOSFLM========== {ssh:s} "{sbatch:s} --wrap \\"{cmd:s}\\""'.format(
-                    ssh=ssh, sbatch=sbatch, cmd=cmd
-                )
-            )
-
-            os.system(
-                '{ssh:s} "{sbatch:s} --wrap \\"{cmd:s}"\\"'.format(
-                    ssh=ssh, sbatch=sbatch, cmd=cmd
-                )
-            )
-        else:
-            if collection_type == "OSC":
-                self.log.debug(
-                    "==== AUTOPROCESSING STANDARD PROCESSING IS IN PROGRESS =========="
-                )
-
-                resolution = self.get_resolution()
-                frames = self.latest_frames
-
-                image_dir_local, filename = os.path.split(self.latest_h5_filename)
-
-                image_dir = image_dir_local.replace(
-                    "/gpfs/current", HWR.beamline.session.get_beamtime_metadata()[2]
-                )
-                process_dir = image_dir.replace("/raw/", "/processed/")
-                process_dir_local = image_dir_local.replace("/raw/", "/processed/")
-                xdsapp_path = os.path.join(process_dir, "xdsapp")
-                xdsapp_path_local = os.path.join(process_dir_local, "xdsapp")
-                self.log.debug(
-                    '============XDSAPP======== xdsapp_path="%s"' % xdsapp_path
-                )
-                self.log.debug(
-                    '============XDSAPP======== xdsapp_path_local="%s"'
-                    % xdsapp_path_local
-                )
-
-                try:
-                    self.mkdir_with_mode(xdsapp_path_local, mode=0o777)
-                    self.log.debug(
-                        "=========== XDSAPP ============ XDSAPP directory created"
-                    )
-
-                except OSError:
-                    self.log.debug(sys.exc_info())
-                    self.log.debug("Cannot create XDSAPP directory")
-
-                base_process_dir = self.base_dir(process_dir_local, "processed")
-                datasets_file = os.path.join(base_process_dir, "datasets.txt")
-
-                # add to datasets.txt for presenterd
-                try:
-                    open(datasets_file, "a", encoding="utf-8").write(
-                        xdsapp_path_local.split("/gpfs/current/processed/")[1] + "\n"
-                    )
-                except RuntimeError as err_msg:
-                    self.log.debug("Cannot write to datasets.txt")
-                    self.log.debug(sys.exc_info())
-
-                # create call
-                ssh = HWR.beamline.session.get_ssh_command()
-                sbatch = HWR.beamline.session.get_sbatch_command(
-                    jobname_prefix="xdsapp",
-                    logfile_path=xdsapp_path.replace(
-                        HWR.beamline.session.get_beamtime_metadata()[2],
-                        "/beamline/p11/current",
-                    )
-                    + "/xdsapp.log",
-                )
-
-                self.log.debug(
-                    "=============== XDSAPP ================"
-                    + xdsapp_path.replace(
-                        HWR.beamline.session.get_beamtime_metadata()[2],
-                        "/beamline/p11/current",
-                    )
-                )
-                cmd = (
-                    "/asap3/petra3/gpfs/common/p11/processing/xdsapp_sbatch.sh "
-                    + "{imagepath:s} {processpath:s} {res:f}"
-                ).format(
-                    imagepath=image_dir + "/" + filename,
-                    processpath=xdsapp_path.replace(
-                        HWR.beamline.session.get_beamtime_metadata()[2],
-                        "/beamline/p11/current",
-                    ),
-                    res=resolution,
-                )
-
-                self.log.debug(
-                    '{ssh:s} "{sbatch:s} --wrap \\"{cmd:s}\\""'.format(
-                        ssh=ssh, sbatch=sbatch, cmd=cmd
-                    )
-                )
-
-                os.system(
-                    '{ssh:s} "{sbatch:s} --wrap \\"{cmd:s}\\""'.format(
-                        ssh=ssh, sbatch=sbatch, cmd=cmd
-                    )
-                )
+        self.xdsapp_maxwell()
+        self.autoproc_maxwell()
 
     def diffractometer_prepare_collection(self):
+        """Prepares the diffractometer for data collection.
 
+        Returns:
+            bool: True if the diffractometer is in collect phase, False otherwise.
+        """
         self.log.debug("#COLLECT# preparing collection ")
         if not HWR.beamline.diffractometer.is_collect_phase():
             self.log.debug("#COLLECT# going to collect phase")
@@ -942,68 +1144,15 @@ class P11Collect(AbstractCollect):
 
         return HWR.beamline.diffractometer.is_collect_phase()
 
-    def prepare_std_collection(self, start_angle, img_range):
-        """
-        The function prepares a standard collection by setting the start angle and angle increment in
-        the header of the Eiger detector.
-
-        :param start_angle: The start_angle parameter represents the starting angle of the standard collection
-        sequence. It is used to also set the start angle in the header of the detector.
-        :param img_range: The `img_range` parameter represents the range of angles over which the
-        detector will collect single image. It is used to set the angle increment in the header of the Eiger
-        detector
-        :return: a boolean value of True.
-        """
-        # Add start angle to the header
-        osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
-        start_angle = osc_pars["start"]
-        HWR.beamline.detector.set_eiger_start_angle(start_angle)
-
-        # Add angle increment to the header
-        osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
-        img_range = osc_pars["range"]
-        HWR.beamline.detector.set_eiger_angle_increment(img_range)
-
-    def omega_mv(self, target, speed):
-        """
-        The function sets the velocity of the omega motor, moves the omega motor to a target position,
-        and waits for the movement to complete.
-
-        :param target: The target parameter is the desired position or angle that you want the omega
-        motor to move to.
-        :param speed: The speed parameter is the desired velocity at which the omega motor should move
-        """
-        HWR.beamline.diffractometer.set_omega_velocity(speed)
-        HWR.beamline.diffractometer.move_omega(target)
-        HWR.beamline.diffractometer.wait_omega()
-
-    def prepare_characterization(self):
-        """
-        The function prepares for characterization data collection by setting the start angle and angle
-        increment for the detector.
-        :return: a boolean value of True.
-        """
-        self.log.debug("Preparing for characterization data collection.")
-
-        # Add start angle to the header
-        osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
-        start_angle = osc_pars["start"]
-        HWR.beamline.detector.set_eiger_start_angle(start_angle)
-
-        # Add angle increment to the header
-        osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
-        img_range = osc_pars["range"]
-        HWR.beamline.detector.set_eiger_angle_increment(img_range)
-
     def get_relative_path(self, path1, path2):
-        """
-        The function `get_relative_path` takes two paths as input and returns the relative path from the
-        first path to the second path.
+        """Returns the relative path from path1 to path2.
 
-        :param path1: The `path1` parameter is a string representing the first path. It can be an
-        absolute or relative path to a file or directory
-        :param path2: The `path2` parameter is a string representing a file or directory path
-        :return: the relative path between `path1` and `path2`.
+        Args:
+            path1 (str): First path.
+            path2 (str): Second path.
+
+        Returns:
+            str: The relative path between path1 and path2.
         """
         path_1 = path1.split(os.path.sep)
         path_2 = path2.split(os.path.sep)
@@ -1018,13 +1167,14 @@ class P11Collect(AbstractCollect):
         return os.path.join(*parts)
 
     def base_dir(self, path, what):
-        """
-        The function `base_dir` returns the base directory path of a given file or directory.
+        """Returns the base directory path that contains the specified "what" directory or file.
 
-        :param path: The `path` parameter is a string representing a file path
-        :param what: The "what" parameter is a string that represents the directory or file name that
-        you are searching for within the given path
-        :return: the base directory path that contains the specified "what" directory or file.
+        Args:
+            path (str): The path to a file or directory.
+            what (str): The directory or file name to search for.
+
+        Returns:
+            str: The base directory containing the "what".
         """
         what = what.lstrip(os.path.sep)
 
@@ -1041,27 +1191,21 @@ class P11Collect(AbstractCollect):
         return start_sep + os.path.join(*path_[: i + 1])
 
     def mkdir_with_mode(self, directory, mode):
-        """
-        The function creates a directory with a specified mode if it does not already exist.
+        """Creates a directory with the specified mode.
 
-        :param directory: The "directory" parameter is the path of the directory that you want to
-        create. It can be an absolute path or a relative path
-        :param mode: The "mode" parameter in the above code refers to the permissions that will be set
-        for the newly created directory. It is an optional parameter and can be specified as an octal
-        value
+        Args:
+            directory (str): Path of the directory to create.
+            mode (int): Mode (permissions) to set for the directory.
         """
         if not os.path.isdir(directory):
             oldmask = os.umask(000)
             os.makedirs(directory, mode=mode)
             os.umask(oldmask)
-            # self.checkPath(directory,force=True)
 
             self.log.debug("local directory created")
 
     def create_directories(self, *args):
-        """
-        Descript. :
-        """
+        """Creates directories for raw files and processing files."""
         for directory in args:
             try:
                 self.mkdir_with_mode(directory, mode=0o777)
@@ -1070,21 +1214,14 @@ class P11Collect(AbstractCollect):
                     raise
 
     def check_path(self, path=None, force=False):
-        """
-        The function checks if a given path is valid and accessible, and creates the directories along
-        the path if they don't exist.
+        """Checks if a path is valid and accessible, and creates directories if needed.
 
-        :param path: The `path` parameter is the file path that needs to be checked. It is optional and
-        defaults to `None`
-        :param force: The "force" parameter is a boolean flag that determines whether the function
-        should create the directories in the given path if they do not exist. If "force" is set to True,
-        the function will create the directories. If "force" is set to False, the function will return
-        False if any, defaults to False (optional)
-        :return: the path if it exists and is writable. If the path does not exist and the force
-        parameter is set to True, the function will attempt to create the directory and return the path
-        if successful. If the path does not exist and the force parameter is set to False, the function
-        will print an error message and return False. If the path exists but is not writable, the
-        function
+        Args:
+            path (str, optional): The path to check. Defaults to None.
+            force (bool, optional): Whether to create the directories if they don't exist. Defaults to False.
+
+        Returns:
+            str or bool: The path if valid and accessible, or False if not.
         """
         path = str(path).replace("\\", "/")
         dirs = path.strip("/").split("/")
@@ -1104,21 +1241,45 @@ class P11Collect(AbstractCollect):
                     self.log.debug("dir not found:", str(sys.exc_info()))
                     return False
         if not os.access(path, os.W_OK):
-            self.log.debug("dir not writeable:", str(sys.exc_info()))
+            self.log.debug("dir not writable:", str(sys.exc_info()))
             return False
         return path
 
-    def create_file_directories(self):
-        """
-        Method create directories for raw files and processing files.
-        Directories for xds.input and auto_processing are created
-        """
+    def create_characterisation_directories(self):
+        """Creates directories for raw files and processing files for EDNA and MOSFLM."""
         self.create_directories(
             self.current_dc_parameters["fileinfo"]["directory"],
             self.current_dc_parameters["fileinfo"]["process_directory"],
         )
 
-        """create processing directories and img links"""
+        collection_type = HWR.beamline.collect.current_dc_parameters["experiment_type"]
+        print("************** PREPARING FOLDERS FOR COLLECTION TYPE", collection_type)
+
+        xds_directory, auto_directory = self.prepare_input_files()
+        xds_directory = xds_directory.replace("/rotational_", "/screening_").replace(
+            "/xdsapp", "/edna"
+        )
+        auto_directory = auto_directory.replace("/rotational_", "/screening_").replace(
+            "/xdsapp", "/edna"
+        )
+        try:
+            self.create_directories(xds_directory, auto_directory)
+            os.system("chmod -R 777 %s %s" % (xds_directory, auto_directory))
+        except Exception:
+            logging.exception("Could not create processing file directory")
+            return
+        if xds_directory:
+            self.current_dc_parameters["xds_dir"] = xds_directory
+        if auto_directory:
+            self.current_dc_parameters["auto_dir"] = auto_directory
+
+    def create_file_directories(self):
+        """Creates directories for raw files and processing files."""
+        self.create_directories(
+            self.current_dc_parameters["fileinfo"]["directory"],
+            self.current_dc_parameters["fileinfo"]["process_directory"],
+        )
+
         xds_directory, auto_directory = self.prepare_input_files()
         try:
             self.create_directories(xds_directory, auto_directory)
@@ -1132,10 +1293,11 @@ class P11Collect(AbstractCollect):
             self.current_dc_parameters["auto_dir"] = auto_directory
 
     def prepare_input_files(self):
+        """Prepares directories for processing input files.
+
+        Returns:
+            tuple: Paths for XDS and AutoProc directories.
         """
-        Descript. :
-        """
-        i = 1
         logging.getLogger("user_level_log").info(
             "Creating XDS processing input file directories"
         )
@@ -1162,9 +1324,7 @@ class P11Collect(AbstractCollect):
         return xds_directory, auto_directory
 
     def take_crystal_snapshots(self):
-        """
-        Descript. :
-        """
+        """Takes sample snapshots and saves them to disk."""
         if self.current_dc_parameters["take_snapshots"]:
             snapshot_directory = os.path.join(
                 self.current_dc_parameters["fileinfo"]["directory"], "snapshot"
@@ -1177,7 +1337,7 @@ class P11Collect(AbstractCollect):
                         "Collection: Error creating snapshot directory"
                     )
 
-            number_of_snapshots = 1  # 4
+            number_of_snapshots = self.current_dc_parameters["take_snapshots"]
             logging.getLogger("user_level_log").info(
                 "Collection: Taking %d sample snapshot(s)" % number_of_snapshots
             )

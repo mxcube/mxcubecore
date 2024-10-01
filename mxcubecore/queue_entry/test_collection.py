@@ -10,9 +10,7 @@ from mxcubecore.model.common import (
     StandardCollectionParameters,
 )
 
-from mxcubecore.model.queue_model_objects import (
-    DataCollection,
-)
+from mxcubecore.model.queue_model_objects import DataCollection
 
 __credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3+"
