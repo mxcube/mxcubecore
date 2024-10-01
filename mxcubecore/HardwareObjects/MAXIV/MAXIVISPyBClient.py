@@ -277,7 +277,7 @@ class MAXIVISPyBClient(ISPyBClient):
                         if (
                             proposal["type"].upper() in ["MX", "MB"]
                             and proposal not in proposal_list
-                            and proposal["state"] == "Open"
+                            and proposal.get("state", "Open") == "Open"
                         ):
                             proposal_list.append(proposal)
             except WebFault as e:
