@@ -417,7 +417,7 @@ class BIOMAXXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
                 self.smooth_spec_data = gaussian_filter1d(self.spectrum_data, sigma=5)
 
             if peaks_available:
-                peaks = detect_peaks.detect_peaks(
+                peaks = detect_peaks(
                     self.smooth_spec_data[lowerlim:upperlim],
                     mph=50,
                     mpd=30,
