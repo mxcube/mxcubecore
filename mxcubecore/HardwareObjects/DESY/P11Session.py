@@ -29,7 +29,7 @@ import yaml
 from datetime import date
 from select import EPOLL_CLOEXEC
 from mxcubecore.HardwareObjects.Session import Session
-
+import warnings
 from configparser import ConfigParser
 
 PATH_BEAMTIME = "/gpfs/current"
@@ -58,12 +58,32 @@ class P11Session(Session):
             self.start_time = time.strftime("%Y%m%d")
 
         self.info_set_defaults()
+
+        # Try to locate the metadata file and process it.
+        self.beamtime_metadata_file = self.locate_metadata_file()
+
+        if self.beamtime_metadata_file:
+            (
+                self.beamline,
+                self.beamtime,
+                self.remote_data_dir,
+                self.user_name,
+                self.user_sshkey,
+                self.slurm_reservation,
+                self.slurm_partition,
+                self.slurm_node,
+            ) = self.parse_metadata_file(self.beamtime_metadata_file)
+        else:
+            # Fall back to local paths if no metadata is found
+            self.log.debug("Falling back to local directory for saving data.")
+            self.select_base_directory(
+                "local"
+            )  # Use local paths instead of beamtime data
+
         if self.is_beamtime_open():
             self.read_beamtime_info()
         elif self.is_commissioning_open():
             self.read_commissioning_info()
-
-        self.select_base_directory(self.operation_mode)
 
         self.set_base_data_directories(
             self.base_directory,
@@ -73,18 +93,6 @@ class P11Session(Session):
             process_folder=self.processed_data_folder_name,
             archive_folder=self.default_archive_folder,
         )
-
-        self.beamtime_metadata_file = self.locate_metadata_file()
-        (
-            self.beamline,
-            self.beamtime,
-            self.remote_data_dir,
-            self.user_name,
-            self.user_sshkey,
-            self.slurm_reservation,
-            self.slurm_partition,
-            self.slurm_node,
-        ) = self.parse_metadata_file(self.beamtime_metadata_file)
 
     def info_set_defaults(self):
         self.beamtime_info["beamtimeId"] = None
@@ -227,15 +235,23 @@ class P11Session(Session):
             ]
         except OSError as e:
             print(e)
-            raise FileNotFoundError(
-                "Root directory does not exist: " + str(root_dir)
-            ) from e
+            warnings.warn("Root directory does not exist: " + str(root_dir))
+            return None  # Fall back if the root directory doesn't exist.
+
+        print(f"Scanning directories: {beamtime_dirs}")
+
         metadata_files = []
         for curr_dir in beamtime_dirs + [root_dir]:
             curr_dir_metadata_files = glob.glob("{0}/*metadata*.json".format(curr_dir))
             metadata_files.extend(curr_dir_metadata_files)
+            print(f"Found metadata files in {curr_dir}: {curr_dir_metadata_files}")
+
         if len(metadata_files) != 1:
-            raise FileNotFoundError("Unique metadata JSON file not found")
+            warnings.warn(
+                "Unique metadata JSON file not found. Falling back to /gpfs/local."
+            )
+            return None  # Return None to indicate no metadata file was found.
+
         return metadata_files[0]
 
     def parse_metadata_file(self, metadatafile_path):
