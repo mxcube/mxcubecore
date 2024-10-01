@@ -49,8 +49,8 @@ class P11Collect(AbstractCollect):
     def init(self):
         """Initializes beamline collection parameters like default speed and server names."""
         super().init()
-        self.default_speed = self.get_property("omega_default_speed", 130)
-        self.turnback_time = self.get_property("turnback_time", 0.3)
+        self.default_speed = 120 #self.get_property("omega_default_speed", 130)
+        self.turnback_time = 0.5# self.get_property("turnback_time", 0.3)
         self.filter_server_name = self.get_property("filterserver")
         self.mono_server_name = self.get_property("monoserver")
         self.filter_server = DeviceProxy(self.filter_server_name)
@@ -751,6 +751,8 @@ class P11Collect(AbstractCollect):
             "#COLLECT# Running OMEGA through the characterization acquisition"
         )
 
+        start_angle = int(start_angle)
+
         for img_no in range(nimages):
             self.log.debug("collecting image %s" % img_no)
             start_at = start_angle + angle_inc * img_no
@@ -758,10 +760,37 @@ class P11Collect(AbstractCollect):
 
             self.log.debug("collecting image %s, angle %f" % (img_no, start_at))
 
+            #[WIP]
+            #NB! Another attemt to fix the misfires. 
+            #Keep comments here until finished
+            #Here is the previous implementation:
+            #self.collect_std_collection(start_at, stop_angle)
+            
+            #Here is sligthly modified standard data collection routine
+            #Adjust the angle since each time we are starting with 90 degrees offset.
+            start_pos = start_at - self.turnback_time * self.acq_speed
+            stop_pos = stop_angle + self.turnback_time * self.acq_speed
+
+            self.log.debug("#COLLECT# Running OMEGA through the std acquisition")
+            HWR.beamline.diffractometer.wait_omega_on()
+            HWR.beamline.diffractometer.set_omega_velocity(self.default_speed)
+            time.sleep(1)
+            HWR.beamline.diffractometer.move_omega(start_pos)
+            time.sleep(1)
+            HWR.beamline.diffractometer.wait_omega_on()
+            time.sleep(1)
+            # NB! angles reversed could work???
+            HWR.beamline.diffractometer.set_pso_control_arm(start_angle, stop_angle)
+            time.sleep(3)
+            HWR.beamline.diffractometer.set_omega_velocity(self.acq_speed)
+            time.sleep(1)
+
+            #Arm the detector only once in the beginning. Set to wait 4 triggers. 
             if img_no == 0:
                 HWR.beamline.detector.start_acquisition()
-
-            self.collect_std_collection(start_at, stop_angle)
+                time.sleep(3)
+            
+            HWR.beamline.diffractometer.move_omega(stop_pos)
 
             self.emit("progressStep", int(120 / (nimages) * (img_no + 1)))
 
@@ -795,17 +824,18 @@ class P11Collect(AbstractCollect):
         self.log.debug("#COLLECT# Running OMEGA through the std acquisition")
         HWR.beamline.diffractometer.wait_omega_on()
         HWR.beamline.diffractometer.set_omega_velocity(self.default_speed)
-        time.sleep(0.15)
+        time.sleep(1)
         HWR.beamline.diffractometer.move_omega(start_pos)
-        time.sleep(0.1)
+        time.sleep(1)
         HWR.beamline.diffractometer.wait_omega_on()
-        time.sleep(0.1)
+        time.sleep(1)
         HWR.beamline.diffractometer.set_pso_control_arm(start_angle, stop_angle)
-        time.sleep(0.15)
+        time.sleep(3)
         HWR.beamline.diffractometer.set_omega_velocity(self.acq_speed)
-        time.sleep(0.1)
+        time.sleep(1)
         HWR.beamline.diffractometer.move_omega(stop_pos)
 
+    
     def adxv_notify(self, image_filename, image_num=1):
         """Sends a notification to an ADXV to load an image file and display a specific slab.
 
