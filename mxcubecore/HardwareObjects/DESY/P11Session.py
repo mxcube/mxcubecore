@@ -29,7 +29,6 @@ import yaml
 from datetime import date
 from select import EPOLL_CLOEXEC
 from mxcubecore.HardwareObjects.Session import Session
-import warnings
 from configparser import ConfigParser
 
 PATH_BEAMTIME = "/gpfs/current"
@@ -235,19 +234,21 @@ class P11Session(Session):
             ]
         except OSError as e:
             print(e)
-            warnings.warn("Root directory does not exist: " + str(root_dir))
+            self.log.debug("Root directory does not exist: " + str(root_dir))
             return None  # Fall back if the root directory doesn't exist.
 
-        print(f"Scanning directories: {beamtime_dirs}")
+        self.log.debug(f"Scanning directories: {beamtime_dirs}")
 
         metadata_files = []
         for curr_dir in beamtime_dirs + [root_dir]:
             curr_dir_metadata_files = glob.glob("{0}/*metadata*.json".format(curr_dir))
             metadata_files.extend(curr_dir_metadata_files)
-            print(f"Found metadata files in {curr_dir}: {curr_dir_metadata_files}")
+            self.log.debug(
+                f"Found metadata files in {curr_dir}: {curr_dir_metadata_files}"
+            )
 
         if len(metadata_files) != 1:
-            warnings.warn(
+            self.log.debug(
                 "Unique metadata JSON file not found. Falling back to /gpfs/local."
             )
             return None  # Return None to indicate no metadata file was found.
