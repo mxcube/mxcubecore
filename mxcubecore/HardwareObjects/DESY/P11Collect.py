@@ -1263,7 +1263,7 @@ class P11Collect(AbstractCollect):
         )
 
         collection_type = HWR.beamline.collect.current_dc_parameters["experiment_type"]
-        self.log.debug("PREPARING FOLDERS FOR COLLECTION TYPE", collection_type)
+        self.log.debug("PREPARING FOLDERS FOR COLLECTION TYPE %s", str(collection_type))
 
         xds_directory, auto_directory = self.prepare_input_files()
         xds_directory = xds_directory.replace("/rotational_", "/screening_").replace(
