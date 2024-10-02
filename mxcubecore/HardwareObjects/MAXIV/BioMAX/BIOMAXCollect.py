@@ -1302,7 +1302,7 @@ class BIOMAXCollect(DataCollect):
         self.dozor_hwobj.stop_dozor()
         return
 
-    def stop_collect(self, owner):
+    def stop_collect(self, owner=None):
         """
         Stops data collection
         """
