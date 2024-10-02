@@ -679,13 +679,22 @@ class BIOMAXContinuousScan(AbstractEnergyScan):
         """
         Descript. :
         """
-        logging.getLogger("HWR").debug(
-            "EnergyScan info %r", self.energy_scan_parameters
+        logging.getLogger("HWR").info(
+            "Storing EnergyScan info in ISPYB %r", self.energy_scan_parameters
         )
+
 
         blsampleid = self.energy_scan_parameters.get("blSampleId", None)
         if blsampleid:
             self.energy_scan_parameters.pop("blSampleId")
+
+        # cleaning keys not present in ISPYB API
+        self.energy_scan_parameters.pop("edge", None)
+        self.energy_scan_parameters.pop("directory", None)
+        self.energy_scan_parameters.pop("Es", None)
+        self.energy_scan_parameters.pop("Ef", None)
+        self.energy_scan_parameters.pop("prefix", None)
+
         if HWR.beamline.lims:
             self.energy_scan_parameters["startTime"] = str(
                 self.energy_scan_parameters["startTime"]
@@ -736,7 +745,6 @@ class BIOMAXContinuousScan(AbstractEnergyScan):
         logging.getLogger("HWR").info(
             "Doing Chooch, scan directory %s, prefix  %s" % (scan_directory, prefix)
         )
-        # self.adjust_run_number() may update the prefix, so we use the prefix attribute instead
         archive_file_prefix = str(os.path.join(archive_directory, prefix))
         data_filename = os.path.join(scan_directory, prefix)
         if "h5" not in data_filename:
