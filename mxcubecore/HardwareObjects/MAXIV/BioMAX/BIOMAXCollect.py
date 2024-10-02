@@ -406,8 +406,8 @@ class BIOMAXCollect(DataCollect):
             raise Exception("[COLLECT] Error preparing detector: %s" % ex)
 
         # important this step is after detector configuration, which otherwise would give the wrong count_rate_cutoff
-        if self.current_dc_parameters["experiment_type"] == "Mesh" or self.hve:
-            self.start_spot_finder_dozor()
+        #if self.current_dc_parameters["experiment_type"] == "Mesh" or self.hve:
+        #    self.start_spot_finder_dozor()
 
         # move MD3 to DataCollection phase if it"s not
         if self.diffractometer_hwobj.get_current_phase() != "DataCollection":
@@ -547,14 +547,14 @@ class BIOMAXCollect(DataCollect):
                 self.wait_for_xray_center_result(self.get_current_shape_id())
             elif self.current_dc_parameters["experiment_type"] == "Mesh":
                 shape_id = self.get_current_shape_id()
-                shape = HWR.beamine.sample_view.get_shape(shape_id).as_dict()
+                shape = HWR.beamline.sample_view.get_shape(shape_id).as_dict()
                 num_cols = shape.get("num_cols")
                 num_rows = shape.get("num_rows")
-                if num_cols * num_rows < 10000:
-                    self.user_log.info(
-                        "Images are taken, waiting for Xray Centering Analysis to locate the crystal"
-                    )
-                    self.wait_for_xray_center_result(self.get_current_shape_id())
+                #if num_cols * num_rows < 10000:
+                #    self.user_log.info(
+                #        "Images are taken, waiting for Xray Centering Analysis to locate the crystal"
+                #    )
+                #    self.wait_for_xray_center_result(self.get_current_shape_id())
 
         except RuntimeError as ex:
             self.data_collection_cleanup()
@@ -681,7 +681,7 @@ class BIOMAXCollect(DataCollect):
             # disable stream interface
             # stop spot finding
             self.detector_hwobj.disable_stream()
-            self.stop_spot_finder_dozor()
+            #self.stop_spot_finder_dozor()
 
         self.emit("collectEnded", self.owner, False, failed_msg)
         self.emit("collectReady", (True,))
@@ -715,7 +715,7 @@ class BIOMAXCollect(DataCollect):
             # disable stream interface
             # stop spot finding
             self.detector_hwobj.disable_stream()
-            self.stop_spot_finder_dozor()
+            #self.stop_spot_finder_dozor()
         if self.char:
             # stop char converter
             self.char = False
