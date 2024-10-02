@@ -774,21 +774,14 @@ class P11Collect(AbstractCollect):
             self.log.debug("#COLLECT# Running OMEGA through the std acquisition")
             HWR.beamline.diffractometer.wait_omega_on()
             HWR.beamline.diffractometer.set_omega_velocity(self.default_speed)
-            gevent.sleep(1)
             HWR.beamline.diffractometer.move_omega(start_pos)
-            gevent.sleep(1)
             HWR.beamline.diffractometer.wait_omega_on()
-            gevent.sleep(1)
-            # NB! angles reversed could work???
             HWR.beamline.diffractometer.set_pso_control_arm(start_angle, stop_angle)
-            gevent.sleep(3)
             HWR.beamline.diffractometer.set_omega_velocity(self.acq_speed)
-            gevent.sleep(1)
 
             #Arm the detector only once in the beginning. Set to wait 4 triggers. 
             if img_no == 0:
                 HWR.beamline.detector.start_acquisition()
-                gevent.sleep(3)
             
             
             #NB! Waiting for omega is crucial for the sequence to be properly finished.
