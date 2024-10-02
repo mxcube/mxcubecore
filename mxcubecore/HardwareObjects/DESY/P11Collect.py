@@ -363,10 +363,10 @@ class P11Collect(AbstractCollect):
             if self.is_process_running(process_name) and self.is_process_running(
                 "adxv"
             ):
-                print(f"{process_name} is already running.")
+                self.log.debug(f"{process_name} is already running.")
             else:
                 os.system(f"killall -9 {process_name}")
-                print(f"{process_name} is not running. Starting...")
+                self.log.debug(f"{process_name} is not running. Starting...")
                 self.start_process(command)
 
             if collection_type == "Characterization":
@@ -976,138 +976,148 @@ class P11Collect(AbstractCollect):
 
     def xdsapp_maxwell(self):
         """Starts XDSAPP auto-processing on the Maxwell cluster."""
-        self.log.debug("==== XDSAPP AUTOPROCESSING IS STARTED ==========")
+        
+        if HWR.beamline.session.get_beamtime_metadata() != None:
 
-        resolution = self.get_resolution()
+            self.log.debug("==== XDSAPP AUTOPROCESSING IS STARTED ==========")
 
-        image_dir_local, filename = os.path.split(self.latest_h5_filename)
+            resolution = self.get_resolution()
 
-        image_dir = image_dir_local.replace(
-            "/gpfs/current", HWR.beamline.session.get_beamtime_metadata()[2]
-        )
-        process_dir = image_dir.replace("/raw/", "/processed/")
-        process_dir_local = image_dir_local.replace("/raw/", "/processed/")
-        xdsapp_path = os.path.join(process_dir, "xdsapp")
-        xdsapp_path_local = os.path.join(process_dir_local, "xdsapp")
-        self.log.debug('============XDSAPP======== xdsapp_path="%s"' % xdsapp_path)
-        self.log.debug(
-            '============XDSAPP======== xdsapp_path_local="%s"' % xdsapp_path_local
-        )
+            image_dir_local, filename = os.path.split(self.latest_h5_filename)
 
-        try:
-            self.mkdir_with_mode(xdsapp_path_local, mode=0o777)
-            self.log.debug("=========== XDSAPP ============ XDSAPP directory created")
-
-        except OSError:
-            self.log.debug(sys.exc_info())
-            self.log.debug("Cannot create XDSAPP directory")
-
-        base_process_dir = self.base_dir(process_dir_local, "processed")
-        datasets_file = os.path.join(base_process_dir, "datasets.txt")
-
-        try:
-            open(datasets_file, "a", encoding="utf-8").write(
-                xdsapp_path_local.split("/gpfs/current/processed/")[1] + "\n"
+            image_dir = image_dir_local.replace(
+                "/gpfs/current", HWR.beamline.session.get_beamtime_metadata()[2]
             )
-        except RuntimeError as err_msg:
-            self.log.debug("Cannot write to datasets.txt")
-            self.log.debug(sys.exc_info())
-
-        ssh = HWR.beamline.session.get_ssh_command()
-        sbatch = HWR.beamline.session.get_sbatch_command(
-            jobname_prefix="xdsapp",
-            logfile_path=xdsapp_path.replace(
-                HWR.beamline.session.get_beamtime_metadata()[2], "/beamline/p11/current"
+            process_dir = image_dir.replace("/raw/", "/processed/")
+            process_dir_local = image_dir_local.replace("/raw/", "/processed/")
+            xdsapp_path = os.path.join(process_dir, "xdsapp")
+            xdsapp_path_local = os.path.join(process_dir_local, "xdsapp")
+            self.log.debug('============XDSAPP======== xdsapp_path="%s"' % xdsapp_path)
+            self.log.debug(
+                '============XDSAPP======== xdsapp_path_local="%s"' % xdsapp_path_local
             )
-            + "/xdsapp.log",
-        )
 
-        cmd = (
-            "/asap3/petra3/gpfs/common/p11/processing/xdsapp_sbatch.sh "
-            + "{imagepath:s} {processpath:s} {res:f}"
-        ).format(
-            imagepath=image_dir + "/" + filename,
-            processpath=xdsapp_path.replace(
-                HWR.beamline.session.get_beamtime_metadata()[2], "/beamline/p11/current"
-            ),
-            res=resolution,
-        )
+            try:
+                self.mkdir_with_mode(xdsapp_path_local, mode=0o777)
+                self.log.debug("=========== XDSAPP ============ XDSAPP directory created")
 
-        os.system(
-            '{ssh:s} "{sbatch:s} --wrap \\"{cmd:s}\\""'.format(
-                ssh=ssh, sbatch=sbatch, cmd=cmd
+            except OSError:
+                self.log.debug(sys.exc_info())
+                self.log.debug("Cannot create XDSAPP directory")
+
+            base_process_dir = self.base_dir(process_dir_local, "processed")
+            datasets_file = os.path.join(base_process_dir, "datasets.txt")
+
+            try:
+                open(datasets_file, "a", encoding="utf-8").write(
+                    xdsapp_path_local.split("/gpfs/current/processed/")[1] + "\n"
+                )
+            except RuntimeError as err_msg:
+                self.log.debug("Cannot write to datasets.txt")
+                self.log.debug(sys.exc_info())
+
+            ssh = HWR.beamline.session.get_ssh_command()
+            sbatch = HWR.beamline.session.get_sbatch_command(
+                jobname_prefix="xdsapp",
+                logfile_path=xdsapp_path.replace(
+                    HWR.beamline.session.get_beamtime_metadata()[2], "/beamline/p11/current"
+                )
+                + "/xdsapp.log",
             )
-        )
+
+            cmd = (
+                "/asap3/petra3/gpfs/common/p11/processing/xdsapp_sbatch.sh "
+                + "{imagepath:s} {processpath:s} {res:f}"
+            ).format(
+                imagepath=image_dir + "/" + filename,
+                processpath=xdsapp_path.replace(
+                    HWR.beamline.session.get_beamtime_metadata()[2], "/beamline/p11/current"
+                ),
+                res=resolution,
+            )
+
+            os.system(
+                '{ssh:s} "{sbatch:s} --wrap \\"{cmd:s}\\""'.format(
+                    ssh=ssh, sbatch=sbatch, cmd=cmd
+                )
+            )
+        else:
+            self.log.debug("Beamtime metadata is not found. No online resouces available. Autoprocessing on the cluster is not available.")
 
     def autoproc_maxwell(self):
         """Starts AutoProc auto-processing on the Maxwell cluster."""
-        self.log.debug("==== AUTOPROC AUTOPROCESSING IS STARTED ==========")
+            
+        if HWR.beamline.session.get_beamtime_metadata() != None:
 
-        resolution = self.get_resolution()
+            self.log.debug("==== AUTOPROC AUTOPROCESSING IS STARTED ==========")
 
-        image_dir_local, filename = os.path.split(self.latest_h5_filename)
+            resolution = self.get_resolution()
 
-        image_dir = image_dir_local.replace(
-            "/gpfs/current", HWR.beamline.session.get_beamtime_metadata()[2]
-        )
-        process_dir = image_dir.replace("/raw/", "/processed/")
-        process_dir_local = image_dir_local.replace("/raw/", "/processed/")
-        autoproc_path = os.path.join(process_dir, "autoproc")
-        autoproc_path_local = os.path.join(process_dir_local, "autoproc")
-        self.log.debug(
-            '============AUTOPROC======== autoproc_path="%s"' % autoproc_path
-        )
-        self.log.debug(
-            '============AUTOPROC======== autoproc_path_local="%s"'
-            % autoproc_path_local
-        )
+            image_dir_local, filename = os.path.split(self.latest_h5_filename)
 
-        try:
-            self.mkdir_with_mode(autoproc_path_local, mode=0o777)
+            image_dir = image_dir_local.replace(
+                "/gpfs/current", HWR.beamline.session.get_beamtime_metadata()[2]
+            )
+            process_dir = image_dir.replace("/raw/", "/processed/")
+            process_dir_local = image_dir_local.replace("/raw/", "/processed/")
+            autoproc_path = os.path.join(process_dir, "autoproc")
+            autoproc_path_local = os.path.join(process_dir_local, "autoproc")
             self.log.debug(
-                "=========== AUTOPROC ============ autoproc directory created"
+                '============AUTOPROC======== autoproc_path="%s"' % autoproc_path
+            )
+            self.log.debug(
+                '============AUTOPROC======== autoproc_path_local="%s"'
+                % autoproc_path_local
             )
 
-        except OSError:
-            self.log.debug(sys.exc_info())
-            self.log.debug("Cannot create AUTOPROC directory")
+            try:
+                self.mkdir_with_mode(autoproc_path_local, mode=0o777)
+                self.log.debug(
+                    "=========== AUTOPROC ============ autoproc directory created"
+                )
 
-        base_process_dir = self.base_dir(process_dir_local, "processed")
-        datasets_file = os.path.join(base_process_dir, "datasets.txt")
+            except OSError:
+                self.log.debug(sys.exc_info())
+                self.log.debug("Cannot create AUTOPROC directory")
 
-        try:
-            open(datasets_file, "a", encoding="utf-8").write(
-                autoproc_path_local.split("/gpfs/current/processed/")[1] + "\n"
+            base_process_dir = self.base_dir(process_dir_local, "processed")
+            datasets_file = os.path.join(base_process_dir, "datasets.txt")
+
+            try:
+                open(datasets_file, "a", encoding="utf-8").write(
+                    autoproc_path_local.split("/gpfs/current/processed/")[1] + "\n"
+                )
+            except RuntimeError as err_msg:
+                self.log.debug("Cannot write to datasets.txt")
+                self.log.debug(sys.exc_info())
+
+            ssh = HWR.beamline.session.get_ssh_command()
+            sbatch = HWR.beamline.session.get_sbatch_command(
+                jobname_prefix="autoproc",
+                logfile_path=autoproc_path.replace(
+                    HWR.beamline.session.get_beamtime_metadata()[2], "/beamline/p11/current"
+                )
+                + "/autoproc.log",
             )
-        except RuntimeError as err_msg:
-            self.log.debug("Cannot write to datasets.txt")
-            self.log.debug(sys.exc_info())
 
-        ssh = HWR.beamline.session.get_ssh_command()
-        sbatch = HWR.beamline.session.get_sbatch_command(
-            jobname_prefix="autoproc",
-            logfile_path=autoproc_path.replace(
-                HWR.beamline.session.get_beamtime_metadata()[2], "/beamline/p11/current"
+            cmd = (
+                "/asap3/petra3/gpfs/common/p11/processing/autoproc_sbatch.sh "
+                + "{imagepath:s} {processpath:s}"
+            ).format(
+                imagepath=image_dir + "/" + filename,
+                processpath=autoproc_path.replace(
+                    HWR.beamline.session.get_beamtime_metadata()[2], "/beamline/p11/current"
+                )
+                + "/processing",
             )
-            + "/autoproc.log",
-        )
 
-        cmd = (
-            "/asap3/petra3/gpfs/common/p11/processing/autoproc_sbatch.sh "
-            + "{imagepath:s} {processpath:s}"
-        ).format(
-            imagepath=image_dir + "/" + filename,
-            processpath=autoproc_path.replace(
-                HWR.beamline.session.get_beamtime_metadata()[2], "/beamline/p11/current"
+            os.system(
+                '{ssh:s} "{sbatch:s} --wrap \\"{cmd:s}\\""'.format(
+                    ssh=ssh, sbatch=sbatch, cmd=cmd
+                )
             )
-            + "/processing",
-        )
-
-        os.system(
-            '{ssh:s} "{sbatch:s} --wrap \\"{cmd:s}\\""'.format(
-                ssh=ssh, sbatch=sbatch, cmd=cmd
-            )
-        )
+        else:
+            self.log.debug("Beamtime metadata is not found. No online resouces available. Autoprocessing on the cluster is not available.")
 
     def trigger_auto_processing(self, process_event=None, frame_number=None):
         """Triggers auto processing based on the experiment type.
@@ -1253,7 +1263,7 @@ class P11Collect(AbstractCollect):
         )
 
         collection_type = HWR.beamline.collect.current_dc_parameters["experiment_type"]
-        print("************** PREPARING FOLDERS FOR COLLECTION TYPE", collection_type)
+        self.log.debug("PREPARING FOLDERS FOR COLLECTION TYPE", collection_type)
 
         xds_directory, auto_directory = self.prepare_input_files()
         xds_directory = xds_directory.replace("/rotational_", "/screening_").replace(

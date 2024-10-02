@@ -220,7 +220,7 @@ class P11EigerDetector(AbstractDetector):
     def wait_ready(self, timeout=30):
         with gevent.Timeout(timeout, RuntimeError("timeout waiting detector ready")):
             while self.chan_status.get_value().lower() not in ["ready", "idle"]:
-                gevent.sleep(1)
+                gevent.sleep(2)
 
     def status_changed(self, status):
         self.log.debug("P11EigerDetector - status changed. now is %s" % status)

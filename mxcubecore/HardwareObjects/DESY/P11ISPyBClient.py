@@ -69,6 +69,19 @@ class P11ISPyBClient(ISPyBClient):
         # TODO ISPyB is not ready for now. This prevents from error 500 from the server.
         pass
 
+    def _store_data_collection_group(self, group_data):
+        """ """
+
+        # Workaround to make the data collection work even if ISPyB is not available due to the beamtime is not opened.
+        try:
+            group_id = self._collection.service.storeOrUpdateDataCollectionGroup(
+                group_data
+            )
+        except:
+            group_id = -9999
+
+        return group_id
+
     def prepare_collect_for_lims(self, mx_collect_dict):
         # Attention! directory passed by reference. modified in place
 

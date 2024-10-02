@@ -26,10 +26,12 @@ import time
 import json
 import glob
 import yaml
+import logging
 from datetime import date
 from select import EPOLL_CLOEXEC
 from mxcubecore.HardwareObjects.Session import Session
 from configparser import ConfigParser
+
 
 PATH_BEAMTIME = "/gpfs/current"
 PATH_COMMISSIONING = "/gpfs/commissioning"
@@ -106,8 +108,8 @@ class P11Session(Session):
                 "=========== BEAMTIME IS OPEN (/gpfs/current exists) ============"
             )
         else:
-            self.log.debug(
-                "=========== NO BEMTIME ID IS OPEN (check /gpfs/current) ============"
+            logging.getLogger("GUI").error(
+                "No beamtime ID is open (check /gpfs/current)"
             )
 
         return self.is_writable_dir(
@@ -334,8 +336,15 @@ class P11Session(Session):
         )
 
     def get_beamtime_metadata(self, root_dir="/gpfs"):
-        metadata_file = self.locate_metadata_file(root_dir)
-        return self.parse_metadata_file(metadata_file)
+
+        try:
+            metadata_file = self.locate_metadata_file(root_dir)
+            return self.parse_metadata_file(metadata_file)
+        except:
+            self.log.debug(
+                "Metadata file can not be parsed. Check if beamtime is open."
+            )
+            return None
 
     def get_ssh_command(self):
         ssh_command = "/usr/bin/ssh"
