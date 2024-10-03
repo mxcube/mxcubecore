@@ -264,7 +264,7 @@ def _export_draft_config_file(dest_dir: Path, hwobj):
         objects = result["objects"] = {}
         for role, obj in objects_by_role.items():
             try:
-                objects[role] = "%s.yml" % obj.id
+                objects[role] = "%s.yaml" % obj.id
             except:
                 logging.getLogger("HWR").exception("")
 
@@ -273,7 +273,7 @@ def _export_draft_config_file(dest_dir: Path, hwobj):
         if tag not in objects_by_role:
             config[tag] = val
 
-    write_yaml(result, "%s.yml" % hwobj.id)
+    write_yaml(result, "%s.yaml" % hwobj.id)
 
 
 def _attach_xml_objects(yaml_export_directory: Optional[Path], container, hwobj, role):
