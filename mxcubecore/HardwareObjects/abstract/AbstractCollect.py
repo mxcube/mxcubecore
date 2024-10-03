@@ -223,11 +223,10 @@ class AbstractCollect(HardwareObject, object):
             wavelength = self.current_dc_parameters.get("wavelength")
             energy = self.current_dc_parameters.get("energy")
             detector_distance = self.current_dc_parameters.get("detector_distance")
-            dd0 = self.current_dc_parameters.get("resolution")
-            if dd0 and dd0.get('upper'):
-                resolution = dd0["upper"]
-            else:
-                resolution = None
+            try:
+               resolution = self.current_dc_parameters.get("resolution").get("upper")
+            except AttributeError:
+               resolution = None
 
             if wavelength:
                 # Wavelength (not having a default) overrides energy

@@ -26,6 +26,7 @@ import socket
 import time
 import sys
 import os
+import math
 import logging
 import traceback
 import h5py
@@ -115,7 +116,7 @@ class P11Collect(AbstractCollect):
         Args:
             value (float): Resolution value to set.
         """
-        if round(HWR.beamline.resolution.get_value(), 2) != round(value, 2):
+        if math.isclose(HWR.beamline.resolution.get_value(), value, abs_tol=0.01):
             super().set_resolution(value)
 
     def data_collection_hook(self):
