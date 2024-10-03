@@ -108,7 +108,8 @@ class ActuatorMockup(AbstractActuator.AbstractActuator):
 
     def _callback(self, move_task):
         value = move_task.get()
-        self._set_value(value)
+        if not isinstance(value, gevent.GreenletExit):
+            self._set_value(value)
 
     def _set_value(self, value):
         """
