@@ -46,6 +46,7 @@ from mxcubecore import HardwareRepository as HWR
 # Hacky, but the best solution to making py4j and gevent compatible
 
 import socket
+
 origsocket = sys.modules.pop("socket")
 _origsocket = sys.modules.pop("_socket")
 import socket
@@ -332,7 +333,7 @@ class GphlWorkflowConnection(HardwareObjectYaml):
                 )
 
         for ss0 in command_list:
-            ss0 = ss0.rsplit('=', maxsplit=1)[-1]
+            ss0 = ss0.rsplit("=", maxsplit=1)[-1]
             if ss0.startswith("/") and "*" not in ss0 and not os.path.exists(ss0):
                 logging.getLogger("HWR").warning("File does not exist : %s", ss0)
 
@@ -496,15 +497,19 @@ class GphlWorkflowConnection(HardwareObjectYaml):
 
         if not self.msg_class_imported:
             try:
-                msg_class = self._gateway.jvm.py4j.reflection.ReflectionUtil.classForName(
-                    "co.gphl.sdcp.astra.service.py4j.Py4jMessage"
+                msg_class = (
+                    self._gateway.jvm.py4j.reflection.ReflectionUtil.classForName(
+                        "co.gphl.sdcp.astra.service.py4j.Py4jMessage"
+                    )
                 )
                 java_gateway.java_import(
                     self._gateway.jvm, "co.gphl.sdcp.astra.service.py4j.Py4jMessage"
                 )
             except Py4JJavaError:
-                msg_class = self._gateway.jvm.py4j.reflection.ReflectionUtil.classForName(
-                    "co.gphl.sdcp.py4j.Py4jMessage"
+                msg_class = (
+                    self._gateway.jvm.py4j.reflection.ReflectionUtil.classForName(
+                        "co.gphl.sdcp.py4j.Py4jMessage"
+                    )
                 )
                 java_gateway.java_import(
                     self._gateway.jvm, "co.gphl.sdcp.py4j.Py4jMessage"
@@ -1061,12 +1066,8 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         scanIdMap = {}
         for item in collectionDone.scanIdMap.items():
             scanIdMap[
-                jvm.java.util.UUID.fromString(
-                    conversion.text_type(item[0])
-                )
-            ] = jvm.java.util.UUID.fromString(
-                conversion.text_type(item[1])
-            )
+                jvm.java.util.UUID.fromString(conversion.text_type(item[0]))
+            ] = jvm.java.util.UUID.fromString(conversion.text_type(item[1]))
         return jvm.astra.messagebus.messages.information.CollectionDoneImpl(
             proposalId,
             collectionDone.status,

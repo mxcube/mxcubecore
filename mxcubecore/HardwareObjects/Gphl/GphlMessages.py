@@ -342,7 +342,7 @@ class ChooseLattice(Payload):
         self._indexingHeader = indexingHeader
         self._priorCrystalClasses = priorCrystalClasses or ()
         self._priorSpaceGroup = priorSpaceGroup
-        self._priorSpaceGroupString= priorSpaceGroupString
+        self._priorSpaceGroupString = priorSpaceGroupString
         self._userProvidedCell = userProvidedCell
 
     @property
