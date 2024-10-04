@@ -48,6 +48,7 @@ TRANS_HOME= %s, %s, %s
 TRANS_CROSS_SEC_OF_SOC=%s, %s, %s
 /"""
 
+
 def get_recen_data(transcal_file, instrumentation_file, diffractcal_file=None, **kwds):
     """Read recentring data from GPhL files
 
@@ -57,8 +58,7 @@ def get_recen_data(transcal_file, instrumentation_file, diffractcal_file=None, *
         diffractcal_file: diffrqctcal,.nl ioptional input file
 
     Returns: dict
-
-"""
+    """
     result = {}
 
     if not (os.path.isfile(transcal_file) and os.path.isfile(instrumentation_file)):
@@ -88,6 +88,7 @@ def get_recen_data(transcal_file, instrumentation_file, diffractcal_file=None, *
     #
     return result
 
+
 def make_minikappa_data(
     home,
     cross_sec_of_soc,
@@ -116,7 +117,7 @@ def make_minikappa_data(
     # In recen and transcal files, they are with motor axes in *columns*
     # The distinction is a transpose, equivalent to changing multiplication order
     transform = np.matrix(gonio_centring_axes)
-    transform.shape = (3,3)
+    transform.shape = (3, 3)
     omega = np.array(omega_axis)
     trans_1 = np.array(gonio_centring_axes[:3])
     if abs(omega.dot(trans_1)) < 0.99:
@@ -132,11 +133,9 @@ def make_minikappa_data(
     kappa_axis = np.dot(transform, np.array(kappa_axis)).tolist()[0]
     phi_axis = np.dot(transform, np.array(phi_axis)).tolist()[0]
 
-
     # Shuffle axes to sampx, sampy, phiy order
     indices = list(
-        gonio_centring_axis_names.index(tag)
-        for tag in ("sampx", "sampy", "phiy")
+        gonio_centring_axis_names.index(tag) for tag in ("sampx", "sampy", "phiy")
     )
     kappa_axis = list(kappa_axis[idx] for idx in indices)
     phi_axis = list(phi_axis[idx] for idx in indices)
@@ -153,9 +152,8 @@ def make_minikappa_data(
         "phi_position": phi_position,
     }
 
-def make_home_data(
-    centring_axes, axis_names, kappadir, kappapos, phidir, phipos
-):
+
+def make_home_data(centring_axes, axis_names, kappadir, kappapos, phidir, phipos):
     """Convert in the oppoosite direction *from* minikappa configuration *to* transcal
 
     Args:
@@ -176,13 +174,11 @@ def make_home_data(
     phipos = np.array(phipos)
     aval = kappadir.dot(phidir)
     bvec = phipos - kappapos
-    kappahome = (
-        kappapos + (aval * bvec.dot(phidir) - bvec.dot(kappadir)) * kappadir
-        / (aval * aval - 1)
+    kappahome = kappapos + (aval * bvec.dot(phidir) - bvec.dot(kappadir)) * kappadir / (
+        aval * aval - 1
     )
-    phihome = (
-        phipos - (aval * bvec.dot(kappadir) - bvec.dot(phidir)) * phidir
-        / (aval * aval - 1)
+    phihome = phipos - (aval * bvec.dot(kappadir) - bvec.dot(phidir)) * phidir / (
+        aval * aval - 1
     )
     home_position = 0.5 * (kappahome + phihome)
     # # (http://confluence.globalphasing.com/display/SDCP/EMBL+MiniKappaCorrection)
@@ -196,9 +192,10 @@ def make_home_data(
 
     # Transform cross_sec_of_soc to lab coordinate system
     transform = np.matrix(centring_axes)
-    transform.shape = (3,3)
+    transform.shape = (3, 3)
     cross_sec_of_soc = np.dot(np.array(cross_sec_of_soc), transform).tolist()[0]
     return home_position, cross_sec_of_soc
+
 
 def convert_to_gphl(instrumentation_file, minikappa_config, **kwds):
 
@@ -217,6 +214,7 @@ def convert_to_gphl(instrumentation_file, minikappa_config, **kwds):
     )
     return home_position, cross_sec_of_soc
 
+
 def get_minikappa_data(configfile):
     root = ET.fromstring(open(configfile).read())
     result = []
@@ -225,6 +223,7 @@ def get_minikappa_data(configfile):
         for field in ("direction", "position"):
             result.append(ast.literal_eval(elem.findtext(field)))
     return result
+
 
 if __name__ == "__main__":
 
@@ -245,13 +244,16 @@ instrumentation.nml file, and preferably an up-to-date diffractcal.nml file.
 
 Starting from the minikappa correction you need an instrumentation.nml file and
 a minikappa-correction-xml file
-        """
+        """,
     )
 
     default = "minikappa"
     parser.add_argument(
         "--source",
-        choices=["minikappa", "gphl", ],
+        choices=[
+            "minikappa",
+            "gphl",
+        ],
         default=default,
         help="Type of input data to convert.\n",
     )
@@ -272,7 +274,9 @@ a minikappa-correction-xml file
     )
 
     parser.add_argument(
-        "--minikappa_config", metavar="minikappa_config", help="minikappa-correction.xmll file\n"
+        "--minikappa_config",
+        metavar="minikappa_config",
+        help="minikappa-correction.xmll file\n",
     )
 
     argsobj = parser.parse_args()
@@ -284,4 +288,4 @@ a minikappa-correction-xml file
         print(minikappa_xml_template % minikappa_data)
     else:
         home, csoc = convert_to_gphl(**options_dict)
-        print (transcal_nml_template % tuple(home + csoc))
+        print(transcal_nml_template % tuple(home + csoc))

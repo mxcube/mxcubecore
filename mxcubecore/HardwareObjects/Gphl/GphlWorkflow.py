@@ -328,9 +328,9 @@ class GphlWorkflow(HardwareObjectYaml):
             point_group = point_groups[-1]
             lattice_tags = alternative_lattices[lattice]
             if space_group:
-                crystal_class = (
-                    crystal_symmetry.SPACEGROUP_MAP[space_group].crystal_class
-                )
+                crystal_class = crystal_symmetry.SPACEGROUP_MAP[
+                    space_group
+                ].crystal_class
                 info = crystal_symmetry.CRYSTAL_CLASS_MAP[crystal_class]
                 if info.bravais_lattice == lattice:
                     point_group = info.point_group
@@ -478,7 +478,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 strategies = list(
                     strategy_settings["options"].get("strategy", "") + variant
                     for variant in strategies
-                 )
+                )
             fields["strategy"]["default"] = strategies[0]
             fields["strategy"]["title"] = "Acquisition strategy"
             fields["strategy"]["enum"] = strategies
@@ -521,10 +521,14 @@ class GphlWorkflow(HardwareObjectYaml):
                 fields[tag]["default"] = val
         else:
             for tag in (
-                "cell_a", "cell_b", "cell_c", "cell_alpha", "cell_beta", "cell_gamma"
+                "cell_a",
+                "cell_b",
+                "cell_c",
+                "cell_alpha",
+                "cell_beta",
+                "cell_gamma",
             ):
                 fields[tag]["default"] = 0
-
 
         # NB update_on_change supports None, "always", and "selected"
         # It controls whether an update signal is sent when a parameter changes
@@ -758,12 +762,9 @@ class GphlWorkflow(HardwareObjectYaml):
                 if os.path.isfile(os.path.join(spotdir, "SPOT.XDS")):
                     params["init_spot_dir"] = spotdir
                 else:
-                    raise ValueError(
-                        "no file SPOT.XDS in %s" % spotdir)
+                    raise ValueError("no file SPOT.XDS in %s" % spotdir)
             else:
-                raise ValueError(
-                    "use_preset_spotdir was set for non-emulation sample"
-                )
+                raise ValueError("use_preset_spotdir was set for non-emulation sample")
 
         cell_tags = (
             "cell_a",
@@ -809,7 +810,6 @@ class GphlWorkflow(HardwareObjectYaml):
             HWR.beamline.gphl_connection.software_paths["GPHL_WDIR"], "recen.nml"
         )
 
-
         dispatcher.connect(
             self.handle_collection_start,
             "collectOscillationStarted",
@@ -842,7 +842,9 @@ class GphlWorkflow(HardwareObjectYaml):
                     )
                     break
                 elif message_type != "String":
-                    logging.getLogger("HWR").info("GΦL queue processing %s", message_type)
+                    logging.getLogger("HWR").info(
+                        "GΦL queue processing %s", message_type
+                    )
                     response = func(payload, correlation_id)
                     if result_list is not None:
                         result_list.append((response, correlation_id))
@@ -857,7 +859,6 @@ class GphlWorkflow(HardwareObjectYaml):
                 "collectOscillationFinished",
                 HWR.beamline.collect,
             )
-
 
     def post_execute(self):
         """
@@ -978,7 +979,8 @@ class GphlWorkflow(HardwareObjectYaml):
             )
             info_title = "--- %s ---" % title_string
             lines = [
-                "Strategy '%s', for symmetry '%s'\n" % (
+                "Strategy '%s', for symmetry '%s'\n"
+                % (
                     # title_string,
                     data_model.strategy_variant or data_model.strategy_name,
                     ptgrp,
@@ -1111,7 +1113,7 @@ class GphlWorkflow(HardwareObjectYaml):
             "title": "Oscillation range",
             "type": "string",
             "default": str(default_image_width),
-            "enum": list(str(val) for val in allowed_widths)
+            "enum": list(str(val) for val in allowed_widths),
         }
         fields["exposure_time"] = {
             "title": "Exposure Time (s)",
@@ -1191,7 +1193,7 @@ class GphlWorkflow(HardwareObjectYaml):
             "title": "Number of snapshots",
             "type": "string",
             "default": str(data_model.snapshot_count),
-            "enum": ["0", "1", "2", "4"]
+            "enum": ["0", "1", "2", "4"],
         }
 
         # recentring mode:
@@ -1413,9 +1415,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 allowed_widths[geometric_strategy.defaultWidthIdx or 0]
             )
         else:
-            default_image_width = list(
-                self.settings.get("default_image_widths")
-            )[0]
+            default_image_width = list(self.settings.get("default_image_widths"))[0]
 
         # get parameters and initial transmission/use_dose
         if gphl_workflow_model.automation_mode:
@@ -1433,7 +1433,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 transmission = HWR.beamline.transmission.get_value()
                 if not parameters.get("transmission"):
                     parameters["transmission"] = transmission
-                if not(
+                if not (
                     parameters.get("exposure_time") and parameters.get("image_width")
                 ):
                     raise ValueError(
@@ -1443,9 +1443,12 @@ class GphlWorkflow(HardwareObjectYaml):
             else:
                 image_width = parameters.setdefault("image_width", default_image_width)
                 transmission = parameters.get("transmission")
-                maximum_dose = gphl_workflow_model.calc_maximum_dose(
-                    image_width=image_width,
-                ) or 0
+                maximum_dose = (
+                    gphl_workflow_model.calc_maximum_dose(
+                        image_width=image_width,
+                    )
+                    or 0
+                )
                 if transmission:
                     new_dose = maximum_dose * transmission / 100
                 elif maximum_dose:
@@ -1467,9 +1470,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 else:
                     # We should not be here, but if we cannot calculate flux, ...
                     new_dose = 0
-                    parameters["transmission"] = (
-                        HWR.beamline.transmission.get_value()
-                    )
+                    parameters["transmission"] = HWR.beamline.transmission.get_value()
         else:
             # set gphl_workflow_model.transmission (initial value for interactive mode)
             use_dose = gphl_workflow_model.recommended_dose_budget()
@@ -1526,7 +1527,7 @@ class GphlWorkflow(HardwareObjectYaml):
         new_resolution = parameters.pop("resolution", initial_resolution)
         if (
             new_resolution != initial_resolution
-            and not  parameters.get("init_spot_dir")
+            and not parameters.get("init_spot_dir")
             and not gphl_workflow_model.characterisation_done
         ):
             logging.getLogger("GUI").info(
@@ -1729,8 +1730,8 @@ class GphlWorkflow(HardwareObjectYaml):
             if recentring_mode == "start":
                 q_e = self.enqueue_sample_centring(motor_settings=settings)
                 logging.getLogger("HWR").debug(
-                    "GPHL recenter at : " +
-                    ", ".join("%s:%s" % item for item in sorted(settings.items()))
+                    "GPHL recenter at : "
+                    + ", ".join("%s:%s" % item for item in sorted(settings.items()))
                 )
                 translation, dummy = self.execute_sample_centring(q_e, sweepSetting)
                 goniostatTranslations.append(translation)
@@ -1744,8 +1745,8 @@ class GphlWorkflow(HardwareObjectYaml):
                     rotation=sweepSetting, **settings
                 )
                 logging.getLogger("HWR").debug(
-                    "GPHL calculate recentring: " +
-                    ", ".join("%s:%s" % item for item in sorted(settings.items()))
+                    "GPHL calculate recentring: "
+                    + ", ".join("%s:%s" % item for item in sorted(settings.items()))
                 )
                 goniostatTranslations.append(translation)
         #
@@ -1978,7 +1979,7 @@ class GphlWorkflow(HardwareObjectYaml):
             key = (
                 path_template.base_prefix,
                 path_template.run_number,
-                path_template.start_num
+                path_template.start_num,
             )
             self._key_to_scan[key] = scan
 
@@ -1987,7 +1988,8 @@ class GphlWorkflow(HardwareObjectYaml):
             rotation_id = orientation_id = goniostatRotation.id_
             initial_settings = sweep.get_initial_settings()
             orientation = (
-                initial_settings.get("kappa"), initial_settings.get( "kappa_phi")
+                initial_settings.get("kappa"),
+                initial_settings.get("kappa_phi"),
             )
             if last_orientation:
                 maxdev = max(
@@ -2032,7 +2034,6 @@ class GphlWorkflow(HardwareObjectYaml):
                 snapshotted_rotation_ids.add(rotation_id)
                 acq_parameters.take_snapshots = snapshot_count
             gphl_workflow_model.current_rotation_id = rotation_id
-
 
             if repeat_count and sweep_offset and self.settings.get("use_multitrigger"):
                 # Multitrigger sweep - add in parameters.
@@ -2152,10 +2153,8 @@ class GphlWorkflow(HardwareObjectYaml):
                     crystal_classes = ()
                     space_group = ""
             if not crystal_classes:
-                crystal_classes = (
-                    crystal_symmetry.crystal_classes_from_params(
-                        lattices=(bravais_lattice)
-                    )
+                crystal_classes = crystal_symmetry.crystal_classes_from_params(
+                    lattices=(bravais_lattice)
                 )
             params["space_group"] = space_group
             params["crystal_classes"] = crystal_classes
@@ -2402,7 +2401,8 @@ class GphlWorkflow(HardwareObjectYaml):
                     if not responses:
                         self._return_parameters.set_exception(
                             RuntimeError(
-                                "Signal %s is not connected" % self.PARAMETERS_NEEDED)
+                                "Signal %s is not connected" % self.PARAMETERS_NEEDED
+                            )
                         )
 
                     result = self._return_parameters.get()
@@ -2558,16 +2558,15 @@ class GphlWorkflow(HardwareObjectYaml):
         #
         return priorInformation
 
-
     def handle_collection_end(
         self, dummy1, dummy2, dummy3, dummy4, dummy5, collect_dict
     ):
-        """ Read and process collectOscillationFinished signal
+        """Read and process collectOscillationFinished signal
         which means scan finished successfully"""
         key = (
             collect_dict["fileinfo"].get("prefix"),
             collect_dict["fileinfo"].get("run_number"),
-            collect_dict["oscillation_sequence"][0].get("start_image_number")
+            collect_dict["oscillation_sequence"][0].get("start_image_number"),
         )
         scan = self._key_to_scan.pop(key, None)
         if scan is None:
@@ -2575,17 +2574,18 @@ class GphlWorkflow(HardwareObjectYaml):
                 "No scan matching prefix: %s, run_number: %s, start_image_number: %s at end"
                 % key
             )
+
     def handle_collection_start(
         self, owner, blsampleid, barcode, location, collect_dict, osc_id
     ):
-        """ Read and process collectOscillationStarted signal
+        """Read and process collectOscillationStarted signal
         Used to set actual centring positions
 
         NB only collect_dict is reliably non-null"""
         key = (
             collect_dict["fileinfo"].get("prefix"),
             collect_dict["fileinfo"].get("run_number"),
-            collect_dict["oscillation_sequence"][0].get("start_image_number")
+            collect_dict["oscillation_sequence"][0].get("start_image_number"),
         )
         scan = self._key_to_scan.get(key)
         if scan is None:
@@ -2621,8 +2621,6 @@ class GphlWorkflow(HardwareObjectYaml):
             self._latest_translation_id = translation.id_
             self._scan_id_to_translation_id[scan.id_] = translation.id_
             self._recentrings.append(translation)
-
-
 
     # Utility functions
 
@@ -2678,7 +2676,6 @@ class GphlWorkflow(HardwareObjectYaml):
                     * 1.0e-6  # convert to MGy
                 )
         return 0
-
 
     def get_emulation_samples(self):
         """Get list of lims_sample information dictionaries for mock/emulation
@@ -2759,7 +2756,6 @@ class GphlWorkflow(HardwareObjectYaml):
         #
         return result
 
-
     def get_emulation_sample_dir(self, sample_name=None):
         """If sample is a test data set for emulation, get test data directory
         Args:
@@ -2775,7 +2771,7 @@ class GphlWorkflow(HardwareObjectYaml):
             )
         if sample_name:
             if sample_name.startswith(self.TEST_SAMPLE_PREFIX):
-                sample_name = sample_name[len(self.TEST_SAMPLE_PREFIX)+1:]
+                sample_name = sample_name[len(self.TEST_SAMPLE_PREFIX) + 1 :]
             sample_dir = HWR.beamline.gphl_connection.software_paths.get(
                 "gphl_test_samples"
             )
@@ -2865,8 +2861,7 @@ class GphlWorkflow(HardwareObjectYaml):
         else:
             self._return_parameters.set_exception(
                 ValueError(
-                    "Illegal return instruction %s for Ok/Cancel query"
-                    % instruction
+                    "Illegal return instruction %s for Ok/Cancel query" % instruction
                 )
             )
 
@@ -2924,8 +2919,14 @@ class GphlWorkflow(HardwareObjectYaml):
             sgoptions = [""] + crystal_symmetry.space_groups_from_params()
             sgvalue = space_group
         result = {
-            "point_groups": {"value": pgvalue, "enum": pglist,},
-            "space_group": {"value": sgvalue, "enum": sgoptions,},
+            "point_groups": {
+                "value": pgvalue,
+                "enum": pglist,
+            },
+            "space_group": {
+                "value": sgvalue,
+                "enum": sgoptions,
+            },
         }
         #
         return result
@@ -2980,7 +2981,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 result = self.update_lattice(values1)
                 result["lattice"] = {
                     "value": lattice,
-                    "enum":alternative_lattices[lattice],
+                    "enum": alternative_lattices[lattice],
                 }
                 break
         else:
@@ -3062,10 +3063,18 @@ class GphlWorkflow(HardwareObjectYaml):
                         exposure_time=new_exposure_time, image_width=image_width
                     )
                     result = {
-                        "exposure_time": {"value": new_exposure_time,},
-                        "transmission": {"value": new_transmission,},
-                        "use_dose": {"value": use_dose,},
-                        "experiment_time": {"value": new_experiment_time,},
+                        "exposure_time": {
+                            "value": new_exposure_time,
+                        },
+                        "transmission": {
+                            "value": new_transmission,
+                        },
+                        "use_dose": {
+                            "value": use_dose,
+                        },
+                        "experiment_time": {
+                            "value": new_experiment_time,
+                        },
                     }
                 elif new_transmission < transmission:
                     # Try reducing exposure_time time instead
@@ -3080,11 +3089,11 @@ class GphlWorkflow(HardwareObjectYaml):
                         )
                         new_exposure_time = min_exposure
                     result = {
-                        "transmission": {"value":new_transmission},
-                        "exposure_time": {"value":new_exposure_time},
+                        "transmission": {"value": new_transmission},
+                        "exposure_time": {"value": new_exposure_time},
                     }
                 else:
-                    result = {"transmission": {"value":new_transmission}}
+                    result = {"transmission": {"value": new_transmission}}
                 if (
                     use_dose
                     and dose_budget
