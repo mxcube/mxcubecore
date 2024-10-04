@@ -2112,13 +2112,15 @@ class GphlWorkflow(TaskNode):
         from mxcubecore.HardwareObjects.Gphl import GphlMessages
 
         if space_group:
-            if space_group in crystal_symmetry.SPACEGROUP_MAP:
-                self.space_group = space_group
-            else:
+            sginfo = crystal_symmetry.SPACEGROUP_MAP.get(space_group)
+            if sginfo is None:
                 raise ValueError(
                     "Invalid space group %s, not in crystal_symmetry.SPACEGROUP_MAP"
                     % space_group
                 )
+            else:
+                space_group = sginfo.name
+                self.space_group = space_group
         else:
             space_group = self.space_group
         if crystal_classes:
