@@ -2919,14 +2919,8 @@ class GphlWorkflow(HardwareObjectYaml):
             sgoptions = [""] + crystal_symmetry.space_groups_from_params()
             sgvalue = space_group
         result = {
-            "point_groups": {
-                "value": pgvalue,
-                "enum": pglist,
-            },
-            "space_group": {
-                "value": sgvalue,
-                "enum": sgoptions,
-            },
+            "point_groups": {"value": pgvalue, "enum": pglist},
+            "space_group": {"value": sgvalue, "enum": sgoptions},
         }
         #
         return result
@@ -3063,18 +3057,10 @@ class GphlWorkflow(HardwareObjectYaml):
                         exposure_time=new_exposure_time, image_width=image_width
                     )
                     result = {
-                        "exposure_time": {
-                            "value": new_exposure_time,
-                        },
-                        "transmission": {
-                            "value": new_transmission,
-                        },
-                        "use_dose": {
-                            "value": use_dose,
-                        },
-                        "experiment_time": {
-                            "value": new_experiment_time,
-                        },
+                        "exposure_time": {"value": new_exposure_time},
+                        "transmission": {"value": new_transmission},
+                        "use_dose": {"value": use_dose},
+                        "experiment_time": {"value": new_experiment_time},
                     }
                 elif new_transmission < transmission:
                     # Try reducing exposure_time time instead

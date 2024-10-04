@@ -250,10 +250,7 @@ a minikappa-correction-xml file
     default = "minikappa"
     parser.add_argument(
         "--source",
-        choices=[
-            "minikappa",
-            "gphl",
-        ],
+        choices=["minikappa", "gphl"],
         default=default,
         help="Type of input data to convert.\n",
     )
