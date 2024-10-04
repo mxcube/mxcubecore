@@ -46,6 +46,7 @@ class AbstractResolution(AbstractMotor):
     def __init__(self, name):
         super().__init__(name)
         self._hwr_detector = None
+        self._is_stopping = False
 
     def init(self):
         """Initialisation"""
@@ -233,4 +234,5 @@ class AbstractResolution(AbstractMotor):
 
     def stop(self):
         """Stop the distance motor movement"""
+        self._is_stopping = True
         self._hwr_detector.distance.stop()

@@ -52,4 +52,6 @@ class Resolution(AbstractResolution):
         # the better the precision.
         # We move twice to get the closet possible to the requested resolution.
         super().set_value(value, timeout)
-        super().set_value(value, timeout)
+        if not self._is_stopping:
+            super().set_value(value, timeout)
+        self._is_stopping = False
