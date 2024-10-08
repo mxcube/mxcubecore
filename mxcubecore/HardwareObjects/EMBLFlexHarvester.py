@@ -31,7 +31,7 @@ import gevent
 
 from mxcubecore.TaskUtils import task
 
-from mxcubecore.HardwareObjects import EMBLFlexHCD
+from mxcubecore.HardwareObjects.EMBLFlexHCD import EMBLFlexHCD
 
 
 class EMBLFlexHarvester(EMBLFlexHCD):

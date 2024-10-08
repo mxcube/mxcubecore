@@ -192,7 +192,6 @@ class Harvester(HardwareObject):
             if cmd.startswith("set"):
                 ret = exp_attr.set_value(args_str)
 
-        self._wait_ready(timeout=timeout)
         return ret
 
     # ---------------------- State --------------------------------

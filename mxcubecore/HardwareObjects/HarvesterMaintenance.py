@@ -210,7 +210,7 @@ class HarvesterMaintenance(HardwareObject):
                 md.centringVertical.set_value_relative(sample_drift_y, None)
 
                 md.save_current_motor_position()
-                self._harvester.calibration_state(True)
+                self._harvester.set_calibration_state(True)
 
                 logging.getLogger("user_level_log").info(
                     "Pin Calibration Step 1 Succeed"
