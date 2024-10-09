@@ -432,6 +432,7 @@ def center(
     n_points,
     phi_range=180,
 ):
+    logging.getLogger("HWR").debug("get in click() in sample_centring")
     global USER_CLICKED_EVENT
     X, Y, phi_positions = [], [], []
 
@@ -452,6 +453,7 @@ def center(
                 phi.set_value_relative(phi.direction * phi_angle, timeout=10)
             READY_FOR_NEXT_POINT.set()
             i += 1
+            logging.getLogger("HWR").debug("wait for user's %sth clicked ",i)
     except Exception:
         logging.exception("Exception while centring")
         move_motors(SAVED_INITIAL_POSITIONS)
@@ -496,7 +498,7 @@ def center(
             else phiy.reference_position,
         }
     )
-
+    logging.getLogger("HWR").debug("get out from click() in sample_centring")
     return centred_pos
 
 
