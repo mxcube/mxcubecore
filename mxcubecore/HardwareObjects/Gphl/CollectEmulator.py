@@ -44,9 +44,6 @@ class CollectEmulator(CollectMockup):
     def __init__(self, name):
         CollectMockup.__init__(self, name)
 
-        self.instrument_data = None
-        self.segments = None
-
         self._counter = 1
 
     # def init(self):
@@ -64,32 +61,12 @@ class CollectEmulator(CollectMockup):
         # Set up and add crystal data
         result = OrderedDict()
         setup_data = result["setup_list"] = crystal_data
-
-        if self.instrument_data is None:
-            # Read instrumentation.nml and put data into mock objects
-            # NB if we are here we must be in mock mode.
-            #
-            # update with instrument data
-            # You cannot do this at init time,
-            # as GPhL_wporkflow is not yet inittialised then.
-            fp0 = HWR.beamline.gphl_workflow.file_paths.get("instrumentation_file")
-            instrument_input = f90nml.read(fp0)
-
-            self.instrument_data = instrument_input["sdcp_instrument_list"]
-            self.segments = instrument_input.get("segment_list")
+        instrument_data = HWR.beamline.gphl_workflow.instrument_data
 
         #
         # # update with instrument data
         #
-
         sweep_count = len(data_collect_parameters["oscillation_sequence"])
-
-        # Move beamstop settings to top level
-        ll0 = self.instrument_data.get("beamstop_param_names")
-        ll1 = self.instrument_data.get("beamstop_param_vals")
-        if ll0 and ll1:
-            for tag, val in zip(ll0, ll1):
-                self.instrument_data[tag.lower()] = val
 
         # Setting parameters in order (may not be necessary, but ...)
         # Missing: *mu*
@@ -118,7 +95,7 @@ class CollectEmulator(CollectMockup):
             "det_coord_def",
         )
         for tag in tags:
-            val = self.instrument_data.get(remap.get(tag, tag))
+            val = instrument_data.get(remap.get(tag, tag))
             if val is not None:
                 setup_data[tag] = val
 
@@ -127,14 +104,14 @@ class CollectEmulator(CollectMockup):
             setup_data["det_org_y"],
         ) = HWR.beamline.detector.get_beam_position()
 
-        ll0 = self.instrument_data["gonio_axis_dirs"]
-        setup_data["omega_axis"] = ll0[:3]
-        setup_data["kappa_axis"] = ll0[3:6]
-        setup_data["phi_axis"] = ll0[6:]
-        ll0 = self.instrument_data["gonio_centring_axis_dirs"]
-        setup_data["trans_x_axis"] = ll0[:3]
-        setup_data["trans_y_axis"] = ll0[3:6]
-        setup_data["trans_z_axis"] = ll0[6:]
+        ll0 = list(HWR.beamline.gphl_workflow.rotation_axes.values())
+        setup_data["omega_axis"] = ll0[0]
+        setup_data["kappa_axis"] = ll0[1]
+        setup_data["phi_axis"] = ll0[2]
+        ll0 = list(HWR.beamline.gphl_workflow.translation_axes.values())
+        setup_data["trans_x_axis"] = ll0[0]
+        setup_data["trans_y_axis"] = ll0[1]
+        setup_data["trans_z_axis"] = ll0[2]
         tags = (
             "cone_radius",
             "cone_s_height",
@@ -143,7 +120,7 @@ class CollectEmulator(CollectMockup):
             "beam_stop_s_distance",
         )
         for tag in tags:
-            val = self.instrument_data.get(remap.get(tag, tag))
+            val = instrument_data.get(remap.get(tag, tag))
             if val is not None:
                 setup_data[tag] = val
 
@@ -158,16 +135,17 @@ class CollectEmulator(CollectMockup):
         setup_data["n_sweeps"] = sweep_count
 
         # Add segments
-        if self.segments:
-            if isinstance(self.segments, dict):
+        segments = HWR.beamline.gphl_workflow.detector_segments
+        if segments:
+            if isinstance(segments, dict):
                 segment_count = 1
             else:
-                segment_count = len(self.segments)
+                segment_count = len(segments)
             setup_data["n_segments"] = segment_count
-            result["segment_list"] = self.segments
+            result["segment_list"] = segments
 
         # Adjustments
-        val = self.instrument_data.get("beam")
+        val = instrument_data.get("beam")
         if val:
             setup_data["beam"] = val
 
@@ -208,7 +186,7 @@ class CollectEmulator(CollectMockup):
             sweep["lambda"] = conversion.HC_OVER_E / energy
             sweep["res_limit"] = setup_data["res_limit_def"]
             sweep["exposure"] = osc["exposure_time"]
-            ll0 = HWR.beamline.gphl_workflow.translation_axis_roles
+            ll0 = list(HWR.beamline.gphl_workflow.translation_axes)
             sweep["trans_xyz"] = list(motors.get(x) or 0.0 for x in ll0)
             sweep["det_coord"] = detector_distance
             # NBNB hardwired for omega scan TODO
