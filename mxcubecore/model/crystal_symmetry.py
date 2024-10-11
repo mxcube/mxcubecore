@@ -210,13 +210,13 @@ SPACEGROUP_DATA = [
         number=17,
         name="P2221",
         crystal_class="222P",
-        synonyms=("P 2 2 21", 'P2212', 'P 2 21 2', 'P2122', 'P 21 2 2')
+        synonyms=("P 2 2 21", "P2212", "P 2 21 2", "P2122", "P 21 2 2"),
     ),
     SpaceGroupInfo(
         number=18,
         name="P21212",
         crystal_class="222P",
-        synonyms=("P 21 21 2",'P21221', 'P 21 2 21', 'P22121', 'P 2 21 21')
+        synonyms=("P 21 21 2", "P21221", "P 21 2 21", "P22121", "P 2 21 21"),
     ),
     SpaceGroupInfo(
         number=19, name="P212121", crystal_class="222P", synonyms=("P 21 21 21",)
