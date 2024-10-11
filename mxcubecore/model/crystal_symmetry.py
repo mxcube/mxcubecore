@@ -50,7 +50,7 @@ SUB_LATTICE_MAP = {
     "o": "amo",
     "t": "amot",
     "h": "amh",
-    "c": "amotc"
+    "c": "amotc",
 }
 
 # Data from https://onlinelibrary.wiley.com/iucr/itc/Cb/ch1o4v0001/
