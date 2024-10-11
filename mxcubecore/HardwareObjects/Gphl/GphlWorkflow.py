@@ -2356,64 +2356,64 @@ class GphlWorkflow(HardwareObjectYaml):
                     "Sample re-centering now active - Zoom in before continuing."
                 )
 
-    #         else:
-    #             # TODO The UI popup does not work in mxcubeweb
-    #             # NB Temporarily inactivated pending a fix
-    #
-    #             # Ask user to zoom
-    #             info_text = """Automatic sample re-centering is now active
-    # Switch to maximum zoom before continuing"""
-    #
-    #             schema = {
-    #                 "title": "GΦL Translational calibration",
-    #                 "type": "object",
-    #                 "properties": {},
-    #             }
-    #             fields = schema["properties"]
-    #             fields["_info"] = {
-    #                 "type": "textdisplay",
-    #                 "default": info_text,
-    #                 "readOnly": True,
-    #             }
-    #             ui_schema = {
-    #                 "ui:order": ["_info"],
-    #                 "ui:widget": "vertical_box",
-    #                 "ui:options": {
-    #                     "return_signal": self.PARAMETER_RETURN_SIGNAL,
-    #                     # "update_signal": self.PARAMETER_UPDATE_SIGNAL,
-    #                     # "update_on_change": "selected",
-    #                 },
-    #             }
-    #             self._return_parameters = gevent.event.AsyncResult()
-    #             try:
-    #                 dispatcher.connect(
-    #                     self.receive_ok_cancel,
-    #                     self.PARAMETER_RETURN_SIGNAL,
-    #                     dispatcher.Any,
-    #                 )
-    #                 responses = dispatcher.send(
-    #                     self.PARAMETERS_NEEDED,
-    #                     self,
-    #                     schema,
-    #                     ui_schema,
-    #                 )
-    #                 if not responses:
-    #                     self._return_parameters.set_exception(
-    #                         RuntimeError(
-    #                             "Signal %s is not connected" % self.PARAMETERS_NEEDED
-    #                         )
-    #                     )
-    #
-    #                 result = self._return_parameters.get()
-    #                 if result is StopIteration:
-    #                     return StopIteration
-    #             finally:
-    #                 dispatcher.disconnect(
-    #                     self.receive_ok_cancel,
-    #                     self.PARAMETER_RETURN_SIGNAL,
-    #                     dispatcher.Any,
-    #                 )
-    #                 self._return_parameters = None
+        #         else:
+        #             # TODO The UI popup does not work in mxcubeweb
+        #             # NB Temporarily inactivated pending a fix
+        #
+        #             # Ask user to zoom
+        #             info_text = """Automatic sample re-centering is now active
+        # Switch to maximum zoom before continuing"""
+        #
+        #             schema = {
+        #                 "title": "GΦL Translational calibration",
+        #                 "type": "object",
+        #                 "properties": {},
+        #             }
+        #             fields = schema["properties"]
+        #             fields["_info"] = {
+        #                 "type": "textdisplay",
+        #                 "default": info_text,
+        #                 "readOnly": True,
+        #             }
+        #             ui_schema = {
+        #                 "ui:order": ["_info"],
+        #                 "ui:widget": "vertical_box",
+        #                 "ui:options": {
+        #                     "return_signal": self.PARAMETER_RETURN_SIGNAL,
+        #                     # "update_signal": self.PARAMETER_UPDATE_SIGNAL,
+        #                     # "update_on_change": "selected",
+        #                 },
+        #             }
+        #             self._return_parameters = gevent.event.AsyncResult()
+        #             try:
+        #                 dispatcher.connect(
+        #                     self.receive_ok_cancel,
+        #                     self.PARAMETER_RETURN_SIGNAL,
+        #                     dispatcher.Any,
+        #                 )
+        #                 responses = dispatcher.send(
+        #                     self.PARAMETERS_NEEDED,
+        #                     self,
+        #                     schema,
+        #                     ui_schema,
+        #                 )
+        #                 if not responses:
+        #                     self._return_parameters.set_exception(
+        #                         RuntimeError(
+        #                             "Signal %s is not connected" % self.PARAMETERS_NEEDED
+        #                         )
+        #                     )
+        #
+        #                 result = self._return_parameters.get()
+        #                 if result is StopIteration:
+        #                     return StopIteration
+        #             finally:
+        #                 dispatcher.disconnect(
+        #                     self.receive_ok_cancel,
+        #                     self.PARAMETER_RETURN_SIGNAL,
+        #                     dispatcher.Any,
+        #                 )
+        #                 self._return_parameters = None
 
         settings = goniostatRotation.axisSettings.copy()
         if goniostatTranslation is not None:
