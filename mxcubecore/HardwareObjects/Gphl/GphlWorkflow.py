@@ -49,7 +49,6 @@ from mxcubecore.queue_entry import QUEUE_ENTRY_STATUS
 from mxcubecore.queue_entry import QueueAbortedException
 
 from mxcubecore.HardwareObjects.Gphl import GphlMessages
-from mxcubecore.HardwareObjects.Gphl.Transcal2MiniKappa import make_home_data
 from mxcubecore import HardwareRepository as HWR
 
 
@@ -132,7 +131,7 @@ lattice2point_group_tags = OrderedDict(
 )
 
 all_point_group_tags = []
-for tag in (
+for atag in (
     "Triclinic",
     "Monoclinic",
     "Orthorhombic",
@@ -140,11 +139,11 @@ for tag in (
     "Hexagonal",
     "Cubic",
 ):
-    all_point_group_tags += lattice2point_group_tags[tag]
+    all_point_group_tags += lattice2point_group_tags[atag]
 
 # Allowed altervative lattices for a given lattice
 alternative_lattices = {}
-for ll0 in (
+for list0 in (
     ["aP", "Triclinic"],
     ["mP", "mC", "mI", "Monoclinic"],
     ["oP", "oC", "oF", "oI", "Orthorhombic"],
@@ -152,8 +151,8 @@ for ll0 in (
     ["hP", "hR", "Hexagonal"],
     ["cP", "cF", "cI", "Cubic"],
 ):
-    for tag in ll0:
-        alternative_lattices[tag] = ll0
+    for atag in list0:
+        alternative_lattices[atag] = list0
 
 
 class GphlWorkflow(HardwareObjectYaml):
@@ -321,6 +320,7 @@ class GphlWorkflow(HardwareObjectYaml):
         data_model = self._queue_entry.get_data_model()
         strategy_settings = data_model.strategy_settings
         space_group = data_model.space_group or ""
+        header = soldict = select_row = None
         if choose_lattice:
             header, soldict, select_row = self.parse_indexing_solution(choose_lattice)
             lattice = list(soldict.values())[select_row].bravaisLattice
@@ -1592,7 +1592,6 @@ class GphlWorkflow(HardwareObjectYaml):
             sweepSettings.reverse()
 
         # Handle centring of first orientation
-        pos_dict = HWR.beamline.diffractometer.get_positions()
         sweepSetting = sweepSettings[0]
 
         # Get current position
@@ -2093,7 +2092,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
         try:
             queue_manager.execute_entry(data_collection_entry)
-        except:
+        except Exception:
             HWR.beamline.queue_manager.emit("queue_execution_failed", (None,))
         self._data_collection_group = None
 
@@ -2103,7 +2102,7 @@ class GphlWorkflow(HardwareObjectYaml):
         else:
             status = 0
 
-        failedScanIds = set(scan.id_ for scan in self._key_to_scan.values())
+        # failedScanIds = set(scan.id_ for scan in self._key_to_scan.values())
 
         return GphlMessages.CollectionDone(
             status=status,
@@ -2352,69 +2351,69 @@ class GphlWorkflow(HardwareObjectYaml):
                     logging.getLogger("HWR").warning(
                         "No predefined positions for zoom motor."
                     )
-            elif True:
+            else:
                 logging.getLogger("user_level_log").info(
                     "Sample re-centering now active - Zoom in before continuing."
                 )
 
-            else:
-                # TODO The UI popup does not work in mxcubeweb
-                # NB Temporarily inactivated pending a fix
-
-                # Ask user to zoom
-                info_text = """Automatic sample re-centering is now active
-    Switch to maximum zoom before continuing"""
-
-                schema = {
-                    "title": "GΦL Translational calibration",
-                    "type": "object",
-                    "properties": {},
-                }
-                fields = schema["properties"]
-                fields["_info"] = {
-                    "type": "textdisplay",
-                    "default": info_text,
-                    "readOnly": True,
-                }
-                ui_schema = {
-                    "ui:order": ["_info"],
-                    "ui:widget": "vertical_box",
-                    "ui:options": {
-                        "return_signal": self.PARAMETER_RETURN_SIGNAL,
-                        # "update_signal": self.PARAMETER_UPDATE_SIGNAL,
-                        # "update_on_change": "selected",
-                    },
-                }
-                self._return_parameters = gevent.event.AsyncResult()
-                try:
-                    dispatcher.connect(
-                        self.receive_ok_cancel,
-                        self.PARAMETER_RETURN_SIGNAL,
-                        dispatcher.Any,
-                    )
-                    responses = dispatcher.send(
-                        self.PARAMETERS_NEEDED,
-                        self,
-                        schema,
-                        ui_schema,
-                    )
-                    if not responses:
-                        self._return_parameters.set_exception(
-                            RuntimeError(
-                                "Signal %s is not connected" % self.PARAMETERS_NEEDED
-                            )
-                        )
-
-                    result = self._return_parameters.get()
-                    if result is StopIteration:
-                        return StopIteration
-                finally:
-                    dispatcher.disconnect(
-                        self.receive_ok_cancel,
-                        self.PARAMETER_RETURN_SIGNAL,
-                        dispatcher.Any,
-                    )
-                    self._return_parameters = None
+    #         else:
+    #             # TODO The UI popup does not work in mxcubeweb
+    #             # NB Temporarily inactivated pending a fix
+    #
+    #             # Ask user to zoom
+    #             info_text = """Automatic sample re-centering is now active
+    # Switch to maximum zoom before continuing"""
+    #
+    #             schema = {
+    #                 "title": "GΦL Translational calibration",
+    #                 "type": "object",
+    #                 "properties": {},
+    #             }
+    #             fields = schema["properties"]
+    #             fields["_info"] = {
+    #                 "type": "textdisplay",
+    #                 "default": info_text,
+    #                 "readOnly": True,
+    #             }
+    #             ui_schema = {
+    #                 "ui:order": ["_info"],
+    #                 "ui:widget": "vertical_box",
+    #                 "ui:options": {
+    #                     "return_signal": self.PARAMETER_RETURN_SIGNAL,
+    #                     # "update_signal": self.PARAMETER_UPDATE_SIGNAL,
+    #                     # "update_on_change": "selected",
+    #                 },
+    #             }
+    #             self._return_parameters = gevent.event.AsyncResult()
+    #             try:
+    #                 dispatcher.connect(
+    #                     self.receive_ok_cancel,
+    #                     self.PARAMETER_RETURN_SIGNAL,
+    #                     dispatcher.Any,
+    #                 )
+    #                 responses = dispatcher.send(
+    #                     self.PARAMETERS_NEEDED,
+    #                     self,
+    #                     schema,
+    #                     ui_schema,
+    #                 )
+    #                 if not responses:
+    #                     self._return_parameters.set_exception(
+    #                         RuntimeError(
+    #                             "Signal %s is not connected" % self.PARAMETERS_NEEDED
+    #                         )
+    #                     )
+    #
+    #                 result = self._return_parameters.get()
+    #                 if result is StopIteration:
+    #                     return StopIteration
+    #             finally:
+    #                 dispatcher.disconnect(
+    #                     self.receive_ok_cancel,
+    #                     self.PARAMETER_RETURN_SIGNAL,
+    #                     dispatcher.Any,
+    #                 )
+    #                 self._return_parameters = None
 
         settings = goniostatRotation.axisSettings.copy()
         if goniostatTranslation is not None:
@@ -2513,7 +2512,7 @@ class GphlWorkflow(HardwareObjectYaml):
         queue_manager = self._queue_entry.get_queue_controller()
         try:
             queue_manager.execute_entry(centring_entry)
-        except:
+        except Exception:
             HWR.beamline.queue_manager.emit("queue_execution_failed", (None,))
 
         centring_result = centring_entry.get_data_model().get_centring_result()
@@ -2764,7 +2763,7 @@ class GphlWorkflow(HardwareObjectYaml):
         Returns:
 
         """
-        sample_dir = None
+        sample_dir = ""
         if sample_name is None:
             sample_name = (
                 self._queue_entry.get_data_model().get_sample_node().get_name()
@@ -2791,8 +2790,6 @@ class GphlWorkflow(HardwareObjectYaml):
         Returns:
             Optional[str]
         """
-        crystal_data = None
-        hklfile = None
         sample_dir = self.get_emulation_sample_dir(sample_name=sample_name)
         if os.path.isdir(sample_dir):
             crystal_file = os.path.join(sample_dir, "crystal.nml")
