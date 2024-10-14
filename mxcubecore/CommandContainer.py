@@ -18,15 +18,6 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-"""CommandContainer module
-
-Classes:
-- CommandContainer, a special mixin class to be used with
-Hardware Objects. It defines a container
-for command launchers and channels (see Command package).
-- C*Object, command launcher & channel base class
-"""
-
 from __future__ import absolute_import
 from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
 
@@ -51,6 +42,8 @@ class ConnectionError(Exception):
 
 
 class CommandObject:
+    """Command launcher base class"""
+
     def __init__(self, name: str, username: Optional[str] = None, **kwargs) -> None:
         """
         Args:
@@ -170,6 +163,8 @@ class CommandObject:
 
 
 class ChannelObject:
+    """Channel base class"""
+
     def __init__(self, name: str, username: Optional[str] = None, **kwargs) -> None:
         """
         Args:
