@@ -194,3 +194,28 @@ It is no longer possible to set hardware object configuration properties from py
 For static properties, move them to the hardware object configuration file.
 If your code is setting properties dynamically,
 you need to refactor the code to not rely on this deprecated feature.
+
+## `<tangoname>` tag no longer supported
+
+Previously it was possible to configure a hardware object's command and channels using this style:
+
+```xml
+<object class="SomeClass">
+  <tangoname>some/tango/device</tangoname>
+  <command type="tango" name="Open">Open</command>
+  <channel type="tango" name="State" polling="1000">State</channel>
+</object>
+```
+
+Above the tango device for commands and channels is specified with `<tangoname>` tag.
+The `<tangoname>` tag is no longer supported and is ignored.
+The tango device must be specified in each individual `<command>` and `<channel>` tag using the `tangoname` attribute.
+
+The above example should be converted to the following style:
+
+```xml
+<object class="SomeClass">
+  <command type="tango" name="Open" tangoname="some/tango/device">Open</command>
+  <channel type="tango" name="State" tangoname="some/tango/device">State</channel>
+</object>
+```
