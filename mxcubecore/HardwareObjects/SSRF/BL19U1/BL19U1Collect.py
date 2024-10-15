@@ -33,7 +33,7 @@ from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.SSRF.BL19U1.BL19U1DetCover import DetCover
 from mxcubecore.HardwareObjects.SSRF.BL19U1 import Constants as cts
 from mxcubecore.utils.pymysql_comm import UsingMysql
-from mxcubecore.service.dataItem_service import insert_dc_param_to_basic,updateOtherTable,updateRawImagesSnapshot
+from mxcubecore.service.dataItem_service import insert_dc_param_to_basic,updateOtherTable,updateRawImagesSnapshot,updateJobStatus_when_finished
 import subprocess
 import threading
 
@@ -279,7 +279,22 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             # prepare beamline for data acquisiion
 
             # 在下面的准备函数调用中，会准备好如探测器距离等的各种状态，并将基本信息插入job和dc_basic表
-            job_id ,distance,_filename = self.prepare_acquisition()
+            prepare_acquisition_result = self.prepare_acquisition()
+            logging.getLogger("HWR").debug('len of prepare_acquisition: %s', len(prepare_acquisition_result))
+            if len(prepare_acquisition_result) ==3:
+                job_id, distance,_filename  = prepare_acquisition_result
+            elif len(prepare_acquisition_result) ==4:
+                job_id, distance,_filename , transfer_snapshot_args= prepare_acquisition_result
+
+
+            logging.getLogger("HWR").debug('uuid: %s',self.collection_uuid)
+            updateOtherTable(self.collection_uuid,job_id,distance)
+
+            if len(prepare_acquisition_result)==4:
+                logging.getLogger("HWR").info('=============Start transfer_snapshot subprocess')
+                transfer_snapshot_thread = threading.Thread(target = self.transfer_snapshot,args=(transfer_snapshot_args[0], transfer_snapshot_args[1], transfer_snapshot_args[2], transfer_snapshot_args[3], transfer_snapshot_args[4],job_id))
+                transfer_snapshot_thread.start()
+
             self.emit(
                 "collectOscillationStarted",
                 (owner, None, None, None, self.current_dc_parameters, None),
@@ -289,10 +304,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
             #self.transfer_data() TODO add data transfer here
             self.emit_collection_finished()
 
-            print("uuid: ",self.collection_uuid)
-            # 在这里插入数据到其他表
-            # self.updateOtherTable(self.collection_uuid, 'PENDING')
-            updateOtherTable(self.collection_uuid, 'PENDING',job_id,distance)
+            updateJobStatus_when_finished(self.collection_uuid,'PENDING')
             logging.getLogger("HWR").debug("UpdateOtherTable finish")
 
 
@@ -585,10 +597,12 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
 
             user_name = self.getProperty("ppu2_user")
             remote_host_ip = self.getProperty("ppu2_ip")
+            transfer_snapshot_args = [user_name,remote_host_ip,snapshot_path_in_ppu2,snapshot_path,snapshot_path_in_ppu2_withname,job_id]
 
-            logging.getLogger("HWR").info('=============Start transfer_snapshot subprocess')
-            transfer_snapshot_thread = threading.Thread(target = self.transfer_snapshot,args=(user_name, remote_host_ip, snapshot_path_in_ppu2, snapshot_path, snapshot_path_in_ppu2_withname,dc_basic_param_to_table[0]))
-            transfer_snapshot_thread.start()
+            # 触发转移snapshot 移除此函数，放在创建完各个数据库记录之后
+            # logging.getLogger("HWR").info('=============Start transfer_snapshot subprocess')
+            # transfer_snapshot_thread = threading.Thread(target = self.transfer_snapshot,args=(user_name, remote_host_ip, snapshot_path_in_ppu2, snapshot_path, snapshot_path_in_ppu2_withname,job_id))
+            # transfer_snapshot_thread.start()
 
 
 
@@ -611,6 +625,8 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         self.move_to_centered_position()            #此处raster scan时，会移动到矩形的第一个位置点
 
         # HWR.beamline.diffractometer.save_centring_positions();
+        if self.current_dc_parameters['take_snapshots']:
+            return job_id,distance,"".join(_filename),transfer_snapshot_args
         return job_id,distance,"".join(_filename)
     # -------------------------------------------------------------------------------
 
@@ -631,8 +647,8 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         stdout, stderr = process_cp_snapshot.communicate()     # Popen()
         # stdout, stderr = process_cp_snapshot.stdout,process_cp_snapshot.stderr      # run()
         logging.getLogger("HWR").debug(f"result of scp transfer snapshot subprocess: {stdout.decode()},{stderr.decode()}")
-        # if not stderr:
-        #     updateRawImagesSnapshot(job_id,1,snapshot_path_in_ppu2_withname)
+        if not stderr:
+            updateRawImagesSnapshot(job_id,1,snapshot_path_in_ppu2_withname)
 
 
 

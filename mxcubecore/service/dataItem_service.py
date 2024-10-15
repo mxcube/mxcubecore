@@ -19,10 +19,10 @@ def insert_new_data_to_job(frame_number,path,dest,completiontime,status,uuid,fil
                 frame_number, path, dest, completiontime, status, uuid, filename)
             um.cursor.execute(sql)
             job_id = um.cursor.lastrowid
-            logging.getLogger("HWR").debug("[updateJobStatus from LNLSPilatusDet.py] connect to mysql succeeded, job_id = %s",job_id)
+            logging.getLogger("HWR").debug("[insert_new_data_to_job from dataItem_service.py] connect to mysql succeeded, job_id = %s",job_id)
 
     except Exception as ex:
-        logging.getLogger("HWR").error("[updateJobStatus from LNLSPilatusDet.py] Data collection job update failure: %s", ex)
+        logging.getLogger("HWR").error("[insert_new_data_to_job from dataItem_service.py] Data collection job update failure: %s", ex)
     return job_id
 
 
@@ -70,14 +70,20 @@ def updateRawImagesSnapshot(job_id,snapReady,snapUrl):
         logging.getLogger("HWR").error("[updateRawImagesSnapshot from dataItem_service.py] updateRawImagesSnapshot failure: %s", ex)
 
 
-
-
-def updateOtherTable(uuid,status,job_id,distance):
+# after collection finish
+def updateJobStatus_when_finished(uuid,status):
     completiontime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     with UsingMysql(log_time=True) as um:
         sql = "UPDATE job SET completiontime = '%s', status = '%s'  WHERE uuid = '%s'" % (
         completiontime, status, uuid)
         um.cursor.execute(sql)
+
+
+
+
+# before collection finshed
+def updateOtherTable(uuid,job_id,distance):
+    with UsingMysql(log_time=True) as um:
 
         # 插入 rawImages 表
         sql_rawImages = "insert into rawImages (job_id,uuid) values (%s,%s)"
@@ -131,6 +137,7 @@ def updateOtherTable(uuid,status,job_id,distance):
                 next_autoproc_queue_id, uuid)
             um.cursor.execute(sql)
 
+        logging.getLogger("HWR").debug("[updateOtherTable from dataItem_service.py] connect to mysql succeeded")
 
 
 
