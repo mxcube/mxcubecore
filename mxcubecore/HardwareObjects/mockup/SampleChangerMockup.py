@@ -10,7 +10,7 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
 
     __TYPE__ = "Mockup"
     NO_OF_BASKETS = 5
-    NO_OF_SAMPLES_IN_BASKET = 10
+    NO_OF_SAMPLES_IN_BASKET = 16
 
     def __init__(self, *args, **kwargs):
         super(SampleChangerMockup, self).__init__(self.__TYPE__, False, *args, **kwargs)
@@ -19,6 +19,8 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
         self._selected_sample = -1
         self._selected_basket = -1
         self._scIsCharging = None
+        self.count=1
+
 
         self.no_of_baskets = self.get_property(
             "no_of_baskets", SampleChangerMockup.NO_OF_BASKETS
@@ -39,10 +41,28 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
         AbstractSampleChanger.SampleChanger.init(self)
 
         self.log_filename = self.get_property("log_filename")
+        self.write_sample_dir() #加载sample的prefix和subdir
+
 
     def get_log_filename(self):
         return self.log_filename
+    def write_sample_dir(self):  # 添加
+        """
+        将目录从sc.xml写入二维列表
+        self.proteinAcronym与
+        self.default_prefix
+        """
+        self.proteinAcronym = [["0" for j in range(self.no_of_samples_in_basket)] for i in range(self.no_of_baskets)]
+        for i in range(len(self.proteinAcronym)):
+            for j in range(self.no_of_samples_in_basket):
+                xmlName = "subdir" + str(i + 1) + "-" + str(j + 1)  # "subdir5-2"
+                self.proteinAcronym[i][j] = self.get_property(xmlName)
 
+        self.default_prefix = [["0" for j in range(self.no_of_samples_in_basket)] for i in range(self.no_of_baskets)]
+        for i in range(len(self.default_prefix)):
+            for j in range(self.no_of_samples_in_basket):
+                xmlName = "prefix" + str(i + 1) + "-" + str(j + 1)  # "subdir5-2"
+                self.default_prefix[i][j] = self.get_property(xmlName)
     def load_sample(self, holder_length, sample_location=None, wait=False):
         self.load(sample_location, wait)
 
