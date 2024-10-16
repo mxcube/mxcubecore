@@ -197,7 +197,7 @@ class ISPyBClient(HardwareObject):
             if self.ldapConnection is None:
                 logging.getLogger("HWR").debug("LDAP Server is not available")
 
-        self.loginTranslate = self.get_property("loginTranslate") or True
+        self.loginTranslate = self.get_property("loginTranslate", True)
         self.beamline_name = HWR.beamline.session.beamline_name
 
         self.ws_root = self.get_property("ws_root")
