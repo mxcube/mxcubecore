@@ -24,7 +24,6 @@ Defines a sequence how data collection is executed.
 """
 
 import os
-import sys
 import logging
 import time
 import errno

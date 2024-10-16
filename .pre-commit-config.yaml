@@ -1,8 +1,5 @@
 ---
 
-default_language_version:
-  python: python3.8
-
 repos:
 
   - repo: https://github.com/adrienverge/yamllint
@@ -53,7 +50,6 @@ repos:
                 mxcubecore/HardwareObjects/EMBL/EMBL(Energy|DoorInterlock|OnlineProcessing)\.py|
                 mxcubecore/HardwareObjects/mockup/(ISPyBClient|Motor|PlateManipulator)Mockup\.py|
                 mxcubecore/HardwareObjects/abstract/(AbstractXRFSpectrum|sample_changer/Crims)\.py|
-                mxcubecore/HardwareObjects/Gphl/Transcal2MiniKappa\.py|
                 mxcubecore/HardwareObjects/SOLEIL/PX2/PX2Resolution\.py|
                 mxcubecore/HardwareObjects/ESRF/ID29XRFSpectrum\.py
             )$
