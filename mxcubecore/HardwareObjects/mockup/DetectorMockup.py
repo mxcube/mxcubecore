@@ -40,6 +40,7 @@ class DetectorMockup(AbstractDetector):
         xval = self.get_property("width", 2463) / 2.0 + 0.4
         yval = self.get_property("height", 2527) / 2.0 + 0.4
         self._beam_centre = (xval, yval)
+        self.status = "READY"
 
     def has_shutterless(self):
         """Returns always True"""

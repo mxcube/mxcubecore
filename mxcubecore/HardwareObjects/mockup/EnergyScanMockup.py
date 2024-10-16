@@ -405,6 +405,16 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
             title,
         )
 
+    def getElements(self):
+        elements = []
+        try:
+            for el in self["elements"]:
+                elements.append({"symbol": el.symbol, "energy": el.energy})
+        except IndexError:
+            pass
+        return elements
+# 下面的是原来mockup写法，上面是19u写法，搭配19u adapter
+
     def get_elements(self):
         elements = []
         try:

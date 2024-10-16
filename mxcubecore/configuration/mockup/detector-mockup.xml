@@ -11,7 +11,7 @@
   <height>4271</height>
   <hasShutterless>True</hasShutterless>
   <fileSuffix>h5</fileSuffix>
-  <object hwrid="/detector-distance-mockup" role="detector_distance"/>
+  <object hwrid="./detector-distance-mockup" role="detector_distance"/>
 
   <roiModes>("0", "C18", "C12", "C2")</roiModes>
 
