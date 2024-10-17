@@ -45,6 +45,7 @@ from mxcubecore.utils.conversion import string_types, make_table
 from mxcubecore.dispatcher import dispatcher
 from mxcubecore import BaseHardwareObjects
 from mxcubecore import HardwareObjectFileParser
+from mxcubecore.protocols_config import setup_commands_channels
 
 from warnings import warn
 
@@ -172,6 +173,8 @@ def load_from_yaml(
         config = configuration.pop("configuration", {})
         # Set configuration with non-object properties.
         result._config = result.HOConfig(**config)
+
+        setup_commands_channels(result, configuration)
 
         if _container is None:
             load_time = 1000 * (time.time() - start_time)
