@@ -399,8 +399,9 @@ BRAVAIS_LATTICES = (
 )
 UI_LATTICES = BRAVAIS_LATTICES + ("mI",)
 
+
 def filter_crystal_classes(bravais_lattice, crystal_classes=()):
-    """ Filter crystal classes to select those compatible with selected Bravais lattice
+    """Filter crystal classes to select those compatible with selected Bravais lattice
 
     including sublattices
 
@@ -414,7 +415,8 @@ def filter_crystal_classes(bravais_lattice, crystal_classes=()):
     """
     compatibles = SUB_LATTICE_MAP[bravais_lattice[0]]
     result = tuple(
-        xcls for xcls in crystal_classes
+        xcls
+        for xcls in crystal_classes
         if CRYSTAL_CLASS_MAP[xcls].bravais_lattice[0] in compatibles
     )
     #
@@ -574,7 +576,7 @@ def strategy_laue_group(crystal_classes: tuple, phasing=False):
     return result
 
 
-def regularise_space_group(sgname:str):
+def regularise_space_group(sgname: str):
     """Convert finput (ISPyB) space gorup name to official space group name"""
 
     if sgname in SPACEGROUP_MAP:
