@@ -1,4 +1,5 @@
 <object class="mxcubecore.HardwareObjects.SSRF.BL19U1.SSRFBeam">
+<!--<object class="BeamMockup">-->
     <username>beam</username>
 <!--    <device hwrid="/bl19u/udiff/aperture" role="aperture"/>-->
     <device hwrid="/aperture" role="aperture"/>
