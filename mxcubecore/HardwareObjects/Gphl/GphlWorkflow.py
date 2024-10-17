@@ -453,11 +453,11 @@ class GphlWorkflow(HardwareObjectYaml):
             reslimits = (0.5, 5.0)
         if resolution < reslimits[0]:
             resolution = (
-                round(reslimits[0], resolution_decimals) + 0.1 ** resolution_decimals
+                round(reslimits[0], resolution_decimals) + 0.1**resolution_decimals
             )
         if resolution > reslimits[1]:
             resolution = (
-                round(reslimits[1], resolution_decimals) - 0.1 ** resolution_decimals
+                round(reslimits[1], resolution_decimals) - 0.1**resolution_decimals
             )
 
         fields["resolution"] = {
