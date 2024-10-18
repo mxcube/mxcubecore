@@ -1,0 +1,24 @@
+---
+
+
+name: Something
+
+"on":
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  black:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: psf/black@stable
+
+  yamllint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: pip install yamllint
+      - run: yamllint .
+
+...
