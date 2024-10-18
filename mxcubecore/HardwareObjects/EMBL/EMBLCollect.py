@@ -21,11 +21,9 @@
 
 import os
 
-from mxcubecore.TaskUtils import task
-from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
-
 from mxcubecore import HardwareRepository as HWR
-
+from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
+from mxcubecore.TaskUtils import task
 
 __credits__ = ["EMBL Hamburg"]
 __category__ = "General"

@@ -8,12 +8,15 @@ Example xml file
 EL6": 6}</values>
 </object>
 """
-from enum import Enum
-import gevent
 import time
+from enum import Enum
 
-from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
-from mxcubecore.HardwareObjects.abstract.AbstractNState import BaseValueEnum
+import gevent
+
+from mxcubecore.HardwareObjects.abstract.AbstractNState import (
+    AbstractNState,
+    BaseValueEnum,
+)
 from mxcubecore.HardwareObjects.LNLS.EPICSActuator import EPICSActuator
 
 

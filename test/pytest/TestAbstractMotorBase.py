@@ -22,9 +22,13 @@ __copyright__ = """ Copyright © 2016 - 2022 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
 import abc
+from test.pytest import (
+    TestAbstractActuatorBase,
+    TestHardwareObjectBase,
+)
+
 import gevent
 import pytest
-from test.pytest import TestHardwareObjectBase, TestAbstractActuatorBase
 
 test_object = TestAbstractActuatorBase.test_object
 

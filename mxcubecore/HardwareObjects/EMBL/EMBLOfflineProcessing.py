@@ -16,22 +16,21 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-import os
-import time
 import logging
+import os
 import subprocess
+import time
 
 import gevent
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.HardwareObjects.XSDataAutoprocv1_0 import XSDataAutoprocInput
 from mxcubecore.HardwareObjects.XSDataCommon import (
     XSDataDouble,
     XSDataFile,
     XSDataInteger,
     XSDataString,
 )
-from mxcubecore.HardwareObjects.XSDataAutoprocv1_0 import XSDataAutoprocInput
-
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"

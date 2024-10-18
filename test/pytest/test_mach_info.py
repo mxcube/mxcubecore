@@ -18,8 +18,9 @@
 """Test suite for MachineInfo hardware object
 """
 
-import pytest
 from test.pytest import TestHardwareObjectBase
+
+import pytest
 
 __copyright__ = """ Copyright © by MXCuBE Collaboration """
 __license__ = "LGPLv3+"

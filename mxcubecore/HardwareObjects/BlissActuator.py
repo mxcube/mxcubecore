@@ -11,9 +11,7 @@ Example xml file:
 import logging
 from warnings import warn
 
-from mxcubecore.HardwareObjects.abstract.AbstractActuator import (
-    AbstractActuator,
-)
+from mxcubecore.HardwareObjects.abstract.AbstractActuator import AbstractActuator
 from mxcubecore.TaskUtils import task
 
 

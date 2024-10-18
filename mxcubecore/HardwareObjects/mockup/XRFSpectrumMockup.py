@@ -24,10 +24,7 @@ Mockup file to define _execute_spectrum method
 
 from time import sleep
 
-from mxcubecore.HardwareObjects.abstract.AbstractXRFSpectrum import (
-    AbstractXRFSpectrum,
-)
-
+from mxcubecore.HardwareObjects.abstract.AbstractXRFSpectrum import AbstractXRFSpectrum
 
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

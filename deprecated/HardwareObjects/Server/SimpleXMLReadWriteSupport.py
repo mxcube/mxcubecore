@@ -1,10 +1,12 @@
-import sys
 import io
-from xml.sax.saxutils import XMLGenerator
-from xml.sax import make_parser
-from xml.sax import SAXParseException
-from xml.sax.xmlreader import AttributesImpl
+import sys
+from xml.sax import (
+    SAXParseException,
+    make_parser,
+)
 from xml.sax.handler import ContentHandler
+from xml.sax.saxutils import XMLGenerator
+from xml.sax.xmlreader import AttributesImpl
 
 _parser = make_parser()
 

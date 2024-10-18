@@ -3,16 +3,16 @@
 # /data/staff/biomax/staff/jie/20161212_thau_2/processed4 -mode after
 # -datacollectionID 14 -residues 200 -anomalous False -cell "0,0,0,0,0,0"
 
+import logging
 import os
-import sys
-import time
 import string
-import urllib
-import logging
-import httplib
-import logging
-import tempfile
 import subprocess
+import sys
+import tempfile
+import time
+import urllib
+
+import httplib
 
 # XDS.INP creation is now asynchronous in mxcube, so it may not be here yet
 # when we're started

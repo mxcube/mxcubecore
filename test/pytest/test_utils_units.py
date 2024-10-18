@@ -1,14 +1,15 @@
 from math import isclose
+
 from mxcubecore.utils.units import (
-    us_to_sec,
-    ms_to_sec,
-    sec_to_us,
-    sec_to_hour,
+    A_to_mA,
     ev_to_kev,
     meter_to_mm,
     mm_to_meter,
+    ms_to_sec,
+    sec_to_hour,
+    sec_to_us,
     um_to_mm,
-    A_to_mA,
+    us_to_sec,
 )
 
 

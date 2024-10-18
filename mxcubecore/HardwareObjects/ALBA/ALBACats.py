@@ -1,14 +1,15 @@
 from __future__ import print_function
 
-from mxcubecore.HardwareObjects.Cats90 import (
-    Cats90,
-    SampleChangerState,
-    TOOL_SPINE,
-)
-
 import logging
 import time
+
 import gevent
+
+from mxcubecore.HardwareObjects.Cats90 import (
+    TOOL_SPINE,
+    Cats90,
+    SampleChangerState,
+)
 
 TIMEOUT = 3
 

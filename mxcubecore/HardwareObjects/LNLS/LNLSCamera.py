@@ -1,14 +1,14 @@
 """
 Class for cameras connected by EPICS Area Detector
 """
-import os
 import logging
-import gevent
+import os
 from io import BytesIO
 from threading import Thread
 
-from PIL import Image
+import gevent
 import numpy as np
+from PIL import Image
 
 from mxcubecore import BaseHardwareObjects
 

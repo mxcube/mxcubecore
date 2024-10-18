@@ -1,26 +1,30 @@
 import copy
-import pytest
-from typing import (
-    Any,
-    Union,
-    TYPE_CHECKING,
-    Iterator,
-    Generator,
-    Dict,
-    Tuple,
-    List,
-    OrderedDict as TOrderedDict,
-)
-from logging import Logger
-from unittest.mock import MagicMock
 from collections import OrderedDict
+from logging import Logger
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    Generator,
+    Iterator,
+    List,
+)
+from typing import OrderedDict as TOrderedDict
+from typing import (
+    Tuple,
+    Union,
+)
+from unittest.mock import MagicMock
+
+import pytest
+
 from mxcubecore.BaseHardwareObjects import (
     ConfiguredObject,
-    PropertySet,
-    HardwareObjectNode,
-    HardwareObjectMixin,
     HardwareObject,
+    HardwareObjectMixin,
+    HardwareObjectNode,
     HardwareObjectYaml,
+    PropertySet,
 )
 
 if TYPE_CHECKING:

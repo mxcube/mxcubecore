@@ -21,35 +21,42 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
 """
-from __future__ import division, absolute_import
-from __future__ import print_function, unicode_literals
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals,
+)
 
 import copy
-import logging
-import enum
-import time
 import datetime
-import os
+import enum
+import logging
 import math
-import subprocess
+import os
 import socket
+import subprocess
+import time
 import uuid
 from collections import OrderedDict
 
+import f90nml
 import gevent
 import gevent.event
 import gevent.queue
-import f90nml
 
-from mxcubecore.dispatcher import dispatcher
-from mxcubecore.BaseHardwareObjects import HardwareObjectYaml
-from mxcubecore.model import queue_model_objects
-from mxcubecore.model import crystal_symmetry
-from mxcubecore.queue_entry import QUEUE_ENTRY_STATUS
-from mxcubecore.queue_entry import QueueAbortedException
-
-from mxcubecore.HardwareObjects.Gphl import GphlMessages
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObjectYaml
+from mxcubecore.dispatcher import dispatcher
+from mxcubecore.HardwareObjects.Gphl import GphlMessages
+from mxcubecore.model import (
+    crystal_symmetry,
+    queue_model_objects,
+)
+from mxcubecore.queue_entry import (
+    QUEUE_ENTRY_STATUS,
+    QueueAbortedException,
+)
 
 
 @enum.unique

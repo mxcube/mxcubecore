@@ -1,6 +1,7 @@
 import gevent
-from mxcubecore.model import procedure_model
+
 from mxcubecore.HardwareObjects.abstract.AbstractProcedure import ProcedureState
+from mxcubecore.model import procedure_model
 
 
 def test_procedure_init(beamline):

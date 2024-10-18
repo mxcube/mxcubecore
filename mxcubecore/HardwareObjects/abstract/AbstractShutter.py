@@ -23,7 +23,11 @@ Overload BaseValueEnum
 """
 
 import abc
-from enum import Enum, unique
+from enum import (
+    Enum,
+    unique,
+)
+
 from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
 
 __copyright__ = """ Copyright 2016-2023 by the MXCuBE collaboration """

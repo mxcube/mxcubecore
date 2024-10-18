@@ -22,23 +22,24 @@ __copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
 
 import errno
-import socket
-import time
-import sys
-import os
-import math
 import logging
+import math
+import os
+import socket
+import subprocess
+import sys
+import time
 import traceback
+
+import gevent
 import h5py
 import numpy as np
 import psutil
-import subprocess
-import gevent
 
-from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.TaskUtils import task
 from mxcubecore.Command.Tango import DeviceProxy
+from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
+from mxcubecore.TaskUtils import task
 
 FILE_TIMEOUT = 5
 

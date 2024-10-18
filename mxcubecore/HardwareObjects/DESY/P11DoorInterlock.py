@@ -21,10 +21,11 @@
 __copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
 
-from mxcubecore.BaseHardwareObjects import HardwareObject
 import logging
 import sys
 import urllib.request
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 __credits__ = ["MXCuBE collaboration"]
 

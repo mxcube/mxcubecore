@@ -17,31 +17,30 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-import os
-import tine
-import numpy
-import gevent
 import logging
+import os
 import tempfile
-
-import numpy as np
-
-
 from csv import reader
-from time import sleep
 from datetime import datetime
 from random import random
-from scipy.interpolate import interp1d
-from matplotlib.figure import Figure
+from time import sleep
+
+import gevent
+import numpy
+import numpy as np
+import tine
 from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.figure import Figure
+from scipy.interpolate import interp1d
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.HardwareObjects import SimpleHTML
 
 # try:
 #    import pdfkit
 # except Exception:
 #    logging.getLogger("HWR").warning("pdfkit not available")
 
-from mxcubecore.HardwareObjects import SimpleHTML
-from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 __credits__ = ["EMBL Hamburg"]

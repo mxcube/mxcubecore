@@ -32,8 +32,11 @@ __license__ = "LGPLv3+"
 
 import abc
 import sys
+from enum import (
+    Enum,
+    unique,
+)
 from warnings import warn
-from enum import Enum, unique
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 

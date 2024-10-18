@@ -2,8 +2,10 @@ import logging
 import os
 import shutil
 import time
-import gevent.event
+
 import gevent
+import gevent.event
+
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
 

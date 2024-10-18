@@ -1,6 +1,7 @@
 import logging
-from mxcubecore.HardwareObjects import BeamInfo
+
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.HardwareObjects import BeamInfo
 
 """
 XML example file

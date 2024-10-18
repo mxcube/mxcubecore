@@ -20,12 +20,20 @@
 
 """General data and functions, that can be shared between different HardwareObjects
 """
-from __future__ import division, absolute_import
-from __future__ import print_function, unicode_literals
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals,
+)
 
 import re
 
-from scipy.constants import h, c, e
+from scipy.constants import (
+    c,
+    e,
+    h,
+)
 
 __date__ = "19/06/17"
 __credits__ = ["MXCuBE collaboration"]

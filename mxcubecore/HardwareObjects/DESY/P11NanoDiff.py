@@ -20,34 +20,42 @@
 
 __copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
-from gevent.event import AsyncResult
+import logging
+import math
+import os
+import pickle
+import sys
+import time
+from enum import (
+    Enum,
+    unique,
+)
 
-from tango import DeviceProxy, DevFailed
-from mxcubecore.TaskUtils import task
+import gevent
+import lmfit
+import numpy as np
+import sample_centring
+import simplejpeg
+from gevent.event import AsyncResult
+from tango import (
+    DevFailed,
+    DeviceProxy,
+)
+
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.HardwareObjects.GenericDiffractometer import (
     DiffractometerState,
     GenericDiffractometer,
 )
-
-from mxcubecore.BaseHardwareObjects import HardwareObjectState
-from mxcubecore import HardwareRepository as HWR
-from enum import Enum, unique
-import pickle
-import lmfit
-import simplejpeg
-import numpy as np
-import sample_centring
-import gevent
-import time
-import math
-import os
-import sys
-import logging
+from mxcubecore.TaskUtils import task
 
 murko_path = os.getenv("MURKO_PATH")
 sys.path.insert(1, murko_path)
-from murko import get_predictions, plot_analysis
-
+from murko import (
+    get_predictions,
+    plot_analysis,
+)
 
 if sys.version_info[0] >= 3:
     unicode = str

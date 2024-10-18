@@ -28,7 +28,6 @@ from xml.sax.handler import ContentHandler
 
 from mxcubecore import BaseHardwareObjects
 
-
 CURRENT_XML = None
 
 new_objects_classes = {

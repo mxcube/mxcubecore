@@ -24,14 +24,15 @@ Any object that inherhits from TaskNode can be added to and handled by
 the QueueModel.
 """
 import copy
-import os
 import logging
+import os
 
 from mxcubecore.model import queue_model_enumerables
 
 try:
-    from mxcubecore.model import crystal_symmetry
     from ruamel.yaml import YAML
+
+    from mxcubecore.model import crystal_symmetry
 
     # If you want to write out copies of the file, use typ="rt" instead
     # pure=True uses yaml version 1.2, with fewere gotchas for strange type conversions

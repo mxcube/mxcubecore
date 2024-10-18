@@ -23,8 +23,9 @@ __license__ = "LGPLv3+"
 __credits__ = ["DESY P11"]
 __category__ = "Motor"
 
-from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 import time
+
+from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 
 class P11DetectorDistance(AbstractMotor):

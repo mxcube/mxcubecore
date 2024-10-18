@@ -37,24 +37,28 @@ example xml:
 """
 
 from __future__ import print_function
-import os
-import math
+
 import logging
+import math
+import os
 
 try:
     import cPickle as pickle
 except Exception:
     import _pickle as pickle
 
-from datetime import datetime
 from copy import deepcopy
+from datetime import datetime
 
 import gevent
-import numpy as np
-from scipy import ndimage, interpolate, signal
-
-from matplotlib import cm
 import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib import cm
+from scipy import (
+    interpolate,
+    ndimage,
+    signal,
+)
 
 try:
     import lucid2 as lucid
@@ -64,15 +68,11 @@ except ImportError:
     except ImportError:
         pass
 
-from mxcubecore.utils import qt_import
-
-from mxcubecore.model import queue_model_objects
-from mxcubecore.HardwareObjects import QtGraphicsLib as GraphicsLib
-from mxcubecore.HardwareObjects.abstract.AbstractSampleView import (
-    AbstractSampleView,
-)
-
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.HardwareObjects import QtGraphicsLib as GraphicsLib
+from mxcubecore.HardwareObjects.abstract.AbstractSampleView import AbstractSampleView
+from mxcubecore.model import queue_model_objects
+from mxcubecore.utils import qt_import
 
 __credits__ = ["MXCuBE collaboration"]
 __category__ = "Graphics"

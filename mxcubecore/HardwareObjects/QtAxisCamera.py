@@ -17,20 +17,17 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-import time
-import Image
 import base64
-import urllib2
+import time
 
+import Image
 import numpy as np
-
+import urllib2
 from cStringIO import StringIO
 from PIL.ImageQt import ImageQt
 
+from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import AbstractVideoDevice
 from mxcubecore.utils import qt_import
-from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import (
-    AbstractVideoDevice,
-)
 
 """
 Hardare objects allows to access Axis camera jpg frames via direct http requests.

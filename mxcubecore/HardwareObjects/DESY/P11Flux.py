@@ -22,12 +22,13 @@ __copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
 
 import numpy as np
-from scipy.interpolate import Rbf, interp1d
-
-from mxcubecore.HardwareObjects.abstract.AbstractFlux import AbstractFlux
+from scipy.interpolate import (
+    Rbf,
+    interp1d,
+)
 
 from mxcubecore import HardwareRepository as HWR
-
+from mxcubecore.HardwareObjects.abstract.AbstractFlux import AbstractFlux
 
 __credits__ = ["MXCuBE collaboration"]
 __category__ = "General"

@@ -23,12 +23,13 @@ __license__ = "LGPLv3+"
 
 import logging
 import ssl
-from mxcubecore.HardwareObjects.ISPyBClient import ISPyBClient
-from mxcubecore import HardwareRepository as HWR
-from suds import WebFault
 from urllib.error import URLError
+
+from suds import WebFault
 from suds.transport import TransportError
 
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.HardwareObjects.ISPyBClient import ISPyBClient
 
 ssl._create_default_https_context = ssl._create_unverified_context
 

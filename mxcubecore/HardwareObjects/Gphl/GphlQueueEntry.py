@@ -23,9 +23,9 @@ Module contains Gphl specific queue entries
 
 
 import logging
-from mxcubecore.queue_entry.base_queue_entry import BaseQueueEntry
-from mxcubecore import HardwareRepository as HWR
 
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.queue_entry.base_queue_entry import BaseQueueEntry
 
 __credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3+"

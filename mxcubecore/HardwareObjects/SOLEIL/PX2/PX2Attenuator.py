@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 # from SimpleDevice2c import SimpleDevice
-from PyTango.gevent import DeviceProxy
 import logging
 import math
+
+from PyTango.gevent import DeviceProxy
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 

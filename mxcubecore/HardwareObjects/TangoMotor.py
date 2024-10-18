@@ -20,9 +20,9 @@
 TangoMotor class defines motor in the Tango control system (used and tested in DESY/P11
 """
 
-from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
-
 import gevent
+
+from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 __credits__ = ["DESY P11"]
 __license__ = "LGPLv3+"

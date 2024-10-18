@@ -13,16 +13,16 @@ Example configuration:
 If video mode is not specified, BAYER_RG16 is used by default.
 """
 
+import io
 import logging
-import time
 import struct
-import numpy
+import time
+
 import gevent
+import gipc
+import numpy
 import PyTango
 from PIL import Image
-import io
-import gipc
-
 from PyTango.gevent import DeviceProxy
 
 from mxcubecore import BaseHardwareObjects

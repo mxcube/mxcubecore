@@ -1,9 +1,9 @@
 #
-from mxcubecore.HardwareObjects.CatsMaint import CatsMaint
-from mxcubecore import HardwareRepository as HWR
-
 import logging
 import time
+
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.HardwareObjects.CatsMaint import CatsMaint
 
 
 class PX1CatsMaint(CatsMaint):

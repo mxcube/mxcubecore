@@ -1,10 +1,15 @@
-import re
-import math
 import logging
+import math
+import re
+
 import gevent
 from tango import DeviceProxy
-from mxcubecore.utils.units import sec_to_hour, A_to_mA
+
 from mxcubecore.HardwareObjects.abstract.AbstractMachineInfo import AbstractMachineInfo
+from mxcubecore.utils.units import (
+    A_to_mA,
+    sec_to_hour,
+)
 
 # how often we refresh machine info
 REFRESH_PERIOD_SEC = 30

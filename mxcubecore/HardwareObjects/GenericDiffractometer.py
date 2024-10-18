@@ -21,24 +21,33 @@
 GenericDiffractometer
 """
 
-import os
-import json
 import copy
-import time
-import gevent
-import gevent.event
+import enum
+import json
 import logging
 import math
+import os
+import time
+from typing import (
+    Dict,
+    List,
+    Tuple,
+    Union,
+)
+
+import gevent
+import gevent.event
 import numpy
-import enum
+from pydantic.v1 import (
+    BaseModel,
+    Field,
+    ValidationError,
+)
 
-from typing import List, Tuple, Union, Dict
-from pydantic.v1 import BaseModel, Field, ValidationError
-
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects import sample_centring
 from mxcubecore.model import queue_model_objects
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore import HardwareRepository as HWR
 
 try:
     unicode

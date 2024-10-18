@@ -20,10 +20,13 @@
 """EMBLSafetyShutter"""
 
 import logging
-from enum import Enum, unique
-from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
-from mxcubecore.BaseHardwareObjects import HardwareObjectState
+from enum import (
+    Enum,
+    unique,
+)
 
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
+from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"

@@ -1,22 +1,28 @@
 import logging
 import os.path
+
 import numpy
 
 from mxcubecore.HardwareObjects.XRFSpectrum import XRFSpectrum
 
 try:
-    from PyMca import ConfigDict
-    from PyMca import ClassMcaTheory
-    from PyMca import QtMcaAdvancedFitReport
+    from PyMca import (
+        ClassMcaTheory,
+        ConfigDict,
+        QtMcaAdvancedFitReport,
+    )
 except ImportError:
-    from PyMca5.PyMca import ConfigDict
-    from PyMca5.PyMca import ClassMcaTheory
-    from PyMca5.PyMca import QtMcaAdvancedFitReport
+    from PyMca5.PyMca import (
+        ClassMcaTheory,
+        ConfigDict,
+        QtMcaAdvancedFitReport,
+    )
 
 """
 Next two lines is a trick to avoid core dump in QtMcaAdvancedFitReport
 """
 from unittest.mock import MagicMock
+
 QtMcaAdvancedFitReport.qt = MagicMock()
 
 

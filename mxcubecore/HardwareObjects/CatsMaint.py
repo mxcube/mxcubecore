@@ -13,14 +13,13 @@ Vicente Rey - add support for ISARA Model
 """
 
 import logging
-
-from mxcubecore.TaskUtils import task
-from mxcubecore.BaseHardwareObjects import HardwareObject
-
-import gevent
 import time
 
+import gevent
 from PyTango import DeviceProxy
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.TaskUtils import task
 
 __author__ = "Jie Nan"
 __credits__ = ["The MxCuBE collaboration"]

@@ -24,9 +24,10 @@ __author__ = "Jan Meyer"
 __email__ = "jan.meyer@desy.de"
 
 
-import gevent
 import json
 import traceback
+
+import gevent
 
 try:
     from httplib import HTTPConnection
@@ -41,10 +42,14 @@ except ImportError:
     traceback.print_exc()
     redis_flag = False
 
-from mxcubecore.utils.qt_import import QImage, QPixmap, QPoint
-from mxcubecore.utils.conversion import string_types
-from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import AbstractVideoDevice
 from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import AbstractVideoDevice
+from mxcubecore.utils.conversion import string_types
+from mxcubecore.utils.qt_import import (
+    QImage,
+    QPixmap,
+    QPoint,
+)
 
 
 class MjpgStreamVideo(AbstractVideoDevice):

@@ -35,14 +35,18 @@ differ from the default ones.
   <use_global_state>False</use_global_state>
 """
 
-import sys
-import math
 import logging
+import math
+import sys
 
-from gevent import Timeout, sleep
-from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
+from gevent import (
+    Timeout,
+    sleep,
+)
+
 from mxcubecore.Command.Exporter import Exporter
 from mxcubecore.Command.exporter.ExporterStates import ExporterStates
+from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

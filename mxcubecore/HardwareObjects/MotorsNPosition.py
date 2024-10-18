@@ -23,9 +23,9 @@ __license__ = "LGPLv3+"
 
 from collections import OrderedDict
 
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.HardwareObjects.abstract.AbstractActuator import AbstractActuator
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import MotorStates
-from mxcubecore.BaseHardwareObjects import HardwareObjectState
 
 
 class MotorsNPosition(AbstractActuator):

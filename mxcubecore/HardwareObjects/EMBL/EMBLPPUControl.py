@@ -2,7 +2,6 @@ import logging
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
-
 __credits__ = ["EMBL Hamburg"]
 __category__ = "General"
 

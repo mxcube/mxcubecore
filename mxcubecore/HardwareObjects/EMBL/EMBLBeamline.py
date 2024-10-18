@@ -24,14 +24,19 @@
 All HardwareObjects
 """
 
-from __future__ import division, absolute_import
-from __future__ import print_function, unicode_literals
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals,
+)
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 __author__ = "Rasmus H Fogh"
 
 from collections import OrderedDict
+
 from mxcubecore.HardwareObjects.Beamline import Beamline
 
 

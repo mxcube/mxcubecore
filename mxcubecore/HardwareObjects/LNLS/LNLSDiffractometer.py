@@ -18,16 +18,15 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 import ast
-import time
 import logging
 import random
+import time
 import warnings
 
-from mxcubecore.HardwareObjects.GenericDiffractometer import (
-    GenericDiffractometer
-)
-from mxcubecore import HardwareRepository as HWR
 from gevent.event import AsyncResult
+
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.HardwareObjects.GenericDiffractometer import GenericDiffractometer
 
 
 class LNLSDiffractometer(GenericDiffractometer):

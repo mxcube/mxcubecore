@@ -32,8 +32,9 @@ machInfoChanged
          values['topup_remaining']
 """
 
-import gevent
 import time
+
+import gevent
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject

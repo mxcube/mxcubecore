@@ -1,7 +1,8 @@
-import sys
-import time
 import string
+import sys
 import threading
+import time
+
 from Command.exporter.ExporterClient import *
 
 SERVER_ADDRESS = "localhost"

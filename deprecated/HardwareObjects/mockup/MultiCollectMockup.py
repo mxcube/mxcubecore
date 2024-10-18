@@ -1,12 +1,14 @@
+import logging
+import os
+import time
+
+import gevent
+
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.abstract.AbstractMultiCollect import (
     AbstractMultiCollect,
 )
 from mxcubecore.TaskUtils import task
-import logging
-import time
-import os
-import gevent
 
 
 class MultiCollectMockup(AbstractMultiCollect, HardwareObject):

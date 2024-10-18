@@ -20,10 +20,8 @@
 import logging
 import time
 
-from mxcubecore.HardwareObjects.abstract.AbstractDetector import (
-    AbstractDetector,
-)
 from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
 
 __author__ = "Vicente Rey"
 __credits__ = ["SOLEIL"]

@@ -1,12 +1,13 @@
-import gevent
-import time
-import subprocess
 import logging
 import os
+import subprocess
+import time
 
+import gevent
+
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.CommandContainer import ConnectionError
 from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
-from mxcubecore.BaseHardwareObjects import HardwareObjectState
 
 
 class LimaJungfrauDetector(AbstractDetector):

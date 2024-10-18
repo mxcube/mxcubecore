@@ -24,10 +24,7 @@ import logging
 
 import gevent
 
-from mxcubecore.HardwareObjects.abstract.AbstractDetector import (
-    AbstractDetector,
-)
-
+from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"

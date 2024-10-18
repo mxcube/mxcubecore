@@ -1,7 +1,9 @@
+import time
+
+import gevent
+
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
-import time
-import gevent
 
 
 class RobodiffLight(Device, AbstractMotor):

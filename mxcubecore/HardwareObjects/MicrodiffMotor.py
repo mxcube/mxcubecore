@@ -1,5 +1,7 @@
 import time
+
 from gevent import Timeout
+
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 

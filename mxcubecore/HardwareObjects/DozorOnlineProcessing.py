@@ -18,17 +18,18 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 
-from XSDataCommon import XSDataBoolean
-from XSDataCommon import XSDataDouble
-from XSDataCommon import XSDataInteger
-from XSDataCommon import XSDataString
+from XSDataCommon import (
+    XSDataBoolean,
+    XSDataDouble,
+    XSDataInteger,
+    XSDataString,
+)
 from XSDataControlDozorv1_1 import XSDataInputControlDozor
 
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractOnlineProcessing import (
     AbstractOnlineProcessing,
 )
-from mxcubecore import HardwareRepository as HWR
-
 
 __credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3+"

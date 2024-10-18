@@ -1,13 +1,17 @@
-import shutil
+import decimal
 import logging
 import os
-import decimal
+import shutil
 import time
 
-
-from mxcubecore.TaskUtils import task
-from .ESRFMultiCollect import ESRFMultiCollect, FixedEnergy, PixelDetector
 from mxcubecore.HardwareObjects.LimaPilatusDetector import LimaPilatusDetector
+from mxcubecore.TaskUtils import task
+
+from .ESRFMultiCollect import (
+    ESRFMultiCollect,
+    FixedEnergy,
+    PixelDetector,
+)
 
 
 class ID30A1MultiCollect(ESRFMultiCollect):

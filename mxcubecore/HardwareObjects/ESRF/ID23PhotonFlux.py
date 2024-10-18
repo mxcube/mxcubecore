@@ -1,11 +1,13 @@
-import time
 import logging
 import math
+import time
+
 from calc_flux import CalculateFlux
 from PyTango.gevent import DeviceProxy
+
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.TaskUtils import task
-from mxcubecore import HardwareRepository as HWR
 
 
 class ID23PhotonFlux(HardwareObject):

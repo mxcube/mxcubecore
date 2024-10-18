@@ -1,9 +1,11 @@
-from mxcubecore.BaseHardwareObjects import HardwareObject
-import types
 import logging
-import gevent
 import time
+import types
+
+import gevent
+
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 class BIOMAXPatches(HardwareObject):

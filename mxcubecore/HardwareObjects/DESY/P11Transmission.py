@@ -21,9 +21,11 @@
 __copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
 
-import gevent
 import logging
 import time
+
+import gevent
+
 from mxcubecore.HardwareObjects.abstract.AbstractTransmission import (
     AbstractTransmission,
 )

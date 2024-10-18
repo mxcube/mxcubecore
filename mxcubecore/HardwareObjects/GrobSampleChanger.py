@@ -2,8 +2,10 @@
 """
 
 import logging
-from mxcubecore.BaseHardwareObjects import HardwareObject
+
 import gevent
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 class GrobSampleChanger(HardwareObject):

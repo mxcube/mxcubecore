@@ -20,10 +20,11 @@
     MU is the linear attenuation coeficient (cm^-1) and d is the thickness of the foil (cm).
 """
 import argparse
-from epics import PV
 import itertools
 import math
 import time
+
+from epics import PV
 
 
 def read_input():

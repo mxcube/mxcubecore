@@ -1,18 +1,19 @@
-from mxcubecore.BaseHardwareObjects import HardwareObject
-
-import os
-import time
-import gevent
-import pprint
-import logging
-import requests
 import binascii
+import logging
+import os
+import pprint
+import time
+
+import gevent
+import requests
+
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 # import threading
 from mxcubecore.HardwareObjects.SecureXMLRpcRequestHandler import (
     SecureXMLRpcRequestHandler,
 )
-from mxcubecore import HardwareRepository as HWR
 
 try:
     from httplib import HTTPConnection

@@ -19,13 +19,19 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
 """
-from __future__ import division, absolute_import
-from __future__ import print_function, unicode_literals
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals,
+)
 
-import uuid
 import json
-from collections import OrderedDict
-from collections import namedtuple
+import uuid
+from collections import (
+    OrderedDict,
+    namedtuple,
+)
 
 from mxcubecore.model import crystal_symmetry
 

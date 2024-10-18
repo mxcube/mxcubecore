@@ -1,7 +1,12 @@
-from .ESRFMultiCollect import ESRFMultiCollect, task, time
-import shutil
 import logging
 import os
+import shutil
+
+from .ESRFMultiCollect import (
+    ESRFMultiCollect,
+    task,
+    time,
+)
 
 
 class ID231MultiCollect(ESRFMultiCollect):

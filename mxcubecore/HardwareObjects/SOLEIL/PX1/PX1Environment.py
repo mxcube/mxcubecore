@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import time
 import logging
+import time
+
 import gevent
 
-from mxcubecore.Command.Tango import DeviceProxy
-
 from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.Command.Tango import DeviceProxy
 from mxcubecore.TaskUtils import task
 
 

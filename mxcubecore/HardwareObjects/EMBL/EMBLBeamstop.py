@@ -20,7 +20,6 @@
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
-
 __credits__ = ["EMBL Hamburg"]
 __version__ = "2.3."
 __category__ = "General"

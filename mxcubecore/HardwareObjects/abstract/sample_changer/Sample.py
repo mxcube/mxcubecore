@@ -1,4 +1,5 @@
 import sys
+
 from .Component import Component
 
 try:
