@@ -252,10 +252,6 @@ class AbstractMultiCollect(object):
     def generate_image_jpeg(self, filename, jpeg_path, jpeg_thumbnail_path):
         pass
 
-    @task
-    def take_crystal_snapshots(self, number_of_snapshots):
-        HWR.beamline.diffractometer.take_snapshots(number_of_snapshots, wait=True)
-
     def get_sample_info_from_parameters(self, parameters):
         """Returns sample_id, sample_location and sample_code from data collection parameters"""
         sample_info = parameters.get("sample_reference")
@@ -318,7 +314,7 @@ class AbstractMultiCollect(object):
         else:
             pass
 
-    def new_take_snapshots(self, dc_params):
+    def take_snapshots(self, dc_params):
         snapshot_directory = dc_params["fileinfo"]["archive_directory"]
 
         if HWR.beamline.diffractometer.in_plate_mode():
@@ -346,20 +342,7 @@ class AbstractMultiCollect(object):
                 snapshot_filename
             )
 
-        HWR.beamline.diffractometer.new_take_snapshot(image_path_list)
-
-    def _take_crystal_snapshots(self, number_of_snapshots):
-        try:
-            if isinstance(number_of_snapshots, bool):
-                # backward compatibility, if number_of_snapshots is True|False
-                if number_of_snapshots:
-                    return self.take_crystal_snapshots(4)
-                else:
-                    return
-            if number_of_snapshots:
-                return self.take_crystal_snapshots(number_of_snapshots)
-        except Exception:
-            logging.getLogger("HWR").exception("Could not take crystal snapshots")
+        HWR.beamline.diffractometer.take_snapshot(image_path_list)
 
     @abc.abstractmethod
     def set_helical(self, helical_on):
@@ -597,8 +580,7 @@ class AbstractMultiCollect(object):
             logging.getLogger("user_level_log").info(
                 f"Taking sample ({self.number_of_snapshots}) snapshosts"
             )
-            # self._take_crystal_snapshots(take_snapshots)
-            self.new_take_snapshots(data_collect_parameters)
+            self.take_snapshots(data_collect_parameters)
         centring_info = HWR.beamline.diffractometer.get_centring_status()
         # move *again* motors, since taking snapshots may change positions
         logging.getLogger("user_level_log").info(

@@ -3,7 +3,6 @@ import json
 import logging
 import math
 import os
-import tempfile
 import time
 from typing import Union
 
@@ -17,86 +16,6 @@ from mxcubecore.HardwareObjects import sample_centring
 from mxcubecore.HardwareObjects.GenericDiffractometer import GonioHeadConfiguration
 from mxcubecore.model import queue_model_objects as qmo
 from mxcubecore.TaskUtils import task
-
-try:
-    from Qub.Tools import QubImageSave
-except ImportError:
-    pass
-
-
-class myimage:
-    def __init__(self, drawing):
-        self.drawing = drawing
-        matrix = self.drawing.matrix()
-        self.zoom = 1
-        if matrix is not None:
-            self.zoom = matrix.m11()
-
-    def save(self, filename=None):
-        self.img = self.drawing.getPPP()
-
-        if filename is None:
-            fd, name = tempfile.mkstemp()
-            os.close(fd)
-        else:
-            name = filename
-
-        QubImageSave.save(name, self.img, self.drawing.canvas(), self.zoom, "JPEG")
-
-        if filename is None:
-            f = open(name, "r")
-            self.imgcopy = f.read()
-            f.close()
-            os.unlink(name)
-
-    def __str__(self):
-        self.save()
-        return self.imgcopy
-
-
-def set_light_in(light, light_motor, zoom):
-    with gevent.Timeout(5, RuntimeError("Could not set light in")):
-        light_level = None
-
-        if light is not None:
-            light.wagoIn()
-
-        # No light level, choose default
-        if light_motor.get_value() == 0:
-            zoom_level = int(zoom.get_value())
-            light_level = None
-
-            try:
-                light_level = zoom["positions"][0][zoom_level].get_property(
-                    "lightLevel"
-                )
-            except IndexError:
-                logging.getLogger("HWR").info("Could not get default light level")
-                light_level = 1
-
-        if light_level:
-            light_motor.set_value(light_level)
-
-        while light.getWagoState() != "in":
-            time.sleep(0.5)
-
-
-def take_snapshots(number_of_snapshots, light, light_motor, phi, zoom, drawing):
-    if number_of_snapshots <= 0:
-        return
-
-    centredImages = []
-
-    set_light_in(light, light_motor, zoom)
-
-    for i, angle in enumerate([0] + [-90] * (number_of_snapshots - 1)):
-        phi.set_value_relative(angle)
-        logging.getLogger("HWR").info("MiniDiff: taking snapshot #%d", i + 1)
-        centredImages.append((phi.get_value(), str(myimage(drawing))))
-
-    centredImages.reverse()  # snapshot order must be according to positive rotation direction
-
-    return centredImages
 
 
 class MiniDiff(HardwareObject):
@@ -409,14 +328,6 @@ class MiniDiff(HardwareObject):
             AbstractActuator
         """
         return self.zoomMotor
-
-    def save_snapshot(self, filename):
-        set_light_in(self.lightWago, self.lightMotor, self.zoomMotor)
-        img = myimage(self._drawing)
-        img.save(filename)
-
-    def set_light_in(self):
-        set_light_in(self.lightWago, self.lightMotor, self.zoomMotor)
 
     def set_sample_info(self, sample_info):
         self.currentSampleInfo = sample_info
@@ -1024,7 +935,7 @@ class MiniDiff(HardwareObject):
         ):
             time.sleep(0.1)
 
-    def new_take_snapshot(self, image_path_list: list) -> None:
+    def take_snapshot(self, image_path_list: list) -> None:
         if self.get_current_phase() != "Centring":
             use_custom_snapshot_routine = self.get_property(
                 "custom_snapshot_script_dir", False
@@ -1040,26 +951,6 @@ class MiniDiff(HardwareObject):
             )
             HWR.beamline.sample_view.save_snapshot(path=image_path)
             self.phiMotor.set_value_relative(90, timeout=5)
-
-    def take_snapshots(self, image_count, wait=False):
-        HWR.beamline.sample_view.camera.forceUpdate = True
-
-        snapshotsProcedure = gevent.spawn(
-            take_snapshots,
-            image_count,
-            self.lightWago,
-            self.lightMotor,
-            self.phiMotor,
-            self.zoomMotor,
-            self._drawing,
-        )
-        self.emit("centringSnapshots", (None,))
-        self.emitProgressMessage("Taking snapshots")
-        self.centringStatus["images"] = []
-        snapshotsProcedure.link(self.snapshotsDone)
-
-        if wait:
-            self.centringStatus["images"] = snapshotsProcedure.get()
 
     def snapshotsDone(self, snapshotsProcedure):
         HWR.beamline.sample_view.camera.forceUpdate = False
