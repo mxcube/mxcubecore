@@ -68,9 +68,9 @@ class AdvancedConnectorQueueEntry(BaseQueueEntry):
                     cpos_one,
                     cpos_two,
                 ) = HWR.beamline.sample_view.create_auto_line()
-                helical_model.acquisitions[
-                    0
-                ].acquisition_parameters.osc_start = cpos_one.phi
+                helical_model.acquisitions[0].acquisition_parameters.osc_start = (
+                    cpos_one.phi
+                )
                 helical_model.acquisitions[
                     0
                 ].acquisition_parameters.centred_position = cpos_one

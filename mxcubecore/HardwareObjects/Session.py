@@ -4,6 +4,7 @@ Session hardware object.
 Contains information regarding the current session and methods to
 access and manipulate this information.
 """
+
 import os
 import time
 import socket

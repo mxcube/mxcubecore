@@ -198,9 +198,9 @@ class EnergyScanMockup(AbstractEnergyScan):
         self.energy_scan_parameters["exposureTime"] = 0.01
         print(self.cpos)
         if HWR.beamline.transmission is not None:
-            self.energy_scan_parameters[
-                "transmissionFactor"
-            ] = HWR.beamline.transmission.get_value()
+            self.energy_scan_parameters["transmissionFactor"] = (
+                HWR.beamline.transmission.get_value()
+            )
         else:
             self.energy_scan_parameters["transmissionFactor"] = None
         size_hor = None

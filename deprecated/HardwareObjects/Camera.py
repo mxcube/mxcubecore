@@ -15,6 +15,7 @@ template:
     </calibration> -->
   </object>
 """
+
 from mxcubecore import BaseHardwareObjects
 from mxcubecore import CommandContainer
 import gevent

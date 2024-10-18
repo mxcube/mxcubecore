@@ -19,7 +19,6 @@ At first look there is no direct conversion from vapory scene to qimage.
 [Included Hardware Objects]
 """
 
-
 import time
 import gevent
 import vapory

@@ -11,6 +11,7 @@ Derived from Michael Hellmig's implementation for the BESSY CATS sample changer
 Vicente Rey - add support for ISARA Model
 
 """
+
 import logging
 
 from mxcubecore.TaskUtils import task

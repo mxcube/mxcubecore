@@ -289,9 +289,9 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         # Set the workflow root subdirectory parameter from the base image directory
         image_root = os.path.abspath(HWR.beamline.session.get_base_image_directory())
         if strategy_settings["wftype"] != "transcal":
-            workflow_options[
-                "appdir"
-            ] = HWR.beamline.session.get_base_process_directory()
+            workflow_options["appdir"] = (
+                HWR.beamline.session.get_base_process_directory()
+            )
             rootsubdir = path_template.directory[len(image_root) :]
             if rootsubdir.startswith(os.path.sep):
                 rootsubdir = rootsubdir[1:]
@@ -1065,9 +1065,9 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         )
         scanIdMap = {}
         for item in collectionDone.scanIdMap.items():
-            scanIdMap[
-                jvm.java.util.UUID.fromString(conversion.text_type(item[0]))
-            ] = jvm.java.util.UUID.fromString(conversion.text_type(item[1]))
+            scanIdMap[jvm.java.util.UUID.fromString(conversion.text_type(item[0]))] = (
+                jvm.java.util.UUID.fromString(conversion.text_type(item[1]))
+            )
         return jvm.astra.messagebus.messages.information.CollectionDoneImpl(
             proposalId,
             collectionDone.status,

@@ -4,6 +4,7 @@ CATS maintenance commands hardware object.
 Functionality in addition to sample-transfer functionality: power control,
 lid control, error-recovery commands, ...
 """
+
 import logging
 from mxcubecore.TaskUtils import task
 from mxcubecore.BaseHardwareObjects import HardwareObject

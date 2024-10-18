@@ -11,6 +11,7 @@ template:
          <delta>tolerance allowed between real motor position and defined position</delta> -->
   </object>
 """
+
 import logging
 
 from mxcubecore.HardwareObjects import SpecMotor

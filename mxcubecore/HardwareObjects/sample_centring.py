@@ -356,12 +356,16 @@ def centre_plate(
         {
             sampx.motor: float(sampx.get_value() + sampx.direction * dx),
             sampy.motor: float(sampy.get_value() + sampy.direction * dy),
-            phiz.motor: float(phiz.get_value() + phiz.direction * d_vertical[0, 0])
-            if phiz.__dict__.get("reference_position") is None
-            else phiz.reference_position,
-            phiy.motor: float(phiy.get_value() + phiy.direction * d_horizontal[0, 0])
-            if phiy.__dict__.get("reference_position") is None
-            else phiy.reference_position,
+            phiz.motor: (
+                float(phiz.get_value() + phiz.direction * d_vertical[0, 0])
+                if phiz.__dict__.get("reference_position") is None
+                else phiz.reference_position
+            ),
+            phiy.motor: (
+                float(phiy.get_value() + phiy.direction * d_horizontal[0, 0])
+                if phiy.__dict__.get("reference_position") is None
+                else phiy.reference_position
+            ),
         }
     )
 
@@ -477,12 +481,16 @@ def center(
         {
             sampx.motor: float(sampx.get_value() + sampx.direction * dx),
             sampy.motor: float(sampy.get_value() + sampy.direction * dy),
-            phiz.motor: float(phiz.get_value() + phiz.direction * d_vertical[0, 0])
-            if phiz.__dict__.get("reference_position") is None
-            else phiz.reference_position,
-            phiy.motor: float(phiy.get_value() + phiy.direction * d_horizontal[0, 0])
-            if phiy.__dict__.get("reference_position") is None
-            else phiy.reference_position,
+            phiz.motor: (
+                float(phiz.get_value() + phiz.direction * d_vertical[0, 0])
+                if phiz.__dict__.get("reference_position") is None
+                else phiz.reference_position
+            ),
+            phiy.motor: (
+                float(phiy.get_value() + phiy.direction * d_horizontal[0, 0])
+                if phiy.__dict__.get("reference_position") is None
+                else phiy.reference_position
+            ),
         }
     )
 

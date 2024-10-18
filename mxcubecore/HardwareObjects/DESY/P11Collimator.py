@@ -79,12 +79,12 @@ class P11Collimator(NState):
 
         # If a delta is not specified, fallback to a default delta value
         self.deltas = {
-            "collimatory": float(delta_y)
-            if delta_y is not None
-            else self.default_delta,
-            "collimatorz": float(delta_z)
-            if delta_z is not None
-            else self.default_delta,
+            "collimatory": (
+                float(delta_y) if delta_y is not None else self.default_delta
+            ),
+            "collimatorz": (
+                float(delta_z) if delta_z is not None else self.default_delta
+            ),
         }
 
         # Log the deltas for each motor

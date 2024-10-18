@@ -1,6 +1,7 @@
 """
 CATS maintenance mockup.
 """
+
 import logging
 
 from mxcubecore.TaskUtils import task

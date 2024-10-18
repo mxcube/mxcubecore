@@ -1,6 +1,7 @@
 """
 A client for Biomax Kafka services.
 """
+
 import logging
 import time
 import json

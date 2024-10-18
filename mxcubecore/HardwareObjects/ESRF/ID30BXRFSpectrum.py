@@ -409,9 +409,9 @@ class XrfSpectrum(HardwareObject):
             print(ic)
             if ic > min_cnt:
                 self.ctrl_hwobj.diffractometer.msclose()
-                self.spectrumInfo[
-                    "beamTransmission"
-                ] = HWR.beamline.transmission.get_value()
+                self.spectrumInfo["beamTransmission"] = (
+                    HWR.beamline.transmission.get_value()
+                )
                 logging.getLogger("user_level_log").info(
                     "Transmission used for spectra: %g"
                     % self.spectrumInfo["beamTransmission"]

@@ -445,9 +445,9 @@ class AbstractMultiCollect(object):
                 logging.getLogger("user_level_log").info(
                     "Getting synchrotron filling mode"
                 )
-                data_collect_parameters[
-                    "synchrotronMode"
-                ] = self.get_machine_fill_mode()
+                data_collect_parameters["synchrotronMode"] = (
+                    self.get_machine_fill_mode()
+                )
             data_collect_parameters["status"] = "failed"
 
             logging.getLogger("user_level_log").info("Storing data collection in LIMS")
@@ -487,9 +487,9 @@ class AbstractMultiCollect(object):
 
         if HWR.beamline.sample_changer is not None:
             try:
-                data_collect_parameters[
-                    "actualSampleBarcode"
-                ] = HWR.beamline.sample_changer.get_loaded_sample().get_id()
+                data_collect_parameters["actualSampleBarcode"] = (
+                    HWR.beamline.sample_changer.get_loaded_sample().get_id()
+                )
                 data_collect_parameters["actualContainerBarcode"] = (
                     HWR.beamline.sample_changer.get_loaded_sample()
                     .get_container()
@@ -573,9 +573,9 @@ class AbstractMultiCollect(object):
         if HWR.beamline.lims:
             try:
                 if self.current_lims_sample:
-                    self.current_lims_sample[
-                        "lastKnownCentringPosition"
-                    ] = positions_str
+                    self.current_lims_sample["lastKnownCentringPosition"] = (
+                        positions_str
+                    )
                     logging.getLogger("user_level_log").info(
                         "Updating sample information in LIMS"
                     )
@@ -624,9 +624,9 @@ class AbstractMultiCollect(object):
                         except Exception:
                             pass
 
-                    data_collect_parameters[
-                        "xtalSnapshotFullPath%i" % snapshot_i
-                    ] = full_snapshot
+                    data_collect_parameters["xtalSnapshotFullPath%i" % snapshot_i] = (
+                        full_snapshot
+                    )
 
                     snapshots.append(full_snapshot)
                     snapshot_i += 1
@@ -642,12 +642,12 @@ class AbstractMultiCollect(object):
                     "Updating data collection in LIMS"
                 )
                 if "kappa" in data_collect_parameters["actualCenteringPosition"]:
-                    data_collect_parameters["oscillation_sequence"][0][
-                        "kappaStart"
-                    ] = current_diffractometer_position["kappa"]
-                    data_collect_parameters["oscillation_sequence"][0][
-                        "phiStart"
-                    ] = current_diffractometer_position["kappa_phi"]
+                    data_collect_parameters["oscillation_sequence"][0]["kappaStart"] = (
+                        current_diffractometer_position["kappa"]
+                    )
+                    data_collect_parameters["oscillation_sequence"][0]["phiStart"] = (
+                        current_diffractometer_position["kappa_phi"]
+                    )
                 HWR.beamline.lims.update_data_collection(data_collect_parameters)
             except Exception:
                 logging.getLogger("HWR").exception(
@@ -808,18 +808,18 @@ class AbstractMultiCollect(object):
                     data_collect_parameters["flux_end"] = data_collect_parameters[
                         "flux"
                     ]
-                    data_collect_parameters[
-                        "wavelength"
-                    ] = HWR.beamline.energy.get_wavelength()
-                    data_collect_parameters[
-                        "detectorDistance"
-                    ] = HWR.beamline.detector.distance.get_value()
-                    data_collect_parameters[
-                        "resolution"
-                    ] = HWR.beamline.resolution.get_value()
-                    data_collect_parameters[
-                        "transmission"
-                    ] = HWR.beamline.transmission.get_value()
+                    data_collect_parameters["wavelength"] = (
+                        HWR.beamline.energy.get_wavelength()
+                    )
+                    data_collect_parameters["detectorDistance"] = (
+                        HWR.beamline.detector.distance.get_value()
+                    )
+                    data_collect_parameters["resolution"] = (
+                        HWR.beamline.resolution.get_value()
+                    )
+                    data_collect_parameters["transmission"] = (
+                        HWR.beamline.transmission.get_value()
+                    )
                     beam_centre_x, beam_centre_y = self.get_beam_centre()
                     data_collect_parameters["xBeam"] = beam_centre_x
                     data_collect_parameters["yBeam"] = beam_centre_y
@@ -831,9 +831,9 @@ class AbstractMultiCollect(object):
                         if key in und:
                             data_collect_parameters["undulatorGap%d" % (i)] = und[key]
                             i += 1
-                    data_collect_parameters[
-                        "resolutionAtCorner"
-                    ] = self.get_resolution_at_corner()
+                    data_collect_parameters["resolutionAtCorner"] = (
+                        self.get_resolution_at_corner()
+                    )
                     beam_size_x, beam_size_y = self.get_beam_size()
                     data_collect_parameters["beamSizeAtSampleX"] = beam_size_x
                     data_collect_parameters["beamSizeAtSampleY"] = beam_size_y
@@ -971,9 +971,9 @@ class AbstractMultiCollect(object):
 
                                 if archive_directory:
                                     lims_image["jpegFileFullPath"] = jpeg_full_path
-                                    lims_image[
-                                        "jpegThumbnailFileFullPath"
-                                    ] = jpeg_thumbnail_full_path
+                                    lims_image["jpegThumbnailFileFullPath"] = (
+                                        jpeg_thumbnail_full_path
+                                    )
 
                                 try:
                                     HWR.beamline.lims.store_image(lims_image)
@@ -1103,9 +1103,9 @@ class AbstractMultiCollect(object):
                     logging.getLogger("user_level_log").info(
                         "Data collection failed %s" % exc_value
                     )
-                    data_collect_parameters[
-                        "status"
-                    ] = "Data collection failed!"  # Message to be stored in LIMS
+                    data_collect_parameters["status"] = (
+                        "Data collection failed!"  # Message to be stored in LIMS
+                    )
                     failed_msg = "Data collection failed!\n%s" % exc_value
                     self.emit(
                         "collectOscillationFailed",
