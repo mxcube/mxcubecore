@@ -8,9 +8,6 @@ from mxcubecore.model.queue_model_objects import PathTemplate
 from mxcubecore.utils.conversion import string_types
 from mxcubecore import HardwareRepository as HWR
 
-from mxcubecore.HardwareObjects.ESRF.ESRFMetadataManagerClient import (
-    MXCuBEMetadataClient,
-)
 
 try:
     from httplib import HTTPConnection
