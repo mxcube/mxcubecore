@@ -396,6 +396,7 @@ class Shape(object):
         self.cp_list = []
         self.name = ""
         self.state = "SAVED"
+        self.user_state = "SAVED"  # used to persist user preferences in regards wether to show or hide particular shape.
         self.label = ""
         self.screen_coord = screen_coord
         self.selected = False
