@@ -12,6 +12,7 @@ Example configuration:
 
 If video mode is not specified, BAYER_RG16 is used by default.
 """
+
 import logging
 import time
 import struct

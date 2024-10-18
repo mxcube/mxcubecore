@@ -74,9 +74,9 @@ class P11BeamStop(NState):
 
         # If a delta is not specified, fallback to a default delta value
         self.deltas = {
-            "bstopx": float(delta_bstopx)
-            if delta_bstopx is not None
-            else self.default_delta,
+            "bstopx": (
+                float(delta_bstopx) if delta_bstopx is not None else self.default_delta
+            ),
         }
 
         # Log the deltas for each motor

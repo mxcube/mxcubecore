@@ -993,9 +993,9 @@ class MiniDiff(HardwareObject):
             "sampx": float(self.sampleXMotor.get_value()),
             "sampy": float(self.sampleYMotor.get_value()),
             "kappa": float(self.kappaMotor.get_value()) if self.kappaMotor else None,
-            "kappa_phi": float(self.kappaPhiMotor.get_value())
-            if self.kappaPhiMotor
-            else None,
+            "kappa_phi": (
+                float(self.kappaPhiMotor.get_value()) if self.kappaPhiMotor else None
+            ),
             "zoom": float(self.zoomMotor.get_value()),
         }
 

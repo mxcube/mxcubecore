@@ -226,9 +226,9 @@ class XRFSpectrum(HardwareObject):
             mcaData = self.mca_hwobj.read_data(save_data=True)
             mcaCalib = self.mca_hwobj.get_calibration()
             mcaConfig = {}
-            self.spectrumInfo[
-                "beamTransmission"
-            ] = HWR.beamline.transmission.get_value()
+            self.spectrumInfo["beamTransmission"] = (
+                HWR.beamline.transmission.get_value()
+            )
             self.spectrumInfo["energy"] = HWR.beamline.energy.get_value()
             if HWR.beamline.flux:
                 self.spectrumInfo["flux"] = HWR.beamline.flux.get_value()
@@ -404,9 +404,9 @@ class XRFSpectrum(HardwareObject):
             print(ic)
             if ic > min_cnt:
                 self.ctrl_hwobj.diffractometer.msclose()
-                self.spectrumInfo[
-                    "beamTransmission"
-                ] = HWR.beamline.transmission.get_value()
+                self.spectrumInfo["beamTransmission"] = (
+                    HWR.beamline.transmission.get_value()
+                )
                 logging.getLogger("user_level_log").info(
                     "Transmission used for spectra: %g"
                     % self.spectrumInfo["beamTransmission"]

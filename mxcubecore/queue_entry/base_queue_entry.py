@@ -565,9 +565,9 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                     acq_first_image,
                     acq_first_image + item["collect_num_images"] - 1,
                 )
-                self.interleave_items[item["collect_index"]][
-                    "queue_entry"
-                ].in_queue = item_index < (len(self.interleave_sw_list) - 1)
+                self.interleave_items[item["collect_index"]]["queue_entry"].in_queue = (
+                    item_index < (len(self.interleave_sw_list) - 1)
+                )
 
                 msg = "Executing %s collection (subwedge %d:%d, " % (
                     method_type,

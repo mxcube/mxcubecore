@@ -97,7 +97,7 @@ class MotorWPositions(AbstractMotor, Device):
     def get_current_position_name(self, pos=None):
         if pos is None:
             pos = self.motor.get_value()
-        for (position_name, position) in self.predefined_positions.items():
+        for position_name, position in self.predefined_positions.items():
             if self.delta >= abs(pos - position):
                 return position_name
         return ""

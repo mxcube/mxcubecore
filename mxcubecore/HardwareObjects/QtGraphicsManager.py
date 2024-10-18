@@ -976,9 +976,9 @@ class QtGraphicsManager(AbstractSampleView):
             # self._shapes.add_shape(self.graphics_grid_draw_item.get_display_name(),
             #                       self.graphics_grid_draw_item
             # )
-            self.shape_dict[
-                self.graphics_grid_draw_item.get_display_name()
-            ] = self.graphics_grid_draw_item
+            self.shape_dict[self.graphics_grid_draw_item.get_display_name()] = (
+                self.graphics_grid_draw_item
+            )
         elif self.in_beam_define_state:
             self.stop_beam_define()
         elif self.in_select_items_state:

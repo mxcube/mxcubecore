@@ -45,9 +45,9 @@ class ID30BEnergyScan(ESRFEnergyScan):
         eroi_max = self.energy_scan_parameters["eroi_max"]
         self.ctrl.detcover.set_in()
         self.ctrl.find_max_attenuation(ctime=2, roi=[eroi_min, eroi_max])
-        self.energy_scan_parameters[
-            "transmissionFactor"
-        ] = self.transmission.get_value()
+        self.energy_scan_parameters["transmissionFactor"] = (
+            self.transmission.get_value()
+        )
 
     @task
     def execute_energy_scan(self, energy_scan_parameters):

@@ -3,6 +3,7 @@ MAXIV Session hardware object.
 
 Adapting from original Session.py to adapt the names of data directories
 """
+
 import os
 import time
 import socket

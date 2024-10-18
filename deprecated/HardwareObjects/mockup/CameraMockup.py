@@ -1,5 +1,6 @@
 """Class for cameras connected to framegrabbers run by Taco Device Servers
 """
+
 from mxcubecore import BaseHardwareObjects
 import logging
 import os

@@ -10,6 +10,7 @@ Notes:
    This has been modified to follow the AbstractEnergyScan method
 
 """
+
 import logging
 import os
 import time

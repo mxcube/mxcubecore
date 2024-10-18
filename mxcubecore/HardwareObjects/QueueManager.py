@@ -7,6 +7,7 @@ The Queue manager acts as both the controller of execution and as the root/
 container of the queue, note the inheritance from QueueEntryContainer. See the
 documentation for the queue_entry module for more information.
 """
+
 import logging
 import gevent
 import traceback

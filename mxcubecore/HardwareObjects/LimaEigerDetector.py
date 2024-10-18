@@ -1,6 +1,7 @@
 """LimaEigerDetector Class
 Lima Tango Device Server implementation of the Dectris Eiger2 Detector.
 """
+
 import gevent
 import time
 import os

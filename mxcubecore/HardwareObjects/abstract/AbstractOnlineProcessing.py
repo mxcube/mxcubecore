@@ -224,9 +224,9 @@ class AbstractOnlineProcessing(HardwareObject):
         if not acq_params.num_images_per_trigger:
             self.params_dict["num_images_per_trigger"] = 1
         else:
-            self.params_dict[
-                "num_images_per_trigger"
-            ] = acq_params.num_images_per_trigger
+            self.params_dict["num_images_per_trigger"] = (
+                acq_params.num_images_per_trigger
+            )
 
         self.params_dict["status"] = "Started"
         self.params_dict["title"] = "%s_%d_#####.cbf (%d - %d)" % (
@@ -770,13 +770,13 @@ class AbstractOnlineProcessing(HardwareObject):
                 center_x = ndimage.measurements.center_of_mass(
                     self.results_aligned["score"]
                 )[0]
-                self.results_aligned[
-                    "center_mass"
-                ] = HWR.beamline.diffractometer.get_point_from_line(
-                    centred_positions[0],
-                    centred_positions[1],
-                    center_x,
-                    self.params_dict["images_num"],
+                self.results_aligned["center_mass"] = (
+                    HWR.beamline.diffractometer.get_point_from_line(
+                        centred_positions[0],
+                        centred_positions[1],
+                        center_x,
+                        self.params_dict["images_num"],
+                    )
                 )
             else:
                 self.results_aligned["center_mass"] = centred_positions[0]
