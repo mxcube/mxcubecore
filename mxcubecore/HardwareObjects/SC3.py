@@ -1,3 +1,6 @@
+import xml.sax
+from xml.sax.handler import ContentHandler
+
 from mxcubecore.HardwareObjects.abstract.AbstractSampleChanger import (
     Container,
     Sample,
@@ -7,9 +10,6 @@ from mxcubecore.HardwareObjects.abstract.AbstractSampleChanger import (
     gevent,
     sys,
 )
-
-import xml.sax
-from xml.sax.handler import ContentHandler
 
 
 class Pin(Sample):

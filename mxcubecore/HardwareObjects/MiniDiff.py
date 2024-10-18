@@ -1,25 +1,22 @@
-import gevent
-import tempfile
+import copy
+import json
 import logging
 import math
 import os
+import tempfile
 import time
-import copy
-import numpy
-import json
-
 from typing import Union
+
+import gevent
+import numpy
 from pydantic import ValidationError
 
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore.TaskUtils import task
-from mxcubecore.HardwareObjects import sample_centring
-from mxcubecore.model import queue_model_objects as qmo
 from mxcubecore import HardwareRepository as HWR
-
-from mxcubecore.HardwareObjects.GenericDiffractometer import (
-    GonioHeadConfiguration,
-)
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.HardwareObjects import sample_centring
+from mxcubecore.HardwareObjects.GenericDiffractometer import GonioHeadConfiguration
+from mxcubecore.model import queue_model_objects as qmo
+from mxcubecore.TaskUtils import task
 
 try:
     from Qub.Tools import QubImageSave

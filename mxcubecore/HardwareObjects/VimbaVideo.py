@@ -1,5 +1,6 @@
-import time
 import atexit
+import time
+
 import numpy as np
 from pymba import Vimba
 
@@ -8,12 +9,13 @@ try:
 except ImportError:
     pass
 
-from mxcubecore.utils.qt_import import QImage, QPixmap
-from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import (
-    AbstractVideoDevice,
-)
-
 from abstract.AbstractVideoDevice import AbstractVideoDevice
+
+from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import AbstractVideoDevice
+from mxcubecore.utils.qt_import import (
+    QImage,
+    QPixmap,
+)
 
 
 class VimbaVideo(AbstractVideoDevice):

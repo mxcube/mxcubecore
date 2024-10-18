@@ -1,6 +1,7 @@
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore import HardwareRepository as HWR
 import gevent
+
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 class RobodiffMotor(HardwareObject):

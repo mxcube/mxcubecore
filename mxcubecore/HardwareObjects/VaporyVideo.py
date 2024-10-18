@@ -20,11 +20,13 @@ At first look there is no direct conversion from vapory scene to qimage.
 """
 
 import time
+
 import gevent
 import vapory
-from mxcubecore.utils.qt_import import QImage
+
 from mxcubecore import BaseHardwareObjects
 from mxcubecore.HardwareObjects.Camera import JpegType
+from mxcubecore.utils.qt_import import QImage
 
 
 class VaporyVideo(BaseHardwareObjects.HardwareObject):

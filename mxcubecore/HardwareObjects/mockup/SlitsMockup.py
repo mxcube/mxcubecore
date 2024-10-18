@@ -20,7 +20,6 @@
 
 from mxcubecore.HardwareObjects.abstract.AbstractSlits import AbstractSlits
 
-
 __credits__ = ["MXCuBE collaboration"]
 
 

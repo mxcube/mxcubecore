@@ -1,5 +1,5 @@
-import time
 import logging
+import time
 
 from mxcubecore.HardwareObjects.LNLS.LNLSMotor import LNLSMotor
 

@@ -1,6 +1,7 @@
 # from MD2Motor import MD2Motor
-from mxcubecore.BaseHardwareObjects import HardwareObject
 import math
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 class MicrodiffApertureMockup(HardwareObject):

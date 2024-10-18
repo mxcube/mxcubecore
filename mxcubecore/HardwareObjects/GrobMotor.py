@@ -1,7 +1,9 @@
+import math
+
+import gevent
+
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
-import math
-import gevent
 
 
 class GrobMotor(Device, AbstractMotor):

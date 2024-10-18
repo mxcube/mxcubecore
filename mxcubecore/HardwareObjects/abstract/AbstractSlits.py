@@ -21,8 +21,8 @@
 """
 import abc
 from warnings import warn
-from mxcubecore.BaseHardwareObjects import HardwareObject
 
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 __credits__ = ["MXCuBE collaboration"]
 __version__ = "2.3"

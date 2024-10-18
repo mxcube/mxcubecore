@@ -1,8 +1,8 @@
 #!/usr/bin/env python2
 """Generate configuration files for MD2 motors. Available options are "exporter", "tango_events", "tango_polling" """
 
-from string import Template
 import os
+from string import Template
 
 continuous_motors = {
     "AlignmentX": {"direction": "1", "GUIstep": "0.1"},

@@ -1,9 +1,7 @@
 import time
-from mxcubecore.HardwareObjects.abstract.AbstractDetector import (
-    AbstractDetector,
-)
 
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
+from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
 
 
 class DetectorMockup(AbstractDetector):

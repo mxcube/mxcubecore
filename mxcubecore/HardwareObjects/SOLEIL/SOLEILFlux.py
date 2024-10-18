@@ -1,6 +1,7 @@
+import PyTango
+
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
-import PyTango
 
 
 class SOLEILFlux(HardwareObject):

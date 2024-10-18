@@ -20,6 +20,7 @@ beamPosChanged
 """
 
 import logging
+
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 

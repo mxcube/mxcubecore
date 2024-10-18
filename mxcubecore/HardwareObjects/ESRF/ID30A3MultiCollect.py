@@ -1,13 +1,18 @@
-import gevent
-import socket
 import logging
 import pickle as pickle
+import socket
 
+import gevent
+from PyTango.gevent import DeviceProxy
+
+from mxcubecore.HardwareObjects.LimaEigerDetector import Eiger
 from mxcubecore.TaskUtils import task
 
-from .ESRFMultiCollect import ESRFMultiCollect, FixedEnergy, PixelDetector
-from mxcubecore.HardwareObjects.LimaEigerDetector import Eiger
-from PyTango.gevent import DeviceProxy
+from .ESRFMultiCollect import (
+    ESRFMultiCollect,
+    FixedEnergy,
+    PixelDetector,
+)
 
 
 class ID30A3MultiCollect(ESRFMultiCollect):

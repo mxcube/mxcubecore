@@ -20,32 +20,38 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
 """
-from __future__ import division, absolute_import
-from __future__ import print_function, unicode_literals
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals,
+)
 
 import logging
 import os
-import subprocess
-import uuid
 import signal
-import time
+import socket
+import subprocess
 import sys
+import time
+import uuid
 
-from py4j import clientserver, java_gateway
+from py4j import (
+    clientserver,
+    java_gateway,
+)
 from py4j.protocol import Py4JJavaError
 
-from mxcubecore.utils import conversion
-from mxcubecore.HardwareObjects.Gphl import GphlMessages
-
-from mxcubecore.BaseHardwareObjects import HardwareObjectYaml
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObjectYaml
+from mxcubecore.HardwareObjects.Gphl import GphlMessages
+from mxcubecore.utils import conversion
 
 # NB this is patching the original socket module in to avoid the
 # monkeypatched version we get from gevent - that causes errors.
 # It depends on knowing where in py4j socket is imported
 # Hacky, but the best solution to making py4j and gevent compatible
 
-import socket
 
 origsocket = sys.modules.pop("socket")
 _origsocket = sys.modules.pop("_socket")
@@ -67,9 +73,11 @@ except ImportError:
     try:
         from louie import dispatcher
     except ImportError:
-        from pydispatch import dispatcher
-        from pydispatch import robustapply
-        from pydispatch import saferef
+        from pydispatch import (
+            dispatcher,
+            robustapply,
+            saferef,
+        )
 
         saferef.safe_ref = saferef.safeRef
         robustapply.robust_apply = robustapply.robustApply

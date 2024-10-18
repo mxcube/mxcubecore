@@ -33,14 +33,14 @@ NBNB OBSOLETE there is no longer a beamline_setup
 </object>
 """
 
-import redis
-import gevent
 import logging
+
+import gevent
 import jsonpickle
+import redis
 
-from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
-
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 __version__ = "2.3."
 __category__ = "General"

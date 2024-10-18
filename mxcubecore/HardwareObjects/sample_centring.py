@@ -1,11 +1,12 @@
-from scipy import optimize
-import numpy
-import gevent.event
-import math
-import time
 import logging
+import math
 import os
 import tempfile
+import time
+
+import gevent.event
+import numpy
+from scipy import optimize
 
 try:
     import lucid3 as lucid

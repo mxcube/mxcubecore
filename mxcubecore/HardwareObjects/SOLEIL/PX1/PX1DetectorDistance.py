@@ -1,4 +1,5 @@
 import time
+
 import gevent
 
 from mxcubecore.BaseHardwareObjects import HardwareObject

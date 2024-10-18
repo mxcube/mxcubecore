@@ -1,11 +1,17 @@
-import gevent
-import shutil
 import logging
 import os
+import shutil
 
-from mxcubecore.TaskUtils import task
-from .ESRFMultiCollect import ESRFMultiCollect, PixelDetector, TunableEnergy
+import gevent
+
 from mxcubecore.HardwareObjects.LimaPilatusDetector import LimaPilatusDetector
+from mxcubecore.TaskUtils import task
+
+from .ESRFMultiCollect import (
+    ESRFMultiCollect,
+    PixelDetector,
+    TunableEnergy,
+)
 
 
 class ID29MultiCollect(ESRFMultiCollect):

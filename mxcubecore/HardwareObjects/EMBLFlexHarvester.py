@@ -25,13 +25,13 @@ Example xml file:
   <exporter_address>lid231flex1:9001</exporter_address>
 </object>
 """
-import time
 import logging
+import time
+
 import gevent
 
-from mxcubecore.TaskUtils import task
-
 from mxcubecore.HardwareObjects.EMBLFlexHCD import EMBLFlexHCD
+from mxcubecore.TaskUtils import task
 
 
 class EMBLFlexHarvester(EMBLFlexHCD):

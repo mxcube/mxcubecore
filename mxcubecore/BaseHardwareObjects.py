@@ -20,37 +20,50 @@
 
 from __future__ import absolute_import
 
-import typing
 import ast
 import enum
-from collections import OrderedDict
 import logging
-from gevent import event, Timeout
-from pydantic.v1 import create_model, Field
+import typing
 import warnings
-
+from collections import OrderedDict
 from typing import (
     TYPE_CHECKING,
-    Callable,
-    Iterator,
-    Union,
     Any,
-    Generator,
-    List,
+    Callable,
     Dict,
+    Generator,
+    Iterator,
+    List,
+    Optional,
+)
+from typing import OrderedDict as TOrderedDict
+from typing import (
     Tuple,
     Type,
-    Optional,
-    OrderedDict as TOrderedDict,
+    Union,
 )
-from typing_extensions import Self, Literal
 
-from mxcubecore.dispatcher import dispatcher
+from gevent import (
+    Timeout,
+    event,
+)
+from pydantic.v1 import (
+    Field,
+    create_model,
+)
+from typing_extensions import (
+    Literal,
+    Self,
+)
+
 from mxcubecore.CommandContainer import CommandContainer
+from mxcubecore.dispatcher import dispatcher
 
 if TYPE_CHECKING:
     from logging import Logger
+
     from pydantic.v1 import BaseModel
+
     from .CommandContainer import CommandObject
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """

@@ -37,9 +37,11 @@ The energy should have methods get_value and get_state
 """
 import logging
 import math
+
 from gevent import spawn
-from mxcubecore.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
+
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
+from mxcubecore.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

@@ -37,8 +37,9 @@ Example xml configuration:
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
-import time
 import random
+import time
+
 from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
 from mxcubecore.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
 

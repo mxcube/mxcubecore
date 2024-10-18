@@ -1,29 +1,24 @@
-import os
-import logging
 import contextlib
 import enum
+import logging
+import os
 import subprocess
-from pydantic.v1 import BaseModel, Field
+
 from devtools import debug
+from pydantic.v1 import (
+    BaseModel,
+    Field,
+)
 
 from mxcubecore import HardwareRepository as HWR
-
-from mxcubecore.queue_entry.base_queue_entry import (
-    BaseQueueEntry,
-)
-
-from mxcubecore.model.queue_model_objects import (
-    DataCollection,
-)
-
-
 from mxcubecore.model.common import (
     CommonCollectionParamters,
-    PathParameters,
     LegacyParameters,
+    PathParameters,
     StandardCollectionParameters,
 )
-
+from mxcubecore.model.queue_model_objects import DataCollection
+from mxcubecore.queue_entry.base_queue_entry import BaseQueueEntry
 
 __credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3+"

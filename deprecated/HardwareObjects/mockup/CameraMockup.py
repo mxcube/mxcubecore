@@ -1,13 +1,15 @@
 """Class for cameras connected to framegrabbers run by Taco Device Servers
 """
 
-from mxcubecore import BaseHardwareObjects
 import logging
 import os
-import gevent
 import time
+
+import gevent
 import numpy
 from PIL import Image
+
+from mxcubecore import BaseHardwareObjects
 
 try:
     from cStringIO import StringIO

@@ -17,19 +17,17 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-import tine
-import numpy
-import gevent
 import logging
-
 from copy import deepcopy
 from datetime import datetime
+
+import gevent
+import numpy
+import tine
 from scipy.interpolate import interp1d
 
-from mxcubecore.HardwareObjects.abstract.AbstractFlux import AbstractFlux
-
 from mxcubecore import HardwareRepository as HWR
-
+from mxcubecore.HardwareObjects.abstract.AbstractFlux import AbstractFlux
 
 __credits__ = ["EMBL Hamburg"]
 __category__ = "General"

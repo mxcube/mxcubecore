@@ -25,7 +25,6 @@ By default ADXV is used
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
-
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"
 __category__ = "General"

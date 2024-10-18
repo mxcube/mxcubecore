@@ -20,11 +20,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
 """
 
-import os
 import ast
+import os
 from xml.etree import ElementTree as ET
-import numpy as np
+
 import f90nml
+import numpy as np
 
 __copyright__ = """ Copyright © 2016 -  2023 MXCuBE Collaboration."""
 __license__ = "LGPLv3+"
@@ -227,7 +228,10 @@ def get_minikappa_data(configfile):
 
 if __name__ == "__main__":
 
-    from argparse import ArgumentParser, RawTextHelpFormatter
+    from argparse import (
+        ArgumentParser,
+        RawTextHelpFormatter,
+    )
 
     parser = ArgumentParser(
         prog="Transcal2MiniKappa.py",

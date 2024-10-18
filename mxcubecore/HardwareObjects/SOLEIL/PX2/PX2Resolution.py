@@ -1,8 +1,10 @@
 import logging
-from mxcubecore.HardwareObjects.abstract.AbstractResolution import AbstractResolution
-from mxcubecore import HardwareRepository as HWR
-from resolution import resolution
+
 from beam_center import beam_center
+from resolution import resolution
+
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.HardwareObjects.abstract.AbstractResolution import AbstractResolution
 
 
 class PX2Resolution(AbstractResolution):

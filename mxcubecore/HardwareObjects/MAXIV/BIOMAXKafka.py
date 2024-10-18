@@ -2,14 +2,16 @@
 A client for Biomax Kafka services.
 """
 
-import logging
-import time
 import json
-import uuid
+import logging
 import re
+import time
+import uuid
+
 import requests
-from mxcubecore.BaseHardwareObjects import HardwareObject
+
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 class BIOMAXKafka(HardwareObject):

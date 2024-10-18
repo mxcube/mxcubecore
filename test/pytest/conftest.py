@@ -19,13 +19,13 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 """Tests configuration"""
 
-import sys
 import os
+import sys
+
+import pytest
+from gevent import monkey
 
 from mxcubecore import HardwareRepository as HWR
-
-from gevent import monkey
-import pytest
 
 monkey.patch_all(thread=False)
 

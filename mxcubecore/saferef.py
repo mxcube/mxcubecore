@@ -1,8 +1,8 @@
 """Refactored 'safe reference from dispatcher.py"""
 
-import weakref
-import traceback
 import collections
+import traceback
+import weakref
 
 
 def safe_ref(target, on_delete=None):

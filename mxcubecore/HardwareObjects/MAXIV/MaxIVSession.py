@@ -4,13 +4,16 @@ MAXIV Session hardware object.
 Adapting from original Session.py to adapt the names of data directories
 """
 
-import os
-import time
-import socket
 import logging
+import os
+import socket
+import time
 
 try:
-    from sdm import storage, Visitor
+    from sdm import (
+        Visitor,
+        storage,
+    )
 except Exception:
     raise Exception("Cannot import SDM library.")
 

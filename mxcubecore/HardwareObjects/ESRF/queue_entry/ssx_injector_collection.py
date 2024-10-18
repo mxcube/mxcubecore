@@ -1,28 +1,26 @@
+import enum
 import logging
 import time
-import enum
 
-from pydantic.v1 import BaseModel, Field
 from devtools import debug
+from pydantic.v1 import (
+    BaseModel,
+    Field,
+)
 
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.model.common import (
-    CommonCollectionParamters,
-    PathParameters,
-    LegacyParameters,
-    StandardCollectionParameters,
-)
-
 from mxcubecore.HardwareObjects.ESRF.queue_entry.ssx_base_queue_entry import (
+    BaseUserCollectionParameters,
     SsxBaseQueueEntry,
     SsxBaseQueueTaskParameters,
-    BaseUserCollectionParameters,
 )
-
-from mxcubecore.model.queue_model_objects import (
-    DataCollection,
+from mxcubecore.model.common import (
+    CommonCollectionParamters,
+    LegacyParameters,
+    PathParameters,
+    StandardCollectionParameters,
 )
-
+from mxcubecore.model.queue_model_objects import DataCollection
 
 __credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3+"

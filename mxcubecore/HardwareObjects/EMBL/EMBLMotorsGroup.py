@@ -76,14 +76,13 @@ Example Hardware Object XML file :
 """
 
 
-import time
 import logging
+import time
 
 import gevent
-
 import tine
-from mxcubecore.BaseHardwareObjects import HardwareObject
 
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"

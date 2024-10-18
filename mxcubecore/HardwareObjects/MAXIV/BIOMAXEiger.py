@@ -20,14 +20,16 @@ hardware object status:
 
 """
 from __future__ import print_function
-import gevent
-import time
+
 import copy
 import logging
+import time
 
-from mxcubecore.TaskUtils import task
-from mxcubecore.BaseHardwareObjects import HardwareObject
+import gevent
+
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.TaskUtils import task
 
 
 class BIOMAXEiger(HardwareObject):
@@ -700,8 +702,8 @@ class BIOMAXEiger(HardwareObject):
 
 
 def test():
-    import sys
     import os
+    import sys
 
     if len(sys.argv) != 5:
         print(

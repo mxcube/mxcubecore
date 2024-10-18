@@ -18,15 +18,19 @@
 """
 """
 
-from __future__ import division, absolute_import
-from __future__ import print_function, unicode_literals
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals,
+)
 
 import logging
-from mxcubecore.model import queue_model_objects
 
 from mxcubecore.HardwareObjects.abstract.AbstractXrayCentring import (
     AbstractXrayCentring,
 )
+from mxcubecore.model import queue_model_objects
 
 __copyright__ = """ Copyright © 2016 - 2022 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"

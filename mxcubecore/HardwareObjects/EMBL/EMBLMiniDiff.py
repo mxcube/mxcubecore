@@ -17,11 +17,11 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-import time
-import gevent
 import logging
-
+import time
 from math import sqrt
+
+import gevent
 
 try:
     import lucid3 as lucid
@@ -33,12 +33,9 @@ except ImportError:
             "Could not find autocentring library, automatic centring is disabled"
         )
 
-from mxcubecore.HardwareObjects.GenericDiffractometer import (
-    GenericDiffractometer,
-)
-from mxcubecore.TaskUtils import task
 from mxcubecore import HardwareRepository as HWR
-
+from mxcubecore.HardwareObjects.GenericDiffractometer import GenericDiffractometer
+from mxcubecore.TaskUtils import task
 
 __credits__ = ["EMBL Hamburg"]
 __category__ = "General"

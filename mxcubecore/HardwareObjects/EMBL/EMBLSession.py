@@ -28,7 +28,6 @@ import time
 
 from mxcubecore.HardwareObjects.Session import Session
 
-
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"
 __category__ = "General"

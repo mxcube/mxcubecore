@@ -23,14 +23,13 @@ Module contains EMBL specific queue entries
 
 import logging
 
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.dispatcher import dispatcher
 from mxcubecore.queue_entry.base_queue_entry import (
+    QUEUE_ENTRY_STATUS,
     BaseQueueEntry,
     QueueExecutionException,
-    QUEUE_ENTRY_STATUS,
 )
-from mxcubecore import HardwareRepository as HWR
-
 
 __credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3+"

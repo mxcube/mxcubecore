@@ -22,9 +22,8 @@ Defines get_average_flux_density.
 """
 from scipy.interpolate import interp1d
 
-from mxcubecore.HardwareObjects.abstract.AbstractActuator import AbstractActuator
-
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.HardwareObjects.abstract.AbstractActuator import AbstractActuator
 
 __copyright__ = """ Copyright © 2010-2022 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

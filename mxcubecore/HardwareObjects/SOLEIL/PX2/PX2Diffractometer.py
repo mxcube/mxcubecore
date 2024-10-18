@@ -17,30 +17,27 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-import os
-import time
-import logging
-import traceback
-import pickle
 import copy
 import datetime
-import h5py
-
-import numpy as np
-from scipy.optimize import minimize
+import logging
+import os
+import pickle
+import time
+import traceback
 from math import sqrt
 
-import gevent
-
-from goniometer import goniometer
-from detector import detector
-from camera import camera
-
 import beam_align
-import scan_and_align
+import gevent
+import h5py
+import numpy as np
 import optical_alignment
-
+import scan_and_align
 from anneal import anneal as anneal_procedure
+from camera import camera
+from detector import detector
+from goniometer import goniometer
+from scipy.optimize import minimize
+
 from mxcubecore.model.queue_model_enumerables import CENTRING_METHOD
 
 try:
@@ -62,12 +59,9 @@ except ImportError:
             "Could not find autocentring library, automatic centring is disabled"
         )
 
-from mxcubecore.HardwareObjects.GenericDiffractometer import (
-    GenericDiffractometer,
-)
-
-from mxcubecore.TaskUtils import task
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.HardwareObjects.GenericDiffractometer import GenericDiffractometer
+from mxcubecore.TaskUtils import task
 
 __credits__ = ["SOLEIL"]
 __version__ = "2.3."

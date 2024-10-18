@@ -1,5 +1,6 @@
-from mxcubecore.BaseHardwareObjects import HardwareObject
 from SpecClient_gevent.SpecMotor import SpecMotorA
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 class SpecMotor(HardwareObject, SpecMotorA):

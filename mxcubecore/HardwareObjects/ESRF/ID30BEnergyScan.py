@@ -1,6 +1,11 @@
-from mxcubecore.TaskUtils import task
-from .ESRFEnergyScan import ESRFEnergyScan, TunableEnergy
 from datetime import datetime
+
+from mxcubecore.TaskUtils import task
+
+from .ESRFEnergyScan import (
+    ESRFEnergyScan,
+    TunableEnergy,
+)
 
 
 class ID30BEnergyScan(ESRFEnergyScan):

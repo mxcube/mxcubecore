@@ -1,11 +1,12 @@
 import logging
 import time
+
 import gevent
 
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore.TaskUtils import task
-from mxcubecore.CommandContainer import CommandObject
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.CommandContainer import CommandObject
+from mxcubecore.TaskUtils import task
 
 
 class ControllerCommand(CommandObject):

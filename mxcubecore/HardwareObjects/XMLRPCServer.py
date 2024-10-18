@@ -5,25 +5,25 @@ hardware object and is configured with an XML-file. See the example
 configuration XML for more information.
 """
 
-import logging
-import sys
-import os
-import shutil
-import inspect
-import pkgutil
-import types
-import socket
-import time
-import xml
-import json
 import atexit
+import inspect
+import json
+import logging
+import os
+import pkgutil
+import shutil
+import socket
+import sys
+import time
+import types
+import xml
+from functools import reduce
+
+import gevent
 import jsonpickle
 
-from functools import reduce
-import gevent
-
-from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.SecureXMLRpcRequestHandler import (
     SecureXMLRpcRequestHandler,
 )

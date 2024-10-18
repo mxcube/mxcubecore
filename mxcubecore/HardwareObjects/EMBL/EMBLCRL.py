@@ -19,13 +19,13 @@
 
 """EMBLCRL"""
 
-import math
 import logging
+import math
+
 import gevent
 
-from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
-
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"

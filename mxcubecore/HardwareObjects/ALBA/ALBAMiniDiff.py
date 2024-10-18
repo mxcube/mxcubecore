@@ -46,14 +46,14 @@ Specific HwObj for M2D2 diffractometer @ ALBA
 
 import logging
 import time
-from mxcubecore.HardwareObjects.GenericDiffractometer import (
-    GenericDiffractometer,
-    DiffractometerState,
-)
+
 import gevent
 
+from mxcubecore.HardwareObjects.GenericDiffractometer import (
+    DiffractometerState,
+    GenericDiffractometer,
+)
 from mxcubecore.model import queue_model_objects
-
 
 __author__ = "Jordi Andreu"
 __credits__ = ["MXCuBE collaboration"]

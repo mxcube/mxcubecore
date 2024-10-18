@@ -3,11 +3,16 @@ Emits new_plot, plot_data and plot_end.
 """
 
 import itertools
+
 import gevent
 import numpy
-from mxcubecore.BaseHardwareObjects import HardwareObject
 from bliss.config import static
-from bliss.data.node import DataNode, get_or_create_node
+from bliss.data.node import (
+    DataNode,
+    get_or_create_node,
+)
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

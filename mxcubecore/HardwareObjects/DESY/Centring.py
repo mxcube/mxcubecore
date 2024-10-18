@@ -23,16 +23,16 @@ __license__ = "LGPLv3+"
 
 
 import gevent
-
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from gevent import Timeout
 import numpy
-
+from gevent import Timeout
 
 # import DeviceProxy function and DevState:
-from PyTango import DevState
-from PyTango import DeviceProxy
+from PyTango import (
+    DeviceProxy,
+    DevState,
+)
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 last_centred_position = [200, 200]
 

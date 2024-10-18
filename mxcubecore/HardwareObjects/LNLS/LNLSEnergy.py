@@ -21,8 +21,7 @@
 
 import logging
 
-from mxcubecore.HardwareObjects.abstract.AbstractEnergy import (
-    AbstractEnergy)
+from mxcubecore.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
 from mxcubecore.HardwareObjects.LNLS.EPICSActuator import EPICSActuator
 
 

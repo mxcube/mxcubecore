@@ -16,28 +16,28 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-import os
 import logging
-import gevent
-from mxcubecore.TaskUtils import task
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
+import os
 
-from omega_scan import omega_scan
-from inverse_scan import inverse_scan
-from reference_images import reference_images
-from helical_scan import helical_scan
-from fluorescence_spectrum import fluorescence_spectrum
+import gevent
 from energy_scan import energy_scan
+from film import film
+from fluorescence_spectrum import fluorescence_spectrum
+from helical_scan import helical_scan
+from inverse_scan import inverse_scan
+from nested_helical_acquisition import nested_helical_acquisition
+from omega_scan import omega_scan
 
 # from xray_centring import xray_centring
 from raster_scan import raster_scan
-from nested_helical_acquisition import nested_helical_acquisition
-from tomography import tomography
-from film import film
-from mxcubecore import HardwareRepository as HWR
-
+from reference_images import reference_images
 from slits import slits1
+from tomography import tomography
+
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
+from mxcubecore.TaskUtils import task
 
 __credits__ = ["Synchrotron SOLEIL"]
 __version__ = "2.3."

@@ -19,14 +19,12 @@
 
 """EMBLBSD (Beam shaping device) represents a diffractometer without a gonio"""
 
-import time
 import logging
+import time
+
 import gevent
 
-from mxcubecore.HardwareObjects.GenericDiffractometer import (
-    GenericDiffractometer,
-)
-
+from mxcubecore.HardwareObjects.GenericDiffractometer import GenericDiffractometer
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"

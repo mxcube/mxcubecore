@@ -43,15 +43,13 @@ Graphics item library:
 """
 
 import copy
-import math
 import logging
+import math
 from datetime import datetime
 
-from mxcubecore.utils import qt_import
-
 from mxcubecore.model import queue_model_objects
+from mxcubecore.utils import qt_import
 from mxcubecore.utils.conversion import string_types
-
 
 SELECTED_COLOR = qt_import.Qt.green
 NORMAL_COLOR = qt_import.Qt.yellow

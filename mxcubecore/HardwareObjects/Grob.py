@@ -1,5 +1,6 @@
-from mxcubecore.BaseHardwareObjects import HardwareObject
 from grob import grob_control
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 class Grob(HardwareObject):

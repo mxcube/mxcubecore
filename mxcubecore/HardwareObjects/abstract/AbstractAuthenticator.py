@@ -20,6 +20,7 @@
 
 
 import abc
+
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 __copyright__ = """ Copyright © 2010- 2022 by the MXCuBE collaboration """

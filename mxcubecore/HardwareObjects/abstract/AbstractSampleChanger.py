@@ -127,11 +127,14 @@ How to implement derived SC Classes
 import abc
 import logging
 
-from gevent import sleep, Timeout
+from gevent import (
+    Timeout,
+    sleep,
+)
 
-from mxcubecore.TaskUtils import task as dtask
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.abstract.sample_changer.Container import Container
+from mxcubecore.TaskUtils import task as dtask
 
 
 class SampleChangerState:

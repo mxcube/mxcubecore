@@ -25,9 +25,12 @@ __email__ = "jan.meyer@desy.de"
 
 
 import logging
+
 from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
-from mxcubecore.HardwareObjects.abstract.AbstractMotor import MotorStates
+from mxcubecore.HardwareObjects.abstract.AbstractMotor import (
+    AbstractMotor,
+    MotorStates,
+)
 
 
 class DigitalZoomMotor(AbstractMotor, HardwareObject):

@@ -21,11 +21,13 @@
 __copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
 
-from enum import Enum
 import ast
+from enum import Enum
 
-from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
-from mxcubecore.HardwareObjects.abstract.AbstractNState import BaseValueEnum
+from mxcubecore.HardwareObjects.abstract.AbstractNState import (
+    AbstractNState,
+    BaseValueEnum,
+)
 
 redis_flag = False
 try:

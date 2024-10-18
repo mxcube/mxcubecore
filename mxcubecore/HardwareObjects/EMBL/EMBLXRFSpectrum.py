@@ -18,15 +18,12 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+
 import gevent
 
-from mxcubecore.HardwareObjects.abstract.AbstractXRFSpectrum import (
-    AbstractXRFSpectrum,
-)
-from mxcubecore.BaseHardwareObjects import HardwareObject
-
 from mxcubecore import HardwareRepository as HWR
-
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.HardwareObjects.abstract.AbstractXRFSpectrum import AbstractXRFSpectrum
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"

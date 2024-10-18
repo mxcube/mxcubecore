@@ -21,9 +21,9 @@
 Utility class for importing queue entries
 """
 
-import sys
-import os
 import logging
+import os
+import sys
 from importlib import import_module
 from pathlib import Path
 

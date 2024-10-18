@@ -1,10 +1,9 @@
+import urllib
 import xml.etree.cElementTree as et
+from io import BytesIO
 
 import requests
 from PIL import Image
-from io import BytesIO
-
-import urllib
 
 
 def get_image(url):

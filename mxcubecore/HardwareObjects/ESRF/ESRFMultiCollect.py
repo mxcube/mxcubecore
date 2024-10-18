@@ -1,16 +1,16 @@
+import logging
+import math
+import os
+import time
+
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.abstract.AbstractMultiCollect import *
-import logging
-import time
-import os
-import math
-from mxcubecore.model.queue_model_objects import PathTemplate
-from mxcubecore.utils.conversion import string_types
-from mxcubecore import HardwareRepository as HWR
-
 from mxcubecore.HardwareObjects.ESRF.ESRFMetadataManagerClient import (
     MXCuBEMetadataClient,
 )
+from mxcubecore.model.queue_model_objects import PathTemplate
+from mxcubecore.utils.conversion import string_types
 
 try:
     from httplib import HTTPConnection

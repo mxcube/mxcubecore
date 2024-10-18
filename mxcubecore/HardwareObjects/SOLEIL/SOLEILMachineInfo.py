@@ -59,14 +59,18 @@ Example Hardware Object XML file :
              'discSizeGB': 20}</limits>
 </object>
 """
+import logging
 import os
 import time
-import logging
+from datetime import (
+    datetime,
+    timedelta,
+)
+
 from gevent import spawn
 from urllib2 import urlopen
-from datetime import datetime, timedelta
-from mxcubecore.BaseHardwareObjects import HardwareObject
 
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 __credits__ = ["SOLEIL", "EMBL Hamburg"]
 __version__ = "2.3."

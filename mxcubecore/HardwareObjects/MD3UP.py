@@ -1,11 +1,12 @@
-import math
-import numpy
 import logging
+import math
 import time
 
+import numpy
+
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects import Microdiff
 from mxcubecore.HardwareObjects.sample_centring import CentringMotor
-from mxcubecore import HardwareRepository as HWR
 
 
 class MD3UP(Microdiff.Microdiff):

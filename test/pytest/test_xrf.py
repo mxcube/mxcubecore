@@ -29,8 +29,10 @@ Using configuration file:
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
-import pytest
 from test.pytest import TestHardwareObjectBase
+
+import pytest
+
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 
 

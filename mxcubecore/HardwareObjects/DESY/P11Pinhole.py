@@ -21,9 +21,10 @@
 __copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
 
-from mxcubecore.HardwareObjects.NState import NState
 import ast
+
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
+from mxcubecore.HardwareObjects.NState import NState
 
 
 class P11Pinhole(NState):

@@ -1,13 +1,14 @@
-import gevent
-import shutil
 import logging
 import os
+import shutil
 
-from mxcubecore.TaskUtils import task
-from .ESRFMultiCollect import ESRFMultiCollect
-from mxcubecore.HardwareObjects.LimaPilatusDetector import LimaPilatusDetector
+import gevent
 
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.HardwareObjects.LimaPilatusDetector import LimaPilatusDetector
+from mxcubecore.TaskUtils import task
+
+from .ESRFMultiCollect import ESRFMultiCollect
 
 
 class MD2MultiCollect(ESRFMultiCollect):

@@ -19,10 +19,10 @@
 
 """EMBLTableMotor"""
 
-import time
 import atexit
 import logging
 import socket
+import time
 
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 

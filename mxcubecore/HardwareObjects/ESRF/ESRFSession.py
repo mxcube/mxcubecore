@@ -1,10 +1,11 @@
-from mxcubecore.HardwareObjects import Session
+import glob
 import os
 import time
-import glob
-from mxcubecore.model import queue_model_objects
-from mxcubecore import HardwareRepository as HWR
 from typing import Tuple
+
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.HardwareObjects import Session
+from mxcubecore.model import queue_model_objects
 
 
 class ESRFSession(Session.Session):

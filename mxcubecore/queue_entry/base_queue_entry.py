@@ -22,20 +22,22 @@ inherits QueueEntryContainer. This makes it possible to arrange and
 execute queue entries in a hierarchical manner.
 """
 
+import copy
 import logging
 import sys
-import traceback
 import time
-import gevent
-import copy
-
+import traceback
 from collections import namedtuple
 
-from mxcubecore import HardwareRepository as HWR
-from mxcubecore.model import queue_model_objects
-from mxcubecore.model.queue_model_enumerables import CENTRING_METHOD, EXPERIMENT_TYPE
+import gevent
 
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects import autoprocessing
+from mxcubecore.model import queue_model_objects
+from mxcubecore.model.queue_model_enumerables import (
+    CENTRING_METHOD,
+    EXPERIMENT_TYPE,
+)
 
 __credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3+"

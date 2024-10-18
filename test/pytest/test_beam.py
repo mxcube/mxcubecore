@@ -23,9 +23,10 @@
 """
 
 from test.pytest import TestHardwareObjectBase
-from mxcubecore.HardwareObjects.abstract.AbstractBeam import BeamShape
 
 import pytest
+
+from mxcubecore.HardwareObjects.abstract.AbstractBeam import BeamShape
 
 __copyright__ = """ Copyright © 2016 - 2022 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"

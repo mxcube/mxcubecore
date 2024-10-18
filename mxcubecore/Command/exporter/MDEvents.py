@@ -1,7 +1,9 @@
 import sys
-import time
 import threading
+import time
+
 from ExporterClient import ExporterClient
+
 from mxcubecore.Command.exporter.StandardClient import PROTOCOL
 
 SERVER_ADDRESS = "localhost"

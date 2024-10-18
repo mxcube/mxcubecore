@@ -38,6 +38,7 @@ Example xml file:
 """
 from ast import literal_eval
 from enum import Enum
+
 from mxcubecore.HardwareObjects.abstract.AbstractNState import BaseValueEnum
 from mxcubecore.HardwareObjects.ExporterNState import ExporterNState
 

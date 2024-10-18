@@ -1,10 +1,12 @@
-import os
-import time
 import abc
 import logging
+import os
+import time
+
 import gevent
-from mxcubecore.TaskUtils import error_cleanup
+
 from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.TaskUtils import error_cleanup
 
 
 class AbstractEnergyScan(HardwareObject):

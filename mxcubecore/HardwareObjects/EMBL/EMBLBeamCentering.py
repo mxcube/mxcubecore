@@ -19,13 +19,13 @@
 
 import logging
 from time import sleep
+
 import gevent
-from scipy.interpolate import interp1d
 import tine
+from scipy.interpolate import interp1d
 
-from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
-
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 __credits__ = ["EMBL Hamburg"]
 __category__ = "General"

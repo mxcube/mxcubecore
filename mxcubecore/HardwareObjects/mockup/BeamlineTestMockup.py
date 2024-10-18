@@ -22,17 +22,16 @@ BeamlineTestMockup
 
 """
 
-import os
 import logging
+import os
 import tempfile
 from datetime import datetime
 
 import gevent
 
-from mxcubecore.HardwareObjects import SimpleHTML
-from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
-
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.HardwareObjects import SimpleHTML
 
 __credits__ = ["MXCuBE collaboration"]
 

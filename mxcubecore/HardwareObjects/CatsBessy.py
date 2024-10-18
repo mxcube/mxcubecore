@@ -1,12 +1,13 @@
+import time
+
 from mxcubecore.HardwareObjects.abstract.AbstractSampleChanger import (
-    Container,
     SC3,
+    Container,
     Sample,
     SampleChanger,
     SampleChangerState,
     gevent,
 )
-import time
 
 
 class Pin(Sample):

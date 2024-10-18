@@ -29,6 +29,7 @@ Example xml file:
 </object>
 """
 from enum import Enum
+
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import MotorStates
 from mxcubecore.HardwareObjects.abstract.AbstractNState import (
     AbstractNState,

@@ -51,7 +51,12 @@ __license__ = "LGPLv3+"
 
 
 from enum import Enum
-from gevent import Timeout, sleep
+
+from gevent import (
+    Timeout,
+    sleep,
+)
+
 from mxcubecore.HardwareObjects.ESRF.ESRFBeamDefiner import ESRFBeamDefiner
 
 

@@ -56,10 +56,12 @@ Example Hardware Object XML file :
 </object>
 """
 
+import logging
+
+import PyTango
+
 from mxcubecore import BaseHardwareObjects
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
-import logging
-import PyTango
 
 __author__ = "Bixente Rey"
 __credits__ = ["MXCuBE collaboration"]

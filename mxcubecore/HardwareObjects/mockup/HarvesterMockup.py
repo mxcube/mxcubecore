@@ -34,8 +34,9 @@ It has some functionalities, like Harvest Sample, .
 
 -----------------------------------------------------------------------
 """
-import gevent
 import logging
+
+import gevent
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 

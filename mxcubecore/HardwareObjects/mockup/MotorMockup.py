@@ -33,12 +33,14 @@ Example of xml config file
 </object>
 """
 
-import time
 import ast
+import time
 
-from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
+from mxcubecore.HardwareObjects.abstract.AbstractMotor import (
+    AbstractMotor,
+    MotorStates,
+)
 from mxcubecore.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
-from mxcubecore.HardwareObjects.abstract.AbstractMotor import MotorStates
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

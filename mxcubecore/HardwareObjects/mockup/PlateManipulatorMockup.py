@@ -45,6 +45,7 @@ each drop could have several crystals.
 
 import logging
 import time
+
 import gevent
 
 from mxcubecore.HardwareObjects.abstract import AbstractSampleChanger

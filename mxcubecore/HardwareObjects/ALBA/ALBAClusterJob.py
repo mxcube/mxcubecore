@@ -1,10 +1,10 @@
-from XSDataMXCuBEv1_3 import XSDataResultMXCuBE
-from xaloc import XalocJob
-import os
-import time
 import logging
-
+import os
 import sys
+import time
+
+from xaloc import XalocJob
+from XSDataMXCuBEv1_3 import XSDataResultMXCuBE
 
 sys.path.append("/beamlines/bl13/controls/devel/pycharm/ALBAClusterClient")
 

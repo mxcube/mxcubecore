@@ -29,10 +29,12 @@ Example xml file:
 </object>
 """
 from enum import Enum
+
 from gevent import sleep
-from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
+
 from mxcubecore.Command.Exporter import Exporter
 from mxcubecore.Command.exporter.ExporterStates import ExporterStates
+from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
 
 __copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

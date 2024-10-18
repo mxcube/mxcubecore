@@ -1,6 +1,8 @@
-from mxcubecore.BaseHardwareObjects import HardwareObject
 import math
+
 import numpy as np
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 class MiniKappaCorrection(HardwareObject):

@@ -1,9 +1,6 @@
 import gevent
 
-from mxcubecore.HardwareObjects.abstract.AbstractProcedure import (
-    AbstractProcedure,
-)
-
+from mxcubecore.HardwareObjects.abstract.AbstractProcedure import AbstractProcedure
 from mxcubecore.model import procedure_model as datamodel
 
 
