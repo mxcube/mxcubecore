@@ -60,7 +60,7 @@ class MD2MultiCollect(ESRFMultiCollect):
 
     @task
     def take_crystal_snapshots(self, number_of_snapshots, image_path_list=[]):
-        HWR.beamline.diffractometer.new_take_snapshot(image_path_list)
+        HWR.beamline.diffractometer.take_snapshot(image_path_list)
 
     def do_prepare_oscillation(self, *args, **kwargs):
         # set the detector cover out

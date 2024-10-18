@@ -105,10 +105,6 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
         self.emit("collectReady", (True,))
 
     @task
-    def take_crystal_snapshots(self, number_of_snapshots):
-        self.bl_control.diffractometer.take_snapshots(number_of_snapshots, wait=True)
-
-    @task
     def data_collection_hook(self, data_collect_parameters):
         return
 
