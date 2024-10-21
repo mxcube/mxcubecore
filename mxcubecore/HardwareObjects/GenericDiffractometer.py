@@ -581,18 +581,6 @@ class GenericDiffractometer(HardwareObject):
         """
         return self.motor_hwobj_dict.get("phiz")
 
-    @property
-    def zoom(self):
-        """zoom motor object
-
-        NBNB HACK TODO - ocnfigure this in graphics object
-        (which now calls this property)
-
-        Returns:
-            AbstractActuator
-        """
-        return self.motor_hwobj_dict.get("zoom")
-
     def is_ready(self):
         """
         Detects if device is ready
