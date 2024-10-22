@@ -20,12 +20,13 @@
 __copyright__ = """2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
+import base64
 import copy
 from functools import reduce
-from PIL import Image
 from io import BytesIO
-import base64
+
 import numpy as np
+from PIL import Image
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractSampleView import AbstractSampleView

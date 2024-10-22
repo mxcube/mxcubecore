@@ -793,9 +793,10 @@ class GenericDiffractometer(HardwareObject):
 
     def get_snapshot(self):
         """
-        Get sample_view snapshot
+        Get snapshot from sample view
 
-        :returns: bytes object of current camera image
+        Returns:
+            bytes: A bytes object of the current camera image.
         """
         if HWR.beamline.sample_view:
             return HWR.beamline.sample_view.get_snapshot()

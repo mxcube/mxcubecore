@@ -24,9 +24,9 @@ __copyright__ = """2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 import abc
+from typing import Union
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
-from typing import Union
 
 
 class AbstractSampleView(HardwareObject):
