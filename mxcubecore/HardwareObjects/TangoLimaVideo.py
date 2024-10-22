@@ -21,8 +21,6 @@ import time
 import gevent
 import PyTango
 from PIL import Image
-import io
-
 from PyTango.gevent import DeviceProxy
 
 from mxcubecore import BaseHardwareObjects
