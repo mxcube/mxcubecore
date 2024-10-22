@@ -6,10 +6,12 @@ lid control, error-recovery commands, ...
 """
 
 import logging
-from mxcubecore.TaskUtils import task
-from mxcubecore.BaseHardwareObjects import HardwareObject
-import gevent
 import time
+
+import gevent
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.TaskUtils import task
 
 __author__ = "Michael Hellmig"
 __credits__ = ["The MxCuBE collaboration"]

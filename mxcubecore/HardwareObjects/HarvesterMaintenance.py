@@ -21,10 +21,12 @@
 """
 Harvester Maintenance.
 """
-import gevent
 import logging
-from mxcubecore.BaseHardwareObjects import HardwareObject
+
+import gevent
+
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 class HarvesterMaintenance(HardwareObject):

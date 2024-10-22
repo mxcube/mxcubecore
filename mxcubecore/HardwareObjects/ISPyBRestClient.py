@@ -2,15 +2,19 @@
 A client for ISPyB Webservices.
 """
 
-import logging
-import json
 import cgi
-
+import json
+import logging
 from datetime import datetime
-from requests import post, get
 from urllib.parse import urljoin
-from mxcubecore.BaseHardwareObjects import HardwareObject
+
+from requests import (
+    get,
+    post,
+)
+
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 _CONNECTION_ERROR_MSG = (
     "Could not connect to ISPyB, please verify that "

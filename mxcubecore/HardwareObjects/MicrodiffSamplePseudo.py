@@ -1,7 +1,8 @@
-from mxcubecore.HardwareObjects.MD2Motor import MD2Motor
-from mxcubecore.HardwareObjects.abstract.AbstractMotor import MotorStates
 import logging
 import math
+
+from mxcubecore.HardwareObjects.abstract.AbstractMotor import MotorStates
+from mxcubecore.HardwareObjects.MD2Motor import MD2Motor
 
 
 class MicrodiffSamplePseudo(MD2Motor):

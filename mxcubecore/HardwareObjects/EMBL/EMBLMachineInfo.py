@@ -23,9 +23,9 @@ Hardware Object is used to get relevant machine information
 information). Value limits are included
 """
 
+import logging
 import os
 import time
-import logging
 
 try:
     from urllib2 import urlopen
@@ -33,13 +33,15 @@ except ImportError:
     from urllib.request import urlopen
 
 from collections import OrderedDict
-from datetime import datetime, timedelta
+from datetime import (
+    datetime,
+    timedelta,
+)
+
 from gevent import spawn
 
-from mxcubecore.BaseHardwareObjects import HardwareObject
-
 from mxcubecore import HardwareRepository as HWR
-
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"

@@ -21,17 +21,24 @@
 __copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
 
-from enum import Enum, unique
-from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractNState
-from mxcubecore.BaseHardwareObjects import HardwareObjectState
+from enum import (
+    Enum,
+    unique,
+)
 
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
+from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractNState
 
 __credits__ = ["DESY P11"]
 __license__ = "LGPLv3+"
 __category__ = "General"
 
 import time
-from enum import Enum, unique
+from enum import (
+    Enum,
+    unique,
+)
+
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 
 

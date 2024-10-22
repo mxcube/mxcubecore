@@ -29,7 +29,13 @@ one set from the beamline configuration is used.
 
 import abc
 import logging
-from math import asin, atan, sin, tan
+from math import (
+    asin,
+    atan,
+    sin,
+    tan,
+)
+
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 

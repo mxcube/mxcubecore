@@ -1,18 +1,23 @@
-import os
-import sys
+import abc
+import collections
+import errno
 
 # import types
 import logging
+import os
+import socket
+import sys
 import time
-import errno
-import abc
-import collections
+
 import autoprocessing
 import gevent
-import socket
-from mxcubecore.TaskUtils import task, cleanup, error_cleanup
 
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.TaskUtils import (
+    cleanup,
+    error_cleanup,
+    task,
+)
 
 BeamlineControl = collections.namedtuple(
     "BeamlineControl",

@@ -1,37 +1,39 @@
-import os
+import binascii
 import copy
 import logging
-import binascii
+import os
 import subprocess
 import time
 
-from mxcubecore.model import queue_model_objects as qmo
-from mxcubecore.model import queue_model_enumerables as qme
-
-from mxcubecore.HardwareObjects.SecureXMLRpcRequestHandler import (
-    SecureXMLRpcRequestHandler,
+from XSDataCommon import (
+    XSDataAngle,
+    XSDataBoolean,
+    XSDataDouble,
+    XSDataFile,
+    XSDataFlux,
+    XSDataImage,
+    XSDataInteger,
+    XSDataLength,
+    XSDataSize,
+    XSDataString,
+    XSDataTime,
+    XSDataWavelength,
 )
+from XSDataMXCuBEv1_4 import (
+    XSDataInputMXCuBE,
+    XSDataMXCuBEDataSet,
+    XSDataResultMXCuBE,
+)
+
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractCharacterisation import (
     AbstractCharacterisation,
 )
-
-from XSDataMXCuBEv1_4 import XSDataInputMXCuBE
-from XSDataMXCuBEv1_4 import XSDataMXCuBEDataSet
-from XSDataMXCuBEv1_4 import XSDataResultMXCuBE
-
-from XSDataCommon import XSDataAngle
-from XSDataCommon import XSDataBoolean
-from XSDataCommon import XSDataDouble
-from XSDataCommon import XSDataFile
-from XSDataCommon import XSDataImage
-from XSDataCommon import XSDataFlux
-from XSDataCommon import XSDataLength
-from XSDataCommon import XSDataTime
-from XSDataCommon import XSDataWavelength
-from XSDataCommon import XSDataInteger
-from XSDataCommon import XSDataSize
-from XSDataCommon import XSDataString
+from mxcubecore.HardwareObjects.SecureXMLRpcRequestHandler import (
+    SecureXMLRpcRequestHandler,
+)
+from mxcubecore.model import queue_model_enumerables as qme
+from mxcubecore.model import queue_model_objects as qmo
 
 # from edna_test_data import EDNA_DEFAULT_INPUT
 # from edna_test_data import EDNA_TEST_DATA

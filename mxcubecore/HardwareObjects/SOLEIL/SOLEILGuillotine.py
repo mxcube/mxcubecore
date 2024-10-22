@@ -10,9 +10,10 @@ Example XML:
 
 """
 
-from mxcubecore import BaseHardwareObjects
 import logging
 import time
+
+from mxcubecore import BaseHardwareObjects
 from mxcubecore import HardwareRepository as HWR
 
 

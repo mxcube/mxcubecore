@@ -1,7 +1,15 @@
-from mxcubecore.HardwareObjects.mockup.EnergyMockup import EnergyMockup
-from energy import energy
-from scipy.constants import kilo, h, c, eV, angstrom
 import logging
+
+from energy import energy
+from scipy.constants import (
+    angstrom,
+    c,
+    eV,
+    h,
+    kilo,
+)
+
+from mxcubecore.HardwareObjects.mockup.EnergyMockup import EnergyMockup
 
 
 class PX2Energy(EnergyMockup):

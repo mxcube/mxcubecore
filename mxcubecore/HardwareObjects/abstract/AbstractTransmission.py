@@ -23,8 +23,8 @@ Set the unit as [%] and the limits to 0-100.
 """
 
 import abc
-from mxcubecore.HardwareObjects.abstract.AbstractActuator import AbstractActuator
 
+from mxcubecore.HardwareObjects.abstract.AbstractActuator import AbstractActuator
 
 __copyright__ = """ Copyright © 2010- 2022 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

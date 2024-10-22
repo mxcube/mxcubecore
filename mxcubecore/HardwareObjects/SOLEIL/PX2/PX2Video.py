@@ -40,17 +40,20 @@ Example Hardware Object XML file :
 </object>
 """
 
-import os
-import time
-import gevent
 import logging
+import os
 import struct
+import time
+
+import gevent
 import numpy as np
-
-from GenericVideoDevice import GenericVideoDevice
 from camera import camera
+from GenericVideoDevice import GenericVideoDevice
 
-from mxcubecore.utils.qt_import import QImage, QPixmap
+from mxcubecore.utils.qt_import import (
+    QImage,
+    QPixmap,
+)
 
 
 class PX2Video(GenericVideoDevice, camera):

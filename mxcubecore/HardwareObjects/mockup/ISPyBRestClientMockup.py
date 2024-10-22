@@ -3,10 +3,12 @@ A client for ISPyB Webservices.
 """
 
 from __future__ import print_function
+
 import logging
 from datetime import datetime
-from mxcubecore.BaseHardwareObjects import HardwareObject
+
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 try:
     from urlparse import urljoin

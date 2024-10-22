@@ -23,18 +23,19 @@ AbstractMulticollect
 Defines a sequence how data collection is executed.
 """
 
-import os
-import logging
-import time
-import errno
 import abc
 import collections
+import errno
+import logging
+import os
+import time
+
 import gevent
 import gevent.event
-from mxcubecore.TaskUtils import task
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore import HardwareRepository as HWR
 
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.TaskUtils import task
 
 __credits__ = ["MXCuBE collaboration"]
 

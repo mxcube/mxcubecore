@@ -7,6 +7,7 @@ template:
 """
 
 import logging
+
 from mxcubecore.BaseHardwareObjects import Procedure
 
 try:

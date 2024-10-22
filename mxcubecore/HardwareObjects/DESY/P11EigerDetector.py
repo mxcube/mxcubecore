@@ -22,6 +22,7 @@ __copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
 
 import gevent
+
 from mxcubecore.Command.Tango import DeviceProxy
 from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
 

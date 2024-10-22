@@ -22,13 +22,17 @@ __copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
 
 import time
-import gevent
 import urllib
-from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
+from enum import (
+    Enum,
+    unique,
+)
+
+import gevent
+
 import mxcubecore.HardwareObjects.abstract.AbstractShutter as absshut
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
-from enum import Enum, unique
-
+from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 
 __credits__ = ["DESY P11"]
 __license__ = "LGPLv3+"

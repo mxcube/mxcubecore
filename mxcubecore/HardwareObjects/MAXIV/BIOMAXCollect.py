@@ -11,22 +11,22 @@ abort
 
 """
 
-import os
-import logging
-import gevent
-import time
-import math
-import requests
-import uuid
 import json
+import logging
+import math
+import os
 import sys
+import time
+import uuid
 
+import gevent
+import requests
 from EigerDataSet import EigerDataSet
-from mxcubecore.TaskUtils import task
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
+from mxcubecore.TaskUtils import task
 
 
 class BIOMAXCollect(AbstractCollect, HardwareObject):

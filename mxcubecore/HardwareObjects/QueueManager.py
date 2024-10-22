@@ -9,13 +9,14 @@ documentation for the queue_entry module for more information.
 """
 
 import logging
-import gevent
 import traceback
+
+import gevent
 
 from mxcubecore import queue_entry
 from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore.queue_entry.base_queue_entry import QUEUE_ENTRY_STATUS
 from mxcubecore.queue_entry import base_queue_entry
+from mxcubecore.queue_entry.base_queue_entry import QUEUE_ENTRY_STATUS
 
 QueueEntryContainer = base_queue_entry.QueueEntryContainer
 

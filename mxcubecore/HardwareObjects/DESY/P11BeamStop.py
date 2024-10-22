@@ -21,10 +21,11 @@
 __copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
 
-from mxcubecore.HardwareObjects.NState import NState
-from mxcubecore.BaseHardwareObjects import HardwareObjectState
 import ast
 import time
+
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
+from mxcubecore.HardwareObjects.NState import NState
 
 
 class P11BeamStop(NState):

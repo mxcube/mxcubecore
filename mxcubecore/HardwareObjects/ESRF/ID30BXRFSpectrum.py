@@ -1,11 +1,13 @@
-from qt import copy
 import logging
 import os
 import time
-import gevent.event
+
 import gevent
-from mxcubecore.BaseHardwareObjects import HardwareObject
+import gevent.event
+from qt import copy
+
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 class XrfSpectrum(HardwareObject):

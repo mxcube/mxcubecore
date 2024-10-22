@@ -22,18 +22,18 @@
 EMBLOnlineProcessing
 """
 
-import os
 import ast
 import logging
+import os
 import subprocess
 
-import numpy as np
 import gevent
+import numpy as np
 
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractOnlineProcessing import (
     AbstractOnlineProcessing,
 )
-
 from mxcubecore.HardwareObjects.XSDataCommon import (
     XSDataBoolean,
     XSDataDouble,
@@ -41,13 +41,10 @@ from mxcubecore.HardwareObjects.XSDataCommon import (
     XSDataString,
 )
 from mxcubecore.HardwareObjects.XSDataControlDozorv1_1 import (
+    XSDataControlImageDozor,
     XSDataInputControlDozor,
     XSDataResultControlDozor,
-    XSDataControlImageDozor,
 )
-
-
-from mxcubecore import HardwareRepository as HWR
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"

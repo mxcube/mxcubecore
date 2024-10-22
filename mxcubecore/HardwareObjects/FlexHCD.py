@@ -1,9 +1,10 @@
 import base64
-import pickle
-import gevent
 import logging
+import pickle
 
-from mxcubecore.TaskUtils import task
+import gevent
+from PyTango.gevent import DeviceProxy
+
 from mxcubecore.HardwareObjects.abstract.AbstractSampleChanger import (
     SampleChanger,
     SampleChangerState,
@@ -12,7 +13,7 @@ from mxcubecore.HardwareObjects.abstract.sample_changer.Container import (
     Container,
     Sample,
 )
-from PyTango.gevent import DeviceProxy
+from mxcubecore.TaskUtils import task
 
 
 class Pin(Sample):

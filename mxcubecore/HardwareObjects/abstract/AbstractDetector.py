@@ -49,8 +49,8 @@ Hardware objects used: energy
 """
 
 import abc
-import math
 import ast
+import math
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject

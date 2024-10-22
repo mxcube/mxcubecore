@@ -1,6 +1,6 @@
+import logging
 import os
 import time
-import logging
 
 from mxcubecore.HardwareObjects import Session
 from mxcubecore.model import queue_model_objects

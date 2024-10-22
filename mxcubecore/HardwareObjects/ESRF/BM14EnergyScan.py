@@ -1,6 +1,11 @@
 import logging
+
+from ESRFEnergyScan import (
+    ESRFEnergyScan,
+    TunableEnergy,
+)
+
 from mxcubecore.TaskUtils import task
-from ESRFEnergyScan import ESRFEnergyScan, TunableEnergy
 
 
 class BM14EnergyScan(ESRFEnergyScan):

@@ -22,8 +22,9 @@
 """Test suite for BeamDefiner hardware object.
 """
 
-import pytest
 from test.pytest.TestAbstractNStateBase import TestAbstractNStateBase
+
+import pytest
 
 __copyright__ = """ Copyright © by MXCuBE Collaboration """
 __license__ = "LGPLv3+"

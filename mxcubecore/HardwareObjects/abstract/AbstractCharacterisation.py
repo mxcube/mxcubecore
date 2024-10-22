@@ -26,6 +26,7 @@ prepare_input and is_running methods.
 """
 
 import abc
+
 import gevent.event
 
 from mxcubecore.BaseHardwareObjects import HardwareObject

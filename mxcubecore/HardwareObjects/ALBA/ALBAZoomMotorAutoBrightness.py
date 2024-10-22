@@ -49,9 +49,10 @@ Example Hardware Object XML file :
 </object>
 """
 
+import logging
+
 from mxcubecore import BaseHardwareObjects
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
-import logging
 
 __author__ = "Jordi Andreu"
 __credits__ = ["MXCuBE collaboration"]

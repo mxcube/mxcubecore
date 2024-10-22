@@ -1,9 +1,17 @@
 import pytest
-from tango import DeviceProxy, Except
-from tango.server import Device, attribute, command
-from tango.test_context import DeviceTestContext
-from mxcubecore.HardwareObjects.ISARAMaint import ISARAMaint
 from gevent.event import Event
+from tango import (
+    DeviceProxy,
+    Except,
+)
+from tango.server import (
+    Device,
+    attribute,
+    command,
+)
+from tango.test_context import DeviceTestContext
+
+from mxcubecore.HardwareObjects.ISARAMaint import ISARAMaint
 
 """
 Test the HardwareObjects.ISARAMaint sample changer maintenance hardware object.

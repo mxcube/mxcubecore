@@ -1,17 +1,17 @@
 import logging
-import PyChooch
+import math
 import os
 import time
-import math
+
 import gevent
+import PyChooch
 import Xane
-
-from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.figure import Figure
 
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.TaskUtils import cleanup
-from mxcubecore import HardwareRepository as HWR
 
 
 class SOLEILEnergyScan(HardwareObject):

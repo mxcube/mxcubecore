@@ -24,9 +24,11 @@ import abc
 import logging
 import os
 import time
+
 import gevent
-from mxcubecore.BaseHardwareObjects import HardwareObject
+
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

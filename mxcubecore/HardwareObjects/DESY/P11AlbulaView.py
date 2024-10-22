@@ -21,11 +21,12 @@
 __copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
 
-from mxcubecore.BaseHardwareObjects import HardwareObject
-
 import sys
 import time
+
 from PIL import Image
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 sys.path.append("/opt/dectris/albula/4.0/python/")
 

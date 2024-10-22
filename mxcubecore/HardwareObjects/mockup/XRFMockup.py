@@ -1,6 +1,7 @@
 import logging
-import gevent
 import time
+
+import gevent
 import numpy
 
 from mxcubecore.BaseHardwareObjects import HardwareObject

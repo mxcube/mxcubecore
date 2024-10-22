@@ -1,8 +1,10 @@
+import logging
+import time
+
+import gevent
+
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
-import logging
-import gevent
-import time
 
 
 class ALBABackLight(HardwareObject):

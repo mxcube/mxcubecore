@@ -2,28 +2,23 @@ import json
 import logging
 import math
 
+from devtools import debug
+from pydantic import Field
 from typing_extensions import Literal
 
-from pydantic import Field
-from devtools import debug
-
-from mxcubecore.model.common import (
-    CommonCollectionParamters,
-    PathParameters,
-    LegacyParameters,
-    StandardCollectionParameters,
-)
-
 from mxcubecore import HardwareRepository as HWR
-
 from mxcubecore.HardwareObjects.ESRF.queue_entry.ssx_base_queue_entry import (
+    BaseUserCollectionParameters,
     SsxBaseQueueEntry,
     SsxBaseQueueTaskParameters,
-    BaseUserCollectionParameters,
 )
-
+from mxcubecore.model.common import (
+    CommonCollectionParamters,
+    LegacyParameters,
+    PathParameters,
+    StandardCollectionParameters,
+)
 from mxcubecore.model.queue_model_objects import DataCollection
-
 
 __credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3+"

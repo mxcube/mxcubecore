@@ -20,7 +20,6 @@
 import gevent
 
 from mxcubecore import HardwareRepository as HWR
-
 from mxcubecore.queue_entry.base_queue_entry import BaseQueueEntry
 
 __credits__ = ["MXCuBE collaboration"]

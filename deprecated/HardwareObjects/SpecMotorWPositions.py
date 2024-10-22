@@ -1,5 +1,6 @@
-from mxcubecore.HardwareObjects import SpecMotor
 import logging
+
+from mxcubecore.HardwareObjects import SpecMotor
 
 
 class SpecMotorWPositions(SpecMotor.SpecMotor):

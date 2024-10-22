@@ -24,9 +24,12 @@ Implements validate_value, set/update limits.
 
 import abc
 import ast
-from enum import Enum, unique
-from mxcubecore.HardwareObjects.abstract.AbstractActuator import AbstractActuator
+from enum import (
+    Enum,
+    unique,
+)
 
+from mxcubecore.HardwareObjects.abstract.AbstractActuator import AbstractActuator
 
 __copyright__ = """ Copyright © 2010-2022 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

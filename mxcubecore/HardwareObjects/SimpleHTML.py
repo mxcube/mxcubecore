@@ -1,5 +1,6 @@
-import json
 import base64
+import json
+
 from PIL import Image
 
 HTML_START = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">

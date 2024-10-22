@@ -6,9 +6,10 @@ try:
     from types import InstanceType
 except ImportError:
     InstanceType = object
-import logging
-import gevent
 import collections
+import logging
+
+import gevent
 
 
 class cleanup:

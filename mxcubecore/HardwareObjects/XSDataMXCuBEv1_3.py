@@ -4,24 +4,30 @@
 # Generated Mon May 14 10:32::39 2012 by EDGenerateDS.
 #
 
-from XSDataMXv1 import XSDataSampleCrystalMM
-from XSDataMXv1 import XSDataResultCharacterisation
-from XSDataMXv1 import XSDataInputCharacterisation
-from XSDataMXv1 import XSDataExperimentalCondition
-from XSDataMXv1 import XSDataDiffractionPlan
-from XSDataMXv1 import XSDataCollectionPlan
-from XSDataCommon import XSDataString
-from XSDataCommon import XSDataResult
-from XSDataCommon import XSDataInteger
-from XSDataCommon import XSDataInput
-from XSDataCommon import XSDataFile
-from XSDataCommon import XSDataDictionary
-from XSDataCommon import XSData
 import os
 import sys
-from xml.dom import minidom
-from xml.dom import Node
+from xml.dom import (
+    Node,
+    minidom,
+)
 
+from XSDataCommon import (
+    XSData,
+    XSDataDictionary,
+    XSDataFile,
+    XSDataInput,
+    XSDataInteger,
+    XSDataResult,
+    XSDataString,
+)
+from XSDataMXv1 import (
+    XSDataCollectionPlan,
+    XSDataDiffractionPlan,
+    XSDataExperimentalCondition,
+    XSDataInputCharacterisation,
+    XSDataResultCharacterisation,
+    XSDataSampleCrystalMM,
+)
 
 strEdnaHome = os.environ.get("EDNA_HOME", None)
 
@@ -42,19 +48,23 @@ dictLocation = {
 }
 
 try:
-    from XSDataCommon import XSData
-    from XSDataCommon import XSDataDictionary
-    from XSDataCommon import XSDataFile
-    from XSDataCommon import XSDataInput
-    from XSDataCommon import XSDataInteger
-    from XSDataCommon import XSDataResult
-    from XSDataCommon import XSDataString
-    from XSDataMXv1 import XSDataCollectionPlan
-    from XSDataMXv1 import XSDataDiffractionPlan
-    from XSDataMXv1 import XSDataExperimentalCondition
-    from XSDataMXv1 import XSDataInputCharacterisation
-    from XSDataMXv1 import XSDataResultCharacterisation
-    from XSDataMXv1 import XSDataSampleCrystalMM
+    from XSDataCommon import (
+        XSData,
+        XSDataDictionary,
+        XSDataFile,
+        XSDataInput,
+        XSDataInteger,
+        XSDataResult,
+        XSDataString,
+    )
+    from XSDataMXv1 import (
+        XSDataCollectionPlan,
+        XSDataDiffractionPlan,
+        XSDataExperimentalCondition,
+        XSDataInputCharacterisation,
+        XSDataResultCharacterisation,
+        XSDataSampleCrystalMM,
+    )
 except ImportError as error:
     if strEdnaHome is not None:
         for strXsdName in dictLocation:

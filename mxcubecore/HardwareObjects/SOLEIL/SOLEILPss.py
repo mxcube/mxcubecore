@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import logging
 import time
-from mxcubecore.BaseHardwareObjects import HardwareObject
+
 from PyTango import DeviceProxy
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 """Complex means we are not using SimpleDevice"""
 

@@ -33,9 +33,14 @@ Example xml_ configuration:
 """
 
 
-import sys
 import logging
-from gevent import Timeout, sleep, spawn
+import sys
+
+from gevent import (
+    Timeout,
+    sleep,
+    spawn,
+)
 
 from mxcubecore.HardwareObjects.abstract.AbstractActuator import AbstractActuator
 

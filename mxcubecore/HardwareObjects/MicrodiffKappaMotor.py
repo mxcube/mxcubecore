@@ -1,11 +1,11 @@
 import logging
 import time
+
 import gevent
 import numpy as np
-import logging
 
-from mxcubecore.HardwareObjects.ExporterMotor import ExporterMotor
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import MotorStates
+from mxcubecore.HardwareObjects.ExporterMotor import ExporterMotor
 
 
 class MicrodiffKappaMotor(ExporterMotor):

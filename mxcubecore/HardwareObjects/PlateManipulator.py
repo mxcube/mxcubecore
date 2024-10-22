@@ -32,20 +32,21 @@ each drop could have several crystals.
 -----------------------------------------------------------------------
 """
 
-import time
-import gevent
 import logging
+import time
 
-from mxcubecore.HardwareObjects.abstract.sample_changer import Crims
+import gevent
+
 from mxcubecore.HardwareObjects.abstract.AbstractSampleChanger import (
     SampleChanger,
+    SampleChangerMode,
     SampleChangerState,
-    SampleChangerMode
 )
+from mxcubecore.HardwareObjects.abstract.sample_changer import Crims
 from mxcubecore.HardwareObjects.abstract.sample_changer.Container import (
+    Basket,
     Container,
     Sample,
-    Basket,
 )
 
 

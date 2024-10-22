@@ -1,13 +1,15 @@
+import logging
+import os
+import time
+
+import gevent
+
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.abstract.AbstractMultiCollect import (
     AbstractMultiCollect,
 )
 from mxcubecore.TaskUtils import task
-from mxcubecore import HardwareRepository as HWR
-import logging
-import time
-import os
-import gevent
 
 
 class LNLSCollect(AbstractMultiCollect, HardwareObject):
@@ -184,7 +186,8 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
                 )
                 return
 
-            import sys, subprocess
+            import subprocess
+            import sys
 
             try:
                 process = subprocess.Popen(

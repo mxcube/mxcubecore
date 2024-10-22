@@ -1,22 +1,20 @@
-import sys
 import ast
 import importlib
+import logging
 import operator
-
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore.TaskUtils import task
-from mxcubecore.CommandContainer import CommandObject
-from mxcubecore.utils.conversion import camel_to_snake
-from mxcubecore import HardwareRepository as HWR
-
-from mxcubecore.CommandContainer import (
-    CommandObject,
-    TWO_STATE_COMMAND_T,
-    ARGUMENT_TYPE_LIST,
-)
+import sys
 
 import gevent
-import logging
+
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.CommandContainer import (
+    ARGUMENT_TYPE_LIST,
+    TWO_STATE_COMMAND_T,
+    CommandObject,
+)
+from mxcubecore.TaskUtils import task
+from mxcubecore.utils.conversion import camel_to_snake
 
 
 class ControllerCommand(CommandObject):

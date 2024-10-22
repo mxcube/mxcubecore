@@ -25,12 +25,13 @@ Emits signals valueChanged and limitsChanged.
 """
 
 import abc
-from enum import Enum, unique
+from enum import (
+    Enum,
+    unique,
+)
 
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
-from mxcubecore.HardwareObjects.abstract.AbstractActuator import (
-    AbstractActuator,
-)
+from mxcubecore.HardwareObjects.abstract.AbstractActuator import AbstractActuator
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

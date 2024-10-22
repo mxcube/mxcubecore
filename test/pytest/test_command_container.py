@@ -1,17 +1,28 @@
 import copy
 import json
 import weakref
-import pytest
-from typing import Generator, TYPE_CHECKING, Any, Dict, Union, List, Tuple, Optional
-from typing_extensions import Annotated
 from logging import Logger
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    Generator,
+    List,
+    Optional,
+    Tuple,
+    Union,
+)
 from unittest.mock import MagicMock
+
+import pytest
+from typing_extensions import Annotated
+
 from mxcubecore.CommandContainer import (
-    ARGUMENT_TYPE_LIST,
     ARGUMENT_TYPE_JSON_SCHEMA,
-    CommandObject,
+    ARGUMENT_TYPE_LIST,
     ChannelObject,
     CommandContainer,
+    CommandObject,
 )
 
 if TYPE_CHECKING:

@@ -1,16 +1,20 @@
-from xaloc import XalocJob
-from XSDataCommon import XSDataFile, XSDataString, XSDataInteger
-from XSDataAutoprocv1_0 import XSDataAutoprocInput
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from PyTango import DeviceProxy
-import os
 import logging
 import math
+import os
+import sys
 from datetime import datetime
 
 from ALBAClusterJob import ALBAEdnaProcJob
+from PyTango import DeviceProxy
+from xaloc import XalocJob
+from XSDataAutoprocv1_0 import XSDataAutoprocInput
+from XSDataCommon import (
+    XSDataFile,
+    XSDataInteger,
+    XSDataString,
+)
 
-import sys
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 sys.path.append("/beamlines/bl13/controls/devel/pycharm/ALBAClusterClient")
 

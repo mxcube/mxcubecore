@@ -3,18 +3,20 @@
 """A simple client for MetadataManager and MetaExperiment
 """
 from __future__ import print_function
-import os
-import sys
-import math
-import time
+
 import logging
-import PyTango.client
+import math
+import os
+import smtplib
+import sys
+import time
 import traceback
 from email.mime.text import MIMEText
-import smtplib
 
-from mxcubecore.utils.conversion import string_types
+import PyTango.client
+
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.utils.conversion import string_types
 
 
 class MetadataManagerClient(object):

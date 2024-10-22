@@ -1,6 +1,6 @@
-from mxcubecore.BaseHardwareObjects import HardwareObject
-
 import logging
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 class SOLEILSafetyShutter(HardwareObject):

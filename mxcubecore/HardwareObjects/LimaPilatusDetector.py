@@ -1,17 +1,16 @@
-import gevent
-import time
-import subprocess
-import os
 import logging
+import os
+import subprocess
+import time
 
+import gevent
 from PyTango import DeviceProxy
-from mxcubecore.TaskUtils import task
+
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.CommandContainer import ConnectionError
-
-from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
-
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
+from mxcubecore.CommandContainer import ConnectionError
+from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
+from mxcubecore.TaskUtils import task
 
 
 class LimaPilatusDetector(AbstractDetector):

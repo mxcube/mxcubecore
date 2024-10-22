@@ -26,24 +26,35 @@ The Hardware Repository module provides access to these Hardware Objects, and ma
 connections to the Control Software (Spec or Taco Device Servers).
 """
 
-from __future__ import print_function, absolute_import
+from __future__ import (
+    absolute_import,
+    print_function,
+)
 
-import logging
-import weakref
-import sys
-import os
-import time
 import importlib
+import logging
+import os
+import sys
+import time
 import traceback
-from typing import Union, TYPE_CHECKING
+import weakref
 from datetime import datetime
+from typing import (
+    TYPE_CHECKING,
+    Union,
+)
 
 from ruamel.yaml import YAML
 
-from mxcubecore.utils.conversion import string_types, make_table
+from mxcubecore import (
+    BaseHardwareObjects,
+    HardwareObjectFileParser,
+)
 from mxcubecore.dispatcher import dispatcher
-from mxcubecore import BaseHardwareObjects
-from mxcubecore import HardwareObjectFileParser
+from mxcubecore.utils.conversion import (
+    make_table,
+    string_types,
+)
 
 if TYPE_CHECKING:
     from mxcubecore.BaseHardwareObjects import HardwareObject

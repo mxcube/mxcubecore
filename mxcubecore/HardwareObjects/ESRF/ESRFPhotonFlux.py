@@ -33,6 +33,7 @@ Example xml_ configuration:
  </object>
 """
 import logging
+
 import gevent
 
 from mxcubecore import HardwareRepository as HWR

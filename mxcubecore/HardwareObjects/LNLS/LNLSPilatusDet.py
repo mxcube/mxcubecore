@@ -1,10 +1,9 @@
-import time
 import logging
+import time
 
-from mxcubecore.HardwareObjects.abstract.AbstractDetector import (
-    AbstractDetector,
-)
 import epics
+
+from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
 
 
 class LNLSPilatusDet(AbstractDetector):

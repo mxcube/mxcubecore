@@ -29,14 +29,15 @@ the base class for classes providing access to Video in MXCuBE
 """
 
 import abc
+import logging
 import os
 import sys
 import time
-import logging
+import warnings
 from io import BytesIO
+
 import gevent
 import numpy as np
-import warnings
 
 try:
     import cv2
@@ -45,12 +46,15 @@ except ImportError:
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
-
 module_names = ["qt", "PyQt5", "PyQt4"]
 
 if any(mod in sys.modules for mod in module_names):
     USEQT = True
-    from mxcubecore.utils.qt_import import QPixmap, QImage, QSize
+    from mxcubecore.utils.qt_import import (
+        QImage,
+        QPixmap,
+        QSize,
+    )
 else:
     USEQT = False
     from PIL import Image

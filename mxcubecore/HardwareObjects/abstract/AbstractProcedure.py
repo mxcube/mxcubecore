@@ -17,20 +17,25 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 import logging
-from enum import IntEnum, unique
+from enum import (
+    IntEnum,
+    unique,
+)
 
 import gevent.event
+
+# Using jsonschma for validating the JSCONSchemas
+# https://json-schema.org/
+# https://github.com/Julian/jsonschema
+from jsonschema import (
+    ValidationError,
+    validate,
+)
 
 from mxcubecore.BaseHardwareObjects import ConfiguredObject
 from mxcubecore.dispatcher import dispatcher
 
 # import mxcubecore.model.procedure_model
-
-# Using jsonschma for validating the JSCONSchemas
-# https://json-schema.org/
-# https://github.com/Julian/jsonschema
-
-from jsonschema import validate, ValidationError
 
 
 __credits__ = ["MXCuBE collaboration"]

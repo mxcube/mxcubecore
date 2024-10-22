@@ -1,5 +1,9 @@
 from mxcubecore.BaseHardwareObjects import HardwareObject
-from .BeamCmds import ControllerCommand, HWObjActuatorCommand
+
+from .BeamCmds import (
+    ControllerCommand,
+    HWObjActuatorCommand,
+)
 
 
 class ID231BeamCmds(HardwareObject):

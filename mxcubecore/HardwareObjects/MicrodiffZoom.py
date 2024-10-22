@@ -33,6 +33,7 @@ EL6": 6}</values>
 """
 
 from enum import Enum
+
 from mxcubecore.HardwareObjects.ExporterNState import ExporterNState
 
 __copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """

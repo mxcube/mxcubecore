@@ -18,12 +18,18 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import time
+
 import numpy as np
 from pkg_resources import resource_filename
 
-from mxcubecore.utils.qt_import import QPainter, QPixmap, QPen, QBrush, QImage, Qt
-from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import (
-    AbstractVideoDevice,
+from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import AbstractVideoDevice
+from mxcubecore.utils.qt_import import (
+    QBrush,
+    QImage,
+    QPainter,
+    QPen,
+    QPixmap,
+    Qt,
 )
 
 

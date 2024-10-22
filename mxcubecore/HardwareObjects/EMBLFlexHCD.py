@@ -28,16 +28,16 @@ Example xml file:
 /puck_configuration>
 </object>
 """
-import time
 import ast
 import base64
-import pickle
 import logging
+import pickle
+import time
+
 import gevent
+from PyTango.gevent import DeviceProxy
 
 from mxcubecore import HardwareRepository as HWR
-
-from mxcubecore.TaskUtils import task
 from mxcubecore.HardwareObjects.abstract.AbstractSampleChanger import (
     SampleChanger,
     SampleChangerState,
@@ -46,7 +46,7 @@ from mxcubecore.HardwareObjects.abstract.sample_changer.Container import (
     Container,
     Sample,
 )
-from PyTango.gevent import DeviceProxy
+from mxcubecore.TaskUtils import task
 
 
 class Pin(Sample):

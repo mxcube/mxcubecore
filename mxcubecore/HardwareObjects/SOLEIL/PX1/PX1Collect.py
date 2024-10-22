@@ -3,23 +3,21 @@
 
 """
 
+import logging
 import os
+import socket
+import subprocess
 import sys
 import time
-import logging
+
 import gevent
-import subprocess
-import socket
-
-from mxcubecore.Command.Tango import DeviceProxy
-
-from mxcubecore.TaskUtils import task
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
-
 from SOLEILMergeImage import merge as merge_images
 
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.Command.Tango import DeviceProxy
+from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
+from mxcubecore.TaskUtils import task
 
 __author__ = "Vicente Rey Bakaikoa"
 __credits__ = ["MXCuBE collaboration"]

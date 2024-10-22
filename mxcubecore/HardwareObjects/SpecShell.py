@@ -7,6 +7,7 @@ template:
 """
 
 import logging
+
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 try:
@@ -14,7 +15,10 @@ try:
 except ImportError:
     import SpecClient
 
-from qt import PYSIGNAL, QObject
+from qt import (
+    PYSIGNAL,
+    QObject,
+)
 
 
 class SpecOutputVar(QObject, SpecClient.SpecVariable.SpecVariableA):

@@ -4,22 +4,21 @@ BIOMAXMinidiff (MD3)
 
 """
 
-import time
+import io
 import logging
+import math
+import time
+
 import gevent
 import lucid2 as lucid
 import numpy as np
 from PIL import Image
 
-# import lucid
-import io
-import math
-
-from mxcubecore.HardwareObjects.GenericDiffractometer import (
-    GenericDiffractometer,
-    DiffractometerState,
-)
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.HardwareObjects.GenericDiffractometer import (
+    DiffractometerState,
+    GenericDiffractometer,
+)
 
 
 class BIOMAXMD3(GenericDiffractometer):

@@ -25,12 +25,10 @@ from mxcubecore.HardwareObjects.abstract.AbstractTransmission import (
     AbstractTransmission,
 )
 from mxcubecore.HardwareObjects.LNLS.EPICSActuator import EPICSActuator
-
-from mxcubecore.HardwareObjects.LNLS.read_transmission_mnc import (
-    read_transmission
-)
+from mxcubecore.HardwareObjects.LNLS.read_transmission_mnc import read_transmission
 from mxcubecore.HardwareObjects.LNLS.set_transmission_mnc import (
-    get_transmission, set_foils
+    get_transmission,
+    set_foils,
 )
 
 __copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
