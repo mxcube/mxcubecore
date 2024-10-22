@@ -19,15 +19,16 @@
 """
 ALBACollect
 """
-import os
-import time
 import logging
+import os
 import sys
-import gevent
-from mxcubecore.TaskUtils import task
-from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
-from mxcubecore import HardwareRepository as HWR
+import time
 
+import gevent
+
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
+from mxcubecore.TaskUtils import task
 
 __author__ = "Vicente Rey Bakaikoa"
 __credits__ = ["MXCuBE collaboration"]

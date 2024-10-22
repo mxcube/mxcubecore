@@ -13,17 +13,21 @@ Example configuration:
 If video mode is not specified, BAYER_RG16 is used by default.
 """
 
-import logging
-import v4l2
-import gipc
-import os
 import fcntl
+import logging
+import os
 import subprocess
 import time
 import uuid
-import gevent
 
-from mxcubecore.HardwareObjects.TangoLimaVideo import TangoLimaVideo, poll_image
+import gevent
+import gipc
+import v4l2
+
+from mxcubecore.HardwareObjects.TangoLimaVideo import (
+    TangoLimaVideo,
+    poll_image,
+)
 
 
 def _poll_image(sleep_time, video_device, device_uri, video_mode, formats):

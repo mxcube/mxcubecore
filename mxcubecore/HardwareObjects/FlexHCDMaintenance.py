@@ -2,9 +2,9 @@
 FLEX HCD maintenance mockup.
 """
 
-from mxcubecore.BaseHardwareObjects import HardwareObject
 import ast
 
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 TOOL_FLANGE, TOOL_UNIPUCK, TOOL_SPINE, TOOL_PLATE, TOOL_LASER, TOOL_DOUBLE_GRIPPER = (
     0,

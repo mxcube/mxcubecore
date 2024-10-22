@@ -63,9 +63,10 @@ Example Hardware Object XML file :
 </object>
 """
 from __future__ import print_function
-import struct
-import numpy as np
 
+import struct
+
+import numpy as np
 import PyTango
 
 from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import AbstractVideoDevice

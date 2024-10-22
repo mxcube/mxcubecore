@@ -1,7 +1,8 @@
 import logging
-from mxcubecore import HardwareRepository as HWR
 
 from ISPyBClient import ISPyBClient
+
+from mxcubecore import HardwareRepository as HWR
 
 
 class ALBAISPyBClient(ISPyBClient):

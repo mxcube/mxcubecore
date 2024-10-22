@@ -1,13 +1,12 @@
 # from qt import *
 
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
-
-from mxcubecore.Command.Tango import DeviceProxy
-
 import logging
 import os
 import time
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.Command.Tango import DeviceProxy
+from mxcubecore.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
 
 
 class PX1Energy(Device, AbstractEnergy):

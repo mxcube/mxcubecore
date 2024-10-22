@@ -5,9 +5,10 @@
 #
 
 import sys
-from xml.dom import minidom
-from xml.dom import Node
-
+from xml.dom import (
+    Node,
+    minidom,
+)
 
 #
 # Support/utility functions.

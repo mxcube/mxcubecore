@@ -21,15 +21,17 @@
 __copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
 
+import glob
+import json
 import os
 import time
-import json
-import glob
-import yaml
+from configparser import ConfigParser
 from datetime import date
 from select import EPOLL_CLOEXEC
+
+import yaml
+
 from mxcubecore.HardwareObjects.Session import Session
-from configparser import ConfigParser
 
 PATH_BEAMTIME = "/gpfs/current"
 PATH_COMMISSIONING = "/gpfs/commissioning"

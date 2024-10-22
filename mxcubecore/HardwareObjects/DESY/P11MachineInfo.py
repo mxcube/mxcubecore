@@ -22,11 +22,15 @@ __copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
 
 import logging
+
 import gevent
+from PyQt5.QtCore import (
+    QObject,
+    pyqtSignal,
+)
+
 from mxcubecore.HardwareObjects.abstract.AbstractMachineInfo import AbstractMachineInfo
 from mxcubecore.HardwareObjects.TangoMachineInfo import TangoMachineInfo
-from mxcubecore.HardwareObjects.TangoMachineInfo import TangoMachineInfo
-from PyQt5.QtCore import QObject, pyqtSignal
 
 
 class P11MachineInfo(TangoMachineInfo, QObject):

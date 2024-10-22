@@ -24,6 +24,7 @@ __copyright__ = """ Copyright © 2019-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 from test.pytest import TestAbstractActuatorBase
+
 import pytest
 
 

@@ -1,4 +1,5 @@
 from mxcubecore.BaseHardwareObjects import HardwareObject
+
 from .BeamCmds import ControllerCommand
 
 

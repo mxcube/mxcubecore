@@ -16,6 +16,7 @@ Example configuration:
 import os
 import subprocess
 import uuid
+
 import psutil
 
 from mxcubecore.HardwareObjects.TangoLimaVideo import TangoLimaVideo

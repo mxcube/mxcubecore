@@ -1,11 +1,10 @@
 import logging
-import gevent
 import time
 
-from mxcubecore.HardwareObjects.GenericDiffractometer import (
-    GenericDiffractometer,
-)
+import gevent
+
 from mxcubecore.HardwareObjects import sample_centring
+from mxcubecore.HardwareObjects.GenericDiffractometer import GenericDiffractometer
 
 
 class PX1MiniDiff(GenericDiffractometer):
@@ -207,9 +206,7 @@ class PX1MiniDiff(GenericDiffractometer):
                             and target values.
         :type motors_dict: dict
         """
-        from mxcubecore.model.queue_model_objects import (
-            CentredPosition,
-        )
+        from mxcubecore.model.queue_model_objects import CentredPosition
 
         if isinstance(motor_positions, CentredPosition):
             motor_positions_copy = motor_positions.as_dict()

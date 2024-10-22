@@ -26,15 +26,16 @@ retreiving nodes are all done via this object. It is possbile to
 handle several models by using register_model and select_model.
 """
 
-import os
 import json
 import logging
+import os
+
 import jsonpickle
 
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore import queue_entry
-from mxcubecore.model import queue_model_objects
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore import queue_entry
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.model import queue_model_objects
 
 
 class Serializer(object):

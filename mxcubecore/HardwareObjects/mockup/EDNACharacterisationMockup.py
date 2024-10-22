@@ -19,9 +19,7 @@
 
 from mxcubecore.HardwareObjects import edna_test_data
 from mxcubecore.HardwareObjects.EDNACharacterisation import EDNACharacterisation
-
 from mxcubecore.HardwareObjects.XSDataMXCuBEv1_3 import XSDataResultMXCuBE
-
 
 __credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3"

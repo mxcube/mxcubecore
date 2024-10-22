@@ -22,9 +22,10 @@ __copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
 
 import ast
-from mxcubecore.HardwareObjects.NState import NState
 from collections import OrderedDict
+
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
+from mxcubecore.HardwareObjects.NState import NState
 
 
 class P11Collimator(NState):

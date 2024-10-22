@@ -115,10 +115,8 @@ elif "--pyqt3" in sys.argv:
 if (qt_variant == "PyQt5") or (qt_variant is None and not qt_imported):
     try:
         from PyQt5.QtCore import (
-            pyqtSignal,
-            pyqtSlot,
             PYQT_VERSION_STR,
-            Qt,
+            QT_VERSION_STR,
             QCoreApplication,
             QDir,
             QEvent,
@@ -130,8 +128,34 @@ if (qt_variant == "PyQt5") or (qt_variant is None and not qt_imported):
             QRectF,
             QRegExp,
             QSize,
-            QT_VERSION_STR,
+            Qt,
             QTimer,
+            pyqtSignal,
+            pyqtSlot,
+        )
+        from PyQt5.QtGui import (
+            QBrush,
+            QColor,
+            QContextMenuEvent,
+            QCursor,
+            QDoubleValidator,
+            QFocusEvent,
+            QFont,
+            QIcon,
+            QImage,
+            QIntValidator,
+            QKeyEvent,
+            QKeySequence,
+            QLinearGradient,
+            QMouseEvent,
+            QPainter,
+            QPainterPath,
+            QPalette,
+            QPen,
+            QPixmap,
+            QPolygon,
+            QRegExpValidator,
+            QValidator,
         )
         from PyQt5.QtWidgets import (
             QAbstractItemView,
@@ -181,10 +205,10 @@ if (qt_variant == "PyQt5") or (qt_variant is None and not qt_imported):
             QSplitter,
             QStackedWidget,
             QStatusBar,
-            QTabWidget,
             QTableView,
             QTableWidget,
             QTableWidgetItem,
+            QTabWidget,
             QTextBrowser,
             QTextEdit,
             QToolBar,
@@ -198,30 +222,6 @@ if (qt_variant == "PyQt5") or (qt_variant is None and not qt_imported):
             QVBoxLayout,
             QWhatsThis,
             QWidget,
-        )
-        from PyQt5.QtGui import (
-            QBrush,
-            QColor,
-            QContextMenuEvent,
-            QCursor,
-            QDoubleValidator,
-            QFocusEvent,
-            QFont,
-            QKeyEvent,
-            QKeySequence,
-            QIcon,
-            QImage,
-            QIntValidator,
-            QLinearGradient,
-            QMouseEvent,
-            QPainter,
-            QPainterPath,
-            QPalette,
-            QPen,
-            QPixmap,
-            QPolygon,
-            QRegExpValidator,
-            QValidator,
         )
         from PyQt5.uic import loadUi
 
@@ -256,14 +256,12 @@ if (qt_variant == "PyQt4") or (qt_variant is None and not qt_imported):
     # but code is guaranteed to be compatible
     try:
         from PyQt4.QtCore import (
-            pyqtSignal,
-            pyqtSlot,
             PYQT_VERSION_STR,
-            Qt,
+            QT_VERSION_STR,
+            SIGNAL,
             QDir,
             QEvent,
             QEventLoop,
-            QUrl,
             QObject,
             QPoint,
             QPointF,
@@ -272,12 +270,13 @@ if (qt_variant == "PyQt4") or (qt_variant is None and not qt_imported):
             QRegExp,
             QSize,
             QStringList,
-            QT_VERSION_STR,
+            Qt,
             QTimer,
-            SIGNAL,
+            QUrl,
+            pyqtSignal,
+            pyqtSlot,
         )
         from PyQt4.QtGui import (
-            qApp,
             QAbstractItemView,
             QAction,
             QActionGroup,
@@ -287,19 +286,18 @@ if (qt_variant == "PyQt4") or (qt_variant is None and not qt_imported):
             QCheckBox,
             QColor,
             QColorDialog,
-            QContextMenuEvent,
             QComboBox,
+            QContextMenuEvent,
             QCursor,
             QDesktopWidget,
             QDial,
             QDialog,
-            QInputDialog,
             QDoubleSpinBox,
             QDoubleValidator,
             QFileDialog,
+            QFocusEvent,
             QFont,
             QFrame,
-            QFocusEvent,
             QGraphicsItem,
             QGraphicsPixmapItem,
             QGraphicsScene,
@@ -308,16 +306,16 @@ if (qt_variant == "PyQt4") or (qt_variant is None and not qt_imported):
             QGroupBox,
             QHBoxLayout,
             QHeaderView,
-            QKeyEvent,
-            QKeySequence,
             QIcon,
             QImage,
             QInputDialog,
             QIntValidator,
+            QKeyEvent,
+            QKeySequence,
             QLabel,
             QLayout,
-            QLineEdit,
             QLinearGradient,
+            QLineEdit,
             QListView,
             QListWidget,
             QListWidgetItem,
@@ -347,10 +345,10 @@ if (qt_variant == "PyQt4") or (qt_variant is None and not qt_imported):
             QSplitter,
             QStackedWidget,
             QStatusBar,
-            QTabWidget,
             QTableView,
             QTableWidget,
             QTableWidgetItem,
+            QTabWidget,
             QTextBrowser,
             QTextEdit,
             QToolBar,
@@ -363,8 +361,9 @@ if (qt_variant == "PyQt4") or (qt_variant is None and not qt_imported):
             QTreeWidgetItemIterator,
             QValidator,
             QVBoxLayout,
-            QWidget,
             QWhatsThis,
+            QWidget,
+            qApp,
         )
         from PyQt4.uic import loadUi
 
@@ -402,8 +401,8 @@ if (qt_variant == "PySide") or (qt_variant is None and not qt_imported):
 
         from PySide.QtCore import *
         from PySide.QtGui import *
-        from PySide.QtUiTools import *
         from PySide.QtSvg import *
+        from PySide.QtUiTools import *
         from PySide.QtWebKit import *
 
         pyqtSignal = Signal

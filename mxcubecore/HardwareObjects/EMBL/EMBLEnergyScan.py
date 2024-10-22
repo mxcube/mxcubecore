@@ -17,23 +17,20 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-import os
-import time
 import logging
+import os
 import subprocess
+import time
 
 import gevent
 import numpy as np
-from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.figure import Figure
 
-from mxcubecore import TaskUtils
-from mxcubecore.HardwareObjects.abstract.AbstractEnergyScan import (
-    AbstractEnergyScan,
-)
-from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
-
+from mxcubecore import TaskUtils
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.HardwareObjects.abstract.AbstractEnergyScan import AbstractEnergyScan
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"

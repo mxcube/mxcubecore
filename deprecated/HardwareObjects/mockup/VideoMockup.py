@@ -4,8 +4,10 @@ Descript. :
 
 import os
 import time
+
 import gevent
 from gui.utils.qt_import import QImage
+
 from mxcubecore import BaseHardwareObjects
 from mxcubecore.HardwareObjects.Camera import JpegType
 

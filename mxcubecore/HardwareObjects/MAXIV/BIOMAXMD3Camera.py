@@ -1,12 +1,17 @@
-from mxcubecore.BaseHardwareObjects import HardwareObject
-import math
-import logging
-import time
-import gevent
-from threading import Event, Thread
-import base64
 import array
+import base64
+import logging
+import math
+import time
+from threading import (
+    Event,
+    Thread,
+)
+
+import gevent
 import numpy as np
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 class MD2TimeoutError(Exception):

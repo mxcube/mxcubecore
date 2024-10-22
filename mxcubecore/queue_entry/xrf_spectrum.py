@@ -22,13 +22,13 @@ XRF Spectrum queue implementation of pre_execute, execute and post_execute
 
 import logging
 
-from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.queue_entry.base_queue_entry import (
-    BaseQueueEntry,
     QUEUE_ENTRY_STATUS,
-    QueueExecutionException,
+    BaseQueueEntry,
     QueueAbortedException,
+    QueueExecutionException,
 )
 
 __credits__ = ["MXCuBE collaboration"]

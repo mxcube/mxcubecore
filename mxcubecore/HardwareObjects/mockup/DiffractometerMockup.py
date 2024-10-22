@@ -17,18 +17,18 @@
 #   You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-import time
 import logging
 import random
+import time
 import warnings
 
+from gevent.event import AsyncResult
+
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.GenericDiffractometer import (
     GenericDiffractometer,
     PhaseEnum,
 )
-
-from mxcubecore import HardwareRepository as HWR
-from gevent.event import AsyncResult
 
 
 class DiffractometerMockup(GenericDiffractometer):

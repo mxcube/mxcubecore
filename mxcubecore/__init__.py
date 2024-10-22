@@ -1,10 +1,15 @@
 from __future__ import absolute_import
 
 import logging
-from logging.handlers import RotatingFileHandler
 import os
 import sys
-from colorama import Fore, Back, Style
+from logging.handlers import RotatingFileHandler
+
+from colorama import (
+    Back,
+    Fore,
+    Style,
+)
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore import __version__

@@ -43,6 +43,7 @@ __license__ = "LGPLv3+"
 
 from ast import literal_eval
 from enum import Enum
+
 from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
 
 

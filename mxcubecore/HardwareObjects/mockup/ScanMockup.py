@@ -17,18 +17,19 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-import gevent
-import random
 import ast
+import random
 
+import gevent
+
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.DataPublisher import (
-    PlotType,
-    PlotDim,
     DataType,
+    PlotDim,
+    PlotType,
     one_d_data,
 )
-from mxcubecore import HardwareRepository as HWR
 
 
 class ScanMockup(HardwareObject):

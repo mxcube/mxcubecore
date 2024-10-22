@@ -21,10 +21,10 @@
 __copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
 
-from mxcubecore.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
-from mxcubecore import HardwareRepository as HWR
-
 import logging
+
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
 
 log = logging.getLogger("HWR")
 

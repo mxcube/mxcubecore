@@ -6,13 +6,12 @@ access and manipulate this information.
 """
 
 import os
-import time
 import socket
+import time
+from typing import Tuple
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.model.queue_model_objects import PathTemplate
-from typing import Tuple
-
 
 default_raw_data_folder = "RAW_DATA"
 default_processed_data_folder = "PROCESSED_DATA"

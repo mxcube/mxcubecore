@@ -12,6 +12,7 @@ Example XML:
 
 import logging
 import time
+
 from mxcubecore import BaseHardwareObjects
 from mxcubecore import HardwareRepository as HWR
 

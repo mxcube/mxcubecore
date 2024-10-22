@@ -12,24 +12,25 @@ Notes:
 """
 
 import logging
-import os
-import time
 import math
-import numpy
-import gevent
+import os
 import subprocess
+import time
 
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_agg import FigureCanvasAgg
-
+import gevent
+import numpy
 from AbstractEnergyScan import AbstractEnergyScan
-from mxcubecore.TaskUtils import task, cleanup
-
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.figure import Figure
 from xabs_lib import McMaster
-from mxcubecore.Command.Tango import DeviceProxy
 
-from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.Command.Tango import DeviceProxy
+from mxcubecore.TaskUtils import (
+    cleanup,
+    task,
+)
 
 
 class PX1EnergyScan(AbstractEnergyScan, Equipment):

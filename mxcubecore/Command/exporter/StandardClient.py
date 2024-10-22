@@ -19,8 +19,9 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """ ProtocolError and StandardClient implementation"""
-import sys
 import socket
+import sys
+
 import gevent
 import gevent.lock
 

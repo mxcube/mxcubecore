@@ -22,16 +22,16 @@ __copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
 
 
-import time
 import logging
+import time
 
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractSampleChanger import (
     SampleChanger,
     SampleChangerState,
 )
 from mxcubecore.HardwareObjects.abstract.sample_changer import Container
 from mxcubecore.TaskUtils import task
-from mxcubecore import HardwareRepository as HWR
 
 
 class P11SampleChanger(SampleChanger):

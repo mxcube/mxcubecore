@@ -1,3 +1,5 @@
+import gevent
+
 from mxcubecore.HardwareObjects.abstract.AbstractSampleChanger import (
     Container,
     Sample,
@@ -7,7 +9,6 @@ from mxcubecore.HardwareObjects.abstract.AbstractSampleChanger import (
     task,
     time,
 )
-import gevent
 
 
 class Pin(Sample):

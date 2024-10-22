@@ -22,11 +22,14 @@ Mock-up class to simulate the beamline flux, used for testing.
 """
 
 from random import random
-from gevent import sleep, Timeout
-from mxcubecore.HardwareObjects.abstract.AbstractFlux import AbstractFlux
+
+from gevent import (
+    Timeout,
+    sleep,
+)
 
 from mxcubecore import HardwareRepository as HWR
-
+from mxcubecore.HardwareObjects.abstract.AbstractFlux import AbstractFlux
 
 __copyright__ = """ Copyright © 2010-2022 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

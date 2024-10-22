@@ -29,6 +29,7 @@ Example xml_ configuration:
  </object>
 """
 from enum import Enum
+
 from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
 from mxcubecore.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
 

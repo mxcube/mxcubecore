@@ -1,11 +1,13 @@
-import time
 import logging
 import math
-from calc_flux import CalculateFlux
 import sys
+import time
+
+from calc_flux import CalculateFlux
+
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.TaskUtils import task
-from mxcubecore import HardwareRepository as HWR
 
 
 class ID29PhotonFlux(HardwareObject):

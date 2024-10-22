@@ -23,10 +23,13 @@ __license__ = "LGPLv3+"
 __credits__ = ["DESY P11"]
 __category__ = "General"
 
-from mxcubecore.HardwareObjects.abstract.AbstractBeam import AbstractBeam
-from mxcubecore.HardwareObjects.abstract.AbstractBeam import BeamShape
-from mxcubecore.BaseHardwareObjects import HardwareObjectState
 import numpy as np
+
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
+from mxcubecore.HardwareObjects.abstract.AbstractBeam import (
+    AbstractBeam,
+    BeamShape,
+)
 
 
 class P11Beam(AbstractBeam):

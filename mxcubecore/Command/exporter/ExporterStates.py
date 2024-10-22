@@ -22,6 +22,7 @@ Convert exporter states to HardwareObject states
 """
 
 from enum import Enum
+
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 
 __copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """

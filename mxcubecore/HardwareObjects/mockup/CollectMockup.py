@@ -21,10 +21,10 @@
 
 import os
 import time
-from mxcubecore.TaskUtils import task
-from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
-from mxcubecore import HardwareRepository as HWR
 
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
+from mxcubecore.TaskUtils import task
 
 __credits__ = ["MXCuBE collaboration"]
 

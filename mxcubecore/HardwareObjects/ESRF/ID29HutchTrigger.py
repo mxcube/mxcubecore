@@ -1,8 +1,10 @@
 import logging
-import PyTango.gevent
-import gevent
-import time
 import sys
+import time
+
+import gevent
+import PyTango.gevent
+
 from mxcubecore import BaseHardwareObjects
 from mxcubecore import HardwareRepository as HWR
 

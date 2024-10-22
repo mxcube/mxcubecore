@@ -1,10 +1,9 @@
-import math
 import logging
+import math
 import time
 
-from mxcubecore.Command.Tango import DeviceProxy
-
 from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.Command.Tango import DeviceProxy
 
 DETECTOR_DIAMETER = 424.0
 

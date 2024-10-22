@@ -15,9 +15,11 @@ Example of xml file:
 </object>
 """
 
-import time
 import random
+import time
+
 import gevent
+
 from mxcubecore.HardwareObjects.abstract import AbstractActuator
 
 

@@ -1,14 +1,17 @@
 import logging
-import urllib2
 import os
-from cookielib import CookieJar
-
-from suds.transport.http import HttpAuthenticated
-from suds.client import Client
-
-from ISPyBClient import ISPyBClient, _CONNECTION_ERROR_MSG
 import traceback
 from collections import namedtuple
+
+import urllib2
+from cookielib import CookieJar
+from ISPyBClient import (
+    _CONNECTION_ERROR_MSG,
+    ISPyBClient,
+)
+from suds.client import Client
+from suds.transport.http import HttpAuthenticated
+
 from mxcubecore import HardwareRepository as HWR
 
 # The WSDL root is configured in the hardware object XML file.

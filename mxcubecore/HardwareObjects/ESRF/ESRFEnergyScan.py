@@ -1,25 +1,23 @@
 import logging
-import time
+import math
 import os
 import os.path
 import shutil
-import math
-import gevent
 
 # import PyChooch
 # to run chooch in shell
 import subprocess
+import time
+
+import gevent
 import numpy
-
-from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.figure import Figure
 
-from mxcubecore.TaskUtils import task
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore.HardwareObjects.abstract.AbstractEnergyScan import (
-    AbstractEnergyScan,
-)
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.HardwareObjects.abstract.AbstractEnergyScan import AbstractEnergyScan
+from mxcubecore.TaskUtils import task
 
 
 class FixedEnergy:

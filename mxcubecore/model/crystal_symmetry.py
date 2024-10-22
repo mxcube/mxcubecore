@@ -26,7 +26,10 @@ __author__ = "rhfogh"
 __date__ = "30/04/2023"
 
 import operator
-from collections import namedtuple, OrderedDict
+from collections import (
+    OrderedDict,
+    namedtuple,
+)
 
 CrystalClassInfo = namedtuple(
     "CrystalClassInfo",

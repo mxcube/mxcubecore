@@ -17,25 +17,23 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 """Abstract Online Processing class
 """
-import os
-import time
-import logging
 import json
+import logging
+import os
 import subprocess
-
+import time
 from copy import copy
+
+import gevent
+import matplotlib.pyplot as plt
+import numpy as np
+import SimpleHTML
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy import ndimage
 from scipy.interpolate import UnivariateSpline
-import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-import numpy as np
-import gevent
-
-import SimpleHTML
-from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
-
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 __copyright__ = """ Copyright © 2010-2022 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

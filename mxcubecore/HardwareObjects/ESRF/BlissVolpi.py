@@ -1,5 +1,6 @@
-from mxcubecore.BaseHardwareObjects import HardwareObject
 from bliss.config import static
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 class BlissVolpi(HardwareObject):

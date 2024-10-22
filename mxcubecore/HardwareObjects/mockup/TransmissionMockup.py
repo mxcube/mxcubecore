@@ -23,7 +23,6 @@ from mxcubecore.HardwareObjects.abstract.AbstractTransmission import (
 )
 from mxcubecore.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
 
-
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 

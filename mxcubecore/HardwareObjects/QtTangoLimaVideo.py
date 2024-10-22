@@ -41,13 +41,11 @@ Example Hardware Object XML file :
 """
 
 import struct
-import numpy as np
 
+import numpy as np
 import PyTango
 
-from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import (
-    AbstractVideoDevice,
-)
+from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import AbstractVideoDevice
 
 
 class QtTangoLimaVideo(AbstractVideoDevice):

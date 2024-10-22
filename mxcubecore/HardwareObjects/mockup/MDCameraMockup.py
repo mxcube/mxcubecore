@@ -1,10 +1,11 @@
 """Class for cameras connected to framegrabbers run by Taco Device Servers"""
 
-import psutil
-import subprocess
 import logging
+import subprocess
 import time
+
 import gevent
+import psutil
 
 from mxcubecore import BaseHardwareObjects
 from mxcubecore import HardwareRepository as HWR

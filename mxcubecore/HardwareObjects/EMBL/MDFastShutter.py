@@ -17,8 +17,13 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 
+from enum import (
+    Enum,
+    unique,
+)
+
 import gevent
-from enum import Enum, unique
+
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 
 __credits__ = ["EMBL Hamburg"]

@@ -1,7 +1,9 @@
-import sys
-import gevent
 import logging
+import sys
+
+import gevent
 import PyTango.gevent
+
 from mxcubecore import BaseHardwareObjects
 from mxcubecore import HardwareRepository as HWR
 

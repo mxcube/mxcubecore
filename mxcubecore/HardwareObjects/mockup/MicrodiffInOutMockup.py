@@ -1,6 +1,7 @@
 import logging
-from mxcubecore.BaseHardwareObjects import HardwareObject
 import time
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 """
 Use the exporter to set different MD2 actuators in/out.

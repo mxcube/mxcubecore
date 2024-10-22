@@ -21,6 +21,7 @@
 
 import abc
 from ast import literal_eval
+
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 __copyright__ = """ Copyright © by the MXCuBE collaboration """

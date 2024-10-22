@@ -1,6 +1,8 @@
 try:
-    from SpecClient_gevent import SpecEventsDispatcher
-    from SpecClient_gevent import SpecConnectionsManager
+    from SpecClient_gevent import (
+        SpecConnectionsManager,
+        SpecEventsDispatcher,
+    )
 except ImportError:
     from SpecClient import SpecEventsDispatcher
     from SpecClient import SpecConnectionsManager

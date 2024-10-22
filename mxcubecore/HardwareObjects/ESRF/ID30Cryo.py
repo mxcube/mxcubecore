@@ -1,7 +1,9 @@
+import time
+
+import gevent
+
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.TaskUtils import task
-import time
-import gevent
 
 
 class ID30Cryo(HardwareObject):

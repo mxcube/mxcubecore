@@ -22,17 +22,18 @@ You should have received a copy of the GNU Lesser General Public License
 along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
 """
 
-import os
-import subprocess
 import logging
+import os
 import re
+import subprocess
 from collections import OrderedDict
+
 import f90nml
-from mxcubecore.utils import conversion
-from mxcubecore.HardwareObjects.mockup.CollectMockup import CollectMockup
-from mxcubecore.TaskUtils import task
 
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.HardwareObjects.mockup.CollectMockup import CollectMockup
+from mxcubecore.TaskUtils import task
+from mxcubecore.utils import conversion
 
 __copyright__ = """ Copyright © 2017 - 2019 by Global Phasing Ltd. """
 __license__ = "LGPLv3+"

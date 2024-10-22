@@ -37,16 +37,18 @@ Example xml_ configuration:
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
-from unittest.mock import MagicMock
 import logging
 import os.path
 from ast import literal_eval
+from unittest.mock import MagicMock
 from warnings import warn
-import numpy
 
-from PyMca5.PyMca import ConfigDict
-from PyMca5.PyMca import ClassMcaTheory
-from PyMca5.PyMca import QtMcaAdvancedFitReport
+import numpy
+from PyMca5.PyMca import (
+    ClassMcaTheory,
+    ConfigDict,
+    QtMcaAdvancedFitReport,
+)
 
 from mxcubecore.HardwareObjects.abstract.AbstractXRFSpectrum import AbstractXRFSpectrum
 

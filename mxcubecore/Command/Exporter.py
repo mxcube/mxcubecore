@@ -22,9 +22,15 @@
 
 # from warnings import warn
 import logging
+
 import gevent
 from gevent.queue import Queue
-from mxcubecore.CommandContainer import CommandObject, ChannelObject
+
+from mxcubecore.CommandContainer import (
+    ChannelObject,
+    CommandObject,
+)
+
 from .exporter import ExporterClient
 from .exporter.StandardClient import PROTOCOL
 

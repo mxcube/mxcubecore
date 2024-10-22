@@ -18,20 +18,19 @@
 
 import sys
 
-from mxcubecore.queue_entry.import_helper import ImportHelper
+from mxcubecore.HardwareObjects.EMBL import EMBLQueueEntry
+from mxcubecore.HardwareObjects.Gphl import GphlQueueEntry
+from mxcubecore.model import queue_model_objects
 
 # Import all constants and BaseQueueEntry from base_queue_entry so that
 # queue _entry can be imported and used as before.
 from mxcubecore.queue_entry.base_queue_entry import *
-
-from mxcubecore.model import queue_model_objects
-from mxcubecore.HardwareObjects.Gphl import GphlQueueEntry
-from mxcubecore.HardwareObjects.EMBL import EMBLQueueEntry
+from mxcubecore.queue_entry.characterisation import CharacterisationGroupQueueEntry
+from mxcubecore.queue_entry.import_helper import ImportHelper
 
 # These two queue entries, for the moment violates the convention above and
 # should eventually be changed
 from mxcubecore.queue_entry.xrf_spectrum import XrfSpectrumQueueEntry
-from mxcubecore.queue_entry.characterisation import CharacterisationGroupQueueEntry
 
 __all__ = []
 MODEL_QUEUE_ENTRY_MAPPINGS = {}

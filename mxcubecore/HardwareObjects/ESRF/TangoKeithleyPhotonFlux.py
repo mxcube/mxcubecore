@@ -1,9 +1,10 @@
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore.TaskUtils import task
 import time
 
 # from PyTango.gevent import DeviceProxy
 from PyTango import DeviceProxy
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.TaskUtils import task
 
 
 class TangoKeithleyPhotonFlux(HardwareObject):
