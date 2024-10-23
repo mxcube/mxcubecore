@@ -67,7 +67,11 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
         self.load(sample_location, wait)
 
     def load(self, sample, wait=False):
+        logging.getLogger("HWR").debug("get in load smaple in SampleChangerMockup.py")
         self.emit("fsmConditionChanged", "sample_mounting_sample_changer", True)
+
+        time.sleep(5)
+
         previous_sample = self.get_loaded_sample()
         self._set_state(AbstractSampleChanger.SampleChangerState.Loading)
         self._reset_loaded_sample()
