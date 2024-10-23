@@ -159,7 +159,12 @@ class AbstractSampleView(HardwareObject):
 
     @abc.abstractmethod
     def add_shape_from_mpos(
-        self, mpos_list, screen_cord, _type, user_state: ShapeState = "SAVED"
+        self,
+        mpos_list,
+        screen_cord,
+        _type,
+        state: ShapeState = "SAVED",
+        user_state: ShapeState = "SAVED",
     ):
         """Add a shape of type <t>, with motor positions from mpos_list and
         screen position screen_coord.
