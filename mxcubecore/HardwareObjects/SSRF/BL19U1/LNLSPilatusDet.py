@@ -726,7 +726,7 @@ class LNLSPilatusDet(AbstractDetector):
     def get_beamy(self):
         distance = self.get_detector_distance()
         # value = 1331 - 0.0465*distance/1000
-        value = 1293 - 0.0465 * distance / 1000
+        value = 1293 - 0.0465 * distance / 1000  #20241023
         return round(value, 2)
 
     def updateJobStatus(self, frame_number, uuid, path, status,filename):
