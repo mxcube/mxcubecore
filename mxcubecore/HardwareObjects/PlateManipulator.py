@@ -86,13 +86,13 @@ class Xtal(Sample):
 
     def get_cell(self):
         return self.get_drop().get_cell()
-    
+
     def get_basket_no(self):
         """
         In this cas we assume a drop is a basket or puck
         """
         return self.get_drop().get_index() + 1
-    
+
     def get_cell_no(self):
         """
         In this cas we assume wells in the row is a cell
@@ -249,7 +249,7 @@ class PlateManipulator(SampleChanger):
             self.num_rows = self.get_property("numRows")
             self.num_drops = self.get_property("numDrops")
 
-        self.reference_pos_x = self.get_property("referencePosX")        
+        self.reference_pos_x = self.get_property("referencePosX")
         if not self.reference_pos_x:
             self.reference_pos_x = 0.5
 
@@ -295,13 +295,13 @@ class PlateManipulator(SampleChanger):
             return True
         else:
             raise Exception("barcode unknown")
-        
+
 
     def hw_get_loaded_sample_location(self):
         loaded_sample = None
         if(self.chan_drop_location):
             loaded_sample = self.chan_drop_location.get_value()
-        
+
             return (
                 chr(65 + loaded_sample[0])
                 + str(loaded_sample[1] +1)
@@ -398,13 +398,13 @@ class PlateManipulator(SampleChanger):
     def load(self, sample=None, wait=True):
         comp = self._resolve_component(sample)
         coords = comp.get_coords()
-        res = self.load_sample(coords)
+        res = self._load_sample(coords)
         if res:
             self._set_loaded_sample(comp)
             comp._set_loaded(True, True)
         return res
 
-    def load_sample(self, sample_location=None, pos_x=None, pos_y=None, wait=True):
+    def _load_sample(self, sample_location=None, pos_x=None, pos_y=None, wait=True):
         """
         Location is estimated by sample location and reference positions.
         """
@@ -448,7 +448,7 @@ class PlateManipulator(SampleChanger):
 
             return True
         except:
-             return False   
+             return False
 
     def _do_unload(self, sample_slot=None):
         """
@@ -474,7 +474,7 @@ class PlateManipulator(SampleChanger):
         if self.get_token() is None:
             raise Exception("No plate barcode defined")
         self._load_data(self.get_token())
-    
+
     def sync_with_crims(self):
         """
         Descript. :
@@ -677,7 +677,7 @@ class PlateManipulator(SampleChanger):
     def move_to_crystal_position(self, crystal_uuid):
         """
          Descript. : Move Diff to crystal position
-         Get crystal_uuid from processing plan for loaded sample/drop 
+         Get crystal_uuid from processing plan for loaded sample/drop
         """
         ret = None
         if crystal_uuid in ["undefined", None]:
@@ -691,7 +691,7 @@ class PlateManipulator(SampleChanger):
                     if (row == ord(x.row) - 65  and  col == x.column -1 and drop == x.shelf -1):
                         crystal_uuid = x.crystal_uuid
             else : raise Exception("No processing_plan OR Crystal Found in this well")
-        
+
 
         if self.cmd_move_to_crystal_position and crystal_uuid:
                 try:

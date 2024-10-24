@@ -196,22 +196,6 @@ class Robodiff(SampleChanger):
             self._update_selection()
 
     @task
-    def load_sample(
-        self,
-        holderLength,
-        sample_id=None,
-        sample_location=None,
-        sampleIsLoadedCallback=None,
-        failureCallback=None,
-        prepareCentring=True,
-    ):
-        cell, basket, sample = sample_location
-        sample = self.get_component_by_address(
-            Pin.get_sample_address(cell, basket, sample)
-        )
-        return self.load(sample)
-
-    @task
     def unload_sample(
         self,
         holderLength,
