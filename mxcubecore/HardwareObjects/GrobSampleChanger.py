@@ -153,23 +153,24 @@ class GrobSampleChanger(HardwareObject):
             self._sample_transfer_done
         )
 
-    def load_sample(
+    def load(
         self,
-        holderLength,
+        sample=None,
         sample_id=None,
-        sample_location=None,
+        holderLength=None,
         successCallback=None,
         failureCallback=None,
         prepareCentring=None,
         prepareCentringMotors={},
         prepare_centring=None,
         prepare_centring_motors=None,
+        wait=True,
     ):
         self._successCallback = successCallback
         self._failureCallback = failureCallback
         self._holderlength = holderLength
         self._sample_id = sample_id
-        self._sample_location = sample_location
+        self._sample_location = sample
 
         if self._get_loaded_sampleNum():
             self._procedure = "UNLOAD_LOAD"
