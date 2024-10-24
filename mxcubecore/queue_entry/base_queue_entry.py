@@ -675,7 +675,6 @@ class SampleQueueEntry(BaseQueueEntry):
                     self.sample_centring_result = gevent.event.AsyncResult()
                     try:
                         mount_sample(
-                            self._view,
                             self._data_model,
                             self.centring_done,
                             self.sample_centring_result,
@@ -766,16 +765,12 @@ class BasketQueueEntry(BaseQueueEntry):
         BaseQueueEntry.__init__(self, view, data_model)
 
 
-def mount_sample(view, data_model, centring_done_cb, async_result):
-    view.setText(1, "Loading sample")
+def mount_sample(data_model, centring_done_cb, async_result):
+    HWR.beamline.sample_changer.trigger_progress_message("Loading sample")
     HWR.beamline.sample_view.clear_all()
-    log = logging.getLogger("queue_exec")
+    log = logging.getLogger("user_level_log")
 
     loc = data_model.location
-    holder_length = data_model.holder_length
-
-    snapshot_before_filename = "/tmp/test_before.png"
-    snapshot_after_filename = "/tmp/test_after.png"
 
     robot_action_dict = {
         "actionType": "LOAD",
@@ -786,34 +781,13 @@ def mount_sample(view, data_model, centring_done_cb, async_result):
         "sessionId": HWR.beamline.session.session_id,
         "startTime": time.strftime("%Y-%m-%d %H:%M:%S"),
     }
-    # "xtalSnapshotBefore": data_model.get_snapshot_filename(prefix="before"),
-    # "xtalSnapshotAfter": data_model.get_snapshot_filename(prefix="after")}
 
-    sample_mount_device = HWR.beamline.sample_changer
-
-    if hasattr(sample_mount_device, "__TYPE__"):
-        if sample_mount_device.__TYPE__ in ["Marvin", "CATS"]:
-            element = "%d:%02d" % tuple(loc)
-            sample_mount_device.load(sample=element, wait=True)
-        elif sample_mount_device.__TYPE__ == "PlateManipulator":
-            sample_mount_device.load_sample(sample_location=loc)
-        else:
-            if (
-                sample_mount_device.load_sample(
-                    holder_length, sample_location=loc, wait=True
-                )
-                is False
-            ):
-                # WARNING: explicit test of False return value.
-                # This is to preserve backward compatibility (load_sample was supposed to return None);
-                # if sample could not be loaded, but no exception is raised, let's skip
-                # the sample
-                raise QueueSkipEntryException(
-                    "Sample changer could not load sample", ""
-                )
+    if not HWR.beamline.sample_changer.load(sample=data_model.loc_str, wait=True):
+        raise QueueSkipEntryException("Sample changer could not load sample", "")
 
     robot_action_dict["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
-    if sample_mount_device.has_loaded_sample():
+
+    if HWR.beamline.sample_changer.has_loaded_sample():
         robot_action_dict["status"] = "SUCCESS"
     else:
         robot_action_dict["message"] = "Sample was not loaded"
@@ -821,25 +795,18 @@ def mount_sample(view, data_model, centring_done_cb, async_result):
 
     HWR.beamline.lims.store_robot_action(robot_action_dict)
 
-    if not sample_mount_device.has_loaded_sample():
-        # Disables all related collections
-        view.setOn(False)
-        view.setText(1, "Sample not loaded")
+    if not HWR.beamline.sample_changer.has_loaded_sample():
+        HWR.beamline.sample_changer.trigger_progress_message("Sample not loaded")
         raise QueueSkipEntryException("Sample not loaded", "")
     else:
-        view.setText(1, "Sample loaded")
+        HWR.beamline.sample_changer.trigger_progress_message("Sample loaded")
         dm = HWR.beamline.diffractometer
-        if dm is not None:
-            if hasattr(sample_mount_device, "__TYPE__"):
-                if sample_mount_device.__TYPE__ in (
-                    "Marvin",
-                    "PlateManipulator",
-                    "Mockup",
-                ):
-                    return
+        centring_method = HWR.beamline.queue_manager.centring_method
+
+        if centring_method != CENTRING_METHOD.NONE:
             try:
                 dm.connect("centringAccepted", centring_done_cb)
-                centring_method = view.listView().parent().parent().centring_method
+
                 if centring_method == CENTRING_METHOD.MANUAL:
                     log.warning(
                         "Manual centring used, waiting for" + " user to center sample"
@@ -857,21 +824,26 @@ def mount_sample(view, data_model, centring_done_cb, async_result):
                 else:
                     dm.start_centring_method(dm.MANUAL3CLICK_MODE)
 
-                view.setText(1, "Centring !")
+                HWR.beamline.sample_changer.trigger_progress_message("Centring !")
                 centring_result = async_result.get()
+
                 if centring_result["valid"]:
-                    view.setText(1, "Centring done !")
+                    HWR.beamline.sample_changer.trigger_progress_message(
+                        "Centring done !"
+                    )
                     log.info("Centring saved")
                 else:
-                    view.setText(1, "Centring failed !")
+                    HWR.beamline.sample_changer.trigger_progress_message(
+                        "Centring failed !"
+                    )
                     if centring_method == CENTRING_METHOD.FULLY_AUTOMATIC:
                         raise QueueSkipEntryException(
                             "Could not center sample, skipping", ""
                         )
                     else:
                         raise RuntimeError("Could not center sample")
-            except Exception as ex:
-                log.exception("Could not center sample: " + str(ex))
+            except Exception:
+                logging.getLogger("HWR").exception("")
             finally:
                 dm.disconnect("centringAccepted", centring_done_cb)
 

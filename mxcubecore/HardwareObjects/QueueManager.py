@@ -15,6 +15,7 @@ import gevent
 
 from mxcubecore import queue_entry
 from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.model.queue_model_enumerables import CENTRING_METHOD
 from mxcubecore.queue_entry import base_queue_entry
 from mxcubecore.queue_entry.base_queue_entry import QUEUE_ENTRY_STATUS
 
@@ -25,6 +26,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         QueueEntryContainer.__init__(self)
+        self.centring_method = CENTRING_METHOD.NONE
         self._root_task = None
         self._paused_event = gevent.event.Event()
         self._paused_event.set()

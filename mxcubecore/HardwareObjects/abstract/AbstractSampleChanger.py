@@ -102,6 +102,7 @@ SampleChanger.INFO_CHANGED_EVENT
 SampleChanger.LOADED_SAMPLE_CHANGED_EVENT
 SampleChanger.SELECTION_CHANGED_EVENT
 SampleChanger.TASK_FINISHED_EVENT
+SampleChanger.PROGRESS_MESSAGE
 
 Tools for SC Classes
 ----------------------
@@ -211,6 +212,7 @@ class SampleChanger(Container, HardwareObject):
     SELECTION_CHANGED_EVENT = "selectionChanged"
     TASK_FINISHED_EVENT = "taskFinished"
     CONTENTS_UPDATED_EVENT = "contentsUpdated"
+    PROGRESS_MESSAGE = "progress_message"
 
     def __init__(self, type_, scannable, *args, **kwargs):
         super().__init__(type_, None, type_, scannable)
@@ -219,6 +221,7 @@ class SampleChanger(Container, HardwareObject):
         HardwareObject.__init__(self, *args, **kwargs)
         self.state = -1
         self.status = ""
+        self._progress_message = ""
         self._set_state(SampleChangerState.Unknown)
         self.task = None
         self.task_proc = None
@@ -310,6 +313,24 @@ class SampleChanger(Container, HardwareObject):
         :rtype: str
         """
         return self.status
+
+    @property
+    def progress_message(self) -> str:
+        """
+        Returns:
+            Current progress message
+        """
+        self._progress_message
+
+    def set_progress_message(self, message: str) -> None:
+        """
+        Set progress message describing the current sample changer activity.
+
+        Args:
+            message: string describing current sample changer activity.
+        """
+        self._progress_message = message
+        self._trigger_progress_message(message)
 
     def get_task_error(self):
         """
@@ -825,6 +846,9 @@ class SampleChanger(Container, HardwareObject):
         if cur != component:
             Container._set_selected_component(self, component)
             self._trigger_selection_changed_event()
+
+    def trigger_progress_message(self, message: str):
+        self.emit(self.PROGRESS_MESSAGE, (message,))
 
     # ########################    PRIVATE    #########################
 

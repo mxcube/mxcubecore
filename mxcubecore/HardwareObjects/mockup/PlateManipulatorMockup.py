@@ -95,7 +95,7 @@ class Xtal(Sample.Sample):
         In this cas we assume a drop is a basket or puck
         """
         return self.get_drop().get_index() + 1
-    
+
     def get_cell_no(self):
         """
         In this cas we assume a well in the row is a cell
@@ -247,10 +247,10 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         AbstractSampleChanger.SampleChanger.init(self)
 
         self.update_state(self.STATES.READY)
-    
+
     def _read_state(self):
         return 'ready'
-    
+
     def _ready(self):
         return True
 
@@ -328,12 +328,20 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
                 self._do_select(sample)
             self._set_loaded_sample(sample)
 
-    def load_sample(self, sample_location=None):
+    def load(self, sample=None, wait=True):
+        comp = self._resolve_component(sample)
+        coords = comp.get_coords()
+        res = self._load_sample(coords)
+        if res:
+            self._set_loaded_sample(comp)
+            comp._set_loaded(True, True)
+        return res
+
+    def _load_sample(self, sample_location=None):
         """
         Descript. : function to move to plate location.
                     Location is estimated by sample location and reference positions.
         """
-
         row = sample_location[0] - 1
         col = (sample_location[1] - 1) / self.num_drops
         drop = sample_location[1] - self.num_drops * col
@@ -549,7 +557,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         plate_info_dict["num_drops"] = self.num_drops
         plate_info_dict["plate_label"] = self.plate_label or  "Demo plate label"
         plate_info_dict["plate_barcode"] = self.plate_barcode or  ""
-        
+
         return plate_info_dict
 
     def get_plate_location(self):
