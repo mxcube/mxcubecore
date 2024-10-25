@@ -488,6 +488,7 @@ class Sample(TaskNode):
         self.free_pin_mode = p.get("freePinMode", False)
         self.loc_str = p.get("locStr", "")
         self.diffraction_plan = p.get("diffractionPlan")
+        self.name = p.get("sampleName", self.name)
 
         self.crystals[0].space_group = p.get("spaceGroup") or p.get(
             "crystalSpaceGroup", ""
@@ -2688,6 +2689,7 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
                 data_collection.experiment_type
             ],
             "skip_images": acq_params.skip_existing_images,
+            "position_name": centred_pos.get_index(),
             "motors": centred_pos.as_dict() if centred_pos is not None else {},
             "ispyb_group_data_collections": data_collection.ispyb_group_data_collections,
         }
