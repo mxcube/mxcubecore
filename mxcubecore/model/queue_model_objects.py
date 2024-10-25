@@ -619,6 +619,7 @@ class DataCollection(TaskNode):
         self.workflow_id = None
         self.center_before_collect = False
         self.ispyb_group_data_collections = False
+        self.workflow_params = {}
 
     @staticmethod
     def set_processing_methods(processing_methods):
@@ -2692,6 +2693,7 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
             "position_name": centred_pos.get_index(),
             "motors": centred_pos.as_dict() if centred_pos is not None else {},
             "ispyb_group_data_collections": data_collection.ispyb_group_data_collections,
+            "workflow_params": data_collection.workflow_params
         }
     ]
 
