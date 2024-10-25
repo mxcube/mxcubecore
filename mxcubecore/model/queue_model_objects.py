@@ -619,9 +619,9 @@ class DataCollection(TaskNode):
         self.workflow_id = None
         self.center_before_collect = False
         self.ispyb_group_data_collections = False
-        # The 'workflow_params' attribute is used for passing parameters
+        # The 'workflow_parameters' attribute is used for passing parameters
         # from the automation workflows (BES) to ispyb-DRAC (see ICATLIMS.py)
-        self.workflow_params = {}
+        self.workflow_parameters = {}
 
     @staticmethod
     def set_processing_methods(processing_methods):
@@ -1274,7 +1274,9 @@ class XrayCentring2(TaskNode):
     (transmission, grid step, ...)
     """
 
-    def __init__(self, name=None, motor_positions=None, grid_size=None):
+    def __init__(
+        self, name=None, motor_positions=None, grid_size=None, workflow_parameters=None
+    ):
         """
 
         :param name: (str) Task name - for queue display. Default to std. name
@@ -1285,6 +1287,7 @@ class XrayCentring2(TaskNode):
         self._centring_result = None
         self._motor_positions = motor_positions.copy() if motor_positions else {}
         self._grid_size = tuple(grid_size) if grid_size else None
+        self._workflow_parameters = workflow_parameters if workflow_parameters else {}
 
         # I do nto now if you need a path template; if not remove this
         # and the access to it in init_from_task_data
@@ -1319,6 +1322,9 @@ class XrayCentring2(TaskNode):
                 "SampleCentring.centringResult must be a CentredPosition"
                 " or None, was a %s" % value.__class__.__name__
             )
+
+    def get_workflow_parameters(self):
+        return self._workflow_parameters
 
     def init_from_task_data(self, sample_model, params):
         """Set parameters from task input dictionary.
@@ -2028,7 +2034,7 @@ class GphlWorkflow(TaskNode):
         self.strategy_length = 0.0
 
         # Workflow attributes - for passing to LIMS (conf Olof Svensson)
-        self.workflow_params = {}
+        self.workflow_parameters = {}
 
         # # Centring handling and MXCuBE-side flow
         self.set_requires_centring(False)
@@ -2128,6 +2134,10 @@ class GphlWorkflow(TaskNode):
                 self.space_group = space_group
         else:
             space_group = self.space_group
+        if space_group == "None":
+            # Temporray fix - this should not happen
+            # 20240926 Rasmus Fogh and Olof Svensson
+            space_group = None
         if crystal_classes:
             self.crystal_classes = tuple(crystal_classes)
         elif space_group:
@@ -2340,9 +2350,9 @@ class GphlWorkflow(TaskNode):
                 setattr(self, tag, value)
 
         # For external workflow parameters (conf. Olof Svensson)
-        dd1 = params.get("workflow_params")
+        dd1 = params.get("workflow_parameters")
         if dd1:
-            self.workflow_params.update(dd1)
+            self.workflow_parameters.update(dd1)
 
         settings = HWR.beamline.gphl_workflow.settings
         # NB settings is an internal attribute DO NOT MODIFY
@@ -2695,7 +2705,7 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
             "position_name": centred_pos.get_index(),
             "motors": centred_pos.as_dict() if centred_pos is not None else {},
             "ispyb_group_data_collections": data_collection.ispyb_group_data_collections,
-            "workflow_params": data_collection.workflow_params
+            "workflow_parameters": data_collection.workflow_parameters,
         }
     ]
 
