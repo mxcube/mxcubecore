@@ -25,12 +25,17 @@ Example xml file:
   <exporter_address>lid231flex1:9001</exporter_address>
 </object>
 """
+from __future__ import annotations
+
 import logging
 import time
 
 import gevent
 
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore import queue_entry
 from mxcubecore.HardwareObjects.EMBLFlexHCD import EMBLFlexHCD
+from mxcubecore.model import queue_model_objects as qmo
 from mxcubecore.TaskUtils import task
 
 
@@ -138,10 +143,47 @@ class EMBLFlexHarvester(EMBLFlexHCD):
         except Exception:
             return False
 
+    def start_harvester_centring(self):
+        try:
+            dm = HWR.beamline.diffractometer
+
+            logging.getLogger("user_level_log").info("Start Auto Harvesting Centring")
+
+            computed_offset = HWR.beamline.harvester.get_offsets_for_sample_centering()
+            dm.start_harvester_centring(computed_offset)
+
+        except Exception:
+            logging.getLogger("user_level_log").exception(
+                "Could not center sample, skipping"
+            )
+            raise queue_entry.QueueSkipEntryException(
+                "Could not center sample, skipping", ""
+            )
+
+    def _set_loaded_sample_and_prepare(self, loaded_sample_tup, previous_sample_tup):
+        res = False
+
+        loaded_sample = self.get_sample_with_address(loaded_sample_tup)
+
+        if -1 not in loaded_sample_tup and loaded_sample_tup != previous_sample_tup:
+            self._set_loaded_sample(loaded_sample)
+            self._prepare_centring_task()
+            res = True
+
+        if res:
+            if self._harvester_hwo.get_room_temperature_mode():
+                self.queue_harvest_next_sample(loaded_sample.get_address())
+
+            # in this case we expect CENTRING_METHOD=None
+            self.start_harvester_centring()
+
+        return res
+
     def _do_load(self, sample=None):
         """
         Load a Sample from Harvester
         """
+        self.queue_harvest_sample(sample.get_address())
         self._update_state()
 
         # We wait for the sample changer if its already doing something, like defreezing
@@ -219,3 +261,63 @@ class EMBLFlexHarvester(EMBLFlexHCD):
         except Exception:
             logging.getLogger("user_level_log").exception("Could not Harvest Crystal")
             return "Could not Harvest Crystal"
+
+    def queue_list(self) -> list[str]:
+        """
+        builds a List representation of the queue based.
+        """
+
+        node = HWR.beamline.queue_model.get_model_root()
+
+        result = []
+
+        if isinstance(node, list):
+            node_list = node
+        else:
+            node_list = node.get_children()
+
+        for node in node_list:
+            if isinstance(node, qmo.Sample):
+                result.append(node.loc_str)
+
+        return result
+
+    def get_sample_uuid(self, sampleID: str) -> str:
+        samples_list = self.get_sample_list()
+        sample_uuid = None
+        for s in samples_list:
+            if s.get_address() == sampleID or s.get_id() == sampleID:
+                sample_uuid = s.get_id()
+                return sample_uuid
+
+    def queue_harvest_sample(self, sample_loc_str) -> None:
+        """
+        While queue execution send harvest request
+        """
+        current_queue = self.queue_list()
+
+        sample_uuid = self.get_sample_uuid(sample_loc_str)
+
+        self._harvester_hwo.queue_harvest_sample(
+            sample_loc_str, sample_uuid, current_queue
+        )
+
+    def queue_harvest_next_sample(self, sample_loc_str) -> None:
+        """
+        While queue execution send harvest request
+        on next sample of the queue list
+        """
+
+        current_queue_list = self.queue_list()
+
+        next_sample = None
+        try:
+            next_sample = current_queue_list[
+                current_queue_list.index(sample_loc_str) + 1
+            ]
+        except (ValueError, IndexError):
+            next_sample = None
+
+        sample_uuid = self.get_sample_uuid(next_sample)
+
+        self._harvester_hwo.queue_harvest_next_sample(next_sample, sample_uuid)

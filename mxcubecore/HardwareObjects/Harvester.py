@@ -164,7 +164,6 @@ class Harvester(HardwareObject):
         return : respond
         """
         ret = None
-        timeout = kwargs.pop("timeout", 0)
         if args:
             args_str = "%s" % "\t".join(map(str, args))
         if kwargs.pop("command", None):
@@ -512,29 +511,25 @@ class Harvester(HardwareObject):
         return self._execute_cmd_exporter("getNbRemainingPins", command=True)
 
     def queue_harvest_sample(
-        self, data_model, sample_uuid: str, current_queue: dict
+        self, sample_loc_str, sample_uuid: str, current_queue_list: list[str]
     ) -> None:
         """
         While queue execution send harvest request
-        current_queue : a build representation of the queue based on
-        python dictionaries
+        current_queue_list : a build representation of the queue based
         """
 
-        current_queue_list = list(current_queue)
         current_queue_index = None
         try:
-            current_queue_index = current_queue_list.index(data_model.loc_str)
+            current_queue_index = current_queue_list.index(sample_loc_str)
         except (ValueError, IndexError):
             current_queue_index = None
 
         wait_before_load = not self.get_room_temperature_mode()
-        if sample_uuid in ["undefined", "", None]:
-            sample_uuid = current_queue[data_model.loc_str]["code"]
 
         if self.get_number_of_available_pin() > 0:
             gevent.sleep(2)
 
-            if current_queue_index == 1:
+            if current_queue_index == 0:
                 logging.getLogger("user_level_log").info("Harvesting First Sample")
 
                 harvest_res = self.harvest_sample_before_mount(
@@ -577,28 +572,13 @@ class Harvester(HardwareObject):
                 "There is no more Pins in the Harvester, Stopping queue", ""
             )
 
-    def queue_harvest_next_sample(
-        self, data_model, sample_uuid: str, current_queue: dict
-    ):
+    def queue_harvest_next_sample(self, next_sample_loc_str: str, sample_uuid: str):
         """
         While queue execution send harvest request
         on next sample of the queue list
-        current_queue : a build representation of the queue based on
-        python dictionaries
         """
-        current_queue_list = list(current_queue)
-        next_sample = None
-        try:
-            next_sample = current_queue_list[
-                current_queue_list.index(data_model.loc_str) + 1
-            ]
-        except (ValueError, IndexError):
-            next_sample = None
 
-        if sample_uuid in ["undefined", "", None]:
-            sample_uuid = current_queue[data_model.loc_str]["code"]
-
-        if next_sample is not None and self.get_number_of_available_pin() > 0:
+        if next_sample_loc_str is not None and self.get_number_of_available_pin() > 0:
             logging.getLogger("user_level_log").info("Harvesting Next Sample")
 
             self._wait_ready(None)
