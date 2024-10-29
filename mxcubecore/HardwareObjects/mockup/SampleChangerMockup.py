@@ -67,11 +67,17 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
         self.load(sample_location, wait)
 
 
+
+    def exchange(self,newsample,wait=False):
+        # raise Exception("test exception")
+        self.load(newsample,wait)
+
+
     def load(self, sample, wait=False):
         logging.getLogger("HWR").debug("get in load smaple in SampleChangerMockup.py")
         self.emit("fsmConditionChanged", "sample_mounting_sample_changer", True)
 
-        time.sleep(5)
+
 
         previous_sample = self.get_loaded_sample()
         self._set_state(AbstractSampleChanger.SampleChangerState.Loading)
@@ -98,6 +104,12 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
         mounted_sample = self.get_component_by_address(
             Container.Pin.get_sample_address(basket, sample)
         )
+
+        print("start time sleep 5")
+        time.sleep(5)
+        print("end time sleep 5")
+
+
         self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
 
         if mounted_sample is not previous_sample:
