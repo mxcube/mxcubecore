@@ -13,9 +13,9 @@ Example configuration:
 </object>
 """
 
-import os
 import subprocess
 import uuid
+from typing import List
 
 import psutil
 
@@ -27,7 +27,7 @@ class TangoLimaMpegVideo(TangoLimaVideo):
         super(TangoLimaMpegVideo, self).__init__(name)
         self._format = "MPEG1"
         self._video_stream_process = None
-        self._current_stream_size = "0, 0"
+        self._current_stream_size = (0, 0)
         self.stream_hash = str(uuid.uuid1())
         self._quality_str = "High"
         self._QUALITY_STR_TO_INT = {"High": 4, "Medium": 10, "Low": 20, "Adaptive": -1}
@@ -40,26 +40,26 @@ class TangoLimaMpegVideo(TangoLimaVideo):
         self._mpeg_scale = self.get_property("mpeg_scale", 1)
         self._image_size = (self.get_width(), self.get_height())
 
-    def get_quality(self):
+    def get_quality(self) -> str:
         return self._quality_str
 
-    def set_quality(self, q):
+    def set_quality(self, q) -> None:
         self._quality_str = q
         self._quality = self._QUALITY_STR_TO_INT[q]
         self.restart_streaming()
 
-    def set_stream_size(self, w, h):
-        self._current_stream_size = "%s,%s" % (int(w), int(h))
+    def set_stream_size(self, w, h) -> None:
+        self._current_stream_size = (int(w), int(h))
 
-    def get_stream_size(self):
-        current_size = self._current_stream_size.split(",")
-        scale = float(current_size[0]) / self.get_width()
-        return current_size + list((scale,))
+    def get_stream_size(self) -> tuple[int, int, float]:
+        width, height = self._current_stream_size
+        scale = float(width) / self.get_width()
+        return (width, height, scale)
 
-    def get_quality_options(self):
+    def get_quality_options(self) -> List[str]:
         return list(self._QUALITY_STR_TO_INT.keys())
 
-    def get_available_stream_sizes(self):
+    def get_available_stream_sizes(self) -> List[tuple[int, int]]:
         try:
             w, h = self.get_width(), self.get_height()
             video_sizes = [(w, h), (int(w / 2), int(h / 2)), (int(w / 4), int(h / 4))]
@@ -68,7 +68,7 @@ class TangoLimaMpegVideo(TangoLimaVideo):
 
         return video_sizes
 
-    def start_video_stream_process(self, port):
+    def start_video_stream_process(self) -> None:
         if (
             not self._video_stream_process
             or self._video_stream_process.poll() is not None
@@ -85,7 +85,7 @@ class TangoLimaMpegVideo(TangoLimaVideo):
                     "-q",
                     str(self._quality),
                     "-s",
-                    self._current_stream_size,
+                    ", ".join(map(str, self._current_stream_size)),
                     "-of",
                     self._format,
                     "-id",
@@ -97,7 +97,7 @@ class TangoLimaMpegVideo(TangoLimaVideo):
             with open("/tmp/mxcube.pid", "a") as f:
                 f.write("%s " % self._video_stream_process.pid)
 
-    def stop_streaming(self):
+    def stop_streaming(self) -> None:
         if self._video_stream_process:
             try:
                 ps = [self._video_stream_process] + psutil.Process(
@@ -110,7 +110,7 @@ class TangoLimaMpegVideo(TangoLimaVideo):
 
             self._video_stream_process = None
 
-    def start_streaming(self, _format=None, size=(0, 0), port=None):
+    def start_streaming(self, _format=None, size=(0, 0), port=None) -> None:
         if _format:
             self._format = _format
 
@@ -123,8 +123,8 @@ class TangoLimaMpegVideo(TangoLimaVideo):
             _s = size
 
         self.set_stream_size(_s[0], _s[1])
-        self.start_video_stream_process(self._port)
+        self.start_video_stream_process()
 
-    def restart_streaming(self, size):
+    def restart_streaming(self, size) -> None:
         self.stop_streaming()
         self.start_streaming(self._format, size=size)
