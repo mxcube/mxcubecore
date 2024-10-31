@@ -847,7 +847,10 @@ class GphlWorkflow(HardwareObjectYaml):
                         message_type,
                     )
                     break
-                elif message_type != "String":
+                elif message_type == "String":
+                    if not self.settings.get("suppress_external_log_output"):
+                        func(payload, correlation_id)
+                else:
                     logging.getLogger("HWR").info(
                         "GΦL queue processing %s", message_type
                     )

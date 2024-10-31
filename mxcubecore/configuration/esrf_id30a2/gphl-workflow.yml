@@ -46,6 +46,10 @@ settings:
     starting_beamline_energy: current
     default_beam_energy_tag: Main
 
+    # Suppress log output of programs called from GPhL workflow
+    # Default to False
+    suppress_external_log_output: false
+
 
     defaults:
         # Default values for queue_model_objects.GphlWorkflow attributes
