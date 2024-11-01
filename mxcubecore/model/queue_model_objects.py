@@ -2702,7 +2702,9 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
                 data_collection.experiment_type
             ],
             "skip_images": acq_params.skip_existing_images,
-            "position_name": centred_pos.get_index(),
+            "position_name": (
+                centred_pos.get_index() if centred_pos is not None else None
+            ),
             "motors": centred_pos.as_dict() if centred_pos is not None else {},
             "ispyb_group_data_collections": data_collection.ispyb_group_data_collections,
             "workflow_parameters": data_collection.workflow_parameters,
