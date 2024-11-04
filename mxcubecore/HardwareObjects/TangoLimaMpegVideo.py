@@ -15,7 +15,10 @@ Example configuration:
 
 import subprocess
 import uuid
-from typing import List
+from typing import (
+    List,
+    Tuple,
+)
 
 import psutil
 
@@ -51,7 +54,7 @@ class TangoLimaMpegVideo(TangoLimaVideo):
     def set_stream_size(self, w, h) -> None:
         self._current_stream_size = (int(w), int(h))
 
-    def get_stream_size(self) -> tuple[int, int, float]:
+    def get_stream_size(self) -> Tuple[int, int, float]:
         width, height = self._current_stream_size
         scale = float(width) / self.get_width()
         return (width, height, scale)
@@ -59,7 +62,7 @@ class TangoLimaMpegVideo(TangoLimaVideo):
     def get_quality_options(self) -> List[str]:
         return list(self._QUALITY_STR_TO_INT.keys())
 
-    def get_available_stream_sizes(self) -> List[tuple[int, int]]:
+    def get_available_stream_sizes(self) -> List[Tuple[int, int]]:
         try:
             w, h = self.get_width(), self.get_height()
             video_sizes = [(w, h), (int(w / 2), int(h / 2)), (int(w / 4), int(h / 4))]

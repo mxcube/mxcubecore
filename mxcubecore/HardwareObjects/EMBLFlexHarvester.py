@@ -29,6 +29,10 @@ from __future__ import annotations
 
 import logging
 import time
+from typing import (
+    Any,
+    List,
+)
 
 import gevent
 
@@ -69,7 +73,7 @@ class EMBLFlexHarvester(EMBLFlexHCD):
     def mount_from_harvester(self):
         return True
 
-    def get_sample_list(self) -> list:
+    def get_sample_list(self) -> List[Any]:
         """
         Get Sample List related to the Harvester content/processing Plan
         """
@@ -262,7 +266,7 @@ class EMBLFlexHarvester(EMBLFlexHCD):
             logging.getLogger("user_level_log").exception("Could not Harvest Crystal")
             return "Could not Harvest Crystal"
 
-    def queue_list(self) -> list[str]:
+    def queue_list(self) -> List[str]:
         """
         builds a List representation of the queue based.
         """
@@ -271,7 +275,7 @@ class EMBLFlexHarvester(EMBLFlexHCD):
 
         result = []
 
-        if isinstance(node, list):
+        if isinstance(node, List):
             node_list = node
         else:
             node_list = node.get_children()

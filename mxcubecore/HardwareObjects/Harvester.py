@@ -43,7 +43,10 @@ It has some functionalities, like Harvest Sample, etc....
 from __future__ import annotations
 
 import logging
-from typing import Optional
+from typing import (
+    List,
+    Optional,
+)
 
 import gevent
 
@@ -235,7 +238,7 @@ class Harvester(HardwareObject):
             == "Waiting Sample Transfer"
         )
 
-    def get_samples_state(self) -> list[str]:
+    def get_samples_state(self) -> List[str]:
         """Get the Harvester Samples State
 
         Return (List):  list of crystal state "waiting_for_transfer, Running etc.."
@@ -301,7 +304,7 @@ class Harvester(HardwareObject):
             else:
                 return None
 
-    def get_crystal_uuids(self) -> list[str]:
+    def get_crystal_uuids(self) -> List[str]:
         """Get the Harvester Sample List uuid
 
         Return (List):  list of crystal by uuid from the current processing plan"
@@ -311,7 +314,7 @@ class Harvester(HardwareObject):
         )
         return harvester_crystal_list
 
-    def get_sample_names(self) -> list[str]:
+    def get_sample_names(self) -> List[str]:
         """Get the Harvester Sample List Name
 
         Return (List):  list of crystal by names from the current processing plan"
@@ -333,7 +336,7 @@ class Harvester(HardwareObject):
         )
         return crystal_images_url
 
-    def get_sample_acronyms(self) -> list[str]:
+    def get_sample_acronyms(self) -> List[str]:
         """Get the Harvester Sample List by Acronyms
 
         Return (List):  list of crystal by Acronyms from the current processing plan"

@@ -3,7 +3,10 @@
 import logging
 import subprocess
 import time
-from typing import List
+from typing import (
+    List,
+    Tuple,
+)
 
 import gevent
 import psutil
@@ -94,11 +97,11 @@ class MDCameraMockup(BaseHardwareObjects.HardwareObject):
     def imageType(self):
         return None
 
-    def get_last_image(self) -> tuple[bytes, int, int]:
+    def get_last_image(self) -> Tuple[bytes, int, int]:
         image = Image.open(self.image)
         return image.tobytes(), image.size[0], image.size[1]
 
-    def get_available_stream_sizes(self) -> List[tuple[int, int]]:
+    def get_available_stream_sizes(self) -> List[Tuple[int, int]]:
         try:
             w, h = self.get_width(), self.get_height()
             video_sizes = [(w, h), (int(w / 2), int(h / 2)), (int(w / 4), int(h / 4))]
@@ -110,7 +113,7 @@ class MDCameraMockup(BaseHardwareObjects.HardwareObject):
     def set_stream_size(self, w, h) -> None:
         self._current_stream_size = (int(w), int(h))
 
-    def get_stream_size(self) -> tuple[int, int, float]:
+    def get_stream_size(self) -> Tuple[int, int, float]:
         width, height = self._current_stream_size
         scale = float(width) / self.get_width()
         return (width, height, scale)
