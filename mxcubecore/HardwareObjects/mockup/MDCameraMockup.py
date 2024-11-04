@@ -94,9 +94,6 @@ class MDCameraMockup(BaseHardwareObjects.HardwareObject):
         self.liveState = state
         return True
 
-    def imageType(self):
-        return None
-
     def get_last_image(self) -> Tuple[bytes, int, int]:
         image = Image.open(self.image)
         return image.tobytes(), image.size[0], image.size[1]

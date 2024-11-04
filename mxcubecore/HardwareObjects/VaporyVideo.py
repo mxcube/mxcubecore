@@ -89,12 +89,6 @@ class VaporyVideo(BaseHardwareObjects.HardwareObject):
             self.force_update,
         )
 
-    def imageType(self):
-        """
-        Descript. :
-        """
-        return self.image_type
-
     def contrastExists(self):
         """
         Descript. :

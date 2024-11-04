@@ -581,12 +581,6 @@ class MjpgStreamVideo(AbstractVideoDevice):
     def get_scale(self):
         return self.scale
 
-    def imageType(self):
-        """
-        Descript. :
-        """
-        return
-
     def contrast_exists(self):
         """
         Descript. :

@@ -338,12 +338,6 @@ class AbstractVideoDevice(HardwareObject):
 
     get_image_zoom = get_scaling_factor
 
-    def imageType(self):
-        """
-        Descript. : returns image type (not used)
-        """
-        return self.image_format
-
     def start_camera(self):
         """Start"""
         return

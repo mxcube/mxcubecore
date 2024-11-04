@@ -236,10 +236,6 @@ class Camera(BaseHardwareObjects.HardwareObject):
                     elif image_type.lower().startswith("mmap:"):
                         self.imgtype = MmapType(image_type.split(":")[1])
 
-                def imageType(self):
-                    """Returns a 'jpeg' or 'bayer' type object depending on the image type"""
-                    return self.imgtype
-
                 def newImage(self, img_cnt):
                     streamChan = self.get_channel_object("stream")
                     self.emit(
@@ -760,10 +756,6 @@ class Camera(BaseHardwareObjects.HardwareObject):
 
                 def oprint(self, msg):
                     print(("Camera.py--taco device--%s" % msg))
-
-                def imageType(self):
-                    """Returns a 'jpeg' or 'bayer' type object depending on the image type"""
-                    return self.imgtype
 
                 def value_changed(self, deviceName, value):
                     self.emit(
