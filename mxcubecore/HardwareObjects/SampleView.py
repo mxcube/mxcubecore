@@ -183,7 +183,12 @@ class SampleView(AbstractSampleView):
         shape.shapes_hw_object = self
 
     def add_shape_from_mpos(
-        self, mpos_list, screen_coord, t, user_state: ShapeState = "SAVED"
+        self,
+        mpos_list,
+        screen_coord,
+        t,
+        state: ShapeState = "SAVED",
+        user_state: ShapeState = "SAVED",
     ):
         """
         Adds a shape of type <t>, with motor positions from mpos_list and
@@ -203,15 +208,17 @@ class SampleView(AbstractSampleView):
 
         if _cls:
             shape = _cls(mpos_list, screen_coord)
-            # In case the shape is being recreated, we need to restore it.
-            shape.state = user_state
+            # In case the shape is being recreated, we need to restore it's state.
+            shape.state = state
             shape.user_state = user_state
 
             self.add_shape(shape)
 
         return shape
 
-    def add_shape_from_refs(self, refs, t, user_state: ShapeState = "SAVED"):
+    def add_shape_from_refs(
+        self, refs, t, state: ShapeState = "SAVED", user_state: ShapeState = "SAVED"
+    ):
         """
         Adds a shape of type <t>, taking motor positions and screen positions
         from reference points in refs.
@@ -226,7 +233,7 @@ class SampleView(AbstractSampleView):
         mpos = [self.get_shape(refid).mpos() for refid in refs]
         spos_list = [self.get_shape(refid).screen_coord for refid in refs]
         spos = reduce((lambda x, y: tuple(x) + tuple(y)), spos_list, ())
-        shape = self.add_shape_from_mpos(mpos, spos, t, user_state)
+        shape = self.add_shape_from_mpos(mpos, spos, t, state, user_state)
         shape.refs = refs
 
         return shape
