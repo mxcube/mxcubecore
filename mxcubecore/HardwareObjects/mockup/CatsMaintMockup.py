@@ -406,10 +406,27 @@ class CatsMaintMockup(Equipment):
         if cmd_name == "reguloff":
             self._do_disable_regulation()
         if cmd_name == "openlid1":
+            logging.getLogger("HWR").debug('open lid')
             self._do_lid1_state(True)
         if cmd_name == "closelid1":
+            logging.getLogger("HWR").debug('close lid')
+            time.sleep(3)
             self._do_lid1_state(False)
         return True
+
+def set_running(func):
+    def wrapper(self, state=True):
+        self._running=1
+        self._update_global_state()
+
+        ret = func(self,state) #command的返回值ret,命令运行成功应该会返回机械手的返回信息，如果没有连通机械手返回False
+
+        self._running = 0
+        self._update_global_state()
+        if ret:
+            print(ret)
+
+    return wrapper
 
 
 def test_hwo(hwo):
