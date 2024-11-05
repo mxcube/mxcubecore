@@ -509,6 +509,7 @@ class EMBLFlexHCD(SampleChanger):
         previous_sample = tuple(
             self._execute_cmd_exporter("getMountedSamplePosition", attribute=True)
         )
+        loaded_sample = previous_sample
 
         # We wait for the sample changer if its already doing something, like defreezing
         # wait for 10 minutes then timeout !
@@ -544,14 +545,27 @@ class EMBLFlexHCD(SampleChanger):
                     )
                 )
 
+                _use_custom = HWR.beamline.diffractometer.get_property(
+                    "use_custom_phase_script", False
+                )
+
                 if loaded_sample == (
                     sample.get_cell_no(),
                     sample.get_basket_no(),
                     sample.get_vial_no(),
                 ):
+                    if _use_custom:
+                        logging.getLogger("user_level_log").info(
+                            "Sample is Loaded from EMBLFlexHCD.py "
+                        )
+                        HWR.beamline.diffractometer.wait_ready(100)
+                        HWR.beamline.diffractometer.run_script("ChangePhase_centring")
+                        HWR.beamline.diffractometer.run_script(
+                            "sample_centering", wait=False
+                        )
                     break
 
-                gevent.sleep(2)
+                gevent.sleep(1)
 
         with gevent.Timeout(600, RuntimeError(err_msg)):
             while True:
