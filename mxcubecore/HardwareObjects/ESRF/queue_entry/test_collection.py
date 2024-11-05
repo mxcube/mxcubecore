@@ -1,6 +1,3 @@
-import os
-import subprocess
-
 from devtools import debug
 from pydantic.v1 import (
     BaseModel,
@@ -14,12 +11,7 @@ from mxcubecore.HardwareObjects.ESRF.queue_entry.ssx_base_queue_entry import (
     SsxBaseQueueEntry,
     SsxBaseQueueTaskParameters,
 )
-from mxcubecore.model.common import (
-    CommonCollectionParamters,
-    LegacyParameters,
-    PathParameters,
-    StandardCollectionParameters,
-)
+from mxcubecore.model.common import LegacyParameters
 from mxcubecore.model.queue_model_objects import DataCollection
 
 __credits__ = ["MXCuBE collaboration"]
@@ -33,15 +25,13 @@ class TestUserCollectionParameters(BaseUserCollectionParameters):
 
 
 class TestCollectionTaskParameters(SsxBaseQueueTaskParameters):
-    path_parameters: PathParameters
-    common_parameters: CommonCollectionParamters
-    collection_parameters: StandardCollectionParameters
+
     user_collection_parameters: TestUserCollectionParameters
     legacy_parameters: LegacyParameters
 
     @staticmethod
     def update_dependent_fields(field_data):
-        new_data = {"exp_time": field_data["sub_sampling"] * 2}
+        new_data = {}
         return new_data
 
 
@@ -57,7 +47,7 @@ class TestCollectionQueueEntry(SsxBaseQueueEntry):
 
     QMO = TestCollectionQueueModel
     DATA_MODEL = TestCollectionTaskParameters
-    NAME = "TestCollection"
+    NAME = "Test Collection"
     REQUIRES = ["point", "line", "no_shape", "chip", "mesh"]
 
     def __init__(self, view, data_model: TestCollectionQueueModel):
@@ -67,29 +57,29 @@ class TestCollectionQueueEntry(SsxBaseQueueEntry):
         super().execute()
         debug(self._data_model._task_data)
 
-        data_root_path = HWR.beamline.session.get_image_directory(
-            os.path.join(
-                self._data_model._task_data.path_parameters.subdir,
-                self._data_model._task_data.path_parameters.experiment_type,
-            )
-        )
+        # data_root_path = HWR.beamline.session.get_image_directory(
+        #     os.path.join(
+        #         self._data_model._task_data.path_parameters.subdir,
+        #         self._data_model._task_data.path_parameters.experiment_type,
+        #     )
+        # )
 
-        process_path = os.path.join(
-            HWR.beamline.session.get_base_process_directory(),
-            self._data_model._task_data.path_parameters.subdir,
-        )
+        # process_path = os.path.join(
+        #     HWR.beamline.session.get_base_process_directory(),
+        #     self._data_model._task_data.path_parameters.subdir,
+        # )
 
-        subprocess.Popen(
-            "mkdir --parents %s" % (data_root_path),
-            shell=True,
-            stdin=None,
-            stdout=None,
-            stderr=None,
-            close_fds=True,
-        ).wait()
+        # subprocess.Popen(
+        #     "mkdir --parents %s" % (data_root_path),
+        #     shell=True,
+        #     stdin=None,
+        #     stdout=None,
+        #     stderr=None,
+        #     close_fds=True,
+        # ).wait()
 
-        dcg = HWR.beamline.lims.pyispyb.create_ssx_data_collection_group()
-        HWR.beamline.lims.pyispyb.create_ssx_data_collection(dcg)
+        # dcg = HWR.beamline.lims.icat_client.create_ssx_data_collection_group()
+        # HWR.beamline.lims.icat_client.create_ssx_data_collection()
 
     def pre_execute(self):
         super().pre_execute()

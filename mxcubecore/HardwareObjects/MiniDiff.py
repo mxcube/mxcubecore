@@ -4,11 +4,12 @@ import logging
 import math
 import os
 import time
+import xml.etree.ElementTree as ET
 from typing import Union
 
 import gevent
 import numpy
-from pydantic import ValidationError
+from pydantic.v1 import ValidationError
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
@@ -242,6 +243,55 @@ class MiniDiff(HardwareObject):
 
         # Agree on a correct method name, inconsistent arguments for move_to_beam, disabled temporarily
         # self.move_to_coord = self.move_to_beam()
+
+    def set_rotation_axis_position(self, value: float, motor_name="phiz"):
+        self._set_rotation_axis_position(value, motor_name=motor_name)
+
+    def _set_rotation_axis_position(self, value: float, motor_name="phiy"):
+        logging.getLogger("HWR").info(
+            f"Setting rotation axis ({motor_name}) position to {value}"
+        )
+
+        try:
+            fname = self.get_xml_path()
+            logging.getLogger("HWR").info(f"Updating {fname}")
+
+            tree = ET.parse(fname)
+            motor_tag = (
+                tree.getroot()
+                .findall("centringReferencePosition")[0]
+                .findall(motor_name)
+            )
+            motor_tag.text = str(value)
+            tree.write(fname)
+        except:
+            logging.getLogger("HWR").info(f"Could not update {fname}")
+            # raise
+        else:
+            logging.getLogger("HWR").info(f"Wrote {fname}")
+
+        if motor_name == "phiz":
+            self.centringPhiz = sample_centring.CentringMotor(
+                self.phizMotor, reference_position=value
+            )
+        elif motor_name == "phiy":
+            self.centringPhiy = sample_centring.CentringMotor(
+                self.phiyMotor, reference_position=value
+            )
+
+        script_name = (
+            "Change_AlignmentZ" if motor_name == "phiz" else "Change_AlignmentY"
+        )
+
+        try:
+            logging.getLogger("HWR").info(f"Setting MD Alignment reference position")
+            print(f" script name {script_name} value {value}")
+            self.run_script(f"{script_name}, {value}")
+        except:
+            logging.getLogger("HWR").exception(
+                f"Setting MD Alignment reference position failed"
+            )
+            raise
 
     # Contained Objects
     # NBNB Temp[orary hack - should be cleaned up together with configuration
@@ -512,14 +562,33 @@ class MiniDiff(HardwareObject):
                 self.wait_ready(30)
                 fun = self.centringMethods[method]
             else:
-                logging.getLogger("HWR").error(
-                    "Using change phase for centering in Java script (DN)"
-                )
-                self.run_script("ChangePhase_centring")
+                time.sleep(0.5)
                 self.wait_ready(60)
+                logging.getLogger("HWR").info("Using MD script for sample centring")
                 self.run_script("sample_centering")
                 time.sleep(0.5)
                 self.wait_ready(120)
+
+                # if the centering fails move to the next sample
+                try:
+                    res_centering = self.get_last_task_info()
+                    if (
+                        res_centering[0].endswith("sample_centering.java")
+                        and res_centering[6] == "-1"
+                    ):
+                        logging.getLogger("HWR").exception(
+                            "MiniDiff: problem while centring"
+                        )
+                        self.emitCentringFailed()
+                    else:
+                        logging.getLogger("HWR").info(
+                            "MiniDiff: centring went fine with %s" % str(res_centering)
+                        )
+                except:
+                    logging.getLogger("HWR").exception(
+                        "MD script for sample centering had a problem"
+                    )
+
         except KeyError as diag:
             logging.getLogger("HWR").error(
                 "MiniDiff: unknown centring method (%s)" % str(diag)
@@ -786,8 +855,7 @@ class MiniDiff(HardwareObject):
                 self.reject_centring()
             else:
                 self.emitCentringSuccessful()
-                if not self.user_confirms_centring:
-                    self.accept_centring()
+                self.accept_centring()
                 logging.getLogger("user_level_log").info(
                     "Automatic loop centring successful"
                 )
@@ -824,11 +892,11 @@ class MiniDiff(HardwareObject):
     def moveToCentredPosition(self, centred_position):
         return self.move_motors(centred_position.as_dict())
 
-    def imageClicked(self, x, y, xi, yi):
+    def image_clicked(self, x, y, xi, yi):
         logging.getLogger("user_level_log").info(
             "Centring click at, x: %s, y: %s" % (int(x), int(y))
         )
-        sample_centring.user_click(x, y, False)
+        sample_centring.user_click(x, y, True)
 
     def emitCentringStarted(self, method):
         self.currentCentringMethod = method
@@ -836,9 +904,14 @@ class MiniDiff(HardwareObject):
         logging.getLogger("user_level_log").info("Starting centring")
 
     def accept_centring(self):
+        self.save_centring_positions()
         self.centringStatus["valid"] = True
         self.centringStatus["accepted"] = True
         self.emit("centringAccepted", (True, self.get_centring_status()))
+
+        # save position in MD2 software
+        self.save_centring_positions()
+
         logging.getLogger("HWR").info("DEBUG %s" % self.get_centring_status())
         logging.getLogger("user_level_log").info("Centring successful")
 

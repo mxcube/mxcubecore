@@ -33,6 +33,7 @@ from typing import (
     List,
     Tuple,
     Union,
+    Optional
 )
 
 import gevent
@@ -159,7 +160,20 @@ class BlockShapeEnum(str, enum.Enum):
     elliptical = "ELLIPTICAL"
 
 
+class CalibrationData(BaseModel):
+    top_left: Tuple[float, float, float] = Field(
+        [0, 0, 0], description="Top left corner motor position"
+    )
+    top_right: Tuple[float, float, float] = Field(
+        [0, 0, 0], description="Top right corner motor position"
+    )
+    bottom_left: Tuple[float, float, float] = Field(
+        [0, 0, 0], description="Bottom left corner motor position"
+    )
+
+
 class SampleHolderSectionModel(BaseModel):
+    calibration_data: Optional[CalibrationData]
     section_offset: Tuple[int, int] = Field(
         [0, 0], description="Block offset in grid layout system coordinates x, y"
     )
@@ -176,18 +190,6 @@ class SampleHolderSectionModel(BaseModel):
     column_lables: List[str] = Field([], description="Collumn lables")
     targets_per_block: Tuple[int, int] = Field(
         [20, 20], description="Targets per block dim1 and dim2"
-    )
-
-
-class CalibrationData(BaseModel):
-    top_left: Tuple[float, float, float] = Field(
-        [0, 0, 0], description="Top left corner motor position"
-    )
-    top_right: Tuple[float, float, float] = Field(
-        [0, 0, 0], description="Top right corner motor position"
-    )
-    bottom_left: Tuple[float, float, float] = Field(
-        [0, 0, 0], description="Bottom left corner motor position"
     )
 
 
