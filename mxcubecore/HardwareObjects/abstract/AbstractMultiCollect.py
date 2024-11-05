@@ -863,9 +863,7 @@ class AbstractMultiCollect(object):
                     logging.getLogger("user_level_log").info(
                         "Updating data collection in LIMS"
                     )
-                    HWR.beamline.lims.update_data_collection(
-                        data_collect_parameters, wait=True
-                    )
+                    HWR.beamline.lims.update_data_collection(data_collect_parameters)
                     logging.getLogger("user_level_log").info(
                         "Done updating data collection in LIMS"
                     )
@@ -1167,7 +1165,7 @@ class AbstractMultiCollect(object):
                 if HWR.beamline.lims:
                     data_collect_parameters["flux_end"] = HWR.beamline.flux.get_value()
                     try:
-                        HWR.beamline.lims.update_data_collection(
+                        HWR.beamline.lims.finalize_data_collection(
                             data_collect_parameters
                         )
                     except Exception:

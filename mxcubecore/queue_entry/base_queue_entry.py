@@ -525,7 +525,6 @@ class TaskGroupQueueEntry(BaseQueueEntry):
             empty_cpos = queue_model_objects.CentredPosition()
             param_list = queue_model_objects.to_collect_dict(
                 interleave_item["data_model"],
-                HWR.beamline.session,
                 sample,
                 cpos if cpos != empty_cpos else None,
             )

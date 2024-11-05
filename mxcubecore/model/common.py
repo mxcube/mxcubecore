@@ -18,9 +18,6 @@ class PathParameters(BaseModel):
     prefix: str
     subdir: str
     experiment_name: Optional[str]
-    use_experiment_name: bool = Field(
-        False, description="Whether to use the experiment name in the data path"
-    )
 
     class Config:
         extra: "ignore"
@@ -69,10 +66,12 @@ class BeamlineParameters(BaseModel):
     energy_bandwidth: float
 
 
-class ISPYBCollectionPrameters(BaseModel):
+class ISPYBCollectionParameters(BaseModel):
     flux_start: float
     flux_end: float
     start_time: datetime
     end_time: datetime
     chip_model: str
     mono_stripe: str
+    number_of_rows: int
+    number_of_columns: int
