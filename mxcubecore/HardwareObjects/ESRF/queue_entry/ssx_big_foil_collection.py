@@ -5,19 +5,12 @@ from pydantic.v1 import (
     BaseModel,
     Field,
 )
-from typing_extensions import Literal
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.ESRF.queue_entry.ssx_base_queue_entry import (
     BaseUserCollectionParameters,
     SsxBaseQueueEntry,
     SsxBaseQueueTaskParameters,
-)
-from mxcubecore.model.common import (
-    CommonCollectionParamters,
-    LegacyParameters,
-    PathParameters,
-    StandardCollectionParameters,
 )
 from mxcubecore.model.queue_model_objects import DataCollection
 
@@ -47,11 +40,7 @@ class SSXUserCollectionParameters(BaseUserCollectionParameters):
 
 
 class SsxFoilColletionTaskParameters(SsxBaseQueueTaskParameters):
-    path_parameters: PathParameters
-    common_parameters: CommonCollectionParamters
-    collection_parameters: StandardCollectionParameters
     user_collection_parameters: SSXUserCollectionParameters
-    legacy_parameters: LegacyParameters
 
 
 class SsxFoilCollectionQueueModel(DataCollection):
@@ -80,14 +69,24 @@ class SsxBigFoilCollectionQueueEntry(SsxBaseQueueEntry):
         exp_time = self._data_model._task_data.user_collection_parameters.exp_time
         fname_prefix = self._data_model._task_data.path_parameters.prefix
         num_images = params.nb_samples_per_line * params.nb_lines
+        reject_empty_frames = (
+            self._data_model._task_data.user_collection_parameters.reject_empty_frames
+        )
         self._data_model._task_data.collection_parameters.num_images = num_images
-        data_root_path, _ = self.get_data_path()
+        data_root_path = self.get_data_path()
 
-        self.take_pedestal(HWR.beamline.collect.get_property("max_freq", 925))
+        HWR.beamline.diffractometer.wait_ready()
+        HWR.beamline.diffractometer.set_phase("DataCollection", wait=True, timeout=120)
+
+        self.take_pedestal()
 
         logging.getLogger("user_level_log").info("Preparing detector")
         HWR.beamline.detector.prepare_acquisition(
-            num_images, exp_time, data_root_path, fname_prefix
+            num_images,
+            exp_time,
+            data_root_path,
+            fname_prefix,
+            dense_skip_nohits=reject_empty_frames,
         )
         HWR.beamline.detector.wait_ready()
 
@@ -110,11 +109,9 @@ class SsxBigFoilCollectionQueueEntry(SsxBaseQueueEntry):
 
         logging.getLogger("user_level_log").info(f"Defining region {region}")
 
-        HWR.beamline.diffractometer.define_ssx_scan_region(
-            *region, params.nb_samples_per_line, params.nb_lines
+        HWR.beamline.diffractometer.prepare_ssx_grid_scan(
+            params.sub_sampling, *region, params.nb_samples_per_line, params.nb_lines
         )
-        HWR.beamline.diffractometer.wait_ready()
-        HWR.beamline.diffractometer.set_phase("DataCollection", wait=True, timeout=120)
 
         if HWR.beamline.control.safshut_oh2.state.name != "OPEN":
             logging.getLogger("user_level_log").info(f"Opening OH2 safety shutter")
@@ -128,7 +125,7 @@ class SsxBigFoilCollectionQueueEntry(SsxBaseQueueEntry):
         logging.getLogger("user_level_log").info(f"Acquiring {num_images}")
 
         try:
-            HWR.beamline.diffractometer.start_ssx_scan(params.sub_sampling)
+            HWR.beamline.diffractometer.start_ssx_scan()
             HWR.beamline.diffractometer.wait_ready()
         except:
             msg = "Diffractometer failed! Waiting for detector to finish"

@@ -2,8 +2,9 @@ import json
 import logging
 import math
 
+import gevent
 from devtools import debug
-from pydantic import Field
+from pydantic.v1 import Field
 from typing_extensions import Literal
 
 from mxcubecore import HardwareRepository as HWR
@@ -11,12 +12,6 @@ from mxcubecore.HardwareObjects.ESRF.queue_entry.ssx_base_queue_entry import (
     BaseUserCollectionParameters,
     SsxBaseQueueEntry,
     SsxBaseQueueTaskParameters,
-)
-from mxcubecore.model.common import (
-    CommonCollectionParamters,
-    LegacyParameters,
-    PathParameters,
-    StandardCollectionParameters,
 )
 from mxcubecore.model.queue_model_objects import DataCollection
 
@@ -26,18 +21,14 @@ __category__ = "General"
 
 
 class SSXUserCollectionParameters(BaseUserCollectionParameters):
-    horizontal_spacing: float = Field(8, gt=0, lt=1000, description="um")
-    vertical_spacing: float = Field(8, gt=0, lt=1000, description="um")
+    num_images: int = Field(0, description="")
+    horizontal_spacing: float = Field(20, gt=0, lt=1000, description="um")
+    vertical_spacing: float = Field(20, gt=0, lt=1000, description="um")
 
-    try:
-        _chip_name_tuple = tuple(
-            HWR.beamline.diffractometer.get_head_configuration().available.keys()
-        )
-        _current_chip = HWR.beamline.diffractometer.get_head_configuration().current
-    except AttributeError:
-        _chip_name_tuple = tuple("")
-        _current_chip = ""
-
+    _chip_name_tuple = tuple(
+        HWR.beamline.diffractometer.get_head_configuration().available.keys()
+    )
+    _current_chip = HWR.beamline.diffractometer.get_head_configuration().current
     chip_type: Literal[_chip_name_tuple] = Field(_current_chip)
 
     class Config:
@@ -45,11 +36,7 @@ class SSXUserCollectionParameters(BaseUserCollectionParameters):
 
 
 class SsxFoilColletionTaskParameters(SsxBaseQueueTaskParameters):
-    path_parameters: PathParameters
-    common_parameters: CommonCollectionParamters
-    collection_parameters: StandardCollectionParameters
     user_collection_parameters: SSXUserCollectionParameters
-    legacy_parameters: LegacyParameters
 
     @staticmethod
     def ui_schema():
@@ -63,14 +50,25 @@ class SsxFoilColletionTaskParameters(SsxBaseQueueTaskParameters):
 
     @staticmethod
     def update_dependent_fields(field_data):
-        horizontal_spacing = field_data["horizontal_spacing"]
-        vertical_spacing = field_data["vertical_spacing"]
+        horizontal_spacing = field_data.get("horizontal_spacing", 0)
+        vertical_spacing = field_data.get("vertical_spacing", 0)
         sub_sampling = field_data["sub_sampling"]
         chip_type = field_data["chip_type"]
 
-        chip_name = chip_type
+        num_images, _, _ = SsxFoilColletionTaskParameters.calculate_number_of_images(
+            horizontal_spacing, vertical_spacing, sub_sampling, chip_type
+        )
+
+        new_data = {"num_images": num_images}
+
+        return new_data
+
+    @staticmethod
+    def calculate_number_of_images(
+        horizontal_spacing, vertical_spacing, sub_sampling, chip_type
+    ):
         chip_data = HWR.beamline.diffractometer.get_head_configuration().available[
-            chip_name
+            chip_type
         ]
 
         chip_width = (
@@ -89,8 +87,7 @@ class SsxFoilColletionTaskParameters(SsxBaseQueueTaskParameters):
 
         num_images = math.floor((nb_samples_per_line * nb_lines) / 2) * 2
 
-        new_data = {"num_images": num_images}
-        return new_data
+        return num_images, nb_lines, nb_samples_per_line
 
 
 class SsxFoilCollectionQueueModel(DataCollection):
@@ -112,47 +109,69 @@ class SsxFoilCollectionQueueEntry(SsxBaseQueueEntry):
     # adding kwargs for compatability, but they are unsued
     def __init__(self, view, data_model: SsxFoilCollectionQueueModel):
         super().__init__(view=view, data_model=data_model)
+        self.__scanning = False
+        params = self._data_model._task_data.user_collection_parameters
+        (
+            num_images,
+            nb_lines,
+            nb_samples_per_line,
+        ) = SsxFoilColletionTaskParameters.calculate_number_of_images(
+            params.horizontal_spacing,
+            params.vertical_spacing,
+            params.sub_sampling,
+            params.chip_type,
+        )
+        self._data_model._task_data.collection_parameters.num_images = num_images
+        self._data_model._task_data.user_collection_parameters.num_images = num_images
 
     def execute(self):
         super().execute()
+
         debug(self._data_model._task_data)
         params = self._data_model._task_data.user_collection_parameters
+        enforce_centring_phase = False
         packet_fifo_depth = 20000
 
-        chip_name = params.chip_type
-        chip_data = HWR.beamline.diffractometer.get_head_configuration().available[
-            chip_name
-        ]
-
-        chip_width = (
-            chip_data.calibration_data.top_right[0]
-            - chip_data.calibration_data.top_left[0]
+        (
+            num_images,
+            nb_lines,
+            nb_samples_per_line,
+        ) = SsxFoilColletionTaskParameters.calculate_number_of_images(
+            params.horizontal_spacing,
+            params.vertical_spacing,
+            params.sub_sampling,
+            params.chip_type,
         )
-        chip_height = (
-            chip_data.calibration_data.bottom_left[1]
-            - chip_data.calibration_data.top_left[1]
-        )
-
-        nb_samples_per_line = math.floor(
-            chip_width / ((params.horizontal_spacing / 1000) * params.sub_sampling)
-        )
-        nb_lines = math.floor(chip_height / (params.vertical_spacing / 1000))
 
         exp_time = self._data_model._task_data.user_collection_parameters.exp_time
-        num_images = math.floor((nb_samples_per_line * nb_lines) / 2) * 2
+        chip_data = HWR.beamline.diffractometer.get_head_configuration().available[
+            params.chip_type
+        ]
 
-        self._data_model._task_data.collection_parameters.num_images = num_images
+        self._data_model._task_data.lims_parameters.number_of_rows = nb_lines
+        self._data_model._task_data.lims_parameters.number_of_columns = (
+            nb_samples_per_line
+        )
+
         fname_prefix = self._data_model._task_data.path_parameters.prefix
-        data_root_path, _ = self.get_data_path()
+        data_root_path = self.get_data_path()
+        reject_empty_frames = (
+            self._data_model._task_data.user_collection_parameters.reject_empty_frames
+        )
 
-        self.take_pedestal(HWR.beamline.collect.get_property("max_freq", 925))
+        HWR.beamline.diffractometer.wait_ready()
+        HWR.beamline.diffractometer.set_phase("DataCollection")
+
+        self.take_pedestal()
 
         logging.getLogger("user_level_log").info("Preparing detector")
         HWR.beamline.detector.prepare_acquisition(
-            num_images, exp_time, data_root_path, fname_prefix
+            num_images,
+            exp_time,
+            data_root_path,
+            fname_prefix,
+            dense_skip_nohits=reject_empty_frames,
         )
-
-        HWR.beamline.detector.wait_ready()
 
         fname_prefix = self._data_model._task_data.path_parameters.prefix
         fname_prefix += f"_foil_"
@@ -173,16 +192,16 @@ class SsxFoilCollectionQueueEntry(SsxBaseQueueEntry):
 
         logging.getLogger("user_level_log").info(f"Defining region {region}")
 
-        HWR.beamline.diffractometer.define_ssx_scan_region(
+        HWR.beamline.diffractometer.prepare_ssx_grid_scan(
             *region, nb_samples_per_line, nb_lines
         )
-
-        HWR.beamline.diffractometer.wait_ready()
-        HWR.beamline.diffractometer.set_phase("DataCollection", wait=True, timeout=120)
 
         if HWR.beamline.control.safshut_oh2.state.name != "OPEN":
             logging.getLogger("user_level_log").info(f"Opening OH2 safety shutter")
             HWR.beamline.control.safshut_oh2.open()
+
+        HWR.beamline.diffractometer.wait_ready()
+        HWR.beamline.detector.wait_ready()
 
         HWR.beamline.detector.start_acquisition()
         logging.getLogger("user_level_log").info(
@@ -201,20 +220,31 @@ class SsxFoilCollectionQueueEntry(SsxBaseQueueEntry):
         )
 
         try:
-            HWR.beamline.diffractometer.start_ssx_scan(params.sub_sampling)
-            HWR.beamline.diffractometer.wait_ready()
+            HWR.beamline.diffractometer.start_ssx_scan(enforce_centring_phase)
         except:
-            msg = "Diffractometer failed! Waiting for detector to finish"
+            msg = "Diffractometer start failed! Stopping the detector"
             logging.getLogger("user_level_log").error(msg)
+            HWR.beamline.detector.stop_acquisition()
+            return
+
+        self.__scanning = True
+
+        logging.getLogger("user_level_log").info("Waiting for scan to finish ...")
+
+        try:
+            HWR.beamline.diffractometer.wait_ready()
+            logging.getLogger("user_level_log").info("Scan finished ...")
+            logging.getLogger("user_level_log").info(f"Acquired {region}")
+        finally:
+            self.__scanning = False
+
             HWR.beamline.detector.wait_ready()
-            raise
+            acquired = HWR.beamline.detector.get_acquired_frames()
+            logging.getLogger("user_level_log").info(f"Acquired {acquired} images")
 
-        if HWR.beamline.control.safshut_oh2.state.name == "OPEN":
-            HWR.beamline.control.safshut_oh2.close()
-            logging.getLogger("user_level_log").info("shutter closed")
-
-        HWR.beamline.detector.wait_ready()
-        logging.getLogger("user_level_log").info(f"Acquired {region}")
+            HWR.beamline.diffractometer.wait_ready()
+            HWR.beamline.diffractometer.set_phase("Transfer", wait=True, timeout=120)
+            logging.getLogger("user_level_log").info(f"set to Transfer phase")
 
     def pre_execute(self):
         super().pre_execute()
@@ -223,4 +253,10 @@ class SsxFoilCollectionQueueEntry(SsxBaseQueueEntry):
         super().post_execute()
 
     def stop(self):
+        if self.__scanning:
+            logging.getLogger("user_level_log").info("Stopping diffractometer ...")
+            HWR.beamline.diffractometer.abort_cmd()
+            gevent.sleep(5)
+            HWR.beamline.diffractometer.wait_ready()
+
         super().stop()

@@ -232,13 +232,13 @@ class Microdiff(MiniDiff.MiniDiff):
             "setRoomTemperatureMode",
         )
 
-        self.auto_align_ssx_block = self.add_command(
+        self.prepare_ssx_grid_scan = self.add_command(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
-                "name": "auto_align_ssx_block",
+                "name": "prepare_ssx_grid_scan",
             },
-            "autoAlignSSXBlock",
+            "prepareSSXGridScan",
         )
 
         self.start_ssx_scan = self.add_command(
@@ -247,7 +247,7 @@ class Microdiff(MiniDiff.MiniDiff):
                 "exporter_address": self.exporter_addr,
                 "name": "start_ssx_scan",
             },
-            "startSSXScan",
+            "startSSXGridScan",
         )
 
         self.start_still_ssx_scan = self.add_command(
@@ -256,16 +256,52 @@ class Microdiff(MiniDiff.MiniDiff):
                 "exporter_address": self.exporter_addr,
                 "name": "start_still_ssx_scan",
             },
-            "startStillSSXScan",
+            "startSSXStillScan",
         )
 
-        self.define_ssx_scan_region = self.add_command(
+        self.prepare_ssx_grid_scan = self.add_command(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
-                "name": "define_ssx_scan_region",
+                "name": "prepare_ssx_grid_scan",
             },
-            "defineSSXScanRegion",
+            "prepareSSXGridScan",
+        )
+
+        self.get_ssx_scan_method = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "get_ssx_scan_method",
+            },
+            "getSSXScanMethod",
+        )
+
+        self.get_ssx_delay = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "get_ssx_delay",
+            },
+            "getSSXDeltaT",
+        )
+
+        self.prepare_ssx_line_scan = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "prepare_ssx_line_scan",
+            },
+            "prepareSSXLineScan",
+        )
+
+        self.start_ssx_line_scan = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_ssx_line_scan",
+            },
+            "startSSXLineScan",
         )
 
         MiniDiff.MiniDiff.init(self)
@@ -339,9 +375,6 @@ class Microdiff(MiniDiff.MiniDiff):
     def emitCentringSuccessful(self):
         # check first if all the motors have stopped
         self._wait_ready(30)
-
-        # save position in MD2 software
-        self.save_centring_positions()
 
         # do normal stuff
         return MiniDiff.MiniDiff.emitCentringSuccessful(self)
@@ -418,6 +451,10 @@ class Microdiff(MiniDiff.MiniDiff):
         if not self._ready():
             logging.getLogger("HWR").exception("MD not ready - phase not set.")
             return
+
+        current_phase = self.get_current_phase()
+        msg = f"Current phase is {current_phase} and moving to {phase}"
+        logging.getLogger("user_level_log").info(msg)
 
         if phase in self.phases:
             if phase in ["BeamLocation", "Transfer"]:
@@ -499,10 +536,7 @@ class Microdiff(MiniDiff.MiniDiff):
         scan(scan_params)
         print("oscil scan started at ----------->", time.time())
         if wait:
-            self._wait_ready(
-                20 * 60
-            )  # timeout of 10 min # Changed on 20180406 Daniele, because of long exposure time set by users
-            print("finished at ---------->", time.time())
+            self._wait_ready(40 * 60)  # Timeout of 40 min
 
     def oscilScan4d(
         self, start, end, exptime, number_of_images, motors_pos, wait=False
