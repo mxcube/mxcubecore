@@ -586,6 +586,17 @@ class GphlWorkflowConnection(HardwareObjectYaml):
                         "GΦL - response=%s messageId=%s"
                         % (result.__class__.__name__, correlation_id)
                     )
+                if message_type == "ObtainPriorInformation":
+                    # At this point we have the enactment_id and can set the workflow_id
+                    self.workflow_queue.put_nowait(
+                        (
+                            "StartEnactment",
+                            self._enactment_id,
+                            None,
+                            None,
+                        )
+                    )
+
                 return self._response_to_server(result, correlation_id)
 
         elif message_type in ("WorkflowAborted", "WorkflowCompleted", "WorkflowFailed"):

@@ -62,3 +62,10 @@ class GphlWorkflowQueueEntry(BaseQueueEntry):
         BaseQueueEntry.stop(self)
         logging.getLogger("HWR").info("MXCuBE aborting current GΦL workflow")
         self.get_view().setText(1, "Stopped")
+
+    def init_mxlims(self):
+        """Initialise MXLIMS MXExperiment if it is not already set"""
+
+        mxexperiment: mxmodel.MXExperiment = self.get_mxlims_record()
+        if mxexperiment is None:
+            self._mxlims_record = mxutils.create_mxexperiment(self.get_data_model())

@@ -1960,6 +1960,7 @@ class GphlWorkflow(TaskNode):
         self.maximum_dose_budget = 20.0
         self.decay_limit = 25
         self.characterisation_budget_fraction = 0.05
+        self.enactment_id = None
 
         # string. Only active mode currently is 'MASSIF1'
         self.automation_mode = None
@@ -2123,7 +2124,7 @@ class GphlWorkflow(TaskNode):
         else:
             space_group = self.space_group
         if space_group == "None":
-            # Temporray fix - this should not happen
+            # Temporary fix - this should not happen
             # 20240926 Rasmus Fogh and Olof Svensson
             space_group = None
         if crystal_classes:

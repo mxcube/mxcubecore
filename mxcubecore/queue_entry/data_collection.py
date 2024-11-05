@@ -35,6 +35,9 @@ from mxcubecore.queue_entry.base_queue_entry import (
     center_before_collect,
 )
 
+from mxlims.pydantic import crystallography as mxmodel
+from utils import mxlims as mxutils
+
 __credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3+"
 __category__ = "General"
@@ -129,6 +132,13 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             )
 
         data_model = self.get_data_model()
+
+        mxexperiment: mxmodel.MXExperiment = self.get_mxlims_record()
+        if mxexperiment is None:
+            mxexperiment = mxutils.create_mxexperiment(data_model)
+            self._mxlims_record = mxexperiment
+        mxutils.add_sweep(mxexperiment, data_model)
+
 
         if data_model.get_parent():
             gid = data_model.get_parent().lims_group_id

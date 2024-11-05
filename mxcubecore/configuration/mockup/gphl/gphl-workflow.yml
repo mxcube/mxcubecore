@@ -254,6 +254,7 @@ workflows:
 
       - title: Phasing (SAD)
         strategy_type: phasing
+        short_name: SAD
         wf_selection: mxexpt
         variants:
           - advanced
@@ -276,6 +277,7 @@ workflows:
 
       - title: Two-wavelength MAD
         strategy_type: phasing
+        short_name: "2wvlMAD"
         wf_selection: mxexpt
         variants:
           - basic
@@ -306,6 +308,7 @@ workflows:
 
       - title: Three-wavelength MAD
         strategy_type: phasing
+        short_name: "3wvlMAD"
         wf_selection: mxexpt
         variants:
           - basic

@@ -28,6 +28,7 @@ import sys
 import time
 import traceback
 from collections import namedtuple
+from typing import Optional
 
 import gevent
 
@@ -39,10 +40,14 @@ from mxcubecore.model.queue_model_enumerables import (
     EXPERIMENT_TYPE,
 )
 
+from mxlims.pydantic import crystallography as mxmodel
+from utils import mxlims as mxutils
+
 __credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3+"
 __category__ = "General"
 
+from numpy.lib.shape_base import apply_along_axis
 
 status_list = ["SUCCESS", "WARNING", "FAILED", "SKIPPED", "RUNNING", "NOT_EXECUTED"]
 QueueEntryStatusType = namedtuple("QueueEntryStatusType", status_list)
@@ -214,6 +219,9 @@ class BaseQueueEntry(QueueEntryContainer):
         self.type_str = ""
         self._data_model.lims_session_id = HWR.beamline.session.session_id
 
+        # MXLIMS record for currently running experiment
+        self._mxlims_record: Optional[mxmodel.MXExperiment] = None
+
     def is_failed(self):
         """Returns True if failed"""
         return self.status == QUEUE_ENTRY_STATUS.FAILED
@@ -286,6 +294,17 @@ class BaseQueueEntry(QueueEntryContainer):
         """
         self._checked_for_exec = state
 
+    def get_mxlims_record(self) -> mxmodel.MXExperiment:
+        """Get MXExperiment MXLIMS record if the entry is currently running"""
+        obj = self
+        result = None
+        while obj is not None:
+            result = obj._mxlims_record
+            if result is None:
+                obj = obj.get_container()
+        return result
+
+
     def execute(self):
         """
         Execute method, should be overriden my subclasses, defines
@@ -322,6 +341,11 @@ class BaseQueueEntry(QueueEntryContainer):
         self.get_data_model().set_running(False)
         self.get_data_model().set_enabled(False)
         self.set_enabled(False)
+
+        mxlims_record = self._mxlims_record
+        if mxlims_record is not None:
+            self._mxlims_record = None
+            mxutils.export_mxexperiment(mxlims_record, self.get_data_model())
 
         # self._set_background_color()
 
