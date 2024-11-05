@@ -65,15 +65,22 @@ class CentringMotor:
 
 
 def prepare(centring_motors_dict):
-    logging.debug("Preparing for centring")
+    logging.getLogger("HWR").debug("Preparing for centring")
 
     global SAVED_INITIAL_POSITIONS
-
-    if CURRENT_CENTRING and not CURRENT_CENTRING.ready():
-        end()
-
     global USER_CLICKED_EVENT
     global READY_FOR_NEXT_POINT
+
+    if CURRENT_CENTRING and not CURRENT_CENTRING.ready():
+        logging.getLogger("HWR").debug("DEBUG: ENDING CURRENT CENTRING")
+        end()
+
+    if USER_CLICKED_EVENT and not USER_CLICKED_EVENT.ready():
+        logging.getLogger("HWR").debug("DEBUG: USER_CLICKED_EVENT: false")
+
+        # Clear ready flag incase it was stuck
+        USER_CLICKED_EVENT.set()
+
     USER_CLICKED_EVENT = gevent.event.AsyncResult()
     READY_FOR_NEXT_POINT = gevent.event.Event()
 
@@ -275,7 +282,7 @@ def centre_plate1Click(
             READY_FOR_NEXT_POINT.set()
             i += 1
     except Exception:
-        logging.exception("Exception while centring")
+        logging.getLogger("HWR").exception("Exception while centring")
         move_motors(SAVED_INITIAL_POSITIONS)
         raise RuntimeError("Exception while centring")
 
@@ -327,11 +334,11 @@ def centre_plate(
             READY_FOR_NEXT_POINT.set()
             i += 1
     except Exception:
-        logging.exception("Exception while centring")
+        logging.getLogger("HWR").exception("Exception while centring")
         move_motors(SAVED_INITIAL_POSITIONS)
         raise
 
-    # logging.info("X=%s,Y=%s", X, Y)
+    #  logging.getLogger("HWR").info("X=%s,Y=%s", X, Y)
     chi_angle = math.radians(chi_angle)
     chiRotMatrix = numpy.matrix(
         [
@@ -386,7 +393,10 @@ def centre_plate(
 
 
 def ready(motor_list):
-    return all([m.is_ready() for m in motor_list])
+    logging.getLogger("HWR").info([m.actuator_name for m in motor_list])
+    rstate = [m._ready() for m in motor_list]
+    logging.getLogger("HWR").info(rstate)
+    return all(rstate)
 
 
 def wait_ready(motor_positions_dict, timeout=None):
@@ -410,7 +420,9 @@ def move_motors(motor_positions_dict):
 def user_click(x, y, wait=False):
     READY_FOR_NEXT_POINT.clear()
     USER_CLICKED_EVENT.set((x, y))
+    logging.getLogger("HWR").debug(f"Clicked registred at {x} {y}")
     if wait:
+        logging.getLogger("HWR").debug(f"Waiting for rotation ...")
         READY_FOR_NEXT_POINT.wait()
 
 
@@ -437,8 +449,12 @@ def center(
         i = 0
         while i < n_points:
             try:
+                logging.getLogger("HWR").debug("Waiting for click")
                 x, y = USER_CLICKED_EVENT.get()
             except Exception:
+                logging.getLogger("HWR").exception(
+                    "Aborted while waiting for point selection"
+                )
                 raise RuntimeError("Aborted while waiting for point selection")
             USER_CLICKED_EVENT = gevent.event.AsyncResult()
             X.append(x / float(pixelsPerMm_Hor))
@@ -448,13 +464,14 @@ def center(
                 phi.set_value_relative(phi.direction * phi_angle, timeout=10)
             READY_FOR_NEXT_POINT.set()
             i += 1
+        # logging.getLogger("HWR").debug(f"Click at {x}, {y}")
     except Exception:
-        logging.exception("Exception while centring")
+        logging.getLogger("HWR").exception("Exception while centring")
         move_motors(SAVED_INITIAL_POSITIONS)
         READY_FOR_NEXT_POINT.set()
         raise RuntimeError("Exception while centring")
 
-    # logging.info("X=%s,Y=%s", X, Y)
+    # logging.getLogger("HWR").debug("X=%s,Y=%s", X, Y)
     chi_angle = math.radians(chi_angle)
     chiRotMatrix = numpy.matrix(
         [
@@ -500,12 +517,13 @@ def center(
 
 def end(centred_pos=None):
     if centred_pos is None:
-        centred_pos = CURRENT_CENTRING.get()
+        centred_pos = CURRENT_CENTRING.get(timeout=1)
     try:
         move_motors(centred_pos)
     except Exception:
         READY_FOR_NEXT_POINT.set()
         move_motors(SAVED_INITIAL_POSITIONS)
+        logging.getLogger("HWR").exception("")
         raise RuntimeError("Centring aborted")
 
 
@@ -631,10 +649,10 @@ def auto_center(
             x, y = find_loop(
                 sample_view, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb
             )
-            # logging.info("in autocentre, x=%f, y=%f",x,y)
+            logging.getLogger("HWR").info("Lucid found loop at, x=%f, y=%f", x, y)
             if x < 0 or y < 0:
                 for i in range(1, 18):
-                    # logging.info("loop not found - moving back %d" % i)
+                    logging.getLogger("HWR").info("loop not found - moving back %d" % i)
                     phi.set_value_relative(5)
                     x, y = find_loop(
                         sample_view,
@@ -660,6 +678,9 @@ def auto_center(
                             break
                 if -1 in (x, y):
                     centring_greenlet.kill()
+                    logging.getLogger("HWR").debug(
+                        f"DEBUG: Incorrect position from auto loop centring {(x,y)}"
+                    )
                     raise RuntimeError("Could not centre sample automatically.")
                 phi.set_value_relative(-i * 5)
             else:
