@@ -9,9 +9,7 @@ import atexit
 import inspect
 import json
 import logging
-import os
 import pkgutil
-import shutil
 import socket
 import sys
 import time
@@ -57,7 +55,7 @@ class XMLRPCServer(HardwareObject):
         self.xmlrpc_prefixes = set()
         self.current_entry_task = None
         self.host = None
-        self.use_token = None
+        self.use_token = True
 
         atexit.register(self.close)
         self.gphl_workflow_status = None
@@ -77,7 +75,7 @@ class XMLRPCServer(HardwareObject):
         self.host = host
         self.port = self.get_property("port")
 
-        self.use_token = self.get_property("use_token", False)
+        self.use_token = self.get_property("use_token", True)
 
         try:
             self.open()
@@ -165,11 +163,15 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.set_back_light_level)
         self._server.register_function(self.get_back_light_level)
         self._server.register_function(self.centre_beam)
-        self._server.register_function(self.addXrayCentring)
-        self._server.register_function(self.addGphlWorkflow)
+
         self._server.register_function(self.get_gphl_workflow_status)
-        self._server.register_function(self.clearISPyBClientGroupId)
-        self._server.register_function(self.setCharacterisationResult)
+        self._server.register_function(self.add_xray_centring)
+        self._server.register_function(self.add_gphl_workflow)
+        self._server.register_function(self.get_gphl_workflow_status)
+        self._server.register_function(self.clear_ispyb_client_group_id)
+        self._server.register_function(self.set_characterisation_result)
+
+        self._server.register_function(self.set_rotation_axis_position)
 
         # Register functions from modules specified in <apis> element
         if self.has_object("apis"):
@@ -446,19 +448,11 @@ class XMLRPCServer(HardwareObject):
         return True
 
     def save_twelve_snapshots_script(self, path):
-        HWR.beamline.diffractometer.run_script("Take12Snapshots")
-        # Wait a couple of seconds for the files to appear
-
-        time.sleep(2)
-        HWR.beamline.diffractometer.wait_ready(300)
-        tmp_path = HWR.beamline.diffractometer.get_property(
-            "custom_snapshot_script_dir", "/tmp"
+        path = path[14:]
+        logging.getLogger("HWR").info(
+            "Taking 6 snapshots to be saved in  %s " % str(path)
         )
-
-        file_list = os.listdir(tmp_path)
-
-        for filename in file_list:
-            shutil.copy(tmp_path + filename, path)
+        HWR.beamline.diffractometer.run_script("Take6Snapshots, " + path)
 
     def save_multiple_snapshots(self, path_list, show_scale=False):
         logging.getLogger("HWR").info("Taking snapshot %s " % str(path_list))
@@ -494,6 +488,7 @@ class XMLRPCServer(HardwareObject):
         """
         Saves the current position as a centered position.
         """
+        logging.getLogger("HWR").exception("Saving position via XMLRPC")
         HWR.beamline.diffractometer.save_current_position()
         return True
 
@@ -715,18 +710,18 @@ class XMLRPCServer(HardwareObject):
                 except StopIteration:
                     pass
 
-    def setToken(self, token):
+    def set_token(self, token):
         SecureXMLRpcRequestHandler.setReferenceToken(token)
 
-    def clearISPyBClientGroupId(self):
+    def clear_ispyb_client_group_id(self):
         HWR.beamline.lims.group_id = None
 
-    def setCharacterisationResult(self, characterisationResult):
+    def set_characterisation_result(self, characterisation_result):
         HWR.beamline.characterisation.characterisationResult = (
-            xml.sax.saxutils.unescape(characterisationResult)
+            xml.sax.saxutils.unescape(characterisation_result)
         )
 
-    def addXrayCentring(self, parent_node_id, **centring_parameters):
+    def add_xray_centring(self, parent_node_id, **centring_parameters):
         """Add Xray centring to queue."""
         from mxcubecore.model import queue_model_objects as qmo
 
@@ -734,7 +729,7 @@ class XMLRPCServer(HardwareObject):
         child_id = HWR.beamline.queue_model.add_child_at_id(parent_node_id, xc_model)
         return child_id
 
-    def addGphlWorkflow(self, parent_node_id, task_dict, workflow_id):
+    def add_gphl_workflow(self, parent_node_id, task_dict, workflow_id):
         """Add GPhL workflow to queue."""
         self.workflow_id = workflow_id
         from mxcubecore.model import queue_model_objects as qmo
@@ -752,3 +747,6 @@ class XMLRPCServer(HardwareObject):
 
     def get_gphl_workflow_status(self):
         return self.gphl_workflow_status
+
+    def set_rotation_axis_position(self, value: float):
+        HWR.beamline.diffractometer.set_rotation_axis_position(value, motor_name="phiy")
