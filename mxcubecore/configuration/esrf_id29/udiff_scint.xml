@@ -1,5 +1,5 @@
 <object class="InOut">
-  <username>Scintilator</username>
+  <username>Scintillator</username>
   <specversion>lid292:exp</specversion>
   <command type="spec" name="set_in">scinton</command>
   <command type="spec" name="set_out">scintoff</command>

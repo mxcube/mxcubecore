@@ -3,7 +3,7 @@ Use the exporter to set different MD2 actuators in/out.
 If private_state not specified, True will be send to set in and False for out.
 Example xml file:
 <object class="MicrodiffActuator">
-  <username>Scintilator</username>
+  <username>Scintillator</username>
   <exporter_address>wid30bmd2s:9001</exporter_address>
   <cmd_name>ScintillatorPosition</cmd_name>
   <private_state>{"PARK":"out", "SCINTILLATOR":"in"}</private_state>

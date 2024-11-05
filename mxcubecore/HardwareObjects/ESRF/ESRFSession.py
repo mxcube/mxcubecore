@@ -14,6 +14,7 @@ class ESRFSession(Session.Session):
 
     def init(self):
         Session.Session.init(self)
+        self._use_acronym = self.get_property("use_acronym", True)
 
         archive_base_directory = self["file_info"].get_property(
             "archive_base_directory"
@@ -95,7 +96,7 @@ class ESRFSession(Session.Session):
             sample_name = sample_data.name
             protein_acronym = sample_data.crystals[0].protein_acronym
 
-        if protein_acronym:
+        if self._use_acronym and protein_acronym:
             subdir = "%s/%s-%s/" % (protein_acronym, protein_acronym, sample_name)
         else:
             subdir = "%s/" % sample_name
