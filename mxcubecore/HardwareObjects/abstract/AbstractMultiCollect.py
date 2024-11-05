@@ -800,8 +800,6 @@ class AbstractMultiCollect(object):
             # if not self.safety_shutter_opened():
             self.open_safety_shutter()
 
-            flux_threshold = self.get_property("flux_threshold", 0)
-
             try:
                 HWR.beamline.flux.wait_for_beam()
                 HWR.beamline.cryo.wait_temperature()
