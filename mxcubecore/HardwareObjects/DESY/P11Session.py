@@ -33,7 +33,6 @@ import yaml
 
 from mxcubecore.HardwareObjects.Session import Session
 
-
 PATH_BEAMTIME = "/gpfs/current"
 PATH_COMMISSIONING = "/gpfs/commissioning"
 PATH_FALLBACK = "/gpfs/local"
