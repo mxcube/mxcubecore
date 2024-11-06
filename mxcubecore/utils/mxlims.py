@@ -33,27 +33,112 @@ from mxlims.pydantic.crystallography import MXExperiment
 def create_mxexperiment(datamodel: qmo.TaskNode) -> mxmodel.MXExperiment:
     """Create MXExperiment mxlims record from datamodel"""
 
+    # Add MXSample and LogisticalSample
     sample = datamodel.get_sample_node()
+    crystal = sample.crystals[0] if sample.crystals else None
+    diffraction_plan = sample.diffraction_plan
 
+    # LogisticalSample, not really modeled yet, so not much to put in
+    crystal_uuid = crystal.uuid if crystal else None
+    if crystal_uuid:
+        logistical_sample = mxmodel.LogisticalSample(uuid=crystal_uuid)
+    else:
+        logistical_sample = mxmodel.LogisticalSample()
+    result.logistical_sample = logistical_sample
+
+    # MXSample
+    samplepars = {}
+    samplepars["name"] = (
+        sample.name or sample.get_name() or (crystal and crystal.acronym)
+    )
+    if crystal:
+        space_group_name = crystal.space_group
+        if space_group_name:
+            samplepars["space_group_name"] = space_group_name
+        dd1 = {
+            "a": crystal.cell_a,
+            "b": crystal.cell_b,
+            "c": crystal.cell_c,
+            "alpha": crystal.cell_alpha,
+            "beta": crystal.cell_beta,
+            "gamma": crystal.cell_gamma,
+        }
+        if all(dd1.values()):
+            samplepars["unit_cell"] = mxmodel.UnitCell(**dd1)
+
+    # Set parameters from diffraction plan
+    if diffraction_plan:
+        # It is not clear if diffraction_plan is a dict or an object,
+        # and if so which kind
+        if hasattr(diffraction_plan, "radiationSensitivity"):
+            radiation_sensitivity = diffraction_plan.radiationSensitivity
+        else:
+            radiation_sensitivity = diffraction_plan.get("radiationSensitivity")
+        if radiation_sensitivity:
+            samplepars["radiation_sensitivity"] = radiation_sensitivity
+
+        if hasattr(diffraction_plan, "aimedResolution"):
+            resolution = diffraction_plan.aimedResolution
+        else:
+            resolution = diffraction_plan.get("aimedResolution")
+        if resolution:
+            samplepars["expected_resolution"] = resolution
+
+        if hasattr(diffraction_plan, "requiredCompleteness"):
+            completeness = diffraction_plan.requiredCompleteness
+        else:
+            completeness = diffraction_plan.get("requiredCompleteness")
+        if completeness:
+            samplepars["target_completeness"] = completeness
+
+        if hasattr(diffraction_plan, "requiredMultiplicity"):
+            multiplicity = diffraction_plan.requiredMultiplicity
+        else:
+            multiplicity = diffraction_plan.get("requiredMultiplicity")
+        if multiplicity:
+            samplepars["target_multiplicity"] = multiplicity
+    sample = mxmodel.MXSample(**samplepars)
+
+    # Create MXExperiment
     if isinstance(datamodel, qmo.GphlWorkflow):
         # Initialise MXExperiment from GPhL workflow
         prefix = "GPhL."
         settings = datamodel.strategy_settings
         short_name = settings.get("short_name", settings.get("strategy_type"))
-        result = MXExperiment(experiment_strategy = prefix+short_name)
+        result = MXExperiment(
+            uuid=datamodel.enactment_id,
+            experiment_strategy=prefix + short_name,
+            sample=sample,
+            logistical_sample=logistical_sample,
+        )
+
     elif isinstance(datamodel, qmo.DataCollection):
-        # Initialise MXExperimnent from single Acquisition
-        result = MXExperiment(experiment_strategy = datamodel.experiemnt_type)
+        # Initialise MXExperiment from single Acquisition
+        if diffraction_plan:
+            if hasattr(diffraction_plan, "experimentType"):
+                experiment_strategy = diffraction_plan.experimentType
+        else:
+            experiment_strategy = diffraction_plan.get("experimentType")
+        experiment_strategy = experiment_strategy or datamodel.experiment_type
+
+        result = MXExperiment(
+            experiment_strategy=experiment_strategy,
+            sample=sample,
+            logistical_sample=logistical_sample,
+        )
+
     else:
         raise ValueError("Unsupported queue_model_object: %s" % self)
+
     #
     return result
+
 
 def add_sweep(mxexperiment: mxmodel.MXExperiment, acquisition: qmo.Acquisition):
     """Add CollectionSweep record to MXExperiment"""
     pass
 
-def export_mxexperiment(mxexperiment: mxmodel.MXExperiment,
-                        datamodel: qmo.TaskNode):
+
+def export_mxexperiment(mxexperiment: mxmodel.MXExperiment, datamodel: qmo.TaskNode):
     """Export MXExperiment mxlims record to JSON file"""
     pass
