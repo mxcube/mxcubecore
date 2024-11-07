@@ -20,22 +20,16 @@ Known sites using cats90
 """
 
 from __future__ import print_function
-
-import logging
+from enum import Enum, unique
 import time
-
 import PyTango
-
+import logging
+from mxcubecore.HardwareObjects.abstract.sample_changer import (Sample, Container)
 from mxcubecore.HardwareObjects.abstract.AbstractSampleChanger import (
-    Container,
-    Sample,
     SampleChanger,
-    SampleChangerState,
-    argin,
-    gevent,
-    has_been_loaded,
-    new_loaded,
+    SampleChangerState
 )
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
 
 __author__ = "Michael Hellmig, Jie Nan, Bixente Rey"
 __credits__ = ["The MXCuBE collaboration"]
@@ -78,13 +72,11 @@ def cats_basket_presence_void(value, basket=1):
     )
 
 
-class Basket(Container):
+class Basket(Container.Container):
     __TYPE__ = "Puck"
 
-    def __init__(self, container, number, samples_num=10, name="Puck"):
-        super(Basket, self).__init__(
-            self.__TYPE__, container, Basket.get_basket_address(number), True
-        )
+    def __init__(self, container , number, samples_num=10, name="Puck"):
+        super(Basket, self).__init__(self.__TYPE__, container, Basket.get_basket_address(number), True )
 
         self.samples_num = samples_num
 
@@ -118,7 +110,7 @@ class UnipuckBasket(Basket):
         )
 
 
-class Pin(Sample):
+class Pin(Container.Sample):
     STD_HOLDERLENGTH = 22.0
 
     def __init__(self, basket, basket_no, sample_no):
@@ -139,9 +131,25 @@ class Pin(Sample):
             return str(basket_number) + ":" + "%02d" % (sample_number)
         else:
             return ""
+@unique
+class CatsStates(Enum):
+    """Shutter states definitions."""
+    RUNNING = HardwareObjectState.READY, "RUNNING"
+    OF =HardwareObjectState.OFF, "DISABLE"
+    #RUNNING = HardwareObjectState.READY, "RUNNING"
+    MOVING = HardwareObjectState.BUSY, "MOVING"
+    DISABLE = HardwareObjectState.WARNING, "DISABLE"
+    #AUTOMATIC = HardwareObjectState.READY, "RUNNING"
+    UNKNOWN = HardwareObjectState.UNKNOWN, "RUNNING"
+    FAULT = HardwareObjectState.WARNING, "FAULT"
+    STANDBY = HardwareObjectState.WARNING, "STANDBY"
+
 
 
 class Cats90(SampleChanger):
+
+    SPECIFIC_STATES = CatsStates
+
     """
 
     Actual implementation of the CATS Sample Changer,
@@ -520,6 +528,7 @@ class Cats90(SampleChanger):
         self._chnLidLoadedSample.connect_signal("update", self.cats_loaded_lid_changed)
         self._chnNumLoadedSample.connect_signal("update", self.cats_loaded_num_changed)
         self._chnSampleBarcode.connect_signal("update", self.cats_barcode_changed)
+        self.SPECIFIC_STATES = CatsStates
 
         # connect presence channels
         if self.basket_channels is not None:  # old device server
@@ -543,6 +552,18 @@ class Cats90(SampleChanger):
             pass
 
         self.update_info()
+    def get_state(self):
+        """Get the device state.
+        Returns:
+            (enum 'HardwareObjectState'): Device state.
+        """
+        try:
+            _state = self.cats_device.State()
+            return self.SPECIFIC_STATES[str(_state)].value[0]
+        except (AttributeError, KeyError) as err:
+            logging.error(f"Exception in get_state(): {err}")
+            return self.STATES.UNKNOWN
+
 
     def connect_notify(self, signal):
         if signal == SampleChanger.INFO_CHANGED_EVENT:
@@ -599,7 +620,7 @@ class Cats90(SampleChanger):
             datamatrix = None
             present = scanned = loaded = _has_been_loaded = False
             sample._set_info(present, datamatrix, scanned)
-            sample._set_loaded(loaded, has_been_loaded)
+            sample._set_loaded(loaded, _has_been_loaded)
             sample._set_holder_length(spl[4])
 
         logging.getLogger("HWR").warning("Cats90:  initializing contents done")
@@ -1149,7 +1170,7 @@ class Cats90(SampleChanger):
         self.cats_powered = self._chnPowered.get_value()
         self.cats_lids_closed = self._chnAllLidsClosed.get_value()
         self.cats_status = self._chnStatus.get_value()
-        self.cats_state = self._chnState.get_value()
+        self.cats_state = self._device_chnState.get_value()
 
     def _update_state(self):
 
@@ -1203,7 +1224,7 @@ class Cats90(SampleChanger):
         if dev_state == PyTango.DevState.ALARM:
             _state = SampleChangerState.Alarm
         elif not powered:
-            _state = SampleChangerState.Disabled
+            _state = SampleChangerState.Ready
         elif dev_state == PyTango.DevState.RUNNING:
             if self.state not in [
                 SampleChangerState.Loading,
