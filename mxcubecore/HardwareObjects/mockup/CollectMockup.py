@@ -149,7 +149,7 @@ class CollectMockup(AbstractCollect):
 
     @task
     def _take_crystal_snapshot(self, filename):
-        HWR.beamline.sample_view.save_scene_snapshot(filename)
+        HWR.beamline.sample_view.save_snapshot(filename)
 
     @task
     def _take_crystal_animation(self, animation_filename, duration_sec=1):
