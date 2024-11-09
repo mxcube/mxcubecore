@@ -42,16 +42,17 @@ try:
     yaml.indent(mapping=4, sequence=4, offset=2)
 except Exception:
     logging.getLogger("HWR").warning(
-        "Cannot import dependenices needed for GPHL workflows - GPhL workflows might not work"
+        "Cannot import dependencies needed for GPHL workflows - GPhL workflows might not work"
     )
 
 # This module is used as a self contained entity by the BES
 # workflows, so we need to make sure that this module can be
-# imported eventhough HardwareRepository is not avilable.
+# imported eventhough HardwareRepository is not available.
 try:
     from mxcubecore import HardwareRepository as HWR
 except ImportError:
-    logging.getLogger("HWR").exception("Could not import HardwareRepository")
+    logging.getLogger("HWR").warning("Could not import HardwareRepository")
+    HWR = NotImplemented
 
 
 __copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
