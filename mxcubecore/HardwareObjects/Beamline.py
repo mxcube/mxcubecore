@@ -882,7 +882,7 @@ class Beamline(ConfiguredObject):
             acq_parameters.detector_binning_mode = ""
 
         try:
-            acq_parameters.detector_roi_mode = self.detector.get_roi_mode()
+            acq_parameters.detector_roi_mode = self.detector.get_roi_mode_name()
         except Exception:
             logging.getLogger("HWR").warning(
                 "get_default_acquisition_parameters: "

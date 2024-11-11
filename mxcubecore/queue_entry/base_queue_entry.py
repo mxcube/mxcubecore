@@ -29,6 +29,7 @@ import time
 import traceback
 from collections import namedtuple
 from typing import Optional
+from datetime import datetime
 from enum import Enum
 
 import gevent
@@ -42,13 +43,14 @@ from mxcubecore.model.queue_model_enumerables import (
 )
 
 from mxlims.pydantic import crystallography as mxmodel
-from utils import mxlims as mxutils
+from mxcubecore.utils import mxlims as mxutils
+
+
+
 
 __credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3+"
 __category__ = "General"
-
-from numpy.lib.shape_base import apply_along_axis
 
 status_list = ["SUCCESS", "WARNING", "FAILED", "SKIPPED", "RUNNING", "NOT_EXECUTED"]
 QueueEntryStatusType = namedtuple("QueueEntryStatusType", status_list)
@@ -183,11 +185,11 @@ class QueueEntryContainer(object):
         Throws a ValueError if one of the entries does not exist in the
         queue.
 
-        :param queue_entry: Queue entry to swap
-        :type queue_entry: QueueEntry
+        :param queue_entry_a: Queue entry to swap
+        :type queue_entry_a: QueueEntry
 
-        :param queue_entry: Queue entry to swap
-        :type queue_entry: QueueEntry
+        :param queue_entry_b: Queue entry to swap
+        :type queue_entry_b: QueueEntry
         """
         index_a = None
         index_b = None
@@ -227,7 +229,6 @@ class QueueEntryContainer(object):
     def get_queue_controller(self):
         """
         :returns: The queue controller
-        :type queue_controller: QueueController
         """
         return self._queue_controller
 
@@ -344,12 +345,12 @@ class BaseQueueEntry(QueueEntryContainer):
         """Get MXExperiment MXLIMS record if the entry is currently running"""
         obj = self
         result = None
-        while obj is not None:
+        container = obj.get_container()
+        while result is None and container is not None:
             result = obj._mxlims_record
-            if result is None:
-                obj = obj.get_container()
+            obj = container
+            container = obj.get_container()
         return result
-
 
     def execute(self):
         """
@@ -391,7 +392,10 @@ class BaseQueueEntry(QueueEntryContainer):
         mxlims_record = self._mxlims_record
         if mxlims_record is not None:
             self._mxlims_record = None
-            mxutils.export_mxexperiment(mxlims_record, self.get_data_model())
+            mxlims_record.end_time = datetime.now()
+            mxutils.export_mxexperiment(
+                mxlims_record, None,
+            )
 
         # self._set_background_color()
 

@@ -27,6 +27,9 @@ the QueueModel.
 import copy
 import logging
 import os
+from typing import Optional
+
+from pydantic import Field, BaseModel
 
 from mxcubecore.model import queue_model_enumerables
 
@@ -52,6 +55,66 @@ __copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
 
+class TrackingData(BaseModel):
+    """Data to connect different tasks into workflows, LIMS input, MXLIMS, etc.
+
+    NB Should be harmonised and merged with workflow_parameters"""
+
+    uuid: Optional[str] = Field(
+        default=None,
+        description="Unique identifier string for this queue_model_object",
+    )
+    workflow_name: Optional[str] = Field(
+        default=None,
+        description="Name of workflow that this queue_model_object belongs to",
+    )
+    workflow_type: Optional[str] = Field(
+        default=None,
+        description="Type of workflow that this queue_model_object belongs to",
+    )
+    workflow_uid: Optional[str] = Field(
+        default=None,
+        description="Unique identifier string for the workflow this queue_model_object belongs to",
+    )
+    location_id: Optional[str] = Field(
+        default=None,
+        description="Unique identifier string for the location / LogisticalSample "
+        "of this queue_model_object",
+    )
+    orientation_id: Optional[str] = Field(
+        default=None,
+        description="Unique identifier string for the orientation (kappa/phi/chi settings) "
+                    "for this queue_model_object",
+    )
+    characterisation_id: Optional[str] = Field(
+        default=None,
+        description="Unique identifier string for characterisation data acquisition "
+        "that is relevant for this queue_model_object",
+    )
+    sweep_id: Optional[str] = Field(
+        default=None,
+        description="Unique identifier string for the sweep that this queue_model_object "
+        "is part of. Used to combine multiple Acquisitions as scans of a single sweep."
+    )
+    scan_number: Optional[int] = Field(
+        default=None,
+        description="Ordinal number (starting at 0), for this queue_model_object "
+        "in the experiment. Defines the time ordering of acquisitions and scans.",
+    )
+    role: Optional[str] = Field(
+        default=None,
+        description="Role of this Task result within the experiment.",
+        json_schema_extra={
+            "examples": [
+                "Result",
+                "Intermediate",
+                "Characterisation",
+                "Centring",
+            ],
+        },
+    )
+
+
 class TaskNode(object):
     """
     Objects that inherit TaskNode can be added to and handled by
@@ -71,6 +134,8 @@ class TaskNode(object):
         self._requires_centring = True
         self._origin = None
         self._task_data = task_data
+        # tracking data for connecting jobs into workflows, mxlims output, etrc.
+        self.tracking_data: TrackingData = TrackingData()
 
     @property
     def task_data(self):
@@ -2334,6 +2399,7 @@ class GphlWorkflow(TaskNode):
             raise ValueError(
                 "No GΦL workflow strategy named %s found" % params["strategy_name"]
             )
+        self.tracking_data.workflow_type = self.strategy_type
 
         self.shape = params.get("shape", "")
         for tag in (
@@ -2487,6 +2553,11 @@ class GphlWorkflow(TaskNode):
     def strategy_name(self):
         """ "Strategy full name, e.g. "Two-wavelength MAD" """
         return self.strategy_settings["title"]
+
+    @property
+    def strategy_short_name(self):
+        """ "Strategy full name, e.g. "Two-wavelength MAD" """
+        return self.strategy_settings["short_name"]
 
     # Run name equal to base_prefix
     def get_name(self):
