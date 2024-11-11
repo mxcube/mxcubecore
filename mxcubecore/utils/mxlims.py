@@ -34,9 +34,7 @@ from mxcubecore.model import queue_model_objects as qmo
 from mxlims.pydantic import core
 
 
-def create_mxexperiment(
-    datamodel: qmo.TaskNode, **parameters
-) -> mxmodel.MXExperiment:
+def create_mxexperiment(datamodel: qmo.TaskNode, **parameters) -> mxmodel.MXExperiment:
     """Create MXExperiment mxlims record from datamodel
 
     Args:
@@ -59,7 +57,12 @@ def create_mxexperiment(
                 workflow_name = diffraction_plan.experimentType
             else:
                 workflow_name = diffraction_plan.get("experimentType")
-    workflow_name = workflow_name or datamodel.experiment_type
+    if not workflow_name:
+        try:
+            workflow_name = datamodel.experiment_type
+        except AttributeError:
+            workflow_name = None
+    initpars["experiment_strategy"] = workflow_name
 
     if diffraction_plan:
         # It is not clear if diffraction_plan is a dict or an object,
@@ -142,17 +145,16 @@ def create_mxexperiment(
     return result
 
 
-def add_sweep(
+def add_data_collection(
     mxexperiment: mxmodel.MXExperiment,
-    sweep: qmo.DataCollection,
+    data_collection: qmo.DataCollection,
     **parameters: dict,
 ) -> None:
     """
 
     Args:
         mxexperiment: container MXExperiment
-        sweep: DataCollection queue_model_object to add
-        uuid: String containing globally unique identifier
+        data_collection: DataCollection queue_model_object to add
         **parameters: dict of parameters overriding/supplementing datamodel
 
     Returns:
@@ -163,64 +165,86 @@ def add_sweep(
     # ALwsy true in MXCuBE
     SCAN_AXIS = "omega"
 
-    acquisition = sweep.acquisitions[0]
+    acquisition = data_collection.acquisitions[0]
     path_template = acquisition.path_template
     acqparams = acquisition.acquisition_parameters
-
-    sweep_params = {
-        "source_ref": mxmodel.MXExperimentRef(target_uuid=mxexperiment.uuid),
-        "scan_axis": SCAN_AXIS,
-        "exposure_time": acqparams.exp_time,
-        "image_width": acqparams.osc_range,
-        "energy": acqparams.energy,
-        "transmission": acqparams.transmission,
-        "resolution": acqparams.resolution,
-        "detector_binning_mode": acqparams.detector_binning_mode,
-        "detector_roi_mode": acqparams.detector_roi_mode,
-        "overlap": acqparams.overlap,
-        "number_triggers": acqparams.num_triggers,
-        "number_images_per_trigger": acqparams.num_images_per_trigger,
-        "prefix": path_template.get_prefix(),
-        "file_type": path_template.suffix,
-        "filename_template": path_template.get_image_file_name(),
-        "path": path_template.directory,
-    }
-
-    sweep_params["axis_positions_start"] = startpos = dict(
+    tracking_data = data_collection.tracking_data
+    startpos = dict(
         tpl
         for tpl in acqparams.centred_position.as_dict().items()
         if tpl[1] is not None
     )
-    startpos[SCAN_AXIS] = acqparams.osc_start
+    axis_pos_start = acqparams.osc_start
+    axis_pos_end = axis_pos_start + acqparams.num_images * acqparams.osc_range
+    startpos[SCAN_AXIS] = axis_pos_start
     startpos["detector_distance"] = acqparams.detector_distance
-
     detector_distance = parameters.pop("detector_distance", None)
     if detector_distance is not None:
         startpos["detector_distance"] = detector_distance
     scan = mxmodel.Scan(
-        scan_position_start=startpos[SCAN_AXIS],
+        scan_position_start=axis_pos_start,
         first_image_number=acqparams.first_image,
         number_images=acqparams.num_images,
-        ordinal=1,
+        ordinal=tracking_data.scan_number or 0,
     )
-    sweep_params["scans"] = [scan]
-    scan_pos_end = parameters.pop("scan_position_end", None)
-    sweep_params["axis_positions_end"] = {SCAN_AXIS: scan_pos_end}
 
-    # NBNB interleaving, split sweeps, split characterisation
-    # NBNB cxheck final omega value against start
-    # NBNB how do we get the detector type?
-    # NBNB do we use MXCuBE axis names or standardised names?
-    # detector_type, ,, ,
-    # , axis_positions_end,
-    # NBNB change from QMO to dict input
+    sweep_id = tracking_data.sweep_id
+    sweep = None
+    for dataset in mxexperiment.results:
+        if dataset.uuid == sweep_id:
+            sweep = dataset
+            break
+    if sweep:
+        # This is a scan for an existing sweep. Add ane update
+        sweep.scans.append(scan)
+        sweep.axis_positions_start[SCAN_AXIS] = min(
+            sweep.axis_positions_start[SCAN_AXIS], axis_pos_start
+        )
+        sweep.axis_positions_end[SCAN_AXIS] = max(
+            sweep.axis_positions_end[SCAN_AXIS], axis_pos_end
+        )
 
-    sweep_params.update(parameters)
-    mxexperiment.results.append(mxmodel.CollectionSweep(**sweep_params))
+    else:
+        sweep_params = {
+            "source_ref": mxmodel.MXExperimentRef(
+                target_uuid=tracking_data.workflow_uid
+            ),
+            "role": tracking_data.role,
+            "logistical_sample_ref": core.LogisticalSampleRef(
+                target_uuid=tracking_data.location_id
+            ),
+            "scan_axis": SCAN_AXIS,
+            "exposure_time": acqparams.exp_time,
+            "image_width": acqparams.osc_range,
+            "energy": acqparams.energy,
+            "transmission": acqparams.transmission,
+            "resolution": acqparams.resolution,
+            "detector_binning_mode": acqparams.detector_binning_mode,
+            "detector_roi_mode": acqparams.detector_roi_mode,
+            "overlap": acqparams.overlap,
+            "number_triggers": acqparams.num_triggers,
+            "number_images_per_trigger": acqparams.num_images_per_trigger,
+            "prefix": path_template.get_prefix(),
+            "file_type": path_template.suffix,
+            "filename_template": path_template.get_image_file_name(),
+            "path": path_template.directory,
+            "axis_positions_start": startpos,
+            "scans": [scan],
+        }
+
+        scan_pos_end = parameters.pop("scan_position_end", None)
+        sweep_params["axis_positions_end"] = {SCAN_AXIS: scan_pos_end}
+
+        # NBNB cxheck final omega value against start
+        # NBNB how do we get the detector type?
+        # NBNB do we use MXCuBE axis names or standardised names?
+
+        sweep_params.update(parameters)
+        mxexperiment.results.append(mxmodel.CollectionSweep(**sweep_params))
 
 
 def export_mxexperiment(
-    mxexperiment: mxmodel.MXExperiment, path_template: Optional[qmo.PathTemplate]=None
+    mxexperiment: mxmodel.MXExperiment, path_template: Optional[qmo.PathTemplate] = None
 ):
     """Export MXExperiment mxlims record to JSON file"""
     if path_template is None:
