@@ -179,7 +179,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         data_model = self.get_data_model()
         # This would be a good place to check that scan_pos_end matches input parameters
         # There have been tricky bugs found where this was not the case
-        mxutils.add_sweep(
+        mxutils.add_data_collection(
             self.get_mxlims_record(),
             data_model,
             beam_position=beam_position,
