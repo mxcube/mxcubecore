@@ -25,26 +25,68 @@ __copyright__ = """ Copyright © 2024 -  2024 MXLIMS collaboration."""
 __author__ = "rhfogh"
 __date__ = "05/11/2024"
 
+import os
+import json
+
+from typing import Optional
 from mxlims.pydantic import crystallography as mxmodel
 from mxcubecore.model import queue_model_objects as qmo
-from mxlims.pydantic.crystallography import MXExperiment
+from mxlims.pydantic import core
 
 
-def create_mxexperiment(datamodel: qmo.TaskNode) -> mxmodel.MXExperiment:
-    """Create MXExperiment mxlims record from datamodel"""
+def create_mxexperiment(
+    datamodel: qmo.TaskNode, **parameters
+) -> mxmodel.MXExperiment:
+    """Create MXExperiment mxlims record from datamodel
 
-    # Add MXSample and LogisticalSample
+    Args:
+        datamodel: QueueModelObject representing experiment
+        uuid: String containing globally unique identifier
+        **parameters: dict of parameters overriding/supplementing datamodel
+
+    Returns:
+
+    """
     sample = datamodel.get_sample_node()
+    tracking_data = datamodel.tracking_data
     crystal = sample.crystals[0] if sample.crystals else None
     diffraction_plan = sample.diffraction_plan
+    initpars = {"uuid": tracking_data.uuid}
+    workflow_name = tracking_data.workflow_name
+    if not workflow_name:
+        if diffraction_plan:
+            if hasattr(diffraction_plan, "experimentType"):
+                workflow_name = diffraction_plan.experimentType
+            else:
+                workflow_name = diffraction_plan.get("experimentType")
+    workflow_name = workflow_name or datamodel.experiment_type
 
-    # LogisticalSample, not really modeled yet, so not much to put in
-    crystal_uuid = crystal.uuid if crystal else None
-    if crystal_uuid:
-        logistical_sample = mxmodel.LogisticalSample(uuid=crystal_uuid)
-    else:
-        logistical_sample = mxmodel.LogisticalSample()
-    result.logistical_sample = logistical_sample
+    if diffraction_plan:
+        # It is not clear if diffraction_plan is a dict or an object,
+        # and if so which kind
+
+        if hasattr(diffraction_plan, "aimedResolution"):
+            resolution = diffraction_plan.aimedResolution
+        else:
+            resolution = diffraction_plan.get("aimedResolution")
+        if resolution:
+            initpars["expected_resolution"] = resolution
+
+        if hasattr(diffraction_plan, "requiredCompleteness"):
+            completeness = diffraction_plan.requiredCompleteness
+        else:
+            completeness = diffraction_plan.get("requiredCompleteness")
+        if completeness:
+            initpars["target_completeness"] = completeness
+
+        if hasattr(diffraction_plan, "requiredMultiplicity"):
+            multiplicity = diffraction_plan.requiredMultiplicity
+        else:
+            multiplicity = diffraction_plan.get("requiredMultiplicity")
+        if multiplicity:
+            initpars["target_multiplicity"] = multiplicity
+
+    # Add MXSample and LogisticalSample
 
     # MXSample
     samplepars = {}
@@ -77,68 +119,118 @@ def create_mxexperiment(datamodel: qmo.TaskNode) -> mxmodel.MXExperiment:
         if radiation_sensitivity:
             samplepars["radiation_sensitivity"] = radiation_sensitivity
 
-        if hasattr(diffraction_plan, "aimedResolution"):
-            resolution = diffraction_plan.aimedResolution
-        else:
-            resolution = diffraction_plan.get("aimedResolution")
-        if resolution:
-            samplepars["expected_resolution"] = resolution
-
-        if hasattr(diffraction_plan, "requiredCompleteness"):
-            completeness = diffraction_plan.requiredCompleteness
-        else:
-            completeness = diffraction_plan.get("requiredCompleteness")
-        if completeness:
-            samplepars["target_completeness"] = completeness
-
-        if hasattr(diffraction_plan, "requiredMultiplicity"):
-            multiplicity = diffraction_plan.requiredMultiplicity
-        else:
-            multiplicity = diffraction_plan.get("requiredMultiplicity")
-        if multiplicity:
-            samplepars["target_multiplicity"] = multiplicity
     sample = mxmodel.MXSample(**samplepars)
+    initpars["sample"] = sample
 
-    # Create MXExperiment
-    if isinstance(datamodel, qmo.GphlWorkflow):
-        # Initialise MXExperiment from GPhL workflow
-        prefix = "GPhL."
-        settings = datamodel.strategy_settings
-        short_name = settings.get("short_name", settings.get("strategy_type"))
-        result = MXExperiment(
-            uuid=datamodel.enactment_id,
-            experiment_strategy=prefix + short_name,
-            sample=sample,
-            logistical_sample=logistical_sample,
-        )
-
-    elif isinstance(datamodel, qmo.DataCollection):
-        # Initialise MXExperiment from single Acquisition
-        if diffraction_plan:
-            if hasattr(diffraction_plan, "experimentType"):
-                experiment_strategy = diffraction_plan.experimentType
-        else:
-            experiment_strategy = diffraction_plan.get("experimentType")
-        experiment_strategy = experiment_strategy or datamodel.experiment_type
-
-        result = MXExperiment(
-            experiment_strategy=experiment_strategy,
-            sample=sample,
-            logistical_sample=logistical_sample,
-        )
-
+    # LogisticalSample, not really modeled yet, so not much to put in
+    crystal_uuid = crystal.crystal_uuid if crystal else None
+    if crystal_uuid:
+        logistical_sample = core.LogisticalSample(uuid=crystal_uuid)
     else:
-        raise ValueError("Unsupported queue_model_object: %s" % self)
+        logistical_sample = core.LogisticalSample()
+    logistical_sample.sample_ref = core.LogisticalSampleRef(target_uuid=sample.uuid)
+    initpars["logistical_sample"] = logistical_sample
+    sample.logistical_sample_refs.append(
+        core.LogisticalSampleRef(target_uuid=logistical_sample.uuid)
+    )
+    initpars["logistical_sample_ref"] = core.LogisticalSampleRef(
+        target_uuid=logistical_sample.uuid
+    )
 
-    #
+    initpars.update(parameters)
+    result = mxmodel.MXExperiment(**initpars)
     return result
 
 
-def add_sweep(mxexperiment: mxmodel.MXExperiment, acquisition: qmo.Acquisition):
+def add_sweep(
+    mxexperiment: mxmodel.MXExperiment,
+    sweep: qmo.DataCollection,
+    **parameters: dict,
+) -> None:
+    """
+
+    Args:
+        mxexperiment: container MXExperiment
+        sweep: DataCollection queue_model_object to add
+        uuid: String containing globally unique identifier
+        **parameters: dict of parameters overriding/supplementing datamodel
+
+    Returns:
+
+    """
     """Add CollectionSweep record to MXExperiment"""
-    pass
+
+    # ALwsy true in MXCuBE
+    SCAN_AXIS = "omega"
+
+    acquisition = sweep.acquisitions[0]
+    path_template = acquisition.path_template
+    acqparams = acquisition.acquisition_parameters
+
+    sweep_params = {
+        "source_ref": mxmodel.MXExperimentRef(target_uuid=mxexperiment.uuid),
+        "scan_axis": SCAN_AXIS,
+        "exposure_time": acqparams.exp_time,
+        "image_width": acqparams.osc_range,
+        "energy": acqparams.energy,
+        "transmission": acqparams.transmission,
+        "resolution": acqparams.resolution,
+        "detector_binning_mode": acqparams.detector_binning_mode,
+        "detector_roi_mode": acqparams.detector_roi_mode,
+        "overlap": acqparams.overlap,
+        "number_triggers": acqparams.num_triggers,
+        "number_images_per_trigger": acqparams.num_images_per_trigger,
+        "prefix": path_template.get_prefix(),
+        "file_type": path_template.suffix,
+        "filename_template": path_template.get_image_file_name(),
+        "path": path_template.directory,
+    }
+
+    sweep_params["axis_positions_start"] = startpos = dict(
+        tpl
+        for tpl in acqparams.centred_position.as_dict().items()
+        if tpl[1] is not None
+    )
+    startpos[SCAN_AXIS] = acqparams.osc_start
+    startpos["detector_distance"] = acqparams.detector_distance
+
+    detector_distance = parameters.pop("detector_distance", None)
+    if detector_distance is not None:
+        startpos["detector_distance"] = detector_distance
+    scan = mxmodel.Scan(
+        scan_position_start=startpos[SCAN_AXIS],
+        first_image_number=acqparams.first_image,
+        number_images=acqparams.num_images,
+        ordinal=1,
+    )
+    sweep_params["scans"] = [scan]
+    scan_pos_end = parameters.pop("scan_position_end", None)
+    sweep_params["axis_positions_end"] = {SCAN_AXIS: scan_pos_end}
+
+    # NBNB interleaving, split sweeps, split characterisation
+    # NBNB cxheck final omega value against start
+    # NBNB how do we get the detector type?
+    # NBNB do we use MXCuBE axis names or standardised names?
+    # detector_type, ,, ,
+    # , axis_positions_end,
+    # NBNB change from QMO to dict input
+
+    sweep_params.update(parameters)
+    mxexperiment.results.append(mxmodel.CollectionSweep(**sweep_params))
 
 
-def export_mxexperiment(mxexperiment: mxmodel.MXExperiment, datamodel: qmo.TaskNode):
+def export_mxexperiment(
+    mxexperiment: mxmodel.MXExperiment, path_template: Optional[qmo.PathTemplate]=None
+):
     """Export MXExperiment mxlims record to JSON file"""
-    pass
+    if path_template is None:
+        path = mxexperiment.results[-1].path
+        file_name = "MXExperiment.json"
+    else:
+        template = "MXExperiment_%s_%s.json"
+        file_name = template % (path_template.get_prefix(), path_template.run_number)
+        path = os.path.join(path_template.directory, file_name)
+    path = os.path.join(path, file_name)
+    print("@~@~ WRITING TO", path)
+    with open(path, "w") as fp:
+        json.dump(mxexperiment.model_dump(), fp)

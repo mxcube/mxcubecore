@@ -22,9 +22,13 @@ Module contains Gphl specific queue entries
 """
 
 import logging
+from datetime import datetime
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.queue_entry.base_queue_entry import BaseQueueEntry
+
+from mxlims.pydantic import crystallography as mxmodel
+from mxcubecore.utils import mxlims as mxutils
 
 __credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3+"
@@ -68,4 +72,9 @@ class GphlWorkflowQueueEntry(BaseQueueEntry):
 
         mxexperiment: mxmodel.MXExperiment = self.get_mxlims_record()
         if mxexperiment is None:
-            self._mxlims_record = mxutils.create_mxexperiment(self.get_data_model())
+            data_model = self.get_data_model()
+            self._mxlims_record = mxutils.create_mxexperiment(
+                data_model,
+                start_time = datetime.now(),
+                measured_flux = HWR.beamline.flux.get_value()
+            )

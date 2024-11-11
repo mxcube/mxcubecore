@@ -17,8 +17,10 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+from datetime import datetime
 
 import gevent
+import uuid
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.dispatcher import dispatcher
@@ -36,7 +38,7 @@ from mxcubecore.queue_entry.base_queue_entry import (
 )
 
 from mxlims.pydantic import crystallography as mxmodel
-from utils import mxlims as mxutils
+from mxcubecore.utils import mxlims as mxutils
 
 __credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3+"
@@ -135,16 +137,58 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
         mxexperiment: mxmodel.MXExperiment = self.get_mxlims_record()
         if mxexperiment is None:
-            mxexperiment = mxutils.create_mxexperiment(data_model)
+            tracking_data = data_model.tracking_data
+            workflow_parameters = data_model.workflow_parameters
+            tracking_data.workflow_uid = workflow_parameters.get("workflow_uid")
+            tracking_data.uuid = tracking_data.workflow_uid or uuid.uuid1()
+            tracking_data.workflow_name = workflow_parameters.get("workflow_name")
+            tracking_data.workflow_type = (
+                workflow_parameters.get("workflow_type") or data_model.experiment_type
+            )
+            tracking_data.location_id = workflow_parameters.get("workflow_position_id")
+            # NB first orientation only:
+            tracking_data.orientation_id = workflow_parameters.get(
+                "workflow_kappa_settings_id"
+            )
+            tracking_data.characterisation_id = workflow_parameters.get(
+                "characterisation_id"
+            )
+            mxexperiment = mxutils.create_mxexperiment(
+                data_model,
+                start_time=datetime.now(),
+                measured_flux=HWR.beamline.flux.get_value(),
+            )
             self._mxlims_record = mxexperiment
-        mxutils.add_sweep(mxexperiment, data_model)
-
 
         if data_model.get_parent():
             gid = data_model.get_parent().lims_group_id
             data_model.lims_group_id = gid
 
     def post_execute(self):
+        # Done in post_execute and *before* calling BaseQueueEntry
+        # so that beamline values are set and  can be read off
+        # NBNB TODO look at pre-existing sweep UUIDs
+        detector = HWR.beamline.detector
+        # NB Detector distance is taken here rather than from parameters as a more
+        # reliable source and in preference to the definition-dependent resolution
+        beam_position = detector.get_beam_position()
+        if None in beam_position:
+            beam_position = None
+        beam = HWR.beamline.beam
+        scan_position_end = HWR.beamline.diffractometer.omega.get_value()
+        data_model = self.get_data_model()
+        # This would be a good place to check that scan_pos_end matches input parameters
+        # There have been tricky bugs found where this was not the case
+        mxutils.add_sweep(
+            self.get_mxlims_record(),
+            data_model,
+            beam_position=beam_position,
+            beam_size=beam.get_beam_size(),
+            beam_shape=beam.get_beam_shape().value,
+            detector_distance=detector.distance.get_value(),
+            scan_position_end=scan_position_end,
+        )
+
         BaseQueueEntry.post_execute(self)
         qc = self.get_queue_controller()
 
