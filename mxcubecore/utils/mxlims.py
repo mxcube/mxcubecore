@@ -257,4 +257,4 @@ def export_mxexperiment(
     path = os.path.join(path, file_name)
     print("@~@~ WRITING TO", path)
     with open(path, "w") as fp:
-        json.dump(mxexperiment.model_dump(), fp)
+        json.dump(mxexperiment.model_dump(), fp, indent=4)
