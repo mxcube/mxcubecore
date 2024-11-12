@@ -175,7 +175,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         if None in beam_position:
             beam_position = None
         beam = HWR.beamline.beam
-        scan_position_end = HWR.beamline.diffractometer.omega.get_value()
         data_model = self.get_data_model()
         # This would be a good place to check that scan_pos_end matches input parameters
         # There have been tricky bugs found where this was not the case
@@ -186,7 +185,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             beam_size=beam.get_beam_size(),
             beam_shape=beam.get_beam_shape().value,
             detector_distance=detector.distance.get_value(),
-            scan_position_end=scan_position_end,
         )
 
         BaseQueueEntry.post_execute(self)

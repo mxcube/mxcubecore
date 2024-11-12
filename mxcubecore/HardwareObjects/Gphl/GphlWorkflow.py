@@ -239,9 +239,6 @@ class GphlWorkflow(HardwareObjectYaml):
 
         self.recentring_file = None
 
-        # Scan number for MXLISM Scan ordering
-        self.next_scan_number = 0
-
         # # TEST mxcubeweb UI
         # self.gevent_event = gevent.event.Event()
         # self.params_dict = {}
@@ -915,7 +912,7 @@ class GphlWorkflow(HardwareObjectYaml):
         )
         tracking_data.location_id = (
             workflow_parameters.get("workflow_position_id")
-            or uuid1().hex
+            or str(uuid1())
         )
         # NB first orientation only:
         tracking_data.orientation_id = workflow_parameters.get(
@@ -2034,6 +2031,7 @@ class GphlWorkflow(HardwareObjectYaml):
         last_orientation = ()
         maxdev = -1
         snapshotted_rotation_ids = set()
+        characterisation_id = None
         for scan in scans:
             sweep = scan.sweep
             acq = queue_model_objects.Acquisition()
@@ -2146,26 +2144,29 @@ class GphlWorkflow(HardwareObjectYaml):
             # The 'if' statement is to allow this to work in multiple versions
             data_collection.workflow_parameters = new_workflow_parameters
             tracking_data = data_collection.tracking_data
-            tracking_data.uuid = scan.id_
+            tracking_data.uuid = str(scan.id_)
             tracking_data.workflow_name = wf_tracking_data.workflow_name
             tracking_data.workflow_type = wf_tracking_data.workflow_type
             tracking_data.workflow_uid = wf_tracking_data.uuid
             tracking_data.location_id = wf_tracking_data.location_id
             tracking_data.orientation_id = rotation_id
-            tracking_data.sweep_id = sweep.id_
             if (
                 gphl_workflow_model.wftype == "acquisition"
                 and not gphl_workflow_model.characterisation_done
             ):
-                characterisation_id = sweep.id_
-                tracking_data.characterisation_id = characterisation_id#
+                if characterisation_id is None:
+                    # NB this is a hack - forces tharacterisation to be a single sweep
+                    characterisation_id = str(sweep.id_)
+                tracking_data.characterisation_id = characterisation_id
                 wf_tracking_data.characterisation_id = characterisation_id
                 tracking_data.role = "Characterisation"
+                tracking_data.sweep_id = characterisation_id
             else:
                 tracking_data.characterisation_id = wf_tracking_data.characterisation_id#
                 tracking_data.role = "Result"
-            tracking_data.scan_number = self.next_scan_number
-            self.next_scan_number += 1
+                tracking_data.sweep_id = str(sweep.id_)
+            tracking_data.scan_number = gphl_workflow_model.next_scan_number
+            gphl_workflow_model.next_scan_number += 1
 
             new_workflow_parameters["workflow_name"] = tracking_data.workflow_name
             new_workflow_parameters["workflow_type"] = tracking_data.workflow_type
