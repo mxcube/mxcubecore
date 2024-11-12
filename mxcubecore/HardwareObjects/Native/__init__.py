@@ -106,7 +106,7 @@ def queue_update_result(server_hwobj, node_id, html_report):
     return result
 
 
-def queue_get_full_path(server_hwobj, suddir, tag):
+def queue_get_full_path(server_hwobj, subdir, tag):
     """ """
     return HWR.beamline.session.get_full_path(subdir, tag)
 
