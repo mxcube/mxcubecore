@@ -206,6 +206,7 @@ def add_data_collection(
 
     else:
         sweep_params = {
+            "uuid": sweep_id or tracking_data.uuid,
             "source_ref": mxmodel.MXExperimentRef(
                 target_uuid=tracking_data.workflow_uid
             ),
@@ -232,8 +233,7 @@ def add_data_collection(
             "scans": [scan],
         }
 
-        scan_pos_end = parameters.pop("scan_position_end", None)
-        sweep_params["axis_positions_end"] = {SCAN_AXIS: scan_pos_end}
+        sweep_params["axis_positions_end"] = {SCAN_AXIS: axis_pos_end}
 
         # NBNB cxheck final omega value against start
         # NBNB how do we get the detector type?

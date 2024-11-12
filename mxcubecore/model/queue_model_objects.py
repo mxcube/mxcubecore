@@ -2082,6 +2082,9 @@ class GphlWorkflow(TaskNode):
         # Factor to account for transmission not being uniform
         self.dose_correction_factor = 1.0
 
+        # Scan number for MXLIMS Scan ordering
+        self.next_scan_number = 0
+
         # Workflow attributes - for passing to LIMS (conf Olof Svensson)
         self.workflow_parameters = {}
 
