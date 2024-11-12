@@ -45,15 +45,7 @@ except Exception:
         "Cannot import dependencies needed for GPHL workflows - GPhL workflows might not work"
     )
 
-# This module is used as a self contained entity by the BES
-# workflows, so we need to make sure that this module can be
-# imported eventhough HardwareRepository is not available.
-try:
-    from mxcubecore import HardwareRepository as HWR
-except ImportError:
-    logging.getLogger("HWR").warning("Could not import HardwareRepository")
-    HWR = NotImplemented
-
+from mxcubecore import HardwareRepository as HWR
 
 __copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
