@@ -1,13 +1,15 @@
+import logging
+import time
+
+import gevent
+
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
-import logging
-import gevent
-import time
 
 
 class ALBABackLight(HardwareObject):
     def __init__(self, *args):
-        Device.__init__(self, *args)
+        super().__init__(*args)
         self.limits = [None, None]
         self.state = None
         self.current_level = None

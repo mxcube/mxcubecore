@@ -25,8 +25,9 @@ Emits signals valueChanged and attributeChanged.
 """
 
 import abc
-from mxcubecore.utils.conversion import HC_OVER_E
+
 from mxcubecore.HardwareObjects.abstract.AbstractActuator import AbstractActuator
+from mxcubecore.utils.conversion import HC_OVER_E
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

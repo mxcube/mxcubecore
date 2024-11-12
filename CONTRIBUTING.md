@@ -111,22 +111,33 @@ The exact routine is described more preceisly in [MEP01](https://github.com/mxcu
 ### Coding convention and style guidelines
 
 #### Units
-Functions returning a value representing a physical quantity should in general be assoicated with
-a unit. It has been agreed that the following units should, where applicable, be used across the
-code base
 
- * mm (millimeter) for translative motors and sizes
- * degrees for rotative motors
- * perecent (%) for ratios like attenuation
- * keV for energy
- * K (Kelvin) for temperature
- * Å (Ångström) for resolution
- * Pixels are to be used for beam location (center)
- * Datetime YYYY-MM-DD HH:MM:SS(.ff) ,possibly with hundreds of seconds (ff), and with 24 hour clock.
+Units must be documented via docstrings
+for the parameters and return values of functions and methods,
+for variables,
+and for attributes of classes and objects.
 
+The units of variables within a function or method must be documented as well.
+For example, with simple comments or by including the unit in the variable name itself.
 When writing code that converts between different units,
-it is recommended to use utility functions from {py:mod}`mxcubecore.utils.units` module.
-This will to aid in the readability of the code.
+it is possible to use utility functions from {py:mod}`mxcubecore.utils.units` module,
+which will make the unit conversion explicit.
+
+Furthermore, it has been agreed that, whenever possible,
+the following units must be used across the code base:
+
+* mm (millimetre) for translational motors and sizes
+* degree for rotational motors
+* percentage (%) for ratios like attenuation
+* keV for energy
+* K (Kelvin) for temperature
+* Å (Ångström) for resolution
+* pixel for beam location (centre)
+* YYYY-MM-DD HH:MM:SS(.ff) for date and time,
+  possibly with hundreds of seconds (ff), and with 24-hour clock.
+
+Even if the code uses those units, they must be documented.
+
 
 #### Value update signals/callbacks
 The "valueChanged" and "stateChanged" signals should be used when a HardwareObjects value or state

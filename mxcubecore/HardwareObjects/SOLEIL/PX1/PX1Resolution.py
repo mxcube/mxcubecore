@@ -1,10 +1,9 @@
-import math
 import logging
+import math
 import time
 
-from mxcubecore.Command.Tango import DeviceProxy
-
 from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.Command.Tango import DeviceProxy
 
 DETECTOR_DIAMETER = 424.0
 
@@ -51,7 +50,7 @@ class PX1Resolution(HardwareObject):
         self.currentDistance = self.distance_chan.get_value()
         self._nominal_value = self.resolution_chan.get_value()
 
-        return Equipment._init(self)
+        return super()._init()
 
     def connect_notify(self, signal):
         if signal == "stateChanged":

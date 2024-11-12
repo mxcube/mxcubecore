@@ -1,14 +1,14 @@
 """
 Class for cameras connected by EPICS Area Detector
 """
-import os
 import logging
-import gevent
+import os
 from io import BytesIO
 from threading import Thread
 
-from PIL import Image
+import gevent
 import numpy as np
+from PIL import Image
 
 from mxcubecore import BaseHardwareObjects
 
@@ -28,7 +28,7 @@ CAMERA_IMG_PIXEL_SIZE = "epicsCameraSample_img_pixel_size"
 CAMERA_IMG_WIDTH = "epicsCameraSample_img_width"
 CAMERA_IMG_HEIGHT = "epicsCameraSample_img_height"
 
-class LNLSCamera(BaseHardwareObjects.Device):
+class LNLSCamera(BaseHardwareObjects.HardwareObject):
 
     def __init__(self,name):
         BaseHardwareObjects.Device.__init__(self,name)
@@ -347,9 +347,6 @@ class LNLSCamera(BaseHardwareObjects.Device):
             return True
         except:
             return False
-
-    def imageType(self):
-        return None
 
     def takeSnapshot(self, *args):
         pass

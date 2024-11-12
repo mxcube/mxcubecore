@@ -1,10 +1,10 @@
 import logging
 import time
-from mxcubecore.HardwareObjects.GenericDiffractometer import (
-    GenericDiffractometer,
-)
-from gevent.event import AsyncResult
+
 import gevent
+from gevent.event import AsyncResult
+
+from mxcubecore.HardwareObjects.GenericDiffractometer import GenericDiffractometer
 
 
 class XalocMiniDiff(GenericDiffractometer):

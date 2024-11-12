@@ -4,17 +4,17 @@
 # /data/staff/biomax/staff/jie/2015_11_10/processed -mode after
 # -datacollectionID 13 -residues 200 -anomalous False -cell "0,0,0,0,0,0"
 
+import logging
 import os
-import sys
-import time
-import string
-import urllib
-import logging
-import httplib
-import logging
-import tempfile
-import subprocess
 import shlex
+import string
+import subprocess
+import sys
+import tempfile
+import time
+import urllib
+
+import httplib
 
 inputTemplate = """<?xml version="1.0"?>
 <XSDataInputControlAutoPROC>

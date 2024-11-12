@@ -1,18 +1,17 @@
 from __future__ import print_function
+
 import logging
-import gevent
 import time
 
+import gevent
+from PX1Environment import EnvironmentPhase
+
 from mxcubecore.Command.Tango import DeviceProxy
-
-
 from mxcubecore.HardwareObjects.Cats90 import (
+    BASKET_UNIPUCK,
     Cats90,
     SampleChangerState,
-    BASKET_UNIPUCK,
 )
-
-from PX1Environment import EnvironmentPhase
 
 
 class PX1Cryotong(Cats90):

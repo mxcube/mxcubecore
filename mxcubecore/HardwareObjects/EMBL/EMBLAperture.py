@@ -19,9 +19,7 @@
 
 """Inherited from AbstracAperture"""
 
-from mxcubecore.HardwareObjects.abstract.AbstractAperture import (
-    AbstractAperture,
-)
+from mxcubecore.HardwareObjects.abstract.AbstractAperture import AbstractAperture
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"

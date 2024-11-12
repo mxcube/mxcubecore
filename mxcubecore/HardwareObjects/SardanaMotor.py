@@ -1,9 +1,14 @@
+import enum
 import logging
 import time
-import enum
-from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
-from mxcubecore.BaseHardwareObjects import HardwareObject, HardwareObjectState
+
 from gevent import Timeout
+
+from mxcubecore.BaseHardwareObjects import (
+    HardwareObject,
+    HardwareObjectState,
+)
+from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 """
 Interfaces Sardana Motor objects.

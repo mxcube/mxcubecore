@@ -1,7 +1,7 @@
 # encoding: utf-8
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -16,7 +16,10 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+
+__copyright__ = """Copyright The MXCuBE Collaboration"""
+__license__ = "LGPLv3+"
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
@@ -26,7 +29,6 @@ class ValueStateChannel(HardwareObject):
         super().__init__(name)
 
     def init(self):
-
         self.yellow_states = self.green_states = self.red_states = None
         self.yellow_limits = self.red_limits = None
 

@@ -13,9 +13,8 @@ Example xml file:
 
 import logging
 import time
-from mxcubecore.HardwareObjects.abstract.AbstractActuator import (
-    AbstractActuator,
-)
+
+from mxcubecore.HardwareObjects.abstract.AbstractActuator import AbstractActuator
 from mxcubecore.TaskUtils import task
 
 

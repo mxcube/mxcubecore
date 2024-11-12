@@ -17,13 +17,15 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-import os
-import time
-import gevent
 import logging
+import os
 import tempfile
+import time
 from datetime import datetime
 
+import gevent
+
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.HardwareObjects.abstract import AbstractSampleChanger
 from mxcubecore.HardwareObjects.abstract.sample_changer import (
@@ -31,9 +33,6 @@ from mxcubecore.HardwareObjects.abstract.sample_changer import (
     Crims,
     Sample,
 )
-
-from mxcubecore import HardwareRepository as HWR
-
 
 POSITION_DESC = {
     "Park": "Parked",

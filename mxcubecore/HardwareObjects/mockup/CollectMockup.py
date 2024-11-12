@@ -21,10 +21,10 @@
 
 import os
 import time
-from mxcubecore.TaskUtils import task
-from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
-from mxcubecore import HardwareRepository as HWR
 
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
+from mxcubecore.TaskUtils import task
 
 __credits__ = ["MXCuBE collaboration"]
 
@@ -149,7 +149,7 @@ class CollectMockup(AbstractCollect):
 
     @task
     def _take_crystal_snapshot(self, filename):
-        HWR.beamline.sample_view.save_scene_snapshot(filename)
+        HWR.beamline.sample_view.save_snapshot(filename)
 
     @task
     def _take_crystal_animation(self, animation_filename, duration_sec=1):
@@ -209,14 +209,8 @@ class CollectMockup(AbstractCollect):
     def set_energy(self, energy):
         HWR.beamline.energy.set_value(energy)
 
-    def set_resolution(self, new_resolution):
-        HWR.beamline.resolution.set_value(new_resolution)
-
     def set_transmission(self, transmission):
         HWR.beamline.transmission.set_value(transmission)
-
-    def move_detector(self, detector_distance):
-        HWR.beamline.detector.distance.set_value(detector_distance)
 
     def get_undulators_gaps(self):
         return {"u29": 10}

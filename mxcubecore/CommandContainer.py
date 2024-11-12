@@ -28,13 +28,21 @@ for command launchers and channels (see Command package).
 """
 
 from __future__ import absolute_import
-from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
 
-import weakref
 import logging
+import weakref
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    List,
+    Optional,
+    Tuple,
+    Union,
+)
 
 from mxcubecore.dispatcher import dispatcher
-
 
 __copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
@@ -803,7 +811,10 @@ class CommandContainer:
                         self.name(),
                     )
 
-            from mxcubecore.Command.Sardana import SardanaCommand, SardanaMacro
+            from mxcubecore.Command.Sardana import (
+                SardanaCommand,
+                SardanaMacro,
+            )
 
             if cmd_type == "macro" and doorname is not None:
                 try:

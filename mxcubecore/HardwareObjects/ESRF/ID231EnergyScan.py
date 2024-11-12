@@ -1,5 +1,9 @@
 from mxcubecore.TaskUtils import task
-from .ESRFEnergyScan import ESRFEnergyScan, TunableEnergy
+
+from .ESRFEnergyScan import (
+    ESRFEnergyScan,
+    TunableEnergy,
+)
 
 
 class ID231EnergyScan(ESRFEnergyScan):
@@ -27,9 +31,9 @@ class ID231EnergyScan(ESRFEnergyScan):
     @task
     def choose_attenuation(self):
         self.execute_command("chooseAttenuation")
-        self.energy_scan_parameters[
-            "transmissionFactor"
-        ] = self.transmission.get_value()
+        self.energy_scan_parameters["transmissionFactor"] = (
+            self.transmission.get_value()
+        )
 
     @task
     def execute_energy_scan(self, energy_scan_parameters):

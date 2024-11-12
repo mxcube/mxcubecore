@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 # from SimpleDevice2c import SimpleDevice
-from PyTango.gevent import DeviceProxy
 import logging
 import math
+
+from PyTango.gevent import DeviceProxy
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
@@ -21,7 +22,7 @@ class PX2Attenuator(HardwareObject):
     }
 
     def __init__(self, name):
-        Device.__init__(self, name)
+        super().__init__(name)
 
         self.labels = []
         self.attno = 0

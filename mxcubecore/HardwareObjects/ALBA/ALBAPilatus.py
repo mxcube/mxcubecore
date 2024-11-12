@@ -18,15 +18,14 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
+
 import logging
 import time
 
-from mxcubecore.HardwareObjects.abstract.AbstractDetector import (
-    AbstractDetector,
-)
-from mxcubecore.BaseHardwareObjects import HardwareObject
-
 from PyTango.gevent import DeviceProxy
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
 
 __author__ = "Vicente Rey"
 __credits__ = ["ALBA"]

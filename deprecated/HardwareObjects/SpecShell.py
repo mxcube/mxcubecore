@@ -7,6 +7,7 @@ template:
 """
 
 import logging
+
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 try:
@@ -30,7 +31,7 @@ class SpecOutputVar(QObject, SpecClient.SpecVariable.SpecVariableA):
 
 class SpecShell(HardwareObject):
     def __init__(self, *args):
-        Equipment.__init__(self, *args)
+        super().__init__(*args)
         self.isSpecReady = False
 
     def init(self):

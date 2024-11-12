@@ -21,18 +21,19 @@
 MAXIVAutoProcessing
 """
 
-import os
-import time
 import logging
-import gevent
+import os
 import subprocess
+import time
 
+import gevent
 from XSDataAutoprocv1_0 import XSDataAutoprocInput
-
-from XSDataCommon import XSDataDouble
-from XSDataCommon import XSDataFile
-from XSDataCommon import XSDataInteger
-from XSDataCommon import XSDataString
+from XSDataCommon import (
+    XSDataDouble,
+    XSDataFile,
+    XSDataInteger,
+    XSDataString,
+)
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 

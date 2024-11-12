@@ -1,9 +1,9 @@
-import os
-import subprocess
 import errno
-import time
-import select
 import fcntl
+import os
+import select
+import subprocess
+import time
 
 PIPE = subprocess.PIPE
 

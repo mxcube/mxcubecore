@@ -38,6 +38,7 @@ Example xml file:
 """
 from ast import literal_eval
 from enum import Enum
+
 from mxcubecore.HardwareObjects.abstract.AbstractNState import BaseValueEnum
 from mxcubecore.HardwareObjects.ExporterNState import ExporterNState
 
@@ -167,6 +168,6 @@ class MicrodiffAperture(ExporterNState):
             _nam = value.name
 
             if _nam not in ["IN", "OUT", "UNKNOWN"]:
-                values.append(_nam[1:])
+                values.append(_nam)
 
         return values

@@ -1,16 +1,18 @@
 """LimaEigerDetector Class
 Lima Tango Device Server implementation of the Dectris Eiger2 Detector.
 """
-import gevent
-import time
-import os
-import math
-import logging
 
-from mxcubecore.model.queue_model_objects import PathTemplate
-from mxcubecore.TaskUtils import task
+import logging
+import math
+import os
+import time
+
+import gevent
+
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
+from mxcubecore.model.queue_model_objects import PathTemplate
+from mxcubecore.TaskUtils import task
 
 
 class LimaEigerDetector(AbstractDetector):

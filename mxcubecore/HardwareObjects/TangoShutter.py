@@ -39,9 +39,13 @@ convantional states defined in the TangoShutter Class. This tag is not necessay 
 are all covered by the TangoShuter class conventional states.
 """
 import json
-from enum import Enum, unique
-from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
+from enum import (
+    Enum,
+    unique,
+)
+
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
+from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 
 __copyright__ = """ Copyright © 2023 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

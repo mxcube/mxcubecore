@@ -8,11 +8,15 @@ Example xml file
 EL6": 6}</values>
 </object>
 """
+
 from enum import Enum
+
 import gevent
 
-from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
-from mxcubecore.HardwareObjects.abstract.AbstractNState import BaseValueEnum
+from mxcubecore.HardwareObjects.abstract.AbstractNState import (
+    AbstractNState,
+    BaseValueEnum,
+)
 
 
 class MicrodiffZoomMockup(AbstractNState):

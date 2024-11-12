@@ -24,14 +24,15 @@ Any object that inherhits from TaskNode can be added to and handled by
 the QueueModel.
 """
 import copy
-import os
 import logging
+import os
 
 from mxcubecore.model import queue_model_enumerables
 
 try:
-    from mxcubecore.model import crystal_symmetry
     from ruamel.yaml import YAML
+
+    from mxcubecore.model import crystal_symmetry
 
     # If you want to write out copies of the file, use typ="rt" instead
     # pure=True uses yaml version 1.2, with fewere gotchas for strange type conversions
@@ -487,6 +488,7 @@ class Sample(TaskNode):
         self.free_pin_mode = p.get("freePinMode", False)
         self.loc_str = p.get("locStr", "")
         self.diffraction_plan = p.get("diffractionPlan")
+        self.name = p.get("sampleName", self.name)
 
         self.crystals[0].space_group = p.get("spaceGroup") or p.get(
             "crystalSpaceGroup", ""
@@ -579,28 +581,6 @@ class Basket(TaskNode):
 
 
 class DataCollection(TaskNode):
-    """
-    Adds the child node <child>. Raises the exception TypeError
-    if child is not of type TaskNode.
-
-    Moves the child (reparents it) if it already has a parent.
-
-    :param parent: Parent TaskNode object.
-    :type parent: TaskNode
-
-    :param acquisition_list: List of Acquisition objects.
-    :type acquisition_list: list
-
-    :crystal: Crystal object
-    :type crystal: Crystal
-
-    :param processing_paremeters: Parameters used by autoproessing software.
-    :type processing_parameters: ProcessingParameters
-
-    :returns: None
-    :rtype: None
-    """
-
     def __init__(
         self,
         acquisition_list=None,
@@ -639,6 +619,9 @@ class DataCollection(TaskNode):
         self.workflow_id = None
         self.center_before_collect = False
         self.ispyb_group_data_collections = False
+        # The 'workflow_parameters' attribute is used for passing parameters
+        # from the automation workflows (BES) to ispyb-DRAC (see ICATLIMS.py)
+        self.workflow_parameters = {}
 
     @staticmethod
     def set_processing_methods(processing_methods):
@@ -815,9 +798,9 @@ class DataCollection(TaskNode):
         return self.online_processing_results
 
     def set_snapshot(self, snapshot):
-        self.acquisitions[
-            0
-        ].acquisition_parameters.centred_position.snapshot_image = snapshot
+        self.acquisitions[0].acquisition_parameters.centred_position.snapshot_image = (
+            snapshot
+        )
 
     def add_processing_msg(self, time, method, status, msg):
         self.processing_msg_list.append((time, method, status, msg))
@@ -1055,6 +1038,7 @@ class EnergyScan(TaskNode):
         self.comments = None
         self.set_requires_centring(True)
         self.centred_position = cpos
+        self.shape = None
 
         if not sample:
             self.sample = Sample()
@@ -1160,6 +1144,7 @@ class XRFSpectrum(TaskNode):
         self.set_requires_centring(True)
         self.centred_position = cpos
         self.adjust_transmission = True
+        self.shape = None
 
         if not sample:
             self.sample = Sample()
@@ -1289,7 +1274,9 @@ class XrayCentring2(TaskNode):
     (transmission, grid step, ...)
     """
 
-    def __init__(self, name=None, motor_positions=None, grid_size=None):
+    def __init__(
+        self, name=None, motor_positions=None, grid_size=None, workflow_parameters=None
+    ):
         """
 
         :param name: (str) Task name - for queue display. Default to std. name
@@ -1300,6 +1287,7 @@ class XrayCentring2(TaskNode):
         self._centring_result = None
         self._motor_positions = motor_positions.copy() if motor_positions else {}
         self._grid_size = tuple(grid_size) if grid_size else None
+        self._workflow_parameters = workflow_parameters if workflow_parameters else {}
 
         # I do nto now if you need a path template; if not remove this
         # and the access to it in init_from_task_data
@@ -1334,6 +1322,9 @@ class XrayCentring2(TaskNode):
                 "SampleCentring.centringResult must be a CentredPosition"
                 " or None, was a %s" % value.__class__.__name__
             )
+
+    def get_workflow_parameters(self):
+        return self._workflow_parameters
 
     def init_from_task_data(self, sample_model, params):
         """Set parameters from task input dictionary.
@@ -2042,6 +2033,9 @@ class GphlWorkflow(TaskNode):
         self.acquisition_dose = 0.0
         self.strategy_length = 0.0
 
+        # Workflow attributes - for passing to LIMS (conf Olof Svensson)
+        self.workflow_parameters = {}
+
         # # Centring handling and MXCuBE-side flow
         self.set_requires_centring(False)
 
@@ -2129,15 +2123,21 @@ class GphlWorkflow(TaskNode):
         from mxcubecore.HardwareObjects.Gphl import GphlMessages
 
         if space_group:
-            if space_group in crystal_symmetry.SPACEGROUP_MAP:
-                self.space_group = space_group
-            else:
+            sginfo = crystal_symmetry.SPACEGROUP_MAP.get(space_group)
+            if sginfo is None:
                 raise ValueError(
                     "Invalid space group %s, not in crystal_symmetry.SPACEGROUP_MAP"
                     % space_group
                 )
+            else:
+                space_group = sginfo.name
+                self.space_group = space_group
         else:
             space_group = self.space_group
+        if space_group == "None":
+            # Temporray fix - this should not happen
+            # 20240926 Rasmus Fogh and Olof Svensson
+            space_group = None
         if crystal_classes:
             self.crystal_classes = tuple(crystal_classes)
         elif space_group:
@@ -2348,6 +2348,11 @@ class GphlWorkflow(TaskNode):
             value = params.get(tag)
             if value:
                 setattr(self, tag, value)
+
+        # For external workflow parameters (conf. Olof Svensson)
+        dd1 = params.get("workflow_parameters")
+        if dd1:
+            self.workflow_parameters.update(dd1)
 
         settings = HWR.beamline.gphl_workflow.settings
         # NB settings is an internal attribute DO NOT MODIFY
@@ -2697,8 +2702,12 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
                 data_collection.experiment_type
             ],
             "skip_images": acq_params.skip_existing_images,
+            "position_name": (
+                centred_pos.get_index() if centred_pos is not None else None
+            ),
             "motors": centred_pos.as_dict() if centred_pos is not None else {},
             "ispyb_group_data_collections": data_collection.ispyb_group_data_collections,
+            "workflow_parameters": data_collection.workflow_parameters,
         }
     ]
 

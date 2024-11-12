@@ -1,6 +1,7 @@
-from warnings import warn
-from BlissMotor import BlissMotor
 import logging
+from warnings import warn
+
+from BlissMotor import BlissMotor
 
 
 class BlissMotorWPositions(BlissMotor):

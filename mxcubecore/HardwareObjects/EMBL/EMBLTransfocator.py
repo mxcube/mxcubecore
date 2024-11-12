@@ -20,10 +20,10 @@
 """EMBLTransfocator"""
 
 import logging
+
 import gevent
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
-
 
 __credits__ = ["EMBL Hamburg"]
 __category__ = "General"

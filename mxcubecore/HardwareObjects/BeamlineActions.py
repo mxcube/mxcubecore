@@ -1,22 +1,20 @@
-import sys
 import ast
 import importlib
+import logging
 import operator
-
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore.TaskUtils import task
-from mxcubecore.CommandContainer import CommandObject
-from mxcubecore.utils.conversion import camel_to_snake
-from mxcubecore import HardwareRepository as HWR
-
-from mxcubecore.CommandContainer import (
-    CommandObject,
-    TWO_STATE_COMMAND_T,
-    ARGUMENT_TYPE_LIST,
-)
+import sys
 
 import gevent
-import logging
+
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.CommandContainer import (
+    ARGUMENT_TYPE_LIST,
+    TWO_STATE_COMMAND_T,
+    CommandObject,
+)
+from mxcubecore.TaskUtils import task
+from mxcubecore.utils.conversion import camel_to_snake
 
 
 class ControllerCommand(CommandObject):
@@ -180,7 +178,7 @@ class BeamlineActions(HardwareObject):
         _cls_name = parts[-1]
         self._annotated_commands.append(_cls_name)
 
-        # Assume import from current module if only class name givien (no module)
+        # assume import from current module if only class name given (no module)
         if len(parts) == 1:
             _cls = getattr(sys.modules[__name__], _cls_name)
         else:

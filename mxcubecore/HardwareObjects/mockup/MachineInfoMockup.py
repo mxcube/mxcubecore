@@ -31,14 +31,13 @@ valueChanged
          values['lifetime']
          values['topup_remaining']
 """
+
 import time
 
 import gevent
 
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.HardwareObjects.abstract.AbstractMachineInfo import (
-    AbstractMachineInfo,
-)
+from mxcubecore.HardwareObjects.abstract.AbstractMachineInfo import AbstractMachineInfo
 
 
 class MachineInfoMockup(AbstractMachineInfo):

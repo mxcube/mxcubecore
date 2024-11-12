@@ -1,13 +1,15 @@
+import logging
+import os
+import time
+
+import gevent
+
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.abstract.AbstractMultiCollect import (
     AbstractMultiCollect,
 )
 from mxcubecore.TaskUtils import task
-from mxcubecore import HardwareRepository as HWR
-import logging
-import time
-import os
-import gevent
 
 
 class LNLSCollect(AbstractMultiCollect, HardwareObject):
@@ -184,7 +186,8 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
                 )
                 return
 
-            import sys, subprocess
+            import subprocess
+            import sys
 
             try:
                 process = subprocess.Popen(
@@ -276,10 +279,6 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
         return (
             wl_ok and dd_ok and bx_ok and by_ok and te_ok and ft_ok and sa_ok and ss_ok
         )
-
-    @task
-    def take_crystal_snapshots(self, number_of_snapshots):
-        self.bl_control.diffractometer.take_snapshots(number_of_snapshots, wait=True)
 
     @task
     def data_collection_hook(self, data_collect_parameters):

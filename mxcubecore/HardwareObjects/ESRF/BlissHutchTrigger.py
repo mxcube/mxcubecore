@@ -37,9 +37,14 @@ Example xml file:
 """
 
 import logging
-from gevent import sleep, spawn
-from PyTango.gevent import DeviceProxy
+
+from gevent import (
+    sleep,
+    spawn,
+)
 from PyTango import DevFailed
+from PyTango.gevent import DeviceProxy
+
 from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """

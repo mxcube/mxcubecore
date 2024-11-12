@@ -18,8 +18,8 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 import copy
+import logging
 import time
 
 try:
@@ -28,9 +28,11 @@ except ImportError:
     logging.getLogger("HWR").warning("EPICS support not available.")
 
 from mxcubecore import Poller
+from mxcubecore.CommandContainer import (
+    ChannelObject,
+    CommandObject,
+)
 from mxcubecore.dispatcher import saferef
-from mxcubecore.CommandContainer import CommandObject, ChannelObject
-
 
 __copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"

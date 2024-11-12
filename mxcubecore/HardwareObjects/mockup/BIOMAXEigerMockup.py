@@ -20,13 +20,18 @@ hardware object status:
 
 """
 
-import gevent
-import time
 import logging
+import time
+
+import gevent
 
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.TaskUtils import task, cleanup, error_cleanup
 from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.TaskUtils import (
+    cleanup,
+    error_cleanup,
+    task,
+)
 
 
 class BIOMAXEigerMockup(HardwareObject):
@@ -38,7 +43,7 @@ class BIOMAXEigerMockup(HardwareObject):
         """
         Descrip. :
         """
-        Equipment.__init__(self, *args)
+        super().__init__(*args)
 
         self.device = None
         self.file_suffix = None

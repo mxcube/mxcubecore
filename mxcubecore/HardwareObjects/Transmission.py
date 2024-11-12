@@ -1,6 +1,7 @@
 from PyTransmission import matt_control
-from mxcubecore.BaseHardwareObjects import HardwareObject
+
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 class Transmission(HardwareObject):

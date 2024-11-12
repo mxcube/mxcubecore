@@ -1,8 +1,10 @@
+import logging
+import math
+
+import numpy
+
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import Procedure
-import math
-import numpy
-import logging
 
 
 class CentringMath(Procedure):

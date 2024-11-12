@@ -18,33 +18,36 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-import os
-import tine
-import json
-import time
-import Image
-import logging
-import threading
 import collections
-from queue import Queue
+import json
+import logging
+import os
+import threading
+import time
 from copy import deepcopy
-
-import gevent
+from queue import Queue
 
 import cv2 as cv
+import gevent
+import Image
 import numpy as np
-from scipy import ndimage, misc
-
+import tine
 from cStringIO import StringIO
 from PIL.ImageQt import ImageQt
+from scipy import (
+    misc,
+    ndimage,
+)
 
-from mxcubecore.utils import qt_import, Colors
-from mxcubecore.TaskUtils import task
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 from mxcubecore.HardwareObjects.QtGraphicsManager import QtGraphicsManager
 from mxcubecore.model import queue_model_objects as qmo
-from mxcubecore import HardwareRepository as HWR
-
+from mxcubecore.TaskUtils import task
+from mxcubecore.utils import (
+    Colors,
+    qt_import,
+)
 
 __credits__ = ["EMBL Hamburg"]
 __category__ = "Task"

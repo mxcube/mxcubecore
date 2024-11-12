@@ -1,3 +1,4 @@
+# encoding: utf-8
 #
 #  Project: MXCuBE
 #  https://github.com/mxcube
@@ -17,15 +18,16 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
+__copyright__ = """Copyright The MXCuBE Collaboration"""
+__license__ = "LGPLv3+"
 __author__ = "Jan Meyer"
 __email__ = "jan.meyer@desy.de"
-__copyright__ = "(c)2015 DESY, FS-PE, P11"
-__license__ = "GPL"
 
 
-import gevent
 import json
 import traceback
+
+import gevent
 
 try:
     from httplib import HTTPConnection
@@ -40,13 +42,17 @@ except ImportError:
     traceback.print_exc()
     redis_flag = False
 
-from mxcubecore.utils.qt_import import QImage, QPixmap, QPoint
-from mxcubecore.utils.conversion import string_types
-from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import AbstractVideoDevice
 from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import AbstractVideoDevice
+from mxcubecore.utils.conversion import string_types
+from mxcubecore.utils.qt_import import (
+    QImage,
+    QPixmap,
+    QPoint,
+)
 
 
-class MjpgStreamVideo(AbstractVideoDevice, Device):
+class MjpgStreamVideo(AbstractVideoDevice):
     """
     Hardware object to capture images using mjpg-streamer
     and it's input_avt.so plugin for AVT Prosilica cameras.
@@ -333,7 +339,7 @@ class MjpgStreamVideo(AbstractVideoDevice, Device):
                 sensor_height = int(sensor_info["value"])
             self.sensor_dimensions = (sensor_width, sensor_height)
 
-        self.set_is_ready(True)
+        # self.is_ready()
         self.set_zoom(0)  # overview camera
 
     def http_get(self, query, host=None, port=None, path=None):
@@ -574,12 +580,6 @@ class MjpgStreamVideo(AbstractVideoDevice, Device):
 
     def get_scale(self):
         return self.scale
-
-    def imageType(self):
-        """
-        Descript. :
-        """
-        return
 
     def contrast_exists(self):
         """

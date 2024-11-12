@@ -20,9 +20,11 @@ Known sites using cats90
 """
 
 from __future__ import print_function
-import time
-import PyTango
+
 import logging
+import time
+
+import PyTango
 
 from mxcubecore.HardwareObjects.abstract.AbstractSampleChanger import (
     Container,

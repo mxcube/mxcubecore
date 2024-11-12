@@ -14,6 +14,13 @@ def us_to_sec(us: float) -> float:
     return us / 1_000_000.0
 
 
+def ms_to_sec(ms: float) -> float:
+    """
+    convert milliseconds (ms) to seconds
+    """
+    return ms / 1000.0
+
+
 def sec_to_us(sec: float) -> float:
     """
     convert seconds to microseconds (μs)
@@ -57,6 +64,13 @@ def mm_to_meter(millimeters: float) -> float:
     convert millimeters (mm) to meters
     """
     return millimeters / 1000.0
+
+
+def um_to_mm(micrometers: float) -> float:
+    """
+    convert micrometers (μm) to millimeters
+    """
+    return micrometers / 1000.0
 
 
 #

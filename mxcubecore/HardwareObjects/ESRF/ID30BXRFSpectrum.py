@@ -1,11 +1,13 @@
-from qt import copy
 import logging
 import os
 import time
-import gevent.event
+
 import gevent
-from mxcubecore.BaseHardwareObjects import HardwareObject
+import gevent.event
+from qt import copy
+
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 class XrfSpectrum(HardwareObject):
@@ -409,9 +411,9 @@ class XrfSpectrum(HardwareObject):
             print(ic)
             if ic > min_cnt:
                 self.ctrl_hwobj.diffractometer.msclose()
-                self.spectrumInfo[
-                    "beamTransmission"
-                ] = HWR.beamline.transmission.get_value()
+                self.spectrumInfo["beamTransmission"] = (
+                    HWR.beamline.transmission.get_value()
+                )
                 logging.getLogger("user_level_log").info(
                     "Transmission used for spectra: %g"
                     % self.spectrumInfo["beamTransmission"]

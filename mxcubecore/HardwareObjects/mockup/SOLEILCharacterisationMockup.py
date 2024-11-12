@@ -1,11 +1,11 @@
 import logging
+
 import gevent.event
 
 from mxcubecore.HardwareObjects import edna_test_data
 from mxcubecore.HardwareObjects.abstract.AbstractCharacterisation import (
     AbstractCharacterisation,
 )
-
 from mxcubecore.HardwareObjects.XSDataMXCuBEv1_3 import XSDataResultMXCuBE
 
 

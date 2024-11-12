@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 
-import jsonpickle
 import inspect
 import logging
-from mxcubecore.model import queue_model_objects
-from mxcubecore.model import queue_model_enumerables
+
+import jsonpickle
+
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.model import (
+    queue_model_enumerables,
+    queue_model_objects,
+)
 
 xmlrpc_prefix = ""
 

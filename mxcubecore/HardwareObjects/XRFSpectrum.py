@@ -2,8 +2,10 @@ import logging
 import os
 import shutil
 import time
-import gevent.event
+
 import gevent
+import gevent.event
+
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
@@ -103,7 +105,7 @@ class XRFSpectrum(HardwareObject):
             try:
                 os.makedirs(directory)
             except OSError as diag:
-                logging.getLogger().error(
+                logging.getLogger("user_level_log").error(
                     "XRFSpectrum: error creating directory %s (%s)"
                     % (directory, str(diag))
                 )
@@ -222,13 +224,13 @@ class XRFSpectrum(HardwareObject):
         self.scanning = False
         if result is not False:
             fname = self.spectrumInfo["filename"].replace(".dat", ".raw")
-            self.mca_hwobj.set_presets(fname=str(fname))
-            mcaData = self.mca_hwobj.read_data(save_data=True)
-            mcaCalib = self.mca_hwobj.get_calibration()
+            self.mca_hwobj.datafile = str(fname)
+            mcaData = self.mca_hwobj.read_roi_data(save_data=True)
+            mcaCalib = self.mca_hwobj.calibration
             mcaConfig = {}
-            self.spectrumInfo[
-                "beamTransmission"
-            ] = HWR.beamline.transmission.get_value()
+            self.spectrumInfo["beamTransmission"] = (
+                HWR.beamline.transmission.get_value()
+            )
             self.spectrumInfo["energy"] = HWR.beamline.energy.get_value()
             if HWR.beamline.flux:
                 self.spectrumInfo["flux"] = HWR.beamline.flux.get_value()
@@ -404,9 +406,9 @@ class XRFSpectrum(HardwareObject):
             print(ic)
             if ic > min_cnt:
                 self.ctrl_hwobj.diffractometer.msclose()
-                self.spectrumInfo[
-                    "beamTransmission"
-                ] = HWR.beamline.transmission.get_value()
+                self.spectrumInfo["beamTransmission"] = (
+                    HWR.beamline.transmission.get_value()
+                )
                 logging.getLogger("user_level_log").info(
                     "Transmission used for spectra: %g"
                     % self.spectrumInfo["beamTransmission"]

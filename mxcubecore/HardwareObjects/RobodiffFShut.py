@@ -3,7 +3,7 @@ from mxcubecore.BaseHardwareObjects import HardwareObject
 
 class RobodiffFShut(HardwareObject):
     def __init__(self, name):
-        Equipment.__init__(self, name)
+        super().__init__(name)
 
     def init(self):
         self.robodiff = self.get_object_by_role("robot")

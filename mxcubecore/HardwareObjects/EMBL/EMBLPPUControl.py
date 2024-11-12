@@ -2,7 +2,6 @@ import logging
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
-
 __credits__ = ["EMBL Hamburg"]
 __category__ = "General"
 
@@ -13,7 +12,7 @@ class EMBLPPUControl(HardwareObject):
     """
 
     def __init__(self, name):
-        Device.__init__(self, name)
+        super().__init__(name)
 
         self.all_status = None
         self.status_result = None

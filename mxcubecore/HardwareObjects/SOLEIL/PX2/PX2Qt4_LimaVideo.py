@@ -43,10 +43,10 @@ Example Hardware Object XML file :
    <interval>30</interval>
 </object>
 """
-import os
-import time
 import logging
+import os
 import struct
+import time
 
 from mxcubecore.HardwareObjects.QtLimaVideo import QtLimaVideo
 
@@ -110,10 +110,10 @@ class PX2Qt4_LimaVideo(QtLimaVideo):
 
 
 def test_hwo():
-    from mxcubecore.utils.qt_import import *
     import time
 
     from mxcubecore import HardwareRepository as HWR
+    from mxcubecore.utils.qt_import import *
 
     hwr = HWR.get_hardware_repository()
     hwr.connect()

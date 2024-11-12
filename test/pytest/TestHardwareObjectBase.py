@@ -19,18 +19,22 @@
 Test suite to be used as base for testing when inheriting from HardwareObject.
 """
 
-from __future__ import division, absolute_import
-from __future__ import print_function, unicode_literals
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals,
+)
 
 __copyright__ = """ Copyright © 2020 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
 import abc
+
 import gevent.event
+import pytest
 
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
-
-import pytest
 
 
 @pytest.fixture

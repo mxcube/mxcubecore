@@ -28,8 +28,10 @@
 #     import queue
 
 
-from mxcubecore.CommandContainer import CommandObject, ChannelObject
-
+from mxcubecore.CommandContainer import (
+    ChannelObject,
+    CommandObject,
+)
 
 __copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"

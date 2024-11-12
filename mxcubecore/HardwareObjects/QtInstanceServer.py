@@ -1,13 +1,14 @@
-from mxcubecore.BaseHardwareObjects import Procedure
 import logging
-import time
-import pickle
 import os
+import pickle
+import pwd
+import socket
+import time
+
 import gevent
 import gevent.server
-import socket
-import pwd
 
+from mxcubecore.BaseHardwareObjects import Procedure
 from mxcubecore.utils import qt_import
 
 """

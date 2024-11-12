@@ -28,6 +28,7 @@ Example xml file:
 </object>
 """
 import logging
+
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractFlux import AbstractFlux
 

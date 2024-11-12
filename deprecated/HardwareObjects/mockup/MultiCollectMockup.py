@@ -1,12 +1,14 @@
+import logging
+import os
+import time
+
+import gevent
+
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.abstract.AbstractMultiCollect import (
     AbstractMultiCollect,
 )
 from mxcubecore.TaskUtils import task
-import logging
-import time
-import os
-import gevent
 
 
 class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
@@ -100,10 +102,6 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
         )
         logging.getLogger("HWR").info("data collection successful in loop")
         self.emit("collectReady", (True,))
-
-    @task
-    def take_crystal_snapshots(self, number_of_snapshots):
-        self.bl_control.diffractometer.take_snapshots(number_of_snapshots, wait=True)
 
     @task
     def data_collection_hook(self, data_collect_parameters):

@@ -1,6 +1,5 @@
-import gevent
-import time
 import logging
+import time
 
 from mxcubecore.HardwareObjects.abstract import AbstractSampleChanger
 from mxcubecore.HardwareObjects.abstract.sample_changer import Container
@@ -42,9 +41,6 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
 
     def get_log_filename(self):
         return self.log_filename
-
-    def load_sample(self, holder_length, sample_location=None, wait=False):
-        self.load(sample_location, wait)
 
     def load(self, sample, wait=False):
         self.emit("fsmConditionChanged", "sample_mounting_sample_changer", True)

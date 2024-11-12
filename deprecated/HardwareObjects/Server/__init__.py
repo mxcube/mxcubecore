@@ -4,10 +4,12 @@ import xml.sax
 from xml.sax import SAXParseException
 from xml.sax.handler import ContentHandler
 
-from SpecClient_gevent import SpecServer
-from SpecClient_gevent import SpecMessage
 import Daemonize
 import SimpleXMLReadWriteSupport
+from SpecClient_gevent import (
+    SpecMessage,
+    SpecServer,
+)
 
 
 class XMLNodesWithRolesReadingHandler(ContentHandler):

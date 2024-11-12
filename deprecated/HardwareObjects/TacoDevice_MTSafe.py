@@ -1,8 +1,9 @@
 # $Id: TacoDevice_MTSafe.py,v 1.5 2004/11/15 12:39:19 guijarro Exp $
-from Taco import *
-from threading import RLock
-import weakref
 import types
+import weakref
+from threading import RLock
+
+from Taco import *
 
 _global_lock = RLock()
 

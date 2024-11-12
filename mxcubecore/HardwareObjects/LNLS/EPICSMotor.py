@@ -21,6 +21,7 @@ Example of xml file:
 """
 import logging
 import time
+
 import gevent
 
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor

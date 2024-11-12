@@ -1,7 +1,7 @@
 # encoding: utf-8
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -16,13 +16,18 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-from enum import Enum
+__copyright__ = """Copyright The MXCuBE Collaboration"""
+__license__ = "LGPLv3+"
+
 import ast
+from enum import Enum
 
-from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
-from mxcubecore.HardwareObjects.abstract.AbstractNState import BaseValueEnum
+from mxcubecore.HardwareObjects.abstract.AbstractNState import (
+    AbstractNState,
+    BaseValueEnum,
+)
 
 redis_flag = False
 try:
@@ -40,10 +45,9 @@ class P11Zoom(AbstractNState):
         self.closest_zoom = None
         self.redis = redis.StrictRedis()
 
-        AbstractNState.__init__(self, name)
+        super().__init__(name)
 
     def init(self):
-
         self._pixels_per_mm = self.get_property("pixels_per_mm")
         self._overview_pixels_per_mm = self.get_property("overview_pixels_per_mm")
         self.camera_hwobj = self.get_object_by_role("camera")
@@ -116,12 +120,10 @@ class P11Zoom(AbstractNState):
         # self.get_pixels_per_mm()
 
     def update_zoom(self):
-
         dist = None
         value = self.get_value()
 
         for zoom in self.VALUES:
-
             if value == 0:
                 self.closest_zoom = zoom
                 break

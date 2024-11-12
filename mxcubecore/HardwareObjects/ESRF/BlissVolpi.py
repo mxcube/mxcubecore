@@ -1,11 +1,12 @@
-from mxcubecore.BaseHardwareObjects import HardwareObject
 from bliss.config import static
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 class BlissVolpi(HardwareObject):
     def __init__(self, name):
         # AbstractMotor.__init__(self, name)
-        Device.__init__(self, name)
+        super().__init__(name)
 
     def init(self):
         self.username = self.volpi_name

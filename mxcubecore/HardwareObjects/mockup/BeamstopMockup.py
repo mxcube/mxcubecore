@@ -21,7 +21,6 @@
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
-
 __credits__ = ["MXCuBE collaboration"]
 
 

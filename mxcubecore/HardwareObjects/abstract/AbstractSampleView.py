@@ -24,8 +24,14 @@ __copyright__ = """2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 import abc
+from typing import (
+    Literal,
+    Union,
+)
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
+
+ShapeState = Literal["HIDDEN", "SAVED", "TMP"]
 
 
 class AbstractSampleView(HardwareObject):
@@ -43,20 +49,22 @@ class AbstractSampleView(HardwareObject):
         self._shapes = None
 
     @abc.abstractmethod
-    def get_snapshot(self, overlay=True, bw=False, return_as_array=False):
+    def get_snapshot(
+        self, overlay: Union[bool, str] = True, bw=False, return_as_array=False
+    ):
         """Get snappshot(s)
         Args:
-            overlay(bool): Display shapes and other items on the snapshot
+            overlay(bool | str): Display shapes and other items on the snapshot
             bw(bool): return grayscale image
             return_as_array(bool): return as np array
         """
 
     @abc.abstractmethod
-    def save_snapshot(self, filename, overlay=True, bw=False):
+    def save_snapshot(self, filename, overlay: Union[bool, str] = True, bw=False):
         """Save a snapshot to file.
         Args:
             filename (str): The filename.
-            overlay(bool): Display shapes and other items on the snapshot.
+            overlay(bool | str): Display shapes and other items on the snapshot.
             bw(bool): Return grayscale image.
         """
 
@@ -150,13 +158,21 @@ class AbstractSampleView(HardwareObject):
         return
 
     @abc.abstractmethod
-    def add_shape_from_mpos(self, mpos_list, screen_cord, _type):
+    def add_shape_from_mpos(
+        self,
+        mpos_list,
+        screen_cord,
+        _type,
+        state: ShapeState = "SAVED",
+        user_state: ShapeState = "SAVED",
+    ):
         """Add a shape of type <t>, with motor positions from mpos_list and
         screen position screen_coord.
         Args:
             mpos_list (list[mpos_list]): List of motor positions
             screen_coord (tuple(x, y): Screen cordinate for shape
             _type (str): Type str for shape, P (Point), L (Line), G (Grid)
+            user_state (ShapeState): State of the shape set by the user
         Returns:
             (Shape): Shape of type _type
         """

@@ -26,9 +26,11 @@ Should be put as the first superclass,
 e.g. class MotorMockup(ActuatorMockup, AbstractMotor):
 """
 
-import time
 import random
+import time
+
 import gevent
+
 from mxcubecore.HardwareObjects.abstract import AbstractActuator
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
@@ -108,7 +110,8 @@ class ActuatorMockup(AbstractActuator.AbstractActuator):
 
     def _callback(self, move_task):
         value = move_task.get()
-        self._set_value(value)
+        if not isinstance(value, gevent.GreenletExit):
+            self._set_value(value)
 
     def _set_value(self, value):
         """

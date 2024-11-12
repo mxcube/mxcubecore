@@ -7,15 +7,17 @@ The Queue manager acts as both the controller of execution and as the root/
 container of the queue, note the inheritance from QueueEntryContainer. See the
 documentation for the queue_entry module for more information.
 """
+
 import logging
 import traceback
+
 import gevent
-import traceback
 
 from mxcubecore import queue_entry
 from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore.queue_entry.base_queue_entry import QUEUE_ENTRY_STATUS
+from mxcubecore.model.queue_model_enumerables import CENTRING_METHOD
 from mxcubecore.queue_entry import base_queue_entry
+from mxcubecore.queue_entry.base_queue_entry import QUEUE_ENTRY_STATUS
 
 QueueEntryContainer = base_queue_entry.QueueEntryContainer
 
@@ -24,6 +26,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         QueueEntryContainer.__init__(self)
+        self.centring_method = CENTRING_METHOD.NONE
         self._root_task = None
         self._paused_event = gevent.event.Event()
         self._paused_event.set()

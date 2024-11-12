@@ -1,5 +1,10 @@
-from .ESRFEnergyScan import ESRFEnergyScan, TunableEnergy, task
 from datetime import datetime
+
+from .ESRFEnergyScan import (
+    ESRFEnergyScan,
+    TunableEnergy,
+    task,
+)
 
 
 class ID29EnergyScan(ESRFEnergyScan):

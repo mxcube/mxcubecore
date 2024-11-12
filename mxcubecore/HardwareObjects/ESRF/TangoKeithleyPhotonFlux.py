@@ -1,14 +1,15 @@
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore.TaskUtils import task
 import time
 
 # from PyTango.gevent import DeviceProxy
 from PyTango import DeviceProxy
 
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.TaskUtils import task
+
 
 class TangoKeithleyPhotonFlux(HardwareObject):
     def __init__(self, *args, **kwargs):
-        Equipment.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def init(self):
         self.get_object_by_role("controller")

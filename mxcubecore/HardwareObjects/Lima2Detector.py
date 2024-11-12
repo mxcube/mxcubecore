@@ -1,23 +1,19 @@
-import gevent
-import time
 import logging
-from gevent import subprocess
 import os
-
-from uuid import uuid1
+import time
 from contextlib import ExitStack
+from uuid import uuid1
 
-from lima2.client import Detector
+import gevent
+from gevent import subprocess
 from lima2.client import Detector
 from lima2.client.smx.aggregation import create_virtual_dataset
 
-from mxcubecore.TaskUtils import task
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.CommandContainer import ConnectionError
-
-from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
-
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
+from mxcubecore.CommandContainer import ConnectionError
+from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
+from mxcubecore.TaskUtils import task
 
 _logger = logging.getLogger("HWR")
 

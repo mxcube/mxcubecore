@@ -26,12 +26,12 @@ from __future__ import absolute_import
 import logging
 import os
 
+import gevent
+from gevent.event import Event
+
 # import time
 # import types
 from mxcubecore.dispatcher import saferef
-
-import gevent
-from gevent.event import Event
 
 try:
     import Queue as queue
@@ -42,25 +42,31 @@ gevent_version = list(map(int, gevent.__version__.split(".")))
 
 
 from mxcubecore.CommandContainer import (
-    CommandObject,
     ChannelObject,
+    CommandObject,
     ConnectionError,
 )
 
 # This is a site specific module where some of the dependencies might not be capture by the ``pyproject.toml`` during installation
 
 try:
-    from PyTango import DevFailed, ConnectionFailed
     import PyTango
+    from PyTango import (
+        ConnectionFailed,
+        DevFailed,
+    )
 except Exception:
     logging.getLogger("HWR").warning("Pytango is not available in this computer.")
 
 #
 
 try:
-    from sardana.taurus.core.tango.sardana import registerExtensions
-    from taurus import Device, Attribute
     import taurus
+    from sardana.taurus.core.tango.sardana import registerExtensions
+    from taurus import (
+        Attribute,
+        Device,
+    )
 except Exception:
     logging.getLogger("HWR").warning("Sardana is not available in this computer.")
 

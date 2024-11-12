@@ -18,8 +18,9 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 
-import unittest
 import logging
+import unittest
+
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 BEAMLINE = None

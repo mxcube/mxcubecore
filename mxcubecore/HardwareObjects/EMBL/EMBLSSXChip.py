@@ -19,9 +19,9 @@
 
 import logging
 
-from mxcubecore.utils import qt_import
 from mxcubecore.HardwareObjects import QtGraphicsLib as GraphicsLib
 from mxcubecore.HardwareObjects.QtGraphicsManager import QtGraphicsManager
+from mxcubecore.utils import qt_import
 
 SEQ_ITEM_COLORS = (
     qt_import.QColor(204, 255, 204),

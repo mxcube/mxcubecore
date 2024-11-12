@@ -17,13 +17,11 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+
 import gevent
 
 from mxcubecore import HardwareRepository as HWR
-
-from mxcubecore.queue_entry.base_queue_entry import (
-    BaseQueueEntry,
-)
+from mxcubecore.queue_entry.base_queue_entry import BaseQueueEntry
 
 __credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3+"
@@ -70,9 +68,9 @@ class AdvancedConnectorQueueEntry(BaseQueueEntry):
                     cpos_one,
                     cpos_two,
                 ) = HWR.beamline.sample_view.create_auto_line()
-                helical_model.acquisitions[
-                    0
-                ].acquisition_parameters.osc_start = cpos_one.phi
+                helical_model.acquisitions[0].acquisition_parameters.osc_start = (
+                    cpos_one.phi
+                )
                 helical_model.acquisitions[
                     0
                 ].acquisition_parameters.centred_position = cpos_one

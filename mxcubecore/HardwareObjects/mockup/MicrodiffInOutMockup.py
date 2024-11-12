@@ -1,6 +1,7 @@
 import logging
-from mxcubecore.BaseHardwareObjects import HardwareObject
 import time
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 """
 Use the exporter to set different MD2 actuators in/out.
@@ -18,7 +19,7 @@ Example xml file:
 
 class MicrodiffInOutMockup(HardwareObject):
     def __init__(self, name):
-        Device.__init__(self, name)
+        super().__init__(name)
         self.actuatorState = "unknown"
         self.username = "unknown"
         # default timeout - 3 sec

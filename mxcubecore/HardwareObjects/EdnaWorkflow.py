@@ -1,18 +1,20 @@
-from mxcubecore.BaseHardwareObjects import HardwareObject
-
-import os
-import time
-import gevent
-import pprint
-import logging
-import requests
 import binascii
+import logging
+import os
+import pprint
+import socket
+import time
+
+import gevent
+import requests
+
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 # import threading
 from mxcubecore.HardwareObjects.SecureXMLRpcRequestHandler import (
     SecureXMLRpcRequestHandler,
 )
-from mxcubecore import HardwareRepository as HWR
 
 try:
     from httplib import HTTPConnection
@@ -101,7 +103,7 @@ class EdnaWorkflow(HardwareObject):
         return self.command_failed
 
     def set_command_failed(self, *args):
-        logging.getLogger("HWR").error("Workflow '%s' Tango command failed!" % args[1])
+        logging.getLogger("HWR").error("Workflow '%s' Tango command failed!", args[1])
         self.command_failed = True
 
     def state_changed(self, new_value):
@@ -173,19 +175,15 @@ class EdnaWorkflow(HardwareObject):
             self.gevent_event.set()
         self.command_failed = False
         if self.bes_workflow_id is not None:
-            abort_URL = os.path.join(
-                "http://{0}:{1}".format(self.bes_host, self.bes_port),
-                "ABORT",
-                self.bes_workflow_id,
+            abort_URL = (
+                f"http://{self.bes_host}:{self.bes_port}/ABORT/{self.bes_workflow_id}"
             )
-            logging.getLogger("HWR").info("BES abort web service URL: %r" % abort_URL)
+            logging.getLogger("HWR").info("BES abort web service URL: %r", abort_URL)
             response = requests.get(abort_URL)
             if response.status_code == 200:
                 workflow_status = response.text
                 logging.getLogger("HWR").info(
-                    "BES workflow id {0}: {1}".format(
-                        self.bes_workflow_id, workflow_status
-                    )
+                    "BES workflow id %s: %s", self.bes_workflow_id, workflow_status
                 )
         self.state.value = "ON"
 
@@ -230,35 +228,42 @@ class EdnaWorkflow(HardwareObject):
         time0 = time.time()
         self.startBESWorkflow()
         time1 = time.time()
-        logging.info("Time to start workflow: {0}".format(time1 - time0))
+        logging.info("Time to start workflow: %f sec", time1 - time0)
 
     def startBESWorkflow(self):
-        logging.info("Starting workflow {0}".format(self.workflow_name))
+        logging.info("Starting workflow %s", self.workflow_name)
+
+        xml_rpc_server = HWR.beamline.xml_rpc_server
+        if xml_rpc_server is None:
+            logging.getLogger("HWR").warning("No XMLRPCServer configured")
+            return
+
         logging.info(
-            "Starting a workflow on http://%s:%d/BES" % (self.bes_host, self.bes_port)
+            "Starting a workflow on http://%s:%d/BES", self.bes_host, self.bes_port
         )
-        start_URL = os.path.join(
-            "/BES", "bridge", "rest", "processes", self.workflow_name, "RUN"
-        )
+
         self.dict_parameters["initiator"] = HWR.beamline.session.endstation_name
         self.dict_parameters["sessionId"] = HWR.beamline.session.session_id
         self.dict_parameters["externalRef"] = HWR.beamline.session.get_proposal()
-        self.dict_parameters["token"] = self.token
-        start_URL = os.path.join(
-            "http://{0}:{1}".format(self.bes_host, self.bes_port),
-            "RUN",
-            self.workflow_name,
-        )
-        logging.getLogger("HWR").info("BES start URL: %r" % start_URL)
+        self.dict_parameters["token"] = (
+            self.token
+        )  # Deprecated in favor of mxcubeParameters
+        self.dict_parameters["mxcubeParameters"] = {
+            "host": socket.getfqdn(),
+            "port": xml_rpc_server.port,
+            "token": self.token,
+        }
+
+        start_URL = f"http://{self.bes_host}:{self.bes_port}/RUN/{self.workflow_name}"
+        logging.getLogger("HWR").info("BES start URL: %r", start_URL)
         response = requests.post(start_URL, json=self.dict_parameters)
         if response.status_code == 200:
             self.state.value = "RUNNING"
             request_id = response.text
             logging.getLogger("HWR").info(
-                "Workflow started, request id: %r" % request_id
+                "Workflow started, BES request id: %r", request_id
             )
             self.bes_workflow_id = request_id
         else:
             logging.getLogger("HWR").error("Workflow didn't start!")
-            request_id = None
             self.state.value = "ON"

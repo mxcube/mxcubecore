@@ -1,8 +1,9 @@
+import logging
 import os
 import time
-import logging
 
 import Session
+
 from mxcubecore import HardwareRepository as HWR
 
 

@@ -1,9 +1,11 @@
-from mxcubecore import BaseHardwareObjects
 import logging
-import PyTango.gevent
-import gevent
-import time
 import sys
+import time
+
+import gevent
+import PyTango.gevent
+
+from mxcubecore import BaseHardwareObjects
 
 
 class ID30HutchTrigger(BaseHardwareObjects.HardwareObject):

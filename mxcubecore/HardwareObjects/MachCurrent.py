@@ -31,9 +31,8 @@ Example XML:
 """
 
 import logging
-from mxcubecore.HardwareObjects.abstract.AbstractMachineInfo import (
-    AbstractMachineInfo,
-)
+
+from mxcubecore.HardwareObjects.abstract.AbstractMachineInfo import AbstractMachineInfo
 
 __copyright__ = """ Copyright © 2010-2023 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

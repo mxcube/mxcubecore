@@ -16,12 +16,15 @@
 #
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
-import redis
 import json
-import gevent
 import logging
+from enum import (
+    Enum,
+    unique,
+)
 
-from enum import Enum, unique
+import gevent
+import redis
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
@@ -97,7 +100,7 @@ class DataPublisher(HardwareObject):
         rdb = self.get_property("db", 11)
 
         self._r = redis.Redis(
-            host=rhost, port=rport, db=rdb, charset="utf-8", decode_responses=True
+            host=rhost, port=rport, db=rdb, encoding="utf-8", decode_responses=True
         )
 
         if not self._subsribe_task:

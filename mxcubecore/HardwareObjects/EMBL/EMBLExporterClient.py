@@ -23,7 +23,6 @@
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.Command import Exporter
 
-
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"
 __category__ = "General"

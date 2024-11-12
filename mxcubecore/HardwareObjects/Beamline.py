@@ -24,10 +24,18 @@
 All HardwareObjects
 """
 
-from __future__ import division, absolute_import
-from __future__ import print_function, unicode_literals
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals,
+)
 
-from typing import Union, Any
+from typing import (
+    Any,
+    Union,
+)
+
 from mxcubecore.dispatcher import dispatcher
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
@@ -36,7 +44,10 @@ __author__ = "Rasmus H Fogh"
 
 import logging
 
-from mxcubecore.BaseHardwareObjects import ConfiguredObject, HardwareObject
+from mxcubecore.BaseHardwareObjects import (
+    ConfiguredObject,
+    HardwareObject,
+)
 
 # NBNB The acq parameter names match the attributes of AcquisitionParameters
 # Whereas the limit parameter values use more understandable names

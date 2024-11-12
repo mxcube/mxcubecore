@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import time
 import logging
+import time
+
 import gevent
 
-from mxcubecore.Command.Tango import DeviceProxy
-
 from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.Command.Tango import DeviceProxy
 from mxcubecore.TaskUtils import task
 
 
@@ -72,7 +72,7 @@ class EnvironemntState:
 
 class PX1Environment(HardwareObject):
     def __init__(self, name):
-        Device.__init__(self, name)
+        super().__init__(name)
         self.auth = None
         self.device = None
 

@@ -1,5 +1,6 @@
-from mxcubecore.HardwareObjects.RobodiffMotor import RobodiffMotor
 import logging
+
+from mxcubecore.HardwareObjects.RobodiffMotor import RobodiffMotor
 
 
 class RobodiffMotorWPositions(RobodiffMotor):

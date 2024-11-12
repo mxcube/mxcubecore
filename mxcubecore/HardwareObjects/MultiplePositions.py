@@ -144,8 +144,9 @@ try:
 except ImportError:
     import cElementTree
 
-from mxcubecore.BaseHardwareObjects import HardwareObject
 import logging
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 class MultiplePositions(HardwareObject):

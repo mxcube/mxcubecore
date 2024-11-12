@@ -20,10 +20,9 @@
 import logging
 
 import gevent
-
 from tine import query as tinequery
-from mxcubecore.BaseHardwareObjects import HardwareObject
 
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"

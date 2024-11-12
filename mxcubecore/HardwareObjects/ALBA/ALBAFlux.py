@@ -1,7 +1,9 @@
-from mxcubecore.HardwareObjects.abstract import AbstractFlux
-from mxcubecore.BaseHardwareObjects import HardwareObject
-import taurus
 import logging
+
+import taurus
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.HardwareObjects.abstract import AbstractFlux
 
 
 class ALBAFlux(Device, AbstractFlux.AbstractFlux):

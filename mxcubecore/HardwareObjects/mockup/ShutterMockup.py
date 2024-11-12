@@ -19,9 +19,13 @@
 
 """ Mockup shutter implementation"""
 
-from enum import Enum, unique
-from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
+from enum import (
+    Enum,
+    unique,
+)
+
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
+from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 from mxcubecore.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
 
 

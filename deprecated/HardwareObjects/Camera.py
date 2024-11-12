@@ -15,13 +15,18 @@ template:
     </calibration> -->
   </object>
 """
-from mxcubecore import BaseHardwareObjects
-from mxcubecore import CommandContainer
-import gevent
+
 import logging
 import os
-import time
 import sys
+import time
+
+import gevent
+
+from mxcubecore import (
+    BaseHardwareObjects,
+    CommandContainer,
+)
 
 try:
     from Qub.CTools.qttools import BgrImageMmap

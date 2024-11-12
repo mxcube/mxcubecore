@@ -21,7 +21,11 @@
 """Exporter Client implementation"""
 
 import logging
-from .StandardClient import StandardClient, ProtocolError
+
+from .StandardClient import (
+    ProtocolError,
+    StandardClient,
+)
 
 __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

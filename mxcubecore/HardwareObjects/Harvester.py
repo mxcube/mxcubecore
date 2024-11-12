@@ -40,9 +40,15 @@ It has some functionalities, like Harvest Sample, etc....
     </object>
 -----------------------------------------------------------------
 """
-import gevent
+from __future__ import annotations
+
 import logging
-from typing import Optional
+from typing import (
+    List,
+    Optional,
+)
+
+import gevent
 
 from mxcubecore import queue_entry
 from mxcubecore.BaseHardwareObjects import HardwareObject
@@ -161,7 +167,6 @@ class Harvester(HardwareObject):
         return : respond
         """
         ret = None
-        timeout = kwargs.pop("timeout", 0)
         if args:
             args_str = "%s" % "\t".join(map(str, args))
         if kwargs.pop("command", None):
@@ -191,7 +196,6 @@ class Harvester(HardwareObject):
             if cmd.startswith("set"):
                 ret = exp_attr.set_value(args_str)
 
-        self._wait_ready(timeout=timeout)
         return ret
 
     # ---------------------- State --------------------------------
@@ -234,7 +238,7 @@ class Harvester(HardwareObject):
             == "Waiting Sample Transfer"
         )
 
-    def get_samples_state(self) -> list[str]:
+    def get_samples_state(self) -> List[str]:
         """Get the Harvester Samples State
 
         Return (List):  list of crystal state "waiting_for_transfer, Running etc.."
@@ -300,7 +304,7 @@ class Harvester(HardwareObject):
             else:
                 return None
 
-    def get_crystal_uuids(self) -> list[str]:
+    def get_crystal_uuids(self) -> List[str]:
         """Get the Harvester Sample List uuid
 
         Return (List):  list of crystal by uuid from the current processing plan"
@@ -310,7 +314,7 @@ class Harvester(HardwareObject):
         )
         return harvester_crystal_list
 
-    def get_sample_names(self) -> list[str]:
+    def get_sample_names(self) -> List[str]:
         """Get the Harvester Sample List Name
 
         Return (List):  list of crystal by names from the current processing plan"
@@ -332,7 +336,7 @@ class Harvester(HardwareObject):
         )
         return crystal_images_url
 
-    def get_sample_acronyms(self) -> list[str]:
+    def get_sample_acronyms(self) -> List[str]:
         """Get the Harvester Sample List by Acronyms
 
         Return (List):  list of crystal by Acronyms from the current processing plan"
@@ -510,29 +514,25 @@ class Harvester(HardwareObject):
         return self._execute_cmd_exporter("getNbRemainingPins", command=True)
 
     def queue_harvest_sample(
-        self, data_model, sample_uuid: str, current_queue: dict
+        self, sample_loc_str, sample_uuid: str, current_queue_list: list[str]
     ) -> None:
         """
         While queue execution send harvest request
-        current_queue : a build representation of the queue based on
-        python dictionaries
+        current_queue_list : a build representation of the queue based
         """
 
-        current_queue_list = list(current_queue)
         current_queue_index = None
         try:
-            current_queue_index = current_queue_list.index(data_model.loc_str)
+            current_queue_index = current_queue_list.index(sample_loc_str)
         except (ValueError, IndexError):
             current_queue_index = None
 
         wait_before_load = not self.get_room_temperature_mode()
-        if sample_uuid in ["undefined", "", None]:
-            sample_uuid = current_queue[data_model.loc_str]["code"]
 
         if self.get_number_of_available_pin() > 0:
             gevent.sleep(2)
 
-            if current_queue_index == 1:
+            if current_queue_index == 0:
                 logging.getLogger("user_level_log").info("Harvesting First Sample")
 
                 harvest_res = self.harvest_sample_before_mount(
@@ -575,28 +575,13 @@ class Harvester(HardwareObject):
                 "There is no more Pins in the Harvester, Stopping queue", ""
             )
 
-    def queue_harvest_next_sample(
-        self, data_model, sample_uuid: str, current_queue: dict
-    ):
+    def queue_harvest_next_sample(self, next_sample_loc_str: str, sample_uuid: str):
         """
         While queue execution send harvest request
         on next sample of the queue list
-        current_queue : a build representation of the queue based on
-        python dictionaries
         """
-        current_queue_list = list(current_queue)
-        next_sample = None
-        try:
-            next_sample = current_queue_list[
-                current_queue_list.index(data_model.loc_str) + 1
-            ]
-        except (ValueError, IndexError):
-            next_sample = None
 
-        if sample_uuid in ["undefined", "", None]:
-            sample_uuid = current_queue[data_model.loc_str]["code"]
-
-        if next_sample is not None and self.get_number_of_available_pin() > 0:
+        if next_sample_loc_str is not None and self.get_number_of_available_pin() > 0:
             logging.getLogger("user_level_log").info("Harvesting Next Sample")
 
             self._wait_ready(None)

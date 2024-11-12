@@ -4,7 +4,7 @@ from mxcubecore.BaseHardwareObjects import HardwareObject
 
 class ALBATransmission(HardwareObject):
     def __init__(self, *args):
-        Device.__init__(self, *args)
+        super().__init__(*args)
         self.transmission = None
 
     def init(self):

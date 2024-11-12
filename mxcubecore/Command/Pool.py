@@ -20,6 +20,7 @@
 
 import logging
 import weakref
+
 import qt
 
 try:
@@ -27,10 +28,9 @@ try:
 except ImportError:
     import queue
 
-
 from mxcubecore.CommandContainer import (
-    CommandObject,
     ChannelObject,
+    CommandObject,
     ConnectionError,
 )
 

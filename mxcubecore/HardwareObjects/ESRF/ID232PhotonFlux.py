@@ -1,5 +1,5 @@
-from TangoKeithleyPhotonFlux import TangoKeithleyPhotonFlux
 from bliss.config import channels
+from TangoKeithleyPhotonFlux import TangoKeithleyPhotonFlux
 
 
 class ID232PhotonFlux(TangoKeithleyPhotonFlux):

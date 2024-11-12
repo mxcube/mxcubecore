@@ -28,16 +28,16 @@ Example xml file:
 /puck_configuration>
 </object>
 """
-import time
 import ast
 import base64
-import pickle
 import logging
+import pickle
+import time
+
 import gevent
+from PyTango.gevent import DeviceProxy
 
 from mxcubecore import HardwareRepository as HWR
-
-from mxcubecore.TaskUtils import task
 from mxcubecore.HardwareObjects.abstract.AbstractSampleChanger import (
     SampleChanger,
     SampleChangerState,
@@ -46,7 +46,7 @@ from mxcubecore.HardwareObjects.abstract.sample_changer.Container import (
     Container,
     Sample,
 )
-from PyTango.gevent import DeviceProxy
+from mxcubecore.TaskUtils import task
 
 
 class Pin(Sample):
@@ -354,23 +354,6 @@ class EMBLFlexHCD(SampleChanger):
         self._execute_cmd_exporter("moveDewar", cell_pos, command=True)
 
         self._update_selection()
-
-    @task
-    def load_sample(
-        self,
-        holderLength,
-        sample_id=None,
-        sample_location=None,
-        sampleIsLoadedCallback=None,
-        failureCallback=None,
-        prepareCentring=True,
-    ):
-        # self._assert_ready()
-        cell, basket, sample = sample_location
-        sample = self.get_component_by_address(
-            Pin.get_sample_address(cell, basket, sample)
-        )
-        return self.load(sample)
 
     def chained_load(self, old_sample, sample):
         return self._do_load(sample)

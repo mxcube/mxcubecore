@@ -8,6 +8,7 @@
   <object href="/diff-phiy-mockup" role="phiy"/>
   <object href="/diff-sampx-mockup" role="sampx"/>
   <object href="/diff-sampy-mockup" role="sampy"/>
+  <object href="/diff-aperture-mockup" role="aperture"/>
   <centring_motors>("phi", "kappa", "kappa_phi", "phiz", "phiy", "sampx", "sampy")</centring_motors>
 
   <zoom_centre>{"x":340,"y":250}</zoom_centre>

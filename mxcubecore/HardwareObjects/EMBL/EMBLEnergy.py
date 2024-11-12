@@ -20,10 +20,10 @@
 """EMBLEnergy"""
 
 import logging
+
 import gevent
 
 from mxcubecore.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
-
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"

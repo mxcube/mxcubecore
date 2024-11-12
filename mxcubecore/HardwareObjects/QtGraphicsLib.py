@@ -43,15 +43,13 @@ Graphics item library:
 """
 
 import copy
-import math
 import logging
+import math
 from datetime import datetime
 
-from mxcubecore.utils import qt_import
-
 from mxcubecore.model import queue_model_objects
+from mxcubecore.utils import qt_import
 from mxcubecore.utils.conversion import string_types
-
 
 SELECTED_COLOR = qt_import.Qt.green
 NORMAL_COLOR = qt_import.Qt.yellow
@@ -191,8 +189,8 @@ class GraphicsItem(qt_import.QGraphicsItem):
         :type beam_info: dict
         """
         self.beam_is_rectangle = beam_info.get("shape") == "rectangular"
-        self.beam_size_mm[0] = beam_info.get("size_x", 0)
-        self.beam_size_mm[1] = beam_info.get("size_y", 0)
+        self.beam_size_mm[0] = beam_info.get("size_x", 0) or 0
+        self.beam_size_mm[1] = beam_info.get("size_y", 0) or 0
         if not math.isnan(self.pixels_per_mm[0]):
             self.beam_size_pix[0] = int(self.beam_size_mm[0] * self.pixels_per_mm[0])
         if not math.isnan(self.pixels_per_mm[1]):
@@ -2772,7 +2770,9 @@ class GraphicsCameraFrame(qt_import.QGraphicsPixmapItem):
         """
         position = qt_import.QPointF(event.scenePos())
         self.scene().mouseClickedSignal.emit(
-            position.x(), position.y(), event.button() == qt_import.Qt.LeftButton
+            int(position.x()),
+            int(position.y()),
+            event.button() == qt_import.Qt.LeftButton,
         )
         self.update()
 
@@ -2783,7 +2783,7 @@ class GraphicsCameraFrame(qt_import.QGraphicsPixmapItem):
         :return:
         """
         position = qt_import.QPointF(event.scenePos())
-        self.scene().mouseDoubleClickedSignal.emit(position.x(), position.y())
+        self.scene().mouseDoubleClickedSignal.emit(int(position.x()), int(position.y()))
         self.update()
 
     def mouseReleaseEvent(self, event):
@@ -2793,5 +2793,5 @@ class GraphicsCameraFrame(qt_import.QGraphicsPixmapItem):
         :return:
         """
         position = qt_import.QPointF(event.scenePos())
-        self.scene().mouseReleasedSignal.emit(position.x(), position.y())
+        self.scene().mouseReleasedSignal.emit(int(position.x()), int(position.y()))
         self.update()

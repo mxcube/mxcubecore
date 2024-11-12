@@ -1,6 +1,7 @@
-from mxcubecore.BaseHardwareObjects import HardwareObject
 import gevent
 import numpy
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 def plot_emitter(new_plot, plot_data, plot_end):

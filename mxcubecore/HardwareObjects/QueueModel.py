@@ -26,15 +26,16 @@ retreiving nodes are all done via this object. It is possbile to
 handle several models by using register_model and select_model.
 """
 
-import os
 import json
 import logging
+import os
+
 import jsonpickle
 
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore import queue_entry
-from mxcubecore.model import queue_model_objects
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore import queue_entry
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.model import queue_model_objects
 
 
 class Serializer(object):
@@ -150,7 +151,7 @@ class QueueModel(HardwareObject):
         Adds the child node <child>. Raises the exception TypeError
         if child is not of type TaskNode.
 
-        Moves the child (reparents it) if it already has a parent.
+        Moves the child (re-parents it) if it already has a parent.
 
         :param child: TaskNode to add
         :type child: TaskNode

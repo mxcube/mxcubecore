@@ -1,6 +1,11 @@
 import logging
+
+from ESRFEnergyScan import (
+    ESRFEnergyScan,
+    TunableEnergy,
+)
+
 from mxcubecore.TaskUtils import task
-from ESRFEnergyScan import ESRFEnergyScan, TunableEnergy
 
 
 class BM14EnergyScan(ESRFEnergyScan):
@@ -28,9 +33,9 @@ class BM14EnergyScan(ESRFEnergyScan):
                 "Cannot find appropriate attenuation"
             )
             raise RuntimeError("Cannot find appropriate attenuation")
-        self.energy_scan_parameters[
-            "transmissionFactor"
-        ] = self.transmission.get_value()
+        self.energy_scan_parameters["transmissionFactor"] = (
+            self.transmission.get_value()
+        )
 
     @task
     def execute_energy_scan(self, energy_scan_parameters):

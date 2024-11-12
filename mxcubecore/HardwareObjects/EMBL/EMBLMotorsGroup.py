@@ -76,14 +76,13 @@ Example Hardware Object XML file :
 """
 
 
-import time
 import logging
+import time
 
 import gevent
-
 import tine
-from mxcubecore.BaseHardwareObjects import HardwareObject
 
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"
@@ -97,7 +96,7 @@ class EMBLMotorsGroup(HardwareObject):
 
     def __init__(self, name):
 
-        Device.__init__(self, name)
+        super().__init__(name)
         self.server_address = None
         self.group_address = None
         self.motors_list = None

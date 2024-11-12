@@ -18,21 +18,21 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-__copyright__ = """ Copyright © 2010 - 2024 by MXCuBE Collaboration """
+__copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
 
 
 import gevent
-
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from gevent import Timeout
 import numpy
-
+from gevent import Timeout
 
 # import DeviceProxy function and DevState:
-from PyTango import DevState
-from PyTango import DeviceProxy
+from PyTango import (
+    DeviceProxy,
+    DevState,
+)
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 last_centred_position = [200, 200]
 
@@ -64,7 +64,6 @@ class Centring(HardwareObject):
         print("-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
 
     def initCentringProcedure(self):
-
         print("initCentringProcedure(self)")
         """
         Descript. : call before starting rotate-click sequence

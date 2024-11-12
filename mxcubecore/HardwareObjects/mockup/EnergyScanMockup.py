@@ -1,18 +1,16 @@
+import logging
 import os
 import time
+
 import gevent
 import gevent.event
-import logging
-
-from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.figure import Figure
 
-from mxcubecore.TaskUtils import cleanup
-from mxcubecore.HardwareObjects.abstract.AbstractEnergyScan import (
-    AbstractEnergyScan,
-)
-from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.HardwareObjects.abstract.AbstractEnergyScan import AbstractEnergyScan
+from mxcubecore.TaskUtils import cleanup
 
 scan_test_data = [
     (10841.0, 20.0),
@@ -164,15 +162,14 @@ chooch_graph_data = (
 )
 
 
-class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
+class EnergyScanMockup(AbstractEnergyScan):
     def __init__(self, name):
-        AbstractEnergyScan.__init__(self)
-        HardwareObject.__init__(self, name)
+        AbstractEnergyScan.__init__(self, name)
 
     def init(self):
 
         self.ready_event = gevent.event.Event()
-        self.scan_info = {}
+        self.energy_scan_parameters = {}
         self.result_value_emitter = None
         self.scan_data = []
         self.thEdgeThreshold = 5
@@ -195,47 +192,28 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
             time.sleep(0.05)
         self.scanCommandFinished()
 
-    def start_energy_scan(
-        self,
-        element,
-        edge,
-        directory,
-        prefix,
-        session_id=None,
-        blsample_id=None,
-        exptime=3,
-    ):
-
-        self._element = element
-        self._edge = edge
-        self.scan_info = {
-            "sessionId": session_id,
-            "blSampleId": blsample_id,
-            "element": element,
-            "edgeEnergy": edge,
-        }
-        self.scan_info["exposureTime"] = exptime
-
+    def execute_energy_scan(self, energy_scan_parameters):
+        self.energy_scan_parameters["exposureTime"] = 0.01
+        print(self.cpos)
         if HWR.beamline.transmission is not None:
-            self.scan_info["transmissionFactor"] = HWR.beamline.transmission.get_value()
+            self.energy_scan_parameters["transmissionFactor"] = (
+                HWR.beamline.transmission.get_value()
+            )
         else:
-            self.scan_info["transmissionFactor"] = None
+            self.energy_scan_parameters["transmissionFactor"] = None
         size_hor = None
         size_ver = None
         if HWR.beamline.beam is not None:
             size_hor, size_ver = HWR.beamline.beam.get_beam_size()
             size_hor = size_hor * 1000
             size_ver = size_ver * 1000
-        self.scan_info["beamSizeHorizontal"] = size_hor
-        self.scan_info["beamSizeVertical"] = size_ver
-        self.scan_info["startEnergy"] = 0
-        self.scan_info["endEnergy"] = 0
-        self.scan_info["fluorescenceDetector"] = "Mockup detector"
+        self.energy_scan_parameters["beamSizeHorizontal"] = size_hor
+        self.energy_scan_parameters["beamSizeVertical"] = size_ver
+        self.energy_scan_parameters["startEnergy"] = 0
+        self.energy_scan_parameters["endEnergy"] = 0
+        self.energy_scan_parameters["fluorescenceDetector"] = "Mockup detector"
         self.scan_data = []
-        self.scanCommandStarted()
         self.result_value_emitter = gevent.spawn(self.emit_result_values)
-        # self.emit('energyScanFinished', (self.scan_info,))
-        # self.ready_event.set()
 
     def do_chooch(self, elt, edge, scan_directory, archive_directory, prefix):
         """
@@ -293,7 +271,9 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
                 archive_file_raw.write("%f,%f\r\n" % (x, y))
             scan_file_raw.close()
             archive_file_raw.close()
-            self.scan_info["scanFileFullPath"] = str(scan_file_raw_filename)
+            self.energy_scan_parameters["scanFileFullPath"] = str(
+                scan_file_raw_filename
+            )
 
         pk = 7.519
         ip = 7.516
@@ -303,24 +283,24 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         fpInfl = -21.1
         fppInfl = 11.9
         comm = "Mockup results"
-        self.scan_info["edgeEnergy"] = 0.1
-        self.thEdge = self.scan_info["edgeEnergy"]
+        self.energy_scan_parameters["edgeEnergy"] = 0.1
+        self.thEdge = self.energy_scan_parameters["edgeEnergy"]
         logging.getLogger("HWR").info(
             "th. Edge %s ; chooch results are pk=%f, ip=%f, rm=%f"
             % (self.thEdge, pk, ip, rm)
         )
 
-        self.scan_info["peakEnergy"] = pk
-        self.scan_info["inflectionEnergy"] = ip
-        self.scan_info["remoteEnergy"] = rm
-        self.scan_info["peakFPrime"] = fpPeak
-        self.scan_info["peakFDoublePrime"] = fppPeak
-        self.scan_info["inflectionFPrime"] = fpInfl
-        self.scan_info["inflectionFDoublePrime"] = fppInfl
-        self.scan_info["comments"] = comm
-        self.scan_info["choochFileFullPath"] = scan_file_efs_filename
-        self.scan_info["filename"] = archive_file_raw_filename
-        self.scan_info["workingDirectory"] = archive_directory
+        self.energy_scan_parameters["peakEnergy"] = pk
+        self.energy_scan_parameters["inflectionEnergy"] = ip
+        self.energy_scan_parameters["remoteEnergy"] = rm
+        self.energy_scan_parameters["peakFPrime"] = fpPeak
+        self.energy_scan_parameters["peakFDoublePrime"] = fppPeak
+        self.energy_scan_parameters["inflectionFPrime"] = fpInfl
+        self.energy_scan_parameters["inflectionFDoublePrime"] = fppInfl
+        self.energy_scan_parameters["comments"] = comm
+        self.energy_scan_parameters["choochFileFullPath"] = scan_file_efs_filename
+        self.energy_scan_parameters["filename"] = archive_file_raw_filename
+        self.energy_scan_parameters["workingDirectory"] = archive_directory
 
         chooch_graph_x, chooch_graph_y1, chooch_graph_y2 = zip(*chooch_graph_data)
         chooch_graph_x = list(chooch_graph_x)
@@ -354,7 +334,9 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         handles.append(ax2.plot(chooch_graph_x, chooch_graph_y2, color="red"))
         canvas = FigureCanvasAgg(fig)
 
-        self.scan_info["jpegChoochFileFullPath"] = str(archive_file_png_filename)
+        self.energy_scan_parameters["jpegChoochFileFullPath"] = str(
+            archive_file_png_filename
+        )
         try:
             logging.getLogger("HWR").info(
                 "Rendering energy scan and Chooch " + "graphs to PNG file : %s",
@@ -431,11 +413,12 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         """
         Descript. :
         """
+        print(self.energy_scan_parameters)
         title = "%s %s: %s %s" % (
-            self.scan_info["sessionId"],
-            self.scan_info["blSampleId"],
-            self.scan_info["element"],
-            self.scan_info["edgeEnergy"],
+            self.energy_scan_parameters["sessionId"],
+            self.energy_scan_parameters["blSampleId"],
+            self.energy_scan_parameters["element"],
+            self.energy_scan_parameters["edgeEnergy"],
         )
         dic = {
             "xlabel": "energy",
@@ -445,7 +428,7 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         }
         self.emit("scanStart", dic)
         self.emit("energyScanStarted", dic)
-        self.scan_info["startTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
+        self.energy_scan_parameters["startTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
         self.scanning = True
 
     def scanCommandFinished(self, *args):
@@ -453,12 +436,12 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         Descript. :
         """
         with cleanup(self.ready_event.set):
-            self.scan_info["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
+            self.energy_scan_parameters["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
             logging.getLogger("HWR").debug("Energy Scan: finished")
             self.scanning = False
-            self.scan_info["startEnergy"] = self.scan_data[-1][0] / 1000.0
-            self.scan_info["endEnergy"] = self.scan_data[-1][1] / 1000.0
-            self.emit("energyScanFinished", self.scan_info)
+            self.energy_scan_parameters["startEnergy"] = self.scan_data[-1][0] / 1000.0
+            self.energy_scan_parameters["endEnergy"] = self.scan_data[-1][1] / 1000.0
+            self.emit("energyScanFinished", self.energy_scan_parameters)
 
     def get_scan_data(self):
         """
@@ -471,4 +454,4 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         Descript. :
         """
         if HWR.beamline.lims:
-            db_status = HWR.beamline.lims.storeEnergyScan(self.scan_info)
+            db_status = HWR.beamline.lims.storeEnergyScan(self.energy_scan_parameters)

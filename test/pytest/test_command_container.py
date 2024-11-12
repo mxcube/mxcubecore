@@ -1,17 +1,28 @@
 import copy
 import json
 import weakref
-import pytest
-from typing import Generator, TYPE_CHECKING, Any, Dict, Union, List, Tuple, Optional
-from typing_extensions import Annotated
 from logging import Logger
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    Generator,
+    List,
+    Optional,
+    Tuple,
+    Union,
+)
 from unittest.mock import MagicMock
+
+import pytest
+from typing_extensions import Annotated
+
 from mxcubecore.CommandContainer import (
-    ARGUMENT_TYPE_LIST,
     ARGUMENT_TYPE_JSON_SCHEMA,
-    CommandObject,
+    ARGUMENT_TYPE_LIST,
     ChannelObject,
     CommandContainer,
+    CommandObject,
 )
 
 if TYPE_CHECKING:
@@ -20,7 +31,7 @@ if TYPE_CHECKING:
 
 @pytest.fixture(scope="function")
 def cmd_object() -> Generator[CommandObject, None, None]:
-    """Pytest fixture to instanciate a new "CommandObject" object.
+    """Pytest fixture to instantiate a new "CommandObject" object.
 
     Yields:
         Generator[CommandObject, None, None]: New object instance.
@@ -32,7 +43,7 @@ def cmd_object() -> Generator[CommandObject, None, None]:
 
 @pytest.fixture(scope="function")
 def channel_object() -> Generator[ChannelObject, None, None]:
-    """Pytest fixture to instanciate a new "ChannelObject" object.
+    """Pytest fixture to instantiate a new "ChannelObject" object.
 
     Yields:
         Generator[ChannelObject, None, None]: New object instance.
@@ -44,7 +55,7 @@ def channel_object() -> Generator[ChannelObject, None, None]:
 
 @pytest.fixture(scope="function")
 def cmd_container() -> Generator[CommandContainer, None, None]:
-    """Pytest fixture to instanciate a new "CommandContainer" object.
+    """Pytest fixture to instantiate a new "CommandContainer" object.
 
     Yields:
         Generator[CommandContainer, None, None]: New object instance.

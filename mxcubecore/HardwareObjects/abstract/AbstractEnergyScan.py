@@ -1,18 +1,23 @@
-import os
-import time
 import abc
 import logging
+import os
+import time
+
 import gevent
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.TaskUtils import error_cleanup
 
 
-class AbstractEnergyScan(object):
+class AbstractEnergyScan(HardwareObject):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self):
+    def __init__(self, name):
+        super().__init__(name)
         self.data_collect_task = None
         self._egyscan_task = None
         self.scanning = False
+        self.cpos = None
 
     def open_safety_shutter(self, timeout):
         """
@@ -100,7 +105,7 @@ class AbstractEnergyScan(object):
         """
         pass
 
-    def choose_attenuation(self, energy_scan_parameters):
+    def choose_attenuation(self):
         """
         Procedure to set the minimal attenuation in order no preserve
         the sample. Should be done at the energy after the edge.
@@ -141,19 +146,28 @@ class AbstractEnergyScan(object):
 
     # def start_energy_scan(
     def start_energy_scan(
-        self, element, edge, directory, prefix, session_id=None, blsample_id=None
+        self,
+        element,
+        edge,
+        directory,
+        prefix,
+        session_id=None,
+        blsample_id=None,
+        cpos=None,
     ):
         if self._egyscan_task and not self._egyscan_task.ready():
             raise RuntimeError("Scan already started.")
 
         self.emit("energyScanStarted", ())
-        STATICPARS_DICT = {}
         # Set the energy from the element and edge parameters
         STATICPARS_DICT = self.get_static_parameters(
             self.get_property("config_file"), element, edge
         )
-
-        self.energy_scan_parameters = STATICPARS_DICT
+        self.cpos = cpos
+        if STATICPARS_DICT is not None:
+            self.energy_scan_parameters = STATICPARS_DICT
+        else:
+            self.energy_scan_parameters = {}
         self.energy_scan_parameters["element"] = element
         self.energy_scan_parameters["edge"] = edge
         self.energy_scan_parameters["directory"] = directory

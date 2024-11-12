@@ -24,9 +24,11 @@ import abc
 import logging
 import os
 import time
+
 import gevent
-from mxcubecore.BaseHardwareObjects import HardwareObject
+
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -59,6 +61,7 @@ class AbstractXRFSpectrum(HardwareObject):
         self.lims = None
         self.spectrum_info_dict = {}
         self.default_integration_time = None
+        self.cpos = None
 
     def init(self):
         """Initialisation"""
@@ -76,8 +79,9 @@ class AbstractXRFSpectrum(HardwareObject):
         archive_dir=None,
         session_id=None,
         blsample_id=None,
+        cpos=None,
     ):
-        """Start the procedure. Called by the queu_model.
+        """Start the procedure. Called by the queue_model.
 
         Args:
             integration_time (float): Inregration time [s].
@@ -87,10 +91,10 @@ class AbstractXRFSpectrum(HardwareObject):
             session_id (int): Session ID number (from ISpyB)
             blsample_id (int): Sample ID number (from ISpyB)
         """
+        self.cpos = cpos
         self.spectrum_info_dict = {"sessionId": session_id, "blSampleId": blsample_id}
         integration_time = integration_time or self.default_integration_time
         self.spectrum_info_dict["exposureTime"] = integration_time
-        self.spectrum_info_dict["prefix"] = prefix
         self.spectrum_info_dict["filename"] = ""
         # Create the data and the archive directory (if needed) and files
         if data_dir:
@@ -99,7 +103,6 @@ class AbstractXRFSpectrum(HardwareObject):
                 return False
             filename = self.get_filename(data_dir, prefix)
             self.spectrum_info_dict["filename"] = filename + "." + self.file_suffix
-            self.spectrum_info_dict["spectrum_directory"] = os.path.dirname(filename)
         if archive_dir:
             if not self.create_directory(archive_dir):
                 self.update_state(self.STATES.FAULT)
@@ -111,7 +114,6 @@ class AbstractXRFSpectrum(HardwareObject):
             self.spectrum_info_dict["jpegScanFileFullPath"] = filename + ".png"
             self.spectrum_info_dict["annotatedPymcaXfeSpectrum"] = filename + ".html"
             self.spectrum_info_dict["fittedDataFileFullPath"] = filename + "_peaks.csv"
-            self.spectrum_info_dict["archive_directory"] = archive_dir
 
         self.spectrum_info_dict["startTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
         self.update_state(self.STATES.BUSY)
@@ -204,9 +206,9 @@ class AbstractXRFSpectrum(HardwareObject):
         """Actions to do if spectrum acquired."""
         self.spectrum_info_dict["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
         if HWR.beamline.transmission:
-            self.spectrum_info_dict[
-                "beamTransmission"
-            ] = HWR.beamline.transmission.get_value()
+            self.spectrum_info_dict["beamTransmission"] = (
+                HWR.beamline.transmission.get_value()
+            )
         if HWR.beamline.energy:
             self.spectrum_info_dict["energy"] = HWR.beamline.energy.get_value()
         if HWR.beamline.flux:
@@ -239,4 +241,4 @@ class AbstractXRFSpectrum(HardwareObject):
     def spectrum_store_lims(self):
         """Store the data in lims, according to the existing data model."""
         if self.spectrum_info_dict.get("sessionId"):
-            self.lims.storeXfeSpectrum(self.spectrum_info_dict)
+            self.lims.store_xfe_spectrum(self.spectrum_info_dict)

@@ -23,11 +23,10 @@ Hardware object is used to define final beam size and shape.
 It can include aperture, slits and/or beam focusing hwobj
 """
 import ast
-import sys
 import logging
+import sys
 
 from mxcubecore.HardwareObjects.abstract.AbstractBeam import AbstractBeam
-
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"

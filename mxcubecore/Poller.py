@@ -1,13 +1,11 @@
 import logging
 
-from dispatcher import saferef
 import gevent
 import gevent.monkey
-from gevent import _threading
-
-from gevent.event import Event
 import numpy
-
+from dispatcher import saferef
+from gevent import _threading
+from gevent.event import Event
 
 try:
     import Queue as queue

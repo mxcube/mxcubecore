@@ -45,9 +45,7 @@ Example Hardware Object XML file :
 """
 import logging
 
-from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import (
-    AbstractVideoDevice,
-)
+from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import AbstractVideoDevice
 
 try:
     from Lima import Core

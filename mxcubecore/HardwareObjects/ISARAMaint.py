@@ -1,5 +1,10 @@
 from typing import Optional
-from tango import DeviceProxy, DevFailed
+
+from tango import (
+    DevFailed,
+    DeviceProxy,
+)
+
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 """

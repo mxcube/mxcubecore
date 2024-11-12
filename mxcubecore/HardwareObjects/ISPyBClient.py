@@ -1,37 +1,39 @@
 from __future__ import print_function
-import sys
-import json
-import time
+
 import itertools
+import json
 import os
+import sys
+import time
 import traceback
 import warnings
-from pprint import pformat
 from collections import namedtuple
 from datetime import datetime
+from pprint import pformat
 
 try:
-    from urlparse import urljoin
     from urllib2 import URLError
+    from urlparse import urljoin
 except Exception:
     # Python3
     from urllib.parse import urljoin
     from urllib.error import URLError
 
-from suds.sudsobject import asdict
 from suds import WebFault
 from suds.client import Client
+from suds.sudsobject import asdict
+
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.utils.conversion import string_types
-from mxcubecore import HardwareRepository as HWR
 
 """
 A client for ISPyB Webservices.
 """
 
 import logging
-import gevent
 
+import gevent
 
 suds_encode = str.encode
 

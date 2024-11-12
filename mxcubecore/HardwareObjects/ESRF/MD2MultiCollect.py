@@ -1,13 +1,14 @@
-import gevent
-import shutil
 import logging
 import os
+import shutil
 
-from mxcubecore.TaskUtils import task
-from .ESRFMultiCollect import ESRFMultiCollect
-from mxcubecore.HardwareObjects.LimaPilatusDetector import LimaPilatusDetector
+import gevent
 
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.HardwareObjects.LimaPilatusDetector import LimaPilatusDetector
+from mxcubecore.TaskUtils import task
+
+from .ESRFMultiCollect import ESRFMultiCollect
 
 
 class MD2MultiCollect(ESRFMultiCollect):
@@ -28,7 +29,8 @@ class MD2MultiCollect(ESRFMultiCollect):
 
     @task
     def get_beam_size(self):
-        return HWR.beamline.beam.beam_width, HWR.beamline.beam.beam_height
+        _width, _height, _, _ = HWR.beamline.beam.get_value()
+        return _width, _height
 
     @task
     def get_slit_gaps(self):
@@ -58,29 +60,26 @@ class MD2MultiCollect(ESRFMultiCollect):
         diffr.move_sync_motors(motor_positions_copy, wait=True, timeout=200)
 
     @task
-    def take_crystal_snapshots(self, number_of_snapshots):
-        if HWR.beamline.diffractometer.in_plate_mode():
-            if number_of_snapshots > 0:
-                number_of_snapshots = 1
-        else:
-            # this has to be done before each chage of phase
-            HWR.beamline.diffractometer.save_centring_positions()
-            # not going to centring phase if in plate mode (too long)
-            HWR.beamline.diffractometer.set_phase("Centring", wait=True, timeout=600)
-
-        HWR.beamline.diffractometer.take_snapshots(number_of_snapshots, wait=True)
+    def take_crystal_snapshots(self, number_of_snapshots, image_path_list=[]):
+        HWR.beamline.diffractometer.take_snapshot(image_path_list)
 
     def do_prepare_oscillation(self, *args, **kwargs):
+        diffr = HWR.beamline.diffractometer
+
         # set the detector cover out
+        try:
+            diffr.open_detector_cover()
+        except Exception:
+            logging.getLogger("HWR").exception("Could not open detector cover")
+        """
         try:
             detcover = self.get_object_by_role("controller").detcover
 
             if detcover.state == "IN":
                 detcover.set_out(10)
         except:
-            logging.getLogger("HWR").exception("Could close detector cover")
-
-        diffr = HWR.beamline.diffractometer
+            logging.getLogger("HWR").exception("Could not open detector cover")
+        """
 
         # send again the command as MD2 software only handles one
         # centered position!!

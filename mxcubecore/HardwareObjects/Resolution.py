@@ -29,9 +29,7 @@ Example xml file:
 
 """
 
-from mxcubecore.HardwareObjects.abstract.AbstractResolution import (
-    AbstractResolution,
-)
+from mxcubecore.HardwareObjects.abstract.AbstractResolution import AbstractResolution
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

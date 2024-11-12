@@ -1,10 +1,12 @@
 # pylint: skip-file
 
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore import HardwareRepository as HWR
-import gevent
-import sys
 import random
+import sys
+
+import gevent
+
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 CRYO_STATUS = ["OFF", "SATURATED", "READY", "WARNING", "FROZEN", "UNKNOWN"]
 PHASE_ACTION = {

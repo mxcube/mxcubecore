@@ -40,7 +40,7 @@ The model consists of an object called `QueueModel` that has a tree structure of
 The combination of a `QueueEntry` and its model (`QueueModel`) is often referred to as a *task*, and makes up the entity that will be executed when the queue is executed.
 
 The one-to-one mapping makes it possible to represent a queue and construct the queue entries from the queue model objects. In this way, the tree of queue model objects defines the queue. A task or collection protocol can be added to the queue by adding the *queue model object* to the `QueueModel`. For instance, a rotational data collection is added to the queue by adding a `DataCollectionTaskNode` to the `QueueModel`. This method of adding tasks to the queue is used by the Workflow engines, while the interfaces directly attach a `TaskNode` object to the corresponding `QueueEntry` which is then
-*enqueued*
+*enqueued*.
 
 ## Task creation - creation of QueueEntry and QueueModel
 A task is created by creating a `Tasknode` and  attaching it to a corresponding `QueueEntry`. The `QueueEntry` is added or *enqueued* to the queue via the method `QueueManager.enqueue`.

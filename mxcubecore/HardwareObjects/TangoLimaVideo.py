@@ -12,16 +12,15 @@ Example configuration:
 
 If video mode is not specified, BAYER_RG16 is used by default.
 """
+
+import io
 import logging
-import time
 import struct
-import numpy
+import time
+
 import gevent
 import PyTango
 from PIL import Image
-import io
-import gipc
-
 from PyTango.gevent import DeviceProxy
 
 from mxcubecore import BaseHardwareObjects
@@ -32,9 +31,7 @@ def poll_image(lima_tango_device, video_mode, FORMATS):
 
     hfmt = ">IHHqiiHHHH"
     hsize = struct.calcsize(hfmt)
-    _, _, img_mode, frame_number, width, height, _, _, _, _ = struct.unpack(
-        hfmt, img_data[1][:hsize]
-    )
+    _, _, _, _, width, height, _, _, _, _ = struct.unpack(hfmt, img_data[1][:hsize])
 
     raw_data = img_data[1][hsize:]
     _from, _to = FORMATS.get(video_mode, (None, None))
@@ -51,13 +48,9 @@ def poll_image(lima_tango_device, video_mode, FORMATS):
     return img, width, height
 
 
-class TangoLimaVideo(BaseHardwareObjects.Device):
+class TangoLimaVideo(BaseHardwareObjects.HardwareObject):
     def __init__(self, name):
-        BaseHardwareObjects.Device.__init__(self, name)
-        self.__brightnessExists = False
-        self.__contrastExists = False
-        self.__gainExists = False
-        self.__gammaExists = False
+        super().__init__(name)
         self.__polling = None
         self._video_mode = None
         self._last_image = (0, 0, 0)
@@ -107,10 +100,10 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
             else:
                 logging.getLogger("HWR").info("MXCuBE NOT controlling video")
 
-        self.set_is_ready(True)
+        self.update_state(BaseHardwareObjects.HardwareObjectState.READY)
 
     def get_last_image(self):
-        return self._last_image
+        return poll_image(self.device, self.video_mode, self._FORMATS)
 
     def _do_polling(self, sleep_time):
         lima_tango_device = self.device
@@ -136,19 +129,6 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
 
     def get_height(self):
         return self.device.image_height
-
-    def take_snapshot(self, path=None, bw=False):
-        data, width, height = poll_image(self.device, self.video_mode, self._FORMATS)
-
-        img = Image.frombytes("RGB", (width, height), data)
-
-        if bw:
-            img.convert("1")
-
-        if path:
-            img.save(path)
-
-        return img
 
     def set_live(self, mode):
         curr_state = self.device.video_live

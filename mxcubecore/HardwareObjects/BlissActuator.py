@@ -7,12 +7,11 @@ Example xml file:
   <object href="/bliss" role="controller"/>
 </object>
 """
+
 import logging
 from warnings import warn
 
-from mxcubecore.HardwareObjects.abstract.AbstractActuator import (
-    AbstractActuator,
-)
+from mxcubecore.HardwareObjects.abstract.AbstractActuator import AbstractActuator
 from mxcubecore.TaskUtils import task
 
 

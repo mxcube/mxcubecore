@@ -1,3 +1,4 @@
+# encoding: utf-8
 #
 #  Project: MXCuBE
 #  https://github.com/mxcube
@@ -17,19 +18,27 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-"""P11Shutter"""
+__copyright__ = """Copyright The MXCuBE Collaboration"""
+__license__ = "LGPLv3+"
 
-from enum import Enum, unique
-from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractNState
+from enum import (
+    Enum,
+    unique,
+)
+
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
-
+from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractNState
 
 __credits__ = ["DESY P11"]
 __license__ = "LGPLv3+"
 __category__ = "General"
 
 import time
-from enum import Enum, unique
+from enum import (
+    Enum,
+    unique,
+)
+
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 
 

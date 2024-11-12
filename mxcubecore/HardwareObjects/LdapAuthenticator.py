@@ -5,6 +5,7 @@ It works in principle for ESRF, Soleil Proxima and MAXIV beamlines
 """
 
 import logging
+
 import ldap
 
 from mxcubecore.HardwareObjects.abstract.AbstractAuthenticator import (

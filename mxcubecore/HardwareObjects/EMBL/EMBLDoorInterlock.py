@@ -18,10 +18,11 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-import gevent
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore import HardwareRepository as HWR
 
+import gevent
+
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"
@@ -40,7 +41,7 @@ class EMBLDoorInterlock(HardwareObject):
 
     def __init__(self, name):
 
-        Device.__init__(self, name)
+        super().__init__(name)
 
         self.use_door_interlock = None
         self.door_interlock_state = None

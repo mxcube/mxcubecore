@@ -1,9 +1,16 @@
 """ESRF SC3 Sample Changer Hardware Object
 """
+
 import functools
 import logging
-from mxcubecore.TaskUtils import task, cleanup, error_cleanup
+
 import SC3
+
+from mxcubecore.TaskUtils import (
+    cleanup,
+    error_cleanup,
+    task,
+)
 
 
 class ESRFSC3(SC3.SC3):

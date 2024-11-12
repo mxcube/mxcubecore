@@ -10,8 +10,8 @@ Example xml file:
 </object>
 """
 import logging
-
 from enum import Enum
+
 from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
 from mxcubecore.HardwareObjects.LNLS.EPICSActuator import EPICSActuator
 

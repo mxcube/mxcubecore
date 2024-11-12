@@ -18,22 +18,25 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import sys
 import time
-import logging
 
 if sys.version_info[0] == 2:
     import Queue as queue
 else:
     import queue
 
-import weakref
-import gevent
-
-from mxcubecore.CommandContainer import CommandObject, ChannelObject
 import atexit
+import weakref
 
+import gevent
 import tine
+
+from mxcubecore.CommandContainer import (
+    ChannelObject,
+    CommandObject,
+)
 
 
 class TineCommand(CommandObject):

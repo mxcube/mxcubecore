@@ -1,10 +1,15 @@
-import os
-import xmltodict
 import argparse
+import os
 import pprint
-import pydantic
 
-from colorama import Fore, Back, Style
+import pydantic
+import xmltodict
+from colorama import (
+    Back,
+    Fore,
+    Style,
+)
+
 from mxcubecore.model import configmodel
 
 

@@ -1,14 +1,16 @@
+import math
+
+import gevent
+
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
-import math
-import gevent
 
 
 class GrobMotor(Device, AbstractMotor):
     (NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0, 1, 2, 3, 4, 5)
 
     def __init__(self, name):
-        Device.__init__(self, name)
+        super().__init__(name)
 
     def init(self):
         self.motorState = GrobMotor.NOTINITIALIZED

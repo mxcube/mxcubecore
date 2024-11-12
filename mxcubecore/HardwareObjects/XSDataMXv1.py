@@ -4,10 +4,12 @@
 # Generated Tue Mar 28 09:42::39 2023 by EDGenerateDS.
 #
 
-import os, sys
-from xml.dom import minidom
-from xml.dom import Node
-
+import os
+import sys
+from xml.dom import (
+    Node,
+    minidom,
+)
 
 strEdnaHome = os.environ.get("EDNA_HOME", None)
 
@@ -35,26 +37,28 @@ dictLocation = {
 }
 
 try:
-    from XSDataCommon import XSData
-    from XSDataCommon import XSDataBoolean
-    from XSDataCommon import XSDataDouble
-    from XSDataCommon import XSDataFile
-    from XSDataCommon import XSDataFloat
-    from XSDataCommon import XSDataInput
-    from XSDataCommon import XSDataInteger
-    from XSDataCommon import XSDataMatrixDouble
-    from XSDataCommon import XSDataResult
-    from XSDataCommon import XSDataSize
-    from XSDataCommon import XSDataString
-    from XSDataCommon import XSDataVectorDouble
-    from XSDataCommon import XSDataImage
-    from XSDataCommon import XSDataAbsorbedDoseRate
-    from XSDataCommon import XSDataAngularSpeed
-    from XSDataCommon import XSDataFlux
-    from XSDataCommon import XSDataLength
-    from XSDataCommon import XSDataTime
-    from XSDataCommon import XSDataWavelength
-    from XSDataCommon import XSDataAngle
+    from XSDataCommon import (
+        XSData,
+        XSDataAbsorbedDoseRate,
+        XSDataAngle,
+        XSDataAngularSpeed,
+        XSDataBoolean,
+        XSDataDouble,
+        XSDataFile,
+        XSDataFloat,
+        XSDataFlux,
+        XSDataImage,
+        XSDataInput,
+        XSDataInteger,
+        XSDataLength,
+        XSDataMatrixDouble,
+        XSDataResult,
+        XSDataSize,
+        XSDataString,
+        XSDataTime,
+        XSDataVectorDouble,
+        XSDataWavelength,
+    )
 except ImportError as error:
     if strEdnaHome is not None:
         for strXsdName in dictLocation:
@@ -67,29 +71,28 @@ except ImportError as error:
                     sys.path.append(strRoot)
     else:
         raise error
-from XSDataCommon import XSData
-from XSDataCommon import XSDataBoolean
-from XSDataCommon import XSDataDouble
-from XSDataCommon import XSDataFile
-from XSDataCommon import XSDataFloat
-from XSDataCommon import XSDataInput
-from XSDataCommon import XSDataInteger
-from XSDataCommon import XSDataMatrixDouble
-from XSDataCommon import XSDataResult
-from XSDataCommon import XSDataSize
-from XSDataCommon import XSDataString
-from XSDataCommon import XSDataVectorDouble
-from XSDataCommon import XSDataImage
-from XSDataCommon import XSDataAbsorbedDoseRate
-from XSDataCommon import XSDataAngularSpeed
-from XSDataCommon import XSDataFlux
-from XSDataCommon import XSDataLength
-from XSDataCommon import XSDataTime
-from XSDataCommon import XSDataWavelength
-from XSDataCommon import XSDataAngle
-
-
-
+from XSDataCommon import (
+    XSData,
+    XSDataAbsorbedDoseRate,
+    XSDataAngle,
+    XSDataAngularSpeed,
+    XSDataBoolean,
+    XSDataDouble,
+    XSDataFile,
+    XSDataFloat,
+    XSDataFlux,
+    XSDataImage,
+    XSDataInput,
+    XSDataInteger,
+    XSDataLength,
+    XSDataMatrixDouble,
+    XSDataResult,
+    XSDataSize,
+    XSDataString,
+    XSDataTime,
+    XSDataVectorDouble,
+    XSDataWavelength,
+)
 
 #
 # Support/utility functions.

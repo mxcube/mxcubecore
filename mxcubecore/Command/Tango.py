@@ -19,6 +19,7 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+
 import gevent
 import gevent.event
 
@@ -27,15 +28,15 @@ try:
 except ImportError:
     import queue
 
+import numpy
 
+from mxcubecore import Poller
 from mxcubecore.CommandContainer import (
-    CommandObject,
     ChannelObject,
+    CommandObject,
     ConnectionError,
 )
-from mxcubecore import Poller
 from mxcubecore.dispatcher import saferef
-import numpy
 
 gevent_version = list(map(int, gevent.__version__.split(".")))
 

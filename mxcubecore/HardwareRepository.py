@@ -26,24 +26,35 @@ The Hardware Repository module provides access to these Hardware Objects, and ma
 connections to the Control Software (Spec or Taco Device Servers).
 """
 
-from __future__ import print_function, absolute_import
+from __future__ import (
+    absolute_import,
+    print_function,
+)
 
-import logging
-import weakref
-import sys
-import os
-import time
 import importlib
+import logging
+import os
+import sys
+import time
 import traceback
-from typing import Union, TYPE_CHECKING
+import weakref
 from datetime import datetime
+from typing import (
+    TYPE_CHECKING,
+    Union,
+)
 
 from ruamel.yaml import YAML
 
-from mxcubecore.utils.conversion import string_types, make_table
+from mxcubecore import (
+    BaseHardwareObjects,
+    HardwareObjectFileParser,
+)
 from mxcubecore.dispatcher import dispatcher
-from mxcubecore import BaseHardwareObjects
-from mxcubecore import HardwareObjectFileParser
+from mxcubecore.utils.conversion import (
+    make_table,
+    string_types,
+)
 
 if TYPE_CHECKING:
     from mxcubecore.BaseHardwareObjects import HardwareObject
@@ -181,7 +192,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
             msg0 = "Done loading contents"
         for role1, config_file in _objects.items():
             fname, fext = os.path.splitext(config_file)
-            if fext == ".yml":
+            if fext in (".yaml", ".yml"):
                 load_from_yaml(
                     config_file, role=role1, _container=result, _table=_table
                 )
@@ -269,7 +280,7 @@ def set_user_file_directory(user_file_directory):
 
 
 def init_hardware_repository(configuration_path):
-    """Initialise hardweare repository - must be run at program start
+    """Initialise hardware repository - must be run at program start
 
     Args:
         configuration_path (str): PATHSEP-separated string of directories
@@ -682,19 +693,6 @@ class __HardwareRepositoryClient:
     def get_procedure(self, procedure_name):
         """Return a Procedure given its name (see get_hardware_object())"""
         return self.get_hardware_object(procedure_name)
-
-    # def get_connection(self, connection_name):
-    #     """Return the Connection object for a Spec connection, given its name
-    #
-    #     Parameters :
-    #       connectionName -- a Spec version name ('host:port' string)
-    #
-    #     Return :
-    #       the corresponding SpecConnection object
-    #     """
-    #     connections_manager = SpecConnectionsManager.SpecConnectionsManager()
-    #
-    #     return connections_manager.get_connection(connection_name)
 
     def is_device(self, name):
         """Check if a Hardware Object is a Device

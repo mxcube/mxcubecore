@@ -1,13 +1,14 @@
 """
 Class for reading images from Falcon camera OAV
 """
-from mxcubecore import HardwareRepository as HWR
+
 from mxcubecore import BaseHardwareObjects
+from mxcubecore import HardwareRepository as HWR
 
 
-class XalocCalibration(BaseHardwareObjects.Device):
+class XalocCalibration(BaseHardwareObjects.HardwareObject):
     def __init__(self, name):
-        BaseHardwareObjects.Device.__init__(self, name)
+        super().__init__(name)
 
     def init(self):
 

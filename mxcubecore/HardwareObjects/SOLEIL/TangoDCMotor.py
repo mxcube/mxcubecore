@@ -1,16 +1,13 @@
-from mxcubecore import HardwareRepository as HWR
-
 import logging
+
 import gevent
-
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore.Command.Tango import TangoCommand
-
+import numpy
+from PyQt4.QtGui import QApplication
 from PyTango import DeviceProxy
 
-from PyQt4.QtGui import QApplication
-
-import numpy
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.Command.Tango import TangoCommand
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import MotorStates
 
 
@@ -38,7 +35,7 @@ class TangoDCMotor(HardwareObject):
 
         # State values as expected by Motor bricks
 
-        Device.__init__(self, name)
+        super().__init__(name)
         self.GUIstep = 0.1
         self.motor_states = MotorStates()
 

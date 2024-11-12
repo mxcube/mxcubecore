@@ -19,12 +19,12 @@
 
 
 import time
+
 import numpy
 
 from mxcubecore.HardwareObjects.abstract.AbstractOnlineProcessing import (
     AbstractOnlineProcessing,
 )
-
 
 __license__ = "LGPLv3"
 

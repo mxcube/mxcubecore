@@ -25,7 +25,6 @@ By default ADXV is used
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
-
 __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"
 __category__ = "General"
@@ -37,7 +36,7 @@ class EMBLImageTracking(HardwareObject):
     """
 
     def __init__(self, *args):
-        Device.__init__(self, *args)
+        super().__init__(*args)
 
         self.state = None
         self.state_dict = {"image_tracking": False, "filter_frames": False}

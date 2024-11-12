@@ -1,17 +1,16 @@
-from typing_extensions import Literal
-
-from pydantic import BaseModel, Field
-from mxcubecore.TaskUtils import task
-from mxcubecore.CommandContainer import CommandObject
-from mxcubecore.HardwareObjects.BeamlineActions import (
-    BeamlineActions,
-    ControllerCommand,
-    AnnotatedCommand,
-)
-from mxcubecore.utils.conversion import camel_to_snake
+import logging
 
 import gevent
-import logging
+from pydantic.v1 import (
+    BaseModel,
+    Field,
+)
+from typing_extensions import Literal
+
+from mxcubecore.HardwareObjects.BeamlineActions import (
+    AnnotatedCommand,
+    BeamlineActions,
+)
 
 
 class SimpleFloat(BaseModel):

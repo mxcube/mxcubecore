@@ -1,8 +1,5 @@
 ---
 
-default_language_version:
-  python: python3.8
-
 repos:
 
   - repo: https://github.com/adrienverge/yamllint
@@ -13,12 +10,12 @@ repos:
           - --strict
 
   - repo: https://github.com/python-poetry/poetry
-    rev: 1.5.0
+    rev: 1.8.0
     hooks:
       - id: poetry-check
 
   - repo: https://github.com/myint/autoflake
-    rev: v1.6.0
+    rev: v2.3.1
     hooks:
       - id: autoflake
         name: Autoflake
@@ -29,14 +26,21 @@ repos:
           - --remove-duplicate-keys
           - --ignore-pass-after-docstring
 
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+
   - repo: https://github.com/psf/black
-    rev: 22.8.0
+    rev: 24.8.0  # The following version (`24.10.0`) dropped support for Python 3.8.
     hooks:
       - id: black
         name: Black
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.3.0
+    rev: v4.6.0
+    # The following version (pre-commit-hooks 5.0.0) requires pre-commit 3.2.0
+    # which does not support Python 3.8 (dropped in pre-commit 3.0.0).
     hooks:
       - id: trailing-whitespace
         # Exclude files from trailing-whitespace checks until we get around fixing them.
@@ -53,7 +57,6 @@ repos:
                 mxcubecore/HardwareObjects/EMBL/EMBL(Energy|DoorInterlock|OnlineProcessing)\.py|
                 mxcubecore/HardwareObjects/mockup/(ISPyBClient|Motor|PlateManipulator)Mockup\.py|
                 mxcubecore/HardwareObjects/abstract/(AbstractXRFSpectrum|sample_changer/Crims)\.py|
-                mxcubecore/HardwareObjects/Gphl/Transcal2MiniKappa\.py|
                 mxcubecore/HardwareObjects/SOLEIL/PX2/PX2Resolution\.py|
                 mxcubecore/HardwareObjects/ESRF/ID29XRFSpectrum\.py
             )$

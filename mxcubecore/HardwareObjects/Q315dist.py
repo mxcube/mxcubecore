@@ -7,7 +7,7 @@ class Q315dist(BaseHardwareObjects.Equipment):
         self.connect("equipmentReady", self.equipmentReady)
         self.connect("equipmentNotReady", self.equipmentNotReady)
 
-        return BaseHardwareObjects.Equipment._init(self)
+        return BaseHardwareObjects.super()._init()
 
     def init(self):
         self.detm = self.get_deviceby_role("detm")

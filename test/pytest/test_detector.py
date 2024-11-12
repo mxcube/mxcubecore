@@ -18,11 +18,16 @@
 """
 """
 
-from __future__ import division, absolute_import
-from __future__ import print_function, unicode_literals
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals,
+)
 
 import math
 from test.pytest import TestHardwareObjectBase
+
 import pytest
 
 __copyright__ = """ Copyright © 2016 - 2020 by MXCuBE Collaboration """

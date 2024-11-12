@@ -4,10 +4,12 @@
 # Generated Thu Feb 9 10:58::29 2023 by EDGenerateDS.
 #
 
-import os, sys
-from xml.dom import minidom
-from xml.dom import Node
-
+import os
+import sys
+from xml.dom import (
+    Node,
+    minidom,
+)
 
 strEdnaHome = os.environ.get("EDNA_HOME", None)
 
@@ -30,21 +32,25 @@ dictLocation = {
 }
 
 try:
-    from XSDataCommon import XSData
-    from XSDataCommon import XSDataDictionary
-    from XSDataCommon import XSDataDouble
-    from XSDataCommon import XSDataFile
-    from XSDataCommon import XSDataInput
-    from XSDataCommon import XSDataInteger
-    from XSDataCommon import XSDataResult
-    from XSDataCommon import XSDataString
-    from XSDataMXv1 import XSDataCollectionPlan
-    from XSDataMXv1 import XSDataDiffractionPlan
-    from XSDataMXv1 import XSDataExperimentalCondition
-    from XSDataCommon import XSDataImage
-    from XSDataMXv1 import XSDataInputCharacterisation
-    from XSDataMXv1 import XSDataResultCharacterisation
-    from XSDataMXv1 import XSDataSampleCrystalMM
+    from XSDataCommon import (
+        XSData,
+        XSDataDictionary,
+        XSDataDouble,
+        XSDataFile,
+        XSDataImage,
+        XSDataInput,
+        XSDataInteger,
+        XSDataResult,
+        XSDataString,
+    )
+    from XSDataMXv1 import (
+        XSDataCollectionPlan,
+        XSDataDiffractionPlan,
+        XSDataExperimentalCondition,
+        XSDataInputCharacterisation,
+        XSDataResultCharacterisation,
+        XSDataSampleCrystalMM,
+    )
 except ImportError as error:
     if strEdnaHome is not None:
         for strXsdName in dictLocation:
@@ -57,24 +63,25 @@ except ImportError as error:
                     sys.path.append(strRoot)
     else:
         raise error
-from XSDataCommon import XSData
-from XSDataCommon import XSDataDictionary
-from XSDataCommon import XSDataDouble
-from XSDataCommon import XSDataFile
-from XSDataCommon import XSDataInput
-from XSDataCommon import XSDataInteger
-from XSDataCommon import XSDataResult
-from XSDataCommon import XSDataString
-from XSDataMXv1 import XSDataCollectionPlan
-from XSDataMXv1 import XSDataDiffractionPlan
-from XSDataMXv1 import XSDataExperimentalCondition
-from XSDataCommon import XSDataImage
-from XSDataMXv1 import XSDataInputCharacterisation
-from XSDataMXv1 import XSDataResultCharacterisation
-from XSDataMXv1 import XSDataSampleCrystalMM
-
-
-
+from XSDataCommon import (
+    XSData,
+    XSDataDictionary,
+    XSDataDouble,
+    XSDataFile,
+    XSDataImage,
+    XSDataInput,
+    XSDataInteger,
+    XSDataResult,
+    XSDataString,
+)
+from XSDataMXv1 import (
+    XSDataCollectionPlan,
+    XSDataDiffractionPlan,
+    XSDataExperimentalCondition,
+    XSDataInputCharacterisation,
+    XSDataResultCharacterisation,
+    XSDataSampleCrystalMM,
+)
 
 #
 # Support/utility functions.

@@ -22,13 +22,13 @@ XRF Spectrum queue implementation of pre_execute, execute and post_execute
 
 import logging
 
-from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.queue_entry.base_queue_entry import (
-    BaseQueueEntry,
     QUEUE_ENTRY_STATUS,
-    QueueExecutionException,
+    BaseQueueEntry,
     QueueAbortedException,
+    QueueExecutionException,
 )
 
 __credits__ = ["MXCuBE collaboration"]
@@ -54,11 +54,12 @@ class XrfSpectrumQueueEntry(BaseQueueEntry):
     def execute(self):
         """Execute"""
         super().execute()
-
         if HWR.beamline.xrf_spectrum is not None:
             xrf_spectrum = self.get_data_model()
+            if xrf_spectrum.shape is not None:
+                point = HWR.beamline.sample_view.get_shape(xrf_spectrum.shape)
+                xrf_spectrum.centred_position = point.get_centred_position()
             self.get_view().setText(1, "Starting xrf spectrum")
-
             path_template = xrf_spectrum.path_template
             HWR.beamline.xrf_spectrum.start_spectrum(
                 integration_time=xrf_spectrum.count_time,
@@ -67,6 +68,7 @@ class XrfSpectrumQueueEntry(BaseQueueEntry):
                 prefix=f"{path_template.get_prefix()}_{path_template.run_number}",
                 session_id=HWR.beamline.session.session_id,
                 blsample_id=xrf_spectrum._node_id,
+                cpos=xrf_spectrum.centred_position,
             )
             HWR.beamline.xrf_spectrum._ready_event.wait()
             HWR.beamline.xrf_spectrum._ready_event.clear()

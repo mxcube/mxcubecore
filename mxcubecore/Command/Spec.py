@@ -19,16 +19,18 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 try:
+    from SpecClient_gevent import SpecVariable
     from SpecClient_gevent.SpecCommand import SpecCommandA
     from SpecClient_gevent.SpecVariable import SpecVariableA
-    from SpecClient_gevent import SpecVariable
 except ImportError:
     from SpecClient.SpecCommand import SpecCommandA
     from SpecClient.SpecVariable import SpecVariableA
     from SpecClient import SpecVariable
 
-from mxcubecore.CommandContainer import CommandObject, ChannelObject
-
+from mxcubecore.CommandContainer import (
+    ChannelObject,
+    CommandObject,
+)
 
 __copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"

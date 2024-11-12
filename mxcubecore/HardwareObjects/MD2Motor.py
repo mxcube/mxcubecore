@@ -1,6 +1,11 @@
 import logging
-from gevent import Timeout, sleep
 from warnings import warn
+
+from gevent import (
+    Timeout,
+    sleep,
+)
+
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import (
     AbstractMotor,
     MotorStates,

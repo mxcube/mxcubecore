@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mxcubecore"
-version = "1.135.0"
+version = "1.191.0"
 license = "LGPL-3.0-or-later"
 description = "Core libraries for the MXCuBE application"
 authors = ["The MXCuBE collaboration <mxcube@esrf.fr>"]
@@ -34,8 +34,8 @@ jsonschema = "^4.17.1"
 lxml = "^4.9.1"
 matplotlib = "^3.6.2"
 numpy = "^1.23.5"
-Pillow = "^9.3.0"
-pydantic = "^1.10.2"
+Pillow = "^10.4.0"
+pydantic = ">=2.8.2,<2.9.0"
 PyDispatcher = "^2.0.6"
 "ruamel.yaml" = "^0.17.21"
 scipy = "^1.9.3"
@@ -91,14 +91,10 @@ mxcubecore/HardwareObjects/EMBL/TINEMotor.py,
 mxcubecore/HardwareObjects/ESRF/ID30A1MultiCollect.py,
 mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_chip_collection.py,
 mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_injector_collection.py,
-mxcubecore/HardwareObjects/Gphl/GphlWorkflow.py,
 mxcubecore/HardwareObjects/LNLS/EPICSActuator.py,
 mxcubecore/HardwareObjects/LNLS/LNLSCollect.py,
 mxcubecore/HardwareObjects/LNLS/LNLSDetDistMotor.py,
 mxcubecore/HardwareObjects/Lima2Detector.py,
-mxcubecore/HardwareObjects/MAXIV/BIOMAXCollect.py,
-mxcubecore/HardwareObjects/MAXIV/BIOMAXEiger.py,
-mxcubecore/HardwareObjects/MAXIV/BIOMAXMD3Camera.py,
 mxcubecore/HardwareObjects/MAXIV/MAXIVAutoProcessing.py,
 mxcubecore/HardwareObjects/MAXIV/autoProcLauncher.py,
 mxcubecore/HardwareObjects/MAXIV/ednaProcLauncher.py,
@@ -115,8 +111,6 @@ mxcubecore/HardwareObjects/SOLEIL/SOLEILqueue_entry.py,
 mxcubecore/HardwareObjects/TangoLimaMpegVideo.py,
 mxcubecore/HardwareObjects/XSDataMXCuBEv1_4.py,
 mxcubecore/HardwareObjects/XSDataMXv1.py,
-mxcubecore/model/common.py,
-mxcubecore/model/queue_model_objects.py,
 """
 
 [tool.black]
@@ -133,8 +127,6 @@ force-exclude = '''
   | buck-out
   | build
   | dist
-  # this file contains invalid python syntax
-  | mxcubecore/HardwareObjects/ESRF/ESRFMultiCollect.py
 #
 # Exclude files below from black checks until we get around fixing them.
 # This way we can check that all other files are black clean in CI.
@@ -153,8 +145,6 @@ force-exclude = '''
   | mxcubecore/HardwareObjects/DESY/P11DetectorCover.py
   | mxcubecore/HardwareObjects/Beamline.py
   | mxcubecore/HardwareObjects/DESY/P11DetectorDistance.py
-  | mxcubecore/HardwareObjects/DESY/P11Pinhole.py
-  | mxcubecore/HardwareObjects/DESY/P11EDNACharacterisation.py
   | mxcubecore/HardwareObjects/DESY/P11Shutter.py
   | mxcubecore/HardwareObjects/EMBL/EMBLAperture.py
   | mxcubecore/HardwareObjects/EMBL/EMBLBSD.py
@@ -185,6 +175,7 @@ force-exclude = '''
   | mxcubecore/HardwareObjects/ESRF/ID231BeamCmds.py
   | mxcubecore/HardwareObjects/ESRF/ID232BeamDefiner.py
   | mxcubecore/HardwareObjects/ESRF/ESRFEnergyScan.py
+  | mxcubecore/HardwareObjects/ESRF/ESRFMultiCollect.py
   | mxcubecore/HardwareObjects/ESRF/ID29EnergyScan.py
   | mxcubecore/HardwareObjects/ESRF/ID232MultiCollect.py
   | mxcubecore/HardwareObjects/ESRF/ID29MultiCollect.py
@@ -194,11 +185,8 @@ force-exclude = '''
   | mxcubecore/HardwareObjects/ESRF/ID30A3MultiCollect.py
   | mxcubecore/HardwareObjects/ESRF/Oxford700.py
   | mxcubecore/HardwareObjects/ESRF/ID29XRFSpectrum.py
-  | mxcubecore/HardwareObjects/Gphl/GphlMessages.py
   | mxcubecore/HardwareObjects/GenericDiffractometer.py
-  | mxcubecore/HardwareObjects/Gphl/Transcal2MiniKappa.py
   | mxcubecore/HardwareObjects/LNLS/EPICSActuator.py
-  | mxcubecore/HardwareObjects/Gphl/GphlWorkflowConnection.py
   | mxcubecore/HardwareObjects/LNLS/EPICSMotor.py
   | mxcubecore/HardwareObjects/LNLS/LNLSAperture.py
   | mxcubecore/HardwareObjects/LNLS/EPICSNState.py
@@ -213,19 +201,13 @@ force-exclude = '''
   | mxcubecore/HardwareObjects/LNLS/read_transmission_mnc.py
   | mxcubecore/HardwareObjects/LNLS/set_transmission_mnc.py
   | mxcubecore/HardwareObjects/Lima2Detector.py
-  | mxcubecore/HardwareObjects/Gphl/GphlWorkflow.py
   | mxcubecore/HardwareObjects/ISPyBClient.py
-  | mxcubecore/HardwareObjects/MAXIV/BIOMAXEiger.py
-  | mxcubecore/HardwareObjects/MotorsNPosition.py
-  | mxcubecore/HardwareObjects/MAXIV/BIOMAXMD3.py
   | mxcubecore/HardwareObjects/PlateManipulatorMaintenance.py
-  | mxcubecore/HardwareObjects/MAXIV/BIOMAXCollect.py
   | mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Cryotong.py
   | mxcubecore/HardwareObjects/PlateManipulator.py
   | mxcubecore/HardwareObjects/SOLEIL/PX2/PX2Resolution.py
   | mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Pilatus.py
   | mxcubecore/HardwareObjects/SOLEIL/PX2/PX2Collect.py
-  | mxcubecore/HardwareObjects/SOLEIL/SOLEILLdapLogin.py
   | mxcubecore/HardwareObjects/SOLEIL/TangoDCMotor.py
   | mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Collect.py
   | mxcubecore/HardwareObjects/SOLEIL/SOLEILMachineInfo.py
@@ -234,12 +216,9 @@ force-exclude = '''
   | mxcubecore/HardwareObjects/abstract/sample_changer/Crims.py
   | mxcubecore/HardwareObjects/abstract/AbstractCollect.py
   | mxcubecore/HardwareObjects/mockup/MotorMockup.py
-  | mxcubecore/HardwareObjects/mockup/ISPyBClientMockup.py
   | mxcubecore/HardwareObjects/mockup/ShutterMockup.py
-  | mxcubecore/HardwareObjects/mockup/XRFSpectrumMockup.py
   | mxcubecore/Poller.py
   | mxcubecore/HardwareObjects/mockup/PlateManipulatorMockup.py
-  | mxcubecore/model/crystal_symmetry.py
   | mxcubecore/HardwareObjects/XSDataMXCuBEv1_4.py
   | mxcubecore/HardwareObjects/XSDataMXv1.py
 )

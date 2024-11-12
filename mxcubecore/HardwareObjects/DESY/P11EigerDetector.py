@@ -18,7 +18,7 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-__copyright__ = """ Copyright © 2010 - 2024 by MXCuBE Collaboration """
+__copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
 
 import gevent
@@ -210,6 +210,7 @@ class P11EigerDetector(AbstractDetector):
 
     def start_acquisition(self):
         self.eiger_dev.Arm()
+        self.wait_ready()
 
     def stop_acquisition(self):
         self.eiger_dev.Abort()
@@ -220,7 +221,7 @@ class P11EigerDetector(AbstractDetector):
     def wait_ready(self, timeout=30):
         with gevent.Timeout(timeout, RuntimeError("timeout waiting detector ready")):
             while self.chan_status.get_value().lower() not in ["ready", "idle"]:
-                gevent.sleep(1)
+                gevent.sleep(2)
 
     def status_changed(self, status):
         self.log.debug("P11EigerDetector - status changed. now is %s" % status)
@@ -264,3 +265,8 @@ class P11EigerDetector(AbstractDetector):
 
     def get_eiger_name_pattern(self):
         return self.writer_dev.NamePattern
+
+    def get_latest_local_master_image_name(self):
+        latest_image = self.get_eiger_name_pattern()
+        latest_image = f"/gpfs{latest_image}_master.h5"
+        return latest_image

@@ -20,32 +20,39 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
 """
-from __future__ import division, absolute_import
-from __future__ import print_function, unicode_literals
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals,
+)
 
 import logging
 import os
-import subprocess
-import uuid
 import signal
-import time
+import socket
+import subprocess
 import sys
+import time
+import uuid
 
-from py4j import clientserver, java_gateway
+from py4j import (
+    clientserver,
+    java_gateway,
+)
 from py4j.protocol import Py4JJavaError
 
-from mxcubecore.utils import conversion
-from mxcubecore.HardwareObjects.Gphl import GphlMessages
-
-from mxcubecore.BaseHardwareObjects import HardwareObjectYaml
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObjectYaml
+from mxcubecore.HardwareObjects.Gphl import GphlMessages
+from mxcubecore.utils import conversion
 
 # NB this is patching the original socket module in to avoid the
 # monkeypatched version we get from gevent - that causes errors.
 # It depends on knowing where in py4j socket is imported
 # Hacky, but the best solution to making py4j and gevent compatible
 
-import socket
+
 origsocket = sys.modules.pop("socket")
 _origsocket = sys.modules.pop("_socket")
 import socket
@@ -66,9 +73,11 @@ except ImportError:
     try:
         from louie import dispatcher
     except ImportError:
-        from pydispatch import dispatcher
-        from pydispatch import robustapply
-        from pydispatch import saferef
+        from pydispatch import (
+            dispatcher,
+            robustapply,
+            saferef,
+        )
 
         saferef.safe_ref = saferef.safeRef
         robustapply.robust_apply = robustapply.robustApply
@@ -288,9 +297,9 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         # Set the workflow root subdirectory parameter from the base image directory
         image_root = os.path.abspath(HWR.beamline.session.get_base_image_directory())
         if strategy_settings["wftype"] != "transcal":
-            workflow_options[
-                "appdir"
-            ] = HWR.beamline.session.get_base_process_directory()
+            workflow_options["appdir"] = (
+                HWR.beamline.session.get_base_process_directory()
+            )
             rootsubdir = path_template.directory[len(image_root) :]
             if rootsubdir.startswith(os.path.sep):
                 rootsubdir = rootsubdir[1:]
@@ -332,7 +341,7 @@ class GphlWorkflowConnection(HardwareObjectYaml):
                 )
 
         for ss0 in command_list:
-            ss0 = ss0.rsplit('=', maxsplit=1)[-1]
+            ss0 = ss0.rsplit("=", maxsplit=1)[-1]
             if ss0.startswith("/") and "*" not in ss0 and not os.path.exists(ss0):
                 logging.getLogger("HWR").warning("File does not exist : %s", ss0)
 
@@ -496,15 +505,19 @@ class GphlWorkflowConnection(HardwareObjectYaml):
 
         if not self.msg_class_imported:
             try:
-                msg_class = self._gateway.jvm.py4j.reflection.ReflectionUtil.classForName(
-                    "co.gphl.sdcp.astra.service.py4j.Py4jMessage"
+                msg_class = (
+                    self._gateway.jvm.py4j.reflection.ReflectionUtil.classForName(
+                        "co.gphl.sdcp.astra.service.py4j.Py4jMessage"
+                    )
                 )
                 java_gateway.java_import(
                     self._gateway.jvm, "co.gphl.sdcp.astra.service.py4j.Py4jMessage"
                 )
             except Py4JJavaError:
-                msg_class = self._gateway.jvm.py4j.reflection.ReflectionUtil.classForName(
-                    "co.gphl.sdcp.py4j.Py4jMessage"
+                msg_class = (
+                    self._gateway.jvm.py4j.reflection.ReflectionUtil.classForName(
+                        "co.gphl.sdcp.py4j.Py4jMessage"
+                    )
                 )
                 java_gateway.java_import(
                     self._gateway.jvm, "co.gphl.sdcp.py4j.Py4jMessage"
@@ -1060,12 +1073,8 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         )
         scanIdMap = {}
         for item in collectionDone.scanIdMap.items():
-            scanIdMap[
-                jvm.java.util.UUID.fromString(
-                    conversion.text_type(item[0])
-                )
-            ] = jvm.java.util.UUID.fromString(
-                conversion.text_type(item[1])
+            scanIdMap[jvm.java.util.UUID.fromString(conversion.text_type(item[0]))] = (
+                jvm.java.util.UUID.fromString(conversion.text_type(item[1]))
             )
         return jvm.astra.messagebus.messages.information.CollectionDoneImpl(
             proposalId,

@@ -17,25 +17,23 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 """Abstract Online Processing class
 """
-import os
-import time
-import logging
 import json
+import logging
+import os
 import subprocess
-
+import time
 from copy import copy
+
+import gevent
+import matplotlib.pyplot as plt
+import numpy as np
+import SimpleHTML
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy import ndimage
 from scipy.interpolate import UnivariateSpline
-import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-import numpy as np
-import gevent
-
-import SimpleHTML
-from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore import HardwareRepository as HWR
-
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 __copyright__ = """ Copyright © 2010-2022 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -224,9 +222,9 @@ class AbstractOnlineProcessing(HardwareObject):
         if not acq_params.num_images_per_trigger:
             self.params_dict["num_images_per_trigger"] = 1
         else:
-            self.params_dict[
-                "num_images_per_trigger"
-            ] = acq_params.num_images_per_trigger
+            self.params_dict["num_images_per_trigger"] = (
+                acq_params.num_images_per_trigger
+            )
 
         self.params_dict["status"] = "Started"
         self.params_dict["title"] = "%s_%d_#####.cbf (%d - %d)" % (
@@ -770,13 +768,13 @@ class AbstractOnlineProcessing(HardwareObject):
                 center_x = ndimage.measurements.center_of_mass(
                     self.results_aligned["score"]
                 )[0]
-                self.results_aligned[
-                    "center_mass"
-                ] = HWR.beamline.diffractometer.get_point_from_line(
-                    centred_positions[0],
-                    centred_positions[1],
-                    center_x,
-                    self.params_dict["images_num"],
+                self.results_aligned["center_mass"] = (
+                    HWR.beamline.diffractometer.get_point_from_line(
+                        centred_positions[0],
+                        centred_positions[1],
+                        center_x,
+                        self.params_dict["images_num"],
+                    )
                 )
             else:
                 self.results_aligned["center_mass"] = centred_positions[0]

@@ -23,8 +23,9 @@ Test suite to be used by any class, inheriting from AbstractNState
 __copyright__ = """ Copyright © 2016 - 2022 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
-from test.pytest import TestAbstractActuatorBase
 import abc
+from test.pytest import TestAbstractActuatorBase
+
 import pytest
 
 test_object = TestAbstractActuatorBase.test_object
@@ -62,7 +63,7 @@ class TestAbstractNStateBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
         if test_object.read_only:
             return
 
-        values = list(val for val in test_object.VALUES if val != "UNKNOWN")
+        values = list(val for val in test_object.VALUES if val.name != "UNKNOWN")
         val1, val2 = values[:2]
 
         # Must be set first so the next command causes a change
@@ -77,7 +78,7 @@ class TestAbstractNStateBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
         if test_object.read_only:
             return
 
-        values = list(val for val in test_object.VALUES if val != "UNKNOWN")
+        values = list(val for val in test_object.VALUES if val.name != "UNKNOWN")
         val1, val2 = values[:2]
 
         # Must be set first so the next command causes a change
