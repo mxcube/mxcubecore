@@ -61,7 +61,7 @@ to use the instrument).
 
 ### User-based login
 
-When user-based login is used, the user authenticates with their peronsal
+When user-based login is used, the user authenticates with their personal
 credentials and the authorization is generally handled as described above.
 There may be local deviations from this defined by the LIMS system and
 HardwareObject used. Any number of users can be logged in at the same time
@@ -70,8 +70,8 @@ HardwareObject used. Any number of users can be logged in at the same time
 ### Proposal-based login
 
 When proposal-based login is used, the user authenticates with the proposal
-credentials. Only one proposal can be logged in at the time; however, a proposal
-can be logged-in any number of times, with only one instance active at the time.
+credentials. Only one proposal can be active at the time; however, a proposal
+can be logged-in any number of times (with only one instance active at the time).
 
 
 ## Internal data model
