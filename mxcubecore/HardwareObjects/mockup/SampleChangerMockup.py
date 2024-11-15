@@ -75,12 +75,12 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
 
     def load(self, sample, wait=False):
         logging.getLogger("HWR").debug("get in load smaple in SampleChangerMockup.py")
-        self.emit("fsmConditionChanged", "sample_mounting_sample_changer", True)
+        # self.emit("fsmConditionChanged", "sample_mounting_sample_changer", True)
 
 
 
         previous_sample = self.get_loaded_sample()
-        self._set_state(AbstractSampleChanger.SampleChangerState.Loading)
+        self._set_state(AbstractSampleChanger.SampleChangerState.Loading)   # 此处好像也传递给了前端状态，调用了signals中的sc_state_changed()
         self._reset_loaded_sample()
 
         if isinstance(sample, tuple):
@@ -96,10 +96,10 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
             "Sample changer: %s. Please wait..." % msg
         )
 
-        self.emit("progressInit", (msg, 100))
-        for step in range(2 * 100):
-            self.emit("progressStep", int(step / 2.0))
-            time.sleep(0.01)
+        # self.emit("progressInit", (msg, 100))
+        # for step in range(2 * 100):
+        #     self.emit("progressStep", int(step / 2.0))
+        #     time.sleep(0.01)
 
         mounted_sample = self.get_component_by_address(
             Container.Pin.get_sample_address(basket, sample)
