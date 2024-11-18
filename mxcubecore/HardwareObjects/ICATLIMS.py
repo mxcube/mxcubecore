@@ -60,7 +60,7 @@ class ICATLIMS(AbstractLims):
         self, user_name: str, password: str, is_local_host: bool
     ) -> LimsSessionManager:
 
-        logging.getLogger("MX3.HWR").debug("[ICAT] authenticate %s" % (user_name))
+        logging.getLogger("HWR").debug("[ICAT] authenticate %s" % (user_name))
 
         self.icat_session: ICATSession = self.icatClient.do_log_in(password)
         # Catalogue client to retrieve investigations
@@ -70,21 +70,21 @@ class ICATLIMS(AbstractLims):
         self.tracking = self.icatClient.tracking_client
 
         if self.catalogue is None or self.tracking is None:
-            logging.getLogger("MX3.HWR").error(
+            logging.getLogger("HWR").error(
                 "[ICAT] Error initializing catalogue/tracking. catalogue=%s tracking=%s"
                 % (self.url, self.url)
             )
             raise RuntimeError("Could not initialize catalogue/tracking")
 
         # Connected to metadata catalogue
-        logging.getLogger("MX3.HWR").debug(
+        logging.getLogger("HWR").debug(
             "[ICAT] Connected succesfully to catalogue. fullName=%s url=%s"
             % (self.icat_session["fullName"], self.url)
         )
 
         # Retrieving user's investigations
         sessions = self.to_sessions(self.__get_all_investigations())
-        logging.getLogger("MX3.HWR").debug(
+        logging.getLogger("HWR").debug(
             "[ICAT] Successfully retrieved %s sessions" % (len(sessions))
         )
         self.set_sessions(sessions)
@@ -94,16 +94,16 @@ class ICATLIMS(AbstractLims):
         return True
 
     def get_proposals_by_user(self, user_name):
-        logging.getLogger("MX3.HWR").debug("get_proposals_by_user %s" % user_name)
+        logging.getLogger("HWR").debug("get_proposals_by_user %s" % user_name)
 
-        logging.getLogger("MX3.HWR").debug(
+        logging.getLogger("HWR").debug(
             "[ICATCLient] Read %s investigations" % len(self.lims_rest.investigations)
         )
         return self.lims_rest.to_sessions(self.lims_rest.investigations)
 
     def get_samples(self, lims_name):
         try:
-            logging.getLogger("MX3.HWR").debug(
+            logging.getLogger("HWR").debug(
                 "[ICATClient] get_samples %s %s lims_name=%s",
                 self.session_manager.active_session.session_id,
                 self.session_manager.active_session.proposal_name,
@@ -113,7 +113,7 @@ class ICATLIMS(AbstractLims):
             queue_samples = []
             for parcel in parcels:
                 pucks = parcel["content"]
-                logging.getLogger("MX3.HWR").debug(
+                logging.getLogger("HWR").debug(
                     "[ICATClient] Reading parcel '%s' with '%s' pucks"
                     % (parcel["name"], len(pucks))
                 )
@@ -121,7 +121,7 @@ class ICATLIMS(AbstractLims):
                 for puck in pucks:
                     tracking_samples = puck["content"]
                     if "sampleChangerLocation" in puck:
-                        logging.getLogger("MX3.HWR").debug(
+                        logging.getLogger("HWR").debug(
                             "[ICATClient] Processing puck '%s' within parcel '%s' at position '%s'. Number of samples '%s'"
                             % (
                                 puck["name"],
@@ -136,10 +136,10 @@ class ICATLIMS(AbstractLims):
                             )
 
         except Exception as e:
-            logging.getLogger("MX3.HWR").error(e)
+            logging.getLogger("HWR").error(e)
             return []
 
-        logging.getLogger("MX3.HWR").debug(
+        logging.getLogger("HWR").debug(
             "[ICATClient] Read %s samples" % (len(queue_samples))
         )
 
@@ -286,13 +286,13 @@ class ICATLIMS(AbstractLims):
 
     def allow_session(self, session: Session):
         self.active_session = session
-        logging.getLogger("MX3.HWR").debug(
+        logging.getLogger("HWR").debug(
             "[ICAT] allow_session investigationId=%s", session.session_id
         )
         self.catalogue.reschedule_investigation(session.session_id)
 
     def get_session_by_id(self, id: str):
-        logging.getLogger("MX3.HWR").debug(
+        logging.getLogger("HWR").debug(
             "[ICAT] get_session_by_id investigationId=%s investigations=%s",
             id,
             str(len(self.investigations)),
@@ -301,7 +301,7 @@ class ICATLIMS(AbstractLims):
         if len(investigation_list) == 1:
             self.investigation = investigation_list[0]
             return self.__to_session(investigation_list[0])
-        logging.getLogger("MX3.HWR").warn(
+        logging.getLogger("HWR").warn(
             "[ICAT] No investigation found. get_session_by_id investigationId=%s investigations=%s",
             id,
             str(len(self.investigations)),
@@ -313,7 +313,7 @@ class ICATLIMS(AbstractLims):
         one experimental session. It returns an empty array in case of error"""
         try:
             self.investigations = []
-            logging.getLogger("MX3.HWR").debug(
+            logging.getLogger("HWR").debug(
                 "[ICAT] __get_all_investigations before=%s after=%s beamline=%s isInstrumentScientist=%s isAdministrator=%s compatible_beamlines=%s"
                 % (
                     self.before_offset_days,
@@ -345,16 +345,14 @@ class ICATLIMS(AbstractLims):
                     end_date=datetime.today()
                     + timedelta(days=float(self.after_offset_days)),
                 )
-            logging.getLogger("MX3.HWR").debug(
+            logging.getLogger("HWR").debug(
                 "[ICAT] __get_all_investigations retrieved %s investigations"
                 % len(self.investigations)
             )
             return self.investigations
         except Exception as e:
             self.investigations = []
-            logging.getLogger("MX3.HWR").error(
-                "[ICAT] __get_all_investigations %s " % e
-            )
+            logging.getLogger("HWR").error("[ICAT] __get_all_investigations %s " % e)
         return self.investigations
 
     def __get_proposal_number_by_investigation(self, investigation):
@@ -469,19 +467,19 @@ class ICATLIMS(AbstractLims):
     def get_parcels_by_investigation_id(self):
         """Returns the parcels associated to an investigation"""
         try:
-            logging.getLogger("MX3.HWR").debug(
+            logging.getLogger("HWR").debug(
                 "[ICAT] Retrieving parcels by investigation_id %s "
                 % (self.session_manager.active_session.session_id)
             )
             parcels = self.tracking.get_parcels_by(
                 self.session_manager.active_session.session_id
             )
-            logging.getLogger("MX3.HWR").debug(
+            logging.getLogger("HWR").debug(
                 "[ICAT] Successfully retrieved %s parcels" % (len(parcels))
             )
             return parcels
         except Exception as e:
-            logging.getLogger("MX3.HWR").error(
+            logging.getLogger("HWR").error(
                 "[ICAT] get_parcels_by_investigation_id %s " % (str(e))
             )
         return []

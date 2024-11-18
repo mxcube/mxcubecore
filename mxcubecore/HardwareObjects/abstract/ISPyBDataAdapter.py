@@ -237,10 +237,10 @@ class ISPyBDataAdapter:
         )
 
     def _debug(self, msg: str):
-        logging.getLogger("MX3.HWR").debug(msg)
+        logging.getLogger("HWR").debug(msg)
 
     def _error(self, msg: str):
-        logging.getLogger("MX3.HWR").error(msg)
+        logging.getLogger("HWR").error(msg)
 
     def find_session(self, session_id: str) -> Session:
         try:
