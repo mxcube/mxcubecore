@@ -425,7 +425,7 @@ class AbstractLims(HardwareObject, abc.ABC):
         """
         TBD
         """
-        return self._is_time_between(start_date, end_date)
+        return self.is_time_between(start_date, end_date)
 
     def is_time_between(self, start_date: str, end_date: str, check_time=None):
         """
