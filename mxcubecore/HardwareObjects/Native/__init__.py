@@ -106,7 +106,7 @@ def queue_update_result(server_hwobj, node_id, html_report):
     return result
 
 
-def queue_get_full_path(server_hwobj, suddir, tag):
+def queue_get_full_path(server_hwobj, subdir, tag):
     """ """
     return HWR.beamline.session.get_full_path(subdir, tag)
 
@@ -137,7 +137,15 @@ def queue_get_model_code(server_hwobj):
     # standard Python modules, so we only need to send over the code for the
     # queue model itself
 
+    queue_model_enumerables_code = inspect.getsource(queue_model_enumerables)
+
+    queue_model_objects_code = inspect.getsource(queue_model_objects)
+    queue_model_objects_code = queue_model_objects_code.replace(
+        "from mxcubecore import HardwareRepository as HWR",
+        "HWR = None  # HardwareRepository not available in this context",
+    )
+
     return [
-        (queue_model_enumerables.__name__, inspect.getsource(queue_model_enumerables)),
-        (queue_model_objects.__name__, inspect.getsource(queue_model_objects)),
+        (queue_model_enumerables.__name__, queue_model_enumerables_code),
+        (queue_model_objects.__name__, queue_model_objects_code),
     ]

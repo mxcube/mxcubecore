@@ -31,9 +31,7 @@ def poll_image(lima_tango_device, video_mode, FORMATS):
 
     hfmt = ">IHHqiiHHHH"
     hsize = struct.calcsize(hfmt)
-    _, _, img_mode, frame_number, width, height, _, _, _, _ = struct.unpack(
-        hfmt, img_data[1][:hsize]
-    )
+    _, _, _, _, width, height, _, _, _, _ = struct.unpack(hfmt, img_data[1][:hsize])
 
     raw_data = img_data[1][hsize:]
     _from, _to = FORMATS.get(video_mode, (None, None))
@@ -53,10 +51,6 @@ def poll_image(lima_tango_device, video_mode, FORMATS):
 class TangoLimaVideo(BaseHardwareObjects.HardwareObject):
     def __init__(self, name):
         super().__init__(name)
-        self.__brightnessExists = False
-        self.__contrastExists = False
-        self.__gainExists = False
-        self.__gammaExists = False
         self.__polling = None
         self._video_mode = None
         self._last_image = (0, 0, 0)
@@ -106,7 +100,7 @@ class TangoLimaVideo(BaseHardwareObjects.HardwareObject):
             else:
                 logging.getLogger("HWR").info("MXCuBE NOT controlling video")
 
-        self.set_is_ready(True)
+        self.update_state(BaseHardwareObjects.HardwareObjectState.READY)
 
     def get_last_image(self):
         return poll_image(self.device, self.video_mode, self._FORMATS)

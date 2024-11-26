@@ -1,15 +1,12 @@
 import atexit
 import time
 
-import numpy as np
 from pymba import Vimba
 
 try:
     import cv2
 except ImportError:
     pass
-
-from abstract.AbstractVideoDevice import AbstractVideoDevice
 
 from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import AbstractVideoDevice
 from mxcubecore.utils.qt_import import (

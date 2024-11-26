@@ -32,7 +32,7 @@ class MDCameraMockup(BaseHardwareObjects.HardwareObject):
         self.connected = False
         self.image_name = self.get_property("image_name")
         self.image = HWR.get_hardware_repository().find_in_repository(self.image_name)
-        self.set_is_ready(True)
+        self.update_state(BaseHardwareObjects.HardwareObjectState.READY)
         self._video_stream_process = None
         self._current_stream_size = (0, 0)
 
@@ -93,9 +93,6 @@ class MDCameraMockup(BaseHardwareObjects.HardwareObject):
     def set_live(self, state) -> bool:
         self.liveState = state
         return True
-
-    def imageType(self):
-        return None
 
     def get_last_image(self) -> Tuple[bytes, int, int]:
         image = Image.open(self.image)

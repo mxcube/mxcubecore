@@ -348,9 +348,6 @@ class LNLSCamera(BaseHardwareObjects.HardwareObject):
         except:
             return False
 
-    def imageType(self):
-        return None
-
     def takeSnapshot(self, *args):
         pass
         #imgFile = QtCore.QFile(args[0])
