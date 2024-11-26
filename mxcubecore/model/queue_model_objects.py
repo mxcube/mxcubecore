@@ -2297,7 +2297,12 @@ class GphlWorkflow(TaskNode):
                         )
                     )
                 self.wavelengths = tuple(wavelengths)
-            else:
+            elif not (
+                len(energies) == len(energy_tags)
+                and len(energies) == len(wavelengths)
+                and self.automation_mode
+            ):
+                # In automation mode energies and wavelengths are set together earlier
                 raise ValueError(
                     "Number of energies %s do not match remaining slots %s"
                     % (energies, energy_tags[len(self.wavelengths) :])
