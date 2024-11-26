@@ -29,12 +29,14 @@ from suds import WebFault
 from suds.transport import TransportError
 
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.HardwareObjects.ISPyBClient import ISPyBClient
+from mxcubecore.mxcubecore.HardwareObjects.ProposalTypeISPyBLims import (
+    ProposalISPyBClient,
+)
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
 
-class P11ISPyBClient(ISPyBClient):
+class P11ISPyBClient(ProposalISPyBClient):
     def init(self):
         ISPyBClient.init(self)
 

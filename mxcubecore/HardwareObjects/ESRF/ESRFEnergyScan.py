@@ -438,7 +438,7 @@ def StoreEnergyScanThread(db_conn, scan_info):
     scan_info.pop("blSampleId")
 
     try:
-        db_status = db_conn.storeEnergyScan(scan_info)
+        db_status = db_conn.store_energy_scan(scan_info)
         if blsample_id is not None:
             try:
                 escan_id = int(db_status["energyScanId"])
@@ -446,6 +446,6 @@ def StoreEnergyScanThread(db_conn, scan_info):
                 pass
             else:
                 asso = {"blSampleId": blsample_id, "energyScanId": escan_id}
-                db_conn.associateBLSampleAndEnergyScan(asso)
+                db_conn.associate_bl_sample_and_energy_scan(asso)
     except Exception as e:
         print(e)

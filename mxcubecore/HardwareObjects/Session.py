@@ -150,7 +150,10 @@ class Session(HardwareObject):
         directory = ""
 
         if self.session_start_date:
-            start_time = self.session_start_date.split(" ")[0].replace("-", "")
+            # start_time = self.session_start_date.split(" ")[0].replace("-", "")
+            start_time = (
+                self.session_start_date
+            )  # .strftime("%Y%m%d")  # .split(" ")[0].replace("-", "")
         else:
             start_time = time.strftime("%Y%m%d")
 
@@ -345,7 +348,7 @@ class Session(HardwareObject):
 
             proposal = "%s%s" % (self.proposal_code, self.proposal_number)
 
-        return proposal
+        return proposal.lower().replace("-", "")
 
     def is_inhouse(self, proposal_code=None, proposal_number=None):
         """

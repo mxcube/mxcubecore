@@ -300,7 +300,7 @@ class XRFSpectrum(HardwareObject):
             return
         blsampleid = self.spectrumInfo["blSampleId"]
 
-        db_status = HWR.beamline.lims.storeXfeSpectrum(self.spectrumInfo)
+        db_status = HWR.beamline.lims.store_xfe_spectrum(self.spectrumInfo)
 
     def updateXrfSpectrum(self, spectrum_id, jpeg_spectrum_filename):
         pass
