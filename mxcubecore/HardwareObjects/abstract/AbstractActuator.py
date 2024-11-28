@@ -30,6 +30,7 @@ import math
 from ast import literal_eval
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
+from gevent.lock import RLock
 
 __copyright__ = """ Copyright © 2010-2022 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -50,6 +51,7 @@ class AbstractActuator(HardwareObject):
         self.read_only = False
         self.default_value = None
         self.username = None
+        self._lock = RLock()
 
     def init(self):
         """Initialise actuator_name, username, read_only and default_value
@@ -130,16 +132,18 @@ class AbstractActuator(HardwareObject):
             ValueError: Invalid value or attemp to set read only actuator.
             RuntimeError: Timeout waiting for status ready  # From wait_ready
         """
-        if self.read_only:
-            raise ValueError("Attempt to set value for read-only Actuator")
-        if self.validate_value(value):
-            self._set_value(value)
-            self.update_value()
-            if timeout == 0:
-                return
-            self.wait_ready(timeout)
-        else:
-            raise ValueError(f"Invalid value {value}")
+
+        with self._lock:
+            if self.read_only:
+                raise ValueError("Attempt to set value for read-only Actuator")
+            if self.validate_value(value):
+                self._set_value(value)
+                self.update_value()
+                if timeout == 0:
+                    return
+                self.wait_ready(timeout)
+            else:
+                raise ValueError(f"Invalid value {value}")
 
     def update_value(self, value=None):
         """Check if the value has changed. Emits signal valueChanged.
