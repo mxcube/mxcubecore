@@ -86,6 +86,12 @@ __author__ = "Rasmus H Fogh"
 EMULATION_DATA = {
     "3n0s": {"radiationSensitivity": 0.9},
     "4j8p": {"radiationSensitivity": 1.1},
+    "4mxt":{
+        "exposureTime": 0.055,
+        "oscillationRange": 0.15,
+        "radiationSensitivity": 1.0,
+        "energy": 12.2222,
+    },
 }
 
 # Centring modes for use in centring mode pulldown.
@@ -2759,14 +2765,11 @@ class GphlWorkflow(HardwareObjectYaml):
                     # Use "Mad, "SAD", "OSC"
                     dfp = data["diffractionPlan"] = {
                         # "diffractionPlanId": 457980,
-                        "experimentKind": "Default",
-                        "numberOfPositions": 0,
-                        "observedResolution": 0.0,
-                        "preferredBeamDiameter": 0.0,
+                        # "experimentKind": "Default",
+                        "exposureTime": 0.0,
+                        "oscillationRange": 0.0,
                         "radiationSensitivity": 1.0,
-                        "requiredCompleteness": 0.0,
-                        "requiredMultiplicity": 0.0,
-                        # "requiredResolution": 0.0,
+                        "energy": 0.0,
                     }
                     dfp["aimedResolution"] = resolution
                     dfp["diffractionPlanId"] = 5000000 + serial
