@@ -78,7 +78,6 @@ class P11MachineInfo(TangoMachineInfo, QObject):
             },
         }
 
-        logging.info(f"Emitting machine info values: {values_dict}")
         self.valuesChanged.emit(values_dict)  # Emit the valuesChanged signal
 
     def get_value(self):
@@ -92,9 +91,6 @@ class P11MachineInfo(TangoMachineInfo, QObject):
             self._mach_info_dict["energy"] = self.get_maschine_energy() or 0
             self._mach_info_dict["message"] = self.get_message() or "No message"
 
-            logging.info(
-                f"Machine Info Dictionary: {self._mach_info_dict}"
-            )  # Log the populated dictionary
             return self._mach_info_dict  # Return the dictionary with machine info
 
         except Exception as e:
