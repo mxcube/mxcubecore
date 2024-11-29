@@ -280,6 +280,30 @@ class ISPyBClientMockup(ProposalTypeISPyBLims):
         """
         pass
 
+    def store_robot_action(self, robot_action_dict):
+        """
+        Stores the robot action dictionary.
+
+        Structure of robot_action_dictionary:
+        {
+            "actionType":str,
+            "containerLocation": str,
+            "dewarLocation":str,
+            "message":str,
+            "sampleBarcode":str,
+            "sessionId":int,
+            "sampleId":int.
+            "startTime":str,
+            "endTime":str,
+            "xtalSnapshotAfter:str",
+            "xtalSnapshotBefore:str",
+        }
+
+        Args:
+            robot_action_dict: robot action dictionary as defined above
+        """
+        pass
+
     def __find_sample(self, sample_ref_list, code=None, location=None):
         """
         Returns the sample with the matching "search criteria" <code> and/or
