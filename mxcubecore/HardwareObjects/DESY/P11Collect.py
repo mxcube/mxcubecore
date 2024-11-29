@@ -117,8 +117,8 @@ class P11Collect(AbstractCollect):
         Args:
             value (float): Resolution value to set.
         """
-        if math.isclose(HWR.beamline.resolution.get_value(), value, abs_tol=0.01):
-            super().set_resolution(value)
+        if not math.isclose(HWR.beamline.resolution.get_value(), value, abs_tol=0.01):
+            HWR.beamline.resolution.set_value(value)
 
     def data_collection_hook(self):
         """Handles site-specific data collection processes."""
