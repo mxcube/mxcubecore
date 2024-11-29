@@ -208,6 +208,9 @@ class ISPyBClientMockup(ProposalTypeISPyBLims):
                     return True
         return False
 
+    def _store_data_collection_group(self, group_data_dict):
+        pass
+
     def store_data_collection(self, mx_collection, bl_config=None):
         """
         Stores the data collection mx_collection, and the beamline setup
