@@ -363,8 +363,15 @@ class P11SampleChanger(SampleChanger):
         self._update_selection()
 
     def read_current_sample(self):
-        sample_no = self.chan_current_sample.get_value()
-        self.log.debug("P11SampleChanger -  loaded sample no is: %s" % sample_no)
+        try:
+            sample_no = self.chan_current_sample.get_value()
+            self.log.debug("P11SampleChanger - Loaded sample no is: %s" % sample_no)
+        except Exception as e:
+            self.log.error(
+                "Failed to read or convert the current sample: %s. Returning 0 - no sample loaded"
+                % e
+            )
+            sample_no = 0
         return self.sample_no_to_address(sample_no)
 
     def _do_abort(self):
