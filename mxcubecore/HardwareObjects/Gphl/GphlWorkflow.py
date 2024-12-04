@@ -89,7 +89,7 @@ EMULATION_DATA = {
     "4mxt":{
         "exposureTime": 0.055,
         "oscillationRange": 0.15,
-        "radiationSensitivity": 1.0,
+        "radiationSensitivity": 1.3,
         "energy": 12.2222,
     },
 }
@@ -676,6 +676,7 @@ class GphlWorkflow(HardwareObjectYaml):
             ):
                 fields[tag]["readOnly"] = False
             ui_schema["parameters"]["column1"]["ui:order"].remove("point_groups")
+            fields["crystal_thickness"]["readOnly"] = False
 
         elif not choose_lattice:
             # Characterisation
@@ -1112,10 +1113,7 @@ class GphlWorkflow(HardwareObjectYaml):
 
         # set starting and unchanging values of parameters
         resolution = HWR.beamline.resolution.get_value()
-        dose_budget = self.resolution2dose_budget(
-            resolution,
-            decay_limit=data_model.decay_limit,
-        )
+        dose_budget = data_model.recommended_dose_budget(resolution)
         # NB These default values are set just before this function is called
         default_image_width = data_model.image_width
         default_exposure = data_model.exposure_time
@@ -2701,10 +2699,10 @@ class GphlWorkflow(HardwareObjectYaml):
     def rotation_axis_index(self):
         """Get index of rotation axis
 
-        Rotation axis is assumed to be witehr X or Y
+        Rotation axis is assumed to be either X or Y
         """
         coords = list(abs(val) for val in list(self.rotation_axes.values())[0])
-        if coords[0] < coords[1]:
+        if coords[0] > coords[1]:
             return 0
         else:
             return 1

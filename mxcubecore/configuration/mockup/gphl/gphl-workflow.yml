@@ -99,44 +99,48 @@ settings:
     # (which may override this value)
     # Any other true value reads from auto_acq_parameters below
     # automation_mode: TEST_FROM_FILE
+    # automation_mode: MASSIF1
 
-    # Default parameters for fully automated strategies
-    # Multiple acquisitions in order - characterisation then main
-    # passed to set_pre_strategy_params and set_pre_acquisition_params
-    # NB as long as we only acquire either characterisation+main or diffractcal
-    # the code will use list[0] for the first acquisition
-    # and list[-1] for the main one
-    auto_acq_parameters:
-      # For characterisation acquisition
-      - exposure_time: 0.02
-        image_width: 0.1
-        # resolution: 1.928
-        strategy: Char_4_by_10_multitrigger
-        # init_spot_dir: /directory/containing/SPOT.XDS/file/after/characterisation
-        # strategy_options: # Not currently used
-        # For acquisition or diffractcal
-        # Expectation for crystal classes - needed for indexing selection.
+  # Default parameters for fully automated strategies
+  # Multiple acquisitions in order - characterisation then main
+  # passed to set_pre_strategy_params and set_pre_acquisition_params
+  # NB as long as we only acquire either characterisation+main or diffractcal
+  # the code will use list[0] for the first acquisition
+  # and list[-1] for the main one
+  auto_acq_parameters:
+    # For characterisation acquisition
+    - exposure_time: 0.02
+      image_width: 0.1
+      # resolution: 1.928
+      strategy: Char_6_5_multitrigger
+      # init_spot_dir: /directory/containing/SPOT.XDS/file/after/characterisation
+      # strategy_options: # Not currently used
+      # For acquisition or diffractcal
+      # Expectation for crystal classes - needed for indexing selection.
 
-        # crystal_classes:
-        #   - 222P
-        #   - 222C
-        #   - 222I
-        # space_group: I222
-      - exposure_time: 0.02
-        image_width: 1.0
-        resolution: 1.5
-        snapshot_count: 2
-        wedge_width: 15.0
-        strategy: full
-        repetition_count: 1
-        # strategy_options:
-        # # Program options passed directly to stratcal - not needed normally
-        #   Override default settings
-        #   angular_tolerance, maximum_chi, and clip_kappa are defined in
-        #   settings (above) and strategy_type and variant by program
-        #   maximum_chi: 48.0
-        #   angular_tolerance: 1.0
-        #   option_name: 999.999
+      # crystal_classes:
+      #   - 222P
+      #   - 222C
+      #   - 222I
+      # space_group: I222
+    - exposure_time: 0.02
+      image_width: 1.0
+      resolution: 1.5
+      snapshot_count: 2
+      wedge_width: 15.0
+      strategy: full
+      repetition_count: 1
+#      energies:
+#        - 12.111
+#        - 12.222
+      # strategy_options:
+      # # Program options passed directly to stratcal - not needed normally
+      #   Override default settings
+      #   angular_tolerance, maximum_chi, and clip_kappa are defined in
+      #   settings (above) and strategy_type and variant by program
+      #   maximum_chi: 48.0
+      #   angular_tolerance: 1.0
+      #   option_name: 999.999
 
   # Java invocation properties - syntax is e.g. '-Dfile.encoding=UTF-8'
   invocation_properties:
@@ -316,80 +320,80 @@ workflows:
           # File name pattern for characterisation data collection
           charpattern: generic
 
-    "GΦL Diffractometer calibration":
-      wfpath: Gphl
-      wftype: diffractcal
-      requires:
-        - point
-      options:
-        # NB you must set EITHER wfprefix OR samplesubdir (or both)
-        # wfprefix is the enactment fixed file prefix
-        #        wfprefix: gphl_wf_
-        # Include sample filename prefix as subdirextory in enactment directory path
-        # Any
-        samplesubdir: null
-        # # directory paths are:
-        # wfprefix:  .../RAW_DATA/<wfprefix>_001/...
-        # samplesubdir:   .../RAW_DATA/<filenameprefix>_001/...
-        # both:   .../RAW_DATA/<filenameprefix>/<wfprefix>_001/...
+  "GΦL Diffractometer calibration":
+    wfpath: Gphl
+    wftype: diffractcal
+    requires:
+      - point
+    options:
+      # NB you must set EITHER wfprefix OR samplesubdir (or both)
+      # wfprefix is the enactment fixed file prefix
+      #        wfprefix: gphl_wf_
+      # Include sample filename prefix as subdirextory in enactment directory path
+      # Any
+      samplesubdir: null
+      # # directory paths are:
+      # wfprefix:  .../RAW_DATA/<wfprefix>_001/...
+      # samplesubdir:   .../RAW_DATA/<filenameprefix>_001/...
+      # both:   .../RAW_DATA/<filenameprefix>/<wfprefix>_001/...
 
-      strategies:
-        - title: Diffractometer calibration
-          strategy_type: diffractcal
-          wf_selection: diffractcal
-          variants:
-            - full
-            - short
-          documentation: |
-            Diffractometer calibration.
-            Designed for use by beamline personnel.
-            Calibrates axis directions, detector pane orientation,
-            and beam centre.
-            Long data collection and processing, requiring a high-quality,
-            high-symmetry crystal of precisely known cell parameters.
-            Variants:
-            full: 22 60-deg sweeps, 11 orientations
-            short: 6 60-deg sweeps, 3 orientations
-          options:
-            # wfprefix: Dcalib2_
-            # Name of strategy from library to use. Variant name is appended
-            strategy: DiffractCal_
-            # File name for diffractometer calibration output
-            calibration: diffractcal
-            # Pattern name for characterisation collections, used for all data
-            charpattern: multiorientation
-            # copy calibration result to configuration directory,
-            # moving aside previous value
-            # updateblconfig: null
-            # # Path of file to dump persisted instrumentation configuration. OPTIONAL
-            # instcfgout: gphl_diffractcal_out.nml
+    strategies:
+      - title: Diffractometer calibration
+        strategy_type: diffractcal
+        wf_selection: diffractcal
+        variants:
+          - full
+          - short
+        documentation: |
+          Diffractometer calibration.
+          Designed for use by beamline personnel.
+          Calibrates axis directions, detector pane orientation,
+          and beam centre.
+          Long data collection and processing, requiring a high-quality,
+          high-symmetry crystal of precisely known cell parameters.
+          Variants:
+          full: 22 60-deg sweeps, 11 orientations
+          short: 6 60-deg sweeps, 3 orientations
+        options:
+          # wfprefix: Dcalib2_
+          # Name of strategy from library to use. Variant name is appended
+          strategy: DiffractCal_
+          # File name for diffractometer calibration output
+          calibration: diffractcal
+          # Pattern name for characterisation collections, used for all data
+          charpattern: multiorientation
+          # copy calibration result to configuration directory,
+          # moving aside previous value
+          # updateblconfig: null
+          # # Path of file to dump persisted instrumentation configuration. OPTIONAL
+          # instcfgout: gphl_diffractcal_out.nml
 
-    "GΦL Translational Calibration":
-      wfpath: Gphl
-      wftype: transcal
-      requires:
-        - samplegrid
-      strategies:
-        - title: Translational Calibration
-          strategy_type: transcal
-          wf_selection: transcal
-          variants:
-            - full
-          documentation: |
-            Translational calibration.
-            Designed for use by beamline personnel.
-            Calibrates centring motors to allow prediction of centring positions
-            Consists of mulltiple centrings, requiring a glass or tungsten tip
-          options:
-            # file: File containing settings of rotation axes for calibration
-            # The name is the relative path from the gphl_beamline_config directory
-            # grid: Grid definition [axis_name:start:end:step],
-            #       slowest-varying to fastest varying
-            # EITHER file OR grid must be set.-->
-            # grid: grid_axes_spec
-            file: transcal_2stage.json
-            # copy calibration result to configuration directory,
-            # renaming previous result file
-            updateblconfig: null
-            # Path of file to dump persisted instrumentation configuration. OPTIONAL
-            # instcfgout: gphl_transcal_out.nml
+  "GΦL Translational Calibration":
+    wfpath: Gphl
+    wftype: transcal
+    requires:
+      - samplegrid
+    strategies:
+      - title: Translational Calibration
+        strategy_type: transcal
+        wf_selection: transcal
+        variants:
+          - full
+        documentation: |
+          Translational calibration.
+          Designed for use by beamline personnel.
+          Calibrates centring motors to allow prediction of centring positions
+          Consists of mulltiple centrings, requiring a glass or tungsten tip
+        options:
+          # file: File containing settings of rotation axes for calibration
+          # The name is the relative path from the gphl_beamline_config directory
+          # grid: Grid definition [axis_name:start:end:step],
+          #       slowest-varying to fastest varying
+          # EITHER file OR grid must be set.-->
+          # grid: grid_axes_spec
+          file: transcal_2stage.json
+          # copy calibration result to configuration directory,
+          # renaming previous result file
+          updateblconfig: null
+          # Path of file to dump persisted instrumentation configuration. OPTIONAL
+          # instcfgout: gphl_transcal_out.nml

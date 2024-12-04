@@ -2287,11 +2287,11 @@ class GphlWorkflow(TaskNode):
             self.snapshot_count = int(snapshot_count)
         if recentring_mode:
             self.recentring_mode = recentring_mode
+        energy_tags = (settings["default_beam_energy_tag"],)
+        if self.characterisation_done:
+            energy_tags = self.strategy_settings.get("beam_energy_tags", energy_tags)
         if energies:
             # Energies are *added* to existing list
-            energy_tags = self.strategy_settings.get(
-                "beam_energy_tags", (settings["default_beam_energy_tag"],)
-            )
             wavelengths = list(self.wavelengths)
             offset = len(wavelengths)
             if len(energies) == len(energy_tags) - offset:
@@ -2304,16 +2304,11 @@ class GphlWorkflow(TaskNode):
                         )
                     )
                 self.wavelengths = tuple(wavelengths)
-            elif not (
-                len(energies) == len(energy_tags)
-                and len(energies) == len(wavelengths)
-                and self.automation_mode
-            ):
-                # In automation mode energies and wavelengths are set together earlier
-                raise ValueError(
-                    "Number of energies %s do not match remaining slots %s"
-                    % (energies, energy_tags[len(self.wavelengths) :])
-                )
+        if len(self.wavelengths) != len(energy_tags):
+            raise ValueError(
+                "Number of energies: %s do not match slots %s"
+                % (len(self.wavelengths), energy_tags)
+            )
         if skip_collection:
             self.skip_collection = True
 
