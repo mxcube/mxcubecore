@@ -43,16 +43,19 @@ class P11ISPyBClient(ISPyBClient):
         if self.simulated_proposal == 1:
             self.simulated_prop_code = self.get_property("proposal_code_simulated")
             self.simulated_prop_number = self.get_property("proposal_number_simulated")
+
+            logging.getLogger("HWR").debug(
+                "PROPOSAL SIMULATED is %s" % self.simulated_proposal
+            )
+            logging.getLogger("HWR").debug(
+                "SIMULATED PROPOSAL CODE is %s" % self.simulated_prop_code
+            )
+            logging.getLogger("HWR").debug(
+                "SIMULATED PROPOSAL NUMBER is %s" % self.simulated_prop_number
+            )
         else:
             self.simulated_prop_code = None
             self.simulated_prop_number = None
-        logging.getLogger("HWR").debug(
-            "PROPOSAL SIMULATED is %s" % self.simulated_proposal
-        )
-        logging.getLogger("HWR").debug("PROPOSAL CODE is %s" % self.simulated_prop_code)
-        logging.getLogger("HWR").debug(
-            "PROPOSAL NUMBER is %s" % self.simulated_prop_number
-        )
 
     def update_data_collection(self, mx_collection, wait=False):
         mx_collection["beamline_name"] = "P11"
