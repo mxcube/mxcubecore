@@ -86,7 +86,7 @@ __author__ = "Rasmus H Fogh"
 EMULATION_DATA = {
     "3n0s": {"radiationSensitivity": 0.9},
     "4j8p": {"radiationSensitivity": 1.1},
-    "4mxt":{
+    "4mxt": {
         "exposureTime": 0.055,
         "oscillationRange": 0.15,
         # "radiationSensitivity": 1.3,
@@ -317,11 +317,11 @@ class GphlWorkflow(HardwareObjectYaml):
         ]
         for ii0, tag in enumerate(instrument_data["gonio_axis_names"]):
             ii1 = 3 * ii0
-            self.rotation_axes[tag] = instrument_data["gonio_axis_dirs"][ii1: ii1 + 3]
+            self.rotation_axes[tag] = instrument_data["gonio_axis_dirs"][ii1 : ii1 + 3]
         for ii0, tag in enumerate(instrument_data["gonio_centring_axis_names"]):
             ii1 = 3 * ii0
             self.translation_axes[tag] = instrument_data["gonio_centring_axis_dirs"][
-                ii1: ii1 + 3
+                ii1 : ii1 + 3
             ]
 
         # Move beamstop settings to top level
@@ -2682,9 +2682,12 @@ class GphlWorkflow(HardwareObjectYaml):
                     HWR.beamline.gphl_workflow._queue_entry.get_data_model().crystal_thickness
                 )
                 if crystal_thickness:
-                    beam_dim = HWR.beamline.beam.get_beam_size()[
-                        HWR.beamline.gphl_workflow.rotation_axis_index()
-                    ] * 1000.
+                    beam_dim = (
+                        HWR.beamline.beam.get_beam_size()[
+                            HWR.beamline.gphl_workflow.rotation_axis_index()
+                        ]
+                        * 1000.0
+                    )
                     # NBNB TODO beam sizes seem to come in mm. Units nowhere defined.
                     #  FIX THIS MESS!
                     if crystal_thickness > beam_dim:

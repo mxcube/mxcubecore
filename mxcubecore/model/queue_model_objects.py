@@ -1986,7 +1986,7 @@ class GphlWorkflow(TaskNode):
         self.space_group = str()
         self.crystal_classes = ()
         self._cell_parameters = ()
-        self.crystal_thickness = 0.0 # Minimum dimension of crystal, in micron
+        self.crystal_thickness = 0.0  # Minimum dimension of crystal, in micron
         self.detector_setting = None  # from 'resolution' parameter or defaults
         self.aimed_resolution = None  # from 'resolution' parameter or defaults
         self.wavelengths = ()  # from 'energies' parametes
@@ -2464,7 +2464,7 @@ class GphlWorkflow(TaskNode):
         else:
             energy_tag = "Characterisation"
         self.wavelengths = (
-            GphlMessages.PhasingWavelength(wavelength=wavelength,role=energy_tag),
+            GphlMessages.PhasingWavelength(wavelength=wavelength, role=energy_tag),
         )
 
     # Parameters for start of workflow
