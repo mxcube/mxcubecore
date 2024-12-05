@@ -2420,10 +2420,6 @@ class GphlWorkflow(TaskNode):
 
         # Set to current wavelength for now - nothing else available
         wavelength = HWR.beamline.energy.get_wavelength()
-        role = HWR.beamline.gphl_workflow.settings["default_beam_energy_tag"]
-        self.wavelengths = (
-            GphlMessages.PhasingWavelength(wavelength=wavelength, role=role),
-        )
 
         # Set parameters from diffraction plan
         plan = sample_model.diffraction_plan
@@ -2448,19 +2444,28 @@ class GphlWorkflow(TaskNode):
                 val = getattr(plan, tag, plan.get(tag))
                 if val:
                     self.auto_acq_parameters[-1]["image_width"] = val
-            tag = "energy"
-            val = getattr(plan, tag, plan.get(tag))
-            if val:
-                if self.wftype == "diffractcal":
-                    energy_tag = "Main"
-                else:
-                    energy_tag = "Characterisation"
-                self.wavelengths = (
-                    GphlMessages.PhasingWavelength(
-                        wavelength=HWR.beamline.energy.calculate_wavelength(val),
-                        role=energy_tag,
-                    ),
-                )
+                tag = "energy"
+                val = getattr(plan, tag, plan.get(tag))
+                if val:
+                    energy_limits = HWR.beamline.energy.get_limits()
+                    val = max(val, energy_limits[0])
+                    val = min(val, energy_limits[1])
+                    nrg1 = self.auto_acq_parameters[-1].get("energy")
+                    if not nrg1:
+                        self.auto_acq_parameters[-1]["energy"] = val
+                    nrg0 = self.auto_acq_parameters[-1].get("energy")
+                    if nrg0:
+                        val = nrg0
+                    else:
+                        self.auto_acq_parameters[0]["energy"] = val
+                    wavelength = HWR.beamline.energy.calculate_wavelength(val)
+        if self.wftype == "diffractcal":
+            energy_tag = "Main"
+        else:
+            energy_tag = "Characterisation"
+        self.wavelengths = (
+            GphlMessages.PhasingWavelength(wavelength=wavelength,role=energy_tag),
+        )
 
     # Parameters for start of workflow
     def get_path_template(self):

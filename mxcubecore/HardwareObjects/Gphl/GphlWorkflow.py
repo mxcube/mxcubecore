@@ -89,8 +89,9 @@ EMULATION_DATA = {
     "4mxt":{
         "exposureTime": 0.055,
         "oscillationRange": 0.15,
-        "radiationSensitivity": 1.3,
+        # "radiationSensitivity": 1.3,
         "energy": 12.2222,
+        # "aimedResolution": 2.22,
     },
 }
 
