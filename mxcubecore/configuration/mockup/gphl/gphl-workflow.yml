@@ -130,9 +130,9 @@ settings:
       wedge_width: 15.0
       strategy: full
       repetition_count: 1
-#      energies:
-#        - 12.111
-#        - 12.222
+      # energies:
+      #   - 12.111
+      #   - 12.222
       # strategy_options:
       # # Program options passed directly to stratcal - not needed normally
       #   Override default settings
