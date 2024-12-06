@@ -23,6 +23,7 @@ __license__ = "LGPLv3+"
 
 import glob
 import json
+import logging
 import os
 import time
 from configparser import ConfigParser
@@ -31,6 +32,7 @@ from select import EPOLL_CLOEXEC
 
 import yaml
 
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.Session import Session
 
 PATH_BEAMTIME = "/gpfs/current"
@@ -44,9 +46,15 @@ class P11Session(Session):
     def init(self):
         super().init()
 
+        self.log = logging.getLogger("HWR.P11Session")
         self.settings_file = self.get_property("p11_settings_file")
         self.operation_mode = self.get_property("mode")
         self.beamtime_info = {}
+        self.beamtime_metadata_file = None
+
+        self.proposal_id = None
+        self.session_id = None
+        self.proposal_code = None
 
         parser = ConfigParser()
         parser.read(self.settings_file)
@@ -117,45 +125,86 @@ class P11Session(Session):
         )
 
     def is_commissioning_open(self):
-        return self.is_writable_dir(
-            os.path.join(PATH_COMMISSIONING, self.raw_data_folder_name)
-        )
+        """
+        Check if commissioning directory exists.
+        """
+        self.log.debug(f"Checking commissioning path: {PATH_COMMISSIONING}")
+        return os.path.exists(PATH_COMMISSIONING)
 
     def is_writable_dir(self, folder):
         return os.path.isdir(folder) and os.access(folder, os.F_OK | os.W_OK)
 
     def get_current_beamtime_id(self):
-        if self.is_beamtime_open():
-            info = self.get_beamtime_info()
-            return info["beamtimeId"]
+        """
+        Get the current beamtime ID.
+        """
+        beamtime_id = self.beamtime_info.get("beamtimeId", "N/A")
+        self.log.debug(f"Current beamtime ID: {beamtime_id}")
+        return beamtime_id
 
     def get_current_proposal_code(self):
-        if self.is_beamtime_open():
-            info = self.get_beamtime_info()
-            return info["proposalType"]
+        """
+        Get the current proposal code.
+        """
+        proposal_code = self.beamtime_info.get("proposalType", "N/A")
+        self.log.debug(f"Current proposal code: {proposal_code}")
+        return proposal_code
 
     def get_current_proposal_number(self):
-        if self.is_beamtime_open():
-            info = self.get_beamtime_info()
-            return info["proposalId"]
+        """
+        Get the current proposal number.
+        """
+        proposal_number = self.beamtime_info.get("proposalId", "N/A")
+        self.log.debug(f"Current proposal number: {proposal_number}")
+        return proposal_number
 
     def get_beamtime_info(self):
         return self.beamtime_info
 
     def read_beamtime_info(self):
-        self.log.debug("=========== READING BEAMTIME INFO ============")
-        if os.path.exists(PATH_BEAMTIME):
-            if os.scandir(PATH_BEAMTIME):
-                for ety in os.scandir(PATH_BEAMTIME):
-                    if ety.is_file() and ety.name.startswith("beamtime-metadata"):
-                        info = self.read_load_info(ety.path)
-                        self.log.debug(f"BEAMTIME INFO from {ety.path} is " + str(info))
-                        if info is not None:
-                            self.beamtime_info.update(self.read_load_info(ety.path))
-                        self.beamtime_info["rootPath"] = PATH_BEAMTIME
-        else:
-            self.log.debug(f"No beamtime ID is open, using local path {PATH_FALLBACK}.")
-            self.beamtime_info["rootPath"] = PATH_FALLBACK
+        try:
+            # List all metadata files starting with "beamtime_metadata"
+            metadata_files = [
+                f
+                for f in os.listdir(PATH_BEAMTIME)
+                if f.startswith("beamtime-metadata")
+            ]
+
+            if not metadata_files:
+                self.log.warning(
+                    "No metadata file found starting with 'beamtime_metadata'. Using fallback values."
+                )
+                self.beamtime_info = {"proposalId": "N/A", "beamtimeId": "N/A"}
+                return
+
+            # Load the first metadata file
+            metadata_file = os.path.join(PATH_BEAMTIME, metadata_files[0])
+            self.log.debug(f"Found metadata file: {metadata_file}")
+
+            with open(metadata_file, "r") as f:
+                self.beamtime_info = json.load(f)
+            self.log.debug(f"Beamtime info loaded: {self.beamtime_info}")
+
+            # Update the session object with metadata information
+            proposal_id = self.beamtime_info.get("proposalId", "N/A")
+            session_id = self.beamtime_info.get("beamtimeId", "N/A")
+            proposal_code = self.beamtime_info.get("proposalType", "N/A")
+
+            self.proposal_id = proposal_id
+            self.session_id = session_id
+            self.proposal_code = proposal_code
+            self.log.debug(
+                f"Session updated with Proposal ID: {proposal_id}, Session ID: {session_id}, Proposal Code: {proposal_code}"
+            )
+        except Exception as e:
+            self.log.error(f"Failed to read beamtime metadata: {e}")
+            self.beamtime_info = {"proposalId": "N/A", "beamtimeId": "N/A"}
+
+    def debug_beamtime_info(self):
+        """
+        Debug and print the complete beamtime info for verification.
+        """
+        self.log.info(f"Complete Beamtime Info: {self.beamtime_info}")
 
     def read_commissioning_info(self):
         for ety in os.scandir(PATH_COMMISSIONING):
