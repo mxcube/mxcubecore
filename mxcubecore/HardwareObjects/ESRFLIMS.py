@@ -58,6 +58,7 @@ class ESRFLIMS(AbstractLims):
             )
 
         return self.drac.session_manager
+        self.session_manager = self.drac.session_manager
 
     def is_user_login_type(self) -> bool:
         return True

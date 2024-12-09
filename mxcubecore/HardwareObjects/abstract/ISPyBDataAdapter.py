@@ -239,15 +239,15 @@ class ISPyBDataAdapter:
     def _debug(self, msg: str):
         logging.getLogger("HWR").debug(msg)
 
-    def _error(self, msg: str):
-        logging.getLogger("HWR").error(msg)
+    def _exception(self, msg: str):
+        logging.getLogger("HWR").exception(msg)
 
     def find_session(self, session_id: str) -> Session:
         try:
             response = self._collection.service.findSession(session_id)
             return self.__to_session(asdict(response))
         except Exception as e:
-            self._error(str(e))
+            self._exception(str(e))
             raise e
 
     def find_proposal(self, code: str, number: str) -> Proposal:
@@ -256,7 +256,7 @@ class ISPyBDataAdapter:
             response = self._shipping.service.findProposal(code, number)  # type: ignore
             return self.__to_proposal(asdict(response))  # type: ignore
         except Exception as e:
-            self._error(str(e))
+            self._exception(str(e))
             raise e
 
     def find_proposal_by_login_and_beamline(
@@ -276,7 +276,7 @@ class ISPyBDataAdapter:
 
             return self.__to_proposal(asdict(response))  # type: ignore
         except Exception as e:
-            self._error(str(e))
+            self._exception(str(e))
             raise e
 
     def find_sessions_by_proposal_and_beamLine(
@@ -296,7 +296,7 @@ class ISPyBDataAdapter:
                 sessions.append(self.__to_session(asdict(response)))
             return sessions
         except Exception as e:
-            self._error(str(e))
+            self._exception(str(e))
             # raise e
         return []
 
@@ -319,7 +319,7 @@ class ISPyBDataAdapter:
             )
             return LimsSessionManager(sessions=sessions)
         except WebFault as e:
-            self._error(str(e))
+            self._exception(str(e))
             raise e
 
     def get_sessions_by_username(
@@ -339,7 +339,7 @@ class ISPyBDataAdapter:
                 sessions=sessions,
             )
         except WebFault as e:
-            self._error(str(e))
+            self._exception(str(e))
         return LimsSessionManager()
 
     ############# Legacy methods #####################

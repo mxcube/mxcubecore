@@ -87,6 +87,23 @@ class ICATLIMS(AbstractLims):
         logging.getLogger("HWR").debug(
             "[ICAT] Successfully retrieved %s sessions" % (len(sessions))
         )
+
+        # Check if there is currently a session in use and if user have
+        # access to that session
+        if self.session_manager.active_session:
+            session_found = False
+
+            for session in sessions:
+                if session.session_id == self.session_manager.active_session.session_id:
+                    session_found = True
+                    break
+
+            if not session_found:
+                raise Exception(
+                    "Current session in-use (with id %s) not avaialble to user %s"
+                    % (self.session_manager.active_session.session_id, user_name)
+                )
+
         self.set_sessions(sessions)
         return self.session_manager
 
