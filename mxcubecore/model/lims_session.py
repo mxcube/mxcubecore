@@ -77,4 +77,4 @@ class LimsUser(BaseModel):
 class LimsSessionManager(BaseModel):
     active_session: Optional[Session] = None
     sessions: Optional[List[Session]] = []
-    users: Optional[List[LimsUser]] = []
+    users: Optional[dict[str, LimsUser]] = {}

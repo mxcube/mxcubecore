@@ -80,6 +80,9 @@ class ICATLIMS(AbstractLims):
         # Retrieving user's investigations
         sessions = self.to_sessions(self.__get_all_investigations())
 
+        if len(sessions) == 0:
+            raise Exception("No sessions available for user %s" % (user_name))
+
         logging.getLogger("HWR").debug(
             "[ICAT] Successfully retrieved %s sessions" % (len(sessions))
         )
@@ -88,7 +91,6 @@ class ICATLIMS(AbstractLims):
         if self.session_manager is not None:
             self.session_manager = session_manager
 
-        self.add_user(user_name, sessions)
         # Check if there is currently a session in use and if user have
         # access to that session
         if self.session_manager.active_session:
@@ -104,8 +106,8 @@ class ICATLIMS(AbstractLims):
                     "Current session in-use (with id %s) not avaialble to user %s"
                     % (self.session_manager.active_session.session_id, user_name)
                 )
+        self.add_user(self.icat_session["name"], sessions)
 
-        self.set_sessions(sessions)
         return self.session_manager
 
     def is_user_login_type(self) -> bool:
