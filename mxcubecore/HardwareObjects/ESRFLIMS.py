@@ -57,8 +57,8 @@ class ESRFLIMS(AbstractLims):
                 self.is_local_host,
             )
 
-        return self.drac.session_manager
         self.session_manager = self.drac.session_manager
+        return self.session_manager
 
     def is_user_login_type(self) -> bool:
         return True
