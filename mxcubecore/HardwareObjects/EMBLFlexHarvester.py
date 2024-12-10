@@ -175,7 +175,7 @@ class EMBLFlexHarvester(EMBLFlexHCD):
             res = True
 
         if res:
-            if self._harvester_hwo.get_room_temperature_mode():
+            if self._harvester_hwo.get_room_temperature_mode() == False:
                 self.queue_harvest_next_sample(loaded_sample.get_address())
 
             # in this case we expect CENTRING_METHOD=None
