@@ -34,7 +34,6 @@ class ICATLIMS(AbstractLims):
         HardwareObject.__init__(self, name)
         self.investigations = None
         self.icatClient = None
-        self.catalogue = None
         self.lims_rest = None
         self.ingesters = None
 
@@ -43,12 +42,11 @@ class ICATLIMS(AbstractLims):
         self.ingesters = self.get_property("queue_urls")
         self.investigations = []
 
-        # Initialize ICAT client and catalogue
+        # Initialize ICAT client
         self.icatClient = IcatClient(
-            catalogue_url=self.url,
-            tracking_url=self.url,
+            icatplus_restricted_url=self.url,
             metadata_urls=["bcu-mq-01:61613"],
-            catalogue_queues=["bcu-mq-01:61613"],
+            reschedule_investigation_urls=["bcu-mq-01:61613"],
         )
 
     def get_lims_name(self) -> List[Lims]:
@@ -63,22 +61,16 @@ class ICATLIMS(AbstractLims):
         logging.getLogger("HWR").debug("[ICAT] authenticate %s" % (user_name))
 
         self.icat_session: ICATSession = self.icatClient.do_log_in(password)
-        # Catalogue client to retrieve investigations
-        self.catalogue = self.icatClient.catalogue_client
 
-        # Catalogue client to retrieve parcels and samples
-        self.tracking = self.icatClient.tracking_client
-
-        if self.catalogue is None or self.tracking is None:
+        if self.icatClient is None or self.icatClient is None:
             logging.getLogger("HWR").error(
-                "[ICAT] Error initializing catalogue/tracking. catalogue=%s tracking=%s"
-                % (self.url, self.url)
+                "[ICAT] Error initializing icatClient. icatClient=%s" % (self.url)
             )
-            raise RuntimeError("Could not initialize catalogue/tracking")
+            raise RuntimeError("Could not initialize icatClient")
 
         # Connected to metadata catalogue
         logging.getLogger("HWR").debug(
-            "[ICAT] Connected succesfully to catalogue. fullName=%s url=%s"
+            "[ICAT] Connected succesfully to icatClient. fullName=%s url=%s"
             % (self.icat_session["fullName"], self.url)
         )
 
@@ -306,7 +298,7 @@ class ICATLIMS(AbstractLims):
         logging.getLogger("HWR").debug(
             "[ICAT] allow_session investigationId=%s", session.session_id
         )
-        self.catalogue.reschedule_investigation(session.session_id)
+        self.icatClient.reschedule_investigation(session.session_id)
 
     def get_session_by_id(self, id: str):
         logging.getLogger("HWR").debug(
@@ -346,7 +338,7 @@ class ICATLIMS(AbstractLims):
                 self.icat_session["isAdministrator"]
                 or self.icat_session["isInstrumentScientist"]
             ):
-                self.investigations = self.catalogue.get_investigations_by(
+                self.investigations = self.icatClient.get_investigations_by(
                     start_date=datetime.today()
                     - timedelta(days=float(self.before_offset_days)),
                     end_date=datetime.today()
@@ -354,7 +346,7 @@ class ICATLIMS(AbstractLims):
                     instrument_name=self.compatible_beamlines,
                 )
             else:
-                self.investigations = self.catalogue.get_investigations_by(
+                self.investigations = self.icatClient.get_investigations_by(
                     filter=self.filter,
                     instrument_name=self.override_beamline_name,
                     start_date=datetime.today()
@@ -488,7 +480,7 @@ class ICATLIMS(AbstractLims):
                 "[ICAT] Retrieving parcels by investigation_id %s "
                 % (self.session_manager.active_session.session_id)
             )
-            parcels = self.tracking.get_parcels_by(
+            parcels = self.icatClient.get_parcels_by(
                 self.session_manager.active_session.session_id
             )
             logging.getLogger("HWR").debug(
