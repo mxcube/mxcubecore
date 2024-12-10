@@ -35,6 +35,7 @@ from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.model.lims_session import (
     Lims,
     LimsSessionManager,
+    LimsUser,
     Session,
 )
 
@@ -154,6 +155,17 @@ class AbstractLims(HardwareObject, abc.ABC):
         TBD
         """
         raise Exception("Abstract class. Not implemented")
+
+
+    @abc.abstractmethod
+    def add_user(self, user_name: str, sessions: List[Session]) -> LimsUser:
+       user : LimsUser = None
+       user.
+       self.session_manager.users.append()
+ # We add the user to the list of active users in the LIMS system
+        user : LIMSUser(user_name=user_name, sessions=sessions)
+        user.
+        self.session_manager.users.append
 
     @abc.abstractmethod
     def get_samples(self, lims_name: str) -> List[Dict]:
