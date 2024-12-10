@@ -6,7 +6,10 @@ from datetime import (
     datetime,
     timedelta,
 )
-from typing import List, Optional
+from typing import (
+    List,
+    Optional,
+)
 
 from pyicat_plus.client.main import (
     IcatClient,
@@ -88,7 +91,7 @@ class ICATLIMS(AbstractLims):
         )
 
         # This is done because ICATLims can be used standalone or from ESRFLims
-        if self.session_manager is not None:
+        if session_manager is not None:
             self.session_manager = session_manager
 
         # Check if there is currently a session in use and if user have
@@ -106,9 +109,7 @@ class ICATLIMS(AbstractLims):
                     "Current session in-use (with id %s) not avaialble to user %s"
                     % (self.session_manager.active_session.session_id, user_name)
                 )
-        self.add_user(self.icat_session["name"], sessions)
-
-        return self.session_manager
+        return self.session_manager, self.icat_session["name"], sessions
 
     def is_user_login_type(self) -> bool:
         return True

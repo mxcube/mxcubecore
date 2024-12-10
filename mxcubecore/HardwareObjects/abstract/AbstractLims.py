@@ -456,6 +456,7 @@ class AbstractLims(HardwareObject, abc.ABC):
             % (len(sessions), self.session_manager.users.keys())
         )
         self.session_manager.sessions = sessions
+        self.emit("sessionsChanged", (sessions,))
 
     def get_active_session(self) -> Session:
         """

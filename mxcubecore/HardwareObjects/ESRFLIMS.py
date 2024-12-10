@@ -41,7 +41,9 @@ class ESRFLIMS(AbstractLims):
 
     def login(self, user_name, token, is_local_host=False) -> LimsSessionManager:
         self.is_local_host = is_local_host
-        session_manager = self.drac.login(user_name, token, self.session_manager)
+        session_manager, lims_username, sessions = self.drac.login(
+            user_name, token, self.session_manager
+        )
         logging.getLogger("HWR").debug(
             "DRAC sessions=%s" % (len(self.drac.session_manager.sessions),)
         )
@@ -58,6 +60,7 @@ class ESRFLIMS(AbstractLims):
             )
 
         self.session_manager = self.drac.session_manager
+        self.add_user(lims_username, sessions)
         return self.session_manager
 
     def is_user_login_type(self) -> bool:
