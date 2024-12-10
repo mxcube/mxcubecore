@@ -6,7 +6,7 @@ from datetime import (
     datetime,
     timedelta,
 )
-from typing import List
+from typing import List, Optional
 
 from pyicat_plus.client.main import (
     IcatClient,
@@ -55,7 +55,10 @@ class ICATLIMS(AbstractLims):
         ]
 
     def login(
-        self, user_name: str, password: str, is_local_host: bool
+        self,
+        user_name: str,
+        password: str,
+        session_manager: Optional[LimsSessionManager],
     ) -> LimsSessionManager:
 
         logging.getLogger("HWR").debug("[ICAT] authenticate %s" % (user_name))
@@ -68,7 +71,7 @@ class ICATLIMS(AbstractLims):
             )
             raise RuntimeError("Could not initialize icatClient")
 
-        # Connected to metadata catalogue
+        # Connected to metadata icatClient
         logging.getLogger("HWR").debug(
             "[ICAT] Connected succesfully to icatClient. fullName=%s url=%s"
             % (self.icat_session["fullName"], self.url)
@@ -76,10 +79,16 @@ class ICATLIMS(AbstractLims):
 
         # Retrieving user's investigations
         sessions = self.to_sessions(self.__get_all_investigations())
+
         logging.getLogger("HWR").debug(
             "[ICAT] Successfully retrieved %s sessions" % (len(sessions))
         )
 
+        # This is done because ICATLims can be used standalone or from ESRFLims
+        if self.session_manager is not None:
+            self.session_manager = session_manager
+
+        self.add_user(user_name, sessions)
         # Check if there is currently a session in use and if user have
         # access to that session
         if self.session_manager.active_session:
