@@ -8,7 +8,7 @@ from mxcubecore.HardwareObjects.ICATLIMS import ICATLIMS
 
 class SSXICATLIMS(ICATLIMS):
     """
-    ICAT client.
+    ICAT client for SSX.
     """
 
     def store_data_collection(self, parameters, bl_config=None):
