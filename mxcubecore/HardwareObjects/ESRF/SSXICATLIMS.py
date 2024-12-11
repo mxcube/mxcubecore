@@ -65,5 +65,5 @@ class SSXICATLIMS(ICATLIMS):
                 f.write(json.dumps(data, indent=4))
                 logging.getLogger("HWR").info(f"Wrote {icat_metadata_path}")
 
-        except Exception:
-            logging.getLogger("HWR").exception("")
+        except Exception as e:
+            logging.getLogger("HWR").exception("Failed uploading to ICAT (%s)", e)
