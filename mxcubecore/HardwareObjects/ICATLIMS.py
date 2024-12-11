@@ -11,10 +11,7 @@ from typing import (
     Optional,
 )
 
-from pyicat_plus.client.main import (
-    IcatClient,
-    IcatInvestigationClient,
-)
+from pyicat_plus.client.main import IcatClient
 from pyicat_plus.client.models.session import Session as ICATSession
 
 from mxcubecore import HardwareRepository as HWR

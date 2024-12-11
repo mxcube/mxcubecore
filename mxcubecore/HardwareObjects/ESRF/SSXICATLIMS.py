@@ -2,20 +2,8 @@ import json
 import logging
 import pathlib
 
-from pyicat_plus.client.main import (
-    IcatClient,
-    IcatInvestigationClient,
-)
-from pyicat_plus.client.models.session import Session as ICATSession
-
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.ICATLIMS import ICATLIMS
-from mxcubecore.model.lims_session import (
-    Lims,
-    LimsSessionManager,
-    Session,
-)
 
 
 class SSXICATLIMS(ICATLIMS):

@@ -1,13 +1,6 @@
 import logging
 from typing import List
 
-from pyicat_plus.client.main import (
-    IcatClient,
-    IcatInvestigationClient,
-)
-from pyicat_plus.client.models.session import Session as ICATSession
-
-from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractLims import AbstractLims
 from mxcubecore.model.lims_session import (
     Lims,
