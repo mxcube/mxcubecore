@@ -176,13 +176,6 @@ class TangoChannel(ChannelObject):
         self._device_initialized = gevent.event.Event()
         self.init_device()
         self.continue_init(None)
-        """
-        self.init_poller = Poller.poll(self.init_device,
-                                       polling_period = 3000,
-                                       value_changed_callback = self.continue_init,
-                                       error_callback = self.init_poll_failed,
-                                       start_delay=100)
-        """
 
     def init_poll_failed(self, e, poller_id):
         self._device_initialized.clear()
@@ -195,8 +188,6 @@ class TangoChannel(ChannelObject):
         self.init_poller = self.init_poller.restart(3000)
 
     def continue_init(self, _):
-        # self.init_poller.stop()
-
         if isinstance(self.polling, int):
             self.raw_device = DeviceProxy(self.device_name)
 
@@ -211,7 +202,6 @@ class TangoChannel(ChannelObject):
                 # try to register event
                 try:
                     self.polling_events = True
-                    # logging.getLogger("HWR").debug("subscribing to CHANGE event for %s", self.attribute_name)
                     self.device.subscribe_event(
                         self.attribute_name,
                         PyTango.EventType.CHANGE_EVENT,
@@ -219,8 +209,6 @@ class TangoChannel(ChannelObject):
                         [],
                         True,
                     )
-                    # except PyTango.EventSystemFailed:
-                    #   pass
                 except Exception:
                     logging.getLogger("HWR").exception("could not subscribe event")
         self._device_initialized.set()
@@ -256,17 +244,15 @@ class TangoChannel(ChannelObject):
                     self.device = None
 
     def push_event(self, event):
-        # logging.getLogger("HWR").debug("%s | attr_value=%s, event.errors=%s, quality=%s", self.name(), event.attr_value, event.errors,event.attr_value is None and "N/A" or event.attr_value.quality)
         if (
             event.attr_value is None
             or event.err
             or event.attr_value.quality != PyTango.AttrQuality.ATTR_VALID
         ):
-            # logging.getLogger("HWR").debug("%s, receving BAD event... attr_value=%s, event.errors=%s, quality=%s", self.name(), event.attr_value, event.errors, event.attr_value is None and "N/A" or event.attr_value.quality)
             return
         else:
             pass
-            # logging.getLogger("HWR").debug("%s, receiving good event", self.name())
+
         ev = E(event)
         TangoChannel._eventReceivers[id(ev)] = saferef.safe_ref(self.update)
         TangoChannel._tangoEventsQueue.put(ev)

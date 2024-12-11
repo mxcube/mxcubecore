@@ -39,12 +39,6 @@ print("DEBUG TESTS")
 print(sys.path)
 
 
-# hwr_path = os.path.join(HWR_DIR, "configuration/test")
-# HWR.init_hardware_repository(hwr_path)
-# hwr = HWR.get_hardware_repository()
-# hwr.connect()
-
-
 # This coding gives a new beamline load for each function call
 # This can easily be changed by chaging the scope,
 # but we may need to provide cleanup / object reloading in order to do that.

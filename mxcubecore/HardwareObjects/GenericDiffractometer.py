@@ -405,11 +405,6 @@ class GenericDiffractometer(HardwareObject):
             # NBNB TODO refactor configuration, and set properties directly (see below)
             temp_motor_hwobj = self.get_object_by_role(motor_name)
             if temp_motor_hwobj is not None:
-                #logging.getLogger("HWR").debug(
-                    #"Diffractometer: Adding "
-                    #+ "%s motor to centring motors" % motor_name
-                #)
-
                 self.motor_hwobj_dict[motor_name] = temp_motor_hwobj
                 self.connect(temp_motor_hwobj, "stateChanged", self.motor_state_changed)
                 self.connect(
@@ -780,12 +775,6 @@ class GenericDiffractometer(HardwareObject):
         """Get motor_name:Motor dictionary"""
         return self.motor_hwobj_dict.copy()
 
-    # def get_omega_position(self):
-    #     """
-    #     Descript. :
-    #     """
-    #     return self.current_positions_dict.get("phi")
-
     def get_snapshot(self):
         """
         Get snapshot from sample view
@@ -1110,21 +1099,11 @@ class GenericDiffractometer(HardwareObject):
         for motor in motor_positions.keys():
             position = motor_positions[motor]
             self.log.debug(f"moving motor {motor} to position {position}")
-            """
-            if isinstance(motor, (str, unicode)):
-                logging.getLogger("HWR").debug(" Moving %s to %s" % (motor, position))
-            else:
-                logging.getLogger("HWR").debug(
-                    " Moving %s to %s" % (str(motor.name()), position)
-                )
-            """
             if isinstance(motor, str):
                 motor_role = motor
                 motor = self.motor_hwobj_dict.get(motor_role)
-                # del motor_positions[motor_role]
                 if None in (motor, position):
                     continue
-                # motor_positions[motor] = position
             motor.set_value(position)
         self.wait_device_ready(timeout)
 
@@ -1366,13 +1345,6 @@ class GenericDiffractometer(HardwareObject):
         """ """
         self.emit("minidiffNotReady", ())
 
-    """
-    def state_changed(self, state):
-        logging.getLogger("HWR").debug("State changed %s" % str(state))
-        self.current_state = state
-        self.emit("minidiffStateChanged", (self.current_state))
-    """
-
     def motor_state_changed(self, state):
         """
         Descript. :
@@ -1395,7 +1367,6 @@ class GenericDiffractometer(HardwareObject):
         Descript. :
         """
         self.sample_is_loaded = sample_is_loaded
-        # logging.getLogger("HWR").info("sample is loaded changed %s" % sample_is_loaded)
         self.emit("minidiffSampleIsLoadedChanged", (sample_is_loaded,))
 
     def head_type_changed(self, head_type):
@@ -1403,7 +1374,6 @@ class GenericDiffractometer(HardwareObject):
         Descript. :
         """
         self.head_type = head_type
-        # logging.getLogger("HWR").info("new head type is %s" % head_type)
         self.emit("minidiffHeadTypeChanged", (head_type,))
 
         if "SampleIsLoaded" not in str(self.used_channels_list):
