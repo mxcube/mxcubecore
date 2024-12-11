@@ -2997,7 +2997,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/GenericDiffractometer.py" = [
     "ARG002",
-    "B018",
     "BLE001",
     "C901",
     "COM812",
@@ -5886,7 +5885,6 @@ convention = "google"
     "DTZ007",
     "E501",
     "ERA001",
-    "F401",
     "F821",
     "G002",
     "G003",
