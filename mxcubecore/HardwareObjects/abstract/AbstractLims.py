@@ -62,7 +62,7 @@ class AbstractLims(HardwareObject, abc.ABC):
         self.session_manager = LimsSessionManager()
 
     def is_session_already_active(self, session_id: str) -> bool:
-        # If curent selected session is already selected no need to do
+        # If current selected session is already selected no need to do
         # anything else
         active_session = self.session_manager.active_session
         if active_session is not None:
@@ -138,7 +138,7 @@ class AbstractLims(HardwareObject, abc.ABC):
         """
         Returns a list with proposal dictionaries for login_id
 
-        Proposal dictioanry strucutre:
+        Proposal dictionary structure:
             {
                 "Proposal": proposal,
                 "Person": ,
@@ -159,7 +159,7 @@ class AbstractLims(HardwareObject, abc.ABC):
     @abc.abstractmethod
     def get_samples(self, lims_name: str) -> List[Dict]:
         """
-        Returns a list of sample dictionaires for the current user from lims_name
+        Returns a list of sample dictionaries for the current user from lims_name
 
         Structure of sample dictionary:
         {
@@ -294,9 +294,9 @@ class AbstractLims(HardwareObject, abc.ABC):
         beamline_config_dict: Optional[Dict],
     ) -> Tuple[int, int]:
         """
-        Stores a datacollection, datacollection_dict, and bemline configuration, beamline_config_dict, at the time of collection
+        Stores a datacollection, datacollection_dict, and beamline configuration, beamline_config_dict, at the time of collection
 
-        Structure of datacllection_dict:
+        Structure of datacollection_dict:
         {
             "oscillation_sequence":[{}
                 "start": float,
@@ -393,7 +393,7 @@ class AbstractLims(HardwareObject, abc.ABC):
         """
         Updates the collection with "collection_id", provided in datacollection_dict.
 
-        Strucure of datacollection_dict as defined in store_data_collection above.
+        Structure of datacollection_dict as defined in store_data_collection above.
 
         Args:
             datacollection_dict:

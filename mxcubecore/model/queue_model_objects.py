@@ -1841,7 +1841,7 @@ class CentredPosition(object):
     """
     Class that represents a centred position.
     Can also be initialized with a mxcube motor dict
-    which simply is a dictonary with the motornames and
+    which simply is a dictionary with the motornames and
     their corresponding values.
     """
 

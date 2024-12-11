@@ -522,7 +522,7 @@ class Shape(object):
             self.screen_coord = screen_coord
 
     def update_from_dict(self, shape_dict):
-        # We dont allow id or result updates
+        # We don't allow id or result updates
         shape_dict.pop("id", None)
         shape_dict.pop("result", None)
 
