@@ -1,0 +1,16 @@
+
+<device class="P11DetectorCover">
+    <username>Detector Cover</username>
+
+
+    <tangoname>p11/detectortower/1</tangoname>
+    <command_timeout>4</command_timeout>
+
+    <simulation>0</simulation>
+
+    <command type="tango" name="cmdOpen">ShieldDown</command>
+    <command type="tango" name="cmdClose">ShieldUp</command>
+    <channel type="tango" name="chanStateOpen" polling="500">ShieldIsDown</channel>
+    <channel type="tango" name="chanStateClosed" polling="500">ShieldIsUp</channel>
+
+</device>

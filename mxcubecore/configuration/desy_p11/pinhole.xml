@@ -1,0 +1,14 @@
+<object class="P11Pinhole">
+    <username>Pinhole</username>
+    <motorlist>pinholey, pinholez</motorlist>
+
+    <object role="pinholey" href="/pinholey" />
+    <object role="pinholez" href="/pinholez" />
+    
+    <delta_pinholey>10</delta_pinholey>
+    <delta_pinholez>10</delta_pinholez>
+
+    <values>{"down": {"pinholey": -235, "pinholez": -13986},"200": {"pinholey": -379, "pinholez": 12869},"100": {"pinholey": -273, "pinholez": 9616},"50": {"pinholey": -263, "pinholez": 6305},"20": {"pinholey": -244, "pinholez": 3085}}</values>
+
+</object>
+

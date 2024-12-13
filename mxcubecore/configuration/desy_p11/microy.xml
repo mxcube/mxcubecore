@@ -1,0 +1,7 @@
+<device class="TangoMotor">
+    <actuator_name>Microscope Y</actuator_name>
+    <username>MicroscopeY</username>
+    <tangoname>p11/motor/eh.3.15</tangoname>
+    <command type="tango" name="stopAxis">StopMove</command>
+    <channel type="tango" name="axisState" polling="500">State</channel>
+</device>

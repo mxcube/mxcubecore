@@ -1,0 +1,10 @@
+<device class="TangoMotor">
+    <actuator_name>yagz</actuator_name>
+    <username>Yag Z</username>
+
+    <tangoname>p11/piezomotor/eh.4.08</tangoname>
+    <tolerance>5</tolerance>
+
+    <command type="tango" name="stopAxis">Stop</command>
+    <channel type="tango" name="axisState" polling="500">State</channel>
+</device>

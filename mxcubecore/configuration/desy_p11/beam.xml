@@ -1,0 +1,12 @@
+<object class="P11Beam">
+    <device hwrid="/diff-aperture-mockup" role="aperture"/>
+    <device hwrid="/slits-mockup" role="slits"/>
+
+    <channel type="tango" tangoname="p11/energy/1" name="beamsize" polling="500">BeamSize</channel>
+    <channel type="tango" tangoname="p11/energy/1" name="state" polling="500">State</channel>
+
+    <beam_divergence_vertical>0.05</beam_divergence_vertical>
+    <beam_divergence_horizontal>0.05</beam_divergence_horizontal>
+    <definer_type>"mirror"</definer_type>
+</object>
+

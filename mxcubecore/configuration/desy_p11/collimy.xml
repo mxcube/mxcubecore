@@ -1,0 +1,10 @@
+<device class="TangoMotor">
+    <actuator_name>collimy</actuator_name>
+    <username>Collimator Y</username>
+
+    <tangoname>p11/piezomotor/eh.4.05</tangoname>
+    <tolerance>5</tolerance>
+
+    <command type="tango" name="stopAxis">Stop</command>
+    <channel type="tango" name="axisState" polling="500">State</channel>
+</device>

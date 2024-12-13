@@ -1,0 +1,12 @@
+<device class="TangoMotor">
+    <actuator_name>pinholey</actuator_name>
+    <username>PinHole Y</username>
+
+    <tangoname>p11/piezomotor/eh.4.03</tangoname>
+    <auto_on>True</auto_on>
+    <tolerance>1</tolerance>
+
+    <command type="tango" name="onCmd">Enable</command>
+    <command type="tango" name="stopAxis">Stop</command>
+    <channel type="tango" name="axisState" polling="500">State</channel>
+</device>

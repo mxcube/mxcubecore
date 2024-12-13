@@ -1,0 +1,7 @@
+<object class="P11Flux">
+   <defaultFlux>5.74e+12</defaultFlux>
+   <defaultBeamsize>50</defaultBeamsize>
+   <defaultPinhole>200</defaultPinhole>
+   <defaultEnergy>12000</defaultEnergy>
+   <defaultCurrent>100</defaultCurrent>
+</object>

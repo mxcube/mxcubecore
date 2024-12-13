@@ -1,0 +1,11 @@
+<equipment class="P11Energy">
+
+    <limits>4,28</limits>
+
+    <tangoname>p11/energy/1</tangoname>
+
+    <channel type="tango" name="chanEnergy" polling="500">Energy</channel>
+    <channel type="tango" name="chanAutoBrake">AutoBrake</channel>
+    <channel type="tango" name="chanStatus" polling="500">State</channel>
+
+</equipment>

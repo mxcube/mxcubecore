@@ -1,0 +1,23 @@
+<device class="P11Collect">
+    <username>P11 Collect</username>
+
+
+    <filterserver>p11/filter/eh.01</filterserver>
+    <monoserver>p11/dcmener/oh.01</monoserver>
+
+    <!-- channels and commands for activating trigger output between acquisition bounds 
+
+    <channel type="tango" name="acq_lower_bound">PSOwindowLowerBound</channel>
+    <channel type="tango" name="acq_upper_bound">PSOwindowUpperBound</channel>
+
+    <command type="tango" name="acq_on">PSOcontrolOn</command>
+    <command type="tango" name="acq_off">PSOcontrolOff</command>
+   
+    <command type="tango" name="acq_abort">AbortMove</command>
+    <command type="tango" name="acq_window_off">PSOwindowOff</command>
+    <command type="tango" name="acq_arm">PSOcontrolArm</command>
+
+    -->
+
+
+</device>

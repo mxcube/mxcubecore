@@ -1,0 +1,27 @@
+<object class = "P11Session" role = "session">
+
+  <synchrotron_name>DESY</synchrotron_name>
+  <endstation_name>eh1</endstation_name>
+  <beamline_name>P11</beamline_name>
+
+  <mode>beamtime</mode>
+
+  <p11_settings_file>/gpfs/local/shared/CrystalControlMaxwell/lastsettings.ini</p11_settings_file>
+
+  <file_info>
+    <file_suffix>h5</file_suffix>
+    <precision>'05'</precision>
+
+    <raw_data_folder_name>raw</raw_data_folder_name>
+    <processed_data_folder_name>processed</processed_data_folder_name>
+    <archive_folder>archive</archive_folder>
+
+    <base_directory>/gpfs/current/</base_directory>
+    <processed_data_base_directory>/gpfs/current</processed_data_base_directory>
+    <archive_base_directory>/gpfs/local</archive_base_directory>
+
+    <ispyb_directory_template>/ispyb_data/p11/{year}/data/{beamtime_id}/processed/images</ispyb_directory_template>
+
+  </file_info>
+
+</object>

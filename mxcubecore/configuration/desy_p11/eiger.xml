@@ -1,0 +1,27 @@
+<device class="P11EigerDetector">
+    <username>EigerDetector</username>
+    <eiger_device>p11/simplon_detector/eh.01</eiger_device>
+    <filewriter_device>p11/simplon_filewriter/eh.01</filewriter_device>
+    <monitor_device>p11/simplon_monitor/eh.01</monitor_device>
+    <detector_tower_device>p11/detectortower/1</detector_tower_device>
+    <dcm_energy_device>p11/dcmener/oh.01</dcm_energy_device>
+    
+
+    
+    <exposure_time_limits>0.007,10000</exposure_time_limits>
+<!--    <beam_centre>340,256</beam_centre>    -->
+    <beam_centre>2137.5,2184.4</beam_centre>    
+    <roi_mode>disabled</roi_mode>
+    <object hwrid="/detector-distance" role="detector_distance"/>
+    <channel type="tango" tangoname="p11/simplon_detector/eh.01" name="_status" polling="300">Status</channel>
+
+
+  <type>eiger</type>
+  <model>16M</model>
+  <manufacturer>DECTRIS</manufacturer>
+  <px>0.075</px>
+  <py>0.075</py>
+  <width>4150</width>
+  <height>4271</height>
+
+</device>

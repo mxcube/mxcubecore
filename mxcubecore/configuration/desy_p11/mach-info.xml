@@ -1,0 +1,13 @@
+<object class="P11MachineInfo">
+    <!-- Tango device name (this should point to your actual Tango device) -->
+    <tangoname>PETRA/globals/keyword</tangoname>
+    
+    <!-- Parameters you want to monitor -->
+    <parameters>["current", "message", "lifetime", "energy"]</parameters>
+    
+    <!-- Tango channels corresponding to the parameters -->
+    <channel type="tango" name="current" polling="2000">BeamCurrent</channel>
+    <channel type="tango" name="message" polling="8000">MessageText</channel>
+    <channel type="tango" name="lifetime" polling="2000">BeamLifetime</channel>
+    <channel type="tango" name="energy" polling="2000">Energy</channel>
+</object>

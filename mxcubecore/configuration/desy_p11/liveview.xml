@@ -1,0 +1,4 @@
+<device class="P11AlbulaViewer">
+    <mask_4m>/gpfs/local/shared/MXCuBE/P11/image/pixel_mask_4m.tif</mask_4m>
+    <mask_16m>/gpfs/local/shared/MXCuBE/P11/images/pixel_mask_16m.tif</mask_16m>
+</device>

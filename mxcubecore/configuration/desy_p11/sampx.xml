@@ -1,0 +1,6 @@
+<device class="TangoMotor">
+    <actuator_name>SampX</actuator_name>
+    <username>SampX</username>
+    <tangoname>p11/piezomotor/eh.4.02</tangoname>
+    <channel type="tango" name="axisState" polling="500">State</channel>
+</device>

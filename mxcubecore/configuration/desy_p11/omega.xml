@@ -1,0 +1,22 @@
+<device class="TangoMotor">
+    <actuator_name>omega</actuator_name>
+    <username>Omega (deg)</username>
+
+    <tangoname>p11/servomotor/eh.1.01</tangoname>
+
+    <command type="tango" name="stopAxis">AbortMove</command>
+    <channel type="tango" name="velocity">Velocity</channel>
+    <channel type="tango" name="axisState" polling="500">State</channel>
+
+    <!-- channels and commands for activating trigger output between acquisition bounds -->
+
+    <channel type="tango" name="acq_lower_bound">PSOwindowLowerBound</channel>
+    <channel type="tango" name="acq_upper_bound">PSOwindowUpperBound</channel>
+
+    <command type="tango" name="calibrate">Calibrate</command>
+
+    <command type="tango" name="acq_on">PSOcontrolOn</command>
+    <command type="tango" name="acq_off">PSOcontrolOff</command>
+    <command type="tango" name="acq_arm">PSOcontrolArm</command>
+
+</device>

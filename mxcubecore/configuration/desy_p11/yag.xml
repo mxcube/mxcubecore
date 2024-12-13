@@ -1,0 +1,12 @@
+<object class="P11YagDiode">
+    <username>YagDiode</username>
+    <motorlist>yagz,yagx</motorlist>
+
+    <object role="yagz" href="/yagz" />
+    <object role="yagx" href="/yagx" />
+
+    <delta_yagmotorx>1000</delta_yagmotorx>
+    <delta_yagmotorz>100</delta_yagmotorz>
+    
+    <values>{"diode": {"yagx": 350, "yagz": 14000},"yag": {"yagx": 350, "yagz": 10500},"down": {"yagx": 350, "yagz": -12550}}</values>
+</object>

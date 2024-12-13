@@ -1,0 +1,6 @@
+<device class="TangoMotor">
+    <actuator_name>SampY</actuator_name>
+    <username>SampY</username>
+    <tangoname>p11/piezomotor/eh.4.01</tangoname>
+    <channel type="tango" name="axisState" polling="500">State</channel>
+</device>

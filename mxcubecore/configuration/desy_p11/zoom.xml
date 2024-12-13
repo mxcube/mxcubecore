@@ -1,0 +1,11 @@
+<device class="P11Zoom">
+    <actuator_name>Zoom</actuator_name>
+    <username>Zoom</username>
+    <object href="/mjpg-stream-video" role="camera" />
+
+    <!-- pixels_per_mm>3920</pixels_per_mm -->
+    <pixels_per_mm>5880</pixels_per_mm>
+    <overview_pixels_per_mm>480</overview_pixels_per_mm>
+    <values>{'Zoom0':0, 'Zoom1':0.3, 'Zoom2':0.6, 'Zoom3':1, 'Zoom4': 1.5,}</values>
+
+</device>

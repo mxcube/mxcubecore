@@ -1,0 +1,5 @@
+<object class="P11EDNACharacterisation">
+  <!-- Path to script that launches edna -->
+  <edna_command>echo "================ ////////////EDNA IS LAUNCHED//////////////=========="</edna_command>
+  <edna_default_file>/gpfs/local/shared/MXCuBE/P11/configuration/edna_defaults.xml</edna_default_file>
+</object>

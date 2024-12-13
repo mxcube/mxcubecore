@@ -1,0 +1,22 @@
+<device class="P11DetectorDistance">
+    <actuator_name>detdist</actuator_name>
+    <username>Detector distance</username>
+
+    <tangoname>p11/detectortower/1</tangoname>
+
+    <channel type="tango" name="axisState" polling="500">State</channel>
+    <channel type="tango" name="axisPosition" polling="500">DetectorDistance</channel>
+
+    <channel type="tango" name="axisMinValue" polling="500">DetectorDistanceMin</channel>
+    <channel type="tango" name="axisMaxValue" polling="500">DetectorDistanceMax</channel>
+
+    <channel type="tango" name="interlockState" polling="500">InterlockSet</channel>
+
+    <command type="tango" name="stopAxis">Stop</command>
+
+    <channel type="tango" name="DistanceLaser" polling="500">DetectorDistanceLaser</channel>
+
+   
+
+</device>
+

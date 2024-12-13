@@ -1,0 +1,13 @@
+<device class="P11Shutter">
+    <username>Exp Hutch Shutter</username>
+
+    <simulation>0</simulation>
+
+    <base_url>https://ics.desy.de/tineinterface?action=write</base_url>
+    <device_open>openBS11_1</device_open>
+    <device_close>closeBS11_1</device_close>
+
+    <tangoname>hasylab/piconditions/bs11_1_geschlossen</tangoname>
+    <channel type="tango" name="chanState" polling="500">displayState</channel>
+
+</device>

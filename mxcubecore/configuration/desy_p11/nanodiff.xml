@@ -1,0 +1,77 @@
+<equipment class="P11NanoDiff">
+
+  <object href="/omega" role="phi"/>
+  <object href="/sampx" role="sampx"/>
+  <object href="/sampy" role="sampy"/>
+  <object href="/zoom" role="zoom"/>
+
+	  <!-- ATTENTION - for now the names of these motors are exchanged -->
+
+  <object href="/phiz" role="phiz"/>
+  <object href="/phiy" role="phiy"/>
+
+  <object href="/diff-kappa-mockup" role="kappa"/>
+  <object href="/diff-kappaphi-mockup" role="kappa_phi"/>
+
+  <object href="/phix" role="phix"/>
+  <object href="/microy" role="microy"/>
+  <object href="/microz" role="microz"/>
+
+  <object href="/beam" role="beam_info"/>
+
+  <object href="/detector-cover" role="detector-cover"/>
+  <object href="/backlight" role="backlight"/>
+  <object href="/collimator" role="collimator"/>
+  <object href="/beamstop" role="beamstop"/>
+  <object href="/yag" role="yag"/>
+  <object href="/pinhole" role="pinhole"/>
+
+  <!-- decides on which centring module to use -->
+  <sample_centring>False</sample_centring>
+
+
+  <phase_list>("Transfer", "Centring", "DataCollection", "BeamLocation")</phase_list>
+
+  <!-- <zoom_centre>{"x":340,"y":256}</zoom_centre> -->
+
+  <save_motors>sampx,sampy,phix,phiy,phiz,microy,microz</save_motors>
+  <save_positions>
+      <save_position>
+	      <name>transfer</name>
+              <sampy>0</sampy>
+              <phix>0</phix>
+              <phiy>0</phiy>
+              <phiz>0</phiz>
+              <microy>0</microy>
+              <microz>0</microz>
+      </save_position>
+  </save_positions>
+
+ <filterserver>p11/filter/eh.01</filterserver>
+
+    <!-- channels and commands for activating trigger output between acquisition bounds -->
+    <tangoname>p11/servomotor/eh.1.01</tangoname>
+
+    <channel type="tango" name="acq_lower_bound">PSOwindowLowerBound</channel>
+    <channel type="tango" name="acq_upper_bound">PSOwindowUpperBound</channel>
+
+    <command type="tango" name="acq_on">PSOcontrolOn</command>
+    <command type="tango" name="acq_off">PSOcontrolOff</command>
+   
+    <command type="tango" name="acq_abort">AbortMove</command>
+    <command type="tango" name="acq_window_off">PSOwindowOff</command>
+    <command type="tango" name="acq_arm">PSOcontrolArm</command>
+
+
+  <!-- Next block added by rhfogh for better representation of move_motor behaviour -->
+  <!-- centring_motors>("phi", "kappa", "kappa_phi", "phiz", "phiy", "sampx", "sampy","zoom")</centring_motors -->
+  <centring_motors>("phi", "phiz", "phiy", "phix", "sampx", "sampy","zoom", "kappa", "kappa_phi", "microy", "microz")</centring_motors>
+
+  <!-- The following is not used (yet) at DESY P11 -->
+  <omega_reference>{"actuator_name": "phiy", "position":-0.2224, "camera_axis":"x"}</omega_reference>
+  <!-- MD2 -->
+  <!-- <gridDirection>{"fast": (1, 0), "slow": (0, -1)}</gridDirection>  -->
+  <sample_mount_mode>sample_changer</sample_mount_mode>
+  <!-- MD3 -->
+  <grid_direction>{"fast": (0, 1), "slow": (1, 0), "omega_ref": 0}</grid_direction>
+</equipment>

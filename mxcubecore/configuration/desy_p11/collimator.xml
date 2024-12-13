@@ -1,0 +1,14 @@
+<object class="P11Collimator">
+    <username>Collimator</username>
+    <motorlist>collimy, collimz</motorlist>
+
+    <object  role="collimatory" href="/collimy" />
+    <object  role="collimatorz" href="/collimz" />
+
+
+    <delta_collimatory>5</delta_collimatory>
+    <delta_collimatorz>5</delta_collimatorz>
+    
+    <values>{"up": {"collimatory": -855, "collimatorz": 9264}, "down": {"collimatory": -829, "collimatorz": -12000}}</values>
+
+</object>

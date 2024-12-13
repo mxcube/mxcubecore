@@ -1,0 +1,11 @@
+<equipment class="P11Transmission">
+
+    <default_limits>0,100</default_limits>  <!-- Changed from 'limits' to 'default_limits' -->
+
+    <tangoname>p11/filter/eh.01</tangoname>
+
+    <channel type="tango" name="chanRead" polling="500">CurrentTransmission</channel>
+    <channel type="tango" name="chanState" polling="500">State</channel>
+    <channel type="tango" name="chanSet">SelectTransmission</channel>
+
+</equipment>

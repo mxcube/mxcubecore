@@ -1,0 +1,14 @@
+<device class="P11BeamStop">
+    <username>BeamStop</username>
+    <motorlist>bstopx, bstopy, bstopz</motorlist>
+
+    <object role="bstopx" href="/bstopx" />
+    <object role="bstopy" href="/bstopy" />
+    <object role="bstopz" href="/bstopz" />
+
+    <delta_bstopx>1</delta_bstopx>
+    <delta_bstopy>100</delta_bstopy>
+    <delta_bstopz>100</delta_bstopz>
+
+    <values>{"in": {"bstopx": 27000, "bstopy": -136, "bstopz": -135}, "out": {"bstopx": 69000, "bstopy": -136, "bstopz": -135}}</values>
+</device>

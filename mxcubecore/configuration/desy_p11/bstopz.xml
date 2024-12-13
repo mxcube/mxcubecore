@@ -1,0 +1,9 @@
+<device class="TangoMotor">
+    <actuator_name>bstopz</actuator_name>
+    <username>BeamStop Z</username>
+
+    <tangoname>p11/piezomotor/eh.4.10</tangoname>
+
+    <command type="tango" name="stopAxis">Stop</command>
+    <channel type="tango" name="axisState" polling="500">State</channel>
+</device>

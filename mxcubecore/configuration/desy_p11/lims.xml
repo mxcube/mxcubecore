@@ -1,0 +1,29 @@
+<object class="P11ISPyBClient">
+
+  <!-- object role="ldapServer" href="/ldapconnection" / -->
+
+  <authServerType>ispyb</authServerType>
+  <loginType>proposal</loginType>
+
+
+  <ws_root>{WS_ADRESS}</ws_root>
+  <ws_username>{USERNAME}</ws_username>
+  <ws_password>{PASSWORD}</ws_password>
+
+
+  <ws_collection>ToolsForCollectionWebService</ws_collection>
+  <ws_shipping>ToolsForShippingWebService</ws_shipping>
+  <ws_tools>ToolsForBLSampleWebService</ws_tools>
+
+  <beamline_name>P11</beamline_name>
+
+  <!-- <proposal_simulated>0</proposal_simulated>
+  <proposal_code_simulated>I</proposal_code_simulated>
+  <proposal_number_simulated>20210046</proposal_number_simulated> -->
+
+  <proposal_simulated>0</proposal_simulated>
+  <proposal_code_simulated>R</proposal_code_simulated>
+  <proposal_number_simulated>20240662</proposal_number_simulated>
+
+  
+</object>

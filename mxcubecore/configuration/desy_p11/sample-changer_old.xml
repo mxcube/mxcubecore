@@ -1,0 +1,50 @@
+<device class="P11SampleChanger">
+    <username>P11 ROBOT</username>
+
+    <tangoname>p11/robot/eh.01</tangoname>
+
+    <command type="tango" name="mount">MountSample</command>
+    <command type="tango" name="unmount">DemountSample</command>
+    <command type="tango" name="wash">WashSample</command>
+    <command type="tango" name="stop">Stop</command>
+
+    <command type="tango" name="home">HomePosition</command>
+    <command type="tango" name="deice">DeiceGripper</command>
+    <command type="tango" name="cool">CoolGripper</command>
+
+    <channel type="tango" name="current_sample" polling="500">RobotCurrentSample</channel>
+    <channel type="tango" name="state" polling="300">State</channel>
+
+    <channel type="tango" name="powered" polling="300">RobotPowered</channel>
+
+    <channel type="tango" tangoname="p11/register/eh.o.3.02" name="cryoswitch" polling="500">Value</channel>
+
+    <channel type="tango" name="cond_collimator" polling="300">ConditionCollimatorOut</channel>
+    <channel type="tango" name="cond_collision" polling="300">ConditionCollisionProtectionClear</channel>
+    <channel type="tango" name="cond_goniopos" polling="300">ConditionGoniometerMountPosition</channel>
+    <channel type="tango" name="cond_guillotine" polling="300">ConditionGuillotineClosed</channel>
+    <channel type="tango" name="cond_interlock" polling="300">ConditionInterlockSet</channel>
+    <channel type="tango" name="cond_screen" polling="300">ConditionScreenOut</channel>
+
+	    <!-- no polling. read when needed. reduce reaction time -->
+    <channel type="tango" name="cond_cryo">ConditionCryojetOut</channel>
+
+ <test_sample_names>
+  <!-- Sample names to show in UI and matching addresses.   -->
+  <!-- Names of the form "emulate-<name>" are used for GPhL emulation, ...  -->
+  <emulate-3n0s>1:01</emulate-3n0s>
+  <emulate-4k4k>1:02</emulate-4k4k>
+  <emulate-4k61>1:03</emulate-4k61>
+  <emulate-4j8p>1:04</emulate-4j8p>
+  <emulate-5y6h>5:05</emulate-5y6h>
+  <emulate-4jrl>1:06</emulate-4jrl>
+  <emulate-4kh8>1:07</emulate-4kh8>
+  <emulate-4iej>10:08</emulate-4iej>
+  <emulate-5g0f>10:09</emulate-5g0f>
+  <emulate-4kw2>1:10</emulate-4kw2>
+  <emulate-4mxt>23:16</emulate-4mxt>
+  <emulate-thermolysin>2:02</emulate-thermolysin>
+  <emulate-germanate>2:03</emulate-germanate>
+ </test_sample_names>
+
+</device>

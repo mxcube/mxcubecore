@@ -1,0 +1,33 @@
+<device class="P11SampleChanger">
+    <username>P11 ROBOT</username>
+    <simulation>1</simulation> 
+    <tangoname>p11/robot/eh.01</tangoname>
+
+    <command type="tango" name="mount">MountSample</command>
+    <command type="tango" name="unmount">DemountSample</command>
+    <command type="tango" name="wash">WashSample</command>
+    <command type="tango" name="stop">Stop</command>
+
+    <command type="tango" name="home">HomePosition</command>
+    <command type="tango" name="deice">DeiceGripper</command>
+    <command type="tango" name="cool">CoolGripper</command>
+
+    <channel type="tango" name="current_sample" polling="500">RobotCurrentSample</channel>
+    <channel type="tango" name="state" polling="300">State</channel>
+
+    <channel type="tango" name="powered" polling="300">RobotPowered</channel>
+
+    <channel type="tango" tangoname="p11/register/eh.o.3.02" name="cryoswitch" polling="500">Value</channel>
+
+    <channel type="tango" name="cond_collimator" polling="300">ConditionCollimatorOut</channel>
+    <channel type="tango" name="cond_collision" polling="300">ConditionCollisionProtectionClear</channel>
+    <channel type="tango" name="cond_goniopos" polling="300">ConditionGoniometerMountPosition</channel>
+    <channel type="tango" name="cond_guillotine" polling="300">ConditionGuillotineClosed</channel>
+    <channel type="tango" name="cond_interlock" polling="300">ConditionInterlockSet</channel>
+    <channel type="tango" name="cond_screen" polling="300">ConditionScreenOut</channel>
+
+	    <!-- no polling. read when needed. reduce reaction time -->
+    <channel type="tango" name="cond_cryo">ConditionCryojetOut</channel>
+
+
+</device>

@@ -1,0 +1,6 @@
+<object class = "P11DoorInterlock">
+
+	<unlockEH_url>https://ics.desy.de//tineinterface/?action=write&amp;deviceName=G11_2_AbrkIntrlk</unlockEH_url>
+
+</object>
+

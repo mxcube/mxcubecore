@@ -1,0 +1,12 @@
+
+<device class="P11BackLight">
+    <username>BackLight</username>
+
+    <tangoname>p11/register/eh.o.3.05</tangoname>
+
+    <open_time>8</open_time>
+    <close_time>4</close_time>
+
+    <channel type="tango" name="value" polling="500">value</channel>
+
+</device>

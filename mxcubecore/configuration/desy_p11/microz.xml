@@ -1,0 +1,7 @@
+<device class="TangoMotor">
+    <actuator_name>MicroscopeZ</actuator_name>
+    <username>MicroscopeZPhiX</username>
+    <tangoname>p11/motor/eh.3.16</tangoname>
+    <command type="tango" name="stopAxis">StopMove</command>
+    <channel type="tango" name="axisState" polling="500">State</channel>
+</device>

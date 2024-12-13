@@ -1,0 +1,7 @@
+<device class="TangoMotor">
+    <actuator_name>PhiZ</actuator_name>
+    <username>PhiZ</username>
+    <tangoname>p11/motor/eh.3.14</tangoname>
+    <command type="tango" name="stopAxis">StopMove</command>
+    <channel type="tango" name="axisState" polling="500">State</channel>
+</device>

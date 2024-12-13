@@ -1,0 +1,11 @@
+
+<device class="P11FastShutter">
+    <username>FastShutter</username>
+
+    <tangoname>p11/shutter/fs</tangoname>
+
+    <channel type="tango" name="value" polling="500">value</channel>
+
+</device>
+
+
