@@ -1,7 +1,0 @@
-<object class="SardanaMotor">
-    <username>Phi</username>
-    <actuator_name>Phi</actuator_name>
-    <taurusname>phi</taurusname>
-    <threshold>0.005</threshold>
-    <interval>2000</interval>
-</object>
