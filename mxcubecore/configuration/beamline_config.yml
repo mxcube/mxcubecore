@@ -109,7 +109,7 @@ default_acquisition_parameters:
         num_passes: 1
         first_image: 1
         overlap: 0
-        num_images: 1
+        num_images: 360
         detector_mode: 1 # Remove as not in practice used ?
         inverse_beam: false
         take_dark_current: true
