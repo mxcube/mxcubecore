@@ -640,6 +640,7 @@ class ICATLIMS(AbstractLims):
 
             logging.getLogger("HWR").info(f"LIMS sample name {sample_name}")
             oscillation_sequence = collection_parameters["oscillation_sequence"][0]
+
             beamline = HWR.beamline.session.beamline_name.lower()
             distance = HWR.beamline.detector.distance.get_value()
             proposal = f"{HWR.beamline.session.proposal_code}{HWR.beamline.session.proposal_number}"
@@ -698,8 +699,23 @@ class ICATLIMS(AbstractLims):
                             f"Copying snapshot index {snapshot_index} to gallery"
                         )
                         shutil.copy(snapshot_path, gallery_path)
-            logging.getLogger("HWR").info(f"Beamline: {beamline}")
-            logging.getLogger("HWR").info(f"Proposal: {proposal}")
+
+            beamline = self._get_scheduled_beamline()
+            logging.getLogger("HWR").info(
+                f"Dataset Beamline={beamline} Current Beamline={HWR.beamline.session.beamline_name}"
+            )
+            logging.getLogger("HWR").info(f"Proposal={proposal}")
+
+            # __actualInstrument is a dataset parameter that indicates where the dataset has been actually collected
+            # only filled when it does not match the scheduled beamline
+            try:
+                if (
+                    self.active_session is None
+                    or not self.active_session.is_scheduled_beamline
+                ):
+                    metadata["__actualInstrument"] = HWR.beamline.session.beamline_name
+            except Exception:
+                logging.getLogger("HWR").exception("")
 
             self.icatClient.store_dataset(
                 beamline=beamline,
@@ -710,7 +726,23 @@ class ICATLIMS(AbstractLims):
             )
             logging.getLogger("HWR").debug("Done uploading to ICAT")
         except Exception as e:
-            logging.getLogger("HWR").exception("Failed uploading to ICAT (%s)", e)
+            logging.getLogger("HWR").exception("Failed uploading to ICAT")
+
+    def _get_scheduled_beamline(self):
+        """
+        This returns the beamline where the session has been scheduled (in case of a different beamline)
+        otherwise it returns the name of the beamline as set in the properties
+        """
+        active_session = self.session_manager.active_session
+
+        if active_session is None or active_session.is_scheduled_beamline:
+            return HWR.beamline.session.beamline_name.lower()
+
+        beamline = str(active_session["instrument"]["name"].lower())
+        logging.getLogger("HWR").info(
+            f"Session have been moved to another beamline: {beamline}"
+        )
+        return beamline
 
     def update_bl_sample(self, bl_sample: str):
         """
