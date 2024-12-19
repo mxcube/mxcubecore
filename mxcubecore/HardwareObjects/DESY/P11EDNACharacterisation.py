@@ -155,7 +155,7 @@ class P11EDNACharacterisation(EDNACharacterisation):
         self.log.debug(f'=======MOSFLM========== ssh="{ssh}"')
         self.log.debug(f'=======MOSFLM========== sbatch="{sbatch}"')
         self.log.debug(f'=======MOSFLM========== executing process cmd="{cmd}"')
-        full_cmd = f'{ssh} "{sbatch} --wrap \\"{cmd}\\""'
+        full_cmd = f'{ssh} "{sbatch} {cmd}"'
         self.log.debug(f"=======MOSFLM========== {full_cmd}")
 
         os.system(full_cmd)
@@ -199,8 +199,8 @@ class P11EDNACharacterisation(EDNACharacterisation):
         cmd = f"/asap3/petra3/gpfs/common/p11/processing/edna_sbatch.sh {inxml} {outxml} {processpath}"
 
         self.log.debug(f'=======EDNA========== executing process cmd="{cmd}"')
-        self.log.debug(f'=======EDNA========== {ssh} "{sbatch} --wrap \\"{cmd}\\""')
-        logging.info(f'{ssh} "{sbatch} --wrap \\"{cmd}\\""')
+        self.log.debug(f'=======EDNA========== {ssh} "{sbatch} {cmd}"')
+        logging.info(f'{ssh} "{sbatch} {cmd}"')
 
         waitforxml = outputxml.replace("/raw/", "/processed/")
         self.log.debug(f"=======EDNA========== WAITING FOR OUTPUTXML IN {waitforxml}")
