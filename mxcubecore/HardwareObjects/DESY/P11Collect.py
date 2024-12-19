@@ -924,7 +924,7 @@ class P11Collect(AbstractCollect):
             )
 
             os.system(
-                '{ssh:s} "{sbatch:s} --wrap \\"{cmd:s}\\""'.format(
+                '{ssh:s} "{sbatch:s} {cmd:s}"'.format(
                     ssh=ssh, sbatch=sbatch, cmd=cmd
                 )
             )
@@ -999,7 +999,7 @@ class P11Collect(AbstractCollect):
             )
 
             os.system(
-                '{ssh:s} "{sbatch:s} --wrap \\"{cmd:s}\\""'.format(
+                '{ssh:s} "{sbatch:s} {cmd:s}"'.format(
                     ssh=ssh, sbatch=sbatch, cmd=cmd
                 )
             )
