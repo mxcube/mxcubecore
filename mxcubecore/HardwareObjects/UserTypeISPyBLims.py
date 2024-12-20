@@ -8,7 +8,7 @@ from suds import WebFault
 from suds.client import Client
 from suds.sudsobject import asdict
 
-from mxcubecore.HardwareObjects.abstract.ISPyBAbstractLIMS import ISPyBAbstractLIMS
+from mxcubecore.HardwareObjects.abstract.ISPyBAbstractLims import ISPyBAbstractLIMS
 from mxcubecore.mxcubecore.model.lims_session import LimsSessionManager
 
 try:
