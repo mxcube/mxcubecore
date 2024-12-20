@@ -42,6 +42,7 @@ class UserTypeISPyBLims(ISPyBAbstractLIMS):
         return True
 
     def init(self):
+        super().init()
         try:
             # ws_root is a property in the configuration xml file
             if self.ws_root:
