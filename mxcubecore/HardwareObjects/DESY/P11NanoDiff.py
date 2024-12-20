@@ -1126,7 +1126,7 @@ class P11NanoDiff(GenericDiffractometer):
         logging.getLogger("GUI").warning("Putting collimator down...")
         self.collimator_hwobj.set_value("down")
 
-        logging.getLogger("GUI").warning("Setting collimator out...")
+        logging.getLogger("GUI").warning("Setting beamstop out...")
         self.beamstop_hwobj.set_value("out")
 
         logging.getLogger("GUI").warning("Moving yag down...")
