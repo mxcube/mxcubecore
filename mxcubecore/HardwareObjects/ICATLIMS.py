@@ -26,7 +26,7 @@ from mxcubecore.model.lims_session import (
 
 class ICATLIMS(AbstractLims):
     """
-    ICAT client.
+    ICAT+ client.
     """
 
     def __init__(self, name):
