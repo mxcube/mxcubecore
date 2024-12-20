@@ -11,7 +11,7 @@ from mxcubecore.model.lims_session import (
 
 class ESRFLIMS(AbstractLims):
     """
-    ESRF client.
+    ESRF client (ICAT+ and IPyB).
     """
 
     def __init__(self, name):
