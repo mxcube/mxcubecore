@@ -21,21 +21,36 @@
 """
 bliss implementation of AbstartNState
 Example xml file:
-<device class="BlissNState">
+<object class="BlissNState">
   <username>Detector Cover</username>
   <actuator_name>detcover</>
   <object href="/bliss" role="controller"/>
   <values>{"IN": "IN", "OUT": "OUT"}</values>
-</device>
+</object>
+
+Example yaml file:
+
+.. code-block:: yaml
+
+ class: BlissNState.BlissNState
+ configuration:
+    actuator_name: detcove
+    prefix: detcov   #optional
+    type: actuator   # actuaror or motor, default value actuator
+    username: Detector Cover
+    values: {"IN": "IN", "OUT": "OUT"}  # optional
+  objects:
+    controller: bliss.yml
 """
 from enum import Enum
+
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import MotorStates
 from mxcubecore.HardwareObjects.abstract.AbstractNState import (
     AbstractNState,
     BaseValueEnum,
 )
 
-__copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
+__copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
@@ -53,12 +68,9 @@ class BlissNState(AbstractNState):
 
     def init(self):
         """Initialise the device"""
-
         super().init()
         self._prefix = self.get_property("prefix")
-        self._bliss_obj = getattr(
-            self.get_object_by_role("controller"), self.actuator_name
-        )
+        self._bliss_obj = getattr(self.controller, self.actuator_name)
 
         self.device_type = self.get_property("type", "actuator")
         if "MultiplePositions" in self._bliss_obj.__class__.__name__:
@@ -75,7 +87,9 @@ class BlissNState(AbstractNState):
 
         self.update_state()
 
-    def _update_state(self):
+    # NB: Bliss calls the update handler with the state so its needed in the
+    # method definition
+    def _update_state(self, state=None):
         self.update_state(self.STATES.READY)
 
     def get_value(self):
@@ -112,7 +126,7 @@ class BlissNState(AbstractNState):
                 svalue = value.value
         else:
             self.__saved_state = value.upper()
-        # are we sure we never get to need svalue below without setting it first?
+        # are we sure we would never need svalue below without setting it first?
         if self.device_type == "motor":
             self._bliss_obj.move(svalue, wait=False)
         elif self.device_type == "actuator":

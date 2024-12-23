@@ -17,31 +17,36 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 """
 Energy and Wavelength with bliss.
-Example xml file:
-  - for tunable wavelength beamline:
-<object class="Energy">
-  <object href="/energy" role="energy_motor"/>
-  <object href="/bliss" role="bliss"/>
-</object>
-The energy should have methods get_value, get_limits, get_state and move.
-If used, the controller should have method moveEnergy.
+Example yaml file:
+- for tunable wavelength beamline:
+.. code-block:: yaml
 
-  - for fixed wavelength beamline:
-<object class="Energy">
-  <read_only>True</read_only>
-  <energy>12.8123</energy>
-  or
-  <object href="/energy" role="energy_motor"/>
-The energy should have methods get_value and get_state
-</object>
+ class: BlissEnergy.BlissEnergy
+ configuration:
+   username: Enrgy
+ objects:
+   controller: bliss.yml
+   energy_motor: energy_motor.yml
+
+- for fixed wavelength beamline:
+.. code-block:: yaml
+
+ class: BlissEnergy.BlissEnergy
+ configuration:
+   username: Enrgy
+   read_only: True
+   energy: 12.8123
+
 """
 import logging
 import math
-from gevent import spawn
-from mxcubecore.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
-from mxcubecore.BaseHardwareObjects import HardwareObjectState
 
-__copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
+from gevent import spawn
+
+from mxcubecore.BaseHardwareObjects import HardwareObjectState
+from mxcubecore.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
+
+__copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
@@ -50,23 +55,22 @@ class BlissEnergy(AbstractEnergy):
 
     def __init__(self, name):
         super().__init__(name)
-        self._energy_motor = None
-        self._bliss_session = None
+        self.energy_motor = None
+        self.controller = None
         self._cmd_execution = None
 
     def init(self):
         """Initialisation"""
         super().init()
-        self._energy_motor = self.get_object_by_role("energy_motor")
-        self._bliss_session = self.get_object_by_role("bliss")
+
         self.update_state(HardwareObjectState.READY)
 
-        if self._energy_motor:
-            self.update_state(self._energy_motor.get_state())
-            self._energy_motor.connect("valueChanged", self.update_value)
-            self._energy_motor.connect("stateChanged", self.update_state)
+        if self.energy_motor:
+            self.update_state(self.energy_motor.get_state())
+            self.energy_motor.connect("valueChanged", self.update_value)
+            self.energy_motor.connect("stateChanged", self.update_state)
 
-        if self.read_only and not self._energy_motor:
+        if self.read_only and not self.energy_motor:
             self._nominal_value = float(self.get_property("energy", 0))
 
     def get_value(self):
@@ -74,8 +78,8 @@ class BlissEnergy(AbstractEnergy):
         Returns:
             (float): Energy [keV]
         """
-        if self._energy_motor:
-            self._nominal_value = self._energy_motor.get_value()
+        if self.energy_motor:
+            self._nominal_value = self.energy_motor.get_value()
         return self._nominal_value
 
     def get_limits(self):
@@ -84,12 +88,12 @@ class BlissEnergy(AbstractEnergy):
             (tuple): two floats tuple (low limit, high limit) [keV].
         """
         if not self.read_only:
-            self._nominal_limits = self._energy_motor.get_limits()
+            self._nominal_limits = self.energy_motor.get_limits()
         return self._nominal_limits
 
     def stop(self):
         """Stop the energy motor movement"""
-        self._energy_motor.stop()
+        self.energy_motor.stop()
 
     def _set_value(self, value):
         """Execute the sequence to move to an energy
@@ -97,9 +101,9 @@ class BlissEnergy(AbstractEnergy):
             value (float): target energy
         """
         try:
-            self._bliss_session.change_energy(value)
-        except RuntimeError:
-            self._energy_motor.set_value(value)
+            self.controller.change_energy(value)
+        except (AttributeError, RuntimeError):
+            self.energy_motor.set_value(value)
 
     def set_value(self, value, timeout=0):
         """Move energy to absolute position. Wait the move to finish.
@@ -134,7 +138,7 @@ class BlissEnergy(AbstractEnergy):
                 else:
                     self._cmd_execution = spawn(self._set_value(value))
             else:
-                self._energy_motor.set_value(value, timeout=timeout)
+                self.energy_motor.set_value(value, timeout=timeout)
         else:
             raise ValueError("Invalid value %s" % str(value))
 
