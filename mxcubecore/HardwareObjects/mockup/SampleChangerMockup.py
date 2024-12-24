@@ -4,7 +4,7 @@ import logging
 
 from mxcubecore.HardwareObjects.abstract import AbstractSampleChanger
 from mxcubecore.HardwareObjects.abstract.sample_changer import Container
-
+from mxcubecore import HardwareRepository as HWR
 
 class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
 
@@ -70,6 +70,7 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
 
     def exchange(self,newsample,wait=False):
         # raise Exception("test exception")
+        logging.getLogger("HWR").debug("get in exchange method")
         self.load(newsample,wait)
 
 
@@ -107,6 +108,7 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
 
         print("start time sleep 5")
         time.sleep(5)
+
         print("end time sleep 5")
 
 
@@ -121,6 +123,12 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
         self.emit("fsmConditionChanged", "sample_is_loaded", True)
         self.emit("fsmConditionChanged", "sample_mounting_sample_changer", False)
 
+        # try:
+        #     raise Exception("test exception")
+        # finally:
+        #     HWR.beamline.sample_changer_maintenance._running = 0
+        #     HWR.beamline.sample_changer_maintenance._update_global_state()
+        #     self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
         return self.get_loaded_sample()
 
     def unload(self, sample_slot=None, wait=None):
