@@ -536,8 +536,10 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         file_parameters = self.current_dc_parameters["fileinfo"]
         _subdir = file_parameters["directory"].split('RAW_DATA')[1]
         _date = datetime.now().strftime('%Y%m%d')
-        _filename = '/', _date, _subdir, '/', file_parameters["filename"]
-        # _filename = '/', _subdir, '/', file_parameters["filename"]
+        # _filename = '/', _date, _subdir, '/', file_parameters["filename"]
+        _filename = _subdir, '/', file_parameters["filename"]
+        logging.getLogger('HWR').debug(f'_filename in BL19U1Collect.py: {_filename}')
+
         oscillation_parameters = self.current_dc_parameters["oscillation_sequence"][0]
 
 
