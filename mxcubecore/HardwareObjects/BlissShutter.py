@@ -22,13 +22,17 @@
 Implements _set_value, get_value methods
 Bliss states are: UNKNOWN, OPEN, CLOSED, FAULT
 "MOVING", "DISABLE", "STANDBY", "RUNNING"
-Example xml file:
-<devic class="BlissShutter">
-  <username>Safety Shutter</username>
-  <name>safshut</name>
-  <type>tango</type>
-  <object href="/bliss" role="controller"/>
-</object>
+Example yml configuration:
+
+.. code-block:: yaml
+
+ class: BlissShutter.BlissShutter
+ configuration:
+   actuator_name: safshut
+   type: tango
+   username: Safety shutter
+ objects:
+   controller: bliss.yaml
 """
 
 from enum import (
@@ -41,7 +45,7 @@ import gevent
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 
-__copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
+__copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
@@ -64,16 +68,15 @@ class BlissShutter(AbstractShutter):
     SPECIFIC_STATES = BlissShutterStates
 
     def __init__(self, name):
-        AbstractShutter.__init__(self, name)
+        super().__init__(name)
         self._bliss_obj = None
         self.shutter_type = None
         self.opening_mode = None
 
     def init(self):
         """Initilise the predefined values"""
-        AbstractShutter.init(self)
-        _name = self.get_property("name")
-        self._bliss_obj = getattr(self.get_object_by_role("controller"), _name)
+        super().init()
+        self._bliss_obj = getattr(self.controller, self.actuator_name)
         # for now we only treat tango type shutter
         self.shutter_type = self.get_property("type", "tango")
         try:
