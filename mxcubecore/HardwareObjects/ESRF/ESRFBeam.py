@@ -19,7 +19,20 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
-Beam ESRF implementation class - methods to define the size and shape of the beam.
+BeamDefiner ESRF implementation class - methods to define the size and shape of
+the beam.
+Example yml configuration:
+
+.. code-block:: yaml
+
+ class: ESRF.ESRFBeam.ESRFBeam
+ configuration:
+   beam_divergence_horizontal: 104
+   beam_divergence_vertical: 6.5
+   definer_type: definer   # could be also aperture or slits
+ objects:
+   aperture: udiff_aperture.yml
+   definer: beam_definer.yml
 """
 
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
@@ -91,7 +104,7 @@ class ESRFBeam(AbstractBeam):
             self._beam_check_obj = getattr(_bliss_obj, beam_check)
 
     def _re_emit_values(self, value):
-        # redefine as re_emit_values takes no arguments
+        """Redefine as re_emit_values takes no arguments"""
         self.re_emit_values()
 
     def _get_aperture_value(self) -> tuple[list[float, float], str]:
@@ -233,6 +246,8 @@ class ESRFBeam(AbstractBeam):
             _enum = self.aperture.VALUES
         elif self._definer_type == "definer":
             _enum = self.definer.VALUES
+        elif "aperture" in self._definer_type:
+            _enum = self.aperture.VALUES
 
         for value in _enum:
             _nam = value.name

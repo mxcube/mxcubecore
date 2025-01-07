@@ -21,89 +21,92 @@
 """Photon flux calculations
 Example xml_ configuration:
 
-.. code-block:: xml
+.. code-block:: yaml
 
- <object class="ESRF.ESRFPhotonFlux">
-   <username>Photon flux</username>
-   <object role="controller" href="/bliss"/>
-   <object role="aperture" href="/udiff_aperture"/>
-   <counter_name>i0</counter_name>
-   <beam_check_name>checkbeam</beam_check_name>
-   <object role="monitor_beam" href="/monitor_beam"/>
- </object>
+ class: ESRF.ESRFPhotonFlux.ESRFPhotonFlux
+  configuration:
+    beam_check_name: checkbeam
+    counter_name: i0
+    threshold: 5000000000.0
+    username: Photon flux
+  objects:
+    aperture: udiff_aperture.yaml
+    controller: bliss.yaml
+    monitor_beam: monitor_beam.yaml
 """
 
 import logging
 
-import gevent
+from gevent import spawn, sleep
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractFlux import AbstractFlux
 
 
 class ESRFPhotonFlux(AbstractFlux):
-    """Photon flux calculation for ID30B"""
+    """Photon flux calculation"""
 
     def __init__(self, name):
         super().__init__(name)
         self._counter = None
         self._flux_calc = None
-        self._aperture = None
-        self.threshold = None
         self._beam_check_obj = None
-        self._monitorbeam_obj = None
+        self.beam_check_name = None
+        self.counter_name = None
+        self.threshold = None
+        self.aperture = None
+        self.controller = None
+        self.monitor_beam = None
 
     def init(self):
         """Initialisation"""
         super().init()
-        controller = self.get_object_by_role("controller")
 
-        self._aperture = self.get_object_by_role("aperture")
-        self.threshold = self.get_property("threshold") or 0.0
+        self.threshold = self.threshold or 0.0
 
         try:
-            self._flux_calc = controller.CalculateFlux()
+            self._flux_calc = self.controller.CalculateFlux()
             self._flux_calc.init()
         except AttributeError:
             logging.getLogger("HWR").exception(
                 "Could not get flux calculation from BLISS"
             )
 
-        counter = self.get_property("counter_name")
-        if counter:
-            self._counter = getattr(controller, counter)
+        if self.counter_name:
+            self._counter = getattr(self.controller, self.counter_name)
         else:
-            self._counter = self.get_object_by_role("counter")
+            logging.getLogger("HWR").exception(
+                "Counter to read the flux is not configured"
+            )
 
-        beam_check = self.get_property("beam_check_name")
-
-        if beam_check:
-            self._beam_check_obj = getattr(controller, beam_check)
-
-        self._monitorbeam_obj = self.get_object_by_role("monitor_beam")
+        if self.beam_check_name:
+            self._beam_check_obj = getattr(self.controller, self.beam_check_name)
 
         try:
             HWR.beamline.safety_shutter.connect("stateChanged", self.update_value)
         except AttributeError as err:
             raise RuntimeError("Safety shutter is not configured") from err
 
-        self._poll_task = gevent.spawn(self._poll_flux)
+        self._poll_task = spawn(self._poll_flux)
 
     def _poll_flux(self):
-        """Poll the flux every 2 seconds"""
+        """Poll the flux every 3 seconds"""
         while True:
             self.re_emit_values()
-            gevent.sleep(3)
+            sleep(3)
 
     def get_value(self):
-        """Calculate the flux value as function of a reading"""
-
+        """Get the flux value as function of a diode reading, the energy
+           and the aperture factor (if any).
+        Returns:
+            (float): The flux value or 0 if below the pre-defined threshold.
+        """
         counts = self._counter.raw_read
         if isinstance(counts, list):
             counts = float(counts[0])
-        counts = float(self._counter.raw_read)
         if counts == -9999:
-            counts = 0.0
+            # no good value from the diode
+            return 0.0
 
         try:
             egy = HWR.beamline.energy.get_value()
@@ -114,15 +117,14 @@ class ESRFPhotonFlux(AbstractFlux):
             egy = 0
             calib = 0
 
-        try:
-            label = self._aperture.get_value().name
-            aperture_factor = self._aperture.get_factor(label)
+        factor = 1.0
+        if self.aperture:
+            label = self.aperture.get_value().name
+            aperture_factor = self.aperture.get_factor(label)
             if isinstance(aperture_factor, tuple):
                 factor = aperture_factor[0] + aperture_factor[1] * egy
             else:
                 factor = float(aperture_factor)
-        except (AttributeError, ValueError, RuntimeError):
-            factor = 1.0
 
         counts = abs(counts * calib * factor)
         if counts < self.threshold:
@@ -139,21 +141,18 @@ class ESRFPhotonFlux(AbstractFlux):
         return self._beam_check_obj.check_beam()
 
     def wait_for_beam(self, timeout=None):
-        """Wait until beam present
+        """Wait until beam present.
         Args:
             timeout (float): optional - timeout [s],
                              If timeout == 0: return at once and do not wait
                                               (default);
                              if timeout is None: wait forever.
         """
-        if self._monitorbeam_obj:
-            try:
-                check = self._monitorbeam_obj.get_value().value
-            except AttributeError:
-                check = False
-            if check is True:
-                try:
+        try:
+            if self.monitor_beam.get_value().value is True:
+                if self._beam_check_obj:
                     return self._beam_check_obj.wait_for_beam(timeout)
-                except AttributeError:
-                    return True
-        return True
+                return True
+            return True
+        except AttributeError:
+            return True
