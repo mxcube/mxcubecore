@@ -21,6 +21,18 @@
 """
 BeamDefiner ESRF implementation class - methods to define the size and shape of
 the beam.
+Example yml configuration:
+
+.. code-block:: yaml
+
+ class: ESRF.ESRFBeam.ESRFBeam
+ configuration:
+   beam_divergence_horizontal: 104
+   beam_divergence_vertical: 6.5
+   definer_type: definer   # could be also aperture or slits
+ objects:
+   aperture: udiff_aperture.yml
+   definer: beam_definer.yml
 """
 
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
@@ -39,49 +51,34 @@ class ESRFBeam(AbstractBeam):
     unit = "mm"
 
     def init(self):
-        """Initialize hardware"""
+        """Initialize the definer type and connect to the hardware"""
         super().init()
 
-        _definer_type = []
-        self._aperture = self.get_object_by_role("aperture")
-        if self._aperture:
-            _definer_type.append("aperture")
+        if not self.definer_type:
+            _definer_type = []
+            if self.aperture:
+                _definer_type.append("aperture")
 
-        _slits = self.get_property("slits")
-        if _slits:
-            self._slits = {}
-            _definer_type.append("slits")
-            _bliss_obj = self.get_object_by_role("bliss")
-            for name in _slits.split():
-                _key, _val = name.split(":")
-                self._slits.update({_key: _bliss_obj.getattribute(_val)})
+                if self.definer:
+                    _definer_type.append("definer")
 
-        self._definer = self.get_object_by_role("definer")
-        if self._definer:
-            _definer_type.append("definer")
+            self.definer_type = _definer_type
+            if len(_definer_type) == 1:
+                self.definer_type = _definer_type[0]
 
-        if len(_definer_type) == 1:
-            self._definer_type = _definer_type[0]
-        else:
-            self._definer_type = None
+        if self.beam_position:
+            self._beam_position_on_screen = tuple(map(float, self.beam_position.split()))
 
-        self._definer_type = self.get_property("definer_type") or self._definer_type
+        if self.aperture:
+            self.aperture.connect("valueChanged", self._re_emit_values)
+            self.aperture.connect("stateChanged", self._re_emit_values)
 
-        beam_position = self.get_property("beam_position")
-
-        if beam_position:
-            self._beam_position_on_screen = tuple(map(float, beam_position.split()))
-
-        if self._aperture:
-            self._aperture.connect("valueChanged", self._re_emit_values)
-            self._aperture.connect("stateChanged", self._re_emit_values)
-
-        if self._definer:
-            self._definer.connect("valueChanged", self._re_emit_values)
-            self._definer.connect("stateChanged", self._re_emit_values)
+        if self.definer:
+            self.definer.connect("valueChanged", self._re_emit_values)
+            self.definer.connect("stateChanged", self._re_emit_values)
 
     def _re_emit_values(self, value):
-        # redefine as re_emit_values takes no arguments
+        """Redefine as re_emit_values takes no arguments"""
         self.re_emit_values()
 
     def _get_aperture_value(self):
@@ -113,16 +110,6 @@ class ESRFBeam(AbstractBeam):
             logging.getLogger("HWR").info("Could not read beam size")
         return [-1, -1], "UNKNOWN"
 
-    def _get_slits_size(self):
-        """Get the size of the slits in place.
-        Returns:
-            (dict): {"width": float, "heigth": float}.
-        """
-        beam_size = {}
-        for _key, _val in self.slits:
-            beam_size.update({_key: abs(_val.position)})
-        return beam_size
-
     def get_value(self):
         """Get the size (width and heigth) of the beam, its shape and
            its label. The size is in mm.
@@ -136,11 +123,6 @@ class ESRFBeam(AbstractBeam):
             _size, _name = self._get_aperture_value()
             self._beam_size_dict.update({"aperture": _size})
             labels.update({"aperture": _name})
-
-        if self.slits:
-            _size, _name = self._get_slits_value()
-            self._beam_size_dict.update({"slits": _size})
-            labels.update({"slits": _name})
 
         if self.definer:
             _size, _name = self._get_definer_value()
@@ -182,15 +164,6 @@ class ESRFBeam(AbstractBeam):
                 "values": self.definer.get_predefined_positions_list(),
             }
 
-        if self._definer_type in (self.slits, "slits"):
-            # get the list of the slits motors range
-            _low_w, _high_w = self.slits["width"].get_limits()
-            _low_h, _high_h = self.slits["height"].get_limits()
-            return {
-                "type": ["width", "height"],
-                "values": [_low_w, _high_w, _low_h, _high_h],
-            }
-
         return {}
 
     def get_defined_beam_size(self):
@@ -203,19 +176,10 @@ class ESRFBeam(AbstractBeam):
         labels = []
         values = []
 
-        if self._definer_type == "slits":
-            # get the list of the slits motors range
-            _low_w, _high_w = self.slits["width"].get_limits()
-            _low_h, _high_h = self.slits["height"].get_limits()
-            return {
-                "label": ["low", "high"],
-                "size": [(_low_w, _low_h), (_high_w, _high_h)],
-            }
-
-        if self._definer_type == "aperture":
-            _enum = self.aperture.VALUES
-        elif self._definer_type == "definer":
+        if "definer" in self._definer_type:
             _enum = self.definer.VALUES
+        elif "aperture" in self._definer_type:
+            _enum = self.aperture.VALUES
 
         for value in _enum:
             _nam = value.name
@@ -226,28 +190,6 @@ class ESRFBeam(AbstractBeam):
                 else:
                     values.append(value.value[0])
         return {"label": labels, "size": values}
-
-    def _set_slits_size(self, size=None):
-        """Move the slits to the desired position.
-        Args:
-            size (list): Width, heigth [mm].
-        Raises:
-            RuntimeError: Size out of the limits.
-               TypeError: Invalid size
-        """
-        if not isinstance(size, list):
-            raise TypeError("Incorrect input value for slits")
-        w_lim = self.slits["width"].get_limits()
-        h_lim = self.slits["heigth"].get_limits()
-        try:
-            if min(w_lim) > size[0] > max(w_lim):
-                raise RuntimeError("Size out of the limits")
-            if min(h_lim) > size[1] > max(h_lim):
-                raise RuntimeError("Size out of the limits")
-            self.slits["width"].set_value(size[0])
-            self.slits["heigth"].set_value(size[1])
-        except TypeError as err:
-            raise TypeError("Invalid size") from err
 
     def _set_aperture_size(self, size=None):
         """Move the aperture to the desired size.
@@ -276,7 +218,7 @@ class ESRFBeam(AbstractBeam):
         if not isinstance(size, str):
             raise TypeError("Incorrect input value for definer")
 
-        self._definer.set_value(self.definer.VALUES[size])
+        self.definer.set_value(self.definer.VALUES[size])
 
     def set_value(self, size=None):
         """Set the beam size
@@ -287,13 +229,10 @@ class ESRFBeam(AbstractBeam):
             RuntimeError: Beam definer not configured
                           Size out of the limits.
         """
-        if self._definer_type in (self.slits, "slits"):
-            self._set_slits_size(size)
-
-        if self._definer_type in (self.aperture, "aperture"):
+        if self._definer_type == "aperture":
             self._set_aperture_size(size)
 
-        if self._definer_type in (self.definer, "definer"):
+        if self._definer_type == "definer":
             self._set_definer_size(size)
 
     def get_beam_position_on_screen(self):

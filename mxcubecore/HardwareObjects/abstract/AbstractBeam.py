@@ -61,7 +61,7 @@ class AbstractBeam(HardwareObject):
         self.aperture = None
         self.slits = None
         self.definer = None
-        self._definer_type = None
+        self.definer_type = None
 
         self._beam_size_dict = {
             "aperture": [sys.float_info.max, sys.float_info.max],
@@ -91,7 +91,7 @@ class AbstractBeam(HardwareObject):
         _divergence_horizontal = self.get_property("beam_divergence_horizontal")
         self._beam_divergence = (_divergence_horizontal, _divergence_vertical)
         self._beam_position_on_screen = [0, 0]
-        self._definer_type = self.get_property("definer_type")
+        self.definer_type = self.get_property("definer_type")
 
     def get_beam_divergence(self):
         """Get the beam divergence.
@@ -206,8 +206,8 @@ class AbstractBeam(HardwareObject):
         if len(key) == 1:
             _label = key[0]
         else:
-            if self._definer_type in key:
-                _label = self._definer_type
+            if self.definer_type in key:
+                _label = self.definer_type
             else:
                 _label = "UNKNOWN"
 
