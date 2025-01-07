@@ -98,12 +98,12 @@ class MD2MultiCollect(ESRFMultiCollect):
 
     @task
     def data_collection_cleanup(self):
-        self.get_object_by_role("diffractometer")._wait_ready(10)
+        HWR.beamline.diffractometer._wait_ready(10)
         self.close_fast_shutter()
 
     @task
     def oscil(self, start, end, exptime, number_of_images, wait=True):
-        diffr = self.get_object_by_role("diffractometer")
+        diffr = HWR.beamline.diffractometer
         # make sure the diffractometer is ready to do the scan
         diffr.wait_ready(100)
         if self.helical:
