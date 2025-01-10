@@ -203,7 +203,7 @@ def load_from_yaml(
 
                 # check if we already loaded this configuration file
                 if _instance.hardware_objects.get(fname) is not None:
-                    #raise Exception(
+                    # raise Exception(
                     print(
                         f"Configuration file '{config_file}', referenced in '{configuration_file}, "
                         f"has been loaded earlier. Refusing to load it a second time."

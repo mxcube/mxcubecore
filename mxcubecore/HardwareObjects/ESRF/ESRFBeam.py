@@ -66,8 +66,9 @@ class ESRFBeam(AbstractBeam):
             if len(_definer_type) == 1:
                 self.definer_type = _definer_type[0]
 
-        if self.beam_position:
-            self._beam_position_on_screen = tuple(map(float, self.beam_position.split()))
+        beam_position = self.get_property("beam_position")
+        if beam_position:
+            self._beam_position_on_screen = tuple(map(float, beam_position.split()))
 
         if self.aperture:
             self.aperture.connect("valueChanged", self._re_emit_values)
@@ -152,13 +153,13 @@ class ESRFBeam(AbstractBeam):
                     {"type": ["width", "height"], "values":
                              [low_lim_w, high_lim_w, low_lim_h, high_lim_h]}
         """
-        if self._definer_type == "aperture":
+        if self.definer_type == "aperture":
             return {
                 "type": ["aperture"],
                 "values": self.aperture.get_diameter_size_list(),
             }
 
-        if self._definer_type == "definer":
+        if self.definer_type == "definer":
             return {
                 "type": ["definer"],
                 "values": self.definer.get_predefined_positions_list(),
@@ -176,9 +177,9 @@ class ESRFBeam(AbstractBeam):
         labels = []
         values = []
 
-        if "definer" in self._definer_type:
+        if "definer" in self.definer_type:
             _enum = self.definer.VALUES
-        elif "aperture" in self._definer_type:
+        elif "aperture" in self.definer_type:
             _enum = self.aperture.VALUES
 
         for value in _enum:
@@ -229,10 +230,10 @@ class ESRFBeam(AbstractBeam):
             RuntimeError: Beam definer not configured
                           Size out of the limits.
         """
-        if self._definer_type == "aperture":
+        if self.definer_type == "aperture":
             self._set_aperture_size(size)
 
-        if self._definer_type == "definer":
+        if self.definer_type == "definer":
             self._set_definer_size(size)
 
     def get_beam_position_on_screen(self):
