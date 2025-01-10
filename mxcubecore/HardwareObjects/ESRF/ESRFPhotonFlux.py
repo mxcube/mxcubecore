@@ -61,7 +61,6 @@ class ESRFPhotonFlux(AbstractFlux):
     def init(self):
         """Initialisation"""
         super().init()
-
         self.threshold = self.threshold or 0.0
 
         try:
@@ -71,9 +70,10 @@ class ESRFPhotonFlux(AbstractFlux):
             logging.getLogger("HWR").exception(
                 "Could not get flux calculation from BLISS"
             )
+        counter_name = self.get_property("counter_name")
 
-        if self.counter_name:
-            self._counter = getattr(self.controller, self.counter_name)
+        if counter_name:
+            self._counter = getattr(self.controller, counter_name)
         else:
             logging.getLogger("HWR").exception(
                 "Counter to read the flux is not configured"
