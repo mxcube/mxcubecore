@@ -55,7 +55,7 @@ class BlissHutchTrigger(AbstractNState):
     """Read the state of the hutch from the PSS and take actions."""
 
     def __init__(self, name):
-        super(BlissHutchTrigger, self).__init__(name)
+        super().__init__(name)
         self._bliss_obj = None
         self._proxy = None
         self.card = None
@@ -67,7 +67,7 @@ class BlissHutchTrigger(AbstractNState):
 
     def init(self):
         """Initialise properties and polling"""
-        super(BlissHutchTrigger, self).init()
+        super().init()
         self._bliss_obj = self.get_object_by_role("controller")
         tango_device = self.get_property("pss_tango_device")
         try:
