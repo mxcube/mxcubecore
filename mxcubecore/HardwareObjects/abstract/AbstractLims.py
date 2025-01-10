@@ -512,7 +512,6 @@ class AbstractLims(HardwareObject, abc.ABC):
         Stores the username and the shared sessions in the session manager object.
         The shared sessions represent the intersection of all sessions
         for each user currently connected.
-
         """
         self.session_manager.users[user_name] = LimsUser(
             user_name=user_name, sessions=sessions
