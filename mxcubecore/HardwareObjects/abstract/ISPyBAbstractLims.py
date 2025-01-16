@@ -2,13 +2,17 @@ from __future__ import print_function
 
 import logging
 import warnings
+from typing import List
 
 import gevent
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractLims import AbstractLims
 from mxcubecore.HardwareObjects.abstract.ISPyBDataAdapter import ISPyBDataAdapter
-from mxcubecore.model.lims_session import LimsSessionManager
+from mxcubecore.model.lims_session import (
+    Lims,
+    LimsSessionManager,
+)
 
 
 class ISPyBAbstractLIMS(AbstractLims):
@@ -84,6 +88,14 @@ class ISPyBAbstractLIMS(AbstractLims):
                     self._translations[code]["gui"] = proposal.gui
                 except AttributeError:
                     pass
+
+    def get_lims_name(self) -> List[Lims]:
+        return [
+            Lims(
+                name="ISPyB",
+                description="Information System for protein Crystallographic Beamlines",
+            )
+        ]
 
     def get_user_name(self):
         raise Exception("Abstract class. Not implemented")
