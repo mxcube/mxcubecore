@@ -113,8 +113,7 @@ class UserTypeISPyBLims(ISPyBAbstractLIMS):
             msg = "%s." % msg.capitalize()
             # refuse Login
             logging.getLogger("HWR").error("ISPyB login not ok")
-            raise "Error lims authentication"
-            # return ProposalTuple(Status(code="error", msg=msg))
+            raise Exception("Error lims authentication")
 
         # login succeed, get proposal and sessions
         self.adapter.get_sessions_by_username(loginID, self.beamline_name)
