@@ -30,11 +30,11 @@ Example xml file:
 """
 from enum import Enum
 
-from mxcubecore.HardwareObjects.abstract.AbstractMotor import MotorStates
 from mxcubecore.HardwareObjects.abstract.AbstractNState import (
     AbstractNState,
     BaseValueEnum,
 )
+from mxcubecore.HardwareObjects.BlissMotor import BlissMotor
 
 __copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -42,8 +42,6 @@ __license__ = "LGPLv3+"
 
 class BlissNState(AbstractNState):
     """bliss implementation of AbstartNState"""
-
-    SPECIFIC_STATES = MotorStates
 
     def __init__(self, name):
         super().__init__(name)
@@ -66,14 +64,15 @@ class BlissNState(AbstractNState):
             self.device_type = "motor"
 
         self.initialise_values()
+        self.__saved_state = self.get_value().value
         if self.device_type == "actuator":
-            self.connect(self._bliss_obj, "state", self.update_value)
+            self.connect(self._bliss_obj, "state", self._update_value)
             self.connect(self._bliss_obj, "state", self._update_state)
-            self.__saved_state = self.get_value()
         elif self.device_type == "motor":
-            self.connect(self._bliss_obj, "position", self.update_value)
+            self.connect(self._bliss_obj, "position", self._update_value)
             self.connect(self._bliss_obj, "state", self._update_state_motor)
 
+        self.update_value()
         self.update_state()
 
     # NB: Bliss calls the update handler with the state so its needed in the
@@ -81,14 +80,21 @@ class BlissNState(AbstractNState):
     def _update_state(self, state=None):
         self.update_state(self.STATES.READY)
 
+    def _update_value(self, value=None):
+        if value:
+            self.update_value(self.value_to_enum(value))
+        else:
+            self.update_value()
+
     def get_value(self):
         """Get the device value
         Returns:
             (Enum): Enum member, corresponding to the value or UNKNOWN.
         """
         if self.device_type == "motor":
-            _val = self._bliss_obj.position
-        elif self.device_type == "actuator":
+            return self.value_to_enum(self._bliss_obj.position)
+
+        if self.device_type == "actuator":
             if self._prefix:
                 _attr = self._prefix + "_is_in"
                 _cmd = getattr(self._bliss_obj, _attr)
@@ -136,22 +142,23 @@ class BlissNState(AbstractNState):
         except (AttributeError, KeyError):
             return self.STATES.UNKNOWN
 
+        if self.device_type == "motor":
+            try:
+                return BlissMotor.SPECIFIC_TO_HWR_STATE[_state]
+            except KeyError:
+                return self.STATES.UNKNOWN
+
         if _state in ("IN", "OUT"):
             if self.__saved_state == _state:
-                _state = self.STATES.READY
-            else:
-                _state = self.STATES.BUSY
-        else:
-            try:
-                self.SPECIFIC_STATES.__members__[_state].value[0]
-            except KeyError:
-                _state = self.STATES.__members__[_state]
-        return _state
+                return self.STATES.READY
+            return self.STATES.BUSY
+        return self.STATES.UNKNOWN
 
     def _update_state_motor(self, state):
+        """Update the state for the motor type."""
         try:
-            state = self.SPECIFIC_STATES.__members__[state.upper()].value[0]
-        except (AttributeError, KeyError):
+            state = BlissMotor.SPECIFIC_TO_HWR_STATE[state.upper()]
+        except KeyError:
             state = self.STATES.UNKNOWN
         return self.update_state(state)
 
@@ -164,7 +171,10 @@ class BlissNState(AbstractNState):
             super().initialise_values()
         if self.device_type == "motor":
             try:
-                values = {val.upper(): val for val in self._bliss_obj.positions_list}
+                values = {
+                    val["label"].upper(): val["label"]
+                    for val in self._bliss_obj.positions_list
+                }
                 self.VALUES = Enum(
                     "ValueEnum",
                     dict(values, **{item.name: item.value for item in BaseValueEnum}),

@@ -52,4 +52,6 @@ class NState(AbstractNState):
         Args:
             value (Enum): target value
         """
+        self.update_state(self.STATES.BUSY)
         self.update_value(value)
+        self.update_state(self.STATES.READY)
