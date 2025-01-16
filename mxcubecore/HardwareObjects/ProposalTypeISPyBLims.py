@@ -52,7 +52,7 @@ class ProposalTypeISPyBLims(ISPyBAbstractLIMS):
             ok = self.ldap_login(user_name, psd)
         elif self.authServerType == "ispyb":
             logging.getLogger("HWR").debug("ISPyB login")
-            ok, _ = self._ispybLogin(user_name, psd)
+            ok, _ = self.ispyb_login(user_name, psd)
         else:
             raise Exception("Authentication server type is not defined")
 

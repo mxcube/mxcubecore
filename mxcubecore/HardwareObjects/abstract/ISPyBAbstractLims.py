@@ -141,6 +141,9 @@ class ISPyBAbstractLIMS(AbstractLims):
 
         return self.ldapConnection.authenticate(login_name, psd)
 
+    def ispyb_login(self, login_name, psd):
+        raise Exception("Abstract class. Not implemented")
+
     def store_data_collection(self, mx_collection, bl_config=None):
         return self._store_data_collection(mx_collection, bl_config)
 
