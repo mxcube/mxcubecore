@@ -2,11 +2,9 @@ from __future__ import print_function
 
 import itertools
 import uuid
-from typing import List
 
 from mxcubecore.HardwareObjects.abstract.ISPyBAbstractLims import ISPyBAbstractLIMS
 from mxcubecore.model.lims_session import (
-    Lims,
     LimsSessionManager,
     Proposal,
     Session,
@@ -32,14 +30,6 @@ class ProposalTypeISPyBLims(ISPyBAbstractLIMS):
 
     def get_proposals_by_user(self, login_id: str):
         raise Exception("Not implemented")
-
-    def get_lims_name(self) -> List[Lims]:
-        return [
-            Lims(
-                name="ISPyB",
-                description="Information System for protein Crystalographic Beamlines",
-            )
-        ]
 
     def get_full_user_name(self):
         return self.get_user_name()
