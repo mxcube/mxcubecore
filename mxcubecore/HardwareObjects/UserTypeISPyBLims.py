@@ -116,7 +116,11 @@ class UserTypeISPyBLims(ISPyBAbstractLIMS):
             raise Exception("Error lims authentication")
 
         # login succeed, get proposal and sessions
-        self.adapter.get_sessions_by_username(loginID, self.beamline_name)
+        self.session_manager = self.adapter.get_sessions_by_username(
+            loginID, self.beamline_name
+        )
+
+        return self.session_manager
 
     def get_proposals_by_user(self, user_name):
         proposal_list = []
