@@ -322,6 +322,15 @@ class ISPyBDataAdapter:
             self._exception(str(e))
             raise e
 
+    def get_person_by_username(self, username: str) -> Dict:
+        try:
+            person = self._shipping.service.findPersonByLogin(username)
+            return asdict(person)
+        except WebFault as e:
+            self._error(str(e))
+
+        return {}
+
     def get_sessions_by_username(
         self, username: str, beamline_name: str
     ) -> LimsSessionManager:
