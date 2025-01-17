@@ -23,6 +23,12 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 
+# Exclude some files from being added to *sdist* and * wheel* distribution packages
+exclude = [
+    "mxcubecore/configuration",
+]
+
+
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"
 typing-extensions = "^4.3.0"
