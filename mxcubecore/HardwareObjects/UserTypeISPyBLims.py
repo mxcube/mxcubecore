@@ -27,7 +27,7 @@ logging.getLogger("suds").setLevel(logging.INFO)
 
 class UserTypeISPyBLims(ISPyBAbstractLIMS):
     """
-    ISPyB proposal-based client
+    ISPyB user-based client
     """
 
     def __init__(self, name):
