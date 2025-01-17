@@ -19,6 +19,7 @@ MICRODIFF = None
 EXPORTER_TO_HWOBJ_STATE = {
     "Fault": HardwareObjectState.FAULT,
     "Ready": HardwareObjectState.READY,
+    "Running": HardwareObjectState.BUSY,
     "Moving": HardwareObjectState.BUSY,
     "Busy": HardwareObjectState.BUSY,
     "Unknown": HardwareObjectState.BUSY,
