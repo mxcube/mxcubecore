@@ -2,6 +2,7 @@ import json
 import logging
 import pathlib
 import shutil
+from time import strftime
 from datetime import (
     datetime,
     timedelta,
@@ -553,8 +554,8 @@ class ICATLIMS(AbstractLims):
             }
 
             for config_key, metadata_key in key_mapping.items():
-                if config_key in beamline_config:
-                    metadata[metadata_key] = beamline_config[config_key]
+                if hasattr(beamline_config, config_key):
+                    metadata[metadata_key] = getattr(beamline_config,config_key)
 
     def add_sample_metadata(self, metadata, collection_parameters):
         """
@@ -642,11 +643,15 @@ class ICATLIMS(AbstractLims):
                 scanType = "datacollection"
             else:
                 scanType = collection_parameters["experiment_type"]
+
             workflow_params = collection_parameters.get("workflow_parameters", {})
             workflow_type = workflow_params.get("workflow_type")
+
             if workflow_type is None:
                 if not directory.name.startswith("run"):
                     dataset_name = fileinfo["prefix"]
+
+            start_time = collection_parameters.get("collection_start_time", strftime("%Y-%m-%d %H:%M:%S"))
 
             if collection_parameters["sample_reference"]["acronym"]:
                 sample_name = (
@@ -702,6 +707,8 @@ class ICATLIMS(AbstractLims):
                 ),
                 "MX_position_id": workflow_params.get("workflow_position_id"),
                 "group_by": workflow_params.get("workflow_group_by"),
+                "startDate": start_time,
+                "endDate": strftime("%Y-%m-%d %H:%M:%S"),
             }
             # Store metadata on disk
             self.add_sample_metadata(metadata, collection_parameters)
