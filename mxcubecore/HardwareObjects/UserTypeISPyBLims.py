@@ -100,16 +100,16 @@ class UserTypeISPyBLims(ISPyBAbstractLIMS):
             logging.getLogger("HWR").debug(
                 "Starting LDAP authentication %s" % login_name
             )
-            ok = self.ldap_login(login_name, psd, ldap_connection)
+            self.login_ok = self.ldap_login(login_name, psd, ldap_connection)
             msg = loginID
             logging.getLogger("HWR").debug("User %s logged in LDAP" % login_name)
         elif self.authServerType == "ispyb":
             logging.getLogger("HWR").debug("ISPyB login")
-            ok, msg = self.ispyb_login(login_name, psd)
+            self.login_ok, msg = self.ispyb_login(login_name, psd)
         else:
             raise Exception("Authentication server type is not defined")
 
-        if not ok:
+        if not self.login_ok:
             msg = "%s." % msg.capitalize()
             # refuse Login
             logging.getLogger("HWR").error("ISPyB login not ok")
