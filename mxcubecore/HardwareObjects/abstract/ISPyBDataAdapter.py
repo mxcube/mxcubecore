@@ -128,9 +128,7 @@ class ISPyBDataAdapter:
     def isEnabled(self) -> object:
         return self._shipping  # type: ignore
 
-    def create_session(
-        self, proposal_id: str, beamline_name: str
-    ) -> LimsSessionManager:
+    def create_session(self, proposal_id: str, beamline_name: str) -> Session:
 
         try:
 
@@ -163,12 +161,7 @@ class ISPyBDataAdapter:
                 "Session created. session_id=%s" % session_id
             )
             response = self._collection.service.findSession(session_id)
-            session: Session = self.__to_session(asdict(response))
-            return self.get_sessions_by_code_and_number(
-                session.code,
-                session.number,
-                beamline_name,
-            )
+            return self.__to_session(asdict(response))
         except Exception:
             raise
 
