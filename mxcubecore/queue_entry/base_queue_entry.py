@@ -909,7 +909,7 @@ def center_before_collect(view, dm, queue, sample_view):
     view.setText(1, "Waiting for input")
     log = logging.getLogger("user_level_log")
 
-    log.info("Please select, or center on a new position and press continue.")
+    log.info("Please select, or center on a new position and press resume.")
 
     queue.pause(True)
     pos, shape = None, None

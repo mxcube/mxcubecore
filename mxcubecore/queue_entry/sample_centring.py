@@ -84,7 +84,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
             HWR.beamline.diffractometer.move_motors(motor_positions)
 
         log.warning(
-            "Please center a new or select an existing point and press continue."
+            "Please center a new or select an existing point and press resume."
         )
         self.get_queue_controller().pause(True)
 
