@@ -53,7 +53,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         self.enable_take_snapshots = True
         self.enable_store_in_lims = True
         self.in_queue = False
-        self._data_model.lims_session_id = HWR.beamline.session.session_id
 
     def __setstate__(self, d):
         self.__dict__.update(d)
