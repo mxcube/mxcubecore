@@ -212,6 +212,7 @@ class BaseQueueEntry(QueueEntryContainer):
         self._checked_for_exec = False
         self.status = QUEUE_ENTRY_STATUS.NOT_EXECUTED
         self.type_str = ""
+        self._data_model.lims_session_id = HWR.beamline.session.session_id
 
     def is_failed(self):
         """Returns True if failed"""
