@@ -211,9 +211,11 @@ class ESRFLIMS(AbstractLims):
         self.ispyb.store_beamline_setup(session_id, bl_config)
 
     def store_energy_scan(self, energyscan_dict):
+        energyscan_dict["sessionId"] = self.ispyb.get_session_id()
         return self.ispyb.store_energy_scan(energyscan_dict)
 
     def store_xfe_spectrum(self, xfespectrum_dict):
+        xfespectrum_dict["sessionId"] = self.ispyb.get_session_id()
         return self.ispyb.store_xfe_spectrum(xfespectrum_dict)
 
     def store_workflow(self, *args, **kwargs):
