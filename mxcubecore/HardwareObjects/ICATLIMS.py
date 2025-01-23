@@ -2,11 +2,11 @@ import json
 import logging
 import pathlib
 import shutil
-from time import strftime
 from datetime import (
     datetime,
     timedelta,
 )
+from time import strftime
 from typing import (
     List,
     Optional,
@@ -555,7 +555,7 @@ class ICATLIMS(AbstractLims):
 
             for config_key, metadata_key in key_mapping.items():
                 if hasattr(beamline_config, config_key):
-                    metadata[metadata_key] = getattr(beamline_config,config_key)
+                    metadata[metadata_key] = getattr(beamline_config, config_key)
 
     def add_sample_metadata(self, metadata, collection_parameters):
         """
@@ -651,7 +651,9 @@ class ICATLIMS(AbstractLims):
                 if not directory.name.startswith("run"):
                     dataset_name = fileinfo["prefix"]
 
-            start_time = collection_parameters.get("collection_start_time", strftime("%Y-%m-%d %H:%M:%S"))
+            start_time = collection_parameters.get(
+                "collection_start_time", strftime("%Y-%m-%d %H:%M:%S")
+            )
 
             if collection_parameters["sample_reference"]["acronym"]:
                 sample_name = (
