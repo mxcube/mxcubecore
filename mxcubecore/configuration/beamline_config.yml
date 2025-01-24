@@ -39,7 +39,6 @@ _objects:
 #    - sample_changer: sc.xml
     - sample_changer: bl19u/sc.xml
     - sample_changer_maintenance: bl19u/sc_maint.xml
-#    - sample_changer: sc.xml
 #    - sample_changer_maintenance: sc_maint.xml
     #- plate_manipulator: plate_manipulator.xml
     #- diffractometer: minidiff.xml
