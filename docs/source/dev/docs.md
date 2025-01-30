@@ -84,6 +84,27 @@ extension is enabled to handle docstrings within the Python code
 and it is configured for
 [Google-style docstrings](https://google.github.io/styleguide/pyguide.html#s3.8-comments-and-docstrings).
 
+#### Custom sections for docstrings
+
+A
+[custom section](https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html#confval-napoleon_custom_sections)
+title for docstrings is available to document *hardware objects*:
+
+* `Emits` for signals emitted by *hardware objects*
+
+It can be used like in this example:
+
+```python
+class Thing(HardwareObject):
+    """Some thing.
+
+    Emits:
+        isReady (bool):
+            Emitted when the readiness state changes.
+    """
+```
+
+
 ### Diagrams
 
 The
