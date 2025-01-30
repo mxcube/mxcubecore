@@ -22,12 +22,11 @@ Module contains Gphl specific queue entries
 """
 
 import logging
-from datetime import datetime
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.queue_entry.base_queue_entry import BaseQueueEntry
 
-from mxlims.pydantic import crystallography as mxmodel
+from mxlims.pydantic import mxmodel
 from mxcubecore.utils import mxlims as mxutils
 
 __credits__ = ["MXCuBE collaboration"]
@@ -57,7 +56,7 @@ class GphlWorkflowQueueEntry(BaseQueueEntry):
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
-        msg = "Finishing GΦL workflow (%s)" % (self.get_data_model().strategy_name)
+        msg = "Finishing GΦL workflow (%s)" % self.get_data_model().strategy_name
         logging.getLogger("user_level_log").info(msg)
         HWR.beamline.gphl_workflow.post_execute()
 
@@ -68,13 +67,13 @@ class GphlWorkflowQueueEntry(BaseQueueEntry):
         self.get_view().setText(1, "Stopped")
 
     def init_mxlims(self):
-        """Initialise MXLIMS MXExperiment if it is not already set"""
+        """Initialise MXLIMS MxExperimentMessage if it is not already set"""
 
-        mxexperiment: mxmodel.MXExperiment = self.get_mxlims_record()
+        mxexperiment: mxmodel.MxExperimentMessage = self.get_mxlims_record()
         if mxexperiment is None:
             data_model = self.get_data_model()
-            self._mxlims_record = mxutils.create_mxexperiment(
-                data_model,
-                start_time = datetime.now(),
+            self._mxlims_record = mxutils.create_mxrecord(
+                sample=data_model.get_sample_node(),
+                tracking_data=data_model.tracking_data,
                 measured_flux = HWR.beamline.flux.get_value()
             )

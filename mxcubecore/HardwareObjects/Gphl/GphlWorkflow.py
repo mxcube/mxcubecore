@@ -896,7 +896,7 @@ class GphlWorkflow(HardwareObjectYaml):
         self._workflow_queue = gevent.queue.Queue()
 
     def start_enactment(self, enactment_id:str, correlation_id:str):
-        """Set enactment_id and initialise MXLIMS MXExperiment"""
+        """Set enactment_id and initialise MXLIMS MxExperimentMessage"""
         data_model = self._queue_entry.get_data_model()
         tracking_data = data_model.tracking_data
         workflow_parameters = data_model.workflow_parameters
@@ -2032,6 +2032,7 @@ class GphlWorkflow(HardwareObjectYaml):
         maxdev = -1
         snapshotted_rotation_ids = set()
         characterisation_id = None
+        scan_numbers = {}
         for scan in scans:
             sweep = scan.sweep
             acq = queue_model_objects.Acquisition()
