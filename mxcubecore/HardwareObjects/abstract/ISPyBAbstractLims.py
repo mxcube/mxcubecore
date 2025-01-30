@@ -98,13 +98,13 @@ class ISPyBAbstractLIMS(AbstractLims):
         ]
 
     def get_user_name(self):
-        raise Exception("Abstract class. Not implemented")
+        raise NotImplementedError
 
     def get_full_user_name(self):
-        raise Exception("Abstract class. Not implemented")
+        raise NotImplementedError
 
     def is_user_login_type(self):
-        raise Exception("Abstract class. Not implemented")
+        raise NotImplementedError
 
     def store_beamline_setup(self, session_id, bl_config):
         self.adapter.store_beamline_setup(session_id, bl_config)
@@ -142,7 +142,7 @@ class ISPyBAbstractLIMS(AbstractLims):
         return self.ldapConnection.authenticate(login_name, psd)
 
     def ispyb_login(self, login_name, psd):
-        raise Exception("Abstract class. Not implemented")
+        raise NotImplementedError
 
     def store_data_collection(self, mx_collection, bl_config=None):
         return self._store_data_collection(mx_collection, bl_config)
