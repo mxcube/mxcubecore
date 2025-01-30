@@ -42,7 +42,7 @@ from mxcubecore.model.queue_model_enumerables import (
     EXPERIMENT_TYPE,
 )
 
-from mxlims.pydantic import crystallography as mxmodel
+from mxlims.pydantic import mxmodel
 from mxcubecore.utils import mxlims as mxutils
 
 
@@ -267,7 +267,7 @@ class BaseQueueEntry(QueueEntryContainer):
         self._data_model.lims_session_id = HWR.beamline.session.session_id
 
         # MXLIMS record for currently running experiment
-        self._mxlims_record: Optional[mxmodel.MXExperiment] = None
+        self._mxlims_record: Optional[mxmodel.MxExperimentMessage] = None
 
     def is_failed(self):
         """Returns True if failed"""
@@ -341,8 +341,8 @@ class BaseQueueEntry(QueueEntryContainer):
         """
         self._checked_for_exec = state
 
-    def get_mxlims_record(self) -> mxmodel.MXExperiment:
-        """Get MXExperiment MXLIMS record if the entry is currently running"""
+    def get_mxlims_record(self) -> mxmodel.MxExperimentMessage:
+        """Get MxExperiment MXLIMS record if the entry is currently running"""
         obj = self
         result = None
         container = obj.get_container()
@@ -392,8 +392,8 @@ class BaseQueueEntry(QueueEntryContainer):
         mxlims_record = self._mxlims_record
         if mxlims_record is not None:
             self._mxlims_record = None
-            mxlims_record.end_time = datetime.now()
-            mxutils.export_mxexperiment(
+            mxlims_record.job.end_time = datetime.now()
+            mxutils.export_mxrecord(
                 mxlims_record, None,
             )
 

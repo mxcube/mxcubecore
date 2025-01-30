@@ -17,7 +17,6 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-from datetime import datetime
 
 import gevent
 import uuid
@@ -37,7 +36,7 @@ from mxcubecore.queue_entry.base_queue_entry import (
     center_before_collect,
 )
 
-from mxlims.pydantic import crystallography as mxmodel
+from mxlims.pydantic import mxmodel
 from mxcubecore.utils import mxlims as mxutils
 
 __credits__ = ["MXCuBE collaboration"]
@@ -135,7 +134,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
         data_model = self.get_data_model()
 
-        mxexperiment: mxmodel.MXExperiment = self.get_mxlims_record()
+        mxexperiment: mxmodel.MxExperimentMessage = self.get_mxlims_record()
         if mxexperiment is None:
             tracking_data = data_model.tracking_data
             workflow_parameters = data_model.workflow_parameters
@@ -153,12 +152,11 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             tracking_data.characterisation_id = workflow_parameters.get(
                 "characterisation_id"
             )
-            mxexperiment = mxutils.create_mxexperiment(
-                data_model,
-                start_time=datetime.now(),
-                measured_flux=HWR.beamline.flux.get_value(),
+            self._mxlims_record = mxutils.create_mxrecord(
+                sample=data_model.get_sample_node(),
+                tracking_data=tracking_data,
+                measured_flux = HWR.beamline.flux.get_value()
             )
-            self._mxlims_record = mxexperiment
 
         if data_model.get_parent():
             gid = data_model.get_parent().lims_group_id
@@ -176,8 +174,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             beam_position = None
         beam = HWR.beamline.beam
         data_model = self.get_data_model()
-        # This would be a good place to check that scan_pos_end matches input parameters
-        # There have been tricky bugs found where this was not the case
         mxutils.add_data_collection(
             self.get_mxlims_record(),
             data_model,
