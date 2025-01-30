@@ -221,7 +221,6 @@ force-exclude = '''
   | mxcubecore/HardwareObjects/TangoMotor.py
   | mxcubecore/HardwareObjects/abstract/AbstractDetector.py
   | mxcubecore/HardwareObjects/abstract/sample_changer/Crims.py
-  | mxcubecore/HardwareObjects/abstract/AbstractCollect.py
   | mxcubecore/HardwareObjects/mockup/MotorMockup.py
   | mxcubecore/HardwareObjects/mockup/ShutterMockup.py
   | mxcubecore/Poller.py

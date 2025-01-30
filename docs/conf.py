@@ -86,6 +86,10 @@ intersphinx_mapping = {
 
 extensions.append("sphinx.ext.napoleon")
 
+napoleon_custom_sections = [
+    ("Emits", "params_style"),
+]
+
 napoleon_numpy_docstring = False
 
 
@@ -99,7 +103,11 @@ extensions.append("sphinx.ext.viewcode")
 
 extensions.append("myst_parser")
 
-myst_enable_extensions = ("fieldlist",)
+myst_enable_extensions = (
+    "attrs_block",
+    "colon_fence",
+    "fieldlist",
+)
 
 
 # -- Options for sphinxcontrib.mermaid

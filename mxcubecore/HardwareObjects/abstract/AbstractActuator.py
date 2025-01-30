@@ -18,12 +18,9 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-"""Abstract Actuator class.
-Defines the set/update value, get/set/update limits and validate_value
-methods and the get_value and _set_value abstract methods.
-Initialises the actuator_name, username, read_only and default_value properties.
-Emits signals valueChanged and limitsChanged.
-"""
+"""Abstract Actuator."""
+
+from __future__ import annotations
 
 import abc
 import math
@@ -38,13 +35,43 @@ __license__ = "LGPLv3+"
 
 
 class AbstractActuator(HardwareObject):
-    """Abstract actuator"""
+    """Abstract actuator defines methods common to all moving devices.
+
+    The ``_set_value`` method is the only abtract method that needs to be overloaded
+    in each implementation.
+
+    Attributes:
+        _nominal_value (float | None):
+            Current actuator value.
+        default_value (float | None):
+            Value specified by XML property, otherwise ``None``.
+        _nominal_limits (tuple[float | None, float | None]):
+            Values specified by XML property, otherwise ``None``.
+        actuator_name (str | None):
+            Actuator name specified by XML property, otherwise ``None``.
+        read_only (bool):
+            Read-only flag specified by XML property, otherwise ``False``.
+        username (str):
+
+    Emits:
+        valueChanged (tuple[int]):
+            Tuple whose first and only item is the new value.
+            Emitted during initialization of the hardware object
+            and when setting a new value.
+        limitsChanged (tuple[tuple[int, int]]):
+            Tuple whose first and only item is a two-item tuple of the new limits
+            (low limit first and high limit second).
+            Emitted by ``update_limits`` if limit values are changed.
+        stateChanged (tuple):
+            Tuple whose first and only item is the new state.
+            Emitted by ``force_emit_signals``
+    """
 
     __metaclass__ = abc.ABCMeta
 
     unit = None
 
-    def __init__(self, name):
+    def __init__(self, name: str):
         super().__init__(name)
         self._nominal_value = None
         self._nominal_limits = (None, None)
@@ -55,9 +82,7 @@ class AbstractActuator(HardwareObject):
         self._lock = RLock()
 
     def init(self):
-        """Initialise actuator_name, username, read_only and default_value
-        properties.
-        """
+        """Init properties: actuator_name, username, read_only and default_value."""
         self.actuator_name = self.get_property("actuator_name")
         self.read_only = self.get_property("read_only") or False
         self.default_value = self.get_property("default_value")
@@ -74,24 +99,28 @@ class AbstractActuator(HardwareObject):
     @abc.abstractmethod
     def get_value(self):
         """Read the actuator position.
+
         Returns:
-            value: Actuator position.
+            Actuator position.
         """
         return None
 
     def get_limits(self):
         """Return actuator low and high limits.
+
         Returns:
-            (tuple): two elements (low limit, high limit) tuple.
+            (tuple): Two-item tuple (low limit, high limit).
         """
         return self._nominal_limits
 
-    def set_limits(self, limits):
-        """Set actuator low and high limits. Emits signal limitsChanged.
+    def set_limits(self, limits: tuple) -> None:
+        """Set actuator low and high limits and emit signal ``limitsChanged``.
+
         Args:
-            limits (tuple): two elements (low limit, high limit) tuple.
+            limits (tuple): Two-item tuple (low limit, high limit).
+
         Raises:
-            ValueError: Attempt to set limits for read-only Actuator.
+            ValueError: Attempt to set limits for read-only actuator.
         """
         if self.read_only:
             raise ValueError("Attempt to set limits for read-only Actuator")
@@ -99,12 +128,14 @@ class AbstractActuator(HardwareObject):
         self._nominal_limits = limits
         self.emit("limitsChanged", (self._nominal_limits,))
 
-    def validate_value(self, value):
+    def validate_value(self, value) -> bool:
         """Check if the value is within limits.
+
         Args:
-            value(numerical): value
+            value(numerical): Value.
+
         Returns:
-            (bool): True if within the limits
+            ``True`` if within the limits, ``False`` otherwise.
         """
         if value is None:
             return True
@@ -117,21 +148,24 @@ class AbstractActuator(HardwareObject):
     @abc.abstractmethod
     def _set_value(self, value):
         """Implementation of specific set actuator logic.
+
         Args:
-            value: target value
+            value: Target value.
         """
 
-    def set_value(self, value, timeout=0):
+    def set_value(self, value, timeout: float = 0) -> None:
         """Set actuator to value.
+
+        If ``timeout == 0``: return at once and do not wait (default).
+        If ``timeout is None``: wait forever.
+
         Args:
             value: target value
-            timeout (float): optional - timeout [s],
-                             If timeout == 0: return at once and do not wait
-                                              (default);
-                             if timeout is None: wait forever.
+            timeout (float): Optional timeout in seconds. Default is ``0``: do not wait.
+
         Raises:
             ValueError: Invalid value or attemp to set read only actuator.
-            RuntimeError: Timeout waiting for status ready  # From wait_ready
+            RuntimeError: Timeout waiting for status ready (from ``wait_ready``):
         """
 
         with self._lock:
@@ -146,10 +180,11 @@ class AbstractActuator(HardwareObject):
             else:
                 raise ValueError(f"Invalid value {value}")
 
-    def update_value(self, value=None):
-        """Check if the value has changed. Emits signal valueChanged.
+    def update_value(self, value=None) -> None:
+        """Check if the value has changed and emit signal ``valueChanged``.
+
         Args:
-            value: value
+            value: Value.
         """
         if value is None:
             value = self.get_value()
@@ -158,10 +193,11 @@ class AbstractActuator(HardwareObject):
             self._nominal_value = value
             self.emit("valueChanged", (value,))
 
-    def update_limits(self, limits=None):
-        """Check if the limits have changed. Emits signal limitsChanged.
+    def update_limits(self, limits=None) -> None:
+        """Check if the limits have changed and emit signal ``limitsChanged``.
+
         Args:
-            limits (tuple): two elements tuple (low limit, high limit).
+            limits (tuple): Two-item tuple (low limit, high limit).
         """
         if not limits:
             limits = self.get_limits()
@@ -172,17 +208,17 @@ class AbstractActuator(HardwareObject):
                 self._nominal_limits = limits
                 self.emit("limitsChanged", (limits,))
 
-    def re_emit_values(self):
-        """Update values for all internal attributes"""
+    def re_emit_values(self) -> None:
+        """Update values for all internal attributes."""
         self.update_value(self.get_value())
         self.update_limits(self.get_limits())
         super(AbstractActuator, self).re_emit_values()
 
-    def force_emit_signals(self):
-        """Forces to emit all signals.
+    def force_emit_signals(self) -> None:
+        """Force emission of all signals.
 
-        Method is called from gui
-        Do not call it within HWR
+        Method is called from GUI.
+        Do not call it from within a hardware object.
         """
         self.emit("valueChanged", (self.get_value(),))
         self.emit("limitsChanged", (self.get_limits(),))
