@@ -67,6 +67,8 @@ There may be local deviations from this defined by the LIMS system and
 HardwareObject used. Any number of users can be logged in at the same time
 (only one active) as long as they belong to the **same** proposal.
 
+For more details refer [here](./user-based-login-details.md).
+
 ### Proposal-based login
 
 When proposal-based login is used, the user authenticates with the proposal
