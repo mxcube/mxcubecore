@@ -167,7 +167,6 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.get_gphl_workflow_status)
         self._server.register_function(self.add_xray_centring)
         self._server.register_function(self.add_gphl_workflow)
-        self._server.register_function(self.get_gphl_workflow_status)
         self._server.register_function(self.clear_ispyb_client_group_id)
         self._server.register_function(self.set_characterisation_result)
 
