@@ -447,7 +447,7 @@ class XMLRPCServer(HardwareObject):
         return True
 
     def save_twelve_snapshots_script(self, path):
-        path = path[14:]
+        path = path[14:]  # NBNB: Temporary fix, to be addressed in calling code
         logging.getLogger("HWR").info(
             "Taking 6 snapshots to be saved in  %s " % str(path)
         )
