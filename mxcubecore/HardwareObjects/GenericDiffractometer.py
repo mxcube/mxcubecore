@@ -31,9 +31,9 @@ import time
 from typing import (
     Dict,
     List,
+    Optional,
     Tuple,
     Union,
-    Optional
 )
 
 import gevent
