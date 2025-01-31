@@ -487,7 +487,7 @@ class XMLRPCServer(HardwareObject):
         """
         Saves the current position as a centered position.
         """
-        logging.getLogger("HWR").exception("Saving position via XMLRPC")
+        logging.getLogger("HWR").debug("Saving position via XMLRPC")
         HWR.beamline.diffractometer.save_current_position()
         return True
 
