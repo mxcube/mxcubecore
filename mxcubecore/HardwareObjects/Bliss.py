@@ -7,10 +7,6 @@ import itertools
 import gevent
 import numpy
 from bliss.config import static
-from bliss.data.node import (
-    DataNode,
-    get_or_create_node,
-)
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
