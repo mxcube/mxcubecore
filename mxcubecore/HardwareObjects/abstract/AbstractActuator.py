@@ -29,8 +29,9 @@ import abc
 import math
 from ast import literal_eval
 
-from mxcubecore.BaseHardwareObjects import HardwareObject
 from gevent.lock import RLock
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 __copyright__ = """ Copyright © 2010-2022 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
