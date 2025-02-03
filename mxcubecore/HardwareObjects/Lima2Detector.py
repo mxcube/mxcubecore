@@ -55,12 +55,10 @@ def convert_state(state):
     # FAULT = 4
     # OFF = 5
     if state == Detector.State.IDLE or state == Detector.State.PREPARED:
-        s = HardwareObjectState.READY
-    elif state == Detector.State.RUNNING:
-        s = HardwareObjectState.BUSY
-    else:
-        s = HardwareObjectState.UNKNOWN
-    return s
+        return HardwareObjectState.READY
+    if state == Detector.State.RUNNING:
+        return HardwareObjectState.BUSY
+    return HardwareObjectState.UNKNOWN
 
 
 def create_directory(path, check=True):
@@ -73,13 +71,17 @@ def create_directory(path, check=True):
 
 class Lima2Detector(AbstractDetector):
     def __init__(self, name):
-        AbstractDetector.__init__(self, name)
+        super().__init__(name)
         self.header = {}
         self.start_angles = []
         self.__device = None
+        self.move_detector = None
 
     def init(self):
-        AbstractDetector.init(self)
+        super().init()
+
+        # move the detector 
+        self.move_detector = self.get_object_by_role("move_detector")
 
         update_lima2_loggers()
         self.image_rejection_settings_file = self.get_property(
@@ -493,7 +495,7 @@ class Lima2Detector(AbstractDetector):
                 )
 
         # Master file header: metadata
-        hc_over_e = 12.398419
+        hc_over_e = 12.398
         wavelength = hc_over_e / energy
         adus_per_photon = dense_out_params["dense_intensity_factor"]
         bias_adus = dense_out_params["dense_intensity_offset"]
