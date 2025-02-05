@@ -78,7 +78,7 @@ def prepare(centring_motors_dict):
     if USER_CLICKED_EVENT and not USER_CLICKED_EVENT.ready():
         logging.getLogger("HWR").debug("DEBUG: USER_CLICKED_EVENT: false")
 
-        # Clear ready flag incase it was stuck
+        # Clear ready flag in case it was stuck
         USER_CLICKED_EVENT.set()
 
     USER_CLICKED_EVENT = gevent.event.AsyncResult()
@@ -464,14 +464,14 @@ def center(
                 phi.set_value_relative(phi.direction * phi_angle, timeout=10)
             READY_FOR_NEXT_POINT.set()
             i += 1
-        # logging.getLogger("HWR").debug(f"Click at {x}, {y}")
+        logging.getLogger("HWR").debug(f"Click at {x}, {y}")
     except Exception:
         logging.getLogger("HWR").exception("Exception while centring")
         move_motors(SAVED_INITIAL_POSITIONS)
         READY_FOR_NEXT_POINT.set()
         raise RuntimeError("Exception while centring")
 
-    # logging.getLogger("HWR").debug("X=%s,Y=%s", X, Y)
+    logging.getLogger("HWR").debug("X=%s,Y=%s", X, Y)
     chi_angle = math.radians(chi_angle)
     chiRotMatrix = numpy.matrix(
         [
