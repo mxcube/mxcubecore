@@ -2199,10 +2199,9 @@ class GphlWorkflow(TaskNode):
             "maximum_chi": settings["maximum_chi"],
             "variant": self.strategy_settings["variants"][0],
         }
-        if "allow_duplicate_orientations" in settings:
-            self.strategy_options["allow_duplicate_orientations"] = settings[
-                "allow_duplicate_orientations"
-            ]
+        for tag in ("allow_duplicate_orientations", "delphi_block", "stratcal_step"):
+            if tag in settings:
+                self.strategy_options[tag] = settings[tag]
         if strategy_options:
             self.strategy_options.update(strategy_options)
 
