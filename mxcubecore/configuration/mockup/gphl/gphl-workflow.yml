@@ -19,6 +19,13 @@ settings:
     - 0.1
     - 0.05
     - 0.2
+  # Supported wedge widths for interleaving - set to match DELPHI block setting
+  # Values are sorted before use
+  wedge_widths:
+    - 48
+    - 24
+    - 72
+    - 360
 
   # tolerance for deciding whether angles differ, in degrees;
   # used to compare kappa and phi to decide if orientations needs separate centring
@@ -43,6 +50,13 @@ settings:
 
   # NB Temporary developer option. Defaults to 1
   allow_duplicate_orientations: 0
+
+  # Block size to use for XDS p[rocessing, and to optimise strategy sweep lengths
+  # NB require devMode to be set, as of 20250206
+  # Default is 4.8
+  delphi_block: 4.8
+  # STracal step size parameter - must divide delphi block. Default is 0.6
+  stratcal_step: 0.6
 
   # Suppress log output of programs called from GPhL workflow
   # Default to False
@@ -167,8 +181,7 @@ settings:
 
     # Parameters to individual applications
     # Switch devMod to true to activate development parameters
-    # NB needed as of 20231116 no longer in active use
-    # co.gphl.wf.devMode: true
+    co.gphl.wf.devMode: true
     # For stratcal configuration switches edit run_stratcal_wrap.py script instead
 
     # Dummy sample properties.

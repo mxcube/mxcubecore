@@ -304,6 +304,22 @@ class GphlWorkflow(HardwareObjectYaml):
                             self.file_paths["gphl_beamline_config"], relative_file_path
                         )
 
+        # Handle delphi block setting
+        delphi_block = self.settings.get("delphi_block")
+        if delphi_block:
+            stratcal_step = self.settings.get("stratcal_step")
+            if not stratcal_step:
+                raise ValueError("delphi_block setting requires stratcal_step sestting")
+            count, remainder =- divmod(delphi_block, stratcal_step)
+            if abs(remainder) > 0.001 * stratcal_step:
+                raise ValueError(
+                    "delphi_block %s is not divisible by stratcal_step %s"
+                    % (delphi_block, stratcal_step)
+                )
+            self.settings["workflow_properties"][
+                "co.gphl.wf.process.opt.--autoPROC_XdsParameter_DELPHI"
+            ] = delphi_block
+
         self.update_state(self.STATES.READY)
 
     def load_instrumentation_data(self):
@@ -1226,12 +1242,12 @@ class GphlWorkflow(HardwareObjectYaml):
             }
 
         if is_interleaved:
+            wedge_widths = self.settings.get("wedge_widths") or [48, 24, 72, 360]
             fields["wedge_width"] = {
                 "title": "Wedge width (°)",
-                "type": "number",
-                "default": self.settings.get("default_wedge_width", 15),
-                "minimum": 0.1,
-                "maximum": 7200,
+                "type": "string",
+                "default": str(wedge_widths[0]),
+                "enum": list(str(val) for val in sorted(wedge_widths)),
             }
         readonly = True
         energy_limits = HWR.beamline.energy.get_limits()
