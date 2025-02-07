@@ -1,10 +1,9 @@
 <?xml version="1.0"?>
 <equipment class="DiffractometerMockup">
   <username>diffractometer</username>
-  <object role="focus" hwrid="./udiff_phix"></object>
   <object role="zoom" hwrid="./udiff_zoom"></object>
   <object role="phi" hwrid="./udiff_omega"></object>
-  <object role="phix" hwrid="./udiff_phix"></object>
+<!--  <object role="phix" hwrid="./udiff_phix"></object>-->
   <object role="phiy" hwrid="./udiff_phiy"></object>
   <object role="phiz" hwrid="./udiff_phiz"></object>
   <object role="sampx" hwrid="./udiff_sampx"></object>
@@ -18,11 +17,17 @@
   <object role="frontlight" href="./udiff_frontlight"/>
   <object role="frontlightswitch" href="./udiff_frontlightswitch"/>
 
+  <object role="focus" hwrid="./udiff_phix"></object>
+<!--  <object role="focus1" hwrid="./udiff_phix"></object>-->
   <object role="beamstop_distance" hwrid="./beamstop_alignment_x"></object>
 
   <object role="beamstop" href="/beamstop"/>
   <object role="aperture" href="/aperture"/>
   <object role="capillary" href="/capillary"/>
+
+<!--  添加-->
+  <object role="sample_horizontal" href="./udiff_phiy"/>
+<!--  <object role="sample_horizontal1" href="./udiff_phiy"/>-->
 
   <zoomcentre>{"x":340,"y":250}</zoomcentre>
   <omega_reference>{"motor_name": "phiz", "position":-0.2224, "camera_axis":"x"}</omega_reference>

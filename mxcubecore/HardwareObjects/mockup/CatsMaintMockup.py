@@ -5,6 +5,8 @@ import logging
 
 from mxcubecore.TaskUtils import task
 from mxcubecore.BaseHardwareObjects import Equipment
+from mxcubecore.HardwareObjects.abstract import AbstractSampleChanger
+from mxcubecore import HardwareRepository as HWR
 
 import gevent
 import time
@@ -32,6 +34,30 @@ TOOL_TO_STR = {
     "Double": TOOL_DOUBLE_GRIPPER,
 }
 
+def set_running(func):
+    def wrapper(self, *args):
+        # sc_maint的状态改变
+        self._running=1
+        logging.getLogger('HWR').debug('about to _update_global_state, set _running = 1')
+        self._update_global_state()
+
+        # sc.py的状态改变:
+        HWR.beamline.sample_changer._set_state(AbstractSampleChanger.SampleChangerState.Moving)
+
+        ret = func(self,*args) #command的返回值ret,命令运行成功应该会返回机械手的返回信息，如果没有连通机械手返回False
+
+        # sc_maint的状态恢复
+        self._running = 0
+        logging.getLogger('HWR').debug('about to _update_global_state, set _running = 0')
+        self._update_global_state()
+
+        # sc.py的状态恢复:
+        HWR.beamline.sample_changer._set_state(AbstractSampleChanger.SampleChangerState.Ready)
+
+        if ret:
+            print(ret)
+
+    return wrapper
 
 class CatsMaintMockup(Equipment):
 
@@ -48,7 +74,7 @@ class CatsMaintMockup(Equipment):
 
         self._state = "READY"
         self._running = 0
-        self._powered = 0
+        self._powered = 1
         self._toolopen = 0
         self._message = "Nothing to report"
         self._regulating = 0
@@ -146,6 +172,7 @@ class CatsMaintMockup(Equipment):
         self._regulating = False
         self._update_regulation_state(False)
 
+    @set_running
     def _do_lid1_state(self, state=True):
         """
         Opens lid 1 if >state< == True, closes the lid otherwise
@@ -153,6 +180,8 @@ class CatsMaintMockup(Equipment):
         :returns: None
         :rtype: None
         """
+        time.sleep(10)
+        logging.getLogger('HWR').debug("set state value in _do_lid1_state: " + str(state))
         self._lid1state = state
         self._update_lid1_state(state)
 
@@ -229,8 +258,10 @@ class CatsMaintMockup(Equipment):
         self._update_global_state()
 
     def _update_lid1_state(self, value):
+        # logging.getLogger('HWR').debug('_update_lid1_state')
         self._lid1state = value
-        self.emit("lid1StateChanged", (value,))
+        # self.emit("lid1StateChanged", (value,))         #好像没用
+        logging.getLogger('HWR').debug('about to _update_global_state, set _lid1state = '+ str(value))
         self._update_global_state()
 
     def _update_lid2_state(self, value):
@@ -318,14 +349,14 @@ class CatsMaintMockup(Equipment):
         """
         """ [cmd_id, cmd_display_name, nb_args, cmd_category, description ] """
         cmd_list = [
-            [
-                "Power",
-                [
-                    ["powerOn", "PowerOn", "Switch Power On"],
-                    ["powerOff", "PowerOff", "Switch Power Off"],
-                    ["regulon", "Regulation On", "Swich LN2 Regulation On"],
-                ],
-            ],
+            # [
+            #     "Power",
+            #     [
+            #         ["powerOn", "PowerOn", "Switch Power On"],
+            #         ["powerOff", "PowerOff", "Switch Power Off"],
+            #         ["regulon", "Regulation On", "Swich LN2 Regulation On"],
+            #     ],
+            # ],
             [
                 "Lid",
                 [
@@ -406,10 +437,14 @@ class CatsMaintMockup(Equipment):
         if cmd_name == "reguloff":
             self._do_disable_regulation()
         if cmd_name == "openlid1":
+            logging.getLogger("HWR").debug('receive open lid command from UI')
             self._do_lid1_state(True)
         if cmd_name == "closelid1":
+            logging.getLogger("HWR").debug('receive close lid command from UI')
             self._do_lid1_state(False)
         return True
+
+
 
 
 def test_hwo(hwo):

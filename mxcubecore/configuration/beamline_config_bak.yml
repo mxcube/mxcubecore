@@ -24,55 +24,40 @@ _objects:
     #
     # Hardware:
     - session: bl19u/session.xml
-
-#    - session: session.xml
-
     - data_publisher: data_publisher.xml
     - machine_info: bl19u/machine_info.xml
-#    - machine_info: machine_info.xml
     - detector: bl19u/detector.xml
-#    - detector: detector.xml
-
     - beam: beam_info.xml
     - transmission: transmission.xml
     - flux: flux.xml
     - cryo: cryo.xml
     - energy: bl19u/energy.xml
-#    - energy: energy.xml
     - resolution: bl19u/resolution.xml
-#    - resolution: resolution.xml
     - safety_shutter: safety_shutter.xml
     - fast_shutter: bl19u/fastshutter.xml
-#    - fast_shutter: fast_shutter.xml
-
     #- hutch_interlock: hutchtrigger.xml
 #    - sample_changer: sc.xml
+    - sample_changer: bl19u/sc.xml
+    - sample_changer_maintenance: bl19u/sc_maint.xml
+#    - sample_changer: sc.xml
 #    - sample_changer_maintenance: sc_maint.xml
-#    - sample_changer: bl19u/sc.xml
-#    - sample_changer_maintenance: bl19u/sc_maint.xml
-    - sample_changer: sc_mockup.xml
-    - sample_changer_maintenance: sc_maint_mockup.xml
     #- plate_manipulator: plate_manipulator.xml
-    #- diffractometer: minidiff.xml # mockup use
+    #- diffractometer: minidiff.xml
     #- diffractometer: bl19u/md2.xml
-    - diffractometer: bl19u/udiff.xml # true use
+    - diffractometer: bl19u/udiff.xml
     - bzoom: bl19u/udiff/bzoom_video.xml
     - lims: lims.xml
     - sample_view: bl19u/sample_view.xml
-#    - sample_view: sample_view.xml #mockup use
     - queue_manager: bl19u/queue.xml
-#    - queue_manager: queue.xml  # mockup use
     - queue_model: queue_model.xml
 
     # Procedures:
     - beamline_actions: beamline_actions.xml
     - workflow: ednaparams.xml
-    #- collect: mxcollect.xml #mockup use
+    #- collect: mxcollect.xml
     - collect: bl19u/mxcollect.xml
-#    -tset: test.xml # mockup use
     - xrf_spectrum: bl19u/xrf.xml
 #    - energy_scan: bl19u/energyscan.xml
-#    - energy_scan: energyscan.xml  #mockup use
     #- gphl_connection: gphl/gphl-setup.yml
     #- gphl_workflow: gphl/gphl-workflow.yml
     - xray_centring: xray_centring2.yml
@@ -106,7 +91,7 @@ default_acquisition_parameters:
         num_passes: 1
         first_image: 1
         overlap: 0
-        num_images: 360
+        num_images: 1
         detector_mode: 1 # Remove as not in practice used ?
         inverse_beam: false
         take_dark_current: true

@@ -4,7 +4,7 @@ import logging
 
 from mxcubecore.HardwareObjects.abstract import AbstractSampleChanger
 from mxcubecore.HardwareObjects.abstract.sample_changer import Container
-from mxcubecore import HardwareRepository as HWR
+
 
 class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
 
@@ -66,22 +66,11 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
     def load_sample(self, holder_length, sample_location=None, wait=False):
         self.load(sample_location, wait)
 
-
-
-    def exchange(self,newsample,wait=False):
-        # raise Exception("test exception")
-        logging.getLogger("HWR").debug("get in exchange method")
-        self.load(newsample,wait)
-
-
     def load(self, sample, wait=False):
         logging.getLogger("HWR").debug("get in load smaple in SampleChangerMockup.py")
-        # self.emit("fsmConditionChanged", "sample_mounting_sample_changer", True)
-
-
-
+        self.emit("fsmConditionChanged", "sample_mounting_sample_changer", True)
         previous_sample = self.get_loaded_sample()
-        self._set_state(AbstractSampleChanger.SampleChangerState.Loading)   # 此处好像也传递给了前端状态，调用了signals中的sc_state_changed()
+        self._set_state(AbstractSampleChanger.SampleChangerState.Loading)
         self._reset_loaded_sample()
 
         if isinstance(sample, tuple):
@@ -97,21 +86,14 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
             "Sample changer: %s. Please wait..." % msg
         )
 
-        # self.emit("progressInit", (msg, 100))
-        # for step in range(2 * 100):
-        #     self.emit("progressStep", int(step / 2.0))
-        #     time.sleep(0.01)
+        self.emit("progressInit", (msg, 100))
+        for step in range(2 * 100):
+            self.emit("progressStep", int(step / 2.0))
+            time.sleep(0.01)
 
         mounted_sample = self.get_component_by_address(
             Container.Pin.get_sample_address(basket, sample)
         )
-
-        print("start time sleep 5")
-        time.sleep(5)
-
-        print("end time sleep 5")
-
-
         self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
 
         if mounted_sample is not previous_sample:
@@ -123,12 +105,6 @@ class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
         self.emit("fsmConditionChanged", "sample_is_loaded", True)
         self.emit("fsmConditionChanged", "sample_mounting_sample_changer", False)
 
-        # try:
-        #     raise Exception("test exception")
-        # finally:
-        #     HWR.beamline.sample_changer_maintenance._running = 0
-        #     HWR.beamline.sample_changer_maintenance._update_global_state()
-        #     self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
         return self.get_loaded_sample()
 
     def unload(self, sample_slot=None, wait=None):
