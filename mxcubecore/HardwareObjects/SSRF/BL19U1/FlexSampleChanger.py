@@ -123,24 +123,38 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         self._ifcloseLid_inBeginning = False
         self.count = 1
 
-        # self._cmdMount = self.add_command(
-        #     {"type": "socketrobot", "socket_address": self.socket_addr, "name": '_cmdMount'},
-        #     'Mount'
-        # )
-        # self._cmdUnMount = self.add_command(
-        #     {"type": "socketrobot", "socket_address": self.socket_addr, "name": '_cmdMount'},
-        #     'Dismount'
-        # )
+
+
         # self._cmdExchange = self.add_command(
         #     {"type": "socketrobot", "socket_address": self.socket_addr, "name": '_cmdExchange'},
         #     'Exchange'
         # )
         #
-        # self._cmdGetStatus = self.add_command(
-        #     {"type": "socketrobot", "socket_address": self.socket_addr, "name": '_cmdGetStatus'},
-        #     'GetRobotStatus'
-        # )
-        self.getMountedSamplePosition = self.add_command(
+        self._cmdLoadSample = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "loadSample",
+            },
+            "loadSample",
+        )
+        self._cmdUnLoadSample = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "unloadSample",
+            },
+            "unloadSample",
+        )
+        self._cmdGetStatus = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "getStatus",
+            },
+            "getStatus",
+        )
+        self._cmdGetMountedSamplePosition = self.add_command(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -173,20 +187,21 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
                 xmlName = "prefix" + str(i + 1) + "-" + str(j + 1)  # "subdir5-2"
                 self.default_prefix[i][j] = self.get_property(xmlName)
 
-    # def load_sample(self, holder_length, sample_location=None, wait=False):
-    #     if Microdiff.get_current_phase() != "Transfer:
-    #         Microdiff.set_phase("Transfer",wait=True,timeout=500)
-    #     self.load(sample_location, wait)
+
 
     @if_ErrorCode
     def _do_mount(self, magazine, position):
-        return
         # return self._cmdMount(magazine=magazine, position=position)
+        # print('type of magazion and position: ',type(magazine),type(position))
+        parm = '1\t'+str(magazine)+'\t'+str(position)
+        # print('load parameter: ',parm)
+        return self._cmdLoadSample(parm)
 
     @if_ErrorCode
     def _do_unmount(self, magazine, position):
-        return
         # return self._cmdUnMount(magazine=magazine, position=position)
+        parm = '1\t' + str(magazine) + '\t' + str(position)
+        return self._cmdUnLoadSample(parm)
 
     @if_ErrorCode
     def _do_exchange(self, oldMagazine, oldPosition, newMagazine, newPosition):
@@ -197,7 +212,7 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
 
     @if_ErrorCode
     def _do_getMountedSamplePosition(self):
-        return self.getMountedSamplePosition()
+        return self._cmdGetMountedSamplePosition()
 
     @if_ErrorCode
     def _do_getStatus(self):
@@ -314,7 +329,6 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
                 # 翻译来自机械手的errorCode
                 if type(self._ifcmdSucceeded) is Exception:
                     self._ifcmdSucceeded = str(self._ifcmdSucceeded)
-                    self._ifcmdSucceeded = self._paraphrase_errorCode(self._ifcmdSucceeded)
                     logging.getLogger("user_level_log").error(
                         "ErrorCode from robot:" + self._ifcmdSucceeded + ",please contact the teacher on duty")
                     raise Exception(f"ErrorCode from robot: {self._ifcmdSucceeded}, please contact the teacher on duty")
@@ -404,31 +418,22 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
     def load(self, sample, wait=False):
         print("进入load函数")
 
-        # 判断机械手当前状态，如果位置在dewar里，就不用判断close lid
-        ret = self._do_getStatus()
-        # ret = self._cmdGetStatus()
-        # print("self._cmdGetStatus")
-        # print(ret)
-        index_RobotLocation = ret.index('RobotLocation')
-        RobotLocation = ret[index_RobotLocation + 2]
 
-        # 不在dewar里
-        if RobotLocation != "2":
-            # 先判断是否closelid了
-            if not self._ifcloseLid_inBeginning:
-                # 恢复各种状态
-                HWR.beamline.sample_changer_maintenance._running = 0
-                HWR.beamline.sample_changer_maintenance._update_global_state()
+        # 不确定flex是否需要类似于 close lid 的操作，暂时保留
+        # 如果在dwear里，就可以直接设置为已经closelid了 (代码以删除)
+        # 先判断是否closelid了
+        if not self._ifcloseLid_inBeginning:
+            # 恢复各种状态
+            HWR.beamline.sample_changer_maintenance._running = 0
+            HWR.beamline.sample_changer_maintenance._update_global_state()
 
-                logging.getLogger("user_level_log").error(
-                    "please close the lid first")  # doesn't work,can show on log message, don't know why
-                logging.getLogger("HWR").debug("please close the lid first")
-                self.send_msg_to_statemessage("please close the lid first")
-                HWR.beamline.sample_changer_maintenance._update_global_state()
-                raise Exception("please close the lid first")
-        # 在dewar里
-        else:
-            self.change_ifcloseLid_inBeginning_state(True)
+            logging.getLogger("user_level_log").error(
+                "please close the lid first")  # doesn't work,can show on log message, don't know why
+            logging.getLogger("HWR").debug("please close the lid first")
+            self.send_msg_to_statemessage("please close the lid first")
+            HWR.beamline.sample_changer_maintenance._update_global_state()
+            raise Exception("please close the lid first")
+
 
         # 判断md2
         self.check_MD2_state()
@@ -488,7 +493,7 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
 
             # 如果命令返回的类型是Exception，说明是机械手有报错
             elif (type(self._ifcmdSucceeded) is Exception) or (type(self._ifcmdSucceeded) is OSError) or (
-                    type(self._ifcmdSucceeded) is TimeoutError):
+                    type(self._ifcmdSucceeded) is TimeoutError or type(self._ifcmdSucceeded) is TypeError):
                 # 在发生错误后恢复机械手的各种状态
                 self._selected_sample = -1
                 self._selected_basket = -1
@@ -503,10 +508,9 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
                 HWR.beamline.sample_changer_maintenance._running = 0
                 HWR.beamline.sample_changer_maintenance._update_global_state()
 
-                # 翻译来自机械手的errorCode
+                # 翻译来自机械手的errorCode,(翻译代码已删除)
                 if type(self._ifcmdSucceeded) is Exception:
                     self._ifcmdSucceeded = str(self._ifcmdSucceeded)
-                    self._ifcmdSucceeded = self._paraphrase_errorCode(self._ifcmdSucceeded)
                 logging.getLogger("user_level_log").error(
                     "ErrorCode from robot: %s, please contact the teacher on duty" % self._ifcmdSucceeded)
                 raise Exception(f"ErrorCode from robot: {self._ifcmdSucceeded}, please contact the teacher on duty")
@@ -667,25 +671,7 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
 
         return ret
 
-    def _paraphrase_errorCode(self, errorCode):
-        if errorCode == "62":
-            return "Dewar plug not in correct location when dewar open or close program called, usually caused by the insensitivty of the sensor beneath the lid"
-        elif errorCode == "24":
-            return "Pin already mounted, (if there is no Pin mounted, then it could be the incorrect judge from infrared senor)"
-        elif errorCode == "31":
-            self.clear_memory()
-            HWR.beamline.sample_changer_maintenance.cmdClearMemory()
-            return "Pin is not sensored on goniometer after mounting, (maybe caused by there's no pin in that postion), please check the goniometer. If there is no pin on it, please try to mount another position"
-        elif errorCode == "32":
-            return "Pin is sensored on goniometer by infrared ray while tring to mount a new one, (please check if there really has a pin)"
-        elif errorCode == "12":
-            return "Robot E stop, there was a collision happened, please have a check and don't send another command to robot"
-        elif errorCode == "21":
-            return "The imformation of mounted sample is different between mxcube and camerman, please try to use camerman to dismount the current sample and clear the memory of mxcube, then please try again."
-        elif errorCode == "3":
-            return "Robot collect error, usually caused by the robot gripper."
-        else:
-            return errorCode
+
 
     def get_loaded_sample_fromstart(self):
         try:
@@ -698,7 +684,10 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
                 self.if_check_mountedPin_from_camerman = True
                 # self.synchronize_with_camerman()
                 # 判断机械手当前状态，如果位置在dewar里，就不用判断close lid
-                ret = self._cmdGetStatus()
+
+                # 代修改
+                ret = self._cmdGetMountedSamplePosition()
+                # ret = self._cmdGetStatus()
                 # print("self._cmdGetStatus")
                 print(ret)
                 index_MountedPin = ret.index('MountedPin')
