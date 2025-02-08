@@ -160,7 +160,7 @@ class FlexMaint(Equipment):
 
         self._state = "READY"
         self._running = 0
-        self._powered = 0
+        self._powered = 1
         self._toolopen = 0
         self._message = ["1. ","Nothing to report. ","   2. current sample: ","None"]
         # self._message = [" ","1. current sample: ","None"]
@@ -171,8 +171,8 @@ class FlexMaint(Equipment):
         self._charging = 0
         self._currenttool = 1
 
-        self._socket_addr = '10.30.61.73:10100'
-
+        # self._socket_addr = '10.30.61.73:10100'
+        self.exporter_addr = '10.30.61.246:9001'
         self._ifcmdSucceeded = False
 
 
@@ -183,16 +183,40 @@ class FlexMaint(Equipment):
         except Exception:
             self.cats_model = "CATS"
 
+        self.initRobot = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "initRobot",
+            },
+            "initRobot",
+        )
+        self.defreezeGripper = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "defreezeGripper",
+            },
+            "defreezeGripper",
+        )
 
-        # self._cmdDry = self.add_command(
-        #     {"type": "socketrobot", "socket_address":self._socket_addr, "name": '_cmdDry'}, 'Dry Wait = ON'
-        # )
-        # self._cmdHome = self.add_command(
-        #     {"type": "socketrobot", "socket_address": self._socket_addr, "name": '_cmdHome'}, 'RobotInitialize'
-        # )
-        # self.cmdClearMemory = self.add_command(
-        #     {"type": "socketrobot", "socket_address": self._socket_addr, "name": 'cmdClearMemory'}, 'SetMountedPin Dewar = 1 Magazine = 0 Position = 0'
-        # )
+        self.resetLoadedPosition = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "resetLoadedPosition",
+            },
+            "resetLoadedPosition",
+        )
+        self._cmdE_STOP = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "abort",
+            },
+            "abort",
+        )
+
         # self._cmdCloselid = self.add_command(
         #     {"type": "socketrobot", "socket_address": self._socket_addr, "name": '_cmdCloselid'}, 'Dewar Open = OFF Dewar = 1'
         # )
@@ -200,9 +224,7 @@ class FlexMaint(Equipment):
         #     {"type": "socketrobot", "socket_address": self._socket_addr, "name": '_cmdOpenlid'}, 'Dewar Open = ON Dewar = 1'
         # )
         #
-        # self._cmdAbort = self.add_command(
-        #     {"type": "socketrobot", "socket_address": self._socket_addr, "name": '_cmdAbort'}, 'Abort'
-        # )
+
 
         # add_channel会在初始化时被测试能不能连通，add_command不会
         # self._test = self.add_channel(
@@ -239,17 +261,22 @@ class FlexMaint(Equipment):
     def get_current_tool(self):
         return self._currenttool
 
+    def _E_STOP(self):
+        """
+        1. 向机械手发送abort命令，不管mxcube内部各状态
+        """
+        self._cmdE_STOP()
+
 
     def _do_abort(self):
         """
-        abort作用，
+        作用:只是在mxcube内部abort，恢复成各状态为ready
         1. 会让系统的一些参数变为初始参数，以便继续操作
-        2. 向机械手发送abort命令
         """
+        print('use _do_abort method')
         self._running=0
         HWR.beamline.sample_changer._set_state(AbstractSampleChanger.SampleChangerState.Ready)
         self._update_global_state()     #其实不用update，这里update一下只是为了刷新一下界面
-        # self._cmdAbort()
 
     def _do_reset(self):
         """
@@ -279,12 +306,12 @@ class FlexMaint(Equipment):
         :returns: None
         :rtype: None
         """
-        pass
-        # return self._cmdDry()
+        res = self.defreezeGripper()
+        return res
 
     @set_running
     def _do_synchronize(self):
-        return HWR.beamline.sample_changer.synchronize_with_camerman()
+        return HWR.beamline.sample_changer.synchronize_with_flex()
 
     @set_running
     def _do_home(self):
@@ -293,8 +320,9 @@ class FlexMaint(Equipment):
         会将是否close lid的flag恢复为false
         20231226, cancel the function of setting closelid to false
         """
-
-        pass
+        res = self.initRobot()
+        print('res of _do_home: ',res)
+        return res
         # HWR.beamline.sample_changer.change_ifcloseLid_inBeginning_state(False)
         # return self._cmdHome()
 
@@ -303,23 +331,30 @@ class FlexMaint(Equipment):
     def _do_clear_memory(self):
         """
         clear robot memory
+        如果本来就没有已上的样品，会报错 Null object reference
         """
+        try:
+            # 清除机械手存储的上样样品
+            res = self.resetLoadedPosition()
+        except Exception:
+            res = 'null'
+        # print('res of _do_clear_memory: ',res,type(res))  # null 'str'
+        # 清除系统存储的上样样品
+        HWR.beamline.sample_changer.clear_memory()
 
-        pass
-        # # 清除系统存储的上样样品
-        # HWR.beamline.sample_changer.clear_memory()
-        # # 清除机械手存储的上样样品
-        # return self.cmdClearMemory()
+        return res
 
 
     @if_ErrorCode
     def _do_cmdOpenlid(self):
-        pass
+        time.sleep(2)
+        return True
         # return self._cmdOpenlid()
 
     @if_ErrorCode
     def _do_cmdCloselid(self):
-        pass
+        time.sleep(2)
+        return True
         # return self._cmdCloselid()
 
     @if_running_closelid
@@ -569,12 +604,13 @@ class FlexMaint(Equipment):
             "dry": (not self._running) and self._powered and _ready,
             "synchronize":(not self._running) and self._powered and _ready,
             "soak": (not self._running) and self._powered and _ready,
+            "estop":True if self._powered else False,
             "home": (not self._running) and self._powered and _ready,
             "back": (not self._running) and self._powered and _ready,
             "safe": (not self._running) and self._powered and _ready,
             "clear_memory": (not self._running) and self._powered and _ready,
             "reset": True,
-            "abort": self._running,
+            "abort": True if self._running else False,
         }
 
         message = self._message
@@ -629,14 +665,14 @@ class FlexMaint(Equipment):
         #     ["Abort", [["abort", "Abort", "Abort Execution of Command"]]],
         # ]
         cmd_list = [
-            [
-                "Power",
-                [
-                    ["powerOn", "PowerOn", "Switch Power On"],
-                    ["powerOff", "PowerOff", "Switch Power Off"],
-                    # ["regulon", "Regulation On", "Swich LN2 Regulation On"],
-                ],
-            ],
+            # [
+            #     "Power",
+            #     [
+            #         ["powerOn", "PowerOn", "Switch Power On"],
+            #         ["powerOff", "PowerOff", "Switch Power Off"],
+            #         # ["regulon", "Regulation On", "Swich LN2 Regulation On"],
+            #     ],
+            # ],
             [
                 "Lid",
                 [
@@ -657,8 +693,9 @@ class FlexMaint(Equipment):
                 [
                     ["home", "Initialize", "Actions", "Home (trajectory)"],
                     ["dry", "Dry", "Actions", "Dry (trajectory)"],
-                    ["synchronize","Synchronize_with_camerman","Actions","Synchronize_with_camerman (trajectory)"]
+                    ["synchronize","Synchronize_with_camerman","Actions","Synchronize_with_camerman (trajectory)"],
                     # ["soak", "Soak", "Actions", "Soak (trajectory)"],
+                    ["estop","E-STOP","Actions","emergency stop (trajectory)"]
                 ],
             ],
             [
@@ -760,9 +797,9 @@ class FlexMaint(Equipment):
         if cmd_name == "abort":
             print("abort")
             self._do_abort()
-        # if cmd_name == "safe":
-        #     print("abort")
-        #     self._do_abort()
+        if cmd_name == "estop":
+            print("estop")
+            self._E_STOP()
         #20231226
         if cmd_name == "synchronize":
             logging.getLogger("HWR").debug(

@@ -48,10 +48,10 @@ _objects:
     #- hutch_interlock: hutchtrigger.xml
 #    - sample_changer: sc.xml
 #    - sample_changer_maintenance: sc_maint.xml
-#    - sample_changer: bl19u/sc.xml
-#    - sample_changer_maintenance: bl19u/sc_maint.xml
-    - sample_changer: sc_mockup.xml
-    - sample_changer_maintenance: sc_maint_mockup.xml
+    - sample_changer: bl19u/sc.xml
+    - sample_changer_maintenance: bl19u/sc_maint.xml
+#    - sample_changer: sc_mockup.xml
+#    - sample_changer_maintenance: sc_maint_mockup.xml
     #- plate_manipulator: plate_manipulator.xml
     #- diffractometer: minidiff.xml # mockup use
     #- diffractometer: bl19u/md2.xml

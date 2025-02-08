@@ -83,7 +83,7 @@ def if_ErrorCode(func):
 
 
 class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
-    __TYPE__ = "Actor"
+    __TYPE__ = "Flex"
     NO_OF_BASKETS = 5
     NO_OF_SAMPLES_IN_BASKET = 16
 
@@ -118,7 +118,8 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         self.log_filename = self.get_property("log_filename")
 
         self._dewar = 1
-        self.socket_addr = '10.30.61.73:10100'
+        # self.socket_addr = '10.30.61.73:10100'
+        self.exporter_addr = '10.30.61.246:9001'
         self._ifcloseLid_inBeginning = False
         self.count = 1
 
@@ -139,6 +140,14 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         #     {"type": "socketrobot", "socket_address": self.socket_addr, "name": '_cmdGetStatus'},
         #     'GetRobotStatus'
         # )
+        self.getMountedSamplePosition = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "getMountedSamplePosition",
+            },
+            "getMountedSamplePosition",
+        )
 
         self._ifcmdSucceeded = False
         self.first_launch_mxcube = True  # 添加
@@ -187,9 +196,12 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         #                          newPosition=newPosition)
 
     @if_ErrorCode
+    def _do_getMountedSamplePosition(self):
+        return self.getMountedSamplePosition()
+
+    @if_ErrorCode
     def _do_getStatus(self):
-        return
-        # return self._cmdGetStatus()
+        return self._cmdGetStatus()
 
     def get_log_filename(self):
         return self.log_filename
@@ -617,20 +629,18 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         else:
             logging.getLogger("HWR").debug("cannot unload, the location is wrong")
 
-    def synchronize_with_camerman(self):
+    def synchronize_with_flex(self):
         # 判断机械手当前状态，如果位置在dewar里，就不用判断close lid
-        ret = self._do_getStatus()
-        # print("self._cmdGetStatus")
-        print(ret)
-        index_MountedPin = ret.index('MountedPin')
-        MountedPin = ret[index_MountedPin + 2]
-        # 不在dewar里
-        MountedPin = int(MountedPin)
+        ret = self._do_getMountedSamplePosition()
+        print("self._do_getMountedSamplePosition(): ",ret,type(ret))
 
-        # 有样品，相当于换样
-        if MountedPin != 0:
-            self._selected_basket = int(MountedPin / 100)
-            self._selected_sample = MountedPin % 100
+
+        MountedPin = ret
+
+        # # 有样品，相当于换样
+        if MountedPin[0] != -1:                 #无样品： [-1,-1,-1]
+            self._selected_basket = MountedPin[1]
+            self._selected_sample = MountedPin[2]
             # 命令完成
             mounted_sample = self.get_component_by_address(
                 Container.Pin.get_sample_address(self._selected_basket, self._selected_sample)
@@ -645,12 +655,10 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
             self.emit("fsmConditionChanged", "sample_is_loaded", True)
             self.emit("fsmConditionChanged", "sample_mounting_sample_changer", False)
 
-
-
-        # 没有样品，相当于下样
+        # # 没有样品，相当于下样
         else:
-            self._selected_basket = -1
-            self._selected_sample = -1
+            self._selected_basket = MountedPin[1]   #-1
+            self._selected_sample = MountedPin[2]   #-1
 
             self._trigger_loaded_sample_changed_event(self.get_loaded_sample())
             self.send_sample_address_to_statemessage()
