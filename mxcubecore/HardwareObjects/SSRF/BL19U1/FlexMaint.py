@@ -183,7 +183,7 @@ class FlexMaint(Equipment):
         except Exception:
             self.cats_model = "CATS"
 
-        self.initRobot = self.add_command(
+        self._cmdInitRobot = self.add_command(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -191,7 +191,7 @@ class FlexMaint(Equipment):
             },
             "initRobot",
         )
-        self.defreezeGripper = self.add_command(
+        self._cmdDefreezeGripper = self.add_command(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -200,7 +200,7 @@ class FlexMaint(Equipment):
             "defreezeGripper",
         )
 
-        self.resetLoadedPosition = self.add_command(
+        self._cmdResetLoadedPosition = self.add_command(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
@@ -261,11 +261,6 @@ class FlexMaint(Equipment):
     def get_current_tool(self):
         return self._currenttool
 
-    def _E_STOP(self):
-        """
-        1. 向机械手发送abort命令，不管mxcube内部各状态
-        """
-        self._cmdE_STOP()
 
 
     def _do_abort(self):
@@ -294,11 +289,21 @@ class FlexMaint(Equipment):
 
 
 
+    @set_running
+    def _E_STOP(self,wait=True,timeout=None):
+        """
+        1. 向机械手发送abort命令，不管mxcube内部各状态
+        """
+        res = self._cmdE_STOP()
+        if wait:
+            SC = HWR.beamline.sample_changer
+            SC.wait_ready(timeout)
+        return res
 
 
 
     @set_running
-    def _do_dry_gripper(self):
+    def _do_dry_gripper(self,wait=True,timeout=None):
         """
         Launch the "dry" command
 
@@ -306,42 +311,55 @@ class FlexMaint(Equipment):
         :returns: None
         :rtype: None
         """
-        res = self.defreezeGripper()
+        res = self._cmdDefreezeGripper()
+        if wait:
+            SC = HWR.beamline.sample_changer
+            SC.wait_ready(timeout)
         return res
 
     @set_running
-    def _do_synchronize(self):
-        return HWR.beamline.sample_changer.synchronize_with_flex()
+    def _do_synchronize(self,wait=True,timeout=None):
+        res = HWR.beamline.sample_changer.synchronize_with_flex()
+        if wait:
+            SC = HWR.beamline.sample_changer
+            SC.wait_ready(timeout)
+        return res
 
     @set_running
-    def _do_home(self):
+    def _do_home(self,wait=True,timeout=None):
         """
         robot initialize
         会将是否close lid的flag恢复为false
         20231226, cancel the function of setting closelid to false
         """
-        res = self.initRobot()
+        res = self._cmdInitRobot()
         print('res of _do_home: ',res)
+        if wait:
+            SC = HWR.beamline.sample_changer
+            SC.wait_ready(timeout)
         return res
         # HWR.beamline.sample_changer.change_ifcloseLid_inBeginning_state(False)
         # return self._cmdHome()
 
     @if_running
     @set_running
-    def _do_clear_memory(self):
+    def _do_clear_memory(self,wait=True,timeout=None):
         """
         clear robot memory
         如果本来就没有已上的样品，会报错 Null object reference
         """
         try:
             # 清除机械手存储的上样样品
-            res = self.resetLoadedPosition()
+            res = self._cmdResetLoadedPosition()
         except Exception:
             res = 'null'
         # print('res of _do_clear_memory: ',res,type(res))  # null 'str'
         # 清除系统存储的上样样品
-        HWR.beamline.sample_changer.clear_memory()
+        if wait:
+            SC = HWR.beamline.sample_changer
+            SC.wait_ready(timeout)
 
+        HWR.beamline.sample_changer.clear_memory()
         return res
 
 

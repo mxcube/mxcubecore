@@ -130,6 +130,14 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         #     'Exchange'
         # )
         #
+        self._cmdExchange = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "chainedUnldLd",
+            },
+            "chainedUnldLd",
+        )
         self._cmdLoadSample = self.add_command(
             {
                 "type": "exporter",
@@ -190,33 +198,79 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
 
 
     @if_ErrorCode
-    def _do_mount(self, magazine, position):
+    def _do_mount(self, magazine, position,wait=True,timeout=None):
         # return self._cmdMount(magazine=magazine, position=position)
         # print('type of magazion and position: ',type(magazine),type(position))
         parm = '1\t'+str(magazine)+'\t'+str(position)
         # print('load parameter: ',parm)
-        return self._cmdLoadSample(parm)
+        res = self._cmdLoadSample(parm)
+        if wait:
+            self.wait_ready(timeout)
+        return res
 
     @if_ErrorCode
-    def _do_unmount(self, magazine, position):
+    def _do_unmount(self, magazine, position,wait=True,timeout=None):
         # return self._cmdUnMount(magazine=magazine, position=position)
         parm = '1\t' + str(magazine) + '\t' + str(position)
-        return self._cmdUnLoadSample(parm)
+        res = self._cmdUnLoadSample(parm)
+        if wait:
+            self.wait_ready(timeout)
+        return res
 
     @if_ErrorCode
-    def _do_exchange(self, oldMagazine, oldPosition, newMagazine, newPosition):
+    def _do_exchange(self, oldMagazine, oldPosition, newMagazine, newPosition,wait=True,timeout = None):
         print("oldMagazine,oldPosition,NewMagazine,NewPosition:", oldMagazine, oldPosition, newMagazine, newPosition)
-        return
+        parm = [1,oldMagazine,oldPosition,1,newMagazine,newPosition]
+        print("parm in exchange method and typeof(parm): ",parm,type(parm))
+        res = self._cmdExchange(parm)
+        if wait:
+            self.wait_ready()
+        return res
+
         # return self._cmdExchange(oldMagazine=oldMagazine, oldPosition=oldPosition, newMagazine=newMagazine,
         #                          newPosition=newPosition)
 
     @if_ErrorCode
-    def _do_getMountedSamplePosition(self):
-        return self._cmdGetMountedSamplePosition()
+    def _do_getMountedSamplePosition(self,wait=True,timeout=None):
+        res = self._cmdGetMountedSamplePosition()
+        if wait:
+            self.wait_ready(timeout)
+        return res
 
     @if_ErrorCode
     def _do_getStatus(self):
+        """
+        获取机械手状态
+        """
         return self._cmdGetStatus()
+
+    def _ready(self):
+        """
+        判断是否ready
+        return: True / False
+        """
+        status = self._do_getStatus()
+        if status == 'Ready':
+            return True
+        else:
+            return False
+
+    def wait_ready(self, timeout=None):
+        # None means infinite timeout
+        # <=0 means default timeout
+        if timeout is not None and timeout <= 0:
+            logging.getLogger("HWR").warning(
+                "DEBUG: Strange timeout value passed %s" % str(timeout)
+            )
+            timeout = 30
+        with gevent.Timeout(
+            timeout, RuntimeError("Timeout waiting for FlexRobot to be ready")
+        ):
+            while not self._ready():
+                time.sleep(0.5)
+
+
+
 
     def get_log_filename(self):
         return self.log_filename
