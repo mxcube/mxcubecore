@@ -20,6 +20,8 @@
 
 """Abstract hardware object for data collection."""
 
+from __future__ import annotations
+
 import abc
 import collections
 import errno
