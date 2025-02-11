@@ -35,9 +35,7 @@ There is a parameter named: TIMEOUT_GIVES_CONTROL which, if enabled, triggers a 
 
 The **user in control** is able to "give control" to any other user.
 
-If the **user in control** logs out, any user can ”take control”, and this user will immediately get it. If nobody has taken control in the meantime:
-* upon re-logging in, the former **user in control** still has it, or
-* the first newly logged-in user gets it.
+If the **user in control** logs out this role is not passed to any other (logged-in) user. Once logged out the "user in control" is unassigned and the next user that logs in becomes the "user in control". If no new user appears upon re-logging of the former **user in control**, he/she is still in control.
 
 ## New login:
 
