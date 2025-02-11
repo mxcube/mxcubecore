@@ -18,8 +18,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
 
-"""General data and functions, that can be shared between different HardwareObjects
-"""
+"""General data and functions, that can be shared between different HardwareObjects"""
 from __future__ import (
     absolute_import,
     division,

@@ -18,7 +18,7 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-""" Photon flux calculations
+"""Photon flux calculations
 Example xml_ configuration:
 
 .. code-block:: xml

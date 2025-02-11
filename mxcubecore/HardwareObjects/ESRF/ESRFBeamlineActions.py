@@ -15,7 +15,7 @@
 #
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
-""" Execute commands and toggle two state actions
+"""Execute commands and toggle two state actions
 Example xml file:
 <object class = "ESRF.ESRFBeamlineActions">
   <object role="controller" href="/bliss"/>

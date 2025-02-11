@@ -161,7 +161,7 @@ class TacoChannel(ChannelObject):
         username=None,
         polling=None,
         args=None,
-        **kwargs
+        **kwargs,
     ):
         ChannelObject.__init__(self, name, username, **kwargs)
 

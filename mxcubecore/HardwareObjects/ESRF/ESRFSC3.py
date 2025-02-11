@@ -1,5 +1,4 @@
-"""ESRF SC3 Sample Changer Hardware Object
-"""
+"""ESRF SC3 Sample Changer Hardware Object"""
 
 import functools
 import logging

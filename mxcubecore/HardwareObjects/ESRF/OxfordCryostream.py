@@ -18,7 +18,7 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-""" Oxford Cryostream, controlled by bliss.
+"""Oxford Cryostream, controlled by bliss.
 Example xml_ configuration:
 
 .. code-block:: xml

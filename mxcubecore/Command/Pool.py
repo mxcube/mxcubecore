@@ -165,7 +165,7 @@ class PoolChannel(ChannelObject):
         username=None,
         polling=None,
         timeout=10000,
-        **kwargs
+        **kwargs,
     ):
         ChannelObject.__init__(self, name, username, **kwargs)
 

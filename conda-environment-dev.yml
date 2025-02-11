@@ -1,6 +1,7 @@
 %YAML 1.2
 ---
 
+
 name: mxcubecore
 
 channels:
@@ -11,7 +12,7 @@ dependencies:
   # Runtime dependencies
   # ====================
 
-  - python >=3.8,<3.12
+  - python >=3.10,<3.12  # Keep in sync with `pyproject.toml`
 
   # `openldap` is necessary for `python-ldap` but can not be installed by pip or Poetry.
   # Note also that on PyPI `python-ldap` is only available as *sdist*, not as *wheel*,
@@ -26,4 +27,7 @@ dependencies:
   # Development dependencies
   # ========================
 
-  - poetry
+  - poetry ==2.0.1  # Keep in sync with `.pre-commit-config.yaml` and `poetry.lock`
+
+
+...

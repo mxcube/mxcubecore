@@ -48,7 +48,7 @@ class TineCommand(CommandObject):
         username=None,
         ListArgs=None,
         timeout=1000,
-        **kwargs
+        **kwargs,
     ):
         CommandObject.__init__(self, name, username, **kwargs)
         self.commandName = command_name

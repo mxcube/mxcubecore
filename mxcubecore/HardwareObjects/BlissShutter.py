@@ -18,7 +18,7 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-""" BlissShutter class - interface for shutter controlled by BLISS
+"""BlissShutter class - interface for shutter controlled by BLISS
 Implements _set_value, get_value methods
 Bliss states are: UNKNOWN, OPEN, CLOSED, FAULT
 "MOVING", "DISABLE", "STANDBY", "RUNNING"

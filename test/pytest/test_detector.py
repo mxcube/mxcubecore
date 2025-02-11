@@ -15,8 +15,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
-"""
-"""
+""" """
 
 from __future__ import (
     absolute_import,
@@ -26,9 +25,10 @@ from __future__ import (
 )
 
 import math
-from test.pytest import TestHardwareObjectBase
 
 import pytest
+
+from test.pytest import TestHardwareObjectBase
 
 __copyright__ = """ Copyright © 2016 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"

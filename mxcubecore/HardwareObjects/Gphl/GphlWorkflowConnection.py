@@ -840,7 +840,7 @@ class GphlWorkflowConnection(HardwareObject):
             GphlMessages.GoniostatTranslation(
                 id_=uuid.UUID(translationUuidString),
                 rotation=result,
-                **translationAxisSettings
+                **translationAxisSettings,
             )
         return result
 

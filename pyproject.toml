@@ -1,13 +1,15 @@
-[tool.poetry]
+[project]
 name = "mxcubecore"
 version = "1.228.0"
 license = "LGPL-3.0-or-later"
 description = "Core libraries for the MXCuBE application"
-authors = ["The MXCuBE collaboration <mxcube@esrf.fr>"]
+authors = [
+    {name = "The MXCuBE collaboration", email = "mxcube@esrf.fr"},
+]
 maintainers = [
-    "Marcus Oscarsson <mxcube@esrf.fr>",
-    "Rasmus H. Fogh <rhfogh@globalphasing.com>",
-    "Antonia Beteva <beteva@esrf.fr>",
+    {name = "Marcus Oscarsson", email = "mxcube@esrf.fr"},
+    {name = "Rasmus H. Fogh", email = "rhfogh@globalphasing.com"},
+    {name = "Antonia Beteva", email = "beteva@esrf.fr"},
 ]
 readme = "README.md"
 homepage = "http://github.com/mxcube/mxcubecore"
@@ -22,15 +24,20 @@ classifiers = [
     "Natural Language :: English",
     "Topic :: Scientific/Engineering",
 ]
+requires-python = ">=3.10,<3.12"
+dynamic = [
+    # For the time being: keep using Poetry-specific notation for this field,
+    # but there does not seem to be anything blocking migration to standard notation.
+    "dependencies",
+]
 
+[tool.poetry]
 # Exclude some files from being added to *sdist* and * wheel* distribution packages
 exclude = [
     "mxcubecore/configuration",
 ]
 
-
 [tool.poetry.dependencies]
-python = ">=3.8,<3.12"
 typing-extensions = "^4.3.0"
 tomli = { version = "^2.0.1", python = "<=3.10" }
 gevent = "^23.9.1"
@@ -51,18 +58,17 @@ gipc = "^1.6.0"
 py4j = "0.10.9.7"
 f90nml = "1.4.3"
 lucid3 = "^3.0.0"
-PyTango = { version = "^9.3.6"}
+PyTango = "^9.3.6"
 python-ldap = "^3.4.0"
 requests = "^2.31.0"
 colorama = "^0.4.6"
 pyicat-plus = {version = "^0.5.1", optional = true}
 
-[tool.poetry.dev-dependencies]
-pylint = "^2.15.6"
-pre-commit = "^2.20.0"
-pytest = "^7.2.0"
-pytest-cov = "^4.0.0"
-pytest-mock = "^3.10.0"
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^4.1.0"
+pytest = "^8.3.4"
+pytest-cov = "^6.0.0"
+pytest-mock = "^3.14.0"
 
 [tool.poetry.group.docs.dependencies]
 furo = "^2023.9.10"
@@ -70,9 +76,6 @@ myst-parser = "^2.0.0"
 sphinx = "<7.2"
 sphinx-last-updated-by-git = "^0.3.7"
 sphinxcontrib-mermaid = "^0.9.2"
-
-[tool.poetry.extras]
-tango = ["PyTango"]
 
 [tool.autoflake]
 #
@@ -122,6 +125,11 @@ mxcubecore/HardwareObjects/XSDataMXv1.py,
 
 [tool.black]
 line-length = 88
+required-version = "25"
+target-version = [
+    "py310",
+    "py311",
+]
 include = '\.pyi?$'
 force-exclude = '''
 (

@@ -1771,7 +1771,7 @@ class GphlWorkflow(HardwareObject):
             translation = GphlMessages.GoniostatTranslation(
                 rotation=newRotation,
                 requestedRotationId=sweepSetting.id_,
-                **translation_settings
+                **translation_settings,
             )
             self._latest_translation_id = translation.id_
             self._recentrings.append(translation)
@@ -2557,7 +2557,7 @@ class GphlWorkflow(HardwareObject):
                 GphlMessages.GoniostatTranslation(
                     rotation=goniostatRotation,
                     requestedRotationId=requestedRotationId,
-                    **dd0
+                    **dd0,
                 ),
                 positionsDict,
             )
@@ -2648,7 +2648,7 @@ class GphlWorkflow(HardwareObject):
             )
             translation = GphlMessages.GoniostatTranslation(
                 requestedRotationId=scan.sweep.goniostatSweepSetting.id_,
-                **translation_settings
+                **translation_settings,
             )
             self._latest_translation_id = translation.id_
             self._scan_id_to_translation_id[scan.id_] = translation.id_

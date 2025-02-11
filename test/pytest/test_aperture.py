@@ -21,9 +21,9 @@
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
-from test.pytest.TestAbstractNStateBase import TestAbstractNStateBase
-
 import pytest
+
+from test.pytest.TestAbstractNStateBase import TestAbstractNStateBase
 
 
 @pytest.fixture
