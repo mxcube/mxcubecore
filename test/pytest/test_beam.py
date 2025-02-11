@@ -19,14 +19,12 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-"""Test suite for Beam hardware object.
-"""
-
-from test.pytest import TestHardwareObjectBase
+"""Test suite for Beam hardware object."""
 
 import pytest
 
 from mxcubecore.HardwareObjects.abstract.AbstractBeam import BeamShape
+from test.pytest import TestHardwareObjectBase
 
 __copyright__ = """ Copyright © 2016 - 2022 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"

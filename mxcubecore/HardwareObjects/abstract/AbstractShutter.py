@@ -17,7 +17,7 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-""" AbstractShutter class - interface for shutter type devices.
+"""AbstractShutter class - interface for shutter type devices.
 Define open/close methods and is_open property.
 Overload BaseValueEnum
 """

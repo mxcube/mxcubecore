@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # encoding: utf-8
-""" Abstract beamline interface message classes
+"""Abstract beamline interface message classes
 
 License:
 

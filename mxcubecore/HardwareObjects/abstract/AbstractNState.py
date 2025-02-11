@@ -17,7 +17,7 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-""" AbstractNState class - interface for N state devices.
+"""AbstractNState class - interface for N state devices.
 Defines BaseValueEnum, initialise_values and value_to_enum methds.
 Implements validate_value, set/update limits.
 """

@@ -1,5 +1,4 @@
-"""ESRF SC3 Sample Changer Hardware Object
-"""
+"""ESRF SC3 Sample Changer Hardware Object"""
 
 import ESRF.ESRFSC3 as ESRFSC3
 import SC3

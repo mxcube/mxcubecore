@@ -19,9 +19,9 @@
 Test the resolution hardware object. Dependant on detector_distance and energy
 hardware objects
 """
-from test.pytest import TestAbstractMotorBase
-
 import pytest
+
+from test.pytest import TestAbstractMotorBase
 
 __copyright__ = """ Copyright © 2016 - 2022 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"

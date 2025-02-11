@@ -1,5 +1,4 @@
-"""Sample Changer Hardware Object
-"""
+"""Sample Changer Hardware Object"""
 
 import logging
 

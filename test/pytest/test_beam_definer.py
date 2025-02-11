@@ -19,12 +19,11 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-"""Test suite for BeamDefiner hardware object.
-"""
-
-from test.pytest.TestAbstractNStateBase import TestAbstractNStateBase
+"""Test suite for BeamDefiner hardware object."""
 
 import pytest
+
+from test.pytest.TestAbstractNStateBase import TestAbstractNStateBase
 
 __copyright__ = """ Copyright © by MXCuBE Collaboration """
 __license__ = "LGPLv3+"

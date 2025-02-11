@@ -18,7 +18,7 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-""" ProtocolError and StandardClient implementation"""
+"""ProtocolError and StandardClient implementation"""
 import socket
 import sys
 

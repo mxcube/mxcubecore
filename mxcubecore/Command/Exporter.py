@@ -18,7 +18,7 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-"""Exporter, ExporterChannel and ExporterCommand implementation """
+"""Exporter, ExporterChannel and ExporterCommand implementation"""
 
 # from warnings import warn
 import logging
@@ -231,7 +231,7 @@ class ExporterChannel(ChannelObject):
         address=None,
         port=None,
         timeout=3,
-        **kwargs
+        **kwargs,
     ):
         ChannelObject.__init__(self, name, username, **kwargs)
 

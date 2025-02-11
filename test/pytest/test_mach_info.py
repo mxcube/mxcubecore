@@ -15,12 +15,11 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with MXCuBE.  If not, see <https://www.gnu.org/licenses/>.
-"""Test suite for MachineInfo hardware object
-"""
-
-from test.pytest import TestHardwareObjectBase
+"""Test suite for MachineInfo hardware object"""
 
 import pytest
+
+from test.pytest import TestHardwareObjectBase
 
 __copyright__ = """ Copyright © by MXCuBE Collaboration """
 __license__ = "LGPLv3+"

@@ -22,10 +22,11 @@ __copyright__ = """ Copyright © 2016 - 2022 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
 import abc
-from test.pytest import TestHardwareObjectBase
 
 import gevent
 import pytest
+
+from test.pytest import TestHardwareObjectBase
 
 test_object = TestHardwareObjectBase.test_object
 

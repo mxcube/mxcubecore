@@ -15,20 +15,20 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
-"""Test suite for AbstractMotor class.
-"""
+"""Test suite for AbstractMotor class."""
 
 __copyright__ = """ Copyright © 2016 - 2022 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
 import abc
+
+import gevent
+import pytest
+
 from test.pytest import (
     TestAbstractActuatorBase,
     TestHardwareObjectBase,
 )
-
-import gevent
-import pytest
 
 test_object = TestAbstractActuatorBase.test_object
 

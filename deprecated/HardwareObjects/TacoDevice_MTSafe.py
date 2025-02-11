@@ -454,7 +454,7 @@ def dev_io(mdevname, mdevcommand, *parin, **kw):
                     io_out,
                     0,
                     parin,
-                    **kw
+                    **kw,
                 )
             except Exception:
                 raise Dev_Exception(

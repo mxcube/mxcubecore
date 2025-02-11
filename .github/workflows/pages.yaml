@@ -25,10 +25,10 @@ jobs:
           # See "Caveats" at https://pypi.org/project/sphinx-last-updated-by-git
           fetch-depth: 0
 
-      - name: "Set up Python 3.8"
+      - name: "Set up Python 3.10"
         uses: "actions/setup-python@v5"
         with:
-          python-version: "3.8"
+          python-version: "3.10"
 
       - name: "Install OpenLDAP's dev package with apt"
         run: |

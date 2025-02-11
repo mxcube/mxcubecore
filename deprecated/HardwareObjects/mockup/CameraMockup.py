@@ -1,5 +1,4 @@
-"""Class for cameras connected to framegrabbers run by Taco Device Servers
-"""
+"""Class for cameras connected to framegrabbers run by Taco Device Servers"""
 
 import logging
 import os

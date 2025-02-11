@@ -19,7 +19,7 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 
-"""Sardana Control System  """
+"""Sardana Control System"""
 
 from __future__ import absolute_import
 

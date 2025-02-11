@@ -95,7 +95,7 @@ class SpecChannel(ChannelObject, SpecVariableA):
         version=None,
         username=None,
         dispatchMode=SpecVariable.FIREEVENT,
-        **kwargs
+        **kwargs,
     ):
         ChannelObject.__init__(self, name, username, **kwargs)
         SpecVariableA.__init__(self, varname, version, dispatchMode)

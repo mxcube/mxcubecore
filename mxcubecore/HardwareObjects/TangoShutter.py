@@ -18,7 +18,7 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-""" TangoShutter class - interface for shutter controlled by TANGO
+"""TangoShutter class - interface for shutter controlled by TANGO
 Implements _set_value, get_value methods
 
 Tango states are:
