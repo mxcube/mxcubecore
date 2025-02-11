@@ -1,14 +1,14 @@
 # User-based login details
 
-When logging in the very first user sees modal dialog `Select session` and must choose an experimental session. As long as one user is logged in, the consecutive users do not see this modal dialog. Pressing  outside the modal or closing with `X` causes  unsuccessful login and landing back on the login page.
+When logging in the very first user sees modal dialog `Select session` and must choose an experimental session. As long as one user is logged in, the consecutive users do not see this modal dialog. Pressing outside the modal or closing with `X` causes unsuccessful login and landing back on the login page.
 
 ## Multiple users:
 
 Any number of users can be logged in at the same time if:
-* they belong to the same proposal,
+* they belong to the same `session` (at MAX IV site `proposal` is used in similar meaning),
 * they are **staff**.
 
-Users, who are not part of the proposal, can not login. After unsuccessful login attempt the user should see the message: “Authentication failed”.
+Users, who are not part of the proposal, can not log in. After unsuccessful login attempt the user should see the message: “Authentication failed”.
 
 The first logged in user automatically becomes an **user in control**. The other users are **observers**.
 
@@ -16,59 +16,51 @@ The **user in control** is able to force logout other users.
 
 **Observers** can remain logged in even if the **user in control** logs out.
 
-The **user in control** can change proposal without signing out. This automatically log out any **observers** that are not part of the new proposal, except **staff**. Users can only choose proposals they belong to.
+The **user in control** can change session / proposal without signing out. He can only choose between intersection sessions - sessions to which all logged-in users belong to. Hence, the list of available  sessions displayed is the same for every user. Example:
+
+    User 1 has access to sessions A B C
+    User 2 has access to sessions A B
+    User 3 has access to session A
+    All of them are logged in and see only session A.
+    If user 3 logs out, user 1 and 2 will see sessions A and B.
+    If only user 1 stays logged in, all the sessions are visible.
 
 ## Control:
 
-It should be clear who is **in control** (hostname of the machine should be included to know if its remote or on the beamline) and who are the **observers**.
+It should be clear who is **in control** (hostname of the machine should be included tondicate whether it is remote or on the beamline) and who are the **observers**.
 
-**Observers** can ”ask for control”, **user in control** can give or deny control.
+Users can ”ask for control” or "take control". The **user in control** can accept or deny the request.
 
-There is a timeout so an **observer** does not stay waiting for the control forever. After the timeout the user will get control (if there was no deny signal from **user in control**). This feature is enabled by default, but can be disabled.
+There is a parameter named: TIMEOUT_GIVES_CONTROL which, if enabled, triggers a timeout (30 seconds) after the control request and. If there has been no deny signal in the meantime, the request is accepted automatically. In the current version of MXCuBE, this feature is disabled by default.
 
-**Staff** can always “take control” or “ask for control”, even if the “get control after time out” feature is disabled.
+The **user in control** is able to "give control" to any other user.
 
-The **user in control** should be able to give control to any specific user.
-
-If the **user  in control** logs out, any of the **observers** can ”ask for control”, and this user will immediately get control.
+If the **user in control** logs out, any user can ”take control”, and this user will immediately get it. If nobody has taken control in the meantime:
+* upon re-logging in, the former **user in control** still has it, or
+* the first newly logged-in user gets it.
 
 ## New login:
 
-Meaning: login of already logged in user in another browser, browser tab or window, computer, etc.
+A new login occurs when the same user logs into MXCuBE and then opens it again in a separate tab, window, browser, or on another computer.
 
-Already logged users (whether they are **in control**, **observers** or **staff**) can always make a new login.
+Any user can always initiate a new login.
 
-New login inherits all session data such as queues, control status, drawn points etc.
+Currently, two scenarios can occur:
 
-After new login the old one is quit silently and immediately.
+* If the user opens MXCuBE again within **the same browser session** by opening multiple public tabs/windows or multiple private tabs/windows in the same browser, the browser sends the MXCuBE session cookie to the back-end. As a result, the user is automatically logged in within the same  MXCuBE "user session". In this case, the new login inherits all session data, including queues, drawn points, control state etc.
+
+* If the user opens MXCuBE in a **separate browser session**, by opening windows in different browser modes - public vs. private, browser profiles, different browsers or computers, the browser has no MXCuBE session cookie to send. Consequently, the user lands on the login page and must log in again. Once logged in, MXCuBE creates new "user session", the UI displays two active users where the second instance of the user is classified as an **observer**.
 
 ## User with **staff** privileges
 
 They can always:
-* Login - they do not need to be part of any proposal (it does not need to be checked to let them login). After login they see the `Select session` modal with the list of proposals they belong to. They could choose any proposal from it. If they type in a number or keyword they search through full list of proposals (even the ones they do not belong to) and they can select each one.
-* Logout any user (**in control** or **observer**).
-* Take and move control from user to another one.
-* Change proposal without logging out.
-* Restart the server
-
-## Sessions:
-
-If user login and there is session MXCuBE will use it – applies to **staff** members and common users.
-
-If user login and there is no sesion the MXCuBE creates new one applies to **staff** members and common users.
-
-If they change proposal what happens with the session is covered above.
+* Login - they do not need to be part of any session (or proposal), and this is not checked during login procedure. After logging in, they see the `Select session` modal with the list of sessions they belong to. They could choose any session from this list, or if they type in a number or keyword, they can search through full list of sessions / proposals, including ones they do not belong to, and they can select each one.
+* Logout any user (including the **user in control**).
+* Move experimental session timewise - reschedule it.
+* Move experimental session beamline-wise.
 
 ## Improper logout (without sign out button):
 
-Closing or crashing browser of last logged in user activates an “idle timeout” (15 minutes for example as default value). If there is any **user in control** or **observer** still logged in, the timeout will not be activated.
+Closing the browser window with a logged-in user might be caused by unpredictable scenarios such as losing internet connection or browser crash, or there might be an automatic data collection over the night. Therefore, only the HTTP session data is cleared, according to the web session expiration time. However, queue, points etc. are not removed or cleared. After logging back in, these data are restored.
 
-After the idle timeout, user data (points, queues etc.) is lost.
-
-If the user logs in again before the end of the “idle timeout”,  this data will be still available (this covers closing MXCuBE by mistake).
-
-If the **user in control** logged out improperly, the **observers** can “ask for control” and it will be given to them after certain time (mentioned in 3.3.) since there is no “deny” signal from the **user in control**.
-
-Users who are not part of the proposal need to wait for the idle timeout to pass until the formerly **user in control** data is cleaned. After that time any user can login.
-
-**Staff** can kick out any idle user (or restart the server) so that the formerly **user in control** data is cleaned, and any user can login immediately. Restarting  server causes logging out every user.
+Closing the browser without using the sign-out button when user experiments are about to finish must be explicitly resolved by local intervention. Local intervention allows for properly logging out the user and activating the upcoming session.
