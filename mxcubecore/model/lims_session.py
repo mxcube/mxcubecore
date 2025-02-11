@@ -3,6 +3,7 @@ from datetime import (
     timedelta,
 )
 from typing import (
+    Dict,
     List,
     Optional,
 )
@@ -77,4 +78,4 @@ class LimsUser(BaseModel):
 class LimsSessionManager(BaseModel):
     active_session: Optional[Session] = None
     sessions: Optional[List[Session]] = []
-    users: Optional[dict[str, LimsUser]] = {}
+    users: Optional[Dict[str, LimsUser]] = {}
