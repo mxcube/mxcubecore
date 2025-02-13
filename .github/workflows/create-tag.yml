@@ -55,7 +55,7 @@ jobs:
                 const getRefResponse = await github.rest.git.getRef({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
-                    ref: "refs/tags/{{ $tag_name }}"
+                    ref: "refs/tags/${{ tag_name }}"
                 });
 
                 if (getRefResponse.status === 200) {
@@ -76,7 +76,7 @@ jobs:
             github.rest.git.updateRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: "refs/tags/{{ $tag_name }}",
+              ref: "refs/tags/${{ tag_name }}",
               sha: context.sha
             })
 
@@ -89,6 +89,6 @@ jobs:
             github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: "refs/tags/{{ $tag_name }}",
+              ref: "refs/tags/${{ tag_name }}",
               sha: context.sha
             })
