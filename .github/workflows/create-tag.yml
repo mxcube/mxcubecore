@@ -40,7 +40,7 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install toml
-          echo ::set-output name=tag_name::v$(python -c 'import toml; print(toml.load("./pyproject.toml")["tool"]["poetry"]["version"])')
+          echo ::set-output name=tag_name::v$(poetry version -s)')
         # yamllint enable rule:line-length
 
       - name: Check tag exists
