@@ -40,14 +40,12 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install toml
-          echo {tag_name}={v$(poetry version -s)} >> $GITHUB_OUTPUT
+          echo "{tag_name}={v$(poetry version -s)}" >> $GITHUB_ENV
         # yamllint enable rule:line-length
 
       - name: Check tag exists
         id: check-tag-exists
         uses: actions/github-script@v6
-        env:
-          TAG: ${{ steps.set-tag.outputs.tag_name }}
         with:
           github-token: ${{ github.token }}
           script: |
@@ -57,7 +55,7 @@ jobs:
                 const getRefResponse = await github.rest.git.getRef({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
-                    ref: "refs/tags/${{ steps.set-tag.outputs.tag_name }}"
+                    ref: "refs/tags/{{ $tag_name }}"
                 });
 
                 if (getRefResponse.status === 200) {
@@ -72,29 +70,25 @@ jobs:
       - name: Update tag
         uses: actions/github-script@v6
         if: steps.check-tag-exists.outputs.exists == 'true'
-        env:
-          TAG: ${{ steps.set-tag.outputs.tag_name }}
         with:
           github-token: ${{ github.token }}
           script: |
             github.rest.git.updateRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: "refs/tags/${{ steps.set-tag.outputs.tag_name }}",
+              ref: "refs/tags/{{ $tag_name }}",
               sha: context.sha
             })
 
       - name: Create tag
         uses: actions/github-script@v6
         if: steps.check-tag-exists.outputs.exists != 'true'
-        env:
-          TAG: ${{ steps.set-tag.outputs.tag_name }}
         with:
           github-token: ${{ github.token }}
           script: |
             github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: "refs/tags/${{ steps.set-tag.outputs.tag_name }}",
+              ref: "refs/tags/{{ $tag_name }}",
               sha: context.sha
             })
