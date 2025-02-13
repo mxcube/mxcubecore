@@ -40,7 +40,7 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install toml
-          echo "{tag_name}={v$(poetry version -s)}" >> $GITHUB_ENV
+          echo "tag_name={v$(poetry version -s)}" >> $GITHUB_ENV
         # yamllint enable rule:line-length
 
       - name: Check tag exists
