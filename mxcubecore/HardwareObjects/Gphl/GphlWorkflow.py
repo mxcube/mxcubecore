@@ -310,7 +310,7 @@ class GphlWorkflow(HardwareObjectYaml):
             stratcal_step = self.settings.get("stratcal_step")
             if not stratcal_step:
                 raise ValueError("delphi_block setting requires stratcal_step sestting")
-            count, remainder =- divmod(delphi_block, stratcal_step)
+            count, remainder = divmod(delphi_block, stratcal_step)
             if abs(remainder) > 0.001 * stratcal_step:
                 raise ValueError(
                     "delphi_block %s is not divisible by stratcal_step %s"
@@ -1021,20 +1021,27 @@ class GphlWorkflow(HardwareObjectYaml):
             data_model.wavelengths[0].wavelength
         )
 
-        sweep_group_counts = {}
-        orientations = OrderedDict()
-        axis_setting_dicts = OrderedDict()
+        grouped_sweeps = []
+        inverse_beam = False
         for sweep in geometric_strategy.get_ordered_sweeps():
-            rotation_id = sweep.goniostatSweepSetting.id_
-            if rotation_id in orientations:
-                orientations[rotation_id].append(sweep)
-            else:
-                orientations[rotation_id] = [sweep]
-                axis_settings = sweep.goniostatSweepSetting.axisSettings.copy()
-                axis_settings.pop(sweep.goniostatSweepSetting.scanAxis, None)
-                axis_setting_dicts[rotation_id] = axis_settings
-            count = sweep_group_counts.get(sweep.sweepGroup, 0) + 1
-            sweep_group_counts[sweep.sweepGroup] = count
+            last = grouped_sweeps and grouped_sweeps[-1]
+            if last:
+                if sweep.sweepGroup == last["group_no"]:
+                    inverse_beam = True
+                if sweep.goniostatSweepSetting.id_ == last["rotation_id"]:
+                    last["sweeps"].append(sweep)
+                    continue
+
+            axis_settings = sweep.goniostatSweepSetting.axisSettings.copy()
+            axis_settings.pop(sweep.goniostatSweepSetting.scanAxis, None)
+            grouped_sweeps.append(
+                {
+                    "sweeps": [sweep],
+                    "rotation_id": sweep.goniostatSweepSetting.id_,
+                    "group_no": sweep.sweepGroup,
+                    "axis_settings": axis_settings,
+                }
+            )
 
         energy_tags = strategy_settings.get("beam_energy_tags") or (
             self.settings["default_beam_energy_tag"],
@@ -1042,7 +1049,7 @@ class GphlWorkflow(HardwareObjectYaml):
         # NBNB HACK - this needs to eb done properly
         # Used for determining whether to query wedge width
         is_interleaved = data_model.characterisation_done and (
-            len(energy_tags) > 1 or max(sweep_group_counts.values()) > 1
+            len(energy_tags) > 1 or inverse_beam
         )
 
         # Make info_text and do some setting up
@@ -1090,21 +1097,21 @@ class GphlWorkflow(HardwareObjectYaml):
             if not self.settings.get("recentre_before_start"):
                 # replace planned orientation with current orientation
                 current_pos_dict = HWR.beamline.diffractometer.get_positions()
-                dd0 = list(axis_setting_dicts.values())[0]
+                dd0 = grouped_sweeps[0]["axis_settings"]
                 for tag in dd0:
                     pos = current_pos_dict.get(tag)
                     if pos is not None:
                         dd0[tag] = pos
 
-        for rotation_id, sweeps in orientations.items():
-            axis_settings = axis_setting_dicts[rotation_id]
+        for dd0 in grouped_sweeps:
+            axis_settings = dd0["axis_settings"]
             ss0 = "\nSweep :  " + ",  ".join(
                 "%s= %6.1f°" % (x, axis_settings.get(x))
                 for x in axis_names
                 if x in axis_settings
             )
             ll1 = []
-            for sweep in sweeps:
+            for sweep in dd0["sweeps"]:
                 start = sweep.start
                 width = sweep.width
                 ss1 = "%s= %6.1f°,  sweep width= %6.1f°" % (
@@ -1278,7 +1285,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 "invalid default recentring mode '%s' " % default_recentring_mode
             )
         use_modes = ["sweep"]
-        if len(orientations) > 1:
+        if len(grouped_sweeps) > 1:
             use_modes.append("start")
             use_modes.append("none")
         if is_interleaved:
@@ -1480,6 +1487,15 @@ class GphlWorkflow(HardwareObjectYaml):
 
         # Set strategy_length
         strategy_length = sum(sweep.width for sweep in sweeps)
+        if (
+            gphl_workflow_model.characterisation_done
+            and gphl_workflow_model.strategy_options.get("variant") == "twotransmission"
+        ):
+            gphl_workflow_model.dose_correction_factor = (
+                1.0 - 0.9 * sweeps[-1].width / strategy_length
+            )
+        else:
+            gphl_workflow_model.dose_correction_factor = 1.0
         gphl_workflow_model.strategy_length = strategy_length
 
         allowed_widths = geometric_strategy.allowedWidths
@@ -1947,6 +1963,8 @@ class GphlWorkflow(HardwareObjectYaml):
         sweep_offset = geometric_strategy.sweepOffset
         scan_count = len(scans)
 
+        lastsweep = scans[-1].sweep
+
         if repeat_count and sweep_offset and self.settings.get("use_multitrigger"):
             # commpress unrolled multi-trigger sweep
             # NBNB as of 202103 this is only allowed for a single sweep
@@ -1994,9 +2012,15 @@ class GphlWorkflow(HardwareObjectYaml):
             # not needed when detdistance is set :
             # acq_parameters.resolution = resolution
             acq_parameters.detector_distance = detdistance
-            # transmission is not passed from the workflow (yet)
-            # it defaults to current value (?), so no need to set it
-            # acq_parameters.transmission = transmission*100.0
+            if (
+                scan.sweep is lastsweep
+                and gphl_workflow_model.characterisation_done
+                and gphl_workflow_model.strategy_options.get("variant") == "twotransmission"
+            ):
+                # NB exposure.transmission is in fraction, transmission in %
+                acq_parameters.transmission = 10 * scan.exposure.transmission
+            else:
+                acq_parameters.transmission = 100 * scan.exposure.transmission
 
             # acq_parameters.shutterless = self._has_shutterless()
             # acq_parameters.detector_mode = self._get_roi_modes()
