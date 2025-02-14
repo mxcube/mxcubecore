@@ -199,6 +199,8 @@ class ChipLayout(BaseModel):
     )
     sections: List[SampleHolderSectionModel] = []
     calibration_data: CalibrationData | None = None
+    number_of_runs: int = Field(3, description="Number of runs")
+    offset: float = Field(0.10, description="Offset")
 
 
 class GonioHeadConfiguration(BaseModel):
