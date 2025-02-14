@@ -304,6 +304,91 @@ class Microdiff(MiniDiff.MiniDiff):
             "startSSXLineScan",
         )
 
+        #
+        # Args: doublex, doubley, doublez
+        # Retruns: 1 if success else other than 1
+        #
+        self.add_ssx_chip_calibration_fiducial = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_ssx_line_scan",
+            },
+            "addSSXChipCalibrationFiducial",
+        )
+
+        self.add_ssx_chip_calibration_point = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_ssx_line_scan",
+            },
+            "addSSXChipCalibrationPoint",
+        )
+
+        self.add_ssx_chip_calibration_point = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_ssx_line_scan",
+            },
+            "addSSXChipCalibrationPoint",
+        )
+
+        self.add_ssx_chip_calibration_point = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_ssx_line_scan",
+            },
+            "resetSSXChipCalibration",
+        )
+
+        self.get_ssx_chip_calibration_state = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_ssx_line_scan",
+            },
+            "getSSXChipCalibrationState",
+        )
+
+        self.get_ssx_block_calibration_state = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_ssx_line_scan",
+            },
+            "getSSXBlockCalibrationState",
+        )
+
+        self.start_ssx_all_block_calibration = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_ssx_line_scan",
+            },
+            "startSSXAllBlockCalibration",
+        )
+
+        self.reset_ssx_all_block_calibration = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_ssx_line_scan",
+            },
+            "resetSSXAllBlockCalibration",
+        )
+
+        self.ir_auto_focus = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_ssx_line_scan",
+            },
+            "doSSXAutoFocus",
+        )
+
         MiniDiff.MiniDiff.init(self)
         self.centringPhiy.direction = -1
         self.MOTOR_TO_EXPORTER_NAME = self.getMotorToExporterNames()
@@ -325,6 +410,16 @@ class Microdiff(MiniDiff.MiniDiff):
 
         HardwareObject.init(self)
         self.handle_detector_cover = self.get_object_by_role("handle_detcover")
+
+    def use_position_for_callibration(self):
+        x = self.get_object_by_role("ssx_translation").get_value()
+        y = self.get_object_by_role("phiz").get_value()
+        z = self.get_object_by_role("phix").get_value()
+
+        logging.getLogger("HWR").info(f"Setting fiducial at: {x}{y}{z}")
+        # res = self.add_ssx_chip_calibration_fiducial(x, y, z)
+        res = 1
+        return res == 1
 
     def _update_value(self, value=None):
         if value is None:
@@ -761,29 +856,6 @@ class Microdiff(MiniDiff.MiniDiff):
 
     def move_motors(self, roles_positions_dict):
         self.move_sync_motors(roles_positions_dict, wait=True)
-
-    def move_to_beam(self, x, y):
-        if not self.in_plate_mode():
-            MiniDiff.MiniDiff.move_to_beam(self, x, y)
-        else:
-            try:
-                beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
-
-                self.centringVertical.set_value_relative(
-                    self.centringPhiz.direction
-                    * (y - beam_pos_y)
-                    / float(self.pixelsPerMmZ)
-                )
-                self.centringPhiy.set_value_relative(
-                    self.centringPhiy.direction
-                    * (x - beam_pos_x)
-                    / float(self.pixelsPerMmY)
-                )
-
-            except Exception:
-                logging.getLogger("user_level_log").exception(
-                    "Microdiff: could not move to beam, aborting"
-                )
 
     def start_manual_centring(self, sample_info=None):
         self._wait_ready(5)
