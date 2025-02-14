@@ -50,12 +50,27 @@ class AbstractShutter(AbstractNState):
     VALUES = BaseValueEnum
 
     @property
-    def is_open(self):
+    def is_open(self) -> bool:
         """Check if the shutter is open.
         Returns:
             (bool): True if open, False otherwise.
         """
         return self.get_value() == self.VALUES.OPEN
+
+    @property
+    def is_closed(self) -> bool:
+        """Check if the shutter is closed.
+
+        Note that it is not always true that ``is_closed != is_open``,
+        it takes time to open and close the shutter.
+
+        Many shutters can be in "moving" state.
+        When in that state the shutter is both "not open" and "not closed".
+
+        Returns:
+            ``True`` if closed, ``False`` otherwise.
+        """
+        return self.get_value() == self.VALUES.CLOSED
 
     def open(self, timeout=None):
         """Open the shutter.
