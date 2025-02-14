@@ -89,6 +89,6 @@ software_properties:
 
   # OPTIONAL. simcal *binary* For Mock collection emulation only. Not used by workflow
   co.gphl.wf.simcal.bin:
-    /alt/rhfogh/Software/GPhL/nightly_20240611/Files_workflow_TRUNK_alpha-bdg/autoPROC/bin/linux64/simcal
+    /alt/rhfogh/Software/GPhL/nightly_20250210/Files_workflow_TRUNK_alpha-bdg/autoPROC/bin/linux64/simcal
   co.gphl.wf.simcal.bdg_licence_dir:
-    /alt/rhfogh/Software/GPhL/nightly_20240611/Files_workflow_TRUNK_alpha-bdg
+    /alt/rhfogh/Software/GPhL/nightly_20250210/Files_workflow_TRUNK_alpha-bdg

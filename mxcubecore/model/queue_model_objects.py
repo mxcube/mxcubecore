@@ -2013,6 +2013,8 @@ class GphlWorkflow(TaskNode):
         self.characterisation_dose = 0.0
         self.acquisition_dose = 0.0
         self.strategy_length = 0.0
+        # Factor to account for transmission not being uniform
+        self.dose_correction_factor = 1.0
 
         # Workflow attributes - for passing to LIMS (conf Olof Svensson)
         self.workflow_parameters = {}
@@ -2530,9 +2532,15 @@ class GphlWorkflow(TaskNode):
         dose_rate = HWR.beamline.gphl_workflow.maximum_dose_rate(energy)
         exposure_time = exposure_time or self.exposure_time
         image_width = image_width or self.image_width
-        total_strategy_length = self.strategy_length * len(self.wavelengths)
+        total_strategy_length = self.total_strategy_length
         if dose_rate and exposure_time and image_width and total_strategy_length:
-            return dose_rate * total_strategy_length * exposure_time / image_width
+            return (
+                dose_rate
+                * total_strategy_length
+                * self.dose_correction_factor
+                * exposure_time
+                / image_width
+            )
         msg = (
             "WARNING: Dose could not be calculated from:\n"
             " energy:%s keV, total_strategy_length:%s deg, exposure_time:%s s, "
