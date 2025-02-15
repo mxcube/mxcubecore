@@ -45,9 +45,9 @@ def test_object(beamline):
 
 class TestDetector(TestHardwareObjectBase.TestHardwareObjectBase):
     def test_detector_atributes(self, test_object):
-        assert (
-            test_object is not None
-        ), "Detector hardware object is None (not initialized)"
+        assert test_object is not None, (
+            "Detector hardware object is None (not initialized)"
+        )
         exp_time_limits = test_object.get_exposure_time_limits()
         has_shutterless = test_object.has_shutterless()
 

@@ -1,41 +1,10 @@
+%YAML 1.2
+
 ---
+
 
 repos:
 
-  - repo: https://github.com/adrienverge/yamllint
-    rev: v1.35.1
-    hooks:
-      - id: yamllint
-        args:
-          - --strict
-
-  - repo: https://github.com/python-poetry/poetry
-    rev: 2.0.1
-    hooks:
-      - id: poetry-check
-
-  - repo: https://github.com/PyCQA/autoflake
-    rev: v2.3.1
-    hooks:
-      - id: autoflake
-        name: Autoflake
-        args:
-          - --expand-star-imports
-          - --ignore-init-module-imports
-          - --in-place
-          - --remove-duplicate-keys
-          - --ignore-pass-after-docstring
-
-  - repo: https://github.com/pycqa/isort
-    rev: 6.0.0
-    hooks:
-      - id: isort
-
-  - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 25.1.0
-    hooks:
-      - id: black
-        name: Black
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
@@ -46,17 +15,14 @@ repos:
         exclude: |
             (?x)^(
                 mxcubecore/configuration/.*|
-                mxcubecore/HardwareObjects/(MotorsNPosition|PlateManipulator|TangoMotor)\.py|
-                mxcubecore/HardwareObjects/(PlateManipulatorMaintenance|TangoLimaMpegVideo)\.py|
-                mxcubecore/HardwareObjects/DESY/P11(EDNACharacterisation|BackLight|Shutter|Collect|DetectorCover)\.py|
-                mxcubecore/HardwareObjects/LNLS/LNLS(PilatusDet|Energy|Diffractometer)\.py|
+                mxcubecore/HardwareObjects/(PlateManipulatorMaintenance|TangoMotor)\.py|
+                mxcubecore/HardwareObjects/DESY/P11(BackLight|Collect|DetectorCover|Shutter)\.py|
+                mxcubecore/HardwareObjects/LNLS/LNLS(Diffractometer|Energy|PilatusDet)\.py|
                 mxcubecore/HardwareObjects/LNLS/EPICS(Actuator|Motor|NState)\.py|
                 mxcubecore/HardwareObjects/LNLS/set_transmission_mnc.py|
-                mxcubecore/HardwareObjects/EMBL/EMBL(Energy|DoorInterlock|OnlineProcessing)\.py|
-                mxcubecore/HardwareObjects/mockup/(ISPyBClient|Motor|PlateManipulator)Mockup\.py|
-                mxcubecore/HardwareObjects/abstract/(AbstractXRFSpectrum|sample_changer/Crims)\.py|
+                mxcubecore/HardwareObjects/EMBL/EMBL(Energy|OnlineProcessing)\.py|
+                mxcubecore/HardwareObjects/mockup/MotorMockup\.py|
                 mxcubecore/HardwareObjects/SOLEIL/PX2/PX2Resolution\.py|
-                mxcubecore/HardwareObjects/ESRF/ID29XRFSpectrum\.py
             )$
       - id: end-of-file-fixer
         # Exclude files from end-of-file-fixer checks until we get around fixing them.
@@ -75,6 +41,30 @@ repos:
       - id: check-symlinks
       - id: check-xml
       - id: check-yaml
-        exclude: ^.drone\.yml
       - id: mixed-line-ending
         args: ["--fix=lf"]
+
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        args:
+          - --strict
+
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.6
+    hooks:
+      - id: ruff
+      # TODO: args: [--fix]
+      - id: ruff-format
+
+
+  - repo: https://github.com/python-poetry/poetry
+    rev: 2.0.1
+    hooks:
+      - id: poetry-check
+
+
+...

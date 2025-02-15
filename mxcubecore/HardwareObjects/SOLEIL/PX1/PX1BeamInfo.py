@@ -42,7 +42,6 @@ class PX1BeamInfo(HardwareObject):
         self.zoomMotor = None
 
     def init(self):
-
         try:
             self.beamx_chan = self.get_channel_object("beamsizex")
         except KeyError:

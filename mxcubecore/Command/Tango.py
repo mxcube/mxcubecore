@@ -325,7 +325,6 @@ class TangoChannel(ChannelObject):
         return self.device.get_attribute_config(self.attribute_name)
 
     def update(self, value=Poller.NotInitializedValue):
-
         # start with checking if we have a numpy array, as comparing
         # numpy.ndarray to Poller.NotInitializedValue raises a ValueError exception
         if isinstance(value, numpy.ndarray):

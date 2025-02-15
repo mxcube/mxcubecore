@@ -12,7 +12,6 @@ class PX1CatsMaint(CatsMaint):
         self.home_opened = None
 
     def init(self):
-
         CatsMaint.init(self)
 
         self._chnHomeOpened = self.add_channel(

@@ -38,6 +38,7 @@ In this example the <values> tag contains a json dictionary that maps spectific 
 convantional states defined in the TangoShutter Class. This tag is not necessay in cases where the tango shutter states
 are all covered by the TangoShuter class conventional states.
 """
+
 import json
 from enum import (
     Enum,

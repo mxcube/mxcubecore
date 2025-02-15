@@ -307,7 +307,6 @@ class DataPublisher(HardwareObject):
         _range=(None, None),
         meta={},
     ):
-
         plot_description = {
             "id": _id,
             "name": name,

@@ -20,6 +20,7 @@
 """Abstract class for a Sample View.
 Defines methods to handle snapshots, animation and shapes.
 """
+
 __copyright__ = """2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 

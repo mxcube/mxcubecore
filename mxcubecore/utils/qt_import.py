@@ -65,6 +65,7 @@ Inspired from code from "splot" (http://certif.com)
 splot is licensed under LGPL license
 
 """
+
 import os
 import sys
 
@@ -498,7 +499,6 @@ if qt_variant in ("PyQt4", "PyQt5", "PySide"):
             return size
 
     class QDoubleSlider(QSlider):
-
         doubleValueChanged = pyqtSignal(float)
 
         def __init__(self, orientation=Qt.Horizontal, parent=None):

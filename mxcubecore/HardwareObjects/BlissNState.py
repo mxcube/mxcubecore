@@ -28,6 +28,7 @@ Example xml file:
   <values>{"IN": "IN", "OUT": "OUT"}</values>
 </object>
 """
+
 from enum import Enum
 
 from mxcubecore.HardwareObjects.abstract.AbstractNState import (

@@ -5,7 +5,6 @@ from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 class PX1Pss(HardwareObject):
-
     states = {0: "not ready", 1: "ready"}
 
     def init(self):

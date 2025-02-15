@@ -45,7 +45,6 @@ class StateMachine(HardwareObject):
     """
 
     def __init__(self, name):
-
         HardwareObject.__init__(self, name)
 
         self.state_list = []

@@ -14,7 +14,6 @@ class SOLEILRuche(HardwareObject):
         self.sync_dir = self.get_property("sync_dir")
 
     def trigger_sync(self, path):
-
         try:
             logging.getLogger().info("<SOLEIL Ruche> - trigger_sync path %s." % path)
             logging.getLogger().info(

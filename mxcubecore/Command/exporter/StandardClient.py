@@ -19,6 +19,7 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """ProtocolError and StandardClient implementation"""
+
 import socket
 import sys
 

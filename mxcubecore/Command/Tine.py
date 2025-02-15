@@ -232,7 +232,6 @@ class TineChannel(ChannelObject):
             """
 
     def update(self, value=None):
-
         # if self.tineName.split("/")[2] == 'ics':
         #   print '>>>>>>>>>>>>>>>>>>', self.attributeName, value, self.value, self.oldvalue
 

@@ -30,7 +30,6 @@ class MicrodiffSamplePseudo(MD2Motor):
         self.connect(self.phi, "stateChanged", self.real_motor_changed)
 
     def real_motor_moved(self, _):
-
         self.motor_positions_changed(self.get_value())
 
     def updateMotorState(self):

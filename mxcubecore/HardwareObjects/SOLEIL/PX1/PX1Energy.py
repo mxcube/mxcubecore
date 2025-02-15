@@ -10,7 +10,6 @@ from mxcubecore.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
 
 
 class PX1Energy(Device, AbstractEnergy):
-
     energy_state = {
         "ALARM": "error",
         "FAULT": "error",
@@ -23,7 +22,6 @@ class PX1Energy(Device, AbstractEnergy):
     }
 
     def init(self):
-
         self.moving = False
 
         self.doBacklashCompensation = False
@@ -81,7 +79,6 @@ class PX1Energy(Device, AbstractEnergy):
 
     # function called during polling
     def energyChanged(self, value):
-
         if (
             self.current_energy is not None
             and abs(self.current_energy - value) < 0.0001

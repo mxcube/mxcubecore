@@ -48,7 +48,6 @@ class EMBLImageTracking(HardwareObject):
         self.cmd_load_image = None
 
     def init(self):
-
         self.chan_enable_image_tracking = self.get_channel_object(
             "chanImageTrackingEnabled", optional=True
         )

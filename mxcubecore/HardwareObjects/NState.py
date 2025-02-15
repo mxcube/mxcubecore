@@ -31,6 +31,7 @@ Example xml configuration:
    <values>{"ENABLED": True, "DISABLED": False}</values>
  </object>
 """
+
 from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
 
 __copyright__ = """ Copyright © by the MXCuBE collaboration """

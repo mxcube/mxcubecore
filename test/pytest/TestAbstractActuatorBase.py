@@ -41,19 +41,21 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
         startval = test_object.get_value()
         assert startval is not None, "initial value may not be None"
 
-        assert (
-            test_object._nominal_value == startval
-        ), "get_value() %s differs from _nominal_value %s" % (
-            startval,
-            test_object._nominal_value,
+        assert test_object._nominal_value == startval, (
+            "get_value() %s differs from _nominal_value %s"
+            % (
+                startval,
+                test_object._nominal_value,
+            )
         )
 
         if test_object.default_value is not None:
-            assert (
-                startval == test_object.default_value
-            ), "Initial value %s different from default value %s" % (
-                startval,
-                test_object.default_value,
+            assert startval == test_object.default_value, (
+                "Initial value %s different from default value %s"
+                % (
+                    startval,
+                    test_object.default_value,
+                )
             )
 
     def test_value_setting(self, test_object):
@@ -61,18 +63,19 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
 
         startval = test_object.get_value()
         test_object.update_value(startval)
-        assert (
-            test_object._nominal_value == startval
-        ), f"Updating value to {startval} does not set _nominal_value"
+        assert test_object._nominal_value == startval, (
+            f"Updating value to {startval} does not set _nominal_value"
+        )
 
         # Must be set to None so the next command causes a change
         test_object._nominal_value = None
         test_object.update_value(startval)
-        assert (
-            test_object._nominal_value == startval
-        ), "update_value(%s) leaves _nominal_value as %s" % (
-            startval,
-            test_object._nominal_value,
+        assert test_object._nominal_value == startval, (
+            "update_value(%s) leaves _nominal_value as %s"
+            % (
+                startval,
+                test_object._nominal_value,
+            )
         )
 
         if test_object.read_only:
@@ -103,12 +106,12 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
     def test_limits_type(self, test_object):
         """Test the limits"""
         limits = test_object.get_limits()
-        assert isinstance(
-            limits, tuple
-        ), f"AbstractActuator limits must be a tuple, not {limits}"
-        assert (
-            len(limits) == 2
-        ), f"AbstractActuator limits must have length 2, not {len(limits)}"
+        assert isinstance(limits, tuple), (
+            f"AbstractActuator limits must be a tuple, not {limits}"
+        )
+        assert len(limits) == 2, (
+            f"AbstractActuator limits must have length 2, not {len(limits)}"
+        )
 
     def test_limits_setting(self, test_object):
         """Test update_limits and (if not read_oinly) set_limits"""
@@ -123,21 +126,23 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
             )
 
             test_object.update_limits(limits)
-            assert (
-                test_object._nominal_limits == limits
-            ), "Updated limits to %s but _nominal_limits is %s" % (
-                limits,
-                test_object._nominal_limits,
+            assert test_object._nominal_limits == limits, (
+                "Updated limits to %s but _nominal_limits is %s"
+                % (
+                    limits,
+                    test_object._nominal_limits,
+                )
             )
             if not test_object.read_only:
                 # Must be set to (None, None) so the next command causes a change
                 test_object._nominal_limits = (None, None)
                 test_object.set_limits(limits)
-                assert (
-                    test_object._nominal_limits == limits
-                ), "Set limits to %s but _nominal_limits is %s" % (
-                    limits,
-                    test_object._nominal_limits,
+                assert test_object._nominal_limits == limits, (
+                    "Set limits to %s but _nominal_limits is %s"
+                    % (
+                        limits,
+                        test_object._nominal_limits,
+                    )
                 )
 
     def test_validate_value(self, test_object):

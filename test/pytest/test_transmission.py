@@ -19,6 +19,7 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """Test suite for Transmission hardware object."""
+
 __copyright__ = """ Copyright © 2019-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
@@ -41,16 +42,16 @@ class TestTransmission(TestAbstractActuatorBase.TestAbstractActuatorBase):
 
     def test_transmission_attributes(self, beamline, test_object):
         """Test for attributes"""
-        assert (
-            beamline.energy is not None
-        ), "Transmission hardware object is None (not initialized)"
+        assert beamline.energy is not None, (
+            "Transmission hardware object is None (not initialized)"
+        )
 
         value = test_object.get_value()
         limits = test_object.get_limits()
 
-        assert isinstance(
-            value, (int, float)
-        ), "Transmission value has to be int or float"
+        assert isinstance(value, (int, float)), (
+            "Transmission value has to be int or float"
+        )
         assert None not in limits, "One or several limits is None"
         assert limits[0] < limits[1], "Transmission limits define an invalid range"
 

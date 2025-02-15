@@ -1,7 +1,7 @@
 def test_sample_change_init(beamline):
-    assert (
-        beamline.sample_changer is not None
-    ), "Sample changer hardware objects is None (not initialized)"
+    assert beamline.sample_changer is not None, (
+        "Sample changer hardware objects is None (not initialized)"
+    )
 
 
 def test_sample_changer_load(beamline):

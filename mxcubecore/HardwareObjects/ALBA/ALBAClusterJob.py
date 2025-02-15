@@ -20,7 +20,6 @@ class ALBAClusterJob(object):
         pass
 
     def wait_done(self, wait=True):
-
         if not self.job:
             return
 
@@ -47,7 +46,6 @@ class ALBAAutoprocJob(ALBAClusterJob):
     sls_script = os.path.join(root, "edna-mx/autoproc/edna-mx.autoproc.sl")
 
     def run(self, *args):
-
         jobname = os.path.basename(os.path.dirname(edna_directory))
         self.job = XalocJob(
             "edna-autoproc", jobname, self.sls_script, input_file, edna_directory
@@ -67,11 +65,9 @@ class ALBAEdnaProcJob(ALBAClusterJob):
 
 
 class ALBAStrategyJob(ALBAClusterJob):
-
     sls_script = os.path.join(root, "edna-mx/strategy/edna-mx.strategy.sl")
 
     def run(self, *args):
-
         logging.getLogger("HWR").debug("Starting StrategyJob - ")
 
         input_file, results_file, edna_directory = args

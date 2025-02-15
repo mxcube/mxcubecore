@@ -34,9 +34,9 @@ def test_object(beamline):
 
 class TestAperture(TestAbstractNStateBase):
     def test_aperture_atributes(self, test_object):
-        assert (
-            test_object is not None
-        ), "Aperture hardware objects is None (not initialized)"
+        assert test_object is not None, (
+            "Aperture hardware objects is None (not initialized)"
+        )
         current_value = test_object.get_value()
         assert current_value in test_object.VALUES
 

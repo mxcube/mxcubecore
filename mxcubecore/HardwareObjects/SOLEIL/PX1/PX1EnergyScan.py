@@ -34,7 +34,6 @@ from mxcubecore.TaskUtils import (
 
 
 class PX1EnergyScan(AbstractEnergyScan, Equipment):
-
     round_cutoff = 4
     roi_width = 0.30
 
@@ -204,7 +203,6 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
         self.fluodet_hwo.set_roi(self.roi_start_chan, self.roi_end_chan)
 
     def acquire_point(self, en):
-
         self.open_fast_shutter()
         self.fluodet_hwo.start()
         self.fluodet_hwo.wait()
@@ -271,7 +269,6 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
     def start_energy_scan(
         self, element, edge, directory, prefix, session_id=None, blsample_id=None
     ):
-
         log = logging.getLogger("HWR")
 
         self.scan_info = {
@@ -400,7 +397,6 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
     def do_chooch(
         self, elt, edge, scan_directory, archive_directory, prefix, run_number=None
     ):
-
         symbol = "_".join((elt, edge))
 
         self.log.info("EnergyScan. executing do_chooch")

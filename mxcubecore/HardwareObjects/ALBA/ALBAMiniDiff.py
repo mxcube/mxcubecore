@@ -75,7 +75,6 @@ class ALBAMiniDiff(GenericDiffractometer):
         self.super_hwobj = None
 
     def init(self):
-
         self.calibration = self.get_object_by_role("calibration")
 
         self.centring_hwobj = self.get_object_by_role("centring")

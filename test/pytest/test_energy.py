@@ -36,10 +36,9 @@ def test_object(beamline):
 
 class TestEnergy(TestAbstractActuatorBase.TestAbstractActuatorBase):
     def test_energy_atributes(self, test_object):
-
-        assert (
-            test_object is not None
-        ), "Energy hardware objects is None (not initialized)"
+        assert test_object is not None, (
+            "Energy hardware objects is None (not initialized)"
+        )
         current_energy = test_object.get_value()
         current_wavelength = test_object.get_wavelength()
         energy_limits = test_object.get_limits()
@@ -48,17 +47,17 @@ class TestEnergy(TestAbstractActuatorBase.TestAbstractActuatorBase):
         assert isinstance(current_energy, float), "Energy value has to be float"
         assert isinstance(current_wavelength, float), "Energy value has to be float"
         # Propose to insist on tuple - to avoid exporting mutable lists
-        assert isinstance(
-            energy_limits, tuple
-        ), "Energy limits has to be defined as tuple or list"
-        assert isinstance(
-            wavelength_limits, tuple
-        ), "Energy limits has to be defined as tuple or list"
+        assert isinstance(energy_limits, tuple), (
+            "Energy limits has to be defined as tuple or list"
+        )
+        assert isinstance(wavelength_limits, tuple), (
+            "Energy limits has to be defined as tuple or list"
+        )
         assert None not in energy_limits, "One or several energy limits is None"
         assert None not in wavelength_limits, "One or several wavelength limits is None"
-        assert (
-            energy_limits[0] < energy_limits[1]
-        ), "First value of energy limits has to be the low limit"
+        assert energy_limits[0] < energy_limits[1], (
+            "First value of energy limits has to be the low limit"
+        )
 
     def test_energy_methods(self, test_object):
         target = 12.7

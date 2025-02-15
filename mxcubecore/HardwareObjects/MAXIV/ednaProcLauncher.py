@@ -168,27 +168,21 @@ class EdnaProcLauncher:
         if self.nres is not None and self.nres != 0:
             nresFragment = """  <nres>
             <value>{0}</value>
-          </nres>""".format(
-                self.nres
-            )
+          </nres>""".format(self.nres)
         else:
             nresFragment = ""
 
         if self.spacegroup is not None:
             spacegroupFragment = """  <spacegroup>
             <value>{0}</value>
-          </spacegroup>""".format(
-                self.spacegroup
-            )
+          </spacegroup>""".format(self.spacegroup)
         else:
             spacegroupFragment = ""
 
         if self.cell is not None:
             cellFragment = """  <unit_cell>
             <value>{0}</value>
-          </unit_cell>""".format(
-                self.cell
-            )
+          </unit_cell>""".format(self.cell)
         else:
             cellFragment = ""
 

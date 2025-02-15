@@ -192,7 +192,6 @@ class MixedContainer(object):
 
 class XSDataMXCuBEDataSet(object):
     def __init__(self, imageFile=None):
-
         if imageFile is None:
             self._imageFile = []
         else:

@@ -109,7 +109,6 @@ ERROR_STR_DESC = {
 
 
 class Marvin(AbstractSampleChanger.SampleChanger):
-
     __TYPE__ = "Marvin"
 
     def __init__(self, *args, **kwargs):
@@ -269,7 +268,6 @@ class Marvin(AbstractSampleChanger.SampleChanger):
     def sample_is_loaded_changed(self, sample_detected):
         """Updates sample is loaded"""
         if self._sample_detected != sample_detected:
-
             if sample_detected:
                 logging.getLogger("HWR").debug("Sample changer: sample re-appeared")
             else:
@@ -720,7 +718,6 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                 or self._focusing_mode == "Imaging"
                 or self._focusing_mode == "TREXX"
             ):
-
                 self._execute_server_task(
                     self.cmd_unmount_sample, sample_index, basket_index, 1
                 )

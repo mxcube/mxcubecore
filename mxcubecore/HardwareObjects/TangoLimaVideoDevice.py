@@ -62,6 +62,7 @@ Example Hardware Object XML file :
    <interval>30</interval>
 </object>
 """
+
 from __future__ import print_function
 
 import struct

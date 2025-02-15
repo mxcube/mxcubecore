@@ -680,7 +680,6 @@ class GraphicsItemLine(GraphicsItem):
 
 
 class GraphicsItemGrid(GraphicsItem):
-
     TOP_LEFT = 0
     TOP_RIGHT = 1
     BOT_LEFT = 2

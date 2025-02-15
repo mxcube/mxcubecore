@@ -5,7 +5,6 @@ from mxcubecore.BaseHardwareObjects import HardwareObject
 
 class SOLEILSafetyShutter(HardwareObject):
     def __init__(self, name):
-
         HardwareObject.__init__(self, name)
 
         self.pss = None

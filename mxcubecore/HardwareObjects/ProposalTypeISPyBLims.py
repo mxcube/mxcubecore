@@ -126,7 +126,6 @@ class ProposalTypeISPyBLims(ISPyBAbstractLIMS):
     def get_session_manager_by_code_number(
         self, code: str, number: str, is_local_host: bool
     ) -> LimsSessionManager:
-
         logging.getLogger("HRW").debug("[ISPyB] get_session_manager_by_code_number")
 
         self.session_manager = self.adapter.get_sessions_by_code_and_number(
@@ -169,7 +168,6 @@ class ProposalTypeISPyBLims(ISPyBAbstractLIMS):
     def login(
         self, user_name: str, password: str, is_local_host: bool
     ) -> LimsSessionManager:
-
         logging.getLogger("HRW").debug(
             "Login on ISPyBLims proposal=%s is_local_host=%s"
             % (user_name, str(is_local_host)),

@@ -26,7 +26,6 @@ TOOL_TO_STR = {
 
 
 class FlexHCDMaintenance(HardwareObject):
-
     __TYPE__ = "FLEX_HCD"
     NO_OF_LIDS = 3
 
@@ -187,7 +186,6 @@ class FlexHCDMaintenance(HardwareObject):
         return cmd_list
 
     def send_command(self, cmd_name, args=None):
-
         if cmd_name in ["home"]:
             self._do_home()
         if cmd_name in ["defreeze"]:

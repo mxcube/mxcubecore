@@ -26,7 +26,6 @@ sys.path.insert(0, hwrpath)
 
 
 class ColorFormatter(logging.Formatter):
-
     FORMATS = {
         logging.DEBUG: "\033[1m" + "%s" + Style.RESET_ALL,
         logging.INFO: Fore.BLUE + "%s" + Style.RESET_ALL,

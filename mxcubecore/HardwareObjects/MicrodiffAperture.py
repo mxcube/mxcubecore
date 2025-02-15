@@ -36,6 +36,7 @@ Example xml file:
   <object role="inout" href="/udiff_apertureinout"/>
 </object>
 """
+
 from ast import literal_eval
 from enum import Enum
 

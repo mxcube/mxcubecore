@@ -25,6 +25,7 @@ Example xml file:
   <exporter_address>lid231flex1:9001</exporter_address>
 </object>
 """
+
 from __future__ import annotations
 
 import logging

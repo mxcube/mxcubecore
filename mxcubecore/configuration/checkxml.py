@@ -17,7 +17,6 @@ def check_xml(rpath="."):
     for path in os.listdir(rpath):
         fpath = os.path.join(os.path.abspath(rpath), path)
         if os.path.isfile(fpath) and fpath.endswith(".xml"):
-
             with open(fpath, "r+") as f:
                 data = xmltodict.parse(f.read())
 

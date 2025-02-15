@@ -22,6 +22,7 @@ EMBLBeamInfo
 Hardware object is used to define final beam size and shape.
 It can include aperture, slits and/or beam focusing hwobj
 """
+
 import ast
 import logging
 import sys

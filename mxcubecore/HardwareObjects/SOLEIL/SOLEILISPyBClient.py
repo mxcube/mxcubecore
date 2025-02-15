@@ -81,7 +81,6 @@ class SOLEILISPyBClient(ISPyBClient):
         logging.info("   - using http_proxy = %s " % os.environ["http_proxy"])
 
         try:
-
             if self.ws_root:
                 logging.info(
                     "SOLEILISPyBClient: attempting to connect to %s" % self.ws_root
@@ -145,7 +144,6 @@ class SOLEILISPyBClient(ISPyBClient):
         return self._wsdl_client(self.ws_collection)
 
     def _wsdl_client(self, service_name):
-
         # Handling of redirection at soleil needs cookie handling
         cj = CookieJar()
         url_opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))

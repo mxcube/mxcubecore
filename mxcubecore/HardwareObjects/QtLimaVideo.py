@@ -43,6 +43,7 @@ Example Hardware Object XML file :
    <interval>30</interval>
 </object>
 """
+
 import logging
 
 from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import AbstractVideoDevice

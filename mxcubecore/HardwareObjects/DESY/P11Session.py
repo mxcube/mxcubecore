@@ -336,7 +336,6 @@ class P11Session(Session):
         )
 
     def get_beamtime_metadata(self, root_dir="/gpfs"):
-
         try:
             metadata_file = self.locate_metadata_file(root_dir)
             return self.parse_metadata_file(metadata_file)

@@ -17,7 +17,6 @@ class Transmission(HardwareObject):
         # self.setTransmission = self.set_value
 
     def init(self):
-
         self.__matt = matt_control.MattControl(
             self.get_property("wago_ip"),
             len(self["filter"]),

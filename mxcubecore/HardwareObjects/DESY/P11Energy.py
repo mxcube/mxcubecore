@@ -115,7 +115,6 @@ class P11Energy(AbstractEnergy):
         prog_value = value * 1000
         self.chan_autobrake.set_value(True)
         if self.get_state() == self.STATES.READY:
-
             current_value = self.get_value()
             if abs(current_value - value) < 0.01:
                 self.log.debug(

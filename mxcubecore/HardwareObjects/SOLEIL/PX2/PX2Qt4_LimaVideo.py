@@ -43,6 +43,7 @@ Example Hardware Object XML file :
    <interval>30</interval>
 </object>
 """
+
 import logging
 import os
 import struct

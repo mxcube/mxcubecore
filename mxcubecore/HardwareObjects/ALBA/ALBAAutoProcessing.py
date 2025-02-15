@@ -37,7 +37,6 @@ class ALBAAutoProcessing(HardwareObject):
 
     # input files for standard collection auto processing
     def create_input_files(self, xds_dir, mosflm_dir, dc_pars):
-
         fileinfo = dc_pars["fileinfo"]
         osc_seq = dc_pars["oscillation_sequence"][0]
 

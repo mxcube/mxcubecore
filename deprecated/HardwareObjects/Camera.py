@@ -922,7 +922,6 @@ class Camera(BaseHardwareObjects.Device):
                 def setROI(self, startx, endx, starty, endy):
                     """taco"""
                     if self.is_ready():
-
                         self.getBpmValues()
                         if self.res["live"]:
                             self.set_live(False)
@@ -937,7 +936,6 @@ class Camera(BaseHardwareObjects.Device):
                 def setExposure(self, exposure):
                     """taco"""
                     if self.is_ready():
-
                         self.getBpmValues()
                         if self.res["live"]:
                             self.set_live(False)
@@ -952,7 +950,6 @@ class Camera(BaseHardwareObjects.Device):
                 def setGain(self, gain):
                     """taco"""
                     if self.is_ready():
-
                         self.getBpmValues()
                         if self.res["live"]:
                             self.set_live(False)
@@ -967,7 +964,6 @@ class Camera(BaseHardwareObjects.Device):
                 def setThreshold(self, threshold):
                     """taco"""
                     if self.is_ready():
-
                         self.getBpmValues()
                         if self.res["live"]:
                             self.set_live(False)

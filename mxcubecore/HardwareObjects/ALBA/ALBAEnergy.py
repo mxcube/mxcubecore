@@ -64,7 +64,6 @@ class ALBAEnergy(HardwareObject):
 
 
 def test_hwo(hwo):
-
     print("Wavelength is: ", hwo.get_wavelength())
     print("Energy limits are: ", hwo.get_limits())
     print("Wavelength limits are: ", hwo.get_wavelength_limits())

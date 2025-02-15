@@ -7,7 +7,6 @@ from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 
 class PX1DetectorDistance(Device, AbstractMotor):
-
     MOVESTARTED = 0
     NOTINITIALIZED = 0
     UNUSABLE = 0

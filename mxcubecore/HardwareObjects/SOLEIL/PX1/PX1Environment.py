@@ -11,7 +11,6 @@ from mxcubecore.TaskUtils import task
 
 
 class EnvironmentPhase:
-
     TRANSFER = 0
     CENTRING = 1
     COLLECT = 2
@@ -77,7 +76,6 @@ class PX1Environment(HardwareObject):
         self.device = None
 
     def init(self):
-
         self.device = DeviceProxy(self.get_property("tangoname"))
 
         try:

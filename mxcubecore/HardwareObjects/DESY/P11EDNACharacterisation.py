@@ -461,7 +461,7 @@ class P11EDNACharacterisation(EDNACharacterisation):
             path = XSDataString()
             path.value = path_str % (img_num + 1)
             image_file.path = path
-            image_file.path.value,
+            (image_file.path.value,)
             image_file.number = XSDataInteger(img_num + 1)
             data_set.addImageFile(image_file)
 

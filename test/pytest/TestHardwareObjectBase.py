@@ -65,9 +65,9 @@ class TestHardwareObjectBase:
 
         for ho_state in HardwareObjectState:
             name = ho_state.name
-            assert (
-                getattr(test_object.STATES, name) is ho_state
-            ), "state {name} does not match HardwareObjectState.{name}"
+            assert getattr(test_object.STATES, name) is ho_state, (
+                "state {name} does not match HardwareObjectState.{name}"
+            )
 
     def test_update_state(self, test_object):
         """Test that update_state works for all states
@@ -81,21 +81,21 @@ class TestHardwareObjectBase:
                 "update_state(HardwareObjectState.%s) is not reflected in result"
                 % ho_state.name
             )
-            assert (
-                test_object._state is ho_state
-            ), f"get_state does not reflect _state for {ho_state.name}"
+            assert test_object._state is ho_state, (
+                f"get_state does not reflect _state for {ho_state.name}"
+            )
             if ho_state is HardwareObjectState.READY:
-                assert (
-                    test_object.is_ready()
-                ), "is_ready=False does not reflect state READY"
+                assert test_object.is_ready(), (
+                    "is_ready=False does not reflect state READY"
+                )
             else:
-                assert (
-                    not test_object.is_ready()
-                ), f"is_ready=True does not reflect state {ho_state.name}"
+                assert not test_object.is_ready(), (
+                    f"is_ready=True does not reflect state {ho_state.name}"
+                )
             test_object.update_state()
-            assert (
-                test_object._state is result
-            ), "update_state() does not set state to current state"
+            assert test_object._state is result, (
+                "update_state() does not set state to current state"
+            )
 
     def test_wait_ready(self, test_object):
         """Test for wait_ready method."""

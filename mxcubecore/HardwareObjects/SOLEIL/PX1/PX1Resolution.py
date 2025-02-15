@@ -11,7 +11,6 @@ NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT = (0, 1, 2, 3, 4, 
 
 
 class PX1Resolution(HardwareObject):
-
     stateDict = {
         "UNKNOWN": 0,
         "ALARM": 1,
@@ -24,7 +23,6 @@ class PX1Resolution(HardwareObject):
     }
 
     def _init(self):
-
         self._nominal_value = None
         self.currentDistance = None
 
@@ -125,7 +123,6 @@ class PX1Resolution(HardwareObject):
             self.emit("distanceChanged", (distance,))
 
     def getDistanceLimits(self):
-
         chan_info = self.distance_chan.getInfo()
 
         high = float(chan_info.max_value)

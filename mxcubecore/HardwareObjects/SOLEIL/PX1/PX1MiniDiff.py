@@ -8,7 +8,6 @@ from mxcubecore.HardwareObjects.GenericDiffractometer import GenericDiffractomet
 
 
 class PX1MiniDiff(GenericDiffractometer):
-
     CENTRING_MOTORS_NAME = [
         "phi",
         "phiz",

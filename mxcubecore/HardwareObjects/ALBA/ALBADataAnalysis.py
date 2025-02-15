@@ -26,7 +26,6 @@ class ALBADataAnalysis(EDNACharacterisation):
         EDNACharacterisation.init(self)
 
     def prepare_input(self, edna_input):
-
         # used for strategy calculation (characterization) using data analysis cluster
         # ALBA specific
 
@@ -119,7 +118,6 @@ class ALBADataAnalysis(EDNACharacterisation):
         return outpath
 
     def wait_done(self):
-
         logging.getLogger("HWR").debug("Polling for Job state")
         time.sleep(0.5)
         logging.getLogger("HWR").debug("Polling for Job state 2")
@@ -145,7 +143,6 @@ class ALBADataAnalysis(EDNACharacterisation):
         return state
 
     def get_result(self):
-
         jobstatus = self.job.status
 
         # outname = self.input_file.replace("Input", "Output")

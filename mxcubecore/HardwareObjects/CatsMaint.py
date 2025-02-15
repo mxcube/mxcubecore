@@ -48,7 +48,6 @@ TOOL_TO_STR = {
 
 
 class CatsMaint(HardwareObject):
-
     __TYPE__ = "CATS"
     NO_OF_LIDS = 3
 
@@ -72,7 +71,6 @@ class CatsMaint(HardwareObject):
         self._charging = None
 
     def init(self):
-
         self.cats_device = DeviceProxy(self.tangoname)
 
         try:
@@ -793,7 +791,6 @@ class CatsMaint(HardwareObject):
         return ret
 
     def send_command(self, cmd_name, args=None):
-
         #
         lid = 1
         toolcal = 0

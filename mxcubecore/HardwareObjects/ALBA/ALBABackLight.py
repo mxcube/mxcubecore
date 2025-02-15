@@ -21,7 +21,6 @@ class ALBABackLight(HardwareObject):
         self.default_minimum_level = 7.0
 
     def init(self):
-
         self.backlightin_channel = self.get_channel_object("backlightin")
         self.level_channel = self.get_channel_object("light_level")
 
@@ -65,7 +64,6 @@ class ALBABackLight(HardwareObject):
                 self.emit("stateChanged", "off")
 
     def _current_state(self):
-
         state = None
 
         if self.actuator_status:

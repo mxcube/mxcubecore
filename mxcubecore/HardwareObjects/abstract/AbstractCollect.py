@@ -820,7 +820,6 @@ class AbstractCollect(HardwareObject, object):
                         "Collection: Error creating snapshot directory"
                     )
         if number_of_snapshots > 0 and not self.current_dc_parameters["in_interleave"]:
-
             logging.getLogger("user_level_log").info(
                 "Collection: Taking %d sample snapshot(s)" % number_of_snapshots
             )

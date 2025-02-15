@@ -35,6 +35,7 @@ If used, the controller should have method moveEnergy.
 The energy should have methods get_value and get_state
 </object>
 """
+
 import logging
 import math
 
