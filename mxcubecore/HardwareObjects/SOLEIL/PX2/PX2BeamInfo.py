@@ -61,7 +61,6 @@ class PX2BeamInfo(HardwareObject):
         self.positionTable = {}
 
     def init(self):
-
         try:
             self.chanBeamSizeX = self.get_channel_object("beamsizex")
             self.chanBeamSizeX.connect_signal("update", self.beamSizeXChanged)

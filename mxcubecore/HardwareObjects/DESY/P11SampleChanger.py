@@ -96,9 +96,9 @@ class P11SampleChanger(SampleChanger):
             self.chan_condition_dict[condition] = self.get_channel_object(condition)
             self.chan_condition_dict[condition].connect_signal(
                 "update",
-                lambda value, cond=condition, this=self: P11SampleChanger.condition_changed(
-                    this, cond, value
-                ),
+                lambda value,
+                cond=condition,
+                this=self: P11SampleChanger.condition_changed(this, cond, value),
             )
 
         # channels

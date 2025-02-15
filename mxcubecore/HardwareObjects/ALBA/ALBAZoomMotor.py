@@ -73,7 +73,6 @@ __status__ = "Draft"
 
 
 class ALBAZoomMotor(BaseHardwareObjects.Device, AbstractMotor):
-
     INIT, FAULT, READY, MOVING, ONLIMIT = range(5)
 
     def __init__(self, name):
@@ -179,7 +178,6 @@ class ALBAZoomMotor(BaseHardwareObjects.Device, AbstractMotor):
 
 
 def test_hwo(zoom):
-
     print(type(zoom.get_state()))
 
     print("     Zoom position is : ", zoom.get_value())

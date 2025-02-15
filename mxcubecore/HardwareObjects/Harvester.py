@@ -40,6 +40,7 @@ It has some functionalities, like Harvest Sample, etc....
     </object>
 -----------------------------------------------------------------
 """
+
 from __future__ import annotations
 
 import logging

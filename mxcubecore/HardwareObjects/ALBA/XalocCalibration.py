@@ -11,7 +11,6 @@ class XalocCalibration(BaseHardwareObjects.HardwareObject):
         super().__init__(name)
 
     def init(self):
-
         self.calibx = self.get_channel_object("calibx")
         self.caliby = self.get_channel_object("caliby")
 

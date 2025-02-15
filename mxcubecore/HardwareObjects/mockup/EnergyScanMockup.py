@@ -167,7 +167,6 @@ class EnergyScanMockup(AbstractEnergyScan):
         AbstractEnergyScan.__init__(self, name)
 
     def init(self):
-
         self.ready_event = gevent.event.Event()
         self.energy_scan_parameters = {}
         self.result_value_emitter = None

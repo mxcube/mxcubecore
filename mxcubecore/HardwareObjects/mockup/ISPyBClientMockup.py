@@ -324,7 +324,6 @@ class ISPyBClientMockup(ProposalTypeISPyBLims):
         pass
 
     def get_samples(self, lims_name):
-
         # Try GPhL emulation samples, if available
         gphl_workflow = HWR.beamline.gphl_workflow
         if gphl_workflow is not None:

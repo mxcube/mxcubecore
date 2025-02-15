@@ -76,7 +76,6 @@ class SampleView(AbstractSampleView):
                 motor_ho.connect("stateChanged", self._update_shape_positions)
 
     def _update_shape_positions(self, *args, **kwargs):
-
         for shape in self.get_shapes():
             shape.update_position(HWR.beamline.diffractometer.motor_positions_to_screen)
 
@@ -474,9 +473,7 @@ class Shape(object):
         self.cp_list = []
         self.name = ""
         self.state: ShapeState = "SAVED"
-        self.user_state: ShapeState = (
-            "SAVED"  # used to persist user preferences in regards wether to show or hide particular shape.
-        )
+        self.user_state: ShapeState = "SAVED"  # used to persist user preferences in regards wether to show or hide particular shape.
         self.label = ""
         self.screen_coord = screen_coord
         self.selected = False

@@ -199,7 +199,6 @@ def make_home_data(centring_axes, axis_names, kappadir, kappapos, phidir, phipos
 
 
 def convert_to_gphl(instrumentation_file, minikappa_config, **kwds):
-
     if not os.path.isfile(instrumentation_file):
         raise ValueError("Instrumentation file not found: %s" % instrumentation_file)
     if not os.path.isfile(minikappa_config):
@@ -227,7 +226,6 @@ def get_minikappa_data(configfile):
 
 
 if __name__ == "__main__":
-
     from argparse import (
         ArgumentParser,
         RawTextHelpFormatter,

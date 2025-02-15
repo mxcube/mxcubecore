@@ -273,17 +273,13 @@ class PX2Diffractometer(GenericDiffractometer):
                 self.beam_position[0] - self.zoom_centre["x"]
             ) * self.omega_reference_par[
                 "direction"
-            ] / self.pixels_per_mm_x + self.omega_reference_par[
-                "position"
-            ]
+            ] / self.pixels_per_mm_x + self.omega_reference_par["position"]
         else:
             on_beam = (
                 self.beam_position[1] - self.zoom_centre["y"]
             ) * self.omega_reference_par[
                 "direction"
-            ] / self.pixels_per_mm_y + self.omega_reference_par[
-                "position"
-            ]
+            ] / self.pixels_per_mm_y + self.omega_reference_par["position"]
         self.centring_hwobj.appendMotorConstraint(self.omega_reference_motor, on_beam)
 
     def omega_reference_motor_moved(self, pos):
@@ -1326,7 +1322,6 @@ class PX2Diffractometer(GenericDiffractometer):
         base_directory="/nfs/ruche/proxima2a-spool/2019_Run1/excenter",
         name_pattern="excenter",
     ):
-
         directory = os.path.join(base_directory, datetime.datetime.today().isoformat())
 
         angles = str(tuple(np.arange(start, 360.0, step)))

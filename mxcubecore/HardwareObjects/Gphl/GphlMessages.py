@@ -19,6 +19,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
 """
+
 from __future__ import (
     absolute_import,
     division,
@@ -189,7 +190,6 @@ class Payload(MessageData):
     INTENT = None
 
     def __init__(self):
-
         # This class is abstract
         intent = self.__class__.INTENT
         if intent not in MESSAGE_INTENTS:
@@ -211,7 +211,6 @@ class IdentifiedElement(MessageData):
     """Object with persistent uuid"""
 
     def __init__(self, id_=None):
-
         # This class is abstract
         if self.__class__.__name__ == "IdentifiedElement":
             raise RuntimeError(
@@ -553,7 +552,6 @@ class WorkflowDone(Payload):
     INTENT = "EVENT"
 
     def __init__(self, issues=None):
-
         super().__init__()
 
         if self.__class__.__name__ == "WorkflowDone":
@@ -577,7 +575,6 @@ class WorkflowAborted(WorkflowDone):
 
 class WorkflowFailed(WorkflowDone):
     def __init__(self, reason=None, issues=None):
-
         super(WorkflowFailed, self).__init__(issues=issues)
         self._reason = reason
 
@@ -597,7 +594,6 @@ class BeamlineAbort(Payload):
 
 class AnomalousScatterer(MessageData):
     def __init__(self, element, edge):
-
         if element in CHEMICAL_ELEMENTS:
             self._element = element
         else:
@@ -765,7 +761,6 @@ class PositionerSetting(IdentifiedElement):
     """
 
     def __init__(self, id_=None, **axisSettings):
-
         super().__init__(id_=id_)
 
         if self.__class__.__name__ == "PositionerSetting":
@@ -902,7 +897,6 @@ class UserProvidedInfo(MessageData):
     """User-provided information"""
 
     def __init__(self, data_model):
-
         self._scatterers = ()
         crystal_classes = data_model.crystal_classes
         if crystal_classes:
@@ -969,7 +963,6 @@ class Sweep(IdentifiedElement):
         sweepGroup=None,
         id_=None,
     ):
-
         super(Sweep, self).__init__(id_=id_)
 
         self._scans = set()
@@ -1036,7 +1029,6 @@ class Scan(IdentifiedElement):
     def __init__(
         self, width, exposure, imageStartNum, start, sweep, filenameParams, id_=None
     ):
-
         super().__init__(id_=id_)
 
         self._filenameParams = dict(filenameParams)
@@ -1092,7 +1084,6 @@ class GeometricStrategy(IdentifiedElement, Payload):
         sweeps=(),
         id_=None,
     ):
-
         super().__init__(id_=id_)
 
         # self._isInterleaved = isInterleaved
@@ -1171,7 +1162,6 @@ class CollectionProposal(IdentifiedElement, Payload):
     INTENT = "COMMAND"
 
     def __init__(self, relativeImageDir, strategy, scans, id_=None):
-
         super().__init__(id_=id_)
 
         self._relativeImageDir = relativeImageDir
@@ -1197,7 +1187,6 @@ class PriorInformation(Payload):
     INTENT = "DOCUMENT"
 
     def __init__(self, data_model, image_root):
-
         super().__init__()
 
         # Look for existing uuid
@@ -1301,7 +1290,6 @@ class SampleCentred(Payload):
     INTENT = "DOCUMENT"
 
     def __init__(self, data_model):
-
         super().__init__()
         self._imageWidth = data_model.image_width
         self._transmission = 0.01 * data_model.transmission

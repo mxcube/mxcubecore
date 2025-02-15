@@ -20,7 +20,6 @@ class MiniKappaCorrection(HardwareObject):
         self.cos2a = pow(np.dot(self.kappa["direction"], self.align_direction), 2)
 
     def shift(self, kappa1, phi1, x, kappa2, phi2):
-
         tk = self.kappa["position"]
         tp = self.phi["position"]
 

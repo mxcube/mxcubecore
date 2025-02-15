@@ -194,7 +194,6 @@ class ISPyBValueFactory:
         data_collection = None
 
         try:
-
             data_collection = ws_client.factory.create("ns0:dataCollectionWS3VO")
         except Exception:
             raise

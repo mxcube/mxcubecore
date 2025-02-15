@@ -76,9 +76,7 @@ __license__ = "LGPLv3+"
 
 
 def processSardanaEvents():
-
     while not SardanaObject._eventsQueue.empty():
-
         try:
             ev = SardanaObject._eventsQueue.get_nowait()
         except queue.Empty:
@@ -181,7 +179,6 @@ class SardanaMacro(CommandObject, SardanaObject, ChannelObject):
             self.emit("macroResultUpdated", received_event.attr_value.value)
 
     def __call__(self, *args, **kwargs):
-
         self._reply_arrived_event.clear()
         self.result = None
 
@@ -348,7 +345,6 @@ class SardanaCommand(CommandObject):
         self.device = None
 
     def init_device(self):
-
         try:
             self.device = Device(self.taurusname)
         except DevFailed as traceback:
@@ -365,7 +361,6 @@ class SardanaCommand(CommandObject):
                 raise ConnectionError
 
     def __call__(self, *args, **kwargs):
-
         self.emit("commandBeginWaitReply", (str(self.name()),))
 
         if self.device is None:
@@ -422,7 +417,6 @@ class SardanaChannel(ChannelObject, SardanaObject):
         self.init_device()
 
     def init_device(self):
-
         try:
             self.attribute = Attribute(self.model)
             #
@@ -496,7 +490,6 @@ class SardanaChannel(ChannelObject, SardanaObject):
         return self.info
 
     def update(self, event):
-
         data = event.event[2]
 
         try:

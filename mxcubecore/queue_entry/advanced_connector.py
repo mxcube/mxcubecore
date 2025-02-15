@@ -32,7 +32,6 @@ class AdvancedConnectorQueueEntry(BaseQueueEntry):
     """Controls different steps"""
 
     def __init__(self, view=None, data_model=None, view_set_queue_entry=True):
-
         BaseQueueEntry.__init__(self, view, data_model, view_set_queue_entry)
         self.first_qe = None
         self.second_qe = None
@@ -68,9 +67,9 @@ class AdvancedConnectorQueueEntry(BaseQueueEntry):
                     cpos_one,
                     cpos_two,
                 ) = HWR.beamline.sample_view.create_auto_line()
-                helical_model.acquisitions[0].acquisition_parameters.osc_start = (
-                    cpos_one.phi
-                )
+                helical_model.acquisitions[
+                    0
+                ].acquisition_parameters.osc_start = cpos_one.phi
                 helical_model.acquisitions[
                     0
                 ].acquisition_parameters.centred_position = cpos_one

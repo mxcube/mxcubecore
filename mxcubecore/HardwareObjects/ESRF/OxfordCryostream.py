@@ -32,7 +32,6 @@ Example xml_ configuration:
  </object>
 """
 
-
 import logging
 import sys
 

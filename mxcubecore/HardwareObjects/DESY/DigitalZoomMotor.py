@@ -72,7 +72,7 @@ class DigitalZoomMotor(AbstractMotor, HardwareObject):
         else:
             self.update_state(self.STATES.OFF)
             logging.getLogger("HWR").warning(
-                "DigitalZoomMotor: digital zoom is not supported " "by camera object"
+                "DigitalZoomMotor: digital zoom is not supported by camera object"
             )
 
     def update_state(self):

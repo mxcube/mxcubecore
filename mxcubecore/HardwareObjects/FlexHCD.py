@@ -441,7 +441,6 @@ class FlexHCD(SampleChanger):
         grippers = []
 
         try:
-
             if self.exporter_addr:
                 ret = sorted(
                     self._execute_cmd_exporter("getSupportedGrippers", attribute=True)

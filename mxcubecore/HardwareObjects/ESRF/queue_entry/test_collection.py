@@ -25,7 +25,6 @@ class TestUserCollectionParameters(BaseUserCollectionParameters):
 
 
 class TestCollectionTaskParameters(SsxBaseQueueTaskParameters):
-
     user_collection_parameters: TestUserCollectionParameters
     legacy_parameters: LegacyParameters
 

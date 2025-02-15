@@ -20,6 +20,7 @@
 """AbstractFlux class
 Defines get_average_flux_density.
 """
+
 from scipy.interpolate import interp1d
 
 from mxcubecore import HardwareRepository as HWR

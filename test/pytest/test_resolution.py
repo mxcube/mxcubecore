@@ -19,6 +19,7 @@
 Test the resolution hardware object. Dependant on detector_distance and energy
 hardware objects
 """
+
 import pytest
 
 from test.pytest import TestAbstractMotorBase
@@ -73,9 +74,9 @@ class TestResolution(TestAbstractMotorBase.TestAbstractMotorBase):
         assert abs(val - high) < tol, msg
 
         toobig = high + 0.1 * (high - low)
-        assert not (
-            test_object.validate_value(toobig)
-        ), f"Too big value {toobig} validates as OK"
+        assert not (test_object.validate_value(toobig)), (
+            f"Too big value {toobig} validates as OK"
+        )
 
         with pytest.raises(ValueError):
             test_object.set_value(toobig, timeout=None)
@@ -91,6 +92,6 @@ class TestResolution(TestAbstractMotorBase.TestAbstractMotorBase):
 
         test_object.update_value(low)
         test_object.update_value(low + 0.5 * tol)
-        assert (
-            test_object._nominal_value == low
-        ), "update_value result does not respect tolerance cutoff"
+        assert test_object._nominal_value == low, (
+            "update_value result does not respect tolerance cutoff"
+        )

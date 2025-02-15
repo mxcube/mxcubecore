@@ -75,7 +75,6 @@ class ISPyBRestClientMockup(HardwareObject):
         }
 
     def init(self):
-
         if HWR.beamline.session:
             self.beamline_name = HWR.beamline.session.beamline_name
         else:

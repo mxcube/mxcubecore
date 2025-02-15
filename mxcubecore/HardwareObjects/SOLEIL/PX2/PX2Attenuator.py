@@ -114,7 +114,6 @@ class PX2Attenuator(HardwareObject):
         self.emit("attStateChanged", (value,))
 
     def get_value(self):
-
         try:
             if (
                 self.Attenuatordevice.TrueTrans_FP <= 100.0

@@ -94,7 +94,6 @@ class QtTangoLimaVideo(AbstractVideoDevice):
     """ Overloading of AbstractVideoDevice methods """
 
     def get_raw_image_size(self):
-
         # in case width and height not set in xml return server values
         if None not in [self.width, self.height]:
             return [self.width, self.height]

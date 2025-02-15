@@ -64,7 +64,6 @@ __status__ = "Draft"
 
 
 class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.HardwareObject, AbstractMotor):
-
     INIT, FAULT, READY, MOVING, ONLIMIT = range(5)
 
     def __init__(self, name):

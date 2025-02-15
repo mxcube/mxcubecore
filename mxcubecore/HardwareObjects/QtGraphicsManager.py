@@ -757,7 +757,6 @@ class QtGraphicsManager(AbstractSampleView):
         p_dict = {}
 
         if "motors" in centring_status and "extraMotors" in centring_status:
-
             p_dict = dict(centring_status["motors"], **centring_status["extraMotors"])
         elif "motors" in centring_status:
             p_dict = dict(centring_status["motors"])
@@ -1033,7 +1032,6 @@ class QtGraphicsManager(AbstractSampleView):
                 self.mouse_position[0], self.mouse_position[1]
             )
         elif self.in_select_items_state:
-
             self.graphics_select_tool_item.set_end_position(
                 scene_point.x(), scene_point.y()
             )
@@ -1472,7 +1470,6 @@ class QtGraphicsManager(AbstractSampleView):
         gevent.spawn(self.save_scene_animation_task, filename, duration_sec)
 
     def save_scene_animation_task(self, filename, duration_sec):
-
         from array2gif import write_gif
 
         image_list = []

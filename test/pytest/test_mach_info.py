@@ -39,24 +39,24 @@ class TestMachineInfo(TestHardwareObjectBase.TestHardwareObjectBase):
 
     def test_mach_info_atributes(self, test_object):
         """Test for attributes"""
-        assert (
-            test_object is not None
-        ), "Machine info hardware object is None (not initialized)"
-        assert isinstance(
-            test_object.get_current(), (int, float)
-        ), "current value has to be int or float"
-        assert isinstance(
-            test_object.get_message(), (str)
-        ), "message value has to be string"
-        assert isinstance(
-            test_object.get_lifetime(), (int, float)
-        ), "lifetime value has to be int or float"
-        assert isinstance(
-            test_object.get_topup_remaining(), (int, float)
-        ), "topup_remaining value has to be int or float"
-        assert isinstance(
-            test_object.get_value(), dict
-        ), "Machine info dictionary has to be dict"
+        assert test_object is not None, (
+            "Machine info hardware object is None (not initialized)"
+        )
+        assert isinstance(test_object.get_current(), (int, float)), (
+            "current value has to be int or float"
+        )
+        assert isinstance(test_object.get_message(), (str)), (
+            "message value has to be string"
+        )
+        assert isinstance(test_object.get_lifetime(), (int, float)), (
+            "lifetime value has to be int or float"
+        )
+        assert isinstance(test_object.get_topup_remaining(), (int, float)), (
+            "topup_remaining value has to be int or float"
+        )
+        assert isinstance(test_object.get_value(), dict), (
+            "Machine info dictionary has to be dict"
+        )
 
     def test_get_value(self, test_object):
         """Test the get_value and the valueChanged signal"""

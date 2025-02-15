@@ -28,6 +28,7 @@ Example xml file:
   <values>{"IN": False, "OUT": True}</values>
 </object>
 """
+
 from enum import Enum
 
 from gevent import sleep

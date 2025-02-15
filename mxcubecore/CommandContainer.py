@@ -492,7 +492,6 @@ class CommandContainer:
                 )
 
         elif channel_type.lower() == "sardana":
-
             if "taurusname" not in attributes_dict:
                 try:
                     attributes_dict["taurusname"] = self.taurusname
@@ -762,7 +761,6 @@ class CommandContainer:
                 )
 
         elif cmd_type.lower() == "sardana":
-
             doorname = None
             taurusname = None
             cmd_type = None

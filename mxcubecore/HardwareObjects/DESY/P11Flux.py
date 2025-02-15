@@ -196,9 +196,7 @@ class P11Flux(AbstractFlux):
         # Scale the estimated flux based on the energy-dependent flux variation
         energy_scale_factor = energy_flux_interpolator(
             energy
-        ) / energy_flux_interpolator(
-            12000
-        )  # Scaling relative to 12000 eV
+        ) / energy_flux_interpolator(12000)  # Scaling relative to 12000 eV
 
         # Scale the flux based on the current
         current_scale_factor = current / ref_current

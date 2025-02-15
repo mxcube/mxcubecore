@@ -123,7 +123,6 @@ class SOLEILSession(Session.Session):
         return thedir
 
     def get_ruche_info(self, path):
-
         if self.is_inhouse(self.username):
             usertype = "soleil"
         else:

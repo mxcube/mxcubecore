@@ -129,9 +129,7 @@ class ISPyBDataAdapter:
         return self._shipping  # type: ignore
 
     def create_session(self, proposal_id: str, beamline_name: str) -> Session:
-
         try:
-
             # proposal = self.find_proposal_by_login_and_beamline(self.get_user_, beamline_name)  # type: ignore
             current_time = time.localtime()
             start_time = time.strftime("%Y-%m-%d 00:00:00", current_time)
@@ -518,7 +516,6 @@ class ISPyBDataAdapter:
 
     def update_session(self, session_dict):
         if self._collection:
-
             try:
                 print(session_dict)
                 # The old API used date formated strings and the new
@@ -574,7 +571,6 @@ class ISPyBDataAdapter:
     def store_beamline_setup(self, session_id, bl_config):
         blSetupId = None
         if self._collection:
-
             session = {}
 
             try:

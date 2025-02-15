@@ -34,7 +34,6 @@ from mxcubecore.HardwareObjects.abstract.AbstractBeam import (
 
 class P11Beam(AbstractBeam):
     def init(self):
-
         self.pinhole_hwobj = self.get_object_by_role("pinhole")
         self._beam_position_on_screen = [340, 256]
 
@@ -139,7 +138,6 @@ class P11Beam(AbstractBeam):
         return 200
 
     def get_beam_focus_label(self):
-
         value = self.mirror_idx_ch.get_value()
 
         if value not in self.focus_sizes:

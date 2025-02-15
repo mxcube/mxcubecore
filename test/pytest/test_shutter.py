@@ -37,9 +37,9 @@ def test_object(beamline):
 
 class TestShutter(TestAbstractNStateBase.TestAbstractNStateBase):
     def test_shutter_init(self, test_object):
-        assert (
-            test_object is not None
-        ), "Shutter hardware objects is None (not initialized)"
+        assert test_object is not None, (
+            "Shutter hardware objects is None (not initialized)"
+        )
 
         # The methods are defined with abc.abstractmethod which will raise
         # an exception if the method is not defined. So there is no need to

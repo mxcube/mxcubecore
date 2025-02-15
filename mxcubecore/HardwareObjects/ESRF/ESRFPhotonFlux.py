@@ -32,6 +32,7 @@ Example xml_ configuration:
    <object role="monitor_beam" href="/monitor_beam"/>
  </object>
 """
+
 import logging
 
 import gevent

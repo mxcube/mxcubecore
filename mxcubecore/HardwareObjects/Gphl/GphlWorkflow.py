@@ -21,6 +21,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
 """
+
 from __future__ import (
     absolute_import,
     division,
@@ -852,7 +853,6 @@ class GphlWorkflow(HardwareObjectYaml):
         self._workflow_queue = gevent.queue.Queue()
 
     def execute(self):
-
         if self._workflow_queue is None:
             return
 
@@ -1714,7 +1714,6 @@ class GphlWorkflow(HardwareObjectYaml):
                 goniostatTranslations.append(translation)
 
             else:
-
                 if recentring_mode == "none":
                     if has_recentring_file:
                         # NB  if no recentring  but  MiniKappaCorrection this still OK
@@ -2178,14 +2177,12 @@ class GphlWorkflow(HardwareObjectYaml):
         )
 
     def select_lattice(self, payload, correlation_id):
-
         choose_lattice = payload
 
         data_model = self._queue_entry.get_data_model()
         data_model.characterisation_done = True
 
         if data_model.automation_mode:
-
             # Handle resolution
             # Resets detector_setting to match aimed_resolution
             data_model.detector_setting = None
@@ -2445,7 +2442,6 @@ class GphlWorkflow(HardwareObjectYaml):
         )
 
     def enqueue_sample_centring(self, motor_settings, in_queue=False):
-
         # NBNB Should be refactored later and combined with execute_sample_centring
         # Now in_queue==False implies immediate execution
 
@@ -2518,7 +2514,6 @@ class GphlWorkflow(HardwareObjectYaml):
     def execute_sample_centring(
         self, centring_entry, goniostatRotation, requestedRotationId=None
     ):
-
         queue_manager = self._queue_entry.get_queue_controller()
         try:
             queue_manager.execute_entry(centring_entry)
@@ -2541,13 +2536,11 @@ class GphlWorkflow(HardwareObjectYaml):
             raise RuntimeError("Centring gave no result")
 
     def prepare_for_centring(self, payload, correlation_id):
-
         # TODO Add pop-up confirmation box ('Ready for centring?')
 
         return GphlMessages.ReadyForCentring()
 
     def obtain_prior_information(self, payload, correlation_id):
-
         workflow_model = self._queue_entry.get_data_model()
 
         # NBNB TODO check this is also OK in MXCuBE3
@@ -2678,9 +2671,7 @@ class GphlWorkflow(HardwareObjectYaml):
         if flux:
             flux_density = flux.get_average_flux_density(transmission=100.0)
             if flux_density:
-                crystal_thickness = (
-                    HWR.beamline.gphl_workflow._queue_entry.get_data_model().crystal_thickness
-                )
+                crystal_thickness = HWR.beamline.gphl_workflow._queue_entry.get_data_model().crystal_thickness
                 if crystal_thickness:
                     beam_dim = (
                         HWR.beamline.beam.get_beam_size()[
@@ -2847,7 +2838,6 @@ class GphlWorkflow(HardwareObjectYaml):
     # Functions for new version of UI handling
 
     def receive_pre_strategy_data(self, instruction, parameters):
-
         if instruction == self.PARAMETERS_READY:
             self._return_parameters.set(parameters)
         elif instruction == self.PARAMETERS_CANCELLED:
@@ -2882,7 +2872,6 @@ class GphlWorkflow(HardwareObjectYaml):
                     )
 
     def receive_ok_cancel(self, instruction, parameters):
-
         if instruction == self.PARAMETERS_READY:
             self._return_parameters.set(parameters)
         elif instruction == self.PARAMETERS_CANCELLED:
@@ -2895,7 +2884,6 @@ class GphlWorkflow(HardwareObjectYaml):
             )
 
     def receive_pre_collection_data(self, instruction, parameters):
-
         if instruction == self.PARAMETERS_READY:
             self._return_parameters.set(parameters)
         elif instruction == self.PARAMETERS_CANCELLED:

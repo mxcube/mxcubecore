@@ -26,6 +26,7 @@ Using configuration file:
 </object>
 
 """
+
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 

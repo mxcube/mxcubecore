@@ -545,11 +545,9 @@ class QtInstanceServer(Procedure):
             try:
                 new_client_id = m.getClientNewId()
             except KeyError:
-
                 try:
                     new_proposal = m.getNewProposal()
                 except KeyError:
-
                     a = m.getAvailable()
                     if a:
                         self.emit("newClient", ((client_id, client_proposal),))
@@ -690,7 +688,6 @@ class QtInstanceServer(Procedure):
                     self.clients[cli_id][1] = new_proposal
 
             else:
-
                 try:
                     count = self.idCount[client_new_id]
                 except KeyError:

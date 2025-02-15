@@ -223,7 +223,6 @@ class MotorsNPosition(AbstractActuator):
         return current_idx
 
     def update_multi_state(self):
-
         multi_state = HardwareObjectState.READY
 
         for motorname in self.motor_hwobjs:

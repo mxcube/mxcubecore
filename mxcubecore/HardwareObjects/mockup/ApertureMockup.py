@@ -28,6 +28,7 @@ Example xml_ configuration:
    <position_list>["BEAM", "OFF", "PARK"]</position_list>
  </object>
 """
+
 from enum import Enum
 
 from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState

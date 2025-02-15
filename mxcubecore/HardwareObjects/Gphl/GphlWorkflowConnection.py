@@ -20,6 +20,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
 """
+
 from __future__ import (
     absolute_import,
     division,
@@ -182,7 +183,6 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         return result
 
     def open_connection(self):
-
         if self._gateway is None:
             logging.getLogger("HWR").debug("Opening GΦL connection")
         else:
@@ -218,7 +218,6 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         )
 
     def start_workflow(self, workflow_queue, workflow_model_obj):
-
         # NBNB All command line option values are put in quotes (repr) when
         # the workflow is invoked remotely through ssh.
 
@@ -428,7 +427,6 @@ class GphlWorkflowConnection(HardwareObjectYaml):
                 logging.getLogger("HWR").info("Error was:", exc_info=True)
 
     def close_connection(self):
-
         logging.getLogger("HWR").debug("GΦL Close connection ")
         xx0 = self._gateway
         self._gateway = None
@@ -566,7 +564,6 @@ class GphlWorkflowConnection(HardwareObjectYaml):
             )
 
         if message_type in ("SubprocessStarted", "SubprocessStopped"):
-
             if self.workflow_queue is not None:
                 # Could happen if we have ended the workflow
                 self.workflow_queue.put_nowait(
@@ -865,12 +862,10 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         )
 
     def _UnitCell_to_python(self, py4jUnitCell):
-
         cell_params = tuple(py4jUnitCell.getLengths()) + tuple(py4jUnitCell.getAngles())
         return GphlMessages.UnitCell(*cell_params)
 
     def _IndexingSolution_to_python(self, py4jIndexingSolution):
-
         return GphlMessages.IndexingSolution(
             bravaisLattice=py4jIndexingSolution.getBravaisLattice(),
             cell=self._UnitCell_to_python(py4jIndexingSolution.getCell()),
@@ -880,7 +875,6 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         )
 
     def _Sweep_to_python(self, py4jSweep):
-
         # NB scans are not set - where scans are present in a message,
         # the link is set from the Scan side.
 
@@ -1035,7 +1029,6 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         return buildr.build()
 
     def _SampleCentred_to_java(self, sampleCentred):
-
         cls = self._gateway.jvm.astra.messagebus.messages.information.SampleCentredImpl
 
         # if sampleCentred.interleaveOrder:
@@ -1181,7 +1174,6 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         )
 
     def _UnitCell_to_java(self, unitCell):
-
         if unitCell is None:
             return None
 

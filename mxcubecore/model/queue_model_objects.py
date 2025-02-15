@@ -23,6 +23,7 @@ This module contain objects that combined make up the data model.
 Any object that inherhits from TaskNode can be added to and handled by
 the QueueModel.
 """
+
 import copy
 import logging
 import os
@@ -777,9 +778,9 @@ class DataCollection(TaskNode):
         return self.online_processing_results
 
     def set_snapshot(self, snapshot):
-        self.acquisitions[0].acquisition_parameters.centred_position.snapshot_image = (
-            snapshot
-        )
+        self.acquisitions[
+            0
+        ].acquisition_parameters.centred_position.snapshot_image = snapshot
 
     def add_processing_msg(self, time, method, status, msg):
         self.processing_msg_list.append((time, method, status, msg))

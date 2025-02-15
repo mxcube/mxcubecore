@@ -30,6 +30,7 @@ Example xml file:
   <object href="/bliss" role="controller"/>
 </object>
 """
+
 from enum import (
     Enum,
     unique,

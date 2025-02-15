@@ -826,7 +826,6 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
                         )
                     )
         elif os.path.exists(flat_field_path):
-
             base_name_list = os.path.splitext(os.path.basename(data_path))
             ff_prefix = base_name_list[0][: -(ext_len + 1)]
             os.chdir(os.path.dirname(flat_field_path))

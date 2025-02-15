@@ -34,6 +34,7 @@ Example xml file:
   </hwobj_commands>
 </object>
 """
+
 import ast
 
 import gevent

@@ -29,6 +29,7 @@ Example xml file:
   <value_state>True</value_state>
 </object>
 """
+
 from enum import Enum
 
 from gevent import (

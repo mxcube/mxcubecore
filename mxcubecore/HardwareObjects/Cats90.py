@@ -160,7 +160,6 @@ class Cats90(SampleChanger):
         super(Cats90, self).__init__(self.__TYPE__, False, *args, **kwargs)
 
     def init(self):
-
         #
         # DO NOT CALL SampleChanger.init()
         #  If SampleChanger.init() is called reception of signals at connection time is not done.
@@ -942,7 +941,6 @@ class Cats90(SampleChanger):
         self._execute_server_task(self._cmdUnload, argin)
 
     def _on_task_failed(self, task, exception):
-
         if task in [SampleChangerState.Loading, SampleChangerState.Unloading]:
             logging.getLogger("HWR").warning(
                 "  ==========CATS=== load/unload operation failed :  %s" % exception
@@ -970,7 +968,6 @@ class Cats90(SampleChanger):
     # ########################           CATS EVENTS           #########################
 
     def cats_state_changed(self, value):
-
         if self.cats_state != value:
             # hack for transient states
             trials = 0
@@ -1045,7 +1042,6 @@ class Cats90(SampleChanger):
         self._update_loaded_sample(cats_loaded_num, cats_loaded_lid)
 
     def cats_barcode_changed(self, value):
-
         self.cats_datamatrix = value
 
         scanned = len(value) != 0
@@ -1152,7 +1148,6 @@ class Cats90(SampleChanger):
         self.cats_state = self._chnState.get_value()
 
     def _update_state(self):
-
         has_loaded = self.has_loaded_sample()
         on_diff = self._chnSampleIsDetected.get_value()
 
@@ -1199,7 +1194,6 @@ class Cats90(SampleChanger):
         return state
 
     def _decide_state(self, dev_state, powered, lids_closed, has_loaded, on_diff):
-
         if dev_state == PyTango.DevState.ALARM:
             _state = SampleChangerState.Alarm
         elif not powered:
@@ -1322,7 +1316,6 @@ class Cats90(SampleChanger):
             return lid, sample
 
     def tool_for_basket(self, basketno):
-
         basket_type = self.basket_types[basketno - 1]
 
         if basket_type == BASKET_SPINE:
@@ -1359,7 +1352,6 @@ class Cats90(SampleChanger):
         return ret_type
 
     def _update_loaded_sample(self, sample_num=None, lid=None):
-
         if None in [sample_num, lid]:
             loadedSampleNum = self._chnNumLoadedSample.get_value()
             loadedSampleLid = self._chnLidLoadedSample.get_value()
@@ -1453,7 +1445,6 @@ class Cats90(SampleChanger):
         self._update_cats_contents()
 
     def _update_cats_contents(self):
-
         logging.getLogger("HWR").warning(
             "Updating contents %s" % str(self.basket_presence)
         )

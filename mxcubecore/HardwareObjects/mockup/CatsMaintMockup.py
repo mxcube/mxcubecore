@@ -34,7 +34,6 @@ TOOL_TO_STR = {
 
 
 class CatsMaintMockup(HardwareObject):
-
     __TYPE__ = "CATS"
     NO_OF_LIDS = 3
 
@@ -59,7 +58,6 @@ class CatsMaintMockup(HardwareObject):
         self._currenttool = 1
 
     def init(self):
-
         try:
             self.cats_model = self.cats_device.read_attribute("CatsModel").value
         except Exception:
@@ -372,7 +370,6 @@ class CatsMaintMockup(HardwareObject):
         return ret
 
     def send_command(self, cmd_name, args=None):
-
         #
         lid = 1
         toolcal = 0

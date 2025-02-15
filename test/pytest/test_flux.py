@@ -40,9 +40,9 @@ class TestFlux(TestAbstractActuatorBase.TestAbstractActuatorBase):
 
     def test_initial_value(self, test_object):
         """Overload this as get_value gives random numbers"""
-        assert (
-            test_object is not None
-        ), "Flux hardware objects is None (not initialized)"
+        assert test_object is not None, (
+            "Flux hardware objects is None (not initialized)"
+        )
 
         # start value should be the default value.
         startval = test_object.default_value

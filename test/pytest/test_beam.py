@@ -51,24 +51,24 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
         Test get methods
         """
         beam_div_hor, beam_div_ver = test_object.get_beam_divergence()
-        assert isinstance(
-            beam_div_hor, (int, float)
-        ), "Horizontal beam divergence has to be int or float"
-        assert isinstance(
-            beam_div_ver, (int, float)
-        ), "Vertical beam divergence has to be int or float"
+        assert isinstance(beam_div_hor, (int, float)), (
+            "Horizontal beam divergence has to be int or float"
+        )
+        assert isinstance(beam_div_ver, (int, float)), (
+            "Vertical beam divergence has to be int or float"
+        )
         beam_shape = test_object.get_beam_shape()
-        assert isinstance(
-            beam_shape, BeamShape
-        ), "Beam shape should be defined in BeamShape Enum"
+        assert isinstance(beam_shape, BeamShape), (
+            "Beam shape should be defined in BeamShape Enum"
+        )
 
         beam_width, beam_height = test_object.get_beam_size()
-        assert isinstance(
-            beam_width, (int, float)
-        ), "Horizontal beam size has to be int or float"
-        assert isinstance(
-            beam_height, (int, float)
-        ), "Vertical beam size has to be int or float"
+        assert isinstance(beam_width, (int, float)), (
+            "Horizontal beam size has to be int or float"
+        )
+        assert isinstance(beam_height, (int, float)), (
+            "Vertical beam size has to be int or float"
+        )
 
     def test_get_defined_beam_size(self, test_object):
         """Check the defined beam size values for each definer type"""

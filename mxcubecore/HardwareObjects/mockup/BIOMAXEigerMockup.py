@@ -62,7 +62,6 @@ class BIOMAXEigerMockup(HardwareObject):
         self.energy_change_threshold_default = 20
 
     def init(self):
-
         tango_device = self.get_property("detector_device")
         filewriter_device = self.get_property("filewriter_device")
 

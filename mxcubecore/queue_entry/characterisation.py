@@ -96,7 +96,6 @@ class CharacterisationQueueEntry(BaseQueueEntry):
     """
 
     def __init__(self, view=None, data_model=None, view_set_queue_entry=True):
-
         BaseQueueEntry.__init__(self, view, data_model, view_set_queue_entry)
         self.edna_result = None
         self.auto_add_diff_plan = True
@@ -166,9 +165,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                     )
 
                     try:
-                        strategy_result = (
-                            self.edna_result.getCharacterisationResult().getStrategyResult()
-                        )
+                        strategy_result = self.edna_result.getCharacterisationResult().getStrategyResult()
                     except Exception:
                         strategy_result = None
 

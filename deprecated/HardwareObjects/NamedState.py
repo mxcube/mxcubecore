@@ -130,7 +130,6 @@ class NamedState(HardwareObject):
             return "unknown"
 
     def setState(self, statename):
-
         self.emit("hardwareStateChanged", ("STANDBY",))
         logging.getLogger().exception(
             ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..............changing state for %s to ws: %s."

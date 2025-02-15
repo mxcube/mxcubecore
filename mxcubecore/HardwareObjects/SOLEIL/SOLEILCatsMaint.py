@@ -24,7 +24,6 @@ TOOLS = {"FLANGE": 0, "CRYOTONG": 1, "ESRF": 2, "PLATE": 3}
 
 
 class SOLEILCatsMaint(HardwareObject):
-
     __TYPE__ = "CATS"
 
     NO_OF_LIDS = 3
@@ -255,7 +254,6 @@ class SOLEILCatsMaint(HardwareObject):
         self._execute_server_task(self._cmdSoak, argin)
 
     def _do_integrated_tool_cal(self):
-
         argin = self.tool
 
         # poweron

@@ -63,7 +63,6 @@ class UserTypeISPyBLims(ISPyBAbstractLIMS):
                 )
 
                 try:
-
                     self._collection = Client(
                         _WS_COLLECTION_URL,
                         timeout=3,

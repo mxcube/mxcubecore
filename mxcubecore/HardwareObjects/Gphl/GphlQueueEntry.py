@@ -21,7 +21,6 @@
 Module contains Gphl specific queue entries
 """
 
-
 import logging
 
 from mxcubecore import HardwareRepository as HWR

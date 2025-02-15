@@ -28,6 +28,7 @@ Example xml file:
 /puck_configuration>
 </object>
 """
+
 import ast
 import base64
 import logging

@@ -61,7 +61,6 @@ else:
 
 
 class AbstractVideoDevice(HardwareObject):
-
     default_cam_encoding = "yuv422p"
     default_poll_interval = 50
     default_cam_type = "basler"
