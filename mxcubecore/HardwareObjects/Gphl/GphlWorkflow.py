@@ -338,7 +338,7 @@ class GphlWorkflow(HardwareObjectYaml):
         for ii0, tag in enumerate(instrument_data["gonio_centring_axis_names"]):
             ii1 = 3 * ii0
             self.translation_axes[tag] = instrument_data["gonio_centring_axis_dirs"][
-                ii1 : ii1 + 3
+                ii1: ii1 + 3
             ]
 
         # Move beamstop settings to top level
@@ -2037,9 +2037,7 @@ class GphlWorkflow(HardwareObjectYaml):
             # NBNB this ONLY works because all the attributes are immutable values
             path_template.__dict__.update(master_path_template.__dict__)
             if relative_image_dir:
-                path_template.directory = os.path.join(
-                    HWR.beamline.session.get_base_image_directory(), relative_image_dir
-                )
+                path_template.directory = os.path.join(HWR.beamline.session.get_base_image_directory(), relative_image_dir)
                 path_template.process_directory = os.path.join(
                     HWR.beamline.session.get_base_process_directory(),
                     relative_image_dir,
