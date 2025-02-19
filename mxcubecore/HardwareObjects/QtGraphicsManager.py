@@ -1016,7 +1016,7 @@ class QtGraphicsManager(AbstractSampleView):
         elif self.in_grid_drawing_state:
             if self.graphics_grid_draw_item.is_draw_mode():
                 self.graphics_grid_draw_item.set_end_position(
-                    scene_point.x(), scene_point.y()
+                    int(scene_point.x()), int(scene_point.y())
                 )
         elif self.in_measure_distance_state:
             self.graphics_measure_distance_item.set_coord(self.mouse_position)

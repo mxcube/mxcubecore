@@ -919,8 +919,8 @@ class GraphicsItemGrid(GraphicsItem):
                 self.__grid_size_pix[0] = self.__spacing_pix[0] * self.__num_cols
                 self.__grid_size_pix[1] = self.__spacing_pix[1] * self.__num_rows
 
-                self.__center_coord.setX(start_coord[0] + self.__grid_size_pix[0] / 2.0)
-                self.__center_coord.setY(start_coord[1] + self.__grid_size_pix[1] / 2.0)
+                self.__center_coord.setX(int(start_coord[0] + self.__grid_size_pix[0] / 2.0))
+                self.__center_coord.setY(int(start_coord[1] + self.__grid_size_pix[1] / 2.0))
 
         if in_draw or adjust_size:
             # if True:
@@ -931,19 +931,19 @@ class GraphicsItemGrid(GraphicsItem):
                 GraphicsItemGrid.TOP_LEFT, start_coord[0], start_coord[1]
             )
             self.__frame_polygon.setPoint(
-                GraphicsItemGrid.TOP_RIGHT,
-                start_coord[0] + self.__grid_size_pix[0],
-                start_coord[1],
+                int(GraphicsItemGrid.TOP_RIGHT),
+                int(start_coord[0] + self.__grid_size_pix[0]),
+                int(start_coord[1]),
             )
             self.__frame_polygon.setPoint(
-                GraphicsItemGrid.BOT_LEFT,
-                start_coord[0] + self.__grid_size_pix[0],
-                start_coord[1] + self.__grid_size_pix[1],
+                int(GraphicsItemGrid.BOT_LEFT),
+                int(start_coord[0] + self.__grid_size_pix[0]),
+                int(start_coord[1] + self.__grid_size_pix[1]),
             )
             self.__frame_polygon.setPoint(
-                GraphicsItemGrid.BOT_RIGHT,
-                start_coord[0],
-                start_coord[1] + self.__grid_size_pix[1],
+                int(GraphicsItemGrid.BOT_RIGHT),
+                int(start_coord[0]),
+                int(start_coord[1] + self.__grid_size_pix[1]),
             )
 
             # self.__num_cols = int(self.__grid_size_pix[0] / self.__spacing_pix[0])
