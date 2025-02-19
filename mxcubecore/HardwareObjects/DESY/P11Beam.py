@@ -71,17 +71,24 @@ class P11Beam(AbstractBeam):
         }
 
     def set_value(self, size=None):
-        """Implements the abstract method to set the beam size."""
-        if isinstance(size, list):
-            self._beam_width, self._beam_height = size
-        elif isinstance(size, str):
-            matching_size = next(
-                (v for k, v in self.focus_sizes.items() if v["label"] == size), None
-            )
-            if matching_size:
-                self._beam_width, self._beam_height = matching_size["size"]
-        self.evaluate_beam_info()
-
+        """Sets the beam size with error handling."""
+        try:
+            if isinstance(size, list):
+                self._beam_width, self._beam_height = size
+            elif isinstance(size, str):
+                matching_size = next(
+                    (v for k, v in self.focus_sizes.items() if v["label"] == size), None
+                )
+                if matching_size:
+                    self._beam_width, self._beam_height = matching_size["size"]
+                else:
+                    raise ValueError(f"Invalid beam size: {size}")
+    
+            self.evaluate_beam_info()
+            self.log.debug(f"Beam size set to: {self._beam_width} x {self._beam_height}")
+        except Exception as e:
+            self.log.error(f"Error setting beam size: {e}")
+    
     def set_beam_position_on_screen(self, beam_x_y):
         """Sets the beam position on the screen."""
         self._beam_position_on_screen = beam_x_y
@@ -152,3 +159,72 @@ class P11Beam(AbstractBeam):
             )
 
             return curr_size_item["label"]
+    def get_active_focus_mode(self):
+        """Returns the currently active focus mode and corresponding beam size."""
+    
+        # Read the current beam size index from Tango
+        current_index = self.mirror_idx_ch.get_value()
+    
+        if current_index not in self.focus_sizes:
+            current_index = -1  # Fallback to 'unknown'
+    
+        focus_label = self.focus_sizes[current_index]["label"]
+        focus_size = self.focus_sizes[current_index]["size"]
+    
+        self.log.debug(f"Active focus mode: {focus_label}, Beam size: {focus_size}")
+    
+        return focus_label, focus_size
+    def get_focus_mode_names(self):
+        """Returns the list of available focus modes (beam sizes)."""
+        return [self.focus_sizes[k]["label"] for k in sorted(self.focus_sizes.keys())]
+
+
+    def get_focus_mode_message(self, focus_mode_name):
+        """Returns a message describing the selected focus mode."""
+        
+        # Find the focus mode in the dictionary
+        matching_mode = next((v for k, v in self.focus_sizes.items() if v["label"] == focus_mode_name), None)
+    
+        if matching_mode:
+            message = f"Beam focus mode: {focus_mode_name}, Size: {matching_mode['size'][0]} x {matching_mode['size'][1]} mm"
+        else:
+            message = f"Unknown focus mode: {focus_mode_name}"
+    
+        self.log.debug(f"get_focus_mode_message: {message}")
+    
+        return message
+    def set_focus_mode(self, focus_mode_name):
+        """Sets the focus mode by updating the BeamSize attribute in Tango."""
+    
+        try:
+            self.emit("userMessage", f"Changing focus mode to {focus_mode_name}...")
+            self.log.debug(f"Setting focus mode to {focus_mode_name}")
+    
+            # Find the corresponding beam size index
+            matching_index = next((k for k, v in self.focus_sizes.items() if v["label"] == focus_mode_name), None)
+    
+            if matching_index is None:
+                raise ValueError(f"Invalid focus mode: {focus_mode_name}")
+    
+            # Update Tango attribute
+            self.log.debug(f"Updating Tango attribute BeamSize = {matching_index}")
+            self.mirror_idx_ch.set_value(matching_index)
+    
+            # Force a read to confirm the change
+            new_value = self.mirror_idx_ch.get_value()
+            self.log.debug(f"BeamSize successfully set to {new_value}")
+    
+            # Update internal state
+            self.mirror_idx_changed(new_value)
+    
+            # Notify UI that the mode has changed
+            self.emit("focusModeChanged", focus_mode_name)
+            self.emit("beamInfoChanged", self.get_beam_info_dict())
+    
+            self.log.info(f"Focus mode successfully set to {focus_mode_name}")
+            self.emit("userMessage", f"Focus mode changed to {focus_mode_name}.")
+    
+        except Exception as e:
+            self.log.error(f"Failed to set focus mode: {e}")
+            self.emit("userMessage", f"Error changing focus mode: {e}")
+     
