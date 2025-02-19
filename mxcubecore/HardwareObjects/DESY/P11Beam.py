@@ -122,6 +122,55 @@ class P11Beam(AbstractBeam):
 
         self.update_state(converted_state)
 
+    def get_beam_size(self):
+        """
+        Returns the effective beam size, determined by the minimum of
+        the pinhole size and the mirror focus size.
+        """
+        # Get current pinhole size
+        pinhole_size = self.pinhole_hwobj.get_value() if self.pinhole_hwobj else None
+
+        # Ensure pinhole size is a float
+        try:
+            pinhole_size = float(pinhole_size) if pinhole_size is not None else None
+        except ValueError:
+            self.log.error(f"Invalid pinhole size: {pinhole_size}")
+            pinhole_size = None
+
+        # Get current mirror focus size
+        mirror_index = self.mirror_idx_ch.get_value()
+        mirror_size = self.focus_sizes.get(mirror_index, {"size": [None, None]})["size"]
+
+        # Ensure mirror sizes are floats
+        try:
+            mirror_size_x = (
+                float(mirror_size[0]) if mirror_size[0] is not None else None
+            )
+            mirror_size_y = (
+                float(mirror_size[1]) if mirror_size[1] is not None else None
+            )
+        except ValueError:
+            self.log.error(f"Invalid mirror size: {mirror_size}")
+            mirror_size_x, mirror_size_y = None, None
+
+        # Take the minimum size between pinhole and mirror, handling None values
+        effective_size_x = (
+            min(filter(None, [pinhole_size, mirror_size_x]))
+            if pinhole_size or mirror_size_x
+            else 0.2
+        )
+        effective_size_y = (
+            min(filter(None, [pinhole_size, mirror_size_y]))
+            if pinhole_size or mirror_size_y
+            else 0.2
+        )
+
+        self.log.debug(
+            f"Effective beam size determined: {effective_size_x} x {effective_size_y}"
+        )
+
+        return effective_size_x, effective_size_y
+
     def _convert_tango_state(self, state):
         """Converts Tango state to MXCuBE state."""
         if isinstance(state, str):
