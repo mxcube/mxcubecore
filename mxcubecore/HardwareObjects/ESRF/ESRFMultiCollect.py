@@ -2,24 +2,14 @@ import logging
 import math
 import os
 import time
+from http.client import HTTPConnection
+from urllib.parse import urlencode
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.abstract.AbstractMultiCollect import *
 from mxcubecore.model.queue_model_objects import PathTemplate
 from mxcubecore.utils.conversion import string_types
-
-try:
-    from httplib import HTTPConnection
-except Exception:
-    # Python3
-    from http.client import HTTPConnection
-
-try:
-    from urllib import urlencode
-except Exception:
-    # Python3
-    from urllib.parse import urlencode
 
 
 class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):

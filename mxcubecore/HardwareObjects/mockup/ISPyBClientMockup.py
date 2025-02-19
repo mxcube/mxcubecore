@@ -12,12 +12,6 @@ from mxcubecore.model.lims_session import (
     Session,
 )
 
-try:
-    from urlparse import urljoin
-except Exception:
-    # Python3
-    pass
-
 # to simulate wrong loginID, use anything else than idtest
 # to simulate wrong psd, use "wrong" for password
 # to simulate ispybDown, but ldap login succeeds, use "ispybDown" for password
