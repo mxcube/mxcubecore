@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import logging
 import sys
+from urllib.error import URLError
 
 from suds import WebFault
 from suds.client import Client
@@ -9,13 +10,6 @@ from suds.sudsobject import asdict
 
 from mxcubecore.HardwareObjects.abstract.ISPyBAbstractLims import ISPyBAbstractLIMS
 from mxcubecore.model.lims_session import LimsSessionManager
-
-try:
-    from urllib2 import URLError
-    from urlparse import urljoin
-except Exception:
-    # Python3
-    from urllib.error import URLError
 
 suds_encode = str.encode
 
