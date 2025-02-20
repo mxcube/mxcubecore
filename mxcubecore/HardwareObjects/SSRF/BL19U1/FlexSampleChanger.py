@@ -120,7 +120,7 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         self._dewar = 1
         # self.socket_addr = '10.30.61.73:10100'
         self.exporter_addr = '10.30.61.246:9001'
-        self._ifcloseLid_inBeginning = False
+        self._ifcloseLid_inBeginning = True
         self.count = 1
 
 
@@ -473,20 +473,20 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         print("进入load函数")
 
 
-        # 不确定flex是否需要类似于 close lid 的操作，暂时保留
+        #
         # 如果在dwear里，就可以直接设置为已经closelid了 (代码以删除)
-        # 先判断是否closelid了
-        if not self._ifcloseLid_inBeginning:
-            # 恢复各种状态
-            HWR.beamline.sample_changer_maintenance._running = 0
-            HWR.beamline.sample_changer_maintenance._update_global_state()
-
-            logging.getLogger("user_level_log").error(
-                "please close the lid first")  # doesn't work,can show on log message, don't know why
-            logging.getLogger("HWR").debug("please close the lid first")
-            self.send_msg_to_statemessage("please close the lid first")
-            HWR.beamline.sample_changer_maintenance._update_global_state()
-            raise Exception("please close the lid first")
+        # 先判断是否closelid了，flex不需要类似于 close lid 的操作，注释
+        # if not self._ifcloseLid_inBeginning:
+        #     # 恢复各种状态
+        #     HWR.beamline.sample_changer_maintenance._running = 0
+        #     HWR.beamline.sample_changer_maintenance._update_global_state()
+        #
+        #     logging.getLogger("user_level_log").error(
+        #         "please close the lid first")  # doesn't work,can show on log message, don't know why
+        #     logging.getLogger("HWR").debug("please close the lid first")
+        #     self.send_msg_to_statemessage("please close the lid first")
+        #     HWR.beamline.sample_changer_maintenance._update_global_state()
+        #     raise Exception("please close the lid first")
 
 
         # 判断md2
@@ -682,8 +682,8 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
 
             self.emit("fsmConditionChanged", "sample_is_loaded", False)
 
-            # 20231226. make close lid state to false after unload.
-            self.change_ifcloseLid_inBeginning_state(False)
+            # flex dont need make close lid state to false after unload.
+            # self.change_ifcloseLid_inBeginning_state(False)
         else:
             logging.getLogger("HWR").debug("cannot unload, the location is wrong")
 
