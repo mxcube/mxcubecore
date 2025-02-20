@@ -7118,3 +7118,6 @@ convention = "google"
     "PT022",
     "S108",
 ]
+"test/pytest/test_hwo_tango_shutter.py" = [
+    "N802"
+]
