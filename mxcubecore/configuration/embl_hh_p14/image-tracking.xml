@@ -6,4 +6,3 @@
 
    <command type="tine" name="cmdLoadImage" tinename="/P14/image-tracker/img-tracker">load</command>
 </object>
-

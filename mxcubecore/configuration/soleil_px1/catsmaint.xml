@@ -61,4 +61,3 @@
   <channel type="tango" polling="events" tangoname="i10-c-cx1/ex/cats" name="_chnMessage">Message</channel>
 
 </object>
-
