@@ -1298,10 +1298,10 @@ class GraphicsItemGrid(GraphicsItem):
                         image_index
                     ]
                     paint_rect = qt_import.QRect(
-                        pos_x - self.__spacing_pix[0] / 2,
-                        pos_y - self.__spacing_pix[1] / 2,
-                        self.__spacing_pix[0],
-                        self.__spacing_pix[1],
+                        int(pos_x - self.__spacing_pix[0] / 2),
+                        int(pos_y - self.__spacing_pix[1] / 2),
+                        int(self.__spacing_pix[0]),
+                        int(self.__spacing_pix[1]),
                     )
 
                     # If score exists overlay color may change
@@ -1314,9 +1314,9 @@ class GraphicsItemGrid(GraphicsItem):
                             if self.__score.max() > 0:
                                 cell_score = float(cell_score) / self.__score.max()
                                 brush_color.setHsv(
-                                    0 + 60 * cell_score,
+                                    int(0 + 60 * cell_score),
                                     255,
-                                    255 * cell_score,
+                                    int(255 * cell_score),
                                     self.__fill_alpha,
                                 )
                                 self.custom_brush.setColor(brush_color)
