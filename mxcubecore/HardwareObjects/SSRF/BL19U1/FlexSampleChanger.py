@@ -740,7 +740,7 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
                 # 判断机械手当前状态，如果位置在dewar里，就不用判断close lid
 
                 # 代修改,(原先actor还要判断机械手在不在dwear里来判断要不要close lid)
-                print("try to get loaded sample info from flex robot")
+                print("try to get loaded sample info from flex robot，if it stuck here for a long time, means there's problem of connection between mxcube and flex robot")
                 ret = self._cmdGetMountedSamplePosition()
                 # ret = self._cmdGetStatus()
                 # print("self._cmdGetStatus")
