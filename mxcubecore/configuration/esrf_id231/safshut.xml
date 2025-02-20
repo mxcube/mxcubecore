@@ -5,17 +5,3 @@
   <command type="tango" name="Close">Close</command>
   <channel type="tango" name="State" polling="1000">State</channel>
 </object>
-
-
-
-
-
-
-
-
-
-
-
-
-
-

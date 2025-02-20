@@ -5,4 +5,3 @@
 
    <command type="tine" name="cmdLoadImage" tinename="/PE2/image-tracker/img-tracker">load</command>
 </object>
-

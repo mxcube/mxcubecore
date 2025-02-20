@@ -882,4 +882,3 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
         self.print_log("HWR", "debug", "Online processing: crystfel command: \n %s" % (crystfel_command) )
 
         subprocess.Popen(crystfel_command, shell=True, stdin=None, stdout=None, stderr=None, close_fds=True)
-

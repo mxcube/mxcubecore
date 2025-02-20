@@ -4,4 +4,3 @@
   <channel type="exporter" name="chanShutterIsOpen">FastShutterIsOpen</channel>
   <channel type="exporter" name="chanCurrentPhase">CurrentPhase</channel>
 </object>
-

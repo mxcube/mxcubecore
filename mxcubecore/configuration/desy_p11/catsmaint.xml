@@ -20,4 +20,3 @@
 
   <channel type="tango" name="_chnPathRunning" polling="events">PathRunning</channel>
 </object>
-

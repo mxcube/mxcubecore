@@ -124,4 +124,3 @@ class MotorMockup(ActuatorMockup, AbstractMotor):
     
     def is_moving(self):
         return ( (self.get_state() == self.STATES.BUSY ) or (self.get_state() == self.SPECIFIC_STATES.MOVING))
-
