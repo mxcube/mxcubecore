@@ -168,7 +168,7 @@ class AbstractCollect(HardwareObject, object):
 
             self.current_dc_parameters["status"] = "Running"
             self.current_dc_parameters["collection_start_time"] = time.strftime(
-                "%Y-%m-%d %H:%M:%S"
+                "%Y-%m-%dT%H:%M:%S"
             )
 
             logging.getLogger("HWR").info(
@@ -572,7 +572,7 @@ class AbstractCollect(HardwareObject, object):
         Descript. :
         """
         lims = HWR.beamline.lims
-        if lims and lims.is_connected() and not self.current_dc_parameters["in_interleave"]:
+        if True:#lims and lims.is_connected() and not self.current_dc_parameters["in_interleave"]:
             try:
                 self.current_dc_parameters[
                     "synchrotronMode"
@@ -582,6 +582,7 @@ class AbstractCollect(HardwareObject, object):
                 )
                 self.current_dc_parameters["collection_id"] = collection_id
                 self.collection_id = collection_id
+                print(collection_id)
                 if detector_id:
                     self.current_dc_parameters["detector_id"] = detector_id
             except BaseException:
@@ -870,7 +871,7 @@ class AbstractCollect(HardwareObject, object):
         self.current_dc_parameters = param_list[0]
         self.current_dc_parameters["status"] = "Running"
         self.current_dc_parameters["collection_start_time"] = time.strftime(
-            "%Y-%m-%d %H:%M:%S"
+            "%Y-%m-%dT%H:%M:%S"
         )
         self.take_crystal_snapshots()
 
