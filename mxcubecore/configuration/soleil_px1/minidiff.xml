@@ -10,7 +10,7 @@
 
   <object role="zoom" hwrid="/zoom"></object>
   <object role="phi" hwrid="/omega"></object>
-  <object role="phiy" hwrid="/uglidex"></object> 
+  <object role="phiy" hwrid="/uglidex"></object>
   <object role="phiz" hwrid="/uglidey"></object>
   <object role="sampx" hwrid="/phiz"></object>
   <object role="sampy" hwrid="/uglidey"></object>

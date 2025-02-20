@@ -863,7 +863,7 @@ class P11Collect(AbstractCollect):
 
     def xdsapp_maxwell(self):
         """Starts XDSAPP auto-processing on the Maxwell cluster."""
-        
+
         if HWR.beamline.session.get_beamtime_metadata() != None:
 
             self.log.debug("==== XDSAPP AUTOPROCESSING IS STARTED ==========")
@@ -933,7 +933,7 @@ class P11Collect(AbstractCollect):
 
     def autoproc_maxwell(self):
         """Starts AutoProc auto-processing on the Maxwell cluster."""
-            
+
         if HWR.beamline.session.get_beamtime_metadata() != None:
 
             self.log.debug("==== AUTOPROC AUTOPROCESSING IS STARTED ==========")

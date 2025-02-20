@@ -5,7 +5,7 @@
   <motors>
   <phi-shutter>
       <object hwrid="/eh1/phi"    role="phi"/>
-      <object hwrid="/eh1/phiz"   role="phiz"/>  
+      <object hwrid="/eh1/phiz"   role="phiz"/>
       <object hwrid="/eh1/shuty"/>
       <object hwrid="/eh1/shutz"/>
       <object hwrid="/eh1/shut"/>
@@ -14,14 +14,14 @@
       <object hwrid="/eh1/zoom"  role="zoom"/>
       <object hwrid="/eh1/light" role="light"/>
       <object hwrid="/eh1/focus" role="focus"/>
-      <object hwrid="/eh1/length" role="phiy"/> 
+      <object hwrid="/eh1/length" role="phiy"/>
       <object hwrid="/eh1/sampx" role="sampx"/>
       <object hwrid="/eh1/sampy" role="sampy"/>
   </sample>
   <others>
       <object hwrid="/eh1/bstopy"/>
-      <object hwrid="/eh1/bstopz"/>  
-      <object hwrid="/eh1/DtoX"/>  
+      <object hwrid="/eh1/bstopz"/>
+      <object hwrid="/eh1/DtoX"/>
       <object hwrid="/eh1/camx"/>
       <object hwrid="/eh1/camz"/>
   </others>

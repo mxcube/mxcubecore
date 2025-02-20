@@ -288,7 +288,7 @@ class EMBLEnergy(AbstractEnergy):
             pos = pos[0]
         value = pos / 1000
 
-        if self._nominal_value is None or abs(value - self._nominal_value) > 1e-3: 
+        if self._nominal_value is None or abs(value - self._nominal_value) > 1e-3:
             self.update_value(value)
 
     def energy_limits_changed(self, limits):

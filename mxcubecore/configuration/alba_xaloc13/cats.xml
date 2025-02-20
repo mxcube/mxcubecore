@@ -1,7 +1,7 @@
 <object class = "ALBACats">
 
   <username>Cats</username>
-  <tangoname>bl13/eh/cats</tangoname>    
+  <tangoname>bl13/eh/cats</tangoname>
 
   <!-- specify the number of lids here to support different models-->
   <no_of_lids>3</no_of_lids>
@@ -11,7 +11,7 @@
   <useUpdateTimer>False</useUpdateTimer>
 
   <unipuck_tool>5</unipuck_tool> <!-- can be unipuck: 1   or double/gripper:  5 -->
- 
+
   <auto_prepare_diff>True</auto_prepare_diff>
 
   <channel type="tango" tangoname="bl13/eh/diff" name="shifts">MountingPosition</channel>

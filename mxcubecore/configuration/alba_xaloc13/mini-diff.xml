@@ -1,5 +1,5 @@
 <object class="ALBAMiniDiff">
- 
+
   <taurusname>bl13/eh/diff</taurusname>
 
   <!-- Specific for Xaloc -->
@@ -27,7 +27,7 @@
   <object href="/supervisor" role="beamline-supervisor"/>
 
   <object href="/beam-info" role="beam_info"/>
-  
+
   <sample_centring>True</sample_centring>
 
   <!--object href="/minikappa-correction" role="minikappa_correction"/-->

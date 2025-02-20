@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
- 
+
 """Transmission control for MANACA.
    Attenuator: ABS-300-12-C-DN-DN40 Flanges.
    Foils: #1, 8 um Al;
@@ -37,7 +37,7 @@ def read_input():
 
 def get_transmission(energy, transmission):
     transmission = transmission/100
-    # Expressions (interpolation) for calculations of MU (linear attenuation coeficient [cm^-1]) for each material in function of the beam energy. 
+    # Expressions (interpolation) for calculations of MU (linear attenuation coeficient [cm^-1]) for each material in function of the beam energy.
     # The data used to obtain the expressions (curve fitting) are from  "https://physics.nist.gov/PhysRefData/FFast/html/form.html"
     # This attenuation coeficients can be verified and optimised after experimental validation at the beamline.
     MU_Al = (78657.01011 * math.exp(-energy/0.65969)) + (6406.36151 * math.exp(-energy/1.63268)) + (492.29999 * math.exp(-energy/4.42554)) + (3.2588)
@@ -47,7 +47,7 @@ def get_transmission(energy, transmission):
     MU_Zr = (11143.28458 * math.exp(-energy/5.87029)) + (102.27474)
     MU_EMPTY = 0.0
     # Foils in ABS-attenuator. The dictionary gives the foil position and material in the key (e.g. 'F1_Al', position 1 occuped by an aluminium foil),
-    # and the thickness [um] in the value. The list gives the positions and materials, similar to the dictionary, and it is used in the combination. 
+    # and the thickness [um] in the value. The list gives the positions and materials, similar to the dictionary, and it is used in the combination.
     foils_dict = {'F0_EMPTY':0, 'F1_Al':8, 'F2_Al':10, 'F3_Al':20, 'F4_Al':80, 'F5_Al':160, 'F6_Al':320, 'F7_Al':800,
                   'F8_Al':1500, 'F9_Ti':8, 'F10_Cu':10, 'F11_Au':5, 'F12_Zr':25}
 
@@ -64,10 +64,10 @@ def get_transmission(energy, transmission):
         attenuator_position = attenuator_position[0:12]
     elif energy >= 18.5:
         attenuator_position = attenuator_position[0:13]
-    
+
     foils_comb = []
     atten_coef_sum = []
-    
+
     # calculate the all possible unique combinations
     for i in range(1, len(attenuator_position)+1):
         product = itertools.combinations(attenuator_position, i)
@@ -75,7 +75,7 @@ def get_transmission(energy, transmission):
             foils_comb.append(list(item))
     # calculate the product of MU (cm^-1) * thickness (cm) for each material (MU * d)
     # and sum the products to obtain the total (final) attenuation for each possible combination.
-    # and put the results (total attenuation) in a list. 
+    # and put the results (total attenuation) in a list.
     comb_sum = []
     for item in foils_comb:
         comb_tmp = []
@@ -114,11 +114,11 @@ def get_transmission(energy, transmission):
 
 
 def set_foils(filter_combination):
-    
+
     # declare a list with available foils and a dictionary with epics PV class (FOIL ACT, FOIL IN, FOIL OUT) for each foil
     attenuator_position = ['F1_Al', 'F2_Al', 'F3_Al', 'F4_Al', 'F5_Al', 'F6_Al', 'F7_Al', 'F8_Al',
                            'F9_Ti', 'F10_Cu', 'F11_Au', 'F12_Zr']
-    
+
     foils_pv = {'F1_Al':(PV('MNC:B:RIO01:9474C:bo0'), PV('MNC:B:RIO01:9425A:bi11'), PV('MNC:B:RIO01:9425A:bi12')),
                  'F2_Al':(PV('MNC:B:RIO01:9474C:bo1'), PV('MNC:B:RIO01:9425A:bi10'), PV('MNC:B:RIO01:9425A:bi13')),
                  'F3_Al':(PV('MNC:B:RIO01:9474C:bo2'), PV('MNC:B:RIO01:9425A:bi9'), PV('MNC:B:RIO01:9425A:bi14')),
@@ -133,9 +133,9 @@ def set_foils(filter_combination):
                  'F12_Zr':(PV('MNC:B:RIO01:9474D:bo3'), PV('MNC:B:RIO01:9425A:bi0'), PV('MNC:B:RIO01:9425A:bi23'))}
 
     # setup the foils: check foil status, put the foils in the 'filter_combination' and remove the others
-    
+
     wt = 0.1
-    
+
     # the commented lines bellow works for the attenuator expected logic (0 for foil out and 1 for foil in).
     # as the current logic is inverted (1 is foil out and 0 is foil in) use the uncommented lines.
 
@@ -166,7 +166,7 @@ def set_foils(filter_combination):
             elif foils_pv[foil][1].get() == foils_pv[foil][2].get():
                 status = 1
                 break
-    
+
     return status
 
 
@@ -176,7 +176,7 @@ def main():
     transmission_setup = get_transmission(energy, transmission)
     # transmission required by the user
     user_transmission = transmission_setup[0] * 100
-    # real transmission got with calculated foil combination 
+    # real transmission got with calculated foil combination
     actual_transmission = round(transmission_setup[1] * 100, 2)
     # calculated foil combination to get the required transmission
     filter_combination = transmission_setup[2]

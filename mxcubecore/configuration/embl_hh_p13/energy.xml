@@ -1,6 +1,6 @@
 <object class = "EMBLEnergy">
   <command type="tine" name="cmdSetEnergy" tinename="/P13/Energy/P13Energy" timeout="10000">TgtEnergy</command>
-  <channel type="tine" name="chanEnergy" tinename="/P13/Energy/P13Energy">Energy</channel>    
+  <channel type="tine" name="chanEnergy" tinename="/P13/Energy/P13Energy">Energy</channel>
   <!-- <channel type="tine" name="chanLimitLow" tinename="/P13/Energy/P13Energy">ELimitLow</channel>
   <channel type="tine" name="chanLimitHigh" tinename="/P13/Energy/P13Energy">ELimitHigh</channel>  -->
   <channel type="tine" name="chanStatus" tinename="/P13/Energy/P13Energy">Status</channel>
@@ -9,7 +9,7 @@
 
   <command type="tine" name="cmdEnergyCtrlByte" tinename="/P13/Energy/P13Energy" timeout="5000">EnergyCtrlByte</command>
   <command type="tine" name="cmdReleaseBreakBragg" tinename="/P13/MonoBragg/Device 0">ReleaseBreakBragg</command>
-  <command type="tine" name="cmdSetBreakBragg" tinename="/P13/MonoBragg/Device 0">SetBreakBragg</command>  
+  <command type="tine" name="cmdSetBreakBragg" tinename="/P13/MonoBragg/Device 0">SetBreakBragg</command>
   <command type="tine" name="cmdResetPerp" tinename="/P13/p13mono/perp">reset</command>
 
 

@@ -73,7 +73,7 @@ class EPICSActuator(AbstractActuator.AbstractActuator):
         if self.__wait_actuator_task is not None:
             self.__wait_actuator_task.kill()
         self.update_state(self.STATES.READY)
-        
+
     def _set_value(self, value):
         """ Override AbstractActuator method."""
         self.set_channel_value(self.ACTUATOR_VAL, value)

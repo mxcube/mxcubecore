@@ -6,7 +6,7 @@
   <channel type="tine" name="chanStatus" tinename="/P14/detector/eiger16m-cdte">status</channel>
   <channel type="tine" name="chanRoiMode" tinename="/P14/detector/eiger16m-cdte" attach="datachange">detector-mode</channel>
   <channel type="tine" name="chanFrameRate" tinename="/P14/detector/eiger16m-cdte">frame-rate</channel>
-  <channel type="tine" name="chanBeamXY" tinename="/P14/detector/eiger16m-cdte">beam-xy</channel> 
+  <channel type="tine" name="chanBeamXY" tinename="/P14/detector/eiger16m-cdte">beam-xy</channel>
   <channel type="tine" name="chanActualFrameRate" tinename="/P14/rideau/tioga">average-speed</channel>
 
   <channel type="tine" name="chanCoverState" tinename="/P14/P14DetTrans.CDI/GuillCmd" size="2">RECV</channel>
@@ -25,7 +25,7 @@
   <hasShutterless>True</hasShutterless>
   <fileSuffix>cbf</fileSuffix>
   <bindingMode>Unbinned</bindingMode>
-  <defaultDistance>0</defaultDistance> 
+  <defaultDistance>0</defaultDistance>
   <px_min>0</px_min>
   <px_max>64000</px_max>
 

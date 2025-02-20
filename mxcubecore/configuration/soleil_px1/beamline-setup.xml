@@ -13,7 +13,7 @@
   <object href="/omega" role="omega_axis"/>
   <object href="/chi" role="kappa_axis"/>
   <object href="/phi" role="kappa_phi_axis"/>
-  <object href="/cryotong" role="sample_changer"/>    
+  <object href="/cryotong" role="sample_changer"/>
   <object href="/resolution" role="resolution"/>
   <object href="/energy" role="energy"/>
   <object href="/energyscan" role="energyscan"/>
@@ -32,9 +32,9 @@
   <object href="/ednaparams" role="workflow"/>
   <object href="/data-analysis" role="data_analysis"/>
   <!--<object href="/workflow-mockup" role="workflow"/> -->
- 
+
   <!-- Procedures and routines -->
-  <object href="/mxcollect" role="collect"/> 
+  <object href="/mxcollect" role="collect"/>
   <object href="/pilatus" role="detector"/>
 
   <!-- Is it possible to change the beam wavelentgh.

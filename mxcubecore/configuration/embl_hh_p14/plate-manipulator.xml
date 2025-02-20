@@ -3,7 +3,7 @@
    <command type="exporter" name="startMovePlateToLocation">startMovePlateToLocation</command>
    <channel type="exporter" name="PlateLocation">PlateLocation</channel>
    <channel type="exporter" name="State">State</channel>
-   <channel type="exporter" name="CurrentPhase">CurrentPhase</channel> 
+   <channel type="exporter" name="CurrentPhase">CurrentPhase</channel>
 
    <!-- Comment next line if kappa is used -->
    <!-- <channel type="tine" name="PlateLocation" tinename="/P14/MD3/MD3_0">PlateLocation</channel> -->

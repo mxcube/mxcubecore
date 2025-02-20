@@ -1,9 +1,9 @@
 <object class="EMBLMotorsGroup">
-    <username>slitsMotors</username>	
+    <username>slitsMotors</username>
     <serverAddr>/P14/P14Atto</serverAddr>
     <groupAddr>/Sl4Out</groupAddr>
     <positionAddr>Position</positionAddr>
-    <statusAddr>status</statusAddr>			
+    <statusAddr>status</statusAddr>
     <motors>
 	<motor>
           <motorName>Out</motorName>

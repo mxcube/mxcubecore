@@ -1,4 +1,4 @@
-<object class = "ALBASession" role = "session">  
+<object class = "ALBASession" role = "session">
   <!-- ATTENTION . base data directories are overwritten in ALBA -->
   <!--   the value in ldap homeDirectory is used for the three base directories -->
   <!--      base_directory, base_process_directory, base_archive_directory -->

@@ -8,4 +8,4 @@
   <channel type="spec" name="flag" version="lid232:eh1">FLUX_CALCULATION_FLAG</channel>
   <object role="shutter" href="/safshut"/>
   <object role="energy" href="/oh1/energy"/>
-</object> 
+</object>

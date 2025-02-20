@@ -114,7 +114,7 @@ class P11BackLight(AbstractNState):
             self.cmd_started = time.time()
 
     def update_light_state(self, value=None):
-        """Updates light state 
+        """Updates light state
 
         :return: light state as str
         """

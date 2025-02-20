@@ -167,7 +167,7 @@ class P11DetectorCover(AbstractShutter):
         self.update_cover_state()
 
     def update_cover_state(self):
-        """Updates cover state 
+        """Updates cover state
 
         :return: cover state as str
         """

@@ -1,7 +1,7 @@
 <object class="EMBLMachineInfo">
     <object href="/session" role="session"/>
     <object href="/safshut" role="shutter"/>
- 
+
     <channel type="tine" name="machStateText" tinename="/PETRA/ARCHIVER/keyword" attach="datachange">MachineStateText</channel>
     <channel type="tine" name="machCurrent" tinename="/PETRA/ARCHIVER/keyword" >curDC</channel>
     <channel type="tine" name="machEnergy" tinename="/PETRA/ARCHIVER/keyword" attach="datachange">Energy</channel>

@@ -27,7 +27,7 @@
   <object href="/centring-math" role="centring"/>
   <object href="/minikappa-correction" role="minikappa_correction"/>
 
-  <use_sample_changer>True</use_sample_changer> 
+  <use_sample_changer>True</use_sample_changer>
   <zoom_centre>{"x": 605,"y": 652}</zoom_centre>
 
   <!-- Alignment Z -->

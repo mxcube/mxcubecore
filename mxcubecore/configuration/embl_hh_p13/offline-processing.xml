@@ -3,7 +3,7 @@
     <program>
       <executable>ssh bcrunch srun /mx-beta/edna-cluster-scripts/edna_proc.csh</executable>
       <event>after</event>
-    </program> 
+    </program>
     <program>
       <executable>ssh bcrunch srun /mx-beta/edna-cluster-scripts/edna_autoPROC.csh</executable>
       <event>after</event>

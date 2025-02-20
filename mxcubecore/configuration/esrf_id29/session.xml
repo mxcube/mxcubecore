@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<object class = "Session" role = "session">  
+<object class = "Session" role = "session">
 
   <endstation_name>id29</endstation_name>
   <beamline_name>ID29</beamline_name>

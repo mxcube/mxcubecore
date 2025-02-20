@@ -1,6 +1,6 @@
 <object class="ID29MultiCollect">
   <specversion>lid292:exp</specversion>
-  
+
   <object href="/dbconnection" role="dbserver"/>
   <object href="/safshut" role="safety_shutter"/>
   <object href="/mxlocal" role="beamline_configuration"/>
@@ -41,7 +41,7 @@
   <channel type="spec" name="shutterless">PILATUS_SHUT</channel>
   <command type="spec" name="local_set_experiment_type">pilatus_set_experiment_type</command>
   <command type="spec" name="specific_collect_frame_hook">pilatus_postframe_actions</command>
-  <command type="spec" name="prepare_beamline">prodc_prepare_beamline</command>  
+  <command type="spec" name="prepare_beamline">prodc_prepare_beamline</command>
   <command type="spec" version="lid292:exp" name="reset_detector">id29_finish_bl</command>
   <channel type="spec" version="lid292:exp" name="xds_filename">XDS_INPUT_FILENAME</channel>
   <channel type="spec" version="lid292:exp" name="spec_messages">eprodc_log_message</channel>

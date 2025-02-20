@@ -6,7 +6,7 @@
   <object href="/diff-omega-mockup" role="omega_axis"/>
   <object href="/diff-kappa-mockup" role="kappa_axis"/>
   <object href="/diff-kappaphi-mockup" role="kappa_phi_axis"/>
-  <object href="/sc-mockup" role="sample_changer"/>    
+  <object href="/sc-mockup" role="sample_changer"/>
   <object href="/plate-manipulator" role="plate_manipulator"/>
   <object href="/resolution-mockup" role="resolution"/>
   <object href="/energy-mockup" role="energy"/>
@@ -23,7 +23,7 @@
   <!--<object href="/workflow-mockup" role="workflow"/> -->
   <object href="/gphl_beamline_config/gphl-workflow" role="gphl_workflows"/>
   <object href="/gphl_beamline_config/gphl-connection" role="gphl_connection"/>
- 
+
   <!-- Procedures and routines -->
   <object href="/energyscan-mockup" role="energyscan"/>
   <object href="/mxcollect" role="collect"/>
