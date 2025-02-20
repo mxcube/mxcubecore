@@ -175,7 +175,7 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         self.first_launch_mxcube = True  # 添加
         self.if_check_mountedPin_from_camerman = False
         self.write_sample_dir()  # 加载sample的prefix和subdir
-        # self.get_loaded_sample_fromstart()
+        self.get_loaded_sample_fromstart()
 
     def write_sample_dir(self):  # 添加
         """
@@ -739,28 +739,20 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
                 # self.synchronize_with_camerman()
                 # 判断机械手当前状态，如果位置在dewar里，就不用判断close lid
 
-                # 代修改
+                # 代修改,(原先actor还要判断机械手在不在dwear里来判断要不要close lid)
+                print("try to get loaded sample info from flex robot")
                 ret = self._cmdGetMountedSamplePosition()
                 # ret = self._cmdGetStatus()
                 # print("self._cmdGetStatus")
-                print(ret)
-                index_MountedPin = ret.index('MountedPin')
-                MountedPin = ret[index_MountedPin + 2]
-                # 不在dewar里
-                MountedPin = int(MountedPin)
-                if MountedPin != 0:
-                    self._selected_basket = int(MountedPin / 100)
-                    self._selected_sample = MountedPin % 100
+                print("the result of loaded sample info: ",ret)
+                MountedPin = ret
+                #无样品： [-1,-1,-1]
+                self._selected_basket = MountedPin[1]
+                self._selected_sample = MountedPin[2]
+
 
     def get_loaded_sample(self):
-        # 当mxcube重起，向camerman询问已上样信息
-        # logging.getLogger("HWR").debug(
-        #     "get into get_loaded_sample in sc_maint"
-        # )
-        # s = traceback.extract_stack()
-        # logging.getLogger("HWR").debug(
-        #     "%s[-2][2] invoked me",s
-        # )
+        # 在mxcube内部查询已上样的样品信息
 
         return self.get_component_by_address(
             Container.Pin.get_sample_address(

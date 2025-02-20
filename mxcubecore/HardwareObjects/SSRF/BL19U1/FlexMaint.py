@@ -818,7 +818,6 @@ class FlexMaint(Equipment):
         if cmd_name == "estop":
             print("estop")
             self._E_STOP()
-        #20231226
         if cmd_name == "synchronize":
             logging.getLogger("HWR").debug(
                 "synchronize with camerman"
