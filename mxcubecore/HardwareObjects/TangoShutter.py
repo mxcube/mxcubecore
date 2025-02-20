@@ -40,10 +40,10 @@ When redefining a known state, only the VALUES Enum will be updated.
 When defining a new state (new key), the dictionary value should be a
 list. The new state is added to both the VALUES and the SPECIFIC_STATES Enum.
 Attention:
- - do not use tuples or the python json parser will fail!
- - make sure only double quotes are used inside the values dictionary. No single quotes (') are allowed !
- - the second element of the list should be a standard HardwareObjectState name
- (UNKNOWN, WARNING, BUSY, READY, FAULT, OFF - see in BaseHardwareObjects.py)!
+    - do not use tuples or the python json parser will fail!
+    - make sure only double quotes are used inside the values dictionary. No single quotes (') are allowed !
+    - the second element of the list should be a standard HardwareObjectState name
+    (UNKNOWN, WARNING, BUSY, READY, FAULT, OFF - see in BaseHardwareObjects.py)!
 The <values> property is optional.
 """
 
@@ -53,6 +53,8 @@ from enum import (
     Enum,
     unique,
 )
+
+from tango import DevState
 
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
@@ -80,13 +82,13 @@ class TangoShutter(AbstractShutter):
 
     SPECIFIC_STATES = TangoShutterStates
 
-    def __init__(self, name):
+    def __init__(self, name: str):
         super().__init__(name)
         self.open_cmd = None
         self.close_cmd = None
         self.state_channel = None
 
-    def init(self):
+    def init(self) -> None:
         """Initilise the predefined values"""
         super().init()
         self.open_cmd = self.get_command_object("Open")
@@ -96,14 +98,14 @@ class TangoShutter(AbstractShutter):
         self.state_channel.connect_signal("update", self._update_value)
         self.update_state()
 
-    def _update_value(self, value):
+    def _update_value(self, value: DevState) -> None:
         """Update the value.
         Args:
-            value(str): The value reported by the state channel.
+            value: The value reported by the state channel.
         """
         super().update_value(self.value_to_enum(str(value)))
 
-    def _initialise_values(self):
+    def _initialise_values(self) -> None:
         """Add specific tango states to VALUES and, if configured
         in the xml file, to SPECIFIC_STATES"""
         values_dict = {item.name: item.value for item in self.VALUES}
@@ -124,13 +126,13 @@ class TangoShutter(AbstractShutter):
                     states_dict.update({key: (HardwareObjectState[val[1]], val[0])})
                 else:
                     values_dict.update({key: val})
-        except (ValueError, TypeError) as err:
-            logging.error(f"Exception in _initialise_values(): {err}")
+        except (ValueError, TypeError):
+            logging.exception("Exception in _initialise_values()")
 
         self.VALUES = Enum("ValueEnum", values_dict)
         self.SPECIFIC_STATES = Enum("TangoShutterStates", states_dict)
 
-    def get_state(self):
+    def get_state(self) -> HardwareObjectState:
         """Get the device state.
         Returns:
             (enum 'HardwareObjectState'): Device state.
@@ -138,11 +140,11 @@ class TangoShutter(AbstractShutter):
         try:
             _state = self.get_value().name
             return self.SPECIFIC_STATES[_state].value[0]
-        except (AttributeError, KeyError) as err:
-            logging.error(f"Exception in get_state(): {err}")
+        except (AttributeError, KeyError):
+            logging.exception("Exception in get_state()")
             return self.STATES.UNKNOWN
 
-    def get_value(self):
+    def get_value(self) -> TangoShutterStates:
         """Get the device value
         Returns:
             (Enum): Enum member, corresponding to the 'VALUE' or UNKNOWN.
@@ -150,7 +152,7 @@ class TangoShutter(AbstractShutter):
         _val = str(self.state_channel.get_value())
         return self.value_to_enum(_val)
 
-    def _set_value(self, value):
+    def _set_value(self, value: TangoShutterStates) -> None:
         if value.name == "OPEN":
             self.open_cmd()
         elif value.name == "CLOSED":
