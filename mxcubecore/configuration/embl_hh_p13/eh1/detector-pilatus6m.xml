@@ -10,7 +10,7 @@
   <channel type="tine" name="chanHumidity" tinename="/P13/detector/pilatus6m">humidity</channel>
   <channel type="tine" name="chanStatus" tinename="/P13/detector/pilatus6m">status</channel>
   <channel type="tine" name="chanRoiMode" tinename="/P13/detector/pilatus6m">detector-mode</channel>
-  <channel type="tine" name="chanFrameRate" tinename="/P13/detector/pilatus6m">frame-rate</channel> 
+  <channel type="tine" name="chanFrameRate" tinename="/P13/detector/pilatus6m">frame-rate</channel>
   <channel type="tine" name="chanBeamXY" tinename="/P13/detector/pilatus6m">beam-xy</channel>
 
   <channel type="tine" name="chanCoverState" tinename="/P13/P13DetTrans.CDI/GuillCmd" size="2">RECV</channel>

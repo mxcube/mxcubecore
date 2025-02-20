@@ -8,6 +8,6 @@
    <channel type="tine" name="fluxMessage" tinename="/P14/flux-history/flux-record" attach="datachange">error</channel>
 
    <command type="tine" name="fluxRecord" tinename="/P14/flux-history/flux-record">intensity</command>
-   <command type="tine" name="slitsRecord" tinename="/P14/flux-history/flux-record">beam-size</command>  
-   <intensity_offset>6.65-e7</intensity_offset> 
+   <command type="tine" name="slitsRecord" tinename="/P14/flux-history/flux-record">beam-size</command>
+   <intensity_offset>6.65-e7</intensity_offset>
 </object>

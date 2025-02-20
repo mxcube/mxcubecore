@@ -3,9 +3,9 @@
   <motors>
   <back>
       <object hwrid="/eh1/s2v" role="s2v"/>
-      <object hwrid="/eh1/t2v" role="t2v"/>  
-      <object hwrid="/eh1/s2h" role="s2h"/>  
-      <object hwrid="/eh1/t2h" role="t2h"/>  
+      <object hwrid="/eh1/t2v" role="t2v"/>
+      <object hwrid="/eh1/s2h" role="s2h"/>
+      <object hwrid="/eh1/t2h" role="t2h"/>
   </back>
   <front>
       <object hwrid="/eh1/s1v" role="s1v"/>

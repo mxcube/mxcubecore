@@ -10,15 +10,15 @@
     <archiveFolder>/data/pyarch/id23eh1/C3D/archive_images</archiveFolder>
     <outputFolder>/users/blissadm/applications/c3d/output</outputFolder>
     <statsFile>/users/blissadm/log/Mxautocentring_stats.log</statsFile>
-    
-    
+
+
     <calibrationMacro>minidiff_take_backgrounds</calibrationMacro>
     <maxhmove>1.3</maxhmove>
-    <maxvmove>1.3</maxvmove> 
+    <maxvmove>1.3</maxvmove>
     <maxNoise>50</maxNoise>
     <maxBackgroundDrift>8</maxBackgroundDrift>
-    <cryoShadowMargin>80</cryoShadowMargin> 
-    <ringMargin>35</ringMargin> 
+    <cryoShadowMargin>80</cryoShadowMargin>
+    <ringMargin>35</ringMargin>
     <phiyDirection>1</phiyDirection>
     <beamline>id23eh1</beamline>
     <allowPlayback>1</allowPlayback>
@@ -70,7 +70,7 @@
   <motors>
   <phi-shutter>
       <object role="phi" hwrid="/eh1/phi"></object>
-      <object role="phiz" hwrid="/eh1/phiz"></object>  
+      <object role="phiz" hwrid="/eh1/phiz"></object>
       <object hwrid="/eh1/shuty"></object>
       <object hwrid="/eh1/shutz"></object>
       <object hwrid="/eh1/shut"></object>
@@ -80,7 +80,7 @@
       <object role="light" hwrid="/eh1/light"></object>
       <object role="flight" hwrid="/eh1/flight"></object>
       <object role="focus" hwrid="/eh1/focus"></object>
-      <object role="phiy" hwrid="/eh1/length"></object>  
+      <object role="phiy" hwrid="/eh1/length"></object>
       <object role="sampx" hwrid="/eh1/sampx"></object>
       <object role="sampy" hwrid="/eh1/sampy"></object>
       <object role="kappa" hwrid="/eh1/kap1"></object>
@@ -88,8 +88,8 @@
   </sample>
   <others>
       <object hwrid="/eh1/bstopy"></object>
-      <object role="bstopz" hwrid="/eh1/bstopz"></object>  
-      <object hwrid="/eh1/DtoX"></object>  
+      <object role="bstopz" hwrid="/eh1/bstopz"></object>
+      <object hwrid="/eh1/DtoX"></object>
   </others>
   </motors>
   <aperture>/apzy</aperture>

@@ -9,7 +9,7 @@
   </pseudo>
   <real>
       <object hwrid="/oh/motors/mono"/>
-      <object hwrid="/oh/motors/push111"/>  
+      <object hwrid="/oh/motors/push111"/>
       <object hwrid="/oh/motors/push311"/>
   </real>
   </motors>

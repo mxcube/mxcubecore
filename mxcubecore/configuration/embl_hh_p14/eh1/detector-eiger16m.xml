@@ -21,7 +21,7 @@
   <channel type="tine" name="chanStatus" tinename="/P14/detector/eiger16m">status</channel>
   <channel type="tine" name="chanRoiMode" tinename="/P14/detector/eiger16m" attach="datachange">detector-mode</channel>
   <channel type="tine" name="chanFrameRate" tinename="/P14/detector/eiger16m">frame-rate</channel>
-  <channel type="tine" name="chanBeamXY" tinename="/P14/detector/eiger16m">beam-xy</channel> 
+  <channel type="tine" name="chanBeamXY" tinename="/P14/detector/eiger16m">beam-xy</channel>
   <channel type="tine" name="chanActualFrameRate" tinename="/P14/tioga/tioga">average-speed</channel>
 
   <channel type="tine" name="chanCoverState" tinename="/P14/P14DetTrans.CDI/GuillCmd" size="2">RECV</channel>
@@ -43,7 +43,7 @@
   <collectName>pilatus6m</collectName>
   <roiModes>("0", "C18", "C2")</roiModes-->
 
-  
+
   <type>Eiger</type>
   <model>16M</model>
   <collectName>eiger16m</collectName>
@@ -55,7 +55,7 @@
   <hasShutterless>True</hasShutterless>
   <fileSuffix>cbf</fileSuffix>
   <bindingMode>Unbinned</bindingMode>
-  <defaultDistance>0</defaultDistance> 
+  <defaultDistance>0</defaultDistance>
   <px_min>0</px_min>
   <px_max>64000</px_max>
 

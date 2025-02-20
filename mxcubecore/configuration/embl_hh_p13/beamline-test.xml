@@ -7,8 +7,8 @@
     <channel type="tine" name="intensRange" tinename="/P13/BCUIntensity/Device0">CurrentRange.set</channel-->
 
     <channel type="tine" name="chanPitchScanStatus" tinename="/P13/p13mono.cdi/PitchScanStat" attach="datachange">PitchScanStat</channel>
- 
-    <!-- 
+
+    <!--
     <channel type="tine" name="chanQBPMAr" tinename="/P13/p13mono.cdi/QBPMAr">RECV</channel>
     <channel type="tine" name="chanPitchPositionAr" tinename="/P13/p13mono.cdi/VPitchAr">RECV</channel>
     <channel type="tine" name="chanEncAr" tinename="/P13/p13mono.cdi/EncAr">RECV</channel>
@@ -20,10 +20,10 @@
     <command type="tine" name="cmdStartPitchScan" tinename="/P13/p13mono.cdi/StartPitchScan">SEND</command>
     <command type="tine" name="cmdSetVMaxPitch" tinename="/p13/p13mono.cdi/SetVMaxPitch">SEND</command>
     <command type="tine" name="cmdQBPMRangeSet" tinename="/P13/QBPM1/Device0">CurrentRange.set</command>
-  
+
 
     <!-- available_tests is a list of selected tests:
- 
+
         "summary": "Beamline summary",
         "com": "Communication with beamline devices",
         "ppu": "PPU control",
@@ -37,7 +37,7 @@
         "graph": "Graph"}
     <available_tests>["ppu", "autocentring", "com", "sc_stats"]</available_tests>
     -->
-    
+
     <startup_tests>["measure_intensity"]</startup_tests>
     <scale_hor>-0.020</scale_hor>
     <scale_ver>-0.020</scale_ver>

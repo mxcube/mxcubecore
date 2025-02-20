@@ -7,13 +7,13 @@
 
   <command type="tine" name="cmdEnergyCtrlByte" tinename="/P14/Energy/P14Energy">EnergyCtrlByte</command>
   <command type="tine" name="cmdReleaseBreakBragg" tinename="/P14/Mono/Device 0">ReleaseBreakBragg</command>
-  <command type="tine" name="cmdSetBreakBragg" tinename="/P14/Mono/Device 0">SetBreakBragg</command> 
+  <command type="tine" name="cmdSetBreakBragg" tinename="/P14/Mono/Device 0">SetBreakBragg</command>
 
   <tunableEnergy>True</tunableEnergy>
   <!-- Configuration with undulators -->
   <ctrlBytes>(5, 15)</ctrlBytes>
 
-  <!-- 
+  <!--
   if change > 0.1 keV ctrlByte[1]
   else ctrlByte[0]
 

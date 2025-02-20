@@ -1,7 +1,7 @@
 <object class="BeamlineSetup" role="BeamlineSetup">
   <object href="/attenuators" role="transmission"/>
   <object href="/minidiff" role="diffractometer"/>
-  <object href="/sc" role="sample_changer"/>    
+  <object href="/sc" role="sample_changer"/>
   <object href="/eh1/res" role="resolution"/>
   <object href="/eh1/horizontal_motors" role="horizontal_motors"/>
   <object href="/eh1/vertical_motors" role="vertical_motors"/>
@@ -12,7 +12,7 @@
   <object href="/dbconnection" role="lims_client"/>
   <object href="/data-analysis" role="data_analysis"/>
   <object href="/ednaparams" role="workflow"/>
- 
+
   <object href="/mxcollect" role="collect"/>
   <object href="/energyscan" role="energy"/>
 

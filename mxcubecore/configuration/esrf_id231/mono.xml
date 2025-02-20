@@ -8,7 +8,7 @@
   </pseudo>
   <real>
       <object hwrid="/oh1/mono"/>
-      <object hwrid="/oh1/push111"/>  
+      <object hwrid="/oh1/push111"/>
   </real>
   </motors>
   <specname>basil:oh1</specname>

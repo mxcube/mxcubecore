@@ -4,8 +4,8 @@
   <motors>
     <slit1>
       <object hwrid="/exp/s1v" role="s1v"/>
-      <object hwrid="/exp/t1v" role="t1v"/>  
-      <object hwrid="/exp/s1h" role="s1h"/>  
+      <object hwrid="/exp/t1v" role="t1v"/>
+      <object hwrid="/exp/s1h" role="s1h"/>
       <object hwrid="/exp/t1h" role="t1h"/>
       <realmots>t1v t1h</realmots>
     </slit1>

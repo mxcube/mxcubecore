@@ -12,8 +12,8 @@
     <channel type="exporter" name="CapillaryPosition">CapillaryPosition</channel>
     <channel type="exporter" name="TransferMode">TransferMode</channel>
     <channel type="exporter" name="SampleIsLoaded">SampleIsLoaded</channel>
-    
-    
+
+
     <command type="exporter" name="startSetPhase">startSetPhase</command>
     <command type="exporter" name="startAutoFocus">startAutoFocus</command>
     <command type="exporter" name="saveCentringPositions">saveCentringPositions</command>
@@ -34,8 +34,8 @@
     <object href="/singleton_objects/minikappa-correction" role="minikappa_correction"/>
     <object href="/singleton_objects/camera" role="camera"/>
     <object href="/singleton_objects/cats" role="samplechanger"/>
-    
-    <use_sample_changer>True</use_sample_changer> 
+
+    <use_sample_changer>True</use_sample_changer>
     <zoom_centre>{"x": 680,"y": 512}</zoom_centre>
 
     <omega_reference>{"actuator_name": "phiz", "position": -0.121, "camera_axis":"y","direction": -1}</omega_reference>

@@ -2,8 +2,8 @@
 
   <username>CryoTong</username>
 
-  <tangoname>i10-c-cx1/ex/catscryotong</tangoname>    
-  <cats_device>i10-c-cx1/ex/cats</cats_device>    
+  <tangoname>i10-c-cx1/ex/catscryotong</tangoname>
+  <cats_device>i10-c-cx1/ex/cats</cats_device>
 
   <useUpdateTimer>False</useUpdateTimer>
 
@@ -11,8 +11,8 @@
   <no_of_baskets>3</no_of_baskets>
   <samples_per_basket>16</samples_per_basket>
 
-  <object role="environment" href="/px1environment" /> 
- 
+  <object role="environment" href="/px1environment" />
+
   <!-- beware some channels are connected to PyCats server, not to cryotong server -->
   <command type="tango" tangoname="i10-c-cx1/ex/cats" name="_cmdScanSample">barcode</command>
 
@@ -60,8 +60,8 @@
   <channel type="tango" polling="1000" name="_chnNumLoadedSample">numSampleOnDiff</channel>
 
 
-  <!-- CHANNELS FROM CATS --> 
-  
+  <!-- CHANNELS FROM CATS -->
+
   <channel type="tango" polling="events" tangoname="i10-c-cx1/ex/cats" name="_chnSampleIsDetected">di_PRI4_SOM</channel>
   <channel type="tango" polling="events" tangoname="i10-c-cx1/ex/cats" name="_chnTotalLidState">di_AllLidsClosed</channel>
 

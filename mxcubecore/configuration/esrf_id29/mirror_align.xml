@@ -41,7 +41,7 @@
     <intensity_counter>mirrbvi</intensity_counter>
     <beamx_counter>mirrbvx</beamx_counter>
     <beamy_counter>mirrbvy</beamy_counter>
-    
+
     <slit_hgap>2</slit_hgap>
     <slit_vgap>0.1</slit_vgap>
     <!--

@@ -4,7 +4,7 @@
    <channel type="tine" name="fluxStatus" tinename="/P13/flux-history/flux-record">status</channel>
    <channel type="tine" name="fluxMessage" tinename="/P13/flux-history/flux-record" attach="datachange">error</channel>
    <channel type="tine" name="fluxTransmission" tinename="/P13/flux-history/flux-record">transmission</channel>
-   <command type="tine" name="fluxRecord" tinename="/P13/flux-history/flux-record">intensity</command> 
-   
+   <command type="tine" name="fluxRecord" tinename="/P13/flux-history/flux-record">intensity</command>
+
    <intensity_offset>-1.864e-5</intensity_offset>
 </object>

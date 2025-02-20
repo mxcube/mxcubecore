@@ -10,6 +10,6 @@
   <command type="tango" name="set_values_map">SetScalarValuesMap</command>
   <command type="tango" name="get_values_map">GetScalarValuesMap</command>
   <command type="tango" name="get_available_workflows">GetAvailableWorkflows</command>
-  <channel type="tango" name="state" polling="500">StateAttribute</channel> 
-  <channel type="tango" name="current_actor" polling="500">RunningActorName</channel> 
+  <channel type="tango" name="state" polling="500">StateAttribute</channel>
+  <channel type="tango" name="current_actor" polling="500">RunningActorName</channel>
 </object>

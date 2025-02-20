@@ -7,7 +7,7 @@
        <display>Center beam</display>
        <method>center_beam_report</method>
        <icon>QuickRealign</icon>
-     </tool> 
+     </tool>
      <tool>
        <hwobj>flux</hwobj>
        <display>Measure flux</display>

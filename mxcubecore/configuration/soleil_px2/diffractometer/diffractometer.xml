@@ -32,8 +32,8 @@
     <object href="/singleton_objects/minikappa-correction" role="minikappa_correction"/>
     <object href="/singleton_objects/camera" role="camera"/>
     <object href="/singleton_objects/cats" role="samplechanger"/>
-    
-    <use_sample_changer>True</use_sample_changer> 
+
+    <use_sample_changer>True</use_sample_changer>
     <zoom_centre>{"x": 680,"y": 512}</zoom_centre>
 
     <omega_reference>{"actuator_name": "phiz", "position": -0.121, "camera_axis":"y","direction": -1}</omega_reference>

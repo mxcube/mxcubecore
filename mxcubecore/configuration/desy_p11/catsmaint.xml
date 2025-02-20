@@ -1,7 +1,7 @@
 <object class = "sample_changer.CatsMaint">
   <username>CatsMaint</username>
-  <tangoname>bl141/cats/1</tangoname>    
-  
+  <tangoname>bl141/cats/1</tangoname>
+
   <command type="tango" name="_cmdReset">reset</command>
   <command type="tango" name="_cmdBack">back</command>
   <command type="tango" name="_cmdSafe">safe</command>

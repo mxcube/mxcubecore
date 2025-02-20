@@ -2,7 +2,7 @@
 -->
 <mxPowderCalibration>
     <numberOfInputImagesAsked>   13</numberOfInputImagesAsked>
-    <numberOfInputImagesRead>    13</numberOfInputImagesRead> 
+    <numberOfInputImagesRead>    13</numberOfInputImagesRead>
     <percentageOfIndexedSpots>    83.10</percentageOfIndexedSpots>
     <rmsd>  0.000939</rmsd>
     <refinedBeamCentreCalibration>

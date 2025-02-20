@@ -1,5 +1,5 @@
-<object class = "EMBLSession" role = "session">  
-  <synchrotron_name>EMBL-HH</synchrotron_name>	
+<object class = "EMBLSession" role = "session">
+  <synchrotron_name>EMBL-HH</synchrotron_name>
   <endstation_name>p14eh1</endstation_name>
   <beamline_name>P14</beamline_name>
   <file_info>

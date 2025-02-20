@@ -48,13 +48,13 @@ class LNLSEnergy(EPICSActuator, AbstractEnergy):
         #if abs(self._nominal_value - value) < 0.001:
         #    logging.getLogger("HWR").info("Pilatus threshold is still okay.")
         #    return value
-        
+
         threshold_ok = self.check_threshold_energy(value)
         if threshold_ok:
             self._nominal_value = value
         else:
            value = None  # Invalid energy because threshold is invalid
-        
+
         return value
 
     def check_threshold_energy(self, energy):

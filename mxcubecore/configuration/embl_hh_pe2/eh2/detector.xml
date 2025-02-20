@@ -2,13 +2,13 @@
   <object hwrid="/eh2/detector-distance" role="detector_distance"/>
 
 
-  <!-- 
+  <!--
   <channel type="tine" name="chanTemperature" tinename="/PE2/detector/eiger4m">temperature</channel>
   <channel type="tine" name="chanHumidity" tinename="/PE2/detector/eiger4m">humidity</channel>
   <channel type="tine" name="chanStatus" tinename="/PE2/detector/eiger4m">status</channel>
   <channel type="tine" name="chanRoiMode" tinename="/PE2/detector/eiger4m" attach="datachange">detector-mode</channel>
   <channel type="tine" name="chanFrameRate" tinename="/PE2/detector/eiger4m">frame-rate</channel>
-  <channel type="tine" name="chanBeamXY" tinename="/PE2/detector/eiger4m">beam-xy</channel> 
+  <channel type="tine" name="chanBeamXY" tinename="/PE2/detector/eiger4m">beam-xy</channel>
   <channel type="tine" name="chanActualFrameRate" tinename="/PE2/tioga/tioga">average-speed</channel>
   <command type="tine" name="cmdRestartDaq" tinename="/PE2/detector/eiger4m">initialize</command>
 
@@ -33,7 +33,7 @@
   <channel type="tine" name="chanStatus" tinename="/PE2/detector/pilatus2m">status</channel>
   <channel type="tine" name="chanRoiMode" tinename="/PE2/detector/pilatus2m" attach="datachange">detector-mode</channel>
   <channel type="tine" name="chanFrameRate" tinename="/PE2/detector/pilatus2m">frame-rate</channel>
-  <channel type="tine" name="chanBeamXY" tinename="/PE2/detector/pilatus2m">beam-xy</channel> 
+  <channel type="tine" name="chanBeamXY" tinename="/PE2/detector/pilatus2m">beam-xy</channel>
   <command type="tine" name="cmdRestartDaq" tinename="/PE2/detector/pilatus2m">initialize</command>
 
   <type>pilatus</type>

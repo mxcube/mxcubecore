@@ -2,7 +2,7 @@
   <username>vert</username>
   <direction>vertical</direction>
   <unit>1e-3</unit>
-  <object href="/udiff_omega" role="phi"/>  
-  <object href="/udiff_sampx" role="sampx"/>  
-  <object href="/udiff_sampy" role="sampy"/>  
+  <object href="/udiff_omega" role="phi"/>
+  <object href="/udiff_sampx" role="sampx"/>
+  <object href="/udiff_sampy" role="sampy"/>
 </object>

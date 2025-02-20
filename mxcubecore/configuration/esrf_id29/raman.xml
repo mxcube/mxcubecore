@@ -4,7 +4,7 @@
   <motors>
     <real>
       <object hwrid="/exp/ramx" role="ramx"/>
-      <object hwrid="/exp/ramy" role="ramy"/>  
+      <object hwrid="/exp/ramy" role="ramy"/>
       <object hwrid="/exp/ramz" role="ramz"/>
     </real>
   </motors>

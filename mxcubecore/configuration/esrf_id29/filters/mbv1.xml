@@ -14,7 +14,7 @@
      <username>Out</username>
      <offset>37.7</offset>
    </filter>
-<!--   
+<!--
    <filter>
      <username>Cu</username>
      <offset>50.80</offset>
@@ -34,6 +34,6 @@
    <filter>
      <username>diode</username>
      <offset>102.19</offset>
-   </filter> 
+   </filter>
 -->
 </object>

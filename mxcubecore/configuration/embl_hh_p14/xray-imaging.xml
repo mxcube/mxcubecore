@@ -1,5 +1,5 @@
 <object class="EMBLXrayImaging">
-  <!-- <channel type="tine" name="chanFrame" tinename="/P14/arapaho/arapaho" attach="event">frame</channel> 
+  <!-- <channel type="tine" name="chanFrame" tinename="/P14/arapaho/arapaho" attach="event">frame</channel>
 
   <channel type="tine" name="chanFrameCount" tinename="/P14/arapaho/arapaho" attach="datachange" timeout="100">frame-count</channel>
   <channel type="tine" name="chanFFSSIM" tinename="/P14/arapaho/arapaho" attach="event">ff-ssim</channel>
@@ -43,4 +43,4 @@
   <!--reference_angle>-0.003530541</reference_angle-->
   <!--reference_angle>-0.0031490</reference_angle at 0.5  to 1.0 m -->
   <!--reference_angle>0.003482</reference_angle through the mirrors-->
-</object>     
+</object>
