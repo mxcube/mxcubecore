@@ -472,10 +472,10 @@ class ISPyBClient(HardwareObject):
                         if session is not None:
                             try:
                                 session.startDate = datetime.strftime(
-                                    session.startDate, "%Y-%m-%d %H:%M:%S"
+                                    session.startDate, "%Y-%m-%dT%H:%M:%S"
                                 )
                                 session.endDate = datetime.strftime(
-                                    session.endDate, "%Y-%m-%d %H:%M:%S"
+                                    session.endDate, "%Y-%m-%dT%H:%M:%S"
                                 )
                             except Exception:
                                 pass
@@ -585,10 +585,10 @@ class ISPyBClient(HardwareObject):
                     if session is not None:
                         try:
                             session.startDate = datetime.strftime(
-                                session.startDate, "%Y-%m-%d %H:%M:%S"
+                                session.startDate, "%Y-%m-%dT%H:%M:%S"
                             )
                             session.endDate = datetime.strftime(
-                                session.endDate, "%Y-%m-%d %H:%M:%S"
+                                session.endDate, "%Y-%m-%dT%H:%M:%S"
                             )
                         except Exception:
                             pass
@@ -773,12 +773,12 @@ class ISPyBClient(HardwareObject):
                 start_date = "%s 00:00:00" % session["startDate"].split()[0]
                 end_date = "%s 23:59:59" % session["endDate"].split()[0]
                 try:
-                    start_struct = time.strptime(start_date, "%Y-%m-%d %H:%M:%S")
+                    start_struct = time.strptime(start_date, "%Y-%m-%dT%H:%M:%S")
                 except ValueError:
                     pass
                 else:
                     try:
-                        end_struct = time.strptime(end_date, "%Y-%m-%d %H:%M:%S")
+                        end_struct = time.strptime(end_date, "%Y-%m-%dT%H:%M:%S")
                     except ValueError:
                         pass
                     else:
@@ -796,7 +796,7 @@ class ISPyBClient(HardwareObject):
         if todays_session is None and create_session:
             new_session_flag = True
             current_time = time.localtime()
-            start_time = time.strftime("%Y-%m-%d 00:00:00", current_time)
+            start_time = time.strftime("%Y-%m-%dT00:00:00", current_time)
             end_time = time.mktime(current_time) + 60 * 60 * 24
             tomorrow = time.localtime(end_time)
             end_time = time.strftime("%Y-%m-%d 07:59:59", tomorrow)
@@ -991,6 +991,7 @@ class ISPyBClient(HardwareObject):
             return
 
         if self._collection:
+            collection_id=999999
             if "collection_id" in mx_collection:
                 try:
                     # Update the data collection group
@@ -1333,25 +1334,26 @@ class ISPyBClient(HardwareObject):
         :returns: The session id of the created session.
         :rtype: int
         """
+        
+        session_dict["timeStamp"] = datetime.fromisoformat(session_dict["timeStamp"]).strftime("%Y-%m-%dT%H:%M:%S")
         if self._collection:
 
             try:
                 # The old API used date formated strings and the new
                 # one uses DateTime objects.
                 session_dict["startDate"] = datetime.strptime(
-                    session_dict["startDate"], "%Y-%m-%d %H:%M:%S"
+                    session_dict["startDate"], "%Y-%m-%dT%H:%M:%S"
                 )
                 session_dict["endDate"] = datetime.strptime(
-                    session_dict["endDate"], "%Y-%m-%d %H:%M:%S"
+                    session_dict["endDate"], "%Y-%m-%dT%H:%M:%S"
                 )
 
                 try:
-                    session_dict["lastUpdate"] = datetime.strptime(
-                        session_dict["lastUpdate"].split("+")[0], "%Y-%m-%d %H:%M:%S"
-                    )
-                    session_dict["timeStamp"] = datetime.strptime(
-                        session_dict["timeStamp"].split("+")[0], "%Y-%m-%d %H:%M:%S"
-                    )
+                    
+
+                    session_dict["lastUpdate"] = datetime.fromisoformat(session_dict["lastUpdate"]).astimezone().strftime("%Y-%m-%dT%H:%M:%S")
+
+                    session_dict["timeStamp"] = datetime.fromisoformat(session_dict["timeStamp"]).strftime("%Y-%m-%dT%H:%M:%S")
                 except Exception:
                     pass
 
@@ -1362,10 +1364,10 @@ class ISPyBClient(HardwareObject):
                 # changing back to string representation of the dates,
                 # since the session_dict is used after this method is called,
                 session_dict["startDate"] = datetime.strftime(
-                    session_dict["startDate"], "%Y-%m-%d %H:%M:%S"
+                    session_dict["startDate"], "%Y-%m-%dT%H:%M:%S"
                 )
                 session_dict["endDate"] = datetime.strftime(
-                    session_dict["endDate"], "%Y-%m-%d %H:%M:%S"
+                    session_dict["endDate"], "%Y-%m-%dT%H:%M:%S"
                 )
 
             except WebFault as e:
@@ -1374,9 +1376,15 @@ class ISPyBClient(HardwareObject):
             except URLError:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
 
+            print(session_dict["timeStamp"])
+            session_dict["timeStamp"] = datetime.fromisoformat(session_dict["timeStamp"]).strftime("%Y-%m-%dT%H:%M:%S")
+
+            print(session_dict["timeStamp"])
             logging.getLogger("ispyb_client").info(
                 "[ISPYB] Session goona be created: session_dict %s" % session_dict
             )
+
+
             logging.getLogger("ispyb_client").info(
                 "[ISPYB] Session created: %s" % session
             )
@@ -1424,11 +1432,11 @@ class ISPyBClient(HardwareObject):
 
             try:
                 energyscan_dict["startTime"] = datetime.strptime(
-                    energyscan_dict["startTime"], "%Y-%m-%d %H:%M:%S"
+                    energyscan_dict["startTime"], "%Y-%m-%dT%H:%M:%S"
                 )
 
                 energyscan_dict["endTime"] = datetime.strptime(
-                    energyscan_dict["endTime"], "%Y-%m-%d %H:%M:%S"
+                    energyscan_dict["endTime"], "%Y-%m-%dT%H:%M:%S"
                 )
 
                 try:
@@ -1494,10 +1502,10 @@ class ISPyBClient(HardwareObject):
                 )
 
                 dc = utf_encode(asdict(dc_response))
-                dc["startTime"] = datetime.strftime(
-                    dc["startTime"], "%Y-%m-%d %H:%M:%S"
-                )
-                dc["endTime"] = datetime.strftime(dc["endTime"], "%Y-%m-%d %H:%M:%S")
+                dc["startTime"] = datetime.fromisoformat(session_dict["startTime"]).strftime("%Y-%m-%dT%H:%M:%S")
+                 
+                
+                dc["endTime"] = datetime.fromisoformat(session_dict["endTime"]).strftime("%Y-%m-%dT%H:%M:%S")
 
             except WebFault as e:
                 dc = {}
@@ -1552,10 +1560,10 @@ class ISPyBClient(HardwareObject):
 
                 if session is not None:
                     session.startDate = datetime.strftime(
-                        session.startDate, "%Y-%m-%d %H:%M:%S"
+                        session.startDate, "%Y-%m-%dT%H:%M:%S"
                     )
                     session.endDate = datetime.strftime(
-                        session.endDate, "%Y-%m-%d %H:%M:%S"
+                        session.endDate, "%Y-%m-%dT%H:%M:%S"
                     )
                     session = utf_encode(asdict(session))
 
@@ -1587,11 +1595,11 @@ class ISPyBClient(HardwareObject):
             try:
                 if isinstance(xfespectrum_dict["startTime"], string_types):
                     xfespectrum_dict["startTime"] = datetime.strptime(
-                        xfespectrum_dict["startTime"], "%Y-%m-%d %H:%M:%S"
+                        xfespectrum_dict["startTime"], "%Y-%m-%dT%H:%M:%S"
                     )
 
                     xfespectrum_dict["endTime"] = datetime.strptime(
-                        xfespectrum_dict["endTime"], "%Y-%m-%d %H:%M:%S"
+                        xfespectrum_dict["endTime"], "%Y-%m-%dT%H:%M:%S"
                     )
                 else:
                     xfespectrum_dict["startTime"] = xfespectrum_dict["startTime"]
@@ -1982,10 +1990,10 @@ class ISPyBClient(HardwareObject):
             robot_action_vo.sessionId = robot_action_dict.get("sessionId")
             robot_action_vo.blSampleId = robot_action_dict.get("sampleId")
             robot_action_vo.startTime = datetime.strptime(
-                robot_action_dict.get("startTime"), "%Y-%m-%d %H:%M:%S"
+                robot_action_dict.get("startTime"), "%Y-%m-%dT%H:%M:%S"
             )
             robot_action_vo.endTime = datetime.strptime(
-                robot_action_dict.get("endTime"), "%Y-%m-%d %H:%M:%S"
+                robot_action_dict.get("endTime"), "%Y-%m-%dT%H:%M:%S"
             )
             robot_action_vo.status = robot_action_dict.get("status")
             robot_action_vo.xtalSnapshotAfter = robot_action_dict.get(
@@ -2158,7 +2166,10 @@ class ISPyBValueFactory:
             except KeyError as diag:
                 pass
 
-            group.endTime = datetime.now()
+            #group.endTime = datetime.now()
+
+            group.endTime = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+
 
             #         try:
             #             group.crystalClass = mx_collect_dict['crystalClass']
@@ -2202,7 +2213,7 @@ class ISPyBValueFactory:
 
             try:
                 start_time = mx_collect_dict["collection_start_time"]
-                start_time = datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S")
+                start_time = datetime.strptime(start_time, "%Y-%m-%dT%H:%M:%S")
                 group.startTime = start_time
             except Exception:
                 pass
@@ -2431,12 +2442,13 @@ class ISPyBValueFactory:
 
         try:
             start_time = mx_collect_dict["collection_start_time"]
-            start_time = datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S")
+            start_time = datetime.strptime(start_time, "%Y-%m-%dT%H:%M:%S")
             data_collection.startTime = start_time
         except Exception:
             pass
 
-        data_collection.endTime = datetime.now()
+        data_collection.endTime = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+
 
         return data_collection
 
