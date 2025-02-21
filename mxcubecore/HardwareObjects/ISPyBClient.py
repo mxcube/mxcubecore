@@ -8,7 +8,7 @@ import time
 import traceback
 import warnings
 from collections import namedtuple
-from datetime import datetime
+from datetime import datetime, timedelta
 from pprint import pformat
 
 try:
@@ -795,7 +795,7 @@ class ISPyBClient(HardwareObject):
         new_session_flag = False
         if todays_session is None and create_session:
             new_session_flag = True
-            current_time = time.localtime()
+            current_time = datetime.now()
             start_time = time.strftime("%Y-%m-%dT00:00:00", current_time)
             end_time = time.mktime(current_time) + 60 * 60 * 24
             tomorrow = time.localtime(end_time)
@@ -1334,8 +1334,10 @@ class ISPyBClient(HardwareObject):
         :returns: The session id of the created session.
         :rtype: int
         """
+
+        print("============ SESSION DICT")
+        print(session_dict)
         
-        session_dict["timeStamp"] = datetime.fromisoformat(session_dict["timeStamp"]).strftime("%Y-%m-%dT%H:%M:%S")
         if self._collection:
 
             try:
@@ -1348,27 +1350,16 @@ class ISPyBClient(HardwareObject):
                     session_dict["endDate"], "%Y-%m-%dT%H:%M:%S"
                 )
 
-                try:
-                    
+                session_dict["lastUpdate"] = datetime.fromisoformat(session_dict["lastUpdate"]).strftime('%Y-%m-%dT%H:%M:%S')
 
-                    session_dict["lastUpdate"] = datetime.fromisoformat(session_dict["lastUpdate"]).astimezone().strftime("%Y-%m-%dT%H:%M:%S")
+                #session_dict["lastUpdate"] = (datetime.fromisoformat(session_dict["lastUpdate"]) + timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%S')
 
-                    session_dict["timeStamp"] = datetime.fromisoformat(session_dict["timeStamp"]).strftime("%Y-%m-%dT%H:%M:%S")
-                except Exception:
-                    pass
+                #session_dict["timeStamp"] = datetime.fromisoformat(session_dict["timeStamp"]).strftime("%Y-%m-%dT%H:%M:%S")
 
+                session_dict["timeStamp"] = (datetime.fromisoformat(session_dict["timeStamp"]) + timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%S')
                 # return data to original codification
                 decoded_dict = utf_decode(session_dict)
                 session = self._collection.service.storeOrUpdateSession(decoded_dict)
-
-                # changing back to string representation of the dates,
-                # since the session_dict is used after this method is called,
-                session_dict["startDate"] = datetime.strftime(
-                    session_dict["startDate"], "%Y-%m-%dT%H:%M:%S"
-                )
-                session_dict["endDate"] = datetime.strftime(
-                    session_dict["endDate"], "%Y-%m-%dT%H:%M:%S"
-                )
 
             except WebFault as e:
                 session = {}
@@ -1376,10 +1367,7 @@ class ISPyBClient(HardwareObject):
             except URLError:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
 
-            print(session_dict["timeStamp"])
-            session_dict["timeStamp"] = datetime.fromisoformat(session_dict["timeStamp"]).strftime("%Y-%m-%dT%H:%M:%S")
 
-            print(session_dict["timeStamp"])
             logging.getLogger("ispyb_client").info(
                 "[ISPYB] Session goona be created: session_dict %s" % session_dict
             )
@@ -1388,6 +1376,10 @@ class ISPyBClient(HardwareObject):
             logging.getLogger("ispyb_client").info(
                 "[ISPYB] Session created: %s" % session
             )
+
+            print("============ SESSION DICT")
+            print(session_dict)
+            
             return session
         else:
             logging.getLogger("ispyb_client").exception(
@@ -1409,6 +1401,9 @@ class ISPyBClient(HardwareObject):
         :returns: None
         """
         if self._collection:
+            #session_dict["lastUpdate"] = (datetime.fromisoformat(session_dict["lastUpdate"]) + timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%S')
+            #session_dict["timeStamp"] = (datetime.fromisoformat(session_dict["timeStamp"]) + timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%S')
+
             return self.create_session(session_dict)
         else:
             logging.getLogger("ispyb_client").exception(
@@ -2110,7 +2105,8 @@ class ISPyBValueFactory:
         except Exception:
             pass
 
-        beamline_setup.setupDate = datetime.now()
+        beamline_setup.setupDate =  datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+
 
         return beamline_setup
 
