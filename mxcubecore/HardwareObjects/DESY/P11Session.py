@@ -269,6 +269,7 @@ class P11Session(Session):
         bid = self.beamtime_info["beamtimeId"]
         year = date.today().year
         ispyb_path = ispyb_template.format(beamtime_id=bid, year=year)
+        logging("P11Session").log("Path to ispyb:", path)
         return path
 
     def is_writable_dir(self, folder):
