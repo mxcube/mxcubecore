@@ -69,6 +69,10 @@ class Session(BaseModel):
     data_portal_URL: Optional[str] = None
     logbook_URL: Optional[str] = None
 
+    volume: Optional[str] = None
+    dataset_count: Optional[str] = None
+    sample_count: Optional[str] = None
+
 
 class LimsUser(BaseModel):
     user_name: str = ""

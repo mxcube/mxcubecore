@@ -419,6 +419,16 @@ class ICATLIMS(AbstractLims):
         except Exception:
             return ""
 
+    def __get_investigation_parameter_by_name(
+        self, investigation: dict, parameter_name: str
+    ) -> str:
+        """
+        Gets the metadata of the parameters in an investigation
+        Returns the value of the specified parameter if it exists,
+        otherwise returns an empty string.
+        """
+        return investigation.get("parameters", {}).get(parameter_name, None)
+
     def __to_session(self, investigation) -> Session:
         """This methods converts a ICAT investigation into a session"""
 
@@ -432,6 +442,9 @@ class ICATLIMS(AbstractLims):
             if "__actualEndDate" in investigation["parameters"]
             else investigation.get("endDate", None)
         )
+
+        instrument_name = investigation["instrument"]["name"]
+
         # If session has been rescheduled new date is overwritten
         return Session(
             code=investigation["type"]["name"],
@@ -440,7 +453,7 @@ class ICATLIMS(AbstractLims):
             session_id=investigation["id"],
             proposal_id=investigation["id"],
             proposal_name=investigation["name"],
-            beamline_name=investigation["instrument"]["name"],
+            beamline_name=instrument_name,
             comments="",
             start_datetime=investigation.get(
                 "startDate", None
@@ -457,18 +470,23 @@ class ICATLIMS(AbstractLims):
             actual_end_date=self._string_to_date(actual_end_date),
             actual_end_time=self._string_to_time(actual_end_date),
             nb_shifts=3,
-            scheduled=self.is_scheduled_on_host_beamline(
-                investigation["instrument"]["name"]
-            ),
+            scheduled=self.is_scheduled_on_host_beamline(instrument_name),
             is_scheduled_time=self.is_scheduled_now(actual_start_date, actual_end_date),
-            is_scheduled_beamline=self.is_scheduled_on_host_beamline(
-                investigation["instrument"]["name"]
-            ),
+            is_scheduled_beamline=self.is_scheduled_on_host_beamline(instrument_name),
             data_portal_URL=self._get_data_portal_url(investigation),
             user_portal_URL=self._get_user_portal_url(investigation),
             logbook_URL=self._get_logbook_url(investigation),
             is_rescheduled=(
                 True if "__actualEndDate" in investigation["parameters"] else False
+            ),
+            volume=self.__get_investigation_parameter_by_name(
+                investigation, "__volume"
+            ),
+            sample_count=self.__get_investigation_parameter_by_name(
+                investigation, "__sampleCount"
+            ),
+            dataset_count=self.__get_investigation_parameter_by_name(
+                investigation, "__datasetCount"
             ),
         )
 
