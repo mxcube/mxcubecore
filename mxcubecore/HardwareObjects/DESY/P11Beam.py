@@ -178,7 +178,7 @@ class P11Beam(AbstractBeam):
         else:
             str_state = str(state)
 
-        if str_state in ["ON", "READY"]:
+        if str_state in ["READY"]:
             return self.STATES.READY
         elif str_state in ["MOVING", "BUSY"]:
             return self.STATES.BUSY
@@ -201,9 +201,6 @@ class P11Beam(AbstractBeam):
     def mirror_idx_changed(self, value=None):
         if value is None:
             value = self.mirror_idx_ch.get_value()
-
-        if value not in self.focus_sizes:
-            value = -1  # Fallback to UNKNOWN
 
         curr_size_item = self.focus_sizes[value]
         self._beam_size_dict["definer"] = curr_size_item["size"]
@@ -327,6 +324,57 @@ class P11Beam(AbstractBeam):
             self.log.info(f"Focus mode successfully set to {focus_mode_name}")
             self.emit("userMessage", f"Focus mode changed to {focus_mode_name}.")
 
+
         except Exception as e:
             self.log.error(f"Failed to set focus mode: {e}")
             self.emit("userMessage", f"Error changing focus mode: {e}")
+    
+    def update_beam_size(self):
+        """
+        Updates the beam size based on the minimum of the pinhole size
+        and the mirror focus, ensuring a consistent label.
+        """
+        # Emit BUSY state to UI
+        self.emit("stateChanged", self.STATES.BUSY)
+    
+        # Get current pinhole size
+        pinhole_size = self.pinhole_hwobj.get_value() if self.pinhole_hwobj else None
+        try:
+            pinhole_size = float(pinhole_size) if pinhole_size is not None else None
+        except ValueError:
+            self.log.error(f"Invalid pinhole size: {pinhole_size}")
+            pinhole_size = None
+    
+        # Get current mirror focus size
+        mirror_index = self.mirror_idx_ch.get_value()
+        mirror_size = self.focus_sizes.get(mirror_index, {"size": [None, None]})["size"]
+        try:
+            mirror_size_x = float(mirror_size[0]) if mirror_size[0] is not None else None
+            mirror_size_y = float(mirror_size[1]) if mirror_size[1] is not None else None
+        except ValueError:
+            self.log.error(f"Invalid mirror size: {mirror_size}")
+            mirror_size_x, mirror_size_y = None, None
+    
+        # Take the minimum size between pinhole and mirror
+        effective_size_x = min(filter(None, [pinhole_size, mirror_size_x])) if pinhole_size or mirror_size_x else 0.2
+        effective_size_y = min(filter(None, [pinhole_size, mirror_size_y])) if pinhole_size or mirror_size_y else 0.2
+    
+        # Determine the correct label
+        focus_label = self.focus_sizes.get(mirror_index, {"label": "UNKNOWN"})["label"]
+    
+        # Update beam size
+        self._beam_width, self._beam_height = effective_size_x, effective_size_y
+        self.log.debug(f"Updated beam size: {self._beam_width} x {self._beam_height}")
+    
+        # Ensure beam label is always consistent
+        self._beam_info_dict = {
+            "size_x": self._beam_width,
+            "size_y": self._beam_height,
+            "shape": BeamShape.ELLIPTICAL,  # Assuming elliptical beam shape
+            "label": focus_label,  # Ensuring label matches focus mode
+        }
+    
+        # Emit updated beam size and set back to READY
+        self.emit("beamInfoChanged", self.get_beam_info_dict())
+        self.emit("stateChanged", self.STATES.READY)  # Set back to green
+    
