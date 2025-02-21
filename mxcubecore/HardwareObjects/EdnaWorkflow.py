@@ -16,12 +16,6 @@ from mxcubecore.HardwareObjects.SecureXMLRpcRequestHandler import (
     SecureXMLRpcRequestHandler,
 )
 
-try:
-    from httplib import HTTPConnection
-except Exception:
-    # Python3
-    pass
-
 
 class State(object):
     """

@@ -50,13 +50,6 @@ from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects import sample_centring
 from mxcubecore.model import queue_model_objects
 
-try:
-    unicode
-except Exception:
-    # A quick fix for python3
-    unicode = str
-
-
 __credits__ = ["MXCuBE collaboration"]
 
 __version__ = "2.2."
@@ -1125,7 +1118,7 @@ class GenericDiffractometer(HardwareObject):
                     " Moving %s to %s" % (str(motor.name()), position)
                 )
             """
-            if isinstance(motor, (str, unicode)):
+            if isinstance(motor, str):
                 motor_role = motor
                 motor = self.motor_hwobj_dict.get(motor_role)
                 # del motor_positions[motor_role]

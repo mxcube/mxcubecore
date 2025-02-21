@@ -7,4 +7,3 @@
   <channel type="tine" name="chanStatus" tinename="/P14/Energy/P14Energy">Status</channel>
   <tunableEnergy>True</tunableEnergy>
 </object>
-

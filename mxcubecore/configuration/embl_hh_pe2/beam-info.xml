@@ -9,4 +9,3 @@
     <channel type="exporter" name="BeamShapeEllipse">BeamShapeEllipse</channel> 
     <defaultBeamDivergence>(12.0, 5.0)</defaultBeamDivergence>
 </object>
-

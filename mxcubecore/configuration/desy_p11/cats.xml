@@ -30,4 +30,3 @@
   <channel type="tango" name="_chnPathRunning" polling="events">PathRunning</channel>
   <channel type="tango" name="_chnSampleIsDetected" polling="events">di_PRI1_GFM</channel>
 </object>
-

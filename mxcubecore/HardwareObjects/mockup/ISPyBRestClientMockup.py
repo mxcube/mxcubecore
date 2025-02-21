@@ -6,16 +6,10 @@ from __future__ import print_function
 
 import logging
 from datetime import datetime
+from urllib.parse import urljoin
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
-
-try:
-    from urlparse import urljoin
-except Exception:
-    # Python3
-    from urllib.parse import urljoin
-
 
 _CONNECTION_ERROR_MSG = (
     "Could not connect to ISPyB, please verify that "
