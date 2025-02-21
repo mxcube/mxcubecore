@@ -22,9 +22,11 @@ __copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
 
 import ast
+import time
 
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.HardwareObjects.NState import NState
+from mxcubecore import HardwareRepository as HWR
 
 
 class P11Pinhole(NState):
@@ -93,22 +95,70 @@ class P11Pinhole(NState):
         for motorname, delta in self.deltas.items():
             self.log.info(f"Delta for {motorname}: {delta}")
 
+    
     def set_value(self, value):
-        """Move the pinhole motors to the given position."""
+        """Move the pinhole motors and update UI state until movement stops."""
         if value not in self.positions:
             raise ValueError(f"Invalid value {value}, not in available positions")
-
+    
         position = self.positions[value]
-
-        # Move each motor to the desired position
+    
+        # Emit BUSY state before moving
+        self.update_state(HardwareObjectState.BUSY)
+        self.emit("stateChanged", HardwareObjectState.BUSY)  # Notify UI (Beam Size Brick)
+    
+        # Move motors
         self.y_motor._set_value(position.get("pinholey"))
         self.z_motor._set_value(position.get("pinholez"))
+    
+        # Wait for movement to stop
+        while self.is_moving():
+            self.log.debug("Pinhole is still moving, keeping UI yellow.")
+            self.emit("stateChanged", HardwareObjectState.BUSY)  # Keep UI yellow
+            time.sleep(0.2)
+    
+        # Update beam size after movement stops
+        if hasattr(self, "beam_hwobj") and self.beam_hwobj:
+            self.beam_hwobj.update_beam_size()
+    
+        # Set state back to READY when movement stops
+        self.update_state(HardwareObjectState.READY)
+        self.emit("stateChanged", HardwareObjectState.READY)  # Notify UI (Beam Size Brick)
+    
 
+#    def set_value(self, value):
+#        """Move the pinhole motors and keep UI yellow until movement stops."""
+#        if value not in self.positions:
+#            raise ValueError(f"Invalid value {value}, not in available positions")
+#    
+#        position = self.positions[value]
+#    
+#        # Set state to BUSY before moving
+#        self.update_state(HardwareObjectState.BUSY)
+#        self.emit("stateChanged", HardwareObjectState.BUSY)  # Notify UI
+#    
+#        # Move motors
+#        self.y_motor._set_value(position.get("pinholey"))
+#        self.z_motor._set_value(position.get("pinholez"))
+#    
+#        # Wait until motors stop moving
+#        while self.is_moving():
+#            self.log.debug("Pinhole is still moving...")
+#            time.sleep(0.2)
+#    
+#        # Update beam size when movement stops
+#        if hasattr(self, "beam_hwobj") and self.beam_hwobj:
+#            self.beam_hwobj.update_beam_size()
+#    
+#        # Set state back to READY when movement stops
+#        self.update_state(HardwareObjectState.READY)
+#        self.emit("stateChanged", HardwareObjectState.READY)  # Notify UI
+#         
     def get_value(self):
         """Get the current pinhole position based on the motor positions."""
         current_y = self.y_motor.get_value()
         current_z = self.z_motor.get_value()
-
+    
         for position_name, position in self.positions.items():
             if self.is_within_deltas(
                 position.get("pinholey"), current_y, "pinholey"
@@ -116,7 +166,29 @@ class P11Pinhole(NState):
                 position.get("pinholez"), current_z, "pinholez"
             ):
                 return position_name  # Return the matching position name
-
+    
+        self.log.warning("No exact pinhole position match found, returning closest match.")
+    
+        # Fallback: Return the closest position instead of None
+        closest_position = self.get_closest_position(current_y, current_z)
+        return closest_position if closest_position else "UNKNOWN"
+    
+    def get_closest_position(self, current_y, current_z):
+        """Find the closest pinhole position if an exact match is not found."""
+        closest_position = None
+        min_distance = float("inf")
+    
+        for position_name, position in self.positions.items():
+            target_y = position.get("pinholey", float("inf"))
+            target_z = position.get("pinholez", float("inf"))
+    
+            distance = abs(current_y - target_y) + abs(current_z - target_z)
+            if distance < min_distance:
+                min_distance = distance
+                closest_position = position_name
+    
+        return closest_position
+    
     def is_within_deltas(self, target_value, current_value, motor_name):
         """Check if the current motor position is within the delta tolerance for that specific motor."""
         delta = self.deltas.get(motor_name)
@@ -129,12 +201,30 @@ class P11Pinhole(NState):
         return list(self.positions.keys())
 
     def is_moving(self):
-        """Return True if any motor is moving."""
-        return self.y_motor.is_moving() or self.z_motor.is_moving()
-
+        """Return True if either pinhole motor is moving."""
+        state_y = self.y_motor.get_state()
+        state_z = self.z_motor.get_state()
+    
+        self.log.debug(f"Checking pinhole movement: Y={state_y}, Z={state_z}")
+    
+        return state_y in ["MOVING", "ON"] or state_z in ["MOVING", "ON"]
+    
     def get_state(self):
         """Determine the overall state of the pinhole motor system."""
         if self.is_moving():
             return HardwareObjectState.BUSY
         else:
             return HardwareObjectState.READY
+
+    def get_pinhole_size(self):
+        """Returns the currently selected pinhole size label."""
+        try:
+            current_pos = self.get_value()
+            for size_label, pos in self.values.items():
+                if pos == current_pos:
+                    return size_label
+        except Exception as e:
+            self.log.error(f"Failed to get pinhole size: {e}")
+    
+        return "UNKNOWN"  # Fallback if no match is found
+    
