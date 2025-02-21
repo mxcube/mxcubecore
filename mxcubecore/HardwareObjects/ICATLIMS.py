@@ -710,6 +710,13 @@ class ICATLIMS(AbstractLims):
                 "startDate": start_time,
                 "endDate": strftime("%Y-%m-%d %H:%M:%S"),
             }
+
+            # This forces the ingester to associate the dataset to the experiment by ID
+            if self.session_manager.active_session.session_id:
+                metadata["investigationId"] = (
+                    self.session_manager.active_session.session_id
+                )
+
             # Store metadata on disk
             self.add_sample_metadata(metadata, collection_parameters)
             self.add_beamline_configuration_metadata(metadata, self.beamline_config)
@@ -730,11 +737,15 @@ class ICATLIMS(AbstractLims):
                         )
                         shutil.copy(snapshot_path, gallery_path)
 
-            beamline = self._get_scheduled_beamline()
-            logging.getLogger("HWR").info(
-                f"Dataset Beamline={beamline} Current Beamline={HWR.beamline.session.beamline_name}"
-            )
-            logging.getLogger("HWR").info(f"Proposal={proposal}")
+            try:
+                beamline = self._get_scheduled_beamline()
+                logging.getLogger("HWR").info(
+                    f"Dataset Beamline={beamline} Current Beamline={HWR.beamline.session.beamline_name}"
+                )
+            except Exception:
+                logging.getLogger("HWR").exception(
+                    "Failed to get _get_scheduled_beamline"
+                )
 
             # __actualInstrument is a dataset parameter that indicates where the dataset has been actually collected
             # only filled when it does not match the scheduled beamline
@@ -768,7 +779,7 @@ class ICATLIMS(AbstractLims):
         if active_session is None or active_session.is_scheduled_beamline:
             return HWR.beamline.session.beamline_name.lower()
 
-        beamline = str(active_session["instrument"]["name"].lower())
+        beamline = str(active_session.beamline_name.lower())
         logging.getLogger("HWR").info(
             f"Session have been moved to another beamline: {beamline}"
         )
