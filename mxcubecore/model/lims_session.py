@@ -3,6 +3,7 @@ from datetime import (
     timedelta,
 )
 from typing import (
+    Any,
     Dict,
     List,
     Optional,
@@ -74,6 +75,43 @@ class Session(BaseModel):
     sample_count: Optional[str] = None
 
 
+class Instrument(BaseModel):
+    name: str
+    id: int
+    instrumentScientists: List[Any]
+
+
+class Investigation(BaseModel):
+    name: str
+    startDate: datetime
+    endDate: datetime
+    id: int
+    title: str
+    visitId: str
+    summary: str
+    parameters: Dict[str, Any]
+    instrument: Instrument
+    investigationUsers: List[Any]
+
+
+class Parameter(BaseModel):
+    name: str
+    value: str
+    id: int
+    units: str
+
+
+class MetaPage(BaseModel):
+    totalWithoutFilters: int
+    total: int
+    totalPages: int
+    currentPage: int
+
+
+class Meta(BaseModel):
+    page: MetaPage
+
+
 class LimsUser(BaseModel):
     user_name: str = ""
     sessions: Optional[List[Session]] = []
@@ -83,3 +121,13 @@ class LimsSessionManager(BaseModel):
     active_session: Optional[Session] = None
     sessions: Optional[List[Session]] = []
     users: Optional[Dict[str, LimsUser]] = {}
+
+
+class SampleSheet(BaseModel):
+    id: int
+    name: str
+    investigation: Investigation
+    modTime: datetime
+    parameters: List[Parameter]
+    datasets: List[Any]
+    meta: Meta

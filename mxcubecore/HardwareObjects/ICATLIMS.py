@@ -21,6 +21,7 @@ from mxcubecore.HardwareObjects.abstract.AbstractLims import AbstractLims
 from mxcubecore.model.lims_session import (
     Lims,
     LimsSessionManager,
+    SampleSheet,
     Session,
 )
 
@@ -128,6 +129,9 @@ class ICATLIMS(AbstractLims):
                 lims_name,
             )
             parcels = self.get_parcels_by_investigation_id()
+
+            sample_sheets = self.get_samples_sheets()
+
             queue_samples = []
             for parcel in parcels:
                 pucks = parcel["content"]
@@ -150,7 +154,7 @@ class ICATLIMS(AbstractLims):
                         )
                         for tracking_sample in tracking_samples:
                             queue_samples.append(
-                                self.__to_sample(tracking_sample, puck)
+                                self.__to_sample(tracking_sample, puck, sample_sheets)
                             )
 
         except Exception as e:
@@ -169,8 +173,28 @@ class ICATLIMS(AbstractLims):
                 return x["value"]
         return ""
 
-    def __to_sample(self, tracking_sample, puck):
+    def get_sample_sheet_by_id(self, samples: List[SampleSheet], sample_id: int) -> Optional[SampleSheet]:
+        """
+        Retrieves a sample by its unique ID.
+
+        Args:
+            samples (List[Sample]): A list of Sample objects.
+            sample_id (int): The unique identifier of the sample to retrieve.
+
+        Returns:
+            Optional[Sample]: The Sample object if found, otherwise None.
+        """
+        return next((sample for sample in samples if sample.id == sample_id), None)
+
+    def __to_sample(self, tracking_sample, puck, sample_sheets: List[SampleSheet]):
         """Converts the sample tracking into the expected sample data structure"""
+
+        sample_name = str(tracking_sample["name"])
+        protein_acronym = sample_name
+        sample_sheet = self.get_sample_sheet_by_id(sample_sheets, tracking_sample["sampleId"])
+        if sample_sheet is not None:
+            protein_acronym = sample_sheet.name
+
         experiment_plan = tracking_sample["experimentPlan"]
         return {
             "cellA": self.find(experiment_plan, "unit_cell_a"),
@@ -201,10 +225,10 @@ class ICATLIMS(AbstractLims):
                 "requiredResolution": self.find(experiment_plan, "requiredResolution"),
             },
             "experimentType": self.find(experiment_plan, "workflowType"),
-            "proteinAcronym": tracking_sample["name"],
+            "proteinAcronym": protein_acronym,
             "sampleId": tracking_sample["sampleId"],
             "sampleLocation": tracking_sample["sampleContainerPosition"],
-            "sampleName": str(tracking_sample["name"]),
+            "sampleName": sample_name,
             "smiles": None,
         }
 
@@ -519,6 +543,29 @@ class ICATLIMS(AbstractLims):
             )
         return []
 
+    def get_samples_sheets(self) -> List[SampleSheet]:
+        """Returns the samples associated to an investigation"""
+        try:
+            logging.getLogger("HWR").debug(
+                "[ICAT] Retrieving samples by investigation_id %s "
+                % (self.session_manager.active_session.session_id)
+            )
+            samples = self.icatClient.get_samples_by(
+                self.session_manager.active_session.session_id
+            )
+            logging.getLogger("HWR").debug(
+                "[ICAT] Successfully retrieved %s samples" % (len(samples))
+            )
+            # Convert to object
+            sample_sheets = [SampleSheet.parse_obj(sample) for sample in samples]
+
+            return sample_sheets
+        except Exception as e:
+            logging.getLogger("HWR").error(
+                "[ICAT] get_samples_by_investigation_id %s " % (str(e))
+            )
+        return []
+
     def echo(self):
         """Mockup for the echo method."""
         return True
@@ -731,9 +778,9 @@ class ICATLIMS(AbstractLims):
 
             # This forces the ingester to associate the dataset to the experiment by ID
             if self.session_manager.active_session.session_id:
-                metadata["investigationId"] = (
-                    self.session_manager.active_session.session_id
-                )
+                metadata[
+                    "investigationId"
+                ] = self.session_manager.active_session.session_id
 
             # Store metadata on disk
             self.add_sample_metadata(metadata, collection_parameters)
