@@ -136,8 +136,8 @@ class ISPyBAbstractLIMS(AbstractLims):
     def ldap_login(self, login_name, psd):
         warnings.warn(
             (
-                "Using Authenticatior from ISPyBClient is deprecated,"
-                "use Authenticator to authenticate spereatly and then login to ISPyB"
+                "Using Authenticator from ISPyBClient is deprecated,"
+                "use Authenticator to authenticate separately and then login to ISPyB"
             ),
             DeprecationWarning,
         )
