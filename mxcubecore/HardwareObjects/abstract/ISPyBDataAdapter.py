@@ -639,7 +639,7 @@ class ISPyBDataAdapter:
             "Storing data collection ok. collection id : %s" % collection_id
         )
 
-        return (collection_id, detector_id)
+        return collection_id, detector_id
 
     def get_session(self, session_id):
         try:
