@@ -173,13 +173,15 @@ class ICATLIMS(AbstractLims):
                 return x["value"]
         return ""
 
-    def get_sample_sheet_by_id(self, samples: List[SampleSheet], sample_id: int) -> Optional[SampleSheet]:
+    def get_sample_sheet_by_id(
+        self, samples: List[SampleSheet], sample_id: int
+    ) -> Optional[SampleSheet]:
         """
-        Retrieves a sample by its unique ID.
+        Retrieves a sample sheet by its unique ID.
 
         Args:
-            samples (List[Sample]): A list of Sample objects.
-            sample_id (int): The unique identifier of the sample to retrieve.
+            samples (List[SampleSheet]): A list of Sample objects.
+            sample_id (int): The unique identifier of the sample sheet to retrieve.
 
         Returns:
             Optional[Sample]: The Sample object if found, otherwise None.
@@ -191,7 +193,9 @@ class ICATLIMS(AbstractLims):
 
         sample_name = str(tracking_sample["name"])
         protein_acronym = sample_name
-        sample_sheet = self.get_sample_sheet_by_id(sample_sheets, tracking_sample["sampleId"])
+        sample_sheet = self.get_sample_sheet_by_id(
+            sample_sheets, tracking_sample["sampleId"]
+        )
         if sample_sheet is not None:
             protein_acronym = sample_sheet.name
 
@@ -533,7 +537,7 @@ class ICATLIMS(AbstractLims):
             parcels = self.icatClient.get_parcels_by(
                 self.session_manager.active_session.session_id
             )
-            print(parcels[0])
+
             logging.getLogger("HWR").debug(
                 "[ICAT] Successfully retrieved %s parcels" % (len(parcels))
             )
@@ -545,7 +549,7 @@ class ICATLIMS(AbstractLims):
         return []
 
     def get_samples_sheets(self) -> List[SampleSheet]:
-        """Returns the samples associated to an investigation"""
+        """Returns the samples sheets associated to an investigation"""
         try:
             logging.getLogger("HWR").debug(
                 "[ICAT] Retrieving samples by investigation_id %s "
@@ -558,9 +562,7 @@ class ICATLIMS(AbstractLims):
                 "[ICAT] Successfully retrieved %s samples" % (len(samples))
             )
             # Convert to object
-            sample_sheets = [SampleSheet.parse_obj(sample) for sample in samples]
-
-            return sample_sheets
+            return [SampleSheet.parse_obj(sample) for sample in samples]
         except Exception as e:
             logging.getLogger("HWR").error(
                 "[ICAT] get_samples_by_investigation_id %s " % (str(e))
@@ -779,9 +781,9 @@ class ICATLIMS(AbstractLims):
 
             # This forces the ingester to associate the dataset to the experiment by ID
             if self.session_manager.active_session.session_id:
-                metadata[
-                    "investigationId"
-                ] = self.session_manager.active_session.session_id
+                metadata["investigationId"] = (
+                    self.session_manager.active_session.session_id
+                )
 
             # Store metadata on disk
             self.add_sample_metadata(metadata, collection_parameters)
