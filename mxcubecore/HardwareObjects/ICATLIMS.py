@@ -128,7 +128,7 @@ class ICATLIMS(AbstractLims):
                 self.session_manager.active_session.proposal_name,
                 lims_name,
             )
-            parcels = self.get_parcels_by_investigation_id()
+            parcels = self.get_parcels()
 
             sample_sheets = self.get_samples_sheets()
 
@@ -523,7 +523,7 @@ class ICATLIMS(AbstractLims):
     def to_sessions(self, investigations):
         return [self.__to_session(investigation) for investigation in investigations]
 
-    def get_parcels_by_investigation_id(self):
+    def get_parcels(self):
         """Returns the parcels associated to an investigation"""
         try:
             logging.getLogger("HWR").debug(
@@ -533,6 +533,7 @@ class ICATLIMS(AbstractLims):
             parcels = self.icatClient.get_parcels_by(
                 self.session_manager.active_session.session_id
             )
+            print(parcels[0])
             logging.getLogger("HWR").debug(
                 "[ICAT] Successfully retrieved %s parcels" % (len(parcels))
             )
