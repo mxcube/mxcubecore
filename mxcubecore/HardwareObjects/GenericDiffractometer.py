@@ -1414,11 +1414,6 @@ class GenericDiffractometer(HardwareObject):
     def get_osc_dynamic_limits(self):
         return (-10000, 10000)
 
-    def get_osc_max_speed(self):
-        """ """
-        return None
-        # raise NotImplementedError
-
     def zoom_in(self):
         return
 
