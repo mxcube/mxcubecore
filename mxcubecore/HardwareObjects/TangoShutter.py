@@ -25,14 +25,17 @@ Tango states are:
 "UNKNOWN", "OPEN", "CLOSED", "FAULT", "MOVING", "DISABLE", "STANDBY", "RUNNING"
 
 Example xml file:
-<object class = "TangoShutter">
-  <username>Safety Shutter</username>
-  <tangoname>ab/cd/ef</tangoname>
-  <command type="tango" name="Open">Open</command>
-  <command type="tango" name="Close">Close</command>
-  <channel type="tango" name="State" polling="1000">State</channel>
-  <values>{"OPEN": "MYOPEN", "NEWSTATE": ["MYSTATE", "BUSY"]}</values>
-</object>
+
+.. code-block:: xml
+
+ <object class = "TangoShutter">
+   <username>Safety Shutter</username>
+   <tangoname>ab/cd/ef</tangoname>
+   <command type="tango" name="Open">Open</command>
+   <command type="tango" name="Close">Close</command>
+   <channel type="tango" name="State" polling="1000">State</channel>
+   <values>{"OPEN": "MYOPEN", "NEWSTATE": ["MYSTATE", "BUSY"]}</values>
+ </object>
 
 In the example the <values> property contains a dictionary that redefines or
 adds specific tango shutter states.
