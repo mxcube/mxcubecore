@@ -5,12 +5,12 @@
   <channel type="tine" name="chanStatus" tinename="/P13/detector/eiger16m">status</channel>
   <channel type="tine" name="chanRoiMode" tinename="/P13/detector/eiger16m" attach="datachange">detector-mode</channel>
   <channel type="tine" name="chanFrameRate" tinename="/P13/detector/eiger16m">frame-rate</channel>
-  <channel type="tine" name="chanBeamXY" tinename="/P13/detector/eiger16m">beam-xy</channel> 
+  <channel type="tine" name="chanBeamXY" tinename="/P13/detector/eiger16m">beam-xy</channel>
   <channel type="tine" name="chanActualFrameRate" tinename="/P13/rideau/tioga">average-speed</channel>
 
   <channel type="tine" name="chanCoverState" tinename="P13/P13DetTrans.CDI/GuillCmd" size="2">RECV</channel>
   <command type="tine" name="cmdCloseCover"  tinename="P13/P13DetTrans.CDI/GuillCmd">GuillCmd</command>
-  
+
   <command type="tine" name="cmdRestartDaq" tinename="/P13/detector/eiger16m">initialize</command>
 
   <type>Eiger</type>
@@ -34,4 +34,3 @@
   <tolerance>0.2</tolerance>
 
 </object>
-

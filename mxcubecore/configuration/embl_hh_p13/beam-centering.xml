@@ -14,7 +14,7 @@
     <command type="tine" name="cmdStartPitchScan" tinename="/P13/p13mono.cdi/StartPitchScan">SEND</command>
     <command type="tine" name="cmdSetVMaxPitch" tinename="/p13/p13mono.cdi/SetVMaxPitch">SEND</command>
     <command type="tine" name="cmdQBPMRangeSet" tinename="/P13/QBPM1/Device0">CurrentRange.set</command>
-  
+
     <scale_hor>-0.020</scale_hor>
     <scale_ver>-0.020</scale_ver>
 </object>

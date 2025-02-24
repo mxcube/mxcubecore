@@ -3,7 +3,7 @@
     Each autoprocessing program is executable script.
     Script is stored and executed when the event is called
 
-    remove Break to run actual script      
+    remove Break to run actual script
     -->
     <programs>
     <program>

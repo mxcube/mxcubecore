@@ -1,5 +1,5 @@
 <object class="EMBLBeamstop">
-  <exporter_address>p13md201.embl-hamburg.de:9001</exporter_address>  
+  <exporter_address>p13md201.embl-hamburg.de:9001</exporter_address>
 
   <defaultBeamstopSize>1.5</defaultBeamstopSize>
   <defaultBeamstopDistance>15.0</defaultBeamstopDistance>

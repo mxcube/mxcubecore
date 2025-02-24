@@ -11,14 +11,14 @@
    <channel type="tine" name="chanErrors" tinename="/P14/P14SC/P14Marvin" attach="datachange">Errors</channel>
    <channel type="tine" name="chanDeviceBusy" tinename="/P14/P14SC/P14Marvin" attach="datachange">Marvin.MountStat</channel>
 
-   <command type="tine" name="cmdMountSample" tinename="/P14/P14SC/P14Marvin" timeout="2000">MountSample</command> 
+   <command type="tine" name="cmdMountSample" tinename="/P14/P14SC/P14Marvin" timeout="2000">MountSample</command>
    <command type="tine" name="cmdUnmountSample" tinename="/P14/P14SC/P14Marvin" timeout="2000">DismountSample</command>
    <command type="tine" name="cmdOpenLid" tinename="/P14/P14SC/P14Marvin">Dewar.OpenLid</command>
    <command type="tine" name="cmdCloseLid" tinename="/P14/P14SC/P14Marvin">Dewar.CloseLid</command>
    <command type="tine" name="cmdBaseToCenter" tinename="/P14/P14SC/P14Marvin">BaseToCenter</command>
    <command type="tine" name="cmdCenterToBase" tinename="/P14/P14SC/P14Marvin">CenterToBase</command>
    <command type="tine" name="cmdDryGripper" tinename="/P14/P14SC/P14Marvin">DryGripper</command>
-   <command type="tine" name="cmdCloseGuillotine"   tinename="/P14/collection/shutter">close</command> 
+   <command type="tine" name="cmdCloseGuillotine"   tinename="/P14/collection/shutter">close</command>
    <command type="tine" name="cmdResetError" tinename="/P14/P14SC/P14Marvin">ResetError</command>
 
    <object href="/eh1/beamFocusing" role="beam_focusing"/>

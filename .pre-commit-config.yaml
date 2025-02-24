@@ -10,30 +10,9 @@ repos:
     rev: v5.0.0
     hooks:
       - id: trailing-whitespace
-        # Exclude files from trailing-whitespace checks until we get around fixing them.
-        # This way we can check that other files are trailing-whitespace clean in CI.
-        exclude: |
-            (?x)^(
-                mxcubecore/configuration/.*|
-                mxcubecore/HardwareObjects/(PlateManipulatorMaintenance|TangoMotor)\.py|
-                mxcubecore/HardwareObjects/DESY/P11(BackLight|Collect|DetectorCover|Shutter)\.py|
-                mxcubecore/HardwareObjects/LNLS/LNLS(Diffractometer|Energy|PilatusDet)\.py|
-                mxcubecore/HardwareObjects/LNLS/EPICS(Actuator|Motor|NState)\.py|
-                mxcubecore/HardwareObjects/LNLS/set_transmission_mnc.py|
-                mxcubecore/HardwareObjects/EMBL/EMBL(Energy|OnlineProcessing)\.py|
-                mxcubecore/HardwareObjects/mockup/MotorMockup\.py|
-                mxcubecore/HardwareObjects/SOLEIL/PX2/PX2Resolution\.py|
-            )$
+        exclude: \.(hkli|nml|XDS)$
       - id: end-of-file-fixer
-        # Exclude files from end-of-file-fixer checks until we get around fixing them.
-        # This way we can check that other files are end-of-file-fixer clean in CI.
-        exclude: |
-            (?x)^(
-                mxcubecore/configuration/.*|
-                mxcubecore/HardwareObjects/mockup/(Shutter|Motor)Mockup\.py|
-                mxcubecore/HardwareObjects/LNLS/EPICS(NState|Motor)\.py|
-                mxcubecore/HardwareObjects/EMBL/EMBLOnlineProcessing\.py
-            )$
+        exclude: \.(hkli|nml)$
       - id: check-case-conflict
       - id: check-merge-conflict
         # Exclude files where underlines are not distinguishable from merge conflicts.
@@ -57,7 +36,7 @@ repos:
     rev: v0.9.6
     hooks:
       - id: ruff
-      # TODO: args: [--fix]
+        args: [--fix]
       - id: ruff-format
 
 

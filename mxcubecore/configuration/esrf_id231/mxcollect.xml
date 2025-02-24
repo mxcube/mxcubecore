@@ -1,7 +1,7 @@
-<object class="ID231MultiCollect">	
+<object class="ID231MultiCollect">
   <object href="/dbconnection" role="dbserver"/>
-  <object href="/safshut" role="safety_shutter"/>	
-  <object href="/sc" role="sample_changer"/>	
+  <object href="/safshut" role="safety_shutter"/>
+  <object href="/sc" role="sample_changer"/>
   <object href="/minidiff" role="diffractometer"/>
   <object href="/energyscan" role="energy"/>
   <object href="/mxlocal" role="beamline_configuration"/>
@@ -47,7 +47,7 @@
   <channel type="spec" version="lid232:eh1" name="helical_pars">HELICAL_PARS</channel>
 
   <directory_prefix>id23eh1</directory_prefix>
-  
+
   <input_files_server>localhost:5698</input_files_server>
 
   <auto_processing>
@@ -58,6 +58,6 @@
     <program>
       <executable>/users/blissadm/bin/autoproc-launcher.py</executable>
       <event>before</event>
-    </program> 
+    </program>
   </auto_processing>
 </object>

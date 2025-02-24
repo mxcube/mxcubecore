@@ -1,35 +1,27 @@
 from __future__ import print_function
 
 import itertools
+import logging
+import sys
 import time
 from datetime import datetime
 from typing import (
     Dict,
     List,
 )
-
-from mxcubecore.HardwareObjects.abstract.ISPyBValueFactory import ISPyBValueFactory
-from mxcubecore.utils.conversion import string_types
-
-try:
-    from urllib2 import URLError
-    from urlparse import urljoin
-except Exception:
-    # Python3
-    from urllib.error import URLError
-
-import logging
-import sys
+from urllib.error import URLError
 
 from suds import WebFault
 from suds.client import Client
 from suds.sudsobject import asdict
 
+from mxcubecore.HardwareObjects.abstract.ISPyBValueFactory import ISPyBValueFactory
 from mxcubecore.model.lims_session import (
     LimsSessionManager,
     Proposal,
     Session,
 )
+from mxcubecore.utils.conversion import string_types
 
 suds_encode = str.encode
 

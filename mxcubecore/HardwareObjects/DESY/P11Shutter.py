@@ -159,7 +159,7 @@ class P11Shutter(AbstractShutter):
         self.log.debug("### simulated finished with exception")
 
     def update_shutter_state(self, state=None):
-        """Updates shutter state 
+        """Updates shutter state
 
         :return: shutter state as str
         """

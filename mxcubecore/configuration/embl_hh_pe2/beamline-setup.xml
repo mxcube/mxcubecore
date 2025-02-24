@@ -24,7 +24,7 @@
 
   <object href="/dbconnection" role="lims_client"/>
 <!--  <object href="/image-tracking" role="image_tracking"/>-->
-  <object href="/parallel-processing" role="parallel_processing"/> 
+  <object href="/parallel-processing" role="parallel_processing"/>
   <object href="/auto-processing" role="auto_processing"/>
 
 

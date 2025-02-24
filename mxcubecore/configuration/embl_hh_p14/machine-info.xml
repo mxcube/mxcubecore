@@ -1,5 +1,5 @@
 <object class="EMBLMachineInfo">
-    <updateIntervalS>120</updateIntervalS>		
+    <updateIntervalS>120</updateIntervalS>
     <limits>{'current':75, 'temp': 25, 'hum': 60, 'intens': 5e-8}</limits>
     <hutchTempAddress>G47cS9:K:KL:P14EH1RaTIW_ai</hutchTempAddress>
     <hutchHumAddress>G47cS9:K:KL:P14EH1RaF_ai</hutchHumAddress>

@@ -1,8 +1,8 @@
 <object class = "TINEMotor">
   <channel type="tine" name="axisPosition" tinename="/P13/P13Kb.CDI/HFMTgtPos">RECV</channel>
-  <command type="tine" name="setPosition" tinename="/P13/P13Kb.CDI/HFMTgtPos">SEND</command> 
+  <command type="tine" name="setPosition" tinename="/P13/P13Kb.CDI/HFMTgtPos">SEND</command>
 
-  <!-- 
+  <!--
   <channel type="tine" name="axisPosition" tinename="/P13/P13Kb/HFMPitchUp">position</channel>
   <channel type="tine" name="axisState" tinename="/P13/P13Kb/HFMPitchUp">state</channel>
   <command type="tine" name="setPosition" tinename="/P13/P13Kb/HFMPitchUp">MOVE.Start</command> -->

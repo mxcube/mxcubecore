@@ -65,4 +65,3 @@ class ShutterMockup(AbstractShutter, ActuatorMockup):
             }
         )
         self.VALUES = Enum("ValueEnum", values_dict)
-

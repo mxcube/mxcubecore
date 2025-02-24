@@ -5,25 +5,25 @@
    <filter>
      <username>PyroC 0.5</username>
      <offset>0</offset>
-   </filter> 
+   </filter>
      <filter>
      <username>Diamond</username>
      <offset>1</offset>
-   </filter> 
+   </filter>
    <filter>
      <username>Empty</username>
      <offset>2</offset>
-   </filter> 
+   </filter>
    <filter>
      <username>Al 5</username>
      <offset>3</offset>
-   </filter> 
+   </filter>
    <filter>
      <username>PyroC 5</username>
      <offset>4</offset>
-   </filter> 
+   </filter>
    <filter>
      <username>PyroC 8</username>
      <offset>5</offset>
-   </filter> 
+   </filter>
 </object>

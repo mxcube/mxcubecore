@@ -1,7 +1,7 @@
 <object class = "ALBACatsMaint">
   <username>CatsMaint</username>
-  <tangoname>bl13/eh/cats</tangoname>    
-  
+  <tangoname>bl13/eh/cats</tangoname>
+
   <!--  COMMANDS -->
 
   <channel type="tango" tangoname="bl13/eh/diff" name="shifts">MountingPosition</channel>
@@ -20,4 +20,3 @@
   <channel type="tango" name="_chnAtHome" polling="2000">do_PRO6_RAH</channel>
 
 </object>
-

@@ -224,12 +224,12 @@ class TangoMotor(AbstractMotor):
         motor_state = self.chan_state.get_value()
         self.log.debug(" reading motor state for %s is %s" % (self.name(), str(motor_state)))
         self.motor_state_changed(motor_state)
-            
+
     def update_value(self, value=None):
         """Updates motor position"""
         if value is None:
             value = self.get_value()
-        self.latest_value = value 
+        self.latest_value = value
         super(TangoMotor, self).update_value(value)
 
     def get_motor_mnemonic(self):

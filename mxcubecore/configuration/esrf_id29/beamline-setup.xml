@@ -1,9 +1,9 @@
 <object class="BeamlineSetup" role="BeamlineSetup">
-  
+
   <!-- Objects directly associatd with hardware -->
   <object href="/attenuators" role="transmission"/>
-  <object href="/udiff" role="diffractometer"/>    
-  <object href="/sc" role="sample_changer"/>    
+  <object href="/udiff" role="diffractometer"/>
+  <object href="/sc" role="sample_changer"/>
   <object href="/resolution" role="resolution"/>
   <object href="/exp/horizontal_motors" role="horizontal_motors"/>
   <object href="/exp/vertical_motors" role="vertical_motors"/>

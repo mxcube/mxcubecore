@@ -3,7 +3,7 @@
 <!-- device class="TangoMotorWPositionsPX2" -->
 <object class="TangoDCMotorWPositions">
     <username>Zoom</username>
-       <tangoname>i10-c-cx1/ex/zoom.1-mt_tz</tangoname> 
+       <tangoname>i10-c-cx1/ex/zoom.1-mt_tz</tangoname>
     <focus>PhiTableXAxisPosition</focus>
     <channel type="tango" polling="1000" name="state">State</channel>
     <channel type="tango" polling="1000" name="position">position</channel>

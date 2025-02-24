@@ -69,7 +69,7 @@ class EPICSNState(AbstractNState, EPICSActuator):
         self.set_value(enum_val)
         self.actuatorState = self.states.get(value, "unknown")
         self.emit("actuatorStateChanged", (self.actuatorState,))
-    
+
     def actuatorIn(self, wait=True, timeout=None):
         try:
             self.state_attr = self.moves["in"]

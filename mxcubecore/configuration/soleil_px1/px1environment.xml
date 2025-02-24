@@ -1,6 +1,6 @@
 <object class="PX1Environment">
   <username>PX1Environment</username>
-  <tangoname>i10-c-cx1/ex/PX1Environment</tangoname> 
+  <tangoname>i10-c-cx1/ex/PX1Environment</tangoname>
 
   <channel type="tango" polling="events" name="State">State</channel>
   <channel type="tango" polling="events" name="beamlineMvtAuthorized" tangoname="i10-c-cx1/ex/catscryotong">beamlineMvtAuthorized</channel>

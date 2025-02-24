@@ -12,7 +12,7 @@ class PX2Resolution(AbstractResolution):
         super(PX2Resolution, self).__init__(name)
         self.resolution_motor = resolution()
         self.beam_center = beam_center()
-        
+
     def connect_notify(self, signal):
         if signal == "stateChanged":
             self.update_state(self.get_state())
@@ -20,7 +20,7 @@ class PX2Resolution(AbstractResolution):
     def get_value(self):
         self._nominal_value = self.resolution_motor.get_resolution()
         return self._nominal_value
-    
+
     def _set_value(self, value):
         self.resolution_motor.set_resolution(value)
 

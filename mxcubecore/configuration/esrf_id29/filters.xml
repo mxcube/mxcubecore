@@ -1,15 +1,15 @@
 <object class = "Filters">
   <username>OH Filters</username>
-  <axis> 
+  <axis>
      <object hwrid="/filters/mbv2"/>
   </axis>
   <axis>
      <object hwrid="/filters/mbv"/>
   </axis>
-  <axis> 
+  <axis>
      <object hwrid="/filters/din"/>
   </axis>
-  <axis> 
+  <axis>
      <object hwrid="/filters/mbv1"/>
   </axis>
   <axis>

@@ -9,7 +9,7 @@
   <object href="/omega" role="omega_axis"/>
   <object href="/kappa" role="kappa_axis"/>
   <!-- object href="/kappaphi" role="kappa_phi_axis"/ -->
-  <object href="/cats" role="sample_changer"/>    
+  <object href="/cats" role="sample_changer"/>
   <!-- object href="/plate-manipulator" role="plate_manipulator"/ -->
   <object href="/resolution" role="resolution"/>
   <object href="/energy" role="energy"/>
@@ -19,7 +19,7 @@
   <object href="/dbconnection" role="lims_client"/>
   <object href="/data-analysis" role="data_analysis"/>
   <!--<object href="/workflow-mockup" role="workflow"/> -->
- 
+
   <!-- Procedures and routines -->
   <object href="/energyscan-mockup" role="energyscan"/>
   <object href="/mxcollect" role="collect"/>

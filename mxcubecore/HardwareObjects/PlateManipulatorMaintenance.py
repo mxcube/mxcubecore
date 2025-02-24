@@ -15,7 +15,7 @@ class PlateManipulatorMaintenance(HardwareObject):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-    
+
     def init(self):
         self._sc = self.get_object_by_role("sample_changer")
         self._scan_limits = ''
@@ -28,7 +28,7 @@ class PlateManipulatorMaintenance(HardwareObject):
         :rtype: None
         """
         return self._sc._do_abort()
-    
+
     def _move_to_crystal_position(self, args):
         """
         command to move MD head to x, y crystal position
@@ -38,7 +38,7 @@ class PlateManipulatorMaintenance(HardwareObject):
         :rtype: None
         """
         return self._sc.move_to_crystal_position(args)
-    
+
 
     def _do_change_mode(self, args):
         self._sc._do_change_mode(args)
@@ -66,7 +66,7 @@ class PlateManipulatorMaintenance(HardwareObject):
     def _update_global_state(self):
         state_dict, cmd_state, message = self.get_global_state()
         self.emit("globalStateChanged", (state_dict, cmd_state, message))
-    
+
     def get_global_state(self):
         """
         """
@@ -90,7 +90,7 @@ class PlateManipulatorMaintenance(HardwareObject):
 
         return state_dict, cmd_state, message
 
-    
+
 
     def get_cmd_info(self):
         """ return information about existing commands for this object
@@ -121,5 +121,5 @@ class PlateManipulatorMaintenance(HardwareObject):
         if cmdname == "setPlateBarcode":
             self.set_plate_barcode(args)
         # if cmdname == "change_mode":
-        #     self._do_change_mode(args)      
+        #     self._do_change_mode(args)
         return True

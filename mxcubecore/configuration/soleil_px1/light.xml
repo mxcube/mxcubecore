@@ -7,5 +7,5 @@
   <command type="tango" tangoname="i10-c-cx1/ex/light.1" name="move">move</command>
   <interval>1000</interval>
   <GUIstep>10.</GUIstep>
-  <object role="environment" href="/px1environment" /> 
+  <object role="environment" href="/px1environment" />
 </object>

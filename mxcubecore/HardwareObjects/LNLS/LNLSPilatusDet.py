@@ -192,13 +192,13 @@ class LNLSPilatusDet(AbstractDetector):
         #        "Pilatus wavelength still okay."
         #    )
         #    return True
-        
+
         # As the set of Pilatus wavelength, det dist and beam xy is fast,
         # there is no need to compare the target value with the current one.
         logging.getLogger("HWR").info("Setting Pilatus wavelength...")
         self.set_channel_value(self.DET_WAVELENGTH, wavelength)
         time.sleep(0.6)
-        
+
         print('WAVELENGHT WAS SET: ' + str(wavelength))
         self.wavelength = self.get_wavelength()
         print('WAVELENGHT GOT: ' + str(self.wavelength))
@@ -277,7 +277,7 @@ class LNLSPilatusDet(AbstractDetector):
         """
         Set detector beam_x and returns whether it was successful or not.
 
-        Beam X value can come from different sources. The priority (from 
+        Beam X value can come from different sources. The priority (from
         high to low) is:
         * from_user
         * beam_x argument
@@ -339,7 +339,7 @@ class LNLSPilatusDet(AbstractDetector):
         """
         Set detector beam_y and returns whether it was successful or not.
 
-        Beam Y value can come from different sources. The priority (from 
+        Beam Y value can come from different sources. The priority (from
         high to low) is:
         * from_user
         * beam_y argument
@@ -380,7 +380,7 @@ class LNLSPilatusDet(AbstractDetector):
             "Error while setting Pilatus beam Y. Please, check the detector."
         )
         return False
-    
+
     def get_transmission(self):
         """
         Returns:
@@ -417,7 +417,7 @@ class LNLSPilatusDet(AbstractDetector):
             "Error while setting Pilatus transmission. Please, check the detector."
         )
         return False
-    
+
     def get_start_angle(self):
         """
         Returns:
@@ -454,7 +454,7 @@ class LNLSPilatusDet(AbstractDetector):
             "Error while setting Pilatus start angle. Please, check the detector."
         )
         return False
-    
+
     def get_angle_incr(self):
         """
         Returns:
