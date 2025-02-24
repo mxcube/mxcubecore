@@ -781,9 +781,9 @@ class ICATLIMS(AbstractLims):
 
             # This forces the ingester to associate the dataset to the experiment by ID
             if self.session_manager.active_session.session_id:
-                metadata["investigationId"] = (
-                    self.session_manager.active_session.session_id
-                )
+                metadata[
+                    "investigationId"
+                ] = self.session_manager.active_session.session_id
 
             # Store metadata on disk
             self.add_sample_metadata(metadata, collection_parameters)
