@@ -31,11 +31,11 @@ class Shutter(Device):
         super().__init__(*args, **kwargs)
 
     @command()
-    def Open(self):
+    def Open(self):  # noqa: N802
         self._is_open = True
 
     @command()
-    def Close(self):
+    def Close(self):  # noqa: N802
         self._is_open = False
 
     def dev_state(self):
