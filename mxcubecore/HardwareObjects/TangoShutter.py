@@ -41,13 +41,18 @@ In the example the <values> property contains a dictionary that redefines or
 adds specific tango shutter states.
 When redefining a known state, only the VALUES Enum will be updated.
 When defining a new state (new key), the dictionary value should be a
-list. The new state is added to both the VALUES and the SPECIFIC_STATES Enum.
+list. The new state is added to both the ``VALUES`` and the ``SPECIFIC_STATES`` enumeration.
+
 Attention:
-    - do not use tuples or the python json parser will fail!
-    - make sure only double quotes are used inside the values dictionary. No single quotes (') are allowed !
-    - the second element of the list should be a standard HardwareObjectState name
-    (UNKNOWN, WARNING, BUSY, READY, FAULT, OFF - see in BaseHardwareObjects.py)!
-The <values> property is optional.
+
+- do not use tuples or the Python JSON parser will fail!
+- make sure only double quotes (``"``) are used inside the values dictionary,
+  no single quotes (``'``) are allowed!
+- the second element of the list should be a standard ``HardwareObjectState`` name
+  (``UNKNOWN``, ``WARNING``, ``BUSY``, ``READY``, ``FAULT``, or ``OFF``;
+  see in ``BaseHardwareObjects``)!
+
+The ``<values>`` property is optional.
 """
 
 import json
