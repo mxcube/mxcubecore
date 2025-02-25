@@ -70,6 +70,8 @@ from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
+hwr_logger = logging.getLogger("HWR")
+
 
 @unique
 class TangoShutterStates(Enum):
@@ -136,7 +138,7 @@ class TangoShutter(AbstractShutter):
                 else:
                     values_dict.update({key: val})
         except (ValueError, TypeError):
-            logging.exception("Exception in _initialise_values()")
+            hwr_logger.exception("Exception in _initialise_values()")
 
         self.VALUES = Enum("ValueEnum", values_dict)
         self.SPECIFIC_STATES = Enum("TangoShutterStates", states_dict)
@@ -151,7 +153,7 @@ class TangoShutter(AbstractShutter):
             _state = self.get_value().name
             return self.SPECIFIC_STATES[_state].value[0]
         except (AttributeError, KeyError):
-            logging.exception("Exception in get_state()")
+            hwr_logger.exception("Exception in get_state()")
             return self.STATES.UNKNOWN
 
     def get_value(self) -> TangoShutterStates:
