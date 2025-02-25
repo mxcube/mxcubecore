@@ -92,7 +92,7 @@ class TangoShutter(AbstractShutter):
         self.state_channel = None
 
     def init(self) -> None:
-        """Initilise the predefined values"""
+        """Initialise the predefined values"""
         super().init()
         self.open_cmd = self.get_command_object("Open")
         self.close_cmd = self.get_command_object("Close")
@@ -101,8 +101,9 @@ class TangoShutter(AbstractShutter):
         self.state_channel.connect_signal("update", self._update_value)
         self.update_state()
 
-    def _update_value(self, value: DevState) -> None:
+    def _update_value(self, value: DevState | str) -> None:
         """Update the value.
+
         Args:
             value: The value reported by the state channel.
         """
@@ -137,8 +138,9 @@ class TangoShutter(AbstractShutter):
 
     def get_state(self) -> HardwareObjectState:
         """Get the device state.
+
         Returns:
-            (enum 'HardwareObjectState'): Device state.
+            Device state.
         """
         try:
             _state = self.get_value().name
@@ -149,8 +151,9 @@ class TangoShutter(AbstractShutter):
 
     def get_value(self) -> TangoShutterStates:
         """Get the device value
+
         Returns:
-            (Enum): Enum member, corresponding to the 'VALUE' or UNKNOWN.
+            Enum member, corresponding to the 'VALUE' or UNKNOWN.
         """
         _val = str(self.state_channel.get_value())
         return self.value_to_enum(_val)
