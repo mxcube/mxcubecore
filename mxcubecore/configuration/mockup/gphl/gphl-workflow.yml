@@ -56,7 +56,7 @@ settings:
   # Default is 4.8
   delphi_block: 4.8
   # Stracal step size parameter - must divide delphi block. Default is 0.6
-  stratcal_step: 0.8
+  stratcal_step: 0.6
 
   # Suppress log output of programs called from GPhL workflow
   # Default to False
