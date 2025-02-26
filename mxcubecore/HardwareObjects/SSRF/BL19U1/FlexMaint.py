@@ -162,7 +162,7 @@ class FlexMaint(Equipment):
         self._running = 0
         self._powered = 1
         self._toolopen = 0
-        self._message = ["1. ","Nothing to report. ","   2. current sample: ","None"]
+        self._message = ["1. ","Nothing to report. ","   2.get_loaded_sample_fromstart current sample: ","None"]
         # self._message = [" ","1. current sample: ","None"]
         self._regulating = 0
         self._lid1state = 1
@@ -172,7 +172,7 @@ class FlexMaint(Equipment):
         self._currenttool = 1
 
         # self._socket_addr = '10.30.61.73:10100'
-        self.exporter_addr = '10.30.61.246:9001'
+        self.exporter_addr = '10.30.61.74:9001'
         self._ifcmdSucceeded = False
 
 
@@ -208,6 +208,16 @@ class FlexMaint(Equipment):
             },
             "resetLoadedPosition",
         )
+
+        self._cmdWriteSampleState = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "writeSampleState",
+            },
+            "writeSampleState",
+        )
+
         self._cmdE_STOP = self.add_command(
             {
                 "type": "exporter",
@@ -215,6 +225,23 @@ class FlexMaint(Equipment):
                 "name": "abort",
             },
             "abort",
+        )
+
+        self._cmd_PARK = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "parkRobot",
+            },
+            "parkRobot",
+        )
+        self._cmdHomeClear = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "homeClear",
+            },
+            "homeClear",
         )
 
         # self._cmdCloselid = self.add_command(
@@ -236,6 +263,25 @@ class FlexMaint(Equipment):
 
 
         # print("初始化时被调用")
+
+
+    def forceSampleStateInPuck(self):
+        sample = HWR.beamline.sample_changer.get_loaded_sample().get_address()
+        print("oldsample: ", sample)
+        puck_num, pin_num = sample.split(":")
+        puck_num = int(puck_num)
+        pin_num = int(pin_num)
+
+        self._cmdWriteSampleState(1,puck_num,pin_num,'in_puck')
+    def forceSampleStateOnGonio(self):
+        sample = HWR.beamline.sample_changer.get_loaded_sample().get_address()
+        print("oldsample: ", sample)
+        puck_num, pin_num = sample.split(":")
+        puck_num = int(puck_num)
+        pin_num = int(pin_num)
+
+        self._cmdWriteSampleState(1,puck_num,pin_num,'on_gonio')
+
     @property
     def running(self):
         return self._running
@@ -300,12 +346,26 @@ class FlexMaint(Equipment):
             SC.wait_ready(timeout)
         return res
 
+    @set_running
+    def _home_clear(self,wait=True,timeout=None):
+        res = self._cmdHomeClear()
+        if wait:
+            SC = HWR.beamline.sample_changer
+            SC.wait_ready(timeout)
+        return res
 
+    @set_running
+    def _park_robot(self,wait=True,timeout=None):
+        res = self._cmd_PARK()
+        if wait:
+            SC = HWR.beamline.sample_changer
+            SC.wait_ready(timeout)
+        return res
 
     @set_running
     def _do_dry_gripper(self,wait=True,timeout=None):
         """
-        Launch the "dry" command
+        Launch the "dry" commandget_loaded_sample_fromstart
 
 
         :returns: None
@@ -315,6 +375,7 @@ class FlexMaint(Equipment):
         if wait:
             SC = HWR.beamline.sample_changer
             SC.wait_ready(timeout)
+            HWR.beamline.sample_changer.checkTaskResult(res)
         return res
 
     @set_running
@@ -337,6 +398,7 @@ class FlexMaint(Equipment):
         if wait:
             SC = HWR.beamline.sample_changer
             SC.wait_ready(timeout)
+            HWR.beamline.sample_changer.checkTaskResult(res)
         return res
         # HWR.beamline.sample_changer.change_ifcloseLid_inBeginning_state(False)
         # return self._cmdHome()
@@ -350,7 +412,7 @@ class FlexMaint(Equipment):
         """
         try:
             # 清除机械手存储的上样样品
-            res = self._cmdResetLoadedPosition()
+            res = self.forceSampleStateInPuck()
         except Exception:
             res = 'null'
         # print('res of _do_clear_memory: ',res,type(res))  # null 'str'
@@ -358,6 +420,7 @@ class FlexMaint(Equipment):
         if wait:
             SC = HWR.beamline.sample_changer
             SC.wait_ready(timeout)
+
 
         HWR.beamline.sample_changer.clear_memory()
         return res
@@ -626,6 +689,7 @@ class FlexMaint(Equipment):
             "home": (not self._running) and self._powered and _ready,
             "back": (not self._running) and self._powered and _ready,
             "safe": (not self._running) and self._powered and _ready,
+            "park": (not self._running) and self._powered and _ready,
             "clear_memory": (not self._running) and self._powered and _ready,
             "reset": True,
             "abort": True if self._running else False,
@@ -691,13 +755,13 @@ class FlexMaint(Equipment):
             #         # ["regulon", "Regulation On", "Swich LN2 Regulation On"],
             #     ],
             # ],
-            [
-                "Lid",
-                [
-                    ["openlid1", "Open Lid", "Open Lid"],
-                    ["closelid1", "Close Lid", "Close Lid"],
-                ],
-            ],
+            # [
+            #     "Lid",
+            #     [
+            #         ["openlid1", "Open Lid", "Open Lid"],
+            #         ["closelid1", "Close Lid", "Close Lid"],
+            #     ],
+            # ],
             # [
             #     "Lid",
             #     [
@@ -727,7 +791,8 @@ class FlexMaint(Equipment):
                     ],
                     # ["reset", "Reset Message", "Reset Cats State"],
                     ["back", "Cryo_Back", "Reset Cats State"],
-                    # ["safe", "Safe", "Reset Cats State"],
+                    ["safe", "Safe", "Reset Cats State"],
+                    ["park", "Park", "Reset Cats State"],
                 ],
             ],
             ["Abort", [["abort", "Abort", "Abort Execution of Command"]]],
@@ -766,8 +831,9 @@ class FlexMaint(Equipment):
         if cmd_name == "home":
             self._do_home()
         if cmd_name == "safe":
-            pass
-
+            self._home_clear()
+        if cmd_name == "park":
+            self._park_robot()
 
 
         if cmd_name == "soak":

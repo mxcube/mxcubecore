@@ -84,7 +84,7 @@ def if_ErrorCode(func):
 
 class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
     __TYPE__ = "Flex"
-    NO_OF_BASKETS = 5
+    NO_OF_BASKETS = 37
     NO_OF_SAMPLES_IN_BASKET = 16
 
     def __init__(self, *args, **kwargs):
@@ -119,7 +119,7 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
 
         self._dewar = 1
         # self.socket_addr = '10.30.61.73:10100'
-        self.exporter_addr = '10.30.61.246:9001'
+        self.exporter_addr = '10.30.61.74:9001'
         self._ifcloseLid_inBeginning = True
         self.count = 1
 
@@ -154,13 +154,13 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
             },
             "unloadSample",
         )
-        self._cmdGetStatus = self.add_command(
+        self._cmdGetState = self.add_command(
             {
                 "type": "exporter",
                 "exporter_address": self.exporter_addr,
-                "name": "getStatus",
+                "name": "getState",
             },
-            "getStatus",
+            "getState",
         )
         self._cmdGetMountedSamplePosition = self.add_command(
             {
@@ -170,6 +170,43 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
             },
             "getMountedSamplePosition",
         )
+        self._cmdGetPresentSamples = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "getPresentSamples",
+            },
+            "getPresentSamples",
+        )
+
+        self._cmdCheckTaskResult=self.add_command(
+              {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "checkTaskResult",
+            },
+            "checkTaskResult",
+        )
+
+        self._cmdGetLastTaskException = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "getLastTaskException",
+            },
+            "getLastTaskException",
+        )
+
+        self._cmdGetCurrentLoadSampleState =self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "getCurrentLoadSampleState",
+            },
+            "getCurrentLoadSampleState",
+        )
+
+
 
         self._ifcmdSucceeded = False
         self.first_launch_mxcube = True  # 添加
@@ -181,7 +218,7 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         """
         将目录从sc.xml写入二维列表
         self.proteinAcronym与
-        self.default_prefix
+        self.default_pre_cmdGetMountedSamplePositionfix
         """
         self.proteinAcronym = [["0" for j in range(self.no_of_samples_in_basket)] for i in range(self.no_of_baskets)]
         for i in range(len(self.proteinAcronym)):
@@ -196,16 +233,25 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
                 self.default_prefix[i][j] = self.get_property(xmlName)
 
 
+    def checkTaskResult(self,task_id):
+        print('task_id in checkTaskResult: ',task_id,type(task_id))
+        taskRes = self._cmdCheckTaskResult(task_id)    #id
+        print('taskRes: ',taskRes)
+        if taskRes < 0  :
+            taskExceptionRes = self._cmdGetLastTaskException()
+            print('taskExceptionRes: ',taskExceptionRes)
+            raise Exception("error in task: "+taskExceptionRes)
 
     @if_ErrorCode
     def _do_mount(self, magazine, position,wait=True,timeout=None):
         # return self._cmdMount(magazine=magazine, position=position)
-        # print('type of magazion and position: ',type(magazine),type(position))
+        # print('type o_cmdGetMountedSamplePositionf magazion and position: ',type(magazine),type(position))
         parm = '1\t'+str(magazine)+'\t'+str(position)
         # print('load parameter: ',parm)
         res = self._cmdLoadSample(parm)
         if wait:
-            self.wait_ready(timeout)
+
+            self.wait_centring_ready_when_load(magazine,position,res,timeout)
         return res
 
     @if_ErrorCode
@@ -215,26 +261,27 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         res = self._cmdUnLoadSample(parm)
         if wait:
             self.wait_ready(timeout)
+            self.checkTaskResult(res)
         return res
-
     @if_ErrorCode
     def _do_exchange(self, oldMagazine, oldPosition, newMagazine, newPosition,wait=True,timeout = None):
         print("oldMagazine,oldPosition,NewMagazine,NewPosition:", oldMagazine, oldPosition, newMagazine, newPosition)
-        parm = [1,oldMagazine,oldPosition,1,newMagazine,newPosition]
+        # parm = [1,oldMagazine,oldPosition,1,newMagazine,newPosition]
+        parm = '1\t' + str(newMagazine) + '\t' + str(newPosition)
         print("parm in exchange method and typeof(parm): ",parm,type(parm))
-        res = self._cmdExchange(parm)
+        res = self._cmdLoadSample(parm)
+        MD2 = HWR.beamline.diffractometer
+        print('current phase and state of md2: ', MD2.get_current_phase(), MD2.get_state())
         if wait:
-            self.wait_ready()
+            self.wait_centring_ready_when_load(newMagazine, newPosition, res, timeout)
         return res
 
-        # return self._cmdExchange(oldMagazine=oldMagazine, oldPosition=oldPosition, newMagazine=newMagazine,
-        #                          newPosition=newPosition)
+
 
     @if_ErrorCode
     def _do_getMountedSamplePosition(self,wait=True,timeout=None):
         res = self._cmdGetMountedSamplePosition()
-        if wait:
-            self.wait_ready(timeout)
+        # no wait no task
         return res
 
     @if_ErrorCode
@@ -242,7 +289,9 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         """
         获取机械手状态
         """
-        return self._cmdGetStatus()
+        res = self._cmdGetState()
+        print('get status of flex robot: ',res)
+        return res
 
     def _ready(self):
         """
@@ -269,6 +318,33 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
             while not self._ready():
                 time.sleep(0.5)
 
+    def wait_centring_ready_when_load(self,puck_num,pin_num,task_id,timeout=None):
+        MD2 = HWR.beamline.diffractometer
+
+        if timeout is not None and timeout <= 0:
+            logging.getLogger("HWR").warning(
+                "DEBUG: Strange timeout value passed %s" % str(timeout)
+            )
+            timeout = 30
+        with gevent.Timeout(
+                timeout, RuntimeError("Timeout waiting for FlexRobot to be ready")
+        ):
+            print('current phase and state of md2: ',MD2.get_current_phase(),MD2.get_state())
+            # while MD2.get_current_phase() != "Transfer":
+            #     time.sleep(0.5)
+            # print('current phase and state of md2: ', MD2.get_current_phase(), MD2.get_state())
+            # while MD2.get_current_phase() != "Centring" or MD2.get_state() =='Running':
+            #     print("MD2.get_current_phase() and MD2.get_state(): ",MD2.get_current_phase(),MD2.get_state())
+            #     time.sleep(0.5)
+            while True:
+                load_sample_state = self._cmdGetCurrentLoadSampleState()
+                if load_sample_state == 'on_gonio' and MD2.get_state() =='Ready':
+                    break
+            res = self._do_getMountedSamplePosition()
+            if res[1]==puck_num and res[2]==pin_num:
+                print("sample is ready to centring")
+            else:
+                self.checkTaskResult(task_id)
 
 
 
@@ -308,7 +384,7 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         print("进入exchange函数")
 
         # 检查md2
-        self.check_MD2_state()
+        # self.check_MD2_state()
         # self.check_MD2_Magnet()
 
         oldsample = self.get_loaded_sample().get_address()
@@ -489,8 +565,8 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         #     raise Exception("please close the lid first")
 
 
-        # 判断md2
-        self.check_MD2_state()
+        # 判断md2 flex do not need
+        # self.check_MD2_state()
         # self.check_MD2_Magnet()
 
         self.emit("fsmConditionChanged", "sample_mounting_sample_changer", True)
@@ -532,6 +608,7 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         if mounted_sample is not previous_sample:
             # 判断真实命令是否发送成功,_ifcmdSucceeded可能是机械手的返回信息，或者是因为socket连接问题所返回的False,
             # 如果机械手返回信息有报错，在cmd函数中就会raise exception,然后会在if_ErrorCode函数中(转换为int?)传递过来
+
             self._ifcmdSucceeded = self._do_mount(basket, sample)
             print("self._ifcmdSucceeded:", self._ifcmdSucceeded, type(self._ifcmdSucceeded))
 
@@ -647,7 +724,7 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
             raise Exception("Can not unload since there has no sample was mounted")
 
         # 检查md2
-        self.check_MD2_state()
+        # self.check_MD2_state()
 
         if sample_slot == self.get_loaded_sample().get_address():
             logging.getLogger("user_level_log").info("即将把样品下到的位置与已上样样品本来所处的位置一致，开始下样")
@@ -742,7 +819,7 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
                 # 代修改,(原先actor还要判断机械手在不在dwear里来判断要不要close lid)
                 print("try to get loaded sample info from flex robot，if it stuck here for a long time, means there's problem of connection between mxcube and flex robot")
                 ret = self._cmdGetMountedSamplePosition()
-                # ret = self._cmdGetStatus()
+                # ret = self._cmdGetState()
                 # print("self._cmdGetStatus")
                 print("the result of loaded sample info: ",ret)
                 MountedPin = ret
