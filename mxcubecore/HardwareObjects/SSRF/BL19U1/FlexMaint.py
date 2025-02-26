@@ -244,6 +244,15 @@ class FlexMaint(Equipment):
             "homeClear",
         )
 
+        self._cmdTrashMountedSample = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "trashMountedSample",
+            },
+            "trashMountedSample",
+        )
+
         # self._cmdCloselid = self.add_command(
         #     {"type": "socketrobot", "socket_address": self._socket_addr, "name": '_cmdCloselid'}, 'Dewar Open = OFF Dewar = 1'
         # )
@@ -352,6 +361,7 @@ class FlexMaint(Equipment):
         if wait:
             SC = HWR.beamline.sample_changer
             SC.wait_ready(timeout)
+            HWR.beamline.sample_changer.checkTaskResult(res)
         return res
 
     @set_running
@@ -360,6 +370,15 @@ class FlexMaint(Equipment):
         if wait:
             SC = HWR.beamline.sample_changer
             SC.wait_ready(timeout)
+            HWR.beamline.sample_changer.checkTaskResult(res)
+        return res
+    @set_running
+    def _trash_mounted_pin(self,wait=True,timeout=None):
+        res = self._cmdTrashMountedSample()
+        if wait:
+            SC = HWR.beamline.sample_changer
+            SC.wait_ready(timeout)
+            HWR.beamline.sample_changer.checkTaskResult(res)
         return res
 
     @set_running
@@ -690,6 +709,7 @@ class FlexMaint(Equipment):
             "back": (not self._running) and self._powered and _ready,
             "safe": (not self._running) and self._powered and _ready,
             "park": (not self._running) and self._powered and _ready,
+            "trash": (not self._running) and self._powered and _ready,
             "clear_memory": (not self._running) and self._powered and _ready,
             "reset": True,
             "abort": True if self._running else False,
@@ -793,6 +813,7 @@ class FlexMaint(Equipment):
                     ["back", "Cryo_Back", "Reset Cats State"],
                     ["safe", "Safe", "Reset Cats State"],
                     ["park", "Park", "Reset Cats State"],
+                    ["trash", "Trash_mounted_pin", "Reset Cats State"],
                 ],
             ],
             ["Abort", [["abort", "Abort", "Abort Execution of Command"]]],
@@ -834,6 +855,8 @@ class FlexMaint(Equipment):
             self._home_clear()
         if cmd_name == "park":
             self._park_robot()
+        if cmd_name == "trash":
+            pass
 
 
         if cmd_name == "soak":
