@@ -379,6 +379,7 @@ class FlexMaint(Equipment):
             SC = HWR.beamline.sample_changer
             SC.wait_ready(timeout)
             HWR.beamline.sample_changer.checkTaskResult(res)
+        self._do_synchronize()
         return res
 
     @set_running
@@ -395,6 +396,7 @@ class FlexMaint(Equipment):
             SC = HWR.beamline.sample_changer
             SC.wait_ready(timeout)
             HWR.beamline.sample_changer.checkTaskResult(res)
+        HWR.beamline.sample_changer.clear_memory()
         return res
 
     @set_running
@@ -710,6 +712,7 @@ class FlexMaint(Equipment):
             "safe": (not self._running) and self._powered and _ready,
             "park": (not self._running) and self._powered and _ready,
             "trash": (not self._running) and self._powered and _ready,
+            "samplelist": (not self._running) and self._powered and _ready,
             "clear_memory": (not self._running) and self._powered and _ready,
             "reset": True,
             "abort": True if self._running else False,
@@ -811,9 +814,10 @@ class FlexMaint(Equipment):
                     ],
                     # ["reset", "Reset Message", "Reset Cats State"],
                     ["back", "Cryo_Back", "Reset Cats State"],
-                    ["safe", "Safe", "Reset Cats State"],
-                    ["park", "Park", "Reset Cats State"],
+                    ["safe", "Home_clear", "Reset Cats State"],
+                    ["park", "Freeze", "Reset Cats State"],
                     ["trash", "Trash_mounted_pin", "Reset Cats State"],
+                    ["samplelist", "Get_sample_list", "Reset Cats State"],
                 ],
             ],
             ["Abort", [["abort", "Abort", "Abort Execution of Command"]]],
@@ -856,7 +860,11 @@ class FlexMaint(Equipment):
         if cmd_name == "park":
             self._park_robot()
         if cmd_name == "trash":
-            pass
+            self._trash_mounted_pin()
+        if cmd_name=="samplelist":
+            SC = HWR.beamline.sample_changer
+            sample_list = SC._cmdGetPresentSamples()
+            print(sample_list)
 
 
         if cmd_name == "soak":

@@ -456,7 +456,7 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
                 HWR.beamline.sample_changer_maintenance._running = 0
                 HWR.beamline.sample_changer_maintenance._update_global_state()
 
-                # 翻译来自机械手的errorCode
+                # 翻译来自机械手的errorCode,(翻译代码已删除)
                 if type(self._ifcmdSucceeded) is Exception:
                     self._ifcmdSucceeded = str(self._ifcmdSucceeded)
                     logging.getLogger("user_level_log").error(
