@@ -354,7 +354,7 @@ class Sample(TaskNode):
         else:
             self.set_name(self.loc_str)
 
-    def init_from_lims_object(self, lims_sample):  # noqa: C901
+    def init_from_lims_object(self, lims_sample):
         if hasattr(lims_sample, "cellA"):
             self.crystals[0].cell_a = lims_sample.cellA
             self.processing_parameters.cell_a = lims_sample.cellA
@@ -2072,7 +2072,7 @@ class GphlWorkflow(TaskNode):
             if hasattr(self, dict_item[0]):
                 setattr(self, dict_item[0], dict_item[1])
 
-    def set_pre_strategy_params(  # noqa: C901
+    def set_pre_strategy_params(
         self,
         space_group="",
         crystal_classes=(),

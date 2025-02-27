@@ -6706,7 +6706,6 @@ convention = "google"
     "RET507",
     "RUF005",
     "RUF012",
-    "RUF100",
     "S110",
     "SIM102",
     "SIM108",
