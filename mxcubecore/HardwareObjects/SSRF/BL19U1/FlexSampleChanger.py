@@ -273,6 +273,7 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         MD2 = HWR.beamline.diffractometer
         print('current phase and state of md2: ', MD2.get_current_phase(), MD2.get_state())
         if wait:
+            print("waiting the return message")
             self.wait_centring_ready_when_load(newMagazine, newPosition, res, timeout)
         return res
 
@@ -320,26 +321,34 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
 
     def wait_centring_ready_when_load(self,puck_num,pin_num,task_id,timeout=None):
         MD2 = HWR.beamline.diffractometer
-
+        timeout = 30
         if timeout is not None and timeout <= 0:
             logging.getLogger("HWR").warning(
                 "DEBUG: Strange timeout value passed %s" % str(timeout)
             )
+            print("set timeout = 30 in wait_centring_ready_when_load")
             timeout = 30
         with gevent.Timeout(
                 timeout, RuntimeError("Timeout waiting for FlexRobot to be ready")
         ):
-            print('current phase and state of md2: ',MD2.get_current_phase(),MD2.get_state())
+            print('current phase and state of md2 in wait centring ready: ',MD2.get_current_phase(),MD2.get_state())
+
             # while MD2.get_current_phase() != "Transfer":
             #     time.sleep(0.5)
             # print('current phase and state of md2: ', MD2.get_current_phase(), MD2.get_state())
             # while MD2.get_current_phase() != "Centring" or MD2.get_state() =='Running':
             #     print("MD2.get_current_phase() and MD2.get_state(): ",MD2.get_current_phase(),MD2.get_state())
             #     time.sleep(0.5)
+
             while True:
                 load_sample_state = self._cmdGetCurrentLoadSampleState()
+                print("in while true, load_sample_state: ")
+                # time.sleep(0.3)
                 if load_sample_state == 'on_gonio' and MD2.get_state() =='Ready':
                     break
+                if self._ready():
+                    self.checkTaskResult(task_id)
+
             res = self._do_getMountedSamplePosition()
             if res[1]==puck_num and res[2]==pin_num:
                 print("sample is ready to centring")
@@ -435,6 +444,7 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
             # 处理返回的_ifcmdSucceeded信息
             # 如果命令返回False说明是socket连接没有连上
             if self._ifcmdSucceeded == False:
+                print('_ifcmdSucceeded is false.')
                 self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
                 return
             # 如果命令返回的类型是Exception，说明是机械手有报错
@@ -444,7 +454,8 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
                     type(self._ifcmdSucceeded) is ConnectionRefusedError) or (
                     type(self._ifcmdSucceeded) is ConnectionAbortedError) or (
                     type(self._ifcmdSucceeded) is ConnectionResetError) or (
-                    type(self._ifcmdSucceeded) is BrokenPipeError):
+                    type(self._ifcmdSucceeded) is BrokenPipeError) or(
+                    type(self._ifcmdSucceeded) is RuntimeError):
                 # 在发生错误后恢复机械手的各种状态
                 print("there is some error with exchange command, start try to restore status")
                 # 20240101 add x 3
@@ -463,6 +474,7 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
                         "ErrorCode from robot:" + self._ifcmdSucceeded + ",please contact the teacher on duty")
                     raise Exception(f"ErrorCode from robot: {self._ifcmdSucceeded}, please contact the teacher on duty")
                 else:
+                    print("there's an exception ")
                     logging.getLogger("user_level_log").error(
                         "There are some error caused by internet connection, please try again")
                     raise Exception("There are some error caused by internet connection, please try again")
