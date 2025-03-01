@@ -10,9 +10,8 @@ from mxcubecore import HardwareRepository as HWR
 from mxcubecore.queue_entry.base_queue_entry import CENTRING_METHOD
 
 
-# MD2 = HWR.beamline.diffractometer
 
-# print(HWR.beamline.sample_changer_maintenance.running)
+
 
 def if_running_sc(func):
     """
@@ -53,6 +52,7 @@ def set_running_sc(func):
             self._ifcmdSucceeded = False
             return res
         else:
+            print('self._ifcmdSucceeded in wrapper')
             logging.getLogger("HWR").error(
                 "socket timeout, please check the network connection"
             )
@@ -214,6 +214,15 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         self.write_sample_dir()  # 加载sample的prefix和subdir
         self.get_loaded_sample_fromstart()
 
+    def pulling_state_flex(self):
+        if self._ready():
+            HWR.beamline.sample_changer_maintenance._running = 0
+            HWR.beamline.sample_changer_maintenance._update_global_state()
+        else:
+            HWR.beamline.sample_changer_maintenance.change_running_state(1)
+            HWR.beamline.sample_changer_maintenance._update_global_state()
+
+
     def write_sample_dir(self):  # 添加
         """
         将目录从sc.xml写入二维列表
@@ -321,7 +330,7 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
 
     def wait_centring_ready_when_load(self,puck_num,pin_num,task_id,timeout=None):
         MD2 = HWR.beamline.diffractometer
-        timeout = 30
+        timeout = 300
         if timeout is not None and timeout <= 0:
             logging.getLogger("HWR").warning(
                 "DEBUG: Strange timeout value passed %s" % str(timeout)
@@ -342,7 +351,7 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
 
             while True:
                 load_sample_state = self._cmdGetCurrentLoadSampleState()
-                print("in while true, load_sample_state: ")
+                # print("in while true, load_sample_state: ")
                 # time.sleep(0.3)
                 if load_sample_state == 'on_gonio' and MD2.get_state() =='Ready':
                     break
@@ -467,17 +476,12 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
                 HWR.beamline.sample_changer_maintenance._running = 0
                 HWR.beamline.sample_changer_maintenance._update_global_state()
 
-                # 翻译来自机械手的errorCode,(翻译代码已删除)
-                if type(self._ifcmdSucceeded) is Exception:
-                    self._ifcmdSucceeded = str(self._ifcmdSucceeded)
-                    logging.getLogger("user_level_log").error(
-                        "ErrorCode from robot:" + self._ifcmdSucceeded + ",please contact the teacher on duty")
-                    raise Exception(f"ErrorCode from robot: {self._ifcmdSucceeded}, please contact the teacher on duty")
-                else:
-                    print("there's an exception ")
-                    logging.getLogger("user_level_log").error(
-                        "There are some error caused by internet connection, please try again")
-                    raise Exception("There are some error caused by internet connection, please try again")
+
+                self._ifcmdSucceeded = str(self._ifcmdSucceeded)
+                logging.getLogger("user_level_log").error(
+                    "ErrorCode from robot: %s,  " % self._ifcmdSucceeded)
+                raise Exception(f"ErrorCode from robot: {self._ifcmdSucceeded},  ")
+
 
             # 命令完成
             mounted_sample = self.get_component_by_address(
@@ -499,9 +503,6 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         print("self.get_loaded_sample().get_address()", self.get_loaded_sample().get_address())
         # 计数
         self.count += 1
-        # 应该不需要下面这两行
-        # if not self._ifcloseLid_inBeginning:
-        #     self.change_ifcloseLid_inBeginning_state(True)
 
         # 上完样品，md2 变为centering
         self.MD2_Centring()
@@ -537,9 +538,9 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         # logging.getLogger("HWR").info("Cryo state: %s ", str(MD2.Cryo_Is_Back.get_value()))
         # if MD2.Cryo_Is_Back.get_value() != True:
         #     logging.getLogger("user_level_log").error(
-        #         "The cryo seems cannot change to back position while mounting,please contact the teacher on duty")
+        #         "The cryo seems cannot change to back position while mounting, ")
         #     raise Exception(
-        #         "The cryo seems cannot change to back position while mounting,please contact the teacher on duty")
+        #         "The cryo seems cannot change to back position while mounting, ")
         # else:
         #     print("get into safe waiting time for 0.5 second")
         #     time.sleep(0.5)
@@ -636,7 +637,12 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
 
             # 如果命令返回的类型是Exception，说明是机械手有报错
             elif (type(self._ifcmdSucceeded) is Exception) or (type(self._ifcmdSucceeded) is OSError) or (
-                    type(self._ifcmdSucceeded) is TimeoutError or type(self._ifcmdSucceeded) is TypeError):
+                    type(self._ifcmdSucceeded) is TimeoutError) or (type(self._ifcmdSucceeded) is KeyError) or (
+                    type(self._ifcmdSucceeded) is ConnectionRefusedError) or (
+                    type(self._ifcmdSucceeded) is ConnectionAbortedError) or (
+                    type(self._ifcmdSucceeded) is ConnectionResetError) or (
+                    type(self._ifcmdSucceeded) is BrokenPipeError) or(
+                    type(self._ifcmdSucceeded) is RuntimeError):
                 # 在发生错误后恢复机械手的各种状态
                 self._selected_sample = -1
                 self._selected_basket = -1
@@ -651,12 +657,11 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
                 HWR.beamline.sample_changer_maintenance._running = 0
                 HWR.beamline.sample_changer_maintenance._update_global_state()
 
-                # 翻译来自机械手的errorCode,(翻译代码已删除)
-                if type(self._ifcmdSucceeded) is Exception:
-                    self._ifcmdSucceeded = str(self._ifcmdSucceeded)
+
+                self._ifcmdSucceeded = str(self._ifcmdSucceeded)
                 logging.getLogger("user_level_log").error(
-                    "ErrorCode from robot: %s, please contact the teacher on duty" % self._ifcmdSucceeded)
-                raise Exception(f"ErrorCode from robot: {self._ifcmdSucceeded}, please contact the teacher on duty")
+                    "ErrorCode from robot: %s,  " % self._ifcmdSucceeded)
+                raise Exception(f"ErrorCode from robot: {self._ifcmdSucceeded},  ")
 
             self._trigger_loaded_sample_changed_event(mounted_sample)
 
@@ -757,11 +762,16 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
                 return
             # 如果命令返回的类型是Exception，说明是机械手有报错
             elif (type(self._ifcmdSucceeded) is Exception) or (type(self._ifcmdSucceeded) is OSError) or (
-                    type(self._ifcmdSucceeded) is TimeoutError):
+                    type(self._ifcmdSucceeded) is TimeoutError) or (type(self._ifcmdSucceeded) is KeyError) or (
+                    type(self._ifcmdSucceeded) is ConnectionRefusedError) or (
+                    type(self._ifcmdSucceeded) is ConnectionAbortedError) or (
+                    type(self._ifcmdSucceeded) is ConnectionResetError) or (
+                    type(self._ifcmdSucceeded) is BrokenPipeError) or(
+                    type(self._ifcmdSucceeded) is RuntimeError):
 
                 self.unload_error_recover()
                 self._ifcmdSucceeded = str(self._ifcmdSucceeded)
-                raise Exception(f"ErrorCode from robot: {self._ifcmdSucceeded}, please contact the teacher on duty")
+                raise Exception(f"ErrorCode from robot: {self._ifcmdSucceeded},  ")
 
             self._selected_basket = -1
             self._selected_sample = -1
