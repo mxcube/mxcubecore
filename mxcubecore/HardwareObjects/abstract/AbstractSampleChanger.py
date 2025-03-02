@@ -790,6 +790,14 @@ class SampleChanger(Container, HardwareObject):
             self.status = status
             self._trigger_status_changed_event()
 
+    def _set_status(self,status=None):
+        if (status is not None) and (self.status != status):
+            self.status = status
+            self._trigger_status_changed_event()
+
+
+
+
     def _reset_loaded_sample(self):
         for smp in self.get_sample_list():
             smp._set_loaded(False)

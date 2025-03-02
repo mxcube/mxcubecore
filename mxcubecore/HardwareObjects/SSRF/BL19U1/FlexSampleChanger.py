@@ -231,12 +231,11 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         self.if_check_mountedPin_from_camerman = False
         self.write_sample_dir()  # 加载sample的prefix和subdir
         self.get_loaded_sample_fromstart()
-        # gevent.spawn(self.pulling_state_flex())
 
     def pulling_state_flex(self):
         while True:
+            time.sleep(0.05)
             try:
-                time.sleep(0.05)
                 if self._ready():
                     self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
                     HWR.beamline.sample_changer_maintenance._running = 0
@@ -247,6 +246,12 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
                     HWR.beamline.sample_changer_maintenance._update_global_state()
             except Exception:
                 pass
+            try:
+                current_status = self._do_getStatus()
+                self._set_status(current_status)
+            except Exception:
+                pass
+
 
 
 
