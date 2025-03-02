@@ -272,6 +272,15 @@ class FlexMaint(Equipment):
 
 
         # print("初始化时被调用")
+        self.gevent_pull_state()
+
+
+
+
+
+    def gevent_pull_state(self):
+        SC = HWR.beamline.sample_changer
+        gevent.spawn(SC.pulling_state_flex)
 
 
     def forceSampleStateInPuck(self):

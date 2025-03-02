@@ -69,7 +69,6 @@ def if_ErrorCode(func):
 
     def wrapper(self, *args):
         try:
-            print()
             res = func(self, *args)
         except Exception as e:
             print("type(e) from if_ErrorCode:", type(e))
