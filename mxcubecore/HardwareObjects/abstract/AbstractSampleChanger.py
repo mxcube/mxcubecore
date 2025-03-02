@@ -203,6 +203,7 @@ class SampleChanger(Container, HardwareObject):
     # ########################    EVENTS    #########################
     STATE_CHANGED_EVENT = "stateChanged"
     STATUS_CHANGED_EVENT = "statusChanged"
+    SAMPLE_LN2_LEVEL_CHANGED_EVENT = "sampleLN2levelChanged"
     INFO_CHANGED_EVENT = "infoChanged"
     LOADED_SAMPLE_CHANGED_EVENT = "loadedSampleChanged"
     SELECTION_CHANGED_EVENT = "selectionChanged"
@@ -225,6 +226,8 @@ class SampleChanger(Container, HardwareObject):
         self._timer_update_inverval = 5  # interval in periods of 100 ms
         self._timer_update_counter = 0
         self.use_update_timer = None
+        self.sample_pool_LN2_level = None
+        self.TOLERANCE_SAMPLE_LN2_LEVEL = 1.5
 
     def init(self):
         """
@@ -308,6 +311,8 @@ class SampleChanger(Container, HardwareObject):
         :rtype: str
         """
         return self.status
+    def get_sample_pool_LN2_level(self):
+        return self.sample_pool_LN2_level
 
     def get_task_error(self):
         """
@@ -795,6 +800,17 @@ class SampleChanger(Container, HardwareObject):
             self.status = status
             self._trigger_status_changed_event()
 
+    def _set_sampleLN2Level(self,current_sample_LN2Level=None):
+        # print("sampleLN2LEVEL in _set_sampleLN2Level and type: ",current_sample_LN2Level,type(current_sample_LN2Level))     #float
+
+        if not self.sample_pool_LN2_level:
+            changing_value = 100        # first set value
+        else:
+            changing_value = abs(self.sample_pool_LN2_level - current_sample_LN2Level)
+        # print('changing_value: ',changing_value)
+        if (current_sample_LN2Level is not None) and (changing_value>self.TOLERANCE_SAMPLE_LN2_LEVEL):
+            self.sample_pool_LN2_level = current_sample_LN2Level
+            self._trigger_samplepoll_LN2_level_changed_event()
 
 
 
@@ -841,8 +857,14 @@ class SampleChanger(Container, HardwareObject):
     def _trigger_status_changed_event(self):
         self.emit(self.STATUS_CHANGED_EVENT, (str(self.status),))
 
+    def _trigger_samplepoll_LN2_level_changed_event(self):
+        self.emit(self.SAMPLE_LN2_LEVEL_CHANGED_EVENT,(str(self.sample_pool_LN2_level)))
+
     def _trigger_loaded_sample_changed_event(self, sample):
         self.emit(self.LOADED_SAMPLE_CHANGED_EVENT, (sample,))
+
+
+
 
     def _trigger_selection_changed_event(self):
         self.emit(self.SELECTION_CHANGED_EVENT, ())

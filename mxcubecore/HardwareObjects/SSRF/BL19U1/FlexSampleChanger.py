@@ -237,20 +237,26 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
             try:
                 if self._ready():
                     self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
-                    HWR.beamline.sample_changer_maintenance._running = 0
-                    HWR.beamline.sample_changer_maintenance._update_global_state()
+                    if HWR.beamline.sample_changer_maintenance._running != 0:
+                        HWR.beamline.sample_changer_maintenance._update_running_state(0)
                 else:
                     self._set_state(AbstractSampleChanger.SampleChangerState.Moving)
-                    HWR.beamline.sample_changer_maintenance.change_running_state(1)
-                    HWR.beamline.sample_changer_maintenance._update_global_state()
+                    if HWR.beamline.sample_changer_maintenance._running != 1:
+                        HWR.beamline.sample_changer_maintenance._update_running_state(1)
             except Exception:
                 pass
+
             try:
                 current_status = self._do_getStatus()
                 self._set_status(current_status)
             except Exception:
                 pass
 
+            try:
+                current_sample_pool_LN2_level = self._do_getSamplePoolLN2Level()
+                self._set_sampleLN2Level(current_sample_pool_LN2_level)
+            except Exception:
+                pass
 
 
 
@@ -350,8 +356,8 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         判断是否ready
         return: True / False
         """
-        status = self._do_getState()
-        if status == 'Ready':
+        state = self._do_getState()
+        if state == 'Ready':
             return True
         else:
             return False
