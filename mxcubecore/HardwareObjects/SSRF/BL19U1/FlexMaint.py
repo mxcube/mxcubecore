@@ -828,7 +828,7 @@ class FlexMaint(Equipment):
                     ["park", "Freeze", "Reset Cats State"],
                     ["trash", "Trash_mounted_pin", "Reset Cats State"],
                     ["samplelist", "Get_sample_list", "Reset Cats State"],
-                    ["pullingState", "start_pulling_state", "Reset Cats State"],
+                    # ["pullingState", "start_pulling_state", "Reset Cats State"],
                 ],
             ],
             ["Abort", [["abort", "Abort", "Abort Execution of Command"]]],
@@ -876,9 +876,9 @@ class FlexMaint(Equipment):
             SC = HWR.beamline.sample_changer
             sample_list = SC._cmdGetPresentSamples()
             print(sample_list)
-        if cmd_name == 'pullingState':
-            SC = HWR.beamline.sample_changer
-            gevent.spawn(SC.pulling_state_flex())
+        # if cmd_name == 'pullingState':
+        #     SC = HWR.beamline.sample_changer
+        #     gevent.spawn(SC.pulling_state_flex())
 
 
         if cmd_name == "soak":

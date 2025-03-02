@@ -227,7 +227,7 @@ class SampleChanger(Container, HardwareObject):
         self._timer_update_counter = 0
         self.use_update_timer = None
         self.sample_pool_LN2_level = None
-        self.TOLERANCE_SAMPLE_LN2_LEVEL = 1.5
+        self.TOLERANCE_SAMPLE_LN2_LEVEL = 1
 
     def init(self):
         """
