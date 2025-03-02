@@ -162,6 +162,24 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
             },
             "getState",
         )
+        self._cmdGetStatus = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "getStatus",
+            },
+            "getStatus",
+        )
+
+        self._cmdGetSamplePoolLN2Level = self.add_command(
+            {
+              "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "getSamplePoolLN2Level",
+            },
+            "getSamplePoolLN2Level"
+        )
+
         self._cmdGetMountedSamplePosition = self.add_command(
             {
                 "type": "exporter",
@@ -217,16 +235,18 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
 
     def pulling_state_flex(self):
         while True:
-            time.sleep(0.05)
-            if self._ready():
-
-                self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
-                HWR.beamline.sample_changer_maintenance._running = 0
-                HWR.beamline.sample_changer_maintenance._update_global_state()
-            else:
-                self._set_state(AbstractSampleChanger.SampleChangerState.Moving)
-                HWR.beamline.sample_changer_maintenance.change_running_state(1)
-                HWR.beamline.sample_changer_maintenance._update_global_state()
+            try:
+                time.sleep(0.05)
+                if self._ready():
+                    self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
+                    HWR.beamline.sample_changer_maintenance._running = 0
+                    HWR.beamline.sample_changer_maintenance._update_global_state()
+                else:
+                    self._set_state(AbstractSampleChanger.SampleChangerState.Moving)
+                    HWR.beamline.sample_changer_maintenance.change_running_state(1)
+                    HWR.beamline.sample_changer_maintenance._update_global_state()
+            except Exception:
+                pass
 
 
 
@@ -302,12 +322,23 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         return res
 
     @if_ErrorCode
-    def _do_getStatus(self):
+    def _do_getState(self):
         """
-        获取机械手状态
+        获取机械手状态，只有moving and ready
         """
         res = self._cmdGetState()
-        print('get status of flex robot: ',res)
+        # print('get status of flex robot: ',res)
+        return res
+    @if_ErrorCode
+    def _do_getStatus(self):
+        """
+        获取机械手各种状态
+        """
+        res = self._cmdGetStatus()
+        return res
+    @if_ErrorCode
+    def _do_getSamplePoolLN2Level(self):
+        res = self._cmdGetSamplePoolLN2Level()
         return res
 
     def _ready(self):
@@ -315,7 +346,7 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         判断是否ready
         return: True / False
         """
-        status = self._do_getStatus()
+        status = self._do_getState()
         if status == 'Ready':
             return True
         else:
