@@ -63,6 +63,7 @@ python-ldap = "^3.4.0"
 requests = "^2.31.0"
 colorama = "^0.4.6"
 pyicat-plus = {version = "^0.5.1", optional = true}
+mxcube-video-streamer = ">=1.8.2"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^4.1.0"

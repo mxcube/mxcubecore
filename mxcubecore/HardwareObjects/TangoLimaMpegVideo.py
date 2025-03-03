@@ -13,6 +13,10 @@ Example configuration:
 </object>
 """
 
+import atexit
+import logging
+import os
+import signal
 import subprocess
 import uuid
 from typing import (
@@ -71,6 +75,10 @@ class TangoLimaMpegVideo(TangoLimaVideo):
 
         return video_sizes
 
+    def clean_up(self) -> None:
+        logging.getLogger("HWR").info("Shutting down video_stream...")
+        os.kill(self._video_stream_process.pid, signal.SIGTERM)
+
     def start_video_stream_process(self) -> None:
         if (
             not self._video_stream_process
@@ -95,10 +103,10 @@ class TangoLimaMpegVideo(TangoLimaVideo):
                     self.stream_hash,
                 ],
                 close_fds=True,
+                stdout=subprocess.DEVNULL,
             )
 
-            with open("/tmp/mxcube.pid", "a") as f:
-                f.write("%s " % self._video_stream_process.pid)
+            atexit.register(self.clean_up)
 
     def stop_streaming(self) -> None:
         if self._video_stream_process:
