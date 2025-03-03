@@ -1,6 +1,9 @@
 """Class for cameras connected to framegrabbers run by Taco Device Servers"""
 
+import atexit
 import logging
+import os
+import signal
 import subprocess
 import time
 from typing import (
@@ -115,6 +118,10 @@ class MDCameraMockup(BaseHardwareObjects.HardwareObject):
         scale = float(width) / self.get_width()
         return (width, height, scale)
 
+    def clean_up(self):
+        logging.getLogger("HWR").info("Shutting down video_stream...")
+        os.kill(self._video_stream_process.pid, signal.SIGTERM)
+
     def start_video_stream_process(self) -> None:
         if (
             not self._video_stream_process
@@ -139,7 +146,10 @@ class MDCameraMockup(BaseHardwareObjects.HardwareObject):
                     self.stream_hash,
                 ],
                 close_fds=True,
+                stdout=subprocess.DEVNULL,
             )
+
+            atexit.register(self.clean_up)
 
     def stop_streaming(self) -> None:
         if self._video_stream_process:
