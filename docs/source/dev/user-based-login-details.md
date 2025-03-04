@@ -5,7 +5,7 @@ When logging in the very first user sees modal dialog `Select session` and must 
 ## Multiple users:
 
 Any number of users can be logged in at the same time if:
-* they belong to the same `session` (at MAX IV site `proposal` is used in similar meaning),
+* they belong to the same `session`
 * they are **staff**.
 
 Users, who are not part of the proposal, can not log in. After unsuccessful login attempt the user should see the message: “Authentication failed”.
@@ -16,7 +16,7 @@ The **user in control** is able to force logout other users.
 
 **Observers** can remain logged in even if the **user in control** logs out.
 
-The **user in control** can change session / proposal without signing out. He can only choose between intersection sessions - sessions to which all logged-in users belong to. Hence, the list of available  sessions displayed is the same for every user. Example:
+The **user in control** can change session without signing out. The users can only see the sessions they have in common - to which all logged-in users belong to. Hence, the list of available sessions displayed is the same for every user. Example:
 
     User 1 has access to sessions A B C
     User 2 has access to sessions A B
@@ -27,7 +27,7 @@ The **user in control** can change session / proposal without signing out. He ca
 
 ## Control:
 
-It should be clear who is **in control** (hostname of the machine should be included tondicate whether it is remote or on the beamline) and who are the **observers**.
+It should be clear who is **in control** (hostname of the machine should be included to indicate whether it is remote or on the beamline) and who the **observers** are.
 
 Users can ”ask for control” or "take control". The **user in control** can accept or deny the request.
 
@@ -41,8 +41,6 @@ If the **user in control** logs out this role is not passed to any other (logged
 
 A new login occurs when the same user logs into MXCuBE and then opens it again in a separate tab, window, browser, or on another computer.
 
-Any user can always initiate a new login.
-
 Currently, two scenarios can occur:
 
 * If the user opens MXCuBE again within **the same browser session** by opening multiple public tabs/windows or multiple private tabs/windows in the same browser, the browser sends the MXCuBE session cookie to the back-end. As a result, the user is automatically logged in within the same  MXCuBE "user session". In this case, the new login inherits all session data, including queues, drawn points, control state etc.
@@ -52,7 +50,7 @@ Currently, two scenarios can occur:
 ## User with **staff** privileges
 
 They can always:
-* Login - they do not need to be part of any session (or proposal), and this is not checked during login procedure. After logging in, they see the `Select session` modal with the list of sessions they belong to. They could choose any session from this list, or if they type in a number or keyword, they can search through full list of sessions / proposals, including ones they do not belong to, and they can select each one.
+* Login - they do not need to be part of any session, and this is not checked during login procedure. After logging in, they see the `Select session` modal with the list of sessions they belong to. They could choose any session from this list, or if they type in a number or keyword, they can search through full list of sessions, including ones they do not belong to, and they can select each one.
 * Logout any user (including the **user in control**).
 * Move experimental session timewise - reschedule it.
 * Move experimental session beamline-wise.
