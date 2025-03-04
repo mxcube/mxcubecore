@@ -843,8 +843,9 @@ class MiniDiff(Equipment):
 
             # logging.info("EMITTING CENTRING SUCCESSFUL")
             self.centredTime = time.time()
-            self.emitCentringSuccessful()
+            self.emitCentringSuccessful()       #这一步更新了md2软件中的centring电机信息，之前只是移动了，self.走的是Micodiff重写的函数
             self.emitProgressMessage("")
+            print("get out manualCentringDone in MiniDiff")
 
     def autoCentringDone(self, auto_centring_procedure):
         self.emitProgressMessage("")

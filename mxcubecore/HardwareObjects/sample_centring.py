@@ -506,7 +506,7 @@ def end(centred_pos=None):
     if centred_pos is None:
         centred_pos = CURRENT_CENTRING.get()
     try:
-        move_motors(centred_pos)
+        move_motors(centred_pos)        # key problem,this just move the motor, there's another function to change the parameters of MD2
     except Exception:
         READY_FOR_NEXT_POINT.set()
         move_motors(SAVED_INITIAL_POSITIONS)

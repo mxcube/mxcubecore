@@ -810,6 +810,7 @@ class SampleChanger(Container, HardwareObject):
         # print('changing_value: ',changing_value)
         if (current_sample_LN2Level is not None) and (changing_value>self.TOLERANCE_SAMPLE_LN2_LEVEL):
             self.sample_pool_LN2_level = current_sample_LN2Level
+            print("about to change sample_pool_LN2_level,changing_value and tolerance are: ",changing_value,self.TOLERANCE_SAMPLE_LN2_LEVEL)
             self._trigger_samplepoll_LN2_level_changed_event()
 
 
