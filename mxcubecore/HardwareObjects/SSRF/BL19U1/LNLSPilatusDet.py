@@ -717,7 +717,7 @@ class LNLSPilatusDet(AbstractDetector):
         # self.set_channel_value("det_phi_omega_incr", file_template)
         self.set_channel_value("det_phi_oscill_axis", self.header["Oscillation_axis"])
         self.set_channel_value("det_num_oscill", self.header["N_oscillations"])
-        self.set_channel_value("det_beam_x", 1229.00)
+        self.set_channel_value("det_beam_x", )
         # self.set_channel_value("det_beam_y", 1331.00)
         beamy = self.get_beamy()
         self.set_channel_value("det_beam_y", beamy)
@@ -725,8 +725,7 @@ class LNLSPilatusDet(AbstractDetector):
 
     def get_beamy(self):
         distance = self.get_detector_distance()
-        # value = 1331 - 0.0465*distance/1000
-        value = 1293 - 0.0465 * distance / 1000  #20241023
+        value = 1279 - 0.0465 * distance / 1000  #20250305
         return round(value, 2)
 
     def updateJobStatus(self, frame_number, uuid, path, status,filename):
