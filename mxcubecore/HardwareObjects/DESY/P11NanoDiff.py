@@ -1144,49 +1144,64 @@ class P11NanoDiff(GenericDiffractometer):
         return self.get_phase() == GenericDiffractometer.PHASE_TRANSFER
 
     def goto_transfer_phase(self, wait=True):
-
         self.log.debug(" SETTING TRANSFER PHASE ")
         self.phase_goingto = GenericDiffractometer.PHASE_TRANSFER
         self.moving_motors = True
-
+    
         try:
             self.log.debug("  - close detector cover")
             self.detcover_hwobj.close(timeout=0)
-
+    
             self.log.debug("  - setting backlight out")
             self.backlight_hwobj.set_out()
-
+    
             self.log.debug("  - putting collimator down")
             self.collimator_hwobj.set_value("down")
-
+    
             self.log.debug("  - setting beamstop out")
             self.beamstop_hwobj.set_value("out")
-
+    
             self.log.debug("  - moving yag down")
             self.yag_hwobj.set_value("down")
-
+    
             self.log.debug("  - moving pinhole down")
-
             if not self.ignore_pinhole:
                 self.pinhole_hwobj.set_value("down")
-
+    
             self.log.debug("  - moving omega to 0")
-
             self.move_omega(0)
+    
+            self.log.debug("  - restoring transfer position")
             self.restore_position("transfer")
-
+    
             self.log.debug("  - moving gonio tower to 0")
-        finally:
+    
+            # Wait for collimator after all settings are issued
+            collim_timeout = 30  # seconds
+            start_time = time.time()
+            while self.collimator_hwobj.is_moving() or self.collimator_hwobj.get_value() != "down":
+                if time.time() - start_time > collim_timeout:
+                    self.log.error("Timeout waiting for collimator to reach 'down'")
+                    raise RuntimeError("Collimator failed to reach 'down' position")
+                gevent.sleep(0.1)
+                y_pos = self.collimator_hwobj.y_motor.get_value()
+                z_pos = self.collimator_hwobj.z_motor.get_value()
+                self.log.debug(f"Collimator state: {self.collimator_hwobj.get_value()}, "
+                              f"y={y_pos}, z={z_pos}")
+    
+        except RuntimeError as e:
+            self.log.error(f"Transfer phase failed: {str(e)}")
             self.moving_motors = False
-            self.update_phase()
-
+            self.phase_goingto = None  # Prevent phase from being marked complete
+            raise  # Re-raise to halt the process
+        finally:
+            if self.phase_goingto == GenericDiffractometer.PHASE_TRANSFER:
+                self.moving_motors = False
+                self.update_phase()
+    
         if wait:
             self.wait_phase()
-
-        # sampx to 0
-        # sampy to 0
-        # microx, microy to 0
-
+    
     def detector_cover_open(self, wait=True):
         self.detcover_hwobj.open(timeout=0)
         if wait:
