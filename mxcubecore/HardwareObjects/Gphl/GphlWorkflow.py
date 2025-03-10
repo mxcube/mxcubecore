@@ -40,6 +40,7 @@ import subprocess
 import time
 import uuid
 from collections import OrderedDict
+from urllib.parse import urlparse
 
 import f90nml
 import gevent
@@ -510,6 +511,11 @@ class GphlWorkflow(HardwareObjectYaml):
             "type": "boolean",
             "default": self.settings["defaults"]["use_cell_for_processing"],
         }
+        fields["reffiles"] = {
+            "title": "Reference MTZ file Url (multiple Urls not yet supported)",
+            "type": "textarea",
+            "default": "",
+        }
         resolution = data_model.aimed_resolution or HWR.beamline.resolution.get_value()
         resolution = round(resolution, resolution_decimals)
         reslimits = HWR.beamline.resolution.get_limits()
@@ -739,6 +745,13 @@ class GphlWorkflow(HardwareObjectYaml):
                     "update_on_change": True,
                 },
             }
+            if self.settings.get("advanced_mode"):
+                ui_schema["ui:order"].append("reffiles")
+                ui_schema["reffiles"] = {
+                    "ui:options": {
+                        "update_on_change": True,
+                    },
+                }
 
         self._return_parameters = gevent.event.AsyncResult()
 
@@ -787,6 +800,20 @@ class GphlWorkflow(HardwareObjectYaml):
             params["crystal_classes"] = crystal_symmetry.crystal_classes_from_params(
                 lattices=lattices, space_group=space_group
             )
+
+        # Validate and convert reffiles
+        text = params.pop("reffiles", "")
+        if text:
+            reffiles = []
+            for line in text.splitlines():
+                line = line.strip()
+                if line:
+                    if validate_url(line):
+                        reffiles.append(line)
+                    else:
+                        raise ValueError("Invalid url string: %s" % line)
+            if reffiles:
+                params["reference_reflection_files"] = reffiles
 
         # Convert energy field to a single tuple
         params["energies"] = (params.pop("energy"),)
@@ -1609,6 +1636,7 @@ class GphlWorkflow(HardwareObjectYaml):
             "GphlWorkflow: setting transmission to %7.3f %%" % transmission
         )
         HWR.beamline.transmission.set_value(transmission)
+        HWR.beamline.transmission.wait_ready(20)
 
         # NB - now pre-setting of detector has been removed, this gets
         # the current resolution setting, whatever it is
@@ -2891,6 +2919,8 @@ class GphlWorkflow(HardwareObjectYaml):
                     update_dict = self.update_point_groups(parameters)
                 elif instruction == "space_group":
                     update_dict = self.update_space_group(parameters)
+                elif instruction == "reffiles":
+                    update_dict = self.update_reffiles(parameters)
             except:
                 logging.getLogger("HWR").error(
                     "Error in GΦL parameter update for %s, Continuing ...",
@@ -3001,9 +3031,10 @@ class GphlWorkflow(HardwareObjectYaml):
         point_groups0 = values.get("point_groups")
         result = {}
         if space_group:
-            info = crystal_symmetry.CRYSTAL_CLASS_MAP[
+            crystal_class = (
                 crystal_symmetry.SPACEGROUP_MAP[space_group].crystal_class
-            ]
+            )
+            info = crystal_symmetry.CRYSTAL_CLASS_MAP[crystal_class]
             lattice = info.bravais_lattice
             if lattice != lattice0:
                 values1 = dict(values)
@@ -3013,7 +3044,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 result["space_group"]["value"] = space_group
                 point_groups = info.point_group
                 if point_groups == "32" and lattice == "hP":
-                    point_groups = info.name[:-1]
+                    point_groups = crystal_class[:-1]
                 if point_groups != point_groups0:
                     result["point_groups"]["value"] = point_groups
         #
@@ -3073,6 +3104,14 @@ class GphlWorkflow(HardwareObjectYaml):
             return result
         else:
             return {}
+
+    def adjust_reffiles(self, values):
+        value = values.get("reffiles", "").strip()
+        result = {"reffiles": values.get("reffiles", "")}
+        if value and not not all(validate_url(txt) for txt in value.splitlines()):
+            result["reffiles"]["highlight"] = "ERROR"
+        #
+        return result
 
     def adjust_transmission(self, values):
         """When use_dose changes, update transmission and/or exposure_time
@@ -3149,3 +3188,20 @@ class GphlWorkflow(HardwareObjectYaml):
                     result["dose_budget"] = {"highlight": "OK"}
         #
         return result
+
+def validate_url(value: str) -> bool:
+    """Validate url string"""
+    tpl = urlparse(value)
+    scheme = tpl.scheme
+    if not tpl.path.startswith("/"):
+        return False
+    if tpl.query or tpl.fragment or tpl.username or tpl.password:
+        return False
+    if not tpl.netloc and (not scheme or scheme == "file"):
+        return True
+    elif scheme in ("http", "https")  and tpl.hostname:
+        return True
+    else:
+        return False
+
+

@@ -1976,7 +1976,7 @@ class GphlWorkflow(TaskNode):
         self.crystal_thickness = 0.0  # Minimum dimension of crystal, in micron
         self.detector_setting = None  # from 'resolution' parameter or defaults
         self.aimed_resolution = None  # from 'resolution' parameter or defaults
-        self.wavelengths = ()  # from 'energies' parametes
+        self.wavelengths = ()  # from 'energies' parameters
         self.use_cell_for_processing = False
         self.strategy_variant = None  # from 'strategy' Used for acquisition
         self.strategy_options = {}
@@ -1995,7 +1995,7 @@ class GphlWorkflow(TaskNode):
         self.repetition_count = 1
         self.snapshot_count = 2
         self.recentring_mode = "sweep"
-        self.recentring_calc_preference = "GPHL"
+        self.reference_reflection_files = []
 
         # TEST attribute - if true collection is skipped. Set also if init_spot_dir
         self.skip_collection = False
@@ -2087,6 +2087,7 @@ class GphlWorkflow(TaskNode):
         relative_rad_sensitivity=None,
         use_cell_for_processing=None,
         crystal_thickness=None,
+        reference_reflection_files=None,
         **unused,
     ):
         """
@@ -2102,6 +2103,7 @@ class GphlWorkflow(TaskNode):
         :param relative_rad_sensitivity (float):
         :param use_cell_for_processing (bool):
         :param crystal_thickness (float):
+        :param reference_reflection_files (list(str)):
         :param unused (dict):
         :return (None):
         """
@@ -2225,6 +2227,8 @@ class GphlWorkflow(TaskNode):
             self.relative_rad_sensitivity = relative_rad_sensitivity
         if use_cell_for_processing is not None:
             self.use_cell_for_processing = use_cell_for_processing
+        if reference_reflection_files:
+            self.reference_reflection_files = list(reference_reflection_files)
 
     def set_pre_acquisition_params(
         self,
