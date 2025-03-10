@@ -42,6 +42,7 @@ from py4j import (
     java_gateway,
 )
 from py4j.protocol import Py4JJavaError
+from urllib.parse import urlparse
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObjectYaml
@@ -470,28 +471,16 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         message_type = xx0.message_type
         payload = xx0.payload
         correlation_id = xx0.correlation_id
-        enactment_id = xx0.enactment_id
 
         if not payload:
             logging.getLogger("HWR").warning(
                 "GΦL Empty or unparsable information message. Ignored"
             )
-
-        else:
-            if not enactment_id:
-                logging.getLogger("HWR").warning(
-                    "GΦL information message lacks enactment ID:"
-                )
-            elif self._enactment_id != enactment_id:
-                logging.getLogger("HWR").warning(
-                    "Workflow enactment ID %s != info message enactment ID %s."
-                    % (self._enactment_id, enactment_id)
-                )
-            if self.workflow_queue is not None:
-                # Could happen if we have ended the workflow
-                self.workflow_queue.put_nowait(
-                    (message_type, payload, correlation_id, None)
-                )
+        elif self.workflow_queue is not None:
+            # Could happen if we have ended the workflow
+            self.workflow_queue.put_nowait(
+                (message_type, payload, correlation_id, None)
+            )
 
     def processMessage(self, py4j_message):
         """Receive and process message from workflow server
@@ -501,59 +490,15 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         if self.get_state() is self.STATES.OFF:
             return None
 
-        if not self.msg_class_imported:
-            try:
-                msg_class = (
-                    self._gateway.jvm.py4j.reflection.ReflectionUtil.classForName(
-                        "co.gphl.sdcp.astra.service.py4j.Py4jMessage"
-                    )
-                )
-                java_gateway.java_import(
-                    self._gateway.jvm, "co.gphl.sdcp.astra.service.py4j.Py4jMessage"
-                )
-            except Py4JJavaError:
-                msg_class = (
-                    self._gateway.jvm.py4j.reflection.ReflectionUtil.classForName(
-                        "co.gphl.sdcp.py4j.Py4jMessage"
-                    )
-                )
-                java_gateway.java_import(
-                    self._gateway.jvm, "co.gphl.sdcp.py4j.Py4jMessage"
-                )
-
-            logging.getLogger("HWR").debug(
-                "GΦL workflow Py4jMessage class is: %s" % msg_class
-            )
-        self.msg_class_imported = True
-
         xx0 = self._decode_py4j_message(py4j_message)
         message_type = xx0.message_type
         payload = xx0.payload
         correlation_id = xx0.correlation_id
-        enactment_id = xx0.enactment_id
 
-        if not enactment_id:
-            logging.getLogger("HWR").error(
-                "GΦL message lacks enactment ID - sending 'Abort' to external workflow"
-            )
-            return self._response_to_server(
-                GphlMessages.BeamlineAbort(), correlation_id
-            )
-
-        elif self._enactment_id is None:
+        if self._enactment_id is None:
             # NB this should be made less primitive
             # once we are past direct function calls
-            self._enactment_id = enactment_id
-
-        elif self._enactment_id != enactment_id:
-            logging.getLogger("HWR").error(
-                "Workflow enactment ID %s != message enactment ID %s"
-                " - sending 'Abort' to external workflow"
-                % (self._enactment_id, enactment_id)
-            )
-            return self._response_to_server(
-                GphlMessages.BeamlineAbort(), correlation_id
-            )
+            self._enactment_id = xx0.enactment_id
 
         elif not payload:
             logging.getLogger("HWR").error(
@@ -613,8 +558,8 @@ class GphlWorkflowConnection(HardwareObjectYaml):
                     self.workflow_ended()
                 else:
                     logging.getLogger("HWR").debug(
-                        "GΦL - response=%s jobId=%s messageId=%s"
-                        % (result.__class__.__name__, enactment_id, correlation_id)
+                        "GΦL - response=%s messageId=%s"
+                        % (result.__class__.__name__, correlation_id)
                     )
                 return self._response_to_server(result, correlation_id)
 
@@ -643,9 +588,13 @@ class GphlWorkflowConnection(HardwareObjectYaml):
 
         # Determine message type
         message_type = py4j_message.getPayloadClass().getSimpleName()
-
-        xx0 = py4j_message.getEnactmentId()
-        enactment_id = xx0 and xx0.toString()
+        if message_type.endswith("Impl"):
+            message_type = message_type[:-4]
+        if message_type == "RequestConfiguration":
+            xx0 = py4j_message.getPayload().getEnactmentId()
+            enactment_id = xx0 and xx0.toString()
+        else:
+            enactment_id = None
 
         xx0 = py4j_message.getCorrelationId()
         correlation_id = xx0 and xx0.toString()
@@ -659,8 +608,10 @@ class GphlWorkflowConnection(HardwareObjectYaml):
             payload = py4j_message.getPayload()
 
         else:
-            if message_type.endswith("Impl"):
-                message_type = message_type[:-4]
+            logging.getLogger("HWR").debug(
+                "GPhL incoming: message=%s, jobId=%s,  messageId=%s"
+                % (message_type, enactment_id, correlation_id)
+            )
             converterName = "_%s_to_python" % message_type
 
             try:
@@ -963,22 +914,13 @@ class GphlWorkflowConnection(HardwareObjectYaml):
     def _response_to_server(self, payload, correlation_id):
         """Create py4j message from py4j wrapper and current ids"""
 
-        if self._enactment_id is None:
-            enactment_id = None
-        else:
-            enactment_id = self._gateway.jvm.java.util.UUID.fromString(
-                self._enactment_id
-            )
-
         if correlation_id is not None:
             correlation_id = self._gateway.jvm.java.util.UUID.fromString(correlation_id)
 
         py4j_payload = self._payload_to_java(payload)
 
         try:
-            response = self._gateway.jvm.Py4jMessage(
-                py4j_payload, enactment_id, correlation_id
-            )
+            response = self._gateway.jvm.Py4jMessage(py4j_payload, correlation_id)
         except:
             self.abort_workflow(
                 message="Error sending reply (%s) to server"
@@ -1079,25 +1021,43 @@ class GphlWorkflowConnection(HardwareObjectYaml):
 
     def _SelectedLattice_to_java(self, selectedLattice):
         jvm = self._gateway.jvm
+
+        builder = (
+            jvm.astra.messagebus.messages.information.SelectedLatticeImpl.Builder(
+                self._IndexingSolution_to_java(selectedLattice.solution)
+            )
+        )
+        builder = builder.strategyDetectorSetting(
+            self._BcsDetectorSetting_to_java(selectedLattice.strategyDetectorSetting)
+        )
+        builder = builder.strategyWavelength(
+            self._PhasingWavelength_to_java(selectedLattice.strategyWavelength)
+        )
+        builder = builder.strategyControl(selectedLattice.strategyControl)
+        builder = builder.userSpaceGroup(selectedLattice.userSpaceGroup)
+
         crystal_classes = selectedLattice.userCrystalClasses
         if crystal_classes:
-            userCrystalClasses = set(
+            ccset = set(
                 jvm.co.gphl.beamline.v2_unstable.domain_types.CrystalClass.fromStringList(
                     self.toJStringArray(crystal_classes)
                 )
             )
-        else:
-            userCrystalClasses = None
-        result = jvm.astra.messagebus.messages.information.SelectedLatticeImpl(
-            self._IndexingSolution_to_java(selectedLattice.solution),
-            self._BcsDetectorSetting_to_java(selectedLattice.strategyDetectorSetting),
-            self._PhasingWavelength_to_java(selectedLattice.strategyWavelength),
-            selectedLattice.userSpaceGroup,
-            userCrystalClasses,
-            selectedLattice.strategyControl,
-        )
+            builder = builder.userCrystalClasses(ccset)
+        urlstrings = selectedLattice.referenceReflectionFiles
+        for urlstring in urlstrings:
+            urltpl = urlparse(urlstring)
+            host = urltpl.hostname
+            port = urltpl.port or None
+            if host:
+                builder = builder.referenceFile(
+                    urltpl.scheme, urltpl.hostname, port, urltpl.path
+                )
+            elif urltpl :
+                builder = builder.referenceFile(urltpl.scheme, urltpl.path)
         #
-        return result
+        return builder.build()
+
 
     def _IndexingSolution_to_java(self, indexingSolution):
         jvm = self._gateway.jvm
@@ -1154,7 +1114,6 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         xx0 = userProvidedInfo.isAnisotropic
         if xx0 is not None:
             builder = builder.anisotropic(xx0)
-        #
         return builder.build()
 
     def _AnomalousScatterer_to_java(self, anomalousScatterer):

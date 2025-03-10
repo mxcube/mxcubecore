@@ -403,6 +403,10 @@ class SelectedLattice(MessageData):
         self._userCrystalClasses = data_model.crystal_classes
         sginfo = crystal_symmetry.SPACEGROUP_MAP.get(data_model.space_group)
         self._userSpaceGroup = sginfo.number if sginfo else None
+        if data_model.reference_reflection_files:
+            self._referenceReflectionFiles = list(data_model.reference_reflection_files)
+        else:
+            self._referenceReflectionFiles = []
 
     @property
     def solution(self):
@@ -434,6 +438,10 @@ class SelectedLattice(MessageData):
     def userSpaceGroup(self):
         """Space group (int) given by user"""
         return self._userSpaceGroup
+
+    @property
+    def referenceReflectionFiles(self):
+        return list(self._referenceReflectionFiles)
 
 
 class IndexingSolution(MessageData):
