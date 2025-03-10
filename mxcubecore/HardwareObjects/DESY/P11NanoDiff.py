@@ -1132,9 +1132,13 @@ class P11NanoDiff(GenericDiffractometer):
 
     def goto_centring_phase(self, wait=True):
         self.log.debug(" SETTING CENTRING PHASE ")
-
+        if self.is_centring_phase():
+            self.log.debug(" Already in Centring phase, skipping unnecessary actions")
+            self.update_phase()  # Ensure state is fresh
+            logging.getLogger("GUI").info("Phase set is finished")
+            return
         self.phase_goingto = GenericDiffractometer.PHASE_CENTRING
-
+        
         logging.getLogger("GUI").warning("Closing detector cover...")
         self.detcover_hwobj.close(timeout=0)
 
