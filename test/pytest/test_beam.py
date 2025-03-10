@@ -254,3 +254,21 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
                 assert beam_height == dsize.value[1]
                 assert beam_shape == BeamShape.ELLIPTICAL
                 assert beam_label == dsize.name
+
+    def test_is_beam(self, test_object):
+        """Check if there is beam"""
+        check_beam = test_object._check_beam
+        if not check_beam:
+            assert test_object.is_beam
+        else:
+            test_object._definer_type = "aperture"
+            for val in test_object.aperture.get_diameter_size_list():
+                app_size = int(test_object.aperture.VALUES[val].value[0]) / 1000
+                test_object.aperture.set_value(
+                    test_object.aperture.VALUES[val], timeout=2
+                )
+                _beam = test_object.is_beam
+                if check_beam[0] > app_size:
+                    assert not _beam
+                else:
+                    assert _beam
