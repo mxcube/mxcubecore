@@ -31,6 +31,7 @@ Example xml configuration:
     <definer_type>definer</definer_type>
     <beam_divergence_vertical>0</beam_divergence_vertical>
     <beam_divergence_horizontal>0</beam_divergence_horizontal>
+    <check_beam>(10,10)</check_beam>
   </object>
 """
 
@@ -39,7 +40,7 @@ __license__ = "LGPLv3+"
 
 from ast import literal_eval
 
-from mxcubecore.HardwareObjects.abstract.AbstractBeam import AbstractBeam
+from mxcubecore.HardwareObjects.abstract.AbstractBeam import AbstractBeam, BeamShape
 
 
 class BeamMockup(AbstractBeam):
@@ -48,6 +49,7 @@ class BeamMockup(AbstractBeam):
     def __init__(self, name):
         super().__init__(name)
         self._definer_type = None
+        self._check_beam = ()
 
     def init(self):
         """Initialize hardware"""
@@ -73,6 +75,10 @@ class BeamMockup(AbstractBeam):
         self._beam_position_on_screen = literal_eval(
             self.get_property("beam_position", "[318, 238]")
         )
+
+        _check_beam = self.get_property("check_beam")
+        if _check_beam:
+            self._check_beam = literal_eval(_check_beam)
 
         self.re_emit_values()
         self.emit("beamPosChanged", (self._beam_position_on_screen,))
@@ -115,12 +121,9 @@ class BeamMockup(AbstractBeam):
         _size = self.slits.get_gaps()
         return _size, "slits"
 
-    def get_value(self):
+    def _get_value(self) -> tuple[float, float, BeamShape, str]:
         """Get the size (width and heigth) of the beam, its shape and
-           its label. The size is in mm.
-        Retunrs:
-            (tuple): (width, heigth, shape, name), with types
-                     (float, float, Enum, str)
+        its label. The size is in mm.
         """
         labels = {}
         _label = "UNKNOWN"
@@ -237,13 +240,13 @@ class BeamMockup(AbstractBeam):
                     values.append(value.value)
         return {"label": labels, "size": values}
 
-    def get_available_size(self):
+    def get_available_size(self) -> dict:
         """Get the available predefined beam definer configuration.
         Returns:
-            (dict): {"type": ["apertures"], "values": [labels]} or
-                    {"type": ["definer"], "values": [labels]} or
-                    {"type": ["width", "height"], "values":
-                             [low_lim_w, high_lim_w, low_lim_h, high_lim_h]}
+            {"type": ["apertures"], "values": [labels]} or
+            {"type": ["definer"], "values": [labels]} or
+            {"type": ["width", "height"], "values":
+                     [low_lim_w, high_lim_w, low_lim_h, high_lim_h]}
 
         """
         if self._definer_type == "aperture":
@@ -296,3 +299,16 @@ class BeamMockup(AbstractBeam):
             if not isinstance(size, str):
                 raise TypeError("Incorrect input value for definer")
             self.definer.set_value(self.definer.VALUES[size], timeout=2)
+
+    def _is_beam(self) -> bool:
+        """Check if there is beam
+        Returns:
+            True if beam present, False otherwise
+        """
+        if not self._check_beam:
+            return True
+        beam = self.get_value()
+        return all(
+            x1 <= x2
+            for (x1, x2) in zip(self._check_beam, (beam[0], beam[1]), strict=False)
+        )

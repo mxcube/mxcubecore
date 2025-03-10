@@ -34,6 +34,11 @@ from enum import (
 )
 from warnings import warn
 
+from gevent import (
+    Timeout,
+    sleep,
+)
+
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
@@ -140,6 +145,8 @@ class AbstractBeam(HardwareObject):
             ``type`` is the definer type ``("aperture", "slits","definer")`` and
             ``values`` is a list of available beam size definitions
             according to ``type``.
+        Raises:
+            NotImplementedError
         """
         raise NotImplementedError
 
@@ -150,6 +157,8 @@ class AbstractBeam(HardwareObject):
             Dictionary with list of available beam size labels
             and the corresponding size (width,height) tuples.
             ``{"label": [str, str, ...], "size": [(w,h), (w,h), ...]}``.
+        Raises:
+            NotImplementedError
         """
         raise NotImplementedError
 
@@ -171,11 +180,24 @@ class AbstractBeam(HardwareObject):
         self.evaluate_beam_info()
         return self._beam_width, self._beam_height
 
+    def get_value(self) -> tuple[float, float, BeamShape, str]:
+        """Get the beam size (width and heigth), shape and label.
+            The size is in mm.
+        Retunrs:
+            Four-item tuple: width, heigth, shape, name
+        """
+        return self._get_value()
+
+    def _get_value(self) -> tuple[float, float, BeamShape, str]:
+        """Implement specific get_value"""
+
     def set_value(self, size: list[float] | str | None = None) -> None:
         """Set the beam size.
         Args:
             size: List of width and heigth in micrometers or
                 aperture or definer name as string.
+        Raises:
+            NotImplementedError
         """
         raise NotImplementedError
 
@@ -203,7 +225,7 @@ class AbstractBeam(HardwareObject):
         elif beam_shape == BeamShape.ELLIPTICAL:
             self._aperture.set_diameter_size(beam_width)
 
-    def get_beam_position_on_screen(self) -> tuple:
+    def get_beam_position_on_screen(self) -> tuple[int, int]:
         """Get the beam position.
 
         Returns:
@@ -217,6 +239,9 @@ class AbstractBeam(HardwareObject):
 
         Args:
             beam_x_y: X and Y coordinates of the beam position in pixels.
+
+        Raises:
+            NotImplementedError
         """
         raise NotImplementedError
 
@@ -271,3 +296,28 @@ class AbstractBeam(HardwareObject):
             self.emit("beamSizeChanged", (self._beam_width, self._beam_height))
             self.emit("beamInfoChanged", (self._beam_info_dict))
             self.emit("beamPosChanged", (self._beam_position_on_screen,))
+
+    @property
+    def is_beam(self) -> bool:
+        """Check if there is beam.
+        Returns:
+            True if beam present, False otherwise
+        """
+        return self._is_beam()
+
+    def _is_beam(self) -> bool:
+        """Specific implementation to check the presence of the beam."""
+        return True
+
+    def wait_for_beam(self, timeout: float | None = None):
+        """Wait until beam present.
+        Args:
+            timeout: optional - timeout [s],
+                     If timeout == 0: return at once and do not wait.
+                     if timeout is None: wait forever (default).
+        Raises:
+            RuntileError if no beam after the specified timeout.
+        """
+        with Timeout(timeout, RuntimeError("Timeout waiting for beam")):
+            while not self.is_beam():
+                sleep(0.5)
