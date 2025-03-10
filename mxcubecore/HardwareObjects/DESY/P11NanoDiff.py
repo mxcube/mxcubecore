@@ -328,12 +328,30 @@ class P11NanoDiff(GenericDiffractometer):
         else:
             self.emit_progress_message("Moving sample to centred position...")
             self.emit_centring_moving()
-
+    
+            # Define soft limits for sampx and sampy
+            #TODO make them readable from the corresponding properties
+            SAMPLX_LIMITS = (-1600, 1600)  # [min, max]
+            SAMPLY_LIMITS = (-1600, 1600)  # [min, max]
+    
+            # Clamp sampx and sampy to their limits
+            adjusted_pos = motor_pos.copy()  # Shallow copy to preserve original
+            for motor, limits in [("sampx", SAMPLX_LIMITS), ("sampy", SAMPLY_LIMITS)]:
+                if motor in adjusted_pos:
+                    target_pos = adjusted_pos[motor]
+                    min_limit, max_limit = limits
+                    if target_pos < min_limit or target_pos > max_limit:
+                        adjusted_pos[motor] = max(min_limit, min(max_limit, target_pos))
+                        logging.getLogger("HWR").warning(
+                            f"Centring position for {motor} ({target_pos}) exceeds limits "
+                            f"[{min_limit}, {max_limit}]. Clamped to {adjusted_pos[motor]}"
+                        )
+    
             try:
                 logging.getLogger("HWR").debug(
-                    "Centring finished. Moving motors to position %s" % str(motor_pos)
+                    "Centring finished. Moving motors to position %s" % str(adjusted_pos)
                 )
-                self.move_to_motors_positions(motor_pos, wait=True)
+                self.move_to_motors_positions(adjusted_pos, wait=True)
             except Exception:
                 logging.exception("Could not move to centred position")
                 self.emit_centring_failed()
@@ -345,17 +363,17 @@ class P11NanoDiff(GenericDiffractometer):
                 #    logging.getLogger("HWR").debug("Centring finished. Moving omega back to initial position")
                 #    self.motor_hwobj_dict['phi'].set_value_relative(-180, timeout=None)
                 #    logging.getLogger("HWR").debug("         Moving omega done")
-
-            if (
-                self.current_centring_method
-                == GenericDiffractometer.CENTRING_METHOD_AUTO
-            ):
-                self.emit("newAutomaticCentringPoint", motor_pos)
-            self.ready_event.set()
-            self.centring_time = time.time()
-            self.emit_centring_successful()
-            self.emit_progress_message("")
-
+    
+                if (
+                    self.current_centring_method
+                    == GenericDiffractometer.CENTRING_METHOD_AUTO
+                ):
+                    self.emit("newAutomaticCentringPoint", motor_pos)
+                self.ready_event.set()
+                self.centring_time = time.time()
+                self.emit_centring_successful()
+                self.emit_progress_message("")
+                
     def automatic_centring(self):
         """Automatic centring procedure"""
 
