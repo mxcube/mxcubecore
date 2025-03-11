@@ -1081,7 +1081,6 @@ class GeometricStrategy(IdentifiedElement, Payload):
 
     def __init__(
         self,
-        # isInterleaved,
         isUserModifiable,
         defaultDetectorSetting,
         defaultBeamSetting,
@@ -1110,10 +1109,6 @@ class GeometricStrategy(IdentifiedElement, Payload):
 
         self._sweepOffset = sweepOffset
         self._sweepRepeat = sweepRepeat
-
-    # @property
-    # def isInterleaved(self):
-    #     return self._isInterleaved
 
     @property
     def sweepRepeat(self):
