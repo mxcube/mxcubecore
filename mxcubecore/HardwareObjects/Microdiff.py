@@ -324,6 +324,7 @@ class Microdiff(MiniDiff.MiniDiff):
         self.state.connect_signal("update", self._update_state)
 
         HardwareObject.init(self)
+        self.handle_detector_cover = self.get_object_by_role("handle_detcover")
 
     def _update_value(self, value=None):
         if value is None:
@@ -406,22 +407,46 @@ class Microdiff(MiniDiff.MiniDiff):
                 time.sleep(0.5)
 
     def open_detector_cover(self, timeout=10):
-        try:
-            detcover = self.get_object_by_role("controller").detcover
+        use = True
+        if self.handle_detector_cover:
+            try:
+                use = self.handle_detector_cover.get_value().value
+            except AttributeError:
+                use = False
 
-            if detcover.state == "IN":
-                detcover.set_out(timeout)
-        except AttributeError:
-            logging.getLogger("HWR").exception("No detector cover configured")
+        logging.getLogger("user_level_log").info("Use detector cover open: %s" % use)
+
+        if use:
+            try:
+                detcover = self.get_object_by_role("controller").detcover
+
+                if detcover.state == "IN":
+                    detcover.set_out(timeout)
+            except AttributeError:
+                logging.getLogger("user_level_log").exception(
+                    "No detector cover configured"
+                )
 
     def close_detector_cover(self, timeout=10):
-        try:
-            detcover = self.get_object_by_role("controller").detcover
+        use = True
+        if self.handle_detector_cover:
+            try:
+                use = self.handle_detector_cover.get_value().value
+            except AttributeError:
+                use = False
 
-            if detcover.state == "OUT":
-                detcover.set_in(timeout)
-        except AttributeError:
-            logging.getLogger("HWR").exception("No detector cover configured")
+        logging.getLogger("user_level_log").info("Use detector cover close: %s" % use)
+
+        if use:
+            try:
+                detcover = self.get_object_by_role("controller").detcover
+
+                if detcover.state == "OUT":
+                    detcover.set_in(timeout)
+            except AttributeError:
+                logging.getLogger("user_level_log").exception(
+                    "No detector cover configured"
+                )
 
     def phase_prepare(self, phase):
         if phase == "Centring":
