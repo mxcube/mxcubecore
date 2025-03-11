@@ -490,6 +490,31 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         if self.get_state() is self.STATES.OFF:
             return None
 
+        if not self.msg_class_imported:
+            # Guard agaiunst Java classes being moved to different packages
+            try:
+                msg_class = (
+                    self._gateway.jvm.py4j.reflection.ReflectionUtil.classForName(
+                        "co.gphl.sdcp.astra.service.py4j.Py4jMessage"
+                    )
+                )
+                java_gateway.java_import(
+                    self._gateway.jvm, "co.gphl.sdcp.astra.service.py4j.Py4jMessage"
+                )
+            except Py4JJavaError:
+                msg_class = (
+                    self._gateway.jvm.py4j.reflection.ReflectionUtil.classForName(
+                        "co.gphl.sdcp.py4j.Py4jMessage"
+                    )
+                )
+                java_gateway.java_import(
+                    self._gateway.jvm, "co.gphl.sdcp.py4j.Py4jMessage"
+                )
+            logging.getLogger("HWR").debug(
+                "GΦL workflow Py4jMessage class is: %s" % msg_class
+            )
+        self.msg_class_imported = True
+
         xx0 = self._decode_py4j_message(py4j_message)
         message_type = xx0.message_type
         payload = xx0.payload
@@ -598,12 +623,6 @@ class GphlWorkflowConnection(HardwareObjectYaml):
 
         xx0 = py4j_message.getCorrelationId()
         correlation_id = xx0 and xx0.toString()
-        if message_type != "String":
-            logging.getLogger("HWR").debug(
-                "GΦL incoming: message=%s, jobId=%s,  messageId=%s"
-                % (message_type, enactment_id, correlation_id)
-            )
-
         if message_type == "String":
             payload = py4j_message.getPayload()
 
@@ -920,7 +939,9 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         py4j_payload = self._payload_to_java(payload)
 
         try:
-            response = self._gateway.jvm.Py4jMessage(py4j_payload, correlation_id)
+            response = self._gateway.jvm.co.gphl.sdcp.astra.service.py4j.Py4jMessage(
+                py4j_payload, correlation_id
+            )
         except:
             self.abort_workflow(
                 message="Error sending reply (%s) to server"
