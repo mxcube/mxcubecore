@@ -51,6 +51,53 @@ class P11Collect(AbstractCollect):
     def init(self):
         """Initializes beamline collection parameters like default speed and server names."""
         super().init()
+
+#        undulators = []
+#        try:
+#            for undulator in self["undulators"]:
+#                undulators.append(undulator)
+#        except BaseException:
+#            pass
+#
+#        beam_div_hor, beam_div_ver = HWR.beamline.beam.get_beam_divergence()
+#
+#
+#
+#        self.set_beamline_configuration(
+#            synchrotron_name=HWR.beamline.session.synchrotron_name,
+#            directory_prefix=self.get_property("directory_prefix"),
+#            default_exposure_time=HWR.beamline.detector.get_property(
+#                "default_exposure_time"
+#            ),
+#            minimum_exposure_time=HWR.beamline.detector.get_property(
+#                "minimum_exposure_time"
+#            ),
+#            detector_fileext=HWR.beamline.detector.get_property("fileSuffix"),
+#            detector_type=HWR.beamline.detector.get_property("type"),
+#            detector_manufacturer=HWR.beamline.detector.get_property("manufacturer"),
+#            detector_model=HWR.beamline.detector.get_property("model"),
+#            detector_px=HWR.beamline.detector.get_property("px"),
+#            detector_py=HWR.beamline.detector.get_property("py"),
+#            detector_binning_mode=HWR.beamline.detector.get_binning_mode(),
+#            undulators=undulators,
+#            focusing_optic=self.get_property("focusing_optic"),
+#            monochromator_type=self.get_property("monochromator"),
+#            beam_divergence_vertical=beam_div_hor,
+#            beam_divergence_horizontal=beam_div_ver,
+#            polarisation=self.get_property("polarisation"),
+#            input_files_server=self.get_property("input_files_server"),
+#        )
+#
+#        print('++++++++++++++++++++++++++')
+#        print(HWR.beamline.detector.get_property("fileSuffix"))                             
+#        print(HWR.beamline.detector.get_property("type"))
+#        print(HWR.beamline.detector.get_property("manufacturer"))
+#        print(HWR.beamline.detector.get_property("model)"))
+#        print(HWR.beamline.detector.get_property("px"))
+#        print(HWR.beamline.detector.get_property("py"))
+#        print(HWR.beamline.detector.get_binning_mode())
+#
+
         self.default_speed = 120 #self.get_property("omega_default_speed", 130)
         self.turnback_time = 0.5# self.get_property("turnback_time", 0.3)
         self.filter_server_name = self.get_property("filterserver")
@@ -70,6 +117,14 @@ class P11Collect(AbstractCollect):
             motor_position_dict (dict): Dictionary containing motor positions.
         """
         HWR.beamline.diffractometer.move_motors(motor_position_dict)
+
+    def get_undulators_gaps(self):
+        """Return triplet with gaps. In our case we have one gap,
+        """
+        und_gaps = 12400 
+        #und_gaps = list(und_gaps)
+        return und_gaps
+
 
     def _take_crystal_snapshot(self, filename):
         """Takes a snapshot of the crystal and saves it to the given filename.
@@ -1220,46 +1275,79 @@ class P11Collect(AbstractCollect):
         )
         return xds_directory, auto_directory
 
-    def take_crystal_snapshots(self):
-        """Takes sample snapshots and saves them to disk."""
-        if self.current_dc_parameters["take_snapshots"]:
-            snapshot_directory = os.path.join(
-                self.current_dc_parameters["fileinfo"]["directory"], "snapshot"
-            )
-            if not os.path.exists(snapshot_directory):
-                try:
-                    self.create_directories(snapshot_directory)
-                except Exception:
-                    logging.getLogger("HWR").exception(
-                        "Collection: Error creating snapshot directory"
-                    )
+#    def take_crystal_snapshots(self):
+#        """Takes sample snapshots and saves them to disk."""
+#        if self.current_dc_parameters["take_snapshots"]:
+#            snapshot_directory = os.path.join(
+#                self.current_dc_parameters["fileinfo"]["directory"], "snapshot"
+#            )
+#            if not os.path.exists(snapshot_directory):
+#                try:
+#                    self.create_directories(snapshot_directory)
+#                except Exception:
+#                    logging.getLogger("HWR").exception(
+#                        "Collection: Error creating snapshot directory"
+#                    )
+#
+#            number_of_snapshots = self.current_dc_parameters["take_snapshots"]
+#            logging.getLogger("user_level_log").info(
+#                "Collection: Taking %d sample snapshot(s)" % number_of_snapshots
+#            )
+#            if HWR.beamline.diffractometer.get_current_phase() != "Centring":
+#                logging.getLogger("user_level_log").info(
+#                    "Moving Diffractometer to CentringPhase"
+#                )
+#                HWR.beamline.diffractometer.goto_centring_phase(wait=True)
+#                self.move_to_centered_position()
+#
+#            for snapshot_index in range(number_of_snapshots):
+#                snapshot_filename = os.path.join(
+#                    snapshot_directory,
+#                    "%s_%s_%s.snapshot.jpeg"
+#                    % (
+#                        self.current_dc_parameters["fileinfo"]["prefix"],
+#                        self.current_dc_parameters["fileinfo"]["run_number"],
+#                        (snapshot_index + 1),
+#                    ),
+#                )
+#                self.current_dc_parameters[
+#                    "xtalSnapshotFullPath%i" % (snapshot_index + 1)
+#                ] = snapshot_filename
+#                self._take_crystal_snapshot(snapshot_filename)
+#                time.sleep(1)  # needed, otherwise will get the same images
+#                if number_of_snapshots > 1:
+#                    HWR.beamline.diffractometer.move_omega_relative(90)
+#                    time.sleep(1)  # needed, otherwise will get the same images
+#
 
-            number_of_snapshots = self.current_dc_parameters["take_snapshots"]
-            logging.getLogger("user_level_log").info(
-                "Collection: Taking %d sample snapshot(s)" % number_of_snapshots
-            )
-            if HWR.beamline.diffractometer.get_current_phase() != "Centring":
-                logging.getLogger("user_level_log").info(
-                    "Moving Diffractometer to CentringPhase"
+    def update_data_collection_in_lims(self):
+        """
+        Descript. :
+        """
+        params = self.current_dc_parameters
+        if HWR.beamline.lims and not params["in_interleave"]:
+            params["flux"] = HWR.beamline.flux.get_value()
+            params["flux_end"] = params["flux"]
+            params["totalAbsorbedDose"] = 0
+            params["wavelength"] = HWR.beamline.energy.get_wavelength()
+            params["detectorDistance"] = HWR.beamline.detector.distance.get_value()
+            params["resolution"] = HWR.beamline.resolution.get_value()
+            params["transmission"] = HWR.beamline.transmission.get_value()
+            beam_centre_x, beam_centre_y = HWR.beamline.detector.get_beam_position()
+            pixel_x, pixel_y = HWR.beamline.detector.get_pixel_size()
+            params["xBeam"] = beam_centre_x * pixel_x
+            params["yBeam"] = beam_centre_y * pixel_y
+            params["undulatorGap1"] = self.get_undulators_gaps() 
+            params["resolutionAtCorner"] = HWR.beamline.resolution.get_value_at_corner()
+            beam_size_x, beam_size_y = HWR.beamline.beam.get_beam_size()
+            params["beamSizeAtSampleX"] = beam_size_x
+            params["beamSizeAtSampleY"] = beam_size_y
+            params["beamShape"] = HWR.beamline.beam.get_beam_shape()
+            params["slitGapHorizontal"] = 99999 
+            params["slitGapVertical"] = 99999
+            try:
+                HWR.beamline.lims.update_data_collection(params)
+            except BaseException:
+                logging.getLogger("HWR").exception(
+                    "Could not update data collection in LIMS"
                 )
-                HWR.beamline.diffractometer.goto_centring_phase(wait=True)
-                self.move_to_centered_position()
-
-            for snapshot_index in range(number_of_snapshots):
-                snapshot_filename = os.path.join(
-                    snapshot_directory,
-                    "%s_%s_%s.snapshot.jpeg"
-                    % (
-                        self.current_dc_parameters["fileinfo"]["prefix"],
-                        self.current_dc_parameters["fileinfo"]["run_number"],
-                        (snapshot_index + 1),
-                    ),
-                )
-                self.current_dc_parameters[
-                    "xtalSnapshotFullPath%i" % (snapshot_index + 1)
-                ] = snapshot_filename
-                self._take_crystal_snapshot(snapshot_filename)
-                time.sleep(1)  # needed, otherwise will get the same images
-                if number_of_snapshots > 1:
-                    HWR.beamline.diffractometer.move_omega_relative(90)
-                    time.sleep(1)  # needed, otherwise will get the same images
