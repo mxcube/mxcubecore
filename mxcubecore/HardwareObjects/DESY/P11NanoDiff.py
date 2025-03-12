@@ -1094,7 +1094,7 @@ class P11NanoDiff(GenericDiffractometer):
         self.log.debug(" PHASE REACHED. NOW WAITING FOR OMEGA")
         self.wait_omega()
 
-        gevent.sleep(0.6)  # allow for position events to arrive
+        gevent.sleep(0.1)  # allow for position events to arrive
         self.update_phase()
         self.motor_state_changed()
 
@@ -1132,36 +1132,48 @@ class P11NanoDiff(GenericDiffractometer):
 
     def goto_centring_phase(self, wait=True):
         self.log.debug(" SETTING CENTRING PHASE ")
+    
         if self.is_centring_phase():
             self.log.debug(" Already in Centring phase, skipping unnecessary actions")
             self.update_phase()  # Ensure state is fresh
             logging.getLogger("GUI").info("Phase set is finished")
             return
+    
         self.phase_goingto = GenericDiffractometer.PHASE_CENTRING
-        
-        logging.getLogger("GUI").warning("Closing detector cover...")
-        self.detcover_hwobj.close(timeout=0)
-
-        logging.getLogger("GUI").warning("Setting backlight in...")
-        self.backlight_hwobj.set_in()
-
-        logging.getLogger("GUI").warning("Putting collimator down...")
-        self.collimator_hwobj.set_value("down")
-
-        logging.getLogger("GUI").warning("Setting beamstop out...")
-        self.beamstop_hwobj.set_value("out")
-
-        logging.getLogger("GUI").warning("Moving yag down...")
-        self.yag_hwobj.set_value("down")
-
-        logging.getLogger("GUI").warning("Moving pinhole down...")
-        self.pinhole_hwobj.set_value("down")
-
+    
+        # Check and move only if necessary
+        if not self.detcover_hwobj.is_closed:
+            logging.getLogger("GUI").warning("Closing detector cover...")
+            self.detcover_hwobj.close(timeout=0)
+    
+        if not self.backlight_hwobj.is_in():
+            logging.getLogger("GUI").warning("Setting backlight in...")
+            self.backlight_hwobj.set_in()
+    
+        if self.collimator_hwobj.get_value() != "down":
+            logging.getLogger("GUI").warning("Putting collimator down...")
+            self.collimator_hwobj.set_value("down")
+    
+        if self.beamstop_hwobj.get_value() != "out":
+            logging.getLogger("GUI").warning("Setting beamstop out...")
+            self.beamstop_hwobj.set_value("out")
+    
+        if self.yag_hwobj.get_value() != "down":
+            logging.getLogger("GUI").warning("Moving YAG down...")
+            self.yag_hwobj.set_value("down")
+    
+        # Fix: Avoid redundant pinhole movement if already in place
+        current_pinhole_pos = self.pinhole_hwobj.get_value()
+        if current_pinhole_pos != "down" and not self.ignore_pinhole:
+            logging.getLogger("GUI").warning(f"Moving pinhole down (current: {current_pinhole_pos})...")
+            self.pinhole_hwobj.set_value("down")
+    
+        # Fix: Reduce excessive waiting
         if wait:
             self.wait_phase()
-
+    
         logging.getLogger("GUI").info("Phase set is finished")
-
+    
     def is_transfer_phase(self):
         return self.get_phase() == GenericDiffractometer.PHASE_TRANSFER
 
