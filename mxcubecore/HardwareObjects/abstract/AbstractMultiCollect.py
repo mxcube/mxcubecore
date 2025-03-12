@@ -318,8 +318,8 @@ class AbstractMultiCollect(object):
         snapshot_directory = dc_params["fileinfo"]["archive_directory"]
 
         if HWR.beamline.diffractometer.in_plate_mode():
-            if number_of_snapshots > 0:
-                number_of_snapshots = 1
+            if self.number_of_snapshots > 0:
+                self.number_of_snapshots = 1
 
         if not os.path.exists(snapshot_directory):
             self.create_directories(snapshot_directory)
