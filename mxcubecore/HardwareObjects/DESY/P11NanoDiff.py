@@ -555,12 +555,12 @@ class P11NanoDiff(GenericDiffractometer):
         Descript. : A test manual centring method using Murko AI predictions instead of user clicks.
                     Moves predicted positions directly to the beam, rotating phi by `step` degrees
                     until completing a full 360-degree rotation (n_steps = 360 / step). Waits for
-                    all motor movements to complete before proceeding to the next step.
+                    all motor movements to complete. Rounds motor positions to 2 decimal places.
         Args:
             step (float): Angle in degrees to rotate phi between predictions (default: 90).
                           Must divide 360 evenly to ensure a full rotation.
         Returns:
-            dict: Final motor positions after centring.
+            dict: Final motor positions after centring, rounded to 2 decimal places.
         """
         if 360 % step != 0:
             raise ValueError("Step must divide 360 evenly for a full rotation (e.g., 90, 120, 180).")
@@ -571,8 +571,8 @@ class P11NanoDiff(GenericDiffractometer):
     
         beam_xc, beam_yc = self.beam_position
         phi_mot = self.centring_phi.motor
-        phi_start_pos = phi_mot.get_value()
-        motor_positions = self.get_positions()
+        phi_start_pos = round(phi_mot.get_value(), 2)  # Round initial phi position
+        motor_positions = {k: round(v, 2) for k, v in self.get_positions().items()}  # Round initial positions
     
         # Motors involved in move_to_beam
         motors_to_wait = ['sampx', 'sampy', 'phiy']
@@ -598,7 +598,7 @@ class P11NanoDiff(GenericDiffractometer):
     
             # Move the predicted position directly to the beam
             self.log.debug(f"Moving predicted position ({x}, {y}) to beam ({beam_xc}, {beam_yc})")
-            self.move_to_beam(x, y)
+            self.move_to_beam(x, y)  # move_to_beam should internally handle rounding
     
             # Wait for all motors involved in move_to_beam to complete
             self.log.debug("Waiting for move_to_beam motors to finish...")
@@ -622,9 +622,14 @@ class P11NanoDiff(GenericDiffractometer):
                 self.wait_omega_on(timeout=10)  # Wait for omega to finish moving
                 self.log.debug("Phi rotation completed")
     
-        # Update motor positions after all steps
-        motor_positions = self.get_positions()
-        motor_positions['phi'] = phi_start_pos  # Reset phi to starting position
+        # Explicitly move phi back to the starting position, rounded
+        self.log.debug(f"Returning phi to starting position: {phi_start_pos}")
+        phi_mot.set_value(phi_start_pos, timeout=10)
+        self.wait_omega_on(timeout=10)
+        self.log.debug("Phi returned to starting position")
+    
+        # Update motor positions after all steps, rounded to 2 decimal places
+        motor_positions = {k: round(v, 2) for k, v in self.get_positions().items()}
     
         # Final wait to ensure all motors are settled
         self.wait_device_ready(timeout=10)
@@ -632,7 +637,8 @@ class P11NanoDiff(GenericDiffractometer):
         self.log.debug("AI direct manual centring completed. Final positions: %s" % motor_positions)
         self.emit_progress_message("")
         return motor_positions
-    
+        
+
     def is_ready(self):
         """
         Descript. :
