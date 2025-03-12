@@ -124,7 +124,7 @@ task:
         # Mandatory if init_spot_dir is set
         # wedge_width: 15.0  # Optional, default 15.0
         # transmission: 100.0 # (%) NB Optional  Overrides use_dose.
-        # Defaults to current valuee if init_spot_dir is set
+        # Defaults to current value if init_spot_dir is set
         # use_dose: 20.0 # (MGy) NB Optional, for entire experiment.
         # Defaults to calculated dose budget. May reset transmission and exposure time
         # repetition_count: 1

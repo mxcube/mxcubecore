@@ -954,7 +954,7 @@ class GphlWorkflowConnection(HardwareObject):
             )
         except:
             self.abort_workflow(
-                message="Error sending reply (%s) to server"
+                message="Error creating Java message (%s) to send to workflow"
                 % py4j_payload.getClass().getSimpleName()
             )
             return None

@@ -808,6 +808,8 @@ class GphlWorkflow(HardwareObjectYaml):
             for line in text.splitlines():
                 line = line.strip()
                 if line:
+                    if line.startswith("/"):
+                        line = "file:" + line
                     if validate_url(line):
                         reffiles.append(line)
                     else:
@@ -1467,12 +1469,8 @@ class GphlWorkflow(HardwareObjectYaml):
         if value:
             result[tag] = value
         tag = "wedgeWidth"
-        value = result.get(tag)
-        if value:
-            result[tag] = int(value / image_width)
-        else:
-            # If not set is likely not used, but we want a default value anyway
-            result[tag] = 150
+        value = result.get(tag, 24)
+        result[tag] = round(value / image_width)
         # resolution OK as is
 
         tag = "snapshot_count"
@@ -1967,7 +1965,7 @@ class GphlWorkflow(HardwareObjectYaml):
         gphl_workflow_model = self._queue_entry.get_data_model()
 
         if gphl_workflow_model.init_spot_dir:
-            # Characterisation, where collection and XDS have alredy been run
+            # Characterisation, where collection and XDS have already been run
             return GphlMessages.CollectionDone(
                 status=0,
                 proposalId=collection_proposal.id_,
@@ -1994,7 +1992,7 @@ class GphlWorkflow(HardwareObjectYaml):
         lastsweep = scans[-1].sweep
 
         if repeat_count and sweep_offset and self.settings.get("use_multitrigger"):
-            # commpress unrolled multi-trigger sweep
+            # compress unrolled multi-trigger sweep
             # NBNB as of 202103 this is only allowed for a single sweep
             #
             # For now this is required
@@ -2920,7 +2918,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 elif instruction == "space_group":
                     update_dict = self.update_space_group(parameters)
                 elif instruction == "reffiles":
-                    update_dict = self.update_reffiles(parameters)
+                    update_dict = self.update_reference_files(parameters)
             except:
                 logging.getLogger("HWR").error(
                     "Error in GΦL parameter update for %s, Continuing ...",
@@ -3105,12 +3103,14 @@ class GphlWorkflow(HardwareObjectYaml):
         else:
             return {}
 
-    def adjust_reffiles(self, values):
+    def update_reference_files(self, values):
         value = values.get("reffiles", "").strip()
-        result = {"reffiles": values.get("reffiles", "")}
-        if value and not not all(validate_url(txt) for txt in value.splitlines()):
-            result["reffiles"]["highlight"] = "ERROR"
-        #
+        result = {
+            "reffiles": {
+                "invalidated":
+                bool(value and not all(validate_url(txt) for txt in value.splitlines()))
+            }
+        }
         return result
 
     def adjust_transmission(self, values):
