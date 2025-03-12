@@ -385,185 +385,148 @@ class P11NanoDiff(GenericDiffractometer):
         self.current_centring_procedure = gevent.spawn(self.auto_ai_routine, 0)
         self.current_centring_procedure.link(self.centring_done)
 
-    def automatic_ai_centring(
-        self,
-        n_clicks=3,
-        alignmenty_direction=1.0,
-        alignmentz_direction=1.0,
-        centringx_direction=1.0,
-        centringy_direction=1.0,
-    ):
-        """Automatic centring procedure"""
-        self.log.debug("** Autocentering with murko is started **")
-
-        self.current_centring_method == GenericDiffractometer.CENTRING_METHOD_AUTO
-        logging.getLogger("user_level_log").info("Starting AI centring")
-        _start = time.time()
-        result_position = {}
-
-        reference_position = self.get_positions()
-
-        vertical_clicks = []
-        horizontal_clicks = []
-        vertical_discplacements = []
-        horizontal_displacements = []
-        omegas = []
-        images = []
-        calibrations = []
-
-        if isinstance(self.nclicks, int) and self.nclicks >= 3:
-            n_clicks = self.nclicks
-
-        logging.getLogger("user_level_log").info(
-            "expected number of clicks %d" % (n_clicks)
-        )
-
-        if self.step is not None:
-            step = self.step
-        else:
-            step = 360.0 / (n_clicks)
-
-        logging.getLogger("user_level_log").info("Default centring step %.2f" % (step))
-
-        for k in range(n_clicks):
-            image = HWR.beamline.sample_view.camera.last_jpeg
-            x_click, y_click = self.predict_click_pix(image)
-
-            x = x_click * int(os.getenv("MURKO_SIZEX"))
-            y = y_click * int(os.getenv("MURKO_SIZEY"))
-
-            calibration = np.array(
-                [1.0 / self.pixels_per_mm_y, 1.0 / self.pixels_per_mm_x]
-            )
-            omega = self.centring_phi.motor.get_value()
-
-            vertical_clicks.append(y)
-            horizontal_clicks.append(x)
-            omegas.append(omega)
-            images.append(image)
-            calibrations.append([calibration])
-
-            x -= self.beam_position[0]
-            x /= self.pixels_per_mm_x
-            y -= self.beam_position[1]
-            y /= self.pixels_per_mm_y
-            vertical_discplacements.append(y)
-            horizontal_displacements.append(x)
-
-            logging.getLogger("HWR").info("click %d %f %f %f" % (k + 1, omega, x, y))
-
-            dev_gonio = DeviceProxy("p11/servomotor/eh.1.01")
-            if k <= n_clicks:
-                while str(dev_gonio.State()) != "ON":
-                    time.sleep(0.1)
-                self.centring_phi.set_value(omega + step, timeout=0)
-
-                while str(dev_gonio.State()) != "ON":
-                    time.sleep(0.1)
-
-        vertical_discplacements = np.array(vertical_discplacements) * 1.0e3
-        angles = np.radians(omegas)
-
-        initial_parameters = lmfit.Parameters()
-        initial_parameters.add_many(
-            ("c", 0.0, True, -5e3, +5e3, None, None),
-            ("r", 0.0, True, 0.0, 4e3, None, None),
-            ("alpha", -np.pi / 3, True, -2 * np.pi, 2 * np.pi, None, None),
-            ("front", 0.01, True, 0.0, 1.0, None, None),
-            ("back", 0.005, True, 0.0, 1.0, None, None),
-            ("n", 1.31, True, 1.29, 1.33, None, None),
-            ("beta", 0.0, True, -2 * np.pi, +2 * np.pi, None, None),
-        )
-
-        fit_y = lmfit.minimize(
-            self.refractive_model_residual,
-            initial_parameters,
-            method="nelder",
-            args=(angles, vertical_discplacements),
-        )
-        optimal_params = fit_y.params
-        v = optimal_params.valuesdict()
-        c = v["c"]
-        r = v["r"]
-        alpha = v["alpha"]
-        front = v["front"]
-        back = v["back"]
-        n = v["n"]
-        beta = v["beta"]
-
-        c *= 1.0e-3
-        r *= 1.0e-3
-        front *= 1.0e-3
-        back *= 1.0e-3
-
-        horizontal_center = np.mean(horizontal_displacements)
-
-        d_sampx = centringx_direction * r * np.sin(alpha)
-        d_sampy = centringy_direction * r * np.cos(alpha)
-        d_y = alignmenty_direction * horizontal_center
-        d_z = alignmentz_direction * c
-
-        move_vector_dictionary = {
-            "phiz": d_z,
-            "phiy": d_y,
-            "sampx": d_sampx,
-            "sampy": d_sampy,
-        }
-
-        for motor in reference_position:
-            result_position[motor] = reference_position[motor]
-            if motor in move_vector_dictionary:
-                result_position[motor] += move_vector_dictionary[motor]
-
-        _end = time.time()
-        duration = _end - _start
-        self.log.info(
-            "input and analysis in murko centring took %.3f seconds" % duration
-        )
-
-        results = {
-            "vertical_clicks": vertical_clicks,
-            "horizontal_clicks": horizontal_clicks,
-            "vertical_discplacements": vertical_discplacements,
-            "horizontal_displacements": horizontal_displacements,
-            "omegas": omegas,
-            "angles": angles,
-            "calibrations": calibrations,
-            "reference_position": reference_position,
-            "result_position": result_position,
-            "duration": duration,
-            "vertical_optimal_parameters": v,
-            "move_vector_dictionary": move_vector_dictionary,
-        }
-
-        name_pattern = "%s_%s" % (os.getuid(), time.asctime().replace(" ", "_"))
-        directory = "%s/manual_optical_alignment" % os.getenv("HOME")
-
-        template = os.path.join(directory, name_pattern)
-
-        if not os.path.isdir(directory):
-            os.makedirs(directory)
-
-        clicks_filename = "%s_clicks.pickle" % template
-        f = open(clicks_filename, "wb")
-        pickle.dump(results, f)
-        f.close()
-
-        self.log.info("AI finished in %.3f seconds" % (time.time() - _start))
-
-        result_position = {}
-        result_position["phi"] = reference_position["phi"]
-        for key in move_vector_dictionary:
-            result_position[key] = (
-                reference_position[key] + 1e3 * move_vector_dictionary[key]
-            )
-
-        self.log.info("result_position %s" % str(result_position))
-
-        self.ai_finished = True
-
-        return result_position
-
+    def automatic_ai_centring(self, phi_range=120, n_points=3):
+        try:
+            self.log.debug("** Autocentering with Murko, mimicking manual centring **")
+            self.current_centring_method = GenericDiffractometer.CENTRING_METHOD_AUTO
+            logging.getLogger("user_level_log").info("Starting AI centring (manual-style)")
+    
+            X = []
+            Y = []
+            PHI = []
+    
+            beam_xc, beam_yc = self.beam_position
+            self.log.debug("STARTING AI-driven Manual-style Centring")
+    
+            motor_positions = {
+                'phiy': self.centring_phiy.motor.get_value(),
+                'sampx': self.centring_sampx.motor.get_value(),
+                'sampy': self.centring_sampy.motor.get_value(),
+                'phi': self.centring_phi.motor.get_value(),
+            }
+    
+            phi_mot = self.centring_phi.motor
+            phi_start_pos = phi_mot.get_value()
+    
+            for click in range(n_points):
+                self.log.debug(f"Processing click {click + 1}/{n_points}")
+                image = HWR.beamline.sample_view.camera.last_jpeg
+                if image is None:
+                    self.log.error("No camera image available for AI centring")
+                    return None
+                self.log.debug("Image acquired")
+    
+                try:
+                    self.log.debug("Calling predict_click_pix")
+                    prediction_task = gevent.spawn(self.predict_click_pix, image)
+                    x_click, y_click = prediction_task.get(timeout=30)
+                    self.log.debug(f"Murko predicted click: ({x_click}, {y_click})")
+                except gevent.Timeout:
+                    self.log.error("Timeout waiting for Murko prediction after 30 seconds")
+                    return None
+                except Exception as e:
+                    self.log.error(f"Murko prediction failed: {str(e)}")
+                    return None
+    
+                sizex = os.getenv("MURKO_SIZEX")
+                sizey = os.getenv("MURKO_SIZEY")
+                if not sizex or not sizey:
+                    self.log.error("MURKO_SIZEX or MURKO_SIZEY not set")
+                    return None
+                try:
+                    x = x_click * int(sizex)
+                    y = y_click * int(sizey)
+                    self.log.debug(f"Converted to pixels: ({x}, {y})")
+                except ValueError:
+                    self.log.error("MURKO_SIZEX or MURKO_SIZEY not valid integers")
+                    return None
+    
+                X.append(x)
+                Y.append(y)
+                PHI.append(phi_mot.get_value())
+    
+                if click < n_points - 1:
+                    self.log.debug(f"Moving phi by {phi_range} degrees")
+                    try:
+                        dev_gonio = DeviceProxy("p11/servomotor/eh.1.01")
+                        timeout = 10
+                        start_time = time.time()
+                        while str(dev_gonio.State()) != "ON":
+                            if time.time() - start_time > timeout:
+                                self.log.error("Timeout waiting for goniometer to be ON before phi move")
+                                return None
+                            time.sleep(0.1)
+                        phi_mot.set_value_relative(phi_range, timeout=0)
+                        start_time = time.time()
+                        while str(dev_gonio.State()) != "ON":
+                            if time.time() - start_time > timeout:
+                                self.log.error("Timeout waiting for goniometer to be ON after phi move")
+                                return None
+                            time.sleep(0.1)
+                        self.log.debug("Phi move completed")
+                    except Exception as e:
+                        self.log.error(f"Failed to move phi: {str(e)}")
+                        return None
+    
+            self.log.debug("All clicks collected, calculating positions")
+            DX = []
+            DY = []
+            ANG = []
+    
+            P = []
+            Q = []
+    
+            for i in range(n_points):
+                dx = X[i] - beam_xc
+                dy = Y[i] - beam_yc
+                ang = math.radians(PHI[i])
+                DX.append(dx)
+                DY.append(dy)
+                ANG.append(ang)
+    
+            for i in range(n_points):
+                y0 = DY[i]
+                ang0 = ANG[i]
+                if i < (n_points - 1):
+                    y1 = DY[i + 1]
+                    ang1 = ANG[i + 1]
+                else:
+                    y1 = DY[0]
+                    ang1 = ANG[0]
+                p = (y0 * math.sin(ang1) - y1 * math.sin(ang0)) / math.sin(ang1 - ang0)
+                q = (y0 * math.cos(ang1) - y1 * math.cos(ang0)) / math.sin(ang1 - ang0)
+                P.append(p)
+                Q.append(q)
+    
+            x_s = -sum(Q) / n_points
+            y_s = sum(P) / n_points
+            z_s = sum(DX) / n_points
+    
+            x_d_mm = x_s / self.pixels_per_mm_y
+            y_d_mm = y_s / self.pixels_per_mm_y
+            z_d_mm = z_s / self.pixels_per_mm_x
+    
+            x_d = self.centring_sampx.mm_to_units(x_d_mm)
+            y_d = self.centring_sampy.mm_to_units(y_d_mm)
+            z_d = self.centring_phiy.mm_to_units(z_d_mm)
+    
+            sampx_mot = self.centring_sampx.motor
+            sampy_mot = self.centring_sampy.motor
+            phiy_mot = self.centring_phiy.motor
+    
+            motor_positions['sampx'] = sampx_mot.get_value() + x_d
+            motor_positions['sampy'] = sampy_mot.get_value() + y_d
+            motor_positions['phiy'] = phiy_mot.get_value() + z_d
+            motor_positions['phi'] = phi_start_pos
+    
+            self.log.info("AI centring completed. Resulting positions: %s" % str(motor_positions))
+            self.ai_finished = True
+    
+            return motor_positions
+        except Exception as e:
+            self.log.error(f"Unexpected error in automatic_ai_centring: {str(e)}")
+            return None
+        
     def is_ready(self):
         """
         Descript. :
