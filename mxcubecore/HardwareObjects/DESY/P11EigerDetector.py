@@ -34,6 +34,7 @@ class P11EigerDetector(AbstractDetector):
     def init(self):
         AbstractDetector.init(self)
 
+
         self.eiger_devname = self.get_property("eiger_device")
         self.filewriter_name = self.get_property("filewriter_device")
         self._roi_mode = self.get_property("roi_mode", "disabled")
