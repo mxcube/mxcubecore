@@ -21,6 +21,46 @@
 __copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
 
+import itertools
+import json
+import os
+import sys
+import time
+import traceback
+import warnings
+from collections import namedtuple
+from datetime import datetime, timedelta
+from pprint import pformat
+
+try:
+    from urllib2 import URLError
+    from urlparse import urljoin
+except Exception:
+    # Python3
+    from urllib.parse import urljoin
+    from urllib.error import URLError
+
+from suds import WebFault
+from suds.client import Client
+from suds.sudsobject import asdict
+
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.utils.conversion import string_types
+
+"""
+A client for ISPyB Webservices.
+"""
+
+import logging
+
+import gevent
+
+suds_encode = str.encode
+
+if sys.version_info > (3, 0):
+    suds_encode = bytes.decode
+
 import logging
 import ssl
 from urllib.error import URLError
@@ -58,21 +98,159 @@ class P11ISPyBClient(ISPyBClient):
             self.simulated_prop_code = None
             self.simulated_prop_number = None
 
-    def update_data_collection(self, mx_collection, wait=False):
-        mx_collection["beamline_name"] = "P11"
-        ISPyBClient.update_data_collection(self, mx_collection, wait)
-    
-    def _store_data_collection(self, mx_collection, bl_config=None):
-        # self.prepare_collect_for_lims(mx_collection)
-        return ISPyBClient._store_data_collection(self, mx_collection, bl_config)
-    
+#    def update_data_collection(self, mx_collection, wait=False):
+#        ISPyBClient.update_data_collection(self, mx_collection, wait)
+#    
+#    def _store_data_collection(self, mx_collection, bl_config=None):
+#        # self.prepare_collect_for_lims(mx_collection)
+#        
+#        bl_config=HWR.beamline.collect.bl_config
+#        print(bl_config)
+#        return ISPyBClient._store_data_collection(self, mx_collection, bl_config)
+#   
     def store_image(self, image_dict):
         self.prepare_image_for_lims(image_dict)
         return ISPyBClient.store_image(self, image_dict)
     
-   # def store_robot_action(self, robot_action_dict):
-   #     # TODO ISPyB is not ready for now. This prevents from error 500 from the server.
-   #     pass
+#    def store_robot_action(self, robot_action_dict):
+#        # TODO ISPyB is not ready for now. This prevents from error 500 from the server.
+#        pass
+
+
+
+    def store_beamline_setup(self, session_id, bl_config):
+        """
+        Stores the beamline setup dict <bl_config>.
+
+        :param session_id: The session id that the beamline_setup
+                           should be associated with.
+        :type session_id: int
+
+        :param bl_config: The dictonary with beamline settings.
+        :type bl_config: dict
+
+        :returns beamline_setup_id: The database id of the beamline setup.
+        :rtype: str
+
+        
+        from AbstractCollect.py:
+
+
+        BeamlineConfig = collections.namedtuple(
+        "BeamlineConfig",
+            [
+                "synchrotron_name",
+                "directory_prefix",
+                "default_exposure_time",
+                "minimum_exposure_time",
+                "detector_fileext",
+                "detector_type",
+                "detector_manufacturer",
+                "detector_model",
+                "detector_px",
+                "detector_py",
+                "detector_binning_mode",
+                "undulators",
+                "focusing_optic",
+                "monochromator_type",
+                "beam_divergence_vertical",
+                "beam_divergence_horizontal",
+                "polarisation",
+                "input_files_server",
+            ],
+            )
+
+
+        from: ./ispyb-ejb/src/main/java/ispyb/server/mx/vos/collections/Detector3VO.java
+
+        public Detector3VO(Detector3VO vo){
+		super();
+		this.detectorId = vo.getDetectorId();
+		this.detectorType = vo.getDetectorType();
+		this.detectorManufacturer = vo.getDetectorManufacturer();
+		this.detectorModel = vo.getDetectorModel();
+		this.detectorPixelSizeHorizontal = vo.getDetectorPixelSizeHorizontal();
+		this.detectorPixelSizeVertical = vo.getDetectorPixelSizeVertical();
+		this.detectorSerialNumber = vo.getDetectorSerialNumber();
+		this.detectorDistanceMax = vo.getDetectorDistanceMax();
+		this.detectorDistanceMin = vo.getDetectorDistanceMin();
+		this.trustedPixelValueRangeLower = vo.getTrustedPixelValueRangeLower();
+		this.trustedPixelValueRangeUpper = vo.getTrustedPixelValueRangeUpper();
+		this.sensorThickness = vo.getSensorThickness();
+		this.overload = vo.getOverload();
+		this.xGeoCorr = vo.getxGeoCorr();
+		this.yGeoCorr = vo.getyGeoCorr();
+		this.detectorMode = vo.getDetectorMode();
+	}
+(beamLineSetup3VO){
+   beamDivergenceHorizontal = None
+   beamDivergenceVertical = None
+   beamLineSetupId = None
+   CS = None
+   focalSpotSizeAtSample = None
+   focusingOptic = "KB Mirrors"
+   goniostatMaxOscillationSpeed = None
+   goniostatMinOscillationWidth = None
+   maxExpTimePerDataCollection = None
+   minExposureTimePerImage = None
+   minTransmission = None
+   monochromatorType = "Si (111)"
+   polarisation = 1
+   setupDate = "2025-02-21T18:41:26"
+   synchrotronMode = "Machine studies"
+   synchrotronName = "DESY"
+   undulatorType1 = None
+   undulatorType2 = None
+   undulatorType3 = None
+ }
+
+
+
+        """
+
+        blSetupId = 0
+        if self._collection:
+
+            session = {}
+
+            try:
+                session = self.get_session(session_id)
+            except Exception:
+                logging.getLogger("ispyb_client").exception(
+                    "ISPyBClient: exception in store_beam_line_setup"
+                )
+            else:
+                if session is not None:
+                    try:
+
+                        print(bl_config)
+
+                        bl_config.beamDivergenceHorizontal = 0.5 
+                        bl_config.beamDivergenceVertical = 0.5
+                        bl_config.undulatorType1 = "U32"
+
+                        blSetupId = self._collection.service.storeOrUpdateBeamLineSetup(
+                            bl_config
+                        )
+
+                        session["beamLineSetupId"] = blSetupId
+                        self.update_session(session)
+
+                    except WebFault as e:
+                        logging.getLogger("ispyb_client").exception(str(e))
+                    except URLError:
+                        logging.getLogger("ispyb_client").exception(
+                            _CONNECTION_ERROR_MSG
+                        )
+        else:
+            logging.getLogger("ispyb_client").exception(
+                "Error in store_beamline_setup: could not connect" + " to server"
+            )
+
+        return blSetupId
+
+
+
 
     def _store_data_collection_group(self, group_data):
         """ """
