@@ -201,13 +201,19 @@ class P11Pinhole(NState):
         return list(self.positions.keys())
 
     def is_moving(self):
-        """Return True if either pinhole motor is moving."""
+        """Return True only if pinhole motors are moving."""
         state_y = self.y_motor.get_state()
         state_z = self.z_motor.get_state()
     
-        self.log.debug(f"Checking pinhole movement: Y={state_y}, Z={state_z}")
-    
-        return state_y in ["MOVING", "ON"] or state_z in ["MOVING", "ON"]
+        is_moving = state_y in ["MOVING", "ON"] or state_z in ["MOVING", "ON"]
+        
+        # If motors are moving, return True
+        if is_moving:
+            return True
+        
+        # If motors are NOT moving, update state and return False
+        self.update_state(HardwareObjectState.READY)
+        return False
     
     def get_state(self):
         """Determine the overall state of the pinhole motor system."""
