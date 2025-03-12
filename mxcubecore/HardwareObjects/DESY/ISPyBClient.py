@@ -878,27 +878,27 @@ class ISPyBClient(HardwareObject):
             )
 
             detector_id = 0
-            if bl_config:
-                lims_beamline_setup = ISPyBValueFactory.from_bl_config(
+            
+
+            lims_beamline_setup = ISPyBValueFactory.from_bl_config(
                     self._collection, bl_config
                 )
 
-                lims_beamline_setup.synchrotronMode = data_collection.synchrotronMode
+            lims_beamline_setup.synchrotronMode = data_collection.synchrotronMode
 
-                self.store_beamline_setup(
+            self.store_beamline_setup(
                     mx_collection["sessionId"], lims_beamline_setup
                 )
 
-                detector_params = ISPyBValueFactory().detector_from_blc(
+            detector_params = ISPyBValueFactory().detector_from_blc(
                     bl_config, mx_collection
                 )
 
-                detector = self.find_detector(*detector_params)
-                detector_id = 0
+            print(detector_params)
 
-                if detector:
-                    detector_id = detector.detectorId
-                    data_collection.detectorId = detector_id
+            detector_id = 1
+
+            data_collection.detectorId = detector_id
 
             collection_id = self._collection.service.storeOrUpdateDataCollection(
                 data_collection
@@ -912,6 +912,8 @@ class ISPyBClient(HardwareObject):
             logging.getLogger("ispyb_client").exception(
                 "Error in store_data_collection: " + "could not connect to server"
             )
+
+
 
     def dc_link(self, cid):
         """
@@ -941,6 +943,10 @@ class ISPyBClient(HardwareObject):
         :returns beamline_setup_id: The database id of the beamline setup.
         :rtype: str
         """
+
+        print("+++++++++++++++++++++++++++++++++++++++++++++++")
+        print(bl_config)
+
         blSetupId = None
         if self._collection:
 
@@ -991,7 +997,6 @@ class ISPyBClient(HardwareObject):
             return
 
         if self._collection:
-            collection_id=999999
             if "collection_id" in mx_collection:
                 try:
                     # Update the data collection group
@@ -1349,8 +1354,8 @@ class ISPyBClient(HardwareObject):
                 session_dict["endDate"] = datetime.strptime(
                     session_dict["endDate"], "%Y-%m-%dT%H:%M:%S"
                 )
-
-                session_dict["lastUpdate"] = datetime.fromisoformat(session_dict["lastUpdate"]).strftime('%Y-%m-%dT%H:%M:%S')
+                session_dict["lastUpdate"] = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+                #session_dict["lastUpdate"] = datetime.fromisoformat(session_dict["lastUpdate"]).strftime('%Y-%m-%dT%H:%M:%S')
 
                 #session_dict["lastUpdate"] = (datetime.fromisoformat(session_dict["lastUpdate"]) + timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%S')
 
@@ -1953,6 +1958,7 @@ class ISPyBClient(HardwareObject):
     def set_image_quality_indicators_plot(self, collection_id, plot_path, csv_path):
         """Assigns image quality indicators png and csv filenames to collection"""
         try:
+            plot_path="/var/ispyb/images/1.png"
             self._collection.service.setImageQualityIndicatorsPlot(
                 collection_id, plot_path, csv_path
             )
@@ -1984,11 +1990,12 @@ class ISPyBClient(HardwareObject):
             robot_action_vo.sampleBarcode = robot_action_dict.get("sampleBarcode")
             robot_action_vo.sessionId = robot_action_dict.get("sessionId")
             robot_action_vo.blSampleId = robot_action_dict.get("sampleId")
+            
             robot_action_vo.startTime = datetime.strptime(
-                robot_action_dict.get("startTime"), "%Y-%m-%dT%H:%M:%S"
+                robot_action_dict.get("startTime").replace(" ", "T"), "%Y-%m-%dT%H:%M:%S"
             )
             robot_action_vo.endTime = datetime.strptime(
-                robot_action_dict.get("endTime"), "%Y-%m-%dT%H:%M:%S"
+                robot_action_dict.get("endTime").replace(" ", "T"), "%Y-%m-%dT%H:%M:%S"
             )
             robot_action_vo.status = robot_action_dict.get("status")
             robot_action_vo.xtalSnapshotAfter = robot_action_dict.get(
