@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 # encoding: utf-8
 #
 #  Project: MXCuBE
@@ -26,17 +25,14 @@ import pytest
 from mxcubecore.HardwareObjects.abstract.AbstractBeam import BeamShape
 from test.pytest import TestHardwareObjectBase
 
-__copyright__ = """ Copyright © 2016 - 2022 by MXCuBE Collaboration """
+__copyright__ = """ Copyright © by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
 
 @pytest.fixture
 def test_object(beamline):
     """Use the beam object from beamline"""
-    result = beamline.beam
-    yield result
-    # Cleanup code here - restores starting state for next call:
-    # NBNB TODO
+    return beamline.beam
 
 
 class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
@@ -47,9 +43,7 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
         assert test_object is not None, "Beam hardware object is None (not initialized)"
 
     def test_get(self, test_object):
-        """
-        Test get methods
-        """
+        """Test get methods."""
         beam_div_hor, beam_div_ver = test_object.get_beam_divergence()
         assert isinstance(beam_div_hor, (int, float)), (
             "Horizontal beam divergence has to be int or float"
@@ -71,7 +65,7 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
         )
 
     def test_get_defined_beam_size(self, test_object):
-        """Check the defined beam size values for each definer type"""
+        """Check the defined beam size values for each definer type."""
         if test_object.definer:
             test_object._definer_type = "definer"
             _vals = test_object.get_defined_beam_size()
@@ -131,7 +125,8 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
                 _list.append(int(test_object.aperture.VALUES[val].value[0]))
             max_diameter = max(_list)
             test_object.aperture.set_value(
-                test_object.aperture.VALUES[f"A{max_diameter}"], timeout=2
+                test_object.aperture.VALUES[f"A{max_diameter}"],
+                timeout=2,
             )
             target_width = target_height = max_diameter / 1000.0
 
@@ -205,7 +200,8 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
                 _list.append(int(test_object.aperture.VALUES[val].value[0]))
             max_diameter = max(_list)
             test_object.aperture.set_value(
-                test_object.aperture.VALUES[f"A{max_diameter}"], timeout=2
+                test_object.aperture.VALUES[f"A{max_diameter}"],
+                timeout=2,
             )
 
         # slit size in mm, aperture diameters are in microns
@@ -237,7 +233,8 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
                 _list.append(int(test_object.aperture.VALUES[val].value[0]))
             max_diameter = max(_list)
             test_object.aperture.set_value(
-                test_object.aperture.VALUES[f"A{max_diameter}"], timeout=2
+                test_object.aperture.VALUES[f"A{max_diameter}"],
+                timeout=2,
             )
 
         for dsize in test_object.definer.VALUES:
@@ -256,7 +253,7 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
                 assert beam_label == dsize.name
 
     def test_is_beam(self, test_object):
-        """Check if there is beam"""
+        """Check if there is beam."""
         check_beam = test_object._check_beam
         if not check_beam:
             assert test_object.is_beam
@@ -265,7 +262,8 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
             for val in test_object.aperture.get_diameter_size_list():
                 app_size = int(test_object.aperture.VALUES[val].value[0]) / 1000
                 test_object.aperture.set_value(
-                    test_object.aperture.VALUES[val], timeout=2
+                    test_object.aperture.VALUES[val],
+                    timeout=2,
                 )
                 _beam = test_object.is_beam
                 if check_beam[0] > app_size:

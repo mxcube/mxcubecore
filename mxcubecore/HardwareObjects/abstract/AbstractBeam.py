@@ -67,12 +67,13 @@ class AbstractBeam(HardwareObject):
         _aperture: reference to the aperture hardware object
         _slits: reference to the slits hardware object
         _definer: reference to the slits hardware object
-        _beam_size_dict (dict): dictionary containing min max of aperure, slits and definer
+        _beam_size_dict (dict): dictionary containing min max of aperure,
+                                slits and definer.
         _beam_width (float): beam size in horizontal direction
         _beam_height (float): beam size in vertical direction
         _beam_shape (str): beam shape (rectangular, ellipse, unknown)
         _beam_divergence (tuple): beam divergence in horizontal and vertical directions
-        _beam_position_on_screen (tuple): beam position in pixel units
+        _beam_position_on_screen (list): beam position in pixel units
         _beam_info_dict (dict): dictionary containing size_x, size_y, shape, label
     """
 
@@ -126,7 +127,7 @@ class AbstractBeam(HardwareObject):
 
     @property
     def definer(self):
-        """Beam definer device, equipment like focusing optics, CRLs, and etc."""
+        """Beam definer hardware object."""
         return self._definer
 
     def get_beam_divergence(self) -> tuple:
@@ -163,7 +164,7 @@ class AbstractBeam(HardwareObject):
         raise NotImplementedError
 
     def get_beam_shape(self) -> BeamShape:
-        """Get beam shape.
+        """Get the beam shape.
 
         Returns:
             Beam shape.
@@ -172,7 +173,7 @@ class AbstractBeam(HardwareObject):
         return self._beam_shape
 
     def get_beam_size(self) -> tuple[float, float]:
-        """Get beam size.
+        """Get yhe beam size.
 
         Returns:
             Two-item tuple: width and height.
@@ -182,14 +183,15 @@ class AbstractBeam(HardwareObject):
 
     def get_value(self) -> tuple[float, float, BeamShape, str]:
         """Get the beam size (width and heigth), shape and label.
-            The size is in mm.
+           The size is in milimeters.
+
         Retunrs:
             Four-item tuple: width, heigth, shape, name
         """
         return self._get_value()
 
     def _get_value(self) -> tuple[float, float, BeamShape, str]:
-        """Implement specific get_value"""
+        """Implement specific get_value."""
 
     def set_value(self, size: list[float] | str | None = None) -> None:
         """Set the beam size.
@@ -225,7 +227,7 @@ class AbstractBeam(HardwareObject):
         elif beam_shape == BeamShape.ELLIPTICAL:
             self._aperture.set_diameter_size(beam_width)
 
-    def get_beam_position_on_screen(self) -> tuple[int, int]:
+    def get_beam_position_on_screen(self) -> list[int, int]:
         """Get the beam position.
 
         Returns:
@@ -234,7 +236,7 @@ class AbstractBeam(HardwareObject):
         # (TODO) move this method to AbstractSampleView
         return self._beam_position_on_screen
 
-    def set_beam_position_on_screen(self, beam_x_y: tuple) -> None:
+    def set_beam_position_on_screen(self, beam_x_y: list) -> None:
         """Set the beam position.
 
         Args:
@@ -268,16 +270,12 @@ class AbstractBeam(HardwareObject):
 
         if len(key) == 1:
             _label = key[0]
+        elif self._definer_type in key:
+            _label = self._definer_type
         else:
-            if self._definer_type in key:
-                _label = self._definer_type
-            else:
-                _label = "UNKNOWN"
+            _label = "UNKNOWN"
 
-        if _label == "slits":
-            _shape = BeamShape.RECTANGULAR
-        else:
-            _shape = BeamShape.ELLIPTICAL
+        _shape = BeamShape.RECTANGULAR if _label == "slits" else BeamShape.ELLIPTICAL
 
         self._beam_width = _size[0]
         self._beam_height = _size[1]
@@ -291,6 +289,7 @@ class AbstractBeam(HardwareObject):
 
     def re_emit_values(self):
         """Reemit ``beamSizeChanged`` and ``beamInfoChanged`` signals."""
+
         HardwareObject.re_emit_values(self)
         if self._beam_width != 9999 and self._beam_height != 9999:
             self.emit("beamSizeChanged", (self._beam_width, self._beam_height))
@@ -300,8 +299,9 @@ class AbstractBeam(HardwareObject):
     @property
     def is_beam(self) -> bool:
         """Check if there is beam.
+
         Returns:
-            True if beam present, False otherwise
+            ``True`` if beam present, ``False`` otherwise.
         """
         return self._is_beam()
 
@@ -311,10 +311,12 @@ class AbstractBeam(HardwareObject):
 
     def wait_for_beam(self, timeout: float | None = None):
         """Wait until beam present.
+
         Args:
-            timeout: optional - timeout [s],
-                     If timeout == 0: return at once and do not wait.
-                     if timeout is None: wait forever (default).
+            Optional - timeout in seconds,
+            If timeout == 0: return at once and do not wait.
+            if timeout is None: wait forever (default).
+
         Raises:
             RuntileError if no beam after the specified timeout.
         """

@@ -19,8 +19,7 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
-BeamDefiner ESRF implementation class - methods to define the size and shape of
-the beam.
+Beam ESRF implementation class - methods to define the size and shape of the beam.
 """
 
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
@@ -97,6 +96,7 @@ class ESRFBeam(AbstractBeam):
 
     def _get_aperture_value(self) -> tuple[list[float, float], str]:
         """Get the size and the label of the aperture in place.
+
         Returns:
             Size [mm] [width, height], label.
         """
@@ -111,6 +111,7 @@ class ESRFBeam(AbstractBeam):
 
     def _get_definer_value(self) -> tuple[list[float, float], str]:
         """Get the size and the name of the definer in place.
+
         Returns:
             Size [mm] [width, height], label.
         """
@@ -126,8 +127,9 @@ class ESRFBeam(AbstractBeam):
 
     def _get_slits_size(self) -> dict[str, float]:
         """Get the size of the slits in place.
+
         Returns:
-            {"width": float, "heigth": float}.
+            ``{"width": float, "heigth": float}``.
         """
         beam_size = {}
         for _key, _val in self.slits:
@@ -136,9 +138,10 @@ class ESRFBeam(AbstractBeam):
 
     def _get_value(self) -> tuple[float, float, BeamShape, str]:
         """Get the size (width and heigth) of the beam, its shape and
-           its label. The size is in mm.
+           its label. The size is in milimeters.
+
         Retunrs:
-            Four-item tuple: width, heigth, shape, name
+            Four-item tuple: width, heigth, shape, name.
         """
         labels = {}
         _label = "UNKNOWN"
@@ -178,10 +181,10 @@ class ESRFBeam(AbstractBeam):
     def get_available_size(self) -> dict:
         """Get the available predefined beam definer configuration.
         Returns:
-            {"type": ["apertures"], "values": [labels]} or
-            {"type": ["definer"], "values": [labels]} or
-            {"type": ["width", "height"], "values":
-                     [low_lim_w, high_lim_w, low_lim_h, high_lim_h]}
+            ``{"type": ["aperture"], "values": [labels]}`` or
+            ``{"type": ["definer"], "values": [labels]}`` or
+            ``{"type": ["width", "height"], "values":
+                     [low_lim_w, high_lim_w, low_lim_h, high_lim_h]}``
         """
         if self._definer_type == "aperture":
             return {
@@ -208,10 +211,11 @@ class ESRFBeam(AbstractBeam):
 
     def get_defined_beam_size(self) -> dict:
         """Get the predefined beam labels and size.
+
         Returns:
             Dictionary wiith list of avaiable beam size labels and
             the corresponding size (width,height) tuples.
-            {"label": [str, str, ...], "size": [(w,h), (w,h), ...]}
+            ``{"label": [str, str, ...], "size": [(w,h), (w,h), ...]}``
         """
         labels = []
         values = []
@@ -242,21 +246,26 @@ class ESRFBeam(AbstractBeam):
 
     def _set_slits_size(self, size: list[float, float]):
         """Move the slits to the desired position.
+
         Args:
-            List [width, heigth] - [mm].
+            Two-items list:  width, heigth in milimeters.
+
         Raises:
             RuntimeError: Size out of the limits.
                TypeError: Invalid size
         """
+
         if not isinstance(size, list):
-            raise TypeError("Incorrect input value for slits")
+            msg = "Incorrect input value for slits"
+            raise TypeError(msg)
         w_lim = self.slits["width"].get_limits()
         h_lim = self.slits["heigth"].get_limits()
         try:
+            msg = "Size out of the limits"
             if min(w_lim) > size[0] > max(w_lim):
-                raise RuntimeError("Size out of the limits")
+                raise RuntimeError(msg)
             if min(h_lim) > size[1] > max(h_lim):
-                raise RuntimeError("Size out of the limits")
+                raise RuntimeError(msg)
             self.slits["width"].set_value(size[0])
             self.slits["heigth"].set_value(size[1])
         except TypeError as err:
@@ -264,13 +273,16 @@ class ESRFBeam(AbstractBeam):
 
     def _set_aperture_size(self, size: str):
         """Move the aperture to the desired size.
+
         Args:
-            size (str): The position name.
+            The position name.
+
         Raises:
             TypeError
         """
         if not isinstance(size, str):
-            raise TypeError("Incorrect input value for aperture")
+            msg = "Incorrect input value for aperture"
+            raise TypeError(msg)
 
         try:
             _ap = self.aperture.VALUES[size]
@@ -281,20 +293,26 @@ class ESRFBeam(AbstractBeam):
 
     def _set_definer_size(self, size: str):
         """Move the definer to the desired size.
+
         Args:
-            size (str): The position name.
+            The position name.
+
         Raises:
             TypeError: Invalid size.
         """
         if not isinstance(size, str):
-            raise TypeError("Incorrect input value for definer")
+            msg = "Incorrect input value for definer"
+            raise TypeError(msg)
 
         self._definer.set_value(self.definer.VALUES[size])
 
     def set_value(self, size: list[float] | str | None = None):
-        """Set the beam size
+        """Set the beam size.
+
         Args:
-            List [width, heigth] or aperture or definer name.
+            Two-items list: width and heigth for slits or
+            aperture or definer name.
+
         Raises:
             RuntimeError: Beam definer not configured
                           Size out of the limits.
@@ -309,6 +327,11 @@ class ESRFBeam(AbstractBeam):
             self._set_definer_size(size)
 
     def get_beam_position_on_screen(self) -> list[int, int]:
+        """Get the beam position.
+
+        Returns:
+            X and Y coordinates of the beam position in pixels.
+        """
         if self._beam_position_on_screen == [0, 0]:
             try:
                 _beam_position_on_screen = (
@@ -324,6 +347,7 @@ class ESRFBeam(AbstractBeam):
 
     def get_beam_size(self) -> tuple[float, float]:
         """Get the beam size.
+
         Returns:
             Two-item tuple: width and height.
         """
@@ -332,17 +356,22 @@ class ESRFBeam(AbstractBeam):
 
     def _is_beam(self) -> bool:
         """Check if there is beam.
+
         Returns:
-            True if beam present, False otherwise
+            ``True`` if beam present, ``False`` otherwise
         """
         return self._beam_check_obj.is_beam()
 
     def wait_for_beam(self, timeout: float | None = None):
-        """Wait until beam present
+        """Wait until beam present.
+
         Args:
-            timeout: optional - timeout [s],
-                     If timeout == 0: return at once and do not wait.
-                     if timeout is None: wait forever (default).
+            Optional - timeout in seconds,
+            If timeout == 0: return at once and do not wait.
+            if timeout is None: wait forever (default).
+
+        Raises:
+            RuntileError if no beam after the specified timeout.
         """
         if self._monitorbeam_obj:
             try:

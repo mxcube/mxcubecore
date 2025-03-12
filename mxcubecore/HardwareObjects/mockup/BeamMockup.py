@@ -31,7 +31,7 @@ Example xml configuration:
     <definer_type>definer</definer_type>
     <beam_divergence_vertical>0</beam_divergence_vertical>
     <beam_divergence_horizontal>0</beam_divergence_horizontal>
-    <check_beam>(10,10)</check_beam>
+    <check_beam>(0.03, 0.03)</check_beam>
   </object>
 """
 
@@ -73,7 +73,7 @@ class BeamMockup(AbstractBeam):
         self._definer_type = self.get_property("definer_type") or _definer_type
 
         self._beam_position_on_screen = literal_eval(
-            self.get_property("beam_position", "[318, 238]")
+            self.get_property("beam_position", "[318, 238]"),
         )
 
         _check_beam = self.get_property("check_beam")
@@ -86,10 +86,11 @@ class BeamMockup(AbstractBeam):
     def _re_emit_values(self, *args, **kwargs):
         self.re_emit_values()
 
-    def _get_aperture_value(self):
+    def _get_aperture_value(self) -> tuple[list[float, float], str]:
         """Get the size and the label of the aperture in place.
+
         Returns:
-            (list, str): Size [mm] (width, height), label.
+            Size [mm] (width, height), label.
         """
         _size = self.aperture.get_value().value[0]
         try:
@@ -100,10 +101,11 @@ class BeamMockup(AbstractBeam):
 
         return [_size, _size], _label
 
-    def _get_definer_value(self):
+    def _get_definer_value(self) -> tuple[list[float, float], str]:
         """Get the size and the name of the definer in place.
+
         Returns:
-            (list, str): Size [mm] (width, height), label.
+            Size [mm] (width, height), label.
         """
         try:
             value = self.definer.get_value()
@@ -113,10 +115,11 @@ class BeamMockup(AbstractBeam):
         except AttributeError:
             return [-1, -1], "UNKNOWN"
 
-    def _get_slits_value(self):
+    def _get_slits_value(self) -> tuple[list[float, float], str]:
         """Get the size of the slits in place.
+
         Returns:
-             (list, str): Size [mm] (width, height), label.
+             Size [mm] (width, height), label.
         """
         _size = self.slits.get_gaps()
         return _size, "slits"
@@ -124,6 +127,9 @@ class BeamMockup(AbstractBeam):
     def _get_value(self) -> tuple[float, float, BeamShape, str]:
         """Get the size (width and heigth) of the beam, its shape and
         its label. The size is in mm.
+
+        Returns:
+            Four-item tuple: width, heigth, shape, name
         """
         labels = {}
         _label = "UNKNOWN"
@@ -153,10 +159,10 @@ class BeamMockup(AbstractBeam):
         return self._beam_width, self._beam_height, self._beam_shape, _label
 
     def aperture_diameter_changed(self, aperture):
-        """
-        Method called when the aperture diameter changes
+        """Method called when the aperture diameter changes.
+
         Args:
-            aperture (aperture(Enum)): Aperture enum.
+            Aperture enum.
         """
 
         size = aperture.value[0]
@@ -166,56 +172,61 @@ class BeamMockup(AbstractBeam):
         self._beam_info_dict["label"] = aperture.name
         self.re_emit_values()
 
-    def slits_gap_changed(self, size):
-        """
-        Method called when the slits gap changes
+    def slits_gap_changed(self, size: tuple[float, float]):
+        """Method called when the slits gap changes.
+
         Args:
-            size (tuple): two floats indicates beam size in microns
+            Two floats - beam size in microns
         """
         self._beam_size_dict["slits"] = size
         self._beam_info_dict["label"] = "slits"
         self.evaluate_beam_info()
         self.re_emit_values()
 
-    def set_beam_position_on_screen(self, beam_x_y):
-        """Sets beam mark position on screen
+    def set_beam_position_on_screen(self, beam_x_y: list[int, int]):
+        """Sets beam mark position on screen.
         #TODO move method to sample_view
+
         Args:
-            beam_x_y (list): Position [x, y] [pixel]
+            Position [x, y] in pixels.
         """
         self._beam_position_on_screen = beam_x_y
         self.emit("beamPosChanged", (self._beam_position_on_screen,))
 
-    def get_slits_gap(self):
-        """
-        Returns: tuple with beam size in microns
+    def get_slits_gap(self) -> tuple[float, float]:
+        """Get the beam size from the slits gap.
+
+        Returns:
+            Two-item tuple with horizontal and vertical beam size in microns
         """
         self.evaluate_beam_info()
         return self._beam_size_dict["slits"]
 
-    def set_slits_gap(self, width_microns, height_microns):
-        """
-        Sets slits gap in microns
+    def set_slits_gap(self, width_microns: int, height_microns: int):
+        """Sets slits gap in microns.
+
         Args:
-            width_microns (int):
-            height_microns (int):
+            width and height in microns.
         """
         if self.slits:
             self.slits.set_horizontal_gap(width_microns / 1000.0)
             self.slits.set_vertical_gap(height_microns / 1000.0)
 
-    def get_aperture_pos_name(self):
-        """
-        Returns (str): name of current aperture position
+    def get_aperture_pos_name(self) -> str:
+        """Get the name of the current aperture.
+
+        Returns:
+             name of current aperture position
         """
         return self.aperture.get_current_pos_name()
 
-    def get_defined_beam_size(self):
+    def get_defined_beam_size(self) -> dict:
         """Get the predefined beam labels and size.
+
         Returns:
-            (dict): Dictionary with lists of avaiable beam size labels
-                    and the corresponding size (width,height) tuples.
-                    {"label": [str, str, ...], "size": [(w,h), (w,h), ...]}
+            Dictionary with lists of avaiable beam size labels
+            and the corresponding size (width,height) tuples.
+            ``{"label": [str, str, ...], "size": [(w,h), (w,h), ...]}``
         """
         labels = []
         values = []
@@ -242,12 +253,12 @@ class BeamMockup(AbstractBeam):
 
     def get_available_size(self) -> dict:
         """Get the available predefined beam definer configuration.
-        Returns:
-            {"type": ["apertures"], "values": [labels]} or
-            {"type": ["definer"], "values": [labels]} or
-            {"type": ["width", "height"], "values":
-                     [low_lim_w, high_lim_w, low_lim_h, high_lim_h]}
 
+        Returns:
+            ``{"type": ["aperture"], "values": [labels]}`` or
+            ``{"type": ["definer"], "values": [labels]}`` or
+            ``{"type": ["width", "height"], "values":
+                       [low_lim_w, high_lim_w, low_lim_h, high_lim_h]}``
         """
         if self._definer_type == "aperture":
             # get list of the available apertures
@@ -274,39 +285,46 @@ class BeamMockup(AbstractBeam):
 
         return {}
 
-    def set_value(self, size=None):
-        """Set the beam size
+    def set_value(self, size: list[float, float] | str | None = None):
+        """Set the beam size.
+
         Args:
-            size (list): Width, heigth or
-                  (str): Aperture or definer definer name.
+            size: List of width and  heigth in micrometers or
+                  Aperture or definer definer name as string.
         Raises:
             RuntimeError: Beam definer not configured
                           Size out of the limits.
             TypeError: Wrong size type.
         """
+        msg = "Incorrect input value for "
         if self._definer_type in (self.slits, "slits"):
             if not isinstance(size, list):
-                raise TypeError("Incorrect input value for slits")
+                msg += "slits"
+                raise TypeError(msg)
             self.slits.set_horizontal_gap(size[0])
             self.slits.set_vertical_gap(size[1])
 
         if self._definer_type in (self.aperture, "aperture"):
             if not isinstance(size, str):
-                raise TypeError("Incorrect input value for aperture")
+                msg += "aperture"
+                raise TypeError(msg)
             self.aperture.set_value(self.aperture.VALUES[size], timeout=2)
 
         if self._definer_type in (self.definer, "definer"):
             if not isinstance(size, str):
-                raise TypeError("Incorrect input value for definer")
+                msg += "definer"
+                raise TypeError(msg)
             self.definer.set_value(self.definer.VALUES[size], timeout=2)
 
     def _is_beam(self) -> bool:
-        """Check if there is beam
+        """Check if there is beam.
+
         Returns:
-            True if beam present, False otherwise
+            ``True`` if beam present, ``False`` otherwise
         """
         if not self._check_beam:
             return True
+
         beam = self.get_value()
         return all(
             x1 <= x2
