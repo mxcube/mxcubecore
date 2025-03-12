@@ -272,6 +272,7 @@ class Microdiff(MiniDiff.MiniDiff):
 
     def emitCentringSuccessful(self):
         # check first if all the motors have stopped
+        print("get in emitCentringSuccessful in Microdiff.py")
         self._wait_ready(30)
 
         # save position in MD2 software

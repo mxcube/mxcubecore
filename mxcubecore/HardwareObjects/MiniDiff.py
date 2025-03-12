@@ -720,7 +720,7 @@ class MiniDiff(Equipment):
             chi_angle=self.chiAngle,
         )
 
-        self.current_centring_procedure.link(self.manualCentringDone)
+        self.current_centring_procedure.link(self.manualCentringDone)   #回调函数
 
 
     def motor_positions_to_screen(self, centred_positions_dict):
@@ -825,6 +825,7 @@ class MiniDiff(Equipment):
         }
 
     def manualCentringDone(self, manual_centring_procedure):
+        print("get in manualCentringDone() in MiniDiff.py")
         try:
             motor_pos = manual_centring_procedure.get()
             if isinstance(motor_pos, gevent.GreenletExit):
@@ -846,6 +847,7 @@ class MiniDiff(Equipment):
             self.emitCentringSuccessful()       #这一步更新了md2软件中的centring电机信息，之前只是移动了，self.走的是Micodiff重写的函数
             self.emitProgressMessage("")
             print("get out manualCentringDone in MiniDiff")
+            print("self.get_centring_status() after get out manualCentringDone: ",self.get_centring_status())
 
     def autoCentringDone(self, auto_centring_procedure):
         self.emitProgressMessage("")
@@ -985,6 +987,7 @@ class MiniDiff(Equipment):
     #             "MiniDiff: trying to emit centringSuccessful outside of a centring"
     #         )
     def emitCentringSuccessful(self):
+        print("get in emitCentringSuccessful() in MiniDiff.py")
         logging.getLogger("HWR").debug(
             "MiniDiff: get into emitCentringSuccessful()"
         )
@@ -997,11 +1000,13 @@ class MiniDiff(Equipment):
             self.centringStatus["endTime"] = curr_time
 
             self.centringStatus["motors"] = self.get_positions()
+            print("self.centringStatus[motors] before compared with self.current_centring_procedure.get(): ",self.centringStatus["motors"])
             logging.getLogger("HWR").debug(
                 "MiniDiff: get into emitCentringSuccessful(), before self.current_centring_procedure.get()"
             )
-            print("self.current_centring_procedure:",self.current_centring_procedure)
+            # print("self.current_centring_procedure:",self.current_centring_procedure)
             centred_pos = self.current_centring_procedure.get() #卡在这
+            # print("self.current_centring_procedure.get():", centred_pos)
 
             for role in self.centringStatus["motors"]:
 
@@ -1009,7 +1014,7 @@ class MiniDiff(Equipment):
 
                 try:
 
-                    self.centringStatus["motors"][role] = centred_pos[motor]
+                    self.centringStatus["motors"][role] = centred_pos[motor]            # 此处会稍微改变各电机的值，如phi(omega)的271.00045 -> 271.00015
 
                 except KeyError:
                     continue
@@ -1018,7 +1023,8 @@ class MiniDiff(Equipment):
             self.centringStatus["valid"] = True
 
             method = self.currentCentringMethod
-            self.emit("centringSuccessful", (method, self.get_centring_status()))
+            print("self.get_centring_status() in emitCentringSuccessful() method in MiniDiff: ",self.get_centring_status())
+            self.emit("centringSuccessful", (method, self.get_centring_status()))       #此处调用wait_for_centring_finishes() in sampleview.py即给出point
             self.currentCentringMethod = None
             self.current_centring_procedure = None
 
@@ -1026,6 +1032,22 @@ class MiniDiff(Equipment):
             logging.getLogger("HWR").debug(
                 "MiniDiff: trying to emit centringSuccessful outside of a centring"
             )
+
+
+    def emitCentringSuccessfulWithoutActualCentring(self):
+        print("get in emitCentringSuccessfulWithoutActualCentring() in MiniDiff.py")
+
+        curr_time = time.strftime("%Y-%m-%d %H:%M:%S")
+        self.centringStatus["endTime"] = curr_time
+        self.centringStatus["motors"] = self.get_positions()
+        self.centringStatus["method"] = "Manual 3-click"
+        self.centringStatus["valid"] = True
+
+        self.emit("centringSuccessful", ("Manual 3-click", self.get_centring_status()))       #此处调用wait_for_centring_finishes() in sampleview.py即给出point
+
+
+
+
 
     def emitProgressMessage(self, msg=None):
         # logging.getLogger("HWR").debug("%s: %s", self.name(), msg)
