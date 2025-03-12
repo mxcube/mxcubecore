@@ -95,7 +95,8 @@ class P11NanoDiff(GenericDiffractometer):
         """
         Descript. :
         """
-
+        
+        self.camera_hwobj = self.get_object_by_role("camera")
         self.diffractometer_state = DiffractometerState.Unknown
 
         self.current_phase = GenericDiffractometer.PHASE_UNKNOWN
@@ -238,11 +239,25 @@ class P11NanoDiff(GenericDiffractometer):
         return self.grid_direction
 
     def predict_click_pix(self, frame):
+        
+        #Note that in case zoom level is not overview, image should be flipped 
+        #vertically. Changing the image itself somhow confused predictons.
+        #For now, just flip coordinate instead. 
+        #TODO: Figure out why.
 
         request_arguments = {}
         request_arguments["to_predict"] = frame
         image_jpeg = request_arguments["to_predict"]
         image_jpeg = simplejpeg.decode_jpeg(image_jpeg)
+    
+        # Retrieve flipping parameters
+        camera_hwobj = self.camera_hwobj
+        fliph = camera_hwobj.overview_fliph if camera_hwobj.using_overview else camera_hwobj.standard_fliph
+        flipv = camera_hwobj.overview_flipv if camera_hwobj.using_overview else camera_hwobj.standard_flipv
+    
+        # Print debug info
+        self.log.debug(f"Using overview: {camera_hwobj.using_overview}, FlipH: {fliph}, FlipV: {flipv}")
+    
         request_arguments["description"] = [
             "foreground",
             "crystal",
@@ -254,51 +269,58 @@ class P11NanoDiff(GenericDiffractometer):
         request_arguments["save"] = False
         request_arguments["prefix"] = "predicted"
         _start = time.time()
-
-        # Select here the host and port where murko server is running
+    
+        # Send request to Murko
         murko_host = os.getenv("MURKO_HOST")
         murko_port = int(os.getenv("MURKO_PORT"))
         analysis = get_predictions(request_arguments, host=murko_host, port=murko_port)
-
+    
         original_image_shape = analysis["original_image_shape"]
         sizeOfPictureY, sizeOfPictureX = original_image_shape[:2]
         description = analysis["descriptions"][0]
-        self.log.debug(
-            "Client got all predictions in %.4f seconds" % (time.time() - _start)
-        )
+        self.log.debug("Client got all predictions in %.4f seconds" % (time.time() - _start))
+    
         anything_in_the_picture = description["present"]
-
+    
         if anything_in_the_picture:
             loop_present, r, c, h, w = description["aoi_bbox"]
             if loop_present:
                 self.log.debug(
-                    "Loop found! Its bounding box parameters in fractional coordianates are: center (vertical %.3f, horizontal %.3f), height %.3f, width %.3f"
-                    % (r, c, h, w)
+                    f"Loop found! Bounding box (fractional): center (vertical {r:.3f}, horizontal {c:.3f}), "
+                    f"height {h:.3f}, width {w:.3f}"
                 )
             else:
-                self.log.debug("loop not found !")
-
-            most_likely_click = description["most_likely_click"]
-            v, h = most_likely_click
-            self.log.debug(
-                "Most likely click in fractional coordinates: (vertical %.3f, horizontal %.3f)"
-                % (v, h)
-            )
+                self.log.debug("Loop not found!")
+    
+            # Get the predicted click coordinates
+            v, h = description["most_likely_click"]
+    
+            # Adjust coordinates if flipping is applied
+            if fliph:
+                h = 1.0 - h  # Invert horizontally
+                self.log.debug("Adjusted horizontal coordinate due to FlipH.")
+    
+            if flipv:
+                v = 1.0 - v  # Invert vertically
+                self.log.debug("Adjusted vertical coordinate due to FlipV.")
+    
+            self.log.debug(f"Final adjusted click: (vertical {v:.3f}, horizontal {h:.3f})")
+    
         else:
-            self.log.debug("Loop not found. Click to the center.")
-
-            v = 0.5
-            h = 0.5
-
-        # Save the debug results
+            self.log.debug("Loop not found. Clicking center.")
+            v, h = 0.5, 0.5
+    
+        # Save debug results
         name_pattern = f"{os.getuid()}_{time.asctime().replace(' ', '_')}.jpg"
         directory = f"{os.getenv('HOME')}/murko"
         os.makedirs(directory, exist_ok=True)
         template = os.path.join(directory, name_pattern)
+    
+        # Save the original image for debugging
         plot_analysis([image_jpeg], analysis, image_paths=[template])
-
+    
         return h, v
-
+    
     def auto_ai_routine(self, zoom):
 
         self.goto_centring_phase()
