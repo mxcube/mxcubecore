@@ -332,7 +332,8 @@ class P11NanoDiff(GenericDiffractometer):
         # zoom_hwobj = self.motor_hwobj_dict["zoom"]
         # zoom_hwobj.camera_hwobj.set_zoom(zoom)
 
-        motor_pos = self.automatic_ai_centring()
+        #motor_pos = self.automatic_ai_centring()
+        motor_pos = self.manual_centring_ai_direct(90)
         self.move_to_centred_position(motor_pos)
         return motor_pos
 
@@ -548,7 +549,90 @@ class P11NanoDiff(GenericDiffractometer):
         except Exception as e:
             self.log.error(f"Unexpected error in automatic_ai_centring: {str(e)}")
             return None
-        
+
+    def manual_centring_ai_direct(self, step=90):
+        """
+        Descript. : A test manual centring method using Murko AI predictions instead of user clicks.
+                    Moves predicted positions directly to the beam, rotating phi by `step` degrees
+                    until completing a full 360-degree rotation (n_steps = 360 / step). Waits for
+                    all motor movements to complete before proceeding to the next step.
+        Args:
+            step (float): Angle in degrees to rotate phi between predictions (default: 90).
+                          Must divide 360 evenly to ensure a full rotation.
+        Returns:
+            dict: Final motor positions after centring.
+        """
+        if 360 % step != 0:
+            raise ValueError("Step must divide 360 evenly for a full rotation (e.g., 90, 120, 180).")
+    
+        n_steps = int(360 / step)
+        self.log.debug(f"Starting AI direct manual centring with step {step} degrees ({n_steps} steps)")
+        self.emit_progress_message(f"AI direct centring with {step}° steps: aligning sample...")
+    
+        beam_xc, beam_yc = self.beam_position
+        phi_mot = self.centring_phi.motor
+        phi_start_pos = phi_mot.get_value()
+        motor_positions = self.get_positions()
+    
+        # Motors involved in move_to_beam
+        motors_to_wait = ['sampx', 'sampy', 'phiy']
+    
+        for i in range(n_steps):
+            self.log.debug(f"Step {i + 1}/{n_steps}: Predicting position at phi = {phi_mot.get_value()}")
+    
+            # Capture the current image
+            image = HWR.beamline.sample_view.camera.last_jpeg
+            if image is None:
+                self.log.error("No camera image available for AI prediction")
+                raise RuntimeError("Camera image unavailable")
+    
+            # Get AI-predicted click position
+            try:
+                x_click, y_click = self.predict_click_pix(image)
+                sizex, sizey = int(os.getenv("MURKO_SIZEX")), int(os.getenv("MURKO_SIZEY"))
+                x, y = x_click * sizex, y_click * sizey
+                self.log.debug(f"Murko predicted position: ({x}, {y})")
+            except Exception as e:
+                self.log.error(f"Murko prediction failed: {e}")
+                raise RuntimeError("AI prediction failed")
+    
+            # Move the predicted position directly to the beam
+            self.log.debug(f"Moving predicted position ({x}, {y}) to beam ({beam_xc}, {beam_yc})")
+            self.move_to_beam(x, y)
+    
+            # Wait for all motors involved in move_to_beam to complete
+            self.log.debug("Waiting for move_to_beam motors to finish...")
+            for motor_name in motors_to_wait:
+                motor = self.motor_hwobj_dict[motor_name]
+                timeout = 10  # seconds
+                start_time = time.time()
+                while motor.is_moving():
+                    if time.time() - start_time > timeout:
+                        self.log.error(f"Timeout waiting for motor {motor_name} to finish moving")
+                        raise RuntimeError(f"Motor {motor_name} did not finish moving")
+                    gevent.sleep(0.1)
+                self.log.debug(f"Motor {motor_name} finished moving")
+    
+            self.log.debug(f"Move to beam completed for step {i + 1}")
+    
+            # Rotate phi by step degrees for the next prediction (except after the last step)
+            if i < n_steps - 1:
+                self.log.debug(f"Rotating phi by {step} degrees")
+                phi_mot.set_value_relative(step, timeout=10)
+                self.wait_omega_on(timeout=10)  # Wait for omega to finish moving
+                self.log.debug("Phi rotation completed")
+    
+        # Update motor positions after all steps
+        motor_positions = self.get_positions()
+        motor_positions['phi'] = phi_start_pos  # Reset phi to starting position
+    
+        # Final wait to ensure all motors are settled
+        self.wait_device_ready(timeout=10)
+    
+        self.log.debug("AI direct manual centring completed. Final positions: %s" % motor_positions)
+        self.emit_progress_message("")
+        return motor_positions
+    
     def is_ready(self):
         """
         Descript. :
