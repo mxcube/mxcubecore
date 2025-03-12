@@ -5562,11 +5562,8 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractBeam.py" = [
     "B028",
-    "E501",
     "ERA001",
     "N999",
-    "PLR5501",
-    "SIM108",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractCharacterisation.py" = [
     "ERA001",
@@ -6036,11 +6033,8 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/mockup/BeamMockup.py" = [
     "ARG002",
-    "COM812",
-    "EM101",
     "ERA001",
     "N999",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/mockup/BeamlineActionsMockup.py" = [
     "ARG002",
@@ -6998,17 +6992,12 @@ convention = "google"
     "SLF001",
 ]
 "test/pytest/test_beam.py" = [
-    "COM812",
     "ERA001",
-    "EXE001",
     "PERF401",
-    "PT022",
     "SLF001",
 ]
 "test/pytest/test_beam_definer.py" = [
     "ERA001",
-    "EXE001",
-    "PT022",
 ]
 "test/pytest/test_beamline_ho_id.py" = [
     "EXE001",

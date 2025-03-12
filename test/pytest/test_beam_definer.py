@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 # encoding: utf-8
 #
 #  Project: MXCuBE
@@ -32,8 +31,7 @@ __license__ = "LGPLv3+"
 @pytest.fixture
 def test_object(beamline):
     """Use the beam object from beamline"""
-    result = beamline.beam.definer
-    yield result
+    return beamline.beam.definer
 
 
 class TestBeamDefiner(TestAbstractNStateBase):
