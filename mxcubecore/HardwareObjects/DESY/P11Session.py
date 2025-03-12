@@ -46,6 +46,24 @@ class P11Session(Session):
     def init(self):
         super().init()
 
+        self.synchrotron_name = self.get_property("synchrotron_name")
+        self.beamline_name = self.get_property("beamline_name")
+        self.endstation_name = self.get_property("endstation_name").lower()
+
+        self.suffix = self["file_info"].get_property("file_suffix")
+        self.template = self["file_info"].get_property("file_template")
+
+        base_directory = self["file_info"].get_property("base_directory")
+
+        base_process_directory = self["file_info"].get_property(
+            "processed_data_base_directory"
+        )
+
+        base_archive_directory = self["file_info"].get_property(
+            "archive_base_directory"
+        )
+
+
         self.log = logging.getLogger("HWR.P11Session")
         self.settings_file = self.get_property("p11_settings_file")
         self.operation_mode = self.get_property("mode")
