@@ -3193,15 +3193,13 @@ def validate_url(value: str) -> bool:
     """Validate url string"""
     tpl = urlparse(value)
     scheme = tpl.scheme
-    if not tpl.path.startswith("/"):
+    if not tpl.path.startswith("/"):  # noqa: SIM114
         return False
-    if tpl.query or tpl.fragment or tpl.username or tpl.password:
+    elif tpl.query or tpl.fragment or tpl.username or tpl.password:
         return False
-    if not tpl.netloc and (not scheme or scheme == "file"):
+    elif not tpl.netloc and (not scheme or scheme == "file"):  # noqa: SIM114
         return True
-    elif scheme in ("http", "https")  and tpl.hostname:
+    elif scheme in ("http", "https")  and tpl.hostname:  # noqa: SIM103
         return True
     else:
         return False
-
-
