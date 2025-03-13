@@ -20,7 +20,7 @@
 
 """
 This module contain objects that combined make up the data model.
-Any object that inherhits from TaskNode can be added to and handled by
+Any object that inherits from TaskNode can be added to and handled by
 the QueueModel.
 """
 
@@ -36,7 +36,7 @@ try:
     from mxcubecore.model import crystal_symmetry
 
     # If you want to write out copies of the file, use typ="rt" instead
-    # pure=True uses yaml version 1.2, with fewere gotchas for strange type conversions
+    # pure=True uses yaml version 1.2, with fewer gotchas for strange type conversions
     yaml = YAML(typ="safe", pure=True)
     # The following are not needed for load, but define the default style.
     yaml.default_flow_style = False
