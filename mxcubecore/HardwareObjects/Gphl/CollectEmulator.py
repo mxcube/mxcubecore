@@ -229,7 +229,7 @@ class CollectEmulator(CollectMockup):
 
             sweeps.append(sweep)
 
-        if sweep_count == 1:
+        if len(sweeps) == 1:
             # NBNB in current code we can have only one sweep here,
             # but it will work for multiple
             result["sweep_list"] = sweep

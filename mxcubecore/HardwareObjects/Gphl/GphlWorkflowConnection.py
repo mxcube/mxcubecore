@@ -31,18 +31,18 @@ from __future__ import (
 import logging
 import os
 import signal
-import socket
+import socket  # Do NOT remove - see 'origsocket' below
 import subprocess
 import sys
 import time
 import uuid
+from urllib.parse import urlparse
 
 from py4j import (
     clientserver,
     java_gateway,
 )
 from py4j.protocol import Py4JJavaError
-from urllib.parse import urlparse
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObjectYaml
