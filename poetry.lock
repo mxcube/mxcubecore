@@ -532,14 +532,13 @@ test = ["pytest (>=6)"]
 
 [[package]]
 name = "f90nml"
-version = "1.4.3"
+version = "1.3.1"
 description = "Fortran 90 namelist parser"
 optional = false
 python-versions = "*"
 groups = ["main"]
 files = [
-    {file = "f90nml-1.4.3-py2.py3-none-any.whl", hash = "sha256:abbc4d3d9691571eda6273e72df0a5b5cd20338699d4e295a11037750dcb7dbe"},
-    {file = "f90nml-1.4.3.tar.gz", hash = "sha256:e2f3cd23d821ebcaef66ce406485b35aa08aae0df92c4bece76e227e5bd146e1"},
+    {file = "f90nml-1.3.1.tar.gz", hash = "sha256:145c1f2c55bad628d225af22fc9bf06347eb0d33e7bae8a05869a68274b8fb2d"},
 ]
 
 [package.extras]
@@ -2949,4 +2948,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.12"
-content-hash = "a77949ef11047c65a927cb42ce23da7d70cc12d06c90a61949cc7bed40fdb20f"
+content-hash = "30d71eddffb1456b2c708e38e64e24e68f69d4525a6971594cbfe0cff153de83"
