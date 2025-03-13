@@ -1053,10 +1053,8 @@ class GphlWorkflowConnection(HardwareObject):
     def _SelectedLattice_to_java(self, selectedLattice):
         jvm = self._gateway.jvm
 
-        builder = (
-            jvm.astra.messagebus.messages.information.SelectedLatticeImpl.Builder(
-                self._IndexingSolution_to_java(selectedLattice.solution)
-            )
+        builder = jvm.astra.messagebus.messages.information.SelectedLatticeImpl.Builder(
+            self._IndexingSolution_to_java(selectedLattice.solution)
         )
         builder = builder.strategyDetectorSetting(
             self._BcsDetectorSetting_to_java(selectedLattice.strategyDetectorSetting)
@@ -1084,11 +1082,10 @@ class GphlWorkflowConnection(HardwareObject):
                 builder = builder.referenceFile(
                     urltpl.scheme, urltpl.hostname, port, urltpl.path
                 )
-            elif urltpl :
+            elif urltpl:
                 builder = builder.referenceFile(urltpl.scheme, urltpl.path)
         #
         return builder.build()
-
 
     def _IndexingSolution_to_java(self, indexingSolution):
         jvm = self._gateway.jvm

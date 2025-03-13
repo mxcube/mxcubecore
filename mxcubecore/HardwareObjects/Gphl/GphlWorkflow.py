@@ -339,7 +339,7 @@ class GphlWorkflow(HardwareObjectYaml):
         for ii0, tag in enumerate(instrument_data["gonio_centring_axis_names"]):
             ii1 = 3 * ii0
             self.translation_axes[tag] = instrument_data["gonio_centring_axis_dirs"][
-                ii1: ii1 + 3
+                ii1 : ii1 + 3
             ]
 
         # Move beamstop settings to top level
@@ -2041,7 +2041,8 @@ class GphlWorkflow(HardwareObjectYaml):
             if (
                 scan.sweep is lastsweep
                 and gphl_workflow_model.characterisation_done
-                and gphl_workflow_model.strategy_options.get("variant") == "twotransmission"
+                and gphl_workflow_model.strategy_options.get("variant")
+                == "twotransmission"
             ):
                 # NB exposure.transmission is in fraction, transmission in %
                 acq_parameters.transmission = 10 * scan.exposure.transmission
@@ -2063,7 +2064,9 @@ class GphlWorkflow(HardwareObjectYaml):
             # NBNB this ONLY works because all the attributes are immutable values
             path_template.__dict__.update(master_path_template.__dict__)
             if relative_image_dir:
-                path_template.directory = os.path.join(HWR.beamline.session.get_base_image_directory(), relative_image_dir)
+                path_template.directory = os.path.join(
+                    HWR.beamline.session.get_base_image_directory(), relative_image_dir
+                )
                 path_template.process_directory = os.path.join(
                     HWR.beamline.session.get_base_process_directory(),
                     relative_image_dir,
@@ -3029,9 +3032,7 @@ class GphlWorkflow(HardwareObjectYaml):
         point_groups0 = values.get("point_groups")
         result = {}
         if space_group:
-            crystal_class = (
-                crystal_symmetry.SPACEGROUP_MAP[space_group].crystal_class
-            )
+            crystal_class = crystal_symmetry.SPACEGROUP_MAP[space_group].crystal_class
             info = crystal_symmetry.CRYSTAL_CLASS_MAP[crystal_class]
             lattice = info.bravais_lattice
             if lattice != lattice0:
@@ -3107,8 +3108,9 @@ class GphlWorkflow(HardwareObjectYaml):
         value = values.get("reffiles", "").strip()
         result = {
             "reffiles": {
-                "invalidated":
-                bool(value and not all(validate_url(txt) for txt in value.splitlines()))
+                "invalidated": bool(
+                    value and not all(validate_url(txt) for txt in value.splitlines())
+                )
             }
         }
         return result
@@ -3189,6 +3191,7 @@ class GphlWorkflow(HardwareObjectYaml):
         #
         return result
 
+
 def validate_url(value: str) -> bool:
     """Validate url string"""
     tpl = urlparse(value)
@@ -3199,7 +3202,7 @@ def validate_url(value: str) -> bool:
         return False
     elif not tpl.netloc and (not scheme or scheme == "file"):  # noqa: SIM114
         return True
-    elif scheme in ("http", "https")  and tpl.hostname:  # noqa: SIM103
+    elif scheme in ("http", "https") and tpl.hostname:  # noqa: SIM103
         return True
     else:
         return False
