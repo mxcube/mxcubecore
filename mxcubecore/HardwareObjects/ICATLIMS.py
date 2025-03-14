@@ -599,7 +599,7 @@ class ICATLIMS(AbstractLims):
             metadata["SampleTrackingContainer_type"] = (
                 "UNIPUCK"  # this could be read from the configuration file somehow
             )
-            metadata["SampleTrackingContainer_capaticy"] = (
+            metadata["SampleTrackingContainer_capacity"] = (
                 "16"  # this could be read from the configuration file somehow
             )
 
