@@ -400,7 +400,7 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
             while True:
                 load_sample_state = self._cmdGetCurrentLoadSampleState()
                 # print("in while true, load_sample_state: ")
-                # time.sleep(0.3)
+                time.sleep(0.3)
                 if load_sample_state == 'on_gonio' and MD2.get_state() =='Ready':
                     break
                 if self._ready():
