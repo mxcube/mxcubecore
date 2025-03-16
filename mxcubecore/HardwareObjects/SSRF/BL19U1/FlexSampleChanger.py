@@ -995,6 +995,8 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
 
         self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
 
+
+
     def notice_for_developer(self):
         """
         1. samplechanger.py 中的 mount_sample_clean_up 与 unmount_sample_clean_up，try之后的exception中有个单独的“raise”,才能把这里raise的报错信息显示在ui界面上
