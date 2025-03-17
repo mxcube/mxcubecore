@@ -8,10 +8,10 @@ configuration:
     # Controls for MXCuBE UI and behaviour
     # Use configured multitrigger collection, default: false, any value is true
     # use_multitrigger: true
-    # Use advanced_mode for adidtional UI options. Default is false, any value is true
+    # Use advanced_mode for additional UI options. Default is false, any value is true
     advanced_mode: true
     # Maximum allowed value of Chi, for strategy calculation
-    # maximum_chi is automticaly reduced to match kappa motor limits.
+    # maximum_chi is automatically reduced to match kappa motor limits.
     maximum_chi: 48.0
     # default values for image width popup; may be overridden by the workflow
     # The first value is the default; values are sorted before use
@@ -19,12 +19,19 @@ configuration:
       - 0.1
       - 0.05
       - 0.2
+    # Supported wedge widths for interleaving - set to match DELPHI block setting
+    # Values are sorted before use
+    wedge_widths:
+      - 48
+      - 24
+      - 72
+      - 360
 
     # tolerance for deciding whether angles differ, in degrees;
     # used to compare kappa and phi to decide if orientations needs separate centring
     angular_tolerance: 1.0
     # Characterisation strategies popup.
-    # names refer to stategies in  strategylib.nml
+    # names refer to strategies in  strategylib.nml
     characterisation_strategies:
       - Char_6_5_multitrigger
       - Char_4_by_10
@@ -44,12 +51,23 @@ configuration:
     # NB Temporary developer option. Defaults to 1
     allow_duplicate_orientations: 0
 
+    # Block size to use for XDS processing, and to optimise strategy sweep lengths
+    # NB require devMode to be set, as of 20250206
+    # Default is 4.8
+    delphi_block: 4.8
+    # Stratcal step size parameter - must divide delphi block. Default is 0.6
+    stratcal_step: 0.6
+
+    # Suppress log output of programs called from GPhL workflow
+    # Default to False
+    suppress_external_log_output: false
+
     # TEST ONLY developer option. Use preset SPOT.XDS file and skip characterisation.
     # Only works for GPhL test samples with SPOT.XDS  file
     # NB to get sensible results you should use the default values for resolution and
     # wavelength, and the default Eiger 16M detector
     # Otherwise the UI may still work, but the indexing solutions will be weird
-    # use_preset_spotdir: True
+    # use_preset_spotdir: true
 
 
     defaults:
@@ -71,14 +89,14 @@ configuration:
       recentring_mode: sweep
       # Parameters to control proposed total dose budget
       # The proposed budget is calculated so that radiation damage is predicted
-      # to reduce the intensity at the highest expected redolution to this percentage
+      # to reduce the intensity at the highest expected resolution to this percentage
       # after the end of the experiment (i.e. value 25 means final intensity
       # at the highest resolution is 25% of the starting intensity
       # The formula assumes an increase in B factor of 1 A^2/MGy
       # The formula used is dose_budget =
       #     2 * resolution**2 * log(100. / decay_limit) / relative_sensitivity
       decay_limit: 25
-      # exposure time (s). NB automticaly reset to be within limits for detector
+      # exposure time (s). NB automatically reset to be within limits for detector
       exposure_time: 0.01
       # Default use known cell parameters as forced starting point for processing
       use_cell_for_processing: true
@@ -100,8 +118,8 @@ configuration:
       # Multiple acquisitions in order - characterisation then main
       # passed to set_pre_strategy_params and set_pre_acquisition_params
       # NB as long as we only acquire either characterisation+main or diffractcal
-      # the code will use list[0] for the first acquisition and
-      # list[-1] for the main one
+      # the code will use list[0] for the first acquisition
+      # and list[-1] for the main one
     auto_acq_parameters:
       # For characterisation acquisition
       - exposure_time: 0.02
@@ -123,8 +141,11 @@ configuration:
         resolution: 1.5
         snapshot_count: 2
         wedge_width: 15.0
-        strategy: full
+        strategy: advanced
         repetition_count: 1
+        # energies:
+        #   - 12.111
+        #   - 12.222
         # strategy_options:
         # Program options passed directly to stratcal - not needed normally
         # Override default settings
@@ -140,14 +161,14 @@ configuration:
       # File name prefix for workflow log files
       co.gphl.wf.persistName: wf
 
-      # Switch to pass log to stdout. Defaults to True
+      # Switch to pass log to stdout. Defaults to true
       # co.gphl.wf.logStdout: false
 
     # Properties applied after the java command - syntax as above-->
     # Note that irrelevant properties are simply ignored.-->
     workflow_properties:
 
-      # If set, run after-acquisition processing in detatched mode
+      # If set, run after-acquisition processing in detached mode
       co.gphl.wf.process.detach: true
 
       # Set to false to switch off pre-start checks for directory existence
@@ -158,7 +179,7 @@ configuration:
       # co.gphl.wf.procRootCheck: false
 
       # Parameters to individual applications
-      # Switch devMod to True to activate development parameters
+      # Switch devMod to true to activate development parameters
       # NB needed as of 20231116 no longer in active use
       # co.gphl.wf.devMode: true
       # For stratcal configuration switches edit run_stratcal_wrap.py script instead
@@ -213,14 +234,14 @@ configuration:
             Single wavelength data acquisition for native data collection
             Includes initial characterisation and complete collection.
             Variants:
-            full: 2-4 sweeps, ca. 600-1000 degrees, best possible data.
-            quick:  1-2 sweeps, 360-400 degrees, quick and cusp-free
+            advanced: 2-4 sweeps, ca. 600-1000 degrees, best possible data.
+            basic:  1-2 sweeps, 360-400 degrees, basic and cusp-free
             minimal: 1 sweep of 180+ degrees, 1-2 centrings.
           wf_selection: mxexpt
           variants:
-            - full
+            - advanced
             - minimal
-            - quick
+            - basic
             - ultralong
           options:
             # Filename pattern name for normal data collections
@@ -234,15 +255,15 @@ configuration:
           strategy_type: phasing
           wf_selection: mxexpt
           variants:
-            - full
-            - quick
+            - advanced
+            - basic
           documentation: |
-            Single wavelength SAD data acquisition, full strategy.
+            Single wavelength SAD data acquisition, advanced strategy.
             Aligned on even symetry axes or inverse beam.
             Includes initial characterisation and complete collection
             Variants:
-              full: up to 540deg, three orientations
-              quick: up to 360deg, two orientations
+              advanced: up to 540deg, three orientations
+              basic: up to 360deg, two orientations
           options:
             # Filename pattern name for normal data collections
             pattern: interleaved
@@ -255,8 +276,8 @@ configuration:
           strategy_type: phasing
           wf_selection: mxexpt
           variants:
-            - quick
-            - full
+            - basic
+            - advanced
           beam_energy_tags:
             - Energy_1
             - Energy_2
@@ -267,12 +288,12 @@ configuration:
           # So the default ('gs') is a no-op
           interleave_order: gsb
           documentation: |
-            Two wavelength MAD data acquisition, full strategy.
+            Two wavelength MAD data acquisition, advanced strategy.
             Aligned on even symetry axes or inverse beam.
             Includes initial characterisation and complete collection
             Variants:
-            full: up to 540deg, three orientations for each wwavelngth
-            quick: up to 360deg, two orientations for each wwavelngth
+            advanced: up to 540deg, three orientations for each wwavelngth
+            basic: up to 360deg, two orientations for each wwavelngth
           options:
             # Filename pattern name for normal data collections
             pattern: interleaved
@@ -285,8 +306,8 @@ configuration:
           strategy_type: phasing
           wf_selection: mxexpt
           variants:
-            - quick
-            - full
+            - basic
+            - advanced
           beam_energy_tags:
             - Energy_1
             - Energy_2
@@ -298,12 +319,12 @@ configuration:
           # So the default ('gs') is a no-op
           interleave_order: gsb
           documentation: |
-            Three wavelength MAD data acquisition, full strategy.
+            Three wavelength MAD data acquisition, advanced strategy.
             Aligned on even symetry axes or inverse beam.
             Includes initial characterisation and complete collection
             Variants:
-            full: up to 540deg, three orientations for each wwavelngth
-            quick: up to 360deg, two orientations for each wwavelngth
+            advanced: up to 540deg, three orientations for each wwavelngth
+            basic: up to 360deg, two orientations for each wwavelngth
           options:
             # Filename pattern name for normal data collections
             pattern: interleaved
@@ -334,7 +355,7 @@ configuration:
             strategy_type: diffractcal
             wf_selection: diffractcal
             variants:
-              - full
+              - advanced
               - short
             documentation: |
               Diffractometer calibration.
@@ -344,7 +365,7 @@ configuration:
               Long data collection and processing, requiring a high-quality,
               high-symmetry crystal of precisely known cell parameters.
               Variants:
-              full: 22 60-deg sweeps, 11 orientations
+              advanced: 22 60-deg sweeps, 11 orientations
               short: 6 60-deg sweeps, 3 orientations
             options:
               # wfprefix: Dcalib2_
@@ -370,7 +391,7 @@ configuration:
             strategy_type: transcal
             wf_selection: transcal
             variants:
-              - full
+              - advanced
             documentation: |
               Translational calibration.
               Designed for use by beamline personnel.
