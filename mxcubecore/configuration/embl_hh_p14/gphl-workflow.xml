@@ -45,64 +45,6 @@
         </pulldown_item>
     </dose_budgets>
 
-    <!-- Describes the test crystals used for diffractometer calibration -->
-    <test_crystals>
-        <test_crystal>
-            <name>Thaumatin</name>
-            <!-- From PDB 1RQW -->
-            <space_group>P41212</space_group>
-            <a>57.847</a>
-            <b>57.847</b>
-            <c>150.125</c>
-            <alpha>90</alpha>
-            <beta>90</beta>
-            <gamma>90</gamma>
-        </test_crystal>
-        <test_crystal>
-            <name>germanate</name>
-            <space_group>Ia-3d</space_group>
-            <a>51.2487</a>
-            <b>51.2487</b>
-            <c>51.2487</c>
-            <alpha>90</alpha>
-            <beta>90</beta>
-            <gamma>90</gamma>
-        </test_crystal>
-        <test_crystal>
-            <name>CubicInsulin</name>
-            <!-- From PDB 2BN3 -->
-            <space_group>I213</space_group>
-            <a>77.9</a>
-            <b>77.9</b>
-            <c>77.9</c>
-            <alpha>90</alpha>
-            <beta>90</beta>
-            <gamma>90</gamma>
-        </test_crystal>
-        <test_crystal>
-            <name>HEWLysozyme</name>
-            <!-- From PDB 193L -->
-            <space_group>P43212</space_group>
-            <a>78.54</a>
-            <b>78.45</b>
-            <c>37.70</c>
-            <alpha>90</alpha>
-            <beta>90</beta>
-            <gamma>90</gamma>
-        </test_crystal>
-        <test_crystal>
-            <name>Se-Met_FAE</name>
-            <!-- From PDB 1GKK -->
-            <space_group>P212121</space_group>
-            <a>65.381</a>
-            <b>108.793</b>
-            <c>113.877</c>
-            <alpha>90</alpha>
-            <beta>90</beta>
-            <gamma>90</gamma>
-        </test_crystal>
-    </test_crystals>
-
     <!--  Workflow options common to all workflows - can be overridden for individual workflows-->
     <all_workflow_options>
         <!-- URL for beamline connection, as seen from the workflow application -->
