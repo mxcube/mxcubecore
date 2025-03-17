@@ -64,14 +64,15 @@ class BeamMockup(AbstractBeam):
         # when loading from XML, it does not happen, so fall back to
         # get_object_by_role()
         #
+        _definer_type = None
         if self.aperture is None:
-            self.aperture = self.get_object_by_role("aperture")
+            self._aperture = self.get_object_by_role("aperture")
 
         if self.slits is None:
-            self.slits = self.get_object_by_role("slits")
+            self._slits = self.get_object_by_role("slits")
 
         if self.definer is None:
-            self.definer = self.get_object_by_role("definer")
+            self._definer = self.get_object_by_role("definer")
 
         if self.aperture:
             _definer_type = "aperture"

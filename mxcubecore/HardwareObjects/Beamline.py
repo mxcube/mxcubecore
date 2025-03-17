@@ -159,16 +159,6 @@ class Beamline(ConfiguredObject):
         """
         self._hardware_object_id_dict = self._get_id_dict()
 
-    @property
-    def acquisition_limit_values(self):
-        """
-        Adds a proxy attribute, so that the default acquisition limits can be
-        accessed with:
-
-           HWR.beamline.acquisition_limit_values
-        """
-        return self.config.default_acquisition_parameters["acquisition_limit_values"]
-
     def get_id(self, ho: HardwareObject) -> str:
         warn(
             "Beamline.get_id is Deprecated. Use hwobj.id instead", stacklevel=2
