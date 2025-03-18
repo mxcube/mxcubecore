@@ -466,7 +466,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                 loc = sample_model.lims_container_location
 
                 if isinstance(loc, str):
-                    cell, puck = list(map(int, "2:2".split(":")))
+                    cell, puck = list(map(int, ["2", "2"]))
                     loc = (cell - 1) * 3 + puck
 
                 group_data["actualContainerSlotInSC"] = loc

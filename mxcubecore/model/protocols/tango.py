@@ -47,7 +47,7 @@ class Device(BaseModel):
 
         for command_name, command_config in self.commands.items():
             if command_config is None:
-                command_config = Command()
+                command_config = Command()  # noqa: PLW2901
 
             if command_config.name is None:
                 command_config.name = command_name
@@ -64,7 +64,7 @@ class Device(BaseModel):
 
         for channel_name, channel_config in self.channels.items():
             if channel_config is None:
-                channel_config = Channel()
+                channel_config = Channel()  # noqa: PLW2901
 
             if channel_config.attribute is None:
                 channel_config.attribute = channel_name

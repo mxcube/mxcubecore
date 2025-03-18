@@ -61,7 +61,8 @@ class BeamMockup(AbstractBeam):
         # when loading from YAML configuration file,
         # the attributes will be automatically set to the specified child HWOBJs
         #
-        # when loading from XML, it does not happen, so fall back to get_object_by_role()
+        # when loading from XML, it does not happen, so fall back to
+        # get_object_by_role()
         #
         if self.aperture is None:
             self.aperture = self.get_object_by_role("aperture")

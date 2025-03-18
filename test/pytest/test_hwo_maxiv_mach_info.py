@@ -79,10 +79,10 @@ def mach_info():
 
     mach_info = MachInfo("/machine_info")
 
-    mach_info._config = mach_info.HOConfig(
+    mach_info._config = mach_info.HOConfig(  # noqa: SLF001
         mach_info=dev_ctx.get_device_access("test/device/billboard"),
         current=dev_ctx.get_device_access("test/device/dcct"),
-        parameters="['current', 'fillmode', 'message', 'lifetime', 'injection', 'status']",
+        parameters="['current', 'fillmode', 'message', 'lifetime', 'injection', 'status']",  # noqa: E501
     )
 
     # listen for 'valueChanged' signal

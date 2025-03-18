@@ -55,7 +55,6 @@ class ProcedureState(IntEnum):
 
 
 class AbstractProcedure(ConfiguredObject):
-
     _ARGS_CLASS = ()
     _KWARGS_CLASS = {}
     _RESULT_CLASS = ()

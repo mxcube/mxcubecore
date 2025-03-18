@@ -148,11 +148,9 @@ class Beamline(ConfiguredObject):
 
     def _init(self) -> None:
         """Object initialisation - executed *before* loading contents"""
-        pass
 
     def init(self):
         """Object initialisation - executed *after* loading contents"""
-        pass
 
     def _hwr_init_done(self):
         """
@@ -164,18 +162,24 @@ class Beamline(ConfiguredObject):
     @property
     def acquisition_limit_values(self):
         """
-        adds a proxy attribute, so that the default acquisition limits can be accessed with:
+        Adds a proxy attribute, so that the default acquisition limits can be
+        accessed with:
 
            HWR.beamline.acquisition_limit_values
         """
         return self.config.default_acquisition_parameters["acquisition_limit_values"]
 
     def get_id(self, ho: HardwareObject) -> str:
-        warn("Beamline.get_id is Deprecated. Use hwobj.id instead")
+        warn(
+            "Beamline.get_id is Deprecated. Use hwobj.id instead", stacklevel=2
+        )
         return ho.id
 
     def get_hardware_object(self, _id: str) -> Union[HardwareObject, None]:
-        warn("Beamline.get_hardware_object is Deprecated. Use get_by_id instead")
+        warn(
+            "Beamline.get_hardware_object is Deprecated. Use get_by_id instead",
+            stacklevel=2
+        )
         return self.get_by_id(_id)
 
     # Signal handling functions:

@@ -60,7 +60,6 @@ def _get_data_path(filename: str) -> Path:
 
 
 def _parse_yaml_config(filename: str):
-
     with _get_data_path(filename).open() as f:
         return yaml_parser.load(f)
 

@@ -194,8 +194,8 @@ class GphlWorkflow(HardwareObject):
         Required during transition, as long as we do nto have teh fields defined"""
 
         # Defaults - should be replaced by proper Pydantic
-        workflows = {}
-        settings = {}
+        workflows = {}  # noqa: RUF012
+        settings = {}  # noqa: RUF012
 
     def __init__(self, name):
         super().__init__(name)

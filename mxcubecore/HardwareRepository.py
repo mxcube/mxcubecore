@@ -196,17 +196,14 @@ def load_from_yaml(
             msg0 = "Done loading contents"
 
         for role1, config_file in objects.items():
-
             fname, fext = os.path.splitext(config_file)
             if fext in (".yaml", ".yml"):
                 fname = f"/{fname}"
 
                 # check if we already loaded this configuration file
                 if _instance.hardware_objects.get(fname) is not None:
-                    raise Exception(
-                        f"Configuration file '{config_file}', referenced in '{configuration_file}, "
-                        f"has been loaded earlier. Refusing to load it a second time."
-                    )
+                    msg = f"Configuration file '{config_file}', referenced in '{configuration_file}, has been loaded earlier. Refusing to load it a second time."
+                    raise Exception(msg)  # noqa: TRY002
                 hwobj = load_from_yaml(
                     config_file,
                     role=role1,
@@ -239,7 +236,8 @@ def load_from_yaml(
         if _container:
             if not hasattr(_container, role):
                 warn(
-                    f"load_from_yaml Class {_container.__class__.__name__} has no attribute {role}"
+                    f"load_from_yaml Class {_container.__class__.__name__} has no attribute {role}",
+                    stacklevel=2,
                 )
             _container._roles.append(role)
             setattr(_container, role, result)
@@ -258,9 +256,8 @@ def load_from_yaml(
 
     if _container is None:
         print(make_table(column_names, _table))
-    elif yaml_export_directory:
-        if result:
-            _export_draft_config_file(yaml_export_directory, result)
+    elif yaml_export_directory and result:
+        _export_draft_config_file(yaml_export_directory, result)
 
     return result
 
@@ -279,13 +276,13 @@ def _export_draft_config_file(dest_dir: Path, hwobj):
         for role, obj in objects_by_role.items():
             try:
                 objects[role] = "%s.yaml" % obj.id
-            except:
+            except Exception:
                 logging.getLogger("HWR").exception("")
 
     config = result["configuration"] = {}
     for tag, val in hwobj.config.model_dump().items():
         if tag not in objects_by_role:
-            config[tag] = val
+            config[tag] = val  # noqa: PERF403
 
     write_yaml(result, "%s.yaml" % hwobj.id)
 
@@ -304,10 +301,8 @@ def _attach_xml_objects(yaml_export_directory: Optional[Path], container, hwobj,
     for role2, hwobj2 in objects_by_role.items():
         _attach_xml_objects(yaml_export_directory, hwobj, hwobj2, role2)
 
-    if yaml_export_directory:
-        # temporary hack
-        if hwobj:
-            _export_draft_config_file(yaml_export_directory, hwobj)
+    if yaml_export_directory and hwobj:
+        _export_draft_config_file(yaml_export_directory, hwobj)
 
 
 def _convert_xml_property(hwobj):
@@ -317,7 +312,7 @@ def _convert_xml_property(hwobj):
     for tag in hwobj._objects_names():
         # NB this does NOT allow having HardwareObjects inside complex properties
         objs = list(hwobj._get_objects(tag))
-        result[tag] = list(_convert_xml_property(obj) for obj in objs)
+        result[tag] = [_convert_xml_property(obj) for obj in objs]
     #
     return result
 
@@ -335,7 +330,7 @@ def _create_config_for_xml_hwobj(hwobj: BaseHardwareObjects.HardwareObjectNode):
     for tag in hwobj._objects_names():
         if tag not in objects_by_role:
             # Complex object, not contained hwobj
-            objs = list(_convert_xml_property(obj) for obj in hwobj._get_objects(tag))
+            objs = [_convert_xml_property(obj) for obj in hwobj._get_objects(tag)]
             if len(objs) == 1:
                 setattr(hwobj.config, tag, objs[0])
             else:

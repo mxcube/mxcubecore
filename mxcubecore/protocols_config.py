@@ -8,11 +8,13 @@ See setup_commands_channels() function for details.
 from __future__ import annotations
 
 from typing import (
+    TYPE_CHECKING,
     Callable,
     Iterable,
 )
 
-from mxcubecore.BaseHardwareObjects import HardwareObject
+if TYPE_CHECKING:
+    from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 def _setup_tango_commands_channels(hwobj: HardwareObject, tango_config: dict):
@@ -31,14 +33,14 @@ def _setup_tango_commands_channels(hwobj: HardwareObject, tango_config: dict):
         # set-up commands
         #
         for command_name, command_config in device_config.get_commands():
-            attrs = dict(type="tango", name=command_name, tangoname=device_name)
+            attrs = {"type": "tango", "name": command_name, "tangoname": device_name}
             hwobj.add_command(attrs, command_config.name)
 
         #
         # set-up channels
         #
         for channel_name, channel_config in device_config.get_channels():
-            attrs = dict(type="tango", name=channel_name, tangoname=device_name)
+            attrs = {"type": "tango", "name": channel_name, "tangoname": device_name}
 
             if channel_config.polling_period:
                 attrs["polling"] = channel_config.polling_period
@@ -64,14 +66,22 @@ def _setup_exporter_commands_channels(hwobj: HardwareObject, exporter_config: di
         # set-up commands
         #
         for command_name, command_config in address_config.get_commands():
-            attrs = dict(type="exporter", exporter_address=address, name=command_name)
+            attrs = {
+                "type": "exporter",
+                "exporter_address": address,
+                "name": command_name,
+            }
             hwobj.add_command(attrs, command_config.name)
 
         #
         # set-up channels
         #
         for channel_name, channel_config in address_config.get_channels():
-            attrs = dict(type="exporter", exporter_address=address, name=channel_name)
+            attrs = {
+                "type": "exporter",
+                "exporter_address": address,
+                "name": channel_name,
+            }
             hwobj.add_channel(attrs, channel_config.attribute)
 
     exp_cfg = ExporterConfig.model_validate(exporter_config)
@@ -90,7 +100,7 @@ def _setup_epics_channels(hwobj: HardwareObject, epics_config: dict):
         # set-up channels
         #
         for channel_name, channel_config in prefix_config.get_channels():
-            attrs = dict(type="epics", name=channel_name)
+            attrs = {"type": "epics", "name": channel_name}
             if channel_config.polling_period:
                 attrs["polling"] = channel_config.polling_period
 
@@ -116,7 +126,9 @@ def _get_protocol_names() -> Iterable[str]:
 
 
 def _get_protocol_handler(protocol_name: str) -> Callable:
-    """Get the callable that will set up commands and channels for a specific protocol."""
+    """Get the callable that will set up commands and channels for a specific
+    protocol.
+    """
     return _protocol_handles()[protocol_name]
 
 
@@ -135,11 +147,13 @@ def _setup_protocol(hwobj: HardwareObject, config: dict, protocol: str):
 
 
 def setup_commands_channels(hwobj: HardwareObject, config: dict):
-    """Add the Command and Channel objects to a hardware object, as specified in the config.
+    """Add the Command and Channel objects to a hardware object, as specified i
+       the config.
 
     parameters:
         hwobj: hardware object where to add Command and Channel objects
-        config: the complete hardware object configuration, i.e. parsed YAML file as dict
+        config: the complete hardware object configuration, i.e. parsed YAML file
+                as dict
     """
     for protocol in _get_protocol_names():
         _setup_protocol(hwobj, config, protocol)
