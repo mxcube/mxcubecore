@@ -804,7 +804,7 @@ class SampleChanger(Container, HardwareObject):
     def _set_sampleLN2Level(self,current_sample_LN2Level=None):
         # print("sampleLN2LEVEL in _set_sampleLN2Level and type: ",current_sample_LN2Level,type(current_sample_LN2Level))     #float
 
-        if not self.sample_pool_LN2_level:
+        if not self.sample_pool_LN2_level and self.sample_pool_LN2_level!=0:
             changing_value = 100        # first set value
         else:
             changing_value = abs(self.sample_pool_LN2_level - current_sample_LN2Level)
