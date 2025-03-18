@@ -1,0 +1,140 @@
+import gevent
+import time
+import logging
+
+from mxcubecore.HardwareObjects.abstract import AbstractSampleChanger
+from mxcubecore.HardwareObjects.abstract.sample_changer import Container
+from mxcubecore import HardwareRepository as HWR
+
+class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
+
+    __TYPE__ = "PlateManipulator"
+    NO_OF_BASKETS = 8
+    NO_OF_SAMPLES_IN_BASKET = 12
+
+    def __init__(self, *args, **kwargs):
+        super(PlateManipulatorMockup, self).__init__(self.__TYPE__, False, *args, **kwargs)
+
+    def init(self):
+        pass
+
+
+
+
+
+
+
+
+
+
+    def exchange(self,newsample,wait=False):
+        # raise Exception("test exception")
+        logging.getLogger("HWR").debug("get in exchange method")
+        self.load(newsample,wait)
+
+
+    def load(self, sample, wait=False):
+        logging.getLogger("HWR").debug("get in load smaple in SampleChangerMockup.py")
+        # self.emit("fsmConditionChanged", "sample_mounting_sample_changer", True)
+
+
+
+        previous_sample = self.get_loaded_sample()
+        self._set_state(AbstractSampleChanger.SampleChangerState.Loading)   # 此处好像也传递给了前端状态，调用了signals中的sc_state_changed()
+        self._reset_loaded_sample()
+
+        if isinstance(sample, tuple):
+            basket, sample = sample
+        else:
+            basket, sample = sample.split(":")
+
+        self._selected_basket = basket = int(basket)
+        self._selected_sample = sample = int(sample)
+
+        msg = "Loading sample %d:%d" % (basket, sample)
+        logging.getLogger("user_level_log").info(
+            "Sample changer: %s. Please wait..." % msg
+        )
+
+        # self.emit("progressInit", (msg, 100))
+        # for step in range(2 * 100):
+        #     self.emit("progressStep", int(step / 2.0))
+        #     time.sleep(0.01)
+
+        mounted_sample = self.get_component_by_address(
+            Container.Pin.get_sample_address(basket, sample)
+        )
+
+        print("start time sleep 5")
+        time.sleep(5)
+
+        print("end time sleep 5")
+
+
+        self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
+
+        if mounted_sample is not previous_sample:
+            self._trigger_loaded_sample_changed_event(mounted_sample)
+        self.update_info()
+        logging.getLogger("user_level_log").info("Sample changer: Sample loaded")
+        self.emit("progressStop", ())
+
+        self.emit("fsmConditionChanged", "sample_is_loaded", True)
+        self.emit("fsmConditionChanged", "sample_mounting_sample_changer", False)
+
+        # try:
+        #     raise Exception("test exception")
+        # finally:
+        #     HWR.beamline.sample_changer_maintenance._running = 0
+        #     HWR.beamline.sample_changer_maintenance._update_global_state()
+        #     self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
+        return self.get_loaded_sample()
+
+    def unload(self, sample_slot=None, wait=None):
+        logging.getLogger("user_level_log").info("Unloading sample")
+        sample = self.get_loaded_sample()
+        sample._set_loaded(False, True)
+        self._selected_basket = -1
+        self._selected_sample = -1
+        self._trigger_loaded_sample_changed_event(self.get_loaded_sample())
+        self.emit("fsmConditionChanged", "sample_is_loaded", False)
+
+    def get_loaded_sample(self):
+        return self.get_component_by_address(
+            Container.Pin.get_sample_address(
+                self._selected_basket, self._selected_sample
+            )
+        )
+
+    def is_mounted_sample(self, sample):
+        return (
+            self.get_component_by_address(
+                Container.Pin.get_sample_address(sample[0], sample[1])
+            )
+            == self.get_loaded_sample()
+        )
+
+    def _do_abort(self):
+        return
+
+    def _do_change_mode(self):
+        return
+
+    def _do_update_info(self):
+        return
+
+    def _do_select(self, component):
+        return
+
+    def _do_scan(self, component, recursive):
+        return
+
+    def _do_load(self, sample=None):
+        return
+
+    def _do_unload(self, sample_slot=None):
+        return
+
+    def _do_reset(self):
+        return
+
