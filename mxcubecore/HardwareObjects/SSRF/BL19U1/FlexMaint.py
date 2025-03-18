@@ -943,12 +943,21 @@ class FlexMaint(Equipment):
             self._do_power_state(False)
 
         if cmd_name == "turnOnPlateMode":
+            SC = HWR.beamline.sample_changer
             PlateManipulator = HWR.beamline.plate_manipulator
+            current_loaded_sample = SC.get_loaded_sample()
+
+            if current_loaded_sample is not None:
+                raise Exception("There should be no loaded sample when switch to plate mode")
+
             PlateManipulator._set_plate_mode(True)
             self._do_power_off()
 
         if cmd_name == "turnOffPlateMode":
+            SC = HWR.beamline.sample_changer
             PlateManipulator = HWR.beamline.plate_manipulator
+
+            SC.clear_memory()
             PlateManipulator._set_plate_mode(False)
             self._do_power_on()
 
