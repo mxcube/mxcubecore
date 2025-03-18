@@ -278,6 +278,28 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
                 xmlName = "prefix" + str(i + 1) + "-" + str(j + 1)  # "subdir5-2"
                 self.default_prefix[i][j] = self.get_property(xmlName)
 
+    def change_load_sample(self,sample):
+        """
+        change load_sample without actual move the robot, just change the setting in mxcube inside
+        sample should be '1:01'
+        """
+        previous_sample = self.get_loaded_sample()
+        self._reset_loaded_sample()
+        puck,pin = sample.split(":")
+        self._selected_basket = puck = int(puck)
+        self._selected_sample = pin = int(pin)
+
+        mounted_sample = self.get_component_by_address(
+            Container.Pin.get_sample_address(puck, pin)
+        )
+
+        if mounted_sample is not previous_sample:
+            self._trigger_loaded_sample_changed_event(mounted_sample)
+        self.update_info()
+        self.emit("fsmConditionChanged", "sample_is_loaded", True)
+        self.emit("fsmConditionChanged", "sample_mounting_sample_changer", False)
+
+
 
     def checkTaskResult(self,task_id):
         print('task_id in checkTaskResult: ',task_id,type(task_id))

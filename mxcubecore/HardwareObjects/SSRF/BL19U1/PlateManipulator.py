@@ -16,7 +16,49 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         super(PlateManipulatorMockup, self).__init__(self.__TYPE__, False, *args, **kwargs)
 
     def init(self):
-        pass
+        self.plate_mode_on = True
+        gevent.spawn(self.check_plate_location_set_loaded_sample)
+
+
+
+    def check_plate_location_set_loaded_sample(self):
+        """
+
+
+                        puck_pin_index = old_loaded_sample.address.find(':')
+                        puck_id = old_loaded_sample.address[0:puck_pin_index]
+                        pin_id = old_loaded_sample.address[puck_pin_index+1:]
+                        print('old_loaded_sample.address: ',puck_id,pin_id)
+        """
+        SC = HWR.beamline.sample_changer
+        while True:
+            # time.sleep(0.05)
+            time.sleep(1)
+            if self.plate_mode_on:
+                currentPlateLocation =  self._do_getPlateLocation()
+                if currentPlateLocation:
+                    old_loaded_sample = SC.get_loaded_sample()      #没有的时候为None,手动上的样也是None， 机械手上样是一个Contanier.Pin 的object，其中address是'1:01'这样格式的地质
+                    if old_loaded_sample is not None and (old_loaded_sample.address == currentPlateLocation):
+                        pass
+                    else:
+                        print('change loaded sample to this currentPlateLocation')
+                        SC.change_load_sample(currentPlateLocation)
+
+
+
+
+
+
+
+
+
+
+    def _do_getPlateLocation(self):
+        """
+        实际应该发送exporter请求，获取实时location，此处返回固定值作为模拟
+        """
+        # return '1:03'
+        return None
 
 
 
