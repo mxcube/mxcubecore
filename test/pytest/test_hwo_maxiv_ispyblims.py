@@ -32,8 +32,10 @@ def ispyb_lims(_suds_mock, _hwr_mock, hwr_mock):
     from mxcubecore.HardwareObjects.MAXIV.ISPyBLims import ISPyBLims
 
     lims = ISPyBLims(name="dummy")
-    lims.set_property("ws_root", "http://example.com/tstWS/")
-    lims.set_property("rest_root", REST_ROOT)
+    lims._config = lims.HOConfig(  # noqa: SLF001
+        ws_root="http://example.com/tstWS/",
+        rest_root=REST_ROOT,
+    )
     lims.init()
 
     return lims
