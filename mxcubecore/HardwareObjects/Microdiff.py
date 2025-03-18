@@ -348,6 +348,11 @@ class Microdiff(MiniDiff.MiniDiff):
         self.wait_ready(20)
 
     def set_phase(self, phase, wait=False, timeout=None):
+        PM = HWR.beamline.plate_manipulator
+        if PM.plate_mode_on and phase in ["BeamLocation"]:
+            print("plate mode, cannot change phase")
+            return
+        print("md2 about to change phase")
         if self._ready():
             if phase in self.phases:
                 # if phase in ["BeamLocation", "Transfer", "Centring"]:

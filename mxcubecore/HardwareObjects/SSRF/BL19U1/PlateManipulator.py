@@ -6,7 +6,7 @@ from mxcubecore.HardwareObjects.abstract import AbstractSampleChanger
 from mxcubecore.HardwareObjects.abstract.sample_changer import Container
 from mxcubecore import HardwareRepository as HWR
 
-class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
+class PlateManipulator(AbstractSampleChanger.SampleChanger):
 
     __TYPE__ = "PlateManipulator"
     NO_OF_BASKETS = 8
@@ -14,10 +14,30 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
     PLATE_MODE_CHANGED_EVENT = "plateModeChanged"
 
     def __init__(self, *args, **kwargs):
-        super(PlateManipulatorMockup, self).__init__(self.__TYPE__, False, *args, **kwargs)
+        super(PlateManipulator, self).__init__(self.__TYPE__, False, *args, **kwargs)
 
     def init(self):
         self.plate_mode_on = False
+        self.exporter_addr = '10.30.61.67:9002'
+
+        self._cmdgetPlateLocation = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "getPlateLocation",
+            },
+            "getPlateLocation",
+        )
+
+        self._cmdstartMovePlateToLocation = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "startMovePlateToLocation",
+            },
+            "startMovePlateToLocation",
+        )
+
         gevent.spawn(self.check_plate_location_set_loaded_sample)
 
     def get_if_plate_mode(self):
@@ -56,6 +76,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         if mode_on is not None:
             if mode_on != self.plate_mode_on:
                 self.plate_mode_on = mode_on
+                print('change plate mode: ',self.plate_mode_on)
                 SC._trigger_plate_mode_changed_event(mode_on)
 
 
@@ -63,14 +84,36 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
 
     def _do_getPlateLocation(self):
         """
+
         实际应该发送exporter请求，获取实时location，此处返回固定值作为模拟
         """
         # return '1:03'
-        return None
+        MD2 = HWR.beamline.diffractometer
+        MD2_current_phase = MD2.get_current_phase()
+        if MD2_current_phase == 'Centring':
+            res = self._cmdgetPlateLocation()
+            # print("res of _cmdgetPlateLocation: ",res)
+            row = res[0] +1
+            col = res[1] +1
+            row = str(int(row))
+            if col>10:
+                col = str(int(col))
+            else:
+                col = '0' +str(int(col))
+            # print('str res of _cmdgetPlateLocation: ',row+':'+col)
+            return row+':'+col
+
+        else:
+            return None
 
 
 
-
+    def do_startMovePlateToLocation(self,sample):
+        print(sample)
+        row,col = sample.split(':')
+        row = int(row)-1
+        col = int(col)-1
+        self._cmdstartMovePlateToLocation(row,col,0.5,0.5)
 
 
 
@@ -158,10 +201,10 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
 
     def is_mounted_sample(self, sample):
         return (
-            self.get_component_by_address(
-                Container.Pin.get_sample_address(sample[0], sample[1])
-            )
-            == self.get_loaded_sample()
+                self.get_component_by_address(
+                    Container.Pin.get_sample_address(sample[0], sample[1])
+                )
+                == self.get_loaded_sample()
         )
 
     def _do_abort(self):
