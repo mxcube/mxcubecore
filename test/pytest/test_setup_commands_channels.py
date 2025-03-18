@@ -8,8 +8,8 @@ exporter and EPICS works.
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
+from unittest import mock
 
-import mock
 import pytest
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
