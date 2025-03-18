@@ -732,12 +732,20 @@ class ActorMaint(Equipment):
 
 
         if cmd_name == "powerOn":
+            SC = HWR.beamline.sample_changer
+            SC._set_state(AbstractSampleChanger.SampleChangerState.Ready)
+            SC._set_status('Ready')
+            print('powerOn cmd')
             logging.getLogger("HWR").debug(
                 "powerOn命令 %d"
             )
             self._do_power_state(True)
 
         if cmd_name == "powerOff":
+            SC = HWR.beamline.sample_changer
+            SC._set_state(AbstractSampleChanger.SampleChangerState.Disabled)
+            SC._set_status('DISABLED')
+            print('powerOff cmd')
             self._do_power_state(False)
 
         # if cmd_name == "regulon":
