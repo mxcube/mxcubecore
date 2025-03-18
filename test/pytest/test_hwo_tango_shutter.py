@@ -52,7 +52,9 @@ def shutter():
     #
     hwo_shutter = TangoShutter.TangoShutter("/random_name")
     hwo_shutter.tangoname = tangods_test_context.get_device_access()
-    hwo_shutter.set_property("values", TANGO_SHUTTER_STATES_MAPPING)
+    hwo_shutter._config = hwo_shutter.HOConfig(  # noqa: SLF001
+        values=TANGO_SHUTTER_STATES_MAPPING,
+    )
     hwo_shutter.add_channel(
         {
             "name": "State",
