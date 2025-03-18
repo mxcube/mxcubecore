@@ -1,6 +1,5 @@
 target-version = "py310"
 
-
 [format]
 exclude = [
     "deprecated/HardwareObjects/SpecScan.py",
@@ -101,6 +100,7 @@ ignore = [
     "D",  # pydocstyle: ignored, too many hits (16292)
     "PLR2004",  # magic-value-comparison: ignored, too many hits (249)
     "UP",  # pyupgrade: ignored for now, can be fixed automatically by ruff itself
+    "G004", # disble check for uses of f-strings to format logging messages.
 ]
 select = [
     "ALL",

@@ -485,7 +485,7 @@ class Camera(BaseHardwareObjects.Device):
                                 "%s: could not save snapshot", self.id
                             )
                         else:
-                            if len(args):
+                            if args:
                                 try:
                                     img.save(*args)
                                 except Exception:
@@ -836,7 +836,7 @@ class Camera(BaseHardwareObjects.Device):
                                 "%s: could not save snapshot", self.id
                             )
                         else:
-                            if len(args):
+                            if args:
                                 try:
                                     img.save(*args)
                                 except Exception:

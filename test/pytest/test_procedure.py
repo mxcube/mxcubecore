@@ -5,9 +5,9 @@ from mxcubecore.model import procedure_model
 
 
 def test_procedure_init(beamline):
-    assert (
-        beamline.mock_procedure is not None
-    ), "MockProcedure hardware objects is None (not initialized)"
+    assert beamline.mock_procedure is not None, (
+        "MockProcedure hardware objects is None (not initialized)"
+    )
     # The methods are defined with abc.abstractmethod which will raise
     # an exception if the method is not defined. So there is no need to test for
     # the presence of each method

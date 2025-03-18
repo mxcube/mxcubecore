@@ -154,7 +154,6 @@ class ConfiguredObject:
             result = getattr(result, name)
             if result is None:
                 break
-        #
         return result
 
     @property
@@ -174,7 +173,6 @@ class ConfiguredObject:
                 raise ValueError(
                     "%s object has no attribute %s" % (self.__class__.__name__, tag)
                 )
-        #
         return result
 
     def get_properties(self) -> Dict[str, Any]:
@@ -490,8 +488,6 @@ class HardwareObjectNode:
             self.__objects.append([hw_object])
         else:
             self.__objects[index].append(hw_object)
-
-    #
 
     def _get_objects(
         self,
@@ -1075,7 +1071,6 @@ class HardwareObject(ConfiguredObject, HardwareObjectNode, HardwareObjectMixin):
         HardwareObjectMixin.__init__(self)
 
     def __getstate__(self) -> str:
-
         # NBNB Needs updating
 
         return self.load_name
