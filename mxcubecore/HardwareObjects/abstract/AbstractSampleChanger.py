@@ -203,6 +203,7 @@ class SampleChanger(Container, HardwareObject):
     # ########################    EVENTS    #########################
     STATE_CHANGED_EVENT = "stateChanged"
     STATUS_CHANGED_EVENT = "statusChanged"
+    PLATE_MODE_CHANGED_EVENT = "plateModeChanged"
     SAMPLE_LN2_LEVEL_CHANGED_EVENT = "sampleLN2levelChanged"
     INFO_CHANGED_EVENT = "infoChanged"
     LOADED_SAMPLE_CHANGED_EVENT = "loadedSampleChanged"
@@ -857,6 +858,10 @@ class SampleChanger(Container, HardwareObject):
 
     def _trigger_status_changed_event(self):
         self.emit(self.STATUS_CHANGED_EVENT, (str(self.status),))
+
+    def _trigger_plate_mode_changed_event(self, mode_on=None):
+        if mode_on is not None:
+            self.emit(self.PLATE_MODE_CHANGED_EVENT, (str(mode_on)))
 
     def _trigger_samplepoll_LN2_level_changed_event(self):
         self.emit(self.SAMPLE_LN2_LEVEL_CHANGED_EVENT,(str(self.sample_pool_LN2_level)))

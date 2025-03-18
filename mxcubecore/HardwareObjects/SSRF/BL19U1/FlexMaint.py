@@ -456,6 +456,28 @@ class FlexMaint(Equipment):
         return res
 
 
+
+    def _do_power_off(self):
+        """
+        切换为plate mode时用，会将sc的state，statue设置disable， maint 设置为poweroff
+        """
+        SC = HWR.beamline.sample_changer
+        SC._set_state(AbstractSampleChanger.SampleChangerState.Disabled)
+        SC._set_status('DISABLED')
+        print('powerOff cmd')
+        self._do_power_state(False)
+    def _do_power_on(self):
+        """
+        turn off plate mode时用，会将sc的state，status，及maint的状态 设置重新实时读取
+        """
+        SC = HWR.beamline.sample_changer
+        SC._set_state(AbstractSampleChanger.SampleChangerState.Ready)
+        SC._set_status('Ready')
+        print('powerOn cmd')
+        self._do_power_state(True)
+
+
+
     @if_ErrorCode
     def _do_cmdOpenlid(self):
         time.sleep(2)
@@ -919,6 +941,16 @@ class FlexMaint(Equipment):
             SC._set_status('DISABLED')
             print('powerOff cmd')
             self._do_power_state(False)
+
+        if cmd_name == "turnOnPlateMode":
+            PlateManipulator = HWR.beamline.plate_manipulator
+            PlateManipulator._set_plate_mode(True)
+            self._do_power_off()
+
+        if cmd_name == "turnOffPlateMode":
+            PlateManipulator = HWR.beamline.plate_manipulator
+            PlateManipulator._set_plate_mode(False)
+            self._do_power_on()
 
         # if cmd_name == "regulon":
         #     self._do_enable_regulation()

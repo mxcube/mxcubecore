@@ -11,15 +11,17 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
     __TYPE__ = "PlateManipulator"
     NO_OF_BASKETS = 8
     NO_OF_SAMPLES_IN_BASKET = 12
+    PLATE_MODE_CHANGED_EVENT = "plateModeChanged"
 
     def __init__(self, *args, **kwargs):
         super(PlateManipulatorMockup, self).__init__(self.__TYPE__, False, *args, **kwargs)
 
     def init(self):
-        self.plate_mode_on = True
+        self.plate_mode_on = False
         gevent.spawn(self.check_plate_location_set_loaded_sample)
 
-
+    def get_if_plate_mode(self):
+        return self.plate_mode_on
 
     def check_plate_location_set_loaded_sample(self):
         """
@@ -35,6 +37,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
             # time.sleep(0.05)
             time.sleep(1)
             if self.plate_mode_on:
+                print("plate_mode_on")
                 currentPlateLocation =  self._do_getPlateLocation()
                 if currentPlateLocation:
                     old_loaded_sample = SC.get_loaded_sample()      #没有的时候为None,手动上的样也是None， 机械手上样是一个Contanier.Pin 的object，其中address是'1:01'这样格式的地质
@@ -48,7 +51,12 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
 
 
 
-
+    def _set_plate_mode(self,mode_on=None):
+        SC = HWR.beamline.sample_changer
+        if mode_on is not None:
+            if mode_on != self.plate_mode_on:
+                self.plate_mode_on = mode_on
+                SC._trigger_plate_mode_changed_event(mode_on)
 
 
 
