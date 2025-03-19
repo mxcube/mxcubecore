@@ -200,10 +200,6 @@ def load_from_yaml(
             if fext in (".yaml", ".yml"):
                 fname = f"/{fname}"
 
-                # check if we already loaded this configuration file
-                if _instance.hardware_objects.get(fname) is not None:
-                    msg = f"Configuration file '{config_file}', referenced in '{configuration_file}, has been loaded earlier. Refusing to load it a second time."
-                    raise Exception(msg)  # noqa: TRY002
                 hwobj = load_from_yaml(
                     config_file,
                     role=role1,
