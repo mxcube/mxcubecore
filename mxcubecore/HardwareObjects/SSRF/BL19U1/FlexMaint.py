@@ -944,21 +944,26 @@ class FlexMaint(Equipment):
 
         if cmd_name == "turnOnPlateMode":
             SC = HWR.beamline.sample_changer
+
             PlateManipulator = HWR.beamline.plate_manipulator
             current_loaded_sample = SC.get_loaded_sample()
 
             if current_loaded_sample is not None:
-                raise Exception("There should be no loaded sample when switch to plate mode")
+                SC.clear_memory()
 
-            PlateManipulator._set_plate_mode(True)
+            SC.pulling_state_flex_flag = False
             self._do_power_off()
+            PlateManipulator._set_plate_mode(True)
+
 
         if cmd_name == "turnOffPlateMode":
-            SC = HWR.beamline.sample_changer
             PlateManipulator = HWR.beamline.plate_manipulator
-
-            SC.clear_memory()
             PlateManipulator._set_plate_mode(False)
+            SC.clear_memory()
+
+            SC = HWR.beamline.sample_changer
+            SC.pulling_state_flex_flag = True
+
             self._do_power_on()
 
         # if cmd_name == "regulon":

@@ -121,6 +121,7 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         self.exporter_addr = '10.30.61.74:9001'
         self._ifcloseLid_inBeginning = True
         self.count = 1
+        self.pulling_state_flex_flag = True
 
 
 
@@ -232,7 +233,7 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         self.get_loaded_sample_fromstart()
 
     def pulling_state_flex(self):
-        while True:
+        while self.pulling_state_flex_flag:
             time.sleep(0.05)
             try:
                 if self._ready():

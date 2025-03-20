@@ -62,9 +62,10 @@ class PlateManipulator(AbstractSampleChanger.SampleChanger):
                 if currentPlateLocation:
                     old_loaded_sample = SC.get_loaded_sample()      #没有的时候为None,手动上的样也是None， 机械手上样是一个Contanier.Pin 的object，其中address是'1:01'这样格式的地质
                     if old_loaded_sample is not None and (old_loaded_sample.address == currentPlateLocation):
+                        # print("old_loaded_sample is not None and (old_loaded_sample.address == currentPlateLocation)")
                         pass
                     else:
-                        print('change loaded sample to this currentPlateLocation')
+                        # print('change loaded sample to this currentPlateLocation,currentPlateLoaction: ',currentPlateLocation,"。")
                         SC.change_load_sample(currentPlateLocation)
 
 
@@ -96,7 +97,7 @@ class PlateManipulator(AbstractSampleChanger.SampleChanger):
             row = res[0] +1
             col = res[1] +1
             row = str(int(row))
-            if col>10:
+            if col>=10:
                 col = str(int(col))
             else:
                 col = '0' +str(int(col))
