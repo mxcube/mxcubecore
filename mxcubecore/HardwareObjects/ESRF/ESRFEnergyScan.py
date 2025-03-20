@@ -20,30 +20,14 @@ from mxcubecore.HardwareObjects.abstract.AbstractEnergyScan import AbstractEnerg
 from mxcubecore.TaskUtils import task
 
 
-class FixedEnergy:
-    @task
-    def get_value(self):
-        return self._tunable_bl.energy_obj.get_value()
-
-
-class TunableEnergy:
-    @task
-    def get_value(self):
-        return self._tunable_bl.energy_obj.get_value()
-
-    @task
-    def set_value(self, value):
-        return self._tunable_bl.energy_obj.set_value(value, wait=True)
-
-
 class GetStaticParameters:
     def __init__(self, config_file, element, edge):
         self.element = element
         self.edge = edge
-        self.STATICPARS_DICT = {}
-        self.STATICPARS_DICT = self._readParamsFromFile(config_file)
+        self.pars_dict = {}
+        self.pars_dict = self._read_from_file(config_file)
 
-    def _readParamsFromFile(self, config_file):
+    def _read_from_file(self, config_file):
         with open(config_file, "r") as f:
             array = []
             for line in f:
@@ -77,15 +61,16 @@ class GetStaticParameters:
                 static_pars["findattEnergy"] = th_energy + 0.03
                 static_pars["remoteEnergy"] = th_energy + 1
                 return static_pars
-            except Exception as e:
-                print(e)
+            except Exception as err:
+                print(err)
                 return {}
 
 
-class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
-    def __init__(self, name, tunable_bl):
+class ESRFEnergyScan(AbstractEnergyScan):
+    def __init__(self, name):
         super().__init__(name)
-        self._tunable_bl = tunable_bl
+        # self._tunable_bl = tunable_bl
+        self.ctrl = None
 
     def execute_command(self, command_name, *args, **kwargs):
         wait = kwargs.get("wait", True)
@@ -93,22 +78,22 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         return cmd_obj(*args, wait=wait)
 
     def init(self):
-        self.energy_obj = self.get_object_by_role("energy")
+        self.energy_obj = HWR.beamline.energy
         self.beamsize = self.get_object_by_role("beamsize")
-        self.transmission = self.get_object_by_role("transmission")
+        self.ctrl = self.get_object_by_role("controller")
         self.ready_event = gevent.event.Event()
         if HWR.beamline.lims is None:
             logging.getLogger("HWR").warning(
                 "EnergyScan: you should specify the database hardware object"
             )
         self.scanInfo = None
-        self._tunable_bl.energy_obj = self.energy_obj
+        #self._tunable_bl.energy_obj = self.energy_obj
 
     def is_connected(self):
         return True
 
     def get_static_parameters(self, config_file, element, edge):
-        pars = GetStaticParameters(config_file, element, edge).STATICPARS_DICT
+        pars = GetStaticParameters(config_file, element, edge).pars_dict
 
         offset_keV = self.get_property("offset_keV")
         pars["startEnergy"] += offset_keV
@@ -116,19 +101,6 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         pars["element"] = element
 
         return pars
-
-    def open_safety_shutter(self, timeout=None):
-        HWR.beamline.safety_shutter.openShutter()
-        with gevent.Timeout(
-            timeout, RuntimeError("Timeout waiting for safety shutter to open")
-        ):
-            while HWR.beamline.safety_shutter.getShutterState() == "closed":
-                time.sleep(0.1)
-
-    def close_safety_shutter(self, timeout=None):
-        HWR.beamline.safety_shutter.closeShutter()
-        while HWR.beamline.safety_shutter.getShutterState() == "opened":
-            time.sleep(0.1)
 
     def escan_prepare(self):
 
@@ -138,45 +110,24 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
             self.energy_scan_parameters["beamSizeVertical"] = bsX
 
     def escan_postscan(self):
-        self.execute_command("cleanScan")
+        self.ctrl.diffractometer.fldet_out()
+        #self.ctrl.fluodet.OUT
 
     def escan_cleanup(self):
         self.close_fast_shutter()
-        self.close_safety_shutter()
-        try:
-            self.execute_command("cleanScan")
-        except Exception:
-            pass
+        HWR.beamline.safety_shutter.close()
         self.emit("energyScanFailed", ())
         self.ready_event.set()
 
     def close_fast_shutter(self):
-        self.execute_command("close_fast_shutter")
+        self.ctrl.diffractometer.msclose()
 
     def open_fast_shutter(self):
-        self.execute_command("open_fast_shutter")
-
-    def move_energy(self, energy):
-        try:
-            HWR.beamline.energy.set_value(energy)
-        except Exception:
-            self.emit("energyScanFailed", ())
-            raise RuntimeError("Cannot move energy")
+        self.ctrl.diffractometer.msopen()
 
     def cancelEnergyScan(self, *args):
         """ Called by queue_entry.py. To be removed"""
         self.escan_cleanup()
-
-    # Elements commands
-    def get_elements(self):
-        elements = []
-        try:
-            for el in self["elements"]:
-                elements.append({"symbol": el.symbol, "energy": el.energy})
-        except IndexError:
-            pass
-
-        return elements
 
     def storeEnergyScan(self):
         if HWR.beamline.lims is None:
