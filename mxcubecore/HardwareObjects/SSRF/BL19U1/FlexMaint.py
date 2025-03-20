@@ -959,9 +959,9 @@ class FlexMaint(Equipment):
         if cmd_name == "turnOffPlateMode":
             PlateManipulator = HWR.beamline.plate_manipulator
             PlateManipulator._set_plate_mode(False)
+            SC = HWR.beamline.sample_changer
             SC.clear_memory()
 
-            SC = HWR.beamline.sample_changer
             SC.pulling_state_flex_flag = True
 
             self._do_power_on()

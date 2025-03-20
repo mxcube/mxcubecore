@@ -57,7 +57,7 @@ class PlateManipulator(AbstractSampleChanger.SampleChanger):
             # time.sleep(0.05)
             time.sleep(1)
             if self.plate_mode_on:
-                print("plate_mode_on")
+                # print("plate_mode_on")
                 currentPlateLocation =  self._do_getPlateLocation()
                 if currentPlateLocation:
                     old_loaded_sample = SC.get_loaded_sample()      #没有的时候为None,手动上的样也是None， 机械手上样是一个Contanier.Pin 的object，其中address是'1:01'这样格式的地质
@@ -75,10 +75,11 @@ class PlateManipulator(AbstractSampleChanger.SampleChanger):
     def _set_plate_mode(self,mode_on=None):
         SC = HWR.beamline.sample_changer
         if mode_on is not None:
-            if mode_on != self.plate_mode_on:
-                self.plate_mode_on = mode_on
-                print('change plate mode: ',self.plate_mode_on)
-                SC._trigger_plate_mode_changed_event(mode_on)
+            # print("mode on is not None")
+            # if mode_on != self.plate_mode_on:
+            self.plate_mode_on = mode_on
+            # print('change plate mode: ',self.plate_mode_on)
+            SC._trigger_plate_mode_changed_event(mode_on)
 
 
 
