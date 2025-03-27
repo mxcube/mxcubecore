@@ -25,6 +25,7 @@ class Proposal(BaseModel):
         code: Specific code associated with the proposal e.g., "IH-LS".
         number: Proposal number; may be sequential or unique
             (uniqueness may depend on the combination of code and number)
+        title:  Title of the proposal
     """
 
     proposal_id: str = ""
@@ -32,7 +33,7 @@ class Proposal(BaseModel):
     type: str = ""
     code: str = ""
     number: str = ""
-    title: str = ""  # Title of the proposal
+    title: str = ""
 
 
 class Lims(BaseModel):
