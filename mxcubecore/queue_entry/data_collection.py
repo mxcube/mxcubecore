@@ -17,9 +17,10 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+import uuid
 
 import gevent
-import uuid
+from mxlims.pydantic.messages import JobMessage
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.dispatcher import dispatcher
@@ -35,8 +36,6 @@ from mxcubecore.queue_entry.base_queue_entry import (
     QueueExecutionException,
     center_before_collect,
 )
-
-from mxlims.pydantic import mxmodel
 from mxcubecore.utils import mxlims as mxutils
 
 __credits__ = ["MXCuBE collaboration"]
@@ -134,7 +133,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
         data_model = self.get_data_model()
 
-        mxexperiment: mxmodel.MxExperimentMessage = self.get_mxlims_record()
+        mxexperiment: JobMessage.JobMessage = self.get_mxlims_record()
         if mxexperiment is None:
             tracking_data = data_model.tracking_data
             workflow_parameters = data_model.workflow_parameters
