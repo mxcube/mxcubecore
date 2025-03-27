@@ -67,19 +67,19 @@ class Session(BaseModel):
         proposal_name: Name of the proposal.
         comments: Optional comments about the session.
         start_datetime: Start datetime of the session.
-        end_datetime: End datetime of the session, defaulting to one day after start.
+        end_datetime: End datetime of the session
         actual_start_date: Start date if the session was rescheduled.
         actual_start_time: Start time if the session was rescheduled.
         actual_end_date: End date if the session was rescheduled.
         actual_end_time: End time if the session was rescheduled.
-        nb_shifts: Number of shifts allocated to the session (typically 8 hours per shift).
-        scheduled: Indicates if the session is officially scheduled and approved.
-        is_rescheduled: Indicates if the session was rescheduled in time or beamline.
-        is_scheduled_beamline: Indicates if the session is scheduled on the current beamline.
-        is_scheduled_time: Indicates if the session is currently active.
+        nb_shifts: Number of shifts allocated to the session (typically 8h)
+        scheduled: if the session is officially scheduled and approved.
+        is_rescheduled: if the session was rescheduled in time or beamline.
+        is_scheduled_beamline: if the session is scheduled on the current bm
+        is_scheduled_time: if the session is currently active.
         user_portal_URL: Optional link to the session page in the User Portal.
-        data_portal_URL: Optional link to the session page in the data portal or LIMS.
-        logbook_URL: Optional link to the session page in the electronic logbook.
+        data_portal_URL: link to the data portal or LIMS.
+        logbook_URL: Optional link to the session page in the  logbook.
         volume: Optional volume (in bytes) of data produced.
         dataset_count: Optional number of datasets collected.
         sample_count: Optional number of samples collected.
@@ -133,7 +133,8 @@ class Instrument(BaseModel):
 
 
 class Investigation(BaseModel):
-    """Represents an investigation and serves as a proposal to replace the Session class.
+    """Represents an investigation and serves as a proposal to replace
+    the Session class.
 
     Attributes:
         name: Name of the investigation.
@@ -161,7 +162,8 @@ class Investigation(BaseModel):
 
 
 class Parameter(BaseModel):
-    """Represents a generic parameter attached to entities like investigations, samples, or datasets.
+    """Represents a generic parameter attached to entities like investigations,
+    samples, or datasets.
 
     Attributes:
         name: Name of the parameter.
