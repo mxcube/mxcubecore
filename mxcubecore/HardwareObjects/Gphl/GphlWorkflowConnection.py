@@ -466,7 +466,7 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         """Receive and process info message from workflow server
         Return goes to server
 
-        NB Callled freom external java) workflow"""
+        NB Called from external java) workflow"""
         xx0 = self._decode_py4j_message(py4j_message)
         message_type = xx0.message_type
         payload = xx0.payload
@@ -521,9 +521,12 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         correlation_id = xx0.correlation_id
 
         if self._enactment_id is None:
-            # NB this should be made less primitive
-            # once we are past direct function calls
-            self._enactment_id = xx0.enactment_id
+            enactment_id = xx0.enactment_id
+            if enactment_id:
+                self._enactment_id = enactment_id
+                self.workflow_queue.put_nowait(
+                    "StartEnactment", enactment_id, None, None
+                )
 
         elif not payload:
             logging.getLogger("HWR").error(
@@ -586,17 +589,6 @@ class GphlWorkflowConnection(HardwareObjectYaml):
                         "GΦL - response=%s messageId=%s"
                         % (result.__class__.__name__, correlation_id)
                     )
-                if message_type == "ObtainPriorInformation":
-                    # At this point we have the enactment_id and can set the workflow_id
-                    self.workflow_queue.put_nowait(
-                        (
-                            "StartEnactment",
-                            self._enactment_id,
-                            None,
-                            None,
-                        )
-                    )
-
                 return self._response_to_server(result, correlation_id)
 
         elif message_type in ("WorkflowAborted", "WorkflowCompleted", "WorkflowFailed"):

@@ -26,26 +26,27 @@ __author__ = "rhfogh"
 __date__ = "05/11/2024"
 
 import os
-import json
 from datetime import datetime
-
 from typing import Optional
 from uuid import uuid1
 
-from mxcubecore.HardwareObjects.Native import xmlrpc_prefix
-from mxlims.pydantic import mxmodel
+from mxlims.pydantic.datatypes import Scan, UnitCell
+from mxlims.pydantic.messages import JobMessage
+from mxlims.pydantic.objects import CollectionSweep, MxExperiment
+from mxlims.pydantic.rawobjects import RawCrystallographicSample
+
 from mxcubecore.model import queue_model_objects as qmo
 
 
 def create_mxrecord(
     sample: qmo.Sample,
-    tracking_data: dict,
-    start_time: datetime = None,
-    end_time: datetime = None,
-    job_status: str = None,
-    **parameters
-) -> mxmodel.MxExperimentMessage:
-    """Create MxExperimentMessage mxlims record from datamodel
+    tracking_data: qmo.TrackingData,
+    start_time: Optional[datetime] = None,
+    end_time: Optional[datetime] = None,
+    job_status: Optional[str] = None,
+    **parameters,
+) -> JobMessage:
+    """Create JobMessage record from datamodel
 
     Args:
         sample: QueueModelObject representing sample
@@ -58,20 +59,19 @@ def create_mxrecord(
     Returns:
 
     """
-    start_time = start_time or datetime.now()
+    start_time = start_time or datetime.now()  # noqa: DTZ005
     crystal = sample.crystals[0] if sample.crystals else None
     diffraction_plan = sample.diffraction_plan
-    jobuuid = tracking_data.uuid
+    job_uuid = tracking_data.uuid
     workflow_name = tracking_data.workflow_name
-    if not workflow_name:
-        if diffraction_plan:
-            if hasattr(diffraction_plan, "experimentType"):
-                workflow_name = diffraction_plan.experimentType
-            else:
-                workflow_name = diffraction_plan.get("experimentType")
+    if diffraction_plan and not workflow_name:
+        if hasattr(diffraction_plan, "experimentType"):
+            workflow_name = diffraction_plan.experimentType
+        else:
+            workflow_name = diffraction_plan.get("experimentType")
     if not workflow_name:
         workflow_name = parameters.pop("experiment_type", None)
-    jobpars = {"experiment_strategy": workflow_name}
+    job_pars = {"experiment_strategy": workflow_name}
 
     if diffraction_plan:
         # It is not clear if diffraction_plan is a dict or an object,
@@ -82,32 +82,31 @@ def create_mxrecord(
         else:
             resolution = diffraction_plan.get("aimedResolution")
         if resolution:
-            jobpars["expected_resolution"] = resolution
+            job_pars["expected_resolution"] = resolution
 
         if hasattr(diffraction_plan, "requiredCompleteness"):
             completeness = diffraction_plan.requiredCompleteness
         else:
             completeness = diffraction_plan.get("requiredCompleteness")
         if completeness:
-            jobpars["target_completeness"] = completeness
+            job_pars["target_completeness"] = completeness
 
         if hasattr(diffraction_plan, "requiredMultiplicity"):
             multiplicity = diffraction_plan.requiredMultiplicity
         else:
             multiplicity = diffraction_plan.get("requiredMultiplicity")
         if multiplicity:
-            jobpars["target_multiplicity"] = multiplicity
-    jobpars.update(parameters)
-    jobdata = mxmodel.MxExperimentData(**jobpars)
+            job_pars["target_multiplicity"] = multiplicity
+    job_pars.update(parameters)
 
     # CrystallographicSample
-    crystal_form = None
-    samplepars = {}
-    samplepars["name"] = (
-        sample.name or sample.get_name() or (crystal and crystal.acronym)
-    )
+    sample_pars = {
+        "name": sample.name or sample.get_name() or (crystal and crystal.acronym),
+    }
     if crystal:
         space_group_name = crystal.space_group
+        if space_group_name:
+            sample_pars["space_group_name"] = space_group_name
         dd1 = {
             "a": crystal.cell_a,
             "b": crystal.cell_b,
@@ -116,16 +115,13 @@ def create_mxrecord(
             "beta": crystal.cell_beta,
             "gamma": crystal.cell_gamma,
         }
-        unit_cell = mxmodel.UnitCell(**dd1) if  all(dd1.values()) else None
-        if space_group_name or unit_cell:
-            samplepars["crystal_form"] = mxmodel.CrystalForm(
-                space_group_name=space_group_name, crystal_form=crystal_form
-            )
+        unit_cell = UnitCell.UnitCell(**dd1) if  all(dd1.values()) else None
+        if unit_cell:
+            sample_pars["unit_cell"] = unit_cell
 
         # LogisticalSample, not really modeled yet, so not much to put in
-        crystal_uuid = crystal.crystal_uuid
-    else:
-        crystal_uuid = None
+        job_pars["logisticalSampleId"] = crystal.crystal_uuid
+
     # Set parameters from diffraction plan
     if diffraction_plan:
         # It is not clear if diffraction_plan is a dict or an object,
@@ -135,35 +131,24 @@ def create_mxrecord(
         else:
             radiation_sensitivity = diffraction_plan.get("radiationSensitivity")
         if radiation_sensitivity:
-            samplepars["radiation_sensitivity"] = radiation_sensitivity
-    sampledata = mxmodel.CrystallographicSampleData(**samplepars)
-    sample = mxmodel.CrystallographicSample(uuid=uuid1(), data=sampledata)
+            sample_pars["radiation_sensitivity"] = radiation_sensitivity
+    sample = RawCrystallographicSample.RawCrystallographicSample(
+        uuid=uuid1(), **sample_pars,
+    )
 
-    crystaldata = mxmodel.CrystalData()
-    if crystal_uuid:
-        logistical_sample = mxmodel.Crystal(
-            uuid=crystal_uuid, sample_id=sample.uuid, data=crystaldata
-        )
-    else:
-        logistical_sample = mxmodel.Crystal(uuid=uuid1(), sample_id=sample.uuid, data=crystaldata)
-
-    experiment = mxmodel.MxExperiment(
-        uuid=jobuuid,
-        data=jobdata,
+    experiment = MxExperiment.MxExperiment(
+        uuid=job_uuid,
         start_time=start_time,
         end_time=end_time,
         job_status=job_status,
         sample_id=sample.uuid,
-        logistical_sample_id=logistical_sample.uuid
+        **job_pars,
     )
-    #
-    return mxmodel.MxExperimentMessage(
-        job=experiment, sample=sample, logistical_sample=logistical_sample
-    )
+    return JobMessage.JobMessage(job=experiment, sample=sample)
 
 
 def add_data_collection(
-    mxrecord: mxmodel.MxExperimentMessage,
+    mxrecord: JobMessage.JobMessage,
     data_collection: qmo.DataCollection,
     **parameters: dict,
 ) -> None:
@@ -178,8 +163,8 @@ def add_data_collection(
 
     """
 
-    # ALwsy true in MXCuBE
-    SCAN_AXIS = "omega"
+    # Always true in MXCuBE
+    scan_axis = "omega"
     mxexperiment = mxrecord.job
 
     acquisition = data_collection.acquisitions[0]
@@ -193,12 +178,12 @@ def add_data_collection(
     )
     axis_pos_start = acqparams.osc_start
     axis_pos_end = axis_pos_start + acqparams.num_images * acqparams.osc_range
-    startpos[SCAN_AXIS] = axis_pos_start
+    startpos[scan_axis] = axis_pos_start
     startpos["detector_distance"] = acqparams.detector_distance
     detector_distance = parameters.pop("detector_distance", None)
     if detector_distance is not None:
         startpos["detector_distance"] = detector_distance
-    scan = mxmodel.Scan(
+    scan = Scan.Scan(
         scan_position_start=axis_pos_start,
         first_image_number=acqparams.first_image,
         number_images=acqparams.num_images,
@@ -215,23 +200,21 @@ def add_data_collection(
             break
     if sweep:
         # This is a scan for an existing sweep. Add ane update
-        sweep.data.scans.append(scan)
-        sweep.data.axis_positions_start[SCAN_AXIS] = min(
-            sweep.data.axis_positions_start[SCAN_AXIS], axis_pos_start
+        sweep.scans.append(scan)
+        sweep.axis_positions_start[scan_axis] = min(
+            sweep.axis_positions_start[scan_axis], axis_pos_start,
         )
-        sweep.data.axis_positions_end[SCAN_AXIS] = max(
-            sweep.data.axis_positions_end[SCAN_AXIS], axis_pos_end
+        sweep.axis_positions_end[scan_axis] = max(
+            sweep.axis_positions_end[scan_axis], axis_pos_end,
         )
 
     else:
-        sweep_params = {
+        sweepdata = {
             "uuid": sweep_id or tracking_data.uuid,
             "source_id": mxexperiment.uuid,
-            "logistical_sample_id": mxrecord.logistical_sample.uuid,
+            "logistical_sample_id": mxexperiment.logistical_sample_id,
             "role": tracking_data.role,
-        }
-        sweepdata = {
-            "scan_axis": SCAN_AXIS,
+            "scan_axis": scan_axis,
             "exposure_time": acqparams.exp_time,
             "image_width": acqparams.osc_range,
             "energy": acqparams.energy,
@@ -250,23 +233,20 @@ def add_data_collection(
             "scans": [scan],
         }
 
-        sweepdata["axis_positions_end"] = {SCAN_AXIS: axis_pos_end}
+        sweepdata["axis_positions_end"] = {scan_axis: axis_pos_end}
 
         # NBNB how do we get the detector type?
         # NBNB do we use MXCuBE axis names or standardised names?
 
         sweepdata.update(parameters)
-        dataset = mxmodel.CollectionSweep(
-            data=mxmodel.CollectionSweepData(**sweepdata),
-            **sweep_params
-        )
+        dataset = CollectionSweep.CollectionSweep(**sweepdata)
         mxexperiment.results.append(dataset)
 
 
 
 def export_mxrecord(
-    mxrecord: mxmodel.MxExperimentMessage,
-    path_template: Optional[qmo.PathTemplate] = None
+    mxrecord: JobMessage.JobMessage,
+    path_template: Optional[qmo.PathTemplate] = None,
 ):
     """Export MxExperiment mxlims record to JSON file"""
     if path_template is None:
@@ -279,4 +259,4 @@ def export_mxrecord(
     path = os.path.join(path, file_name)
     print("@~@~ WRITING JSON TO", path)
     with open(path, "w") as fp:
-        fp.write(mxrecord.model_dump_json(indent=4, exclude_none=True))
+        fp.write(mxrecord.model_dump_json(indent=4, by_alias=True, exclude_none=True))

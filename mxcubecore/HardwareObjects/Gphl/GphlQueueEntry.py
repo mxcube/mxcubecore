@@ -23,10 +23,10 @@ Module contains Gphl specific queue entries
 
 import logging
 
+from mxlims.pydantic.messages import JobMessage
+
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.queue_entry.base_queue_entry import BaseQueueEntry
-
-from mxlims.pydantic import mxmodel
 from mxcubecore.utils import mxlims as mxutils
 
 __credits__ = ["MXCuBE collaboration"]
@@ -69,7 +69,7 @@ class GphlWorkflowQueueEntry(BaseQueueEntry):
     def init_mxlims(self):
         """Initialise MXLIMS MxExperimentMessage if it is not already set"""
 
-        mxexperiment: mxmodel.MxExperimentMessage = self.get_mxlims_record()
+        mxexperiment: JobMessage.JobMessage = self.get_mxlims_record()
         if mxexperiment is None:
             data_model = self.get_data_model()
             self._mxlims_record = mxutils.create_mxrecord(

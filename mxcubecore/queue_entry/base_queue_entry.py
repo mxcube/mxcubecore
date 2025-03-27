@@ -28,10 +28,11 @@ import sys
 import time
 import traceback
 from collections import namedtuple
-from typing import Optional
 from datetime import datetime
+from typing import Optional
 
 import gevent
+from mxlims.pydantic.messages import JobMessage
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects import autoprocessing
@@ -40,12 +41,7 @@ from mxcubecore.model.queue_model_enumerables import (
     CENTRING_METHOD,
     EXPERIMENT_TYPE,
 )
-
-from mxlims.pydantic import mxmodel
 from mxcubecore.utils import mxlims as mxutils
-
-
-
 
 __credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3+"
@@ -221,7 +217,7 @@ class BaseQueueEntry(QueueEntryContainer):
         self._data_model.lims_session_id = HWR.beamline.session.session_id
 
         # MXLIMS record for currently running experiment
-        self._mxlims_record: Optional[mxmodel.MxExperimentMessage] = None
+        self._mxlims_record: Optional[JobMessage.JobMessage] = None
 
     def is_failed(self):
         """Returns True if failed"""
@@ -295,7 +291,7 @@ class BaseQueueEntry(QueueEntryContainer):
         """
         self._checked_for_exec = state
 
-    def get_mxlims_record(self) -> mxmodel.MxExperimentMessage:
+    def get_mxlims_record(self) -> JobMessage.JobMessage:
         """Get MxExperiment MXLIMS record if the entry is currently running"""
         obj = self
         result = None

@@ -38,9 +38,9 @@ import os
 import socket
 import subprocess
 import time
+import uuid
 from collections import OrderedDict
 from urllib.parse import urlparse
-from uuid import uuid1
 
 import f90nml
 import gevent
@@ -78,6 +78,7 @@ class GphlWorkflowStates(enum.Enum):
     ABORTED = 3
     COMPLETED = 4
     UNKNOWN = 5
+
 
 __copyright__ = """ Copyright © 2016 - 2019 by Global Phasing Ltd. """
 __license__ = "LGPLv3+"
@@ -904,7 +905,7 @@ class GphlWorkflow(HardwareObjectYaml):
         tracking_data.workflow_uid = (
             workflow_parameters.get("workflow_uid") or enactment_id
         )
-        # NB it is not set it will be overwritten later
+        # NB if it is not set it will be overwritten later
         tracking_data.workflow_name = workflow_parameters.get("workflow_name")
         tracking_data.workflow_type = (
             workflow_parameters.get("workflow_type")
@@ -912,7 +913,7 @@ class GphlWorkflow(HardwareObjectYaml):
         )
         tracking_data.location_id = (
             workflow_parameters.get("workflow_position_id")
-            or str(uuid1())
+            or str(uuid.uuid1())
         )
         # NB first orientation only:
         tracking_data.orientation_id = workflow_parameters.get(
@@ -1342,6 +1343,7 @@ class GphlWorkflow(HardwareObjectYaml):
         use_modes = ["sweep"]
         if len(grouped_sweeps) > 1:
             use_modes.append("start")
+            use_modes.append("none")
         if is_interleaved:
             use_modes.append("scan")
         for indx in range(len(modes) - 1, -1, -1):
@@ -2156,7 +2158,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 and not gphl_workflow_model.characterisation_done
             ):
                 if characterisation_id is None:
-                    # NB this is a hack - forces tharacterisation to be a single sweep
+                    # NB this is a hack - forces characterisation to be a single sweep
                     characterisation_id = str(sweep.id_)
                 tracking_data.characterisation_id = characterisation_id
                 wf_tracking_data.characterisation_id = characterisation_id
