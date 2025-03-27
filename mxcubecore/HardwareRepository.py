@@ -243,6 +243,7 @@ def load_from_yaml(configuration_file, role, _container=None, _table=None):
         except Exception:
             if _container:
                 msg0 = "Error in %s.init()" % cls.__name__
+                raise
             else:
                 # at top level we want to get the actual error
                 raise
