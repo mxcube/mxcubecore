@@ -2556,7 +2556,7 @@ class GphlWorkflow(TaskNode):
 
     @property
     def strategy_short_name(self):
-        """ "Strategy full name, e.g. "Two-wavelength MAD" """
+        """ "Strategy short name, e.g. "2wvlMAD" """
         return self.strategy_settings["short_name"]
 
     # Run name equal to base_prefix
