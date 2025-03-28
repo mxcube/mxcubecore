@@ -120,7 +120,9 @@ def create_mxrecord(
             sample_pars["unit_cell"] = unit_cell
 
         # LogisticalSample, not really modeled yet, so not much to put in
-        job_pars["logisticalSampleId"] = crystal.crystal_uuid
+        crystal_uuid = crystal.crystal_uuid
+        if crystal_uuid:
+            job_pars["logisticalSampleId"] = crystal_uuid
 
     # Set parameters from diffraction plan
     if diffraction_plan:
@@ -250,13 +252,13 @@ def export_mxrecord(
 ):
     """Export MxExperiment mxlims record to JSON file"""
     if path_template is None:
-        path = mxrecord.job.results[-1].data.path
+        path = mxrecord.job.results[-1].path
         file_name = "MxExperiment.json"
     else:
         template = "MXExperiment_%s_%s.json"
         file_name = template % (path_template.get_prefix(), path_template.run_number)
         path = os.path.join(path_template.directory, file_name)
     path = os.path.join(path, file_name)
-    print("@~@~ WRITING JSON TO", path)
+    print("WRITING MXLIMS JSON TO", path)
     with open(path, "w") as fp:
         fp.write(mxrecord.model_dump_json(indent=4, by_alias=True, exclude_none=True))
