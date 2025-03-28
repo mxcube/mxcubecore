@@ -525,7 +525,7 @@ class GphlWorkflowConnection(HardwareObjectYaml):
             if enactment_id:
                 self._enactment_id = enactment_id
                 self.workflow_queue.put_nowait(
-                    "StartEnactment", enactment_id, None, None
+                    ("StartEnactment", enactment_id, None, None)
                 )
 
         elif not payload:
