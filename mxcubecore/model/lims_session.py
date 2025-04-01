@@ -18,7 +18,7 @@ from pydantic.v1 import (
 class Proposal(BaseModel):
     """Proposal with key identifying details.
 
-    Attributes:
+    Parameters:
         proposal_id: Unique identifier for the proposal.
         person_id: Identifier of the person associated.
         type: Type/category of the proposal (e.g., "MX").
@@ -39,7 +39,7 @@ class Proposal(BaseModel):
 class Lims(BaseModel):
     """Represents a LIMS system.
 
-    Attributes:
+    Parameters:
         name: Unique identifier for the LIMS (e.g., "ispyb", "icat").
         description: Free text providing a short description of the LIMS.
     """
@@ -53,7 +53,7 @@ class Session(BaseModel):
 
     This class is maintained for legacy purposes because ISPyB relies on it.
 
-    Attributes:
+    Parameters:
         session_id: Unique identifier for the experiment, dependent on the LIMS.
         beamline_name: Name of the beamline where the experiment is scheduled.
         start_date: Official start date (format: YYYYMMDD).
@@ -121,7 +121,7 @@ class Session(BaseModel):
 class Instrument(BaseModel):
     """Represents a beamline.
 
-    Attributes:
+    Parameters:
         name: Name of the beamline.
         id: Unique identifier of the beamline.
         instrumentScientists: List of scientists associated with the instrument.
@@ -136,7 +136,7 @@ class Investigation(BaseModel):
     """Represents an investigation and serves as a proposal to replace
     the Session class.
 
-    Attributes:
+    Parameters:
         name: Name of the investigation.
         startDate: Start date of the investigation.
         endDate: End date of the investigation.
@@ -165,7 +165,7 @@ class Parameter(BaseModel):
     """Represents a generic parameter attached to entities like investigations,
     samples, or datasets.
 
-    Attributes:
+    Parameters:
         name: Name of the parameter.
         value: Value assigned to the parameter.
         id: Unique identifier of the parameter.
@@ -181,7 +181,7 @@ class Parameter(BaseModel):
 class MetaPage(BaseModel):
     """Pagination metadata.
 
-    Attributes:
+    Parameters:
         totalWithoutFilters: Total count of items without filters applied.
         total: Total count of items with filters applied.
         totalPages: Total number of pages available.
@@ -197,7 +197,7 @@ class MetaPage(BaseModel):
 class Meta(BaseModel):
     """Metadata containing pagination details.
 
-    Attributes:
+    Parameters:
         page: Pagination details.
     """
 
@@ -207,7 +207,7 @@ class Meta(BaseModel):
 class LimsUser(BaseModel):
     """Represents a user connected to MXCuBE.
 
-    Attributes:
+    Parameters:
         user_name: Identifier for the user, typically their login name.
         sessions: List of sessions the user is allowed to collect data from.
     """
@@ -219,7 +219,7 @@ class LimsUser(BaseModel):
 class LimsSessionManager(BaseModel):
     """Manages LIMS sessions and connected users.
 
-    Attributes:
+    Parameters:
         active_session: The current active session, if any.
         sessions: List of selectable sessions determined based on connected users.
         users: Dictionary of currently connected users.
@@ -233,7 +233,7 @@ class LimsSessionManager(BaseModel):
 class SampleSheet(BaseModel):
     """Represents a description of a sample sheet as defined in user portals.
 
-    Attributes:
+    Parameters:
         id: Unique identifier for the sample sheet.
         name: Name of the sample sheet, often corresponding to the protein's name.
         investigation: Investigation associated with the sample sheet.
