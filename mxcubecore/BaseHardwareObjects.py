@@ -114,9 +114,7 @@ class ConfiguredObject:
         self._config: Optional["ConfiguredObject.HOConfig"] = None
         self._hwobj_container: Optional[ConfiguredObject] = hwobj_container
         self._roles = []
-
-    def __getattr__(self, attr):
-        return getattr(self.__dict__["_config"], attr)
+        self._hwobj_by_role = {}
 
     @property
     def name(self):
@@ -167,8 +165,8 @@ class ConfiguredObject:
         """
         result = {}
         for tag in self._roles:
-            if hasattr(self, tag):
-                result[tag] = getattr(self, tag)
+            if hasattr(self._hwobj_by_role, tag):
+                result[tag] = getattr(self._hwobj_by_role, tag)
             else:
                 raise ValueError(
                     "%s object has no attribute %s" % (self.__class__.__name__, tag)
@@ -528,20 +526,21 @@ class HardwareObjectNode:
         )
 
         #
-        # A hack to emulate get_object_by_role() for objects loaded from YAML config files.
+        # A hack to emulate get_object_by_role() for objects loaded from YAML config
+        # files.
         #
-        # When HWOBJ is loaded from YAML, we don't populate it's '_objects_by_role' dictionary,
-        # thus that normal code path to look-up and object by role does not work.
+        # When HWOBJ is loaded from YAML, we don't populate it's '_objects_by_role'
+        # dictionary, thus that normal code path to look-up and object by role does
+        # not work.
         #
-        # However, objects are attached to the parent object via attribute assignment. Try accessing
-        # using that attribute.
+        # However, objects are attached to the parents _hwobj_by_role object via
+        # assignment. Try accessing using that attribute.
         #
-        try:
-            obj = getattr(self, role, None)
+        if hasattr(self, "_hwobj_by_role"):
+            obj = self._hwobj_by_role.get(role, None)
+
             if obj is not None:
                 return obj
-        except AttributeError:
-            pass
 
         #
         # Look-up object by role the old way.
