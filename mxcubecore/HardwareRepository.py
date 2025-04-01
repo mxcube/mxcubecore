@@ -240,7 +240,7 @@ def load_from_yaml(
                     stacklevel=2,
                 )
             _container._roles.append(role)
-            setattr(_container, role, result)
+            _container._hwobj_by_role[role] = result
         try:
             # Initialise object
             result.init()
@@ -295,6 +295,7 @@ def _attach_xml_objects(yaml_export_directory: Optional[Path], container, hwobj,
     hwobj._hwobj_container = container
     hwobj._name = role
     container._roles.append(role)
+    container._hwobj_by_role[role] = hwobj
 
     setattr(container, role, hwobj)
     objects_by_role = hwobj._objects_by_role
