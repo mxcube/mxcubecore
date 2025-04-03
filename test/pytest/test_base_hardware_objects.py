@@ -83,7 +83,7 @@ def hardware_object() -> Generator[HardwareObject, None, None]:
         Generator[HardwareObject, None, None]: New object instance.
     """
 
-    hardware_object = HardwareObject(rootName="RootObject")
+    hardware_object = HardwareObject(name="RootObject")
     yield hardware_object
 
 
@@ -685,7 +685,7 @@ class TestHardwareObjectNode:
             assert len(_objects_names) == 0 and len(_objects) == 0
 
     @pytest.mark.parametrize("name", ("key1", "key2", "key3", "key4"))
-    @pytest.mark.parametrize("hw_object", (None, HardwareObject(rootName="TestHWObj")))
+    @pytest.mark.parametrize("hw_object", (None, HardwareObject(name="TestHWObj")))
     @pytest.mark.parametrize("role", (None, "session"))
     @pytest.mark.parametrize(
         ("initial_obj_names", "initial_objects"),
@@ -855,8 +855,8 @@ class TestHardwareObjectNode:
             (
                 ["key1", "key2"],
                 [
-                    [(HardwareObject(rootName="TestHWObj1"), "session")],
-                    [HardwareObject(rootName="TestHWObj2")],
+                    [(HardwareObject(name="TestHWObj1"), "session")],
+                    [HardwareObject(name="TestHWObj2")],
                 ],
             ),
         ),
@@ -897,7 +897,7 @@ class TestHardwareObjectNode:
                     _item_objs.append(sub_item)
                     if sub_obj_role and isinstance(sub_item, HardwareObject):
                         sub_item._objects_by_role[sub_obj_role] = HardwareObject(
-                            rootName="TestHWObj3",
+                            name="TestHWObj3",
                         )
             _initial_objects.append(_item_objs)
         mocker.patch.object(

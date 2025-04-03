@@ -56,7 +56,7 @@ objects:
   # - online_processing: parallel-processing.xml
   # - characterisation: data-analysis.xml
   # - beam_realign: # Skipped - optional
-  - mock_procedure: procedure-mockup.yml
+  - procedure: procedure-mockup.yml
 
 # Non-object attributes:
 advanced_methods:
