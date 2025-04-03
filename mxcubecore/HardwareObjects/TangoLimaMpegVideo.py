@@ -25,6 +25,7 @@ from typing import (
 
 import psutil
 
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.TangoLimaVideo import TangoLimaVideo
 
 
@@ -104,6 +105,16 @@ class TangoLimaMpegVideo(TangoLimaVideo):
                 close_fds=True,
                 stdout=subprocess.DEVNULL,
             )
+
+            argus = HWR.beamline.argus
+            if argus:
+                argus.add_camera_stream(
+                    {
+                        "name": "OnAxisViewer",
+                        "port": str(self._port),
+                        "id": self.stream_hash,
+                    }
+                )
 
             atexit.register(self.clean_up)
 
