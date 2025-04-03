@@ -56,7 +56,7 @@ from mxcubecore.BaseHardwareObjects import (
 # TODO Make all tags consistent, including AcquisitionParameters attributes.
 
 
-class Beamline(ConfiguredObject):
+class Beamline(HardwareObject):
     """Beamline class serving as singleton container for links to HardwareObjects"""
 
     class HOConfig(ConfiguredObject.HOConfig):
@@ -106,45 +106,161 @@ class Beamline(ConfiguredObject):
 
         # Contained hardware objects
 
-        machine_info = None
-        transmission = None
-        cryo = None
-        energy = None
-        flux = None
-        beam = None
-        hutch_interlock = None
-        safety_shutter = None
-        fast_shutter = None
-        diffractometer = None
-        detector = None
-        resolution = None
-        sample_changer = None
-        sample_changer_maintenance = None
-        harvester = None
-        harvester_maintenance = None
-        plate_manipulator = None
-        session = None
-        lims = None
-        sample_view = None
-        queue_manager = None
-        queue_model = None
-        collect = None
-        xrf_spectrum = None
-        energy_scan = None
-        imaging = None
-        beamline_actions = None
-        xml_rpc_server = None
-        workflow = None
-        control = None
-        gphl_workflow = None
-        gphl_connection = None
-        xray_centring = None
-        online_processing = None
-        offline_processing = None
-        characterisation = None
-        image_tracking = None
-        mock_procedures = None
-        data_publisher = None
+    @property
+    def machine_info(self) -> HardwareObject | None:
+        return self.get_object_by_role("machine_info")
+
+    @property
+    def transmission(self) -> HardwareObject | None:
+        return self.get_object_by_role("transmission")
+
+    @property
+    def cryo(self) -> HardwareObject | None:
+        return self.get_object_by_role("cryo")
+
+    @property
+    def energy(self) -> HardwareObject | None:
+        return self.get_object_by_role("energy")
+
+    @property
+    def flux(self) -> HardwareObject | None:
+        return self.get_object_by_role("flux")
+
+    @property
+    def beam(self) -> HardwareObject | None:
+        return self.get_object_by_role("beam")
+
+    @property
+    def hutch_interlock(self) -> HardwareObject | None:
+        return self.get_object_by_role("hutch_interlock")
+
+    @property
+    def safety_shutter(self) -> HardwareObject | None:
+        return self.get_object_by_role("safety_shutter")
+
+    @property
+    def fast_shutter(self) -> HardwareObject | None:
+        return self.get_object_by_role("fast_shutter")
+
+    @property
+    def diffractometer(self) -> HardwareObject | None:
+        return self.get_object_by_role("diffractometer")
+
+    @property
+    def detector(self) -> HardwareObject | None:
+        return self.get_object_by_role("detector")
+
+    @property
+    def resolution(self) -> HardwareObject | None:
+        return self.get_object_by_role("resolution")
+
+    @property
+    def sample_changer(self) -> HardwareObject | None:
+        return self.get_object_by_role("sample_changer")
+
+    @property
+    def sample_changer_maintenance(self) -> HardwareObject | None:
+        return self.get_object_by_role("sample_changer_maintenance")
+
+    @property
+    def harvester(self) -> HardwareObject | None:
+        return self.get_object_by_role("harvester")
+
+    @property
+    def harvester_maintenance(self) -> HardwareObject | None:
+        return self.get_object_by_role("harvester_maintenance")
+
+    @property
+    def plate_manipulator(self) -> HardwareObject | None:
+        return self.get_object_by_role("plate_manipulator")
+
+    @property
+    def session(self) -> HardwareObject | None:
+        return self.get_object_by_role("session")
+
+    @property
+    def lims(self) -> HardwareObject | None:
+        return self.get_object_by_role("lims")
+
+    @property
+    def sample_view(self) -> HardwareObject | None:
+        return self.get_object_by_role("sample_view")
+
+    @property
+    def queue_manager(self) -> HardwareObject | None:
+        return self.get_object_by_role("queue_manager")
+
+    @property
+    def queue_model(self) -> HardwareObject | None:
+        return self.get_object_by_role("queue_model")
+
+    @property
+    def collect(self) -> HardwareObject | None:
+        return self.get_object_by_role("collect")
+
+    @property
+    def xrf_spectrum(self) -> HardwareObject | None:
+        return self.get_object_by_role("xrf_spectrum")
+
+    @property
+    def energy_scan(self) -> HardwareObject | None:
+        return self.get_object_by_role("energy_scan")
+
+    @property
+    def imaging(self) -> HardwareObject | None:
+        return self.get_object_by_role("imaging")
+
+    @property
+    def beamline_actions(self) -> HardwareObject | None:
+        return self.get_object_by_role("beamline_actions")
+
+    @property
+    def xml_rpc_server(self) -> HardwareObject | None:
+        return self.get_object_by_role("xml_rpc_server")
+
+    @property
+    def workflow(self) -> HardwareObject | None:
+        return self.get_object_by_role("workflow")
+
+    @property
+    def control(self) -> HardwareObject | None:
+        return self.get_object_by_role("control")
+
+    @property
+    def gphl_workflow(self) -> HardwareObject | None:
+        return self.get_object_by_role("gphl_workflow")
+
+    @property
+    def gphl_connection(self) -> HardwareObject | None:
+        return self.get_object_by_role("gphl_connection")
+
+    @property
+    def xray_centring(self) -> HardwareObject | None:
+        return self.get_object_by_role("xray_centring")
+
+    @property
+    def online_processing(self) -> HardwareObject | None:
+        return self.get_object_by_role("online_processing")
+
+    @property
+    def offline_processing(self) -> HardwareObject | None:
+        return self.get_object_by_role("offline_processing")
+
+    @property
+    def characterisation(self) -> HardwareObject | None:
+        return self.get_object_by_role("characterisation")
+
+    @property
+    def image_tracking(self) -> HardwareObject | None:
+        return self.get_object_by_role("image_tracking")
+
+    @property
+    def procedure(self) -> HardwareObject | None:
+        return self.get_object_by_role("procedure")
+
+    @property
+    def data_publisher(self) -> HardwareObject | None:
+        return self.get_object_by_role("data_publisher")
 
     def _init(self) -> None:
         """Object initialisation - executed *before* loading contents"""
