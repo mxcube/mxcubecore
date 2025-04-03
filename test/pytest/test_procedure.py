@@ -5,7 +5,7 @@ from mxcubecore.model import procedure_model
 
 
 def test_procedure_init(beamline):
-    assert beamline.mock_procedure is not None, (
+    assert beamline.procedure is not None, (
         "MockProcedure hardware objects is None (not initialized)"
     )
     # The methods are defined with abc.abstractmethod which will raise
@@ -15,17 +15,17 @@ def test_procedure_init(beamline):
 
 def test_procedure_start(beamline):
     data = procedure_model.MockDataModel(**{"exposure_time": 5})
-    beamline.mock_procedure.start(data)
+    beamline.procedure.start(data)
     gevent.sleep(1)
-    assert beamline.mock_procedure.state == ProcedureState.BUSY
-    beamline.mock_procedure.wait()
-    assert beamline.mock_procedure.state == ProcedureState.READY
+    assert beamline.procedure.state == ProcedureState.BUSY
+    beamline.procedure.wait()
+    assert beamline.procedure.state == ProcedureState.READY
 
 
 def test_procedure_stop(beamline):
     data = procedure_model.MockDataModel(**{"exposure_time": 5})
-    beamline.mock_procedure.start(data)
+    beamline.procedure.start(data)
     gevent.sleep(1)
-    assert beamline.mock_procedure.state == ProcedureState.BUSY
-    beamline.mock_procedure.stop()
-    assert beamline.mock_procedure.state == ProcedureState.READY
+    assert beamline.procedure.state == ProcedureState.BUSY
+    beamline.procedure.stop()
+    assert beamline.procedure.state == ProcedureState.READY

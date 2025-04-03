@@ -282,8 +282,8 @@ class AbstractDetector(HardwareObject):
 
         beam_x, beam_y = self.get_beam_position(distance)
         pixel_x, pixel_y = self.get_pixel_size()
-        max_delta_x = max(beam_x, self.width - beam_x) * pixel_x
-        max_delta_y = max(beam_y, self.height - beam_y) * pixel_y
+        max_delta_x = max(beam_x, self._width - beam_x) * pixel_x
+        max_delta_y = max(beam_y, self._height - beam_y) * pixel_y
 
         return math.sqrt(max_delta_x * max_delta_x + max_delta_y * max_delta_y)
 

@@ -69,8 +69,8 @@ class TestDetector(TestHardwareObjectBase.TestHardwareObjectBase):
             pixel_x, pixel_y = test_object.get_pixel_size()
             bx, by = test_object.get_beam_position(_d)
 
-            rrx = min(test_object.width - bx, bx) * pixel_x
-            rry = min(test_object.height - by, by) * pixel_y
+            rrx = min(test_object.get_width() - bx, bx) * pixel_x
+            rry = min(test_object.get_height() - by, by) * pixel_y
 
             assert min(rrx, rry) == val, "Radius incorrect"
 
@@ -81,8 +81,8 @@ class TestDetector(TestHardwareObjectBase.TestHardwareObjectBase):
 
             bx, by = test_object.get_beam_position(_d)
 
-            max_delta_x = max(bx, test_object.width - bx) * pixel_x
-            max_delta_y = max(by, test_object.height - by) * pixel_y
+            max_delta_x = max(bx, test_object.get_width() - bx) * pixel_x
+            max_delta_y = max(by, test_object.get_height() - by) * pixel_y
 
             outer_radius = math.sqrt(
                 max_delta_x * max_delta_x + max_delta_y * max_delta_y
