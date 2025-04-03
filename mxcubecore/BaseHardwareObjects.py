@@ -1060,13 +1060,13 @@ class HardwareObjectMixin(CommandContainer):
 class HardwareObject(ConfiguredObject, HardwareObjectNode, HardwareObjectMixin):
     """Xml-configured hardware object"""
 
-    def __init__(self, rootName: str) -> None:
+    def __init__(self, name: str) -> None:
         """
         Args:
-            rootName (str): Name.
+            name (str): Name.
         """
-        ConfiguredObject.__init__(self, rootName)
-        HardwareObjectNode.__init__(self, rootName)
+        ConfiguredObject.__init__(self, name)
+        HardwareObjectNode.__init__(self, name)
         HardwareObjectMixin.__init__(self)
 
     def __getstate__(self) -> str:
