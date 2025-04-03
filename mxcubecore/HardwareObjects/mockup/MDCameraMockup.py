@@ -144,11 +144,20 @@ class MDCameraMockup(BaseHardwareObjects.HardwareObject):
                     ", ".join(map(str, self._current_stream_size)),
                     "-id",
                     self.stream_hash,
-                    "-r"
+                    "-r",
                 ],
                 close_fds=True,
                 stdout=subprocess.DEVNULL,
             )
+            argus = HWR.beamline.argus
+            if argus:
+                argus.add_camera_stream(
+                    {
+                        "name": "OnAxisViewer",
+                        "port": str(self._port),
+                        "id": self.stream_hash,
+                    }
+                )
 
             atexit.register(self.clean_up)
 

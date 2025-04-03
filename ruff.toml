@@ -4038,6 +4038,7 @@ convention = "google"
     "S603",
     "S607",
     "SIM108",
+    "N814",
 ]
 "mxcubecore/HardwareObjects/TangoLimaVideo.py" = [
     "EXE002",
