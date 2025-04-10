@@ -8,6 +8,7 @@ access and manipulate this information.
 import os
 import socket
 import time
+from pathlib import Path
 from typing import Tuple
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
@@ -222,13 +223,13 @@ class Session(HardwareObject):
 
         :returns: The full path to images.
         """
-        directory = self.get_base_image_directory()
+        directory = Path(self.get_base_image_directory())
 
         if sub_dir:
             sub_dir = sub_dir.replace(" ", "").replace(":", "-")
-            directory = os.path.join(directory, sub_dir) + os.path.sep
+            directory = Path(directory, sub_dir)
 
-        return directory
+        return f"{directory}/"
 
     def get_process_directory(self, sub_dir: str = "") -> str:
         """
@@ -239,13 +240,13 @@ class Session(HardwareObject):
 
         :returns: The full path to processed data.
         """
-        directory = self.get_base_process_directory()
+        directory = Path(self.get_base_process_directory())
 
         if sub_dir:
             sub_dir = sub_dir.replace(" ", "").replace(":", "-")
-            directory = os.path.join(directory, sub_dir) + "/"
+            directory = Path(directory, sub_dir)
 
-        return directory
+        return f"{directory}/"
 
     def get_full_path(self, subdir: str = "", tag: str = "") -> Tuple[str, str]:
         """
