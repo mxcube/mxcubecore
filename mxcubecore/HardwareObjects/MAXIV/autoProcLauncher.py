@@ -6,15 +6,10 @@
 
 import logging
 import os
-import shlex
 import string
 import subprocess
 import sys
 import tempfile
-import time
-import urllib
-
-import httplib
 
 inputTemplate = """<?xml version="1.0"?>
 <XSDataInputControlAutoPROC>

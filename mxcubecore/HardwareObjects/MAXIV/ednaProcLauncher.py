@@ -10,9 +10,6 @@ import subprocess
 import sys
 import tempfile
 import time
-import urllib
-
-import httplib
 
 # XDS.INP creation is now asynchronous in mxcube, so it may not be here yet
 # when we're started

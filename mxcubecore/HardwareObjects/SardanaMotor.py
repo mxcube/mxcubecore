@@ -5,7 +5,6 @@ import time
 from gevent import Timeout
 
 from mxcubecore.BaseHardwareObjects import (
-    HardwareObject,
     HardwareObjectState,
 )
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor

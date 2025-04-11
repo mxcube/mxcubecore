@@ -23,7 +23,6 @@ MAXIVAutoProcessing
 
 import logging
 import os
-import subprocess
 import time
 
 import gevent
