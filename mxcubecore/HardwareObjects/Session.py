@@ -179,6 +179,10 @@ class Session(HardwareObject):
 
         return directory
 
+    def prepare_directories(self, _session):
+        # If needed provide prepare_directory logic in inheriting class
+        pass
+
     def get_path_with_proposal_as_root(self, path: str) -> str:
         """
         Strips the beginning of the path so that it starts with
