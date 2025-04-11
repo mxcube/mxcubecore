@@ -1,4 +1,5 @@
 import datetime
+import os
 import json
 import logging
 import subprocess
@@ -14,6 +15,8 @@ from typing_extensions import (
     Literal,
     Optional,
 )
+
+from ewoksjob.client import submit
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.model.common import (
@@ -108,6 +111,7 @@ class SsxBaseQueueEntry(BaseQueueEntry):
         self._use_besproc = False
         self._processing_host = "http://lid29control-2:9998"
         self._current_data_path = None
+        self._current_process_path = None
 
         self.__pedestal_task = None
         self.__stop_req = False
@@ -115,7 +119,29 @@ class SsxBaseQueueEntry(BaseQueueEntry):
     def get_data_path(self):
         return self._current_data_path
 
+    def get_process_path(self):
+        return self._current_process_path
+
     def take_pedestal(self):
+        params = self._data_model._task_data.user_collection_parameters
+        if params.take_pedestal:
+            try:
+                self._take_pedestal_func()
+            except Exception as e:
+                logging.getLogger("user_level_log").error(
+                    f"Error taking pedestal: {e}"
+                )
+                raise
+
+        try:
+            HWR.beamline.control.LDetX.wait_move()
+        except Exception:
+            print("--------------------> Timeout error from bliss?")
+            if HWR.beamline.control.LDetX.position > 0:
+                print(f"{HWR.beamline.control.LDetX.state} - moving to 0 again")
+                HWR.beamline.control.LDetX.move(0)
+
+    def _take_pedestal_func(self):
         params = self._data_model._task_data.user_collection_parameters
 
         exp_time = self._data_model._task_data.user_collection_parameters.exp_time
@@ -135,86 +161,90 @@ class SsxBaseQueueEntry(BaseQueueEntry):
 
         save_raw = False
 
-        if params.take_pedestal:
-            HWR.beamline.control.safshut_oh2.close()
-            if not hasattr(HWR.beamline.control, "lima2_jungfrau_pedestal_scans"):
-                HWR.beamline.control.load_script("id29_lima2.py")
+        HWR.beamline.control.safshut_oh2.close()
+        if not hasattr(HWR.beamline.control, "lima2_jungfrau_pedestal_scans"):
+            HWR.beamline.control.load_script("id29_lima2.py")
 
-            pedestal_dir = HWR.beamline.detector.find_next_pedestal_dir(
-                data_root_path, "pedestal"
+        pedestal_dir = HWR.beamline.detector.find_next_pedestal_dir(
+            data_root_path, "pedestal"
+        )
+        sls_detectors = "/users/blissadm/local/sls_detectors"
+        lima2_path = f"{sls_detectors}/lima2"
+        cl_source_path = f"{lima2_path}/processings/common/fai/kernels"
+
+        disable_saving_list = []
+        if not save_raw:
+            disable_saving_list.append("raw")
+        disable_saving = ",".join(disable_saving_list)
+
+        saving_compression = dict(
+            raw="zip",
+            average="zip",
+        )
+
+        logging.getLogger("user_level_log").info(
+            f"Storing pedestal in {pedestal_dir}"
+        )
+        subprocess.Popen(
+            "mkdir --parents %s && chmod -R 755 %s" % (pedestal_dir, pedestal_dir),
+            shell=True,
+            stdin=None,
+            stdout=None,
+            stderr=None,
+            close_fds=True,
+        ).wait()
+
+        if len(HWR.beamline.detector.lima2_device.recvs) == 4:
+            rr = "rr4"
+        else:
+            rr = "rr"
+        det_name = f"lima2_jungfrau4m_{rr}_smx"
+        detector = getattr(HWR.beamline.control, det_name)
+
+        def pedestal_func():
+            HWR.beamline.control.lima2_jungfrau_pedestal_scans(
+                detector,
+                exp_time,
+                effect_freq,
+                1000,
+                pedestal_dir,
+                "pedestal.h5",
+                disable_saving=disable_saving,
+                print_params=True,
+                det_params={"packet_fifo_depth": packet_fifo_depth},
+                cl_source_path=cl_source_path,
+                saving_compression=saving_compression,
             )
-            sls_detectors = "/users/blissadm/local/sls_detectors"
-            lima2_path = f"{sls_detectors}/lima2"
-            cl_source_path = f"{lima2_path}/processings/common/fai/kernels"
 
-            disable_saving_list = []
-            if not save_raw:
-                disable_saving_list.append("raw")
-            disable_saving = ",".join(disable_saving_list)
+        self.__stop_req = False
 
-            saving_compression = {
-                "raw": "zip",
-                "average": "zip",
-            }
-
-            logging.getLogger("user_level_log").info(
-                f"Storing pedestal in {pedestal_dir}"
+        self.__pedestal_task = gevent.spawn(pedestal_func)
+        try:
+            while not self.__pedestal_task.ready():
+                if self.__stop_req:
+                    logging.getLogger("user_level_log").info(
+                        f"Stop requested. Killing pedestal task"
+                    )
+                    self.__pedestal_task.kill()
+                    return
+                gevent.sleep(0.1)
+            self.__pedestal_task.get()
+        except Exception as e:
+            logging.getLogger("user_level_log").error(
+                f"Error taking pedestal: {e}"
             )
-            subprocess.Popen(
-                "mkdir --parents %s && chmod -R 755 %s" % (pedestal_dir, pedestal_dir),
-                shell=True,
-                stdin=None,
-                stdout=None,
-                stderr=None,
-                close_fds=True,
-            ).wait()
+        finally:
+            self.__pedestal_task = None
 
-            if len(HWR.beamline.detector.lima2_device.recvs) == 4:
-                rr = "rr4"
-            else:
-                rr = "rr"
-            det_name = f"lima2_jungfrau4m_{rr}_smx"
-            detector = getattr(HWR.beamline.control, det_name)
-
-            def pedestal_func():
-                HWR.beamline.control.lima2_jungfrau_pedestal_scans(
-                    detector,
-                    exp_time,
-                    effect_freq,
-                    1000,
-                    pedestal_dir,
-                    "pedestal.h5",
-                    disable_saving=disable_saving,
-                    print_params=True,
-                    det_params={"packet_fifo_depth": packet_fifo_depth},
-                    cl_source_path=cl_source_path,
-                    saving_compression=saving_compression,
-                )
-
-            self.__stop_req = False
-
-            self.__pedestal_task = gevent.spawn(pedestal_func)
-            try:
-                while not self.__pedestal_task.ready():
-                    if self.__stop_req:
-                        self.__pedestal_task.kill()
-                        return
-                    gevent.sleep(0.1)
-                self.__pedestal_task.join()
-            finally:
-                self.__pedestal_task = None
-
-            subprocess.Popen(
-                "cd %s && rm -f pedestal.h5 && ln -s %s/pedestal.h5"
-                % (data_root_path, pedestal_dir),
-                shell=True,
-                stdin=None,
-                stdout=None,
-                stderr=None,
-                close_fds=True,
-            ).wait()
-
-        HWR.beamline.control.mtdsx.wait_move()
+        subprocess.Popen(
+            "cd %s && rm -f pedestal.h5 && ln -s %s/pedestal.h5"
+            % (data_root_path, pedestal_dir),
+            shell=True,
+            stdin=None,
+            stdout=None,
+            stderr=None,
+            close_fds=True,
+        ).wait()
 
     def start_processing(self, exp_type):
         data_root_path = self.get_data_path()
@@ -275,10 +305,16 @@ class SsxBaseQueueEntry(BaseQueueEntry):
     def pre_execute(self):
         super().pre_execute()
         self._current_data_path = self.get_data_model().get_path_template().directory
+        self._current_process_path = self.get_data_model().get_path_template().process_directory
+
+        try:
+            HWR.beamline.beam.wait_for_beam()
+        except AttributeError:
+            pass
 
         logging.getLogger("user_level_log").info(f"Moving detector table")
-        HWR.beamline.control.mtdsx.wait_move()
-        HWR.beamline.control.mtdsx.move(0, wait=False)
+        HWR.beamline.control.LDetX.wait_move()
+        HWR.beamline.control.LDetX.move(0, wait=False)
         self._beamline_values = self.get_current_beamline_values()
         self._data_model._task_data.lims_parameters = self.get_additional_lims_values()
         self.emit_progress(0)
@@ -286,29 +322,69 @@ class SsxBaseQueueEntry(BaseQueueEntry):
     def post_execute(self):
         super().post_execute()
         data_root_path = self.get_data_path()
+        data_process_path = self.get_process_path()
         self._data_model._task_data.lims_parameters.end_time = datetime.datetime.now()
 
         parameters = {}
         parameters["collection_parameters"] = self._data_model._task_data
         parameters["data_path"] = data_root_path
+        parameters["data_process_path"] = data_process_path
         parameters["beamline_parameters"] = self._beamline_values
         parameters["extra_lims_values"] = self._data_model._task_data.lims_parameters
 
         HWR.beamline.lims.finalize_data_collection(parameters)
 
-        logging.getLogger("user_level_log").info(f"Moving detector back")
-        HWR.beamline.control.mtdsx.move(1000, wait=False)
+        self.start_ewoks(parameters)
+
+        try:
+            move_back = HWR.beamline.detector.move_detector.get_value().value
+        except ValueError:
+            move_back = True
+        #import pdb; pdb.set_trace()
+        if move_back:
+            logging.getLogger("user_level_log").info(f"Moving detector back")
+            HWR.beamline.control.LDetX.move(1000, wait=False)
 
         if HWR.beamline.control.safshut_oh2.state.name == "OPEN":
             logging.getLogger("user_level_log").info(f"Closing OH2 safety shutter")
             HWR.beamline.control.safshut_oh2.close()
 
+        #if move_back:
+        #    HWR.beamline.control.MDetX.wait_move()
+
         # self.emit_progress(1)
+
+    def start_ewoks(self, parameters):
+        args = "max_sum_projection_workflow",
+
+        raw_path = os.path.normpath(parameters["data_path"])
+
+        upload_parameters = {
+            "beamline": HWR.beamline.session.beamline_name.lower(),
+            "proposal": f"{HWR.beamline.session.proposal_code}{HWR.beamline.session.proposal_number}",
+            "dataset": "accumulation",
+            "path": os.path.join(parameters['data_process_path'], "accumulation"),
+            "raw": [raw_path],
+            "metadata": {"Sample_name": parameters["collection_parameters"].path_parameters.prefix},
+            }
+
+        kwargs = {
+            "upload_parameters":upload_parameters,
+            "load_options":{"root_module": "ewoksid29.workflows"},
+            "inputs":[{"name": "path_scan", "value": raw_path}]
+        }
+
+        logging.getLogger("user_level_log").info(f"Calling ewoks with:")
+        logging.getLogger("user_level_log").info(f"Upload_parameters f{upload_parameters}")
+        logging.getLogger("user_level_log").info(f"kwargs f{kwargs}")
+
+        future = submit(args=args, kwargs=kwargs, queue="slurm")
 
     def emit_progress(self, progress):
         HWR.beamline.collect.emit_progress(progress)
 
     def stop(self):
+        logging.getLogger("user_level_log").info(f"Stop requested")
         self.__stop_req = True
 
         super().stop()
