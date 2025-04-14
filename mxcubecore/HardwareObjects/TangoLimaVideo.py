@@ -72,7 +72,7 @@ class TangoLimaVideo(BaseHardwareObjects.HardwareObject):
 
         try:
             self._video_mode = self.get_property("video_mode", "RGB24")
-            self.device = DeviceProxy(self.tangoname)
+            self.device = DeviceProxy(self.get_property("tangoname"))
             # try a first call to get an exception if the device
             # is not exported
             self.device.ping()
@@ -103,14 +103,14 @@ class TangoLimaVideo(BaseHardwareObjects.HardwareObject):
         self.update_state(BaseHardwareObjects.HardwareObjectState.READY)
 
     def get_last_image(self):
-        return poll_image(self.device, self.video_mode, self._FORMATS)
+        return poll_image(self.device, self._video_mode, self._FORMATS)
 
     def _do_polling(self, sleep_time):
         lima_tango_device = self.device
 
         while True:
             data, width, height = poll_image(
-                lima_tango_device, self.video_mode, self._FORMATS
+                lima_tango_device, self._video_mode, self._FORMATS
             )
 
             self._last_image = data, width, height
