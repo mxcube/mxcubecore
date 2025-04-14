@@ -62,7 +62,7 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
     def __init__(self, name):
         super().__init__(name)
         self.cfgfile = None
-        self.config = None
+        self.config_fit = None
         self.ctrl_hwobj = None
         self.mcafit = None
         self.default_erange = None
@@ -75,7 +75,7 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
         self.cfgfile = self.get_property(
             "cfgfile", "/users/blissadm/local/beamline_configuration/misc/15keV.cfg"
         )
-        self.config = ConfigDict.ConfigDict()
+        self.config_fit = ConfigDict.ConfigDict()
         self.mcafit = ClassMcaTheory.McaTheory(self.cfgfile)
         self.default_erange = literal_eval(
             self.get_property("default_energy_range", "[2.0, 15.0]")
@@ -141,22 +141,22 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
         if self.cfgfile != cfgfile:
             self.cfgfile = cfgfile
             change = True
-        self.config.read(self.cfgfile)
-        if "concentrations" not in self.config:
-            self.config["concentrations"] = {}
+        self.config_fit.read(self.cfgfile)
+        if "concentrations" not in self.config_fit:
+            self.config_fit["concentrations"] = {}
             change = True
-        if "attenuators" not in self.config:
-            self.config["attenuators"] = {"Matrix": [1, "Water", 1.0, 0.01, 45.0, 45.0]}
+        if "attenuators" not in self.config_fit:
+            self.config_fit["attenuators"] = {"Matrix": [1, "Water", 1.0, 0.01, 45.0, 45.0]}
             change = True
         if "flux" in config:
-            self.config["concentrations"]["flux"] = float(config["flux"])
+            self.config_fit["concentrations"]["flux"] = float(config["flux"])
             change = True
         if "time" in config:
-            self.config["concentrations"]["time"] = float(config["time"])
+            self.config_fit["concentrations"]["time"] = float(config["time"])
             change = True
 
         if change:
-            self.mcafit.configure(self.config)
+            self.mcafit.configure(self.config_fit)
 
     def spectrum_analyse(self, data=None, calib=None, config=None):
         """Execute the fitting. Write the fitted data files to the archive
@@ -196,8 +196,8 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
                 ydata = data[1]
 
             try:
-                xmin = self.config["fit"]["xmin"]
-                xmax = self.config["fit"]["xmax"]
+                xmin = self.config_fit["fit"]["xmin"]
+                xmax = self.config_fit["fit"]["xmax"]
             except KeyError:
                 xmin = data[0][0]
                 xmax = data[0][-1]

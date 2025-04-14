@@ -143,20 +143,14 @@ class EdnaWorkflow(HardwareObject):
         self.gevent_event.set()
 
     def get_available_workflows(self):
-        workflow_list = list()
-        no_wf = len(self["workflow"])
-        for wf_i in range(no_wf):
-            wf = self["workflow"][wf_i]
-            dict_workflow = dict()
-            dict_workflow["name"] = str(wf.title)
-            dict_workflow["path"] = str(wf.path)
-            try:
-                req = [r.strip() for r in wf.get_property("requires").split(",")]
-                dict_workflow["requires"] = req
-            except (AttributeError, TypeError):
-                dict_workflow["requires"] = []
-            dict_workflow["doc"] = ""
-            workflow_list.append(dict_workflow)
+        workflow_list = []
+
+        for _wf in self.get_property("workflow"):
+            wf = dict(_wf)
+            workflow_list.append(wf)
+            wf["requires"] = [r.strip() for r in wf.get("requires", "").split(",")]
+            wf["doc"] = ""
+
         return workflow_list
 
     def abort(self):

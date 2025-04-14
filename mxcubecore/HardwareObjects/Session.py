@@ -105,7 +105,7 @@ class Session(HardwareObject):
         )
 
         try:
-            precision = int(file_info.get("precision", ""))
+            precision = int(file_info.get("precision", self.default_precision))
         except ValueError:
             precision = self.default_precision
 

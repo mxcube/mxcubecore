@@ -80,7 +80,7 @@ class XMLRPCServer(HardwareObject):
         try:
             self.open()
         except Exception:
-            logging.getLogger("HWR").debug("Can't start XML-RPC server")
+            logging.getLogger("HWR").exception("Can't start XML-RPC server")
 
     def close(self):
         try:
@@ -173,7 +173,7 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.set_rotation_axis_position)
 
         # Register functions from modules specified in <apis> element
-        apis = next(self.get_property("apis"), ())
+        apis = self.get_property("apis", {})
         for api in apis.get("api"):
             recurse = api.get("recurse", True)
 
