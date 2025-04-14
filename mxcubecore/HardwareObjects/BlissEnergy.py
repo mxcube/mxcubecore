@@ -64,6 +64,8 @@ class BlissEnergy(AbstractEnergy):
         """Initialisation"""
         super().init()
 
+        self.controller = self.get_object_by_role("controller")
+        self.energy_motor = self.get_object_by_role("energy_motor")
         self.update_state(HardwareObjectState.READY)
 
         if self.energy_motor:
@@ -105,10 +107,12 @@ class BlissEnergy(AbstractEnergy):
         Args:
             value (float): target energy
         """
+        self.update_state(HardwareObjectState.BUSY)
         try:
             self.controller.change_energy(value)
         except (AttributeError, RuntimeError):
             self.energy_motor.set_value(value)
+        self.update_state(HardwareObjectState.READY)
 
     def set_value(self, value, timeout=0):
         """Move energy to absolute position. Wait the move to finish.

@@ -62,6 +62,7 @@ class ESRFPhotonFlux(AbstractFlux):
         """Initialisation"""
         super().init()
         self.threshold = self.threshold or 0.0
+        self.controller = self.get_object_by_role("controller")
 
         try:
             self._flux_calc = self.controller.CalculateFlux()

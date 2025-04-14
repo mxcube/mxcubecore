@@ -75,6 +75,7 @@ class BlissShutter(AbstractShutter):
 
     def init(self):
         """Initilise the predefined values"""
+        self.controller = self.get_object_by_role("controller")
         super().init()
         self._bliss_obj = getattr(self.controller, self.actuator_name)
         # for now we only treat tango type shutter
