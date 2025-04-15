@@ -1116,3 +1116,32 @@ class ICATLIMS(AbstractLims):
         :type sample_dict: dict
         """
         pass
+
+    def store_xrf_spectrum(self, xfespectrum_dict):
+        status = {"xfeFluorescenceSpectrumId": -1}
+        try:
+            try:
+                beamline = self._get_scheduled_beamline()
+                logging.getLogger("HWR").info(
+                    f"Dataset Beamline={beamline} Current Beamline={HWR.beamline.session.beamline_name}"
+                )
+            except Exception:
+                logging.getLogger("HWR").exception(
+                    "Failed to get _get_scheduled_beamline"
+                )
+
+            proposal = f"{HWR.beamline.session.proposal_code}{HWR.beamline.session.proposal_number}"
+
+            directory = pathlib.Path(xfespectrum_dict["filename"])
+            dataset_name = directory.name
+            self.icatClient.store_dataset(
+                beamline=beamline,
+                proposal=proposal,
+                dataset=dataset_name,
+                path=str(directory),
+                metadata=xfespectrum_dict,
+            )
+        except Exception as e:
+            logging.getLogger("ispyb_client").exception(str(e))
+
+        return status
