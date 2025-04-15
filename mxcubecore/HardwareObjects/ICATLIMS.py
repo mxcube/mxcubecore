@@ -283,6 +283,10 @@ class ICATLIMS(AbstractLims):
     def after_offset_days(self):
         return self.get_property("after_offset_days", "1")
 
+    @property
+    def download_processing_attachements(self):
+        return self.get_property("download_processing_attachements", False)
+
     def _string_to_format_date(self, date: str, format: str) -> str:
         if date is not None:
             date_time = self._tz_aware_fromisoformat(date)
@@ -803,6 +807,9 @@ class ICATLIMS(AbstractLims):
             # Store metadata on disk
             self.add_sample_metadata(metadata, collection)
             self.add_beamline_configuration_metadata(metadata, self.beamline_config)
+
+            if self.scan_type == "datacollection":
+                xx
 
             self.save_metadata_to_disk(metadata, directory)
             self.copy_snapshots_to_gallery(collection, directory / "gallery")
