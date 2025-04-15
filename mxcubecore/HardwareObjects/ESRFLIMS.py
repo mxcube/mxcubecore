@@ -215,8 +215,8 @@ class ESRFLIMS(AbstractLims):
         return self.ispyb.store_energy_scan(energyscan_dict)
 
     def store_xfe_spectrum(self, xfespectrum_dict):
-        xfespectrum_dict["sessionId"] = self.ispyb.get_session_id()
-        self.drac.store_xrf_spectrum(xfespectrum_dict)
+        # xfespectrum_dict["sessionId"] = self.ispyb.get_session_id()
+        self.drac.store_xfe_spectrum(xfespectrum_dict)
         return self.ispyb.store_xfe_spectrum(xfespectrum_dict)
 
     def store_workflow(self, *args, **kwargs):

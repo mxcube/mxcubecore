@@ -1,11 +1,11 @@
 import json
 import logging
-import pathlib
 import shutil
 from datetime import (
     datetime,
     timedelta,
 )
+from pathlib import Path
 from time import strftime
 from typing import (
     List,
@@ -68,14 +68,14 @@ class ICATLIMS(AbstractLims):
 
         if self.icatClient is None or self.icatClient is None:
             logging.getLogger("HWR").error(
-                "[ICAT] Error initializing icatClient. icatClient=%s" % (self.url)
+                "[ICAT] Error initializing icatClient. icatClient=%s" % (self.url),
             )
             raise RuntimeError("Could not initialize icatClient")
 
         # Connected to metadata icatClient
         logging.getLogger("HWR").debug(
             "[ICAT] Connected succesfully to icatClient. fullName=%s url=%s"
-            % (self.icat_session["fullName"], self.url)
+            % (self.icat_session["fullName"], self.url),
         )
 
         # Retrieving user's investigations
@@ -85,7 +85,7 @@ class ICATLIMS(AbstractLims):
             raise Exception("No sessions available for user %s" % (user_name))
 
         logging.getLogger("HWR").debug(
-            "[ICAT] Successfully retrieved %s sessions" % (len(sessions))
+            "[ICAT] Successfully retrieved %s sessions" % (len(sessions)),
         )
 
         # This is done because ICATLims can be used standalone or from ESRFLims
@@ -105,7 +105,7 @@ class ICATLIMS(AbstractLims):
             if not session_found:
                 raise Exception(
                     "Current session in-use (with id %s) not avaialble to user %s"
-                    % (self.session_manager.active_session.session_id, user_name)
+                    % (self.session_manager.active_session.session_id, user_name),
                 )
         return self.session_manager, self.icat_session["name"], sessions
 
@@ -116,7 +116,7 @@ class ICATLIMS(AbstractLims):
         logging.getLogger("HWR").debug("get_proposals_by_user %s" % user_name)
 
         logging.getLogger("HWR").debug(
-            "[ICATCLient] Read %s investigations" % len(self.lims_rest.investigations)
+            "[ICATCLient] Read %s investigations" % len(self.lims_rest.investigations),
         )
         return self.lims_rest.to_sessions(self.lims_rest.investigations)
 
@@ -137,7 +137,7 @@ class ICATLIMS(AbstractLims):
                 pucks = parcel["content"]
                 logging.getLogger("HWR").debug(
                     "[ICATClient] Reading parcel '%s' with '%s' pucks"
-                    % (parcel["name"], len(pucks))
+                    % (parcel["name"], len(pucks)),
                 )
                 # Parcels contains pucks: unipucks and spine pucks
                 for puck in pucks:
@@ -150,11 +150,11 @@ class ICATLIMS(AbstractLims):
                                 parcel["name"],
                                 puck["sampleChangerLocation"],
                                 len(tracking_samples),
-                            )
+                            ),
                         )
                         for tracking_sample in tracking_samples:
                             queue_samples.append(
-                                self.__to_sample(tracking_sample, puck, sample_sheets)
+                                self.__to_sample(tracking_sample, puck, sample_sheets),
                             )
 
         except Exception as e:
@@ -162,7 +162,7 @@ class ICATLIMS(AbstractLims):
             return []
 
         logging.getLogger("HWR").debug(
-            "[ICATClient] Read %s samples" % (len(queue_samples))
+            "[ICATClient] Read %s samples" % (len(queue_samples)),
         )
 
         return queue_samples
@@ -174,7 +174,9 @@ class ICATLIMS(AbstractLims):
         return ""
 
     def get_sample_sheet_by_id(
-        self, samples: List[SampleSheet], sample_id: int
+        self,
+        samples: List[SampleSheet],
+        sample_id: int,
     ) -> Optional[SampleSheet]:
         """
         Retrieves a sample sheet by its unique ID.
@@ -194,7 +196,8 @@ class ICATLIMS(AbstractLims):
         sample_name = str(tracking_sample["name"])
         protein_acronym = sample_name
         sample_sheet = self.get_sample_sheet_by_id(
-            sample_sheets, tracking_sample["sampleId"]
+            sample_sheets,
+            tracking_sample["sampleId"],
         )
         if sample_sheet is not None:
             protein_acronym = sample_sheet.name
@@ -215,16 +218,20 @@ class ICATLIMS(AbstractLims):
                 "numberOfPositions": self.find(experiment_plan, "numberOfPositions"),
                 "observedResolution": self.find(experiment_plan, "observedResolution"),
                 "preferredBeamDiameter": self.find(
-                    experiment_plan, "preferredBeamDiameter"
+                    experiment_plan,
+                    "preferredBeamDiameter",
                 ),
                 "radiationSensitivity": self.find(
-                    experiment_plan, "radiationSensitivity"
+                    experiment_plan,
+                    "radiationSensitivity",
                 ),
                 "requiredCompleteness": self.find(
-                    experiment_plan, "requiredCompleteness"
+                    experiment_plan,
+                    "requiredCompleteness",
                 ),
                 "requiredMultiplicity": self.find(
-                    experiment_plan, "requiredMultiplicity"
+                    experiment_plan,
+                    "requiredMultiplicity",
                 ),
                 "requiredResolution": self.find(experiment_plan, "requiredResolution"),
             },
@@ -252,13 +259,15 @@ class ICATLIMS(AbstractLims):
     @property
     def override_beamline_name(self):
         return self.get_property(
-            "override_beamline_name", HWR.beamline.session.beamline_name
+            "override_beamline_name",
+            HWR.beamline.session.beamline_name,
         )
 
     @property
     def compatible_beamlines(self):
         return self.get_property(
-            "compatible_beamlines", HWR.beamline.session.beamline_name
+            "compatible_beamlines",
+            HWR.beamline.session.beamline_name,
         )
 
     @property
@@ -281,11 +290,11 @@ class ICATLIMS(AbstractLims):
     def after_offset_days(self):
         return self.get_property("after_offset_days", "1")
 
-    def _string_to_format_date(self, date: str, format: str) -> str:
+    def _string_to_format_date(self, date: str, fmt: str) -> str:
         if date is not None:
             date_time = self._tz_aware_fromisoformat(date)
             if date_time is not None:
-                return date_time.strftime(format)
+                return date_time.strftime(fmt)
         return ""
 
     def _string_to_date(self, date: str) -> str:
@@ -308,7 +317,7 @@ class ICATLIMS(AbstractLims):
 
         if len(sessions) == 0:
             logging.getLogger("HWR").error(
-                "Session list is empty. No session candidates"
+                "Session list is empty. No session candidates",
             )
             raise Exception("No sessions available")
 
@@ -324,7 +333,7 @@ class ICATLIMS(AbstractLims):
         if len(session_list) != 1:
             raise Exception(
                 "Session not found in the local list of sessions. session_id="
-                + session_id
+                + session_id,
             )
         self.session_manager.active_session = session_list[0]
         return self.session_manager.active_session
@@ -332,23 +341,24 @@ class ICATLIMS(AbstractLims):
     def allow_session(self, session: Session):
         self.active_session = session
         logging.getLogger("HWR").debug(
-            "[ICAT] allow_session investigationId=%s", session.session_id
+            "[ICAT] allow_session investigationId=%s",
+            session.session_id,
         )
         self.icatClient.reschedule_investigation(session.session_id)
 
-    def get_session_by_id(self, id: str):
+    def get_session_by_id(self, sid: str):
         logging.getLogger("HWR").debug(
             "[ICAT] get_session_by_id investigationId=%s investigations=%s",
-            id,
+            sid,
             str(len(self.investigations)),
         )
-        investigation_list = list(filter(lambda p: p["id"] == id, self.investigations))
+        investigation_list = list(filter(lambda p: p["id"] == sid, self.investigations))
         if len(investigation_list) == 1:
             self.investigation = investigation_list[0]
             return self.__to_session(investigation_list[0])
-        logging.getLogger("HWR").warn(
+        logging.getLogger("HWR").warning(
             "[ICAT] No investigation found. get_session_by_id investigationId=%s investigations=%s",
-            id,
+            sid,
             str(len(self.investigations)),
         )
         return None
@@ -367,7 +377,7 @@ class ICATLIMS(AbstractLims):
                     self.icat_session["isInstrumentScientist"],
                     self.icat_session["isAdministrator"],
                     self.compatible_beamlines,
-                )
+                ),
             )
 
             if self.icat_session is not None and (
@@ -392,7 +402,7 @@ class ICATLIMS(AbstractLims):
                 )
             logging.getLogger("HWR").debug(
                 "[ICAT] __get_all_investigations retrieved %s investigations"
-                % len(self.investigations)
+                % len(self.investigations),
             )
             return self.investigations
         except Exception as e:
@@ -438,7 +448,8 @@ class ICATLIMS(AbstractLims):
         try:
             return (
                 self.user_portal_url.replace(
-                    "{id}", str(investigation["parameters"]["Id"])
+                    "{id}",
+                    str(investigation["parameters"]["Id"]),
                 )
                 if self.user_portal_url is not None
                 and investigation["parameters"]["Id"] is not None
@@ -448,7 +459,9 @@ class ICATLIMS(AbstractLims):
             return ""
 
     def __get_investigation_parameter_by_name(
-        self, investigation: dict, parameter_name: str
+        self,
+        investigation: dict,
+        parameter_name: str,
     ) -> str:
         """
         Gets the metadata of the parameters in an investigation
@@ -484,13 +497,14 @@ class ICATLIMS(AbstractLims):
             beamline_name=instrument_name,
             comments="",
             start_datetime=investigation.get(
-                "startDate", None
+                "startDate",
+                None,
             ),  # self._string_to_date(investigation.get("startDate", None)),
             start_date=self._string_to_date(investigation.get("startDate", None)),
             start_time=self._string_to_time(investigation.get("startDate", None)),
             end_datetime=investigation.get("endDate", None),
             end_date=self._string_to_date(
-                investigation.get("endDate", None)
+                investigation.get("endDate", None),
             ),  # self._string_to_time(investigation.get("endDate", None)),
             end_time=self._string_to_time(investigation.get("endDate", None)),
             actual_start_date=self._string_to_date(actual_start_date),
@@ -504,17 +518,18 @@ class ICATLIMS(AbstractLims):
             data_portal_URL=self._get_data_portal_url(investigation),
             user_portal_URL=self._get_user_portal_url(investigation),
             logbook_URL=self._get_logbook_url(investigation),
-            is_rescheduled=(
-                True if "__actualEndDate" in investigation["parameters"] else False
-            ),
+            is_rescheduled=bool("__actualEndDate" in investigation["parameters"]),
             volume=self.__get_investigation_parameter_by_name(
-                investigation, "__volume"
+                investigation,
+                "__volume",
             ),
             sample_count=self.__get_investigation_parameter_by_name(
-                investigation, "__sampleCount"
+                investigation,
+                "__sampleCount",
             ),
             dataset_count=self.__get_investigation_parameter_by_name(
-                investigation, "__datasetCount"
+                investigation,
+                "__datasetCount",
             ),
         )
 
@@ -532,19 +547,19 @@ class ICATLIMS(AbstractLims):
         try:
             logging.getLogger("HWR").debug(
                 "[ICAT] Retrieving parcels by investigation_id %s "
-                % (self.session_manager.active_session.session_id)
+                % (self.session_manager.active_session.session_id),
             )
             parcels = self.icatClient.get_parcels_by(
-                self.session_manager.active_session.session_id
+                self.session_manager.active_session.session_id,
             )
 
             logging.getLogger("HWR").debug(
-                "[ICAT] Successfully retrieved %s parcels" % (len(parcels))
+                "[ICAT] Successfully retrieved %s parcels" % (len(parcels)),
             )
             return parcels
         except Exception as e:
             logging.getLogger("HWR").error(
-                "[ICAT] get_parcels_by_investigation_id %s " % (str(e))
+                "[ICAT] get_parcels_by_investigation_id %s " % (str(e)),
             )
         return []
 
@@ -553,19 +568,19 @@ class ICATLIMS(AbstractLims):
         try:
             logging.getLogger("HWR").debug(
                 "[ICAT] Retrieving samples by investigation_id %s "
-                % (self.session_manager.active_session.session_id)
+                % (self.session_manager.active_session.session_id),
             )
             samples = self.icatClient.get_samples_by(
-                self.session_manager.active_session.session_id
+                self.session_manager.active_session.session_id,
             )
             logging.getLogger("HWR").debug(
-                "[ICAT] Successfully retrieved %s samples" % (len(samples))
+                "[ICAT] Successfully retrieved %s samples" % (len(samples)),
             )
             # Convert to object
             return [SampleSheet.parse_obj(sample) for sample in samples]
         except Exception as e:
             logging.getLogger("HWR").error(
-                "[ICAT] get_samples_by_investigation_id %s " % (str(e))
+                "[ICAT] get_samples_by_investigation_id %s " % (str(e)),
             )
         return []
 
@@ -578,7 +593,8 @@ class ICATLIMS(AbstractLims):
 
     def __add_protein_acronym(self, sample_node, metadata):
         """
-        Fills the sample acronym that should match with the acronym defined in the sample sheet
+        Fills the sample acronym that should match with the acronym
+        defined in the sample sheet
         """
         if sample_node is not None:
             if sample_node.crystals is not None:
@@ -625,7 +641,8 @@ class ICATLIMS(AbstractLims):
 
     def add_sample_metadata(self, metadata, collection_parameters):
         """
-        Adds to the metadata dictionary the metadata concerning sample position, container and tracking
+        Adds to the metadata dictionary the metadata concerning sample
+        position, container and tracking.
 
         Args:
             metadata(dict): metadata to be pushed to ICAT
@@ -657,15 +674,16 @@ class ICATLIMS(AbstractLims):
 
             if HWR.beamline.lims is not None:
                 sample = HWR.beamline.lims.find_sample_by_sample_id(
-                    collection_parameters.get("blSampleId")
+                    collection_parameters.get("blSampleId"),
                 )
                 if sample is not None:
                     if "containerCode" in sample:
                         metadata["SampleTrackingContainer_id"] = sample["containerCode"]
                     else:
+                        # Fake identifier - to be replaced by container code
                         metadata["SampleTrackingContainer_id"] = (
                             str(cell) + "_" + str(puck)
-                        )  # Fake identifier that needs to be replaced by container code
+                        )
 
         except Exception as e:
             logging.getLogger("HWR").exception(e)
@@ -680,13 +698,40 @@ class ICATLIMS(AbstractLims):
         pass
 
     def store_xfe_spectrum(self, xfespectrum_dict: dict):
-        pass
+        status = {"xfeFluorescenceSpectrumId": -1}
+        try:
+            try:
+                beamline = self._get_scheduled_beamline()
+                msg = f"Dataset Beamline={beamline} "
+                msg += f"Current Beamline={HWR.beamline.session.beamline_name}"
+                logging.getLogger("HWR").info(msg)
+            except Exception:
+                logging.getLogger("HWR").exception(
+                    "Failed to get _get_scheduled_beamline",
+                )
+            _session = HWR.beamline.session
+            proposal = f"{_session.proposal_code}{_session.proposal_number}"
+
+            directory = Path(xfespectrum_dict["filename"])
+            dataset_name = directory.name
+            self.icatClient.store_dataset(
+                beamline=beamline,
+                proposal=proposal,
+                dataset=dataset_name,
+                path=str(directory),
+                metadata=xfespectrum_dict,
+            )
+        except Exception as e:
+            logging.getLogger("ispyb_client").exception(str(e))
+
+        return status
 
     def store_workflow(self, workflow_dict: dict):
         pass
 
     def store_data_collection(self, mx_collection, bl_config=None):
-        # stores the dictionay with the information about the beamline to be sent when a dataset is produced
+        # stores the dictionay with the information about the beamline
+        # to be sent when a dataset is produced
         self.beamline_config = bl_config
 
     def update_data_collection(self, mx_collection):
@@ -696,19 +741,19 @@ class ICATLIMS(AbstractLims):
         logging.getLogger("HWR").info("Storing datacollection in ICAT")
         try:
             fileinfo = collection_parameters["fileinfo"]
-            directory = pathlib.Path(fileinfo["directory"])
+            directory = Path(fileinfo["directory"])
             dataset_name = directory.name
             # Determine the scan type
             if dataset_name.endswith("mesh"):
-                scanType = "mesh"
+                scan_type = "mesh"
             elif dataset_name.endswith("line"):
-                scanType = "line"
+                scan_type = "line"
             elif dataset_name.endswith("characterisation"):
-                scanType = "characterisation"
+                scan_type = "characterisation"
             elif dataset_name.endswith("datacollection"):
-                scanType = "datacollection"
+                scan_type = "datacollection"
             else:
-                scanType = collection_parameters["experiment_type"]
+                scan_type = collection_parameters["experiment_type"]
 
             workflow_params = collection_parameters.get("workflow_parameters", {})
             workflow_type = workflow_params.get("workflow_type")
@@ -718,7 +763,8 @@ class ICATLIMS(AbstractLims):
                     dataset_name = fileinfo["prefix"]
 
             start_time = collection_parameters.get(
-                "collection_start_time", strftime("%Y-%m-%d %H:%M:%S")
+                "collection_start_time",
+                strftime("%Y-%m-%d %H:%M:%S"),
             )
 
             if collection_parameters["sample_reference"]["acronym"]:
@@ -732,12 +778,14 @@ class ICATLIMS(AbstractLims):
                     "sample_name"
                 ].replace(":", "-")
 
-            logging.getLogger("HWR").info(f"LIMS sample name {sample_name}")
+            msg = f"LIMS sample name {sample_name}"
+            logging.getLogger("HWR").info(msg)
             oscillation_sequence = collection_parameters["oscillation_sequence"][0]
 
             beamline = HWR.beamline.session.beamline_name.lower()
             distance = HWR.beamline.detector.distance.get_value()
-            proposal = f"{HWR.beamline.session.proposal_code}{HWR.beamline.session.proposal_number}"
+            _session = HWR.beamline.session
+            proposal = f"{_session.proposal_code}{_session.proposal_number}"
             metadata = {
                 "MX_beamShape": collection_parameters["beamShape"],
                 "MX_beamSizeAtSampleX": collection_parameters["beamSizeAtSampleX"],
@@ -754,7 +802,7 @@ class ICATLIMS(AbstractLims):
                 "MX_oscillationStart": oscillation_sequence["start"],
                 "MX_oscillationOverlap": oscillation_sequence["overlap"],
                 "MX_resolution": collection_parameters["resolution"],
-                "scanType": scanType,
+                "scanType": scan_type,
                 "MX_startImageNumber": oscillation_sequence["start_image_number"],
                 "MX_template": fileinfo["template"],
                 "MX_transmission": collection_parameters["transmission"],
@@ -768,10 +816,10 @@ class ICATLIMS(AbstractLims):
                 "Workflow_type": workflow_params.get("workflow_type"),
                 "Workflow_id": workflow_params.get("workflow_uid"),
                 "MX_kappa_settings_id": workflow_params.get(
-                    "workflow_kappa_settings_id"
+                    "workflow_kappa_settings_id",
                 ),
                 "MX_characterisation_id": workflow_params.get(
-                    "workflow_characterisation_id"
+                    "workflow_characterisation_id",
                 ),
                 "MX_position_id": workflow_params.get("workflow_position_id"),
                 "group_by": workflow_params.get("workflow_group_by"),
@@ -789,8 +837,8 @@ class ICATLIMS(AbstractLims):
             self.add_sample_metadata(metadata, collection_parameters)
             self.add_beamline_configuration_metadata(metadata, self.beamline_config)
 
-            icat_metadata_path = pathlib.Path(directory) / "metadata.json"
-            with open(icat_metadata_path, "w") as f:
+            icat_metadata_path = Path(directory) / "metadata.json"
+            with Path(icat_metadata_path).open("w") as f:
                 f.write(json.dumps(metadata, indent=4))
             # Create ICAT gallery
             gallery_path = directory / "gallery"
@@ -798,24 +846,24 @@ class ICATLIMS(AbstractLims):
             for snapshot_index in range(1, 5):
                 key = f"xtalSnapshotFullPath{snapshot_index}"
                 if key in collection_parameters:
-                    snapshot_path = pathlib.Path(collection_parameters[key])
+                    snapshot_path = Path(collection_parameters[key])
                     if snapshot_path.exists():
-                        logging.getLogger("HWR").debug(
-                            f"Copying snapshot index {snapshot_index} to gallery"
-                        )
+                        msg = f"Copying snapshot index {snapshot_index} to gallery"
+                        logging.getLogger("HWR").debug(msg)
                         shutil.copy(snapshot_path, gallery_path)
 
             try:
                 beamline = self._get_scheduled_beamline()
-                logging.getLogger("HWR").info(
-                    f"Dataset Beamline={beamline} Current Beamline={HWR.beamline.session.beamline_name}"
-                )
+                msg = f"Dataset Beamline={beamline} "
+                msg += f"Current Beamline={HWR.beamline.session.beamline_name}"
+                logging.getLogger("HWR").info(msg)
             except Exception:
                 logging.getLogger("HWR").exception(
-                    "Failed to get _get_scheduled_beamline"
+                    "Failed to get _get_scheduled_beamline",
                 )
 
-            # __actualInstrument is a dataset parameter that indicates where the dataset has been actually collected
+            # __actualInstrument is a dataset parameter that indicates where
+            # the dataset has been actually collected
             # only filled when it does not match the scheduled beamline
             try:
                 if (
@@ -834,13 +882,14 @@ class ICATLIMS(AbstractLims):
                 metadata=metadata,
             )
             logging.getLogger("HWR").debug("Done uploading to ICAT")
-        except Exception as e:
+        except Exception:
             logging.getLogger("HWR").exception("Failed uploading to ICAT")
 
     def _get_scheduled_beamline(self):
         """
-        This returns the beamline where the session has been scheduled (in case of a different beamline)
-        otherwise it returns the name of the beamline as set in the properties
+        This returns the beamline where the session has been scheduled
+        (in case of a different beamline).
+        Otherwise it returns the name of the beamline as set in the properties
         """
         active_session = self.session_manager.active_session
 
@@ -848,9 +897,8 @@ class ICATLIMS(AbstractLims):
             return HWR.beamline.session.beamline_name.lower()
 
         beamline = str(active_session.beamline_name.lower())
-        logging.getLogger("HWR").info(
-            f"Session have been moved to another beamline: {beamline}"
-        )
+        msg = f"Session have been moved to another beamline: {beamline}"
+        logging.getLogger("HWR").info(msg)
         return beamline
 
     def update_bl_sample(self, bl_sample: str):
@@ -860,33 +908,3 @@ class ICATLIMS(AbstractLims):
         :param sample_dict: A dictonary with the properties for the entry.
         :type sample_dict: dict
         """
-        pass
-
-    def store_xrf_spectrum(self, xfespectrum_dict):
-        status = {"xfeFluorescenceSpectrumId": -1}
-        try:
-            try:
-                beamline = self._get_scheduled_beamline()
-                logging.getLogger("HWR").info(
-                    f"Dataset Beamline={beamline} Current Beamline={HWR.beamline.session.beamline_name}"
-                )
-            except Exception:
-                logging.getLogger("HWR").exception(
-                    "Failed to get _get_scheduled_beamline"
-                )
-
-            proposal = f"{HWR.beamline.session.proposal_code}{HWR.beamline.session.proposal_number}"
-
-            directory = pathlib.Path(xfespectrum_dict["filename"])
-            dataset_name = directory.name
-            self.icatClient.store_dataset(
-                beamline=beamline,
-                proposal=proposal,
-                dataset=dataset_name,
-                path=str(directory),
-                metadata=xfespectrum_dict,
-            )
-        except Exception as e:
-            logging.getLogger("ispyb_client").exception(str(e))
-
-        return status
