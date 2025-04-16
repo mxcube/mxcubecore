@@ -192,7 +192,8 @@ class Session(HardwareObject):
             _session: The session object containing session-specific
                     information.
         """
-        pass
+        # pass statement is required by python 3.10
+        pass  # noqa: PIE790
 
     def get_path_with_proposal_as_root(self, path: str) -> str:
         """
