@@ -73,23 +73,23 @@ class AbstractXRFSpectrum(HardwareObject):
 
     def start_spectrum(
         self,
-        integration_time=None,
-        data_dir=None,
-        prefix=None,
-        archive_dir=None,
-        session_id=None,
-        blsample_id=None,
-        cpos=None,
+        integration_time: float | None = None,
+        data_dir: str | None = None,
+        prefix: str | None = None,
+        archive_dir: str | None = None,
+        session_id: int | None = None,
+        blsample_id: int | None = None,
+        cpos: int | None = None,
     ):
         """Start the procedure. Called by the queue_model.
 
         Args:
-            integration_time (float): Inregration time [s].
-            data_dir (str): Directory to save the data (full path).
-            archive_dir (str): Directory to save the archive data (full path).
-            prefix (str): File prefix
-            session_id (int): Session ID number (from ISpyB)
-            blsample_id (int): Sample ID number (from ISpyB)
+            integration_time: Inregration time [s].
+            data_dir: Directory to save the data (full path).
+            archive_dir: Directory to save the archive data (full path).
+            prefix: File prefix
+            session_id: Session ID number (from ISpyB)
+            blsample_id: Sample ID number (from ISpyB)
         """
         self.cpos = cpos
         self.spectrum_info_dict = {"sessionId": session_id, "blSampleId": blsample_id}
@@ -126,12 +126,16 @@ class AbstractXRFSpectrum(HardwareObject):
         )
         return True
 
-    def execute_spectrum(self, integration_time=None, filename=None):
+    def execute_spectrum(
+        self,
+        integration_time: float | None = None,
+        filename: str | None = None,
+    ):
         """Do the acquisition.
 
         Args:
-            integration_time (float): MCA integration time [s].
-            filename (str): Data file (full path).
+            integration_time: MCA integration time [s].
+            filename: Data file (full path).
         Raises:
             RuntimeError: Cannot acquire data.
         """
@@ -150,14 +154,18 @@ class AbstractXRFSpectrum(HardwareObject):
             self.update_state(self.STATES.FAULT)
 
     @abc.abstractmethod
-    def _execute_spectrum(self, integration_time=None, filename=None):
+    def _execute_spectrum(
+        self,
+        integration_time: float | None = None,
+        filename: str | None = None,
+    ) -> bool:
         """Specific XRF acquisition procedure"""
         return True
 
-    def create_directory(self, directory):
+    def create_directory(self, directory: str) -> bool:
         """Create a directory, if needed.
         Args:
-            directory (str): Directory to save the data (full path).
+            directory: Directory to save the data (full path).
         Returns:
            (bool): True if directory created or already exists, False if error.
         """
@@ -193,7 +201,7 @@ class AbstractXRFSpectrum(HardwareObject):
 
         return str(filename)
 
-    def spectrum_status_change(self, status_msg):
+    def spectrum_status_change(self, status_msg: str):
         """Emit the signal xrfSpectrumStatusChanged with appropriate message.
         Args:
             status_msg(str): Message to send.

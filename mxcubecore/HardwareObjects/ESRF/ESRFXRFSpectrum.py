@@ -94,14 +94,18 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
         )
         return self._execute_spectrum(ctime, filename)
 
-    def _execute_spectrum(self, integration_time=None, filename=None):
+    def _execute_spectrum(
+        self,
+        integration_time: float | None = None,
+        filename: str | None = None,
+    ) -> bool:
         """Local XRF spectrum sequence.
 
         Args:
-            integration_time (float): MCA integration time [s].
-            filename (str): Data file (full path).
+            integration_time: MCA integration time [s].
+            filename: Data file (full path).
         Returns:
-            (bool): Procedure executed correcly (True) or error (False)
+            Procedure executed correcly (True) or error (False)
         """
         filename = filename or self.spectrum_info_dict["filename"]
         integration_time = integration_time or self.default_integration_time
@@ -126,13 +130,13 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
 
     # Next methods are for fitting the data with pymca
 
-    def mcafit_configuration(self, config=None):
+    def mcafit_configuration(self, config: dict | None = None):
         """Configure the fitting parameters. The procedure is time consuming.
            It is only executed if the last configuration file is not the same.
 
         Args:
-            config(dict): Configuration dictionary, containing among others the
-                          configuration file name.
+            config: Configuration dictionary, containing among others the
+                    configuration file name.
         """
         change = False
         if not config or "file" not in config:
@@ -160,14 +164,19 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
         if change:
             self.mcafit.configure(self.config)
 
-    def spectrum_analyse(self, data=None, calib=None, config=None):
+    def spectrum_analyse(
+        self,
+        data: list | None = None,
+        calib: list | None = None,
+        config: dict | None = None,
+    ) -> bool:
         """Execute the fitting. Write the fitted data files to the archive
         directory.
 
         Args:
-            data (list): The raw data.
-            calib (list): The mca calibration.
-            config (dict): The configuration dictionary.
+            data: The raw data.
+            calib: The mca calibration.
+            config: The configuration dictionary.
         """
 
         if not config:
@@ -255,13 +264,13 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
             self.spectrum_command_failed()
             return False
 
-    def _write_csv_file(self, fitresult, fname=None):
+    def _write_csv_file(self, fitresult: dict, fname: str | None = None):
         """Write fitted data to a csv file.
 
         Args:
-            fitresult(dict): Data as dictionary.
+            fitresult: Data as dictionary.
         Kwargs:
-            fname (str): Filename to write to (full path).
+            fname: Filename to write to (full path).
         """
         fname = fname or self.spectrum_info_dict["fittedDataFileFullPath"]
         if Path(fname).exists():
@@ -322,7 +331,7 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
 
                 csv_fd.write("\n")
 
-    def _get_cfgfile(self, energy):
+    def _get_cfgfile(self, energy: float) -> str:
         """Get the correct configuration file.
 
         Args:
@@ -331,5 +340,5 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
         self.cfg_energies.sort()
         for egy in self.cfg_energies:
             if egy > energy:
-                return Path(self.cfgfile).parent / f"{egy}keV.cfg"
-        return self.cfgfile
+                return str(Path(self.cfgfile).parent / f"{egy}keV.cfg")
+        return str(self.cfgfile)
