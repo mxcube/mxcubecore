@@ -82,7 +82,8 @@ class ICATLIMS(AbstractLims):
         sessions = self.to_sessions(self.__get_all_investigations())
 
         if len(sessions) == 0:
-            raise Exception("No sessions available for user %s" % (user_name))
+            msg = f"No sessions available for user {user_name}"
+            raise RuntimeError(msg)
 
         logging.getLogger("HWR").debug(
             "[ICAT] Successfully retrieved %s sessions" % (len(sessions)),
@@ -103,7 +104,7 @@ class ICATLIMS(AbstractLims):
                     break
 
             if not session_found:
-                raise Exception(
+                raise RuntimeError(
                     "Current session in-use (with id %s) not avaialble to user %s"
                     % (self.session_manager.active_session.session_id, user_name),
                 )
@@ -250,7 +251,7 @@ class ICATLIMS(AbstractLims):
         pass
 
     def store_robot_action(self, proposal_id: str):
-        raise Exception("Not implemented")
+        raise RuntimeError("Not implemented")
 
     @property
     def filter(self):
@@ -306,7 +307,7 @@ class ICATLIMS(AbstractLims):
     def _tz_aware_fromisoformat(self, date: str) -> datetime:
         try:
             return datetime.fromisoformat(date).astimezone()
-        except Exception:
+        except (TypeError, ValueError):
             return None
 
     def set_active_session_by_id(self, session_id: str) -> Session:
@@ -319,7 +320,7 @@ class ICATLIMS(AbstractLims):
             logging.getLogger("HWR").error(
                 "Session list is empty. No session candidates",
             )
-            raise Exception("No sessions available")
+            raise RuntimeError("No sessions available")
 
         if len(sessions) == 1:
             self.session_manager.active_session = sessions[0]
@@ -331,7 +332,7 @@ class ICATLIMS(AbstractLims):
 
         session_list = [obj for obj in sessions if obj.session_id == session_id]
         if len(session_list) != 1:
-            raise Exception(
+            raise RuntimeError(
                 "Session not found in the local list of sessions. session_id="
                 + session_id,
             )

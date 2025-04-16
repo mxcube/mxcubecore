@@ -176,7 +176,7 @@ class AbstractXRFSpectrum(HardwareObject):
                 return False
         return True
 
-    def get_filename(self, directory, prefix):
+    def get_filename(self, directory: str, prefix: str) -> str:
         """Create file template.
         Args:
             directory(str): directory name (full path)
@@ -184,17 +184,14 @@ class AbstractXRFSpectrum(HardwareObject):
             (str): File template
         """
         _pattern = f"{prefix}_{time.strftime('%d_%b_%Y')}_%02d_xrf"
-        filename_pattern = Path(directory) / _pattern
-        filename = filename_pattern % 1
-        # fileprefix = _pattern % 1
+        filename = Path(directory) / (_pattern % 1)
 
         i = 2
         while Path(filename).is_file():
-            filename = filename_pattern % i
-            # fileprefix = _pattern % i
-            i = i + 1
+            filename = Path(directory) / (_pattern % i)
+            i += 1
 
-        return filename
+        return str(filename)
 
     def spectrum_status_change(self, status_msg):
         """Emit the signal xrfSpectrumStatusChanged with appropriate message.
