@@ -179,6 +179,22 @@ class Session(HardwareObject):
 
         return directory
 
+    def prepare_directories(self, _session):
+        """
+        Prepares directories required for the given session.
+
+        This method is a placeholder intended to be overridden in subclasses
+        to implement logic for creating or preparing directories. By default,
+        the method is empty and does not perform any actions nor raise errors,
+        since its implementation may be skipped in some cases.
+
+        Args:
+            _session: The session object containing session-specific
+                    information.
+        """
+        # pass statement is required by python 3.10
+        pass  # noqa: PIE790
+
     def get_path_with_proposal_as_root(self, path: str) -> str:
         """
         Strips the beginning of the path so that it starts with

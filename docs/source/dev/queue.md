@@ -149,7 +149,7 @@ As with any queue entry in MXCuBE the "dynamic" queue entry also has to inherit 
 # Using BaseQueueEntry and DataCollection making the "Dynmaic" queue entries behave as
 # native queue entries
 
-from mxcubecore.queue_entry.base_queue_entry import BaseQueueEntry
+from mxcubecore.queue_entry.base_queue_entry import BaseQueueEntry, TaskPrerequisite
 from mxcubecore.model.queue_model_objects import (
     DataCollection,
 )
@@ -167,7 +167,13 @@ class TestCollectionQueueEntry(BaseQueueEntry):
     QMO = TestCollectionQueueModel
     DATA_MODEL = TestCollectionTaskParameters
     NAME = "Test collection"
-    REQUIRES = ["point", "line", "no_shape", "chip", "mesh"]
+    REQUIRES = [
+        TaskPrerequisite.POINT,
+        TaskPrerequisite.LINE,
+        TaskPrerequisite.CHIP,
+        TaskPrerequisite.MESH,
+        TaskPrerequisite.NO_SHAPE_2D,
+    ]
 
     def __init__(self, view, data_model: TestCollectionQueueModel):
         super().__init__(view=view, data_model=data_model)

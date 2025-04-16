@@ -28,6 +28,7 @@ import sys
 import time
 import traceback
 from collections import namedtuple
+from enum import Enum
 
 import gevent
 
@@ -47,6 +48,51 @@ __category__ = "General"
 status_list = ["SUCCESS", "WARNING", "FAILED", "SKIPPED", "RUNNING", "NOT_EXECUTED"]
 QueueEntryStatusType = namedtuple("QueueEntryStatusType", status_list)
 QUEUE_ENTRY_STATUS = QueueEntryStatusType(0, 1, 2, 3, 4, 5)
+
+
+class TaskPrerequisite(str, Enum):
+    """Defines possible values for task prerequisites.
+
+    These should be stored in the REQUIRED class variables of
+    the queue entry classes.
+
+    Currently they mostly correspond to the canvas shape,
+    i.e. if
+
+    .. code-block:: python
+
+        REQUIRES = [
+            TaskPrerequisite.POINT,
+            TaskPrerequisite.LINE,
+        ]
+
+    Task will be available from the context menu when
+    right clicking on a point or line shape.
+
+    Example:
+        .. code-block:: python
+
+            class MyQueueEntry(BaseQueueEntry):
+                QMO = MyQueueModel
+                DATA_MODEL = MyTaskParameters
+                NAME = "MyQueueEntry"
+                REQUIRES = [
+                    TaskPrerequisite.POINT,
+                    TaskPrerequisite.LINE,
+                    TaskPrerequisite.CHIP,
+                    TaskPrerequisite.MESH,
+                    TaskPrerequisite.NO_SHAPE_2D,
+                ]
+    """
+
+    POINT = "point"
+    LINE = "line"
+    NO_SHAPE = "no_shape"
+    CHIP = "chip"
+    MESH = "mesh"
+    # This is used for the case when no shape is selected and we want to
+    # create a 2D point in the place where context menu was opened.
+    NO_SHAPE_2D = "no_shape_2d"
 
 
 class QueueExecutionException(Exception):

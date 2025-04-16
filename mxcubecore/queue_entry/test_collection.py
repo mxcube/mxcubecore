@@ -12,7 +12,7 @@ from mxcubecore.model.common import (
     StandardCollectionParameters,
 )
 from mxcubecore.model.queue_model_objects import DataCollection
-from mxcubecore.queue_entry.base_queue_entry import BaseQueueEntry
+from mxcubecore.queue_entry.base_queue_entry import BaseQueueEntry, TaskPrerequisite
 
 __credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3+"
@@ -56,7 +56,13 @@ class TestCollectionQueueEntry(BaseQueueEntry):
     QMO = TestCollectionQueueModel
     DATA_MODEL = TestCollectionTaskParameters
     NAME = "TestCollection"
-    REQUIRES = ["point", "line", "no_shape", "chip", "mesh"]
+    REQUIRES = [
+        TaskPrerequisite.POINT,
+        TaskPrerequisite.LINE,
+        TaskPrerequisite.CHIP,
+        TaskPrerequisite.MESH,
+        TaskPrerequisite.NO_SHAPE_2D,
+    ]
 
     def __init__(self, view, data_model: TestCollectionQueueModel):
         super().__init__(view=view, data_model=data_model)
