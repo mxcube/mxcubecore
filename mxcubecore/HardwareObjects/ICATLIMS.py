@@ -1,5 +1,6 @@
 import json
 import logging
+import pathlib
 import shutil
 from datetime import (
     datetime,
@@ -12,6 +13,7 @@ from typing import (
     Optional,
 )
 
+import requests
 from pyicat_plus.client.main import IcatClient
 from pyicat_plus.client.models.session import Session as ICATSession
 
@@ -21,6 +23,7 @@ from mxcubecore.HardwareObjects.abstract.AbstractLims import AbstractLims
 from mxcubecore.model.lims_session import (
     Lims,
     LimsSessionManager,
+    SampleInformation,
     SampleSheet,
     Session,
 )
@@ -261,6 +264,13 @@ class ICATLIMS(AbstractLims):
         return self.get_property(
             "override_beamline_name",
             HWR.beamline.session.beamline_name,
+        )
+
+    @property
+    def download_sample_resources(self):
+        return self.get_property(
+            "download_sample_resources",
+            False,
         )
 
     @property
@@ -737,6 +747,76 @@ class ICATLIMS(AbstractLims):
     def update_data_collection(self, mx_collection):
         pass
 
+    def _download_sample_resources_by(self, sample_id: str, output_folder: str):
+        """
+        Downloads resources related to a given sample and saves them to the specified directory.
+
+        Parameters:
+            sample (str): Sample identifier.
+            sample_information (SampleInformation): Metadata associated with the sample.
+            output_folder (str): Directory where files will be saved.
+
+        Returns:
+            dict: A dictionary containing the paths of the downloaded files.
+        """
+
+        downloaded_files = []
+        sample_information: SampleInformation = self._get_resources_by(sample_id)
+
+        if sample_information is not None:
+            # Iterate over the resources and download them
+            for resource in sample_information.resources:
+                resource_folder = pathlib.Path(output_folder) / (
+                    resource.groupName if resource.groupName else ""
+                )
+                resource_folder.mkdir(
+                    parents=True,
+                    exist_ok=True,
+                )  # Ensure the folder exists
+
+                try:
+                    token = self.icat_session["sessionId"]
+                    url = f"{self.url}/catalogue/{token}/files/download?sampleId={sample_id}&resourceId={resource.id}"
+                    response = requests.get(url, stream=True, timeout=3)
+                    response.raise_for_status()
+
+                    file_path = resource_folder / resource.filename
+                    with open(file_path, "wb") as file:
+                        for chunk in response.iter_content(
+                            chunk_size=8192,
+                        ):  # Efficient chunked download
+                            file.write(chunk)
+
+                    downloaded_files.append(str(file_path))
+                    logging.info(f"Downloaded {resource.filename} to {file_path}")
+
+                except requests.exceptions.RequestException as e:
+                    logging.error(f"Failed to download {resource.filename}: {e}")
+
+        return {"resources": downloaded_files}
+
+    def _get_resources_by(self, sample_id: str) -> Optional[SampleInformation]:
+        """
+        Fetches sample metadata and associated resources based on the sample ID.
+
+        Parameters:
+            sample_id (str): The unique identifier for the sample.
+
+        Returns:
+            Optional[SampleInformation]: Returns a SampleInformation object or None.
+        """
+        try:
+            token = self.icat_session["sessionId"]
+            url = f"{self.url}/catalogue/{token}/files?sampleId={sample_id}"
+            response = requests.get(url, timeout=3)
+            response.raise_for_status()  # Raise an exception for bad status codes
+            return SampleInformation(
+                **response.json(),
+            )  # Parse the response into a SampleInformation model
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Failed to fetch sample information for {sample_id}: {e}")
+        return None
+
     def finalize_data_collection(self, collection_parameters):
         logging.getLogger("HWR").info("Storing datacollection in ICAT")
         try:
@@ -825,6 +905,7 @@ class ICATLIMS(AbstractLims):
                 "group_by": workflow_params.get("workflow_group_by"),
                 "startDate": start_time,
                 "endDate": strftime("%Y-%m-%d %H:%M:%S"),
+                "sampleId": collection_parameters["blSampleId"],
             }
 
             # This forces the ingester to associate the dataset to the experiment by ID
@@ -836,6 +917,21 @@ class ICATLIMS(AbstractLims):
             # Store metadata on disk
             self.add_sample_metadata(metadata, collection_parameters)
             self.add_beamline_configuration_metadata(metadata, self.beamline_config)
+
+            logging.getLogger("HWR").info(
+                f"Download resources : {self.download_sample_resources}",
+            )
+
+            sample_id = collection_parameters["blSampleId"]
+            if self.download_sample_resources and sample_id is not None:
+                logging.getLogger("HWR").info(
+                    f"Downloading resources for sample: {self.download_sample_resources}",
+                )
+                # Writing to the metadata dictionary
+                metadata["resources"] = self.download_sample_resources(
+                    sample_id,
+                    directory,
+                )
 
             icat_metadata_path = Path(directory) / "metadata.json"
             with Path(icat_metadata_path).open("w") as f:

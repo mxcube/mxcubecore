@@ -250,3 +250,22 @@ class SampleSheet(BaseModel):
     parameters: List[Parameter]
     datasets: List[Any]
     meta: Meta
+
+
+class Resource(BaseModel):
+    id: str = Field(..., alias="_id")  # Use alias to map _id from JSON to id
+    filename: str
+    file: str
+    fileType: str
+    createdAt: datetime
+    updatedAt: datetime
+    groupName: Optional[str] = None
+
+
+class SampleInformation(BaseModel):
+    id: str = Field(..., alias="_id")  # Use alias to map _id from JSON to id
+    investigationId: int
+    sampleId: int
+    createdAt: datetime
+    updatedAt: datetime
+    resources: List[Resource]  # List of associated resources
