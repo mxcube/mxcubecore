@@ -2573,18 +2573,9 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/ESRF/ESRFXRFSpectrum.py" = [
     "B028",
-    "COM812",
     "ERA001",
-    "ICN001",
     "N802",
     "N999",
-    "PTH107",
-    "PTH110",
-    "PTH118",
-    "PTH119",
-    "PTH120",
-    "PTH123",
-    "RUF010",
     "TRY300",
     "TRY401",
 ]
@@ -2907,6 +2898,7 @@ convention = "google"
     "SLF001",
 ]
 "mxcubecore/HardwareObjects/ESRFLIMS.py" = [
+    "ERA001",
     "A002",
     "ARG002",
     "COM812",
@@ -3287,28 +3279,19 @@ convention = "google"
     "TRY300",
 ]
 "mxcubecore/HardwareObjects/ICATLIMS.py" = [
-    "A002",
     "ARG002",
     "BLE001",
     "C901",
-    "COM812",
     "DTZ002",
     "E501",
     "EM101",
-    "F841",
     "G002",
-    "G004",
-    "G010",
-    "N806",
     "N814",
     "N999",
     "PERF401",
-    "PIE790",
     "PLR0912",
     "PLR0915",
-    "PTH123",
     "SIM102",
-    "SIM210",
     "TC002",
     "TRY002",
     "TRY003",
@@ -5835,13 +5818,9 @@ convention = "google"
     "N814",
     "N999",
     "PLR0913",
-    "PTH103",
-    "PTH110",
-    "PTH112",
-    "PTH113",
-    "PTH118",
     "TRY300",
     "TRY400",
+
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractXrayCentring.py" = [
     "COM812",
