@@ -268,9 +268,10 @@ class ICATLIMS(AbstractLims):
 
     @property
     def download_sample_resources(self):
+        default_download_resources = False
         return self.get_property(
             "download_sample_resources",
-            False,
+            default_download_resources,
         )
 
     @property
@@ -781,17 +782,17 @@ class ICATLIMS(AbstractLims):
                     response.raise_for_status()
 
                     file_path = resource_folder / resource.filename
-                    with open(file_path, "wb") as file:
+                    with file_path.open("wb") as file:
                         for chunk in response.iter_content(
                             chunk_size=8192,
                         ):  # Efficient chunked download
                             file.write(chunk)
 
                     downloaded_files.append(str(file_path))
-                    logging.info(f"Downloaded {resource.filename} to {file_path}")
+                    logging.info("Downloaded %s to %s", resource.filename, file_path)
 
                 except requests.exceptions.RequestException as e:
-                    logging.error(f"Failed to download {resource.filename}: {e}")
+                    logging.error("Failed to download %s: %s", resource.filename, e)
 
         return {"resources": downloaded_files}
 
@@ -814,7 +815,7 @@ class ICATLIMS(AbstractLims):
                 **response.json(),
             )  # Parse the response into a SampleInformation model
         except requests.exceptions.RequestException as e:
-            logging.error(f"Failed to fetch sample information for {sample_id}: {e}")
+            logging.error("Failed to fetch sample information for %s: %s", sample_id, e)
         return None
 
     def finalize_data_collection(self, collection_parameters):
@@ -919,13 +920,15 @@ class ICATLIMS(AbstractLims):
             self.add_beamline_configuration_metadata(metadata, self.beamline_config)
 
             logging.getLogger("HWR").info(
-                f"Download resources : {self.download_sample_resources}",
+                "Download resources : %s",
+                self.download_sample_resources,
             )
 
             sample_id = collection_parameters["blSampleId"]
             if self.download_sample_resources and sample_id is not None:
                 logging.getLogger("HWR").info(
-                    f"Downloading resources for sample: {self.download_sample_resources}",
+                    "Downloading resources for sample: %s",
+                    self.download_sample_resources,
                 )
                 # Writing to the metadata dictionary
                 metadata["resources"] = self.download_sample_resources(
