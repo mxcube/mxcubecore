@@ -1,6 +1,6 @@
 <equipment class="mxcubecore.HardwareObjects.SSRF.BL19U1.FlexSampleChanger">
 
- 
+
 
     <subdir1-1>Sample-1-01/</subdir1-1>
     <prefix1-1>Sample-1-01</prefix1-1>
@@ -23,7 +23,7 @@
     <subdir1-10>Sample-1-10/</subdir1-10>
     <prefix1-10>Sample-1-11</prefix1-10>
     <subdir1-11>Sample-1-11/</subdir1-11>
-    <prefix1-11>qwe</prefix1-11>
+    <prefix1-11>Sample-1-11</prefix1-11>
     <subdir1-12>Sample-1-12/</subdir1-12>
     <prefix1-12>Sample-1-12</prefix1-12>
     <subdir1-13>Sample-1-13/</subdir1-13>
@@ -67,7 +67,7 @@
     <prefix2-15>Sample-2-15</prefix2-15>
     <subdir2-16>Sample-2-16/</subdir2-16>
     <prefix2-16>Sample-2-16</prefix2-16>
-    
+
     <subdir3-1>Sample-3-01/</subdir3-1>
     <prefix3-1>Sample-3-01</prefix3-1>
     <subdir3-2>Sample-3-02/</subdir3-2>
@@ -100,7 +100,7 @@
     <prefix3-15>Sample-3-15</prefix3-15>
     <subdir3-16>Sample-3-16/</subdir3-16>
     <prefix3-16>Sample-3-16</prefix3-16>
-    
+
     <subdir4-1>Sample-4-01/</subdir4-1>
     <prefix4-1>Sample-4-01</prefix4-1>
     <subdir4-2>Sample-4-02/</subdir4-2>
@@ -133,7 +133,7 @@
     <prefix4-15>Sample-4-15</prefix4-15>
     <subdir4-16>Sample-4-16/</subdir4-16>
     <prefix4-16>Sample-4-16</prefix4-16>
-    
+
     <subdir5-1>Sample-5-01/</subdir5-1>
     <prefix5-1>Sample-5-01</prefix5-1>
     <subdir5-2>Sample-5-02/</subdir5-2>
@@ -195,8 +195,8 @@
     <prefix6-13>Sample-6-13</prefix6-13>
     <subdir6-14>Sample-6-14</subdir6-14>
     <prefix6-14>Sample-6-14</prefix6-14>
-    <subdir6-16>Sample-6-16</subdir6-16>
-    <prefix6-16>Sample-6-16</prefix6-16>
+    <subdir6-15>Sample-6-15</subdir6-15>
+    <prefix6-15>Sample-6-15</prefix6-15>
     <subdir6-16>Sample-6-16</subdir6-16>
     <prefix6-16>Sample-6-16</prefix6-16>
 
@@ -228,8 +228,8 @@
     <prefix7-13>Sample-7-13</prefix7-13>
     <subdir7-14>Sample-7-14</subdir7-14>
     <prefix7-14>Sample-7-14</prefix7-14>
-    <subdir7-16>Sample-7-16</subdir7-16>
-    <prefix7-16>Sample-7-16</prefix7-16>
+    <subdir7-15>Sample-7-15</subdir7-15>
+    <prefix7-15>Sample-7-15</prefix7-15>
     <subdir7-16>Sample-7-16</subdir7-16>
     <prefix7-16>Sample-7-16</prefix7-16>
 

@@ -80,6 +80,7 @@
     <scan_exposure_time>"ScanExposureTime"</scan_exposure_time>
     <scan_detector_gate_pulse_enabled>"DetectorGatePulseEnabled"</scan_detector_gate_pulse_enabled>
     <detector_gate_pulse_readout_time>"DetectorGatePulseReadoutTime"</detector_gate_pulse_readout_time>
+    <rex_position>"REXPosition"</rex_position>
   </exporter_channels>
   <phaseList>["Transfer","Centring","BeamLocation", "DataCollection"]</phaseList>
 </object>

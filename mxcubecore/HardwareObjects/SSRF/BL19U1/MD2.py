@@ -118,6 +118,24 @@ class MD2(Microdiff.Microdiff):
             "CryoIsOut",
         )
 
+        # self.Get_Rex_Position = self.add_channel(
+        #     {
+        #         "type": "exporter",
+        #         "exporter_address": self.exporter_addr,
+        #         "name": "Get_Rex_Position",
+        #     },
+        #     "GetRexPosition",
+        # )
+        #
+        # self.Set_Rex_Position = self.add_channel(
+        #     {
+        #         "type": "exporter",
+        #         "exporter_address": self.exporter_addr,
+        #         "name": "Set_Rex_Position",
+        #     },
+        #     "SetRexPosition",
+        # )
+
         self.centring_table_vertical_state = self.add_channel(
             {
                 "type":"exporter",

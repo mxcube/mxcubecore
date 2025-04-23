@@ -80,6 +80,23 @@ class Microdiff(MiniDiff.MiniDiff):
             },
             "CurrentPhase",
         )
+        # Add cold head
+        # self.Get_Rex_Position = self.add_channel(
+        #     {
+        #         "type": "exporter",
+        #         "exporter_address": self.exporter_addr,
+        #         "name": "Get_Rex_Position",
+        #     },
+        #     "GetRexPosition",
+        # )
+        self.rexPosition = self.add_channel(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "rex_position",
+            },
+            "REXPosition",
+        )
         self.scanLimits = self.add_command(
             {
                 "type": "exporter",
@@ -375,6 +392,32 @@ class Microdiff(MiniDiff.MiniDiff):
 
     def get_phase_list(self):
         return list(self.phases.keys())
+
+    # Add cold head
+    def get_cold_head_state(self):
+        return self.rexPosition.get_value()
+
+    def switch_cold_head(self,position):
+        # return self.rexPosition.set_value(position)
+        valid_states = ["CRYO_IN","CRYO_BACK","PARK","HUMIDIFIER"]
+        if position not in valid_states:
+            raise ValueError(f"Invalid cold head state. Must be one of {valid_states}.")
+
+        current_state = self.get_cold_head_state()
+        if current_state == position:
+            if not hasattr(self, 'last_logged_cold_head_state') or self.last_logged_cold_head_state != position:
+                self.log.info("Cold head is already in %s state", position)
+                self.last_logged_cold_head_state = position
+            return
+
+        self.log.info("Switching cold head to %s state",position)
+        try:
+            self.rexPosition.set_value(position)
+            self._wait_ready(timeout=30)
+            self.last_logged_cold_head_state = position
+        except Exception as e:
+            self.log.error("Failed to switch cold head to %s: %s", position, str(e))
+            raise
 
     def move_sync_motors(self, motors_dict, wait=False, timeout=None):
         in_kappa_mode = self.in_kappa_mode()
