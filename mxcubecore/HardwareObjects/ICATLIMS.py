@@ -51,6 +51,15 @@ class ICATLIMS(AbstractLims):
             reschedule_investigation_urls=["bcu-mq-01:61613"],
         )
 
+        if self.logbook_enabled:
+            # Initialize logbook
+            self.logbookClient = IcatClient(
+                elogbook_url=self.get_property("elogbook_url"),
+                elogbook_token=self.get_property("elogbook_token"),
+            )
+
+
+    def send_message:
     def get_lims_name(self) -> List[Lims]:
         return [
             Lims(name="DRAC", description="Data Repository for Advancing open sCience"),
@@ -272,6 +281,11 @@ class ICATLIMS(AbstractLims):
     @property
     def logbook_url(self):
         return self.get_property("logbook_url", None)
+
+    @property
+    def logbook_enabled(self):
+        is_logbook_enabled = False  # Default
+        return self.get_property("logbook_enabled", is_logbook_enabled)
 
     @property
     def before_offset_days(self):
