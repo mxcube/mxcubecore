@@ -754,7 +754,6 @@ class ICATLIMS(AbstractLims):
 
         Parameters:
             sample (str): Sample identifier.
-            sample_information (SampleInformation): Metadata associated with the sample.
             output_folder (str): Directory where files will be saved.
 
         Returns:
@@ -925,15 +924,25 @@ class ICATLIMS(AbstractLims):
             )
 
             sample_id = collection_parameters["blSampleId"]
-            if self.download_sample_resources and sample_id is not None:
-                logging.getLogger("HWR").info(
-                    "Downloading resources for sample: %s",
-                    self.download_sample_resources,
-                )
-                # Writing to the metadata dictionary
-                metadata["resources"] = self.download_sample_resources(
-                    sample_id,
-                    directory,
+            try:
+                if self.download_sample_resources and sample_id is not None:
+                    logging.getLogger("HWR").info(
+                        "Downloading resources for sample: %s",
+                        self.download_sample_resources,
+                    )
+                    # Writing to the metadata dictionary
+                    metadata["resources"] = self._download_sample_resources_by(
+                        sample_id,
+                        directory,
+                    )
+                    logging.getLogger("HWR").info(
+                        "Downloaded: %s",
+                        metadata["resources"],
+                    )
+            except RuntimeError as e:
+                logging.getLogger("HWR").exception(
+                    "Failed to get download_sample_resources %s",
+                    e,
                 )
 
             icat_metadata_path = Path(directory) / "metadata.json"
