@@ -429,11 +429,6 @@ class HardwareObjectNode:
             ) = self.__references.pop()
 
             hw_object = get_hardware_repository().get_hardware_object(reference)
-            warnings.warn(
-                "Deprecated: Hardware object '{}' with role '{}' is a reference".format(
-                    name, role
-                )
-            )
 
             if hw_object is not None:
                 self._objects_by_role[role] = hw_object
@@ -520,11 +515,6 @@ class HardwareObjectNode:
             Union[HardwareObject, None]: Hardware object.
         """
         role = str(role).lower()
-        warnings.warn(
-            f"{self.__class__.__name__}.get_object_by_role is deprecated. "
-            f"Use attribute '{role}' to access this object."
-        )
-
         #
         # A hack to emulate get_object_by_role() for objects loaded from YAML config
         # files.
