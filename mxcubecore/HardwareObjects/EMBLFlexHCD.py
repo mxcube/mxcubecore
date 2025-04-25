@@ -512,8 +512,13 @@ class EMBLFlexHCD(SampleChanger):
         )
         loaded_sample = previous_sample
 
-        # We wait for the sample changer if its already doing something, like defreezing
+        # We wait for the sample changer if it is already doing something,
+        # like defreezing.
         # wait for 10 minutes then timeout !
+        state = self._execute_cmd_exporter("getStatus", attribute=True)
+        if state == "Defreezing Gripper":
+            msg = f"Sample changer in operation ({state}), please wait"
+            logging.getLogger("user_level_log").warning(msg)
         self._wait_ready(600)
 
         # Start loading
@@ -585,6 +590,12 @@ class EMBLFlexHCD(SampleChanger):
         return self._set_loaded_sample_and_prepare(loaded_sample, previous_sample)
 
     def _do_unload(self, sample=None):
+
+        # We wait for the sample changer if it is already doing something,
+        # like defreezing.
+        # wait for 10 minutes then timeout !
+        self._wait_ready(600)
+
         self._execute_cmd_exporter(
             "unloadSample",
             sample.get_cell_no(),
