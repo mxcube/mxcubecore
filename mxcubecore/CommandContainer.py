@@ -414,7 +414,7 @@ class CommandContainer:
         elif channel_type.lower() == "tango":
             if "tangoname" not in attributes_dict:
                 try:
-                    attributes_dict["tangoname"] = self.tangoname
+                    attributes_dict["tangoname"] = self.get_property("tangoname")
                 except AttributeError:
                     pass
 
@@ -438,7 +438,7 @@ class CommandContainer:
         elif channel_type.lower() == "exporter":
             if "exporter_address" not in attributes_dict:
                 try:
-                    attributes_dict["exporter_address"] = self.exporter_address
+                    attributes_dict["exporter_address"] = self.get_property("exporter_address")
                 except AttributeError:
                     pass
             host, port = attributes_dict["exporter_address"].split(":")
@@ -700,7 +700,7 @@ class CommandContainer:
         elif cmd_type.lower() == "tango":
             if "tangoname" not in attributes_dict:
                 try:
-                    attributes_dict["tangoname"] = self.tangoname
+                    attributes_dict["tangoname"] = self.get_property("tangoname")
                 except AttributeError:
                     pass
             try:
@@ -724,7 +724,7 @@ class CommandContainer:
         elif cmd_type.lower() == "exporter":
             if "exporter_address" not in attributes_dict:
                 try:
-                    attributes_dict["exporter_address"] = self.exporter_address
+                    attributes_dict["exporter_address"] = self.get_property("exporter_address")
                 except AttributeError:
                     pass
             host, port = attributes_dict["exporter_address"].split(":")
@@ -849,7 +849,7 @@ class CommandContainer:
         elif cmd_type.lower() == "pool":
             if "tangoname" not in attributes_dict:
                 try:
-                    attributes_dict["tangoname"] = self.tangoname
+                    attributes_dict["tangoname"] = self.get_property("tangoname")
                 except AttributeError:
                     pass
             try:
