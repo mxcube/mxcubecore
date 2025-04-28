@@ -38,12 +38,13 @@ __copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 import logging
-import os.path
 from ast import literal_eval
+from pathlib import Path
+from shutil import copy2
 from unittest.mock import MagicMock
 from warnings import warn
 
-import numpy
+import numpy as np
 from PyMca5.PyMca import (
     ClassMcaTheory,
     ConfigDict,
@@ -73,15 +74,16 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
         super().init()
         self.ctrl_hwobj = self.get_object_by_role("controller")
         self.cfgfile = self.get_property(
-            "cfgfile", "/users/blissadm/local/beamline_configuration/misc/15keV.cfg"
+            "cfgfile",
+            "/users/blissadm/local/beamline_configuration/misc/15keV.cfg",
         )
         self.config = ConfigDict.ConfigDict()
         self.mcafit = ClassMcaTheory.McaTheory(self.cfgfile)
         self.default_erange = literal_eval(
-            self.get_property("default_energy_range", "[2.0, 15.0]")
+            self.get_property("default_energy_range", "[2.0, 15.0]"),
         )
         self.cfg_energies = literal_eval(
-            self.get_property("cfg_energies", "[7, 9, 12, 15]")
+            self.get_property("cfg_energies", "[7, 9, 12, 15]"),
         )
 
     def _doSpectrum(self, ctime, filename):
@@ -175,9 +177,9 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
                 "bsX": self.spectrum_info_dict["beamSizeHorizontal"],
                 "bsY": self.spectrum_info_dict["beamSizeVertical"],
                 "legend": self.spectrum_info_dict["annotatedPymcaXfeSpectrum"],
-                "htmldir": os.path.split(
-                    self.spectrum_info_dict["annotatedPymcaXfeSpectrum"]
-                )[0],
+                "htmldir": Path(
+                    self.spectrum_info_dict["annotatedPymcaXfeSpectrum"],
+                ).parent,
             }
 
         self.mcafit_configuration(config)
@@ -189,8 +191,8 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
 
         try:
             if data[0].size == 2:
-                xdata = numpy.array(data[:, 0]) * 1.0
-                ydata = numpy.array(data[:, 1])
+                xdata = np.array(data[:, 0]) * 1.0
+                ydata = np.array(data[:, 1])
             else:
                 xdata = data[0] * 1.0
                 ydata = data[1]
@@ -209,16 +211,30 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
             if fitresult:
                 fitresult = {"fitresult": fitresult[0], "result": fitresult[1]}
 
-                # write the csv file to pyarch
+                # create the gallery directory
+                new_dir = Path(self.spectrum_info_dict["filename"]) / "gallery"
+                if not self.create_directory(new_dir):
+                    self.update_state(self.STATES.FAULT)
+                    return False
+
+                # copy the png file to gallery
+                png_file = Path(self.spectrum_info_dict["jpegScanFileFullPath"]).name
+                copy2(
+                    self.spectrum_info_dict["jpegScanFileFullPath"],
+                    new_dir / png_file,
+                )
+
+                # write the csv file to pyarch and gallery
                 csvname = self.spectrum_info_dict["fittedDataFileFullPath"]
                 self._write_csv_file(fitresult["result"], csvname)
+                copy2(csvname, new_dir / Path(csvname).name)
 
                 # write html report to pyarch
-                fname = os.path.basename(self.spectrum_info_dict["filename"])
+                fname = Path(self.spectrum_info_dict["filename"]).name
                 outfile = fname.split(".")[0]
-                outdir = os.path.dirname(
-                    self.spectrum_info_dict["annotatedPymcaXfeSpectrum"]
-                )
+                outdir = Path(
+                    self.spectrum_info_dict["annotatedPymcaXfeSpectrum"],
+                ).parent
 
                 _kw = {
                     "outdir": outdir,
@@ -248,8 +264,8 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
             fname (str): Filename to write to (full path).
         """
         fname = fname or self.spectrum_info_dict["fittedDataFileFullPath"]
-        if os.path.exists(fname):
-            os.remove(fname)
+        if Path(fname).exists():
+            Path(fname).unlink()
 
         # get the significant peaks
         peaks_dict = {}
@@ -281,7 +297,7 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
             header += delimiter + f'"{key}"'
 
         # logging.getLogger("user_level_log").info("Writing %s" % fname)
-        with open(fname, "w") as csv_fd:
+        with Path(fname).open("w") as csv_fd:
             csv_fd.write(header)
             csv_fd.write("\n")
             for i in range(fitresult["xdata"].size):
@@ -299,7 +315,7 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
                         fitresult["continuum"][i],
                         delimiter,
                         fitresult["pileup"][i],
-                    )
+                    ),
                 )
                 for val in peaks_dict.values():
                     csv_fd.write(f"{delimiter}{val[i]:.7g}")
@@ -313,9 +329,7 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
             energy(float): The energy to choose which configuration file.
         """
         self.cfg_energies.sort()
-
-        cfg_path = os.path.split(self.cfgfile)[0]
         for egy in self.cfg_energies:
             if egy > energy:
-                return os.path.join(cfg_path, f"{str(egy)}keV.cfg")
+                return Path(self.cfgfile).parent / f"{egy}keV.cfg"
         return self.cfgfile

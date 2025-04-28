@@ -22,8 +22,8 @@
 
 import abc
 import logging
-import os
 import time
+from pathlib import Path
 
 import gevent
 
@@ -96,6 +96,7 @@ class AbstractXRFSpectrum(HardwareObject):
         integration_time = integration_time or self.default_integration_time
         self.spectrum_info_dict["exposureTime"] = integration_time
         self.spectrum_info_dict["filename"] = ""
+
         # Create the data and the archive directory (if needed) and files
         if data_dir:
             if not self.create_directory(data_dir):
@@ -158,14 +159,14 @@ class AbstractXRFSpectrum(HardwareObject):
         Args:
             directory (str): Directory to save the data (full path).
         Returns:
-           (bool): Tue if directory created or already exists, False if error.
+           (bool): True if directory created or already exists, False if error.
         """
-        if not os.path.isdir(directory):
+        if not Path(directory).is_dir():
             msg = f"XRFSpectrum: directory creating {directory}"
             try:
-                if not os.path.exists(directory):
+                if not Path(directory).exists():
                     logging.getLogger("user_level_log").debug(msg)
-                    os.makedirs(directory)
+                    Path(directory).mkdir(parents=True)
                 return True
             except OSError as err:
                 msg += f": {err}"
@@ -183,12 +184,12 @@ class AbstractXRFSpectrum(HardwareObject):
             (str): File template
         """
         _pattern = f"{prefix}_{time.strftime('%d_%b_%Y')}_%02d_xrf"
-        filename_pattern = os.path.join(directory, _pattern)
+        filename_pattern = Path(directory) / _pattern
         filename = filename_pattern % 1
         # fileprefix = _pattern % 1
 
         i = 2
-        while os.path.isfile(filename):
+        while Path(filename).is_file():
             filename = filename_pattern % i
             # fileprefix = _pattern % i
             i = i + 1
