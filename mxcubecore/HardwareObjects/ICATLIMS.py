@@ -834,8 +834,7 @@ class ICATLIMS(AbstractLims):
             full_path_below_raw_data = Path(*parts[:raw_data_index + 2])
             return full_path_below_raw_data
         else:
-            print("RAW_DATA not found in the path.")
-            logging.error()
+            logging.getLogger("HWR").info("RAW_DATA not found in the path.")
             return None
 
     def finalize_data_collection(self, collection_parameters):
@@ -945,9 +944,10 @@ class ICATLIMS(AbstractLims):
             )
 
             sample_id = collection_parameters["blSampleId"]
-           
+
             try:
                 if self.download_sample_resources and sample_id is not None and scan_type == "datacollection":
+                    # I propose to use the data collection directory and when happy move to get_resource_folder
                     sample_resource_folder = directory # Path(self.get_resource_folder(directory)) / str(sample_id)
                     if sample_resource_folder is not None:
                         logging.getLogger("HWR").info(
@@ -973,7 +973,7 @@ class ICATLIMS(AbstractLims):
                 if scan_type == "datacollection":
                     no_backup = directory / "nobackup"
                     no_backup.mkdir(mode=0o755, exist_ok=True)
-                    nobackup_metadata_path = Path(no_backup) / "metadata.json"                   
+                    nobackup_metadata_path = Path(no_backup) / "metadata.json"
                     user_metadata = {
                         "isAdministrator": self.icat_session["isAdministrator"],
                         "isInstrumentScientist": self.icat_session["isInstrumentScientist"],
