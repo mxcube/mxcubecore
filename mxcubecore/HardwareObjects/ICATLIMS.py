@@ -793,7 +793,7 @@ class ICATLIMS(AbstractLims):
                 except requests.exceptions.RequestException as e:
                     logging.error("Failed to download %s: %s", resource.filename, e)
 
-        return  downloaded_files
+        return downloaded_files
 
     def _get_resources_by(self, sample_id: str) -> Optional[SampleInformation]:
         """
@@ -822,7 +822,9 @@ class ICATLIMS(AbstractLims):
         Returns the one level down of the RAW_DATA or None if it does not exist
         """
         # Original path
-        full_path = Path("/data/visitor/blc16081/id30a1/20250325/RAW_DATA/Tryp/Tryp-x22/run_03_MXPressA/run_03_05_datacollection/PDB")
+        full_path = Path(
+            "/data/visitor/blc16081/id30a1/20250325/RAW_DATA/Tryp/Tryp-x22/run_03_MXPressA/run_03_05_datacollection/PDB",
+        )
 
         # Split path into parts
         parts = full_path.parts
@@ -831,11 +833,9 @@ class ICATLIMS(AbstractLims):
         if "RAW_DATA" in parts:
             raw_data_index = parts.index("RAW_DATA")
             # Construct full path one level below RAW_DATA
-            full_path_below_raw_data = Path(*parts[:raw_data_index + 2])
-            return full_path_below_raw_data
-        else:
-            logging.getLogger("HWR").info("RAW_DATA not found in the path.")
-            return None
+            return Path(*parts[: raw_data_index + 2])
+        logging.getLogger("HWR").info("RAW_DATA not found in the path.")
+        return None
 
     def finalize_data_collection(self, collection_parameters):
         logging.getLogger("HWR").info("Storing datacollection in ICAT")
@@ -946,9 +946,13 @@ class ICATLIMS(AbstractLims):
             sample_id = collection_parameters["blSampleId"]
 
             try:
-                if self.download_sample_resources and sample_id is not None and scan_type == "datacollection":
+                if (
+                    self.download_sample_resources
+                    and sample_id is not None
+                    and scan_type == "datacollection"
+                ):
                     # I propose to use the data collection directory and when happy move to get_resource_folder
-                    sample_resource_folder = directory # Path(self.get_resource_folder(directory)) / str(sample_id)
+                    sample_resource_folder = directory  # Path(self.get_resource_folder(directory)) / str(sample_id)
                     if sample_resource_folder is not None:
                         logging.getLogger("HWR").info(
                             "Downloading resources for sample: %s",
@@ -976,7 +980,9 @@ class ICATLIMS(AbstractLims):
                     nobackup_metadata_path = Path(no_backup) / "metadata.json"
                     user_metadata = {
                         "isAdministrator": self.icat_session["isAdministrator"],
-                        "isInstrumentScientist": self.icat_session["isInstrumentScientist"],
+                        "isInstrumentScientist": self.icat_session[
+                            "isInstrumentScientist"
+                        ],
                         "username": self.icat_session["username"],
                     }
                     with Path(nobackup_metadata_path).open("w") as f:
@@ -991,7 +997,6 @@ class ICATLIMS(AbstractLims):
                     "Failed to get create nobackup folder %s",
                     e,
                 )
-
 
             icat_metadata_path = Path(directory) / "metadata.json"
             with Path(icat_metadata_path).open("w") as f:
