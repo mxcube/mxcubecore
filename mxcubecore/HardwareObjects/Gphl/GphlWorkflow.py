@@ -2525,8 +2525,13 @@ class GphlWorkflow(HardwareObjectYaml):
         if data_model.automation_mode:
             # Either TEST or MASSIF1
             # NB Negotiate different location with Olof Svensson
+            workflow_parameters = dict(data_model.workflow_parameters)
             centring_model = queue_model_objects.addXrayCentring(
-                parent, name=task_label, motor_positions=motor_settings, grid_size=None
+                parent,
+                name=task_label,
+                motor_positions=motor_settings,
+                grid_size=None,
+                workflow_parameters=workflow_parameters,
             )
         else:
             centring_model = queue_model_objects.SampleCentring(
