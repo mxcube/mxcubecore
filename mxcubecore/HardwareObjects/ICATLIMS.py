@@ -58,8 +58,21 @@ class ICATLIMS(AbstractLims):
                 elogbook_token=self.get_property("elogbook_token"),
             )
 
+    def send_info_logbook(self, message):
+        if self.logbookClient is not None:
+            self.logbookClient.send_message(
+                message,
+                None,
+                None,
+                None,
+                1580453731,
+                None,
+                False,
+                False,
+                False,
+                "text/html",
+            )
 
-    def send_message:
     def get_lims_name(self) -> List[Lims]:
         return [
             Lims(name="DRAC", description="Data Repository for Advancing open sCience"),
@@ -129,6 +142,61 @@ class ICATLIMS(AbstractLims):
         )
         return self.lims_rest.to_sessions(self.lims_rest.investigations)
 
+    def json_to_html_table(self, data):
+        from html import escape
+        import re
+
+        def flatten(d, parent_key=""):
+            items = {}
+            for k, v in d.items():
+                new_key = f"{parent_key}.{k}" if parent_key else k
+                if isinstance(v, dict):
+                    items.update(flatten(v, new_key))
+                else:
+                    items[new_key] = v
+            return items
+
+        def camel_to_multiline(name):
+            # Insert <br> before uppercase letters, skip the first character
+            parts = re.sub(r"(?<!^)(?=[A-Z])", "<br>", name)
+            return parts
+
+        # Flatten each item
+        flat_data = [flatten(item) for item in data]
+
+        # Determine non-empty columns
+        columns = set()
+        for row in flat_data:
+            for key, value in row.items():
+                if value not in ("", None):
+                    columns.add(key)
+        columns = sorted(columns)
+
+        # Build HTML table
+        html = ['<table border="1" style="border-collapse: collapse; width: 100%;">']
+        html.append(
+            '<tr style="background-color: #f2f2f2;">'
+            + "".join(
+                f'<th style="padding: 8px; border: 1px solid #ccc;">{camel_to_multiline(escape(col))}</th>'
+                for col in columns
+            )
+            + "</tr>"
+        )
+
+        for idx, row in enumerate(flat_data):
+            row_color = "#ffffff" if idx % 2 == 0 else "#f9f9f9"
+            html.append(
+                f'<tr style="background-color: {row_color};">'
+                + "".join(
+                    f'<td style="padding: 8px; border: 1px solid #ccc;">{escape(str(row.get(col, "")))}</td>'
+                    for col in columns
+                )
+                + "</tr>"
+            )
+
+        html.append("</table>")
+        return "\n".join(html)
+
     def get_samples(self, lims_name):
         try:
             logging.getLogger("HWR").debug(
@@ -137,6 +205,7 @@ class ICATLIMS(AbstractLims):
                 self.session_manager.active_session.proposal_name,
                 lims_name,
             )
+
             parcels = self.get_parcels()
 
             sample_sheets = self.get_samples_sheets()
@@ -173,7 +242,9 @@ class ICATLIMS(AbstractLims):
         logging.getLogger("HWR").debug(
             "[ICATClient] Read %s samples" % (len(queue_samples))
         )
+        print(self.json_to_html_table(queue_samples))
 
+        self.send_info_logbook(self.json_to_html_table(queue_samples))
         return queue_samples
 
     def find(self, arr, atribute_name):
