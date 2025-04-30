@@ -164,7 +164,7 @@ class ICATLIMS(AbstractLims):
         logging.getLogger("HWR").debug(
             "[ICATClient] Read %s samples" % (len(queue_samples))
         )
-
+        self.samples = queue_samples
         return queue_samples
 
     def find(self, arr, atribute_name):
@@ -234,6 +234,7 @@ class ICATLIMS(AbstractLims):
             "sampleLocation": tracking_sample["sampleContainerPosition"],
             "sampleName": sample_name,
             "smiles": None,
+            "containerCode": puck["name"],
         }
 
     def create_session(self, session_dict):
@@ -656,8 +657,13 @@ class ICATLIMS(AbstractLims):
             self.__add_protein_acronym(sample_node, metadata)
 
             if HWR.beamline.lims is not None:
-                sample = HWR.beamline.lims.find_sample_by_sample_id(
-                    collection_parameters.get("blSampleId")
+                sample = next(
+                    (
+                        sample
+                        for sample in self.samples
+                        if sample["limsID"] == collection_parameters.get("blSampleId")
+                    ),
+                    None,
                 )
                 if sample is not None:
                     if "containerCode" in sample:
