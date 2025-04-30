@@ -58,20 +58,42 @@ class ICATLIMS(AbstractLims):
                 elogbook_token=self.get_property("elogbook_token"),
             )
 
+    def send_html_info_logbook(self, message):
+        try:
+            # if there is active session
+            if self.session_manager is not None:
+                if self.session_manager.active_session.session_id is not None:
+                    if self.logbookClient is not None:
+                        self.logbookClient.send_message(
+                            message,
+                            msg_type=None,
+                            beamline=None,
+                            proposal=None,
+                            investigation_id=self.session_manager.active_session.session_id,
+                            dataset=None,
+                            beamline_only=False,
+                            editable=False,
+                            formatted=True,
+                            mimetype="text/html",
+                        )
+        except RuntimeError as e:
+            logging.getLogger("HWR").error("[ICAT] send_info_logbook %s" % (e))
+
     def send_info_logbook(self, message):
-        if self.logbookClient is not None:
-            self.logbookClient.send_message(
-                message,
-                None,
-                None,
-                None,
-                1580453731,
-                None,
-                False,
-                False,
-                False,
-                "text/html",
-            )
+        try:
+            # if there is active session
+            if self.session_manager is not None:
+                if self.session_manager.active_session.session_id is not None:
+                    if self.logbookClient is not None:
+                        self.logbookClient.send_message(
+                            message,
+                            "info",
+                            None,
+                            None,
+                            self.session_manager.active_session.session_id,
+                        )
+        except RuntimeError as e:
+            logging.getLogger("HWR").error("[ICAT] send_info_logbook %s" % (e))
 
     def get_lims_name(self) -> List[Lims]:
         return [
@@ -143,8 +165,8 @@ class ICATLIMS(AbstractLims):
         return self.lims_rest.to_sessions(self.lims_rest.investigations)
 
     def json_to_html_table(self, data):
-        from html import escape
         import re
+        from html import escape
 
         def flatten(d, parent_key=""):
             items = {}
@@ -158,8 +180,7 @@ class ICATLIMS(AbstractLims):
 
         def camel_to_multiline(name):
             # Insert <br> before uppercase letters, skip the first character
-            parts = re.sub(r"(?<!^)(?=[A-Z])", "<br>", name)
-            return parts
+            return re.sub(r"(?<!^)(?=[A-Z])", "<br>", name)
 
         # Flatten each item
         flat_data = [flatten(item) for item in data]
@@ -242,9 +263,10 @@ class ICATLIMS(AbstractLims):
         logging.getLogger("HWR").debug(
             "[ICATClient] Read %s samples" % (len(queue_samples))
         )
-        print(self.json_to_html_table(queue_samples))
+        if len(queue_samples) > 0:
+            self.send_html_info_logbook(self.json_to_html_table(queue_samples))
 
-        self.send_info_logbook(self.json_to_html_table(queue_samples))
+        self.send_info_logbook(f"{len(queue_samples)} samples have been synchronized")
         return queue_samples
 
     def find(self, arr, atribute_name):
@@ -322,8 +344,22 @@ class ICATLIMS(AbstractLims):
     def _store_data_collection_group(self, group_data):
         pass
 
-    def store_robot_action(self, proposal_id: str):
-        raise Exception("Not implemented")
+    def store_robot_action(self, robot_action_dict):
+        if robot_action_dict is not None:
+            actionType = robot_action_dict.get("actionType")
+            containerLocation = robot_action_dict.get("containerLocation")
+            dewarLocation = robot_action_dict.get("dewarLocation")
+            message = robot_action_dict.get("message")
+            startTime = robot_action_dict.get("startTime")
+            endTime = robot_action_dict.get("endTime")
+            status = robot_action_dict.get("status")
+
+            message = (
+                f"[{actionType}] {message}. "
+                f"startTime={startTime} endTime={endTime} "
+                f"containerLocation={containerLocation} "
+                f"dewarLocation={dewarLocation} status={status}"
+            )
 
     @property
     def filter(self):
