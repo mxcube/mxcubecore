@@ -2201,7 +2201,6 @@ class GphlWorkflow(TaskNode):
             "angular_tolerance": settings["angular_tolerance"],
             "clip_kappa": settings["angular_tolerance"],
             "maximum_chi": settings["maximum_chi"],
-            "variant": self.strategy_settings["variants"][0],
         }
         for tag in ("allow_duplicate_orientations", "delphi_block", "stratcal_step"):
             if tag in settings:
@@ -2209,17 +2208,21 @@ class GphlWorkflow(TaskNode):
         if strategy_options:
             self.strategy_options.update(strategy_options)
 
+        strategy_variant = (
+                strategy
+                or self.strategy_options.get("variant")
+                or self.strategy_settings["variants"][0]
+            )
         if self.characterisation_done:
-            strategy = strategy or self.strategy_settings["variants"][0]
-            self.strategy_options["variant"] = self.strategy_variant = strategy
+            self.strategy_options["variant"] = self.strategy_variant = strategy_variant
         elif self.wftype == "diffractcal":
-            strategy = strategy or self.strategy_settings["variants"][0]
-            self.strategy_options["variant"] = self.strategy_variant = strategy
-            self.initial_strategy = strategy
+            self.strategy_options["variant"] = self.strategy_variant = strategy_variant
+            self.initial_strategy = strategy_variant
         elif self.wftype != "transcal":
             # This must be characterisation - here we do not accept defaults
-            strategy = strategy or settings["characterisation_strategies"][0]
-            self.initial_strategy = strategy
+            self.initial_strategy = (
+                strategy or settings["characterisation_strategies"][0]
+            )
 
         # NB init_spot_dir must be re-set every time, hence no if test
         self.init_spot_dir = init_spot_dir
