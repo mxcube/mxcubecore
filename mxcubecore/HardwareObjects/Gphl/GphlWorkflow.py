@@ -1802,7 +1802,7 @@ class GphlWorkflow(HardwareObjectYaml):
                 (role, current_pos_dict[role]) for role in sweepSetting.axisSettings
             )
             orientation_id = gphl_workflow_model.workflow_parameters.get(
-                "orientation_id"
+                "workflow_kappa_settings_id"
             )
             if orientation_id:
                 # We have a pre-existing orientation ID. Use it
