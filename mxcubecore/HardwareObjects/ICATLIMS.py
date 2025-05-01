@@ -657,6 +657,7 @@ class ICATLIMS(AbstractLims):
             self.__add_protein_acronym(sample_node, metadata)
 
             if HWR.beamline.lims is not None:
+                # Find the sample if the synch is done with DRAC
                 sample = next(
                     (
                         sample
@@ -665,6 +666,11 @@ class ICATLIMS(AbstractLims):
                     ),
                     None,
                 )
+                if sample is not None:
+                    # Search the sample in ISPyB
+                    sample = HWR.beamline.lims.find_sample_by_sample_id(
+                        collection_parameters.get("blSampleId")
+                    )
                 if sample is not None:
                     if "containerCode" in sample:
                         metadata["SampleTrackingContainer_id"] = sample["containerCode"]
