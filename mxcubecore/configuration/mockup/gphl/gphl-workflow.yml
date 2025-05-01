@@ -11,7 +11,7 @@ settings:
   # Use advanced_mode for additional UI options. Default is false, any value is true
   advanced_mode: true
   # Maximum allowed value of Chi, for strategy calculation
-  # maximum_chi is automtically reduced to match kappa motor limits.
+  # maximum_chi is automatically reduced to match kappa motor limits.
   maximum_chi: 48.0
   # default values for image width popup; may be overridden by the workflow
   # The first value is the default; values are sorted before use
@@ -115,12 +115,11 @@ settings:
     # automation_mode: TEST_FROM_FILE
     # automation_mode: MASSIF1
 
-  # Default parameters for fully automated strategies
-  # Multiple acquisitions in order - characterisation then main
-  # passed to set_pre_strategy_params and set_pre_acquisition_params
-  # NB as long as we only acquire either characterisation+main or diffractcal
-  # the code will use list[0] for the first acquisition
-  # and list[-1] for the main one
+    # Default parameters for fully automated strategies
+    # Multiple acquisitions in order - characterisation then main
+    # passed to set_pre_strategy_params and set_pre_acquisition_params
+    # NB as long as we only acquire either characterisation+main or diffractcal
+    # the code will use list[0] for the first acquisition and list[-1] for the main one
   auto_acq_parameters:
     # For characterisation acquisition
     - exposure_time: 0.02
@@ -149,9 +148,9 @@ settings:
       #   - 12.222
       # strategy_options:
       # # Program options passed directly to stratcal - not needed normally
-      #   Override default settings
-      #   angular_tolerance, maximum_chi, and clip_kappa are defined in
-      #   settings (above) and strategy_type and variant by program
+      # # Override default settings
+      # # angular_tolerance, maximum_chi, and clip_kappa are defined in
+      # # settings (above) and strategy_type and variant by program
       #   maximum_chi: 48.0
       #   angular_tolerance: 1.0
       #   option_name: 999.999
@@ -169,14 +168,14 @@ settings:
   # Note that irrelevant properties are simply ignored.-->
   workflow_properties:
 
-    # If set, run after-acquisition processing in detatched mode
+    # If set, run after-acquisition processing in detached mode
     co.gphl.wf.process.detach: true
 
     # Set to false to switch off pre-start checks for directory existence
     # in cases where the directories are created after the workflow starts
     # Checks for data directory tree
     co.gphl.wf.blRootCheck: false
-    # Chcks for data processing directory tree
+    # Checks for data processing directory tree
     # co.gphl.wf.procRootCheck: false
 
     # Parameters to individual applications
@@ -206,7 +205,7 @@ settings:
 # wdir: Workflow working directory
 #        Set automatically to Session.get_process_directory()
 #        see gphl_subdir in gphl-setup.xml
-# persistname: Workflow persistence file is named persistnam>.xml
+# persistname: Workflow persistence file is named persistname.xml
 #        Set in gph-setup.xml
 # gphl_subdir is not a workflow option. It is set in gphl-setup.xml
 workflows:
@@ -294,8 +293,8 @@ workflows:
           Aligned on even symetry axes or inverse beam.
           Includes initial characterisation and complete collection
           Variants:
-          advanced: up to 540deg, three orientations for each wwavelngth
-          basic: up to 360deg, two orientations for each wwavelngth
+          advanced: up to 540deg, three orientations for each wavelength
+          basic: up to 360deg, two orientations for each wavelength
         options:
           # Filename pattern name for normal data collections
           pattern: interleaved
