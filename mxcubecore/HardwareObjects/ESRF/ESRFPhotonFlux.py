@@ -37,7 +37,7 @@ Example xml_ configuration:
 
 import logging
 
-from gevent import spawn, sleep
+from gevent import sleep, spawn
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractFlux import AbstractFlux
@@ -154,6 +154,5 @@ class ESRFPhotonFlux(AbstractFlux):
                 if self._beam_check_obj:
                     return self._beam_check_obj.wait_for_beam(timeout)
                 return True
-            return True
         except AttributeError:
             return True
