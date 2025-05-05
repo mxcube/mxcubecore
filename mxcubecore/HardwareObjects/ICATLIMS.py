@@ -667,6 +667,11 @@ class ICATLIMS(AbstractLims):
                     collection_parameters.get("blSampleId")
                 )
                 if sample is not None:
+                    # Search the sample in ISPyB
+                    sample = HWR.beamline.lims.find_sample_by_sample_id(
+                        collection_parameters.get("blSampleId")
+                    )
+                if sample is not None:
                     if "containerCode" in sample:
                         metadata["SampleTrackingContainer_id"] = sample["containerCode"]
                     else:
