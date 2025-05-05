@@ -272,11 +272,19 @@ class TangoChannel(ChannelObject):
         while True:
             try:  # in case of tango communication errors, retry reading the attribute
                 return read_attr()
-            except PyTango.CommunicationFailed:
+            except PyTango.DevFailed:
                 log.warning(
                     f"error polling {self.raw_device} {self.attribute_name} attribute, retrying.",
                     exc_info=True,
                 )
+                gevent.sleep(0.1)
+            except Exception:
+                log.exception(
+                    "unexpected exception polling %s %s attribute",
+                    self.raw_device,
+                    self.attribute_name,
+                )
+                raise
 
     def poll_failed(self, e, poller_id):
         self.emit("update", None)
