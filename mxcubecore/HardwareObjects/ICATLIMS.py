@@ -624,6 +624,12 @@ class ICATLIMS(AbstractLims):
                 if hasattr(beamline_config, config_key):
                     metadata[metadata_key] = getattr(beamline_config, config_key)
 
+    def find_sample_by_sample_id(self, sample_id):
+        return next(
+            (sample for sample in self.samples if sample["limsID"] == sample_id),
+            None,
+        )
+
     def add_sample_metadata(self, metadata, collection_parameters):
         """
         Adds to the metadata dictionary the metadata concerning sample position, container and tracking
@@ -657,13 +663,8 @@ class ICATLIMS(AbstractLims):
             self.__add_protein_acronym(sample_node, metadata)
 
             if HWR.beamline.lims is not None:
-                sample = next(
-                    (
-                        sample
-                        for sample in self.samples
-                        if sample["limsID"] == collection_parameters.get("blSampleId")
-                    ),
-                    None,
+                sample = HWR.beamline.lims.find_sample_by_sample_id(
+                    collection_parameters.get("blSampleId")
                 )
                 if sample is not None:
                     if "containerCode" in sample:
