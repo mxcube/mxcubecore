@@ -590,7 +590,6 @@ class EMBLFlexHCD(SampleChanger):
         return self._set_loaded_sample_and_prepare(loaded_sample, previous_sample)
 
     def _do_unload(self, sample=None):
-
         # We wait for the sample changer if it is already doing something,
         # like defreezing.
         # wait for 10 minutes then timeout !

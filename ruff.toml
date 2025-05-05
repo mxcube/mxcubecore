@@ -1180,6 +1180,7 @@ convention = "google"
 "mxcubecore/HardwareObjects/Bliss.py" = [
     "ARG002",
     "C408",
+    "ERA001",
     "F401",
     "ICN001",
     "N999",
@@ -2340,6 +2341,7 @@ convention = "google"
     "B006",
     "BLE001",
     "C419",
+    "C901",
     "COM812",
     "EM101",
     "ERA001",
@@ -2637,6 +2639,7 @@ convention = "google"
     "DTZ005",
     "E501",
     "N806",
+    "N814",
     "N999",
     "S108",
     "T201",
@@ -5618,6 +5621,7 @@ convention = "google"
     "TD004",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractEnergyScan.py" = [
+    "ARG002",
     "BLE001",
     "COM812",
     "E501",
@@ -5625,6 +5629,7 @@ convention = "google"
     "F841",
     "N803",
     "N806",
+    "N814",
     "N999",
     "PIE790",
     "PLR0913",
