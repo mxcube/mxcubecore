@@ -51,9 +51,9 @@ def shutter():
     # set up the TangoShutter hardware object
     #
     hwo_shutter = TangoShutter.TangoShutter("/random_name")
-    hwo_shutter.tangoname = tangods_test_context.get_device_access()
     hwo_shutter._config = hwo_shutter.HOConfig(  # noqa: SLF001
         values=TANGO_SHUTTER_STATES_MAPPING,
+        tangoname=tangods_test_context.get_device_access(),
     )
     hwo_shutter.add_channel(
         {
@@ -98,7 +98,7 @@ def test_open(shutter):
     """
     test opening the shutter
     """
-    dev = DeviceProxy(shutter.tangoname)
+    dev = DeviceProxy(shutter.get_property("tangoname"))
 
     assert dev.State() == DevState.CLOSE
     assert not shutter.is_open
@@ -113,7 +113,7 @@ def test_close(shutter):
     """
     test closing the shutter
     """
-    dev = DeviceProxy(shutter.tangoname)
+    dev = DeviceProxy(shutter.get_property("tangoname"))
     dev.Open()
 
     assert dev.State() == DevState.OPEN
