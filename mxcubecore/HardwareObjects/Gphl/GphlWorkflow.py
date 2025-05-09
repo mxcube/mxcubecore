@@ -314,9 +314,9 @@ class GphlWorkflow(HardwareObject):
                         )
 
         # Handle delphi block setting
-        delphi_block = self.settings.get("delphi_block")
+        delphi_block = self.config.settings.get("delphi_block")
         if delphi_block:
-            stratcal_step = self.settings.get("stratcal_step")
+            stratcal_step = self.config.settings.get("stratcal_step")
             if not stratcal_step:
                 raise ValueError("delphi_block setting requires stratcal_step sestting")
             count, remainder = divmod(delphi_block, stratcal_step)
@@ -325,7 +325,7 @@ class GphlWorkflow(HardwareObject):
                     "delphi_block %s is not divisible by stratcal_step %s"
                     % (delphi_block, stratcal_step)
                 )
-            self.settings["workflow_properties"][
+            self.config.settings["workflow_properties"][
                 "co.gphl.wf.process.opt.--autoPROC_XdsParameter_DELPHI"
             ] = delphi_block
 
@@ -753,7 +753,7 @@ class GphlWorkflow(HardwareObject):
                     "update_on_change": True,
                 },
             }
-            if self.settings.get("advanced_mode"):
+            if self.config.settings.get("advanced_mode"):
                 ui_schema["ui:order"].append("reffiles")
                 ui_schema["reffiles"] = {
                     "ui:options": {
@@ -952,7 +952,7 @@ class GphlWorkflow(HardwareObject):
                     )
                     break
                 elif message_type == "String":
-                    if not self.settings.get("suppress_external_log_output"):
+                    if not self.config.settings.get("suppress_external_log_output"):
                         func(payload, correlation_id)
                 else:
                     logging.getLogger("HWR").info(
@@ -1286,7 +1286,7 @@ class GphlWorkflow(HardwareObject):
             }
 
         if is_interleaved:
-            wedge_widths = self.settings.get("wedge_widths") or [48, 24, 72, 360]
+            wedge_widths = self.config.settings.get("wedge_widths") or [48, 24, 72, 360]
             fields["wedge_width"] = {
                 "title": "Wedge width (°)",
                 "type": "string",
@@ -2007,7 +2007,7 @@ class GphlWorkflow(HardwareObject):
 
         lastsweep = scans[-1].sweep
 
-        if repeat_count and sweep_offset and self.settings.get("use_multitrigger"):
+        if repeat_count and sweep_offset and self.config.settings.get("use_multitrigger"):
             # compress unrolled multi-trigger sweep
             # NBNB as of 202103 this is only allowed for a single sweep
             #
