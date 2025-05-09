@@ -1035,20 +1035,13 @@ class TestCommandContainer:
         get_logger_patch.reset_mock()
 
         if not raise_attr_error:
-            # Patch missing attributes
-            mocker.patch.object(cmd_container, "name", create=True)
-            mocker.patch.object(cmd_container, "specversion", create=True)
-            mocker.patch.object(cmd_container, "taconame", create=True)
-            mocker.patch.object(cmd_container, "tangoname", create=True)
-            mocker.patch.object(
-                cmd_container,
-                "exporter_address",
-                new="localhost:9000",
-                create=True,
-            )
-            mocker.patch.object(cmd_container, "tine_name", create=True)
-            mocker.patch.object(cmd_container, "taurusname", create=True)
-            mocker.patch.object(cmd_container, "default_value", create=True)
+            # Add missing attributes
+            _attributes["specversion"] = ""
+            _attributes["taconame"] = ""
+            _attributes["tangoname"] = ""
+            _attributes["tine_name"] = ""
+            _attributes["taurusname"] = ""
+            _attributes["exporter_address"] = "localhost:9000"
 
         # Patch "__channels" to test with known values
         _existing_channel_mock: Union[Annotated[ChannelObject, MagicMock], None] = None
@@ -1522,20 +1515,13 @@ class TestCommandContainer:
         _attributes["valuefrom"] = valuefrom
 
         if not raise_attr_error:
-            # Patch missing attributes
-            mocker.patch.object(cmd_container, "name", create=True)
-            mocker.patch.object(cmd_container, "specversion", create=True)
-            mocker.patch.object(cmd_container, "taconame", create=True)
-            mocker.patch.object(cmd_container, "tangoname", create=True)
-            mocker.patch.object(
-                cmd_container,
-                "exporter_address",
-                new="localhost:9000",
-                create=True,
-            )
-            mocker.patch.object(cmd_container, "tine_name", create=True)
-            mocker.patch.object(cmd_container, "taurusname", create=True)
-            mocker.patch.object(cmd_container, "default_value", create=True)
+            # Add missing attributes
+            _attributes["specversion"] = ""
+            _attributes["taconame"] = ""
+            _attributes["tangoname"] = ""
+            _attributes["tine_name"] = ""
+            _attributes["taurusname"] = ""
+            _attributes["exporter_address"] = "localhost:9000"
 
         if not add_now:
             # Call should add "arg1" and "arg2" to "__commands_to_add"
