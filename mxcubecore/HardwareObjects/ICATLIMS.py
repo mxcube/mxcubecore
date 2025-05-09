@@ -120,50 +120,89 @@ class ICATLIMS(AbstractLims):
         )
         return self.lims_rest.to_sessions(self.lims_rest.investigations)
 
-    def get_samples(self, lims_name):
-        try:
-            logging.getLogger("HWR").debug(
-                "[ICATClient] get_samples %s %s lims_name=%s",
-                self.session_manager.active_session.session_id,
-                self.session_manager.active_session.proposal_name,
-                lims_name,
-            )
-            parcels = self.get_parcels()
+    def _get_loaded_pucks(self):
+        """
+        Retrieves all pucks from the parcels that have a defined 'sampleChangerLocation'.
 
-            sample_sheets = self.get_samples_sheets()
+        A puck is considered "loaded" if it contains the key 'sampleChangerLocation'.
+        Iterates through all parcels and collects such pucks.
 
-            queue_samples = []
-            for parcel in parcels:
-                pucks = parcel["content"]
-                logging.getLogger("HWR").debug(
-                    "[ICATClient] Reading parcel '%s' with '%s' pucks"
-                    % (parcel["name"], len(pucks))
-                )
-                # Parcels contains pucks: unipucks and spine pucks
+        Returns:
+            list: A list of pucks (dicts) that have 'sampleChangerLocation' defined.
+        """
+        loaded_pucks = []
+
+        if self.parcels:
+            for parcel in self.parcels:
+                pucks = parcel.get("content", [])
                 for puck in pucks:
-                    tracking_samples = puck["content"]
                     if "sampleChangerLocation" in puck:
-                        logging.getLogger("HWR").debug(
-                            "[ICATClient] Processing puck '%s' within parcel '%s' at position '%s'. Number of samples '%s'"
-                            % (
-                                puck["name"],
-                                parcel["name"],
-                                puck["sampleChangerLocation"],
-                                len(tracking_samples),
-                            )
-                        )
-                        for tracking_sample in tracking_samples:
-                            queue_samples.append(
-                                self.__to_sample(tracking_sample, puck, sample_sheets)
-                            )
+                        loaded_pucks.append(puck)
+
+        return loaded_pucks
+
+    def get_samples(self, lims_name):
+        """
+        Retrieves and processes sample information from LIMS based on the provided name.
+
+        This method:
+        - Retrieves parcel data (containers like UniPucks or SpinePucks).
+        - Retrieves sample sheet data.
+        - Identifies and processes only loaded pucks (those with a 'sampleChangerLocation').
+        - Converts each sample in the pucks into internal queue samples using `__to_sample`.
+
+        Args:
+            lims_name (str): The LIMS name or identifier used to fetch sample-related data.
+
+        Returns:
+            list: A list of processed sample objects ready for queuing.
+        """
+        logger = logging.getLogger("HWR")
+        queue_samples = []
+
+        try:
+            session = self.session_manager.active_session
+            logger.debug(
+                "[ICATClient] get_samples: session_id=%s, proposal_name=%s",
+                session.session_id,
+                session.proposal_name,
+            )
+
+            # Load parcels (pucks)
+            self.parcels = self.get_parcels()
+
+            # Load sample sheets
+            self.sample_sheets = self.get_samples_sheets()
+            logger.debug(
+                "[ICATClient] %d sample sheets retrieved", len(self.sample_sheets)
+            )
+
+            # Filter for loaded pucks
+            self.loaded_pucks = self._get_loaded_pucks()
+            logger.debug("[ICATClient] %d loaded pucks found", len(self.loaded_pucks))
+
+            # Extract and process samples from loaded pucks
+            for puck in self.loaded_pucks:
+                tracking_samples = puck.get("content", [])
+                puck_name = puck.get("name", "Unnamed")
+                location = puck.get("sampleChangerLocation", "Unknown")
+
+                logger.debug(
+                    "[ICATClient] Found puck '%s' at position '%s' containing %d samples",
+                    puck_name,
+                    location,
+                    len(tracking_samples),
+                )
+
+                for tracking_sample in tracking_samples:
+                    sample = self.__to_sample(tracking_sample, puck, self.sample_sheets)
+                    queue_samples.append(sample)
 
         except Exception as e:
-            logging.getLogger("HWR").error(e)
+            logger.error("[ICATClient] Error retrieving samples: %s", str(e))
             return []
 
-        logging.getLogger("HWR").debug(
-            "[ICATClient] Read %s samples" % (len(queue_samples))
-        )
+        logger.debug("[ICATClient] Total %d samples read", len(queue_samples))
         self.samples = queue_samples
         return queue_samples
 
@@ -188,29 +227,60 @@ class ICATLIMS(AbstractLims):
         """
         return next((sample for sample in samples if sample.id == sample_id), None)
 
-    def __to_sample(self, tracking_sample, puck, sample_sheets: List[SampleSheet]):
-        """Converts the sample tracking into the expected sample data structure"""
+    def __to_sample(
+        self, tracking_sample: dict, puck: dict, sample_sheets: List[SampleSheet]
+    ) -> dict:
+        """
+        Converts a tracking sample and associated metadata into the internal sample data structure.
 
-        sample_name = str(tracking_sample["name"])
-        protein_acronym = sample_name
-        sample_sheet = self.get_sample_sheet_by_id(
-            sample_sheets, tracking_sample["sampleId"]
-        )
-        if sample_sheet is not None:
+        This method:
+        - Extracts relevant sample metadata.
+        - Resolves protein acronym from the sample sheet if available.
+        - Maps experiment plan details into a diffraction plan dictionary.
+        - Assembles all relevant fields into a final structured sample dictionary.
+
+        Args:
+            tracking_sample (dict): The raw sample data from tracking.
+            puck (dict): The puck (container) metadata associated with the sample.
+            sample_sheets (List[SampleSheet]): List of sample sheets used for lookup.
+
+        Returns:
+            dict: A dictionary representing the standardized internal sample format.
+        """
+        # Basic identifiers
+        sample_name = str(tracking_sample.get("name", "UnnamedSample"))
+        sample_id = tracking_sample.get(
+            "sampleId"
+        )  # identifier that point to the sample_sheet
+        trackingSampleId = tracking_sample.get(
+            "_id"
+        )  # identifier that point to the sample tracking
+        sample_location = tracking_sample.get("sampleContainerPosition")
+        puck_location = str(puck.get("sampleChangerLocation", "Unknown"))
+        puck_name = puck.get("name", "UnknownPuck")
+
+        # Determine protein acronym using sample sheet if available
+        protein_acronym = sample_name  # Default fallback
+        sample_sheet = self.get_sample_sheet_by_id(sample_sheets, sample_id)
+        if sample_sheet:
             protein_acronym = sample_sheet.name
 
-        experiment_plan = tracking_sample["experimentPlan"]
+        experiment_plan = tracking_sample.get("experimentPlan", {})
+        processing_plan = tracking_sample.get("processingPlan", {})
+        comments = tracking_sample.get("comments")
+
         return {
-            "cellA": self.find(experiment_plan, "unit_cell_a"),
-            "cellAlpha": self.find(experiment_plan, "unit_cell_alpha"),
-            "cellB": self.find(experiment_plan, "unit_cell_b"),
-            "cellBeta": self.find(experiment_plan, "unit_cell_beta"),
-            "cellC": self.find(experiment_plan, "unit_cell_c"),
-            "cellGamma": self.find(experiment_plan, "unit_cell_gamma"),
-            "containerSampleChangerLocation": str(puck["sampleChangerLocation"]),
+            "sampleName": sample_name,
+            "sampleId": sample_id,
+            "trackingSampleId": trackingSampleId,
+            "proteinAcronym": protein_acronym,
+            "sampleLocation": sample_location,
+            "containerCode": puck_name,
+            "containerSampleChangerLocation": puck_location,
+            "smiles": None,  # Placeholder for future chemical structure info
+            "experimentType": self.find(experiment_plan, "workflowType"),
             "crystalSpaceGroup": self.find(experiment_plan, "forceSpaceGroup"),
             "diffractionPlan": {
-                # "diffractionPlanId": 457980, TODO: do we need this?
                 "experimentKind": self.find(experiment_plan, "experimentKind"),
                 "numberOfPositions": self.find(experiment_plan, "numberOfPositions"),
                 "observedResolution": self.find(experiment_plan, "observedResolution"),
@@ -228,13 +298,15 @@ class ICATLIMS(AbstractLims):
                 ),
                 "requiredResolution": self.find(experiment_plan, "requiredResolution"),
             },
-            "experimentType": self.find(experiment_plan, "workflowType"),
-            "proteinAcronym": protein_acronym,
-            "sampleId": tracking_sample["sampleId"],
-            "sampleLocation": tracking_sample["sampleContainerPosition"],
-            "sampleName": sample_name,
-            "smiles": None,
-            "containerCode": puck["name"],
+            "cellA": self.find(experiment_plan, "unit_cell_a"),
+            "cellB": self.find(experiment_plan, "unit_cell_b"),
+            "cellC": self.find(experiment_plan, "unit_cell_c"),
+            "cellAlpha": self.find(experiment_plan, "unit_cell_alpha"),
+            "cellBeta": self.find(experiment_plan, "unit_cell_beta"),
+            "cellGamma": self.find(experiment_plan, "unit_cell_gamma"),
+            "experimentPlan": experiment_plan,
+            "processingPlan": processing_plan,
+            "comments": comments,
         }
 
     def create_session(self, session_dict):
