@@ -18,9 +18,12 @@
 
 import logging
 import uuid
+from typing import TYPE_CHECKING
 
 import gevent
-from mxlims.pydantic.messages import JobMessage
+
+if TYPE_CHECKING:
+    from mxlims.pydantic.objects.MxExperiment import MxExperiment
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.dispatcher import dispatcher
@@ -133,7 +136,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
         data_model = self.get_data_model()
 
-        mxexperiment: JobMessage.JobMessage = self.get_mxlims_record()
+        mxexperiment: MxExperiment = self.get_mxlims_job()
         if mxexperiment is None:
             tracking_data = data_model.tracking_data
             workflow_parameters = data_model.workflow_parameters
@@ -151,7 +154,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             tracking_data.characterisation_id = workflow_parameters.get(
                 "characterisation_id"
             )
-            self._mxlims_record = mxutils.create_mxrecord(
+            self._mxlims_job, mxlims_sample = mxutils.make_mx_experiment(
                 sample=data_model.get_sample_node(),
                 tracking_data=tracking_data,
                 measured_flux = HWR.beamline.flux.get_value()
@@ -173,8 +176,9 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             beam_position = None
         beam = HWR.beamline.beam
         data_model = self.get_data_model()
+        print ('@~@~ add_data_collection', self.get_mxlims_job())
         mxutils.add_data_collection(
-            self.get_mxlims_record(),
+            self.get_mxlims_job(),
             data_model,
             beam_position=beam_position,
             beam_size=beam.get_beam_size(),

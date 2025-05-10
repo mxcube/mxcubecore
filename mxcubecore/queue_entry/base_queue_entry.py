@@ -30,9 +30,10 @@ import traceback
 from collections import namedtuple
 from datetime import datetime
 from enum import Enum
+from typing import Optional
 
 import gevent
-from mxlims.pydantic.messages import JobMessage
+from mxlims.pydantic.objects.MxExperiment import MxExperiment
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects import autoprocessing
@@ -262,7 +263,7 @@ class BaseQueueEntry(QueueEntryContainer):
         self._data_model.lims_session_id = HWR.beamline.session.session_id
 
         # MXLIMS record for currently running experiment
-        self._mxlims_record: Optional[JobMessage.JobMessage] = None
+        self._mxlims_job: Optional[MxExperiment] = None
 
     def is_failed(self):
         """Returns True if failed"""
@@ -336,13 +337,13 @@ class BaseQueueEntry(QueueEntryContainer):
         """
         self._checked_for_exec = state
 
-    def get_mxlims_record(self) -> JobMessage.JobMessage:
+    def get_mxlims_job(self) -> MxExperiment:
         """Get MxExperiment MXLIMS record if the entry is currently running"""
         obj = self
         result = None
         container = obj.get_container()
         while result is None and container is not None:
-            result = obj._mxlims_record
+            result = obj._mxlims_job
             obj = container
             container = obj.get_container()
         return result
@@ -384,13 +385,15 @@ class BaseQueueEntry(QueueEntryContainer):
         self.get_data_model().set_enabled(False)
         self.set_enabled(False)
 
-        mxlims_record = self._mxlims_record
-        if mxlims_record is not None:
-            self._mxlims_record = None
-            mxlims_record.job.end_time = datetime.now()
-            mxutils.export_mxrecord(
-                mxlims_record, None,
-            )
+        mxlims_job = self._mxlims_job
+        if mxlims_job is not None:
+            self._mxlims_job = None
+            mxlims_job.end_time = datetime.now()
+            if mxlims_job.started_from_id is None:
+                # if not, there is a job that started this one higher in the queue
+                mxutils.export_mxjob(
+                    mxlims_job, None,
+                )
 
         # self._set_background_color()
 
@@ -510,11 +513,11 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                 raise QueueExecutionException(msg, self)
 
         self.interleave_items = []
+        ref_num_images = 0
         if init_ref_images:
             # At first all children are gathered together and
             # checked if interleave is set. For this implementation
             # interleave is just possible for discreet data collections
-            ref_num_images = 0
             children_data_model_list = self._data_model.get_children()
 
             for child_data_model in children_data_model_list:
@@ -574,6 +577,8 @@ class TaskGroupQueueEntry(BaseQueueEntry):
             method_type = "interleave"
         elif task_model.inverse_beam_num_images:
             method_type = "inverse beam"
+        else:
+            method_type = "Unknown"
 
         logging.getLogger("queue_exec").info(
             "Preparing %s data collection" % method_type
