@@ -235,7 +235,6 @@ def load_from_yaml(
                     f"load_from_yaml Class {_container.__class__.__name__} has no attribute {role}",
                     stacklevel=2,
                 )
-            _container._roles.append(role)
             _container._hwobj_by_role[role] = result
         try:
             # Initialise object
@@ -290,7 +289,6 @@ def _attach_xml_objects(yaml_export_directory: Optional[Path], container, hwobj,
 
     hwobj._hwobj_container = container
     hwobj._name = role
-    container._roles.append(role)
     container._hwobj_by_role[role] = hwobj
 
     objects_by_role = hwobj._objects_by_role

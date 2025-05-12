@@ -52,7 +52,7 @@ from typing_extensions import (
     Literal,
     Self,
 )
-
+from types import MappingProxyType
 from mxcubecore.CommandContainer import CommandContainer
 from mxcubecore.dispatcher import dispatcher
 
@@ -112,7 +112,6 @@ class ConfiguredObject:
         self._name = name
         self._config: Optional["ConfiguredObject.HOConfig"] = None
         self._hwobj_container: Optional[ConfiguredObject] = hwobj_container
-        self._roles = []
         self._hwobj_by_role = {}
 
     @property
@@ -169,15 +168,7 @@ class ConfiguredObject:
         Returns:
             OrderedDict[str, Union[Self, None]]: Contained objects mapped by role.
         """
-        result = {}
-        for tag in self._roles:
-            if hasattr(self._hwobj_by_role, tag):
-                result[tag] = getattr(self._hwobj_by_role, tag)
-            else:
-                raise ValueError(
-                    "%s object has no attribute %s" % (self.__class__.__name__, tag)
-                )
-        return result
+        return MappingProxyType(self._hwobj_by_role)
 
     def get_properties(self) -> Dict[str, Any]:
         """Get configured properties (not roles)"""
@@ -212,7 +203,7 @@ class ConfiguredObject:
         Returns:
             List[str]: List of hardware object roles.
         """
-        return list(self._roles)
+        return list(self._hwobj_by_role.keys())
 
     def print_log(
         self,
@@ -678,7 +669,6 @@ class HardwareObjectMixin(CommandContainer):
         # Add methods that are exported programatically
         for attr_name in dir(self):
             _attr = getattr(self, attr_name)
-
             if getattr(_attr, "__exported__", False):
                 self._exports[attr_name] = []
 
