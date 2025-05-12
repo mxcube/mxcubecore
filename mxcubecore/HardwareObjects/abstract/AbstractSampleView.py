@@ -42,12 +42,15 @@ class AbstractSampleView(HardwareObject):
 
     def __init__(self, name):
         super().__init__(name)
-        self.camera = None
         self._focus = None
         self._zoom = None
         self._frontlight = None
         self._backlight = None
         self._shapes = None
+
+    @property
+    def camera(self):
+        return self.get_object_by_role("camera")
 
     @abc.abstractmethod
     def get_snapshot(
