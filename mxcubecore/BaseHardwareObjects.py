@@ -61,7 +61,6 @@ if TYPE_CHECKING:
 
     from pydantic.v1 import BaseModel
 
-    from .CommandContainer import CommandObject
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -149,9 +148,16 @@ class ConfiguredObject:
     def get_by_id(self, _id: str) -> "ConfiguredObject":
         result = self
         for name in _id.split("."):
-            result = getattr(result, name)
+            # Roles are no longer added to HardwareObjects as attributes so
+            # we have to retreive them by role
+            result = result.get_object_by_role(name)
+
+            if not result:
+                result = getattr(result, name)
+
             if result is None:
                 break
+
         return result
 
     @property
@@ -331,19 +337,6 @@ class HardwareObjectNode:
     def __len__(self) -> int:
         warnings.warn("%s.__len__ is Deprecated. Avoid" % self.__class__.__name__)
         return sum(map(len, self.__objects))
-
-    def __setattr__(self, attr: str, value: Any) -> None:
-        try:
-            config = self.__dict__.get("_config")
-            if attr not in self.__dict__ and config and attr in config.model_dump():
-                warnings.warn(
-                    "%s.__setattr__ is Deprecated. Avoid" % self.__class__.__name__
-                )
-                self._set_property(attr, value)
-            else:
-                self.__dict__[attr] = value
-        except AttributeError:
-            self.__dict__[attr] = value
 
     def __getitem__(
         self,
@@ -1072,18 +1065,6 @@ class HardwareObject(ConfiguredObject, HardwareObjectNode, HardwareObjectMixin):
 
         obj = get_hardware_repository().get_hardware_object(name)
         self.__dict__.update(obj.__dict__)
-
-    def __getattr__(self, attr: str) -> Union["CommandObject", Any]:
-        if attr.startswith("__"):
-            raise AttributeError(attr)
-
-        try:
-            return CommandContainer.__getattr__(self, attr)
-        except AttributeError:
-            try:
-                return super().__getattr__(attr)
-            except AttributeError:
-                raise AttributeError(attr)
 
     def commit_changes(self) -> None:
         """Commit last changes back to configuration."""
