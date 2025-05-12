@@ -7,7 +7,7 @@ class Component(object):
         self.container = container
         self.address = address
         self.scannable = scannable
-        self.id = None
+        self._id = None
         self.present = False
         self.selected = False
         self.scanned = False
@@ -26,7 +26,7 @@ class Component(object):
         Can be None if sample is unknown or not present
         :rtype: str
         """
-        return self.id
+        return self._id
 
     def get_address(self):
         """
@@ -123,8 +123,8 @@ class Component(object):
         Clears all sample info (also in components if object is a container)
         """
         changed = False
-        if self.id is not None:
-            self.id = None
+        if self._id is not None:
+            self._id = None
             changed = True
         if self.present:
             self.present = False
@@ -138,10 +138,10 @@ class Component(object):
     #########################           PROTECTED           #########################
     def _set_info(self, present=False, id=None, scanned=False):
         changed = False
-        if self.id != id:
-            self.id = id
+        if self._id != id:
+            self._id = id
             changed = True
-        if self.id:
+        if self._id:
             present = True
         if self.present != present:
             self.present = present

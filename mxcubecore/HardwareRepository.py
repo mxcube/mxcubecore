@@ -293,7 +293,6 @@ def _attach_xml_objects(yaml_export_directory: Optional[Path], container, hwobj,
     container._roles.append(role)
     container._hwobj_by_role[role] = hwobj
 
-    setattr(container, role, hwobj)
     objects_by_role = hwobj._objects_by_role
     for role2, hwobj2 in objects_by_role.items():
         _attach_xml_objects(yaml_export_directory, hwobj, hwobj2, role2)

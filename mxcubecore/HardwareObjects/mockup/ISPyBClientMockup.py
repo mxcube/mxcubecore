@@ -29,6 +29,8 @@ class ISPyBClientMockup(ProposalTypeISPyBLims):
     def __init__(self, name):
         super().__init__(name)
 
+        self.loginType = LOGIN_TYPE_FALLBACK
+
     def init(self):
         try:
             self.base_result_url = self.get_property("base_result_url").strip()
@@ -67,9 +69,7 @@ class ISPyBClientMockup(ProposalTypeISPyBLims):
             "Laboratory": {"laboratoryId": 1, "name": "TEST eh1"},
         }
 
-    @property
-    def loginType(self):
-        return self.get_property("loginType", LOGIN_TYPE_FALLBACK)
+        self.loginType = self.get_property("loginType", LOGIN_TYPE_FALLBACK)
 
     def get_login_type(self):
         warnings.warn(
