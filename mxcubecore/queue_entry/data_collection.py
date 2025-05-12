@@ -176,7 +176,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             beam_position = None
         beam = HWR.beamline.beam
         data_model = self.get_data_model()
-        print ('@~@~ add_data_collection', self.get_mxlims_job())
         mxutils.add_data_collection(
             self.get_mxlims_job(),
             data_model,

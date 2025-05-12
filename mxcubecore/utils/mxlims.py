@@ -25,12 +25,15 @@ __copyright__ = """ Copyright © 2024 -  2024 MXLIMS collaboration."""
 __author__ = "rhfogh"
 __date__ = "05/11/2024"
 
+import json
 import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Tuple
 
+from mxlims.impl.utils import to_export_json
 from mxlims.pydantic.datatypes import Scan, UnitCell
+from mxlims.pydantic.mxlims_messages import MxlimsMessage
 from mxlims.pydantic.objects.CollectionSweep import CollectionSweep
 from mxlims.pydantic.objects.CrystallographicSample import CrystallographicSample
 from mxlims.pydantic.objects.MxExperiment import MxExperiment
@@ -144,6 +147,7 @@ def make_mx_experiment(  # noqa: C901
     sample = CrystallographicSample(
         uuid=uuid.uuid1(), **sampledata,
     )
+    jobdata["sample_id"] = sample.uuid
     experiment = MxExperiment(**jobdata)
     return experiment, sample
 
@@ -228,9 +232,8 @@ def add_data_collection(
             "path": path_template.directory,
             "axis_positions_start": startpos,
             "scans": [scan],
+            "axis_positions_end": {scan_axis: axis_pos_end},
         }
-
-        sweepdata["axis_positions_end"] = {scan_axis: axis_pos_end}
 
         # NBNB how do we get the detector type?
         # NBNB do we use MXCuBE axis names or standardised names?
@@ -243,17 +246,7 @@ def export_mxjob(
     mxlims_job: MxExperiment,
     path_template: Optional[qmo.PathTemplate] = None,
 ):
-    print ('@~@~ mro', mxlims_job.__class__.__mro__)
-    """Export MxExperiment mxlims record to JSON file"""
-    for tag, val in mxlims_job._objects_by_id.items():
-        print (f'###############################\n\n\n {tag}\n')
-        for tag2, val2 in val.items():
-            print ('\n-----------\n{tag2}\n')
-            print(
-                val2.model_dump_json(
-                indent=4, by_alias=True, exclude_none=True, serialize_as_any=True
-                )
-            )
+    """Export MxExperiment mxlims record with linked objects to JSON file"""
     if path_template is None:
         path = Path(mxlims_job.results[-1].path)
         file_name = "MxExperiment.json"
@@ -263,8 +256,36 @@ def export_mxjob(
         path = Path(path_template.directory) / file_name
     path = path / file_name
     print("WRITING MXLIMS JSON TO", path)
-    path.write_text(
-        mxlims_job.model_dump_json(
-            indent=4, by_alias=True, exclude_none=True, serialize_as_any=True
-        )
+
+    jobs = [mxlims_job]
+    objects_by_uuid = {}
+    for job in jobs:
+        objects_by_uuid[job.uuid] = job
+        jobs.extend(job.subjobs)
+        for tag in ("results", "template_data", "reference_data"):
+            for obj in getattr(job, tag):
+                objects_by_uuid[obj.uuid] = obj
+        if hasattr(job, "input_data"):
+            for obj in job.input_data:
+                objects_by_uuid[obj.uuid] = obj
+    for obj in list(objects_by_uuid.values()):
+        sample = getattr(obj, "sample", None)
+        if sample is not None:
+            objects_by_uuid[sample.uuid] = sample
+        logistical_sample = getattr(obj, "logistical_sample", None)
+        if logistical_sample is not None:
+            objects_by_uuid[logistical_sample.uuid] = logistical_sample
+            sample = getattr(logistical_sample, "sample", None)
+            if sample is not None:
+                objects_by_uuid[sample.uuid] = sample
+    message = MxlimsMessage.from_pydantic_objects(list(objects_by_uuid.values()))
+    # The stringification is needed because model_dump_json required for UUID
+    message_str = message.model_dump_json(
+            indent=4,
+            by_alias=True,
+            exclude_none=True,
+            serialize_as_any=True,
     )
+    message_json = json.loads(message_str)
+    to_export_json(message_json)
+    path.write_text(json.dumps(message_json, indent=4))
