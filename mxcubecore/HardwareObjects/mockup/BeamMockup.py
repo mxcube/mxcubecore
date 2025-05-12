@@ -65,14 +65,9 @@ class BeamMockup(AbstractBeam):
         # get_object_by_role()
         #
         _definer_type = None
-        if self.aperture is None:
-            self._aperture = self.get_object_by_role("aperture")
-
-        if self.slits is None:
-            self._slits = self.get_object_by_role("slits")
-
-        if self.definer is None:
-            self._definer = self.get_object_by_role("definer")
+        self._aperture = self.get_object_by_role("aperture")
+        self._slits = self.get_object_by_role("slits")
+        self._definer = self.get_object_by_role("definer")
 
         if self.aperture:
             _definer_type = "aperture"
