@@ -169,6 +169,10 @@ def load_from_yaml(
 
     if not msg0:
         try:
+            config = configuration.pop("configuration", {})
+            # Set configuration with non-object properties.
+            result._config = result.HOConfig(**config)
+
             # Initialise object
             result._init()
         except Exception:
@@ -181,9 +185,6 @@ def load_from_yaml(
     if not msg0:
         # Recursively load contained objects (of any type that the system can support)
         objects = configuration.pop("objects", {})
-        config = configuration.pop("configuration", {})
-        # Set configuration with non-object properties.
-        result._config = result.HOConfig(**config)
 
         setup_commands_channels(result, configuration)
 
