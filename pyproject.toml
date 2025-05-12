@@ -32,6 +32,7 @@ dynamic = [
 ]
 
 [tool.poetry]
+requires-poetry = "2.1.3"  # Keep in sync with `.pre-commit-config.yaml`
 # Exclude some files from being added to *sdist* and * wheel* distribution packages
 exclude = [
     "mxcubecore/configuration",

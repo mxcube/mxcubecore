@@ -27,7 +27,7 @@ dependencies:
   # Development dependencies
   # ========================
 
-  - poetry ==2.0.1  # Keep in sync with `.pre-commit-config.yaml` and `poetry.lock`
+  - poetry ==2.1.3  # Keep in sync with `.pre-commit-config.yaml` and `poetry.lock`
 
 
 ...
