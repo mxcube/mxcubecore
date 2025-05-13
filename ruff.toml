@@ -664,6 +664,11 @@ convention = "google"
     "PLR0912",
     "PLR5501",
 ]
+"mxcubecore/HardwareObjects/Argus.py" = [
+    "S603",
+    "S607",
+    "N999",
+]
 "mxcubecore/HardwareObjects/Attenuators.py" = [
     "ERA001",
     "N999",
