@@ -152,7 +152,7 @@ class _Poller:
                     gevent.spawn(cb, res)
 
     def run(self):
-        sleep = gevent.monkey._get_original("time", ["sleep"])[0]
+        sleep = gevent.monkey.get_original("time", "sleep")
 
         self.async_watcher.start(self.new_event)
 
