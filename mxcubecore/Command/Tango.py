@@ -168,6 +168,7 @@ class TangoChannel(ChannelObject):
         self.device_name = tangoname
         self.device = None
         self.value = Poller.NotInitializedValue
+        self.poller = None
         self.polling = polling
         self.polling_timer = None
         self.polling_events = False
@@ -176,6 +177,18 @@ class TangoChannel(ChannelObject):
         self._device_initialized = gevent.event.Event()
         self.init_device()
         self.continue_init(None)
+
+    def stop_polling(self):
+        """Stop polling the underlying Tango attribute.
+
+        If this channel is currently polling its tango attribute, via
+        'attribute read' calls, stop polling.
+
+        If no polling is active, this method does nothing.
+        """
+        if self.poller is not None:
+            self.poller.stop()
+            self.poller = None
 
     def init_poll_failed(self, e, poller_id):
         self._device_initialized.clear()
@@ -191,7 +204,7 @@ class TangoChannel(ChannelObject):
         if isinstance(self.polling, int):
             self.raw_device = DeviceProxy(self.device_name)
 
-            Poller.poll(
+            self.poller = Poller.poll(
                 self.poll,
                 polling_period=self.polling,
                 value_changed_callback=self.update,
