@@ -248,7 +248,7 @@ class ICATLIMS(AbstractLims):
             dict: A dictionary representing the standardized internal sample format.
         """
         # Basic identifiers
-        sample_name = str(tracking_sample.get("name", "UnnamedSample"))
+        sample_name = str(tracking_sample.get("name", ""))
         sample_id = tracking_sample.get(
             "sampleId"
         )  # identifier that point to the sample_sheet
