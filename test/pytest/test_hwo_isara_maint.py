@@ -104,6 +104,7 @@ def _disconnect_channels(maint: ISARAMaint):
     }
 
     for ch in maint.get_channels():
+        ch.stop_polling()
         ch.disconnect_signal("update", callbacks[ch.name()])
 
 
