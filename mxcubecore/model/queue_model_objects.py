@@ -2209,10 +2209,10 @@ class GphlWorkflow(TaskNode):
             self.strategy_options.update(strategy_options)
 
         strategy_variant = (
-                strategy
-                or self.strategy_options.get("variant")
-                or self.strategy_settings["variants"][0]
-            )
+            strategy
+            or self.strategy_options.get("variant")
+            or self.strategy_settings["variants"][0]
+        )
         if self.characterisation_done:
             self.strategy_options["variant"] = self.strategy_variant = strategy_variant
         elif self.wftype == "diffractcal":

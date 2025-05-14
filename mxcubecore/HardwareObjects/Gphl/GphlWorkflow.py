@@ -1021,22 +1021,22 @@ class GphlWorkflow(HardwareObject):
         """Print text info to console,. log etc."""
         subprocess_name = self._server_subprocess_names.get(correlation_id)
         if subprocess_name:
-            logging.info("%s: %s" % (subprocess_name, payload))
+            logging.getLogger("HWR").info("%s: %s" % (subprocess_name, payload))
         else:
-            logging.info(payload)
+            logging.getLogger("HWR").info(payload)
 
     def echo_subprocess_started(self, payload, correlation_id):
         name = payload.name
         if correlation_id:
             self._server_subprocess_names[correlation_id] = name
-        logging.info("%s : STARTING", name)
+        logging.getLogger("HWR").info("%s : STARTING", name)
 
     def echo_subprocess_stopped(self, payload, correlation_id):
         try:
             name = self._server_subprocess_names.pop(correlation_id)
         except KeyError:
             name = "Unknown process"
-        logging.info("%s : FINISHED", name)
+        logging.getLogger("HWR").info("%s : FINISHED", name)
 
     def get_configuration_data(self, payload, correlation_id):
         return GphlMessages.ConfigurationData(self.file_paths["gphl_beamline_config"])
@@ -1805,7 +1805,7 @@ class GphlWorkflow(HardwareObject):
                     goniostatTranslations.append(translation)
                     if recentring_mode == "start":
                         # We want snapshots in this mode,
-                        # and the first sweepmis skipped in the loop below
+                        # and the first sweep is skipped in the loop below
                         okp = tuple(int(settings.get(x, 0)) for x in self.rotation_axes)
                         self.collect_centring_snapshots("%s_%s_%s" % okp)
 
@@ -2007,7 +2007,11 @@ class GphlWorkflow(HardwareObject):
 
         lastsweep = scans[-1].sweep
 
-        if repeat_count and sweep_offset and self.config.settings.get("use_multitrigger"):
+        if (
+            repeat_count
+            and sweep_offset
+            and self.config.settings.get("use_multitrigger")
+        ):
             # compress unrolled multi-trigger sweep
             # NBNB as of 202103 this is only allowed for a single sweep
             #
@@ -2306,7 +2310,7 @@ class GphlWorkflow(HardwareObject):
                     space_group = ""
             if not crystal_classes:
                 crystal_classes = crystal_symmetry.crystal_classes_from_params(
-                    lattices=(bravais_lattice)
+                    lattices=(bravais_lattice,)
                 )
             params["space_group"] = space_group
             params["crystal_classes"] = crystal_classes
