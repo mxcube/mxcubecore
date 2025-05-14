@@ -383,6 +383,20 @@ class ISPyBDataAdapter:
             logging.getLogger("HWR").debug("Storing image in lims")
             if "dataCollectionId" in image_dict:
                 try:
+                    # Possible fields of ISPYB storeOrUpdateImage method are:
+                    #  comments (str): additional comments,
+                    #  cumulativeIntensity (float): image cumulative intensity value,
+                    #  dataCollectionId (int): collection id,
+                    #  fileName (str): name of the master file (.h5),
+                    #  fileLocation (str): location of the master file,
+                    #  imageId (str | None): if None the new id will be created,
+                    #  imageNumber (int): number of frames,
+                    #  jpegFileFullPath (str): path to jpeg file,
+                    #  jpegThumbnailFileFullPath (str): path to jpeg thumbnail file,
+                    #  machineMessage: the operator message from the machine,
+                    #  measuredIntensity (float): measured flux value,
+                    #  synchrotronCurrent (float | str): machine current,
+                    #  temperature (float): temperature of the cryo system
                     image_id = self._collection.service.storeOrUpdateImage(image_dict)
                     logging.getLogger("HWR").debug(
                         "  - storing image in lims ok. id : %s" % image_id
