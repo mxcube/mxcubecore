@@ -137,6 +137,9 @@ class ICATLIMS(AbstractLims):
                 pucks = parcel.get("content", [])
                 for puck in pucks:
                     if "sampleChangerLocation" in puck:
+                        # Add information about the parcel
+                        puck["parcelName"] = parcel.get("name")
+                        puck["parcelId"] = parcel.get("id")
                         loaded_pucks.append(puck)
 
         return loaded_pucks
@@ -227,6 +230,12 @@ class ICATLIMS(AbstractLims):
         """
         return next((sample for sample in samples if sample.id == sample_id), None)
 
+    def objectid_to_int(self, oid_str):
+        return int(oid_str, 16)
+
+    def int_to_objectid(self, i):
+        return hex(i)[2:].zfill(24)
+
     def __to_sample(
         self, tracking_sample: dict, puck: dict, sample_sheets: List[SampleSheet]
     ) -> dict:
@@ -248,17 +257,27 @@ class ICATLIMS(AbstractLims):
             dict: A dictionary representing the standardized internal sample format.
         """
         # Basic identifiers
-        sample_name = str(tracking_sample.get("name", ""))
-        sample_id = tracking_sample.get(
-            "sampleId"
-        )  # identifier that point to the sample_sheet
-        trackingSampleId = tracking_sample.get(
-            "_id"
-        )  # identifier that point to the sample tracking
+        sample_name = str(tracking_sample.get("name"))
+
+        # MXCuBE needs to be an integer while in DRAC is a ObjectId
+        sample_id = self.objectid_to_int(tracking_sample.get("id"))
+        # id to the sample sheet declared in the user portal
+        sample_sheet_id = tracking_sample.get("sampleId")
+        # identifier that points to the sample tracking
+        trackingSampleId = tracking_sample.get("_id")
+
+        logging.getLogger("HWR").debug(
+            "[ICATClient] Sample ids sample_id=%s sample_sheet_id=%s trackingSampleId=%s",
+            sample_id,
+            sample_sheet_id,
+            trackingSampleId,
+        )
+
         sample_location = tracking_sample.get("sampleContainerPosition")
         puck_location = str(puck.get("sampleChangerLocation", "Unknown"))
         puck_name = puck.get("name", "UnknownPuck")
-
+        parcel_name = puck.get("parcelName")
+        parcel_id = puck.get("parcelId")
         # Determine protein acronym using sample sheet if available
         protein_acronym = sample_name  # Default fallback
         sample_sheet = self.get_sample_sheet_by_id(sample_sheets, sample_id)
@@ -272,15 +291,21 @@ class ICATLIMS(AbstractLims):
         return {
             "sampleName": sample_name,
             "sampleId": sample_id,
+            "sample_sheet_id": sample_sheet_id,
             "trackingSampleId": trackingSampleId,
             "proteinAcronym": protein_acronym,
             "sampleLocation": sample_location,
             "containerCode": puck_name,
             "containerSampleChangerLocation": puck_location,
+            "SampleTrackingParcel_name": parcel_name,
+            "SampleTrackingParcel_id": parcel_id,
+            "SampleTrackingContainer_id": puck_name,
+            "SampleTrackingContainer_name": parcel_id,
             "smiles": None,  # Placeholder for future chemical structure info
             "experimentType": self.find(experiment_plan, "workflowType"),
             "crystalSpaceGroup": self.find(experiment_plan, "forceSpaceGroup"),
             "diffractionPlan": {
+                # "diffractionPlanId": 457980, TODO: do we need this?
                 "experimentKind": self.find(experiment_plan, "experimentKind"),
                 "numberOfPositions": self.find(experiment_plan, "numberOfPositions"),
                 "observedResolution": self.find(experiment_plan, "observedResolution"),
@@ -610,7 +635,6 @@ class ICATLIMS(AbstractLims):
             parcels = self.icatClient.get_parcels_by(
                 self.session_manager.active_session.session_id
             )
-
             logging.getLogger("HWR").debug(
                 "[ICAT] Successfully retrieved %s parcels" % (len(parcels))
             )
@@ -649,33 +673,6 @@ class ICATLIMS(AbstractLims):
     def is_connected(self):
         return self.login_ok
 
-    def __add_protein_acronym(self, sample_node, metadata):
-        """
-        Fills the sample acronym that should match with the acronym defined in the sample sheet
-        """
-        if sample_node is not None:
-            if sample_node.crystals is not None:
-                if len(sample_node.crystals) > 0:
-                    crystal = sample_node.crystals[0]
-                    if crystal.protein_acronym is not None:
-                        metadata["SampleProtein_acronym"] = crystal.protein_acronym
-
-    def __add_sample_changer_position(self, cell, puck, metadata):
-        """
-        Adds to the sample changer position based on the cell and the puck number
-
-        Args:
-            cell(str): cell position of the puck in the sample changer
-            puck(str): position of the puck within the cell
-            metadata(dict): metadata to be pushed to ICAT
-        """
-        try:
-            if cell is not None and puck is not None:
-                position = int(cell * 3) + int(puck)
-                metadata["SampleChanger_position"] = position
-        except Exception as e:
-            logging.getLogger("HWR").exception(e)
-
     def add_beamline_configuration_metadata(self, metadata, beamline_config):
         """
         This is the mapping betweeh the beamline_config dict and the ICAt keys
@@ -683,13 +680,16 @@ class ICATLIMS(AbstractLims):
         """
         if beamline_config is not None:
             key_mapping = {
-                "detector_px": "InstrumentDetector01_x_pixel_size",
-                "detector_py": "InstrumentDetector01_y_pixel_size",
+                "detector_px": "InstrumentDetector01_beam_center_x",
+                "detector_py": "InstrumentDetector01_beam_center_y",
                 "beam_divergence_vertical": "InstrumentBeam_vertical_incident_beam_divergence",
                 "beam_divergence_horizontal": "InstrumentBeam_horizontal_incident_beam_divergence",
                 "polarisation": "InstrumentBeam_final_polarization",
                 "detector_model": "InstrumentDetector01_model",
                 "detector_manufacturer": "InstrumentDetector01_manufacturer",
+                "synchrotron_name": "InstrumentSource_name",
+                "monochromator_type": "InstrumentMonochromatorCrystal_type",
+                "InstrumentDetector01_type": "detector_type",
             }
 
             for config_key, metadata_key in key_mapping.items():
@@ -702,19 +702,13 @@ class ICATLIMS(AbstractLims):
             None,
         )
 
-    def add_sample_metadata(self, metadata, collection_parameters):
+    def _get_sample_position(self):
         """
-        Adds to the metadata dictionary the metadata concerning sample position, container and tracking
-
-        Args:
-            metadata(dict): metadata to be pushed to ICAT
-            collection_parameters(dict): Data collection parameters
+        Returns the position of the puck in the samples changer and the position f the sample within the puck
         """
         try:
             queue_entry = HWR.beamline.queue_manager.get_current_entry()
             sample_node = queue_entry.get_data_model().get_sample_node()
-            # sample_node.name this is name of the sample
-
             location = sample_node.location  # Example: (8,2,5)
 
             if len(location) == 3:
@@ -723,29 +717,13 @@ class ICATLIMS(AbstractLims):
                 cell = 1
                 (puck, sample_position) = location
 
-            self.__add_sample_changer_position(cell, puck, metadata)
-            metadata["SampleTrackingContainer_position"] = sample_position
-            metadata["SampleTrackingContainer_type"] = (
-                "UNIPUCK"  # this could be read from the configuration file somehow
-            )
-            metadata["SampleTrackingContainer_capacity"] = (
-                "16"  # this could be read from the configuration file somehow
-            )
-
-            self.__add_protein_acronym(sample_node, metadata)
-
-            if HWR.beamline.lims is not None:
-                sample = HWR.beamline.lims.find_sample_by_sample_id(
-                    collection_parameters.get("blSampleId")
-                )
-                if sample is not None:
-                    if "containerCode" in sample:
-                        metadata["SampleTrackingContainer_id"] = sample["containerCode"]
-                    else:
-                        metadata["SampleTrackingContainer_id"] = (
-                            str(cell) + "_" + str(puck)
-                        )  # Fake identifier that needs to be replaced by container code
-
+            position = None
+            try:
+                if cell is not None and puck is not None:
+                    position = int(cell * 3) + int(puck)
+            except Exception as e:
+                logging.getLogger("HWR").exception(e)
+            return position, sample_position
         except Exception as e:
             logging.getLogger("HWR").exception(e)
 
@@ -773,6 +751,7 @@ class ICATLIMS(AbstractLims):
 
     def finalize_data_collection(self, collection_parameters):
         logging.getLogger("HWR").info("Storing datacollection in ICAT")
+
         try:
             fileinfo = collection_parameters["fileinfo"]
             directory = pathlib.Path(fileinfo["directory"])
@@ -818,31 +797,35 @@ class ICATLIMS(AbstractLims):
             distance = HWR.beamline.detector.distance.get_value()
             proposal = f"{HWR.beamline.session.proposal_code}{HWR.beamline.session.proposal_number}"
             metadata = {
-                "MX_beamShape": collection_parameters["beamShape"],
-                "MX_beamSizeAtSampleX": collection_parameters["beamSizeAtSampleX"],
-                "MX_beamSizeAtSampleY": collection_parameters["beamSizeAtSampleY"],
-                "MX_dataCollectionId": collection_parameters["collection_id"],
+                "MX_beamShape": collection_parameters.get("beamShape"),
+                "sampleId": collection_parameters.get("blSampleId"),
+                "MX_beamSizeAtSampleX": collection_parameters.get("beamSizeAtSampleX"),
+                "MX_beamSizeAtSampleY": collection_parameters.get("beamSizeAtSampleY"),
+                "MX_dataCollectionId": collection_parameters.get("collection_id"),
                 "MX_detectorDistance": distance,
                 "MX_directory": str(directory),
                 "MX_exposureTime": oscillation_sequence["exposure_time"],
-                "MX_flux": collection_parameters["flux"],
-                "MX_fluxEnd": collection_parameters["flux_end"],
-                "MX_positionName": collection_parameters["position_name"],
+                "MX_flux": collection_parameters.get("flux"),
+                "MX_fluxEnd": collection_parameters.get("flux_end"),
+                "MX_positionName": collection_parameters.get("position_name"),
                 "MX_numberOfImages": oscillation_sequence["number_of_images"],
                 "MX_oscillationRange": oscillation_sequence["range"],
                 "MX_oscillationStart": oscillation_sequence["start"],
                 "MX_oscillationOverlap": oscillation_sequence["overlap"],
-                "MX_resolution": collection_parameters["resolution"],
+                "MX_resolution": collection_parameters.get("resolution"),
+                "MX_resolution_at_corner": collection_parameters.get(
+                    "resolutionAtCorner"
+                ),
                 "scanType": scanType,
                 "MX_startImageNumber": oscillation_sequence["start_image_number"],
                 "MX_template": fileinfo["template"],
-                "MX_transmission": collection_parameters["transmission"],
-                "MX_xBeam": collection_parameters["xBeam"],
-                "MX_yBeam": collection_parameters["yBeam"],
+                "MX_transmission": collection_parameters.get("transmission"),
+                "MX_xBeam": collection_parameters.get("xBeam"),
+                "MX_yBeam": collection_parameters.get("yBeam"),
                 "Sample_name": sample_name,
-                "InstrumentMonochromator_wavelength": collection_parameters[
+                "InstrumentMonochromator_wavelength": collection_parameters.get(
                     "wavelength"
-                ],
+                ),
                 "Workflow_name": workflow_params.get("workflow_name"),
                 "Workflow_type": workflow_params.get("workflow_type"),
                 "Workflow_id": workflow_params.get("workflow_uid"),
@@ -864,8 +847,27 @@ class ICATLIMS(AbstractLims):
                     self.session_manager.active_session.session_id
                 )
 
-            # Store metadata on disk
-            self.add_sample_metadata(metadata, collection_parameters)
+            metadata["SampleTrackingContainer_type"] = "UNIPUCK"
+            metadata["SampleTrackingContainer_capacity"] = "16"
+            (position, sample_position) = self._get_sample_position()
+            metadata["SampleChanger_position"] = position
+            metadata["SampleTrackingContainer_position"] = sample_position
+            # Find sample by sampleId
+            sample = HWR.beamline.lims.find_sample_by_sample_id(
+                collection_parameters.get("blSampleId")
+            )
+            if sample is not None:
+                metadata["SampleProtein_acronym"] = sample.get("proteinAcronym")
+                metadata["SampleTrackingContainer_id"] = sample.get(
+                    "SampleTrackingContainer_id"
+                )
+                metadata["SampleTrackingParcel_id"] = sample.get(
+                    "SampleTrackingParcel_id"
+                )
+                metadata["SampleTrackingParcel_name"] = sample.get(
+                    "SampleTrackingParcel_name"
+                )
+
             self.add_beamline_configuration_metadata(metadata, self.beamline_config)
 
             icat_metadata_path = pathlib.Path(directory) / "metadata.json"

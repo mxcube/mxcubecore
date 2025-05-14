@@ -79,6 +79,9 @@ class ESRFLIMS(AbstractLims):
         return True
 
     def is_drac(self):
+        """
+        Returns true if the lims used for synchronization of the samples is DRAC
+        """
         drac_lims = [
             lims for lims in self.drac.get_lims_name() if lims.name == self.lims_name
         ]
