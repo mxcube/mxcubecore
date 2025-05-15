@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 # encoding: utf-8
 """Collection emulator, calling an external program to generate data images.
 Written originally for Global Phasing simcal,
