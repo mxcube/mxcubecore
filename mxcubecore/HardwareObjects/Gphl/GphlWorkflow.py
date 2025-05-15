@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 # encoding: utf-8
 
 """Workflow runner, interfacing to external workflow engine
