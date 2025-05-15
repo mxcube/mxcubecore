@@ -180,6 +180,7 @@ class _Poller:
                 error_cb = self.error_callback_ref()
                 if error_cb is not None:
                     self.queue.put(PollingException(e, self.get_id()))
+                self.old_res = NotInitializedValue
                 break
 
             del polled_call
