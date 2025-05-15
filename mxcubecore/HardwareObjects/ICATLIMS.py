@@ -62,7 +62,6 @@ class ICATLIMS(AbstractLims):
         password: str,
         session_manager: Optional[LimsSessionManager],
     ) -> LimsSessionManager:
-
         logging.getLogger("HWR").debug("[ICAT] authenticate %s" % (user_name))
 
         self.icat_session: ICATSession = self.icatClient.do_log_in(password)
@@ -400,7 +399,6 @@ class ICATLIMS(AbstractLims):
             return None
 
     def set_active_session_by_id(self, session_id: str) -> Session:
-
         if self.is_session_already_active(self.session_manager.active_session):
             return self.session_manager.active_session
 
@@ -577,7 +575,7 @@ class ICATLIMS(AbstractLims):
         return Session(
             code=investigation["type"]["name"],
             number=self.__get_proposal_number_by_investigation(investigation),
-            title=f'{investigation["title"]}',
+            title=f"{investigation['title']}",
             session_id=investigation["id"],
             proposal_id=investigation["id"],
             proposal_name=investigation["name"],

@@ -89,7 +89,7 @@ class ESRFLIMS(AbstractLims):
                 if lims.name == self.lims_name
             ]
             return len(drac_lims) == 1
-        except:
+        except RuntimeError:
             return True
 
     def set_lims_name(self, lims_name):
