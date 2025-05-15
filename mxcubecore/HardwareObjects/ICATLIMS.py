@@ -62,6 +62,7 @@ class ICATLIMS(AbstractLims):
         password: str,
         session_manager: Optional[LimsSessionManager],
     ) -> LimsSessionManager:
+
         logging.getLogger("HWR").debug("[ICAT] authenticate %s" % (user_name))
 
         self.icat_session: ICATSession = self.icatClient.do_log_in(password)
@@ -399,6 +400,7 @@ class ICATLIMS(AbstractLims):
             return None
 
     def set_active_session_by_id(self, session_id: str) -> Session:
+
         if self.is_session_already_active(self.session_manager.active_session):
             return self.session_manager.active_session
 
@@ -575,7 +577,7 @@ class ICATLIMS(AbstractLims):
         return Session(
             code=investigation["type"]["name"],
             number=self.__get_proposal_number_by_investigation(investigation),
-            title=f"{investigation['title']}",
+            title=f'{investigation["title"]}',
             session_id=investigation["id"],
             proposal_id=investigation["id"],
             proposal_name=investigation["name"],
@@ -749,6 +751,21 @@ class ICATLIMS(AbstractLims):
     def update_data_collection(self, mx_collection):
         pass
 
+    def _get_oscillation_end(self, oscillation_sequence):
+        return float(oscillation_sequence["start"]) + (
+            float(oscillation_sequence["range"])
+            - float(oscillation_sequence["overlap"])
+        ) * float(oscillation_sequence["number_of_images"])
+
+    def _get_rotation_axis(self, oscillation_sequence):
+        if "kappaStart" in oscillation_sequence:
+            if (
+                oscillation_sequence["kappaStart"] != 0
+                and oscillation_sequence["kappaStart"] != -9999
+            ):
+                return "Omega"
+        return "Phi"
+
     def finalize_data_collection(self, collection_parameters):
         logging.getLogger("HWR").info("Storing datacollection in ICAT")
 
@@ -810,7 +827,7 @@ class ICATLIMS(AbstractLims):
                 "MX_positionName": collection_parameters.get("position_name"),
                 "MX_numberOfImages": oscillation_sequence["number_of_images"],
                 "MX_oscillationRange": oscillation_sequence["range"],
-                "MX_oscillationStart": oscillation_sequence["start"],
+                "MX_axis_start": oscillation_sequence["start"],
                 "MX_oscillationOverlap": oscillation_sequence["overlap"],
                 "MX_resolution": collection_parameters.get("resolution"),
                 "MX_resolution_at_corner": collection_parameters.get(
@@ -869,6 +886,22 @@ class ICATLIMS(AbstractLims):
                 )
 
             self.add_beamline_configuration_metadata(metadata, self.beamline_config)
+
+            # MX_axis_end
+            try:
+                metadata["MX_axis_end"] = self._get_oscillation_end(
+                    oscillation_sequence
+                )
+            except RuntimeError:
+                logging.getLogger("HWR").exception("Failed to get MX_axis_end")
+
+            # MX_axis_end
+            try:
+                metadata["MX_axis_range"] = self._get_rotation_axis(
+                    oscillation_sequence
+                )
+            except RuntimeError:
+                logging.getLogger("HWR").exception("Failed to get MX_axis_end")
 
             icat_metadata_path = pathlib.Path(directory) / "metadata.json"
             with open(icat_metadata_path, "w") as f:

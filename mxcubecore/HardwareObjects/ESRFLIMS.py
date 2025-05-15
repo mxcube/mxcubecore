@@ -82,10 +82,15 @@ class ESRFLIMS(AbstractLims):
         """
         Returns true if the lims used for synchronization of the samples is DRAC
         """
-        drac_lims = [
-            lims for lims in self.drac.get_lims_name() if lims.name == self.lims_name
-        ]
-        return len(drac_lims) == 1
+        try:
+            drac_lims = [
+                lims
+                for lims in self.drac.get_lims_name()
+                if lims.name == self.lims_name
+            ]
+            return len(drac_lims) == 1
+        except:
+            return True
 
     def set_lims_name(self, lims_name):
         self.lims_name = lims_name
