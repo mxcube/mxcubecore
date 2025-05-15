@@ -29,7 +29,7 @@ import json
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 from mxlims.impl.utils import to_export_json
 from mxlims.pydantic.datatypes import Scan, UnitCell
@@ -37,6 +37,7 @@ from mxlims.pydantic.mxlims_messages import MxlimsMessage
 from mxlims.pydantic.objects.CollectionSweep import CollectionSweep
 from mxlims.pydantic.objects.CrystallographicSample import CrystallographicSample
 from mxlims.pydantic.objects.MxExperiment import MxExperiment
+from mxlims.pydantic.objects.MxProcessing import MxProcessing
 
 from mxcubecore.model import queue_model_objects as qmo
 
@@ -242,8 +243,8 @@ def add_data_collection(
         return CollectionSweep(**sweepdata)
 
 
-def export_mxjob(
-    mxlims_job: MxExperiment,
+def export_mxjob(  # noqa: C901
+    mxlims_job: Union[MxExperiment, MxProcessing],
     path_template: Optional[qmo.PathTemplate] = None,
 ):
     """Export MxExperiment mxlims record with linked objects to JSON file"""
@@ -255,7 +256,7 @@ def export_mxjob(
         file_name = template % (path_template.get_prefix(), path_template.run_number)
         path = Path(path_template.directory) / file_name
     path = path / file_name
-    print("WRITING MXLIMS JSON TO", path)
+    print("WRITING MXLIMS JSON TO", path)  # noqa: T201
 
     jobs = [mxlims_job]
     objects_by_uuid = {}
@@ -293,7 +294,6 @@ def export_mxjob(
 if __name__ == "__main__":
     # Test file loading
     from argparse import ArgumentParser, RawTextHelpFormatter
-    from pathlib import Path
 
 
     parser = ArgumentParser(
