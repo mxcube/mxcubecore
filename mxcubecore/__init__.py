@@ -12,9 +12,8 @@ from colorama import (
     Style,
 )
 
-from mxcubecore import HardwareRepository as HWR
 from mxcubecore import BaseHardwareObjects as BHWO
-
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore import __version__
 
 __version__ = __version__.__version__
@@ -46,17 +45,22 @@ def hwo_header_log(_func=None, *, level: int = logging.DEBUG):
     def decorator_wrapper(func):
         @functools.wraps(func)
         def fun_wrapper(*args, **kwargs):
-
             if len(args) == 0 or (not isinstance(args[0], BHWO.HardwareObject)):
-                raise TypeError("Not valid method. Decorator can be applied to"
-                                "HardwareObject instance's methods only")
+                err_msg = (
+                    "Not valid method. Decorator can be applied to an"
+                    " HardwareObject instance's methods only"
+                )
+                raise TypeError(err_msg)
             args = list(args)
             self = args.pop(0)
-            hwo_name = f' ({self.name.strip("/")})' if self.name else ''
+            hwo_name = f" ({self.name.strip('/')})" if self.name else ""
             # Remove named parameters which are not in the signature of the method
             code_obj = func.__code__
-            kwargs = {k: v for k, v in kwargs.items()
-                      if k in code_obj.co_varnames[:code_obj.co_argcount]}
+            kwargs = {
+                k: v
+                for k, v in kwargs.items()
+                if k in code_obj.co_varnames[: code_obj.co_argcount]
+            }
 
             args_str = ",".join([str(arg) for arg in args])
             kwargs_str = ",".join(["%s=%s" % (k, v) for k, v in kwargs.items()])
@@ -64,14 +68,13 @@ def hwo_header_log(_func=None, *, level: int = logging.DEBUG):
             method_name = func.__name__
             signature = f"{method_name}({params_str})"
             self.log.log(level, f"{hwo_name} In {signature}")
-            retval = func(self, *args, **kwargs)
-            return retval
+            return func(self, *args, **kwargs)
+
         return fun_wrapper
 
     if _func is None:
         return decorator_wrapper
-    else:
-        return decorator_wrapper(_func)
+    return decorator_wrapper(_func)
 
 
 def getStdHardwareObjectsPath():
