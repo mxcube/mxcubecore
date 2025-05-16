@@ -83,9 +83,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         if motor_positions:
             HWR.beamline.diffractometer.move_motors(motor_positions)
 
-        log.warning(
-            "Please center a new or select an existing point and press resume."
-        )
+        log.warning("Please center a new or select an existing point and press resume.")
         self.get_queue_controller().pause(True)
 
         shapes = list(HWR.beamline.sample_view.get_selected_shapes())
