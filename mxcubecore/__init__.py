@@ -41,7 +41,7 @@ class ColorFormatter(logging.Formatter):
         return formatter.format(record)
 
 
-def hwo_header_log(_func=None, *, level: int = logging.DEBUG):
+def trace_call_log(_func=None, *, level: int = logging.DEBUG):
     def decorator_wrapper(func):
         @functools.wraps(func)
         def fun_wrapper(*args, **kwargs):
