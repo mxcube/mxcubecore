@@ -27,7 +27,7 @@ import abc
 
 import pytest
 
-from test.pytest import TestAbstractActuatorBase
+from test import TestAbstractActuatorBase
 
 test_object = TestAbstractActuatorBase.test_object
 

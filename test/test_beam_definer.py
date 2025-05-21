@@ -22,7 +22,7 @@
 
 import pytest
 
-from test.pytest.TestAbstractNStateBase import TestAbstractNStateBase
+from test.TestAbstractNStateBase import TestAbstractNStateBase
 
 __copyright__ = """ Copyright © by MXCuBE Collaboration """
 __license__ = "LGPLv3+"

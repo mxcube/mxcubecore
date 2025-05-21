@@ -26,7 +26,7 @@ import abc
 import gevent
 import pytest
 
-from test.pytest import TestHardwareObjectBase
+from test import TestHardwareObjectBase
 
 test_object = TestHardwareObjectBase.test_object
 

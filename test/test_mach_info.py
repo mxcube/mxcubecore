@@ -19,7 +19,7 @@
 
 import pytest
 
-from test.pytest import TestHardwareObjectBase
+from test import TestHardwareObjectBase
 
 __copyright__ = """ Copyright © by MXCuBE Collaboration """
 __license__ = "LGPLv3+"

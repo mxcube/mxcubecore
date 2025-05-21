@@ -113,13 +113,13 @@ convention = "google"
 
 
 [lint.per-file-ignores]
-"test/pytest/*.py" = [
+"test/*.py" = [
     "INP001",  # `implicit-namespace-package`: test suite is not meant to be imported
 ]
-"test/pytest/test_*.py" = [
+"test/test_*.py" = [
     "S101",  # Allow uses of the `assert` keyword
 ]
-"test/pytest/Test*.py" = [
+"test/Test*.py" = [
     "S101",  # Allow uses of the `assert` keyword
 ]
 "deprecated/Command/Exporter/__init__.py" = [
@@ -6550,14 +6550,14 @@ convention = "google"
 "mxcubecore/utils/units.py" = [
     "N802",
 ]
-"test/pytest/TestAbstractActuatorBase.py" = [
+"test/TestAbstractActuatorBase.py" = [
     "EXE001",
     "N999",
     "PT011",
     "PT012",
     "SLF001",
 ]
-"test/pytest/TestAbstractMotorBase.py" = [
+"test/TestAbstractMotorBase.py" = [
     "B017",
     "EXE001",
     "N999",
@@ -6565,7 +6565,7 @@ convention = "google"
     "PT012",
     "SLF001",
 ]
-"test/pytest/TestAbstractNStateBase.py" = [
+"test/TestAbstractNStateBase.py" = [
     "B017",
     "C400",
     "EXE001",
@@ -6573,13 +6573,13 @@ convention = "google"
     "PT011",
     "PT012",
 ]
-"test/pytest/TestHardwareObjectBase.py" = [
+"test/TestHardwareObjectBase.py" = [
     "EXE001",
     "N999",
     "PT022",
     "SLF001",
 ]
-"test/pytest/conftest.py" = [
+"test/conftest.py" = [
     "ERA001",
     "N814",
     "PT003",
@@ -6589,12 +6589,12 @@ convention = "google"
     "SLF001",
     "T201",
 ]
-"test/pytest/test_aperture.py" = [
+"test/test_aperture.py" = [
     "ERA001",
     "PT022",
     "SLF001",
 ]
-"test/pytest/test_base_hardware_objects.py" = [
+"test/test_base_hardware_objects.py" = [
     "ARG005",
     "B009",
     "B010",
@@ -6616,20 +6616,20 @@ convention = "google"
     "SIM118",
     "SLF001",
 ]
-"test/pytest/test_beam.py" = [
+"test/test_beam.py" = [
     "ERA001",
     "PERF401",
     "SLF001",
 ]
-"test/pytest/test_beam_definer.py" = [
+"test/test_beam_definer.py" = [
     "ERA001",
 ]
-"test/pytest/test_beamline_ho_id.py" = [
+"test/test_beamline_ho_id.py" = [
     "EXE001",
     "PT022",
     "SIM300",
 ]
-"test/pytest/test_command_container.py" = [
+"test/test_command_container.py" = [
     "B009",
     "C408",
     "E501",
@@ -6650,70 +6650,70 @@ convention = "google"
     "SIM910",
     "SLF001",
 ]
-"test/pytest/test_detector.py" = [
+"test/test_detector.py" = [
     "EXE001",
     "F841",
     "PIE808",
     "PT022",
 ]
-"test/pytest/test_detector_distance.py" = [
+"test/test_detector_distance.py" = [
     "EXE001",
     "PT022",
 ]
-"test/pytest/test_energy.py" = [
+"test/test_energy.py" = [
     "ERA001",
     "PT022",
 ]
-"test/pytest/test_flux.py" = [
+"test/test_flux.py" = [
     "ERA001",
     "PT012",
     "PT022",
     "SLF001",
     "T201",
 ]
-"test/pytest/test_hwo_isara_maint.py" = [
+"test/test_hwo_isara_maint.py" = [
     "ARG002",
     "C408",
     "N802",
     "SLF001",
 ]
-"test/pytest/test_hwo_maxiv_ispyblims.py" = [
+"test/test_hwo_maxiv_ispyblims.py" = [
     "C408",
     "E501",
     "S105",
     "S106",
 ]
-"test/pytest/test_mach_info.py" = [
+"test/test_mach_info.py" = [
     "EXE001",
     "PT022",
     "SLF001",
 ]
-"test/pytest/test_procedure.py" = [
+"test/test_procedure.py" = [
     "PIE804",
 ]
-"test/pytest/test_resolution.py" = [
+"test/test_resolution.py" = [
     "PT011",
     "PT012",
     "PT022",
     "SLF001",
 ]
-"test/pytest/test_sample_view.py" = [
+"test/test_sample_view.py" = [
     "EXE001",
     "PT022",
 ]
-"test/pytest/test_shutter.py" = [
+"test/test_shutter.py" = [
     "ERA001",
     "PT022",
     "T201",
 ]
-"test/pytest/test_transmission.py" = [
+"test/test_transmission.py" = [
     "ERA001",
     "PT022",
 ]
-"test/pytest/test_utils_units.py" = [
+"test/test_utils_units.py" = [
     "N802",
 ]
-"test/pytest/test_xrf.py" = [
+"test/test_xrf.py" = [
     "ERA001",
     "PT022",
     "S108",

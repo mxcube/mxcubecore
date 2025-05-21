@@ -25,7 +25,7 @@ import abc
 import gevent
 import pytest
 
-from test.pytest import (
+from test import (
     TestAbstractActuatorBase,
     TestHardwareObjectBase,
 )
