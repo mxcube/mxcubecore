@@ -78,13 +78,28 @@ class ESRFLIMS(AbstractLims):
     def is_user_login_type(self) -> bool:
         return True
 
-    def get_samples(self, lims_name):
-        logging.getLogger("HWR").debug("[ESRFLIMS] get_samples %s" % lims_name)
+    def is_drac(self):
+        """
+        Returns true if the lims used for synchronization of the samples is DRAC
+        """
+        try:
+            drac_lims = [
+                lims
+                for lims in self.drac.get_lims_name()
+                if lims.name == self.lims_name
+            ]
+            return len(drac_lims) == 1
+        except RuntimeError:
+            return True
 
-        drac_lims = [
-            lims for lims in self.drac.get_lims_name() if lims.name == lims_name
-        ]
-        if len(drac_lims) == 1:
+    def set_lims_name(self, lims_name):
+        self.lims_name = lims_name
+
+    def get_samples(self, lims_name):
+        self.set_lims_name(lims_name)
+        logging.getLogger("HWR").debug("[ESRFLIMS] get_samples %s" % self.lims_name)
+
+        if self.is_drac():
             return self.drac.get_samples(lims_name)
         else:
             return self.ispyb.get_samples(lims_name)
@@ -121,6 +136,8 @@ class ESRFLIMS(AbstractLims):
         self.ispyb.store_image(image_dict)
 
     def find_sample_by_sample_id(self, sample_id):
+        if self.is_drac():
+            return self.drac.find_sample_by_sample_id(sample_id)
         return self.ispyb.find_sample_by_sample_id(sample_id)
 
     def store_robot_action(self, robot_action_dict):
