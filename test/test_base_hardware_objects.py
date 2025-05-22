@@ -527,7 +527,7 @@ class TestHardwareObjectNode:
             (["key1", "test", "key3"], [[], [], []]),
         ),
     )
-    def test_add_reference(
+    def test_add_reference(  # noqa: PLR0913
         self,
         mocker: "MockerFixture",
         hw_obj_node: HardwareObjectNode,
@@ -590,7 +590,7 @@ class TestHardwareObjectNode:
         ),
     )
     @pytest.mark.parametrize("initial_hw_object", (MagicMock(), None))
-    def test_resolve_references(
+    def test_resolve_references(  # noqa: PLR0913
         self,
         mocker: "MockerFixture",
         hw_obj_node: HardwareObjectNode,
@@ -674,7 +674,7 @@ class TestHardwareObjectNode:
             (["key1", "key2", "key3"], [[None], [None], [None]]),
         ),
     )
-    def test_add_object(
+    def test_add_object(  # noqa: PLR0913
         self,
         mocker: "MockerFixture",
         hw_obj_node: HardwareObjectNode,
@@ -829,7 +829,7 @@ class TestHardwareObjectNode:
         ),
     )
     @pytest.mark.parametrize("sub_obj_role", ("beam", None))
-    def test_get_object_by_role(
+    def test_get_object_by_role(  # noqa: PLR0913
         self,
         mocker: "MockerFixture",
         hw_obj_node: HardwareObjectNode,

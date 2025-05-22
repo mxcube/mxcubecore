@@ -240,7 +240,7 @@ class TestCommandObject:
             None,
         ),
     )
-    def test_add_argument(
+    def test_add_argument(  # noqa: PLR0913
         self,
         mocker: "MockerFixture",
         cmd_object: CommandObject,
@@ -539,7 +539,7 @@ class TestChannelObject:
         mocker: "MockerFixture",
         channel_object: ChannelObject,
         signal_name: str,
-        is_connected: bool,
+        is_connected: bool,  # noqa: FBT001
     ):
         """Test "connect_notify" method.
 
@@ -672,11 +672,11 @@ class TestChannelObject:
         (..., None),
     )
     @pytest.mark.parametrize("value", ("test1", "test2", "test3"))
-    def test_update(
+    def test_update(  # noqa: PLR0913
         self,
         mocker: "MockerFixture",
         channel_object: ChannelObject,
-        first_update: bool,
+        first_update: bool,  # noqa: FBT001
         onchange: Union[Tuple[str, Union["ellipsis", None]], None],
         command_object: Union["ellipsis", None],
         value: str,
@@ -738,18 +738,16 @@ class TestChannelObject:
                     # Check returned "CommandObject" instance called once with value
                     _command_object.assert_called_once_with(*(value,))
 
-    @pytest.mark.parametrize("force", (True, False))
-    def test_get_value(self, channel_object: ChannelObject, force: bool):
+    def test_get_value(self, channel_object: ChannelObject):
         """Test "get_value" method.
 
         Args:
             channel_object (ChannelObject): Object instance.
-            force (bool): Force get value.
         """
 
         # Method call will always raise an implementation error
         with pytest.raises(NotImplementedError):
-            channel_object.get_value(force=force)
+            channel_object.get_value(force=MagicMock(spec=bool))
 
 
 class TestCommandContainer:
@@ -825,7 +823,7 @@ class TestCommandContainer:
         cmd_container: CommandContainer,
         channel_name: str,
         initial_channels: Dict[str, Union[Annotated[ChannelObject, MagicMock], None]],
-        optional: bool,
+        optional: bool,  # noqa: FBT001
     ):
         """Test "get_channel_object" method.
 
@@ -990,17 +988,17 @@ class TestCommandContainer:
     @pytest.mark.parametrize("valuefrom", (None, "test1"))
     @pytest.mark.parametrize("channel_exists", (True, False))
     @pytest.mark.parametrize("raise_attr_error", (True, False))
-    def test_add_channel(
+    def test_add_channel(  # noqa:  PLR0913
         self,
         mocker: "MockerFixture",
         cmd_container: CommandContainer,
         attributes_dict: Dict[str, Any],
         channel: str,
-        add_now: bool,
+        add_now: bool,  # noqa: FBT001
         onchange: Union[str, None],
         valuefrom: Union[str, None],
-        channel_exists: bool,
-        raise_attr_error: bool,
+        channel_exists: bool,  # noqa: FBT001
+        raise_attr_error: bool,  # noqa: FBT001
     ):
         """Test "add_channel" method.
 
@@ -1192,7 +1190,7 @@ class TestCommandContainer:
             new=initial_channels,
         )
 
-        if not channel_name in initial_channels.keys():
+        if channel_name not in initial_channels.keys():
             # Check non-existing key raises exception
             with pytest.raises(KeyError):
                 cmd_container.set_channel_value(channel_name=channel_name, value=value)
@@ -1235,7 +1233,7 @@ class TestCommandContainer:
             new=initial_channels,
         )
 
-        if not channel_name in initial_channels.keys():
+        if channel_name not in initial_channels.keys():
             # Check exception is raised for non-existant key
             with pytest.raises(KeyError):
                 cmd_container.get_channel_value(channel_name=channel_name)
@@ -1417,10 +1415,6 @@ class TestCommandContainer:
     @pytest.mark.parametrize(
         "arg1",
         (
-            # {"name": "test1", "type": "spec"},
-            # {"name": "test2", "type": "spec", "version": "test_version"},
-            # {"name": "test3", "type": "taco"},
-            # {"name": "test4", "type": "taco", "taconame": "test_taconame"},
             {"name": "test5", "type": "tango"},
             {"name": "test6", "type": "tango", "tangoname": "test_tangoname"},
             {"name": "test7", "type": "tango", "polling": 500},
@@ -1457,10 +1451,6 @@ class TestCommandContainer:
                 "exporter_address": "localhost:9000",
             },
             {"name": "test15", "type": "epics"},
-            # {"name": "test16", "type": "tine"},
-            # {"name": "test17", "type": "tine", "tinename": "test_tinename"},
-            # {"name": "test18", "type": "sardana"},
-            # {"name": "test19", "type": "sardana", "taurusname": "test_taurusname"},
             {"name": "test20", "type": "mockup"},
             {"name": "test21", "type": "mockup", "default_value": "1"},
         ),
@@ -1470,16 +1460,16 @@ class TestCommandContainer:
     @pytest.mark.parametrize("onchange", (None, "test1"))
     @pytest.mark.parametrize("valuefrom", (None, "test1"))
     @pytest.mark.parametrize("raise_attr_error", (True, False))
-    def test_add_command(
+    def test_add_command(  # noqa:  PLR0913
         self,
         mocker: "MockerFixture",
         cmd_container: CommandContainer,
         arg1: Dict[str, Any],
         arg2: Optional[str],
-        add_now: bool,
+        add_now: bool,  # noqa: FBT001
         onchange: Union[str, None],
         valuefrom: Union[str, None],
-        raise_attr_error: bool,
+        raise_attr_error: bool,  # noqa: FBT001
     ):
         """Test "add_command" method.
 
@@ -1501,15 +1491,9 @@ class TestCommandContainer:
         get_logger_patch = mocker.patch("logging.getLogger", return_value=logger_patch)
 
         # Patch imports to test in isolation
-        # mocker.patch("mxcubecore.Command.Spec.SpecCommand")
-        # mocker.patch("mxcubecore.Command.Taco.TacoCommand")
         mocker.patch("mxcubecore.Command.Tango.TangoCommand")
         mocker.patch("mxcubecore.Command.Exporter.ExporterCommand")
         mocker.patch("mxcubecore.Command.Epics.EpicsCommand")
-        # mocker.patch("mxcubecore.Command.Sardana.SardanaCommand")
-        # mocker.patch("mxcubecore.Command.Sardana.SardanaMacro")
-        # mocker.patch("mxcubecore.Command.Pool.PoolCommand")
-        # mocker.patch("mxcubecore.Command.Tine.TineCommand")
         mocker.patch("mxcubecore.Command.Mockup.MockupCommand")
 
         # Reset logger patch to remove calls from mock imports
@@ -1705,7 +1689,7 @@ class TestCommandContainer:
             (tuple(), dict()),
         ),
     )
-    def test_execute_command(
+    def test_execute_command(  # noqa:  PLR0913
         self,
         mocker: "MockerFixture",
         cmd_container: CommandContainer,
@@ -1733,7 +1717,7 @@ class TestCommandContainer:
             new=initial_commands,
         )
 
-        if not command_name in initial_commands.keys():
+        if command_name not in initial_commands.keys():
             # Check exception raised when command name does not exist
             with pytest.raises(AttributeError):
                 cmd_container.execute_command(
