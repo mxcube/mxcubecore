@@ -6580,59 +6580,24 @@ convention = "google"
     "SLF001",
 ]
 "test/conftest.py" = [
-    "ERA001",
-    "N814",
-    "PT003",
     "PTH100",
     "PTH118",
     "PTH120",
-    "SLF001",
-    "T201",
-]
-"test/test_aperture.py" = [
-    "ERA001",
-    "PT022",
-    "SLF001",
 ]
 "test/test_base_hardware_objects.py" = [
-    "ARG005",
-    "B009",
-    "B010",
-    "B018",
-    "C404",
-    "C419",
-    "E501",
     "E713",
-    "ERA001",
     "FBT001",
     "I001",
     "PLR0913",
     "PLR2044",
-    "PT003",
     "PT007",
     "PT018",
-    "PT022",
     "PYI041",
     "SIM118",
-    "SLF001",
-]
-"test/test_beam.py" = [
-    "ERA001",
-    "PERF401",
-    "SLF001",
-]
-"test/test_beam_definer.py" = [
-    "ERA001",
-]
-"test/test_beamline_ho_id.py" = [
-    "EXE001",
-    "PT022",
-    "SIM300",
 ]
 "test/test_command_container.py" = [
     "B009",
     "C408",
-    "E501",
     "E712",
     "E713",
     "ERA001",
@@ -6641,7 +6606,6 @@ convention = "google"
     "PLR0913",
     "PLR0915",
     "PLR5501",
-    "PT003",
     "PT007",
     "PT018",
     "PT022",
@@ -6650,14 +6614,7 @@ convention = "google"
     "SIM910",
     "SLF001",
 ]
-"test/test_detector.py" = [
-    "EXE001",
-    "F841",
-    "PIE808",
-    "PT022",
-]
 "test/test_detector_distance.py" = [
-    "EXE001",
     "PT022",
 ]
 "test/test_energy.py" = [
@@ -6679,12 +6636,10 @@ convention = "google"
 ]
 "test/test_hwo_maxiv_ispyblims.py" = [
     "C408",
-    "E501",
     "S105",
     "S106",
 ]
 "test/test_mach_info.py" = [
-    "EXE001",
     "PT022",
     "SLF001",
 ]
@@ -6698,7 +6653,6 @@ convention = "google"
     "SLF001",
 ]
 "test/test_sample_view.py" = [
-    "EXE001",
     "PT022",
 ]
 "test/test_shutter.py" = [

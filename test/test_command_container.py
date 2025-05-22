@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from pytest_mock.plugin import MockerFixture
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def cmd_object() -> Generator[CommandObject, None, None]:
     """Pytest fixture to instantiate a new "CommandObject" object.
 
@@ -41,7 +41,7 @@ def cmd_object() -> Generator[CommandObject, None, None]:
     yield cmd_object
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def channel_object() -> Generator[ChannelObject, None, None]:
     """Pytest fixture to instantiate a new "ChannelObject" object.
 
@@ -53,7 +53,7 @@ def channel_object() -> Generator[ChannelObject, None, None]:
     yield channel_object
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def cmd_container() -> Generator[CommandContainer, None, None]:
     """Pytest fixture to instantiate a new "CommandContainer" object.
 
@@ -787,7 +787,8 @@ class TestCommandContainer:
             mocker (MockerFixture): Instance of the Pytest mocker fixture.
             cmd_container (CommandContainer): Object instance.
             attr_name (str): Attribute name.
-            initial_commands (Dict[str, Annotated[CommandObject, MagicMock]]): Initial commands.
+            initial_commands (Dict[str, Annotated[CommandObject, MagicMock]]):
+                Initial commands.
         """
 
         # Patch "__commands" with known values to test
@@ -832,8 +833,11 @@ class TestCommandContainer:
             mocker (MockerFixture): Instance of the Pytest mocker fixture.
             cmd_container (CommandContainer): Object instance.
             channel_name (str): Channel name.
-            initial_channels (Dict[str, Union[Annotated[ChannelObject, MagicMock], None]]): Initial channels.
-            optional (bool): Whether an error should be logged where no result is returned.
+            initial_channels
+                (Dict[str, Union[Annotated[ChannelObject, MagicMock], None]]):
+                Initial channels.
+            optional (bool): Whether an error should be logged where no result
+                is returned.
         """
 
         # Patch "id" to test in isolation
@@ -890,7 +894,9 @@ class TestCommandContainer:
         Args:
             mocker (MockerFixture): Instance of the Pytest mocker fixture.
             cmd_container (CommandContainer): Object instance.
-            initial_channels (Dict[str, Union[Annotated[ChannelObject, MagicMock], None]]): Initial channels.
+            initial_channels
+                (Dict[str, Union[Annotated[ChannelObject, MagicMock], None]]):
+                Initial channels.
         """
 
         # Patch "__channels" with known values to test
@@ -1173,7 +1179,8 @@ class TestCommandContainer:
         Args:
             mocker (MockerFixture): Instance of the Pytest mocker fixture.
             cmd_container (CommandContainer): Object instance.
-            initial_channels (Dict[str, Annotated[ChannelObject, MagicMock]]): Initial channels.
+            initial_channels (Dict[str, Annotated[ChannelObject, MagicMock]]):
+                Initial channels.
             channel_name (str): Channel name.
             value (Any): Value.
         """
@@ -1216,7 +1223,8 @@ class TestCommandContainer:
         Args:
             mocker (MockerFixture): Instance of the Pytest mocker fixture.
             cmd_container (CommandContainer): Object instance.
-            initial_channels (Dict[str, Annotated[ChannelObject, MagicMock]]): Initial channels.
+            initial_channels (Dict[str, Annotated[ChannelObject, MagicMock]]):
+                Initial channels.
             channel_name (str): Channel name.
         """
 
@@ -1269,7 +1277,9 @@ class TestCommandContainer:
         Args:
             mocker (MockerFixture): Instance of the Pytest mocker fixture.
             cmd_container (CommandContainer): Object instance.
-            initial_channels (Dict[str, Union[Annotated[ChannelObject, MagicMock], None]]): Initial channels.
+            initial_channels
+                (Dict[str, Union[Annotated[ChannelObject, MagicMock], None]]):
+                Initial channels.
         """
 
         # Patch "__channels" with known values to test
@@ -1308,7 +1318,8 @@ class TestCommandContainer:
         Args:
             mocker (MockerFixture): Instance of the Pytest mocker fixture.
             cmd_container (CommandContainer): Object instance.
-            initial_commands (Dict[str, Annotated[CommandObject, MagicMock]]): Initial commands.
+            initial_commands (Dict[str, Annotated[CommandObject, MagicMock]]):
+                Initial commands.
             command_name (str): Command name.
         """
 
@@ -1348,7 +1359,8 @@ class TestCommandContainer:
         Args:
             mocker (MockerFixture): Instance of the Pytest mocker fixture.
             cmd_container (CommandContainer): Object instance.
-            initial_commands (Dict[str, Annotated[CommandObject, MagicMock]]): Initial commands.
+            initial_commands (Dict[str, Annotated[CommandObject, MagicMock]]):
+                Initial commands.
         """
 
         # Patch "__commands" with known values to test
@@ -1385,7 +1397,8 @@ class TestCommandContainer:
         Args:
             mocker (MockerFixture): Instance of the Pytest mocker fixture.
             cmd_container (CommandContainer): Object instance.
-            initial_commands (Dict[str, Annotated[CommandObject, MagicMock]]): Initial commands.
+            initial_commands (Dict[str, Annotated[CommandObject, MagicMock]]):
+                Initial commands.
         """
 
         # Patch "__commands" with known values to test
@@ -1637,7 +1650,8 @@ class TestCommandContainer:
             mocker (MockerFixture): Instance of the Pytest mocker fixture.
             cmd_container (CommandContainer): Object instance.
             channels_to_add (List[Tuple[Dict[str, Any], str]]): Channels to be added.
-            commands_to_add (List[Tuple[Dict[str, Any], Union[str, None]]]): Commands to be added.
+            commands_to_add (List[Tuple[Dict[str, Any], Union[str, None]]]):
+                Commands to be added.
         """
 
         # Patch "__channels_to_add" and "__commands_to_add" to test with known values
@@ -1706,7 +1720,8 @@ class TestCommandContainer:
             mocker (MockerFixture): Instance of the Pytest mocker fixture.
             cmd_container (CommandContainer): Object instance.
             command_name (str): Command name.
-            initial_commands (Dict[str, Annotated[CommandObject, MagicMock]]): Initial commands.
+            initial_commands (Dict[str, Annotated[CommandObject, MagicMock]]):
+                Initial commands.
             cmd_args (tuple): Command arguments.
             cmd_kwargs (Dict[str, Any]): Named command arguments.
         """

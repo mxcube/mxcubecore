@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 # encoding: utf-8
 #
 # This file is part of MXCuBE.
@@ -92,7 +91,7 @@ def sample_view(beamline):
         "G",
     )
 
-    yield beamline.sample_view
+    return beamline.sample_view
 
 
 def test_sample_view_get_shape(sample_view):

@@ -1,6 +1,6 @@
 # encoding: utf-8
 #
-#  Project: MXCuBE
+#  Project: MXCuBE  # noqa: ERA001
 #  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
@@ -67,13 +67,13 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
     def test_get_defined_beam_size(self, test_object):
         """Check the defined beam size values for each definer type."""
         if test_object.definer:
-            test_object._definer_type = "definer"
+            test_object._definer_type = "definer"  # noqa: SLF001
             _vals = test_object.get_defined_beam_size()
             _list = test_object.definer.get_predefined_positions_list()
             assert _vals["label"] == _list
 
         if test_object.aperture:
-            test_object._definer_type = "aperture"
+            test_object._definer_type = "aperture"  # noqa: SLF001
             _vals = test_object.get_defined_beam_size()
             _list = test_object.aperture.get_diameter_size_list()
             assert _vals["label"] == _list
@@ -82,7 +82,7 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
                 assert val[0] == val[1]
 
         if test_object.slits:
-            test_object._definer_type = "slits"
+            test_object._definer_type = "slits"  # noqa: SLF001
             _range = test_object.get_defined_beam_size()
             assert _range["label"] == ["low", "high"]
             _low_w, _low_h = test_object.slits.get_min_limits()
@@ -92,21 +92,21 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
     def test_get_available_size(self, test_object):
         """Check the available beam size values for each definer type"""
         if test_object.definer:
-            test_object._definer_type = "definer"
+            test_object._definer_type = "definer"  # noqa: SLF001
             _vals = test_object.get_available_size()
             _list = test_object.definer.get_predefined_positions_list()
             assert _vals["type"][0] == "definer"
             assert _vals["values"] == _list
 
         if test_object.aperture:
-            test_object._definer_type = "aperture"
+            test_object._definer_type = "aperture"  # noqa: SLF001
             _vals = test_object.get_available_size()
             _list = test_object.aperture.get_diameter_size_list()
             assert _vals["type"][0] == "aperture"
             assert _vals["values"] == _list
 
         if test_object.slits:
-            test_object._definer_type = "slits"
+            test_object._definer_type = "slits"  # noqa: SLF001
             _vals = test_object.get_available_size()
             assert _vals["type"] == ["width", "height"]
             _low_w, _low_h = test_object.slits.get_min_limits()
@@ -120,9 +120,10 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
         Slits are bigger than the aperture, slits are the beam definer type.
         """
         if test_object.aperture:
-            _list = []
-            for val in test_object.aperture.get_diameter_size_list():
-                _list.append(int(test_object.aperture.VALUES[val].value[0]))
+            _list = [
+                int(test_object.aperture.VALUES[val].value[0])
+                for val in test_object.aperture.get_diameter_size_list()
+            ]
             max_diameter = max(_list)
             test_object.aperture.set_value(
                 test_object.aperture.VALUES[f"A{max_diameter}"],
@@ -143,7 +144,7 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
             assert beam_shape == BeamShape.RECTANGULAR
         else:
             assert beam_shape == BeamShape.ELLIPTICAL
-            if test_object._definer_type == "aperture":
+            if test_object._definer_type == "aperture":  # noqa: SLF001
                 assert beam_label == f"A{max_diameter}"
 
         if test_object.slits is not None:
@@ -157,7 +158,7 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
             assert beam_shape == BeamShape.RECTANGULAR
         else:
             assert beam_shape == BeamShape.ELLIPTICAL
-            if test_object._definer_type == "aperture":
+            if test_object._definer_type == "aperture":  # noqa: SLF001
                 assert beam_label == f"A{max_diameter}"
 
     def test_set_aperture_diameters(self, test_object):
@@ -168,7 +169,7 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
         if test_object.aperture is None:
             return
 
-        test_object._definer_type = "aperture"
+        test_object._definer_type = "aperture"  # noqa: SLF001
         if test_object.slits is not None:
             test_object.slits.set_horizontal_gap(1)
             test_object.slits.set_vertical_gap(1)
@@ -192,12 +193,13 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
         if test_object.slits is None:
             return
 
-        test_object._definer_type = "slits"
+        test_object._definer_type = "slits"  # noqa: SLF001
 
         if test_object.aperture:
-            _list = []
-            for val in test_object.aperture.get_diameter_size_list():
-                _list.append(int(test_object.aperture.VALUES[val].value[0]))
+            _list = [
+                int(test_object.aperture.VALUES[val].value[0])
+                for val in test_object.aperture.get_diameter_size_list()
+            ]
             max_diameter = max(_list)
             test_object.aperture.set_value(
                 test_object.aperture.VALUES[f"A{max_diameter}"],
@@ -207,7 +209,6 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
         # slit size in mm, aperture diameters are in microns
         target_width = target_height = max_diameter / 2000.0
         test_object.set_value([target_width, target_height])
-        # beam_width, beam_height, beam_shape, _ = test_object.get_value()
         beam_width, beam_height = test_object.get_beam_size()
         assert target_width == beam_width
         assert target_height == beam_height
@@ -222,15 +223,16 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
         if test_object.definer is None:
             return
 
-        test_object._definer_type = "definer"
+        test_object._definer_type = "definer"  # noqa: SLF001
         if test_object.slits is not None:
             test_object.slits.set_horizontal_gap(1)
             test_object.slits.set_vertical_gap(1)
 
         if test_object.aperture:
-            _list = []
-            for val in test_object.aperture.get_diameter_size_list():
-                _list.append(int(test_object.aperture.VALUES[val].value[0]))
+            _list = [
+                int(test_object.aperture.VALUES[val].value[0])
+                for val in test_object.aperture.get_diameter_size_list()
+            ]
             max_diameter = max(_list)
             test_object.aperture.set_value(
                 test_object.aperture.VALUES[f"A{max_diameter}"],
@@ -254,11 +256,11 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
 
     def test_is_beam(self, test_object):
         """Check if there is beam."""
-        check_beam = test_object._check_beam
+        check_beam = test_object._check_beam  # noqa: SLF001
         if not check_beam:
             assert test_object.is_beam
         else:
-            test_object._definer_type = "aperture"
+            test_object._definer_type = "aperture"  # noqa: SLF001
             for val in test_object.aperture.get_diameter_size_list():
                 app_size = int(test_object.aperture.VALUES[val].value[0]) / 1000
                 test_object.aperture.set_value(

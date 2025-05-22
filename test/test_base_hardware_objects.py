@@ -27,76 +27,70 @@ if TYPE_CHECKING:
     from pytest_mock.plugin import MockerFixture
 
 
-@pytest.fixture(scope="function")
-def configured_object() -> Generator[ConfiguredObject, None, None]:
+@pytest.fixture
+def configured_object() -> ConfiguredObject:
     """Pytest fixture to instanciate a new "ConfiguredObject" object.
 
     Yields:
         Generator[ConfiguredObject, None, None]: New object instance.
     """
 
-    configured_object = ConfiguredObject(name="RootObject")
-    yield configured_object
+    return ConfiguredObject(name="RootObject")
 
 
-@pytest.fixture(scope="function")
-def property_set() -> Generator[PropertySet, None, None]:
+@pytest.fixture
+def property_set() -> PropertySet:
     """Pytest fixture to instanciate a new "PropertySet" object.
 
     Yields:
         Generator[PropertySet, None, None]: New object instance.
     """
 
-    property_set = PropertySet()
-    yield property_set
+    return PropertySet()
 
 
-@pytest.fixture(scope="function")
-def hw_obj_node() -> Generator[HardwareObjectNode, None, None]:
+@pytest.fixture
+def hw_obj_node() -> HardwareObjectNode:
     """Pytest fixture to instanciate a new "HardwareObjectNode" object.
 
     Yields:
         Generator[HardwareObjectNode, None, None]: New object instance.
     """
 
-    hw_obj_node = HardwareObjectNode(node_name="test_node")
-    yield hw_obj_node
+    return HardwareObjectNode(node_name="test_node")
 
 
-@pytest.fixture(scope="function")
-def hw_obj_mixin() -> Generator[HardwareObjectMixin, None, None]:
+@pytest.fixture
+def hw_obj_mixin() -> HardwareObjectMixin:
     """Pytest fixture to instanciate a new "HardwareObjectMixin" object.
 
     Yields:
         Generator[HardwareObjectMixin, None, None]: New object instance.
     """
 
-    hw_obj_mixin = HardwareObjectMixin()
-    yield hw_obj_mixin
+    return HardwareObjectMixin()
 
 
-@pytest.fixture(scope="function")
-def hardware_object() -> Generator[HardwareObject, None, None]:
+@pytest.fixture
+def hardware_object() -> HardwareObject:
     """Pytest fixture to instanciate a new "HardwareObject" object.
 
     Yields:
         Generator[HardwareObject, None, None]: New object instance.
     """
 
-    hardware_object = HardwareObject(name="RootObject")
-    yield hardware_object
+    return HardwareObject(name="RootObject")
 
 
-@pytest.fixture(scope="function")
-def hw_obj_yml() -> Generator[HardwareObjectYaml, None, None]:
+@pytest.fixture
+def hw_obj_yml() -> HardwareObjectYaml:
     """Pytest fixture to instanciate a new "HardwareObjectYaml" object.
 
     Yields:
         Generator[HardwareObjectYaml, None, None]: New object instance.
     """
 
-    hw_obj_yml = HardwareObjectYaml("RootObject")
-    yield hw_obj_yml
+    return HardwareObjectYaml("RootObject")
 
 
 class TestConfiguredObject:
@@ -169,9 +163,9 @@ class TestPropertySet:
         """
 
         assert property_set is not None and isinstance(property_set, PropertySet)
-        assert isinstance(getattr(property_set, "_PropertySet__properties_path"), dict)
+        assert isinstance(property_set._PropertySet__properties_path, dict)  # noqa: SLF001
         assert isinstance(
-            getattr(property_set, "_PropertySet__properties_changed"),
+            property_set._PropertySet__properties_changed,  # noqa: SLF001
             dict,
         )
 
@@ -194,7 +188,7 @@ class TestPropertySet:
         property_set.set_property_path(name=name, path=path)
 
         # Verify path set against "__properties_path" attribute
-        _properties_path: dict = getattr(property_set, "_PropertySet__properties_path")
+        _properties_path: dict = property_set._PropertySet__properties_path  # noqa: SLF001
         assert _properties_path.get(name) == path
 
     @pytest.mark.parametrize("values", ({"test": "test/path"},))
@@ -214,7 +208,7 @@ class TestPropertySet:
 
         # Patch "__properties_path" to known value
         mocker.patch.dict(
-            in_dict=getattr(property_set, "_PropertySet__properties_path"),
+            in_dict=property_set._PropertySet__properties_path,  # noqa: SLF001
             values=values,
             clear=True,
         )
@@ -235,8 +229,8 @@ class TestPropertySet:
         property_set: PropertySet,
         name: Union[str, Any],
         path: Union[str, Any],
-        initial_value: Union[int, float, str, bool, None],
-        new_value: Union[int, float, str, bool, None],
+        initial_value: Union[float, str, bool, None],
+        new_value: Union[float, str, bool, None],
     ):
         """Test "get_changes" method.
 
@@ -256,10 +250,7 @@ class TestPropertySet:
         property_set[name] = new_value
 
         # Verify change recorded in "__properties_changed"
-        _properties_changed: dict = getattr(
-            property_set,
-            "_PropertySet__properties_changed",
-        )
+        _properties_changed: dict = property_set._PropertySet__properties_changed  # noqa: SLF001
         assert _properties_changed.get(name) == str(new_value)
 
         # Call method
@@ -274,7 +265,7 @@ class TestPropertySet:
         assert res[0][0] == path and res[0][1] == str(new_value)
 
         # Make sure "__properties_changed" was cleared as it should be
-        assert not getattr(property_set, "_PropertySet__properties_changed")
+        assert not property_set._PropertySet__properties_changed  # noqa: SLF001
 
 
 class TestHardwareObjectNode:
@@ -356,7 +347,7 @@ class TestHardwareObjectNode:
         hw_obj_node.set_path(path=new_path)
 
         # Validate path updated
-        assert hw_obj_node._path == new_path
+        assert hw_obj_node._path == new_path  # noqa: SLF001
 
     @pytest.mark.parametrize(
         ("objects", "count"),
@@ -439,8 +430,8 @@ class TestHardwareObjectNode:
 
         # Check that key/value was assigned to "__dict__"
         assert "test1" in hw_obj_node.__dict__.keys()
-        assert getattr(hw_obj_node, "test1") == 1
-        assert "test1" not in hw_obj_node._property_set.keys()
+        assert hw_obj_node.test1 == 1
+        assert "test1" not in hw_obj_node._property_set.keys()  # noqa: SLF001
         assert hw_obj_node.test1 == 1
 
     @pytest.mark.parametrize(
@@ -482,13 +473,9 @@ class TestHardwareObjectNode:
             new=initial_objects,
         )
 
-        _object_names: List[str] = getattr(
-            hw_obj_node,
-            "_HardwareObjectNode__objects_names",
-        )
-        _objects: List[Union[List[Union[HardwareObject, None]], None]] = getattr(
-            hw_obj_node,
-            "_HardwareObjectNode__objects",
+        _object_names: List[str] = hw_obj_node._HardwareObjectNode__objects_names  # noqa: SLF001
+        _objects: List[Union[List[Union[HardwareObject, None]], None]] = (
+            hw_obj_node._HardwareObjectNode__objects  # noqa: SLF001
         )
         if isinstance(key, str):
             if key not in _object_names:
@@ -577,13 +564,9 @@ class TestHardwareObjectNode:
         # Call method
         hw_obj_node.add_reference(name=name, reference=reference, role=role)
 
-        _objects_names: List[str] = getattr(
-            hw_obj_node,
-            "_HardwareObjectNode__objects_names",
-        )
-        _objects: List[List[Union[HardwareObject, None]]] = getattr(
-            hw_obj_node,
-            "_HardwareObjectNode__objects",
+        _objects_names: List[str] = hw_obj_node._HardwareObjectNode__objects_names  # noqa: SLF001
+        _objects: List[List[Union[HardwareObject, None]]] = (
+            hw_obj_node._HardwareObjectNode__objects  # noqa: SLF001
         )
 
         if name not in initial_obj_names:
@@ -594,10 +577,10 @@ class TestHardwareObjectNode:
             assert _objects[_objects_names.index(name)][-1] is None
 
         # Check that item was added to "__references" and item values are as expected
-        _references = getattr(hw_obj_node, "_HardwareObjectNode__references")
+        _references = hw_obj_node._HardwareObjectNode__references  # noqa: SLF001
         assert len(_references) and len(_references[-1]) == 6
-        assert all([isinstance(val, str) for val in _references[-1][:3]])
-        assert all([isinstance(val, int) for val in _references[-1][3:]])
+        assert all(isinstance(val, str) for val in _references[-1][:3])
+        assert all(isinstance(val, int) for val in _references[-1][3:])
 
     @pytest.mark.parametrize(
         ("initial_refs", "initial_obj_names", "initial_objects"),
@@ -650,7 +633,7 @@ class TestHardwareObjectNode:
 
         # Mock "__HardwareRepositoryClient" to modify output of "get_hardware_object"
         hardware_object = MagicMock(
-            get_hardware_object=lambda *args, **kwargs: initial_hw_object,
+            get_hardware_object=lambda *args, **kwarg: initial_hw_object,  # noqa: ARG005
         )
 
         # Patch "get_hardware_repository" to return our mock and avoid having
@@ -666,18 +649,14 @@ class TestHardwareObjectNode:
         # Check that the "get_hardware_repository" was called
         hardware_repository.assert_called_once()
 
-        _objects_names: List[str] = getattr(
-            hw_obj_node,
-            "_HardwareObjectNode__objects_names",
-        )
-        _objects: List[List[Union[HardwareObject, None]]] = getattr(
-            hw_obj_node,
-            "_HardwareObjectNode__objects",
+        _objects_names: List[str] = hw_obj_node._HardwareObjectNode__objects_names  # noqa: SLF001
+        _objects: List[List[Union[HardwareObject, None]]] = (
+            hw_obj_node._HardwareObjectNode__objects  # noqa: SLF001
         )
 
         # Verify "hw_obj_node" is in expected state
         if initial_hw_object is not None:
-            assert hw_obj_node._objects_by_role.get(role) == initial_hw_object
+            assert hw_obj_node._objects_by_role.get(role) == initial_hw_object  # noqa: SLF001
             assert len(_objects) and _objects[0] == [initial_hw_object]
             if objects_names_index >= 0:
                 assert len(_objects_names) and _objects_names[0] == role
@@ -729,13 +708,9 @@ class TestHardwareObjectNode:
             new=initial_objects,
         )
 
-        _objects_names: List[str] = getattr(
-            hw_obj_node,
-            "_HardwareObjectNode__objects_names",
-        )
-        _objects: List[List[Union[HardwareObject, None]]] = getattr(
-            hw_obj_node,
-            "_HardwareObjectNode__objects",
+        _objects_names: List[str] = hw_obj_node._HardwareObjectNode__objects_names  # noqa: SLF001
+        _objects: List[List[Union[HardwareObject, None]]] = (
+            hw_obj_node._HardwareObjectNode__objects  # noqa: SLF001
         )
 
         _initial_value: Union[List[Union[HardwareObject, None]], None]
@@ -745,15 +720,11 @@ class TestHardwareObjectNode:
             _initial_value = None
 
         # Call method
-        hw_obj_node._add_object(name=name, hw_object=hw_object, role=role)
+        hw_obj_node._add_object(name=name, hw_object=hw_object, role=role)  # noqa: SLF001
 
-        _objects_names: List[str] = getattr(
-            hw_obj_node,
-            "_HardwareObjectNode__objects_names",
-        )
-        _objects: List[List[Union[HardwareObject, None]]] = getattr(
-            hw_obj_node,
-            "_HardwareObjectNode__objects",
+        _objects_names: List[str] = hw_obj_node._HardwareObjectNode__objects_names  # noqa: SLF001
+        _objects: List[List[Union[HardwareObject, None]]] = (
+            hw_obj_node._HardwareObjectNode__objects  # noqa: SLF001
         )
 
         if hw_object is not None:
@@ -766,14 +737,14 @@ class TestHardwareObjectNode:
         if hw_object is None:
             if isinstance(role, str):
                 # Check object not present in "_objects_by_role"
-                assert not hw_obj_node._objects_by_role.get(role.lower())
+                assert not hw_obj_node._objects_by_role.get(role.lower())  # noqa: SLF001
         elif isinstance(role, str):
             # Check object is present in "_objects_by_role"
-            assert hw_obj_node._objects_by_role.get(role.lower())
-            assert hw_obj_node._objects_by_role[role.lower()] == hw_object
+            assert hw_obj_node._objects_by_role.get(role.lower())  # noqa: SLF001
+            assert hw_obj_node._objects_by_role[role.lower()] == hw_object  # noqa: SLF001
 
             # Check that role was defined on hardware object "__role"
-            assert getattr(hw_object, "_HardwareObjectNode__role") == role.lower()
+            assert hw_object._HardwareObjectNode__role == role.lower()  # noqa: SLF001
 
         if hw_object is not None and _initial_value is not None:
             _value = _objects[_objects_names.index(name)]
@@ -829,17 +800,13 @@ class TestHardwareObjectNode:
             new=initial_objects,
         )
 
-        _objects_names: List[str] = getattr(
-            hw_obj_node,
-            "_HardwareObjectNode__objects_names",
-        )
-        _objects: List[List[Union[HardwareObject, None]]] = getattr(
-            hw_obj_node,
-            "_HardwareObjectNode__objects",
+        _objects_names: List[str] = hw_obj_node._HardwareObjectNode__objects_names  # noqa: SLF001
+        _objects: List[List[Union[HardwareObject, None]]] = (
+            hw_obj_node._HardwareObjectNode__objects  # noqa: SLF001
         )
 
         # Call method
-        res = list(hw_obj_node._get_objects(object_name=name))
+        res = list(hw_obj_node._get_objects(object_name=name))  # noqa: SLF001
 
         if name in _objects_names:
             # Check output list matches expectations
@@ -880,7 +847,8 @@ class TestHardwareObjectNode:
             hw_obj_node (HardwareObjectNode): Object instance.
             role (str): Role.
             initial_obj_names (List[str]): Initial object names.
-            initial_objects (List[ List[Union[Tuple[HardwareObject, str], HardwareObject, None]] ]):
+            initial_objects
+                (List[Union[Tuple[HardwareObject, str], HardwareObject, None]]):
             Initial objects.
             sub_obj_role (Union[str, None]): Sub object role.
         """
@@ -891,12 +859,12 @@ class TestHardwareObjectNode:
             _item_objs: List[Union[HardwareObject, None]] = []
             for sub_item in item:
                 if isinstance(sub_item, Tuple):
-                    hw_obj_node._objects_by_role[sub_item[1]] = sub_item[0]
+                    hw_obj_node._objects_by_role[sub_item[1]] = sub_item[0]  # noqa: SLF001
                     _item_objs.append(sub_item[0])
                 else:
                     _item_objs.append(sub_item)
                     if sub_obj_role and isinstance(sub_item, HardwareObject):
-                        sub_item._objects_by_role[sub_obj_role] = HardwareObject(
+                        sub_item._objects_by_role[sub_obj_role] = HardwareObject(  # noqa: SLF001
                             name="TestHWObj3",
                         )
             _initial_objects.append(_item_objs)
@@ -911,23 +879,22 @@ class TestHardwareObjectNode:
             new=_initial_objects,
         )
 
-        _objects: List[List[Union[HardwareObject, None]]] = getattr(
-            hw_obj_node,
-            "_HardwareObjectNode__objects",
+        _objects: List[List[Union[HardwareObject, None]]] = (
+            hw_obj_node._HardwareObjectNode__objects  # noqa: SLF001
         )
 
         # Call method
-        if None in _objects and not role.lower() in hw_obj_node._objects_by_role:
+        obj_by_role = hw_obj_node._objects_by_role  # noqa: SLF001
+        if None in _objects and role.lower() not in obj_by_role:
             with pytest.raises(AttributeError):
                 hw_obj_node.get_object_by_role(role=role)
             res = None
         else:
             res = hw_obj_node.get_object_by_role(role=role)
 
-        #
-        if role.lower() in hw_obj_node._objects_by_role:
-            assert res == hw_obj_node._objects_by_role[role.lower()]
-        elif not None in _objects and sub_obj_role:
+        if role.lower() in obj_by_role:
+            assert res == obj_by_role[role.lower()]
+        elif None not in _objects and sub_obj_role:
             assert isinstance(res, HardwareObject) and res.name == "TestHWObj3"
 
     @pytest.mark.parametrize(
@@ -960,7 +927,7 @@ class TestHardwareObjectNode:
         )
 
         # Call method and verify output matches initial values
-        assert hw_obj_node._objects_names() == initial_obj_names
+        assert hw_obj_node._objects_names() == initial_obj_names  # noqa: SLF001
 
     @pytest.mark.parametrize(
         ("name", "value", "output_value"),
@@ -984,7 +951,7 @@ class TestHardwareObjectNode:
         hw_obj_node: HardwareObjectNode,
         name: Any,
         value: Any,
-        output_value: Union[str, int, float, bool],
+        output_value: Union[str, float, bool],
     ):
         """Test "_set_property" method.
 
@@ -1001,14 +968,14 @@ class TestHardwareObjectNode:
         set_property_path_patch = mocker.patch.object(PropertySet, "set_property_path")
 
         # Call method, always returns None
-        hw_obj_node._set_property(name=name, value=value)
+        hw_obj_node._set_property(name=name, value=value)  # noqa: SLF001
 
         # Check "PropertySet.__setitem__" patch was called with expected value
         setitem_patch.assert_called_once_with(*(str(name), output_value))
 
         # Check "PropertySet.set_property_path" was called with name and path
         set_property_path_patch.assert_called_once_with(
-            *(str(name), f"{hw_obj_node._path}/{name}")
+            *(str(name), f"{hw_obj_node._path}/{name}")  # noqa: SLF001
         )
 
     @pytest.mark.parametrize(
@@ -1067,7 +1034,7 @@ class TestHardwareObjectNode:
         """
 
         # Update "_property_set" to test with known values
-        hw_obj_node._property_set.update(initial_properties)
+        hw_obj_node._property_set.update(initial_properties)  # noqa: SLF001
 
         # Call method and verify output matches initial values
         assert hw_obj_node.get_properties() == initial_properties
@@ -1088,47 +1055,7 @@ class TestHardwareObjectMixin:
             HardwareObjectMixin,
         )
 
-    # def test_misc(self):
-    #     """ """
-
-    #     # __bool__
-    #     # __nonzero__
-    #     # _init
-    #     # init
-    #     # pydantic_model
-    #     # exported_attributes
-
-    # def test_get_type_annotations(self): ...
-
-    # def test_execute_exported_command(self): ...
-
-    # def test_abort(self): ...
-
-    # def test_stop(self): ...
-
-    # def test_get_state(self): ...
-
-    # def test_get_specific_state(self): ...
-
-    # def test_wait_ready(self): ...
-
-    # def test_is_ready(self): ...
-
-    # def test_update_state(self): ...
-
-    # def test_update_specific_state(self): ...
-
-    # def test_re_emit_values(self): ...
-
-    # def test_force_emit_signals(self): ...
-
-    # def test_clear_gevent(self): ...
-
-    # def test_emit(self): ...
-
-    # def test_connect(self): ...
-
-    # def test_disconnect(self): ...
+    # TODO @DTR: https://github.com/mxcube/mxcubecore/issues/1232 # noqa: FIX002
 
 
 class TestHardwareObject:
@@ -1146,23 +1073,7 @@ class TestHardwareObject:
             HardwareObject,
         )
 
-    # def test_misc(self):
-    #     """ """
-
-    #     # exported_attributes
-    #     # __getstate__
-
-    # def test_init(self): ...
-
-    # def test_setstate(self): ...
-
-    # def test_getattr(self): ...
-
-    # def test_commit_changes(self): ...
-
-    # def test_rewrite_xml(self): ...
-
-    # def test_xml_source(self): ...
+    # TODO @DTR: https://github.com/mxcube/mxcubecore/issues/1232 # noqa: FIX002
 
 
 class TestHardwareObjectYaml:
@@ -1177,6 +1088,4 @@ class TestHardwareObjectYaml:
 
         assert hw_obj_yml is not None and isinstance(hw_obj_yml, HardwareObjectYaml)
 
-    # def test_user_name(self): ...
-
-    # def test_gui(self): ...
+    # TODO @DTR: https://github.com/mxcube/mxcubecore/issues/1232 # noqa: FIX002

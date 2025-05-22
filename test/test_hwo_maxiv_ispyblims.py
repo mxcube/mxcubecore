@@ -7,9 +7,9 @@ from unittest.mock import (
 import pytest
 
 ISPYB_AUTH_ERROR_MESSSAGE = (
-    "JBAS011843: Failed instantiate InitialContextFactory com.sun.jndi.ldap.LdapCtxFactory "
-    'from classloader ModuleClassLoader for Module "deployment.ispyb.ear.ispyb-ws.war:main" '
-    "from Service Module Loader"
+    "JBAS011843: Failed instantiate InitialContextFactory "
+    "com.sun.jndi.ldap.LdapCtxFactory from classloader ModuleClassLoader for "
+    'Module "deployment.ispyb.ear.ispyb-ws.war:main" from Service Module Loader'
 )
 
 REST_ROOT = "http://example.com/rest/"

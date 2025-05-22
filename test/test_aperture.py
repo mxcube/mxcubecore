@@ -1,6 +1,6 @@
 # encoding: utf-8
 #
-#  Project: MXCuBE
+#  Project: MXCuBE  # noqa: ERA001
 #  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
@@ -28,8 +28,7 @@ from test.TestAbstractNStateBase import TestAbstractNStateBase
 
 @pytest.fixture
 def test_object(beamline):
-    result = beamline.diffractometer.aperture
-    yield result
+    return beamline.diffractometer.aperture
 
 
 class TestAperture(TestAbstractNStateBase):
@@ -42,9 +41,9 @@ class TestAperture(TestAbstractNStateBase):
 
     def test_initialise_values_from_default(self, test_object):
         values = test_object.VALUES
-        test_object._initialise_values()
+        test_object._initialise_values()  # noqa: SLF001
         assert values != test_object.VALUES
-        test_object._initialise_inout()
+        test_object._initialise_inout()  # noqa: SLF001
         assert hasattr(test_object.VALUES, "IN")
 
     def test_get_factor(self, test_object):
@@ -55,7 +54,7 @@ class TestAperture(TestAbstractNStateBase):
                 assert value.value[1] == test_object.get_factor(value)
 
     def test_size(self, test_object):
-        test_object._initialise_inout()
+        test_object._initialise_inout()  # noqa: SLF001
         for label in test_object.get_diameter_size_list():
             test_object.set_value(test_object.VALUES[label])
             test_object.update_value(test_object.VALUES[label])

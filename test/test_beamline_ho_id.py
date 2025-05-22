@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 # encoding: utf-8
 #
 # This file is part of MXCuBE.
@@ -32,8 +31,7 @@ __license__ = "LGPLv3+"
 
 @pytest.fixture
 def test_object(beamline):
-    result = beamline
-    yield result
+    return beamline
 
 
 class TestBeamlineHoId:
@@ -42,9 +40,9 @@ class TestBeamlineHoId:
         # the beamline object
         ho = test_object.get_hardware_object("diffractometer")
         ho_id = test_object.get_id(ho)
-        assert "diffractometer" == ho_id
+        assert ho_id == "diffractometer"
 
         # Test if we can get an object further down the strucutre
         ho = test_object.get_hardware_object("diffractometer.sampx")
         ho_id = test_object.get_id(ho)
-        assert "diffractometer.sampx" == ho_id
+        assert ho_id == "diffractometer.sampx"
