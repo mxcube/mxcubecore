@@ -5,7 +5,6 @@ name: Coverage Report
 "on":
   pull_request:
     paths-ignore:
-      - doc/**
       - docs/**
     types: [opened, reopened, synchronize]
 

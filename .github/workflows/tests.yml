@@ -5,7 +5,6 @@ name: Pytest
 "on":
   pull_request:
     paths-ignore:
-      - doc/**
       - docs/**
     types: [opened, reopened, synchronize]
 

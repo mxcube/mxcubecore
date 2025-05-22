@@ -106,7 +106,7 @@ Versioning is partly automated by GitHub actions and [Poetry](https://python-poe
   necessary changes and applied to the `main branch` and the corresponding commits are
   also cherry-picked to the development branch.
 
-The exact routine is described more preceisly in [MEP01](https://github.com/mxcube/mxcubecore/blob/develop/doc/MEPS/MEP-01/mep01.md).
+The exact routine is described more preceisly in [MEP01](https://github.com/mxcube/mxcubecore/blob/develop/docs/source/assets/MEPS/MEP-01/mep01.md).
 
 ### Coding convention and style guidelines
 
