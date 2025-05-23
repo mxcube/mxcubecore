@@ -417,7 +417,7 @@ class TestCommandObject:
         res = cmd_object.is_connected()
 
         # Check output always returns False
-        assert res == False
+        assert not res
 
 
 class TestChannelObject:
@@ -660,7 +660,7 @@ class TestChannelObject:
         res = channel_object.is_connected()
 
         # Check output always returns False
-        assert res == False
+        assert not res
 
     @pytest.mark.parametrize("first_update", [True, False])
     @pytest.mark.parametrize(
@@ -680,8 +680,8 @@ class TestChannelObject:
         mocker: "MockerFixture",
         channel_object: ChannelObject,
         first_update: bool,  # noqa: FBT001
-        onchange: Union[Tuple[str, Union["ellipsis", None]], None],
-        command_object: Union["ellipsis", None],
+        onchange: Union[Tuple[str, Union[..., None]], None],
+        command_object: Union[Ellipsis, None],
         value: str,
     ):
         """Test "update" method.
@@ -712,10 +712,7 @@ class TestChannelObject:
                 _command_object = MagicMock(spec=CommandObject)
             else:
                 _command_object = command_object
-            get_command_object_patch: MagicMock = getattr(
-                _onchange_ref,
-                "get_command_object",
-            )
+            get_command_object_patch: MagicMock = _onchange_ref.get_command_object
             get_command_object_patch.return_value = _command_object
         elif onchange is not None:
             _onchange_ref = onchange[1]
@@ -731,7 +728,7 @@ class TestChannelObject:
 
         if first_update:
             # Check "__first_update" is now False
-            assert getattr(channel_object, "_ChannelObject__first_update") == False
+            assert not channel_object._ChannelObject__first_update
         elif onchange is not None:
             if get_command_object_patch is not None:
                 # Check "get_command_object" method patch was called
@@ -1051,9 +1048,7 @@ class TestCommandContainer:
                 channel=channel,
                 add_now=add_now,
             )
-            _channels_to_add = getattr(
-                cmd_container, "_CommandContainer__channels_to_add"
-            )
+            _channels_to_add = cmd_container._CommandContainer__channels_to_add
 
             # Result should be none as no channel has yet been added
             assert res is None
@@ -1102,9 +1097,7 @@ class TestCommandContainer:
                     assert res is not None
 
                     # Check that "__channels_to_add" was not updated
-                    _channels_to_add = getattr(
-                        cmd_container, "_CommandContainer__channels_to_add"
-                    )
+                    _channels_to_add = cmd_container._CommandContainer__channels_to_add
                     assert _channels_to_add == []
             else:
                 res = cmd_container.add_channel(
@@ -1116,9 +1109,7 @@ class TestCommandContainer:
                 assert res is not None
 
                 # Check that "__channels_to_add" was not updated
-                _channels_to_add = getattr(
-                    cmd_container, "_CommandContainer__channels_to_add"
-                )
+                _channels_to_add = cmd_container._CommandContainer__channels_to_add
                 assert _channels_to_add == []
 
     @pytest.mark.parametrize(
@@ -1210,9 +1201,7 @@ class TestCommandContainer:
             res = cmd_container.get_channel_value(channel_name=channel_name)
 
             # Check result matches expectations
-            _get_value_mock: MagicMock = getattr(
-                initial_channels[channel_name], "get_value"
-            )
+            _get_value_mock: MagicMock = initial_channels[channel_name].get_value
             _get_value_mock.assert_called_once()
             assert res == _get_value_mock.return_value
 
@@ -1500,10 +1489,7 @@ class TestCommandContainer:
             # Check return value is "None" as no command object should be created
             assert res is None
 
-            _commands_to_add = getattr(
-                cmd_container,
-                "_CommandContainer__commands_to_add",
-            )
+            _commands_to_add = cmd_container._CommandContainer__commands_to_add
 
             # Check "__commands_to_add" now contains command arguments
             assert len(_commands_to_add) == 1
@@ -1532,9 +1518,7 @@ class TestCommandContainer:
                     assert res is not None
 
                     # Check that "__commands_to_add" was not updated
-                    _commands_to_add = getattr(
-                        cmd_container, "_CommandContainer__commands_to_add"
-                    )
+                    _commands_to_add = cmd_container._CommandContainer__commands_to_add
                     assert _commands_to_add == []
             else:
                 res = cmd_container.add_command(
@@ -1544,9 +1528,7 @@ class TestCommandContainer:
                 assert res is not None
 
                 # Check that "__commands_to_add" was not updated
-                _commands_to_add = getattr(
-                    cmd_container, "_CommandContainer__commands_to_add"
-                )
+                _commands_to_add = cmd_container._CommandContainer__commands_to_add
                 assert _commands_to_add == []
 
     @pytest.mark.parametrize(
@@ -1633,8 +1615,8 @@ class TestCommandContainer:
             # Check that all commands were passed to "add_command"
             assert _add_command_patch.call_count == len(commands_to_add)
 
-        _channels_to_add = getattr(cmd_container, "_CommandContainer__channels_to_add")
-        _commands_to_add = getattr(cmd_container, "_CommandContainer__commands_to_add")
+        _channels_to_add = cmd_container._CommandContainer__channels_to_add
+        _commands_to_add = cmd_container._CommandContainer__commands_to_add
 
         # Check that all channels and commands have been processed
         assert _channels_to_add == []
