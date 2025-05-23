@@ -990,13 +990,9 @@ class TestCommandContainer:
         get_logger_patch = mocker.patch("logging.getLogger", return_value=logger_patch)
 
         # Patch imports to test in isolation
-        # mocker.patch("mxcubecore.Command.Spec.SpecChannel")
-        # mocker.patch("mxcubecore.Command.Taco.TacoChannel")
         mocker.patch("mxcubecore.Command.Tango.TangoChannel")
         mocker.patch("mxcubecore.Command.Exporter.ExporterChannel")
         mocker.patch("mxcubecore.Command.Epics.EpicsChannel")
-        # mocker.patch("mxcubecore.Command.Tine.TineChannel")
-        # mocker.patch("mxcubecore.Command.Sardana.SardanaChannel")
         mocker.patch("mxcubecore.Command.Mockup.MockupChannel")
 
         # Reset logger patch to remove calls from mock imports
@@ -1636,7 +1632,7 @@ class TestCommandContainer:
         ("cmd_args", "cmd_kwargs"),
         [
             ((None, "Test", 2.5), {"test1": None, "test2": 13, "test3": 8.5}),
-            (tuple(), dict()),
+            ((), {}),
         ],
     )
     def test_execute_command(  # noqa:  PLR0913
