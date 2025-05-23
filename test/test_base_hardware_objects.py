@@ -110,13 +110,13 @@ class TestConfiguredObject:
 
     @pytest.mark.parametrize(
         "level",
-        (
+        [
             "debug",
             "error",
             "warning",
             "info",
             "flange",
-        ),
+        ],
     )
     def test_print_log(
         self,
@@ -169,7 +169,7 @@ class TestPropertySet:
             dict,
         )
 
-    @pytest.mark.parametrize(("name", "path"), (("test", "test/path"),))
+    @pytest.mark.parametrize(("name", "path"), [("test", "test/path")])
     def test_set_property_path(
         self,
         property_set: PropertySet,
@@ -191,7 +191,7 @@ class TestPropertySet:
         _properties_path: dict = property_set._PropertySet__properties_path  # noqa: SLF001
         assert _properties_path.get(name) == path
 
-    @pytest.mark.parametrize("values", ({"test": "test/path"},))
+    @pytest.mark.parametrize("values", [{"test": "test/path"}])
     def test_get_properties_path(
         self,
         mocker: "MockerFixture",
@@ -222,7 +222,7 @@ class TestPropertySet:
 
     @pytest.mark.parametrize(
         ("name", "path", "initial_value", "new_value"),
-        (("test", "test/path", 2.6, 5.8),),
+        [("test", "test/path", 2.6, 5.8)],
     )
     def test_get_changes(
         self,
@@ -282,7 +282,7 @@ class TestHardwareObjectNode:
 
     @pytest.mark.parametrize(
         ("initial_path", "new_path"),
-        (("/mnt/data/user_path", "/mnt/data/new_path"),),
+        [("/mnt/data/user_path", "/mnt/data/new_path")],
     )
     def test_set_user_file_directory(
         self,
@@ -317,7 +317,7 @@ class TestHardwareObjectNode:
 
     @pytest.mark.parametrize(
         ("initial_path", "new_path"),
-        (("/mnt/data/old_path", "/mnt/data/new_path"),),
+        [("/mnt/data/old_path", "/mnt/data/new_path")],
     )
     def test_set_path(
         self,
@@ -351,11 +351,11 @@ class TestHardwareObjectNode:
 
     @pytest.mark.parametrize(
         ("objects", "count"),
-        (
+        [
             ([[None]], 1),
             ([[None], [None], [None]], 3),
             ([[None, None], [None, None, None]], 5),
-        ),
+        ],
     )
     def test_iter(
         self,
@@ -390,11 +390,11 @@ class TestHardwareObjectNode:
 
     @pytest.mark.parametrize(
         ("objects", "count"),
-        (
+        [
             ([[None]], 1),
             ([[None], [None], [None]], 3),
             ([[None, None], [None, None, None]], 5),
-        ),
+        ],
     )
     def test_len(
         self,
@@ -436,11 +436,11 @@ class TestHardwareObjectNode:
 
     @pytest.mark.parametrize(
         "key",
-        ("key1", "key2", "key3", "key4", 0, 1, 2, 3, 4, None),
+        ["key1", "key2", "key3", "key4", 0, 1, 2, 3, 4, None],
     )
     @pytest.mark.parametrize(
         ("initial_obj_names", "initial_objects"),
-        ((["key1", "key2", "key3"], [[None, None], [None, None, None], [None]]),),
+        [(["key1", "key2", "key3"], [[None, None], [None, None, None], [None]])],
     )
     def test_getitem(
         self,
@@ -512,20 +512,20 @@ class TestHardwareObjectNode:
 
     @pytest.mark.parametrize(
         ("name", "reference", "role"),
-        (
+        [
             (
                 "test",
                 "test_ref",
                 "session",
             ),
-        ),
+        ],
     )
     @pytest.mark.parametrize(
         ("initial_obj_names", "initial_objects"),
-        (
+        [
             ([], []),
             (["key1", "test", "key3"], [[], [], []]),
-        ),
+        ],
     )
     def test_add_reference(  # noqa: PLR0913
         self,
@@ -584,12 +584,12 @@ class TestHardwareObjectNode:
 
     @pytest.mark.parametrize(
         ("initial_refs", "initial_obj_names", "initial_objects"),
-        (
+        [
             ([("/session", "object", "session", 0, 0, -1)], ["object"], [None]),
             ([("/session", None, "session", -1, 0, 0)], [], [[None]]),
-        ),
+        ],
     )
-    @pytest.mark.parametrize("initial_hw_object", (MagicMock(), None))
+    @pytest.mark.parametrize("initial_hw_object", [MagicMock(), None])
     def test_resolve_references(  # noqa: PLR0913
         self,
         mocker: "MockerFixture",
@@ -663,16 +663,16 @@ class TestHardwareObjectNode:
         else:
             assert len(_objects_names) == 0 and len(_objects) == 0
 
-    @pytest.mark.parametrize("name", ("key1", "key2", "key3", "key4"))
-    @pytest.mark.parametrize("hw_object", (None, HardwareObject(name="TestHWObj")))
-    @pytest.mark.parametrize("role", (None, "session"))
+    @pytest.mark.parametrize("name", ["key1", "key2", "key3", "key4"])
+    @pytest.mark.parametrize("hw_object", [None, HardwareObject(name="TestHWObj")])
+    @pytest.mark.parametrize("role", [None, "session"])
     @pytest.mark.parametrize(
         ("initial_obj_names", "initial_objects"),
-        (
+        [
             ([], []),
             (["key1", "key2", "key3"], [[], [], []]),
             (["key1", "key2", "key3"], [[None], [None], [None]]),
-        ),
+        ],
     )
     def test_add_object(  # noqa: PLR0913
         self,
@@ -761,14 +761,14 @@ class TestHardwareObjectNode:
             # Index key in "_objects_names" should point to last item in "_objects"
             assert _objects_names.index(name) == len(_objects) - 1
 
-    @pytest.mark.parametrize("name", ("key1", "key2", "key3", "key4"))
+    @pytest.mark.parametrize("name", ["key1", "key2", "key3", "key4"])
     @pytest.mark.parametrize(
         ("initial_obj_names", "initial_objects"),
-        (
+        [
             ([], []),
             (["key1", "key2", "key3"], [[], [], []]),
             (["key1", "key2", "key3"], [[None], [None], [None]]),
-        ),
+        ],
     )
     def test_get_objects(
         self,
@@ -815,10 +815,10 @@ class TestHardwareObjectNode:
             # Name is not in list, expect an empty list to be returned
             assert len(res) == 0
 
-    @pytest.mark.parametrize("role", ("session", "beam"))
+    @pytest.mark.parametrize("role", ["session", "beam"])
     @pytest.mark.parametrize(
         ("initial_obj_names", "initial_objects"),
-        (
+        [
             (
                 ["key1", "key2"],
                 [
@@ -826,9 +826,9 @@ class TestHardwareObjectNode:
                     [HardwareObject(name="TestHWObj2")],
                 ],
             ),
-        ),
+        ],
     )
-    @pytest.mark.parametrize("sub_obj_role", ("beam", None))
+    @pytest.mark.parametrize("sub_obj_role", ["beam", None])
     def test_get_object_by_role(  # noqa: PLR0913
         self,
         mocker: "MockerFixture",
@@ -899,11 +899,11 @@ class TestHardwareObjectNode:
 
     @pytest.mark.parametrize(
         "initial_obj_names",
-        (
+        [
             ["key1", "key2"],
             ["key1", "key2", "key3"],
             ["session"],
-        ),
+        ],
     )
     def test_objects_names(
         self,
@@ -931,7 +931,7 @@ class TestHardwareObjectNode:
 
     @pytest.mark.parametrize(
         ("name", "value", "output_value"),
-        (
+        [
             (0, 1, 1),
             (1, "1", 1),
             (2, 2.5, 2.5),
@@ -943,7 +943,7 @@ class TestHardwareObjectNode:
             ("test8", True, True),
             ("test9", "False", False),
             ("test10", False, False),
-        ),
+        ],
     )
     def test_set_property(
         self,
@@ -980,13 +980,13 @@ class TestHardwareObjectNode:
 
     @pytest.mark.parametrize(
         ("name", "default"),
-        (
+        [
             ("test1", "Default"),
             ("test2", False),
             ("test3", True),
             ("test4", None),
             ("test5", ...),
-        ),
+        ],
     )
     def test_get_property(
         self,
@@ -1016,10 +1016,10 @@ class TestHardwareObjectNode:
 
     @pytest.mark.parametrize(
         "initial_properties",
-        (
+        [
             {"test": True},
             {"key1": None, "Key2": None, "Key3": None},
-        ),
+        ],
     )
     def test_get_properties(
         self,

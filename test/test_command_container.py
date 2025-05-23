@@ -79,7 +79,7 @@ class TestCommandObject:
 
     @pytest.mark.parametrize(
         "schema",
-        (
+        [
             json.dumps(
                 {
                     "test1": 2.5,
@@ -94,7 +94,7 @@ class TestCommandObject:
                     "test3": "Test.",
                 },
             },
-        ),
+        ],
     )
     def test_set_argument_json_schema(
         self,
@@ -121,7 +121,7 @@ class TestCommandObject:
 
     @pytest.mark.parametrize(
         "name",
-        ("test1", "test2"),
+        ["test1", "test2"],
     )
     def test_name(
         self,
@@ -148,7 +148,7 @@ class TestCommandObject:
 
     @pytest.mark.parametrize(
         "signal_name",
-        ("position", "state", "move_done"),
+        ["position", "state", "move_done"],
     )
     def test_connect(
         self,
@@ -182,17 +182,17 @@ class TestCommandObject:
 
     @pytest.mark.parametrize(
         "signal_name",
-        ("position", "state", "move_done"),
+        ["position", "state", "move_done"],
     )
     @pytest.mark.parametrize(
         ("in_args", "out_args"),
-        (
+        [
             (("test1", 2.5, None), ("test1", 2.5, None)),
             ((False, None), (False, None)),
             ((("test2", None),), ("test2", None)),
             ((("test3", 10, False), None), (("test3", 10, False), None)),
             (("test4",), ("test4",)),
-        ),
+        ],
     )
     def test_emit(
         self,
@@ -223,22 +223,22 @@ class TestCommandObject:
 
     @pytest.mark.parametrize(
         ("arg_name", "arg_type", "onchange", "valuefrom"),
-        (
+        [
             ("test1", "test1", None, None),
             ("test2", "test2", None, None),
             ("test3", "test3", None, None),
-        ),
+        ],
     )
     @pytest.mark.parametrize(
         "initial_arguments",
-        ([("test1", "test1", None, None), ("test2", "test2", None, None)],),
+        [[("test1", "test1", None, None), ("test2", "test2", None, None)]],
     )
     @pytest.mark.parametrize(
         "combo_items",
-        (
+        [
             {"value1": 0, "value2": 1},
             None,
-        ),
+        ],
     )
     def test_add_argument(  # noqa: PLR0913
         self,
@@ -301,7 +301,7 @@ class TestCommandObject:
 
     @pytest.mark.parametrize(
         "initial_arguments",
-        ([("Time [s]", "float", None, None), ("Count", "int", None, None)],),
+        [[("Time [s]", "float", None, None), ("Count", "int", None, None)]],
     )
     def test_get_arguments(
         self,
@@ -328,16 +328,16 @@ class TestCommandObject:
 
     @pytest.mark.parametrize(
         "arg_name",
-        ("time", "count"),
+        ["time", "count"],
     )
     @pytest.mark.parametrize(
         "initial_combo_args",
-        (
+        [
             {
                 "time": {"value1": 2.5, "value2": 3.0},
                 "count": {"value1": 256, "value2": 1033},
             },
-        ),
+        ],
     )
     def test_get_combo_argument_items(
         self,
@@ -368,11 +368,11 @@ class TestCommandObject:
 
     @pytest.mark.parametrize(
         "username",
-        ("test_username1", None),
+        ["test_username1", None],
     )
     @pytest.mark.parametrize(
         "name",
-        ("test1", "test2"),
+        ["test1", "test2"],
     )
     def test_username(
         self,
@@ -431,7 +431,7 @@ class TestChannelObject:
 
     @pytest.mark.parametrize(
         "name",
-        ("test1", "test2"),
+        ["test1", "test2"],
     )
     def test_name(
         self,
@@ -458,7 +458,7 @@ class TestChannelObject:
 
     @pytest.mark.parametrize(
         "signal_name",
-        ("position", "state", "move_done"),
+        ["position", "state", "move_done"],
     )
     def test_connect_signal(
         self,
@@ -495,7 +495,7 @@ class TestChannelObject:
 
     @pytest.mark.parametrize(
         "signal_name",
-        ("position", "state", "move_done"),
+        ["position", "state", "move_done"],
     )
     def test_disconnect_signal(
         self,
@@ -528,11 +528,11 @@ class TestChannelObject:
 
     @pytest.mark.parametrize(
         "signal_name",
-        ("position", "state", "move_done", "update"),
+        ["position", "state", "move_done", "update"],
     )
     @pytest.mark.parametrize(
         "is_connected",
-        (True, False),
+        [True, False],
     )
     def test_connect_notify(
         self,
@@ -570,17 +570,17 @@ class TestChannelObject:
 
     @pytest.mark.parametrize(
         "signal_name",
-        ("position", "state", "move_done"),
+        ["position", "state", "move_done"],
     )
     @pytest.mark.parametrize(
         ("in_args", "out_args"),
-        (
+        [
             (("test1", 2.5, None), ("test1", 2.5, None)),
             ((False, None), (False, None)),
             ((("test2", None),), ("test2", None)),
             ((("test3", 10, False), None), (("test3", 10, False), None)),
             (("test4",), ("test4",)),
-        ),
+        ],
     )
     def test_emit(
         self,
@@ -611,11 +611,11 @@ class TestChannelObject:
 
     @pytest.mark.parametrize(
         "username",
-        ("test_username1", None),
+        ["test_username1", None],
     )
     @pytest.mark.parametrize(
         "name",
-        ("test1", "test2"),
+        ["test1", "test2"],
     )
     def test_username(
         self,
@@ -659,19 +659,19 @@ class TestChannelObject:
         # Check output is boolean, always returns False
         assert isinstance(res, bool) and not res
 
-    @pytest.mark.parametrize("first_update", (True, False))
+    @pytest.mark.parametrize("first_update", [True, False])
     @pytest.mark.parametrize(
         "onchange",
-        (
+        [
             None,
             ("test1", ...),
-        ),
+        ],
     )
     @pytest.mark.parametrize(
         "command_object",
-        (..., None),
+        [..., None],
     )
-    @pytest.mark.parametrize("value", ("test1", "test2", "test3"))
+    @pytest.mark.parametrize("value", ["test1", "test2", "test3"])
     def test_update(  # noqa: PLR0913
         self,
         mocker: "MockerFixture",
@@ -762,15 +762,15 @@ class TestCommandContainer:
 
         assert cmd_container is not None and isinstance(cmd_container, CommandContainer)
 
-    @pytest.mark.parametrize("attr_name", ("test1", "test2", "test3"))
+    @pytest.mark.parametrize("attr_name", ["test1", "test2", "test3"])
     @pytest.mark.parametrize(
         "initial_commands",
-        (
+        [
             {
                 "test1": MagicMock(spec=CommandObject),
                 "test2": MagicMock(spec=CommandObject),
             },
-        ),
+        ],
     )
     def test_getattr(
         self,
@@ -805,18 +805,18 @@ class TestCommandContainer:
             with pytest.raises(AttributeError):
                 getattr(cmd_container, attr_name)
 
-    @pytest.mark.parametrize("channel_name", ("test1", "test2", "test3", "test4"))
+    @pytest.mark.parametrize("channel_name", ["test1", "test2", "test3", "test4"])
     @pytest.mark.parametrize(
         "initial_channels",
-        (
+        [
             {
                 "test1": MagicMock(spec=ChannelObject),
                 "test2": MagicMock(spec=ChannelObject),
                 "test3": None,
             },
-        ),
+        ],
     )
-    @pytest.mark.parametrize("optional", (True, False))
+    @pytest.mark.parametrize("optional", [True, False])
     def test_get_channel_object(
         self,
         mocker: "MockerFixture",
@@ -870,7 +870,7 @@ class TestCommandContainer:
 
     @pytest.mark.parametrize(
         "initial_channels",
-        (
+        [
             {
                 "test1": MagicMock(spec=ChannelObject),
                 "test2": MagicMock(spec=ChannelObject),
@@ -879,7 +879,7 @@ class TestCommandContainer:
             {
                 "test1": None,
             },
-        ),
+        ],
     )
     def test_get_channel_names_list(
         self,
@@ -912,25 +912,7 @@ class TestCommandContainer:
 
     @pytest.mark.parametrize(
         "attributes_dict",
-        (
-            # {
-            #     "name": "test1",
-            #     "type": "spec",
-            # },
-            # {
-            #     "name": "test2",
-            #     "type": "spec",
-            #     "version": "test_version",
-            # },
-            # {
-            #     "name": "test3",
-            #     "type": "taco",
-            # },
-            # {
-            #     "name": "test4",
-            #     "type": "taco",
-            #     "taconame": "test_taconame",
-            # },
+        [
             {
                 "name": "test5",
                 "type": "tango",
@@ -953,24 +935,6 @@ class TestCommandContainer:
                 "name": "test9",
                 "type": "epics",
             },
-            # {
-            #     "name": "test10",
-            #     "type": "tine",
-            # },
-            # {
-            #     "name": "test11",
-            #     "type": "tine",
-            #     "tinename": "test_tinename",
-            # },
-            # {
-            #     "name": "test12",
-            #     "type": "sardana",
-            # },
-            # {
-            #     "name": "test13",
-            #     "type": "sardana",
-            #     "taurusname": "test_taurusname",
-            # },
             {
                 "name": "test14",
                 "type": "mockup",
@@ -980,14 +944,14 @@ class TestCommandContainer:
                 "type": "mockup",
                 "default_value": "1",
             },
-        ),
+        ],
     )
-    @pytest.mark.parametrize("channel", ("test1", "test2", "test3"))
-    @pytest.mark.parametrize("add_now", (True, False))
-    @pytest.mark.parametrize("onchange", (None, "test1"))
-    @pytest.mark.parametrize("valuefrom", (None, "test1"))
-    @pytest.mark.parametrize("channel_exists", (True, False))
-    @pytest.mark.parametrize("raise_attr_error", (True, False))
+    @pytest.mark.parametrize("channel", ["test1", "test2", "test3"])
+    @pytest.mark.parametrize("add_now", [True, False])
+    @pytest.mark.parametrize("onchange", [None, "test1"])
+    @pytest.mark.parametrize("valuefrom", [None, "test1"])
+    @pytest.mark.parametrize("channel_exists", [True, False])
+    @pytest.mark.parametrize("raise_attr_error", [True, False])
     def test_add_channel(  # noqa:  PLR0913
         self,
         mocker: "MockerFixture",
@@ -1155,15 +1119,15 @@ class TestCommandContainer:
 
     @pytest.mark.parametrize(
         "initial_channels",
-        (
+        [
             {
                 "test1": MagicMock(spec=ChannelObject),
                 "test2": MagicMock(spec=ChannelObject),
             },
-        ),
+        ],
     )
-    @pytest.mark.parametrize("channel_name", ("test1", "test2", "test3"))
-    @pytest.mark.parametrize("value", ("Test", 100, 5.15, None))
+    @pytest.mark.parametrize("channel_name", ["test1", "test2", "test3"])
+    @pytest.mark.parametrize("value", ["Test", 100, 5.15, None])
     def test_set_channel_value(
         self,
         mocker: "MockerFixture",
@@ -1201,14 +1165,14 @@ class TestCommandContainer:
 
     @pytest.mark.parametrize(
         "initial_channels",
-        (
+        [
             {
                 "test1": MagicMock(spec=ChannelObject),
                 "test2": MagicMock(spec=ChannelObject),
             },
-        ),
+        ],
     )
-    @pytest.mark.parametrize("channel_name", ("test1", "test2", "test3"))
+    @pytest.mark.parametrize("channel_name", ["test1", "test2", "test3"])
     def test_get_channel_value(
         self,
         mocker: "MockerFixture",
@@ -1253,7 +1217,7 @@ class TestCommandContainer:
 
     @pytest.mark.parametrize(
         "initial_channels",
-        (
+        [
             {
                 "test1": MagicMock(spec=ChannelObject),
                 "test2": MagicMock(spec=ChannelObject),
@@ -1262,7 +1226,7 @@ class TestCommandContainer:
             {
                 "test1": None,
             },
-        ),
+        ],
     )
     def test_get_channels(
         self,
@@ -1296,14 +1260,14 @@ class TestCommandContainer:
 
     @pytest.mark.parametrize(
         "initial_commands",
-        (
+        [
             {
                 "test1": MagicMock(spec=CommandObject),
                 "test2": MagicMock(spec=CommandObject),
             },
-        ),
+        ],
     )
-    @pytest.mark.parametrize("command_name", ("test1", "test2", "test3"))
+    @pytest.mark.parametrize("command_name", ["test1", "test2", "test3"])
     def test_get_command_object(
         self,
         mocker: "MockerFixture",
@@ -1339,12 +1303,12 @@ class TestCommandContainer:
 
     @pytest.mark.parametrize(
         "initial_commands",
-        (
+        [
             {
                 "test1": MagicMock(spec=CommandObject),
                 "test2": MagicMock(spec=CommandObject),
             },
-        ),
+        ],
     )
     def test_get_commands(
         self,
@@ -1377,12 +1341,12 @@ class TestCommandContainer:
 
     @pytest.mark.parametrize(
         "initial_commands",
-        (
+        [
             {
                 "test1": MagicMock(spec=CommandObject),
                 "test2": MagicMock(spec=CommandObject),
             },
-        ),
+        ],
     )
     def test_get_command_names_list(
         self,
@@ -1414,7 +1378,7 @@ class TestCommandContainer:
 
     @pytest.mark.parametrize(
         "arg1",
-        (
+        [
             {"name": "test5", "type": "tango"},
             {"name": "test6", "type": "tango", "tangoname": "test_tangoname"},
             {"name": "test7", "type": "tango", "polling": 500},
@@ -1453,13 +1417,13 @@ class TestCommandContainer:
             {"name": "test15", "type": "epics"},
             {"name": "test20", "type": "mockup"},
             {"name": "test21", "type": "mockup", "default_value": "1"},
-        ),
+        ],
     )
-    @pytest.mark.parametrize("arg2", ("test1", "test2", "test3", None))
-    @pytest.mark.parametrize("add_now", (True, False))
-    @pytest.mark.parametrize("onchange", (None, "test1"))
-    @pytest.mark.parametrize("valuefrom", (None, "test1"))
-    @pytest.mark.parametrize("raise_attr_error", (True, False))
+    @pytest.mark.parametrize("arg2", ["test1", "test2", "test3", None])
+    @pytest.mark.parametrize("add_now", [True, False])
+    @pytest.mark.parametrize("onchange", [None, "test1"])
+    @pytest.mark.parametrize("valuefrom", [None, "test1"])
+    @pytest.mark.parametrize("raise_attr_error", [True, False])
     def test_add_command(  # noqa:  PLR0913
         self,
         mocker: "MockerFixture",
@@ -1583,7 +1547,7 @@ class TestCommandContainer:
 
     @pytest.mark.parametrize(
         "channels_to_add",
-        (
+        [
             [
                 (
                     {
@@ -1602,11 +1566,11 @@ class TestCommandContainer:
                 ),
             ],
             [],
-        ),
+        ],
     )
     @pytest.mark.parametrize(
         "commands_to_add",
-        (
+        [
             [
                 {
                     "name": "test1",
@@ -1619,7 +1583,7 @@ class TestCommandContainer:
                 },
             ],
             [],
-        ),
+        ],
     )
     def test_add_channels_and_commands(
         self,
@@ -1672,22 +1636,22 @@ class TestCommandContainer:
         assert isinstance(_channels_to_add, list) and len(_channels_to_add) == 0
         assert isinstance(_commands_to_add, list) and len(_commands_to_add) == 0
 
-    @pytest.mark.parametrize("command_name", ("test1", "test2", "test3"))
+    @pytest.mark.parametrize("command_name", ["test1", "test2", "test3"])
     @pytest.mark.parametrize(
         "initial_commands",
-        (
+        [
             {
                 "test1": MagicMock(spec=CommandObject),
                 "test2": MagicMock(spec=CommandObject),
             },
-        ),
+        ],
     )
     @pytest.mark.parametrize(
         ("cmd_args", "cmd_kwargs"),
-        (
+        [
             ((None, "Test", 2.5), {"test1": None, "test2": 13, "test3": 8.5}),
             (tuple(), dict()),
-        ),
+        ],
     )
     def test_execute_command(  # noqa:  PLR0913
         self,
