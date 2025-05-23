@@ -103,10 +103,7 @@ class TestConfiguredObject:
             configured_object (ConfiguredObject): Object instance.
         """
 
-        assert configured_object is not None and isinstance(
-            configured_object,
-            ConfiguredObject,
-        )
+        assert isinstance(configured_object, ConfiguredObject)
 
     @pytest.mark.parametrize(
         "level",
@@ -162,7 +159,7 @@ class TestPropertySet:
             property_set (PropertySet): Property Set.
         """
 
-        assert property_set is not None and isinstance(property_set, PropertySet)
+        assert isinstance(property_set, PropertySet)
         assert isinstance(property_set._PropertySet__properties_path, dict)  # noqa: SLF001
         assert isinstance(
             property_set._PropertySet__properties_changed,  # noqa: SLF001
@@ -261,8 +258,10 @@ class TestPropertySet:
 
         # Verify result matches expectations
         res = tuple(res)
-        assert len(res) == 1 and len(res[0]) == 2
-        assert res[0][0] == path and res[0][1] == str(new_value)
+        assert len(res) == 1
+        assert len(res[0]) == 2
+        assert res[0][0] == path
+        assert res[0][1] == str(new_value)
 
         # Make sure "__properties_changed" was cleared as it should be
         assert not property_set._PropertySet__properties_changed  # noqa: SLF001
@@ -278,7 +277,7 @@ class TestHardwareObjectNode:
             hw_obj_node (HardwareObjectNode): Object instance.
         """
 
-        assert hw_obj_node is not None and isinstance(hw_obj_node, HardwareObjectNode)
+        assert isinstance(hw_obj_node, HardwareObjectNode)
 
     @pytest.mark.parametrize(
         ("initial_path", "new_path"),
@@ -487,7 +486,8 @@ class TestHardwareObjectNode:
                 _actual_val = hw_obj_node[key]
                 if _value and len(_value) > 1:
                     # Should be returning list, with multiple items
-                    assert isinstance(_actual_val, list) and len(_actual_val) > 1
+                    assert isinstance(_actual_val, list)
+                    assert len(_actual_val) > 1
                 else:
                     # Return should be a single item
                     assert not isinstance(_actual_val, list)
@@ -497,7 +497,8 @@ class TestHardwareObjectNode:
                 _actual_val = hw_obj_node[key]
                 if _value and len(_value) > 1:
                     # Should be returning list, with multiple items
-                    assert isinstance(_actual_val, list) and len(_actual_val) > 1
+                    assert isinstance(_actual_val, list)
+                    assert len(_actual_val) > 1
                 else:
                     # Return should be a single item
                     assert not isinstance(_actual_val, list)
@@ -571,14 +572,16 @@ class TestHardwareObjectNode:
 
         if name not in initial_obj_names:
             # Last item in both "__objects_names" and "__objects" expected to be None
-            assert _objects_names[-1] is None and _objects[-1] is None
+            assert _objects_names[-1] is None
+            assert _objects[-1] is None
         else:
             # Last item in "__objects" expected to be None
             assert _objects[_objects_names.index(name)][-1] is None
 
         # Check that item was added to "__references" and item values are as expected
         _references = hw_obj_node._HardwareObjectNode__references  # noqa: SLF001
-        assert len(_references) and len(_references[-1]) == 6
+        assert len(_references)
+        assert len(_references[-1]) == 6
         assert all(isinstance(val, str) for val in _references[-1][:3])
         assert all(isinstance(val, int) for val in _references[-1][3:])
 
@@ -657,11 +660,14 @@ class TestHardwareObjectNode:
         # Verify "hw_obj_node" is in expected state
         if initial_hw_object is not None:
             assert hw_obj_node._objects_by_role.get(role) == initial_hw_object  # noqa: SLF001
-            assert len(_objects) and _objects[0] == [initial_hw_object]
+            assert len(_objects)
+            assert _objects[0] == [initial_hw_object]
             if objects_names_index >= 0:
-                assert len(_objects_names) and _objects_names[0] == role
+                assert len(_objects_names)
+                assert _objects_names[0] == role
         else:
-            assert len(_objects_names) == 0 and len(_objects) == 0
+            assert len(_objects_names) == 0
+            assert len(_objects) == 0
 
     @pytest.mark.parametrize("name", ["key1", "key2", "key3", "key4"])
     @pytest.mark.parametrize("hw_object", [None, HardwareObject(name="TestHWObj")])
@@ -732,7 +738,9 @@ class TestHardwareObjectNode:
             assert name in _objects_names
 
             # Check that "_objects_names" and "_objects" are the same length
-            assert _objects_names and _objects and len(_objects_names) == len(_objects)
+            assert _objects_names
+            assert _objects
+            assert len(_objects_names) == len(_objects)
 
         if hw_object is None:
             if isinstance(role, str):
@@ -895,7 +903,8 @@ class TestHardwareObjectNode:
         if role.lower() in obj_by_role:
             assert res == obj_by_role[role.lower()]
         elif None not in _objects and sub_obj_role:
-            assert isinstance(res, HardwareObject) and res.name == "TestHWObj3"
+            assert isinstance(res, HardwareObject)
+            assert res.name == "TestHWObj3"
 
     @pytest.mark.parametrize(
         "initial_obj_names",
@@ -1009,7 +1018,8 @@ class TestHardwareObjectNode:
 
         # Call method, verify output returned
         res = hw_obj_node.get_property(name=name, default_value=default)
-        assert res is not None and res == property_set_get_patch.return_value
+        assert res is not None
+        assert res == property_set_get_patch.return_value
 
         # Check patch called once with expected parameters
         property_set_get_patch.assert_called_once_with(*(name, default))
@@ -1050,10 +1060,7 @@ class TestHardwareObjectMixin:
             hw_obj_mixin (HardwareObjectMixin): Object instance.
         """
 
-        assert hw_obj_mixin is not None and isinstance(
-            hw_obj_mixin,
-            HardwareObjectMixin,
-        )
+        assert isinstance(hw_obj_mixin, HardwareObjectMixin)
 
     # TODO @DTR: https://github.com/mxcube/mxcubecore/issues/1232 # noqa: FIX002
 
@@ -1068,10 +1075,7 @@ class TestHardwareObject:
             hardware_object (HardwareObject): Object instance.
         """
 
-        assert hardware_object is not None and isinstance(
-            hardware_object,
-            HardwareObject,
-        )
+        assert isinstance(hardware_object, HardwareObject)
 
     # TODO @DTR: https://github.com/mxcube/mxcubecore/issues/1232 # noqa: FIX002
 
@@ -1086,6 +1090,6 @@ class TestHardwareObjectYaml:
             hw_obj_yml (HardwareObjectYaml): Object instance.
         """
 
-        assert hw_obj_yml is not None and isinstance(hw_obj_yml, HardwareObjectYaml)
+        assert isinstance(hw_obj_yml, HardwareObjectYaml)
 
     # TODO @DTR: https://github.com/mxcube/mxcubecore/issues/1232 # noqa: FIX002

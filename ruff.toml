@@ -6585,7 +6585,6 @@ convention = "google"
     "PTH120",
 ]
 "test/test_base_hardware_objects.py" = [
-    "PT018",
     "SIM118",
 ]
 "test/test_command_container.py" = [
@@ -6596,7 +6595,6 @@ convention = "google"
     "F821",
     "PLR0915",
     "PLR5501",
-    "PT018",
     "PT022",
     "SIM102",
     "SIM118",

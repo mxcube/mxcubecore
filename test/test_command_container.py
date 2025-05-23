@@ -75,7 +75,7 @@ class TestCommandObject:
             cmd_object (CommandObject): Object instance.
         """
 
-        assert cmd_object is not None and isinstance(cmd_object, CommandObject)
+        assert isinstance(cmd_object, CommandObject)
 
     @pytest.mark.parametrize(
         "schema",
@@ -110,7 +110,9 @@ class TestCommandObject:
 
         # Check initial state, should be an empty list
         assert cmd_object.argument_type == ARGUMENT_TYPE_LIST
-        assert isinstance(cmd_object._arguments, list) and not cmd_object._arguments
+        assert isinstance(cmd_object._arguments, list)
+        assert not cmd_object._arguments
+        assert cmd_object._arguments == []
 
         # Call method
         cmd_object.set_argument_json_schema(json_schema_str=schema)
@@ -280,7 +282,8 @@ class TestCommandObject:
         )
 
         # Method we're testing calls "append", so "_arguments" should be a list type
-        assert isinstance(cmd_object._arguments, list) and len(cmd_object._arguments)
+        assert isinstance(cmd_object._arguments, list)
+        assert len(cmd_object._arguments)
 
         # Check output to "_arguments" matches expectations
         if arg_name not in [arg[0] for arg in initial_arguments]:
@@ -413,8 +416,8 @@ class TestCommandObject:
         # Call method
         res = cmd_object.is_connected()
 
-        # Check output is boolean, always returns False
-        assert isinstance(res, bool) and not res
+        # Check output always returns False
+        assert res == False
 
 
 class TestChannelObject:
@@ -427,7 +430,7 @@ class TestChannelObject:
             channel_object (ChannelObject): Object instance.
         """
 
-        assert channel_object is not None and isinstance(channel_object, ChannelObject)
+        assert isinstance(channel_object, ChannelObject)
 
     @pytest.mark.parametrize(
         "name",
@@ -656,8 +659,8 @@ class TestChannelObject:
         # Call method
         res = channel_object.is_connected()
 
-        # Check output is boolean, always returns False
-        assert isinstance(res, bool) and not res
+        # Check output always returns False
+        assert res == False
 
     @pytest.mark.parametrize("first_update", [True, False])
     @pytest.mark.parametrize(
@@ -760,7 +763,7 @@ class TestCommandContainer:
             cmd_container (CommandContainer): Object instance.
         """
 
-        assert cmd_container is not None and isinstance(cmd_container, CommandContainer)
+        assert isinstance(cmd_container, CommandContainer)
 
     @pytest.mark.parametrize("attr_name", ["test1", "test2", "test3"])
     @pytest.mark.parametrize(
@@ -908,7 +911,8 @@ class TestCommandContainer:
         res = cmd_container.get_channel_names_list()
 
         # Check result matches expectations
-        assert isinstance(res, list) and res == list(initial_channels.keys())
+        assert isinstance(res, list)
+        assert res == list(initial_channels.keys())
 
     @pytest.mark.parametrize(
         "attributes_dict",
@@ -1055,12 +1059,15 @@ class TestCommandContainer:
             assert res is None
 
             # Check "__channels_to_add" updated
-            assert isinstance(_channels_to_add, list) and len(_channels_to_add) == 1
+            assert isinstance(_channels_to_add, list)
+            assert len(_channels_to_add) == 1
 
             # Check list item added as expected
             _item_added = _channels_to_add[0]
-            assert isinstance(_item_added, tuple) and len(_item_added) == 2
-            assert _item_added[0] == _attributes and _item_added[1] == channel
+            assert isinstance(_item_added, tuple)
+            assert len(_item_added) == 2
+            assert _item_added[0] == _attributes
+            assert _item_added[1] == channel
         elif channel_exists:
             res = cmd_container.add_channel(
                 attributes_dict=_attributes,
@@ -1069,7 +1076,7 @@ class TestCommandContainer:
             )
 
             # Result should be mock added to channels list
-            assert res is not None and res == _existing_channel_mock
+            assert res == _existing_channel_mock
         else:
             # Channel should be added now
 
@@ -1098,10 +1105,7 @@ class TestCommandContainer:
                     _channels_to_add = getattr(
                         cmd_container, "_CommandContainer__channels_to_add"
                     )
-                    assert (
-                        isinstance(_channels_to_add, list)
-                        and len(_channels_to_add) == 0
-                    )
+                    assert _channels_to_add == []
             else:
                 res = cmd_container.add_channel(
                     attributes_dict=_attributes,
@@ -1115,7 +1119,7 @@ class TestCommandContainer:
                 _channels_to_add = getattr(
                     cmd_container, "_CommandContainer__channels_to_add"
                 )
-                assert isinstance(_channels_to_add, list) and len(_channels_to_add) == 0
+                assert _channels_to_add == []
 
     @pytest.mark.parametrize(
         "initial_channels",
@@ -1374,7 +1378,8 @@ class TestCommandContainer:
         res = cmd_container.get_command_names_list()
 
         # Check results match expectations
-        assert isinstance(res, list) and res == list(initial_commands.keys())
+        assert isinstance(res, list)
+        assert res == list(initial_commands.keys())
 
     @pytest.mark.parametrize(
         "arg1",
@@ -1503,8 +1508,10 @@ class TestCommandContainer:
             # Check "__commands_to_add" now contains command arguments
             assert len(_commands_to_add) == 1
             _command_args = _commands_to_add[0]
-            assert isinstance(_command_args, tuple) and len(_command_args) == 2
-            assert _command_args[0] == _attributes and _command_args[1] == arg2
+            assert isinstance(_command_args, tuple)
+            assert len(_command_args) == 2
+            assert _command_args[0] == _attributes
+            assert _command_args[1] == arg2
         else:
             # Command should be added now
             if raise_attr_error:
@@ -1528,10 +1535,7 @@ class TestCommandContainer:
                     _commands_to_add = getattr(
                         cmd_container, "_CommandContainer__commands_to_add"
                     )
-                    assert (
-                        isinstance(_commands_to_add, list)
-                        and len(_commands_to_add) == 0
-                    )
+                    assert _commands_to_add == []
             else:
                 res = cmd_container.add_command(
                     arg1=_attributes, arg2=arg2, add_now=add_now
@@ -1543,7 +1547,7 @@ class TestCommandContainer:
                 _commands_to_add = getattr(
                     cmd_container, "_CommandContainer__commands_to_add"
                 )
-                assert isinstance(_commands_to_add, list) and len(_commands_to_add) == 0
+                assert _commands_to_add == []
 
     @pytest.mark.parametrize(
         "channels_to_add",
@@ -1633,8 +1637,8 @@ class TestCommandContainer:
         _commands_to_add = getattr(cmd_container, "_CommandContainer__commands_to_add")
 
         # Check that all channels and commands have been processed
-        assert isinstance(_channels_to_add, list) and len(_channels_to_add) == 0
-        assert isinstance(_commands_to_add, list) and len(_commands_to_add) == 0
+        assert _channels_to_add == []
+        assert _commands_to_add == []
 
     @pytest.mark.parametrize("command_name", ["test1", "test2", "test3"])
     @pytest.mark.parametrize(
