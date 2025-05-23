@@ -428,9 +428,9 @@ class TestHardwareObjectNode:
         hw_obj_node.test1 = 1
 
         # Check that key/value was assigned to "__dict__"
-        assert "test1" in hw_obj_node.__dict__.keys()
+        assert "test1" in hw_obj_node.__dict__
         assert hw_obj_node.test1 == 1
-        assert "test1" not in hw_obj_node._property_set.keys()  # noqa: SLF001
+        assert "test1" not in hw_obj_node._property_set  # noqa: SLF001
         assert hw_obj_node.test1 == 1
 
     @pytest.mark.parametrize(

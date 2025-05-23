@@ -799,7 +799,7 @@ class TestCommandContainer:
             new=initial_commands,
         )
 
-        if attr_name in initial_commands.keys():
+        if attr_name in initial_commands:
             # Check "getattr" returns expected value
             res = getattr(cmd_container, attr_name)
             assert res == initial_commands[attr_name]
@@ -1158,7 +1158,7 @@ class TestCommandContainer:
             new=initial_channels,
         )
 
-        if channel_name not in initial_channels.keys():
+        if channel_name not in initial_channels:
             # Check non-existing key raises exception
             with pytest.raises(KeyError):
                 cmd_container.set_channel_value(channel_name=channel_name, value=value)
@@ -1201,7 +1201,7 @@ class TestCommandContainer:
             new=initial_channels,
         )
 
-        if channel_name not in initial_channels.keys():
+        if channel_name not in initial_channels:
             # Check exception is raised for non-existant key
             with pytest.raises(KeyError):
                 cmd_container.get_channel_value(channel_name=channel_name)
@@ -1300,7 +1300,7 @@ class TestCommandContainer:
         res = cmd_container.get_command_object(cmd_name=command_name)
 
         # Check result matches expectations
-        if command_name in initial_commands.keys():
+        if command_name in initial_commands:
             assert res is not None
         else:
             assert res is None
@@ -1685,7 +1685,7 @@ class TestCommandContainer:
             new=initial_commands,
         )
 
-        if command_name not in initial_commands.keys():
+        if command_name not in initial_commands:
             # Check exception raised when command name does not exist
             with pytest.raises(AttributeError):
                 cmd_container.execute_command(
