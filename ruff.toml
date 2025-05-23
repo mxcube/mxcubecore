@@ -6585,8 +6585,6 @@ convention = "google"
     "PTH120",
 ]
 "test/test_command_container.py" = [
-    "PLR0915",
-    "PLR5501",
     "PT022",
     "SIM102",
     "SIM910",

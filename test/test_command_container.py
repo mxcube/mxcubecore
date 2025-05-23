@@ -953,7 +953,7 @@ class TestCommandContainer:
     @pytest.mark.parametrize("valuefrom", [None, "test1"])
     @pytest.mark.parametrize("channel_exists", [True, False])
     @pytest.mark.parametrize("raise_attr_error", [True, False])
-    def test_add_channel(  # noqa:  PLR0913
+    def test_add_channel(  # noqa:  PLR0913, PLR0915
         self,
         mocker: "MockerFixture",
         cmd_container: CommandContainer,
@@ -1068,33 +1068,20 @@ class TestCommandContainer:
 
             # Result should be mock added to channels list
             assert res == _existing_channel_mock
-        else:
-            # Channel should be added now
+        # Channel should be added now
 
-            if raise_attr_error:
-                if (
-                    _attributes["type"] == "exporter"
-                    and "exporter_address" not in _attributes
-                ):
-                    # Class lacks a "exporter_address" attribute, expecting exception
-                    with pytest.raises(KeyError):
-                        cmd_container.add_channel(
-                            attributes_dict=_attributes,
-                            channel=channel,
-                            add_now=add_now,
-                        )
-                else:
-                    res = cmd_container.add_channel(
+        elif raise_attr_error:
+            if (
+                _attributes["type"] == "exporter"
+                and "exporter_address" not in _attributes
+            ):
+                # Class lacks a "exporter_address" attribute, expecting exception
+                with pytest.raises(KeyError):
+                    cmd_container.add_channel(
                         attributes_dict=_attributes,
                         channel=channel,
                         add_now=add_now,
                     )
-
-                    assert res is not None
-
-                    # Check that "__channels_to_add" was not updated
-                    _channels_to_add = cmd_container._CommandContainer__channels_to_add
-                    assert _channels_to_add == []
             else:
                 res = cmd_container.add_channel(
                     attributes_dict=_attributes,
@@ -1107,6 +1094,18 @@ class TestCommandContainer:
                 # Check that "__channels_to_add" was not updated
                 _channels_to_add = cmd_container._CommandContainer__channels_to_add
                 assert _channels_to_add == []
+        else:
+            res = cmd_container.add_channel(
+                attributes_dict=_attributes,
+                channel=channel,
+                add_now=add_now,
+            )
+
+            assert res is not None
+
+            # Check that "__channels_to_add" was not updated
+            _channels_to_add = cmd_container._CommandContainer__channels_to_add
+            assert _channels_to_add == []
 
     @pytest.mark.parametrize(
         "initial_channels",
@@ -1494,28 +1493,17 @@ class TestCommandContainer:
             assert len(_command_args) == 2
             assert _command_args[0] == _attributes
             assert _command_args[1] == arg2
-        else:
-            # Command should be added now
-            if raise_attr_error:
-                if (
-                    _attributes["type"] == "exporter"
-                    and "exporter_address" not in _attributes
-                ):
-                    # Class lacks a "exporter_address" attribute, expecting exception
-                    with pytest.raises(KeyError):
-                        cmd_container.add_command(
-                            arg1=_attributes, arg2=arg2, add_now=add_now
-                        )
-                else:
-                    res = cmd_container.add_command(
+        # Command should be added now
+        elif raise_attr_error:
+            if (
+                _attributes["type"] == "exporter"
+                and "exporter_address" not in _attributes
+            ):
+                # Class lacks a "exporter_address" attribute, expecting exception
+                with pytest.raises(KeyError):
+                    cmd_container.add_command(
                         arg1=_attributes, arg2=arg2, add_now=add_now
                     )
-
-                    assert res is not None
-
-                    # Check that "__commands_to_add" was not updated
-                    _commands_to_add = cmd_container._CommandContainer__commands_to_add
-                    assert _commands_to_add == []
             else:
                 res = cmd_container.add_command(
                     arg1=_attributes, arg2=arg2, add_now=add_now
@@ -1526,6 +1514,16 @@ class TestCommandContainer:
                 # Check that "__commands_to_add" was not updated
                 _commands_to_add = cmd_container._CommandContainer__commands_to_add
                 assert _commands_to_add == []
+        else:
+            res = cmd_container.add_command(
+                arg1=_attributes, arg2=arg2, add_now=add_now
+            )
+
+            assert res is not None
+
+            # Check that "__commands_to_add" was not updated
+            _commands_to_add = cmd_container._CommandContainer__commands_to_add
+            assert _commands_to_add == []
 
     @pytest.mark.parametrize(
         "channels_to_add",
