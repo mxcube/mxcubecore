@@ -1,6 +1,6 @@
 # User-based login details
 
-When logging in the very first user sees modal dialog `Select session` and must choose an experimental session. As long as one user is logged in, the consecutive users do not see this modal dialog. Pressing outside the modal or closing with `X` causes unsuccessful login and landing back on the login page.
+When logging in the very first user sees modal dialog `Select session` and must choose an experimental session. As long as one user is logged in, the consecutive users do not see this modal dialog.
 
 ## Multiple users:
 
