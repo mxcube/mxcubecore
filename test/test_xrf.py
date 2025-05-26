@@ -39,8 +39,7 @@ from test import TestHardwareObjectBase
 @pytest.fixture
 def test_object(beamline):
     """Get the test object from beamline.yml"""
-    result = beamline.xrf_spectrum
-    yield result
+    return beamline.xrf_spectrum
 
 
 class TestXRF(TestHardwareObjectBase.TestHardwareObjectBase):

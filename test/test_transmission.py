@@ -31,10 +31,7 @@ from test import TestAbstractActuatorBase
 @pytest.fixture
 def test_object(beamline):
     """Use the transmission object from beamline"""
-    result = beamline.transmission
-    yield result
-    # Cleanup code here - restores starting state for next call:
-    # NBNB TODO
+    return beamline.transmission
 
 
 class TestTransmission(TestAbstractActuatorBase.TestAbstractActuatorBase):

@@ -31,8 +31,7 @@ from test import TestAbstractActuatorBase
 @pytest.fixture
 def test_object(beamline):
     """Use the flux object from beamline"""
-    result = beamline.flux
-    yield result
+    return beamline.flux
 
 
 class TestFlux(TestAbstractActuatorBase.TestAbstractActuatorBase):

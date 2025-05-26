@@ -40,10 +40,7 @@ from mxcubecore.BaseHardwareObjects import HardwareObjectState
 @pytest.fixture
 def test_object(beamline):
     """Default fixture. Must be overridden"""
-    result = beamline.some.dotted.path
-    yield result
-    # Cleanup code here - restores starting state for next call:
-    # NBNB TODO
+    return beamline.some.dotted.path
 
 
 class TestHardwareObjectBase:

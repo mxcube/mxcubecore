@@ -6574,9 +6574,7 @@ convention = "google"
     "PT012",
 ]
 "test/TestHardwareObjectBase.py" = [
-    "EXE001",
     "N999",
-    "PT022",
     "SLF001",
 ]
 "test/conftest.py" = [
@@ -6585,22 +6583,16 @@ convention = "google"
     "PTH120",
 ]
 "test/test_command_container.py" = [
-    "PT022",
     "SIM102",
     "SIM910",
     "SLF001",
 ]
-"test/test_detector_distance.py" = [
-    "PT022",
-]
 "test/test_energy.py" = [
     "ERA001",
-    "PT022",
 ]
 "test/test_flux.py" = [
     "ERA001",
     "PT012",
-    "PT022",
     "SLF001",
     "T201",
 ]
@@ -6616,7 +6608,6 @@ convention = "google"
     "S106",
 ]
 "test/test_mach_info.py" = [
-    "PT022",
     "SLF001",
 ]
 "test/test_procedure.py" = [
@@ -6625,26 +6616,19 @@ convention = "google"
 "test/test_resolution.py" = [
     "PT011",
     "PT012",
-    "PT022",
     "SLF001",
-]
-"test/test_sample_view.py" = [
-    "PT022",
 ]
 "test/test_shutter.py" = [
     "ERA001",
-    "PT022",
     "T201",
 ]
 "test/test_transmission.py" = [
     "ERA001",
-    "PT022",
 ]
 "test/test_utils_units.py" = [
     "N802",
 ]
 "test/test_xrf.py" = [
     "ERA001",
-    "PT022",
     "S108",
 ]

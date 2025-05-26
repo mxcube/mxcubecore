@@ -30,8 +30,7 @@ __license__ = "LGPLv3+"
 @pytest.fixture
 def test_object(beamline):
     """Use the resolution object from beamline-setup.yml"""
-    result = beamline.resolution
-    yield result
+    return beamline.resolution
 
 
 class TestResolution(TestAbstractMotorBase.TestAbstractMotorBase):

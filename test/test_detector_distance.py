@@ -35,10 +35,7 @@ __date__ = "08/04/2020"
 
 @pytest.fixture
 def test_object(beamline):
-    result = beamline.detector.distance
-    yield result
-    # Cleanup code here - restores starting state for next call:
-    # NBNB TODO
+    return beamline.detector.distance
 
 
 class TestDetectorDistance(TestAbstractMotorBase.TestAbstractMotorBase):
