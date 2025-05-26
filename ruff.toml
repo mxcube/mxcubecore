@@ -6573,9 +6573,6 @@ convention = "google"
     "PTH118",
     "PTH120",
 ]
-"test/test_flux.py" = [
-    "T201",
-]
 "test/test_hwo_isara_maint.py" = [
     "ARG002",
     "C408",
@@ -6591,9 +6588,6 @@ convention = "google"
 ]
 "test/test_resolution.py" = [
     "PT011",
-]
-"test/test_shutter.py" = [
-    "T201",
 ]
 "test/test_utils_units.py" = [
     "N802",

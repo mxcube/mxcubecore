@@ -41,7 +41,6 @@ class TestShutter(TestAbstractNStateBase.TestAbstractNStateBase):
         # The methods are defined with abc.abstractmethod which will raise
         # an exception if the method is not defined. So there is no need to
         # test for the presence of each method
-        print(f"state is {test_object.get_state()}")
         assert test_object.get_state() == HardwareObjectState.READY
 
     def test_shutter_open_close(self, test_object):

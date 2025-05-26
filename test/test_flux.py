@@ -56,14 +56,11 @@ class TestFlux(TestAbstractActuatorBase.TestAbstractActuatorBase):
         """Test the attrubutes"""
         assert test_object.read_only is True
         value = test_object.get_value()
-        print(f"------> Flux is {value}")
         assert isinstance(value, (int, float)), "Flux value has to be int or float"
 
         assert test_object.is_beam is True
 
     def test_flux_methods(self, test_object):
-        """Test the methods"""
-        # Test timeout - expecting to have RuntimeError
-        with pytest.raises(RuntimeError) as info:
-            print(f"------> Flux: {info}")
-            test_object.wait_for_beam(0)  # noqa: PT012
+        """Test timeout - expecting to have RuntimeError"""
+        with pytest.raises(RuntimeError):
+            test_object.wait_for_beam(0)
