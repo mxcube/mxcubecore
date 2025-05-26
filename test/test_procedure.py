@@ -14,7 +14,7 @@ def test_procedure_init(beamline):
 
 
 def test_procedure_start(beamline):
-    data = procedure_model.MockDataModel(**{"exposure_time": 5})
+    data = procedure_model.MockDataModel(exposure_time=5)
     beamline.procedure.start(data)
     gevent.sleep(1)
     assert beamline.procedure.state == ProcedureState.BUSY
@@ -23,7 +23,7 @@ def test_procedure_start(beamline):
 
 
 def test_procedure_stop(beamline):
-    data = procedure_model.MockDataModel(**{"exposure_time": 5})
+    data = procedure_model.MockDataModel(exposure_time=5)
     beamline.procedure.start(data)
     gevent.sleep(1)
     assert beamline.procedure.state == ProcedureState.BUSY

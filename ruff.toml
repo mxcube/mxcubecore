@@ -6573,9 +6573,6 @@ convention = "google"
     "PTH118",
     "PTH120",
 ]
-"test/test_procedure.py" = [
-    "PIE804",
-]
 "test/test_resolution.py" = [
     "PT011",
 ]
