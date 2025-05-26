@@ -6584,7 +6584,6 @@ convention = "google"
 ]
 "test/test_command_container.py" = [
     "SIM102",
-    "SIM910",
     "SLF001",
 ]
 "test/test_flux.py" = [

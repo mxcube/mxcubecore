@@ -856,7 +856,7 @@ class TestCommandContainer:
         )
 
         # Check result matches expected
-        assert res == initial_channels.get(channel_name, None)
+        assert res == initial_channels.get(channel_name)
 
         if res is None and not optional:
             # Check logger called when not optional and None result
