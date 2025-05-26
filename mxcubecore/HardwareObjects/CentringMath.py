@@ -126,9 +126,7 @@ class CentringMath(Procedure):
                         )
         tau_cntrd = numpy.dot(numpy.linalg.pinv(M, rcond=1e-6), V)
 
-        # print tau_cntrd
         tau_cntrd = self.apply_constraints(M, tau_cntrd)
-        # print tau_cntrd
 
         return self.vector_to_centred_positions(
             -tau_cntrd + self.translation_datum(), return_by_name
