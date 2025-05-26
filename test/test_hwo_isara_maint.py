@@ -142,7 +142,7 @@ class CallbackTracker:
     def __init__(self):
         self._cb_received = Event()
 
-    def callback(self, *a, **k):
+    def callback(self, *_a, **_k):
         self._cb_received.set()
 
     def wait_for_callback(self):

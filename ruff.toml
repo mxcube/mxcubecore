@@ -6574,7 +6574,6 @@ convention = "google"
     "PTH120",
 ]
 "test/test_hwo_isara_maint.py" = [
-    "ARG002",
     "C408",
     "N802",
 ]
