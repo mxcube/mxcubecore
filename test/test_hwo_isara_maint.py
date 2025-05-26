@@ -52,29 +52,29 @@ class _ISARA(Device):
         return "test message"
 
     @command(dtype_out=str)
-    def PowerOn(self):
+    def PowerOn(self):  # noqa: N802
         self._check_remote_mode()
         self._is_powered = True
         return "on"
 
     @command(dtype_out=str)
-    def PowerOff(self):
+    def PowerOff(self):  # noqa: N802
         self._check_remote_mode()
         self._is_powered = False
         return "off"
 
     @command(dtype_out=str)
-    def Home(self):
+    def Home(self):  # noqa: N802
         self._position = "HOME"
         return "home"
 
     @command(dtype_out=str)
-    def Soak(self):
+    def Soak(self):  # noqa: N802
         self._position = "SOAK"
         return "soak"
 
     @command(dtype_out=str)
-    def Dry(self):
+    def Dry(self):  # noqa: N802
         self._position = "DRY"
         return "dry"
 

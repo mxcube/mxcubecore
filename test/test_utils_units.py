@@ -53,6 +53,6 @@ def test_um_to_mm():
     assert isclose(um_to_mm(42.2), 0.0422)
 
 
-def test_A_to_mA():
+def test_A_to_mA():  # noqa: N802
     assert isclose(A_to_mA(2), 2000.0)
     assert isclose(A_to_mA(0.3921), 392.1)

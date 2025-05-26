@@ -6573,9 +6573,6 @@ convention = "google"
     "PTH118",
     "PTH120",
 ]
-"test/test_hwo_isara_maint.py" = [
-    "N802",
-]
 "test/test_hwo_maxiv_ispyblims.py" = [
     "S105",
     "S106",
@@ -6585,9 +6582,6 @@ convention = "google"
 ]
 "test/test_resolution.py" = [
     "PT011",
-]
-"test/test_utils_units.py" = [
-    "N802",
 ]
 "test/test_xrf.py" = [
     "S108",
