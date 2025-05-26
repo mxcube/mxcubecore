@@ -51,7 +51,7 @@ class TestHardwareObjectBase:
     def tets_state_getting(self, test_object):
         """Test that get_state reflects _state"""
 
-        test_object._state = test_object.STATES.BUSY
+        test_object._state = test_object.STATES.BUSY  # noqa: SLF001
         assert test_object.get_state() is test_object.STATES.BUSY, (
             "Setting %s._state is not reflected in get_state()"
             % test_object.__class__.__name__
@@ -70,7 +70,7 @@ class TestHardwareObjectBase:
         """Test that update_state works for all states
         that is_ready reflects the state,
         and that get_state() reflects _state"""
-        test_object._state = test_object.STATES.BUSY
+        test_object._state = test_object.STATES.BUSY  # noqa: SLF001
         for ho_state in HardwareObjectState:
             test_object.update_state(ho_state)
             result = test_object.get_state()
@@ -78,7 +78,7 @@ class TestHardwareObjectBase:
                 "update_state(HardwareObjectState.%s) is not reflected in result"
                 % ho_state.name
             )
-            assert test_object._state is ho_state, (
+            assert test_object._state is ho_state, (  # noqa: SLF001
                 f"get_state does not reflect _state for {ho_state.name}"
             )
             if ho_state is HardwareObjectState.READY:
@@ -90,7 +90,7 @@ class TestHardwareObjectBase:
                     f"is_ready=True does not reflect state {ho_state.name}"
                 )
             test_object.update_state()
-            assert test_object._state is result, (
+            assert test_object._state is result, (  # noqa: SLF001
                 "update_state() does not set state to current state"
             )
 

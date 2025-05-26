@@ -45,11 +45,12 @@ class TestFlux(TestAbstractActuatorBase.TestAbstractActuatorBase):
 
         # start value should be the default value.
         startval = test_object.default_value
+        test_obj_nominal_val = test_object._nominal_value  # noqa: SLF001
 
         assert startval is not None, "initial value may not be None"
         msg = f"get_value() {startval} differs "
-        msg += f"from _nominal_value {test_object._nominal_value}"
-        assert test_object._nominal_value == startval, msg
+        msg += f"from _nominal_value {test_obj_nominal_val}"
+        assert test_obj_nominal_val == startval, msg
 
     def test_flux_attributes(self, test_object):
         """Test the attrubutes"""

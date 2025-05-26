@@ -80,7 +80,7 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
         if None in limits or limits[0] == limits[1]:
             limits = (0, 1)
         low, high = limits
-        tol = test_object._tolerance
+        tol = test_object._tolerance  # noqa: SLF001
         mid = (low + high) / 2.0
 
         test_object.set_value(high, timeout=None)
@@ -97,10 +97,11 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
                 mid,
                 val,
             )
-            assert abs(test_object._nominal_value - mid) < tol, (
+            nominal_value = test_object._nominal_value  # noqa: SLF001
+            assert abs(nominal_value - mid) < tol, (
                 "update_value nominal result %s differs from target %s"
                 % (
-                    test_object._nominal_value,
+                    nominal_value,
                     mid,
                 )
             )
@@ -109,10 +110,11 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
                 val,
                 mid,
             )
-            assert test_object._nominal_value == mid, (
+            nominal_value = test_object._nominal_value  # noqa: SLF001
+            assert nominal_value == mid, (
                 "update_value nominal result %s differs from target %s"
                 % (
-                    test_object._nominal_value,
+                    nominal_value,
                     mid,
                 )
             )
@@ -125,7 +127,7 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
             test_object.set_value(toobig, timeout=None)
 
         # Must be set first so the next command causes a change
-        test_object._set_value(low)
+        test_object._set_value(low)  # noqa: SLF001
         test_object.wait_ready()
         test_object.set_value_relative(0.5 * (high - low), timeout=None)
         val = test_object.get_value()
@@ -141,7 +143,7 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
 
             test_object.update_value(low)
             test_object.update_value(low + 0.5 * tol)
-            assert test_object._nominal_value == low, (
+            assert test_object._nominal_value == low, (  # noqa: SLF001
                 "update_value result does not respect tolerance cutoff"
             )
 
@@ -182,7 +184,7 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
         catcher = TestHardwareObjectBase.SignalCatcher()
         limits = test_object.get_limits()
         # Must be set first so the next command causes a change
-        test_object._nominal_limits = (None, None)
+        test_object._nominal_limits = (None, None)  # noqa: SLF001
         test_object.connect("limitsChanged", catcher.catch)
         try:
             test_object.update_limits(limits)

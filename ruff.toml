@@ -6555,7 +6555,6 @@ convention = "google"
     "N999",
     "PT011",
     "PT012",
-    "SLF001",
 ]
 "test/TestAbstractMotorBase.py" = [
     "B017",
@@ -6563,7 +6562,6 @@ convention = "google"
     "N999",
     "PT011",
     "PT012",
-    "SLF001",
 ]
 "test/TestAbstractNStateBase.py" = [
     "B017",
@@ -6575,34 +6573,25 @@ convention = "google"
 ]
 "test/TestHardwareObjectBase.py" = [
     "N999",
-    "SLF001",
 ]
 "test/conftest.py" = [
     "PTH100",
     "PTH118",
     "PTH120",
 ]
-"test/test_command_container.py" = [
-    "SLF001",
-]
 "test/test_flux.py" = [
     "PT012",
-    "SLF001",
     "T201",
 ]
 "test/test_hwo_isara_maint.py" = [
     "ARG002",
     "C408",
     "N802",
-    "SLF001",
 ]
 "test/test_hwo_maxiv_ispyblims.py" = [
     "C408",
     "S105",
     "S106",
-]
-"test/test_mach_info.py" = [
-    "SLF001",
 ]
 "test/test_procedure.py" = [
     "PIE804",
@@ -6610,7 +6599,6 @@ convention = "google"
 "test/test_resolution.py" = [
     "PT011",
     "PT012",
-    "SLF001",
 ]
 "test/test_shutter.py" = [
     "T201",

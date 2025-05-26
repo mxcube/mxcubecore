@@ -98,9 +98,9 @@ def _disconnect_channels(maint: ISARAMaint):
 
     # the hard-coded list of attribute poller callbacks
     callbacks = {
-        "_chnPowered": maint._powered_updated,
-        "_chnPositionName": maint._position_name_updated,
-        "_chnMessage": maint._message_updated,
+        "_chnPowered": maint._powered_updated,  # noqa: SLF001
+        "_chnPositionName": maint._position_name_updated,  # noqa: SLF001
+        "_chnMessage": maint._message_updated,  # noqa: SLF001
     }
 
     for ch in maint.get_channels():

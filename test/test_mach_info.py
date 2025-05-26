@@ -64,7 +64,7 @@ class TestMachineInfo(TestHardwareObjectBase.TestHardwareObjectBase):
 
     def test_check_attributes(self, test_object):
         """Check if the attributes required have a methof for reading"""
-        test_object._mach_info_dict.update({"wrong_name": None})
-        attr_list = list(test_object._mach_info_dict.keys())
-        test_object._check_attributes(attr_list)
-        assert "wrong_name" not in test_object._mach_info_keys
+        test_object._mach_info_dict.update({"wrong_name": None})  # noqa: SLF001
+        attr_list = list(test_object._mach_info_dict.keys())  # noqa: SLF001
+        test_object._check_attributes(attr_list)  # noqa: SLF001
+        assert "wrong_name" not in test_object._mach_info_keys  # noqa: SLF001

@@ -107,16 +107,17 @@ class TestCommandObject:
 
         # Check initial state, should be an empty list
         assert cmd_object.argument_type == ARGUMENT_TYPE_LIST
-        assert isinstance(cmd_object._arguments, list)
-        assert not cmd_object._arguments
-        assert cmd_object._arguments == []
+        cmd_container_args = cmd_container._arguments  # noqa: SLF001
+        assert isinstance(cmd_container_args, list)
+        assert not cmd_container_args
+        assert cmd_container_args == []
 
         # Call method
         cmd_object.set_argument_json_schema(json_schema_str=schema)
 
         # Validate expected changes happend
         assert cmd_object.argument_type == ARGUMENT_TYPE_JSON_SCHEMA
-        assert cmd_object._arguments == schema
+        assert cmd_object._arguments == schema  # noqa: SLF001
 
     @pytest.mark.parametrize(
         "name",
@@ -279,13 +280,14 @@ class TestCommandObject:
         )
 
         # Method we're testing calls "append", so "_arguments" should be a list type
-        assert isinstance(cmd_object._arguments, list)
-        assert len(cmd_object._arguments)
+        cmd_obj_args = cmd_object._arguments  # noqa: SLF001
+        assert isinstance(cmd_obj_args, list)
+        assert len(cmd_obj_args)
 
         # Check output to "_arguments" matches expectations
         if arg_name not in [arg[0] for arg in initial_arguments]:
             # List should have been appended with new values
-            assert cmd_object._arguments[-1] == (
+            assert cmd_obj_args[-1] == (
                 arg_name,
                 arg_type.lower(),
                 onchange,
@@ -293,11 +295,11 @@ class TestCommandObject:
             )
         else:
             # If "arg_name" was already present, initial args should match output args
-            assert cmd_object._arguments == initial_arguments
+            assert cmd_obj_args == initial_arguments
 
         # Check output to "_combo_arguments_items"
         if combo_items is not None:
-            assert cmd_object._combo_arguments_items.get(arg_name) is not None
+            assert cmd_object._combo_arguments_items.get(arg_name) is not None  # noqa: SLF001
 
     @pytest.mark.parametrize(
         "initial_arguments",
@@ -725,7 +727,7 @@ class TestChannelObject:
 
         if first_update:
             # Check "__first_update" is now False
-            assert not channel_object._ChannelObject__first_update
+            assert not channel_object._ChannelObject__first_update  # noqa: SLF001
         elif onchange is not None and get_command_object_patch is not None:
             # Check "get_command_object" method patch was called
             get_command_object_patch.assert_called_once_with(*(onchange[0],))
@@ -1040,7 +1042,7 @@ class TestCommandContainer:
                 channel=channel,
                 add_now=add_now,
             )
-            _channels_to_add = cmd_container._CommandContainer__channels_to_add
+            _channels_to_add = cmd_container._CommandContainer__channels_to_add  # noqa: SLF001
 
             # Result should be none as no channel has yet been added
             assert res is None
@@ -1088,7 +1090,7 @@ class TestCommandContainer:
                 assert res is not None
 
                 # Check that "__channels_to_add" was not updated
-                _channels_to_add = cmd_container._CommandContainer__channels_to_add
+                _channels_to_add = cmd_container._CommandContainer__channels_to_add  # noqa: SLF001
                 assert _channels_to_add == []
         else:
             res = cmd_container.add_channel(
@@ -1100,7 +1102,7 @@ class TestCommandContainer:
             assert res is not None
 
             # Check that "__channels_to_add" was not updated
-            _channels_to_add = cmd_container._CommandContainer__channels_to_add
+            _channels_to_add = cmd_container._CommandContainer__channels_to_add  # noqa: SLF001
             assert _channels_to_add == []
 
     @pytest.mark.parametrize(
@@ -1480,7 +1482,7 @@ class TestCommandContainer:
             # Check return value is "None" as no command object should be created
             assert res is None
 
-            _commands_to_add = cmd_container._CommandContainer__commands_to_add
+            _commands_to_add = cmd_container._CommandContainer__commands_to_add  # noqa: SLF001
 
             # Check "__commands_to_add" now contains command arguments
             assert len(_commands_to_add) == 1
@@ -1508,7 +1510,7 @@ class TestCommandContainer:
                 assert res is not None
 
                 # Check that "__commands_to_add" was not updated
-                _commands_to_add = cmd_container._CommandContainer__commands_to_add
+                _commands_to_add = cmd_container._CommandContainer__commands_to_add  # noqa: SLF001
                 assert _commands_to_add == []
         else:
             res = cmd_container.add_command(
@@ -1518,7 +1520,7 @@ class TestCommandContainer:
             assert res is not None
 
             # Check that "__commands_to_add" was not updated
-            _commands_to_add = cmd_container._CommandContainer__commands_to_add
+            _commands_to_add = cmd_container._CommandContainer__commands_to_add  # noqa: SLF001
             assert _commands_to_add == []
 
     @pytest.mark.parametrize(
@@ -1595,7 +1597,7 @@ class TestCommandContainer:
         _add_command_patch = mocker.patch.object(cmd_container, "add_command")
 
         # Call command
-        cmd_container._add_channels_and_commands()
+        cmd_container._add_channels_and_commands()  # noqa: SLF001
 
         if channels_to_add and len(channels_to_add):
             # Check that all channels were passed to "add_channel"
@@ -1605,8 +1607,8 @@ class TestCommandContainer:
             # Check that all commands were passed to "add_command"
             assert _add_command_patch.call_count == len(commands_to_add)
 
-        _channels_to_add = cmd_container._CommandContainer__channels_to_add
-        _commands_to_add = cmd_container._CommandContainer__commands_to_add
+        _channels_to_add = cmd_container._CommandContainer__channels_to_add  # noqa: SLF001
+        _commands_to_add = cmd_container._CommandContainer__commands_to_add  # noqa: SLF001
 
         # Check that all channels and commands have been processed
         assert _channels_to_add == []

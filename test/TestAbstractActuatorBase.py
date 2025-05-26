@@ -41,11 +41,12 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
         startval = test_object.get_value()
         assert startval is not None, "initial value may not be None"
 
-        assert test_object._nominal_value == startval, (
+        nominal_value = test_object._nominal_value  # noqa: SLF001
+        assert nominal_value == startval, (
             "get_value() %s differs from _nominal_value %s"
             % (
                 startval,
-                test_object._nominal_value,
+                nominal_value,
             )
         )
 
@@ -63,18 +64,19 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
 
         startval = test_object.get_value()
         test_object.update_value(startval)
-        assert test_object._nominal_value == startval, (
+        assert test_object._nominal_value == startval, (  # noqa: SLF001
             f"Updating value to {startval} does not set _nominal_value"
         )
 
         # Must be set to None so the next command causes a change
-        test_object._nominal_value = None
+        test_object._nominal_value = None  # noqa: SLF001
         test_object.update_value(startval)
-        assert test_object._nominal_value == startval, (
+        nominal_value = test_object._nominal_value  # noqa: SLF001
+        assert nominal_value == startval, (
             "update_value(%s) leaves _nominal_value as %s"
             % (
                 startval,
-                test_object._nominal_value,
+                nominal_value,
             )
         )
 
@@ -85,22 +87,23 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
         else:
             # Test set_value with and without a timeout (different code branch)
             # Must be set to None so the next command causes a change
-            test_object._nominal_value = None
-            test_object._set_value(startval)
+            test_object._nominal_value = None  # noqa: SLF001
+            test_object._set_value(startval)  # noqa: SLF001
             test_object.wait_ready()
             # _nominal_value is only updated by update_value or get_value
             test_object.get_value()
-            assert test_object._nominal_value == startval, (
+            nominal_value = test_object._nominal_value  # noqa: SLF001
+            assert nominal_value == startval, (
                 "_set_value(%s) leaves _nominal_value as %s"
-                % (startval, test_object._nominal_value),
+                % (startval, nominal_value),
             )
 
             # Must be set to None so the next command causes a change
-            test_object._nominal_value = None
+            test_object._nominal_value = None  # noqa: SLF001
             test_object.set_value(startval, timeout=None)
-            assert test_object._nominal_value == startval, (
-                "Setting to %s leaves _nominal_value aa %s"
-                % (startval, test_object._nominal_value),
+            nominal_value = test_object._nominal_value  # noqa: SLF001
+            assert nominal_value == startval, (
+                "Setting to %s leaves _nominal_value aa %s" % (startval, nominal_value),
             )
 
     def test_limits_type(self, test_object):
@@ -118,30 +121,33 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
         limits = test_object.get_limits()
         if limits != (None, None):
             test_object.update_limits((None, None))
-            assert test_object._nominal_limits == (
+            nominal_limits = test_object._nominal_limits  # noqa: SLF001
+            assert nominal_limits == (
                 None,
                 None,
             ), "Update limits to (None, None) but _nominal_limits value is %s" % (
-                test_object._nominal_limits,
+                nominal_limits,
             )
 
             test_object.update_limits(limits)
-            assert test_object._nominal_limits == limits, (
+            nominal_limits = test_object._nominal_limits  # noqa: SLF001
+            assert nominal_limits == limits, (
                 "Updated limits to %s but _nominal_limits is %s"
                 % (
                     limits,
-                    test_object._nominal_limits,
+                    nominal_limits,
                 )
             )
             if not test_object.read_only:
                 # Must be set to (None, None) so the next command causes a change
-                test_object._nominal_limits = (None, None)
+                test_object._nominal_limits = (None, None)  # noqa: SLF001
                 test_object.set_limits(limits)
-                assert test_object._nominal_limits == limits, (
+                nominal_limits = test_object._nominal_limits  # noqa: SLF001
+                assert nominal_limits == limits, (
                     "Set limits to %s but _nominal_limits is %s"
                     % (
                         limits,
-                        test_object._nominal_limits,
+                        nominal_limits,
                     )
                 )
 
@@ -159,7 +165,7 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
         test_object.set_value(startval, timeout=180)
 
         # Must be set to None so the next command causes a change
-        test_object._nominal_value = None
+        test_object._nominal_value = None  # noqa: SLF001
         with pytest.raises(RuntimeError):
             test_object.set_value(startval, timeout=1.0e-6)
 
@@ -172,7 +178,7 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
         test_object.set_value(startval, timeout=0)
 
         # Must be set to None so the next command causes a change
-        test_object._nominal_value = None
+        test_object._nominal_value = None  # noqa: SLF001
         with pytest.raises(RuntimeError):
             test_object.set_value(startval, timeout=0)
             test_object.wait_ready(timeout=1.0e-6)
@@ -182,7 +188,7 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
         catcher = TestHardwareObjectBase.SignalCatcher()
         val = test_object.get_value()
         # Must be set to None so the next command causes a change
-        test_object._nominal_value = None
+        test_object._nominal_value = None  # noqa: SLF001
         test_object.connect("valueChanged", catcher.catch)
         try:
             test_object.update_value(val)

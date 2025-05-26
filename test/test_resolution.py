@@ -44,13 +44,14 @@ class TestResolution(TestAbstractMotorBase.TestAbstractMotorBase):
         """
         limits = test_object.get_limits()
         if limits != (None, None):
+            test_obj_nominal_limits = test_object._nominal_limits  # noqa: SLF001
             test_object.update_limits((None, None))
             msg = "Update limits to (None, None) but "
-            msg += f"_nominal_limits value is {test_object._nominal_limits}"
-            assert test_object._nominal_limits == (None, None), msg
+            msg += f"_nominal_limits value is {test_obj_nominal_limits}"
+            assert test_obj_nominal_limits == (None, None), msg
 
         with pytest.raises(NotImplementedError):
-            test_object._nominal_limits = (None, None)
+            test_object._nominal_limits = (None, None)  # noqa: SLF001
             test_object.set_limits(limits)
 
     def test_update_state(self, test_object):
@@ -62,7 +63,7 @@ class TestResolution(TestAbstractMotorBase.TestAbstractMotorBase):
         """Update position is dependant on the detector distance motor."""
 
         low, high = test_object.get_limits() or (0, 1)
-        tol = test_object._tolerance
+        tol = test_object._tolerance  # noqa: SLF001
         mid = (low + high) / 2.0
 
         test_object.set_value(high, timeout=None)
@@ -80,7 +81,7 @@ class TestResolution(TestAbstractMotorBase.TestAbstractMotorBase):
             test_object.set_value(toobig, timeout=None)
 
         # Must be set first so the next command causes a change
-        test_object._set_value(low)
+        test_object._set_value(low)  # noqa: SLF001
         test_object.wait_ready()
         test_object.set_value_relative(0.5 * (high - low), timeout=None)
         val = test_object.get_value()
@@ -90,6 +91,6 @@ class TestResolution(TestAbstractMotorBase.TestAbstractMotorBase):
 
         test_object.update_value(low)
         test_object.update_value(low + 0.5 * tol)
-        assert test_object._nominal_value == low, (
+        assert test_object._nominal_value == low, (  # noqa: SLF001
             "update_value result does not respect tolerance cutoff"
         )
