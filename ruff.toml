@@ -6576,6 +6576,3 @@ convention = "google"
 "test/test_resolution.py" = [
     "PT011",
 ]
-"test/test_xrf.py" = [
-    "S108",
-]

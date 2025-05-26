@@ -67,8 +67,8 @@ class TestXRF(TestHardwareObjectBase.TestHardwareObjectBase):
         ret = test_object.start_spectrum(
             test_object.default_integration_time,
             prefix="xrftst",
-            data_dir="/tmp/abb",
-            archive_dir="/tmp/abb",
+            data_dir="/tmp/abb",  # noqa: S108
+            archive_dir="/tmp/abb",  # noqa: S108
             session_id=session_id,
             blsample_id=blsample_id,
         )
