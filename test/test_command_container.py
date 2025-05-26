@@ -726,14 +726,13 @@ class TestChannelObject:
         if first_update:
             # Check "__first_update" is now False
             assert not channel_object._ChannelObject__first_update
-        elif onchange is not None:
-            if get_command_object_patch is not None:
-                # Check "get_command_object" method patch was called
-                get_command_object_patch.assert_called_once_with(*(onchange[0],))
+        elif onchange is not None and get_command_object_patch is not None:
+            # Check "get_command_object" method patch was called
+            get_command_object_patch.assert_called_once_with(*(onchange[0],))
 
-                if _command_object is not None:
-                    # Check returned "CommandObject" instance called once with value
-                    _command_object.assert_called_once_with(*(value,))
+            if _command_object is not None:
+                # Check returned "CommandObject" instance called once with value
+                _command_object.assert_called_once_with(*(value,))
 
     def test_get_value(self, channel_object: ChannelObject):
         """Test "get_value" method.
