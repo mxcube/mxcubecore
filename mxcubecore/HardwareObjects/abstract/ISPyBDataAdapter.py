@@ -137,7 +137,6 @@ class ISPyBDataAdapter:
             session["scheduled"] = 0
             session["nbShifts"] = 3
             session["comments"] = "Session created by the BCM"
-            current_time = datetime.now()
             session["startDate"] = datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S")
             session["endDate"] = datetime.strptime(end_time, "%Y-%m-%d %H:%M:%S")
 
