@@ -6587,11 +6587,7 @@ convention = "google"
     "SIM910",
     "SLF001",
 ]
-"test/test_energy.py" = [
-    "ERA001",
-]
 "test/test_flux.py" = [
-    "ERA001",
     "PT012",
     "SLF001",
     "T201",
@@ -6619,16 +6615,11 @@ convention = "google"
     "SLF001",
 ]
 "test/test_shutter.py" = [
-    "ERA001",
     "T201",
-]
-"test/test_transmission.py" = [
-    "ERA001",
 ]
 "test/test_utils_units.py" = [
     "N802",
 ]
 "test/test_xrf.py" = [
-    "ERA001",
     "S108",
 ]

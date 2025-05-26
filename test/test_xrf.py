@@ -1,6 +1,6 @@
 # encoding: utf-8
 #
-#  Project: MXCuBE
+#  Project: MXCuBE  # noqa: ERA001
 #  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
