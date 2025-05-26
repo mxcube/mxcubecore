@@ -288,7 +288,7 @@ class ChannelObject:
         Raises:
             NotImplementedError: If method has not been implemented for this object.
         """
-        # NBNB INCONSISTENT. funcxtion signature matches only
+        # NBNB INCONSISTENT. function signature matches only
         # Tine and Mockup, but is inconsistent with other subclasses
         raise NotImplementedError
 
@@ -353,7 +353,7 @@ class CommandContainer:
             Defaults to True.
 
         Raises:
-            ConnectionError: If a connection error occured while adding the channel.
+            ConnectionError: If a connection error occurred while adding the channel.
 
         Returns:
             Union[ChannelObject, None]: Channel object or None if adding later.
@@ -624,7 +624,7 @@ class CommandContainer:
             add_now (bool, optional): Whether to add command now. Defaults to True.
 
         Raises:
-            ConnectionError: If a connection error occured while adding the command.
+            ConnectionError: If a connection error occurred while adding the command.
 
         Returns:
             Union[CommandObject, None]: Command object or None if adding later.
