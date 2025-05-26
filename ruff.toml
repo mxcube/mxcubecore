@@ -6574,11 +6574,9 @@ convention = "google"
     "PTH120",
 ]
 "test/test_hwo_isara_maint.py" = [
-    "C408",
     "N802",
 ]
 "test/test_hwo_maxiv_ispyblims.py" = [
-    "C408",
     "S105",
     "S106",
 ]
