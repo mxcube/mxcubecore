@@ -66,4 +66,4 @@ class TestFlux(TestAbstractActuatorBase.TestAbstractActuatorBase):
         # Test timeout - expecting to have RuntimeError
         with pytest.raises(RuntimeError) as info:
             print(f"------> Flux: {info}")
-            test_object.wait_for_beam(0)
+            test_object.wait_for_beam(0)  # noqa: PT012

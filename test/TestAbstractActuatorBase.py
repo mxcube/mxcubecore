@@ -178,8 +178,8 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
 
         # Must be set to None so the next command causes a change
         test_object._nominal_value = None  # noqa: SLF001
+        test_object.set_value(startval, timeout=0)
         with pytest.raises(RuntimeError):
-            test_object.set_value(startval, timeout=0)
             test_object.wait_ready(timeout=1.0e-6)
 
     def test_signal_value_changed(self, test_object):

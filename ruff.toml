@@ -6553,20 +6553,17 @@ convention = "google"
 "test/TestAbstractActuatorBase.py" = [
     "N999",
     "PT011",
-    "PT012",
 ]
 "test/TestAbstractMotorBase.py" = [
     "B017",
     "N999",
     "PT011",
-    "PT012",
 ]
 "test/TestAbstractNStateBase.py" = [
     "B017",
     "C400",
     "N999",
     "PT011",
-    "PT012",
 ]
 "test/TestHardwareObjectBase.py" = [
     "N999",
@@ -6577,7 +6574,6 @@ convention = "google"
     "PTH120",
 ]
 "test/test_flux.py" = [
-    "PT012",
     "T201",
 ]
 "test/test_hwo_isara_maint.py" = [
@@ -6595,7 +6591,6 @@ convention = "google"
 ]
 "test/test_resolution.py" = [
     "PT011",
-    "PT012",
 ]
 "test/test_shutter.py" = [
     "T201",

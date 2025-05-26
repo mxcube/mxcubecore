@@ -50,8 +50,8 @@ class TestResolution(TestAbstractMotorBase.TestAbstractMotorBase):
             msg += f"_nominal_limits value is {nominal_limits}"
             assert nominal_limits == (None, None), msg
 
+        test_object._nominal_limits = (None, None)  # noqa: SLF001
         with pytest.raises(NotImplementedError):
-            test_object._nominal_limits = (None, None)  # noqa: SLF001
             test_object.set_limits(limits)
 
     def test_update_state(self, test_object):
