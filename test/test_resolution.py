@@ -44,11 +44,11 @@ class TestResolution(TestAbstractMotorBase.TestAbstractMotorBase):
         """
         limits = test_object.get_limits()
         if limits != (None, None):
-            test_obj_nominal_limits = test_object._nominal_limits  # noqa: SLF001
             test_object.update_limits((None, None))
+            nominal_limits = test_object._nominal_limits  # noqa: SLF001
             msg = "Update limits to (None, None) but "
-            msg += f"_nominal_limits value is {test_obj_nominal_limits}"
-            assert test_obj_nominal_limits == (None, None), msg
+            msg += f"_nominal_limits value is {nominal_limits}"
+            assert nominal_limits == (None, None), msg
 
         with pytest.raises(NotImplementedError):
             test_object._nominal_limits = (None, None)  # noqa: SLF001

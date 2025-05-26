@@ -6551,14 +6551,12 @@ convention = "google"
     "N802",
 ]
 "test/TestAbstractActuatorBase.py" = [
-    "EXE001",
     "N999",
     "PT011",
     "PT012",
 ]
 "test/TestAbstractMotorBase.py" = [
     "B017",
-    "EXE001",
     "N999",
     "PT011",
     "PT012",
@@ -6566,7 +6564,6 @@ convention = "google"
 "test/TestAbstractNStateBase.py" = [
     "B017",
     "C400",
-    "EXE001",
     "N999",
     "PT011",
     "PT012",

@@ -107,10 +107,10 @@ class TestCommandObject:
 
         # Check initial state, should be an empty list
         assert cmd_object.argument_type == ARGUMENT_TYPE_LIST
-        cmd_container_args = cmd_container._arguments  # noqa: SLF001
-        assert isinstance(cmd_container_args, list)
-        assert not cmd_container_args
-        assert cmd_container_args == []
+        cmd_object_args = cmd_object._arguments  # noqa: SLF001
+        assert isinstance(cmd_object_args, list)
+        assert not cmd_object_args
+        assert cmd_object_args == []
 
         # Call method
         cmd_object.set_argument_json_schema(json_schema_str=schema)
