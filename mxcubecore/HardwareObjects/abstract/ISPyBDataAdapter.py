@@ -122,7 +122,6 @@ class ISPyBDataAdapter:
 
     def create_session(self, proposal_id: str, beamline_name: str) -> Session:
         try:
-            # proposal = self.find_proposal_by_login_and_beamline(self.get_user_, beamline_name)  # type: ignore
             current_time = time.localtime()
             start_time = time.strftime("%Y-%m-%d 00:00:00", current_time)
             end_time = (
@@ -143,7 +142,6 @@ class ISPyBDataAdapter:
             session["endDate"] = datetime.strptime(end_time, "%Y-%m-%d %H:%M:%S")
 
             # return data to original codification
-            # logging.getLogger("ispyb_client").info("Session creation: %s" % session)
             session_id = self._collection.service.storeOrUpdateSession(
                 utf_decode(session)
             )
@@ -340,17 +338,9 @@ class ISPyBDataAdapter:
 
     def store_data_collection_group(self, mx_collection):
         group_id = None
-        # logging.getLogger("HWR").debug(
-        #    "ispyb_group_data_collections: %s"
-        #    % mx_collection["ispyb_group_data_collections"]
-        # )
-
         if mx_collection["ispyb_group_data_collections"]:
             group_id = mx_collection.get("group_id", None)
-        # logging.getLogger("HWR").debug(
-        #    "Storing data collection group in lims. data to store. group_id: %s mx_collection: %s"
-        #    % (str(group_id), str(mx_collection))
-        # )
+
         # Create a new group id
         group = ISPyBValueFactory().dcg_from_dc_params(self._collection, mx_collection)
         # if group_id is None:
@@ -456,7 +446,6 @@ class ISPyBDataAdapter:
             )
             robot_action_vo.dewarLocation = robot_action_dict.get("dewarLocation")
 
-            # robot_action_vo.endTime = robot_action_dict.get("endTime")
             robot_action_vo.message = robot_action_dict.get("message")
             robot_action_vo.sampleBarcode = robot_action_dict.get("sampleBarcode")
             robot_action_vo.sessionId = robot_action_dict.get("sessionId")
@@ -562,9 +551,6 @@ class ISPyBDataAdapter:
             except URLError:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
 
-            # logging.getLogger("ispyb_client").info(
-            #    "[ISPYB] Session goona be created: session_dict %s" % session_dict
-            # )
             logging.getLogger("ispyb_client").info(
                 "[ISPYB] Session created: %s" % session
             )
