@@ -6573,10 +6573,6 @@ convention = "google"
     "PTH118",
     "PTH120",
 ]
-"test/test_hwo_maxiv_ispyblims.py" = [
-    "S105",
-    "S106",
-]
 "test/test_procedure.py" = [
     "PIE804",
 ]

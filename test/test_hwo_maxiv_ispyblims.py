@@ -14,7 +14,7 @@ ISPYB_AUTH_ERROR_MESSSAGE = (
 
 REST_ROOT = "http://example.com/rest/"
 USER = "testusr"
-PASS = "testpsd"
+PASS = "testpsd"  # noqa: S105
 
 # @patch("suds.client.Client")
 # @patch("mxcubecore.HardwareRepository")
