@@ -77,7 +77,7 @@ class TestResolution(TestAbstractMotorBase.TestAbstractMotorBase):
             f"Too big value {toobig} validates as OK"
         )
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=r"Invalid value [\d\.]*"):
             test_object.set_value(toobig, timeout=None)
 
         # Must be set first so the next command causes a change

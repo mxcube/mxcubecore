@@ -81,7 +81,7 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
 
         if test_object.read_only:
             # test that there is an exception as read only
-            with pytest.raises(ValueError):
+            with pytest.raises(ValueError, match=r"Invalid value [\d\.]*"):
                 test_object.set_value(test_object.default_value)
         else:
             # Test set_value with and without a timeout (different code branch)

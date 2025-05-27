@@ -122,7 +122,7 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
         assert not test_object.validate_value(toobig), (
             "Too-big value %s validates as OK" % toobig
         )
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=r"Invalid value [\d\.]*"):
             test_object.set_value(toobig, timeout=None)
 
         # Must be set first so the next command causes a change
@@ -159,7 +159,7 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
 
         # Must be set first so the next command causes a change
         test_object.set_value(low, timeout=90)
-        with pytest.raises(Exception):
+        with pytest.raises(RuntimeError):
             test_object.set_value(high, timeout=1.0e-6)
 
     def test_setting_timeouts_2(self, test_object):
@@ -176,7 +176,7 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
         # Must be set first so the next command causes a change
         test_object.set_value(high, timeout=None)
         test_object.set_value(low, timeout=0)
-        with pytest.raises(Exception):
+        with pytest.raises(RuntimeError):
             test_object.wait_ready(timeout=1.0e-6)
 
     def test_signal_limits_changed(self, test_object):
