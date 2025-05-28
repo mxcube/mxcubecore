@@ -33,10 +33,12 @@ repos:
 
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.9.6
+    rev: v0.9.10  # Keep in sync with `poetry.lock` and `pyproject.toml`
     hooks:
+      # For the `ruff` hook (which runs `ruff check`),
+      # we purposefully skip the `--fix` option,
+      # and recommend running something like `poetry run ruff --fix` locally instead.
       - id: ruff
-        args: [--fix]
       - id: ruff-format
 
 
