@@ -34,6 +34,6 @@ jobs:
       - name: Run Pre-Commit hooks
         run: >
           ${MAMBA_EXE} run --name mxcubecore
-          pre-commit run --all-files
+          pre-commit run --all-files --show-diff-on-failure
 
 ...
