@@ -22,6 +22,7 @@ class ESRFLIMS(AbstractLims):
         self.ispyb = self.get_object_by_role("ispyb")
 
         self.is_local_host = False
+        self.lims_name = self.drac.get_lims_name()
 
     def get_lims_name(self) -> List[Lims]:
         return self.drac.get_lims_name() + self.ispyb.get_lims_name()
@@ -51,7 +52,8 @@ class ESRFLIMS(AbstractLims):
             "%s sessions found. user=%s" % (len(sessions), user_name)
         )
 
-        self.session_manager = self.drac.session_manager
+        self.session_manager = self.drac.session_manager        
+
         self.add_user_and_shared_sessions(lims_username, sessions)
 
         # In case there is a single available session then it is selected automatically
@@ -211,7 +213,7 @@ class ESRFLIMS(AbstractLims):
     def get_full_user_name(self):
         return self.drac.get_full_user_name()
 
-    def authenticate(self, login_id: str, password: str) -> LimsSessionManager:
+    def authenticate(self, login_id: str, password: str) -> LimsSessionManager:       
         return self.drac.authenticate(login_id, password)
 
     def echo(self):
@@ -233,7 +235,6 @@ class ESRFLIMS(AbstractLims):
 
     def store_xfe_spectrum(self, xfespectrum_dict):
         xfespectrum_dict["sessionId"] = self.ispyb.get_session_id()
-        self.drac.store_xrf_spectrum(xfespectrum_dict)
         return self.ispyb.store_xfe_spectrum(xfespectrum_dict)
 
     def store_workflow(self, *args, **kwargs):
