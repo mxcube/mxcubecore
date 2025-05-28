@@ -2,7 +2,6 @@ import json
 import logging
 import pathlib
 import shutil
-import requests
 from datetime import (
     datetime,
     timedelta,
@@ -13,6 +12,7 @@ from typing import (
     Optional,
 )
 
+import requests
 from pyicat_plus.client.main import IcatClient
 from pyicat_plus.client.models.session import Session as ICATSession
 
@@ -293,7 +293,7 @@ class ICATLIMS(AbstractLims):
         processing_plan = tracking_sample.get("processingPlan", [])
         search_models = None
         reference = None
-        
+
         if processing_plan:
             try:
                 parsed_plan = json.loads(processing_plan[0]["value"])[0]
@@ -309,7 +309,6 @@ class ICATLIMS(AbstractLims):
                 reference = parsed_plan.get("reference")
             except Exception:
                 reference = None
-            
 
         comments = tracking_sample.get("comments")
 
@@ -319,8 +318,8 @@ class ICATLIMS(AbstractLims):
             "sample_sheet_id": sample_sheet_id,
             "trackingSampleId": trackingSampleId,
             "proteinAcronym": protein_acronym,
-            "searchModels" : search_models,
-            "reference" : reference,
+            "searchModels": search_models,
+            "reference": reference,
             "sampleLocation": sample_location,
             "containerCode": puck_name,
             "containerSampleChangerLocation": puck_location,
@@ -426,19 +425,14 @@ class ICATLIMS(AbstractLims):
             return None
 
     def set_active_session_by_id(self, session_id: str) -> Session:
-        logging.getLogger("HWR").debug(
-                f"set_active_session_by_id: {session_id}"
-            )
+        logging.getLogger("HWR").debug(f"set_active_session_by_id: {session_id}")
 
         if self.is_session_already_active(self.session_manager.active_session):
             return self.session_manager.active_session
 
-        
         sessions = self.session_manager.sessions
 
-        logging.getLogger("HWR").debug(
-                f"Sessions: {len(sessions)}"
-            )
+        logging.getLogger("HWR").debug(f"Sessions: {len(sessions)}")
 
         if len(sessions) == 0:
             logging.getLogger("HWR").error(
@@ -800,7 +794,9 @@ class ICATLIMS(AbstractLims):
                 return "Omega"
         return "Phi"
 
-    def __get_sample_information_by(self, sample_id: str) -> Optional[SampleInformation]:
+    def __get_sample_information_by(
+        self, sample_id: str
+    ) -> Optional[SampleInformation]:
         """
         Fetches sample metadata and associated resources based on the sample ID.
 
@@ -972,13 +968,11 @@ class ICATLIMS(AbstractLims):
                 collection_parameters.get("blSampleId")
             )
 
-                     
-
             if sample is not None:
                 metadata["SampleProtein_acronym"] = sample.get("proteinAcronym")
                 metadata["SampleTrackingContainer_id"] = sample.get(
                     "containerCode"
-                ) #containerCode instead of sampletrackingcontainer_id for ISPyB's compatiblity
+                )  # containerCode instead of sampletrackingcontainer_id for ISPyB's compatiblity
                 metadata["SampleTrackingParcel_id"] = sample.get(
                     "SampleTrackingParcel_id"
                 )
@@ -990,30 +984,44 @@ class ICATLIMS(AbstractLims):
                 search_models_paths = None
                 try:
                     if (
-                        #self.download_sample_resources and
+                        # self.download_sample_resources and
                         sample.get("sample_sheet_id") is not None
                         and scan_type == "datacollection"
                     ):
-                        sample_info = self.__get_sample_information_by(sample.get("sample_sheet_id"))
-                        
-                        sample_resource_folder = directory 
+                        sample_info = self.__get_sample_information_by(
+                            sample.get("sample_sheet_id")
+                        )
+
+                        sample_resource_folder = directory
 
                         if sample.get("reference") is not None:
                             # Assuming `sample_info` is your SampleInformation instance
-                            matching_resources = [res for res in sample_info.resources if res.filename == sample.get("reference")]
-                            reference_paths = self._download_resources(sample.get("sample_sheet_id"), matching_resources, sample_resource_folder)
-   
+                            matching_resources = [
+                                res
+                                for res in sample_info.resources
+                                if res.filename == sample.get("reference")
+                            ]
+                            reference_paths = self._download_resources(
+                                sample.get("sample_sheet_id"),
+                                matching_resources,
+                                sample_resource_folder,
+                            )
+
                         if sample.get("searchModels") is not None:
-                            matching_resources = [res for res in sample_info.resources if res.groupName == sample.get("searchModels")]
-                            search_models_paths = self._download_resources(sample.get("sample_sheet_id"), matching_resources, sample_resource_folder)
+                            matching_resources = [
+                                res
+                                for res in sample_info.resources
+                                if res.groupName == sample.get("searchModels")
+                            ]
+                            search_models_paths = self._download_resources(
+                                sample.get("sample_sheet_id"),
+                                matching_resources,
+                                sample_resource_folder,
+                            )
 
-
-                                   
                 except RuntimeError:
                     logging.getLogger("HWR").error("Failed to get download resources")
 
-
-            
             self.add_beamline_configuration_metadata(metadata, self.beamline_config)
 
             # MX_axis_end
@@ -1040,13 +1048,15 @@ class ICATLIMS(AbstractLims):
                 try:
                     if sample is not None:
                         merged["experimentPlan"] = sample.get("experimentPlan")
-                        merged["processingPlan"] = sample.get("processingPlan")                                
+                        merged["processingPlan"] = sample.get("processingPlan")
                         merged["search_models_paths"] = search_models_paths
                         merged["reference"] = reference_paths
                 except Exception:
-                    logging.getLogger("HWR").exception("Failed to get merged sample plan")
+                    logging.getLogger("HWR").exception(
+                        "Failed to get merged sample plan"
+                    )
 
-                f.write(json.dumps(merged  , indent=4))
+                f.write(json.dumps(merged, indent=4))
             # Create ICAT gallery
             gallery_path = directory / "gallery"
             gallery_path.mkdir(mode=0o755, exist_ok=True)

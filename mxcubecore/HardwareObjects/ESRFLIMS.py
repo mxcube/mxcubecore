@@ -52,7 +52,7 @@ class ESRFLIMS(AbstractLims):
             "%s sessions found. user=%s" % (len(sessions), user_name)
         )
 
-        self.session_manager = self.drac.session_manager        
+        self.session_manager = self.drac.session_manager
 
         self.add_user_and_shared_sessions(lims_username, sessions)
 
@@ -213,7 +213,7 @@ class ESRFLIMS(AbstractLims):
     def get_full_user_name(self):
         return self.drac.get_full_user_name()
 
-    def authenticate(self, login_id: str, password: str) -> LimsSessionManager:       
+    def authenticate(self, login_id: str, password: str) -> LimsSessionManager:
         return self.drac.authenticate(login_id, password)
 
     def echo(self):
