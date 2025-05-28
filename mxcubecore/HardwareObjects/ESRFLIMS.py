@@ -22,6 +22,7 @@ class ESRFLIMS(AbstractLims):
         self.ispyb = self.get_object_by_role("ispyb")
 
         self.is_local_host = False
+        self.lims_name = self.drac.get_lims_name()
 
     def get_lims_name(self) -> List[Lims]:
         return self.drac.get_lims_name() + self.ispyb.get_lims_name()
@@ -52,6 +53,7 @@ class ESRFLIMS(AbstractLims):
         )
 
         self.session_manager = self.drac.session_manager
+
         self.add_user_and_shared_sessions(lims_username, sessions)
 
         # In case there is a single available session then it is selected automatically
