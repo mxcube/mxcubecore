@@ -6,11 +6,11 @@ from datetime import (
     datetime,
     timedelta,
 )
-from time import strftime
 from typing import (
     List,
     Optional,
 )
+from zoneinfo import ZoneInfo
 
 import requests
 from pyicat_plus.client.main import IcatClient
@@ -886,9 +886,16 @@ class ICATLIMS(AbstractLims):
                 if not directory.name.startswith("run"):
                     dataset_name = fileinfo["prefix"]
 
-            start_time = collection_parameters.get(
-                "collection_start_time", strftime("%Y-%m-%d %H:%M:%S")
-            )
+            try:
+                dt_naive = datetime.strptime(
+                    collection_parameters.get("collection_start_time"),
+                    "%Y-%m-%d %H:%M:%S%z",
+                )
+                dt_aware = dt_naive.replace(tzinfo=ZoneInfo("Europe/Paris"))
+                start_time = dt_aware.isoformat(timespec="microseconds")
+                end_time = datetime.now(ZoneInfo("Europe/Paris")).isoformat()
+            except RuntimeError:
+                logging.getLogger("HWR").error("Failed to parse start and end time")
 
             if collection_parameters["sample_reference"]["acronym"]:
                 sample_name = (
@@ -949,7 +956,7 @@ class ICATLIMS(AbstractLims):
                 "MX_position_id": workflow_params.get("workflow_position_id"),
                 "group_by": workflow_params.get("workflow_group_by"),
                 "startDate": start_time,
-                "endDate": strftime("%Y-%m-%d %H:%M:%S"),
+                "endDate": end_time,  # strftime("%Y-%m-%d %H:%M:%S"),
             }
 
             # This forces the ingester to associate the dataset to the experiment by ID
