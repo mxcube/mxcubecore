@@ -432,8 +432,12 @@ class HardwareObjectNode:
                     if len(self.__objects[objects_index]) == 0:
                         del self.__objects[objects_index]
 
-        for hw_object in self:
-            hw_object.resolve_references()
+        # Inlined version of 'for hw_object in self' to avoid warnings
+        # NB this function is used ONLY for loading XML-configured objects
+        # and so will disappear
+        for i in range(len(self.__objects_names)):
+            for hw_object in self.__objects[i]:
+                hw_object.resolve_references()
 
     def _add_object(
         self,
