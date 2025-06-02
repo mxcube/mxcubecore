@@ -17,10 +17,6 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-"""
-MAXIVAutoProcessing
-"""
-
 import logging
 import os
 import time
@@ -38,29 +34,16 @@ from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 class MAXIVAutoProcessing(HardwareObject):
-    """
-    Descript. :
-    """
-
     def __init__(self, name):
-        """
-        Descript. :
-        """
         HardwareObject.__init__(self, name)
         self.result = None
         self.autoproc_programs = None
         self.current_autoproc_procedure = None
 
     def init(self):
-        """
-        Descript. :
-        """
         self.autoproc_programs = self["programs"]
 
     def execute_autoprocessing(self, process_event, params_dict, frame_number):
-        """
-        Descript. :
-        """
         if self.autoproc_programs is not None:
             self.current_autoproc_procedure = gevent.spawn(
                 self.autoproc_procedure, process_event, params_dict, frame_number
@@ -68,12 +51,12 @@ class MAXIVAutoProcessing(HardwareObject):
             self.current_autoproc_procedure.link(self.autoproc_done)
 
     def autoproc_procedure(self, process_event, params_dict, frame_number):
-        """
-        Descript. :
+        """Main autoprocessing procedure.
 
-        Main autoprocessing procedure. At the beginning correct event (defined
-        in xml) is found. If the event is executable then accordingly to the
-        event type (image, after) then the sequence is executed:
+        At the beginning correct event (defined in xml) is found. If the event
+        is executable then accordingly to the event type (image, after) then
+        the sequence is executed:
+
         Implemented tasks:
            - after : Main autoprocessing procedure
                      1. Input file is generated with create_autoproc_input
@@ -161,16 +144,10 @@ class MAXIVAutoProcessing(HardwareObject):
                         print(module, ex)
 
     def autoproc_done(self, current_autoproc):
-        """
-        Descript. :
-        """
         self.current_autoproc_procedure = None
         logging.getLogger("HWR").info("Autoprocessing executed.")
 
     def create_autoproc_input(self, event, params):
-        """
-        Descript. :
-        """
         WAIT_XDS_TIMEOUT = 20
         WAIT_XDS_RESOLUTION = 1
 
