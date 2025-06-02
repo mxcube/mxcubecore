@@ -125,7 +125,7 @@ class CollectEmulator(CollectMockup):
 
         # Add/overwrite parameters from emulator configuration
         conv = conversion.convert_string_value
-        for key, val in self["simcal_parameters"].get_properties().items():
+        for key, val in self.config.simcal_parameters.items():
             setup_data[key] = conv(val)
 
         setup_data["n_vertices"] = 0
@@ -266,7 +266,7 @@ class CollectEmulator(CollectMockup):
         if GPHL_CCP4_PATH:
             envs["GPHL_CCP4_PATH"] = GPHL_CCP4_PATH
         text_type = conversion.text_type
-        for tag, val in self["environment_variables"].get_properties().items():
+        for tag, val in self.config.environment_variables.items():
             envs[text_type(tag)] = text_type(val)
 
         # get crystal data
@@ -303,7 +303,7 @@ class CollectEmulator(CollectMockup):
             hklfile,
         ]
 
-        for tag, val in self["simcal_options"].get_properties().items():
+        for tag, val in self.config.simcal_options.items():
             command_list.extend(conversion.command_option(tag, val, prefix="--"))
         logging.getLogger("HWR").info("Executing command: %s", " ".join(command_list))
         logging.getLogger("HWR").info("Executing environment: %s", sorted(envs.items()))
