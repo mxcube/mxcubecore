@@ -96,6 +96,7 @@ ignore = [
     "ANN",  # flake8-annotations: ignored, too many hits (21744)
     "COM812",  # Ruff recommends to ignore this linter rule when using its formatter
     "D",  # pydocstyle: ignored, too many hits (16292)
+    "N818", # error-suffix-on-exception-name: rather pointless outside of Python itself
     "PLR2004",  # magic-value-comparison: ignored, too many hits (249)
     "UP",  # pyupgrade: ignored for now, can be fixed automatically by ruff itself
     "G004", # Allow uses of f-strings to format logging messages
@@ -4627,7 +4628,6 @@ convention = "google"
     "ERA001",
     "F841",
     "N814",
-    "N818",
     "N999",
     "PLW0603",
     "PT009",
@@ -6042,7 +6042,6 @@ convention = "google"
     "G003",
     "ISC003",
     "N814",
-    "N818",
     "PLR0912",
     "PLR0915",
     "PLR1730",
