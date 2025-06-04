@@ -4,11 +4,11 @@ class: Session.Session
 configuration:
   beamline_name: mxcubewebtest
   email_extension: esrf.fr
-  endstation_name: mxcubewebtest
+  endstation_name: eh1
   feedback_email: test@...
   file_info:
     archive_base_directory: /home/rhfogh/calc/mxcubeweb_data
-    archive_folder: mxcubeweb_test
+    archive_folder: ARCHIVE
     base_directory: /home/rhfogh/calc/mxcubeweb_data
     precision: 4
     processed_data_base_directory: /home/rhfogh/calc/mxcubeweb_data
