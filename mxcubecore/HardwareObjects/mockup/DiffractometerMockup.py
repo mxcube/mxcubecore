@@ -55,7 +55,7 @@ class DiffractometerMockup(GenericDiffractometer):
         self.sampx = None
         self.sampy = None
         self.phix = None
-        self.zoom=None
+        self.zoom = None
 
     def init(self):
         """
