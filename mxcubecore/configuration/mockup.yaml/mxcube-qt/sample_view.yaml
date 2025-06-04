@@ -2,17 +2,17 @@
 ---
 class: QtGraphicsManager.QtGraphicsManager
 configuration:
-    magnification_tool:
-        scale: 4
-        area_size: 50
+  magnification_tool:
+    scale: 4
+    area_size: 50
     image_scale_list:
-        - 1
-        - 1.5
-        - 2
-        - 2.5
-        - 3
-        - 4
-        - 5
+      - 1
+      - 1.5
+      - 2
+      - 2.5
+      - 3
+      - 4
+      - 5
     scrollbars_always_off: true
 objects:
     camera: qt_camera.yaml
