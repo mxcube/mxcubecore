@@ -15,4 +15,4 @@ configuration:
       - 5
     scrollbars_always_off: true
 objects:
-    camera: qt_camera.yaml
+  camera: qt_camera.yaml
