@@ -4,8 +4,6 @@ name: Pytest
 
 "on":
   pull_request:
-    paths-ignore:
-      - docs/**
     types: [opened, reopened, synchronize]
 
 jobs:
