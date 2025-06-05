@@ -104,7 +104,7 @@ class Centring(HardwareObject):
     #        print("appendCentringDataPoint(self)")
     #        print( '-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+')
 
-    def centeredPosition(self, return_by_name=False):
+    def centeredPosition(self, _return_by_name=False):
         """
         Descript. : call after appending the last click.
         Return    : {motorHO:position} dictionary.
@@ -131,7 +131,7 @@ class Centring(HardwareObject):
 
         return self.vector_to_centred_positions(123, 456)
 
-    def vector_to_centred_positions(self, vector, return_by_name=False):
+    def vector_to_centred_positions(self, _vector, _return_by_name=False):
         dic = {}
         index = 0
         # for axis in self.gonioAxes:

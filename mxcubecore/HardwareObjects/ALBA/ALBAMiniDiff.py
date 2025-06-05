@@ -194,7 +194,7 @@ class ALBAMiniDiff(GenericDiffractometer):
             self.current_state = state
             self.emit("minidiffStateChanged", (self.current_state))
 
-    def getCalibrationData(self, offset=None):
+    def getCalibrationData(self, _offset=None):
         """
         Get pixel size for OAV system
 
@@ -212,7 +212,7 @@ class ALBAMiniDiff(GenericDiffractometer):
         px_x, px_y = self.getCalibrationData()
         return (px_x, px_y)
 
-    def update_pixels_per_mm(self, *args):
+    def update_pixels_per_mm(self, *_args):
         """
         Emit signal with current pixel/mm values.
         """
@@ -249,7 +249,7 @@ class ALBAMiniDiff(GenericDiffractometer):
         return x, y
 
     # TODO: Must be implemented correctly.
-    def get_centred_point_from_coord(self, x, y, return_by_names=None):
+    def get_centred_point_from_coord(self, _x, _y, _return_by_names=None):
         """
         Returns a dictionary with motors name ans positions centred.
         It is expected in start_move_to_beam and move_to_beam methods in

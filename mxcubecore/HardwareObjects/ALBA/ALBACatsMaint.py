@@ -36,7 +36,7 @@ class ALBACatsMaint(CatsMaint):
         self._cmdReset()
         self._do_reset_memory()
 
-    def _do_operation_command(self, cmd, pars):
+    def _do_operation_command(self, _cmd, _pars):
         """
         Send a CATS command
 

@@ -196,7 +196,7 @@ class EMBLDetector(AbstractDetector):
         """
         self.chan_roi_mode.set_value(self.roi_modes_list[mode])
 
-    def get_beam_centre(self, distance=None, wavelength=None):
+    def get_beam_centre(self, _distance=None, _wavelength=None):
         """Returns beam center coordinates"""
         beam_x = 0
         beam_y = 0

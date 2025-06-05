@@ -79,7 +79,7 @@ class TangoCommand(CommandObject):
                 self.device = None
                 raise ConnectionError
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **_kwargs):
         self.emit("commandBeginWaitReply", (str(self.name()),))
         if self.device is None:
             # TODO: emit commandFailed
@@ -190,7 +190,7 @@ class TangoChannel(ChannelObject):
             self.poller.stop()
             self.poller = None
 
-    def init_poll_failed(self, e, poller_id):
+    def init_poll_failed(self, _e, _poller_id):
         self._device_initialized.clear()
         logging.warning(
             "%s/%s (%s): could not complete init. (hint: device server is not running, or has to be restarted)",
@@ -281,7 +281,7 @@ class TangoChannel(ChannelObject):
 
         return value
 
-    def poll_failed(self, e, poller_id):
+    def poll_failed(self, _e, poller_id):
         self.emit("update", None)
         poller = Poller.get_poller(poller_id)
         if poller is not None:

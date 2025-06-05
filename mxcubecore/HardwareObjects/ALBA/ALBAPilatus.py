@@ -101,7 +101,7 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
         """Return True if has shutterless mode"""
         return True
 
-    def get_beam_position(self, distance=None, wavelength=None):
+    def get_beam_position(self, _distance=None, _wavelength=None):
         """Returns beam center coordinates"""
 
         # NBNB TODO check if pixels or mm, and adjust code

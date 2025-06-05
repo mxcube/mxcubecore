@@ -81,7 +81,7 @@ def cats_basket_presence_void(value, basket=1):
 class Basket(Container):
     __TYPE__ = "Puck"
 
-    def __init__(self, container, number, samples_num=10, name="Puck"):
+    def __init__(self, container, number, samples_num=10, _name="Puck"):
         super(Basket, self).__init__(
             self.__TYPE__, container, Basket.get_basket_address(number), True
         )
@@ -105,14 +105,14 @@ class Basket(Container):
 
 
 class SpineBasket(Basket):
-    def __init__(self, container, number, name="SpinePuck"):
+    def __init__(self, container, number, _name="SpinePuck"):
         super(SpineBasket, self).__init__(
             container, Basket.get_basket_address(number), SAMPLES_SPINE, True
         )
 
 
 class UnipuckBasket(Basket):
-    def __init__(self, container, number, name="UniPuck"):
+    def __init__(self, container, number, _name="UniPuck"):
         super(UnipuckBasket, self).__init__(
             container, Basket.get_basket_address(number), SAMPLES_UNIPUCK, True
         )
@@ -1193,7 +1193,7 @@ class Cats90(SampleChanger):
 
         return state
 
-    def _decide_state(self, dev_state, powered, lids_closed, has_loaded, on_diff):
+    def _decide_state(self, dev_state, powered, _lids_closed, has_loaded, on_diff):
         if dev_state == PyTango.DevState.ALARM:
             _state = SampleChangerState.Alarm
         elif not powered:

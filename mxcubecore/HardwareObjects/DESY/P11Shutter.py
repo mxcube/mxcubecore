@@ -152,10 +152,10 @@ class P11Shutter(AbstractShutter):
         self.simulated_update()
         self.log.debug("### ending simulated shutter move")
 
-    def do_finish(self, t=None):
+    def do_finish(self, _t=None):
         self.log.debug("### simulated finished")
 
-    def do_finish_exc(self, exc=None):
+    def do_finish_exc(self, _exc=None):
         self.log.debug("### simulated finished with exception")
 
     def update_shutter_state(self, state=None):

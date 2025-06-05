@@ -110,7 +110,7 @@ class BlissHutchTrigger(BaseHardwareObjects.HardwareObject):
 
         self.value_changed(value)
 
-    def value_changed(self, value, *args):
+    def value_changed(self, value, *_args):
         if value == 0:
             if self.initialized:
                 self.emit("hutchTrigger", (1,))

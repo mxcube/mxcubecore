@@ -482,7 +482,7 @@ class XmlStructureRetriever(ContentHandler):
 
             self.current_attributes.add("%s=%s" % (str(attr), str(value)))
 
-    def endElement(self, name):
+    def endElement(self, _name):
         """[summary]
 
         Args:

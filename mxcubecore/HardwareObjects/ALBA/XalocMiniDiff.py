@@ -96,7 +96,7 @@ class XalocMiniDiff(GenericDiffractometer):
 
         GenericDiffractometer.init(self)
 
-    def getCalibrationData(self, offset=None):
+    def getCalibrationData(self, _offset=None):
         calibx, caliby = self.calibration.getCalibration()
         return 1000.0 / caliby, 1000.0 / caliby
         # return 1000./self.md2.CoaxCamScaleX, 1000./self.md2.CoaxCamScaleY
@@ -105,14 +105,14 @@ class XalocMiniDiff(GenericDiffractometer):
         px_x, px_y = self.getCalibrationData()
         return (px_x, px_y)
 
-    def update_pixels_per_mm(self, *args):
+    def update_pixels_per_mm(self, *_args):
         """
         Descript. :
         """
         self.pixels_per_mm_x, self.pixels_per_mm_y = self.getCalibrationData()
         self.emit("pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y),))
 
-    def get_centred_point_from_coord(self, x, y, return_by_names=None):
+    def get_centred_point_from_coord(self, _x, _y, _return_by_names=None):
         """
         """
         return {"omega": [200, 200]}

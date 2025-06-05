@@ -237,7 +237,7 @@ if __name__ == "__main__":
         SERVER_ADDRESS = args[0]
 
     class Microdiff(MDEvents):
-        def onReceivedEvent(self, name, value, timestamp):
+        def onReceivedEvent(self, name, value, _timestamp):
             print("     Event: " + name + " = " + str(value))
 
     md = Microdiff(SERVER_ADDRESS, SERVER_PORT, PROTOCOL.STREAM, TIMEOUT, RETRIES)

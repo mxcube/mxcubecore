@@ -42,11 +42,11 @@ class BlissActuator(AbstractActuator):
         return self.actuator_state
 
     @task
-    def actuator_in(self, wait=True, timeout=None):
+    def actuator_in(self, _wait=True, _timeout=None):
         self._actuator.set_in()
         self.value_changed(self._actuator.state())
 
-    def actuator_out(self, wait=True, timeout=3):
+    def actuator_out(self, _wait=True, _timeout=3):
         self._actuator.set_out()
         self.value_changed(self._actuator.state())
 

@@ -192,7 +192,7 @@ class EMBLEnergy(AbstractEnergy):
         self._moving = False
         self.emit("moveEnergyFailed", ())
 
-    def move_energy_finished(self, result):
+    def move_energy_finished(self, _result):
         """
         Emits moveEnergyFinished signal
         :param result:
@@ -235,7 +235,7 @@ class EMBLEnergy(AbstractEnergy):
         logging.getLogger("user_level_log").info("Energy: Cancel move")
         # self.moveEnergy.abort()
 
-    def set_value(self, energy, wait=True):
+    def set_value(self, energy, _wait=True):
         """
         Sets energy in keV
         """
@@ -291,7 +291,7 @@ class EMBLEnergy(AbstractEnergy):
         if self._nominal_value is None or abs(value - self._nominal_value) > 1e-3:
             self.update_value(value)
 
-    def energy_limits_changed(self, limits):
+    def energy_limits_changed(self, _limits):
         """
         Updates energy limits
         :param limits: (float, float)
@@ -328,7 +328,7 @@ class EMBLEnergy(AbstractEnergy):
             self.update_state(self.STATES.BUSY)
             #self.emit("stateChanged", "busy")
 
-    def wait_ready(self, timeout=20):
+    def wait_ready(self, _timeout=20):
         """
         Waits till energy change is done
         :param timeout: sec in int

@@ -122,7 +122,7 @@ class EMBLBSD(GenericDiffractometer):
         """No need to implement"""
         return
 
-    def get_centred_point_from_coord(self, x, y, return_by_names=None):
+    def get_centred_point_from_coord(self, _x, _y, _return_by_names=None):
         """No need to implement"""
         return
 
@@ -155,7 +155,7 @@ class EMBLBSD(GenericDiffractometer):
             msg = "Closed"
         self.emit("minidiffShutterStateChanged", (self.fast_shutter_is_open, msg))
 
-    def update_pixels_per_mm(self, *args):
+    def update_pixels_per_mm(self, *_args):
         """Updates pixels per mm"""
         if self.chan_calib_x:
             self.pixels_per_mm_x = 1.0 / self.chan_calib_x.get_value()
@@ -204,7 +204,7 @@ class EMBLBSD(GenericDiffractometer):
         else:
             self.cmd_start_auto_focus()
 
-    def emit_diffractometer_moved(self, *args):
+    def emit_diffractometer_moved(self, *_args):
         """Emits diffractometerMoved signal"""
         self.emit("diffractometerMoved", ())
 
@@ -214,7 +214,7 @@ class EMBLBSD(GenericDiffractometer):
         self.emit("minidiffShutterStateChanged", (self.fast_shutter_is_open,))
         self.emit("pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y),))
 
-    def move_omega(self, angle):
+    def move_omega(self, _angle):
         """No need to implement"""
         return
 

@@ -135,11 +135,11 @@ class ALBABackLight(HardwareObject):
         logging.getLogger("HWR").debug("Timeout waiting for backlight In")
         return False
 
-    def _task_finished(self, g):
+    def _task_finished(self, _g):
         logging.getLogger("HWR").debug("Backlight task finished")
         self._task = None
 
-    def _task_failed(self, g):
+    def _task_failed(self, _g):
         logging.getLogger("HWR").debug("Backlight task failed")
         self._task = None
 

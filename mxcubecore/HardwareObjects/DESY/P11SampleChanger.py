@@ -119,7 +119,7 @@ class P11SampleChanger(SampleChanger):
     def is_powered(self):
         return True
 
-    def load_sample(self, holder_length, sample_location=None, wait=False):
+    def load_sample(self, _holder_length, sample_location=None, wait=False):
         self.load(sample_location, wait)
 
     def home(self):
@@ -146,7 +146,7 @@ class P11SampleChanger(SampleChanger):
         self.wait_sc_move()
         self.emit("progressStop", ())
 
-    def wash(self, wait=False):
+    def wash(self, _wait=False):
         if not self.has_loaded_sample():
             self.user_log.debug("No sample is mounted. Wash command not possible")
             raise RuntimeWarning("There is no sample to wash")
@@ -159,7 +159,7 @@ class P11SampleChanger(SampleChanger):
         self._load(sample_no)
         self.cleanup_load()
 
-    def load(self, sample=None, wait=True):
+    def load(self, sample=None, _wait=True):
         """
         Load a sample.
 
@@ -250,7 +250,7 @@ class P11SampleChanger(SampleChanger):
         self.insert_cryo()
 
     @task
-    def unload(self, sample=None, wait=True):
+    def unload(self, sample=None, _wait=True):
         self._start_load = time.time()
         self.log.debug("Unload called with sample = %s" % sample)
 
@@ -376,16 +376,16 @@ class P11SampleChanger(SampleChanger):
     def _do_update_info(self):
         return
 
-    def _do_select(self, component):
+    def _do_select(self, _component):
         return
 
-    def _do_scan(self, component, recursive):
+    def _do_scan(self, _component, _recursive):
         return
 
-    def _do_load(self, sample=None):
+    def _do_load(self, _sample=None):
         return
 
-    def _do_unload(self, sample_slot=None):
+    def _do_unload(self, _sample_slot=None):
         self.log.debug("- send unmount command")
         self.log.debug("- wait to finish")
 

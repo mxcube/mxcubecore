@@ -361,7 +361,7 @@ class EMBLCollect(AbstractCollect):
         self.cmd_collect_helical_position(helical_positions)
 
     def set_mesh_scan_parameters(
-        self, num_lines, num_total_frames, mesh_center, mesh_range
+        self, num_lines, num_total_frames, _mesh_center, mesh_range
     ):
         """Sets mesh parameters"""
         self.cmd_collect_raster_lines(num_lines)
@@ -457,7 +457,7 @@ class EMBLCollect(AbstractCollect):
         fill_mode = str(HWR.beamline.machine_info.get_message())
         return fill_mode[:20]
 
-    def get_beamline_configuration(self, *args):
+    def get_beamline_configuration(self, *_args):
         """Returns beamline config"""
         return self.bl_config._asdict()
 

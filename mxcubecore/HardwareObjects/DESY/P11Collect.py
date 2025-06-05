@@ -492,7 +492,7 @@ class P11Collect(AbstractCollect):
         startangle,
         frames,
         degreesperframe,
-        imageinterval,
+        _imageinterval,
         exposuretime,
         run_type,
     ):
@@ -628,7 +628,7 @@ class P11Collect(AbstractCollect):
         HWR.beamline.detector.set_eiger_angle_increment(img_range)
 
     def collect_characterisation(
-        self, start_angle, img_range, nimages, angle_inc, exp_time
+        self, start_angle, img_range, nimages, angle_inc, _exp_time
     ):
         """Collects a series of images at different angles for characterization.
 
@@ -1006,7 +1006,7 @@ class P11Collect(AbstractCollect):
         else:
             self.log.debug("Beamtime metadata is not found. No online resouces available. Autoprocessing on the cluster is not available.")
 
-    def trigger_auto_processing(self, process_event=None, frame_number=None):
+    def trigger_auto_processing(self, _process_event=None, _frame_number=None):
         """Triggers auto processing based on the experiment type.
 
         Args:

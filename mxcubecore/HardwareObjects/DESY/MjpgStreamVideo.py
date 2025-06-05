@@ -587,7 +587,7 @@ class MjpgStreamVideo(AbstractVideoDevice):
         """
         return
 
-    def set_contrast(self, contrast):
+    def set_contrast(self, _contrast):
         """
         Descript. :
         """
@@ -599,7 +599,7 @@ class MjpgStreamVideo(AbstractVideoDevice):
         """
         return
 
-    def set_contrast_auto(self, state=True):
+    def set_contrast_auto(self, _state=True):
         """
         Descript. :
         """
@@ -623,7 +623,7 @@ class MjpgStreamVideo(AbstractVideoDevice):
         """
         return
 
-    def set_brightness(self, brightness):
+    def set_brightness(self, _brightness):
         """
         Descript. :
         """
@@ -635,7 +635,7 @@ class MjpgStreamVideo(AbstractVideoDevice):
         """
         return
 
-    def set_brightness_auto(self, state=True):
+    def set_brightness_auto(self, _state=True):
         """
         Descript. :
         """
@@ -709,7 +709,7 @@ class MjpgStreamVideo(AbstractVideoDevice):
         """
         return
 
-    def set_gamma(self, gamma):
+    def set_gamma(self, _gamma):
         """
         Descript. :
         """
@@ -721,7 +721,7 @@ class MjpgStreamVideo(AbstractVideoDevice):
         """
         return
 
-    def set_gamma_auto(self, state=True):
+    def set_gamma_auto(self, _state=True):
         """
         Descript. :
         """
@@ -900,7 +900,7 @@ class MjpgStreamVideo(AbstractVideoDevice):
         """
         return (self.image_dimensions[0] / float(self.sensor_dimensions[0]), 2)
 
-    def set_live(self, mode):
+    def set_live(self, _mode):
         """
         Descript. :
         """
@@ -952,7 +952,7 @@ class MjpgStreamVideo(AbstractVideoDevice):
             )
             self.emit("imageReceived", self.image)
 
-    def take_snapshot(self, filename, bw=False):
+    def take_snapshot(self, filename, _bw=False):
         """
         Descript. : calls get_new_image() and saves the result
         """

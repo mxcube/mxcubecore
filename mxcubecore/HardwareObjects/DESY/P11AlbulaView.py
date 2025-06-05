@@ -81,7 +81,7 @@ class P11AlbulaView(HardwareObject):
             self.mask_4m = albula.DImage(mask_array_4m)
             self.mask_16m = albula.DImage(mask_array_16m)
 
-    def start(self, path=None, filetype=None, interval=None, stream=False):
+    def start(self, _path=None, filetype=None, interval=None, stream=False):
         if filetype is not None:
             self.filetype = filetype
         if interval is not None:

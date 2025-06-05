@@ -85,7 +85,7 @@ class BlissNState(AbstractNState):
 
     # NB: Bliss calls the update handler with the state so its needed in the
     # method definition
-    def _update_state(self, state=None):
+    def _update_state(self, _state=None):
         self.update_state(self.STATES.READY)
 
     def _update_value(self, value=None):

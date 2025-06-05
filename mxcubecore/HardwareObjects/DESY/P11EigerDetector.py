@@ -82,7 +82,7 @@ class P11EigerDetector(AbstractDetector):
     def has_shutterless(self):
         return True
 
-    def prepare_acquisition(self, *args, **kwargs):
+    def prepare_acquisition(self, *_args, **_kwargs):
         """
         Prepares detector for acquisition
         """
@@ -90,7 +90,7 @@ class P11EigerDetector(AbstractDetector):
         # Sets the metadata for the header
         self.set_metadata()
 
-    def get_radius(self, distance=None):
+    def get_radius(self, _distance=None):
         # a proper calculation should be done here
         # this value comes from crystalControlMaxwell hardcoded value to
         # estimate resolution
@@ -183,7 +183,7 @@ class P11EigerDetector(AbstractDetector):
         # Sets the metadata for the header
         self.set_metadata()
 
-    def prepare_characterisation(self, exptime, number_of_images, angle_inc, filepath):
+    def prepare_characterisation(self, exptime, number_of_images, _angle_inc, filepath):
         self.writer_dev.write_attribute(
             "NImagesPerFile", 1
         )  # To write one image per characterisation.
@@ -226,7 +226,7 @@ class P11EigerDetector(AbstractDetector):
     def status_changed(self, status):
         self.log.debug("P11EigerDetector - status changed. now is %s" % status)
 
-    def get_beam_position(self, distance=None, wavelength=None):
+    def get_beam_position(self, _distance=None, _wavelength=None):
         return self._beam_centre
 
     # managing enum device server attributes

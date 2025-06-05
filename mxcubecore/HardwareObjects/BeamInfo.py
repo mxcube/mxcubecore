@@ -97,7 +97,7 @@ class BeamInfo(HardwareObject):
             default_beam_divergence_vertical,
         ]
 
-    def connect_notify(self, *args):
+    def connect_notify(self, *_args):
         self.evaluate_beam_info()
         self.re_emit_values()
 
@@ -156,7 +156,7 @@ class BeamInfo(HardwareObject):
         self.evaluate_beam_info()
         self.re_emit_values()
 
-    def definer_pos_changed(self, name, size):
+    def definer_pos_changed(self, _name, size):
         """
         Descript. :
         Arguments :

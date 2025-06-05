@@ -175,7 +175,7 @@ class P11Session(Session):
         except (ValueError, FileNotFoundError):
             return None
 
-    def select_base_directory(self, mode="beamtime"):
+    def select_base_directory(self, _mode="beamtime"):
         self.base_directory = self.beamtime_info["rootPath"]
 
     def get_base_data_directory(self):

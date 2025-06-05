@@ -174,7 +174,7 @@ class EMBLMotorsGroup(HardwareObject):
         """Returns dict with motors"""
         return self.motors_list
 
-    def set_motor_position(self, motor_name, new_position, timeout=None):
+    def set_motor_position(self, motor_name, new_position, _timeout=None):
         """Sets motor value. Direct tine.set cmd is used"""
         for motor in self.motors_list:
             if motor["motorName"] == motor_name:

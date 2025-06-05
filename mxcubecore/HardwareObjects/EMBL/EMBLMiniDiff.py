@@ -288,7 +288,7 @@ class EMBLMiniDiff(GenericDiffractometer):
             reference_pos = self.omega_reference_motor.get_value()
             self.omega_reference_motor_moved(reference_pos)
 
-    def update_pixels_per_mm(self, *args):
+    def update_pixels_per_mm(self, *_args):
         self.pixels_per_mm_x = 1.0 / self.chan_calib_x.get_value()
         self.pixels_per_mm_y = 1.0 / self.chan_calib_y.get_value()
         self.emit("pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y),))
@@ -350,7 +350,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         else:
             self.cmd_start_auto_focus()
 
-    def emit_diffractometer_moved(self, *args):
+    def emit_diffractometer_moved(self, *_args):
         self.emit("diffractometerMoved", ())
 
     def invalidate_centring(self):
@@ -440,12 +440,12 @@ class EMBLMiniDiff(GenericDiffractometer):
 
         return centred_pos_dir
 
-    def start_imaging_centring(self, sample_info=None, wait_result=None):
+    def start_imaging_centring(self, _sample_info=None, _wait_result=None):
         self.emit_progress_message("Imaging based 3 click centring...")
         self.current_centring_procedure = gevent.spawn(self.imaging_centring)
         self.current_centring_procedure.link(self.centring_done)
 
-    def start_imaging_centring_n(self, sample_info=None, wait_result=None):
+    def start_imaging_centring_n(self, _sample_info=None, _wait_result=None):
         self.emit_progress_message("Imaging based n click centring...")
         self.current_centring_procedure = gevent.spawn(self.imaging_centring_n)
         self.current_centring_procedure.link(self.centring_done)
@@ -542,7 +542,7 @@ class EMBLMiniDiff(GenericDiffractometer):
                 "Move to centred position disabled in BeamLocation phase."
             )
 
-    def move_kappa_and_phi(self, kappa=None, kappa_phi=None, wait=False):
+    def move_kappa_and_phi(self, kappa=None, kappa_phi=None, _wait=False):
         return gevent.spawn(self.move_kappa_and_phi_procedure, kappa, kappa_phi)
 
     #@task

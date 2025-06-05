@@ -225,7 +225,7 @@ class P11NanoDiff(GenericDiffractometer):
                 "pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y),)
             )
 
-    def execute_server_task(self, method, timeout=30, *args):
+    def execute_server_task(self, _method, _timeout=30, *_args):
         return
 
     def is_reversing_rotation(self):
@@ -299,7 +299,7 @@ class P11NanoDiff(GenericDiffractometer):
 
         return h, v
 
-    def auto_ai_routine(self, zoom):
+    def auto_ai_routine(self, _zoom):
 
         self.goto_centring_phase()
         self.log.debug("Automatic 3 click centring")
@@ -314,7 +314,7 @@ class P11NanoDiff(GenericDiffractometer):
         self.move_to_centred_position(motor_pos)
         return motor_pos
 
-    def centring_done(self, centring_procedure, motor_p=None):
+    def centring_done(self, centring_procedure, _motor_p=None):
         """
         Descript. :
         """
@@ -566,7 +566,7 @@ class P11NanoDiff(GenericDiffractometer):
             self.centring_status = {"valid": False}
             self.emit("centringInvalid", ())
 
-    def get_centred_point_from_coord(self, x, y, return_by_names=None):
+    def get_centred_point_from_coord(self, _x, _y, _return_by_names=None):
         """
         Descript. :
         """
@@ -642,7 +642,7 @@ class P11NanoDiff(GenericDiffractometer):
         """
         return
 
-    def start_manual_centring(self, sample_info=None, wait_result=None):
+    def start_manual_centring(self, _sample_info=None, _wait_result=None):
         """
         """
         self.goto_centring_phase()
@@ -817,7 +817,7 @@ class P11NanoDiff(GenericDiffractometer):
             "sampy": sampy_pos,
         }
 
-    def move_to_beam(self, x, y, omega=None):
+    def move_to_beam(self, x, y, _omega=None):
         """
         Descript. : function to create a centring point based on all motors
                     positions.
@@ -848,7 +848,7 @@ class P11NanoDiff(GenericDiffractometer):
         self.centring_sampy.motor.set_value(samp_y_pos, timeout=0)
         self.centring_phiy.motor.set_value(phiy, timeout=0)
 
-    def start_move_to_beam(self, coord_x=None, coord_y=None, omega=None):
+    def start_move_to_beam(self, _coord_x=None, _coord_y=None, _omega=None):
         """
         Descript. :
         """
@@ -875,7 +875,7 @@ class P11NanoDiff(GenericDiffractometer):
         omega_ref = [0, 238]
         self.emit("omegaReferenceChanged", omega_ref)
 
-    def move_kappa_and_phi(self, kappa, kappa_phi):
+    def move_kappa_and_phi(self, _kappa, _kappa_phi):
         return
 
     def get_osc_max_speed(self):
@@ -887,7 +887,7 @@ class P11NanoDiff(GenericDiffractometer):
         else:
             return (-360, 360)
 
-    def get_scan_limits(self, speed=None, num_images=None, exp_time=None):
+    def get_scan_limits(self, _speed=None, _num_images=None, _exp_time=None):
         if self.in_plate_mode:
             return (170, 190)
         else:
@@ -897,7 +897,7 @@ class P11NanoDiff(GenericDiffractometer):
         """Returns dynamic limits of oscillation axis"""
         return (0, 20)
 
-    def get_scan_dynamic_limits(self, speed=None):
+    def get_scan_dynamic_limits(self, _speed=None):
         return (-360, 360)
 
     def stop_motion(self):
@@ -990,16 +990,16 @@ class P11NanoDiff(GenericDiffractometer):
         while self.motor_hwobj_dict["phi"].is_moving():
             time.sleep(0.05)
 
-    def get_point_from_line(self, point_one, point_two, index, images_num):
+    def get_point_from_line(self, point_one, _point_two, _index, _images_num):
         return point_one.as_dict()
 
-    def set_phase(self, phase, timeout=None):
+    def set_phase(self, phase, _timeout=None):
         self.set_phase_task = gevent.spawn(self.goto_phase, phase)
 
     def get_phase(self):
         return self.current_phase
 
-    def motor_state_changed(self, state=None):
+    def motor_state_changed(self, _state=None):
 
         new_state = DiffractometerState.Ready
 
@@ -1259,7 +1259,7 @@ class P11NanoDiff(GenericDiffractometer):
         if wait:
             self.wait_phase()
 
-    def update_phase(self, value=None):
+    def update_phase(self, _value=None):
 
         omega_pos = self.get_omega_position()
 

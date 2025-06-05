@@ -85,7 +85,7 @@ class ALBABeamInfo(HardwareObject):
             default_beam_divergence_vertical,
         ]
 
-    def connect_notify(self, *args):
+    def connect_notify(self, *_args):
         self.evaluate_beam_info()
         self.re_emit_values()
 

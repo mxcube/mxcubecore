@@ -249,12 +249,12 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
 
         return True
 
-    def cancelEnergyScan(self, *args):
+    def cancelEnergyScan(self, *_args):
         if self.scanning:
             self.cmd_scan_abort()
             self.scanCommandAborted()
 
-    def scanCommandStarted(self, *args):
+    def scanCommandStarted(self, *_args):
         if self.scan_info["blSampleId"]:
             title = "Sample: %s Element: %s Edge: %s" % (
                 self.scan_info["blSampleId"],
@@ -277,7 +277,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         self.emit("energyScanStarted", graph_info)
         self.emit("progressInit", "Energy scan", self.num_points, False)
 
-    def scanCommandFailed(self, *args):
+    def scanCommandFailed(self, *_args):
         with TaskUtils.cleanup(self.ready_event.set):
             # error_msg = self.chan_scan_error.get_value()
             # print error_msg
@@ -294,7 +294,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
             self.scanning = False
             self.ready_event.set()
 
-    def scanCommandAborted(self, *args):
+    def scanCommandAborted(self, *_args):
         self.emit("energyScanFailed", ())
         self.emit("progressStop", ())
         if hasattr(HWR.beamline.energy, "set_break_bragg"):
@@ -302,7 +302,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         self.scanning = False
         self.ready_event.set()
 
-    def scanCommandFinished(self, *args):
+    def scanCommandFinished(self, *_args):
         with TaskUtils.cleanup(self.ready_event.set):
             self.scan_info["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
             logging.getLogger("HWR").debug("Energy scan: finished")
@@ -314,7 +314,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
             if hasattr(HWR.beamline.energy, "set_break_bragg"):
                 HWR.beamline.energy.set_break_bragg()
 
-    def do_chooch(self, elt, edge, scan_directory, archive_directory, prefix):
+    def do_chooch(self, elt, edge, _scan_directory, archive_directory, prefix):
         archive_file_prefix = str(os.path.join(archive_directory, prefix))
 
         if os.path.exists(archive_file_prefix + ".raw"):

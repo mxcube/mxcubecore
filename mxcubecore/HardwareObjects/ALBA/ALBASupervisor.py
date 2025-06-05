@@ -63,7 +63,7 @@ class ALBASupervisor(HardwareObject):
     def open_detector_cover(self):
         self.detector_cover_chan.set_value(True)
 
-    def close_detector_cover(self, value):
+    def close_detector_cover(self, _value):
         self.detector_cover_chan.set_value(False)
 
     def is_detector_cover_opened(self):

@@ -1318,11 +1318,11 @@ class Null:
     provided here.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *_args, **_kwargs):
         "Ignore parameters."
         return None
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *_args, **_kwargs):
         "Ignore method calls."
         return self
 

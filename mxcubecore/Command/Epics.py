@@ -146,7 +146,7 @@ class EpicsCommand(CommandObject):
             if callback is not None:
                 callback(value)
 
-    def on_polling_error(self, exception, poller_id):
+    def on_polling_error(self, _exception, poller_id):
         # try to reconnect the pv
         self.pv.connect()
 
@@ -166,8 +166,8 @@ class EpicsCommand(CommandObject):
         polling_time=500,
         arguments_list=(),
         value_changed_callback=None,
-        timeout_callback=None,
-        direct=True,
+        _timeout_callback=None,
+        _direct=True,
         compare=True,
     ):
         self.__value_changed_callback_ref = saferef.safe_ref(value_changed_callback)

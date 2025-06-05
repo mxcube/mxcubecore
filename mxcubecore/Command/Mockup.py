@@ -38,13 +38,13 @@ __license__ = "LGPLv3+"
 
 
 class MockupCommand(CommandObject):
-    def __init__(self, name, command_name, list_args=None, timeout=1000, **kwargs):
+    def __init__(self, name, command_name, _list_args=None, _timeout=1000, **kwargs):
         CommandObject.__init__(self, name, **kwargs)
 
         self.command_name = command_name
         self.result = None
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **_kwargs):
         self.result = args[0]
 
     def get(self):
@@ -64,7 +64,7 @@ class MockupChannel(ChannelObject):
         self.timeout = int(timeout)
         self.value = kwargs["default_value"]
 
-    def get_value(self, force=False):
+    def get_value(self, _force=False):
         return self.value
 
     def set_value(self, new_value):

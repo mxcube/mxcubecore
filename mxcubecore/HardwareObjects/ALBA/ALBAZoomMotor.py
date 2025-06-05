@@ -163,7 +163,7 @@ class ALBAZoomMotor(BaseHardwareObjects.Device, AbstractMotor):
             self.currentstate = the_state
             self.emit("stateChanged", (the_state,))
 
-    def positionChanged(self, currentposition):
+    def positionChanged(self, _currentposition):
         previous_position = self.currentposition
         self.currentposition = self.get_current_position_name()
         if self.currentposition != previous_position:

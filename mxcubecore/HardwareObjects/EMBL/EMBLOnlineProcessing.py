@@ -286,7 +286,7 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
                     self.results_raw[key][index - step : index + step]
                 )
 
-    def get_spacegroup_dict(self, proc_params, space_group_name):
+    def get_spacegroup_dict(self, proc_params, _space_group_name):
         spacegroup_dict = {}
 
         if "P212121" in proc_params.space_group:

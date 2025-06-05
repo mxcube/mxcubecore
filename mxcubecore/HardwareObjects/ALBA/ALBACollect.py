@@ -532,10 +532,10 @@ class ALBACollect(AbstractCollect):
                 if e.errno != errno.EEXIST:
                     raise
 
-    def collect_finished(self, green):
+    def collect_finished(self, _green):
         logging.info("Data collection finished")
 
-    def collect_failed(self, par):
+    def collect_failed(self, _par):
         logging.exception("Data collection failed")
         self.current_dc_parameters["status"] = "failed"
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -866,7 +866,7 @@ class ALBACollect(AbstractCollect):
         else:
             return ""
 
-    def trigger_auto_processing(self, event, frame):
+    def trigger_auto_processing(self, event, _frame):
         if event == "after":
             dc_pars = self.current_dc_parameters
             HWR.beamline.offline_processing.trigger_auto_processing(dc_pars)

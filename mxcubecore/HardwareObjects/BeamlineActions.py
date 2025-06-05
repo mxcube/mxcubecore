@@ -98,7 +98,7 @@ class HWObjActuatorCommand(CommandObject):
         return self._hwobj.VALUES[values[0]]
 
     @task
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *_args, **_kwargs):
         """Execute the action.
         Args: None
         Kwargs: None
@@ -108,7 +108,7 @@ class HWObjActuatorCommand(CommandObject):
         value = self._get_action()
         self._hwobj.set_value(value, timeout=60)
 
-    def _cmd_done(self, state):
+    def _cmd_done(self, _state):
         """Handle the command execution.
         Args:
             (obj): Command execution greenlet.

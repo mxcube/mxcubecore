@@ -248,7 +248,7 @@ class EMBLFlux(AbstractFlux):
             self.reset_flux()
         self.flux_record_status = status
 
-    def aperture_diameter_changed(self, index, size):
+    def aperture_diameter_changed(self, index, _size):
         """Updates flux if the aperture diameter has been changed"""
         if self.measured_flux_list and not self.measuring:
             if len(self.measured_flux_list) > 1:
@@ -265,10 +265,10 @@ class EMBLFlux(AbstractFlux):
         self.transmission_value = transmission
         self.update_flux_value()
 
-    def intens_mean_changed(self, value):
+    def intens_mean_changed(self, _value):
         pass
 
-    def focusing_mode_changed(self, mode, size):
+    def focusing_mode_changed(self, _mode, _size):
         logging.getLogger("GUI").warning(
             "Beamline focus mode changed. Please remeasure flux!"
         )
@@ -326,7 +326,7 @@ class EMBLFlux(AbstractFlux):
     def measure_flux(self, wait=True):
         gevent.spawn(self.measure_flux_task, wait)
 
-    def measure_flux_task(self, wait=True):
+    def measure_flux_task(self, _wait=True):
         if not HWR.beamline.safety_shutter.is_opened():
             msg = "Unable to measure flux! Safety shutter is closed."
             self.print_log("GUI", "error", msg)

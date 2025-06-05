@@ -90,7 +90,7 @@ class PoolCommand(CommandObject):
                 self.device = None
                 raise ConnectionError
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **_kwargs):
         self.emit("commandBeginWaitReply", (str(self.name()),))
 
         if self.device is not None:

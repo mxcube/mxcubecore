@@ -46,7 +46,7 @@ class TineCommand(CommandObject):
         command_name,
         tinename=None,
         username=None,
-        ListArgs=None,
+        _ListArgs=None,
         timeout=1000,
         **kwargs,
     ):
@@ -55,7 +55,7 @@ class TineCommand(CommandObject):
         self.tineName = tinename
         self.timeout = int(timeout)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **_kwargs):
         self.emit("commandBeginWaitReply", (str(self.name()),))
         if len(args) == 0:
             commandArgument = []
@@ -201,7 +201,7 @@ class TineChannel(ChannelObject):
                 "Exception on detaching %s %s" % (self.tineName, self.attributeName)
             )
 
-    def tineEventCallback(self, id, cc, data_list):
+    def tineEventCallback(self, _id, cc, data_list):
         if cc == 0:
             self.callback_fail_counter = 0
             self.update(data_list)

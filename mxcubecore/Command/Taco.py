@@ -69,7 +69,7 @@ class TacoCommand(CommandObject):
             )
             self.device = None
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **_kwargs):
         self.emit("commandBeginWaitReply", (str(self.name()),))
 
         if len(args) > 0 and len(self.arg_list) > 0:
@@ -109,7 +109,7 @@ class TacoCommand(CommandObject):
             if callback is not None:
                 callback(device_name, value)
 
-    def on_polling_error(self, exception, poller_id):
+    def on_polling_error(self, _exception, poller_id):
         self.connect_device()
         poller = Poller.get_poller(poller_id)
         if poller is not None:
@@ -123,8 +123,8 @@ class TacoCommand(CommandObject):
         polling_time=500,
         arguments_list=(),
         value_changed_callback=None,
-        timeout_callback=None,
-        direct=True,
+        _timeout_callback=None,
+        _direct=True,
         compare=True,
     ):
         self.__value_changed_callback_ref = saferef.safe_ref(value_changed_callback)
@@ -176,7 +176,7 @@ class TacoChannel(ChannelObject):
         else:
             self.command.poll(self.polling, self.command.arg_list, self.value_changed)
 
-    def value_changed(self, deviceName, value):
+    def value_changed(self, _deviceName, value):
         self.emit("update", value)
 
     def get_value(self):

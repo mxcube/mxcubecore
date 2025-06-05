@@ -52,7 +52,7 @@ class ConnectionError(Exception):
 class CommandObject:
     """Command launcher base class"""
 
-    def __init__(self, name: str, username: Optional[str] = None, **kwargs) -> None:
+    def __init__(self, name: str, username: Optional[str] = None, **_kwargs) -> None:
         """
         Args:
             name (str): Name.

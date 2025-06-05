@@ -13,7 +13,7 @@ root = os.environ["POST_PROCESSING_SCRIPTS_ROOT"]
 
 
 class ALBAClusterJob(object):
-    def __init__(self, *args):
+    def __init__(self, *_args):
         self.job = None
 
     def run(self, *args):
@@ -45,7 +45,7 @@ class ALBAClusterJob(object):
 class ALBAAutoprocJob(ALBAClusterJob):
     sls_script = os.path.join(root, "edna-mx/autoproc/edna-mx.autoproc.sl")
 
-    def run(self, *args):
+    def run(self, *_args):
         jobname = os.path.basename(os.path.dirname(edna_directory))
         self.job = XalocJob(
             "edna-autoproc", jobname, self.sls_script, input_file, edna_directory

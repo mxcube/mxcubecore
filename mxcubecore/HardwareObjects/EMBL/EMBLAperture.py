@@ -114,7 +114,7 @@ class EMBLAperture(AbstractAperture):
         """
         self.chan_diameter_index.set_value(diameter_index)
 
-    def set_diameter(self, diameter_size, timeout=None):
+    def set_diameter(self, diameter_size, _timeout=None):
         """
         Sets new aperture size
 
@@ -154,7 +154,7 @@ class EMBLAperture(AbstractAperture):
         """
         self.chan_position.set_value("OFF")
 
-    def wait_ready(self, timeout=20):
+    def wait_ready(self, _timeout=20):
         """Waits till aperture is ready
 
         Returns:

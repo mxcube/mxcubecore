@@ -150,7 +150,7 @@ class Exporter(ExporterClient.ExporterClient, object):
                         pass
         return value
 
-    def on_event(self, name, value, timestamp):
+    def on_event(self, name, value, _timestamp):
         """Put the event in the queue
         Args:
             name: Name

@@ -136,7 +136,7 @@ class EMBLOfflineProcessing(HardwareObject):
                         close_fds=True,
                     )
 
-    def create_autoproc_input(self, event, params):
+    def create_autoproc_input(self, _event, params):
         """Creates processing input xml
 
         :param event: processing type (after, before, image)

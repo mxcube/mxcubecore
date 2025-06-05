@@ -79,7 +79,7 @@ class P11Transmission(AbstractTransmission):
 
         self.re_emit_values()
 
-    def re_emit_value(self, *args):
+    def re_emit_value(self, *_args):
         """
         Re-emits the current transmission value and state.
 
