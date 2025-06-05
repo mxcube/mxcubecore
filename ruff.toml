@@ -813,7 +813,6 @@ convention = "google"
     "BLE001",
     "C901",
     "ERA001",
-    "EXE001",
     "FIX002",
     "G002",
     "N999",
@@ -1528,7 +1527,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLBeamline.py" = [
     "ERA001",
-    "EXE001",
     "F401",
     "N999",
     "RUF012",
@@ -2050,7 +2048,6 @@ convention = "google"
     "E501",
     "EM103",
     "ERA001",
-    "EXE001",
     "FIX002",
     "G001",
     "N802",
@@ -2136,7 +2133,6 @@ convention = "google"
     "PTH207",
 ]
 "mxcubecore/HardwareObjects/ESRF/ESRFSmallXrayCentring.py" = [
-    "EXE001",
     "G001",
     "G002",
     "N806",
@@ -2581,7 +2577,6 @@ convention = "google"
     "C901",
     "EM101",
     "ERA001",
-    "EXE001",
     "FIX002",
     "N806",
     "N814",
@@ -2613,7 +2608,6 @@ convention = "google"
     "E722",
     "EM101",
     "ERA001",
-    "EXE001",
     "FBT002",
     "N802",
     "N803",
@@ -2646,7 +2640,6 @@ convention = "google"
     "E722",
     "EM101",
     "ERA001",
-    "EXE001",
     "FBT002",
     "FIX002",
     "G002",
@@ -2694,7 +2687,6 @@ convention = "google"
     "E722",
     "EM101",
     "ERA001",
-    "EXE001",
     "F401",
     "F811",
     "FBT002",
@@ -2733,7 +2725,6 @@ convention = "google"
     "ARG001",
     "C400",
     "E722",
-    "EXE001",
     "N999",
     "PERF401",
     "PLR0913",
@@ -3029,7 +3020,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/LNLS/read_transmission_mnc.py" = [
     "E501",
     "ERA001",
-    "EXE001",
     "F841",
     "N806",
     "Q000",
@@ -4719,7 +4709,6 @@ convention = "google"
     "C901",
     "E501",
     "ERA001",
-    "EXE001",
     "F601",
     "N802",
     "N803",
@@ -4753,7 +4742,6 @@ convention = "google"
     "C901",
     "E501",
     "ERA001",
-    "EXE001",
     "N802",
     "N803",
     "N805",
@@ -4776,7 +4764,6 @@ convention = "google"
     "C901",
     "E501",
     "ERA001",
-    "EXE001",
     "F601",
     "N802",
     "N803",
@@ -4808,7 +4795,6 @@ convention = "google"
     "C901",
     "E501",
     "ERA001",
-    "EXE001",
     "F601",
     "N802",
     "N803",
@@ -4840,7 +4826,6 @@ convention = "google"
     "E402",
     "E501",
     "ERA001",
-    "EXE001",
     "F601",
     "N802",
     "N803",
@@ -4875,7 +4860,6 @@ convention = "google"
     "E402",
     "E501",
     "ERA001",
-    "EXE001",
     "F601",
     "N802",
     "N803",
@@ -5202,7 +5186,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractXrayCentring.py" = [
     "EM101",
-    "EXE001",
     "N814",
     "N999",
     "TRY003",
@@ -5347,7 +5330,6 @@ convention = "google"
     "EM101",
     "EM102",
     "ERA001",
-    "EXE001",
     "N999",
     "S311",
     "TRY003",
@@ -5637,7 +5619,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/mockup/MotorMockup.py" = [
     "E501",
     "ERA001",
-    "EXE001",
     "N999",
     "W293",
 ]
@@ -5801,7 +5782,6 @@ convention = "google"
     "N999",
 ]
 "mxcubecore/HardwareObjects/mockup/XrayCentringMockup.py" = [
-    "EXE001",
     "N999",
 ]
 "mxcubecore/HardwareObjects/sample_centring.py" = [
@@ -5953,7 +5933,6 @@ convention = "google"
     "C401",
     "C405",
     "C901",
-    "EXE001",
     "FBT002",
     "PLR0912",
     "PLR2044",
@@ -6168,7 +6147,6 @@ convention = "google"
     "BLE001",
     "C400",
     "E713",
-    "EXE001",
     "F821",
     "FBT002",
     "FLY002",
@@ -6208,7 +6186,6 @@ convention = "google"
     "N802",
 ]
 "test/TestAbstractActuatorBase.py" = [
-    "EXE001",
     "N999",
     "PT011",
     "PT012",
@@ -6216,7 +6193,6 @@ convention = "google"
 ]
 "test/TestAbstractMotorBase.py" = [
     "B017",
-    "EXE001",
     "N999",
     "PT011",
     "PT012",
@@ -6225,13 +6201,11 @@ convention = "google"
 "test/TestAbstractNStateBase.py" = [
     "B017",
     "C400",
-    "EXE001",
     "N999",
     "PT011",
     "PT012",
 ]
 "test/TestHardwareObjectBase.py" = [
-    "EXE001",
     "N999",
     "PT022",
     "SLF001",
@@ -6282,7 +6256,6 @@ convention = "google"
     "ERA001",
 ]
 "test/test_beamline_ho_id.py" = [
-    "EXE001",
     "PT022",
     "SIM300",
 ]
@@ -6308,13 +6281,11 @@ convention = "google"
     "SLF001",
 ]
 "test/test_detector.py" = [
-    "EXE001",
     "F841",
     "PIE808",
     "PT022",
 ]
 "test/test_detector_distance.py" = [
-    "EXE001",
     "PT022",
 ]
 "test/test_energy.py" = [
@@ -6341,7 +6312,6 @@ convention = "google"
     "S106",
 ]
 "test/test_mach_info.py" = [
-    "EXE001",
     "PT022",
     "SLF001",
 ]
@@ -6355,7 +6325,6 @@ convention = "google"
     "SLF001",
 ]
 "test/test_sample_view.py" = [
-    "EXE001",
     "PT022",
 ]
 "test/test_shutter.py" = [

@@ -1,5 +1,4 @@
 # encoding: utf-8
-
 """Workflow runner, interfacing to external workflow engine
 using Abstract Beamline Interface messages
 
