@@ -1,9 +1,0 @@
-<object class="InOut">
-  <username>Scintillator</username>
-  <specversion>lid292:exp</specversion>
-  <command type="spec" name="set_in">scinton</command>
-  <command type="spec" name="set_out">scintoff</command>
-  <channel type="tango" name="state" tangoname="tango://microdiff29new:18001/embl/md/1#dbase=no" polling="500">ScintillatorPosition</channel>
-   <offset>0</offset>
-   <private_state>{"PARK":"out", "SCINTILLATOR":"in"}</private_state>
-</object>
