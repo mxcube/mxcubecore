@@ -173,8 +173,8 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
 
         # Must be set first so the next command causes a change
         test_object.set_value(high, timeout=None)
+        test_object.set_value(low, timeout=0)
         with pytest.raises(RuntimeError):
-            test_object.set_value(low, timeout=0)
             test_object.wait_ready(timeout=1.0e-6)
 
     def test_signal_limits_changed(self, test_object):

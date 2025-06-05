@@ -6165,20 +6165,17 @@ convention = "google"
 ]
 "test/TestAbstractActuatorBase.py" = [
     "N999",
-    "PT012",
     "SLF001",
 ]
 "test/TestAbstractMotorBase.py" = [
     "B017",
     "N999",
-    "PT012",
     "SLF001",
 ]
 "test/TestAbstractNStateBase.py" = [
     "B017",
     "C400",
     "N999",
-    "PT012",
 ]
 "test/TestHardwareObjectBase.py" = [
     "N999",
@@ -6268,7 +6265,6 @@ convention = "google"
 ]
 "test/test_flux.py" = [
     "ERA001",
-    "PT012",
     "PT022",
     "SLF001",
     "T201",
@@ -6293,7 +6289,6 @@ convention = "google"
     "PIE804",
 ]
 "test/test_resolution.py" = [
-    "PT012",
     "PT022",
     "SLF001",
 ]
