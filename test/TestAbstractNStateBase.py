@@ -84,5 +84,5 @@ class TestAbstractNStateBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
         # Must be set first so the next command causes a change
         test_object.set_value(val2, timeout=None)
         test_object.set_value(val1, timeout=0)
-        with pytest.raises(RuntimeError)):
+        with pytest.raises(RuntimeError):
             test_object.wait_ready(timeout=1.0e-6)

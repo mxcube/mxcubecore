@@ -64,6 +64,5 @@ class TestFlux(TestAbstractActuatorBase.TestAbstractActuatorBase):
     def test_flux_methods(self, test_object):
         """Test the methods"""
         # Test timeout - expecting to have RuntimeError
-        with pytest.raises(RuntimeError) as info:
+        with pytest.raises(RuntimeError):
             test_object.wait_for_beam(0)
-        print(f"------> Flux: {info}")
