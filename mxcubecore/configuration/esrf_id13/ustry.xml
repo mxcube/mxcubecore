@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<object class="BlissMotor">
-  <motor_name>ustry</motor_name>
-  <GUIstep>0.05</GUIstep>
-</object>

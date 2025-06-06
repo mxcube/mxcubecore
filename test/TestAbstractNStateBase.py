@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 # encoding: utf-8
 #
 # This file is part of MXCuBE.
@@ -69,7 +68,7 @@ class TestAbstractNStateBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
 
         # Must be set first so the next command causes a change
         test_object.set_value(val1, timeout=90)
-        with pytest.raises(Exception):
+        with pytest.raises(RuntimeError):
             test_object.set_value(val2, timeout=1.0e-6)
 
     def test_setting_timeouts_2(self, test_object):
@@ -84,6 +83,6 @@ class TestAbstractNStateBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
 
         # Must be set first so the next command causes a change
         test_object.set_value(val2, timeout=None)
-        with pytest.raises(Exception):
+        with pytest.raises(RuntimeError):
             test_object.set_value(val1, timeout=0)
             test_object.wait_ready(timeout=1.0e-6)

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 #
 # Generated Mon May 14 10:32::39 2012 by EDGenerateDS.
 #

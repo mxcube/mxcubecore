@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """A simple client for MetadataManager and MetaExperiment
 """
 from __future__ import print_function
