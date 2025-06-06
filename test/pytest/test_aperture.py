@@ -23,7 +23,7 @@ __license__ = "LGPLv3+"
 
 import pytest
 
-from test.TestAbstractNStateBase import TestAbstractNStateBase
+from test.pytest.TestAbstractNStateBase import TestAbstractNStateBase
 
 
 @pytest.fixture

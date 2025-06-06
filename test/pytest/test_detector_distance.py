@@ -25,7 +25,7 @@ from __future__ import (
 
 import pytest
 
-from test import TestAbstractMotorBase
+from test.pytest import TestAbstractMotorBase
 
 __copyright__ = """ Copyright © 2016 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"

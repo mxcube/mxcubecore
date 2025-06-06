@@ -25,7 +25,7 @@ __license__ = "LGPLv3+"
 
 import pytest
 
-from test import TestAbstractActuatorBase
+from test.pytest import TestAbstractActuatorBase
 
 
 @pytest.fixture
