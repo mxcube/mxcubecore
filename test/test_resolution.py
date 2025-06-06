@@ -1,3 +1,4 @@
+#! /usr/bin/env python3
 # encoding: utf-8
 #
 # This file is part of MXCuBE.
@@ -21,7 +22,7 @@ hardware objects
 
 import pytest
 
-from test.pytest import TestAbstractMotorBase
+from test import TestAbstractMotorBase
 
 __copyright__ = """ Copyright © 2016 - 2022 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"

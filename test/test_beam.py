@@ -23,7 +23,7 @@
 import pytest
 
 from mxcubecore.HardwareObjects.abstract.AbstractBeam import BeamShape
-from test.pytest import TestHardwareObjectBase
+from test import TestHardwareObjectBase
 
 __copyright__ = """ Copyright © by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
