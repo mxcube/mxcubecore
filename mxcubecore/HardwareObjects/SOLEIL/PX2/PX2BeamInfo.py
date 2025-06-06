@@ -139,7 +139,7 @@ class PX2BeamInfo(HardwareObject):
     def sizeUpdated(self):
         # TODO check values give by md2 it appears that  beamSizeXChanged beamSize
         self.beam_info_dict["size_x"] = 0.010  # in micro channel in MD2 doesn't work
-        self.beam_info_dict["size_y"] = 0.005  #
+        self.beam_info_dict["size_y"] = 0.005
         self.emit("beamInfoChanged", (self.beam_info_dict,))
 
     def sizeUpdated2(self):

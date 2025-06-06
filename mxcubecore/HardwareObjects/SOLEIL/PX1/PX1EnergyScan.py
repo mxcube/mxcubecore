@@ -462,7 +462,6 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
                 ],
                 stdout=subprocess.PIPE,
             )
-            #
             chooch_result_lines = p.communicate()[0].split("\n")
 
             # there could messages in stdout. results are identified with -chooch_results- header line

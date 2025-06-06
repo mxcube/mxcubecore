@@ -308,7 +308,6 @@ def _convert_xml_property(hwobj):
         # NB this does NOT allow having HardwareObjects inside complex properties
         objs = list(hwobj._get_objects(tag))
         result[tag] = [_convert_xml_property(obj) for obj in objs]
-    #
     return result
 
 
@@ -346,8 +345,6 @@ def add_hardware_objects_dirs(ho_dirs):
                 sys.path.insert(0, new_ho_dir)
 
 
-#
-#
 def set_user_file_directory(user_file_directory):
     """Sets user file directory.
 
@@ -478,7 +475,6 @@ class __HardwareRepositoryClient:
                 file_path = os.path.join(xml_files_path, relative_path)
                 if os.path.exists(file_path):
                     return os.path.abspath(file_path)
-            #
             return
 
     def require(self, mnemonics_list):

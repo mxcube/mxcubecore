@@ -252,7 +252,6 @@ class TaskNode(object):
         result = self
         while result is not None and not isinstance(result, Sample):
             result = result._parent
-        #
         return result
 
     def set_snapshot(self, snapshot):
@@ -2066,7 +2065,6 @@ class GphlWorkflow(TaskNode):
         summary["orientation_count"] = len(self.goniostat_translations)
         summary["radiation_dose"] = self.calc_maximum_dose() * self.transmission / 100.0
         summary["total_dose_budget"] = self.recommended_dose_budget()
-        #
         return summary
 
     def set_from_dict(self, params_dict):
@@ -2519,7 +2517,6 @@ class GphlWorkflow(TaskNode):
         energy_tags = self.strategy_settings.get("beam_energy_tags")
         if energy_tags and self.characterisation_done:
             result *= len(energy_tags)
-        #
         return result
 
     def calc_maximum_dose(self, energy=None, exposure_time=None, image_width=None):
@@ -2617,7 +2614,6 @@ def addXrayCentring(parent_node, **centring_parameters):
     """Add Xray centring to queue."""
     xc_model = XrayCentring2(**centring_parameters)
     HWR.beamline.queue_model.add_child(parent_node, xc_model)
-    #
     return xc_model
 
 

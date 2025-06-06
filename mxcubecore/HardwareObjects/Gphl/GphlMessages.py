@@ -836,7 +836,6 @@ class GoniostatRotation(PositionerSetting):
         translation = self.translation
         if translation is not None:
             result.update(translation.axisSettings)
-        #
         return result
 
 
@@ -1026,7 +1025,6 @@ class Sweep(IdentifiedElement):
         """Get dictionary of rotation and translation motor settings for start of sweep"""
         result = self.goniostatSweepSetting.get_motor_settings()
         result[self.goniostatSweepSetting.scanAxis] = self.start
-        #
         return result
 
 
@@ -1154,7 +1152,6 @@ class GeometricStrategy(IdentifiedElement, Payload):
         for sweep in self._sweeps:
             dd0 = sweep.get_initial_settings()
             ll0.append((sweep.sweepGroup, tuple(dd0[x] for x in sorted(dd0)), sweep))
-        #
         return list(tt0[2] for tt0 in sorted(ll0))
 
 

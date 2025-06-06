@@ -50,8 +50,8 @@ class MiniKappaCorrection(HardwareObject):
 
     def alignVector(self, t1, t2, kappa, phi):
         x = np.array(t1) - np.array(t2)  # rotating vector
-        Rk = self.rotation_matrix(self.kappa, -kappa)  #
-        Rp = self.rotation_matrix(self.phi, -phi)  #
+        Rk = self.rotation_matrix(self.kappa, -kappa)
+        Rp = self.rotation_matrix(self.phi, -phi)
         x = np.dot(Rp, np.dot(Rk, x)) / np.linalg.norm(
             x
         )  # rotate backwards and normalize

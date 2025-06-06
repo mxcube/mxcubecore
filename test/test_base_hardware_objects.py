@@ -924,7 +924,6 @@ class TestHardwareObjectNode:
         else:
             res = hw_obj_node.get_object_by_role(role=role)
 
-        #
         if role.lower() in hw_obj_node._objects_by_role:
             assert res == hw_obj_node._objects_by_role[role.lower()]
         elif not None in _objects and sub_obj_role:

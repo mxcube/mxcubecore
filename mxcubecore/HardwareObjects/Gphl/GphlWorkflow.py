@@ -1,4 +1,4 @@
-# encoding: utf-8
+#  encoding: utf-8
 """Workflow runner, interfacing to external workflow engine
 using Abstract Beamline Interface messages
 
@@ -825,7 +825,6 @@ class GphlWorkflow(HardwareObject):
 
         # Convert energy field to a single tuple
         params["energies"] = (params.pop("energy"),)
-        #
         return params
 
     def pre_execute(self, queue_entry):
@@ -1494,7 +1493,6 @@ class GphlWorkflow(HardwareObject):
 
         tag = "recentring_mode"
         result[tag] = RECENTRING_MODES.get(result.get(tag)) or default_recentring_mode
-        #
         return result
 
     def setup_data_collection(self, payload, correlation_id):
@@ -1867,7 +1865,6 @@ class GphlWorkflow(HardwareObject):
                     + ", ".join("%s:%s" % item for item in sorted(settings.items()))
                 )
                 goniostatTranslations.append(translation)
-        #
         gphl_workflow_model.goniostat_translations = goniostatTranslations
 
         # Do it here so that any centring actions are enqueued dfirst
@@ -1967,7 +1964,6 @@ class GphlWorkflow(HardwareObject):
                         "%s position %s recentred to above maximum limit %s"
                         % (tag, val, limit)
                     )
-        #
         return result
 
     def collect_data(self, payload, correlation_id):
@@ -2049,7 +2045,6 @@ class GphlWorkflow(HardwareObject):
             acq_parameters.exp_time = scan.exposure.time
             acq_parameters.num_passes = 1
 
-            ##
             wavelength = sweep.beamSetting.wavelength
             acq_parameters.energy = HWR.beamline.energy.calculate_energy(wavelength)
             detdistance = sweep.detectorSetting.axisSettings["Distance"]
@@ -2455,7 +2450,7 @@ class GphlWorkflow(HardwareObject):
 
         else:
             raise RuntimeError("Indexing format %s not supported" % indexing_format)
-        #
+
         return header, solutions_dict, select_row
 
     def process_centring_request(self, payload, correlation_id):
@@ -2471,7 +2466,6 @@ class GphlWorkflow(HardwareObject):
         # Rotate sample to RotationSetting
         goniostatRotation = request_centring.goniostatRotation
         goniostatTranslation = goniostatRotation.translation
-        #
 
         if self._data_collection_group is None:
             gphl_workflow_model = self._queue_entry.get_data_model()
@@ -2523,7 +2517,7 @@ class GphlWorkflow(HardwareObject):
             return_status = "DONE"
         else:
             return_status = "NEXT"
-        #
+
         return GphlMessages.CentringDone(
             return_status,
             timestamp=time.time(),
@@ -2651,7 +2645,7 @@ class GphlWorkflow(HardwareObject):
                 )
 
         priorInformation = GphlMessages.PriorInformation(workflow_model, image_root)
-        #
+
         return priorInformation
 
     def handle_collection_end(
@@ -2746,7 +2740,6 @@ class GphlWorkflow(HardwareObject):
         )
         decay_limit = decay_limit or self.config.settings.get("decay_limit", 25)
         result = 2 * resolution * resolution * math.log(100.0 / decay_limit)
-        #
         return min(result, max_budget) / relative_rad_sensitivity
 
     @staticmethod
@@ -2869,9 +2862,7 @@ class GphlWorkflow(HardwareObject):
                             data[tag] = val
                         elif tag in dfp:
                             dfp[tag] = val
-                    #
                     result.append(data)
-        #
         return result
 
     def get_emulation_sample_dir(self, sample_name=None):
@@ -2900,7 +2891,6 @@ class GphlWorkflow(HardwareObject):
             logging.getLogger("HWR").warning(
                 "No emulation sample dir found for sample %s", sample_name
             )
-        #
         return sample_dir
 
     def get_emulation_crystal_data(self, sample_name=None):
@@ -2927,7 +2917,6 @@ class GphlWorkflow(HardwareObject):
             raise RuntimeError(
                 "No emulation data found for %s at %s " % (sample_name, sample_dir)
             )
-        #
         return crystal_data, hklfile
 
     #
@@ -3037,7 +3026,6 @@ class GphlWorkflow(HardwareObject):
             "point_groups": {"value": pgvalue, "enum": pglist},
             "space_group": {"value": sgvalue, "enum": sgoptions},
         }
-        #
         return result
 
     def update_point_groups(self, values):
@@ -3051,7 +3039,6 @@ class GphlWorkflow(HardwareObject):
         result = {
             "space_group": {"value": value, "enum": sglist},
         }
-        #
         return result
 
     def update_space_group(self, values):
@@ -3075,7 +3062,6 @@ class GphlWorkflow(HardwareObject):
                     point_groups = crystal_class[:-1]
                 if point_groups != point_groups0:
                     result["point_groups"]["value"] = point_groups
-        #
         return result
 
     def update_indexing_solution(self, values):
@@ -3094,7 +3080,6 @@ class GphlWorkflow(HardwareObject):
                 break
         else:
             result = {}
-        #
         return result
 
     def adjust_dose(self, values):
@@ -3217,7 +3202,6 @@ class GphlWorkflow(HardwareObject):
                     dd0 = result.setdefault("use_dose", {})
                     dd0["highlight"] = "OK"
                     result["dose_budget"] = {"highlight": "OK"}
-        #
         return result
 
 

@@ -100,7 +100,6 @@ def quoted_string(text):
     for ind, char in enumerate(result):
         if char in ('"', "'"):
             break
-    #
     return result[ind:]
 
 
@@ -162,7 +161,6 @@ def make_table(column_names, rows):
     for row in rows:
         lines.append("| %s" % row_format.format(*row))
     lines.append(ruler)
-    #
     return "\n".join(lines)
 
 
