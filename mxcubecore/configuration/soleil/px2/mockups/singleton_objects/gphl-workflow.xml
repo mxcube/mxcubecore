@@ -4,7 +4,7 @@
     <!-- combined with instcfgout parameter (see below); see also <newinstr> -->
     <!--<instcfgout_dir>/MXCuBE/mxcube</instcfgout_dir>-->
 
-    <!-- Use advanced_mode for adidtional UI options. Uncoment to set -->
+    <!-- Use advanced_mode for adidtional UI options. Uncomment to set -->
     <!--    <advanced_mode>True</advanced_mode>-->
 
     <!-- default image width selection if None are given by the workflow-->
@@ -134,7 +134,7 @@
         <co.gphl.wf.simcal_predict.cell_dim_sd_scale>1.5e-3</co.gphl.wf.simcal_predict.cell_dim_sd_scale>
         <co.gphl.wf.simcal_predict.mosaicity>0.2</co.gphl.wf.simcal_predict.mosaicity>
         <!-- Parameters to individual applications -->
-        <!-- Switch devMod to True to activate these paremeters -->
+        <!-- Switch devMod to True to activate these parameters -->
         <!-- NB needed as of 20190110 for strategy_type and maximuim_chi -->
         <!-- Uncomment this to disable stratcal's collision checking -->
         <!--<co.gphl.wf.stratcal.collision_mode>2</co.gphl.wf.stratcal.collision_mode>-->

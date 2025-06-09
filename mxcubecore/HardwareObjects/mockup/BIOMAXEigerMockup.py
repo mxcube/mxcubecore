@@ -158,7 +158,7 @@ class BIOMAXEigerMockup(HardwareObject):
         """
         set photon_energy
         Note, the readout_time will be changed
-        engery, in eV
+        energy, in eV
         """
         self.photon_energy = energy
         return True
@@ -167,7 +167,7 @@ class BIOMAXEigerMockup(HardwareObject):
         """
         set energy_threshold
         Note, the readout_time will be changed
-        By deafult, the value is 50% of the photon_energy and will be
+        By default, the value is 50% of the photon_energy and will be
         updated upon setting PhotonEnergy. If other values are needed,
         this should be set after changing PhotonEnergy.
         Eengery, in eV

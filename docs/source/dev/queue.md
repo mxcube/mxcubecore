@@ -8,7 +8,7 @@ To enable automatic data collection over several samples, there is a need to ass
 :width: 400
 :alt: Queue overview node concept
 
-*Typical structure of a queue for conventional colletions with sample changer containing pins with samples.*
+*Typical structure of a queue for conventional collections with sample changer containing pins with samples.*
 ```
 
 ```{attention}
@@ -21,7 +21,7 @@ Data collection group - Datacollection.Workflows and more complex data collectio
 :width: 400
 :alt: More complex queue
 
-*A nested strucutre, A group (Group1) with several sub groups each with several data collections. Group 1 could for instance be a workflow carrying out multiple sets of data collections (each set in its own group)*
+*A nested structure, A group (Group1) with several sub groups each with several data collections. Group 1 could for instance be a workflow carrying out multiple sets of data collections (each set in its own group)*
 ```
 
 The execution order is depth first, so that all the children of a node are executed before the node's siblings. Each node has a `execute` method that defines its main logic and `pre_execute`and `post_execute` methods that are executed before and after the main `execute` method. There are also means to stop, pause and skip entries (by raising `QueueSkipEntryException`).
@@ -59,7 +59,7 @@ view = Mock()
 # we would like to add the task.
 # sample_model, sample_entry
 
-# In the Qt verison this item is displayed in the queue while its
+# In the Qt version this item is displayed in the queue while its
 # not displayed at all in the Web version
 group_model = qmo.TaskGroup()
 group_entry = qe.TaskGroupQueueEntry(view, group_model)
@@ -138,7 +138,7 @@ The new system makes it very easy to add a new collection protocol by simply add
 #### Creating a "dynamic" queue entry
 
 ```{attention}
-The dynamic queue entry is still beeing developed and some parts especially the `DATA_MODEL` mentioned below are subject to
+The dynamic queue entry is still being developed and some parts especially the `DATA_MODEL` mentioned below are subject to
 change.
 ```
 
@@ -156,7 +156,7 @@ A queue entry needs to follow a certain convention for it to be picked by the lo
 As with any queue entry in MXCuBE the "dynamic" queue entry also has to inherit `BaseQueueEntry` and be associated with a `QueueModel` object, for instance `DataCollection`. Using BaseQueueEntry and DataCollection making the "dynamic" queue entries behave as native queue entries. The big difference between the `dynamic` and the native queue entry lies in how the data model is defined and passed. The native queue entry uses a set of the classes defined in queue_model_objects, whereas the "dynamic" entries use a single `Pydantic` model. The excerpt from the example collection `test_collection.py` illustrates the similarities between the native and "dynamic" queue entries.
 
 ```
-# Using BaseQueueEntry and DataCollection making the "Dynmaic" queue entries behave as
+# Using BaseQueueEntry and DataCollection making the "Dynamic" queue entries behave as
 # native queue entries
 
 from mxcubecore.queue_entry.base_queue_entry import BaseQueueEntry, TaskPrerequisite
@@ -201,10 +201,10 @@ class TestCollectionQueueEntry(BaseQueueEntry):
 
 The part that differ from the native queue entry is the four class variables `QMO`, `DATA_MODEL`, `NAME` and `REQUIRES`.
 
--   `QMO`: (Queue model object) is used internally to tell which QueueModel object this entry is assocaited with so that the entry can be added to [MODEL_QUEUE_ENTRY_MAPPINGS](https://github.com/mxcube/mxcubecore/blob/develop/mxcubecore/queue_entry/__init__.py#L83)
+-   `QMO`: (Queue model object) is used internally to tell which QueueModel object this entry is associated with so that the entry can be added to [MODEL_QUEUE_ENTRY_MAPPINGS](https://github.com/mxcube/mxcubecore/blob/develop/mxcubecore/queue_entry/__init__.py#L83)
 -   `DATA_MODEL`: Specifies the Pydantic model
 -   `NAME`: The name of the queue entry (also the name displayed to the user)
--   `REQUIRES`: A set of prerequsits that needs to be fullfilled for this entry
+-   `REQUIRES`: A set of prerequisites that need to be fulfilled for this entry
 
 #### Dynamic queue entry data model
 
@@ -222,11 +222,11 @@ class TestCollectionTaskParameters(BaseModel):
 
 The task parameters have currently been split into four different parts:
 
--   `path_parameters`: Parameters realted to the data path, complements the `PathTemplate` object
--   `common_parameters`: Parameters that are common between differnt kinds of collection protocols
+-   `path_parameters`: Parameters related to the data path, complements the `PathTemplate` object
+-   `common_parameters`: Parameters that are common between different kinds of collection protocols
 -   `collection_parameters`: Collection parameters for the specific protocol
 -   `user_collection_parameters`: Collection parameters relevant to the user complements `collection_parameters`
--   `legacy_parameters`: Parameters that are still beeing passed arround in the application but not used (for backward compatability)
+-   `legacy_parameters`: Parameters that are still being passed around in the application but not used (for backward compatibility)
 
 There are also additional static methods that are used by MXCuBE-Web frontend: `update_dependent_fields` and `ui_schema`.
 

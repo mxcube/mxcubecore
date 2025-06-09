@@ -170,7 +170,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         # scan_file_path)
 
         # Trying to get the sample from the EnergyScan model instead through
-        # the view. Keeping the old way fore backward compatability
+        # the view. Keeping the old way fore backward compatibility
         if energy_scan.sample:
             sample = energy_scan.sample
         else:

@@ -21,8 +21,8 @@
 #  https://www.python.org/dev/peps/pep-0008/
 
 """
-Handels interaction with the data model(s). Adding, removing and
-retreiving nodes are all done via this object. It is possbile to
+Handles interaction with the data model(s). Adding, removing and
+retrieving nodes are all done via this object. It is possible to
 handle several models by using register_model and select_model.
 """
 
@@ -76,7 +76,7 @@ class QueueModel(HardwareObject):
         Framework-2 method, inherited from HardwareObject and called
         by the framework after the object has been initialized.
 
-        You should normaly not need to call this method.
+        You should normally not need to call this method.
         """
         pass
 
@@ -319,7 +319,7 @@ class QueueModel(HardwareObject):
 
     def get_path_templates(self):
         """
-        Retrievies a list of all the path templates in the model.
+        Retrieves a list of all the path templates in the model.
         """
         return self._get_path_templates_rec(self.get_model_root())
 
@@ -361,7 +361,7 @@ class QueueModel(HardwareObject):
 
     def copy_node(self, node):
         """
-        Copys the node <node> and returns it.
+        Copies the node <node> and returns it.
 
         :param node: The node to copy.
         :type node: TaskModel

@@ -156,7 +156,7 @@ def make_home_data(centring_axes, axis_names, kappadir, kappapos, phidir, phipos
 
     Args:
         centring_axes list(float): Goniostat centring axis coordinates, concatenated
-        axis_names list(str): centring axis names, in instumentation.nml order
+        axis_names list(str): centring axis names, in instrumentation.nml order
         kappadir: list(float): kappa axis direction, centring axis system
         kappapos list(float): kappa axis offset vector, centring axis system
         phidir list(float):  phi axis direction, centring axis system

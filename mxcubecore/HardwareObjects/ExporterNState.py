@@ -114,7 +114,7 @@ class ExporterNState(AbstractNState):
         super().update_value(self.value_to_enum(value))
 
     def _update_state(self, state=None):
-        """To be used to update the state when emiting the "update" signal.
+        """To be used to update the state when emitting the "update" signal.
         Args:
             state (str): optional state value
         Returns:
@@ -157,7 +157,7 @@ class ExporterNState(AbstractNState):
         Args:
             value (str, int, float or enum): Value to be set.
         """
-        # NB Workaround beacuse diffractomer does not send event on
+        # NB Workaround because diffractomer does not send event on
         # change of actuators (light, scintillator, cryostream...)
         self.update_state(self.STATES.BUSY)
 

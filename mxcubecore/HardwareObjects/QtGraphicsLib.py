@@ -688,7 +688,7 @@ class GraphicsItemGrid(GraphicsItem):
     """Grid representation is based on two grid states:
                __draw_mode = True: user defines grid size
                              False: grid is defined
-    In draw mode during the draw grid size is esitmated and based
+    In draw mode during the draw grid size is estimated and based
     on the cell size and number of col and row actual grid
     object is painted. After drawing corner_points are added. These
     4 corner points are motor position dict. When one or several
@@ -1419,7 +1419,7 @@ class GraphicsItemGrid(GraphicsItem):
 
     def get_coord_from_line_image(self, line, image):
         """Returns the screen coordinates x, y in pixel, of a middle
-        of the cell that correspoinds to
+        of the cell that corresponds to
         number an frame #image in line #line
         """
         ref_fast, ref_slow = self.get_coord_ref_from_line_image(line, image)
@@ -2031,7 +2031,7 @@ class GraphicsItemMoveBeamMark(GraphicsItem):
 
 class GraphicsItemBeamDefine(GraphicsItem):
     """Tool to define beam size with slits.
-    Draw a rectange to define width and height.
+    Draw a rectangle to define width and height.
     After drawing move diffractometer to the center of the rect.
     """
 

@@ -82,7 +82,7 @@ class ActuatorMockup(AbstractActuator.AbstractActuator):
                              If timeout == 0: return at once and do not wait (default);
                              if timeout is None: wait forever.
         Raises:
-            ValueError: Value not valid or attemp to set read-only actuator.
+            ValueError: Value not valid or attempt to set read-only actuator.
             RuntimeError: Timeout.
         """
         if self.read_only:
@@ -102,7 +102,7 @@ class ActuatorMockup(AbstractActuator.AbstractActuator):
             raise ValueError(f"Invalid value {value}; limits are {self.get_limits()}")
 
     def abort(self):
-        """Imediately halt movement. By default self.stop = self.abort"""
+        """Immediately halt movement. By default self.stop = self.abort"""
         if self.__move_task is not None:
             self.__move_task.kill()
         self.update_state(self.STATES.READY)

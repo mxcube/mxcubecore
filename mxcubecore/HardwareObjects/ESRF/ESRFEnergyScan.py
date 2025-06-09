@@ -215,7 +215,7 @@ class ESRFEnergyScan(AbstractEnergyScan):
         fpInfl = result[5]
         chooch_graph_data = result[6]
         """
-        # while waiting fro chooch to work...
+        # while waiting for chooch to work...
         subprocess.call(
             [
                 "/cvmfs/sb.esrf.fr/bin/chooch",

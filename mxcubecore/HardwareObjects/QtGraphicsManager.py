@@ -22,7 +22,7 @@ Hardware object handles QGraphicsView and QGraphicsScene with all
 objects and actions necessary for MXCuBE:
 - Creating/removing/editing/drawing of centring points, collection vectors
   and 2D grids
-- Display of beam shape, rotatio axis, scales
+- Display of beam shape, rotation axis, scales
 - Distance, angle and area measurement tools
 - Video handling, scalling and magnification tools
 
@@ -410,7 +410,7 @@ class QtGraphicsManager(AbstractSampleView):
 
         Args:
             mpos_list (list[mpos_list]): List of motor positions
-            screen_coord (tuple(x, y): Screen cordinate for shape
+            screen_coord (tuple(x, y): Screen coordinate for shape
             t (str): Type str for shape, P (Point), L (Line), G (Grid)
 
         Returns:
@@ -1162,14 +1162,14 @@ class QtGraphicsManager(AbstractSampleView):
             qt_import.QApplication.setOverrideCursor(self.cursor)
 
     def get_graphics_view(self):
-        """Rturns current GraphicsView
+        """Returns current GraphicsView
 
         :returns: QGraphicsView
         """
         return self.graphics_view
 
     def get_graphics_camera_frame(self):
-        """Rturns current CameraFrame
+        """Returns current CameraFrame
 
         :returns: GraphicsCameraFrame
         """
@@ -2050,7 +2050,7 @@ class QtGraphicsManager(AbstractSampleView):
             self.graphics_view.scale(view_scale, view_scale)
 
     def set_image_scale(self, image_scale, use_scale=False):
-        """Scales the incomming frame
+        """Scales the incoming frame
 
         :param image_scale: image scale
         :type image_scale: float 0 - 1.0
@@ -2206,7 +2206,7 @@ class QtGraphicsManager(AbstractSampleView):
 
         :param reference: beam centring reference
         :type reference : str. For example "beam" will return the difference
-                          between actual beam positon and beam shape
+                          between actual beam position and beam shape
         """
         beam_shape_dict = self.detect_object_shape()
 

@@ -140,7 +140,7 @@ class SampleView(AbstractSampleView):
 
     def take_snapshot(self, overlay_data=None, bw=False):
         """
-        Get snapshot with overlayed data.
+        Get snapshot with overlaid data.
 
         Args:
             overlay_data (str): base64 encoded image to lay over camera image
@@ -194,7 +194,7 @@ class SampleView(AbstractSampleView):
 
         Args:
             mpos_list (list[mpos_list]): List of motor positions
-            screen_coord (tuple(x, y): Screen cordinate for shape
+            screen_coord (tuple(x, y): Screen coordinate for shape
             t (str): Type str for shape, P (Point), L (Line), G (Grid)
 
         Returns:
@@ -222,7 +222,7 @@ class SampleView(AbstractSampleView):
         from reference points in refs.
 
         Args:
-            refs (list[str]): List of id's of the refrence Points
+            refs (list[str]): List of id's of the reference Points
             t (str): Type str for shape, P (Point), L (Line), G (Grid)
 
         Returns:
@@ -292,7 +292,7 @@ class SampleView(AbstractSampleView):
         Get all selected shapes.
 
         Returns:
-           (list[Shape]) List fot selected Shapes
+           (list[Shape]) List of selected Shapes
         """
         return [s for s in self.shapes.values() if s.is_selected()]
 
@@ -304,7 +304,7 @@ class SampleView(AbstractSampleView):
 
     def select_shape_with_cpos(self, cpos):
         """
-        Selects shape with the assocaitaed centerd posotion <cpos>
+        Selects shape with the assocaitaed centered position <cpos>
 
         Args:
             cpos (CenteredPosition)
@@ -386,7 +386,7 @@ class SampleView(AbstractSampleView):
         """
         return self.shapes.get(sid, None)
 
-    # For backwards compatability with old ShapeHisotry object
+    # For backwards compatibility with old ShapeHisotry object
     # returns first of selected grids
     def get_grid(self):
         """
@@ -472,7 +472,7 @@ class Shape(object):
         self.cp_list = []
         self.name = ""
         self.state: ShapeState = "SAVED"
-        self.user_state: ShapeState = "SAVED"  # used to persist user preferences in regards wether to show or hide particular shape.
+        self.user_state: ShapeState = "SAVED"  # used to persist user preferences in regards whether to show or hide particular shape.
         self.label = ""
         self.screen_coord = screen_coord
         self.selected = False

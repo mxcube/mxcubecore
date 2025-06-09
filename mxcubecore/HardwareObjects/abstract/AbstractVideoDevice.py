@@ -207,7 +207,7 @@ class AbstractVideoDevice(HardwareObject):
         video data. Emit imageReceived signal with the jpeg image.
 
         Returns:
-            (bytes): Coverted to jpeg image.
+            (bytes): Converted to jpeg image.
         """
         raw_buffer, width, height = self.get_image()
 

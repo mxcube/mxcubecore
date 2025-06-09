@@ -151,7 +151,7 @@ class TaskNode(object):
         self._number = int(number)
 
         if self.get_parent():
-            # Bumb the run number for nodes with this name
+            # Bump the run number for nodes with this name
             if self.get_parent()._names[self._name] < number:
                 self.get_parent()._names[self._name] = number
 
@@ -1329,7 +1329,7 @@ class XrayCentring2(TaskNode):
             params.get("subdir", ""),
         )
 
-        # Set paramaters from params dict
+        # Set parameters from params dict
         if "name" in params:
             self.set_name(params["name"])
         if "motor_positions" in params:
@@ -1559,7 +1559,7 @@ class PathTemplate(object):
     def get_archive_directory(self):
         """
         Returns the archive directory, for longer term storage. synchrotron_name
-        is set via static function calles from session hwobj
+        is set via static function called from session hwobj
 
         :rtype: str
         :returns: Archive directory
@@ -1635,7 +1635,7 @@ class PathTemplate(object):
     def intersection(self, rh_pt):
         result = False
 
-        # Only do the intersection if there is possibilty for
+        # Only do the intersection if there is possibility for
         # Collision, that is directories are the same.
         if (self == rh_pt) and (self.run_number == rh_pt.run_number):
             if self.start_num < (
@@ -2121,7 +2121,7 @@ class GphlWorkflow(TaskNode):
         else:
             space_group = self.space_group
         if space_group == "None":
-            # Temporray fix - this should not happen
+            # Temporary fix - this should not happen
             # 20240926 Rasmus Fogh and Olof Svensson
             space_group = None
         if crystal_classes:
@@ -2560,7 +2560,7 @@ class GphlWorkflow(TaskNode):
     def recommended_dose_budget(self, resolution=None):
         """Get resolution-dependent dose budget using current configuration
 
-        :param resolution (float): Target resolution (in A), defauls to current setting
+        :param resolution (float): Target resolution (in A), defaults to current setting
         :return:
         """
         resolution = resolution or self.detector_setting.resolution
@@ -2737,7 +2737,7 @@ def to_collect_dict(data_collection, sample, centred_pos=None):
     # NBNB HACK. These start life as default values, and you do NOT want to keep
     # resetting the beamline to the current value,
     # as this causes unnecessary hardware activities
-    # So remove them altogether if the value is (was excplicitly set to)  None or 0
+    # So remove them altogether if the value is (was explicitly set to)  None or 0
     dd = result[0]
     for tag in ("detector_distance", "energy", "transmission"):
         if tag in dd and not dd[tag]:
@@ -2777,7 +2777,7 @@ def create_subwedges(total_num_images, sw_size, osc_range, osc_start):
 def create_inverse_beam_sw(num_images, sw_size, osc_range, osc_start, run_number):
     """
     Creates subwedges for inverse beam, and interleves the result.
-    Wedges W1 and W2 are created 180 degres apart, the result is
+    Wedges W1 and W2 are created 180 degrees apart, the result is
     interleaved and given on the form:
     (W1_1, W2_1), ... (W1_n-1, W2_n-1), (W1_n, W2_n)
 
@@ -2807,7 +2807,7 @@ def create_inverse_beam_sw(num_images, sw_size, osc_range, osc_start, run_number
     w1 = [pair + (run_number,) for pair in w1]
     w2 = [pair + (run_number + 1,) for pair in w2]
 
-    # Interlave subwedges
+    # Interleave subwedges
     subwedges = [sw_pair for pair in zip(w1, w2) for sw_pair in pair]
 
     return subwedges

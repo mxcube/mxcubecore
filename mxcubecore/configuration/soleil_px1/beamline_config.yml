@@ -18,13 +18,13 @@ _initialise_class:
 # would need those added (e.g. the centring methods)
 #
 _objects:
-  # The !!o0map and the lines starting with '- ' give you an *orderd* dictionary
+  # The !!o0map and the lines starting with '- ' give you an *ordered* dictionary
   # And thus a reproducible loading order
   !!omap
   # The values are the file paths to the configuration file for the
   # object, relative to the configuration file path(s)
   #
-  # NB - the order is *NOT* arbitrary, as signal connnections are set
+  # NB - the order is *NOT* arbitrary, as signal connections are set
   # on one object that require the other to be already loaded.
   #
   # Hardware:
@@ -40,7 +40,7 @@ _objects:
   - safety_shutter: safety_shutter.xml
   - fast_shutter: fastshut.xml
   - sample_changer: cryotong.xml
-  # NBNB TODO remove plate_manipulater and treat as another smaple changer
+  # NBNB TODO remove plate_manipulator and treat as another sample changer
   # - plate_manipulator: plate-manipulator.xml
   - diffractometer: minidiff.xml
   - graphics: Qt4_graphics-manager.xml

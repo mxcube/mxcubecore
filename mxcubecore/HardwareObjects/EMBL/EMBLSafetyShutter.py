@@ -60,7 +60,7 @@ class EMBLSafetyShutter(AbstractShutter):
         self.shutter_can_open = None
         self.shutter_is_open = None
         self.shutter_is_closed = None
-        # GB 20190304: per misteriously disappearing first update of
+        # GB 20190304: per mysteriously disappearing first update of
         # shutter_state_closed:
         self.shutter_can_open = None
         self.ics_enabled = None
@@ -224,7 +224,7 @@ class EMBLSafetyShutter(AbstractShutter):
         return self._nominal_value
 
     def control_shutter(self, open_state):
-        """Opens or closses shutter
+        """Opens or closes shutter
 
         :param open_state: open state
         :type open_state: bool

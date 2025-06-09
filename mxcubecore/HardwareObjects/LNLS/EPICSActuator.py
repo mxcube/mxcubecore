@@ -69,7 +69,7 @@ class EPICSActuator(AbstractActuator.AbstractActuator):
                              )
 
     def abort(self):
-        """Imediately halt movement. By default self.stop = self.abort"""
+        """Immediately halt movement. By default self.stop = self.abort"""
         if self.__wait_actuator_task is not None:
             self.__wait_actuator_task.kill()
         self.update_state(self.STATES.READY)

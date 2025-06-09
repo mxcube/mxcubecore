@@ -171,7 +171,7 @@ class BlissNState(AbstractNState):
         return self.update_state(state)
 
     def initialise_values(self):
-        """Get the predefined valies. Create the VALUES Enum
+        """Get the predefined values. Create the VALUES Enum
         Returns:
             (Enum): "ValueEnum" with predefined values.
         """

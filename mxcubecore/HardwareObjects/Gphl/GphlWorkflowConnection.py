@@ -99,7 +99,7 @@ class GphlWorkflowConnection(HardwareObject):
     class HOConfig(ConfiguredObject.HOConfig):
         """Temporary replacement for Pydantic class
 
-        Required during transition, as long as we do nto have teh fields defined"""
+        Required during transition, as long as we do not have the fields defined"""
 
         # Defaults - should be replaced by proper Pydantic
         software_paths = {}
@@ -473,7 +473,7 @@ class GphlWorkflowConnection(HardwareObject):
         """Receive and process info message from workflow server
         Return goes to server
 
-        NB Callled freom external java) workflow"""
+        NB Called from external java) workflow"""
         xx0 = self._decode_py4j_message(py4j_message)
         message_type = xx0.message_type
         payload = xx0.payload
@@ -493,7 +493,7 @@ class GphlWorkflowConnection(HardwareObject):
         """Receive and process message from workflow server
         Return goes to server
 
-        NB Callled freom external java) workflow"""
+        NB Called from external java) workflow"""
         if self.get_state() is self.STATES.OFF:
             return None
 

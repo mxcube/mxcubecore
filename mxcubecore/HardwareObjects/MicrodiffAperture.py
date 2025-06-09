@@ -60,7 +60,7 @@ class MicrodiffAperture(ExporterNState):
         """Initialize the aperture"""
         super().init()
 
-        # check if we have values other that UKNOWN (no values in config)
+        # check if we have values other that UNKNOWN (no values in config)
         if len(self.VALUES) == 1:
             self._initialise_values()
 
@@ -162,7 +162,7 @@ class MicrodiffAperture(ExporterNState):
     def get_diameter_size_list(self):
         """Get the list of values to be visible. Hide IN, OUT and UNKNOWN.
         Returns:
-            (list): List of availble aperture values (string).
+            (list): List of available aperture values (string).
         """
         values = []
         for value in self.VALUES:

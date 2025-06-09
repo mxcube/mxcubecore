@@ -128,7 +128,7 @@ class EMBLDetector(AbstractDetector):
         return self.shutter_name
 
     def temperature_changed(self, value):
-        """Updates temperatur value"""
+        """Updates temperature value"""
         if self.temperature is None or abs(self.temperature - value) > self.tolerance:
             self.temperature = value
             self.emit("temperatureChanged", (value, value < self.temp_treshold))

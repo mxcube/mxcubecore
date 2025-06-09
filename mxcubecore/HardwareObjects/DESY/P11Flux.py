@@ -60,7 +60,7 @@ class P11Flux(AbstractFlux):
         return self.current_flux_dict["flux"]
 
     def measure_flux(self):
-        """Measures intesity"""
+        """Measures intensity"""
         beam_size = HWR.beamline.beam.get_beam_size()
         transmission = HWR.beamline.transmission.get_value()
         energy = HWR.beamline.energy.get_value() * 1000
@@ -144,7 +144,7 @@ class P11Flux(AbstractFlux):
         )
         energies = np.full(beam_sizes.shape, 12000)
 
-        # Measured energy-flux dependance
+        # Measured energy-flux dependence
         energy_flux = np.array(
             [
                 [6000, 1.70e12],

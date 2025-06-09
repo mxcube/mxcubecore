@@ -72,7 +72,7 @@ class MicrodiffZoom(ExporterNState):
         """
         # Make sure that update value of super class always is passed value=None
         # so that _get_value is called to get the Enum value and not the numeric
-        # value passed by underlaying event data.
+        # value passed by underlying event data.
         super().update_value()
 
     def update_limits(self, limits=None):

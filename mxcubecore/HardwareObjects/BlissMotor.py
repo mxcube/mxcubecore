@@ -122,13 +122,13 @@ class BlissMotor(AbstractMotor):
                 return HardwareObjectState[stat]
             except KeyError:
                 if stat == "DISABLED":
-                    # we need to treat DISABLED before any other auxillary state
+                    # we need to treat DISABLED before any other auxiliary state
                     return HardwareObjectState.OFF
                 if stat == "MOVING":
-                    # MOVING has higher priority than other auxillary states
+                    # MOVING has higher priority than other auxiliary states
                     return HardwareObjectState.BUSY
                 # finally the state will corresponf to the last in the list
-                # of the auxillary states.
+                # of the auxiliary states.
                 state = self._state2enum(stat)[0]
         return state
 

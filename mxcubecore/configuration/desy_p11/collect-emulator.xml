@@ -30,7 +30,7 @@
   <!-- All simcal_parameters are passed to the simcal input namelist file -->
   <!-- See Simcal documentation for more parameters and options -->
   <simcal_parameters>
-    <!-- Simcal bacground noise level -->
+    <!-- Simcal background noise level -->
     <background>1.0</background>
     <!-- Number of rays for simcal ray tracing (2000 minimum for testing, 5000 for use-->
     <n_rays>5001</n_rays>

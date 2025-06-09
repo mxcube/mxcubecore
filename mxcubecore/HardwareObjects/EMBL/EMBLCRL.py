@@ -124,7 +124,7 @@ class EMBLCRL(HardwareObject):
         self.emit("crlModeChanged", self.current_mode)
 
     def energy_state_changed(self, state):
-        """If CRL's in the automatic mode then change setting accoring
+        """If CRL's in the automatic mode then change setting according
            to the current energy
 
         :param state: energy state

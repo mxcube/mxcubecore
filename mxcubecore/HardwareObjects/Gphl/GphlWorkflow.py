@@ -189,7 +189,7 @@ class GphlWorkflow(HardwareObject):
     class HOConfig(ConfiguredObject.HOConfig):
         """Temporary replacement for Pydantic class
 
-        Required during transition, as long as we do nto have teh fields defined"""
+        Required during transition, as long as we do not have the fields defined"""
 
         # Defaults - should be replaced by proper Pydantic
         workflows = {}  # noqa: RUF012
@@ -911,7 +911,7 @@ class GphlWorkflow(HardwareObject):
             self._workflow_queue, self._queue_entry.get_data_model()
         )
 
-        # NB - this is really initialising, but we want to do it aftrer WF start
+        # NB - this is really initialising, but we want to do it after WF start
         # since here the directory we want is set
         self.recentring_file = os.path.join(
             HWR.beamline.gphl_connection.config.software_paths["GPHL_WDIR"], "recen.nml"
@@ -1875,7 +1875,7 @@ class GphlWorkflow(HardwareObject):
         return sampleCentred
 
     def calculate_recentring(self, okp, ref_okp, ref_xyz):
-        """Calculate predicted traslation values using recen
+        """Calculate predicted translation values using recen
         okp is the omega,gamma,phi tuple of the target position,
         ref_okp and ref_xyz are the reference omega,gamma,phi and the
         corresponding x,y,z translation position"""
@@ -2203,7 +2203,7 @@ class GphlWorkflow(HardwareObject):
                 and self.config.settings.get("use_multitrigger")
             ):
                 # Multitrigger sweep - add in parameters.
-                # NB if we are here ther can be only one scan
+                # NB if we are here there can be only one scan
                 acq_parameters.num_triggers = scan_count
                 acq_parameters.num_images_per_trigger = acq_parameters.num_images
                 acq_parameters.num_images *= scan_count
@@ -2245,7 +2245,7 @@ class GphlWorkflow(HardwareObject):
         self._data_collection_group = None
 
         if data_collection_entry.status == QUEUE_ENTRY_STATUS.FAILED:
-            # TODO NBNB check if these status codes are corerct
+            # TODO NBNB check if these status codes are correct
             status = 1
         else:
             status = 0
@@ -2750,7 +2750,7 @@ class GphlWorkflow(HardwareObject):
         using averaging to calculate dose rates are felt to be ungeneric
 
         Args:
-            energy (Optional[float]): Beam enrgy in keV. Defaults to current beamline v alue
+            energy (Optional[float]): Beam energy in keV. Defaults to current beamline value
 
         Returns:
             float: Maximum dose rate in MGy/s

@@ -332,7 +332,7 @@ class EMBLBeamlineTest(HardwareObject):
         return result
 
     def measure_flux(self):
-        """Measures intesity"""
+        """Measures intensity"""
         self.bl_hwobj.flux_hwobj.measure_flux()
 
     def stop_comm_process(self):

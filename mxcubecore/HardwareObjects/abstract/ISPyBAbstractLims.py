@@ -71,7 +71,7 @@ class ISPyBAbstractLIMS(AbstractLims):
         self.adapter = self._create_data_adapter()
         logging.getLogger("HWR").debug("[ISPYB] Proxy address: %s" % self.proxy)
 
-        # Add the porposal codes defined in the configuration xml file
+        # Add the proposal codes defined in the configuration xml file
         # to a directory. Used by translate()
         if hasattr(HWR.beamline.session, "proposals"):
             for proposal in HWR.beamline.session["proposals"]:

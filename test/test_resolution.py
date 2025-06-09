@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
 """
-Test the resolution hardware object. Dependant on detector_distance and energy
+Test the resolution hardware object. Dependent on detector_distance and energy
 hardware objects
 """
 
@@ -60,7 +60,7 @@ class TestResolution(TestAbstractMotorBase.TestAbstractMotorBase):
         """
 
     def test_setting_with_tolerance(self, test_object):
-        """Update position is dependant on the detector distance motor."""
+        """Update position is dependent on the detector distance motor."""
 
         low, high = test_object.get_limits() or (0, 1)
         tol = test_object._tolerance

@@ -149,7 +149,7 @@ class P11AlbulaView(HardwareObject):
                 beam_center_x = 2074
                 beam_center_y = 2181
 
-            # get latest file from reveiver
+            # get latest file from receiver
             timestamp = time.time()
             if self.stream:
                 try:

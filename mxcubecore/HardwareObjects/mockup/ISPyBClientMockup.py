@@ -144,7 +144,7 @@ class ISPyBClientMockup(ProposalTypeISPyBLims):
     def get_proposal(self, proposal_code, proposal_number):
         """
         Returns the tuple (Proposal, Person, Laboratory, Session, Status).
-        Containing the data from the coresponding tables in the database
+        Containing the data from the corresponding tables in the database
         the status of the database operations are returned in Status.
 
         :param proposal_code: The proposal code
@@ -236,7 +236,7 @@ class ISPyBClientMockup(ProposalTypeISPyBLims):
                            should be associated with.
         :type session_id: int
 
-        :param bl_config: The dictonary with beamline settings.
+        :param bl_config: The dictionary with beamline settings.
         :type bl_config: dict
 
         :returns beamline_setup_id: The database id of the beamline setup.
@@ -260,7 +260,7 @@ class ISPyBClientMockup(ProposalTypeISPyBLims):
         """
         Creates or stos a BLSample entry.
 
-        :param sample_dict: A dictonary with the properties for the entry.
+        :param sample_dict: A dictionary with the properties for the entry.
         :type sample_dict: dict
         # NBNB update doc string
         """
@@ -270,7 +270,7 @@ class ISPyBClientMockup(ProposalTypeISPyBLims):
         """
         Stores the image (image parameters) <image_dict>
 
-        :param image_dict: A dictonary with image pramaters.
+        :param image_dict: A dictionary with image pramaters.
         :type image_dict: dict
 
         :returns: None

@@ -210,7 +210,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             for child in entry._queue_entry_list:
                 self.__execute_entry(child)
             # This part should not be here
-            # But somehow exception from collect_failed is not catched here
+            # But somehow exception from collect_failed is not caught here
             if entry.is_failed():
                 entry.status = QUEUE_ENTRY_STATUS.FAILED
                 self.emit("queue_entry_execute_finished", (entry, "Failed"))
@@ -225,7 +225,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             logging.getLogger("HWR").warning(
                 "encountered Exception (continuing):\n%s" % ex.stack_trace or ex.message
             )
-            # Queue entry, failed, skipp.
+            # Queue entry, failed, skip.
             entry.status = QUEUE_ENTRY_STATUS.SKIPPED
             self.emit("queue_entry_execute_finished", (entry, "Skipped"))
         except base_queue_entry.QueueAbortedException as ex:
@@ -286,7 +286,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         self._queue_end()
 
     def _queue_end(self):
-        # Reset the pause event, incase we were waiting.
+        # Reset the pause event, in case we were waiting.
         self.set_pause(False)
         self._is_stopped = True
         self._running = False

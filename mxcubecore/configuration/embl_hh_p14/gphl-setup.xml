@@ -3,7 +3,7 @@
     <!-- Directory locations
     - file names below are set as file_name.format(directory_locations) -->
     <directory_locations>
-        <!-- Wrapper scripts for GPhL programs - must be reachable from workflow and procesing -->
+        <!-- Wrapper scripts for GPhL programs - must be reachable from workflow and processing -->
 	<GPHL_SETUP>/data/users/p3l-gleb1/gphl/</GPHL_SETUP>
 	<GPHL_RELEASE>/data/users/p3l-gleb1/gphl/GPhL-EMBLHH-20200211/20200206/</GPHL_RELEASE>
         <!--<GPHL_SETUP>/mnt/scratch/rhfogh/mxcube_setup/</GPHL_SETUP>-->

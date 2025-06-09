@@ -20,7 +20,7 @@
 
 """Gives access to the Hardware Objects contained in the Hardware Repository database
 
-The Hardware Repository database is a set of XML files describing devices, equipments
+The Hardware Repository database is a set of XML files describing devices, equipment
 and procedures on a beamline. Each XML file represent a Hardware Object.
 The Hardware Repository module provides access to these Hardware Objects, and manages
 connections to the Control Software (Spec or Taco Device Servers).
@@ -703,7 +703,7 @@ class __HardwareRepositoryClient:
         raise KeyError
 
     def get_equipments(self):
-        """Return the list of the currently loaded Equipments Hardware Objects"""
+        """Return the list of the currently loaded Equipment Hardware Objects"""
         eq_list = []
 
         for ho_name in self.hardware_objects:

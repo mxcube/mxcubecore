@@ -3,7 +3,7 @@
     <!-- Directory locations
     - file names below are set as file_name.format(directory_locations) -->
     <directory_locations>
-        <!-- Wrapper scripts for GPhL programs - must be reachable from workflow and procesing -->
+        <!-- Wrapper scripts for GPhL programs - must be reachable from workflow and processing -->
         <GPHL_SETUP>/home/experiences/proxima2a/com-proxima2a/SOLEIL20190121</GPHL_SETUP>
         <GPHL_RELEASE>/home/experiences/proxima2a/com-proxima2a/SOLEIL20190121/GPhL-laptop-20190119/latest</GPHL_RELEASE>
     </directory_locations>
@@ -44,7 +44,7 @@
         <!-- Location of GPhL release, containing program binaries (or their wrapper scripts) -->
         <GPHL_INSTALLATION>{GPHL_RELEASE}/gphl_release/exe</GPHL_INSTALLATION>
 
-        <!-- Location of CCP4 release binaries - required ot pass on to some wrapper scripts -->
+        <!-- Location of CCP4 release binaries - required to pass on to some wrapper scripts -->
         <!-- <GPHL_CCP4_PATH>/mnt/scratch/rhfogh/GPhL/ccp4-7.1/bin</GPHL_CCP4_PATH> -->
 
         <!-- Directory with workflow config input, e.g. instrumentation.nml -->

@@ -61,7 +61,7 @@ from mxcubecore.HardwareObjects.ESRF.ESRFBeamDefiner import ESRFBeamDefiner
 
 
 class ID232BeamDefiner(ESRFBeamDefiner):
-    """ID23-2 beam definer implementattion"""
+    """ID23-2 beam definer implementation"""
 
     def __init__(self, *args):
         super().__init__(*args)

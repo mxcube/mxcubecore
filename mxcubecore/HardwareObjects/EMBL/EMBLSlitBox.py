@@ -312,7 +312,7 @@ class EMBLSlitBox(AbstractSlits):
                         motors_group.stop_motor(motor["motorName"])
 
     def set_focus_mode(self, focus_mode):
-        """Sets motors in possitions according to focusing mode"""
+        """Sets motors in positions according to focusing mode"""
         self.active_focus_mode = focus_mode
         for motor in self.motors_dict:
             for motors_group in self.motors_groups_devices:

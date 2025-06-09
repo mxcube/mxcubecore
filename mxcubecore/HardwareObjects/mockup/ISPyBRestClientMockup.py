@@ -235,7 +235,7 @@ class ISPyBRestClientMockup(HardwareObject):
                            should be associated with.
         :type session_id: int
 
-        :param bl_config: The dictonary with beamline settings.
+        :param bl_config: The dictionary with beamline settings.
         :type bl_config: dict
 
         :returns beamline_setup_id: The database id of the beamline setup.
@@ -259,7 +259,7 @@ class ISPyBRestClientMockup(HardwareObject):
         """
         Stores the image (image parameters) <image_dict>
 
-        :param image_dict: A dictonary with image pramaters.
+        :param image_dict: A dictionary with image pramaters.
         :type image_dict: dict
 
         :returns: None
@@ -271,7 +271,7 @@ class ISPyBRestClientMockup(HardwareObject):
 
     def get_session_samples(self, proposal_id, session_id, sample_refs):
         """
-        Retrives the list of samples associated with the session <session_id>.
+        Retrieves the list of samples associated with the session <session_id>.
         The samples from ISPyB is cross checked with the ones that are
         currently in the sample changer.
 
@@ -281,7 +281,7 @@ class ISPyBRestClientMockup(HardwareObject):
         :param proposal_id: ISPyB proposal id.
         :type proposal_id: int
 
-        :param session_id: ISPyB session id to retreive samples for.
+        :param session_id: ISPyB session id to retrieve samples for.
         :type session_id: int
 
         :param sample_refs: The list of samples currently in the
@@ -317,7 +317,7 @@ class ISPyBRestClientMockup(HardwareObject):
         """
         Stores or updates a DataCollectionGroup object.
         The entry is updated of the group_id in the
-        mx_collection dictionary is set to an exisitng
+        mx_collection dictionary is set to an existing
         DataCollectionGroup id.
 
         :param mx_collection: The dictionary of values to create the object from.

@@ -2,7 +2,7 @@
 
 <object class="BeamlineSetup" role="BeamlineSetup">
   <object href="/Qt4_graphics-manager" role="shape_history"/>
-  <!-- Objects directly associatd with hardware -->
+  <!-- Objects directly associated with hardware -->
   <object href="/transmission" role="transmission"/>
   <object href="/beam-info" role="beam_info"/>
   <object href="/mini-diff" role="diffractometer"/>

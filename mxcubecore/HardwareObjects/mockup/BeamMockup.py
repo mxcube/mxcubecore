@@ -136,11 +136,11 @@ class BeamMockup(AbstractBeam):
         return _size, "slits"
 
     def _get_value(self) -> tuple[float, float, BeamShape, str]:
-        """Get the size (width and heigth) of the beam, its shape and
+        """Get the size (width and height) of the beam, its shape and
         its label. The size is in mm.
 
         Returns:
-            Four-item tuple: width, heigth, shape, name
+            Four-item tuple: width, height, shape, name
         """
         labels = {}
         _label = "UNKNOWN"
@@ -235,7 +235,7 @@ class BeamMockup(AbstractBeam):
         """Get the predefined beam labels and size.
 
         Returns:
-            Dictionary with lists of avaiable beam size labels
+            Dictionary with lists of available beam size labels
             and the corresponding size (width,height) tuples.
             ``{"label": [str, str, ...], "size": [(w,h), (w,h), ...]}``
         """
@@ -300,7 +300,7 @@ class BeamMockup(AbstractBeam):
         """Set the beam size.
 
         Args:
-            size: List of width and  heigth in micrometers or
+            size: List of width and  height in micrometers or
                   Aperture or definer definer name as string.
         Raises:
             RuntimeError: Beam definer not configured

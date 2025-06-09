@@ -42,7 +42,7 @@ class ImportHelper:
         is the camel cased modulename with a QueueEntry suffix.
 
         Args:
-            name (str): Moudle name to attach queue entries to
+            name (str): Module name to attach queue entries to
             site_name (str): Site name, for looking up site specific
                              queue_entries
 
@@ -58,9 +58,9 @@ class ImportHelper:
         path = path if site_name else os.path.dirname(__file__)
 
         for f in Path(path).glob("*.py"):
-            # Skipp BaseQueueEntry, it is explcicitly imported below as
-            # the module contains several essential calsses and helper
-            # functions Skipp xrf_spectrum to preserve casing (XRF) so that
+            # Skip BaseQueueEntry, it is explicitly imported below as
+            # the module contains several essential classes and helper
+            # functions Skip xrf_spectrum to preserve casing (XRF) so that
             # we are backwards compatible (for the time being)
             if f.stem in [
                 "import_helper",

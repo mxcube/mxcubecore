@@ -30,7 +30,7 @@ paired backlight intensity (slave IOR)
 
 [Commands]
 
-[Emited signals]
+[Emitted signals]
 - stateChanged
 - predefinedPositionChanged
 

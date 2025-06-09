@@ -1,5 +1,5 @@
 """
-XMLRPC-Server that makes it possbile to access core features of MXCuBE like
+XMLRPC-Server that makes it possible to access core features of MXCuBE like
 the queue from external applications. The Server is implemented as a
 hardware object and is configured with an XML-file. See the example
 configuration XML for more information.
@@ -501,7 +501,7 @@ class XMLRPCServer(HardwareObject):
     def set_beam_size(self, size):
         """Set the beam size.
         Args:
-            size (list): Width, heigth or
+            size (list): Width, height or
                  (str): Size label.
         """
         HWR.beamline.beam.set_value(size)
@@ -510,7 +510,7 @@ class XMLRPCServer(HardwareObject):
     def get_beam_size(self):
         """Get the beam size [um], its shape and label.
         Returns:
-            (tuple):  (width, heigth, shape, label), with types
+            (tuple):  (width, height, shape, label), with types
                       (float, float, str, str)
         """
         return HWR.beamline.beam.get_value_xml()
@@ -518,7 +518,7 @@ class XMLRPCServer(HardwareObject):
     def get_available_beam_size(self):
         """Get the available predefined beam sizes.
         Returns:
-            (dict): Dictionary wiith list of avaiable beam size labels
+            (dict): Dictionary with list of available beam size labels
                     and the corresponding size (width,height) tuples.
                     {"label": [str, str, ...], "size": [(w,h), (w,h), ...]}
         """
@@ -606,7 +606,7 @@ class XMLRPCServer(HardwareObject):
 
     def get_available_zoom_levels(self):
         """
-        Returns the avaliable pre-defined zoom levels.
+        Returns the available pre-defined zoom levels.
         """
         _value_enum = HWR.beamline.diffractometer.zoomMotor.VALUES.items()
         _names = [name for name, value in _value_enum.items()]

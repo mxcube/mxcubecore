@@ -1,6 +1,6 @@
 <!-- Example beamline setup file -->
 <object class="BeamlineSetup" role="BeamlineSetup">
-  <!-- Objects directly associatd with hardware -->
+  <!-- Objects directly associated with hardware -->
 
 <!-- Beamline configuration used at PX1 -->
   <object href="/px1configuration"   role="configuration"/>

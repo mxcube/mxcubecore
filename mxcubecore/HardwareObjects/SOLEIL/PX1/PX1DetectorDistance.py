@@ -131,7 +131,7 @@ class PX1DetectorDistance(Device, AbstractMotor):
         return self.name
 
     def check_light(self, position):
-        # ligth is not controlled anymore. it is left in place but the
+        # light is not controlled anymore. it is left in place but the
         # px1environment sets the distanceMin value used here as a lower limit
         # to avoid collision
 

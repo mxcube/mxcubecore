@@ -255,7 +255,7 @@ class EMBLFlexHarvester(EMBLFlexHCD):
 
     def harvest_and_mount_sample(self, xtal_uuid: str, sample) -> bool:
         """
-        return (Bool) : wether the crystal has been Harvest then mount
+        return (Bool) : whether the crystal has been Harvest then mount
 
         """
         try:

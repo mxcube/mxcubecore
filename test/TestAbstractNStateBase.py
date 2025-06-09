@@ -48,7 +48,7 @@ class TestAbstractNStateBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
         )
 
     def test_limits_setting(self, test_object):
-        """Test that set_limits and update_limits are diabled
+        """Test that set_limits and update_limits are disabled
         NB override ,ocally if you have an NState with limits"""
         limits = test_object.get_limits()
         with pytest.raises(NotImplementedError):

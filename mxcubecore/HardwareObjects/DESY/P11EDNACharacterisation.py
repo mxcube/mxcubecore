@@ -450,7 +450,7 @@ class P11EDNACharacterisation(EDNACharacterisation):
             "======= Characterisation path where to search for images ====%s", path_str
         )
 
-        # NB!: Directories at this point are created elswhere (data_collection_hook)
+        # NB!: Directories at this point are created elsewhere (data_collection_hook)
         # xds_dir at this point already has all the needed substitutions.
         characterisation_dir = path_template.xds_dir
 

@@ -212,7 +212,7 @@ class AbstractLims(HardwareObject, abc.ABC):
             session_id: The session id that the beamline_setup should be
                         associated with.
 
-            bl_config_dict: The dictonary with beamline settings.
+            bl_config_dict: The dictionary with beamline settings.
 
         Returns:
             The id of the beamline setup.
@@ -225,7 +225,7 @@ class AbstractLims(HardwareObject, abc.ABC):
         Stores (image parameters) <image_dict>
 
         Args:
-            image_dict: A dictonary with image pramaters.
+            image_dict: A dictionary with image pramaters.
         """
         raise Exception("Abstract class. Not implemented")
 
@@ -238,7 +238,7 @@ class AbstractLims(HardwareObject, abc.ABC):
             energyscan_dict: Energyscan data to store.
 
         Returns:
-            Dictonary with the energy scan id {"energyScanId": int}
+            Dictionary with the energy scan id {"energyScanId": int}
         """
         raise Exception("Abstract class. Not implemented")
 
@@ -251,7 +251,7 @@ class AbstractLims(HardwareObject, abc.ABC):
             xfespectrum_dict: XFE scan data to store.
 
         Returns:
-            Dictonary with the XFE scan id {"xfeFluorescenceSpectrumId": int}
+            Dictionary with the XFE scan id {"xfeFluorescenceSpectrumId": int}
         """
         raise Exception("Abstract class. Not implemented")
 
@@ -302,22 +302,22 @@ class AbstractLims(HardwareObject, abc.ABC):
                 "start": float,
                 "range": float,
                 "overlap": float,
-                "number_of_imaages": float,
+                "number_of_images": float,
                 "start_image_number": float
                 "exposure_time", float,
                 "kappaStart": float,
                 "phiStart": float,
             }],
             "fileinfo:{
-                "direcotry: str,
+                "directory": str,
                 "prefix": str
                 "suffix": str,
                 "template: str,
                 "run_number" int
             }
             "status": str,
-            "collection_id: int,
-            "wavelenght: float,
+            "collection_id": int,
+            "wavelength": float,
             "resolution":{
                 "lower": float,
                 "upper": float
@@ -409,7 +409,7 @@ class AbstractLims(HardwareObject, abc.ABC):
         """
         Finalizes the collection with "collection_id", provided in datacollection_dict.
 
-        Strucure of datacollection_dict as defined in store_data_collection above.
+        Structure of datacollection_dict as defined in store_data_collection above.
 
         Args:
             datacollection_dict:
@@ -447,7 +447,7 @@ class AbstractLims(HardwareObject, abc.ABC):
 
     def __set_sessions(self, sessions: List[Session]):
         """
-        Sets the curent lims session
+        Sets the current lims session
         :param session: lims session value
         :return:
         """

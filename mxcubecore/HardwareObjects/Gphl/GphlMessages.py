@@ -419,7 +419,7 @@ class SelectedLattice(MessageData):
 
     @property
     def strategyWavelength(self):
-        """Wavelength to use for strategy calculation adn acquisition"""
+        """Wavelength to use for strategy calculation and acquisition"""
         return self._strategyWavelength
 
     @property
@@ -1303,7 +1303,7 @@ class SampleCentred(Payload):
         if data_model.characterisation_done:
             self._wavelengths = tuple(data_model.wavelengths)
         else:
-            # Ths trick assumes that characterisation and diffractcal
+            # This trick assumes that characterisation and diffractcal
             # use one, the first, wavelength and default interleave order
             # Which is true. Not the ideal place to put this code,
             # but it works.

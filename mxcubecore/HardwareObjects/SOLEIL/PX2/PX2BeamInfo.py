@@ -8,7 +8,7 @@ and size.
 
 This is the Soleil PX1 version
 
-[Emited signals]
+[Emitted signals]
 
 beamInfoChanged
 beamPosChanged

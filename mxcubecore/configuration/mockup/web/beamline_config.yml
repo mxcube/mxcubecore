@@ -22,7 +22,7 @@ _objects:
   # The values are the file paths to the configuration file for the
   # object, relative to the configuration file path(s)
   #
-  # NB - the order is *NOT* arbitrary, as signal connnections are set
+  # NB - the order is *NOT* arbitrary, as signal connections are set
   # on one object that require the other to be already loaded.
   #
   # Hardware:
@@ -38,7 +38,7 @@ _objects:
   - safety_shutter: safety-shutter-mockup.xml
   - fast_shutter: fast-shutter-mockup.xml
   - sample_changer: sample-changer-mockup.xml
-  # NBNB TODO remove plate_manipulater and treat as another smaple changer
+  # NBNB TODO remove plate_manipulator and treat as another sample changer
   - plate_manipulator: plate-manipulator-mockup.xml
   - diffractometer: diffractometer-mockup.xml
   - sample_view: sample-view.xml

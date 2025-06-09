@@ -81,7 +81,7 @@ class SsxLineScanCollectionQueueEntry(SsxBaseQueueEntry):
         num_img_per_rep = line_range // spacing + 1
         num_repetitions = math.ceil(num_images / num_img_per_rep)
 
-        # distance between center and edges (divide by 1000 for μm to mm convertion)
+        # distance between center and edges (divide by 1000 for μm to mm conversion)
         delta_range = (line_range - (line_range % spacing)) / 2000
 
         self.take_pedestal()

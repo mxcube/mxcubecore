@@ -38,7 +38,7 @@ class EMBLBeamstop(Device, AbstractMotor):
         self.chan_position = None
 
     def init(self):
-        """Reads parameters from xml and adds neccessary channels"""
+        """Reads parameters from xml and adds necessary channels"""
         self.default_size = self.get_property("defaultBeamstopSize")
         self.default_distance = self.get_property("defaultBeamstopDistance")
         self.default_direction = self.get_property("defaultBeamstopDirection")

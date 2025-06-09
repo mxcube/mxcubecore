@@ -53,7 +53,7 @@ class TestFlux(TestAbstractActuatorBase.TestAbstractActuatorBase):
         assert test_object._nominal_value == startval, msg
 
     def test_flux_attributes(self, test_object):
-        """Test the attrubutes"""
+        """Test the attributes"""
         assert test_object.read_only is True
         value = test_object.get_value()
         print(f"------> Flux is {value}")

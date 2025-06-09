@@ -44,7 +44,7 @@ Element names are tied to the beamline or workflow and cannot be modified
 
       -->
 
-    <!-- The maxumum filename length is
+    <!-- The maximum filename length is
     prefixMaxWidth + runMaxWidth + imageNumberMaxWidth + 2 -->
 
     <c:filenamePattern xsi:type="c:FilenamePattern">

@@ -151,9 +151,9 @@ class ESRFBeam(AbstractBeam):
 
     def _get_value(self) -> tuple[float, float, BeamShape, str]:
         """Get the size (width and height) of the beam, its shape and
-           its label. The size is in milimeters.
+           its label. The size is in millimeters.
 
-        Retunrs:
+        Returns:
             Four-item tuple: width, height, shape, name.
         """
         labels = {}
@@ -185,7 +185,8 @@ class ESRFBeam(AbstractBeam):
 
     def get_value_xml(self) -> tuple[float, float, str, str]:
         """XMLRPC does not handle Enum, the shape is transformed to string.
-        Retunrs:
+
+        Returns:
             Four-item tuple: width, height, shape, name
         """
         beamsize = self.get_value()
@@ -226,7 +227,7 @@ class ESRFBeam(AbstractBeam):
         """Get the predefined beam labels and size.
 
         Returns:
-            Dictionary wiith list of avaiable beam size labels and
+            Dictionary with list of available beam size labels and
             the corresponding size (width,height) tuples.
             ``{"label": [str, str, ...], "size": [(w,h), (w,h), ...]}``
         """
@@ -263,7 +264,7 @@ class ESRFBeam(AbstractBeam):
         """Move the slits to the desired position.
 
         Args:
-            Two-items list:  width, height in milimeters.
+            Two-items list:  width, height in millimeters.
 
         Raises:
             RuntimeError: Size out of the limits.

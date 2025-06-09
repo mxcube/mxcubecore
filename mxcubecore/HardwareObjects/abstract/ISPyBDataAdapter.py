@@ -39,7 +39,7 @@ def utf_encode(res_d):
             # on Python version
             res_d[key] = suds_encode("utf8", "ignore")
         except Exception:
-            # If not primitive or Text data, complext type, try to convert to
+            # If not primitive or Text data, complex type, try to convert to
             # dict or str if the first fails
             try:
                 res_d[key] = utf_encode(asdict(value))
@@ -512,7 +512,7 @@ class ISPyBDataAdapter:
         if self._collection:
             try:
                 print(session_dict)
-                # The old API used date formated strings and the new
+                # The old API used date formatted strings and the new
                 # one uses DateTime objects.
                 session_dict["startDate"] = datetime.strptime(
                     session_dict["startDate"], "%Y-%m-%d %H:%M:%S"

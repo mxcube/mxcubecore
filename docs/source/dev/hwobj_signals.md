@@ -108,7 +108,7 @@ From the {py:meth}`HardwareObjectMixin.connect` method
             sender (Union[str, object, Any]): If a string, interprted as the signal.
             signal (Union[str, Any]): In practice a string, or dispatcher.
             Any if sender is a string interpreted as the slot.
-            slot (Optional[Callable], optional): In practice a functon or method.
+            slot (Optional[Callable], optional): In practice a function or method.
             Defaults to None.
 
         Raises:

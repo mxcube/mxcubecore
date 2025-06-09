@@ -295,8 +295,8 @@ class AbstractMultiCollect(object):
 
         Args:
            image_filename: full path to image file
-           image_num: image number within image file to open (if it conatins
-                      mutiple images i.e HDF5)
+           image_num: image number within image file to open (if it contains
+                      multiple images i.e HDF5)
         """
         logging.getLogger("HWR").info(f"ADXV notify {image_filename}")
         adxv_host = self.get_property("adxv_host", "localhost")
@@ -877,7 +877,7 @@ class AbstractMultiCollect(object):
                 self.write_input_files(self.collection_id, wait=False)
 
             # at this point input files should have been written
-            # TODO aggree what parameters will be sent to this function
+            # TODO agree what parameters will be sent to this function
             if data_collect_parameters.get("processing", False) == "True":
                 self.trigger_auto_processing(
                     "before",

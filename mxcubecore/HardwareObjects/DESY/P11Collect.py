@@ -653,12 +653,12 @@ class P11Collect(AbstractCollect):
             self.log.debug("collecting image %s, angle %f" % (img_no, start_at))
 
             #[WIP]
-            #NB! Another attemt to fix the misfires.
+            #NB! Another attempt to fix the misfires.
             #Keep comments here until finished
             #Here is the previous implementation:
             #self.collect_std_collection(start_at, stop_angle)
 
-            #Here is sligthly modified standard data collection routine
+            #Here is slightly modified standard data collection routine
             #Adjust the angle since each time we are starting with 90 degrees offset.
             start_pos = start_at - self.turnback_time * self.acq_speed
             stop_pos = stop_angle + self.turnback_time * self.acq_speed

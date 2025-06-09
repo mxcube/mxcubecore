@@ -31,7 +31,7 @@ Hardware Object is used to manipulate the zoom of the OAV camera.
 
 [Commands]
 
-[Emited signals]
+[Emitted signals]
 - stateChanged
 - predefinedPositionChanged
 

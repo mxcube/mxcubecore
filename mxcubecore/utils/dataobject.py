@@ -67,7 +67,7 @@ class DataObject(dict):
         Sets the attribute name <key> to value
 
         Args:
-            key (str): Atttribute name
+            key (str): Attribute name
             value (any): The value to set
 
         Returns:

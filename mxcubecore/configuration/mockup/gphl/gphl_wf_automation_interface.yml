@@ -105,12 +105,12 @@ task:
         # Number of repetitions of entire strategy
         repetition_count: 1
         # Pass input cell and symmetry to XDS and processing and force their use as
-        # startign point. Used to override XDS cell, symmetry determination
+        # starting point. Used to override XDS cell, symmetry determination
         use_cell_for_processing: false
 
         strategy_options:  # (dict) strategy calculation parameters. See below
           # strategy options. Control the stratcal strategy calculation program.
-          # maximum_chi is automaticaly reduced to match kappa motor limits.
+          # maximum_chi is automatically reduced to match kappa motor limits.
           maximum_chi: 48.0  # (°) Optional. Maximum chi value allowed for strategies.
           # Default 48
           angular tolerance: 1.0  # (°) Optional.

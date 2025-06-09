@@ -21,7 +21,7 @@
 
 [Description]
 Plate manipulator hardware object is used to use diffractometer in plate mode.
-It is compatable with md2, md3 diffractometers. Class is based on
+It is compatible with md2, md3 diffractometers. Class is based on
 SampleChanger, so it has all the sample changed functionalities, like
 mount, unmount sample (in this case move to plate position).
 Plate is organized in rows and columns. Each cell (Cell) contains drop (Drop).
@@ -32,9 +32,9 @@ each drop could have several crystals.
 
 [Commands]
 
-[Emited signals]
+[Emitted signals]
 
- - emited signals defined in SampleChanger class
+ - emitted signals defined in SampleChanger class
 
 [Included Hardware Objects]
 -----------------------------------------------------------------------
@@ -108,7 +108,7 @@ class Xtal(Sample.Sample):
 
     def get_index(self):
         """
-        Descript. : Sample index is calculated relaive to the row (Basket)
+        Descript. : Sample index is calculated relative to the row (Basket)
                     In this case we assume that in drop is one xtal
                     This should be changed to various num of xtals in the drop
         """

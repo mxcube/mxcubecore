@@ -270,7 +270,7 @@ class UserTypeISPyBLims(ISPyBAbstractLIMS):
                 )
                 sessions = []
 
-                # Handels a list of sessions
+                # Handles a list of sessions
                 for session in res_sessions:
                     if session is not None:
                         try:

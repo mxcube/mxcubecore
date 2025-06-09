@@ -11,7 +11,7 @@ Beam size is hardcoded in this file.
 Beam Position is updated whenever the zoom motor changes position. Values taken from
    zoom xml configuration
 
-[Emited signals]
+[Emitted signals]
 
 beamInfoChanged
 beamPosChanged

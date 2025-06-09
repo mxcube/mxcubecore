@@ -351,7 +351,7 @@ class AbstractCollect(HardwareObject, object):
             self.data_collect_task.kill(block=False)
 
     def collection_finished(self):
-        """Collection finished beahviour"""
+        """Collection finished behaviour"""
 
         success_msg = "Data collection successful"
         self.current_dc_parameters["status"] = success_msg

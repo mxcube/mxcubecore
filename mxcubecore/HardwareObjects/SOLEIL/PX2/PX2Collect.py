@@ -341,7 +341,7 @@ class PX2Collect(AbstractCollect, HardwareObject):
         return
 
     def emit_collection_finished(self):
-        """Collection finished beahviour
+        """Collection finished behaviour
         """
         if self.current_dc_parameters["experiment_type"] != "Collect - Multiwedge":
             self.update_data_collection_in_lims()

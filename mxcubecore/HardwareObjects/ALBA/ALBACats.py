@@ -66,7 +66,7 @@ class ALBACats(Cats90):
     def diff_send_transfer(self):
         """
         Checks if beamline supervisor is in TRANSFER phase (i.e. sample changer in TRANSFER phase too).
-        If is not the case, It sends the sample changer to TRANFER phase.
+        If is not the case, It sends the sample changer to TRANSFER phase.
         Returns a boolean value indication if the sample changer is in TRANSFER phase.
 
         @return: boolean
@@ -181,11 +181,11 @@ class ALBACats(Cats90):
 
     def load(self, sample=None, wait=False, wash=False):
         """
-        Loads a sample. Overides to include ht basket.
+        Loads a sample. Overrides to include ht basket.
 
         @sample: sample to load.
         @wait:
-        @wash: wash dring the load opearation.
+        @wash: wash dring the load operation.
         @return:
         """
 
@@ -240,15 +240,15 @@ class ALBACats(Cats90):
             SampleChangerState.Unloading, wait, self._do_unload, sample_slot
         )
 
-    # TODO: this overides identical method from Cats90
+    # TODO: this overrides identical method from Cats90
     def is_powered(self):
         return self._chnPowered.get_value()
 
-    # TODO: this overides identical method from Cats90
+    # TODO: this overrides identical method from Cats90
     def is_path_running(self):
         return self._chnPathRunning.get_value()
 
-    # TODO: this overides method from AbstractSampleChanger
+    # TODO: this overrides method from AbstractSampleChanger
     # def has_loaded_sample(self):  # not used.  to use it remove _
     #   return self._chnSampleIsDetected.get_value()
 
@@ -272,7 +272,7 @@ class ALBACats(Cats90):
         """
         Loads a sample on the diffractometer. Performs a simple put operation if the diffractometer is empty, and
         a sample exchange (unmount of old + mount of new sample) if a sample is already mounted on the diffractometer.
-        Overides Cats90 method.
+        Overrides Cats90 method.
 
         @sample: sample to load.
         @shifts: mounting point offsets.
@@ -518,7 +518,7 @@ class ALBACats(Cats90):
     def _do_unload(self, sample_slot=None, shifts=None):
         """
         Unloads a sample from the diffractometer.
-        Overides Cats90 method.
+        Overrides Cats90 method.
 
         @sample_slot:
         @shifts: mounting position
@@ -607,7 +607,7 @@ class ALBACats(Cats90):
 
     # def path_running(self):
     # """
-    # Overides Cats90 method.
+    # Overrides Cats90 method.
     #
     # @return:
     # """

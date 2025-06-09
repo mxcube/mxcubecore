@@ -53,8 +53,8 @@ Typical example of online processing is a mesh scan where user is provided
 with real-time results describing diffraction quality.
 Method run_processing is called from the queue_entry when the data collection
 starts. Then empty arrays to store results are created.
-Typicaly an input file is created and processing is started with script via
-subprocess.Popen. Results are emited with onlineProcessingResults signal.
+Typically an input file is created and processing is started with script via
+subprocess.Popen. Results are emitted with onlineProcessingResults signal.
 
 Implementations:
  * DozorOnlinelProcessing: online processing based on the EDNA Dozor plugin.

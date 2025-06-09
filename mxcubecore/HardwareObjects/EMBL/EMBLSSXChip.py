@@ -252,7 +252,7 @@ class EMBLSSXChip(QtGraphicsManager):
 
                                 # meandering
                                 if current_chip_config["meandering"]:
-                                    # checks wether n_fv is odd or even, then creates
+                                    # checks whether n_fv is odd or even, then creates
                                     # modified_n_fh
                                     if n_fv % 2 != 0:
                                         modified_n_fh = num_crystal_h - n_fh - 1
@@ -334,7 +334,7 @@ class EMBLSSXChip(QtGraphicsManager):
 
                                 # meandering
                                 if meandering == 1:
-                                    # checks wether n_fv is odd or even, then creates
+                                    # checks whether n_fv is odd or even, then creates
                                     # modified_n_fh
                                     if n_fv % 2 != 0:
                                         modified_n_fh = num_crystal_h - n_fh - 1

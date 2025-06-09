@@ -111,7 +111,7 @@ class XrfSpectrumQueueEntry(BaseQueueEntry):
     def xrf_spectrum_status_changed(self, msg):
         """xrfSpectrumStatusChanged handler.
         Args:
-            msg (str): Message when xrfSpectrumStatusChanged emited.
+            msg (str): Message when xrfSpectrumStatusChanged emitted.
         """
         logging.getLogger("user_level_log").info(msg)
 

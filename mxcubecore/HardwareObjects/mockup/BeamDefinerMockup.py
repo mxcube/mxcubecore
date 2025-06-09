@@ -20,7 +20,7 @@
 
 """
 BeamDefinerMockup class.
-Two mock motors change the width and the heigth of the beam.
+Two mock motors change the width and the height of the beam.
 Example xml configuration:
 
 .. code-block:: xml

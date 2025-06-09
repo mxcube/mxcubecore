@@ -267,13 +267,13 @@ class GenericDiffractometer(HardwareObject):
         self.use_sample_centring = None
 
         # time to delay for state polling for controllers
-        # not updating state inmediately after cmd started
+        # not updating state immediately after cmd started
         self.delay_state_polling = None
 
         self.delay_state_polling = (
             None  # time to delay for state polling for controllers
         )
-        # not updating state inmediately after cmd started
+        # not updating state immediately after cmd started
 
         # Internal values -----------------------------------------------------
         self.ready_event = None
@@ -502,7 +502,7 @@ class GenericDiffractometer(HardwareObject):
                 GenericDiffractometer.PHASE_BEAM,
             ]
 
-    # to make it compatibile
+    # to make it compatible
     def __getattr__(self, attr):
         if attr.startswith("__"):
             raise AttributeError(attr)
@@ -1064,7 +1064,7 @@ class GenericDiffractometer(HardwareObject):
 
         if self.delay_state_polling is not None and self.delay_state_polling > 0:
             # delay polling for state in the
-            # case of controller not reporting MOVING inmediately after cmd
+            # case of controller not reporting MOVING immediately after cmd
             gevent.sleep(self.delay_state_polling)
 
         self.wait_device_ready(timeout)

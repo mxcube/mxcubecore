@@ -51,11 +51,11 @@ class LNLSZoom(EPICSActuator, AbstractNState):
         self.update_state(self.STATES.READY)
 
     def set_limits(self, limits=(None, None)):
-        """Overrriden from AbstractActuator"""
+        """Overridden from AbstractActuator"""
         self._nominal_limits = limits
 
     def update_limits(self, limits=None):
-        """Overrriden from AbstractNState"""
+        """Overridden from AbstractNState"""
         if limits is None:
             limits = self.get_limits()
 

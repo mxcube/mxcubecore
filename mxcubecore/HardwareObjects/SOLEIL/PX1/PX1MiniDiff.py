@@ -210,7 +210,7 @@ class PX1MiniDiff(GenericDiffractometer):
         if isinstance(motor_positions, CentredPosition):
             motor_positions_copy = motor_positions.as_dict()
         else:
-            # We do not want ot modify teh input dict
+            # We do not want to modify the input dict
             motor_positions_copy = motor_positions.copy()
 
         logging.getLogger("HWR").debug(

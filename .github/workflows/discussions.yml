@@ -1,7 +1,7 @@
 ---
 # This workflow notifies working groups about new discussions in their corresponding
 # categories, by mentioning the Team in a first comment.
-# It is necessary since GitHub doesn't support subsriptions to discussion categories
+# It is necessary since GitHub doesn't support subscriptions to discussion categories
 # see related feature request: https://github.com/orgs/community/discussions/3951
 # If GitHub implements this feature, this workflow becomes obsolete.
 

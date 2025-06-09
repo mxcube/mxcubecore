@@ -21,7 +21,7 @@
 """Resolution abstract implementation.
 Overloaded methods: get_state, get_value, get_limits.
 Implemented methods: _set_value, distance_to_resolution, resolution_to_distance.
-Emited signals: valueChanged.
+Emitted signals: valueChanged.
 Hardware object used: energy and detecor.
 The detector object can be defined in the configuration file. If not, the
 one set from the beamline configuration is used.

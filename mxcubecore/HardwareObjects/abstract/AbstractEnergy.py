@@ -100,7 +100,7 @@ class AbstractEnergy(AbstractActuator):
         """
         energy = energy or self.get_value()
 
-        # TODO NBNB This is naughty. Coud  we not put the heuristic switch
+        # TODO NBNB This is naughty. Could  we not put the heuristic switch
         #  in the calling functions, to avoid surprises?
         #  rhfogh 20210826
         # energy in KeV to get wavelength in Å

@@ -5,7 +5,7 @@ from mxcubecore.utils.conversion import string_types
 
 class ISPyBValueFactory:
     """
-    Constructs ws objects from "old style" mxCuBE dictonaries.
+    Constructs ws objects from "old style" mxCuBE dictionaries.
     """
 
     @staticmethod
@@ -183,7 +183,7 @@ class ISPyBValueFactory:
     @staticmethod
     def from_data_collect_parameters(ws_client, mx_collect_dict):
         """
-        Ceates a dataCollectionWS3VO from mx_collect_dict.
+        Creates a dataCollectionWS3VO from mx_collect_dict.
         :rtype: dataCollectionWS3VO
         """
         if len(mx_collect_dict["oscillation_sequence"]) != 1:
@@ -407,7 +407,7 @@ class ISPyBValueFactory:
 
     def workflow_from_workflow_info(self, workflow_info_dict):
         """
-        Ceates workflow3VO from worflow_info_dict.
+        Creates workflow3VO from worflow_info_dict.
         :rtype: workflow3VO
         """
         ws_client = None
@@ -438,7 +438,7 @@ class ISPyBValueFactory:
 
     def workflow_mesh_from_workflow_info(self, workflow_info_dict):
         """
-        Ceates workflowMesh3VO from worflow_info_dict.
+        Creates workflowMesh3VO from worflow_info_dict.
         :rtype: workflowMesh3VO
         """
         ws_client = None
@@ -472,7 +472,7 @@ class ISPyBValueFactory:
 
     def workflow_step_from_workflow_info(self, workflow_info_dict):
         """
-        Ceates workflow3VO from worflow_info_dict.
+        Creates workflow3VO from worflow_info_dict.
         :rtype: workflow3VO
         """
         ws_client = None
@@ -510,7 +510,7 @@ class ISPyBValueFactory:
 
     def grid_info_from_workflow_info(self, workflow_info_dict):
         """
-        Ceates grid3VO from worflow_info_dict.
+        Creates grid3VO from worflow_info_dict.
         :rtype: grid3VO
         """
         ws_client = None

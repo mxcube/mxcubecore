@@ -30,7 +30,7 @@ from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import AbstractVide
 from mxcubecore.utils import qt_import
 
 """
-Hardare objects allows to access Axis camera jpg frames via direct http requests.
+Hardware objects allows to access Axis camera jpg frames via direct http requests.
 
 Example xml:
 <object class="AxisCamera">

@@ -30,7 +30,7 @@ Specific HwObj for M2D2 diffractometer @ ALBA
 [Commands]
 - N/A
 
-[Emited signals]
+[Emitted signals]
 - pixelsPerMmChanged
 - phiMotorMoved
 - stateChanged
@@ -178,7 +178,7 @@ class ALBAMiniDiff(GenericDiffractometer):
 
     def state_changed(self, state):
         """
-        Overides method to map Tango ON state to Difractaometer State Ready.
+        Overrides method to map Tango ON state to Difractaometer State Ready.
 
         @state: Tango state
         """
@@ -251,7 +251,7 @@ class ALBAMiniDiff(GenericDiffractometer):
     # TODO: Must be implemented correctly.
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
         """
-        Returns a dictionary with motors name ans positions centred.
+        Returns a dictionary with motors name and positions centred.
         It is expected in start_move_to_beam and move_to_beam methods in
         GenericDIffractometer HwObj.
 
@@ -261,7 +261,7 @@ class ALBAMiniDiff(GenericDiffractometer):
 
     def getBeamInfo(self, update_beam_callback):
         """
-        Update beam info (position and shape) ans execute callback.
+        Update beam info (position and shape) and execute callback.
 
         @update_beam_callback: callback method passed as argument.
         """

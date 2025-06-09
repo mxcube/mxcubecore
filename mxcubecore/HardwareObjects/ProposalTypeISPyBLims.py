@@ -68,7 +68,7 @@ class ProposalTypeISPyBLims(ISPyBAbstractLIMS):
         )
 
     def is_session_already_active_by_code(self, code: str, number: str) -> bool:
-        # If curent selected session is already selected no need to do
+        # If current selected session is already selected no need to do
         # anything else
         active_session = self.session_manager.active_session
         if active_session is not None:
@@ -173,7 +173,7 @@ class ProposalTypeISPyBLims(ISPyBAbstractLIMS):
             % (user_name, str(is_local_host)),
         )
         self.session_manager = LimsSessionManager()
-        # For porposal login, split the loginID to code and numbers
+        # For proposal login, split the loginID to code and numbers
         code = self._get_proposal_code_and_number_by_proposal_name(user_name)[0]
         number = self._get_proposal_code_and_number_by_proposal_name(user_name)[1]
 

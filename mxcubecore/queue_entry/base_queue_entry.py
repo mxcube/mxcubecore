@@ -334,11 +334,11 @@ class BaseQueueEntry(QueueEntryContainer):
 
     def execute(self):
         """
-        Execute method, should be overriden my subclasses, defines
+        Execute method, should be overridden my subclasses, defines
         the main body of the procedure to be performed when the entry
         is executed.
 
-        The default executer calls excute on all child entries after
+        The default executer calls execute on all child entries after
         this method but before post_execute.
         """
         msg = "Calling execute on: " + str(self)
@@ -440,7 +440,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
         init_ref_images = False
         if do_new_dc_group:
             # Creating a collection group with the current session id
-            # and a dummy exepriment type OSC. The experiment type
+            # and a dummy experiment type OSC. The experiment type
             # will be updated when the collections are stored.
             if task_model.interleave_num_images:
                 init_ref_images = task_model.interleave_num_images
@@ -490,7 +490,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
         if init_ref_images:
             # At first all children are gathered together and
             # checked if interleave is set. For this implementation
-            # interleave is just possible for discreet data collections
+            # interleave is just possible for discrete data collections
             ref_num_images = 0
             children_data_model_list = self._data_model.get_children()
 
@@ -921,7 +921,7 @@ def center_before_collect(view, dm, queue, sample_view):
         msg = "No centred position selected, using current position."
         log.info(msg)
 
-        # Create a centred postions of the current postion
+        # Create a centred positions of the current position
         pos = dm.get_positions()
         shape = sample_view.add_shape_from_mpos([pos], (0, 0), "P")
 

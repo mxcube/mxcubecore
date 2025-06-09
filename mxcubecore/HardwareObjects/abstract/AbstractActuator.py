@@ -37,7 +37,7 @@ __license__ = "LGPLv3+"
 class AbstractActuator(HardwareObject):
     """Abstract actuator defines methods common to all moving devices.
 
-    The ``_set_value`` method is the only abtract method that needs to be overloaded
+    The ``_set_value`` method is the only abstract method that needs to be overloaded
     in each implementation.
 
     Attributes:
@@ -164,7 +164,7 @@ class AbstractActuator(HardwareObject):
             timeout (float): Optional timeout in seconds. Default is ``0``: do not wait.
 
         Raises:
-            ValueError: Invalid value or attemp to set read only actuator.
+            ValueError: Invalid value or attempt to set read only actuator.
             RuntimeError: Timeout waiting for status ready (from ``wait_ready``):
         """
 

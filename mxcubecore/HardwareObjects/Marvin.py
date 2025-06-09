@@ -381,7 +381,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
             logging.getLogger("GUI").error(
                 "Sample changer: %s" % self._process_step_info
             )
-            # GB: 20190304: this seemd to lock mxcube forever on any marvin error
+            # GB: 20190304: this seemed to lock mxcube forever on any marvin error
             # self._in_error_state = True
             # self._set_state(AbstractSampleChanger.SampleChangerState.Alarm)
 
@@ -836,7 +836,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         return state in (HardwareObjectState.READY,)
 
     def wait_ready(self, timeout=None):
-        """Waits until the samle changer is ready"""
+        """Waits until the sample changer is ready"""
         with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
             while self._is_device_busy():
                 gevent.sleep(0.05)

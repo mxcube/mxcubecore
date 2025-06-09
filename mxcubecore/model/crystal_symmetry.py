@@ -44,7 +44,7 @@ CrystalClassInfo = namedtuple(
 
 
 # Crystal families (one-letter codes) compatible with a solution in a given family
-# These are the solutions that could aply using the same axes,
+# These are the solutions that could apply using the same axes,
 # hence "c" not compatible with "h
 SUB_LATTICE_MAP = {
     "a": "a",
@@ -992,7 +992,7 @@ SPACEGROUP_DATA = [
 ]
 SPACEGROUP_MAP = OrderedDict((info.name, info) for info in SPACEGROUP_DATA)
 for tpl in SPACEGROUP_DATA:
-    # Done this way so that first elemets in map are on item per spacegroup
+    # Done this way so that first elements in map are on item per spacegroup
     for tag in tpl.synonyms:
         SPACEGROUP_MAP[tag] = tpl
 

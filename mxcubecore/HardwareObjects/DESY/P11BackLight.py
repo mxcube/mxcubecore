@@ -71,7 +71,7 @@ class P11BackLight(AbstractNState):
         self.chan_state_close = None
 
     def init(self):
-        """Initilise the predefined values"""
+        """Initialise the predefined values"""
 
         self.chan_value = self.get_channel_object("value")
         self.open_time = self.get_property("open_time", self.default_open_time)
