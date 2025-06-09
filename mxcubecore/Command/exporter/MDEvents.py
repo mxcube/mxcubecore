@@ -102,7 +102,7 @@ class MDEvents(ExporterClient):
     PROPERTY_SCAN_RANGE = "ScanRange"
     PROPERTY_SCAN_NUMBER_OF_PASSES = "ScanNumberOfPasses"
     PROPERTY_SCAN_SPEED = "ScanExposureTime"
-    PROPERTY_SCAN_PASS_DURATION = "ScanPassDuration"
+    PROPERTY_SCAN_PASS_DURATION = "ScanPassDuration"  # noqa: S105
     PROPERTY_FRAME_NUMBER = "FrameNumber"
     PROPERTY_SAMPLE_UID = "SampleUID"
     PROPERTY_SAMPLE_IMAGE_NAME = "SampleImageName"

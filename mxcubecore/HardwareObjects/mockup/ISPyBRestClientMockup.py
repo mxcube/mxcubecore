@@ -16,7 +16,7 @@ _CONNECTION_ERROR_MSG = (
     + "the server is running and that your "
     + "configuration is correct"
 )
-_NO_TOKEN_MSG = "Could not connect to ISPyB, no valid REST token available."
+_NO_TOKEN_MSG = "Could not connect to ISPyB, no valid REST token available."  # noqa: S105
 
 
 class ISPyBRestClientMockup(HardwareObject):
@@ -101,9 +101,9 @@ class ISPyBRestClientMockup(HardwareObject):
         :returns: None
 
         """
-        if password == "wrong":
+        if password == "wrong":  # noqa: S105
             raise Exception("Wrong credentials")
-        self.__rest_token = "#MOCKTOKEN123"
+        self.__rest_token = "#MOCKTOKEN123"  # noqa: S105
         self.__rest_token_timestamp = datetime.now()
         self.__rest_username = user
         self.__rest_password = password

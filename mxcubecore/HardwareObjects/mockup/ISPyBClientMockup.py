@@ -85,10 +85,10 @@ class ISPyBClientMockup(ProposalTypeISPyBLims):
         if user_name != "idtest0":
             raise Exception(f"Could not authenticate")
 
-        if password == "wrong":
+        if password == "wrong":  # noqa: S105
             raise Exception("Could not authenticate")
 
-        if password == "ispybDown":
+        if password == "ispybDown":  # noqa: S105
             raise Exception("Could not authenticate")
 
     def _create_test_session(self):

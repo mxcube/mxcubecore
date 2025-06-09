@@ -365,7 +365,6 @@ convention = "google"
     "N802",
     "N999",
     "RUF012",
-    "S105",
     "T201",
     "TD001",
     "TD002",
@@ -5518,7 +5517,6 @@ convention = "google"
     "N815",
     "N999",
     "PIE790",
-    "S105",
     "S110",
     "SIM102",
     "SIM105",
@@ -5539,7 +5537,6 @@ convention = "google"
     "N999",
     "PIE790",
     "RET504",
-    "S105",
     "SIM105",
     "T201",
     "TRY002",
@@ -6278,8 +6275,6 @@ convention = "google"
 "test/test_hwo_maxiv_ispyblims.py" = [
     "C408",
     "E501",
-    "S105",
-    "S106",
 ]
 "test/test_mach_info.py" = [
     "PT022",
