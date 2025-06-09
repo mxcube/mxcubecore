@@ -54,7 +54,7 @@ def test_login_ok(post_mock, ispyb_lims):
     """test the case when user logs in successfully"""
 
     # mocks the ISPyB client to return valid token on POST request
-    post_mock.return_value.json.return_value = dict(token="dummy-token")  # noqa: S106
+    post_mock.return_value.json.return_value = {"token": "dummy-token"}
 
     is_ok, err = ispyb_lims.ispyb_login(USER, PASS)
 

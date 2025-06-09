@@ -72,19 +72,19 @@ class ISARAMaint(HardwareObject):
     def __init__(self, name):
         super().__init__(name)
 
-        self._commands_state = dict(
-            PowerOn=False,
-            PowerOff=False,
-            openLid=True,
-            closeLid=True,
-            home=True,
-            dry=True,
-            soak=True,
-            clearMemory=True,
-            reset=True,
-            back=True,
-            abort=True,
-        )
+        self._commands_state = {
+            "PowerOn": False,
+            "PowerOff": False,
+            "openLid": True,
+            "closeLid": True,
+            "home": True,
+            "dry": True,
+            "soak": True,
+            "clearMemory": True,
+            "reset": True,
+            "back": True,
+            "abort": True,
+        }
 
         self._powered = None
         self._position_name = None
@@ -219,7 +219,7 @@ class ISARAMaint(HardwareObject):
             raise Exception(f"ISARA MAINT: unexpected command '{cmd_name}'")
 
     def get_global_state(self):
-        return dict(glob_state="dummy"), self._commands_state, self._message
+        return {"glob_state": "dummy"}, self._commands_state, self._message
 
     def get_cmd_info(self):
         return [

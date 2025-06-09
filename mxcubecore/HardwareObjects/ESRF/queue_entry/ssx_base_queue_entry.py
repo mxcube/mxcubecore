@@ -152,10 +152,10 @@ class SsxBaseQueueEntry(BaseQueueEntry):
                 disable_saving_list.append("raw")
             disable_saving = ",".join(disable_saving_list)
 
-            saving_compression = dict(
-                raw="zip",
-                average="zip",
-            )
+            saving_compression = {
+                "raw": "zip",
+                "average": "zip",
+            }
 
             logging.getLogger("user_level_log").info(
                 f"Storing pedestal in {pedestal_dir}"

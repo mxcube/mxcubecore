@@ -23,7 +23,7 @@ class LimaEigerDetector(AbstractDetector):
     def init(self):
         AbstractDetector.init(self)
 
-        self.header = dict()
+        self.header = {}
         self._images_per_file = self.get_property("images_per_file", 100)
 
         lima_device = self.get_property("lima_device")

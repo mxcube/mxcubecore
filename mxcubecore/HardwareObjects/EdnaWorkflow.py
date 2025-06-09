@@ -118,7 +118,7 @@ class EdnaWorkflow(HardwareObject):
         # If necessary unblock dialog
         if not self.gevent_event.is_set():
             self.gevent_event.set()
-        self.params_dict = dict()
+        self.params_dict = {}
         if "reviewData" in dict_dialog and "inputMap" in dict_dialog:
             review_data = dict_dialog["reviewData"]
             for dict_entry in dict_dialog["inputMap"]:
@@ -146,7 +146,7 @@ class EdnaWorkflow(HardwareObject):
         workflow_list = []
 
         for _wf in self.get_property("workflow"):
-            wf = dict(_wf)
+            wf = {_wf}
             workflow_list.append(wf)
             wf["requires"] = [r.strip() for r in wf.get("requires", "").split(",")]
             wf["doc"] = ""

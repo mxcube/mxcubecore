@@ -16,8 +16,8 @@ from mxcubecore.TaskUtils import task
 class LimaPilatusDetector(AbstractDetector):
     def __init__(self, name):
         AbstractDetector.__init__(self, name)
-        self.header = dict()
-        self.start_angles = list()
+        self.header = {}
+        self.start_angles = []
 
     def init(self):
         AbstractDetector.init(self)
@@ -166,7 +166,7 @@ class LimaPilatusDetector(AbstractDetector):
             trigger_mode = self.get_property("osc_trigger_mode", "EXTERNAL_GATE")
 
         diffractometer_positions = HWR.beamline.diffractometer.get_positions()
-        self.start_angles = list()
+        self.start_angles = []
         for i in range(number_of_images):
             self.start_angles.append("%0.4f deg." % (start + osc_range * i))
         self.header = {}
@@ -273,7 +273,7 @@ class LimaPilatusDetector(AbstractDetector):
         self.set_channel_value("saving_format", "CBF")
         self.set_channel_value("saving_header_delimiter", ["|", ";", ":"])
 
-        headers = list()
+        headers = []
 
         for i, start_angle in enumerate(self.start_angles):
             header = "\n%s\n" % self.get_property("serial")

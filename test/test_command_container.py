@@ -1688,7 +1688,7 @@ class TestCommandContainer:
         ("cmd_args", "cmd_kwargs"),
         (
             ((None, "Test", 2.5), {"test1": None, "test2": 13, "test3": 8.5}),
-            (tuple(), dict()),
+            ((), {}),
         ),
     )
     def test_execute_command(

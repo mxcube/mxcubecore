@@ -73,8 +73,8 @@ def create_directory(path, check=True):
 class Lima2Detector(AbstractDetector):
     def __init__(self, name):
         AbstractDetector.__init__(self, name)
-        self.header = dict()
-        self.start_angles = list()
+        self.header = {}
+        self.start_angles = []
         self.__device = None
 
     def init(self):
@@ -223,13 +223,13 @@ class Lima2Detector(AbstractDetector):
 
         acc_frames = 1000
 
-        max_nb_frames_per_file = dict(
-            raw=1000,
-            dense=1000,
-            sparse=1000,
-            spots=1000,
-            accumulated=1,
-        )
+        max_nb_frames_per_file = {
+            "raw": 1000,
+            "dense": 1000,
+            "sparse": 1000,
+            "spots": 1000,
+            "accumulated": 1,
+        }
 
         nb_recvs = len(self.__device.recvs)
         nb_recv_frames = number_of_images // nb_recvs
@@ -247,24 +247,24 @@ class Lima2Detector(AbstractDetector):
             g: calc_frame_per_file(g, nb_frames[g]) for g in saving_groups
         }
 
-        save_files = dict(
-            raw=False,
-            dense=True,
-            sparse=True,
-            spots=True,
-            accumulated=True,
-        )
+        save_files = {
+            "raw": False,
+            "dense": True,
+            "sparse": True,
+            "spots": True,
+            "accumulated": True,
+        }
 
         dense_comp_with_hw_nx = True
         dense_comp = "zip" if dense_comp_with_hw_nx else "bshuf_lz4"
 
-        compression = dict(
-            raw=dense_comp,
-            dense=dense_comp,
-            sparse="none",
-            spots="none",
-            accumulated="zip"
-        )
+        compression = {
+            "raw": dense_comp,
+            "dense": dense_comp,
+            "sparse": "none",
+            "spots": "none",
+            "accumulated": "zip"
+        }
 
         saving_streams = (["raw", "dense", "sparse", "spots"] +
                           [f"accumulation_{a}" for a in ["corrected", "ishit", "nohit"]])
@@ -279,15 +279,15 @@ class Lima2Detector(AbstractDetector):
         def get_saving(stream):
             group = get_stream_group(stream)
             stream_prefix = get_stream_prefix(stream)
-            return dict(
-                enabled=save_files[group],
-                base_path=data_path[group],
-                filename_prefix=f"{prefix}_{stream_prefix}",
-                start_number=0,
-                nb_frames_per_file=frames_per_file[group],
-                file_exists_policy="abort",
-                compression=compression[group],
-            )
+            return {
+                "enabled": save_files[group],
+                "base_path": data_path[group],
+                "filename_prefix": f"{prefix}_{stream_prefix}",
+                "start_number": 0,
+                "nb_frames_per_file": frames_per_file[group],
+                "file_exists_policy": "abort",
+                "compression": compression[group],
+            }
 
         sub_dirs = [s for g, s in data_sub_dir.items() if s and save_files[g]]
         # the sub directory for aggregated data from all receivers
@@ -345,36 +345,36 @@ class Lima2Detector(AbstractDetector):
 
         def get_dense_out_params(variant_name):
             variant_data = {
-                "i32":   dict(pixel_type="int32",
-                              photon_adus=legacy_photon_adus,
-                              photon_bias=0.0),
-                "i16_1": dict(pixel_type="int16",
-                              photon_adus=16.0,
-                              photon_bias=0.0),
-                "i16_2": dict(pixel_type="int16",
-                              photon_adus=8.0,
-                              photon_bias=0.0),
-                "i16_3": dict(pixel_type="int16",
-                              photon_adus=1.0,
-                              photon_bias=0.0),
-                "u16_1": dict(pixel_type="uint16",
-                              photon_adus=16.0,
-                              photon_bias=32.0),
-                "u16_2": dict(pixel_type="uint16",
-                              photon_adus=8.0,
-                              photon_bias=32.0),
-                "f16":   dict(pixel_type="float16",
-                              photon_adus=1.0,
-                              photon_bias=0.0),
+                "i32":   {"pixel_type": "int32",
+                              "photon_adus": legacy_photon_adus,
+                              "photon_bias": 0.0},
+                "i16_1": {"pixel_type": "int16",
+                              "photon_adus": 16.0,
+                              "photon_bias": 0.0},
+                "i16_2": {"pixel_type": "int16",
+                              "photon_adus": 8.0,
+                              "photon_bias": 0.0},
+                "i16_3": {"pixel_type": "int16",
+                              "photon_adus": 1.0,
+                              "photon_bias": 0.0},
+                "u16_1": {"pixel_type": "uint16",
+                              "photon_adus": 16.0,
+                              "photon_bias": 32.0},
+                "u16_2": {"pixel_type": "uint16",
+                              "photon_adus": 8.0,
+                              "photon_bias": 32.0},
+                "f16":   {"pixel_type": "float16",
+                              "photon_adus": 1.0,
+                              "photon_bias": 0.0},
             }
 
             variant = variant_data[variant_name]
             photon_adus = variant["photon_adus"]
-            return dict(
-                dense_intensity_factor=photon_adus,
-                dense_intensity_offset=photon_adus * variant["photon_bias"],
-                dense_pixel_type="dense_%s" % variant["pixel_type"],
-            )
+            return {
+                "dense_intensity_factor": photon_adus,
+                "dense_intensity_offset": photon_adus * variant["photon_bias"],
+                "dense_pixel_type": "dense_%s" % variant["pixel_type"],
+            }
 
         dense_variant_name = "i32"
         dense_out_params = get_dense_out_params(dense_variant_name)
@@ -560,10 +560,12 @@ class Lima2Detector(AbstractDetector):
                 os.path.join('/data/id29/inhouse/opid291/Jungfrau',
                              'Calibration'),
             }
-            writer_args = dict(det_name=det_name,
-                               master_subdir="aggregated",
-                               header=header,
-                               local_2_shared_dir_map=local_2_shared_dir_map)
+            writer_args = {
+                "det_name": det_name,
+                "master_subdir": "aggregated",
+                "header": header,
+                "local_2_shared_dir_map": local_2_shared_dir_map
+            }
             stack.enter_context(SmxAggregationWriter(proc, **writer_args))
 
             def last_saved():
