@@ -19,8 +19,8 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 """Tests configuration"""
 
-import os
 import sys
+from pathlib import Path
 
 import pytest
 from gevent import monkey
@@ -30,13 +30,20 @@ from mxcubecore import HardwareRepository as HWR
 monkey.patch_all(thread=False)
 
 
-TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
-ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+TESTS_DIR = Path(__file__).parent
+ROOT_DIR = TESTS_DIR.parent
 
 sys.path.insert(0, ROOT_DIR)
 
 print("DEBUG TESTS")
 print(sys.path)
+
+
+def _get_hwr_paths():
+    mockup_dir = Path(TESTS_DIR, "mockup")
+    mockup_test_dir = Path(mockup_dir, "test")
+
+    return f"{mockup_dir}:{mockup_test_dir}"
 
 
 # This coding gives a new beamline load for each function call
@@ -46,13 +53,9 @@ print(sys.path)
 @pytest.fixture(scope="function")
 def beamline():
     """Define the beamline mock-up classes configuration directories"""
-    hwr_path = "%s%s%s" % (
-        os.path.join(ROOT_DIR, "mxcubecore/configuration/mockup"),
-        ":",
-        os.path.join(ROOT_DIR, "mxcubecore/configuration/mockup/test"),
-    )
+
     HWR._instance = HWR.beamline = None
-    HWR.init_hardware_repository(hwr_path)
+    HWR.init_hardware_repository(_get_hwr_paths())
     hwr = HWR.get_hardware_repository()
     hwr.connect()
     return HWR.beamline

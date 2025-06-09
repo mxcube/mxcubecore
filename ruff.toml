@@ -4698,9 +4698,6 @@ convention = "google"
 ]
 "test/conftest.py" = [
     "PT003",
-    "PTH100",
-    "PTH118",
-    "PTH120",
     "SLF001",
     "T201",
 ]
