@@ -5317,17 +5317,6 @@ convention = "google"
     "N999",
     "TRY003",
 ]
-"mxcubecore/HardwareObjects/mockup/BIOMAXEigerMockup.py" = [
-    "ARG002",
-    "BLE001",
-    "E501",
-    "F401",
-    "F841",
-    "N814",
-    "N999",
-    "S110",
-    "SIM105",
-]
 "mxcubecore/HardwareObjects/mockup/BeamDefinerMockup.py" = [
     "E501",
     "ERA001",
