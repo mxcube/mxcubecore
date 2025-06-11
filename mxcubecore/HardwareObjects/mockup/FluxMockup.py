@@ -23,10 +23,7 @@ Mock-up class to simulate the beamline flux, used for testing.
 
 from random import random
 
-from gevent import (
-    Timeout,
-    sleep,
-)
+import gevent
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractFlux import AbstractFlux
@@ -48,10 +45,15 @@ class FluxMockup(AbstractFlux):
     def init(self):
         super().init()
         self.current_flux_dict["flux"] = self.default_value
+        gevent.spawn(self._update_flux)
+
+    def _update_flux(self):
+        while True:
+            self.measure_flux()
+            gevent.sleep(3)
 
     def get_value(self):
         """Get flux at current transmission in units of photons/s"""
-        self.measure_flux()
         return self.current_flux_dict["flux"]
 
     def measure_flux(self) -> None:
@@ -95,5 +97,5 @@ class FluxMockup(AbstractFlux):
                                               (default);
                              if timeout is None: wait forever.
         """
-        with Timeout(timeout, RuntimeError("Timeout while waiting for beam")):
-            sleep(timeout + 1)
+        with gevent.Timeout(timeout, RuntimeError("Timeout while waiting for beam")):
+            gevent.sleep(timeout + 1)
