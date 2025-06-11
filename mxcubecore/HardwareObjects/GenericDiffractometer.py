@@ -522,7 +522,7 @@ class GenericDiffractometer(HardwareObject):
             return HardwareObject.__getattr__(self, attr)
 
     # Contained Objects
-    # NBNB Temp[orary hack - should be cleaned up together with configuration
+    # NBNB Temporary hack - should be cleaned up together with configuration
     @property
     def omega(self):
         """omega motor object
@@ -594,18 +594,6 @@ class GenericDiffractometer(HardwareObject):
             AbstractActuator
         """
         return self.motor_hwobj_dict.get("phiz")
-
-    @property
-    def zoom(self):
-        """zoom motor object
-
-        NBNB HACK TODO - ocnfigure this in graphics object
-        (which now calls this property)
-
-        Returns:
-            AbstractActuator
-        """
-        return self.motor_hwobj_dict.get("zoom")
 
     def is_ready(self):
         """
@@ -783,7 +771,6 @@ class GenericDiffractometer(HardwareObject):
             return HWR.beamline.sample_view.get_snapshot()
 
     def save_snapshot(self, filename):
-        """ """
         if HWR.beamline.sample_view:
             return HWR.beamline.sample_view.save_snapshot(filename)
 
@@ -837,7 +824,6 @@ class GenericDiffractometer(HardwareObject):
                 self.emit_centring_failed()
 
     def cancel_centring_method(self, reject=False):
-        """ """
 
         if self.current_centring_procedure is not None:
             try:
@@ -864,7 +850,6 @@ class GenericDiffractometer(HardwareObject):
             self.reject_centring()
 
     def start_manual_centring(self, sample_info=None, wait_result=None):
-        """ """
         self.emit_progress_message("Manual 3 click centring...")
         if self.use_sample_centring:
             self.current_centring_procedure = sample_centring.start(
@@ -887,7 +872,6 @@ class GenericDiffractometer(HardwareObject):
     def start_automatic_centring(
         self, sample_info=None, loop_only=False, wait_result=None
     ):
-        """ """
         self.emit_progress_message("Automatic centring...")
 
         while self.automatic_centring_try_count > 0:
@@ -999,32 +983,26 @@ class GenericDiffractometer(HardwareObject):
             self.emit_progress_message("")
 
     def manual_centring(self):
-        """ """
         raise NotImplementedError
 
     def automatic_centring(self):
-        """ """
         raise NotImplementedError
 
     def centring_motor_moved(self, pos):
-        """ """
         if time.time() - self.centring_time > 1.0:
             self.invalidate_centring()
         self.emit_diffractometer_moved()
 
     def invalidate_centring(self):
-        """ """
         if self.current_centring_procedure is None and self.centring_status["valid"]:
             self.centring_status = {"valid": False}
             self.emit_progress_message("")
             self.emit("centringInvalid", ())
 
     def emit_diffractometer_moved(self, *args):
-        """ """
         self.emit("diffractometerMoved", ())
 
     def motor_positions_to_screen(self, centred_positions_dict):
-        """ """
         if self.use_sample_centring:
             self.update_zoom_calibration()
             if None in (self.pixels_per_mm_x, self.pixels_per_mm_y):
@@ -1067,11 +1045,9 @@ class GenericDiffractometer(HardwareObject):
             raise NotImplementedError
 
     def move_to_centred_position(self, centred_position):
-        """ """
         self.move_motors(centred_position)
 
     def move_to_motors_positions(self, motors_positions, wait=False):
-        """ """
         self.emit_progress_message("Moving to motors positions...")
         self.move_to_motors_positions_procedure = gevent.spawn(
             self.move_motors, motors_positions
@@ -1226,7 +1202,6 @@ class GenericDiffractometer(HardwareObject):
         return copy.deepcopy(self.centring_status)
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
-        """ """
         raise NotImplementedError
 
     def get_point_between_two_points(
@@ -1252,7 +1227,6 @@ class GenericDiffractometer(HardwareObject):
         return new_point
 
     def convert_from_obj_to_name(self, motor_pos):
-        """ """
         motors = {}
         for motor_role in self.centring_motors_list:
             motor_obj = self.get_object_by_role(motor_role)
@@ -1319,27 +1293,22 @@ class GenericDiffractometer(HardwareObject):
             self.command_dict["startSetPhase"](phase)
 
     def update_zoom_calibration(self):
-        """ """
         self.pixels_per_mm_x = 1.0 / self.channel_dict["CoaxCamScaleX"].get_value()
         self.pixels_per_mm_y = 1.0 / self.channel_dict["CoaxCamScaleY"].get_value()
         self.emit("pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y)))
 
     def zoom_motor_state_changed(self, state):
-        """ """
         self.emit("zoomMotorStateChanged", (state,))
         self.emit("minidiffStateChanged", (state,))
 
     def zoom_motor_predefined_position_changed(self, position_name, offset):
-        """ """
         self.update_zoom_calibration()
         self.emit("zoomMotorPredefinedPositionChanged", (position_name, offset))
 
     def equipment_ready(self):
-        """ """
         self.emit("minidiffReady", ())
 
     def equipment_not_ready(self):
-        """ """
         self.emit("minidiffNotReady", ())
 
     def motor_state_changed(self, state):

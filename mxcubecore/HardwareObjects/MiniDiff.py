@@ -149,7 +149,7 @@ class MiniDiff(HardwareObject):
         else:
             logging.getLogger("HWR").error(
                 "MiniDiff: phi motor is not defined in minidiff equipment %s",
-                str(self.name()),
+                str(self.name),
             )
         if self.phizMotor is not None:
             self.connect(self.phizMotor, "stateChanged", self.phizMotorStateChanged)
@@ -158,7 +158,7 @@ class MiniDiff(HardwareObject):
         else:
             logging.getLogger("HWR").error(
                 "MiniDiff: phiz motor is not defined in minidiff equipment %s",
-                str(self.name()),
+                str(self.name),
             )
         if self.phiyMotor is not None:
             self.connect(self.phiyMotor, "stateChanged", self.phiyMotorStateChanged)
@@ -167,7 +167,7 @@ class MiniDiff(HardwareObject):
         else:
             logging.getLogger("HWR").error(
                 "MiniDiff: phiy motor is not defined in minidiff equipment %s",
-                str(self.name()),
+                str(self.name),
             )
         if self.zoomMotor is not None:
             self.connect(
@@ -183,7 +183,7 @@ class MiniDiff(HardwareObject):
         else:
             logging.getLogger("HWR").error(
                 "MiniDiff: zoom motor is not defined in minidiff equipment %s",
-                str(self.name()),
+                str(self.name),
             )
         if self.sampleXMotor is not None:
             self.connect(
@@ -196,7 +196,7 @@ class MiniDiff(HardwareObject):
         else:
             logging.getLogger("HWR").error(
                 "MiniDiff: sampx motor is not defined in minidiff equipment %s",
-                str(self.name()),
+                str(self.name),
             )
         if self.sampleYMotor is not None:
             self.connect(
@@ -209,13 +209,13 @@ class MiniDiff(HardwareObject):
         else:
             logging.getLogger("HWR").error(
                 "MiniDiff: sampx motor is not defined in minidiff equipment %s",
-                str(self.name()),
+                str(self.name),
             )
 
         if HWR.beamline.sample_changer is None:
             logging.getLogger("HWR").warning(
                 "MiniDiff: sample changer is not defined in minidiff equipment %s",
-                str(self.name()),
+                str(self.name),
             )
         else:
             try:
@@ -233,7 +233,7 @@ class MiniDiff(HardwareObject):
         else:
             logging.getLogger("HWR").warning(
                 "MiniDiff: wago light is not defined in minidiff equipment %s",
-                str(self.name()),
+                str(self.name),
             )
         if self.aperture is not None:
             self.connect(
@@ -429,14 +429,13 @@ class MiniDiff(HardwareObject):
 
     def getCalibrationData(self, offset):
         if self.zoomMotor is not None:
-            if self.zoomMotor.has_object("positions"):
-                for position in self.zoomMotor["positions"]:
-                    if abs(position.offset - offset) <= self.zoomMotor.delta:
-                        calibrationData = position["calibrationData"]
-                        return (
-                            float(calibrationData.pixelsPerMmY) or 0,
-                            float(calibrationData.pixelsPerMmZ) or 0,
-                        )
+            for position in self.zoomMotor.get_property("positions", ()):
+                if abs(position["offset"] - offset) <= self.zoomMotor.delta:
+                    calibrationData = position["calibrationData"]
+                    return (
+                        float(calibrationData.pixelsPerMmY) or 0,
+                        float(calibrationData.pixelsPerMmZ) or 0,
+                    )
         return (None, None)
 
     def get_pixels_per_mm(self):
@@ -959,7 +958,7 @@ class MiniDiff(HardwareObject):
             )
 
     def emitProgressMessage(self, msg=None):
-        # logging.getLogger("HWR").debug("%s: %s", self.name(), msg)
+        # logging.getLogger("HWR").debug("%s: %s", self.name, msg)
         self.emit("progressMessage", (msg,))
 
     def get_centring_status(self):

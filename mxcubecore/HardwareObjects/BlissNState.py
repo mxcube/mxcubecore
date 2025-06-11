@@ -20,13 +20,20 @@
 
 """
 bliss implementation of AbstartNState
-Example xml file:
-<object class="BlissNState">
-  <username>Detector Cover</username>
-  <actuator_name>detcover</>
-  <object href="/bliss" role="controller"/>
-  <values>{"IN": "IN", "OUT": "OUT"}</values>
-</object>
+
+Example yaml file:
+
+.. code-block:: yaml
+
+ class: BlissNState.BlissNState
+ configuration:
+    actuator_name: detcover
+    prefix: detcov   # optional
+    type: actuator   # actuaror or motor, default value actuator
+    username: Detector Cover
+    values: {"IN": "IN", "OUT": "OUT"}  # optional
+  objects:
+    controller: bliss.yml
 """
 
 from enum import Enum
@@ -37,7 +44,7 @@ from mxcubecore.HardwareObjects.abstract.AbstractNState import (
 )
 from mxcubecore.HardwareObjects.BlissMotor import BlissMotor
 
-__copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
+__copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 

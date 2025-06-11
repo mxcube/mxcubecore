@@ -87,6 +87,7 @@ class QtGraphicsManager(AbstractSampleView):
         AbstractSampleView.__init__(self, name)
 
         self.diffractometer_hwobj = None
+        self.camera_hwobj = None
 
         self.graphics_config_filename = None
         self.omega_angle = 0
@@ -215,7 +216,7 @@ class QtGraphicsManager(AbstractSampleView):
         self.graphics_view.keyPressedSignal.connect(self.key_pressed)
         self.graphics_view.wheelSignal.connect(self.mouse_wheel_scrolled)
 
-        self.diffractometer_hwobj = self.get_object_by_role("diffractometer")
+        self.diffractometer_hwobj = HWR.beamline.diffractometer
         self.graphics_view.resizeEvent = self.resizeEvent
 
         if self.diffractometer_hwobj is not None:

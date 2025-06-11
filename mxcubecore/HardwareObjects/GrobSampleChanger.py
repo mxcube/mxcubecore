@@ -48,7 +48,7 @@ class GrobSampleChanger(HardwareObject):
         self.connect(self.grob, "samples_map", self.samples_map_changed)
 
     def connect_notify(self, signal):
-        logging.info("%s: connect_notify %s", self.name(), signal)
+        logging.info("%s: connect_notify %s", self.id, signal)
         if signal == "stateChanged":
             self.sample_changer_state_changed(self.get_state())
         elif signal == "loadedSampleChanged":
@@ -98,7 +98,7 @@ class GrobSampleChanger(HardwareObject):
                 self._successCallback()
             except Exception:
                 logging.exception(
-                    "%s: exception while calling success callback", self.name()
+                    "%s: exception while calling success callback", self.id
                 )
 
     def _call_failure_callback(self):
@@ -107,7 +107,7 @@ class GrobSampleChanger(HardwareObject):
                 self._failureCallback()
             except Exception:
                 logging.exception(
-                    "%s: exception while calling failure callback", self.name()
+                    "%s: exception while calling failure callback", self.id
                 )
 
     def _sample_transfer_done(self, transfer_greenlet):

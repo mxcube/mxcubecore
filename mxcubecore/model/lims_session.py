@@ -250,3 +250,59 @@ class SampleSheet(BaseModel):
     parameters: List[Parameter]
     datasets: List[Any]
     meta: Meta
+
+
+class Resource(BaseModel):
+    """
+    Represents a resource, usually a file associated with a sample or
+        investigation.
+
+    Parameters:
+        id (str): The unique identifier for the resource. The key "_id" is
+            used in JSON and mapped to "id" in the class.
+        filename (str): The name of the file associated with the resource.
+        file (str): The URL or path pointing to the actual file or resource
+            content.
+        fileType (str): The type of the file (e.g., "pdb", "hkl", etc.).
+        createdAt (datetime): The timestamp representing when the resource was
+            created.
+        updatedAt (datetime): The timestamp representing when the resource was
+            last updated.
+        groupName (Optional[str]): The optional group name associated with the
+            resource (default is None).
+    """
+
+    id: str = Field(..., alias="_id")  # Use alias to map _id from JSON to id
+    filename: str
+    file: str
+    fileType: str
+    createdAt: datetime
+    updatedAt: datetime
+    groupName: Optional[str] = None
+
+
+class SampleInformation(BaseModel):
+    """
+    Parameters metadata related to a sample, including a list of associated resources.
+
+    Parameters:
+        id (str): The unique identifier for the sample. The key "_id" is used
+            in JSON and mapped to "id" in the class.
+        investigationId (int): The unique identifier of the investigation this
+            sample is associated with.
+        sampleId (int): The unique identifier for the sample in ICAT. Most of the cases
+            this represents the protein itself
+        createdAt (datetime): The timestamp representing when the sample
+            information was created.
+        updatedAt (datetime): The timestamp representing when the sample
+            information was last updated.
+        resources (List[Resource]): A list of Resource objects associated
+            with this sample information.
+    """
+
+    id: str = Field(..., alias="_id")  # Use alias to map _id from JSON to id
+    investigationId: int
+    sampleId: int
+    createdAt: datetime
+    updatedAt: datetime
+    resources: List[Resource]  # List of associated resources

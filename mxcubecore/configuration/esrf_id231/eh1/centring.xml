@@ -1,9 +1,0 @@
-<object>
-    <motors>
-           <object role="vertical"     hwrid="/eh1/sampy"/>
-           <object role="inBeam"      hwrid="/eh1/sampx"/>
-           <object role="rotation"      hwrid="/eh1/phi"/>
-           <object role="table_y"     hwrid="/eh1/phiy"/>
-           <object role="table_z"     hwrid="/eh1/phiz"/>
-    </motors>
-</object>

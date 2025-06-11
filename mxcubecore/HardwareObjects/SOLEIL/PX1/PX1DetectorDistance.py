@@ -128,7 +128,7 @@ class PX1DetectorDistance(Device, AbstractMotor):
         self.position_chan.set_value(value)
 
     def get_motor_mnemonic(self):
-        return self.name()
+        return self.name
 
     def check_light(self, position):
         # ligth is not controlled anymore. it is left in place but the

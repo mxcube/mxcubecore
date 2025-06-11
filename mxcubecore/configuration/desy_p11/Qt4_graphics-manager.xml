@@ -1,5 +1,4 @@
 <object class="Qt4_GraphicsManager">
-   <object href="/mini-diff-mockup" role="diffractometer"/>
    <object href="/beam-info" role="beam_info"/>
    <object href="/mjpg-stream-video" role="camera"/>
 

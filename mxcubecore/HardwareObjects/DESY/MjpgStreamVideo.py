@@ -808,8 +808,8 @@ class MjpgStreamVideo(AbstractVideoDevice):
 
             offx, offy = self.overview_offsetx, self.overview_offsety
 
-            pos_x = int(60)
-            pos_y = int(232)
+            pos_x = 60
+            pos_y = 232
         else:
             self.using_overview = False
 

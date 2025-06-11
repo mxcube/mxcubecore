@@ -18,6 +18,9 @@ class DetectorMockup(AbstractDetector):
         """
         AbstractDetector.__init__(self, name)
 
+        # 'slot' for child object
+        self.detector_distance = None
+
     def init(self):
         """
         Descript. :

@@ -42,13 +42,11 @@ class EDNACharacterisation(AbstractCharacterisation):
     def __init__(self, name) -> None:
         super(EDNACharacterisation, self).__init__(name)
 
-        self.collect_obj = None
         self.result = None
         self.edna_default_file = None
         self.start_edna_command = None
 
     def init(self) -> None:
-        self.collect_obj = self.get_object_by_role("collect")
         self.start_edna_command = self.get_property("edna_command")
         self.edna_default_file = self.get_property("edna_default_file")
 
@@ -161,13 +159,13 @@ class EDNACharacterisation(AbstractCharacterisation):
             pass
 
         try:
-            min_exp_time = self.collect_obj.detector_hwobj.get_exposure_time_limits()[0]
+            min_exp_time = HWR.beamline.detector.get_exposure_time_limits()[0]
             beam.setMinExposureTimePerImage(XSDataTime(min_exp_time))
         except AttributeError:
             pass
 
         try:
-            beamsize = self.collect_obj.beam_info_hwobj.get_beam_size()
+            beamsize = HWR.beamline.beam.beam_info_hwobj.get_beam_size()
 
             if None not in beamsize:
                 beam.setSize(

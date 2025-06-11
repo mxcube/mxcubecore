@@ -42,12 +42,15 @@ class AbstractSampleView(HardwareObject):
 
     def __init__(self, name):
         super().__init__(name)
-        self._camera = None
         self._focus = None
         self._zoom = None
         self._frontlight = None
         self._backlight = None
         self._shapes = None
+
+    @property
+    def camera(self):
+        return self.get_object_by_role("camera")
 
     @abc.abstractmethod
     def get_snapshot(
@@ -75,14 +78,6 @@ class AbstractSampleView(HardwareObject):
             filename (str): The filename.
             duration (int): Duration time [s].
         """
-
-    @property
-    def camera(self):
-        """Get camera object.
-        Returns:
-            (AbstractCamera): Camera hardware object.
-        """
-        return self._camera
 
     @property
     def shapes(self):

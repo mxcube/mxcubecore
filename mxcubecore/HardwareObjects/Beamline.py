@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 # encoding: utf-8
 #
 #  Project: MXCuBE
@@ -35,6 +34,7 @@ from typing import (
     Any,
     Union,
 )
+from warnings import warn
 
 from mxcubecore.dispatcher import dispatcher
 
@@ -55,122 +55,217 @@ from mxcubecore.BaseHardwareObjects import (
 # TODO Make all tags consistent, including AcquisitionParameters attributes.
 
 
-class Beamline(ConfiguredObject):
+class Beamline(HardwareObject):
     """Beamline class serving as singleton container for links to HardwareObjects"""
 
-    # Roles of defined objects and the category they belong to
-    # NB the double underscore is deliberate - attribute must be hidden from subclasses
-    __content_roles = []
+    class HOConfig(ConfiguredObject.HOConfig):
 
-    # Names of procedures under Beamline - set of strings.
-    # NB subclasses must add additional procedures to this set,
-    # and may NOT override _procedure_names
-    _procedure_names = set()
-
-    # NBNB these should be accessed ONLY as beamline.SUPPORTED_..._PARAMETERS
-    # NBNB Subclasses may add local parameters but may NOT remove any
-    #
-    # Supported acquisition parameter tags:
-    SUPPORTED_ACQ_PARAMETERS = frozenset(
-        (
-            "exp_time",
-            "osc_range",
-            "num_passes",
-            "first_image",
-            "run_number",
-            "overlap",
-            "num_images",
-            "inverse_beam",
-            "take_dark_current",
-            "skip_existing_images",
-            "take_snapshots",
-        )
-    )
-    # Supported limit parameter tags:
-    SUPPORTED_LIMIT_PARAMETERS = frozenset(
-        ("exposure_time", "osc_range", "number_of_images", "kappa", "kappa_phi")
-    )
-
-    def __init__(self, name):
-        """
-
-        Args:
-            name (str) : Object name, generally set to the role name of the object
-        """
-        super(Beamline, self).__init__(name)
+        # Properties - definition and default values
 
         # List[str] of advanced method names
-        self.advanced_methods = []
+        advanced_methods = []
 
         # List[str] of available methods
-        self.available_methods = []
+        available_methods = []
 
         # int number of clicks used for click centring
-        self.click_centring_num_clicks = 3
+        click_centring_num_clicks = 3
 
         # bool Is wavelength tunable
-        self.tunable_wavelength = False
+        tunable_wavelength = False
 
         # bool Disable number-of-passes widget NBNB TODO Move elsewhere??
-        self.disable_num_passes = False
-
-        # bool By default run processing of (certain?)data collections?
-        self.run_offline_processing = False
+        disable_num_passes = False
 
         # bool By default run online processing (characterization/mesh?)
-        self.run_online_processing = False
+        run_online_processing = False
 
-        self.offline_processing_methods = []
+        offline_processing_methods = []
 
-        self.online_processing_methods = []
+        online_processing_methods = []
 
         # Dictionary-of-dictionaries of default acquisition parameters
-        self.default_acquisition_parameters = {}
-
-        # Dictionary of acquisition parameter limits
-        self.acquisition_limit_values = {}
+        default_acquisition_parameters = {}
 
         # int Starting run number for path_template
-        self.run_number = 1
+        run_number = 1
 
         # List of undulators
-        self.undulators = []
+        undulators = []
 
         # Format of mesh result for display
-        self.mesh_result_format = "PNG"
+        mesh_result_format = "PNG"
 
         # bool Use the native mesh feature available, true by default
-        self.use_native_mesh = True
+        use_native_mesh = True
 
         # bool Enable features to work with points in the plane, called
         # 2D-points, (none centred positions)
-        self.enable_2d_points = True
+        enable_2d_points = True
 
-        # Dictionary with the python id of hardwareobject as key
-        # and the "dotted/attribute path" to hardwareobject from the
-        # Beamline object
-        self._hardware_object_id_dict = {}
+        # Contained hardware objects
+
+    @property
+    def machine_info(self) -> HardwareObject | None:
+        return self.get_object_by_role("machine_info")
+
+    @property
+    def transmission(self) -> HardwareObject | None:
+        return self.get_object_by_role("transmission")
+
+    @property
+    def cryo(self) -> HardwareObject | None:
+        return self.get_object_by_role("cryo")
+
+    @property
+    def energy(self) -> HardwareObject | None:
+        return self.get_object_by_role("energy")
+
+    @property
+    def flux(self) -> HardwareObject | None:
+        return self.get_object_by_role("flux")
+
+    @property
+    def beam(self) -> HardwareObject | None:
+        return self.get_object_by_role("beam")
+
+    @property
+    def hutch_interlock(self) -> HardwareObject | None:
+        return self.get_object_by_role("hutch_interlock")
+
+    @property
+    def safety_shutter(self) -> HardwareObject | None:
+        return self.get_object_by_role("safety_shutter")
+
+    @property
+    def fast_shutter(self) -> HardwareObject | None:
+        return self.get_object_by_role("fast_shutter")
+
+    @property
+    def diffractometer(self) -> HardwareObject | None:
+        return self.get_object_by_role("diffractometer")
+
+    @property
+    def detector(self) -> HardwareObject | None:
+        return self.get_object_by_role("detector")
+
+    @property
+    def resolution(self) -> HardwareObject | None:
+        return self.get_object_by_role("resolution")
+
+    @property
+    def sample_changer(self) -> HardwareObject | None:
+        return self.get_object_by_role("sample_changer")
+
+    @property
+    def sample_changer_maintenance(self) -> HardwareObject | None:
+        return self.get_object_by_role("sample_changer_maintenance")
+
+    @property
+    def harvester(self) -> HardwareObject | None:
+        return self.get_object_by_role("harvester")
+
+    @property
+    def harvester_maintenance(self) -> HardwareObject | None:
+        return self.get_object_by_role("harvester_maintenance")
+
+    @property
+    def plate_manipulator(self) -> HardwareObject | None:
+        return self.get_object_by_role("plate_manipulator")
+
+    @property
+    def session(self) -> HardwareObject | None:
+        return self.get_object_by_role("session")
+
+    @property
+    def lims(self) -> HardwareObject | None:
+        return self.get_object_by_role("lims")
+
+    @property
+    def sample_view(self) -> HardwareObject | None:
+        return self.get_object_by_role("sample_view")
+
+    @property
+    def queue_manager(self) -> HardwareObject | None:
+        return self.get_object_by_role("queue_manager")
+
+    @property
+    def queue_model(self) -> HardwareObject | None:
+        return self.get_object_by_role("queue_model")
+
+    @property
+    def collect(self) -> HardwareObject | None:
+        return self.get_object_by_role("collect")
+
+    @property
+    def xrf_spectrum(self) -> HardwareObject | None:
+        return self.get_object_by_role("xrf_spectrum")
+
+    @property
+    def energy_scan(self) -> HardwareObject | None:
+        return self.get_object_by_role("energy_scan")
+
+    @property
+    def imaging(self) -> HardwareObject | None:
+        return self.get_object_by_role("imaging")
+
+    @property
+    def beamline_actions(self) -> HardwareObject | None:
+        return self.get_object_by_role("beamline_actions")
+
+    @property
+    def xml_rpc_server(self) -> HardwareObject | None:
+        return self.get_object_by_role("xml_rpc_server")
+
+    @property
+    def workflow(self) -> HardwareObject | None:
+        return self.get_object_by_role("workflow")
+
+    @property
+    def control(self) -> HardwareObject | None:
+        return self.get_object_by_role("control")
+
+    @property
+    def gphl_workflow(self) -> HardwareObject | None:
+        return self.get_object_by_role("gphl_workflow")
+
+    @property
+    def gphl_connection(self) -> HardwareObject | None:
+        return self.get_object_by_role("gphl_connection")
+
+    @property
+    def xray_centring(self) -> HardwareObject | None:
+        return self.get_object_by_role("xray_centring")
+
+    @property
+    def online_processing(self) -> HardwareObject | None:
+        return self.get_object_by_role("online_processing")
+
+    @property
+    def offline_processing(self) -> HardwareObject | None:
+        return self.get_object_by_role("offline_processing")
+
+    @property
+    def characterisation(self) -> HardwareObject | None:
+        return self.get_object_by_role("characterisation")
+
+    @property
+    def image_tracking(self) -> HardwareObject | None:
+        return self.get_object_by_role("image_tracking")
+
+    @property
+    def procedure(self) -> HardwareObject | None:
+        return self.get_object_by_role("procedure")
+
+    @property
+    def data_publisher(self) -> HardwareObject | None:
+        return self.get_object_by_role("data_publisher")
+
+    def _init(self) -> None:
+        """Object initialisation - executed *before* loading contents"""
 
     def init(self):
         """Object initialisation - executed *after* loading contents"""
-        # Validate acquisition parameters
-        for acquisition_type, params in self.default_acquisition_parameters.items():
-            unrecognised = [x for x in params if x not in self.SUPPORTED_ACQ_PARAMETERS]
-            if unrecognised:
-                logging.getLogger("HWR").warning(
-                    "Unrecognised acquisition parameters for %s: %s"
-                    % (acquisition_type, unrecognised)
-                )
-        # Validate limits parameters
-        unrecognised = [
-            x
-            for x in self.acquisition_limit_values
-            if x not in self.SUPPORTED_LIMIT_PARAMETERS
-        ]
-        if unrecognised:
-            logging.getLogger("HWR").warning(
-                "Unrecognised parameter limits for: %s" % unrecognised
-            )
 
     def _hwr_init_done(self):
         """
@@ -180,76 +275,17 @@ class Beamline(ConfiguredObject):
         self._hardware_object_id_dict = self._get_id_dict()
 
     def get_id(self, ho: HardwareObject) -> str:
-        """
-        Returns "dotted path/attribute" which is unique within the context of
-        HardwareRepository
-
-        Args:
-            ho: The hardware object for which to get the id
-
-        Returns:
-            "dotted path/attribute"
-        """
-        return self._hardware_object_id_dict.get(ho)
+        warn(
+            "Beamline.get_id is Deprecated. Use hwobj.id instead", stacklevel=2
+        )
+        return ho.id
 
     def get_hardware_object(self, _id: str) -> Union[HardwareObject, None]:
-        """
-        Returns the HardwareObject with the given id
-
-        Args:
-            _id: "attribute path" / id of HardwareObject
-        Returns:
-            HardwareObject with the given id
-        """
-        found_ho = None
-
-        for current_ho, current_id in self._hardware_object_id_dict.items():
-            if current_id == _id:
-                found_ho = current_ho
-
-        return found_ho
-
-    def _get_id_dict(self) -> dict:
-        """
-        Wrapper function used to call the recursive method used to find all
-        HardwareObjects accessible from the Beamline object.
-        """
-        result = {}
-
-        for ho_name in self.all_roles:
-            ho = self._objects.get(ho_name)
-
-            if ho:
-                result[ho] = ho_name
-                self._get_id_dict_rec(ho, ho_name, result)
-
-        return result
-
-    def _get_id_dict_rec(
-        self, ho: HardwareObject, _path: str = "", result: dict = {}
-    ) -> str:
-        """
-        Recurses through all the roles of ho and constructs its corresponding
-        "dotted path/attribute"
-
-        Args:
-            ho (HardwareObject): The HardwareObject to get the id for
-            _path (str): Current path (used in recursion)
-            result: A dictionary where the key is the id of the HardwareObject
-                    and the value its dotted path.
-
-        Returns:
-            (str): Dotted path for the given HardwareObject
-        """
-        if hasattr(ho, "get_roles"):
-            for role in ho.get_roles():
-                child_ho = ho.get_object_by_role(role)
-                if child_ho not in result:
-                    result[child_ho] = self._get_id_dict_rec(
-                        child_ho, f"{_path}.{role}", result
-                    )
-
-        return _path
+        warn(
+            "Beamline.get_hardware_object is Deprecated. Use get_by_id instead",
+            stacklevel=2
+        )
+        return self.get_by_id(_id)
 
     # Signal handling functions:
     def emit(self, signal: Union[str, object, Any], *args) -> None:
@@ -280,519 +316,6 @@ class Beamline(ConfiguredObject):
                 "Signal %s is not connected" % signal
             )
 
-    # NB this function must be re-implemented in nested subclasses
-    @property
-    def all_roles(self):
-        """Tuple of all content object roles, indefinition and loading order
-
-        Returns:
-            tuple[text_str, ...]
-        """
-        return super(Beamline, self).all_roles + tuple(self.__content_roles)
-
-    @property
-    def machine_info(self):
-        """Machine information Hardware object
-
-        Returns:
-            Optional[AbstractMachineInfo]:
-        """
-        return self._objects.get("machine_info")
-
-    __content_roles.append("machine_info")
-
-    @property
-    def authenticator(self):
-        """Authenticator Hardware object
-
-        Returns:
-            Optional[AbstractAuthenticator]:
-        """
-        return self._objects.get("authenticator")
-
-    __content_roles.append("authenticator")
-
-    @property
-    def transmission(self):
-        """Transmission Hardware object
-
-        Returns:
-            Optional[AbstractTransmission]:
-        """
-        return self._objects.get("transmission")
-
-    __content_roles.append("transmission")
-
-    @property
-    def cryo(self):
-        """Cryo Hardware object
-
-        Returns:
-            Optional[AbstractActuator]:
-        """
-        return self._objects.get("cryo")
-
-    __content_roles.append("cryo")
-
-    @property
-    def energy(self):
-        """Energy Hardware object
-
-        Returns:
-            Optional[AbstractEnergy]:
-        """
-        return self._objects.get("energy")
-
-    __content_roles.append("energy")
-
-    @property
-    def flux(self):
-        """Flux Hardware object
-
-        Returns:
-            Optional[AbstractActuator]:
-        """
-        return self._objects.get("flux")
-
-    __content_roles.append("flux")
-
-    @property
-    def beam(self):
-        """Beam Hardware object
-
-        Returns:
-            Optional[AbstractBeam]:
-        """
-        return self._objects.get("beam")
-
-    __content_roles.append("beam")
-
-    @property
-    def hutch_interlock(self):
-        """Hutch Interlock Hardware object
-
-        Returns:
-            Optional[AbstractInterlock]:
-        """
-        return self._objects.get("hutch_interlock")
-
-    __content_roles.append("hutch_interlock")
-
-    @property
-    def sample_environment(self):
-        """Sample Environment Hardware Object
-
-        Returns:
-            Optional[AbstractSampleEnvironment]:
-        """
-        return self._objects.get("sample_environment")
-
-    __content_roles.append("sample_environment")
-
-    @property
-    def safety_shutter(self):
-        """Safety Shutter Hardware object
-
-        Returns:
-            Optional[AbstractShutter]:
-        """
-        return self._objects.get("safety_shutter")
-
-    __content_roles.append("safety_shutter")
-
-    @property
-    def fast_shutter(self):
-        """Fast Shutter Hardware object
-
-        Returns:
-            Optional[AbstractShutter]:
-        """
-        return self._objects.get("fast_shutter")
-
-    __content_roles.append("fast_shutter")
-
-    @property
-    def diffractometer(self):
-        """Diffractometer Hardware object
-
-        Returns:
-            Optional[AbstractDiffractometer]:
-        """
-        return self._objects.get("diffractometer")
-
-    __content_roles.append("diffractometer")
-
-    @property
-    def detector(self):
-        """Detector Hardware object
-
-        Returns:
-            Optional[AbstractDetector]:
-        """
-        return self._objects.get("detector")
-
-    __content_roles.append("detector")
-
-    @property
-    def resolution(self):
-        """Resolution Hardware object
-
-        Returns:
-            Optional[AbstractActuator]:
-        """
-        return self._objects.get("resolution")
-
-    __content_roles.append("resolution")
-
-    @property
-    def sample_changer(self):
-        """Sample Changer Hardware object
-        can be a sample changer, plate_manipulator, jets, chips
-
-        Returns:
-            Optional[AbstractSampleChanger]:
-        """
-        return self._objects.get("sample_changer")
-
-    __content_roles.append("sample_changer")
-
-    @property
-    def sample_changer_maintenance(self):
-        """Sample Changer Maintnance Hardware object
-
-        Returns:
-            Optional[AbstractMaintnanceSampleChanger]:
-        """
-        return self._objects.get("sample_changer_maintenance")
-
-    __content_roles.append("sample_changer_maintenance")
-
-    @property
-    def harvester(self):
-        """Harvester Hardware object
-        can be a sample or plate holder
-
-        Returns:
-            Optional[AbstractHarvester]:
-        """
-        return self._objects.get("harvester")
-
-    __content_roles.append("harvester")
-
-    @property
-    def harvester_maintenance(self):
-        """harvester maintenance Hardware object
-
-        Returns:
-            Optional[Harvester]:
-        """
-        return self._objects.get("harvester_maintenance")
-
-    __content_roles.append("harvester_maintenance")
-
-    @property
-    def plate_manipulator(self):
-        """**DEPRECATED**
-        Plate Manipulator Hardware object
-        NBNB TODO REMOVE THIS From qt version usage and
-        and call HWR.beamline.sample_changer instead as plate_manipulator being
-        treated as an alternative sample changer.
-
-        Returns:
-            Optional[AbstractSampleChanger]:
-        """
-        return self._objects.get("plate_manipulator")
-
-    __content_roles.append("plate_manipulator")
-
-    @property
-    def session(self):
-        """Session Hardware object, holding information on current session and user.
-
-        Returns:
-            Optional[Session]:
-        """
-        return self._objects.get("session")
-
-    __content_roles.append("session")
-
-    @property
-    def lims(self):
-        """LIMS client object.
-
-        Returns:
-            Optional[ISPyBClient]:
-        """
-        return self._objects.get("lims")
-
-    __content_roles.append("lims")
-
-    @property
-    def sample_view(self):
-        """Sample view object. Includes defined shapes.
-
-        Returns:
-            Optional[AbstractSampleView]:
-        """
-        return self._objects.get("sample_view")
-
-    __content_roles.append("sample_view")
-
-    @property
-    def queue_manager(self):
-        """Queue manager object.
-
-        Returns:
-            Optional[QueueManager]:
-        """
-        return self._objects.get("queue_manager")
-
-    __content_roles.append("queue_manager")
-
-    @property
-    def queue_model(self):
-        """Queue model object.
-
-        Returns:
-            Optional[QueueModel]:
-        """
-        return self._objects.get("queue_model")
-
-    __content_roles.append("queue_model")
-
-    # Procedures
-
-    @property
-    def collect(self):
-        """Data collection procedure.
-
-        Returns:
-            Optional[AbstractCollect]:
-        """
-        return self._objects.get("collect")
-
-    __content_roles.append("collect")
-
-    @property
-    def xrf_spectrum(self):
-        """X-ray fluorescence spectrum procedure.
-
-        Returns:
-            Optional[AbstractProcedure]
-        """
-        return self._objects.get("xrf_spectrum")
-
-    __content_roles.append("xrf_spectrum")
-
-    @property
-    def energy_scan(self):
-        """Energy scan procedure.
-
-        Returns:
-            Optional[AbstractProcedure]:
-        """
-        return self._objects.get("energy_scan")
-
-    __content_roles.append("energy_scan")
-
-    @property
-    def imaging(self):
-        """Imaging procedure.
-
-        Returns:
-            Optional[AbstractProcedure]:
-        """
-        return self._objects.get("imaging")
-
-    __content_roles.append("imaging")
-
-    @property
-    def beamline_actions(self):
-        """Beamline Actions
-
-        Returns:
-            Optional[beamline_actions]:
-        """
-        return self._objects.get("beamline_actions")
-
-    __content_roles.append("beamline_actions")
-
-    @property
-    def xml_rpc_server(self):
-        """XMLRPCServer for RPC
-
-        Returns:
-            Optional[XMLRPCServer]:
-        """
-        return self._objects.get("xml_rpc_server")
-
-    __content_roles.append("xml_rpc_server")
-
-    @property
-    def workflow(self):
-        """Standarad EDNA workflow procedure.
-
-        Returns:
-            Optional[Workflow]:
-        """
-        return self._objects.get("workflow")
-
-    __content_roles.append("workflow")
-
-    @property
-    def control(self):
-        """Beamline control system
-
-        Returns:
-            Optional[Control]:
-        """
-        return self._objects.get("control")
-
-    __content_roles.append("control")
-
-    @property
-    def gphl_workflow(self):
-        """Global phasing data collection workflow procedure.
-
-        Returns:
-            Optional[GphlWorkflow]:
-        """
-        return self._objects.get("gphl_workflow")
-
-    __content_roles.append("gphl_workflow")
-
-    # This one is 'hardware', but it is put with its companion
-    @property
-    def gphl_connection(self):
-        """Global PHasing workflow remote connection
-
-        Returns:
-            Optional[GphlWorkflowConnection]:
-        """
-        return self._objects.get("gphl_connection")
-
-    __content_roles.append("gphl_connection")
-
-    # centring
-
-    # NB Could centring be treated as procedures instesad?
-
-    @property
-    def centring(self):
-        """Centring procedures object. Includes X-ray, n-click, optical, move_to_beam
-
-        Returns:
-            Optional[AbstractCentring]:
-        """
-        return self._objects.get("centring")
-
-    __content_roles.append("centring")
-
-    @property
-    def xray_centring(self):
-        """Xray Ccntring hardware object.
-
-        Returns:
-            Optional[XrayCentring2]:
-        """
-        return self._objects.get("xray_centring")
-
-    __content_roles.append("xray_centring")
-
-    # Analysis (combines processing and data analysis)
-
-    @property
-    def online_processing(self):
-        """Synchronous (on-line) data processing procedure.
-
-        Returns:
-            Optional[AbstractProcessing]:
-        """
-        return self._objects.get("online_processing")
-
-    __content_roles.append("online_processing")
-
-    @property
-    def offline_processing(self):
-        """Asynchronous (queue sumbission) data processing procedure.
-
-        Returns:
-            Optional[AbstractProcessing]:
-        """
-        return self._objects.get("offline_processing")
-
-    __content_roles.append("offline_processing")
-
-    @property
-    def characterisation(self):
-        """EDNA characterisation and analysis procedure.
-
-        NB the current code looks rather EDNA-specific
-        to be called 'AbsatractCharacterisation'.
-        Potentially we could generalise it, and maybe make it into a procedure???
-
-        Returns:
-            Optional[EdnaCharacterisation]:
-        """
-        return self._objects.get("characterisation")
-
-    __content_roles.append("characterisation")
-
-    @property
-    def beam_realign(self):
-        """Beam-realign procedure object
-
-        Returns:
-            Optional[AbstractProcedure]:
-        """
-        return self._objects.get("beam_realign")
-
-    __content_roles.append("beam_realign")
-
-    @property
-    def image_tracking(self):
-        """Imaging tracking object
-
-        Returns:
-            Optional[HardwareObject]:
-        """
-        return self._objects.get("image_tracking")
-
-    __content_roles.append("image_tracking")
-
-    # Procedures
-
-    @property
-    def mock_procedure(self):
-        """ """
-        return self._objects.get("mock_procedure")
-
-    __content_roles.append("mock_procedure")
-
-    @property
-    def data_publisher(self):
-        """ """
-        return self._objects.get("data_publisher")
-
-    __content_roles.append("data_publisher")
-
-    # NB this is just an example of a globally shared procedure description
-    @property
-    def manual_centring(self):
-        """Manual centring Procedure
-
-        NB AbstractManualCentring serves to define the parameters for manual centring
-        The actual implementation is set by configuration,
-        and can be given as an AbstractManualCentring subclass on each beamline
-
-        Returns:
-            Optional[AbstractManualCentring]
-        """
-        return self._objects.get("manual_centring")
-
-    __content_roles.append("manual_centring")
-    # Registers this object as a procedure:
-    _procedure_names.add("manual_centring")
 
     # Additional functions
 
@@ -809,9 +332,9 @@ class Beamline(ConfiguredObject):
 
         acq_parameters = queue_model_objects.AcquisitionParameters()
 
-        params = self.default_acquisition_parameters["default"].copy()
+        params = self.config.default_acquisition_parameters["default"].copy()
         if acquisition_type != "default":
-            dd0 = self.default_acquisition_parameters.get(acquisition_type)
+            dd0 = self.config.default_acquisition_parameters.get(acquisition_type)
             if dd0 is None:
                 logging.getLogger("HWR").warning(
                     "No separate parameters for acquisition type: %s - using default."
@@ -905,7 +428,7 @@ class Beamline(ConfiguredObject):
         path_template.start_num = acq_params.first_image
         path_template.num_files = acq_params.num_images
 
-        path_template.run_number = self.run_number
+        path_template.run_number = self.config.run_number
 
         return path_template
 
@@ -913,17 +436,7 @@ class Beamline(ConfiguredObject):
         return self.characterisation.get_default_characterisation_parameters()
 
     def force_emit_signals(self):
-        for role in self.all_roles:
-            hwobj = getattr(self, role)
-            if hwobj is not None:
-                try:
-                    hwobj.force_emit_signals()
-                    for attr in dir(hwobj):
-                        if not attr.startswith("_"):
-                            if hasattr(getattr(hwobj, attr), "force_emit_signals"):
-                                child_hwobj = getattr(hwobj, attr)
-                                child_hwobj.force_emit_signals()
-                except BaseException as ex:
-                    logging.getLogger("HWR").error(
-                        "Unable to call force_emit_signals (%s)" % str(ex)
-                    )
+        hwobjs = list(self.objects_by_role.values())
+        for hwobj in hwobjs:
+            hwobj.force_emit_signals()
+            hwobjs.extend(hwobj.objects_by_role.values())

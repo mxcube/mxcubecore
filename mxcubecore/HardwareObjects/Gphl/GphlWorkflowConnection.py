@@ -44,7 +44,10 @@ from py4j import (
 from py4j.protocol import Py4JJavaError
 
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.BaseHardwareObjects import HardwareObjectYaml
+from mxcubecore.BaseHardwareObjects import (
+    ConfiguredObject,
+    HardwareObject,
+)
 from mxcubecore.HardwareObjects.Gphl import GphlMessages
 from mxcubecore.utils import conversion
 
@@ -88,10 +91,24 @@ __license__ = "LGPLv3+"
 __author__ = "Rasmus H Fogh"
 
 
-class GphlWorkflowConnection(HardwareObjectYaml):
+class GphlWorkflowConnection(HardwareObject):
     """
     This HO acts as a gateway to the Global Phasing workflow engine.
     """
+
+    class HOConfig(ConfiguredObject.HOConfig):
+        """Temporary replacement for Pydantic class
+
+        Required during transition, as long as we do nto have teh fields defined"""
+
+        # Defaults - should be replaced by proper Pydantic
+        software_paths = {}
+        software_properties = {}
+        directory_locations = {}
+        gphl_subdir = "GPHL"
+        gphl_persistname = "persistence"
+        ssh_options = {}
+        connection_parameters = {}
 
     def __init__(self, name):
         super().__init__(name)
@@ -108,29 +125,20 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         self._running_process = None
         self.collect_emulator_process = None
 
-        # Configured parameters
-        self.directory_locations = {}
-        self.ssh_options = {}
-        self.gphl_subdir = "GPHL"
-        self.gphl_persistname = "persistence"
-        self.connection_parameters = {}
-        self.software_paths = {}
-        self.software_properties = {}
-
         self.update_state(self.STATES.UNKNOWN)
 
     def init(self):
         super().init()
 
         # Adapt connections if we are running via ssh
-        if self.ssh_options:
-            self.connection_parameters["python_address"] = socket.gethostname()
+        if self.config.ssh_options:
+            self.config.connection_parameters["python_address"] = socket.gethostname()
 
         # Adapt paths and properties to use directory_locations
-        locations = self.directory_locations
+        locations = self.config.directory_locations
         installdir = locations["GPHL_INSTALLATION"]
-        paths = self.software_paths
-        properties = self.software_properties
+        paths = self.config.software_paths
+        properties = self.config.software_properties
 
         for tag, val in paths.items():
             val2 = val.format(**locations)
@@ -168,9 +176,11 @@ class GphlWorkflowConnection(HardwareObjectYaml):
     def get_executable(self, name):
         """Get location of executable binary for program called 'name'"""
         tag = "co.gphl.wf.%s.bin" % name
-        result = self.software_paths.get(tag)
+        result = self.config.software_paths.get(tag)
         if not result:
-            result = os.path.join(self.software_paths["GPHL_INSTALLATION"], "exe", name)
+            result = os.path.join(
+                self.config.software_paths["GPHL_INSTALLATION"], "exe", name
+            )
         #
         return result
 
@@ -178,7 +188,7 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         """Get directory containing specific licence file (if any)
         for program called 'name'"""
         tag = "co.gphl.wf.%s.bdg_licence_dir" % name
-        result = self.software_paths.get(tag)
+        result = self.config.software_paths.get(tag)
         #
         return result
 
@@ -188,7 +198,7 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         else:
             return
 
-        params = self.connection_parameters
+        params = self.config.connection_parameters
 
         python_parameters = {}
         val = params.get("python_address")
@@ -234,14 +244,14 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         self.msg_class_imported = False
 
         # Cannot be done in init, where the api.sessions link is not yet ready
-        self.software_paths["GPHL_WDIR"] = os.path.join(
-            HWR.beamline.session.get_base_process_directory(), self.gphl_subdir
+        self.config.software_paths["GPHL_WDIR"] = os.path.join(
+            HWR.beamline.session.get_base_process_directory(), self.config.gphl_subdir
         )
 
         strategy_settings = workflow_model_obj.strategy_settings
-        wf_settings = HWR.beamline.gphl_workflow.settings
+        wf_settings = HWR.beamline.gphl_workflow.config.settings
 
-        ssh_options = self.ssh_options
+        ssh_options = self.config.ssh_options
         in_shell = bool(ssh_options)
         if in_shell:
             ssh_options = ssh_options.copy()
@@ -255,7 +265,7 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         else:
             command_list = []
         runworkflow_opts = []
-        command_list.append(self.software_paths["runworkflow"])
+        command_list.append(self.config.software_paths["runworkflow"])
 
         # # HACK - debug options REMOVE!
         # import socket
@@ -290,8 +300,8 @@ class GphlWorkflowConnection(HardwareObjectYaml):
         path_template = workflow_model_obj.get_path_template()
         if "prefix" in workflow_options:
             workflow_options["prefix"] = path_template.base_prefix
-        workflow_options["wdir"] = self.software_paths["GPHL_WDIR"]
-        workflow_options["persistname"] = self.gphl_persistname
+        workflow_options["wdir"] = self.config.software_paths["GPHL_WDIR"]
+        workflow_options["persistname"] = self.config.gphl_persistname
 
         # Set the workflow root subdirectory parameter from the base image directory
         image_root = os.path.abspath(HWR.beamline.session.get_base_image_directory())
@@ -318,7 +328,7 @@ class GphlWorkflowConnection(HardwareObjectYaml):
             command_list.extend(
                 conversion.java_property(keyword, value, quote_value=in_shell)
             )
-        for keyword, value in self.software_properties.items():
+        for keyword, value in self.config.software_properties.items():
             command_list.extend(
                 conversion.java_property(keyword, value, quote_value=in_shell)
             )
@@ -355,17 +365,17 @@ class GphlWorkflowConnection(HardwareObjectYaml):
 
         # These env variables are needed in some cases for wrapper scripts
         # Specifically for the stratcal wrapper.
-        envs["GPHL_INSTALLATION"] = self.software_paths["GPHL_INSTALLATION"]
-        GPHL_XDS_PATH = self.software_paths.get("GPHL_XDS_PATH")
+        envs["GPHL_INSTALLATION"] = self.config.software_paths["GPHL_INSTALLATION"]
+        GPHL_XDS_PATH = self.config.software_paths.get("GPHL_XDS_PATH")
         if GPHL_XDS_PATH:
             envs["GPHL_XDS_PATH"] = GPHL_XDS_PATH
-        GPHL_CCP4_PATH = self.software_paths.get("GPHL_CCP4_PATH")
+        GPHL_CCP4_PATH = self.config.software_paths.get("GPHL_CCP4_PATH")
         if GPHL_CCP4_PATH:
             envs["GPHL_CCP4_PATH"] = GPHL_CCP4_PATH
-        GPHL_AUTOPROC_PATH = self.software_paths.get("GPHL_AUTOPROC_PATH")
+        GPHL_AUTOPROC_PATH = self.config.software_paths.get("GPHL_AUTOPROC_PATH")
         if GPHL_AUTOPROC_PATH:
             envs["GPHL_AUTOPROC_PATH"] = GPHL_AUTOPROC_PATH
-        GPHL_MINICONDA_PATH = self.software_paths.get("GPHL_MINICONDA_PATH")
+        GPHL_MINICONDA_PATH = self.config.software_paths.get("GPHL_MINICONDA_PATH")
         if GPHL_MINICONDA_PATH:
             envs["GPHL_MINICONDA_PATH"] = GPHL_MINICONDA_PATH
         if runworkflow_opts:

@@ -21,11 +21,11 @@
 from __future__ import absolute_import
 
 import ast
+import copy
 import enum
 import logging
 import typing
 import warnings
-from collections import OrderedDict
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -35,9 +35,6 @@ from typing import (
     Iterator,
     List,
     Optional,
-)
-from typing import OrderedDict as TOrderedDict
-from typing import (
     Tuple,
     Type,
     Union,
@@ -55,7 +52,7 @@ from typing_extensions import (
     Literal,
     Self,
 )
-
+from types import MappingProxyType
 from mxcubecore.CommandContainer import CommandContainer
 from mxcubecore.dispatcher import dispatcher
 
@@ -64,7 +61,6 @@ if TYPE_CHECKING:
 
     from pydantic.v1 import BaseModel
 
-    from .CommandContainer import CommandObject
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -91,62 +87,80 @@ class DefaultSpecificState(enum.Enum):
 class ConfiguredObject:
     """Superclass for classes that take configuration from YAML files"""
 
-    # Roles of defined objects and the category they belong to
-    # NB the double underscore is deliberate - attribute must be hidden from subclasses
-    __content_roles: List[str] = []
+    # class HOConfig(pydantic.BaseModel):
+    #     model_config = pydantic.ConfigDict(extra="allow")
 
-    # Procedure names - placeholder.
-    # Will be replaced by a set in any subclasses that can contain procedures
-    # Note that _procedure_names may *not* be set if it is already set in a superclass
-    _procedure_names: Optional[List[str]] = None
+    class HOConfig:
+        """Temporary replacement for Pydantic class
 
-    def __init__(self, name: str) -> None:
+        Required during transition, as long as we don't have the fields defined"""
+
+        def __init__(self, **kwargs):
+            self.__dict__.update(kwargs)
+
+        def model_dump(self):
+            return copy.deepcopy(self.__dict__)
+
+    def __init__(
+        self, name: str, hwobj_container: Optional["ConfiguredObject"] = None
+    ) -> None:
         """
         Args:
-            name (str): Name.
+            name (str): Equal to role name relative to hwobj_container (if applicable)
         """
 
-        self.name = name
+        self._name = name
+        self._config: Optional["ConfiguredObject.HOConfig"] = None
+        self._hwobj_container: Optional[ConfiguredObject] = hwobj_container
+        self._hwobj_by_role = {}
 
-        self._objects: TOrderedDict[str, Union[object, None]] = OrderedDict(
-            (role, None) for role in self.all_roles
-        )
+    @property
+    def name(self):
+        """HWOBJ name - Equal to role name relative to hwobj_container (if applicable)"""
+        return self._name
 
-    def _init(self) -> None:
-        """Object initialisation - executed *before* loading contents"""
-        pass
+    @property
+    def id(self):
+        """dot-separated role names defining path from beamline object to here
 
-    def init(self) -> None:
-        """Object initialisation - executed *after* loading contents"""
-        pass
-
-    def replace_object(self, role: str, new_object: object) -> None:
-        """Replace already defined Object with a new one - for runtime use
-
-        Args:
-            role (str): Role name of contained Object
-            new_object (object): New contained Object
-
-        Raises:
-            ValueError: If contained object role is unknown.
-        """
-        if role in self._objects:
-            self._objects[role] = new_object
+        NB beamline.id == ''"""
+        if self._hwobj_container:
+            names = []
+            obj = self
+            while obj._hwobj_container:
+                names.append(obj.name)
+                obj = obj._hwobj_container
+            return ".".join(reversed(names))
         else:
-            raise ValueError("Unknown contained Object role: %s" % role)
-
-    # NB this function must be re-implemented in nested subclasses
-    @property
-    def all_roles(self) -> Tuple[str]:
-        """Tuple of all content object roles, in definition and loading order
-
-        Returns:
-            Tuple[str]: Content object roles
-        """
-        return tuple(self.__content_roles)
+            return ""
 
     @property
-    def all_objects_by_role(self) -> TOrderedDict[str, Union[Self, None]]:
+    def config(self):
+        """Pydantic object with conifigured parameters, incl. contained HardwareObjects"""
+        return self._config
+
+    @property
+    def hwobj_container(self):
+        """HardwareObject contaiing this one - None for Beamline"""
+        return self._hwobj_container
+
+    def get_by_id(self, _id: str) -> "ConfiguredObject":
+        result = self
+        for name in _id.split("."):
+            # Roles are no longer added to HardwareObjects as attributes so
+            # we have to retreive them by role
+            result = result.get_object_by_role(name)
+
+            if not result:
+                result = getattr(result, name)
+
+            if result is None:
+                break
+
+        return result
+
+    @property
+    def objects_by_role(self) -> Dict[str, Union[Self, None]]:
         """All contained Objects mapped by role (in specification order).
 
         Includes objects defined in subclasses.
@@ -154,24 +168,58 @@ class ConfiguredObject:
         Returns:
             OrderedDict[str, Union[Self, None]]: Contained objects mapped by role.
         """
-        return self._objects.copy()
+        return MappingProxyType(self._hwobj_by_role)
 
-    @property
-    def procedures(self) -> TOrderedDict[str, Self]:
-        """Procedures attached to this object mapped by name (in specification order).
+    def get_properties(self) -> Dict[str, Any]:
+        """Get configured properties (not roles)"""
+        if self._config is not None:
+            return self._config.model_dump()
+        elif isinstance(self, HardwareObjectNode):
+            # NBNB TEMPORARY for transition to yaml configuration only
+            return HardwareObjectNode.get_properties(self)
+
+    def get_property(self, name: str, default_value: Optional[Any] = None) -> Any:
+        """Get property value .
+
+        Args:
+            name (str): Name
+            default_value (Optional[Any], optional): Default value. Defaults to None.
 
         Returns:
-            OrderedDict[str, Self]: Object procedures.
+            Any: Property value.
         """
-        procedure_names = self.__class__._procedure_names
-        result = OrderedDict()
-        if procedure_names:
-            for name in procedure_names:
-                procedure = getattr(self, name)
-                if procedure is not None:
-                    result[name] = procedure
+        if self._config is not None:
+            if hasattr(self._config, name):
+                return getattr(self._config, name)
+            else:
+                return default_value
+        elif isinstance(self, HardwareObjectNode):
+            # NBNB TEMPORARY for transition to yaml configuration only
+            return HardwareObjectNode.get_property(self, name, default_value)
 
-        return result
+    def get_roles(self) -> List[str]:
+        """Get hardware object roles.
+
+        Returns:
+            List[str]: List of hardware object roles.
+        """
+        return list(self._hwobj_by_role.keys())
+
+    def print_log(
+        self,
+        log_type: str = "HWR",
+        level: str = "debug",
+        msg: str = "",
+    ) -> None:
+        """Print message to logger.
+
+        Args:
+            log_type (str, optional): Logger type. Defaults to "HWR".
+            level (str, optional): Logger level. Defaults to "debug".
+            msg (str, optional): Message to log. Defaults to "".
+        """
+        if hasattr(logging.getLogger(log_type), level):
+            getattr(logging.getLogger(log_type), level)(msg)
 
 
 class PropertySet(dict):
@@ -250,29 +298,14 @@ class HardwareObjectNode:
         """
         HardwareObjectNode.user_file_directory = user_file_directory
 
-    def name(self) -> str:
+    @property
+    def load_name(self) -> str:
         """Get node name.
 
         Returns:
             str: Name.
         """
         return self.__name
-
-    def set_name(self, name: str) -> None:
-        """Set node name
-
-        Args:
-            name (str): Name to set.
-        """
-        self.__name = name
-
-    def get_roles(self) -> List[str]:
-        """Get hardware object roles.
-
-        Returns:
-            List[str]: List of hardware object roles.
-        """
-        return list(self._objects_by_role.keys())
 
     def set_path(self, path: str) -> None:
         """Set the 'path' of the Hardware Object in the XML file describing it
@@ -281,46 +314,26 @@ class HardwareObjectNode:
         Args:
             path (str): String representing the path of the Hardware Object in its file
         """
+
+        # NB For use ONLY in loading xml-configured objects
+
         self._path = path
 
-    def get_xml_path(self) -> Union[str, None]:
-        """Get XML file path.
-
-        Returns:
-            Union[str, None]: XML file path.
-        """
-        return self._xml_path
-
     def __iter__(self) -> Generator[Union["HardwareObject", None], None, None]:
+        warnings.warn("%s.__iter__ is Deprecated. Avoid" % self.__class__.__name__)
         for i in range(len(self.__objects_names)):
             for object in self.__objects[i]:
                 yield object
 
     def __len__(self) -> int:
+        warnings.warn("%s.__len__ is Deprecated. Avoid" % self.__class__.__name__)
         return sum(map(len, self.__objects))
-
-    def __getattr__(self, attr: str) -> Any:
-        if attr.startswith("__"):
-            raise AttributeError(attr)
-
-        try:
-            return self.__dict__["_property_set"][attr]
-        except KeyError:
-            raise AttributeError(attr)
-
-    def __setattr__(self, attr: str, value: Any) -> None:
-        try:
-            if attr not in self.__dict__ and attr in self._property_set:
-                self.set_property(attr, value)
-            else:
-                self.__dict__[attr] = value
-        except AttributeError:
-            self.__dict__[attr] = value
 
     def __getitem__(
         self,
         key: Union[str, int],
     ) -> Union["HardwareObject", List[Union["HardwareObject", None]], None]:
+        warnings.warn("%s.__getitem__ is Deprecated. Avoid" % self.__class__.__name__)
         if isinstance(key, str):
             object_name = key
 
@@ -361,6 +374,7 @@ class HardwareObjectNode:
             reference (str): Xpath reference.
             role (Union[str, None], optional): Role. Defaults to None.
         """
+
         role = str(role).lower()
 
         try:
@@ -385,6 +399,8 @@ class HardwareObjectNode:
         """Resolve hardware objects from defined references."""
         # NB Must be here - importing at top level leads to circular imports
         from .HardwareRepository import get_hardware_repository
+
+        # NB For use ONLY in loading xml-configured objects
 
         while len(self.__references) > 0:
             (
@@ -416,10 +432,14 @@ class HardwareObjectNode:
                     if len(self.__objects[objects_index]) == 0:
                         del self.__objects[objects_index]
 
-        for hw_object in self:
-            hw_object.resolve_references()
+        # Inlined version of 'for hw_object in self' to avoid warnings
+        # NB this function is used ONLY for loading XML-configured objects
+        # and so will disappear
+        for i in range(len(self.__objects_names)):
+            for hw_object in self.__objects[i]:
+                hw_object.resolve_references()
 
-    def add_object(
+    def _add_object(
         self,
         name: str,
         hw_object: Union["HardwareObject", None],
@@ -432,6 +452,9 @@ class HardwareObjectNode:
             hw_object (Union[HardwareObject, None]): Hardware object.
             role (Optional[str], optional): Role. Defaults to None.
         """
+
+        # NB For use ONLY in loading xml-configured objects
+
         if hw_object is None:
             return None
         elif role is not None:
@@ -447,18 +470,7 @@ class HardwareObjectNode:
         else:
             self.__objects[index].append(hw_object)
 
-    def has_object(self, object_name: str) -> bool:
-        """Check if has hardware object by name.
-
-        Args:
-            object_name (str): Name.
-
-        Returns:
-            bool: True if object name in hardware object node, otherwise False.
-        """
-        return object_name in self.__objects_names
-
-    def get_objects(
+    def _get_objects(
         self,
         object_name: str,
     ) -> Generator[Union["HardwareObject", None], None, None]:
@@ -470,6 +482,9 @@ class HardwareObjectNode:
         Yields:
             Union[HardwareObject, None]: Hardware object.
         """
+
+        # NB For use ONLY in loading xml-configured objects
+
         try:
             index = self.__objects_names.index(object_name)
         except ValueError:
@@ -488,6 +503,26 @@ class HardwareObjectNode:
             Union[HardwareObject, None]: Hardware object.
         """
         role = str(role).lower()
+        #
+        # A hack to emulate get_object_by_role() for objects loaded from YAML config
+        # files.
+        #
+        # When HWOBJ is loaded from YAML, we don't populate it's '_objects_by_role'
+        # dictionary, thus that normal code path to look-up and object by role does
+        # not work.
+        #
+        # However, objects are attached to the parents _hwobj_by_role object via
+        # assignment. Try accessing using that attribute.
+        #
+        if hasattr(self, "_hwobj_by_role"):
+            obj = self._hwobj_by_role.get(role, None)
+
+            if obj is not None:
+                return obj
+
+        #
+        # Look-up object by role the old way.
+        #
         objects = [self]
 
         for curr in objects:
@@ -498,7 +533,7 @@ class HardwareObjectNode:
             else:
                 return result
 
-    def objects_names(self) -> List[Union[str, None]]:
+    def _objects_names(self) -> List[Union[str, None]]:
         """Return hardware object names.
 
         Returns:
@@ -506,13 +541,16 @@ class HardwareObjectNode:
         """
         return self.__objects_names[:]
 
-    def set_property(self, name: str, value: Any) -> None:
+    def _set_property(self, name: str, value: Any) -> None:
         """Set property value.
 
         Args:
             name (str): Name.
             value (Any): Value.
         """
+
+        # NB For use ONLY in loading xml-configured objects
+
         name = str(name)
         value = str(value)
 
@@ -549,28 +587,15 @@ class HardwareObjectNode:
         return self._property_set.get(str(name), default_value)
 
     def get_properties(self) -> PropertySet:
-        """Get properties.
+        """Get properties - for XML-config implementation loading only
 
         Returns:
             PropertySet: Properties.
         """
+
+        # NB For use ONLY in loading xml-configured objects
+
         return self._property_set
-
-    def print_log(
-        self,
-        log_type: str = "HWR",
-        level: str = "debug",
-        msg: str = "",
-    ) -> None:
-        """Print message to logger.
-
-        Args:
-            log_type (str, optional): Logger type. Defaults to "HWR".
-            level (str, optional): Logger level. Defaults to "debug".
-            msg (str, optional): Message to log. Defaults to "".
-        """
-        if hasattr(logging.getLogger(log_type), level):
-            getattr(logging.getLogger(log_type), level)(msg)
 
 
 class HardwareObjectMixin(CommandContainer):
@@ -619,6 +644,9 @@ class HardwareObjectMixin(CommandContainer):
         # List of member names (methods) to be exported (Set at configuration stage)
         self._exports_config_list = []
 
+        self.log: "Logger" = logging.getLogger("HWR").getChild(self.__class__.__name__)
+        self.user_log: "Logger" = logging.getLogger("user_log_level")
+
     def __bool__(self) -> Literal[True]:
         return True
 
@@ -637,12 +665,14 @@ class HardwareObjectMixin(CommandContainer):
 
         For ConfiguredObjects called after loading contained objects.
         """
+        self._exports_config_list.extend(
+            ast.literal_eval(self.get_property("exports", "[]").strip())
+        )
         self._exports = dict.fromkeys(self._exports_config_list, {})
 
         # Add methods that are exported programatically
         for attr_name in dir(self):
             _attr = getattr(self, attr_name)
-
             if getattr(_attr, "__exported__", False):
                 self._exports[attr_name] = []
 
@@ -1004,60 +1034,31 @@ class HardwareObjectMixin(CommandContainer):
     #     pass
 
 
-class HardwareObject(HardwareObjectNode, HardwareObjectMixin):
+class HardwareObject(ConfiguredObject, HardwareObjectNode, HardwareObjectMixin):
     """Xml-configured hardware object"""
 
-    def __init__(self, rootName: str) -> None:
+    def __init__(self, name: str) -> None:
         """
         Args:
-            rootName (str): Name.
+            name (str): Name.
         """
-        HardwareObjectNode.__init__(self, rootName)
+        ConfiguredObject.__init__(self, name)
+        HardwareObjectNode.__init__(self, name)
         HardwareObjectMixin.__init__(self)
-        self.log: "Logger" = logging.getLogger("HWR").getChild(self.__class__.__name__)
-        self.user_log: "Logger" = logging.getLogger("user_log_level")
-        self.__exports: Dict[str, Any] = {}
-        self.__pydantic_models: Dict[str, Type["BaseModel"]] = {}
-        self._exported_attributes: Dict[str, Any] = {}
-        self._exports_config_list = []
-
-    @property
-    def exported_attributes(self) -> Dict[str, Any]:
-        """Get exported attributes.
-
-        Returns:
-            Dict[str, Any]: Exported attributes.
-        """
-        return self._exported_attributes
-
-    def init(self) -> None:
-        """Hardware object init."""
-        self._exports_config_list.extend(
-            ast.literal_eval(self.get_property("exports", "[]").strip())
-        )
-        HardwareObjectMixin.init(self)
 
     def __getstate__(self) -> str:
-        return self.name()
+        # NBNB Needs updating
+
+        return self.load_name
 
     def __setstate__(self, name: str) -> None:
         # NB Must be here - importing at top level leads to circular imports
         from .HardwareRepository import get_hardware_repository
 
+        # NBNB Needs updating
+
         obj = get_hardware_repository().get_hardware_object(name)
         self.__dict__.update(obj.__dict__)
-
-    def __getattr__(self, attr: str) -> Union["CommandObject", Any]:
-        if attr.startswith("__"):
-            raise AttributeError(attr)
-
-        try:
-            return CommandContainer.__getattr__(self, attr)
-        except AttributeError:
-            try:
-                return HardwareObjectNode.__getattr__(self, attr)
-            except AttributeError:
-                raise AttributeError(attr)
 
     def commit_changes(self) -> None:
         """Commit last changes back to configuration."""
@@ -1073,7 +1074,7 @@ class HardwareObject(HardwareObjectNode, HardwareObjectMixin):
 
             if isinstance(node, HardwareObject):
                 if updates:
-                    get_hardware_repository().update(node.name(), updates)
+                    get_hardware_repository().update(node.load_name, updates)
                 return []
             else:
                 return updates
@@ -1090,7 +1091,7 @@ class HardwareObject(HardwareObjectNode, HardwareObjectMixin):
         # NB Must be here - importing at top level leads to circular imports
         from .HardwareRepository import get_hardware_repository
 
-        get_hardware_repository().rewrite_xml(self.name(), xml)
+        get_hardware_repository().rewrite_xml(self.load_name, xml)
 
     def xml_source(self) -> Union[str, Any]:
         """Get XML configuration source.
@@ -1102,24 +1103,10 @@ class HardwareObject(HardwareObjectNode, HardwareObjectMixin):
         # NB Must be here - importing at top level leads to circular imports
         from .HardwareRepository import get_hardware_repository
 
-        return get_hardware_repository().xml_source[self.name()]
+        return get_hardware_repository().xml_source[self.load_name]
 
 
-class HardwareObjectYaml(ConfiguredObject, HardwareObjectMixin):
-    """Yaml-configured hardware object.
-
-    For use when we move configuration out of xml and into yaml.
-
-    The class is needed only to provide a single superclass
-    that combines ConfiguredObject and HardwareObjectMixin"""
-
-    def __init__(self, name: str) -> None:
-        """
-        Args:
-            name (str): Name.
-        """
-        ConfiguredObject.__init__(self, name)
-        HardwareObjectMixin.__init__(self)
+HardwareObjectYaml = HardwareObject
 
 
 class Procedure(HardwareObject):

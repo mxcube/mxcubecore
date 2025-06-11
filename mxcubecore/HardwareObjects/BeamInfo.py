@@ -21,7 +21,6 @@ beamPosChanged
 
 import logging
 
-from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 

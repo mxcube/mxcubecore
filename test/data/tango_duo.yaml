@@ -1,0 +1,20 @@
+# yamllint disable rule:empty-values
+%YAML 1.2
+---
+class: Dummy
+configuration: {}
+tango:
+  my/first/device:
+    commands:
+      firstDevCmd1:
+      firstDevCmd2:
+    channels:
+      simple:
+      cyan:
+  my/second/device:
+    commands:
+      secondDevCmd1:
+      secondDevCmd2:
+    channels:
+      red:
+      green:

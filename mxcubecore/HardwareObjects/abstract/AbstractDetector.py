@@ -84,13 +84,10 @@ class AbstractDetector(HardwareObject):
         self._metadata = {}
 
     def init(self):
-        """Initialise some common paramerters"""
+        """Initialise some common parameters"""
         super().init()
 
-        try:
-            self._metadata = dict(self["beam"].get_properties())
-        except KeyError:
-            pass
+        self._metadata = self.get_property("beam", {})
 
         self._images_per_file = self.get_property("images_per_file", 100)
 
@@ -285,8 +282,8 @@ class AbstractDetector(HardwareObject):
 
         beam_x, beam_y = self.get_beam_position(distance)
         pixel_x, pixel_y = self.get_pixel_size()
-        max_delta_x = max(beam_x, self.width - beam_x) * pixel_x
-        max_delta_y = max(beam_y, self.height - beam_y) * pixel_y
+        max_delta_x = max(beam_x, self._width - beam_x) * pixel_x
+        max_delta_y = max(beam_y, self._height - beam_y) * pixel_y
 
         return math.sqrt(max_delta_x * max_delta_x + max_delta_y * max_delta_y)
 

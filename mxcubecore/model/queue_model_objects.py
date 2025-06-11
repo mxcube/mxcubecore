@@ -43,7 +43,7 @@ try:
     yaml = YAML(typ="safe", pure=True)
     # The following are not needed for load, but define the default style.
     yaml.default_flow_style = False
-    yaml.indent(mapping=4, sequence=4, offset=2)
+    yaml.indent(mapping=2, sequence=4, offset=2)
 except Exception:
     logging.getLogger("HWR").warning(
         "Cannot import dependencies needed for GPHL workflows - GPhL workflows might not work"
@@ -2091,7 +2091,7 @@ class GphlWorkflow(TaskNode):
         # # Centring handling and MXCuBE-side flow
         self.set_requires_centring(False)
 
-        self.set_from_dict(workflow_hwobj.settings["defaults"])
+        self.set_from_dict(workflow_hwobj.config.settings["defaults"])
 
         # Set missing values from BL defaults and limits.
         # NB cannot be done till after all HO are initialised.
@@ -2212,7 +2212,7 @@ class GphlWorkflow(TaskNode):
             self.interleave_order = interleave_order
 
         # NB this is an internal dictionary. DO NOT MODIFY
-        settings = HWR.beamline.gphl_workflow.settings
+        settings = HWR.beamline.gphl_workflow.config.settings
 
         if energies:
             # Energies *reset* existing list, and there must be at least one
@@ -2278,10 +2278,10 @@ class GphlWorkflow(TaskNode):
             self.strategy_options.update(strategy_options)
 
         strategy_variant = (
-                strategy
-                or self.strategy_options.get("variant")
-                or self.strategy_settings["variants"][0]
-            )
+            strategy
+            or self.strategy_options.get("variant")
+            or self.strategy_settings["variants"][0]
+        )
         if self.characterisation_done:
             self.strategy_options["variant"] = self.strategy_variant = strategy_variant
         elif self.wftype == "diffractcal":
@@ -2335,7 +2335,7 @@ class GphlWorkflow(TaskNode):
         from mxcubecore.HardwareObjects.Gphl import GphlMessages
 
         # NB this is an internal dictionary. DO NOT MODIFY
-        settings = HWR.beamline.gphl_workflow.settings
+        settings = HWR.beamline.gphl_workflow.config.settings
 
         if exposure_time:
             self.exposure_time = float(exposure_time)
@@ -2420,7 +2420,7 @@ class GphlWorkflow(TaskNode):
         if dd1:
             self.workflow_parameters.update(dd1)
 
-        settings = HWR.beamline.gphl_workflow.settings
+        settings = HWR.beamline.gphl_workflow.config.settings
         # NB settings is an internal attribute DO NOT MODIFY
 
         # Auto acquisition parameters
@@ -2457,7 +2457,9 @@ class GphlWorkflow(TaskNode):
             "prefix"
         ) or HWR.beamline.session.get_default_prefix(sample_model)
         self.set_name(base_prefix)
-        self.path_template.suffix = params.get("suffix") or HWR.beamline.session.suffix
+        self.path_template.suffix = (
+            params.get("suffix") or HWR.beamline.detector.config.fileSuffix
+        )
         self.path_template.num_files = 0
 
         self.path_template.directory = os.path.join(

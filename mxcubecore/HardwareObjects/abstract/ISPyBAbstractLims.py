@@ -30,6 +30,13 @@ class ISPyBAbstractLIMS(AbstractLims):
         self.base_result_url = None
         self.login_ok = False
 
+        #
+        # WebService related configuration
+        #
+        self.ws_root = None
+        self.ws_username = None
+        self.ws_password = None
+
     def init(self):
         super().init()
         self.pyispyb = self.get_object_by_role("pyispyb")

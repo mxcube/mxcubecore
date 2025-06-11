@@ -125,7 +125,7 @@ class CollectEmulator(CollectMockup):
 
         # Add/overwrite parameters from emulator configuration
         conv = conversion.convert_string_value
-        for key, val in self["simcal_parameters"].get_properties().items():
+        for key, val in self.config.simcal_parameters.items():
             setup_data[key] = conv(val)
 
         setup_data["n_vertices"] = 0
@@ -256,18 +256,18 @@ class CollectEmulator(CollectMockup):
         simcal_executive = gphl_connection.get_executable("simcal")
         simcal_licence_dir = (
             gphl_connection.get_bdg_licence_dir("simcal")
-            or gphl_connection.software_paths["GPHL_INSTALLATION"]
+            or gphl_connection.config.software_paths["GPHL_INSTALLATION"]
         )
         # # Get environmental variables.
         envs = {"autoPROC_home": simcal_licence_dir}
-        GPHL_XDS_PATH = gphl_connection.software_paths.get("GPHL_XDS_PATH")
+        GPHL_XDS_PATH = gphl_connection.config.software_paths.get("GPHL_XDS_PATH")
         if GPHL_XDS_PATH:
             envs["GPHL_XDS_PATH"] = GPHL_XDS_PATH
-        GPHL_CCP4_PATH = gphl_connection.software_paths.get("GPHL_CCP4_PATH")
+        GPHL_CCP4_PATH = gphl_connection.config.software_paths.get("GPHL_CCP4_PATH")
         if GPHL_CCP4_PATH:
             envs["GPHL_CCP4_PATH"] = GPHL_CCP4_PATH
         text_type = conversion.text_type
-        for tag, val in self["environment_variables"].get_properties().items():
+        for tag, val in self.config.environment_variables.items():
             envs[text_type(tag)] = text_type(val)
 
         # get crystal data
@@ -304,7 +304,7 @@ class CollectEmulator(CollectMockup):
             hklfile,
         ]
 
-        for tag, val in self["simcal_options"].get_properties().items():
+        for tag, val in self.config.simcal_options.items():
             command_list.extend(conversion.command_option(tag, val, prefix="--"))
         logging.getLogger("HWR").info("Executing command: %s", " ".join(command_list))
         logging.getLogger("HWR").info("Executing environment: %s", sorted(envs.items()))

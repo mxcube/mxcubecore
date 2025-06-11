@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
-<object class="MicrodiffBeamstop">
-  <username>Beamstop</username>
-  <tangoname>tango://microdiff29new:18001/embl/md/1#dbase=no</tangoname>
-  <motors>
-    <object role="vertical" hwrid="/exp/bstopz"></object>
-    <object role="horizontal" hwrid="/exp/bstopy"></object>
-  </motors>
-</object>

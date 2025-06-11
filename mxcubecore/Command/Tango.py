@@ -168,6 +168,7 @@ class TangoChannel(ChannelObject):
         self.device_name = tangoname
         self.device = None
         self.value = Poller.NotInitializedValue
+        self.poller = None
         self.polling = polling
         self.polling_timer = None
         self.polling_events = False
@@ -176,6 +177,18 @@ class TangoChannel(ChannelObject):
         self._device_initialized = gevent.event.Event()
         self.init_device()
         self.continue_init(None)
+
+    def stop_polling(self):
+        """Stop polling the underlying Tango attribute.
+
+        If this channel is currently polling its tango attribute, via
+        'attribute read' calls, stop polling.
+
+        If no polling is active, this method does nothing.
+        """
+        if self.poller is not None:
+            self.poller.stop()
+            self.poller = None
 
     def init_poll_failed(self, e, poller_id):
         self._device_initialized.clear()
@@ -191,7 +204,7 @@ class TangoChannel(ChannelObject):
         if isinstance(self.polling, int):
             self.raw_device = DeviceProxy(self.device_name)
 
-            Poller.poll(
+            self.poller = Poller.poll(
                 self.poll,
                 polling_period=self.polling,
                 value_changed_callback=self.update,
@@ -259,60 +272,20 @@ class TangoChannel(ChannelObject):
         TangoChannel._tangoEventsProcessingTimer.send()
 
     def poll(self):
-        def read_attr():
-            if self.read_as_str:
-                value = self.raw_device.read_attribute(
-                    self.attribute_name, PyTango.DeviceAttribute.ExtractAs.String
-                ).value
-            else:
-                value = self.raw_device.read_attribute(self.attribute_name).value
+        if self.read_as_str:
+            value = self.raw_device.read_attribute(
+                self.attribute_name, PyTango.DeviceAttribute.ExtractAs.String
+            ).value
+        else:
+            value = self.raw_device.read_attribute(self.attribute_name).value
 
-            return value
-
-        while True:
-            try:  # in case of tango communication errors, retry reading the attribute
-                return read_attr()
-            except PyTango.DevFailed:
-                log.warning(
-                    f"error polling {self.raw_device} {self.attribute_name} attribute, retrying.",
-                    exc_info=True,
-                )
-                gevent.sleep(0.1)
-            except Exception:
-                log.exception(
-                    "unexpected exception polling %s %s attribute",
-                    self.raw_device,
-                    self.attribute_name,
-                )
-                raise
+        return value
 
     def poll_failed(self, e, poller_id):
         self.emit("update", None)
-        """
-        emit_update = True
-        if self.value is None:
-          emit_update = False
-        else:
-          self.value = None
-
-        try:
-            self.init_device()
-        except:
-            pass
-
         poller = Poller.get_poller(poller_id)
         if poller is not None:
             poller.restart(1000)
-
-        try:
-          raise e
-        except:
-          logging.exception("%s: Exception happened while polling %s", self.name(), self.attribute_name)
-
-        if emit_update:
-          # emit at the end => can raise exceptions in callbacks
-          self.emit('update', None)
-        """
 
     def get_info(self):
         self._device_initialized.wait(timeout=3)

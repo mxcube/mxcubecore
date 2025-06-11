@@ -47,15 +47,12 @@ def poll(
     start_delay=0,
     start_value=NotInitializedValue,
 ):
-    # logging.info(">>>> %s", POLLERS)
     for poller in POLLERS.values():
         poller_polled_call = poller.polled_call_ref()
-        # logging.info(">>>>> poller.poll_cmd=%s, poll_cmd=%s, poller.args=%s, args=%s", poller_polled_call, polled_call, poller.args, polled_call_args)
         if poller_polled_call == polled_call and poller.args == polled_call_args:
             poller.set_polling_period(min(polling_period, poller.get_polling_period()))
             return poller
 
-    # logging.info(">>>>> CREATING NEW POLLER for cmd %r, args=%s, polling time=%d", polled_call, polled_call_args, polling_period)
     poller = _Poller(
         polled_call,
         polled_call_args,
@@ -91,10 +88,6 @@ class _Poller:
         self.queue = queue.Queue()
         self.delay = 0
         self.stop_event = Event()
-
-        #if gevent_version < [1,3,0]:
-            #self.async_watcher = gevent.get_hub().loop.async()
-        #else:
         self.async_watcher = gevent.get_hub().loop.async_()
 
     def start_delayed(self, delay):
@@ -152,7 +145,7 @@ class _Poller:
                     gevent.spawn(cb, res)
 
     def run(self):
-        sleep = gevent.monkey._get_original("time", ["sleep"])[0]
+        sleep = gevent.monkey.get_original("time", "sleep")
 
         self.async_watcher.start(self.new_event)
 
@@ -180,6 +173,7 @@ class _Poller:
                 error_cb = self.error_callback_ref()
                 if error_cb is not None:
                     self.queue.put(PollingException(e, self.get_id()))
+                self.old_res = NotInitializedValue
                 break
 
             del polled_call

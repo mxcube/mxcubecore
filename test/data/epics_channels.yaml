@@ -1,0 +1,12 @@
+# yamllint disable rule:empty-values
+%YAML 1.2
+---
+class: EpicTest
+configuration: {}
+epics:
+  "test:pre:fix:":
+    channels:
+      simple:
+      fancy:
+        suffix: "epics_suffix"
+        polling_period: 1234

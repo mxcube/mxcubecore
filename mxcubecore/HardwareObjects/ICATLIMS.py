@@ -6,12 +6,13 @@ from datetime import (
     datetime,
     timedelta,
 )
-from time import strftime
 from typing import (
     List,
     Optional,
 )
+from zoneinfo import ZoneInfo
 
+import requests
 from pyicat_plus.client.main import IcatClient
 from pyicat_plus.client.models.session import Session as ICATSession
 
@@ -21,6 +22,7 @@ from mxcubecore.HardwareObjects.abstract.AbstractLims import AbstractLims
 from mxcubecore.model.lims_session import (
     Lims,
     LimsSessionManager,
+    SampleInformation,
     SampleSheet,
     Session,
 )
@@ -120,51 +122,93 @@ class ICATLIMS(AbstractLims):
         )
         return self.lims_rest.to_sessions(self.lims_rest.investigations)
 
-    def get_samples(self, lims_name):
-        try:
-            logging.getLogger("HWR").debug(
-                "[ICATClient] get_samples %s %s lims_name=%s",
-                self.session_manager.active_session.session_id,
-                self.session_manager.active_session.proposal_name,
-                lims_name,
-            )
-            parcels = self.get_parcels()
+    def _get_loaded_pucks(self):
+        """
+        Retrieves all pucks from the parcels that have a defined 'sampleChangerLocation'.
 
-            sample_sheets = self.get_samples_sheets()
+        A puck is considered "loaded" if it contains the key 'sampleChangerLocation'.
+        Iterates through all parcels and collects such pucks.
 
-            queue_samples = []
-            for parcel in parcels:
-                pucks = parcel["content"]
-                logging.getLogger("HWR").debug(
-                    "[ICATClient] Reading parcel '%s' with '%s' pucks"
-                    % (parcel["name"], len(pucks))
-                )
-                # Parcels contains pucks: unipucks and spine pucks
+        Returns:
+            list: A list of pucks (dicts) that have 'sampleChangerLocation' defined.
+        """
+        loaded_pucks = []
+
+        if self.parcels:
+            for parcel in self.parcels:
+                pucks = parcel.get("content", [])
                 for puck in pucks:
-                    tracking_samples = puck["content"]
                     if "sampleChangerLocation" in puck:
-                        logging.getLogger("HWR").debug(
-                            "[ICATClient] Processing puck '%s' within parcel '%s' at position '%s'. Number of samples '%s'"
-                            % (
-                                puck["name"],
-                                parcel["name"],
-                                puck["sampleChangerLocation"],
-                                len(tracking_samples),
-                            )
-                        )
-                        for tracking_sample in tracking_samples:
-                            queue_samples.append(
-                                self.__to_sample(tracking_sample, puck, sample_sheets)
-                            )
+                        # Add information about the parcel
+                        puck["parcelName"] = parcel.get("name")
+                        puck["parcelId"] = parcel.get("id")
+                        loaded_pucks.append(puck)
+
+        return loaded_pucks
+
+    def get_samples(self, lims_name):
+        """
+        Retrieves and processes sample information from LIMS based on the provided name.
+
+        This method:
+        - Retrieves parcel data (containers like UniPucks or SpinePucks).
+        - Retrieves sample sheet data.
+        - Identifies and processes only loaded pucks (those with a 'sampleChangerLocation').
+        - Converts each sample in the pucks into internal queue samples using `__to_sample`.
+
+        Args:
+            lims_name (str): The LIMS name or identifier used to fetch sample-related data.
+
+        Returns:
+            list: A list of processed sample objects ready for queuing.
+        """
+        logger = logging.getLogger("HWR")
+        queue_samples = []
+
+        try:
+            session = self.session_manager.active_session
+            logger.debug(
+                "[ICATClient] get_samples: session_id=%s, proposal_name=%s",
+                session.session_id,
+                session.proposal_name,
+            )
+
+            # Load parcels (pucks)
+            self.parcels = self.get_parcels()
+
+            # Load sample sheets
+            self.sample_sheets = self.get_samples_sheets()
+            logger.debug(
+                "[ICATClient] %d sample sheets retrieved", len(self.sample_sheets)
+            )
+
+            # Filter for loaded pucks
+            self.loaded_pucks = self._get_loaded_pucks()
+            logger.debug("[ICATClient] %d loaded pucks found", len(self.loaded_pucks))
+
+            # Extract and process samples from loaded pucks
+            for puck in self.loaded_pucks:
+                tracking_samples = puck.get("content", [])
+                puck_name = puck.get("name", "Unnamed")
+                location = puck.get("sampleChangerLocation", "Unknown")
+
+                logger.debug(
+                    "[ICATClient] Found puck '%s' at position '%s' containing %d samples",
+                    puck_name,
+                    location,
+                    len(tracking_samples),
+                )
+
+                for tracking_sample in tracking_samples:
+                    sample = self.__to_sample(tracking_sample, puck, self.sample_sheets)
+                    queue_samples.append(sample)
 
         except Exception as e:
-            logging.getLogger("HWR").error(e)
+            logger.error("[ICATClient] Error retrieving samples: %s", str(e))
             return []
 
-        logging.getLogger("HWR").debug(
-            "[ICATClient] Read %s samples" % (len(queue_samples))
-        )
-
+        logger.debug("[ICATClient] Total %d samples read", len(queue_samples))
+        self.samples = queue_samples
         return queue_samples
 
     def find(self, arr, atribute_name):
@@ -188,26 +232,103 @@ class ICATLIMS(AbstractLims):
         """
         return next((sample for sample in samples if sample.id == sample_id), None)
 
-    def __to_sample(self, tracking_sample, puck, sample_sheets: List[SampleSheet]):
-        """Converts the sample tracking into the expected sample data structure"""
+    def objectid_to_int(self, oid_str):
+        return int(oid_str, 16)
 
-        sample_name = str(tracking_sample["name"])
-        protein_acronym = sample_name
-        sample_sheet = self.get_sample_sheet_by_id(
-            sample_sheets, tracking_sample["sampleId"]
+    def int_to_objectid(self, i):
+        return hex(i)[2:].zfill(24)
+
+    def __to_sample(
+        self, tracking_sample: dict, puck: dict, sample_sheets: List[SampleSheet]
+    ) -> dict:
+        """
+        Converts a tracking sample and associated metadata into the internal sample data structure.
+
+        This method:
+        - Extracts relevant sample metadata.
+        - Resolves protein acronym from the sample sheet if available.
+        - Maps experiment plan details into a diffraction plan dictionary.
+        - Assembles all relevant fields into a final structured sample dictionary.
+
+        Args:
+            tracking_sample (dict): The raw sample data from tracking.
+            puck (dict): The puck (container) metadata associated with the sample.
+            sample_sheets (List[SampleSheet]): List of sample sheets used for lookup.
+
+        Returns:
+            dict: A dictionary representing the standardized internal sample format.
+        """
+        # Basic identifiers
+        sample_name = str(tracking_sample.get("name"))
+
+        # MXCuBE needs to be an integer while in DRAC is a ObjectId
+        # Mongo @BES needs to be smaller then 8 bytes
+        sample_id = int(str(self.objectid_to_int(tracking_sample.get("id")))[0:6])
+        # id to the sample sheet declared in the user portal
+        sample_sheet_id = tracking_sample.get("sampleId")
+        # identifier that points to the sample tracking
+        trackingSampleId = tracking_sample.get("_id")
+
+        logging.getLogger("HWR").debug(
+            "[ICATClient] Sample ids sample_id=%s sample_sheet_id=%s trackingSampleId=%s",
+            sample_id,
+            sample_sheet_id,
+            trackingSampleId,
         )
-        if sample_sheet is not None:
+
+        sample_location = tracking_sample.get("sampleContainerPosition")
+        puck_location = str(puck.get("sampleChangerLocation", "Unknown"))
+        puck_name = puck.get("name", "UnknownPuck")
+        parcel_name = puck.get("parcelName")
+        parcel_id = puck.get("parcelId")
+        # Determine protein acronym using sample sheet if available
+        protein_acronym = sample_name  # Default fallback
+
+        sample_sheet = self.get_sample_sheet_by_id(sample_sheets, sample_sheet_id)
+        if sample_sheet:
             protein_acronym = sample_sheet.name
 
-        experiment_plan = tracking_sample["experimentPlan"]
+        experiment_plan = tracking_sample.get("experimentPlan", {})
+
+        processing_plan = tracking_sample.get("processingPlan", [])
+        search_models = None
+        reference = None
+
+        if processing_plan:
+            try:
+                parsed_plan = json.loads(processing_plan[0]["value"])[0]
+            except (ValueError, KeyError, IndexError, TypeError) as e:
+                parsed_plan = {}
+
+            try:
+                search_models = parsed_plan.get("search_models")
+            except Exception:
+                search_models = None
+
+            try:
+                reference = parsed_plan.get("reference")
+            except Exception:
+                reference = None
+
+        comments = tracking_sample.get("comments")
+
         return {
-            "cellA": self.find(experiment_plan, "unit_cell_a"),
-            "cellAlpha": self.find(experiment_plan, "unit_cell_alpha"),
-            "cellB": self.find(experiment_plan, "unit_cell_b"),
-            "cellBeta": self.find(experiment_plan, "unit_cell_beta"),
-            "cellC": self.find(experiment_plan, "unit_cell_c"),
-            "cellGamma": self.find(experiment_plan, "unit_cell_gamma"),
-            "containerSampleChangerLocation": str(puck["sampleChangerLocation"]),
+            "sampleName": sample_name,
+            "sampleId": sample_id,
+            "sample_sheet_id": sample_sheet_id,
+            "trackingSampleId": trackingSampleId,
+            "proteinAcronym": protein_acronym,
+            "searchModels": search_models,
+            "reference": reference,
+            "sampleLocation": sample_location,
+            "containerCode": puck_name,
+            "containerSampleChangerLocation": puck_location,
+            "SampleTrackingParcel_name": parcel_name,
+            "SampleTrackingParcel_id": parcel_id,
+            "SampleTrackingContainer_id": puck_name,
+            "SampleTrackingContainer_name": parcel_id,
+            "smiles": None,  # Placeholder for future chemical structure info
+            "experimentType": self.find(experiment_plan, "workflowType"),
             "crystalSpaceGroup": self.find(experiment_plan, "forceSpaceGroup"),
             "diffractionPlan": {
                 # "diffractionPlanId": 457980, TODO: do we need this?
@@ -228,12 +349,15 @@ class ICATLIMS(AbstractLims):
                 ),
                 "requiredResolution": self.find(experiment_plan, "requiredResolution"),
             },
-            "experimentType": self.find(experiment_plan, "workflowType"),
-            "proteinAcronym": protein_acronym,
-            "sampleId": tracking_sample["sampleId"],
-            "sampleLocation": tracking_sample["sampleContainerPosition"],
-            "sampleName": sample_name,
-            "smiles": None,
+            "cellA": self.find(experiment_plan, "unit_cell_a"),
+            "cellB": self.find(experiment_plan, "unit_cell_b"),
+            "cellC": self.find(experiment_plan, "unit_cell_c"),
+            "cellAlpha": self.find(experiment_plan, "unit_cell_alpha"),
+            "cellBeta": self.find(experiment_plan, "unit_cell_beta"),
+            "cellGamma": self.find(experiment_plan, "unit_cell_gamma"),
+            "experimentPlan": experiment_plan,
+            "processingPlan": processing_plan,
+            "comments": comments,
         }
 
     def create_session(self, session_dict):
@@ -301,10 +425,14 @@ class ICATLIMS(AbstractLims):
             return None
 
     def set_active_session_by_id(self, session_id: str) -> Session:
+        logging.getLogger("HWR").debug(f"set_active_session_by_id: {session_id}")
+
         if self.is_session_already_active(self.session_manager.active_session):
             return self.session_manager.active_session
 
         sessions = self.session_manager.sessions
+
+        logging.getLogger("HWR").debug(f"Sessions: {len(sessions)}")
 
         if len(sessions) == 0:
             logging.getLogger("HWR").error(
@@ -537,7 +665,6 @@ class ICATLIMS(AbstractLims):
             parcels = self.icatClient.get_parcels_by(
                 self.session_manager.active_session.session_id
             )
-
             logging.getLogger("HWR").debug(
                 "[ICAT] Successfully retrieved %s parcels" % (len(parcels))
             )
@@ -576,33 +703,6 @@ class ICATLIMS(AbstractLims):
     def is_connected(self):
         return self.login_ok
 
-    def __add_protein_acronym(self, sample_node, metadata):
-        """
-        Fills the sample acronym that should match with the acronym defined in the sample sheet
-        """
-        if sample_node is not None:
-            if sample_node.crystals is not None:
-                if len(sample_node.crystals) > 0:
-                    crystal = sample_node.crystals[0]
-                    if crystal.protein_acronym is not None:
-                        metadata["SampleProtein_acronym"] = crystal.protein_acronym
-
-    def __add_sample_changer_position(self, cell, puck, metadata):
-        """
-        Adds to the sample changer position based on the cell and the puck number
-
-        Args:
-            cell(str): cell position of the puck in the sample changer
-            puck(str): position of the puck within the cell
-            metadata(dict): metadata to be pushed to ICAT
-        """
-        try:
-            if cell is not None and puck is not None:
-                position = int(cell * 3) + int(puck)
-                metadata["SampleChanger_position"] = position
-        except Exception as e:
-            logging.getLogger("HWR").exception(e)
-
     def add_beamline_configuration_metadata(self, metadata, beamline_config):
         """
         This is the mapping betweeh the beamline_config dict and the ICAt keys
@@ -610,32 +710,35 @@ class ICATLIMS(AbstractLims):
         """
         if beamline_config is not None:
             key_mapping = {
-                "detector_px": "InstrumentDetector01_x_pixel_size",
-                "detector_py": "InstrumentDetector01_y_pixel_size",
+                "detector_px": "InstrumentDetector01_beam_center_x",
+                "detector_py": "InstrumentDetector01_beam_center_y",
                 "beam_divergence_vertical": "InstrumentBeam_vertical_incident_beam_divergence",
                 "beam_divergence_horizontal": "InstrumentBeam_horizontal_incident_beam_divergence",
                 "polarisation": "InstrumentBeam_final_polarization",
                 "detector_model": "InstrumentDetector01_model",
                 "detector_manufacturer": "InstrumentDetector01_manufacturer",
+                "synchrotron_name": "InstrumentSource_name",
+                "monochromator_type": "InstrumentMonochromatorCrystal_type",
+                "InstrumentDetector01_type": "detector_type",
             }
 
             for config_key, metadata_key in key_mapping.items():
                 if hasattr(beamline_config, config_key):
                     metadata[metadata_key] = getattr(beamline_config, config_key)
 
-    def add_sample_metadata(self, metadata, collection_parameters):
-        """
-        Adds to the metadata dictionary the metadata concerning sample position, container and tracking
+    def find_sample_by_sample_id(self, sample_id):
+        return next(
+            (sample for sample in self.samples if sample["limsID"] == sample_id),
+            None,
+        )
 
-        Args:
-            metadata(dict): metadata to be pushed to ICAT
-            collection_parameters(dict): Data collection parameters
+    def _get_sample_position(self):
+        """
+        Returns the position of the puck in the samples changer and the position f the sample within the puck
         """
         try:
             queue_entry = HWR.beamline.queue_manager.get_current_entry()
             sample_node = queue_entry.get_data_model().get_sample_node()
-            # sample_node.name this is name of the sample
-
             location = sample_node.location  # Example: (8,2,5)
 
             if len(location) == 3:
@@ -644,29 +747,13 @@ class ICATLIMS(AbstractLims):
                 cell = 1
                 (puck, sample_position) = location
 
-            self.__add_sample_changer_position(cell, puck, metadata)
-            metadata["SampleTrackingContainer_position"] = sample_position
-            metadata["SampleTrackingContainer_type"] = (
-                "UNIPUCK"  # this could be read from the configuration file somehow
-            )
-            metadata["SampleTrackingContainer_capacity"] = (
-                "16"  # this could be read from the configuration file somehow
-            )
-
-            self.__add_protein_acronym(sample_node, metadata)
-
-            if HWR.beamline.lims is not None:
-                sample = HWR.beamline.lims.find_sample_by_sample_id(
-                    collection_parameters.get("blSampleId")
-                )
-                if sample is not None:
-                    if "containerCode" in sample:
-                        metadata["SampleTrackingContainer_id"] = sample["containerCode"]
-                    else:
-                        metadata["SampleTrackingContainer_id"] = (
-                            str(cell) + "_" + str(puck)
-                        )  # Fake identifier that needs to be replaced by container code
-
+            position = None
+            try:
+                if cell is not None and puck is not None:
+                    position = int(cell * 3) + int(puck)
+            except Exception as e:
+                logging.getLogger("HWR").exception(e)
+            return position, sample_position
         except Exception as e:
             logging.getLogger("HWR").exception(e)
 
@@ -692,23 +779,105 @@ class ICATLIMS(AbstractLims):
     def update_data_collection(self, mx_collection):
         pass
 
+    def _get_oscillation_end(self, oscillation_sequence):
+        return float(oscillation_sequence["start"]) + (
+            float(oscillation_sequence["range"])
+            - float(oscillation_sequence["overlap"])
+        ) * float(oscillation_sequence["number_of_images"])
+
+    def _get_rotation_axis(self, oscillation_sequence):
+        if "kappaStart" in oscillation_sequence:
+            if (
+                oscillation_sequence["kappaStart"] != 0
+                and oscillation_sequence["kappaStart"] != -9999
+            ):
+                return "Omega"
+        return "Phi"
+
+    def __get_sample_information_by(
+        self, sample_id: str
+    ) -> Optional[SampleInformation]:
+        """
+        Fetches sample metadata and associated resources based on the sample ID.
+
+        Parameters:
+            sample_id (str): The unique identifier for the sample.
+
+        Returns:
+            Optional[SampleInformation]: Returns a SampleInformation object or None.
+        """
+        try:
+            token = self.icat_session["sessionId"]
+            url = f"{self.url}/catalogue/{token}/files?sampleId={sample_id}"
+            response = requests.get(url, timeout=3)
+            response.raise_for_status()  # Raise an exception for bad status codes
+            return SampleInformation(
+                **response.json(),
+            )  # Parse the response into a SampleInformation model
+        except requests.exceptions.RequestException as e:
+            logging.error("Failed to fetch sample information for %s: %s", sample_id, e)
+        return None
+
+    def _download_resources(self, sample_id, resources, output_folder: str):
+        """
+        Downloads resources related to a given sample and saves them to the specified directory.
+
+        Parameters:
+            sample (str): Sample identifier.
+            output_folder (str): Directory where files will be saved.
+
+        Returns:
+            dict: A dictionary containing the paths of the downloaded files.
+        """
+        downloaded_files = []
+        for resource in resources:
+            resource_folder = pathlib.Path(output_folder) / (
+                resource.groupName if resource.groupName else ""
+            )
+            resource_folder.mkdir(
+                parents=True,
+                exist_ok=True,
+            )  # Ensure the folder exists
+
+            try:
+                token = self.icat_session["sessionId"]
+                url = f"{self.url}/catalogue/{token}/files/download?sampleId={sample_id}&resourceId={resource.id}"
+                response = requests.get(url, stream=True, timeout=3)
+                response.raise_for_status()
+
+                file_path = resource_folder / resource.filename
+                with file_path.open("wb") as file:
+                    for chunk in response.iter_content(
+                        chunk_size=8192,
+                    ):  # Efficient chunked download
+                        file.write(chunk)
+
+                downloaded_files.append(str(file_path))
+                logging.info("Downloaded %s to %s", resource.filename, file_path)
+
+            except requests.exceptions.RequestException as e:
+                logging.error("Failed to download %s: %s", resource.filename, e)
+
+        return downloaded_files
+
     def finalize_data_collection(self, collection_parameters):
         logging.getLogger("HWR").info("Storing datacollection in ICAT")
+
         try:
             fileinfo = collection_parameters["fileinfo"]
             directory = pathlib.Path(fileinfo["directory"])
             dataset_name = directory.name
             # Determine the scan type
             if dataset_name.endswith("mesh"):
-                scanType = "mesh"
+                scan_type = "mesh"
             elif dataset_name.endswith("line"):
-                scanType = "line"
+                scan_type = "line"
             elif dataset_name.endswith("characterisation"):
-                scanType = "characterisation"
+                scan_type = "characterisation"
             elif dataset_name.endswith("datacollection"):
-                scanType = "datacollection"
+                scan_type = "datacollection"
             else:
-                scanType = collection_parameters["experiment_type"]
+                scan_type = collection_parameters["experiment_type"]
 
             workflow_params = collection_parameters.get("workflow_parameters", {})
             workflow_type = workflow_params.get("workflow_type")
@@ -717,9 +886,16 @@ class ICATLIMS(AbstractLims):
                 if not directory.name.startswith("run"):
                     dataset_name = fileinfo["prefix"]
 
-            start_time = collection_parameters.get(
-                "collection_start_time", strftime("%Y-%m-%d %H:%M:%S")
-            )
+            try:
+                dt_naive = datetime.strptime(
+                    collection_parameters.get("collection_start_time"),
+                    "%Y-%m-%d %H:%M:%S%z",
+                )
+                dt_aware = dt_naive.replace(tzinfo=ZoneInfo("Europe/Paris"))
+                start_time = dt_aware.isoformat(timespec="microseconds")
+                end_time = datetime.now(ZoneInfo("Europe/Paris")).isoformat()
+            except RuntimeError:
+                logging.getLogger("HWR").error("Failed to parse start and end time")
 
             if collection_parameters["sample_reference"]["acronym"]:
                 sample_name = (
@@ -739,31 +915,35 @@ class ICATLIMS(AbstractLims):
             distance = HWR.beamline.detector.distance.get_value()
             proposal = f"{HWR.beamline.session.proposal_code}{HWR.beamline.session.proposal_number}"
             metadata = {
-                "MX_beamShape": collection_parameters["beamShape"],
-                "MX_beamSizeAtSampleX": collection_parameters["beamSizeAtSampleX"],
-                "MX_beamSizeAtSampleY": collection_parameters["beamSizeAtSampleY"],
-                "MX_dataCollectionId": collection_parameters["collection_id"],
+                "MX_beamShape": collection_parameters.get("beamShape"),
+                "sampleId": collection_parameters.get("blSampleId"),
+                "MX_beamSizeAtSampleX": collection_parameters.get("beamSizeAtSampleX"),
+                "MX_beamSizeAtSampleY": collection_parameters.get("beamSizeAtSampleY"),
+                "MX_dataCollectionId": collection_parameters.get("collection_id"),
                 "MX_detectorDistance": distance,
                 "MX_directory": str(directory),
                 "MX_exposureTime": oscillation_sequence["exposure_time"],
-                "MX_flux": collection_parameters["flux"],
-                "MX_fluxEnd": collection_parameters["flux_end"],
-                "MX_positionName": collection_parameters["position_name"],
+                "MX_flux": collection_parameters.get("flux"),
+                "MX_fluxEnd": collection_parameters.get("flux_end"),
+                "MX_positionName": collection_parameters.get("position_name"),
                 "MX_numberOfImages": oscillation_sequence["number_of_images"],
                 "MX_oscillationRange": oscillation_sequence["range"],
-                "MX_oscillationStart": oscillation_sequence["start"],
+                "MX_axis_start": oscillation_sequence["start"],
                 "MX_oscillationOverlap": oscillation_sequence["overlap"],
-                "MX_resolution": collection_parameters["resolution"],
-                "scanType": scanType,
+                "MX_resolution": collection_parameters.get("resolution"),
+                "MX_resolution_at_corner": collection_parameters.get(
+                    "resolutionAtCorner"
+                ),
+                "scanType": scan_type,
                 "MX_startImageNumber": oscillation_sequence["start_image_number"],
                 "MX_template": fileinfo["template"],
-                "MX_transmission": collection_parameters["transmission"],
-                "MX_xBeam": collection_parameters["xBeam"],
-                "MX_yBeam": collection_parameters["yBeam"],
+                "MX_transmission": collection_parameters.get("transmission"),
+                "MX_xBeam": collection_parameters.get("xBeam"),
+                "MX_yBeam": collection_parameters.get("yBeam"),
                 "Sample_name": sample_name,
-                "InstrumentMonochromator_wavelength": collection_parameters[
+                "InstrumentMonochromator_wavelength": collection_parameters.get(
                     "wavelength"
-                ],
+                ),
                 "Workflow_name": workflow_params.get("workflow_name"),
                 "Workflow_type": workflow_params.get("workflow_type"),
                 "Workflow_id": workflow_params.get("workflow_uid"),
@@ -776,7 +956,7 @@ class ICATLIMS(AbstractLims):
                 "MX_position_id": workflow_params.get("workflow_position_id"),
                 "group_by": workflow_params.get("workflow_group_by"),
                 "startDate": start_time,
-                "endDate": strftime("%Y-%m-%d %H:%M:%S"),
+                "endDate": end_time,  # strftime("%Y-%m-%d %H:%M:%S"),
             }
 
             # This forces the ingester to associate the dataset to the experiment by ID
@@ -785,13 +965,105 @@ class ICATLIMS(AbstractLims):
                     self.session_manager.active_session.session_id
                 )
 
-            # Store metadata on disk
-            self.add_sample_metadata(metadata, collection_parameters)
+            metadata["SampleTrackingContainer_type"] = "UNIPUCK"
+            metadata["SampleTrackingContainer_capacity"] = "16"
+            (position, sample_position) = self._get_sample_position()
+            metadata["SampleChanger_position"] = position
+            metadata["SampleTrackingContainer_position"] = sample_position
+            # Find sample by sampleId
+            sample = HWR.beamline.lims.find_sample_by_sample_id(
+                collection_parameters.get("blSampleId")
+            )
+
+            if sample is not None:
+                metadata["SampleProtein_acronym"] = sample.get("proteinAcronym")
+                metadata["SampleTrackingContainer_id"] = sample.get(
+                    "containerCode"
+                )  # containerCode instead of sampletrackingcontainer_id for ISPyB's compatiblity
+                metadata["SampleTrackingParcel_id"] = sample.get(
+                    "SampleTrackingParcel_id"
+                )
+                metadata["SampleTrackingParcel_name"] = sample.get(
+                    "SampleTrackingParcel_name"
+                )
+
+                reference_paths = None
+                search_models_paths = None
+                try:
+                    if (
+                        # self.download_sample_resources and
+                        sample.get("sample_sheet_id") is not None
+                        and scan_type == "datacollection"
+                    ):
+                        sample_info = self.__get_sample_information_by(
+                            sample.get("sample_sheet_id")
+                        )
+
+                        sample_resource_folder = directory
+
+                        if sample.get("reference") is not None:
+                            # Assuming `sample_info` is your SampleInformation instance
+                            matching_resources = [
+                                res
+                                for res in sample_info.resources
+                                if res.filename == sample.get("reference")
+                            ]
+                            reference_paths = self._download_resources(
+                                sample.get("sample_sheet_id"),
+                                matching_resources,
+                                sample_resource_folder,
+                            )
+
+                        if sample.get("searchModels") is not None:
+                            matching_resources = [
+                                res
+                                for res in sample_info.resources
+                                if res.groupName == sample.get("searchModels")
+                            ]
+                            search_models_paths = self._download_resources(
+                                sample.get("sample_sheet_id"),
+                                matching_resources,
+                                sample_resource_folder,
+                            )
+
+                except RuntimeError:
+                    logging.getLogger("HWR").error("Failed to get download resources")
+
             self.add_beamline_configuration_metadata(metadata, self.beamline_config)
+
+            # MX_axis_end
+            try:
+                metadata["MX_axis_end"] = self._get_oscillation_end(
+                    oscillation_sequence
+                )
+            except RuntimeError:
+                logging.getLogger("HWR").error("Failed to get MX_axis_end")
+
+            # MX_axis_end
+            try:
+                metadata["MX_axis_range"] = self._get_rotation_axis(
+                    oscillation_sequence
+                )
+            except RuntimeError:
+                logging.getLogger("HWR").exception("Failed to get MX_axis_end")
 
             icat_metadata_path = pathlib.Path(directory) / "metadata.json"
             with open(icat_metadata_path, "w") as f:
-                f.write(json.dumps(metadata, indent=4))
+                # We add the processing and experiment plan only in the metadata.json
+                # it will not work thought pyicat-plus
+                merged = metadata.copy()
+                try:
+                    if sample is not None:
+                        merged["experimentPlan"] = sample.get("experimentPlan")
+                        merged["processingPlan"] = sample.get("processingPlan")
+                        merged["search_models_paths"] = search_models_paths
+                        merged["reference"] = reference_paths
+                except Exception:
+                    logging.getLogger("HWR").exception(
+                        "Failed to get merged sample plan"
+                    )
+
+                f.write(json.dumps(merged, indent=4))
             # Create ICAT gallery
             gallery_path = directory / "gallery"
             gallery_path.mkdir(mode=0o755, exist_ok=True)

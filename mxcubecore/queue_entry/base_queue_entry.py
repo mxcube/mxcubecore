@@ -492,7 +492,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                 loc = sample_model.lims_container_location
 
                 if isinstance(loc, str):
-                    cell, puck = list(map(int, "2:2".split(":")))
+                    cell, puck = list(map(int, ["2", "2"]))
                     loc = (cell - 1) * 3 + puck
 
                 group_data["actualContainerSlotInSC"] = loc
@@ -937,7 +937,7 @@ def center_before_collect(view, dm, queue, sample_view):
     view.setText(1, "Waiting for input")
     log = logging.getLogger("user_level_log")
 
-    log.info("Please select, or center on a new position and press continue.")
+    log.info("Please select, or center on a new position and press resume.")
 
     queue.pause(True)
     pos, shape = None, None

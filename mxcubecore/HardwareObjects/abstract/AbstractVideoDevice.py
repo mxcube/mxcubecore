@@ -111,7 +111,7 @@ class AbstractVideoDevice(HardwareObject):
         except TypeError:
             logging.getLogger().warning(
                 "%s: failed to interpret scale factor for camera.\nUsing default.",
-                self.name(),
+                self.id,
             )
             self.cam_scale_factor = self.default_scale_factor
 
@@ -358,7 +358,7 @@ class AbstractVideoDevice(HardwareObject):
                 os.setuid(int(os.getenv("SUDO_UID")))
             except Exception:
                 logging.getLogger().warning(
-                    "%s: failed to change the process ownership.", self.name()
+                    "%s: failed to change the process ownership.", self.id
                 )
 
     def get_width(self):
