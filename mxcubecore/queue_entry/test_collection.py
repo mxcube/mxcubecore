@@ -22,6 +22,12 @@ __category__ = "General"
 class TestUserCollectionParameters(BaseModel):
     num_images: int = Field(0, description="")
     exp_time: float = Field(100e-6, gt=0, lt=1, description="s")
+    cell_a: float = Field(0.0, title="Cell A")
+    cell_b: float = Field(0.0, title="Cell B")
+    cell_c: float = Field(0.0, title="Cell C")
+    cell_alpha: float = Field(0.0, title="Cell Alpha")
+    cell_beta: float = Field(0.0, title="Cell Beta")
+    cell_gamma: float = Field(0.0, title="Cell Gamma")
 
     class Config:
         extra: "ignore"
@@ -40,7 +46,19 @@ class TestCollectionTaskParameters(BaseModel):
 
     @staticmethod
     def ui_schema():
-        return json.dumps({})
+        processing_group = {"group": "Processing"}
+        col_4 = {"col": 4}
+        processing_ui_options = {"ui:options": {**processing_group, **col_4}}
+        return json.dumps(
+            {
+                "cell_a": processing_ui_options,
+                "cell_b": processing_ui_options,
+                "cell_c": processing_ui_options,
+                "cell_alpha": processing_ui_options,
+                "cell_beta": processing_ui_options,
+                "cell_gamma": processing_ui_options,
+            }
+        )
 
 
 class TestCollectionQueueModel(DataCollection):
