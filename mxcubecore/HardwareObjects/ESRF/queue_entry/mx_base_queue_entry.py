@@ -119,7 +119,7 @@ class MXBaseQueueEntry(BaseQueueEntry):
                 h5_master_path, i * images_per_file - 1
             )
 
-            gevent.spwan(self._check_file, current_file)
+            gevent.spawn(self._check_file, current_file)
 
             total_progress += dp
             self.emit_progress(total_progress)
