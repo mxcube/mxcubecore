@@ -31,11 +31,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional, Tuple, Union
 
-from mxlims.impl.utils import to_export_json
+from mxlims.impl.MxlimsBase import to_export_json
 from mxlims.pydantic.datatypes import Scan, UnitCell
 from mxlims.pydantic.mxlims_messages import MxlimsMessage
 from mxlims.pydantic.objects.CollectionSweep import CollectionSweep
-from mxlims.pydantic.objects.CrystallographicSample import CrystallographicSample
+from mxlims.pydantic.objects.MacromoleculeSample import MacromoleculeSample
 from mxlims.pydantic.objects.MxExperiment import MxExperiment
 from mxlims.pydantic.objects.MxProcessing import MxProcessing
 
@@ -49,7 +49,7 @@ def make_mx_experiment(  # noqa: C901
     end_time: Optional[datetime] = None,
     job_status: Optional[str] = None,
     **parameters,
-) -> Tuple[MxExperiment, CrystallographicSample]:
+) -> Tuple[MxExperiment, MacromoleculeSample]:
     """Create MxExperiment record from datamodel
 
     Args:
@@ -116,7 +116,7 @@ def make_mx_experiment(  # noqa: C901
     if crystal:
         space_group_name = crystal.space_group
         if space_group_name:
-            sampledata["space_group_name"] = space_group_name
+            jobdata["expected_space_group_name"] = space_group_name
         dd1 = {
             "a": crystal.cell_a,
             "b": crystal.cell_b,
@@ -127,7 +127,7 @@ def make_mx_experiment(  # noqa: C901
         }
         unit_cell = UnitCell.UnitCell(**dd1) if  all(dd1.values()) else None
         if unit_cell:
-            sampledata["unit_cell"] = unit_cell
+            jobdata["expected_unit_cell"] = unit_cell
 
         # LogisticalSample, not really modeled yet, so not much to put in
         crystal_uuid = crystal.crystal_uuid
@@ -143,9 +143,9 @@ def make_mx_experiment(  # noqa: C901
         else:
             radiation_sensitivity = diffraction_plan.get("radiationSensitivity")
         if radiation_sensitivity:
-            sampledata["radiation_sensitivity"] = radiation_sensitivity
+            jobdata["radiation_sensitivity"] = radiation_sensitivity
 
-    sample = CrystallographicSample(
+    sample = MacromoleculeSample(
         uuid=uuid.uuid1(), **sampledata,
     )
     jobdata["sample_id"] = sample.uuid
