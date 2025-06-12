@@ -142,7 +142,7 @@ class ESRFBeam(AbstractBeam):
         """Get the size of the slits in place.
 
         Returns:
-            ``{"width": float, "heigth": float}``.
+            ``{"width": float, "height": float}``.
         """
         beam_size = {}
         for _key, _val in self.slits:
@@ -150,11 +150,11 @@ class ESRFBeam(AbstractBeam):
         return beam_size
 
     def _get_value(self) -> tuple[float, float, BeamShape, str]:
-        """Get the size (width and heigth) of the beam, its shape and
-           its label. The size is in milimeters.
+        """Get the size (width and height) of the beam, its shape and
+           its label. The size is in millimeters.
 
-        Retunrs:
-            Four-item tuple: width, heigth, shape, name.
+        Returns:
+            Four-item tuple: width, height, shape, name.
         """
         labels = {}
         _label = "UNKNOWN"
@@ -185,8 +185,9 @@ class ESRFBeam(AbstractBeam):
 
     def get_value_xml(self) -> tuple[float, float, str, str]:
         """XMLRPC does not handle Enum, the shape is transformed to string.
-        Retunrs:
-            Four-item tuple: width, heigth, shape, name
+
+        Returns:
+            Four-item tuple: width, height, shape, name
         """
         beamsize = self.get_value()
         return beamsize[0], beamsize[1], beamsize[2].value, beamsize[3]
@@ -226,7 +227,7 @@ class ESRFBeam(AbstractBeam):
         """Get the predefined beam labels and size.
 
         Returns:
-            Dictionary wiith list of avaiable beam size labels and
+            Dictionary with list of available beam size labels and
             the corresponding size (width,height) tuples.
             ``{"label": [str, str, ...], "size": [(w,h), (w,h), ...]}``
         """
@@ -263,7 +264,7 @@ class ESRFBeam(AbstractBeam):
         """Move the slits to the desired position.
 
         Args:
-            Two-items list:  width, heigth in milimeters.
+            Two-items list:  width, height in millimeters.
 
         Raises:
             RuntimeError: Size out of the limits.
@@ -274,7 +275,7 @@ class ESRFBeam(AbstractBeam):
             msg = "Incorrect input value for slits"
             raise TypeError(msg)
         w_lim = self.slits["width"].get_limits()
-        h_lim = self.slits["heigth"].get_limits()
+        h_lim = self.slits["height"].get_limits()
         try:
             msg = "Size out of the limits"
             if min(w_lim) > size[0] > max(w_lim):
@@ -282,7 +283,7 @@ class ESRFBeam(AbstractBeam):
             if min(h_lim) > size[1] > max(h_lim):
                 raise RuntimeError(msg)
             self.slits["width"].set_value(size[0])
-            self.slits["heigth"].set_value(size[1])
+            self.slits["height"].set_value(size[1])
         except TypeError as err:
             raise TypeError("Invalid size") from err
 
@@ -325,7 +326,7 @@ class ESRFBeam(AbstractBeam):
         """Set the beam size.
 
         Args:
-            Two-items list: width and heigth for slits or
+            Two-items list: width and height for slits or
             aperture or definer name.
 
         Raises:

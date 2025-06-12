@@ -5,7 +5,7 @@
 BeamInfo hardware object is used to define final beam size and shape.
 It can include aperture, slits and/or other beam definer (lenses or other eq.)
 
-[Emited signals]
+[Emitted signals]
 beamInfoChanged
 beamPosChanged
 

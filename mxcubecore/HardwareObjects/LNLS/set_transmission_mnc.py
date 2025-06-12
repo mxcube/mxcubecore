@@ -17,7 +17,7 @@
           #12, 25 um Zr.
     Here we use the Beer-Lambert law to calculate the transmission/attenuation: I = I0 * e^-(MU * d)
     were I is the transmitted (final) beam intensity, I0 is the incident (initial) beam intensity,
-    MU is the linear attenuation coeficient (cm^-1) and d is the thickness of the foil (cm).
+    MU is the linear attenuation coefficient (cm^-1) and d is the thickness of the foil (cm).
 """
 import argparse
 import itertools
@@ -37,23 +37,23 @@ def read_input():
 
 def get_transmission(energy, transmission):
     transmission = transmission/100
-    # Expressions (interpolation) for calculations of MU (linear attenuation coeficient [cm^-1]) for each material in function of the beam energy.
+    # Expressions (interpolation) for calculations of MU (linear attenuation coefficient [cm^-1]) for each material in function of the beam energy.
     # The data used to obtain the expressions (curve fitting) are from  "https://physics.nist.gov/PhysRefData/FFast/html/form.html"
-    # This attenuation coeficients can be verified and optimised after experimental validation at the beamline.
+    # This attenuation coefficients can be verified and optimised after experimental validation at the beamline.
     MU_Al = (78657.01011 * math.exp(-energy/0.65969)) + (6406.36151 * math.exp(-energy/1.63268)) + (492.29999 * math.exp(-energy/4.42554)) + (3.2588)
     MU_Ti = (28062.17632 * math.exp(-energy/1.88062)) + (6354120 * math.exp(-energy/0.49973)) + (2257.91488 * math.exp(-energy/5.28296)) + (17.4342)
     MU_Cu = (1147850000 * math.exp(-energy/0.56933)) + (2582.7593 * math.exp(-energy/8.40671)) + (30628.08291 * math.exp(-energy/2.98937)) + (22.4187)
     MU_Au = (42783.04258 * math.exp(-energy/5.39244)) + (399.59714)
     MU_Zr = (11143.28458 * math.exp(-energy/5.87029)) + (102.27474)
     MU_EMPTY = 0.0
-    # Foils in ABS-attenuator. The dictionary gives the foil position and material in the key (e.g. 'F1_Al', position 1 occuped by an aluminium foil),
+    # Foils in ABS-attenuator. The dictionary gives the foil position and material in the key (e.g. 'F1_Al', position 1 occupied by an aluminium foil),
     # and the thickness [um] in the value. The list gives the positions and materials, similar to the dictionary, and it is used in the combination.
     foils_dict = {'F0_EMPTY':0, 'F1_Al':8, 'F2_Al':10, 'F3_Al':20, 'F4_Al':80, 'F5_Al':160, 'F6_Al':320, 'F7_Al':800,
                   'F8_Al':1500, 'F9_Ti':8, 'F10_Cu':10, 'F11_Au':5, 'F12_Zr':25}
 
     attenuator_position = ['F0_EMPTY', 'F1_Al', 'F2_Al', 'F3_Al', 'F4_Al', 'F5_Al', 'F6_Al', 'F7_Al', 'F8_Al',
                            'F9_Ti', 'F10_Cu', 'F11_Au', 'F12_Zr']
-    # conditions to use only the continous part of the absorption spectra and not the edge region. It can be optimised after experimental validation.
+    # conditions to use only the continuous part of the absorption spectra and not the edge region. It can be optimised after experimental validation.
     if energy < 6.5:
         attenuator_position = attenuator_position[0:9]
     elif 6.5 <= energy < 9.5 :
@@ -136,7 +136,7 @@ def set_foils(filter_combination):
 
     wt = 0.1
 
-    # the commented lines bellow works for the attenuator expected logic (0 for foil out and 1 for foil in).
+    # the commented lines below works for the attenuator expected logic (0 for foil out and 1 for foil in).
     # as the current logic is inverted (1 is foil out and 0 is foil in) use the uncommented lines.
 
     for foil in attenuator_position:

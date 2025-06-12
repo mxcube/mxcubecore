@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
 """
-Test the resolution hardware object. Dependant on detector_distance and energy
+Test the resolution hardware object. Dependent on detector_distance and energy
 hardware objects
 """
 
@@ -50,8 +50,8 @@ class TestResolution(TestAbstractMotorBase.TestAbstractMotorBase):
             msg += f"_nominal_limits value is {test_object._nominal_limits}"
             assert test_object._nominal_limits == (None, None), msg
 
+        test_object._nominal_limits = (None, None)
         with pytest.raises(NotImplementedError):
-            test_object._nominal_limits = (None, None)
             test_object.set_limits(limits)
 
     def test_update_state(self, test_object):
@@ -60,7 +60,7 @@ class TestResolution(TestAbstractMotorBase.TestAbstractMotorBase):
         """
 
     def test_setting_with_tolerance(self, test_object):
-        """Update position is dependant on the detector distance motor."""
+        """Update position is dependent on the detector distance motor."""
 
         low, high = test_object.get_limits() or (0, 1)
         tol = test_object._tolerance

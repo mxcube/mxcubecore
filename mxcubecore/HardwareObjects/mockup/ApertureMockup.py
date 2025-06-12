@@ -43,7 +43,7 @@ class ApertureMockup(AbstractNState, ActuatorMockup):
 
     def init(self):
         super().init()
-        # check if we have values other that UKNOWN (no values in config)
+        # check if we have values other that UNKNOWN (no values in config)
         if len(self.VALUES) == 1:
             self._initialise_values()
             self._initialise_inout()
@@ -111,7 +111,7 @@ class ApertureMockup(AbstractNState, ActuatorMockup):
     def get_diameter_size_list(self):
         """Get the list of values to be visible. Hide IN, OUT and UNKNOWN.
         Returns:
-            (list): List of availble aperture values (string).
+            (list): List of available aperture values (string).
         """
         values = []
         for value in self.VALUES:

@@ -34,7 +34,7 @@ class ESRFSession(Session.Session):
 
           <base_direcotry>/<subdir>/run_<NUMBER>_<tag>
 
-        Where NUMBER is a automaticaly sequential number and
+        Where NUMBER is a automatically sequential number and
         base_directory the path returned by get_base_image/process_direcotry
 
         :param subdir: subdirecotry
@@ -52,7 +52,7 @@ class ESRFSession(Session.Session):
 
         run_num = max(runs) + 1
 
-        # Use the same sequnce numbering for all tags/types, (We are not
+        # Use the same sequence numbering for all tags/types, (We are not
         # creating individual run number per tag)
         full_path = os.path.join(
             self.get_base_image_directory(), subdir, f"run_{run_num:02d}_{tag}/"

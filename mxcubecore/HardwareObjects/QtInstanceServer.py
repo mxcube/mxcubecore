@@ -81,7 +81,6 @@ class QtInstanceServer(Procedure):
         else:
             self.connectToServer()
 
-    #
     def setProposal(self, proposal):
         if self.isServer():
             my_id = self.serverId2[0]

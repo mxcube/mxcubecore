@@ -63,7 +63,7 @@ class P11DetectorCover(AbstractShutter):
         self.cover_is_closed = False
 
     def init(self):
-        """Initilise the predefined values"""
+        """Initialise the predefined values"""
 
         self._initialise_values()
         self.simulation = self.get_property("simulation")

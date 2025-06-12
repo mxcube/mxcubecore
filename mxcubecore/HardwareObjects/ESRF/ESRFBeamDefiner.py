@@ -62,7 +62,7 @@ class ESRFBeamDefiner(AbstractNState):
         # keep the config is needed by the inheriring classes
         self.config = self.init_config()
 
-        # check if we have values other that UKNOWN
+        # check if we have values other that UNKNOWN
         if len(self.VALUES) == 1:
             self._initialise_values()
 
@@ -95,9 +95,9 @@ class ESRFBeamDefiner(AbstractNState):
             return self.VALUES.UNKNOWN
 
     def get_size(self):
-        """Get the current beam size (horozontal and vertical).
+        """Get the current beam size (horizontal and vertical).
         Returns:
-            (tuple): Curren beam size (horizontal, vertical) [mm].
+            (tuple): Current beam size (horizontal, vertical) [mm].
         """
         return self.get_value().value
 

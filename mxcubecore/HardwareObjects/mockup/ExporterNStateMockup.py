@@ -66,7 +66,7 @@ class ExporterNStateMockup(AbstractNState):
         sleep(0.5)
 
     def _update_state(self, state=None):
-        """To be used to update the state when emiting the "update" signal.
+        """To be used to update the state when emitting the "update" signal.
         Args:
             state (str): optional state value
         Returns:

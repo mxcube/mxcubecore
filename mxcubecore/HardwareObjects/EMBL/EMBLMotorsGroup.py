@@ -22,8 +22,8 @@
 
 [Description]
 The MotorsGroup Hardware Object is used to maintain several motors in one
-group. Motors group is a lsit of motors which are like a grouped instance
-in tine server (a tuple). It allowes to read several motor position,
+group. Motors group is a list of motors which are like a grouped instance
+in tine server (a tuple). It allows to read several motor position,
 statuses,... by one read.
 
 [Channels]
@@ -33,7 +33,7 @@ statuses,... by one read.
 [Commands]
 - implemented as tine.set
 
-[Emited signals]
+[Emitted signals]
 - mGroupPosChanged
 - mGroupFocModeChanged
 - mGroupStatusChanged
@@ -277,7 +277,7 @@ class EMBLMotorsGroup(HardwareObject):
         """Called if one or several motors values has been changed.
            Evaluates if value needs to be updates, if value is
            changed, then evaluates focusing mode. If necessary
-           pysignals are emited
+           pysignals are emitted
         """
         do_emit = False
         # values_to_send = {}

@@ -25,7 +25,7 @@ order to easily track the version of the library, being the core library for the
 
 This version is based on recent discussions among the MXCuBE developers, and inspired
 by the oneflow workflow. It proposes a simplified versioning model, that is
-consisent with semantic versioning.
+consistent with semantic versioning.
 
 
 Out of scope
@@ -131,9 +131,9 @@ two-branch variant. We can summarize the most important procedures in this model
 ## Versioning guidelines
 
 The general schema described in the [PEP440](https://www.python.org/dev/peps/pep-0440/):
-  is highly powerful and flexible, and in this problably superior to the more common
+  is highly powerful and flexible, and in this probably superior to the more common
   [semantic versioning](https://semver.org/). Nevertheless it is unavoidably complex
-  and labour intensive to keep and track a seperate version for every commit in the
+  and labour intensive to keep and track a separate version for every commit in the
   `develop` branch. The scheme presented here applies semantic versioning, but
   *only to the actual releases* with their associated `release` and `hotfix` branches.
   After all, how often do you need an external and reliable reference to a specific
@@ -161,7 +161,7 @@ The general schema described in the [PEP440](https://www.python.org/dev/peps/pep
 ### Bumpversion model
 We will use [bumpversion](https://github.com/c4urself/bump2version) as a
 tool to track the different versions. In this case, `bumpversion` assumes that the version
-string is writen in (at least) one project file. When bumping the version, `bumpversion`
+string is written in (at least) one project file. When bumping the version, `bumpversion`
 will search for the current version string, will calculate the next version
 according to the segment to bump and will replace the old version string by the new one.
 We will not use bumpversion to tag the repository, since the tagging needs to be done after the bump.
@@ -182,13 +182,13 @@ Release, feature, and hotfix branches are temporary and are deleted once they ar
 finished and merged in.
 
 The code has an internal version string (shown inside the circles), that is bumped
-only as part of the releaase procedure (release or hotfix). The version string inside
+only as part of the release procedure (release or hotfix). The version string inside
 an arbitrary commit will correspond to the version of the last tagged release among
 the commit ancestors.
 
 Feature branches are rebased on develop as development proceeds, and must be fully
 rebased before being merged into develop. The internal version strings in the diagram
-are an approximation. In practice *all* the version strings in a feature branch wil be
+are an approximation. In practice *all* the version strings in a feature branch will be
 changed when the branch is rebased, so e.g. feature-branch-2 will have the same
 version string in all commits, either 0.9.0, 1.0.0, or 1.0.1 at different points in time.
 
@@ -283,7 +283,7 @@ This will collapse the feature commits into a single commit, and put that on the
 Release branches must be started from a commit on the `develop branch`. It need not be the tip
 (though it mostly will be), but it must be subsequent to any previous release.
 
-Release branches are named as proposed by oneflow. This is not teh only possibility,
+Release branches are named as proposed by oneflow. This is not the only possibility,
 but is a clear and visible way to signal that this is a release branch. It avoids
 the 'rc0' etc. suffixes, since we are not versioning the individual commits.
 
@@ -299,7 +299,7 @@ As you modify the release, make PRs (or push) the changes to the origin reposito
 The merge options are the same as for feature branches.
 
 When the release is ready it should be tagged and merged. It is simpler to do this in raw
-git, rather than thorugh Pull Requests - anyway there should be agreement on the final
+git, rather than through Pull Requests - anyway there should be agreement on the final
 form before we get to this point. Note that if you made a PR at this point you would
 need to do a bit more gymnastics (see oneflow). So you do:
 
@@ -325,7 +325,7 @@ $ git push origin master
 
 Note that at this point, the internal version tag (that was bumped at the start of
 making the release branch) will have been merged into the develop branch, so that
-the develpo branch internal tag reflects the version of the last release.
+the develop branch internal tag reflects the version of the last release.
 
 ### hotfix branches
 
@@ -333,7 +333,7 @@ A hotfix branch must begin as a fork from the latest release on the master branc
 Hotfix branches by definition do not break the API or add features, so the new tag
 always increases the patch level. The naming of the hotfix branches should be e.g.
 `hotfix/2.3.1` (an alternative would be `patch/2.3.1`). Apart from these points,
-hotfix branches are treated exactly liek release branches.
+hotfix branches are treated exactly like release branches.
 
 License
 =======

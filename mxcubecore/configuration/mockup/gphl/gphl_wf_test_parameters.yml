@@ -59,7 +59,7 @@ task:
         # crystal_classes:
         #   - 4I
         #   - 422I
-        # Cell parameters are in itialised from Sample data (originally ISPyB)
+        # Cell parameters are in initialised from Sample data (originally ISPyB)
         # cell_parameters:
         #   - 51.0
         #   - 61.0
@@ -100,7 +100,7 @@ task:
         # crystal_classes:
         #   - 4I
         #   - 422I
-        # Cell parameters are in itialised from Sample data (originally ISPyB)
+        # Cell parameters are in initialised from Sample data (originally ISPyB)
         # cell_parameters:
         #   - 51.0
         #   - 61.0

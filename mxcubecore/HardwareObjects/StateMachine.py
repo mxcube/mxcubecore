@@ -32,11 +32,11 @@ __version__ = "2.3."
 
 class StateMachine(HardwareObject):
     """Finite State Machine (FSM) is a mathematical model of a closed or
-    opened loop discreet-event systems with well defined state.
+    opened loop discrete-event systems with well defined state.
     It is wildly used to define functioning system and control their
     execution. In the case of MX beamlines and MXCuBE FSM represents
     different state where certain action from a user is requested.
-    It is possible to describe a sequence of user actions as a discreet
+    It is possible to describe a sequence of user actions as a discrete
     state that are logically connected.
     For example, each MX experiment requires a crystal to be mounted on a
     goniostat. If not crystal is mounted then it makes no sense to
@@ -153,7 +153,7 @@ class StateMachine(HardwareObject):
     def update_fsm_state(self):
         """Updates state machine
         We look at the current state and available transitions from it
-        If all conditions of a transition is met then the tranition is
+        If all conditions of a transition is met then the transition is
         executed and signal is emitted.
         """
         for transition in self.transition_list:

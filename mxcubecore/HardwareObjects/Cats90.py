@@ -1256,7 +1256,7 @@ class Cats90(SampleChanger):
 
     def _wait_device_ready(self, timeout=None):
         """
-        Waits until the samle changer HO is ready.
+        Waits until the sample changer HO is ready.
 
         :returns: None
         :rtype: None

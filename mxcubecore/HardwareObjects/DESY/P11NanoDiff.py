@@ -1515,7 +1515,7 @@ class P11NanoDiff(GenericDiffractometer):
                 self.move_motor(motor, motor_positions[motor], motor_positions, timeout)
 
         # Delay polling for state in the
-        # case of controller not reporting MOVING inmediately after cmd
+        # case of controller not reporting MOVING immediately after cmd
         if self.delay_state_polling and self.delay_state_polling > 0:
             gevent.sleep(self.delay_state_polling)
 

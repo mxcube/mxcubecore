@@ -10,8 +10,8 @@ from mxcubecore.HardwareObjects.ExporterMotor import ExporterMotor
 
 class MicrodiffKappaMotor(ExporterMotor):
     lock = gevent.lock.Semaphore()
-    motors = dict()
-    conf = dict()
+    motors = {}
+    conf = {}
 
     def __init__(self, name):
         ExporterMotor.__init__(self, name)

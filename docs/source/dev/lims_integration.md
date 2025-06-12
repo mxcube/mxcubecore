@@ -53,7 +53,7 @@ future.
 
 A user belongs to a **proposal** that has an experiment **session** scheduled
 on a beamline at a given time. Only one **session** and **proposal** can be
-active on a beamline at the same time. Other users beloning to the same
+active on a beamline at the same time. Other users belonging to the same
 **proposal** can access the instrument but only as **observers**, meaning
 that they can see what's being done but not control it. Users not belonging to
 the currently active proposal can consequently not login (are not **authorized**
@@ -217,7 +217,7 @@ configuration slightly more complex.
 ### ESRFLIMS
 
 On top of the mentioned configuration, there is a LIMS client that combines both
-ISPyB and ICAT. This LIMS client has, for the time beeing been named `ESRFLIMS`
+ISPyB and ICAT. This LIMS client has, for the time being been named `ESRFLIMS`
 but is open for renaming. By using `ESRFLIMS` sample information can be
 retrieved from either ISPyB or ICAT and the results are sent to both ISPyB and
 ICAT simultaneously. The authorization is based in ICAT. The configuration

@@ -16,7 +16,7 @@
           #12, 25 um Zr.
     Here we use the Beer-Lambert law to calculate the transmission/attenuation: I = I0 * e^-(MU * d)
     were I is the transmitted (final) beam intensity, I0 is the incident (initial) beam intensity,
-    MU is the linear attenuation coeficient (cm^-1) and d is the thickness of the foil (cm).
+    MU is the linear attenuation coefficient (cm^-1) and d is the thickness of the foil (cm).
 """
 import argparse
 import math
@@ -32,9 +32,9 @@ def read_input():
     return args
 
 def read_transmission(energy):
-    # Expressions (interpolation) for calculations of MU (linear attenuation coeficient [cm^-1]) for each material in function of the beam energy.
+    # Expressions (interpolation) for calculations of MU (linear attenuation coefficient [cm^-1]) for each material in function of the beam energy.
     # The data used to obtain the expressions (curve fitting) are from  "https://physics.nist.gov/PhysRefData/FFast/html/form.html"
-    # This attenuation coeficients can be verified and optimised after experimental validation at the beamline.
+    # This attenuation coefficients can be verified and optimised after experimental validation at the beamline.
     MU_Al = (78657.01011 * math.exp(-energy/0.65969)) + (6406.36151 * math.exp(-energy/1.63268)) + (492.29999 * math.exp(-energy/4.42554)) + (3.2588)
     MU_Ti = (28062.17632 * math.exp(-energy/1.88062)) + (6354120 * math.exp(-energy/0.49973)) + (2257.91488 * math.exp(-energy/5.28296)) + (17.4342)
     MU_Cu = (1147850000 * math.exp(-energy/0.56933)) + (2582.7593 * math.exp(-energy/8.40671)) + (30628.08291 * math.exp(-energy/2.98937)) + (22.4187)
@@ -57,7 +57,7 @@ def read_transmission(energy):
 
     # check what foils are in the the beam and calculate MU*x and then calculate transmission
 
-    # the commented lines bellow works for the attenuator expected logic (0 for foil out and 1 for foil in).
+    # the commented lines below works for the attenuator expected logic (0 for foil out and 1 for foil in).
     # as the current logic is inverted (1 is foil out and 0 is foil in) use the uncommented lines.
     foils_in = []
     for foil in foils_pv.keys():

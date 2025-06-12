@@ -67,7 +67,7 @@ class SOLEILSession(Session.Session):
             if _local_time[3] > 7:
                 start_time = time.strftime("%Y-%m-%d")
             else:
-                # substract 8 hours to current date to get yesterday's date.
+                # subtract 8 hours to current date to get yesterday's date.
                 _local_time = time.gmtime((time.time() - 8 * 60 * 60))
                 start_time = time.strftime("%Y-%m-%d", _local_time)
 

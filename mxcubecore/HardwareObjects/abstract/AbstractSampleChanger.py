@@ -351,7 +351,7 @@ class SampleChanger(Container, HardwareObject):
 
     def wait_ready(self, timeout=None):
         """Wait for current sample changer operation to finish.
-        Blocks for timeout seconds or forever if timout is None
+        Blocks for timeout seconds or forever if timeout is None
         Args:
             timeout (int): timeout [s].
         Raises:
@@ -399,7 +399,7 @@ class SampleChanger(Container, HardwareObject):
     def assert_can_execute_task(self):
         """
         Raises:
-            (Exeption): If sample changer cannot execute a task
+            (Exception): If sample changer cannot execute a task
         """
         if not self.is_ready():
             raise Exception(
@@ -758,13 +758,13 @@ class SampleChanger(Container, HardwareObject):
     def _run(self, task, method, *args):
         """
         method(self,*arguments)
-        exeption=None
+        exception=None
         try:
             while !_is_task_finished(state):
               time.sleep(0.1)
-            exeption=_getTaskException(state)
+            exception=_getTaskException(state)
         finally:
-            _trigger_task_finished_event(state,exeption)
+            _trigger_task_finished_event(state,exception)
             self._set_state(SampleChangerState.Ready)
         """
         exception = None

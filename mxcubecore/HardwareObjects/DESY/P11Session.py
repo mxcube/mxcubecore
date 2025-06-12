@@ -201,7 +201,7 @@ class P11Session(Session):
 
     def get_base_process_directory(self):
         """
-        :returns: The base path for procesed data.
+        :returns: The base path for processed data.
         :rtype: str
         """
         return os.path.join(
@@ -210,7 +210,7 @@ class P11Session(Session):
 
     def get_archive_directory(self):
         """
-        :returns: The base path for procesed data.
+        :returns: The base path for processed data.
         :rtype: str
         """
         return os.path.join(self.get_base_data_directory(), self.default_archive_folder)

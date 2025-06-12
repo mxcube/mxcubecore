@@ -23,7 +23,7 @@ class XRFMockup(HardwareObject):
         self.spectrumInfo["beamSizeHorizontal"] = 0
         self.spectrumInfo["beamSizeVertical"] = 0
         self.ready_event = gevent.event.Event()
-        self.__scan_data = dict()
+        self.__scan_data = {}
 
         # self.plottin_hwobj = self.get_object_by_role('plotting')
 
@@ -63,7 +63,7 @@ class XRFMockup(HardwareObject):
                 "labels": ["energy", "diode value"],
             }
             scan_id = scan_info["scan_nb"]
-            self.__scan_data[scan_id] = list()
+            self.__scan_data[scan_id] = []
 
             self.emit(
                 "new_plot",

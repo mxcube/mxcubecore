@@ -256,12 +256,12 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
         angle_inc = image_headers["Angle_increment"]
         start_angle = image_headers["Start_angle"]
 
-        startangles_list = list()
+        startangles_list = []
         ang_start, ang_inc, spacing = angle_info
         for i in range(nb_images):
             startangles_list.append("%0.4f deg." % (ang_start + spacing * i))
 
-        headers = list()
+        headers = []
         for i, sa in enumerate(startangles_list):
             header = (
                 "_array_data.header_convention PILATUS_1.2\n"

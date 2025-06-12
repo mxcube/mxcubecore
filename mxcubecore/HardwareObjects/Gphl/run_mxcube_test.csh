@@ -5,7 +5,7 @@
 # Requires HOME, BASE_PATH, and MINICONDA envs to be set
 # BASE_PATH is (for rhfogh): /usr/local/bin:/usr/bin:/bin:/usr/bin/X11
 # MINICONDA is the directory containing the minoconda envs/ directory
-# NB you do *not* need to activate teh conda environment before running
+# NB you do *not* need to activate the conda environment before running
 
 setenv GPHL_TEST_INPUT $1
 

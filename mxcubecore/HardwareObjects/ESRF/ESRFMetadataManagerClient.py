@@ -101,7 +101,7 @@ class MetadataManagerClient(object):
             raise
 
     def __setProposal(self, proposal):
-        """ Set proposal should be done before stting the data root """
+        """ Set proposal should be done before setting the data root """
         try:
             MetadataManagerClient.metaExperiment.proposal = proposal
             self.proposal = proposal

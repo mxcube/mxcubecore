@@ -286,7 +286,7 @@ class Harvester(HardwareObject):
         return None
 
     def check_crystal_state(self, crystal_uuid: str) -> Optional[str]:
-        """Check wether if a Crystal is in pending_and_current or not
+        """Check whether if a Crystal is in pending_and_current or not
 
         Args (str) : Crystal uuid
 

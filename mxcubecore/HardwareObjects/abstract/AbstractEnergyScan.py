@@ -73,10 +73,10 @@ class AbstractEnergyScan(HardwareObject):
         The function should return a distionary with at least defined
         {'edgeEnergy': peak_energy} member, where 'edgeEnergy' is a
         compulsory key.
-        It is convinient to put in the same dictionary the remote energy,
+        It is convenient to put in the same dictionary the remote energy,
         the ROI min/max values.
         There are few more reserved key names:
-        'eroi_min', 'eroi_max' - min and max ROI limits if you want ot set one.
+        'eroi_min', 'eroi_max' - min and max ROI limits if you want to set one.
         'findattEnergy' - energy to move to if you want to choose the attenuation
         for the scan.
         """
@@ -121,7 +121,7 @@ class AbstractEnergyScan(HardwareObject):
             self.close_fast_shutter()
             self.energy_scan_parameters["flux"] = HWR.beamline.flux.get_value()
             HWR.beamline.safety_shutter.close(timeout=10)
-            # send finish sucessfully signal
+            # send finish successfully signal
             self.emit("energyScanFinished", (self.energy_scan_parameters,))
             self.ready_event.set()
 
@@ -172,7 +172,7 @@ class AbstractEnergyScan(HardwareObject):
 
         """
         Use chooch to calculate edge and inflection point
-        The brick expects the folowing parameters to be returned:
+        The brick expects the following parameters to be returned:
         pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, rm,
         chooch_graph_x, chooch_graph_y1, chooch_graph_y2, title)
         """

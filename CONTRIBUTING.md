@@ -27,7 +27,7 @@ if a fork is used then add the official mxcubecore repository to the list of rem
   git remote add upstream git@github.com:mxcube/mxcubecore.git
   ```
 
-A branching model based on the popular [gitlfow model](https://nvie.com/posts/a-successful-git-branching-model/) is used inorder to be able to provide versioned releases and at the same time continue seperate development. The stable releases are kept on the [**master**](https://github.com/mxcube/mxcubecore/tree/master) branch and the development takes place on [**develop**](https://github.com/mxcube/mxcubecore/tree/develop).
+A branching model based on the popular [gitflow model](https://nvie.com/posts/a-successful-git-branching-model/) is used inorder to be able to provide versioned releases and at the same time continue separate development. The stable releases are kept on the [**master**](https://github.com/mxcube/mxcubecore/tree/master) branch and the development takes place on [**develop**](https://github.com/mxcube/mxcubecore/tree/develop).
 
 This means that all pull requests should be made against the [**develop**](https://github.com/mxcube/mxcubecore/tree/develop) branch. The work on the **develop** branch is performed by simply creating a branch for the work to be done and then making a PR according to the description below.
 
@@ -54,7 +54,7 @@ We **recommend to always rebase your local changes instead of merging them**, gi
 git checkout develop`
 git pull --rebase develop
 ```
-* Create a new branch, it's recommended to use a meaningfull name. for instance [initials]-[fix/feature]-[some name] i.e mo-feature-gizmo1
+* Create a new branch, it's recommended to use a meaningful name. for instance [initials]-[fix/feature]-[some name] i.e mo-feature-gizmo1
  `git checkout -b mo-feature-gizmo1`
 * If the pull request is associated with an issue then reference the issue in the name. For example:
   `git checkout -b issue_100`
@@ -74,7 +74,7 @@ git pull --rebase develop
 #### Creating a new pull request via github webpage
 
 * Keep the pull requests small preferably containing a single feature
-* Give enough information about the changes in the pull request summary so that the reviewers easily understands whats been done
+* Give enough information about the changes in the pull request summary so that the reviewers easily understands what's been done
 * Highlight technically complex/complicated sections of the code and supply additional comments to code that might need extra explication/motivation by making inline comments
 * If needed assign a developer who shall review the PR.
 
@@ -149,7 +149,7 @@ attributes, for instance ```self.emit("attributeChanged", "attr1", 0)``` instead
 specific signal with for instance a single dictionary as data.
 
 ####  Python 2.7 and 3.7 imports
-Imports that are incompatable between Python 2x and 3x should be handled with:
+Imports that are incompatible between Python 2x and 3x should be handled with:
   ```
   try:
       import myfile
@@ -162,7 +162,7 @@ We strongly encourage the usage of type hints
 #### Naming convention
 
 ##### Language and spelling
-* UK english should be used for the spelling in documentation and code. Relevant examples for the mxcubecore code base are for instance the words *centring* and *characterisation* that are the prefered spelling instead of *centering* and *characterization*.
+* UK english should be used for the spelling in documentation and code. Relevant examples for the mxcubecore code base are for instance the words *centring* and *characterisation* that are the preferred spelling instead of *centering* and *characterization*.
 
 ##### Functions
   * functions names should be recognisable as actions and should generally contain a verb
@@ -170,21 +170,21 @@ We strongly encourage the usage of type hints
 ##### Variables and parameters:
  * names of objects and values are singular
  * names of collections are plural or contain an internal 'list' (or 'tuple', 'tpl')
- * names of maps are plural or contain 'map', 'dict', 'data', or an internel '2', like 'name2state'
+ * names of maps are plural or contain 'map', 'dict', 'data', or an internal '2', like 'name2state'
  * variables should distinguish between objects (e.g. 'motor') and their names or string representations (e.g. 'motor_name'))
- * Booleans can be indcated by participles (e.g. 'enabled', 'tunable') or an 'is_' prefix. We should use positive rather than negative expressions (e.g. 'enabled' rather than 'disabled')
+ * Booleans can be indicated by participles (e.g. 'enabled', 'tunable') or an 'is_' prefix. We should use positive rather than negative expressions (e.g. 'enabled' rather than 'disabled')
 
 #### Properties v. functions
-  * You should prefer functions ('get_', 'set_', 'update_') when attributes are mutable and changing the value requires moving hardware or is slow or has side effects, or where you (might) need additional parameters like swithces or timeout values.
+  * You should prefer functions ('get_', 'set_', 'update_') when attributes are mutable and changing the value requires moving hardware or is slow or has side effects, or where you (might) need additional parameters like switches or timeout values.
     * For Boolean states prefer e.g. set_enabled (True/False) rather than separate enable()/disable() functions.
   * You should prefer properties for simple properties or states of objects (e.g. 'name', 'user_name', 'tolerance'). Contained HardwareObjects also use properties
 
 
-#### Style guidlines
+#### Style guidelines
 
-It is very important to write a clean and readable code. Therefore we follow the [PEP8 guidlines](https://www.python.org/dev/peps/pep-0008/). Minimal required guidlines are:
+It is very important to write a clean and readable code. Therefore we follow the [PEP8 guidelines](https://www.python.org/dev/peps/pep-0008/). Minimal required guidelines are:
 * Maximum 88 characters per line.
-* Use 4 spaces (not a tab) per identation level.
+* Use 4 spaces (not a tab) per indentation level.
 * Do not use wild (star) imports.
 * Used naming styles:
    * lower_case_with_underscores (snake style) for variables, methods.
@@ -291,10 +291,10 @@ Abstract classes hierarchy scheme can be found [here](https://github.com/mxcube/
 Issue and Pull request Labels
 
 * bug: indicates a bug in the code. Issue has a highest priority.
-* abstract: Abstract class involved. Issue has a hight priority.
+* abstract: Abstract class involved. Issue has a high priority.
 * question: general question.
 * not used code: suggestion to remove a code block or a file from the repository.
 * wip: work in progress
-* enchancement: code improvement.
+* enhancement: code improvement.
 
 Milestones

@@ -67,7 +67,7 @@ class AbstractBeam(HardwareObject):
         _aperture: reference to the aperture hardware object
         _slits: reference to the slits hardware object
         _definer: reference to the slits hardware object
-        _beam_size_dict (dict): dictionary containing min max of aperure,
+        _beam_size_dict (dict): dictionary containing min max of aperture,
                                 slits and definer.
         _beam_width (float): beam size in horizontal direction
         _beam_height (float): beam size in vertical direction
@@ -173,7 +173,7 @@ class AbstractBeam(HardwareObject):
         return self._beam_shape
 
     def get_beam_size(self) -> tuple[float, float]:
-        """Get yhe beam size.
+        """Get the beam size.
 
         Returns:
             Two-item tuple: width and height.
@@ -182,11 +182,11 @@ class AbstractBeam(HardwareObject):
         return self._beam_width, self._beam_height
 
     def get_value(self) -> tuple[float, float, BeamShape, str]:
-        """Get the beam size (width and heigth), shape and label.
-           The size is in milimeters.
+        """Get the beam size (width and height), shape and label.
+           The size is in millimeters.
 
-        Retunrs:
-            Four-item tuple: width, heigth, shape, name
+        Returns:
+            Four-item tuple: width, height, shape, name
         """
         return self._get_value()
 
@@ -196,7 +196,7 @@ class AbstractBeam(HardwareObject):
     def set_value(self, size: list[float] | str | None = None) -> None:
         """Set the beam size.
         Args:
-            size: List of width and heigth in micrometers or
+            size: List of width and height in micrometers or
                 aperture or definer name as string.
         Raises:
             NotImplementedError
@@ -258,7 +258,7 @@ class AbstractBeam(HardwareObject):
     def evaluate_beam_info(self) -> dict:
         """Method called if aperture, slits or focusing has been changed.
 
-        Evaluates which of the beam size defining devices determins the size.
+        Evaluates which of the beam size defining devices determines the size.
 
         Returns:
             Beam info dictionary ``dict``, type of the definer ``str``.

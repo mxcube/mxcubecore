@@ -122,9 +122,9 @@ class TestHardwareObjectBase:
 class SignalCatcher:
     """Utility class to test emissoi of signals
 
-    Connect the catch function ot the signal, and use async_result.get()
+    Connect the catch function of the signal, and use async_result.get()
     to get the value passed back by the signal.
-    NB consider timeout ot avoid waiting forever"""
+    NB consider timeout to avoid waiting forever"""
 
     def __init__(
         self,

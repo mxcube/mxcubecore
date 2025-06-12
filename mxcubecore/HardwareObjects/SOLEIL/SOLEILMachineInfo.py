@@ -36,7 +36,7 @@ information). Value limits are included
 - cmdSetIntensAcqTime
 - cmdSetIntensRange
 
-[Emited signals]
+[Emitted signals]
 - valuesChanged
 - inRangeChanged
 
@@ -406,7 +406,7 @@ class SOLEILMachineInfo(HardwareObject):
         self.re_emit_values()
 
     def get_temp_hum_values(self, sleep_time):
-        """Updates temperatur and humidity values"""
+        """Updates temperature and humidity values"""
         while True:
             temp = self.get_external_value(self.hutch_temp_addr)
             hum = self.get_external_value(self.hutch_hum_addr)
@@ -463,7 +463,7 @@ class SOLEILMachineInfo(HardwareObject):
             return None, None, None
 
     def sizeof_fmt(self, num):
-        """Returns disk space formated in string"""
+        """Returns disk space formatted in string"""
 
         try:
             for x in ["bytes", "KB", "MB", "GB"]:

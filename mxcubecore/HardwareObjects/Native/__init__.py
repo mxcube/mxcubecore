@@ -35,7 +35,7 @@ def queue_get_available_serialisations(self):
 
 def queue_add_node(server_hwobj, task_node, set_on=True):
     """
-    Adds the TaskNode objects contained in the json seralized
+    Adds the TaskNode objects contained in the json serialized
     list of TaskNodes passed in <task_node>.
 
     The TaskNodes are marked as activated in the queue if <set_on>

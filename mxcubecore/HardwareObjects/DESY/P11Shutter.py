@@ -72,7 +72,7 @@ class P11Shutter(AbstractShutter):
         self.chan_state = None
 
     def init(self):
-        """Initilise the predefined values"""
+        """Initialise the predefined values"""
 
         # if simulation is set - open and close will be mere software flags
 

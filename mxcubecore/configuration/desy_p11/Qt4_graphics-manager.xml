@@ -9,7 +9,7 @@
    <!-- Use magnification tool -->
    <magnification_tool>{"scale": 4, "area_size": 50}</magnification_tool>
 
-   <!-- Scale incomming video frame -->
+   <!-- Scale incoming video frame -->
    <!-- <default_image_scale>1</default_image_scale> -->
    <image_scale_list>(1, 1.5, 2, 2.5, 3, 4, 5)</image_scale_list>
 

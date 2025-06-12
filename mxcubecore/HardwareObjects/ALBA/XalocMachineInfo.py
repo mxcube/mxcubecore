@@ -33,7 +33,7 @@ Based on EMBL HwObj
 
 [Commands]
 
-[Emited signals]
+[Emitted signals]
 - valuesChanged
 
 [Functions]
@@ -145,7 +145,7 @@ class XalocMachineInfo(HardwareObject):
     def topup_remaining_changed(self, value):
         """
         Descript. : Function called if topup ramaining is changed
-        Arguments : new topup remainin (float)
+        Arguments : new topup remaining (float)
         Return    : -
         """
         self.values_dict["topup_remaining"] = value
@@ -155,7 +155,7 @@ class XalocMachineInfo(HardwareObject):
         """
         Descript. : Updates storage disc information, detects if intensity
                     and storage space is in limits, forms a value list
-                    and value in range list, both emited by qt as lists
+                    and value in range list, both emitted by qt as lists
         Arguments : -
         Return    : -
         """

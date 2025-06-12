@@ -370,7 +370,6 @@ class CatsMaintMockup(HardwareObject):
         return ret
 
     def send_command(self, cmd_name, args=None):
-        #
         lid = 1
         toolcal = 0
         tool = self.get_current_tool()

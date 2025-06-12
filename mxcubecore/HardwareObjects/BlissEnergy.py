@@ -123,7 +123,7 @@ class BlissEnergy(AbstractEnergy):
                              If timeout == 0: return at once and do not wait
                              if timeout is None: wait forever.
         Raises:
-            ValueError: Value not valid or attemp to set write only actuator.
+            ValueError: Value not valid or attempt to set write only actuator.
         """
         if self.read_only:
             return

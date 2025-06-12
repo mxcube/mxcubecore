@@ -44,7 +44,7 @@ CrystalClassInfo = namedtuple(
 
 
 # Crystal families (one-letter codes) compatible with a solution in a given family
-# These are the solutions that could aply using the same axes,
+# These are the solutions that could apply using the same axes,
 # hence "c" not compatible with "h
 SUB_LATTICE_MAP = {
     "a": "a",
@@ -992,7 +992,7 @@ SPACEGROUP_DATA = [
 ]
 SPACEGROUP_MAP = OrderedDict((info.name, info) for info in SPACEGROUP_DATA)
 for tpl in SPACEGROUP_DATA:
-    # Done this way so that first elemets in map are on item per spacegroup
+    # Done this way so that first elements in map are on item per spacegroup
     for tag in tpl.synonyms:
         SPACEGROUP_MAP[tag] = tpl
 
@@ -1043,7 +1043,6 @@ def filter_crystal_classes(bravais_lattice, crystal_classes=()):
         for xcls in crystal_classes
         if CRYSTAL_CLASS_MAP[xcls].bravais_lattice[0] in compatibles
     )
-    #
     return result
 
 
@@ -1102,7 +1101,6 @@ def space_groups_from_params(lattices=(), point_groups=(), chiral_only=True):
             space_groups = list(spg for spg in sgs2 if spg in tstset)
         else:
             space_groups = sgs1 + sgs2
-    #
     return space_groups
 
 
@@ -1143,7 +1141,6 @@ def crystal_classes_from_params(
     else:
         # Return empty list (nothing is set)
         result = ()
-    #
     return result
 
 
@@ -1196,7 +1193,6 @@ def strategy_laue_group(crystal_classes: tuple, phasing=False):
                 result = ("-3", "3")
         else:
             result = ("-1", "1")
-    #
     return result
 
 

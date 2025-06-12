@@ -83,9 +83,9 @@ class EMBLPPUControl(HardwareObject):
 
     def file_info_changed(self, values):
         """
-        Updated information about transfered frames
+        Updated information about transferred frames
         values is a list of 3 values, where the last one indicates the number
-        of droped frames
+        of dropped frames
         :param values:
         :return:
         """

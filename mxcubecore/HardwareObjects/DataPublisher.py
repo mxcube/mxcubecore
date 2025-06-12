@@ -49,7 +49,7 @@ class PlotDim(Enum):
 
 class DataType(Enum):
     """
-    Defines avialable data types
+    Defines available data types
     """
 
     FLOAT = "float"
@@ -171,7 +171,7 @@ class DataPublisher(HardwareObject):
 
     def _remove_available(self, _id):
         """
-        Remove source with _id from list of avialable sources
+        Remove source with _id from list of available sources
 
         Args:
             _id (str): The id of the source to remove
@@ -184,7 +184,7 @@ class DataPublisher(HardwareObject):
 
     def _add_avilable(self, _id):
         """
-        Add source with _id to list of avialable sources
+        Add source with _id to list of available sources
 
         Args:
             _id (str): The id of the sources to remove

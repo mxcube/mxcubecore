@@ -175,7 +175,7 @@ configuration:
       # in cases where the directories are created after the workflow starts
       # Checks for data directory tree
       co.gphl.wf.blRootCheck: false
-      # Chcks for data processing directory tree
+      # Checks for data processing directory tree
       # co.gphl.wf.procRootCheck: false
 
       # Parameters to individual applications
@@ -196,7 +196,7 @@ configuration:
       #        co.gphl.wf.run_number: 7
 
   #    Workflows, The options in the top elements are updated with the options
-  #    in the individual type, and passed as options to teh workflow application
+  #    in the individual type, and passed as options to the workflow application
   # The following options are set elsewhere and can *not* be set here
   # appdir: Processing root directory.
   #        Set automatically to Session.get_process_directory()

@@ -234,7 +234,6 @@ class CollectEmulator(CollectMockup):
             result["sweep_list"] = sweep
         else:
             result["sweep_list"] = sweeps
-        #
         return result, compress_data
 
     @task
@@ -352,5 +351,4 @@ class CollectEmulator(CollectMockup):
         else:
             logging.getLogger("HWR").info("Simcal collection emulation successful")
         self.ready_event.set()
-        #
         return

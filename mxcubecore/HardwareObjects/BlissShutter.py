@@ -74,7 +74,7 @@ class BlissShutter(AbstractShutter):
         self.opening_mode = None
 
     def init(self):
-        """Initilise the predefined values"""
+        """Initialise the predefined values"""
         self.controller = self.get_object_by_role("controller")
         super().init()
         self._bliss_obj = getattr(self.controller, self.actuator_name)
@@ -140,7 +140,7 @@ class BlissShutter(AbstractShutter):
         """Set automatic or manual mode for a Frontend shutter
         Args:
             value (str): MANUAL or AUTOMATIC
-        Raises: NotImplementedError: Not a Fronend shutter.
+        Raises: NotImplementedError: Not a Frontend shutter.
         """
         self._bliss_obj.mode = value
         self.opening_mode = value

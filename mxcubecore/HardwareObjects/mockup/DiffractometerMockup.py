@@ -184,7 +184,6 @@ class DiffractometerMockup(GenericDiffractometer):
                 if abs(val) > var_limit:
                     val *= 1 - var_range / var_limit
                 result[tag] = val
-        #
         return result
 
     def is_ready(self) -> bool:

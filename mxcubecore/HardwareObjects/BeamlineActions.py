@@ -127,7 +127,7 @@ class HWObjActuatorCommand(CommandObject):
         self._running = False
 
     def value(self):
-        """Return the current command vaue.
+        """Return the current command value.
         Return:
             (str): The value as a string
         """

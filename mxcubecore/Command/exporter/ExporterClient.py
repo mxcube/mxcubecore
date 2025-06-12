@@ -113,7 +113,7 @@ class ExporterClient(StandardClient):
         """
 
         # runScript returns results in a different way than any other
-        # comand, fix on MD side ?
+        # command, fix on MD side ?
         if method == "runScript" and pars is not None:
             pars = pars[0].split(",")
 
@@ -191,7 +191,7 @@ class ExporterClient(StandardClient):
         return process_return
 
     def read_property_as_string_array(self, prop):
-        """Read a propery and convert the return value to list of strings.
+        """Read a property and convert the return value to list of strings.
         Args:
             prop(str): property name
         Returns:
@@ -218,9 +218,9 @@ class ExporterClient(StandardClient):
     def create_array_parameter(self, value):
         """Create a string to send.
         Args:
-            value: simple, tuple ot list
+            value: simple, tuple or list
         Returns:
-            (str): formated string
+            (str): formatted string
         """
         ret = ARRAY_SEPARATOR
         if value is not None:

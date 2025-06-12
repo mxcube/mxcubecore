@@ -48,7 +48,7 @@ class P11FastShutter(AbstractNState):
         self.chan_value = None
 
     def init(self):
-        """Initilise the predefined values"""
+        """Initialise the predefined values"""
 
         self._initialise_values()
         self.chan_value = self.get_channel_object("value")

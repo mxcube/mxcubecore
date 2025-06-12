@@ -54,7 +54,7 @@ class OfflineProcessingMockup(HardwareObject):
     def execute_autoprocessing(
         self, process_event, params_dict, frame_number, run_processing=True
     ):
-        """Method called from collection hwobj after successfull collection.
+        """Method called from collection hwobj after successful collection.
 
         :param process_event: processing type (after, before, image)
         :type process_event: str

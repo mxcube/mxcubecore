@@ -58,8 +58,6 @@ try:
 except Exception:
     logging.getLogger("HWR").warning("Pytango is not available in this computer.")
 
-#
-
 try:
     import taurus
     from sardana.taurus.core.tango.sardana import registerExtensions

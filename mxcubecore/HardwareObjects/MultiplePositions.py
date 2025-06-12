@@ -25,13 +25,13 @@ This object manages the movement of several motors to predefined positions.
 </deltas>
 
 <positions>
-    <poisition>
+    <position>
         <name>      : name of a predefined position. Must be unique in the file
         <role1>val1 : position of the motor "role1" for the predefined position
                      "name"
         <role2>val2 : position of the motor "role2" for the predefined position
                      "name"
-        <resoy>8.69565217391e-07</resoy> : for all the position, independant
+        <resoy>8.69565217391e-07</resoy> : for all the position, independent
         <beamx>100</beamx>                 value with keyword can be added,
                                            saved, read ...
     </position>
@@ -68,14 +68,14 @@ METHOD
     name:           getPositionKeyValue
     input par.:     name, key
     output par.:    value
-    description:    return the value of the independant "key" field of
+    description:    return the value of the independent "key" field of
                     the predefined position "name"
 
     name:           setPositionKeyValue
     input par.:     name, key, value
     output par.:    None
     description:    Change in the object and in the xml file the value of the
-                    independant field "key" in the predefined position "name"
+                    independent field "key" in the predefined position "name"
 
     name:           getRoles
     input par.:     None

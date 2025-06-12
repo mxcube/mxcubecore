@@ -18,7 +18,7 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """AbstractNState class - interface for N state devices.
-Defines BaseValueEnum, initialise_values and value_to_enum methds.
+Defines BaseValueEnum, initialise_values and value_to_enum methods.
 Implements validate_value, set/update limits.
 """
 
@@ -49,7 +49,7 @@ class AbstractNState(AbstractActuator):
     VALUES = BaseValueEnum
 
     def init(self):
-        """Initilise the predefined values"""
+        """Initialise the predefined values"""
         super().init()
         self.initialise_values()
         # default_value should be an Enum, if defined
@@ -95,7 +95,7 @@ class AbstractNState(AbstractActuator):
             pass
 
     def value_to_enum(self, value, idx=0):
-        """Tranform a value to Enum
+        """Transform a value to Enum
         Args:
            value(str, int, float, tuple): value
            idx(int): Index in the value, if tuple

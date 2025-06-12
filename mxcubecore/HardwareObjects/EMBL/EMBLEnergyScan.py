@@ -180,7 +180,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         :type blsample_id: int
         :param exptime: exposure time in seconds
         :type exptime: float
-        :return: True if success, otherwise returns Fals
+        :return: True if success, otherwise returns False
         """
         log = logging.getLogger("HWR")
 

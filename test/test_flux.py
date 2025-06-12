@@ -53,7 +53,7 @@ class TestFlux(TestAbstractActuatorBase.TestAbstractActuatorBase):
         assert test_object._nominal_value == startval, msg
 
     def test_flux_attributes(self, test_object):
-        """Test the attrubutes"""
+        """Test the attributes"""
         assert test_object.read_only is True
         value = test_object.get_value()
         print(f"------> Flux is {value}")
@@ -64,6 +64,5 @@ class TestFlux(TestAbstractActuatorBase.TestAbstractActuatorBase):
     def test_flux_methods(self, test_object):
         """Test the methods"""
         # Test timeout - expecting to have RuntimeError
-        with pytest.raises(RuntimeError) as info:
-            print(f"------> Flux: {info}")
+        with pytest.raises(RuntimeError):
             test_object.wait_for_beam(0)

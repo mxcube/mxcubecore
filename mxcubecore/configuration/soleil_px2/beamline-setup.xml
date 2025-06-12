@@ -1,5 +1,5 @@
 <object class="BeamlineSetup">
-    <!-- Objects directly associatd with hardware -->
+    <!-- Objects directly associated with hardware -->
     <object href="/diffractometer/omega" role="omega_axis"/>
     <object href="/diffractometer/kappa" role="kappa_axis"/>
     <object href="/diffractometer/phi" role="kappa_phi_axis"/>

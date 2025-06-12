@@ -343,7 +343,7 @@ class EMBLMachineInfo(HardwareObject):
 
     def file_transfer_status_changed(self, status):
         """
-        Updates info about file beeing transfered
+        Updates info about file being transferred
         :param total: int
         :param pending: int
         :param failed: int
@@ -425,7 +425,7 @@ class EMBLMachineInfo(HardwareObject):
         return self.values_ordered_dict
 
     def get_temp_hum_values(self, sleep_time):
-        """Updates temperatur and humidity values"""
+        """Updates temperature and humidity values"""
         while True:
             temp = self.get_external_value(self.hutch_temp_addr)
             hum = self.get_external_value(self.hutch_hum_addr)
@@ -462,7 +462,7 @@ class EMBLMachineInfo(HardwareObject):
            implementation how to get a value from epics web tool. At first
            web address string is formed and then web page by urllib2
            extracted. Page contains column with records.
-           Then the last value is choosen as the last active value.
+           Then the last value is chosen as the last active value.
 
         :param addr: epics address
         :type addr: str
@@ -552,7 +552,7 @@ class EMBLMachineInfo(HardwareObject):
             return None, None, None
 
     def sizeof_fmt(self, num):
-        """Returns disk space formated in string"""
+        """Returns disk space formatted in string"""
 
         try:
             for x in ["bytes", "KB", "MB", "GB"]:

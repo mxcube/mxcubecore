@@ -115,7 +115,7 @@ class TestCommandObject:
         # Call method
         cmd_object.set_argument_json_schema(json_schema_str=schema)
 
-        # Validate expected changes happend
+        # Validate expected changes happened
         assert cmd_object.argument_type == ARGUMENT_TYPE_JSON_SCHEMA
         assert cmd_object._arguments == schema
 
@@ -1011,7 +1011,7 @@ class TestCommandContainer:
             onchange (Union[str, None]): On change.
             valuefrom (Union[str, None]): Value from.
             channel_exists (bool): If channel should be treated as existing.
-            raise_attr_error (bool): If missing attribute should raise an exeption.
+            raise_attr_error (bool): If missing attribute should raise an exception.
         """
 
         _attributes = copy.deepcopy(attributes_dict)
@@ -1228,7 +1228,7 @@ class TestCommandContainer:
         )
 
         if not channel_name in initial_channels.keys():
-            # Check exception is raised for non-existant key
+            # Check exception is raised for non-existent key
             with pytest.raises(KeyError):
                 cmd_container.get_channel_value(channel_name=channel_name)
         else:
@@ -1478,7 +1478,7 @@ class TestCommandContainer:
             add_now (bool): Whether to add the channel now.
             onchange (Union[str, None]): On change.
             valuefrom (Union[str, None]): Value from.
-            raise_attr_error (bool): If missing attribute should raise an exeption.
+            raise_attr_error (bool): If missing attribute should raise an exception.
         """
 
         _attributes = copy.deepcopy(arg1)
@@ -1688,7 +1688,7 @@ class TestCommandContainer:
         ("cmd_args", "cmd_kwargs"),
         (
             ((None, "Test", 2.5), {"test1": None, "test2": 13, "test3": 8.5}),
-            (tuple(), dict()),
+            ((), {}),
         ),
     )
     def test_execute_command(

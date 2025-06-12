@@ -40,7 +40,7 @@ print(sys.path)
 
 
 # This coding gives a new beamline load for each function call
-# This can easily be changed by chaging the scope,
+# This can easily be changed by changing the scope,
 # but we may need to provide cleanup / object reloading in order to do that.
 # @pytest.fixture(scope="session")
 @pytest.fixture(scope="function")

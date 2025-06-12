@@ -99,7 +99,7 @@ class GphlWorkflowConnection(HardwareObject):
     class HOConfig(ConfiguredObject.HOConfig):
         """Temporary replacement for Pydantic class
 
-        Required during transition, as long as we do nto have teh fields defined"""
+        Required during transition, as long as we do not have the fields defined"""
 
         # Defaults - should be replaced by proper Pydantic
         software_paths = {}
@@ -181,7 +181,6 @@ class GphlWorkflowConnection(HardwareObject):
             result = os.path.join(
                 self.config.software_paths["GPHL_INSTALLATION"], "exe", name
             )
-        #
         return result
 
     def get_bdg_licence_dir(self, name):
@@ -189,7 +188,6 @@ class GphlWorkflowConnection(HardwareObject):
         for program called 'name'"""
         tag = "co.gphl.wf.%s.bdg_licence_dir" % name
         result = self.config.software_paths.get(tag)
-        #
         return result
 
     def open_connection(self):
@@ -337,7 +335,7 @@ class GphlWorkflowConnection(HardwareObject):
             command_list.extend(
                 conversion.command_option(keyword, value, quote_value=in_shell)
             )
-        #
+
         wdir = workflow_options.get("wdir")
         # NB this creates the appdir as well (wdir is within appdir)
         if not os.path.isdir(wdir):
@@ -495,7 +493,7 @@ class GphlWorkflowConnection(HardwareObject):
         """Receive and process message from workflow server
         Return goes to server
 
-        NB Callled freom external java) workflow"""
+        NB Called from external java) workflow"""
         if self.get_state() is self.STATES.OFF:
             return None
 
@@ -663,7 +661,6 @@ class GphlWorkflowConnection(HardwareObject):
                         "Processing of GΦL message %s not implemented", message_type
                     )
                     payload = None
-        #
         return GphlMessages.ParsedMessage(
             message_type, payload, enactment_id, correlation_id
         )
@@ -758,7 +755,6 @@ class GphlWorkflowConnection(HardwareObject):
             message = py4jIssue.getMessage()
             code = py4jIssue.getCode()
             issues.append(Issue(component=component, message=message, code=code))
-        #
         return cls(issues=issues)
 
     def _WorkflowCompleted_to_python(self, py4jWorkflowCompleted):
@@ -818,7 +814,6 @@ class GphlWorkflowConnection(HardwareObject):
             return None
         uuidString = py4jBeamstopSetting.getId().toString()
         axisSettings = py4jBeamstopSetting.getAxisSettings()
-        #
         return GphlMessages.BeamstopSetting(id_=uuid.UUID(uuidString), **axisSettings)
 
     def _DetectorSetting_to_python(self, py4jDetectorSetting):
@@ -826,14 +821,12 @@ class GphlWorkflowConnection(HardwareObject):
             return None
         uuidString = py4jDetectorSetting.getId().toString()
         axisSettings = py4jDetectorSetting.getAxisSettings()
-        #
         return GphlMessages.DetectorSetting(id_=uuid.UUID(uuidString), **axisSettings)
 
     def _BeamSetting_to_python(self, py4jBeamSetting):
         if py4jBeamSetting is None:
             return None
         uuidString = py4jBeamSetting.getId().toString()
-        #
         return GphlMessages.BeamSetting(
             id_=uuid.UUID(uuidString), wavelength=py4jBeamSetting.getWavelength()
         )
@@ -1000,7 +993,6 @@ class GphlWorkflowConnection(HardwareObject):
         buildr = buildr.userProvidedInfo(
             self._UserProvidedInfo_to_java(priorInformation.userProvidedInfo)
         )
-        #
         return buildr.build()
 
     def _SampleCentred_to_java(self, sampleCentred):
@@ -1027,7 +1019,6 @@ class GphlWorkflowConnection(HardwareObject):
             result.setGoniostatTranslations(
                 list(self._GoniostatTranslation_to_java(x) for x in translationSettings)
             )
-        #
         return result
 
     def _CollectionDone_to_java(self, collectionDone):
@@ -1086,7 +1077,6 @@ class GphlWorkflowConnection(HardwareObject):
                 )
             elif urltpl:
                 builder = builder.referenceFile(urltpl.scheme, urltpl.path)
-        #
         return builder.build()
 
     def _IndexingSolution_to_java(self, indexingSolution):
@@ -1100,7 +1090,6 @@ class GphlWorkflowConnection(HardwareObject):
             indexingSolution.qualityOfFit,
             cell,
         )
-        #
         return result
 
     def _BeamlineAbort_to_java(self, beamlineAbort):

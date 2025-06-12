@@ -85,7 +85,6 @@ def get_recen_data(transcal_file, instrumentation_file, diffractcal_file=None, *
     result["omega_axis"] = ll0[:3]
     result["kappa_axis"] = ll0[3:6]
     result["phi_axis"] = ll0[6:]
-    #
     return result
 
 
@@ -144,7 +143,6 @@ def make_minikappa_data(
     # NB the signs of CSOC are set to get consistency with Gleb values
     kappa_position = (home - cross_sec_of_soc).tolist()
     phi_position = (home + cross_sec_of_soc).tolist()
-    #
     return {
         "kappa_axis": kappa_axis,
         "phi_axis": phi_axis,
@@ -158,7 +156,7 @@ def make_home_data(centring_axes, axis_names, kappadir, kappapos, phidir, phipos
 
     Args:
         centring_axes list(float): Goniostat centring axis coordinates, concatenated
-        axis_names list(str): centring axis names, in instumentation.nml order
+        axis_names list(str): centring axis names, in instrumentation.nml order
         kappadir: list(float): kappa axis direction, centring axis system
         kappapos list(float): kappa axis offset vector, centring axis system
         phidir list(float):  phi axis direction, centring axis system

@@ -99,7 +99,7 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
             integration_time (float): MCA integration time [s].
             filename (str): Data file (full path).
         Returns:
-            (bool): Procedure executed correcly (True) or error (False)
+            (bool): Procedure executed correctly (True) or error (False)
         """
         filename = filename or self.spectrum_info_dict["filename"]
         integration_time = integration_time or self.default_integration_time

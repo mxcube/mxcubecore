@@ -463,7 +463,7 @@ class MjpgStreamVideo(AbstractVideoDevice):
         return False
 
     def get_cmd_info(self, cmd, group=None, plugin=None, dest=None):
-        """Returns a dictionary with informations on the queried command.
+        """Returns a dictionary with information on the queried command.
 
         Keyword arguments:
         cmd -- command id number or tuple constant

@@ -166,7 +166,7 @@ class AbstractSampleView(HardwareObject):
         screen position screen_coord.
         Args:
             mpos_list (list[mpos_list]): List of motor positions
-            screen_coord (tuple(x, y): Screen cordinate for shape
+            screen_coord (tuple(x, y): Screen coordinate for shape
             _type (str): Type str for shape, P (Point), L (Line), G (Grid)
             user_state (ShapeState): State of the shape set by the user
         Returns:
@@ -224,7 +224,7 @@ class AbstractSampleView(HardwareObject):
 
     @abc.abstractmethod
     def select_shape_with_cpos(self, cpos):
-        """Selects shape with the assocaitaed centred posotion <cpos>
+        """Selects shape with the assocaitaed centred position <cpos>
         Args:
             cpos (CentredPosition): Centred position
         """

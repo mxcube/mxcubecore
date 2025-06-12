@@ -773,7 +773,7 @@ class ICATLIMS(AbstractLims):
         pass
 
     def store_data_collection(self, mx_collection, bl_config=None):
-        # stores the dictionay with the information about the beamline to be sent when a dataset is produced
+        # stores the dictionary with the information about the beamline to be sent when a dataset is produced
         self.beamline_config = bl_config
 
     def update_data_collection(self, mx_collection):
@@ -979,7 +979,7 @@ class ICATLIMS(AbstractLims):
                 metadata["SampleProtein_acronym"] = sample.get("proteinAcronym")
                 metadata["SampleTrackingContainer_id"] = sample.get(
                     "containerCode"
-                )  # containerCode instead of sampletrackingcontainer_id for ISPyB's compatiblity
+                )  # containerCode instead of sampletrackingcontainer_id for ISPyB's compatibility
                 metadata["SampleTrackingParcel_id"] = sample.get(
                     "SampleTrackingParcel_id"
                 )
@@ -1129,7 +1129,7 @@ class ICATLIMS(AbstractLims):
         """
         Creates or stos a BLSample entry.
         # NBNB update doc string
-        :param sample_dict: A dictonary with the properties for the entry.
+        :param sample_dict: A dictionary with the properties for the entry.
         :type sample_dict: dict
         """
         pass

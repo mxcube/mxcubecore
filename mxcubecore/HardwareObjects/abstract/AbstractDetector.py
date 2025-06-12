@@ -37,7 +37,7 @@ Implemented methods:
     get_binning_mode, set_binning_mode
 Implemented propertries:
     distance
-Emited signals:
+Emitted signals:
     detectorRoiModeChanged
     temperatureChanged
     humidityChanged

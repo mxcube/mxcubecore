@@ -229,7 +229,7 @@ class MicrodiffMotor(AbstractMotor):
 
     def _set_value(self, value):
         # NB these checks are only in update_value
-        # If you set the value, you must get the vaue you set
+        # If you set the value, you must get the value you set
         # if abs(self.position - absolutePosition) >= self.motor_resolution:
         self.position_attr.set_value(value)
 

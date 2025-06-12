@@ -11,7 +11,7 @@
     <!-- Set starting value for beam energy. Values are:  -->
     <!-- 'configured': value from calibration and characterisation strategy file -->
     <!-- 'current': use current value -->
-    <!-- 'frozen': use current value, and disallow changes in teh user interface -->
+    <!-- 'frozen': use current value, and disallow changes in the user interface -->
     <!-- 'configured': value from calibration and characterisation strategy file -->
     <starting_beamline_energy>current</starting_beamline_energy>
 
@@ -120,7 +120,7 @@
         <co.gphl.wf.simcal_predict.cell_dim_sd_scale>1.5e-3</co.gphl.wf.simcal_predict.cell_dim_sd_scale>
         <co.gphl.wf.simcal_predict.mosaicity>0.2</co.gphl.wf.simcal_predict.mosaicity>
         <!-- Parameters to individual applications -->
-        <!-- Switch devMod to True to activate these paremeters -->
+        <!-- Switch devMod to True to activate these parameters -->
         <!-- NB needed as of 20190110 for strategy_type and maximuim_chi -->
         <!-- Uncomment this to disable stratcal's collision checking -->
         <!--<co.gphl.wf.stratcal.collision_mode>2</co.gphl.wf.stratcal.collision_mode>-->

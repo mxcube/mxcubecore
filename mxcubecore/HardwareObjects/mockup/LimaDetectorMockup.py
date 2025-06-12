@@ -12,7 +12,7 @@ from mxcubecore.TaskUtils import task
 class LimaDetectorMockup:
     def init(self, config, collect_obj=None):
         self.config = config
-        self.header = dict()
+        self.header = {}
 
         lima_device = config.get_property("lima_device")
         pilatus_device = config.get_property("pilatus_device")
@@ -104,7 +104,7 @@ class LimaDetectorMockup:
         still,
     ):
         diffractometer_positions = HWR.beamline.diffractometer.get_positions()
-        self.start_angles = list()
+        self.start_angles = []
         for i in range(number_of_images):
             self.start_angles.append("%0.4f deg." % (start + osc_range * i))
         kappa_phi = diffractometer_positions.get("kappa_phi", -9999)

@@ -287,7 +287,7 @@ class EMBLCollect(AbstractCollect):
             )
 
     def collection_finished(self):
-        """Additionaly sets break bragg if it was previously released"""
+        """Additionally sets break bragg if it was previously released"""
         AbstractCollect.collection_finished(self)
         if (
             self.current_dc_parameters["in_queue"] is False

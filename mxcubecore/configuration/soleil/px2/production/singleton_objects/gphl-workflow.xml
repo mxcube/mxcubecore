@@ -7,7 +7,7 @@
     <!-- Use multitrigger collection when set -->
     <!--    <use_multitrigger>True</use_multitrigger>-->
 
-    <!-- Use advanced_mode for adidtional UI options. Uncoment to set -->
+    <!-- Use advanced_mode for adidtional UI options. Uncomment to set -->
         <advanced_mode>True</advanced_mode>
 
     <!-- Maximum allowed value of Chi, for strategy calculation -->
@@ -43,7 +43,7 @@
 
 
     <!-- Characterisation strategies popup. -->
-    <!-- names refer to stategies in  strategylib.nml -->
+    <!-- names refer to strategies in  strategylib.nml -->
     <characterisation_strategies>
         Char_6_5_multitrigger
         Char_24deg
@@ -148,7 +148,7 @@
         <!-- in cases where the directoriesare are created after the workflow starts -->
         <!-- Checks for data directory tree -->
         <co.gphl.wf.blRootCheck>false</co.gphl.wf.blRootCheck>
-        <!-- Chcks for data processing directory tree -->
+        <!-- Checks for data processing directory tree -->
         <!--<co.gphl.wf.procRootCheck>false</co.gphl.wf.procRootCheck>-->
 
         <!-- Parameters to individual applications -->

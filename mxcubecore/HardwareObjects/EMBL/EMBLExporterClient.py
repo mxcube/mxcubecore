@@ -50,7 +50,7 @@ class EMBLExporterClient(HardwareObject):
 
     def get_method_list(self):
         """
-        Returns lits with available methods
+        Returns list with available methods
         :return: list
         """
         method_list = []

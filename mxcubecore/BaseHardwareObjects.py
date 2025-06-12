@@ -136,7 +136,7 @@ class ConfiguredObject:
 
     @property
     def config(self):
-        """Pydantic object with conifigured parameters, incl. contained HardwareObjects"""
+        """Pydantic object with configured parameters, incl. contained HardwareObjects"""
         return self._config
 
     @property
@@ -148,7 +148,7 @@ class ConfiguredObject:
         result = self
         for name in _id.split("."):
             # Roles are no longer added to HardwareObjects as attributes so
-            # we have to retreive them by role
+            # we have to retrieve them by role
             result = result.get_object_by_role(name)
 
             if not result:
@@ -601,14 +601,14 @@ class HardwareObjectNode:
 class HardwareObjectMixin(CommandContainer):
     """Functionality for either xml- or yaml-configured HardwareObjects
 
-    Signals emited:
+    Signals emitted:
 
         - stateChanged
 
         - specificStateChanged
     """
 
-    #: enum.Enum: General states, shared between all HardwareObjects. Do *not* overridde
+    #: enum.Enum: General states, shared between all HardwareObjects. Do *not* override
     STATES = HardwareObjectState
 
     #: enum.Enum: Placeholder for HardwareObject-specific states. To be overridden
@@ -632,7 +632,7 @@ class HardwareObjectMixin(CommandContainer):
         self._exports: Dict[str, Any] = {}
 
         # Dictionary containing list Pydantic models for each of the exported member
-        # functions arguemnts. The key is the member name and the value a list of the
+        # functions arguments. The key is the member name and the value a list of the
         # pydantic models.
         self._pydantic_models: Dict[str, Type["BaseModel"]] = {}
 
@@ -670,7 +670,7 @@ class HardwareObjectMixin(CommandContainer):
         )
         self._exports = dict.fromkeys(self._exports_config_list, {})
 
-        # Add methods that are exported programatically
+        # Add methods that are exported programmatically
         for attr_name in dir(self):
             _attr = getattr(self, attr_name)
             if getattr(_attr, "__exported__", False):
@@ -698,7 +698,7 @@ class HardwareObjectMixin(CommandContainer):
                 continue
 
             for _n, _t in typing.get_type_hints(_attr).items():
-                # Skipp return typehint
+                # Skip return typehint
                 if _n != "return":
                     self._exports[attr_name].append(_n)
                     fdict[_n] = (_t, Field(alias=_n))
@@ -756,7 +756,7 @@ class HardwareObjectMixin(CommandContainer):
             ```python
             {
                 "schema": <JSONSchema string>,
-                "signaure": <list of argument names>,
+                "signature": <list of argument names>,
             }
             ```
         """
@@ -892,8 +892,8 @@ class HardwareObjectMixin(CommandContainer):
 
         The method is called from the gui via beamline object to ensure that bricks have values
         after the initialization.
-        Problem arrise when a hardware object is used by several bricks.
-        If first brick connects to some signal emited by a brick then
+        Problem arise when a hardware object is used by several bricks.
+        If first brick connects to some signal emitted by a brick then
         other bricks connecting to the same signal will not receive the
         values on the startup.
         The easiest solution is to call force_emit_signals method directly
@@ -956,7 +956,7 @@ class HardwareObjectMixin(CommandContainer):
             sender (Union[str, object, Any]): If a string, interprted as the signal.
             signal (Union[str, Any]): In practice a string, or dispatcher.
             Any if sender is a string interpreted as the slot.
-            slot (Optional[Callable], optional): In practice a functon or method.
+            slot (Optional[Callable], optional): In practice a function or method.
             Defaults to None.
 
         Raises:
@@ -1006,7 +1006,7 @@ class HardwareObjectMixin(CommandContainer):
             sender (Union[str, object, Any]): If a string, interprted as the signal.
             signal (Union[str, Any]): In practice a string, or dispatcher.
             Any if sender is a string interpreted as the slot.
-            slot (Optional[Callable], optional): In practice a functon or method.
+            slot (Optional[Callable], optional): In practice a function or method.
             Defaults to None.
 
         Raises:
@@ -1082,7 +1082,7 @@ class HardwareObject(ConfiguredObject, HardwareObjectNode, HardwareObjectMixin):
         get_changes(self)
 
     def rewrite_xml(self, xml: Union[bytes, Any]) -> None:
-        """Rewrite XML conifguration file.
+        """Rewrite XML configuration file.
 
         Args:
             xml (Union[bytes, Any]): XML source to write to file.
@@ -1175,7 +1175,7 @@ class Device(HardwareObject):
         return self.state == Device.READY
 
     def userName(self):
-        # TODO standardise on 'username' or 'user_name' globaly
+        # TODO standardise on 'username' or 'user_name' globally
         uname = self.get_property("username")
         if uname is None:
             return str(self.name())

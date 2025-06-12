@@ -180,19 +180,19 @@ def test_power_on_home(isara_maint: ISARAMaint):
     # check that commands state is correct
     #
     _, commands_state, message = isara_maint.get_global_state()
-    assert commands_state == dict(
-        PowerOn=False,
-        PowerOff=True,
-        openLid=True,
-        closeLid=True,
-        home=False,
-        dry=True,
-        soak=True,
-        clearMemory=True,
-        reset=True,
-        back=True,
-        abort=True,
-    )
+    assert commands_state == {
+        "PowerOn": False,
+        "PowerOff": True,
+        "openLid": True,
+        "closeLid": True,
+        "home": False,
+        "dry": True,
+        "soak": True,
+        "clearMemory": True,
+        "reset": True,
+        "back": True,
+        "abort": True,
+    }
     assert message == "test message"
 
 
@@ -216,19 +216,19 @@ def test_power_off(isara_maint: ISARAMaint):
     # check that commands state is correct
     #
     _, commands_state, _ = isara_maint.get_global_state()
-    assert commands_state == dict(
-        PowerOn=True,
-        PowerOff=False,
-        openLid=True,
-        closeLid=True,
-        home=False,
-        dry=False,
-        soak=False,
-        clearMemory=True,
-        reset=True,
-        back=True,
-        abort=True,
-    )
+    assert commands_state == {
+        "PowerOn": True,
+        "PowerOff": False,
+        "openLid": True,
+        "closeLid": True,
+        "home": False,
+        "dry": False,
+        "soak": False,
+        "clearMemory": True,
+        "reset": True,
+        "back": True,
+        "abort": True,
+    }
 
 
 def test_change_positions(isara_maint: ISARAMaint):

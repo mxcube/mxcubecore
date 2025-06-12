@@ -88,7 +88,7 @@ class ShapeHistoryMockup(HardwareObject):
         :param image: The QWidget that contains the image to extract
         :type image: QWidget
 
-        :param canvas: The QCanvas obejct to add as overlay
+        :param canvas: The QCanvas object to add as overlay
         :type canvas: QCanvas
 
         :param zoom: Zoom level
