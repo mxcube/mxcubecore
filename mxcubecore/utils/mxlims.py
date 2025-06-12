@@ -308,7 +308,7 @@ MXLIMS code generation. Assumes standard directory structure""",
         "--filename",
         metavar="filename",
         default=None,
-        help="Path to directory containing mxlims/ and docs/ subdirectory\n",
+        help="Input file\n",
     )
 
     argsobj = parser.parse_args()
