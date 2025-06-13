@@ -32,7 +32,7 @@ def configured_object() -> ConfiguredObject:
     """Pytest fixture to instantiate a new "ConfiguredObject" object.
 
     Yields:
-        Generator[ConfiguredObject, None, None]: New object instance.
+        New object instance.
     """
 
     return ConfiguredObject(name="RootObject")
@@ -43,7 +43,7 @@ def property_set() -> PropertySet:
     """Pytest fixture to instantiate a new "PropertySet" object.
 
     Yields:
-        Generator[PropertySet, None, None]: New object instance.
+        New object instance.
     """
 
     return PropertySet()
@@ -54,7 +54,7 @@ def hw_obj_node() -> HardwareObjectNode:
     """Pytest fixture to instantiate a new "HardwareObjectNode" object.
 
     Yields:
-        Generator[HardwareObjectNode, None, None]: New object instance.
+        New object instance.
     """
 
     return HardwareObjectNode(node_name="test_node")
@@ -65,7 +65,7 @@ def hw_obj_mixin() -> HardwareObjectMixin:
     """Pytest fixture to instantiate a new "HardwareObjectMixin" object.
 
     Yields:
-        Generator[HardwareObjectMixin, None, None]: New object instance.
+        New object instance.
     """
 
     return HardwareObjectMixin()
@@ -76,7 +76,7 @@ def hardware_object() -> HardwareObject:
     """Pytest fixture to instantiate a new "HardwareObject" object.
 
     Yields:
-        Generator[HardwareObject, None, None]: New object instance.
+        New object instance.
     """
 
     return HardwareObject(name="RootObject")
@@ -87,7 +87,7 @@ def hw_obj_yml() -> HardwareObjectYaml:
     """Pytest fixture to instantiate a new "HardwareObjectYaml" object.
 
     Yields:
-        Generator[HardwareObjectYaml, None, None]: New object instance.
+        New object instance.
     """
 
     return HardwareObjectYaml("RootObject")

@@ -30,33 +30,33 @@ if TYPE_CHECKING:
 
 
 @pytest.fixture(scope="function")
-def cmd_object() -> Generator[CommandObject, None, None]:
+def cmd_object() -> CommandObject:
     """Pytest fixture to instantiate a new "CommandObject" object.
 
     Returns:
-        Generator[CommandObject, None, None]: New object instance.
+        New object instance.
     """
 
     return CommandObject(name="test_command")
 
 
 @pytest.fixture(scope="function")
-def channel_object() -> Generator[ChannelObject, None, None]:
+def channel_object() -> ChannelObject:
     """Pytest fixture to instantiate a new "ChannelObject" object.
 
     Returns:
-        Generator[ChannelObject, None, None]: New object instance.
+        New object instance.
     """
 
     return ChannelObject(name="test_channel", test1=True, test2=False)
 
 
 @pytest.fixture(scope="function")
-def cmd_container() -> Generator[CommandContainer, None, None]:
+def cmd_container() -> CommandContainer:
     """Pytest fixture to instantiate a new "CommandContainer" object.
 
     Returns:
-        Generator[CommandContainer, None, None]: New object instance.
+        New object instance.
     """
 
     return CommandContainer()
