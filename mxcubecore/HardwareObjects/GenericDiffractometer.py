@@ -39,6 +39,7 @@ from typing import (
 import gevent
 import gevent.event
 import numpy
+from gevent.lock import Semaphore
 from pydantic.v1 import (
     BaseModel,
     Field,
@@ -265,6 +266,10 @@ class GenericDiffractometer(HardwareObject):
 
         # flag for using sample_centring hwobj or not
         self.use_sample_centring = None
+
+        # Preventing user multiple clicks during manual centring step
+        self.waiting_for_click = None # None = legacy/no-wait mode, True = waiting, False = manual centring in progress
+        self.click_lock = Semaphore()
 
         # time to delay for state polling for controllers
         # not updating state immediately after cmd started
@@ -1090,14 +1095,43 @@ class GenericDiffractometer(HardwareObject):
                 "Diffractometer: could not center to beam, aborting"
             )
 
-    def image_clicked(self, x, y, xi=None, yi=None):
+    def image_clicked(self, x: float, y: float, xi=None, yi=None):
+        """Handles a user click sent from the frontend during the manual centring.
+
+        This method is called by the backend when the user clicks on the sample
+        image in the frontend.
+
+        The attribute `self.waiting_for_click` controls whether the click should
+        be accepted or ignored:
+          - None: click is accepted (legacy)
+          - True: waiting for a click, accept it and mark it as received
+          - False: already received a click, ignore further clicks
+
+        Args:
+            x (float): X coordinate of the click.
+            y (float): Y coordinate of the click.
+            xi (float, optional): ...
+            yi (float, optional): ...
+
+        Raises:
+            RuntimeError: If a click is received while a previous one is still being processed.
         """
-        Descript. :
-        """
-        if self.use_sample_centring:
-            sample_centring.user_click(x, y)
-        else:
-            self.user_clicked_event.set((x, y))
+        with self.click_lock:
+            # "waiting for click" logic is not implememted (legacy) or it is actually waiting for a click
+            if self.waiting_for_click is None or self.waiting_for_click:
+                if self.waiting_for_click:
+                    self.waiting_for_click = False
+                if self.use_sample_centring:
+                    sample_centring.user_click(x, y)
+                else:
+                    self.user_clicked_event.set((x, y))
+            # Already received a click, ignore further clicks
+            else:
+                self.log.warning(
+                    "User attempted to click while the previous centring step was still in progress. Click ignored"
+                )
+                err_msg = "Click ignored: a centring step is still being processed. Please wait before clicking again."
+                raise RuntimeError(err_msg)
 
     def accept_centring(self):
         """
