@@ -31,9 +31,9 @@ __category__ = "General"
 
 class PX1Pilatus(AbstractDetector, HardwareObject):
     """Detector class. Contains all information about detector
-       - states are 'OK', and 'BAD'
-       - status is busy, exposing, ready, etc.
-       - physical property is RH for pilatus, P for rayonix
+    - states are 'OK', and 'BAD'
+    - status is busy, exposing, ready, etc.
+    - physical property is RH for pilatus, P for rayonix
     """
 
     def __init__(self, name):
@@ -215,7 +215,6 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
         if energy_diff < (-0.08 * (2 * current_threshold / 1000.0)) or energy_diff > (
             0.05 * (2 * current_threshold / 1000.0)
         ):
-
             if self.read_state() != "STANDBY":
                 logging.getLogger("user_level_log").error(
                     "Re-calibration of Pilatus detector not possible."

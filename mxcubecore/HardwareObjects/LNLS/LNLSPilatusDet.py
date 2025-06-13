@@ -7,18 +7,17 @@ from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetecto
 
 
 class LNLSPilatusDet(AbstractDetector):
-
-    DET_THRESHOLD = 'det_threshols_energy'
+    DET_THRESHOLD = "det_threshols_energy"
     # DET_STATUS = 'det_status_message'
-    DET_WAVELENGTH = 'det_wavelength'
-    DET_DETDIST = 'det_detdist'
-    DET_BEAM_X = 'det_beam_x'
-    DET_BEAM_Y = 'det_beam_y'
-    USER_BEAM_X = 'user_beam_x'
-    USER_BEAM_Y = 'user_beam_y'
-    DET_TRANSMISSION = 'det_transmission'
-    DET_START_ANGLE = 'det_start_angle'
-    DET_ANGLE_INCR = 'det_angle_incr'
+    DET_WAVELENGTH = "det_wavelength"
+    DET_DETDIST = "det_detdist"
+    DET_BEAM_X = "det_beam_x"
+    DET_BEAM_Y = "det_beam_y"
+    USER_BEAM_X = "user_beam_x"
+    USER_BEAM_Y = "user_beam_y"
+    DET_TRANSMISSION = "det_transmission"
+    DET_START_ANGLE = "det_start_angle"
+    DET_ANGLE_INCR = "det_angle_incr"
 
     def __init__(self, name):
         """
@@ -57,12 +56,11 @@ class LNLSPilatusDet(AbstractDetector):
         self.emit("detectorModeChanged", (self._roi_mode,))
 
     def has_shutterless(self):
-        """Returns always True
-        """
+        """Returns always True"""
         return True
 
     def get_beam_position(self, distance=None, wavelength=None):
-        """Get approx detector centre """
+        """Get approx detector centre"""
         xval, yval = super(LNLSPilatusDet, self).get_beam_position(distance=distance)
         if None in (xval, yval):
             # default to Pilatus values
@@ -119,7 +117,7 @@ class LNLSPilatusDet(AbstractDetector):
             float(energy)
         except Exception as e:
             logging.getLogger("HWR").error(
-                    "Error while setting Pilatus threshold. Value must be float."
+                "Error while setting Pilatus threshold. Value must be float."
             )
             return False
 
@@ -129,9 +127,7 @@ class LNLSPilatusDet(AbstractDetector):
 
         logging.getLogger("HWR").info("Setting Pilatus threshold...")
         for i in range(3):
-            logging.getLogger("user_level_log").info(
-                "Setting Pilatus threshold..."
-            )
+            logging.getLogger("user_level_log").info("Setting Pilatus threshold...")
 
         self.set_channel_value(self.DET_THRESHOLD, target_threshold)
 
@@ -139,29 +135,26 @@ class LNLSPilatusDet(AbstractDetector):
         time.sleep(2)
         # Using epics because we need 'as_string' option
         status = self.pv_status.get(as_string=True)
-        logging.getLogger("HWR").info('Pilatus status: %s' % status)
+        logging.getLogger("HWR").info("Pilatus status: %s" % status)
 
         while status == "Setting threshold":
             logging.getLogger("HWR").info(
-                'Pilatus status: %s (this may take a minute)...' % status
+                "Pilatus status: %s (this may take a minute)..." % status
             )
             time.sleep(3)
             status = self.pv_status.get(as_string=True)
 
         self.threshold = self.get_threshold_energy()
         logging.getLogger("HWR").info(
-            'Pilatus: current threshold is %s (target is %s)' %
-            (self.threshold, target_threshold)
+            "Pilatus: current threshold is %s (target is %s)"
+            % (self.threshold, target_threshold)
         )
-        if (status == "Camserver returned OK"
-        and self.threshold == target_threshold):
-            logging.getLogger("HWR").info('Pilatus status: %s' % status)
-            logging.getLogger("HWR").info(
-                "Pilatus threshold successfully set."
-            )
+        if status == "Camserver returned OK" and self.threshold == target_threshold:
+            logging.getLogger("HWR").info("Pilatus status: %s" % status)
+            logging.getLogger("HWR").info("Pilatus threshold successfully set.")
             return True
 
-        logging.getLogger("HWR").error('Pilatus status: %s' % status)
+        logging.getLogger("HWR").error("Pilatus status: %s" % status)
         logging.getLogger("HWR").error(
             "Error while setting Pilatus threshold. Please, check the detector."
         )
@@ -183,11 +176,11 @@ class LNLSPilatusDet(AbstractDetector):
             float(wavelength)
         except Exception as e:
             logging.getLogger("HWR").error(
-                    "Error while setting Pilatus wavelength. Value must be float."
+                "Error while setting Pilatus wavelength. Value must be float."
             )
             return False
 
-        #if abs(self.wavelength - wavelength) < 0.0001:
+        # if abs(self.wavelength - wavelength) < 0.0001:
         #    logging.getLogger("HWR").info(
         #        "Pilatus wavelength still okay."
         #    )
@@ -199,14 +192,12 @@ class LNLSPilatusDet(AbstractDetector):
         self.set_channel_value(self.DET_WAVELENGTH, wavelength)
         time.sleep(0.6)
 
-        print('WAVELENGHT WAS SET: ' + str(wavelength))
+        print("WAVELENGHT WAS SET: " + str(wavelength))
         self.wavelength = self.get_wavelength()
-        print('WAVELENGHT GOT: ' + str(self.wavelength))
+        print("WAVELENGHT GOT: " + str(self.wavelength))
 
         if abs(self.wavelength - wavelength) < 0.0001:
-            logging.getLogger("HWR").info(
-                "Pilatus wavelength successfully set."
-            )
+            logging.getLogger("HWR").info("Pilatus wavelength successfully set.")
             return True
 
         logging.getLogger("HWR").error(
@@ -230,11 +221,11 @@ class LNLSPilatusDet(AbstractDetector):
             float(det_distance)
         except Exception as e:
             logging.getLogger("HWR").error(
-                    "Error while setting Pilatus det distance. Value must be float."
+                "Error while setting Pilatus det distance. Value must be float."
             )
             return False
 
-        #if abs(self.det_distance - det_distance) < 0.001:
+        # if abs(self.det_distance - det_distance) < 0.001:
         #    logging.getLogger("HWR").info(
         #        "Pilatus det distance still okay."
         #    )
@@ -247,9 +238,7 @@ class LNLSPilatusDet(AbstractDetector):
         self.det_distance = self.get_detector_distance()
 
         if abs(self.det_distance - det_distance) < 0.001:
-            logging.getLogger("HWR").info(
-                "Pilatus det distance successfully set."
-            )
+            logging.getLogger("HWR").info("Pilatus det distance successfully set.")
             return True
 
         logging.getLogger("HWR").error(
@@ -284,9 +273,7 @@ class LNLSPilatusDet(AbstractDetector):
         * default_beam_x (value set on xml file)
         """
         if from_user:
-            logging.getLogger("HWR").info(
-                "Getting beam X from user..."
-            )
+            logging.getLogger("HWR").info("Getting beam X from user...")
             beam_x = self.get_user_beam_x()
 
         if beam_x is None:
@@ -296,7 +283,7 @@ class LNLSPilatusDet(AbstractDetector):
                 )
             beam_x = self.default_beam_x
 
-        #if abs(self.beam_x - beam_x) == 0:
+        # if abs(self.beam_x - beam_x) == 0:
         #    logging.getLogger("HWR").info(
         #        "Pilatus beam X still okay."
         #    )
@@ -309,9 +296,7 @@ class LNLSPilatusDet(AbstractDetector):
         self.beam_x = self.get_beam_x()
 
         if float(self.beam_x) == float(beam_x):
-            logging.getLogger("HWR").info(
-                "Pilatus det beam X successfully set."
-            )
+            logging.getLogger("HWR").info("Pilatus det beam X successfully set.")
             return True
 
         logging.getLogger("HWR").error(
@@ -346,9 +331,7 @@ class LNLSPilatusDet(AbstractDetector):
         * default_beam_y (value set on xml file)
         """
         if from_user:
-            logging.getLogger("HWR").info(
-                "Getting beam Y from user..."
-            )
+            logging.getLogger("HWR").info("Getting beam Y from user...")
             beam_y = self.get_user_beam_y()
 
         if beam_y is None:
@@ -358,7 +341,7 @@ class LNLSPilatusDet(AbstractDetector):
                 )
             beam_y = self.default_beam_y
 
-        #if abs(self.beam_y - beam_y) == 0:
+        # if abs(self.beam_y - beam_y) == 0:
         #    logging.getLogger("HWR").info(
         #        "Pilatus beam X still okay."
         #    )
@@ -371,9 +354,7 @@ class LNLSPilatusDet(AbstractDetector):
         self.beam_y = self.get_beam_y()
 
         if float(self.beam_y) == float(beam_y):
-            logging.getLogger("HWR").info(
-                "Pilatus det beam Y successfully set."
-            )
+            logging.getLogger("HWR").info("Pilatus det beam Y successfully set.")
             return True
 
         logging.getLogger("HWR").error(
@@ -397,20 +378,20 @@ class LNLSPilatusDet(AbstractDetector):
             float(transmission)
         except Exception as e:
             logging.getLogger("HWR").error(
-                    "Error while setting Pilatus transmission. Value must be float."
+                "Error while setting Pilatus transmission. Value must be float."
             )
             return False
 
-        logging.getLogger("HWR").info("Setting Pilatus transmission to {}...".format(transmission))
+        logging.getLogger("HWR").info(
+            "Setting Pilatus transmission to {}...".format(transmission)
+        )
         self.set_channel_value(self.DET_TRANSMISSION, transmission)
         time.sleep(0.3)
 
         self.transmission = self.get_transmission()
 
         if abs(self.transmission - transmission) < 0.0001:
-            logging.getLogger("HWR").info(
-                "Pilatus transmission successfully set."
-            )
+            logging.getLogger("HWR").info("Pilatus transmission successfully set.")
             return True
 
         logging.getLogger("HWR").error(
@@ -434,20 +415,20 @@ class LNLSPilatusDet(AbstractDetector):
             float(start_angle)
         except Exception as e:
             logging.getLogger("HWR").error(
-                    "Error while setting Pilatus start angle. Value must be float."
+                "Error while setting Pilatus start angle. Value must be float."
             )
             return False
 
-        logging.getLogger("HWR").info("Setting Pilatus start angle to {}...".format(start_angle))
+        logging.getLogger("HWR").info(
+            "Setting Pilatus start angle to {}...".format(start_angle)
+        )
         self.set_channel_value(self.DET_START_ANGLE, start_angle)
         time.sleep(3)
 
         self.start_angle = self.get_start_angle()
 
         if abs(self.start_angle - start_angle) < 0.0001:
-            logging.getLogger("HWR").info(
-                "Pilatus start angle successfully set."
-            )
+            logging.getLogger("HWR").info("Pilatus start angle successfully set.")
             return True
 
         logging.getLogger("HWR").error(
@@ -471,20 +452,20 @@ class LNLSPilatusDet(AbstractDetector):
             float(angle_incr)
         except Exception as e:
             logging.getLogger("HWR").error(
-                    "Error while setting Pilatus angle increment. Value must be float."
+                "Error while setting Pilatus angle increment. Value must be float."
             )
             return False
 
-        logging.getLogger("HWR").info("Setting Pilatus angle increment to {}...".format(angle_incr))
+        logging.getLogger("HWR").info(
+            "Setting Pilatus angle increment to {}...".format(angle_incr)
+        )
         self.set_channel_value(self.DET_ANGLE_INCR, angle_incr)
         time.sleep(3)
 
         self.angle_incr = self.get_angle_incr()
 
         if abs(self.angle_incr - angle_incr) < 0.0001:
-            logging.getLogger("HWR").info(
-                "Pilatus angle increment successfully set."
-            )
+            logging.getLogger("HWR").info("Pilatus angle increment successfully set.")
             return True
 
         logging.getLogger("HWR").error(

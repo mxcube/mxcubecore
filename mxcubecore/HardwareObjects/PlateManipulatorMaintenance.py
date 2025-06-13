@@ -1,11 +1,11 @@
 """
 Plate Manipulator maintenance.
 """
+
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 class PlateManipulatorMaintenance(HardwareObject):
-
     __TYPE__ = "PlateManipulatorMaintenance"
 
     """
@@ -18,7 +18,7 @@ class PlateManipulatorMaintenance(HardwareObject):
 
     def init(self):
         self._sc = self.get_object_by_role("sample_changer")
-        self._scan_limits = ''
+        self._scan_limits = ""
 
     def _do_abort(self):
         """
@@ -38,7 +38,6 @@ class PlateManipulatorMaintenance(HardwareObject):
         :rtype: None
         """
         return self._sc.move_to_crystal_position(args)
-
 
     def _do_change_mode(self, args):
         self._sc._do_change_mode(args)
@@ -62,24 +61,22 @@ class PlateManipulatorMaintenance(HardwareObject):
         self._scan_limits = self._sc.get_scan_limits(args)
         self._update_global_state()
 
-
     def _update_global_state(self):
         state_dict, cmd_state, message = self.get_global_state()
         self.emit("globalStateChanged", (state_dict, cmd_state, message))
 
     def get_global_state(self):
-        """
-        """
+        """ """
         state = self._sc._read_state()
         scan_limits = self._scan_limits
         # ready = self._sc._ready()
         running = state in ("RUNNING",)
-        plate_info_dict =  self._sc.get_plate_info()
+        plate_info_dict = self._sc.get_plate_info()
         state_dict = {
             "running": running,
             "scan_limits": scan_limits,
             "state": state,
-            "plate_info" : plate_info_dict
+            "plate_info": plate_info_dict,
         }
 
         cmd_state = {
@@ -90,13 +87,11 @@ class PlateManipulatorMaintenance(HardwareObject):
 
         return state_dict, cmd_state, message
 
-
-
     def get_cmd_info(self):
-        """ return information about existing commands for this object
-           the information is organized as a list
-           with each element contains
-           [ cmd_name,  display_name, category ]
+        """return information about existing commands for this object
+        the information is organized as a list
+        with each element contains
+        [ cmd_name,  display_name, category ]
         """
         """ [cmd_id, cmd_display_name, nb_args, cmd_category, description ] """
 

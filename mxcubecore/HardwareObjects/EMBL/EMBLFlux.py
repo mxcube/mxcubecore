@@ -130,7 +130,6 @@ carbon_window_transmission = interp1d(
 
 class EMBLFlux(AbstractFlux):
     def __init__(self, name):
-
         AbstractFlux.__init__(self, name)
 
         self.measured_flux_dict = None
@@ -139,7 +138,7 @@ class EMBLFlux(AbstractFlux):
 
         self.flux_value = 0
         # self.ampl_chan_index = None
-        #self.intensity_ranges = []
+        # self.intensity_ranges = []
         self.intensity_value = None
 
         self.flux_record_status = None
@@ -157,8 +156,7 @@ class EMBLFlux(AbstractFlux):
         self.cmd_set_intens_resolution = None
 
     def init(self):
-        """Reads config xml, initiates all necessary hwobj, channels and cmds
-        """
+        """Reads config xml, initiates all necessary hwobj, channels and cmds"""
         super(EMBLFlux, self).init()
 
         """
@@ -203,7 +201,9 @@ class EMBLFlux(AbstractFlux):
         self.connect(HWR.beamline.beam, "beamInfoChanged", self.beam_info_changed)
 
         self.connect(
-            HWR.beamline.beam.aperture, "diameterIndexChanged", self.aperture_diameter_changed
+            HWR.beamline.beam.aperture,
+            "diameterIndexChanged",
+            self.aperture_diameter_changed,
         )
 
         if HWR.beamline.beam.definer is not None:

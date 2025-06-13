@@ -58,7 +58,6 @@ STATE_OUT, STATE_IN, STATE_MOVING, STATE_FAULT, STATE_ALARM, STATE_UNKNOWN = (
 
 
 class ALBAEpsActuator(BaseHardwareObjects.HardwareObject):
-
     states = {
         STATE_OUT: "out",
         STATE_IN: "in",
@@ -80,9 +79,7 @@ class ALBAEpsActuator(BaseHardwareObjects.HardwareObject):
             self.actuator_channel = self.get_channel_object("actuator")
             self.actuator_channel.connect_signal("update", self.stateChanged)
         except KeyError:
-            logging.getLogger().warning(
-                "%s: cannot report EPS Actuator State", self.id
-            )
+            logging.getLogger().warning("%s: cannot report EPS Actuator State", self.id)
 
         try:
             state_string = self.get_property("states")
@@ -122,8 +119,7 @@ class ALBAEpsActuator(BaseHardwareObjects.HardwareObject):
         return self.username
 
     def getStatus(self):
-        """
-        """
+        """ """
         state = self.get_state()
 
         if state in [STATE_OUT, STATE_IN]:

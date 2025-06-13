@@ -45,7 +45,6 @@ class P11DetectorCover(AbstractShutter):
     move_time_min = 1
 
     def __init__(self, name):
-
         super().__init__(name)
 
         self.simulation = False
@@ -113,7 +112,6 @@ class P11DetectorCover(AbstractShutter):
         return self.update_cover_state()
 
     def _set_value(self, value):
-
         if self.simulation:
             if value == self.VALUES.OPEN:
                 self.simulated_opened = 1

@@ -51,8 +51,8 @@ class P11Collect(AbstractCollect):
     def init(self):
         """Initializes beamline collection parameters like default speed and server names."""
         super().init()
-        self.default_speed = 120 #self.get_property("omega_default_speed", 130)
-        self.turnback_time = 0.5# self.get_property("turnback_time", 0.3)
+        self.default_speed = 120  # self.get_property("omega_default_speed", 130)
+        self.turnback_time = 0.5  # self.get_property("turnback_time", 0.3)
         self.filter_server_name = self.get_property("filterserver")
         self.mono_server_name = self.get_property("monoserver")
         self.filter_server = DeviceProxy(self.filter_server_name)
@@ -167,7 +167,6 @@ class P11Collect(AbstractCollect):
 
             self.log.debug("#COLLECT# Programming detector for data collection")
             if collection_type == "Characterization":
-
                 # Prepares metadata taken from current osc parameters.
                 self.prepare_characterization()
                 self.log.info(
@@ -183,7 +182,6 @@ class P11Collect(AbstractCollect):
                     + "/"
                     + "%s_%d" % (prefix, runno),
                 )
-
 
                 self.log.debug(
                     "======= CURRENT FILEPATH: "
@@ -410,6 +408,7 @@ class P11Collect(AbstractCollect):
             f.close()
         except RuntimeWarning:
             self.log.debug("writing header to H5 FAILED!")
+
     def add_h5_info_characterisation(
         self, imagepath, start_angles_collected, degreesperframe
     ):
@@ -509,7 +508,6 @@ class P11Collect(AbstractCollect):
             run_type (str): Type of run (e.g., 'regular' or 'screening').
         """
         if run_type == "regular":
-
             INFO_TXT = (
                 "run type:            {run_type:s}\n"
                 + "run name:            {name:s}\n"
@@ -563,7 +561,6 @@ class P11Collect(AbstractCollect):
             f.close()
 
         if run_type == "screening":
-
             INFO_TXT = (
                 "run type:            {run_type:s}\n"
                 + "run name:            {name:s}\n"
@@ -652,14 +649,14 @@ class P11Collect(AbstractCollect):
 
             self.log.debug("collecting image %s, angle %f" % (img_no, start_at))
 
-            #[WIP]
-            #NB! Another attempt to fix the misfires.
-            #Keep comments here until finished
-            #Here is the previous implementation:
-            #self.collect_std_collection(start_at, stop_angle)
+            # [WIP]
+            # NB! Another attempt to fix the misfires.
+            # Keep comments here until finished
+            # Here is the previous implementation:
+            # self.collect_std_collection(start_at, stop_angle)
 
-            #Here is slightly modified standard data collection routine
-            #Adjust the angle since each time we are starting with 90 degrees offset.
+            # Here is slightly modified standard data collection routine
+            # Adjust the angle since each time we are starting with 90 degrees offset.
             start_pos = start_at - self.turnback_time * self.acq_speed
             stop_pos = stop_angle + self.turnback_time * self.acq_speed
 
@@ -671,7 +668,7 @@ class P11Collect(AbstractCollect):
             HWR.beamline.diffractometer.set_pso_control_arm(start_angle, stop_angle)
             HWR.beamline.diffractometer.set_omega_velocity(self.acq_speed)
 
-            #Arm the detector only once in the beginning. Set to wait 4 triggers.
+            # Arm the detector only once in the beginning. Set to wait 4 triggers.
             if img_no == 0:
                 HWR.beamline.detector.start_acquisition()
                 time.sleep(3)
@@ -721,7 +718,6 @@ class P11Collect(AbstractCollect):
         HWR.beamline.diffractometer.set_omega_velocity(self.acq_speed)
         time.sleep(1)
         HWR.beamline.diffractometer.move_omega(stop_pos)
-
 
     def adxv_notify(self, image_filename, image_num=1):
         """Sends a notification to an ADXV to load an image file and display a specific slab.
@@ -865,7 +861,6 @@ class P11Collect(AbstractCollect):
         """Starts XDSAPP auto-processing on the Maxwell cluster."""
 
         if HWR.beamline.session.get_beamtime_metadata() != None:
-
             self.log.debug("==== XDSAPP AUTOPROCESSING IS STARTED ==========")
 
             resolution = self.get_resolution()
@@ -886,7 +881,9 @@ class P11Collect(AbstractCollect):
 
             try:
                 self.mkdir_with_mode(xdsapp_path_local, mode=0o777)
-                self.log.debug("=========== XDSAPP ============ XDSAPP directory created")
+                self.log.debug(
+                    "=========== XDSAPP ============ XDSAPP directory created"
+                )
 
             except OSError:
                 self.log.debug(sys.exc_info())
@@ -907,7 +904,8 @@ class P11Collect(AbstractCollect):
             sbatch = HWR.beamline.session.get_sbatch_command(
                 jobname_prefix="xdsapp",
                 logfile_path=xdsapp_path.replace(
-                    HWR.beamline.session.get_beamtime_metadata()[2], "/beamline/p11/current"
+                    HWR.beamline.session.get_beamtime_metadata()[2],
+                    "/beamline/p11/current",
                 )
                 + "/xdsapp.log",
             )
@@ -918,7 +916,8 @@ class P11Collect(AbstractCollect):
             ).format(
                 imagepath=image_dir + "/" + filename,
                 processpath=xdsapp_path.replace(
-                    HWR.beamline.session.get_beamtime_metadata()[2], "/beamline/p11/current"
+                    HWR.beamline.session.get_beamtime_metadata()[2],
+                    "/beamline/p11/current",
                 ),
                 res=resolution,
             )
@@ -929,13 +928,14 @@ class P11Collect(AbstractCollect):
                 )
             )
         else:
-            self.log.debug("Beamtime metadata is not found. No online resouces available. Autoprocessing on the cluster is not available.")
+            self.log.debug(
+                "Beamtime metadata is not found. No online resouces available. Autoprocessing on the cluster is not available."
+            )
 
     def autoproc_maxwell(self):
         """Starts AutoProc auto-processing on the Maxwell cluster."""
 
         if HWR.beamline.session.get_beamtime_metadata() != None:
-
             self.log.debug("==== AUTOPROC AUTOPROCESSING IS STARTED ==========")
 
             resolution = self.get_resolution()
@@ -982,7 +982,8 @@ class P11Collect(AbstractCollect):
             sbatch = HWR.beamline.session.get_sbatch_command(
                 jobname_prefix="autoproc",
                 logfile_path=autoproc_path.replace(
-                    HWR.beamline.session.get_beamtime_metadata()[2], "/beamline/p11/current"
+                    HWR.beamline.session.get_beamtime_metadata()[2],
+                    "/beamline/p11/current",
                 )
                 + "/autoproc.log",
             )
@@ -993,7 +994,8 @@ class P11Collect(AbstractCollect):
             ).format(
                 imagepath=image_dir + "/" + filename,
                 processpath=autoproc_path.replace(
-                    HWR.beamline.session.get_beamtime_metadata()[2], "/beamline/p11/current"
+                    HWR.beamline.session.get_beamtime_metadata()[2],
+                    "/beamline/p11/current",
                 )
                 + "/processing",
             )
@@ -1004,7 +1006,9 @@ class P11Collect(AbstractCollect):
                 )
             )
         else:
-            self.log.debug("Beamtime metadata is not found. No online resouces available. Autoprocessing on the cluster is not available.")
+            self.log.debug(
+                "Beamtime metadata is not found. No online resouces available. Autoprocessing on the cluster is not available."
+            )
 
     def trigger_auto_processing(self, process_event=None, frame_number=None):
         """Triggers auto processing based on the experiment type.

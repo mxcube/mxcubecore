@@ -50,7 +50,7 @@ class LNLSAperture(AbstractAperture):
             )
 
         self.set_position_index(0)
-        self.set_diameter_index(1) #100um as default
+        self.set_diameter_index(1)  # 100um as default
 
     def set_in(self):
         """

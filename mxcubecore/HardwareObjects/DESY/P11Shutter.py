@@ -58,7 +58,6 @@ class P11Shutter(AbstractShutter):
     VALUES = BaseValueEnum
 
     def __init__(self, name):
-
         super().__init__(name)
 
         self.simulation = False

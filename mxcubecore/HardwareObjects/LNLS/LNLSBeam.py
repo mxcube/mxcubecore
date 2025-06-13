@@ -34,13 +34,12 @@ from mxcubecore.HardwareObjects.abstract.AbstractBeam import (
 
 
 class LNLSBeam(AbstractBeam):
-
     def __init__(self, name):
         AbstractBeam.__init__(self, name)
 
         self._beam_size_dict["slits"] = [9999, 9999]
         self._beam_size_dict["aperture"] = [9999, 9999]
-        self._beam_position_on_screen = [1024/2, 1024/2]
+        self._beam_position_on_screen = [1024 / 2, 1024 / 2]
         self._beam_divergence = (0, 0)
 
     def init(self):

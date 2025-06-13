@@ -66,7 +66,7 @@ Example Hardware Object XML file :
           <velocity>None</velocity>                 - velocity
           <updateTolerance>0.005</updateTolerance>  - absolute update tolerance
           <evalTolerance>0.005</evalTolerance>      - absolute tolerance of
-					              beam focus mode evaluation
+                                                      beam focus mode evaluation
           <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
           <focusingModes>{'Collimated': 0.22, 'Horizontal': 0.22,
           'Vertical': 0.22, 'Double': 0.22}</focusingModes>
@@ -74,7 +74,6 @@ Example Hardware Object XML file :
     </motors>
 </object>
 """
-
 
 import logging
 import time
@@ -95,7 +94,6 @@ class EMBLMotorsGroup(HardwareObject):
     """
 
     def __init__(self, name):
-
         super().__init__(name)
         self.server_address = None
         self.group_address = None
@@ -244,7 +242,6 @@ class EMBLMotorsGroup(HardwareObject):
                 motor["setCmd"] is not None
                 and focus_mode in motor["focusingModes"].keys()
             ):
-
                 motor["status"] = motor["statusModes"]["Move"]
                 tine.set(
                     self.server_address + "/" + motor["motorAddr"],
@@ -275,9 +272,9 @@ class EMBLMotorsGroup(HardwareObject):
 
     def positions_changed(self, positions):
         """Called if one or several motors values has been changed.
-           Evaluates if value needs to be updates, if value is
-           changed, then evaluates focusing mode. If necessary
-           pysignals are emitted
+        Evaluates if value needs to be updates, if value is
+        changed, then evaluates focusing mode. If necessary
+        pysignals are emitted
         """
         do_emit = False
         # values_to_send = {}
@@ -312,7 +309,7 @@ class EMBLMotorsGroup(HardwareObject):
 
     def status_changed(self, status):
         """Called if motors status is changed. Pysignal with new
-           status has been sent"""
+        status has been sent"""
         for motor in self.motors_list:
             old_status = motor["status"]
             if isinstance(status, (list, tuple)):

@@ -27,7 +27,7 @@ SEQ_ITEM_COLORS = (
     qt_import.QColor(204, 255, 204),
     qt_import.QColor(254, 254, 121),
     qt_import.QColor(72, 191, 255),
-    qt_import.QColor(142, 69, 133, 70)
+    qt_import.QColor(142, 69, 133, 70),
 )
 
 
@@ -37,7 +37,6 @@ __category__ = "General"
 
 class EMBLSSXChip(QtGraphicsManager):
     def __init__(self, name):
-
         QtGraphicsManager.__init__(self, name)
 
         self.chip_config_list = None
@@ -55,8 +54,7 @@ class EMBLSSXChip(QtGraphicsManager):
         self.graphics_coord_axes_item = None
 
     def init(self):
-        """Reads config xml, initiates all necessary hwobj, channels and cmds
-        """
+        """Reads config xml, initiates all necessary hwobj, channels and cmds"""
 
         self.chip_config_list = eval(self.get_property("chip_properties", "[]"))
         self.current_chip_index = 0
@@ -249,7 +247,6 @@ class EMBLSSXChip(QtGraphicsManager):
                             for exposure in range(
                                 0, len(self.dg_channel_list_one_zero) / 4
                             ):
-
                                 # meandering
                                 if current_chip_config["meandering"]:
                                     # checks whether n_fv is odd or even, then creates
@@ -331,7 +328,6 @@ class EMBLSSXChip(QtGraphicsManager):
                     for n_fv in range(0, num_crystal_v):
                         for n_fh in range(0, num_crystal_h):
                             for exposure in range(0, len(dg_channel_list_one_zero) / 4):
-
                                 # meandering
                                 if meandering == 1:
                                     # checks whether n_fv is odd or even, then creates

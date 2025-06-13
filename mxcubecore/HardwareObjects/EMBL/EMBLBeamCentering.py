@@ -59,8 +59,7 @@ class EMBLBeamCentering(HardwareObject):
         self.vertical_double_mode_motor_hwobj = None
 
     def init(self):
-        """Reads config xml, initiates all necessary hwobj, channels and cmds
-        """
+        """Reads config xml, initiates all necessary hwobj, channels and cmds"""
         self.ready_event = gevent.event.Event()
 
         self.scale_hor = self.get_property("scale_hor")
@@ -139,11 +138,11 @@ class EMBLBeamCentering(HardwareObject):
 
     def center_beam_task(self):
         """Centers beam in a following procedure:
-            1. Store aperture position and take out the aperture
-            2. Store slits position and open to max
-            3. Do pitch scan if possible
-            3. In a loop take snapshot and move motors
-            4. Put back aperture and move to original slits positions
+        1. Store aperture position and take out the aperture
+        2. Store slits position and open to max
+        3. Do pitch scan if possible
+        3. In a loop take snapshot and move motors
+        4. Put back aperture and move to original slits positions
         """
         gui_log = logging.getLogger("GUI")
         log_msg = ""
@@ -164,7 +163,6 @@ class EMBLBeamCentering(HardwareObject):
         gui_log.info(log_msg)
 
         if active_mode in ("Imaging", "TREXX"):
-
             log_msg = "Beam centering: doing pitch scan only"
             gui_log.info(log_msg)
 
@@ -238,9 +236,9 @@ class EMBLBeamCentering(HardwareObject):
                 )
 
                 # TODO re
-                #HWR.beamline.diffractometer.set_zoom(
+                # HWR.beamline.diffractometer.set_zoom(
                 #    "Zoom 4"
-                #)
+                # )
 
                 # was 4, use 1 with broken zoom motor
                 # capillary_position = (
@@ -257,11 +255,11 @@ class EMBLBeamCentering(HardwareObject):
                     HWR.beamline.transmission.set_value(  # Transmission(
                         new_transmission, timeout=45
                     )
-                    #HWR.beamline.diffractometer.set_zoom("Zoom 4")
+                    # HWR.beamline.diffractometer.set_zoom("Zoom 4")
                 else:
                     # 2% transmission for beam centering in double foucused mode
                     HWR.beamline.transmission.set_value(2, timeout=45)
-                    #HWR.beamline.diffractometer.set_zoom("Zoom 8")
+                    # HWR.beamline.diffractometer.set_zoom("Zoom 8")
 
                 step += 1
                 log_msg = "Opening slits to 1 x 1 mm"
@@ -322,7 +320,7 @@ class EMBLBeamCentering(HardwareObject):
 
     def move_beam_to_center(self):
         """Calls pitch scan and 3 times detects beam shape and
-           moves horizontal and vertical motors.
+        moves horizontal and vertical motors.
         """
         gui_log = logging.getLogger("GUI")
         gui_msg = ""
@@ -371,8 +369,10 @@ class EMBLBeamCentering(HardwareObject):
                     with gevent.Timeout(10, False):
                         beam_pos_displacement = [None, None]
                         while None in beam_pos_displacement:
-                            beam_pos_displacement = HWR.beamline.sample_view.get_beam_displacement(
-                                reference="beam"
+                            beam_pos_displacement = (
+                                HWR.beamline.sample_view.get_beam_displacement(
+                                    reference="beam"
+                                )
                             )
                             gevent.sleep(0.1)
                     if None in beam_pos_displacement:
@@ -456,8 +456,10 @@ class EMBLBeamCentering(HardwareObject):
                     with gevent.Timeout(10, False):
                         beam_pos_displacement = [None, None]
                         while None in beam_pos_displacement:
-                            beam_pos_displacement = HWR.beamline.sample_view.get_beam_displacement(
-                                reference="screen"
+                            beam_pos_displacement = (
+                                HWR.beamline.sample_view.get_beam_displacement(
+                                    reference="screen"
+                                )
                             )
                             gevent.sleep(0.1)
                     if None in beam_pos_displacement:

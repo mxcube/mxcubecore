@@ -61,7 +61,6 @@ class P11BackLight(AbstractNState):
     default_close_time = 3
 
     def __init__(self, name):
-
         super().__init__(name)
 
         self.cmd_open_close = None

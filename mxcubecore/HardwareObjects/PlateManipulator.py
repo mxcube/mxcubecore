@@ -97,7 +97,7 @@ class Xtal(Sample):
         """
         In this cas we assume wells in the row is a cell
         """
-        return  self.get_cell().get_row_index() + 1
+        return self.get_cell().get_row_index() + 1
 
     @staticmethod
     def _get_xtal_address(drop, index):
@@ -159,7 +159,6 @@ class Drop(Container):
         """
         sample = self.get_components()
         return sample[0]
-
 
 
 class Cell(Container):
@@ -267,8 +266,12 @@ class PlateManipulator(SampleChanger):
                 "startMovePlateToLocation"
             )
 
-        self.cmd_move_to_crystal_position = self.get_command_object("MoveToXtalPointing")
-        self.cmd_get_omega_scan_limits = self.get_command_object("getOmegaMotorDynamicScanLimits")
+        self.cmd_move_to_crystal_position = self.get_command_object(
+            "MoveToXtalPointing"
+        )
+        self.cmd_get_omega_scan_limits = self.get_command_object(
+            "getOmegaMotorDynamicScanLimits"
+        )
 
         self.cmd_do_abort = self.get_command_object("AbortCurrentAction")
 
@@ -296,17 +299,16 @@ class PlateManipulator(SampleChanger):
         else:
             raise Exception("barcode unknown")
 
-
     def hw_get_loaded_sample_location(self):
         loaded_sample = None
-        if(self.chan_drop_location):
+        if self.chan_drop_location:
             loaded_sample = self.chan_drop_location.get_value()
 
             return (
                 chr(65 + loaded_sample[0])
-                + str(loaded_sample[1] +1)
+                + str(loaded_sample[1] + 1)
                 + ":"
-                + str(loaded_sample[2] +1)
+                + str(loaded_sample[2] + 1)
                 + "-0"
             )
         return loaded_sample
@@ -436,7 +438,9 @@ class PlateManipulator(SampleChanger):
                 self.plate_location = [row, col, self.stored_pos_x, pos_y]
                 col += 1
                 cell = self.get_component_by_address("%s%d" % (chr(65 + row), col))
-                drop = cell.get_component_by_address("%s%d:%d" % (chr(65 + row), col, drop))
+                drop = cell.get_component_by_address(
+                    "%s%d:%d" % (chr(65 + row), col, drop)
+                )
                 new_sample = drop.get_sample()
                 old_sample = self.get_loaded_sample()
                 new_sample = drop.get_sample()
@@ -448,7 +452,7 @@ class PlateManipulator(SampleChanger):
 
             return True
         except:
-             return False
+            return False
 
     def _do_unload(self, sample_slot=None):
         """
@@ -537,12 +541,19 @@ class PlateManipulator(SampleChanger):
         self._wait_device_ready()
 
     def _load_data(self, plate_barcode):
-        processing_plan = Crims.get_processing_plan(plate_barcode, self.crims_url, self.crims_user_agent, self.harvester_key)
+        processing_plan = Crims.get_processing_plan(
+            plate_barcode, self.crims_url, self.crims_user_agent, self.harvester_key
+        )
         if processing_plan is None:
-            msg = "No information about plate with barcode %s found in CRIMS" % plate_barcode
+            msg = (
+                "No information about plate with barcode %s found in CRIMS"
+                % plate_barcode
+            )
             logging.getLogger("user_level_log").error(msg)
         else:
-            msg = "Information about plate with barcode %s found in CRIMS" % plate_barcode
+            msg = (
+                "Information about plate with barcode %s found in CRIMS" % plate_barcode
+            )
             logging.getLogger("user_level_log").info(msg)
             self._set_info(True, processing_plan.plate.barcode, True)
 
@@ -662,8 +673,8 @@ class PlateManipulator(SampleChanger):
         Descript. : returns dict with plate info
         """
         plate_info_dict = {}
-        plate_info_dict["plate_label"] = self.plate_label or  "Demo plate label"
-        plate_info_dict["plate_barcode"] = self.plate_barcode or  ""
+        plate_info_dict["plate_label"] = self.plate_label or "Demo plate label"
+        plate_info_dict["plate_barcode"] = self.plate_barcode or ""
         plate_info_dict["num_cols"] = self.num_cols
         plate_info_dict["num_rows"] = self.num_rows
         plate_info_dict["num_drops"] = self.num_drops
@@ -671,13 +682,13 @@ class PlateManipulator(SampleChanger):
 
     def get_plate_location(self):
         if self.chan_plate_location is not None:
-           self.plate_location = self.chan_plate_location.get_value()
+            self.plate_location = self.chan_plate_location.get_value()
         return self.plate_location
 
     def move_to_crystal_position(self, crystal_uuid):
         """
-         Descript. : Move Diff to crystal position
-         Get crystal_uuid from processing plan for loaded sample/drop
+        Descript. : Move Diff to crystal position
+        Get crystal_uuid from processing plan for loaded sample/drop
         """
         ret = None
         if crystal_uuid in ["undefined", None]:
@@ -688,19 +699,27 @@ class PlateManipulator(SampleChanger):
 
             if self.processing_plan:
                 for x in self.processing_plan.plate.xtal_list:
-                    if (row == ord(x.row) - 65  and  col == x.column -1 and drop == x.shelf -1):
+                    if (
+                        row == ord(x.row) - 65
+                        and col == x.column - 1
+                        and drop == x.shelf - 1
+                    ):
                         crystal_uuid = x.crystal_uuid
-            else : raise Exception("No processing_plan OR Crystal Found in this well")
-
+            else:
+                raise Exception("No processing_plan OR Crystal Found in this well")
 
         if self.cmd_move_to_crystal_position and crystal_uuid:
-                try:
-                    # ret = self.cmd_move_to_crystal_position(row, col, drop, x.image_url, x.offset_x, x.offset_y, 0.0, 0.0, False)
-                    ret = self.cmd_move_to_crystal_position(self.plate_barcode, crystal_uuid)
-                except Exception as ex:
-                    raise Exception("Could not move to crystal position %s" %str(ex))
+            try:
+                # ret = self.cmd_move_to_crystal_position(row, col, drop, x.image_url, x.offset_x, x.offset_y, 0.0, 0.0, False)
+                ret = self.cmd_move_to_crystal_position(
+                    self.plate_barcode, crystal_uuid
+                )
+            except Exception as ex:
+                raise Exception("Could not move to crystal position %s" % str(ex))
         else:
-            raise Exception("move_to_crystal_position command or crystal UUID not found")
+            raise Exception(
+                "move_to_crystal_position command or crystal UUID not found"
+            )
 
         return ret
 
@@ -708,7 +727,7 @@ class PlateManipulator(SampleChanger):
         """
         get Omega Motor Dynamic Scan Limits
         """
-        ret = ''
+        ret = ""
         if self.cmd_get_omega_scan_limits:
             try:
                 ret = self.cmd_get_omega_scan_limits(args)

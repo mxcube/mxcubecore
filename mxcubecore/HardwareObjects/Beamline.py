@@ -59,7 +59,6 @@ class Beamline(HardwareObject):
     """Beamline class serving as singleton container for links to HardwareObjects"""
 
     class HOConfig(ConfiguredObject.HOConfig):
-
         # Properties - definition and default values
 
         # List[str] of advanced method names
@@ -275,15 +274,13 @@ class Beamline(HardwareObject):
         self._hardware_object_id_dict = self._get_id_dict()
 
     def get_id(self, ho: HardwareObject) -> str:
-        warn(
-            "Beamline.get_id is Deprecated. Use hwobj.id instead", stacklevel=2
-        )
+        warn("Beamline.get_id is Deprecated. Use hwobj.id instead", stacklevel=2)
         return ho.id
 
     def get_hardware_object(self, _id: str) -> Union[HardwareObject, None]:
         warn(
             "Beamline.get_hardware_object is Deprecated. Use get_by_id instead",
-            stacklevel=2
+            stacklevel=2,
         )
         return self.get_by_id(_id)
 
@@ -312,10 +309,7 @@ class Beamline(HardwareObject):
                 args = args[0]
         responses: list = dispatcher.send(signal, self, *args)
         if not responses:
-            raise RuntimeError(
-                "Signal %s is not connected" % signal
-            )
-
+            raise RuntimeError("Signal %s is not connected" % signal)
 
     # Additional functions
 
@@ -341,7 +335,6 @@ class Beamline(HardwareObject):
                     % acquisition_type
                 )
             else:
-
                 params.update(dd0)
 
         for tag, val in params.items():
@@ -379,8 +372,7 @@ class Beamline(HardwareObject):
             acq_parameters.energy = self.energy.get_value()
         except Exception:
             logging.getLogger("HWR").warning(
-                "get_default_acquisition_parameters: "
-                "No current energy, setting to 0.0"
+                "get_default_acquisition_parameters: No current energy, setting to 0.0"
             )
             acq_parameters.energy = 0.0
 

@@ -59,6 +59,7 @@ Example Hardware Object XML file :
              'discSizeGB': 20}</limits>
 </object>
 """
+
 import logging
 import os
 import time
@@ -400,7 +401,7 @@ class SOLEILMachineInfo(HardwareObject):
         return val
 
     def temperature_changed(self, value):
-        """"Update hutch temperature"""
+        """ "Update hutch temperature"""
         self.values_list[2]["value"] = "%.1f C" % value
         self.values_list[2]["in_range"] = value < 25  # self.limits_dict['temp']
         self.re_emit_values()
@@ -422,7 +423,7 @@ class SOLEILMachineInfo(HardwareObject):
             time.sleep(sleep_time)
 
     def get_current(self):
-        "Returns current" ""
+        "Returns current"
         return self.values_list[0]["value"]
 
     def get_current_value(self):
@@ -445,7 +446,7 @@ class SOLEILMachineInfo(HardwareObject):
                     self.sizeof_fmt(free),
                     "{0:.0%}".format(perc),
                 )
-                self.values_list[-1]["in_range"] = free / 2 ** 30 > 10
+                self.values_list[-1]["in_range"] = free / 2**30 > 10
             self.values_list[-1]["value"] = txt
             self.re_emit_values()
             time.sleep(sleep_time)

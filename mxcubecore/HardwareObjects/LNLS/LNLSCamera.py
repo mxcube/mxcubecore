@@ -1,6 +1,7 @@
 """
 Class for cameras connected by EPICS Area Detector
 """
+
 import logging
 import os
 from io import BytesIO
@@ -28,10 +29,10 @@ CAMERA_IMG_PIXEL_SIZE = "epicsCameraSample_img_pixel_size"
 CAMERA_IMG_WIDTH = "epicsCameraSample_img_width"
 CAMERA_IMG_HEIGHT = "epicsCameraSample_img_height"
 
-class LNLSCamera(BaseHardwareObjects.HardwareObject):
 
-    def __init__(self,name):
-        BaseHardwareObjects.Device.__init__(self,name)
+class LNLSCamera(BaseHardwareObjects.HardwareObject):
+    def __init__(self, name):
+        BaseHardwareObjects.Device.__init__(self, name)
         self.liveState = False
         self.refreshing = False
         self.imagegen = None
@@ -68,21 +69,23 @@ class LNLSCamera(BaseHardwareObjects.HardwareObject):
         self.array_size = self.read_array_size()
 
     def poll(self):
-        logging.getLogger("HWR").debug('LNLS Camera image acquiring has started.')
+        logging.getLogger("HWR").debug("LNLS Camera image acquiring has started.")
         self.imageGenerator(self.delay)
 
     def imageGenerator(self, delay):
         while self.liveState:
             self.getCameraImage()
             gevent.sleep(delay)
-        logging.getLogger("HWR").debug('LNLS Camera image acquiring has stopped.')
+        logging.getLogger("HWR").debug("LNLS Camera image acquiring has stopped.")
 
     def getCameraImage(self):
         # Get the image from uEye camera IOC
         self.imgArray = self.get_channel_value(CAMERA_DATA)
         if self.imgArray is None:
             if self._print_cam_error_null:
-                logging.getLogger("HWR").error("%s - Error: null camera image!" % (self.__class__.__name__))
+                logging.getLogger("HWR").error(
+                    "%s - Error: null camera image!" % (self.__class__.__name__)
+                )
                 self._print_cam_sucess = True
                 self._print_cam_error_null = False
                 self._print_cam_error_size = True
@@ -94,9 +97,10 @@ class LNLSCamera(BaseHardwareObjects.HardwareObject):
             # PS: This check possibly can be removed and the treatment can be
             # moved into the except scope.
             if self._print_cam_error_size:
-                logging.getLogger("HWR").error(\
-                "%s - Error in array lenght! Expected %d, but got %d." % \
-                (self.__class__.__name__, self.array_size, len(self.imgArray)))
+                logging.getLogger("HWR").error(
+                    "%s - Error in array lenght! Expected %d, but got %d."
+                    % (self.__class__.__name__, self.array_size, len(self.imgArray))
+                )
                 self._print_cam_sucess = True
                 self._print_cam_error_null = True
                 self._print_cam_error_size = False
@@ -116,19 +120,21 @@ class LNLSCamera(BaseHardwareObjects.HardwareObject):
             arr = np.array(data).reshape(self.height, self.width, self.pixel_size)
             # Convert data to rgb image
             img = Image.fromarray(arr)
-            #img_rot = img.rotate(angle=0, expand=True)
-            img_rgb = img.convert('RGB')
+            # img_rot = img.rotate(angle=0, expand=True)
+            img_rgb = img.convert("RGB")
             # Get binary image
             with BytesIO() as f:
-                img_rgb.save(f, format='JPEG')
+                img_rgb.save(f, format="JPEG")
                 f.seek(0)
                 img_bin_str = f.getvalue()
             # Sent image to gui
             self.emit("imageReceived", img_bin_str, self.height, self.width)
-            #logging.getLogger("HWR").debug('Got camera image: ' + \
-            #str(img_bin_str[0:10]))
+            # logging.getLogger("HWR").debug('Got camera image: ' + \
+            # str(img_bin_str[0:10]))
             if self._print_cam_sucess:
-                logging.getLogger("HWR").info("LNLSCamera is emitting images! Cam routine is ok.")
+                logging.getLogger("HWR").info(
+                    "LNLSCamera is emitting images! Cam routine is ok."
+                )
                 self._print_cam_sucess = False
                 self._print_cam_error_null = True
                 self._print_cam_error_size = True
@@ -136,7 +142,7 @@ class LNLSCamera(BaseHardwareObjects.HardwareObject):
             return 0
         except:
             if self._print_cam_error_format:
-                logging.getLogger("HWR").error('Error while formatting camera image')
+                logging.getLogger("HWR").error("Error while formatting camera image")
                 self._print_cam_sucess = True
                 self._print_cam_error_null = True
                 self._print_cam_error_size = True
@@ -204,8 +210,8 @@ class LNLSCamera(BaseHardwareObjects.HardwareObject):
 
     def getStaticImage(self):
         pass
-        #qtPixMap = QtGui.QPixmap(self.source, "1")
-        #self.emit("imageReceived", qtPixMap)
+        # qtPixMap = QtGui.QPixmap(self.source, "1")
+        # self.emit("imageReceived", qtPixMap)
 
     def get_image_dimensions(self):
         return self.get_array_size()
@@ -258,7 +264,6 @@ class LNLSCamera(BaseHardwareObjects.HardwareObject):
             self.setValue(CAMERA_AUTO_GAIN, auto)
         except:
             print("Error setting auto-gain of camera...")
-
 
     def get_exposure_time(self):
         exp = None
@@ -322,7 +327,9 @@ class LNLSCamera(BaseHardwareObjects.HardwareObject):
         self.setLive(True)
 
     def refresh_camera(self):
-        logging.getLogger("user_level_log").error("Resetting camera, please, wait a while...")
+        logging.getLogger("user_level_log").error(
+            "Resetting camera, please, wait a while..."
+        )
         print("refresh_camera")
 
         # Start a new thread to don't freeze UI
@@ -337,7 +344,7 @@ class LNLSCamera(BaseHardwareObjects.HardwareObject):
 
             if live:
                 logging.getLogger("HWR").info("LNLSCamera is going to poll images")
-                self.delay = float(int(self.getProperty("interval"))/1000.0)
+                self.delay = float(int(self.getProperty("interval")) / 1000.0)
                 thread = Thread(target=self.poll)
                 thread.daemon = True
                 thread.start()
@@ -350,74 +357,127 @@ class LNLSCamera(BaseHardwareObjects.HardwareObject):
 
     def takeSnapshot(self, *args):
         pass
-        #imgFile = QtCore.QFile(args[0])
-        #imgFile.open(QtCore.QIODevice.WriteOnly)
-        #self.qtPixMap.save(imgFile,"PNG")
-        #imgFile.close()
+        # imgFile = QtCore.QFile(args[0])
+        # imgFile.open(QtCore.QIODevice.WriteOnly)
+        # self.qtPixMap.save(imgFile,"PNG")
+        # imgFile.close()
 
-    def take_snapshots_procedure(self, image_count, snapshotFilePath, snapshotFilePrefix, logFilePath, runNumber, collectStart, collectEnd, motorHwobj, detectorHwobj):
+    def take_snapshots_procedure(
+        self,
+        image_count,
+        snapshotFilePath,
+        snapshotFilePrefix,
+        logFilePath,
+        runNumber,
+        collectStart,
+        collectEnd,
+        motorHwobj,
+        detectorHwobj,
+    ):
         """
         Descript. : It takes snapshots of sample camera and camserver execution.
         """
         # Avoiding a processing of AbstractMultiCollect class for saving snapshots
-        #centred_images = []
+        # centred_images = []
         centred_images = None
         positions = []
 
         try:
             # Calculate goniometer positions where to take snapshots
-            if (collectEnd is not None and collectStart is not None):
-                interval = (collectEnd - collectStart)
+            if collectEnd is not None and collectStart is not None:
+                interval = collectEnd - collectStart
             else:
                 interval = 0
 
             # To increment in angle increment
-            increment = 0 if ((image_count -1) == 0) else (interval / (image_count -1))
+            increment = (
+                0 if ((image_count - 1) == 0) else (interval / (image_count - 1))
+            )
 
             for incrementPos in range(image_count):
-                if (collectStart is not None):
+                if collectStart is not None:
                     positions.append(collectStart + (incrementPos * increment))
                 else:
                     positions.append(motorHwobj.getPosition())
 
             # Create folders if not found
-            if (not os.path.exists(snapshotFilePath)):
+            if not os.path.exists(snapshotFilePath):
                 try:
                     os.makedirs(snapshotFilePath, mode=0o700)
                 except OSError as diag:
-                    logging.getLogger().error("Snapshot: error trying to create the directory %s (%s)" % (snapshotFilePath, str(diag)))
+                    logging.getLogger().error(
+                        "Snapshot: error trying to create the directory %s (%s)"
+                        % (snapshotFilePath, str(diag))
+                    )
 
             for index in range(image_count):
-                while (motorHwobj.getPosition() < positions[index]):
+                while motorHwobj.getPosition() < positions[index]:
                     gevent.sleep(0.02)
 
-                logging.getLogger("HWR").info("%s - taking snapshot #%d" % (self.__class__.__name__, index + 1))
+                logging.getLogger("HWR").info(
+                    "%s - taking snapshot #%d" % (self.__class__.__name__, index + 1)
+                )
 
                 # Save snapshot image file
-                imageFileName = os.path.join(snapshotFilePath, snapshotFilePrefix + "_" + str(round(motorHwobj.getPosition(),2)) + "_" + motorHwobj.getEgu() + "_snapshot.png")
+                imageFileName = os.path.join(
+                    snapshotFilePath,
+                    snapshotFilePrefix
+                    + "_"
+                    + str(round(motorHwobj.getPosition(), 2))
+                    + "_"
+                    + motorHwobj.getEgu()
+                    + "_snapshot.png",
+                )
 
-                #imageInfo = self.takeSnapshot(imageFileName)
+                # imageInfo = self.takeSnapshot(imageFileName)
 
                 # This way all shapes will be also saved...
                 self.emit("saveSnapshot", imageFileName)
 
                 # Send a command to detector hardware-object to take snapshot of camserver execution...
-                if (logFilePath and detectorHwobj):
-                    detectorHwobj.takeScreenshotOfXpraRunningProcess(image_path=logFilePath, run_number=runNumber)
+                if logFilePath and detectorHwobj:
+                    detectorHwobj.takeScreenshotOfXpraRunningProcess(
+                        image_path=logFilePath, run_number=runNumber
+                    )
 
-                #centred_images.append((0, str(imageInfo)))
-                #centred_images.reverse()
+                # centred_images.append((0, str(imageInfo)))
+                # centred_images.reverse()
         except:
-            logging.getLogger("HWR").exception("%s - could not take crystal snapshots" % (self.__class__.__name__))
+            logging.getLogger("HWR").exception(
+                "%s - could not take crystal snapshots" % (self.__class__.__name__)
+            )
 
         return centred_images
 
-    def take_snapshots(self, image_count, snapshotFilePath, snapshotFilePrefix, logFilePath, runNumber, collectStart, collectEnd, motorHwobj, detectorHwobj, wait=False):
+    def take_snapshots(
+        self,
+        image_count,
+        snapshotFilePath,
+        snapshotFilePrefix,
+        logFilePath,
+        runNumber,
+        collectStart,
+        collectEnd,
+        motorHwobj,
+        detectorHwobj,
+        wait=False,
+    ):
         """
         Descript. :  It takes snapshots of sample camera and camserver execution.
         """
         if image_count > 0:
-            self.snapshots_procedure = gevent.spawn(self.take_snapshots_procedure, image_count, snapshotFilePath, snapshotFilePrefix, logFilePath, runNumber, collectStart, collectEnd, motorHwobj, detectorHwobj)
+            self.snapshots_procedure = gevent.spawn(
+                self.take_snapshots_procedure,
+                image_count,
+                snapshotFilePath,
+                snapshotFilePrefix,
+                logFilePath,
+                runNumber,
+                collectStart,
+                collectEnd,
+                motorHwobj,
+                detectorHwobj,
+            )
 
             self.centring_status["images"] = []
 
@@ -433,7 +493,9 @@ class LNLSCamera(BaseHardwareObjects.HardwareObject):
         try:
             self.centring_status["images"] = snapshots_procedure.get()
         except:
-            logging.getLogger("HWR").exception("%s - could not take crystal snapshots" % (self.__class__.__name__))
+            logging.getLogger("HWR").exception(
+                "%s - could not take crystal snapshots" % (self.__class__.__name__)
+            )
 
     def cancel_snapshot(self):
         try:

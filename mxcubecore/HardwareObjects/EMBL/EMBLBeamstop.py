@@ -54,8 +54,7 @@ class EMBLBeamstop(Device, AbstractMotor):
         self.chan_position = self.get_channel_object("BeamstopPosition")
 
     def is_ready(self):
-        """Returns True if device ready
-        """
+        """Returns True if device ready"""
         return True
 
     def distance_changed(self, value):

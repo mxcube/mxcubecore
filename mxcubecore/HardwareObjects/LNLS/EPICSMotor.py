@@ -19,6 +19,7 @@ Example of xml file:
     <GUIstep>90</GUIstep>
 </object>
 """
+
 import logging
 import time
 
@@ -31,20 +32,20 @@ from mxcubecore.HardwareObjects.LNLS.EPICSActuator import EPICSActuator
 class EPICSMotor(EPICSActuator, AbstractMotor):
     """EPICS Motor class"""
 
-    MOTOR_DMOV = 'epicsMotor_dmov'
-    MOTOR_STOP = 'epicsMotor_stop'
-    MOTOR_RLV = 'epicsMotor_rlv'
-    MOTOR_VELO = 'epicsMotor_velo'
-    MOTOR_HLM = 'epicsMotor_hlm'
-    MOTOR_LLM = 'epicsMotor_llm'
-    MOTOR_EGU = 'epicsMotor_egu'
+    MOTOR_DMOV = "epicsMotor_dmov"
+    MOTOR_STOP = "epicsMotor_stop"
+    MOTOR_RLV = "epicsMotor_rlv"
+    MOTOR_VELO = "epicsMotor_velo"
+    MOTOR_HLM = "epicsMotor_hlm"
+    MOTOR_LLM = "epicsMotor_llm"
+    MOTOR_EGU = "epicsMotor_egu"
 
     def __init__(self, name):
         super().__init__(name)
         self._wrap_range = None
 
     def init(self):
-        """ Initialization method """
+        """Initialization method"""
         super().init()
         self.get_limits()
         self.get_velocity()
@@ -52,7 +53,7 @@ class EPICSMotor(EPICSActuator, AbstractMotor):
         self.update_state(self.STATES.READY)
 
     def _watch(self):
-        """ Watch motor current value and update it on the UI."""
+        """Watch motor current value and update it on the UI."""
         while True:
             time.sleep(0.25)
             self.update_value()
@@ -62,7 +63,7 @@ class EPICSMotor(EPICSActuator, AbstractMotor):
         self.update_specific_state(self.SPECIFIC_STATES.MOVING)
         current_value = self.get_value()
 
-        while (not self.done_movement()):
+        while not self.done_movement():
             time.sleep(0.25)
 
         self.update_specific_state(None)
@@ -82,11 +83,13 @@ class EPICSMotor(EPICSActuator, AbstractMotor):
         except BaseException:
             self._nominal_limits = (None, None)
 
-        if self._nominal_limits in [(0, 0), (float('-inf'), float('inf'))]:
+        if self._nominal_limits in [(0, 0), (float("-inf"), float("inf"))]:
             # Treat infinite limits
             self._nominal_limits = (None, None)
 
-        logging.getLogger("HWR").info('Motor %s limits: %s' % (self.motor_name, self._nominal_limits))
+        logging.getLogger("HWR").info(
+            "Motor %s limits: %s" % (self.motor_name, self._nominal_limits)
+        )
         return self._nominal_limits
 
     def get_velocity(self):
@@ -99,6 +102,6 @@ class EPICSMotor(EPICSActuator, AbstractMotor):
         self.__velocity = self.set_channel_value(self.MOTOR_VELO, value)
 
     def done_movement(self):
-        """ Return whether motor finished movement or not."""
+        """Return whether motor finished movement or not."""
         dmov = self.get_channel_value(self.MOTOR_DMOV)
         return bool(dmov)

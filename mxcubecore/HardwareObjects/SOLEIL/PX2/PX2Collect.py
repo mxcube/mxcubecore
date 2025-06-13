@@ -46,8 +46,8 @@ __category__ = "General"
 
 class PX2Collect(AbstractCollect, HardwareObject):
     """Main data collection class. Inherited from AbstractCollect.
-       Collection is done by setting collection parameters and
-       executing collect command
+    Collection is done by setting collection parameters and
+    executing collect command
     """
 
     experiment_types = [
@@ -89,7 +89,6 @@ class PX2Collect(AbstractCollect, HardwareObject):
         self.slits1 = slits1()
 
     def init(self):
-
         self.ready_event = gevent.event.Event()
 
         undulators = []
@@ -197,7 +196,6 @@ class PX2Collect(AbstractCollect, HardwareObject):
             experiment.execute()
 
         elif experiment_type == "Characterization":
-
             number_of_wedges = osc_seq["number_of_images"]
             wedge_size = osc_seq["wedge_size"]
             overlap = osc_seq["overlap"]
@@ -329,7 +327,7 @@ class PX2Collect(AbstractCollect, HardwareObject):
     @task
     def _take_crystal_animation(self, animation_filename, duration_sec):
         """Rotates sample by 360 and composes a gif file
-           Animation is saved as the fourth snapshot
+        Animation is saved as the fourth snapshot
         """
         HWR.beamline.sample_view.save_scene_animation(animation_filename, duration_sec)
 
@@ -341,8 +339,7 @@ class PX2Collect(AbstractCollect, HardwareObject):
         return
 
     def emit_collection_finished(self):
-        """Collection finished behaviour
-        """
+        """Collection finished behaviour"""
         if self.current_dc_parameters["experiment_type"] != "Collect - Multiwedge":
             self.update_data_collection_in_lims()
 

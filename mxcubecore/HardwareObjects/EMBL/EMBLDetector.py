@@ -32,11 +32,9 @@ __category__ = "General"
 
 
 class EMBLDetector(AbstractDetector):
-    """Detector class. Contains all information about detector
-    """
+    """Detector class. Contains all information about detector"""
 
     def __init__(self, name):
-
         AbstractDetector.__init__(self, name)
 
         self.collect_name = None

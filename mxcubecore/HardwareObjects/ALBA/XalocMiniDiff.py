@@ -113,8 +113,7 @@ class XalocMiniDiff(GenericDiffractometer):
         self.emit("pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y),))
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
-        """
-        """
+        """ """
         return {"omega": [200, 200]}
         # raise NotImplementedError
 

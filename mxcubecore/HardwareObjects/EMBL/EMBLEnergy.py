@@ -317,7 +317,7 @@ class EMBLEnergy(AbstractEnergy):
                     self.cmd_reset_perp()
             self.move_energy_finished(0)
             self.update_state(self.STATES.READY)
-            #self.emit("stateChanged", "ready")
+            # self.emit("stateChanged", "ready")
             self.emit("statusInfoChanged", "")
             if self.do_beam_alignment and self.delta > 0.1:
                 self.emit("beamAlignmentRequested")
@@ -326,7 +326,7 @@ class EMBLEnergy(AbstractEnergy):
         elif state == 1:
             self.move_energy_started()
             self.update_state(self.STATES.BUSY)
-            #self.emit("stateChanged", "busy")
+            # self.emit("stateChanged", "busy")
 
     def wait_ready(self, timeout=20):
         """

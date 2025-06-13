@@ -6,7 +6,6 @@ from .ESRFEnergyScan import ESRFEnergyScan
 
 
 class ID29EnergyScan(ESRFEnergyScan):
-
     def energy_scan_hook(self, energy_scan_parameters):
         self.energy = energy_scan_parameters["edgeEnergy"]
         if self.energy_scan_parameters["findattEnergy"]:
@@ -37,10 +36,12 @@ class ID29EnergyScan(ESRFEnergyScan):
         eroi_min = self.energy_scan_parameters["eroi_min"]
         eroi_max = self.energy_scan_parameters["eroi_max"]
         self.ctrl.detcover.set_in()
-        self.ctrl.find_max_attenuation(ctime=2, roi=[eroi_min, eroi_max], datafile="/tmp/abb")
-        self.energy_scan_parameters[
-            "transmissionFactor"
-        ] = HWR.beamline.transmission.get_value()
+        self.ctrl.find_max_attenuation(
+            ctime=2, roi=[eroi_min, eroi_max], datafile="/tmp/abb"
+        )
+        self.energy_scan_parameters["transmissionFactor"] = (
+            HWR.beamline.transmission.get_value()
+        )
 
     def execute_energy_scan(self, energy_scan_parameters):
         startE = energy_scan_parameters["startEnergy"]
@@ -66,7 +67,7 @@ class ID29EnergyScan(ESRFEnergyScan):
 
         self.ctrl.detcover.set_in()
         self.ctrl.diffractometer.fldet_in()
-        #self.ctrl.fluodet.IN
+        # self.ctrl.fluodet.IN
         self.ctrl.diffractometer.set_phase("DataCollection")
 
         if self.beamsize:

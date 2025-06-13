@@ -39,7 +39,6 @@ __category__ = "General"
 
 class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
     def __init__(self, name):
-
         AbstractEnergyScan.__init__(self)
         HardwareObject.__init__(self, name)
         self._tunable_bl = True
@@ -98,9 +97,9 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                 logging.getLogger("GUI").info("Energy scan: Executing...")
 
                 if HWR.beamline.transmission is not None:
-                    self.scan_info[
-                        "transmissionFactor"
-                    ] = HWR.beamline.transmission.get_value()
+                    self.scan_info["transmissionFactor"] = (
+                        HWR.beamline.transmission.get_value()
+                    )
                 else:
                     self.scan_info["transmissionFactor"] = None
             elif status == "ready":
@@ -520,7 +519,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
 
     def get_scan_data(self):
         """Returns energy scan data.
-           List contains tuples of (energy, counts)
+        List contains tuples of (energy, counts)
         """
         return self.scan_data
 

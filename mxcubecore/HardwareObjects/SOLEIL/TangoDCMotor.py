@@ -12,7 +12,6 @@ from mxcubecore.HardwareObjects.abstract.AbstractMotor import MotorStates
 
 
 class TangoDCMotor(HardwareObject):
-
     MOVESTARTED = 0
     NOTINITIALIZED = 0
     UNUSABLE = 0
@@ -32,7 +31,6 @@ class TangoDCMotor(HardwareObject):
     }
 
     def __init__(self, name):
-
         # State values as expected by Motor bricks
 
         super().__init__(name)
@@ -218,7 +216,9 @@ class TangoDCMotor(HardwareObject):
             "TangoDCMotor.move to absolute position: %.3f" % value
         )
         logging.getLogger("TangoClient").info(
-            "TangoDCMotor move. Trying to go to %s: that is a '%s'", value, type(value),
+            "TangoDCMotor move. Trying to go to %s: that is a '%s'",
+            value,
+            type(value),
         )
         # if abs(self.get_value() - value) > epsilon:
         #     logging.info(

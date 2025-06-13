@@ -59,7 +59,6 @@ STATE_OUT, STATE_IN, STATE_MOVING, STATE_FAULT, STATE_ALARM, STATE_UNKNOWN = (
 
 
 class ALBAFastShutter(BaseHardwareObjects.HardwareObject):
-
     states = {
         STATE_OUT: "out",
         STATE_IN: "in",
@@ -75,7 +74,6 @@ class ALBAFastShutter(BaseHardwareObjects.HardwareObject):
         super().__init__(name)
 
     def init(self):
-
         self.actuator_state = STATE_UNKNOWN
         self.actuator_value = None
         self.motor_position = None
@@ -117,7 +115,6 @@ class ALBAFastShutter(BaseHardwareObjects.HardwareObject):
         return self.actuator_state
 
     def update_state(self):
-
         if None in [self.actuator_value, self.motor_position, self.motor_state]:
             act_state = STATE_UNKNOWN
         elif str(self.motor_state) == "MOVING":
@@ -168,8 +165,7 @@ class ALBAFastShutter(BaseHardwareObjects.HardwareObject):
         return self.username
 
     def getStatus(self):
-        """
-        """
+        """ """
         state = self.get_state()
 
         if state in [STATE_OUT, STATE_IN]:

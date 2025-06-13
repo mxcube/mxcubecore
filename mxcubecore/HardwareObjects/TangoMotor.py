@@ -56,8 +56,8 @@ class TangoMotor(AbstractMotor):
         self.actuator_name = self.get_property("actuator_name", self.name())
         self._tolerance = self.get_property("tolerance", 1e-3)
 
-        self.is_simulation = self.get_property("simulation",False)
-        self.auto_on = self.get_property("auto_on",False)
+        self.is_simulation = self.get_property("simulation", False)
+        self.auto_on = self.get_property("auto_on", False)
         if self.auto_on:
             self.log.debug("AUTO_ON is set for motor %s" % self.name())
 
@@ -69,12 +69,14 @@ class TangoMotor(AbstractMotor):
         self.chan_position = self.get_channel_object("axisPosition", optional=True)
         if self.chan_position is None:
             self.chan_position = self.add_channel(
-                  {
-                      "type": "tango",
-                      "name": "axisPosition",
-                      "tangoname": self.tangoname,
-                      "polling": self.polling,
-                  }, "Position",)
+                {
+                    "type": "tango",
+                    "name": "axisPosition",
+                    "tangoname": self.tangoname,
+                    "polling": self.polling,
+                },
+                "Position",
+            )
 
         if self.chan_position is not None:
             self.chan_position.connect_signal("update", self.update_value)
@@ -108,22 +110,25 @@ class TangoMotor(AbstractMotor):
 
         self.cmd_stop = self.get_command_object("stopAxis")
         if self.cmd_stop is None:
-             self.cmd_stop = self.add_command(
-                  {
-                      "type": "tango",
-                      "name": "stopAxis",
-                      "tangoname": self.tangoname,
-                  }, "Stop",)
+            self.cmd_stop = self.add_command(
+                {
+                    "type": "tango",
+                    "name": "stopAxis",
+                    "tangoname": self.tangoname,
+                },
+                "Stop",
+            )
 
         self.cmd_on = self.get_command_object("onCmd")
         if self.cmd_on is None:
-             self.cmd_on = self.add_command(
-                  {
-                      "type": "tango",
-                      "name": "onCmd",
-                      "tangoname": self.tangoname,
-                  }, "On",)
-
+            self.cmd_on = self.add_command(
+                {
+                    "type": "tango",
+                    "name": "onCmd",
+                    "tangoname": self.tangoname,
+                },
+                "On",
+            )
 
         self.chan_velocity = self.get_channel_object("velocity", optional=True)
 
@@ -147,7 +152,7 @@ class TangoMotor(AbstractMotor):
 
     def get_value(self):
         if self.is_simulation:
-             return self.simulated_pos
+            return self.simulated_pos
         value = self.chan_position.get_value()
         return value
 
@@ -160,7 +165,6 @@ class TangoMotor(AbstractMotor):
             self.chan_velocity.set_value(value)
 
     def motstate_to_state(self, motstate):
-
         motstate = str(motstate)
 
         if motstate == "ON":
@@ -186,7 +190,9 @@ class TangoMotor(AbstractMotor):
         self.update_state(self.STATES.READY)
 
     def is_moving(self):
-        return ( (self.get_state() == self.STATES.BUSY ) or (self.get_state() == self.SPECIFIC_STATES.MOVING))
+        return (self.get_state() == self.STATES.BUSY) or (
+            self.get_state() == self.SPECIFIC_STATES.MOVING
+        )
 
     def abort(self):
         """Stops motor movement"""
@@ -203,10 +209,10 @@ class TangoMotor(AbstractMotor):
         """
         self.log.debug("TangoMotor.py - Moving motor %s to %s" % (self.id, value))
         if self.is_simulation:
-             self.simulated_pos = value
+            self.simulated_pos = value
         else:
-             self.start_moving()
-             self.chan_position.set_value(value)
+            self.start_moving()
+            self.chan_position.set_value(value)
 
     def start_moving(self):
         self.motor_state_changed("MOVING")
@@ -222,7 +228,9 @@ class TangoMotor(AbstractMotor):
     def _update_state(self):
         gevent.sleep(0.5)
         motor_state = self.chan_state.get_value()
-        self.log.debug(" reading motor state for %s is %s" % (self.id, str(motor_state)))
+        self.log.debug(
+            " reading motor state for %s is %s" % (self.id, str(motor_state))
+        )
         self.motor_state_changed(motor_state)
 
     def update_value(self, value=None):

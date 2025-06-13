@@ -371,7 +371,6 @@ class ALBACats(Cats90):
         # Loading HT sample
         #
         if use_ht:  # loading HT sample
-
             if loaded_ht == -1:  # has loaded but it is not HT
                 # first unmount (non HT)
                 logging.getLogger("HWR").warning(
@@ -455,7 +454,6 @@ class ALBACats(Cats90):
                 read_barcode = False
 
             if loaded_ht == -1:  # has a loaded but it is not an HT
-
                 if changing_tool:
                     raise Exception(
                         "This operation requires a tool change. You should unload sample first"
@@ -644,9 +642,9 @@ class ALBACats(Cats90):
 
     def is_loaded_ht(self):
         """
-           1 : has loaded ht
-           0 : nothing loaded
-          -1 : loaded but not ht
+         1 : has loaded ht
+         0 : nothing loaded
+        -1 : loaded but not ht
         """
         sample_lid = self._chnLidLoadedSample.get_value()
 

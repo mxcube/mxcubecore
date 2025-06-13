@@ -35,9 +35,9 @@ __category__ = "General"
 
 class ALBAPilatus(AbstractDetector, HardwareObject):
     """Detector class. Contains all information about detector
-       - states are 'OK', and 'BAD'
-       - status is busy, exposing, ready, etc.
-       - physical property is RH for pilatus, P for rayonix
+    - states are 'OK', and 'BAD'
+    - status is busy, exposing, ready, etc.
+    - physical property is RH for pilatus, P for rayonix
     """
 
     def __init__(self, name):
@@ -180,7 +180,6 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
         return True
 
     def prepare_acquisition(self, dcpars):
-
         self.set_energy_threshold()
         # self.wait_standby()
 
@@ -251,7 +250,6 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
         self.stop_acquisition()
 
     def set_image_headers(self, image_headers, angle_info):
-
         nb_images = image_headers["nb_images"]
         angle_inc = image_headers["Angle_increment"]
         start_angle = image_headers["Start_angle"]

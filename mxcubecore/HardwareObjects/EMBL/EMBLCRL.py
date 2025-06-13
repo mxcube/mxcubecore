@@ -36,7 +36,6 @@ class EMBLCRL(HardwareObject):
     """Controls CRLs"""
 
     def __init__(self, name):
-
         HardwareObject.__init__(self, name)
 
         self.focal_length = None
@@ -168,8 +167,7 @@ class EMBLCRL(HardwareObject):
         else:
             lens_combination = value
         return 1.0 / (
-            2 * 341.52 * lens_combination / 2000 / (self.energy_value ** 2)
-            - 1 / 42.6696
+            2 * 341.52 * lens_combination / 2000 / (self.energy_value**2) - 1 / 42.6696
         )
 
     def focusing_mode_requested(self, focusing_mode):
@@ -190,7 +188,7 @@ class EMBLCRL(HardwareObject):
 
     def set_crl_value(self, value, timeout=None):
         """Sets CRL lens combination. If integer passed then
-           converts value to the bit list
+        converts value to the bit list
         """
         if not isinstance(value, (list, tuple)):
             value = self.convert_value(value)

@@ -68,7 +68,9 @@ class MDFastShutter(AbstractShutter):
 
         self.chan_shutter_is_open = self.get_channel_object("chanShutterIsOpen")
         if self.chan_shutter_is_open:
-            self.chan_shutter_is_open.connect_signal("update", self.shutter_is_open_changed)
+            self.chan_shutter_is_open.connect_signal(
+                "update", self.shutter_is_open_changed
+            )
 
         self.chan_current_phase = self.get_channel_object("chanCurrentPhase")
         if self.chan_current_phase is not None:
@@ -82,7 +84,7 @@ class MDFastShutter(AbstractShutter):
         :return:
         """
         self.shutter_is_open = value
-        #We allow to control the fast shutter just in the beam location phase
+        # We allow to control the fast shutter just in the beam location phase
         if self.current_phase == "BeamLocation":
             if value:
                 value = self.VALUES.OPEN

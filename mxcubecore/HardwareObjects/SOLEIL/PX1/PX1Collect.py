@@ -1,5 +1,5 @@
 """
- File:  PX1Collect.py
+File:  PX1Collect.py
 
 """
 
@@ -26,8 +26,8 @@ __version__ = "2.3"
 
 class PX1Collect(AbstractCollect, HardwareObject):
     """Main data collection class. Inherited from AbstractMulticollect
-       Collection is done by setting collection parameters and
-       executing collect command
+    Collection is done by setting collection parameters and
+    executing collect command
     """
 
     adxv_host = "127.0.0.1"
@@ -108,8 +108,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
         self.emit("collectReady", (True,))
 
     def data_collection_hook(self):
-        """Main collection hook
-        """
+        """Main collection hook"""
 
         collection_type = self.current_dc_parameters["experiment_type"]
 
@@ -158,7 +157,6 @@ class PX1Collect(AbstractCollect, HardwareObject):
         self.collection_finished()
 
     def prepare_standard_collection(self):
-
         osc_seq = self.current_dc_parameters["oscillation_sequence"][0]
         fileinfo = self.current_dc_parameters["fileinfo"]
         basedir = fileinfo["directory"]
@@ -208,7 +206,6 @@ class PX1Collect(AbstractCollect, HardwareObject):
         self.collect_device.Start()
 
     def follow_collection_progress(self):
-
         osc_seq = self.current_dc_parameters["oscillation_sequence"][0]
         fileinfo = self.current_dc_parameters["fileinfo"]
         basedir = fileinfo["directory"]
@@ -279,7 +276,6 @@ class PX1Collect(AbstractCollect, HardwareObject):
         return True
 
     def start_characterization(self):
-
         osc_seq = self.current_dc_parameters["oscillation_sequence"][0]
         fileinfo = self.current_dc_parameters["fileinfo"]
 
@@ -501,7 +497,6 @@ class PX1Collect(AbstractCollect, HardwareObject):
         self.create_goimg_file(process_dir)
 
     def create_goimg_file(self, dirname):
-
         db_f = os.path.join(self.goimg_dir, self.goimg_filename)
         if os.path.exists(db_f):
             os.remove(db_f)
@@ -581,7 +576,6 @@ class PX1Collect(AbstractCollect, HardwareObject):
     ## FILE SYSTEM (END) ##
 
     def prepare_devices_for_collection(self):
-
         fileinfo = self.current_dc_parameters["fileinfo"]
         basedir = fileinfo["directory"]
 
@@ -861,7 +855,6 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
     ## ADXV display images ##
     def adxv_connect(self):
-
         #  connect every time?? maybe we can do better
         try:
             res = socket.getaddrinfo(
@@ -876,7 +869,6 @@ class PX1Collect(AbstractCollect, HardwareObject):
             logging.getLogger().info("PX1Collect: WARNING: Can't connect to ADXV.")
 
     def adxv_show_latest(self, fileinfo):
-
         now = time.time()
         elapsed = now - self.adxv_latest_refresh
 
@@ -898,7 +890,6 @@ class PX1Collect(AbstractCollect, HardwareObject):
             self.adxv_last_refresh = time.time()
 
     def adxv_sync_image(self, filename):
-
         adxv_send_cmd = "\nload_image %s\n" + chr(32)
 
         try:

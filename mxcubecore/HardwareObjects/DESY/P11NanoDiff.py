@@ -203,7 +203,6 @@ class P11NanoDiff(GenericDiffractometer):
         else:
             self.init_ok = True
 
-
     def update_beam_position(self):
         zoom_hwobj = self.motor_hwobj_dict["zoom"]
         image_dimensions = zoom_hwobj.camera_hwobj.get_image_dimensions()
@@ -238,7 +237,6 @@ class P11NanoDiff(GenericDiffractometer):
         return self.grid_direction
 
     def predict_click_pix(self, frame):
-
         request_arguments = {}
         request_arguments["to_predict"] = frame
         image_jpeg = request_arguments["to_predict"]
@@ -300,7 +298,6 @@ class P11NanoDiff(GenericDiffractometer):
         return h, v
 
     def auto_ai_routine(self, zoom):
-
         self.goto_centring_phase()
         self.log.debug("Automatic 3 click centring")
         self.emit_progress_message("AI centring. Please wait...")
@@ -643,8 +640,7 @@ class P11NanoDiff(GenericDiffractometer):
         return
 
     def start_manual_centring(self, sample_info=None, wait_result=None):
-        """
-        """
+        """ """
         self.goto_centring_phase()
         self.log.debug(
             "Manual 3 click centring. using sample centring module: %s"
@@ -713,7 +709,6 @@ class P11NanoDiff(GenericDiffractometer):
         s[mask == 1] = self.planparallel_shift(b, t_base[mask == 1], n, sense=-1)
         return s
 
-
     def manual_centring(self, phi_range=120, n_points=3):
         """
         Descript. :
@@ -726,11 +721,11 @@ class P11NanoDiff(GenericDiffractometer):
         self.log.debug("STARTING Manual Centring")
 
         motor_positions = {
-                'phiy': self.centring_phiy.motor.get_value(),
-                'sampx': self.centring_sampx.motor.get_value(),
-                'sampy': self.centring_sampy.motor.get_value(),
-                'phi': self.centring_phi.motor.get_value(),
-                }
+            "phiy": self.centring_phiy.motor.get_value(),
+            "sampx": self.centring_sampx.motor.get_value(),
+            "sampy": self.centring_sampy.motor.get_value(),
+            "phi": self.centring_phi.motor.get_value(),
+        }
 
         phi_mot = self.centring_phi.motor
         phi_start_pos = phi_mot.get_value()
@@ -755,7 +750,7 @@ class P11NanoDiff(GenericDiffractometer):
         for i in range(n_points):
             dx = X[i] - beam_xc
             dy = Y[i] - beam_yc
-            ang = math.radians( PHI[i])
+            ang = math.radians(PHI[i])
 
             DX.append(dx)
             DY.append(dy)
@@ -764,22 +759,22 @@ class P11NanoDiff(GenericDiffractometer):
         for i in range(n_points):
             y0 = DY[i]
             ang0 = ANG[i]
-            if i < (n_points-1):
-                y1 = DY[i+1]
-                ang1 = ANG[i+1]
+            if i < (n_points - 1):
+                y1 = DY[i + 1]
+                ang1 = ANG[i + 1]
             else:
                 y1 = DY[0]
                 ang1 = ANG[0]
 
-            p = ( y0*math.sin(ang1) - y1*math.sin(ang0) ) / math.sin(ang1-ang0)
-            q = ( y0*math.cos(ang1) - y1*math.cos(ang0) ) / math.sin(ang1-ang0)
+            p = (y0 * math.sin(ang1) - y1 * math.sin(ang0)) / math.sin(ang1 - ang0)
+            q = (y0 * math.cos(ang1) - y1 * math.cos(ang0)) / math.sin(ang1 - ang0)
 
             P.append(p)
             Q.append(q)
 
-        x_s = -sum(Q)/n_points
-        y_s = sum(P)/n_points
-        z_s = sum(DX)/n_points
+        x_s = -sum(Q) / n_points
+        y_s = sum(P) / n_points
+        z_s = sum(DX) / n_points
 
         x_d_mm = x_s / self.pixels_per_mm_y
         y_d_mm = y_s / self.pixels_per_mm_y
@@ -797,9 +792,9 @@ class P11NanoDiff(GenericDiffractometer):
         y_pos = sampy_mot.get_value() + y_d
         z_pos = phiy_mot.get_value() + z_d
 
-        motor_positions['phiy'] = z_pos
-        motor_positions['sampx'] = x_pos
-        motor_positions['sampy'] = y_pos
+        motor_positions["phiy"] = z_pos
+        motor_positions["sampx"] = x_pos
+        motor_positions["sampy"] = y_pos
         return motor_positions
 
     def get_positions(self):
@@ -1000,7 +995,6 @@ class P11NanoDiff(GenericDiffractometer):
         return self.current_phase
 
     def motor_state_changed(self, state=None):
-
         new_state = DiffractometerState.Ready
 
         if self.phase_state == self.PHASE_STATES.MOVING:
@@ -1064,7 +1058,6 @@ class P11NanoDiff(GenericDiffractometer):
                 self.yag_hwobj,
                 self.pinhole_hwobj,
             ]:
-
                 if ho.is_moving():
                     moving = True
 
@@ -1144,7 +1137,6 @@ class P11NanoDiff(GenericDiffractometer):
         return self.get_phase() == GenericDiffractometer.PHASE_TRANSFER
 
     def goto_transfer_phase(self, wait=True):
-
         self.log.debug(" SETTING TRANSFER PHASE ")
         self.phase_goingto = GenericDiffractometer.PHASE_TRANSFER
         self.moving_motors = True
@@ -1260,7 +1252,6 @@ class P11NanoDiff(GenericDiffractometer):
             self.wait_phase()
 
     def update_phase(self, value=None):
-
         omega_pos = self.get_omega_position()
 
         cover_open = self.detcover_hwobj.is_open
@@ -1271,7 +1262,6 @@ class P11NanoDiff(GenericDiffractometer):
         bstop = self.beamstop_hwobj.get_value()
         pinh = self.pinhole_hwobj.get_value()
         yag = self.yag_hwobj.get_value()
-
 
         omega_moving = self.omega_hwobj.is_moving()
         cover_moving = self.detcover_hwobj.is_moving()

@@ -15,7 +15,6 @@ from mxcubecore.HardwareObjects.Cats90 import (
 
 
 class PX1Cryotong(Cats90):
-
     __TYPE__ = "CATS"
 
     default_no_lids = 1
@@ -24,7 +23,6 @@ class PX1Cryotong(Cats90):
     default_basket_type = BASKET_UNIPUCK
 
     def __init__(self, *args, **kwargs):
-
         super(PX1Cryotong, self).__init__(*args, **kwargs)
 
         self._safeNeeded = None
@@ -36,7 +34,6 @@ class PX1Cryotong(Cats90):
         self.incoherent_state = None
 
     def init(self):
-
         super(PX1Cryotong, self).init()
 
         self.cats_device = DeviceProxy(self.get_property("cats_device"))
@@ -185,7 +182,6 @@ class PX1Cryotong(Cats90):
             self.do_dry_and_soak()
 
     def _do_load(self, sample=None, wash=None):
-
         ret = self.check_power_on()
         if ret is False:
             logging.getLogger("user_level_log").error("CRYOTONG Cannot be powered")
@@ -227,7 +223,6 @@ class PX1Cryotong(Cats90):
             self.emit("loadError", incoherentSample)
 
     def _do_unload(self, sample=None, wash=None):
-
         ret = self.check_power_on()
         if ret is False:
             logging.getLogger("user_level_log").error("CRYOTONG Cannot be powered")

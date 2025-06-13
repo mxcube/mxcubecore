@@ -99,7 +99,6 @@ class P11DetectorDistance(AbstractMotor):
         self.update_state(self.STATES.OFF)
 
     def _set_state(self, state=None):
-
         if state is None:
             _state = self.chan_state.get_value()
         else:
@@ -130,8 +129,7 @@ class P11DetectorDistance(AbstractMotor):
         return self.chan_position.get_value()
 
     def update_value(self, value=None):
-        """Updates motor position
-        """
+        """Updates motor position"""
         if value is None:
             value = self.chan_position.get_value()
 
@@ -169,8 +167,7 @@ class P11DetectorDistance(AbstractMotor):
         return [min_value, max_value]
 
     def abort(self):
-        """Stops motor movement
-        """
+        """Stops motor movement"""
         self.cmd_stop()
 
     def get_motor_mnemonic(self):

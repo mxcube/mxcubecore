@@ -29,6 +29,7 @@ _logger_smx_aggr.setLevel(logging.DEBUG)
 
 lima2_loggers = [_logger_det, _logger_smx, _logger_smx_aggr]
 
+
 def update_lima2_loggers():
     for tgt_logger in lima2_loggers:
         tgt_logger.setLevel(_logger.getEffectiveLevel())
@@ -39,15 +40,16 @@ def update_lima2_loggers():
 # Logger decorator
 def logger(fn):
     def inner(*args, **kwargs):
-        _logger.debug(f'Entering %s', fn.__name__)
+        _logger.debug(f"Entering %s", fn.__name__)
         to_execute = fn(*args, **kwargs)
-        _logger.debug(f'Exiting %s', fn.__name__)
+        _logger.debug(f"Exiting %s", fn.__name__)
         return to_execute
 
     return inner
 
+
 def convert_state(state):
-    """ Convert detector state to MxCube HWR state """
+    """Convert detector state to MxCube HWR state"""
     # UNKNOWN = 0
     # WARNING = 1
     # BUSY = 2
@@ -61,6 +63,7 @@ def convert_state(state):
     else:
         s = HardwareObjectState.UNKNOWN
     return s
+
 
 def create_directory(path, check=True):
     subprocess.run(
@@ -81,14 +84,17 @@ class Lima2Detector(AbstractDetector):
         AbstractDetector.init(self)
 
         update_lima2_loggers()
-        self.image_rejection_settings_file = self.get_property("image_rejection_settings_file")
+        self.image_rejection_settings_file = self.get_property(
+            "image_rejection_settings_file"
+        )
 
         lima_ctrl_device = self.get_property("lima_ctrl_device", "")
-        #lima_recv_devices = ast.literal_eval(self.get_property("lima_recv_devices", ""))
+        # lima_recv_devices = ast.literal_eval(self.get_property("lima_recv_devices", ""))
         lima_recv_devices = self.get_property("lima_recv_devices", "").split(",")
 
-        _logger.info("Initializing Lima2Detector: %s %s", lima_ctrl_device,
-                     lima_recv_devices)
+        _logger.info(
+            "Initializing Lima2Detector: %s %s", lima_ctrl_device, lima_recv_devices
+        )
 
         if not lima_ctrl_device or not len(lima_recv_devices) >= 1:
             return
@@ -109,6 +115,7 @@ class Lima2Detector(AbstractDetector):
                 s = convert_state(state)
                 _logger.info("State changed to %s / %s", state, s)
                 self.update_state(s)
+
             self.__device.registerStateLogger(on_state_change)
         except (ConnectionError, AttributeError):
             self.update_state(HardwareObjectState.FAULT)
@@ -121,8 +128,11 @@ class Lima2Detector(AbstractDetector):
     @logger
     def wait_idle(self, timeout=3500):
         with gevent.Timeout(timeout, RuntimeError("Detector not idle")):
-            idle_states = [Detector.State.PREPARED, Detector.State.IDLE,
-                           Detector.State.FAULT]
+            idle_states = [
+                Detector.State.PREPARED,
+                Detector.State.IDLE,
+                Detector.State.FAULT,
+            ]
             while self.__device.state not in idle_states:
                 _logger.debug("State: %s", self.__device.state)
                 gevent.sleep(1)
@@ -143,14 +153,13 @@ class Lima2Detector(AbstractDetector):
     @logger
     def last_image_saved(self):
         try:
-            img = 0 #TODO
+            img = 0  # TODO
             return img
         except Exception:
             return 0
 
     def get_deadtime(self):
         return float(self.get_property("deadtime"))
-
 
     def find_next_pedestal_dir(self, data_root_path, subdir):
         _index = 1
@@ -169,12 +178,7 @@ class Lima2Detector(AbstractDetector):
 
     @logger
     def prepare_acquisition(
-        self,
-        number_of_images,
-        exptime,
-        data_root_path,
-        prefix,
-        dense_skip_nohits=False
+        self, number_of_images, exptime, data_root_path, prefix, dense_skip_nohits=False
     ):
         self.__started = False
         self.__stopped = False
@@ -195,7 +199,7 @@ class Lima2Detector(AbstractDetector):
         acq_params = {
             "acq": {
                 "expo_time": int(exptime * 1e6),
-                #"latency_time": 990,
+                # "latency_time": 990,
                 "nb_frames": number_of_images,
                 "trigger_mode": "external",
                 "nb_frames_per_trigger": 1,
@@ -204,7 +208,7 @@ class Lima2Detector(AbstractDetector):
                 "gain_mode": "dynamic",
                 "packet_fifo_depth": packet_fifo_depth,
                 "auto_comparator_disable": True,
-            }
+            },
         }
 
         self.set_detector_filenames(data_root_path, prefix)
@@ -212,9 +216,7 @@ class Lima2Detector(AbstractDetector):
         saving_groups = ["raw", "dense", "sparse", "spots", "accumulated"]
 
         # all streams will be saved in dedicated sub dirs except dense
-        data_sub_dir = {
-            g: g if g != "dense" else "" for g in saving_groups
-        }
+        data_sub_dir = {g: g if g != "dense" else "" for g in saving_groups}
 
         data_path = {
             g: os.path.join(data_root_path, s) if s else data_root_path
@@ -263,11 +265,12 @@ class Lima2Detector(AbstractDetector):
             "dense": dense_comp,
             "sparse": "none",
             "spots": "none",
-            "accumulated": "zip"
+            "accumulated": "zip",
         }
 
-        saving_streams = (["raw", "dense", "sparse", "spots"] +
-                          [f"accumulation_{a}" for a in ["corrected", "ishit", "nohit"]])
+        saving_streams = ["raw", "dense", "sparse", "spots"] + [
+            f"accumulation_{a}" for a in ["corrected", "ishit", "nohit"]
+        ]
 
         def get_stream_group(stream):
             is_acc = stream.startswith("accumulation_")
@@ -303,17 +306,16 @@ class Lima2Detector(AbstractDetector):
         config_beam_dict = self.get_property(f"beam", {})
         if config_beam_dict:
             _logger.debug("config_beam_dict=%s", config_beam_dict)
-            config_beam = [float(config_beam_dict.get(f"b{i}", "0.0"))
-                           for i in "xy"]
+            config_beam = [float(config_beam_dict.get(f"b{i}", "0.0")) for i in "xy"]
 
         mask_beam_stop = True
         mask_filename = "mask.h5" if mask_beam_stop else "mask_no_beamstop.h5"
 
         manage_proc = True
 
-        #energy = 11.56
+        # energy = 11.56
         energy = HWR.beamline.energy.get_value()
-        #energy = 12.75
+        # energy = 12.75
         jungfrau_gain0_ave = 41.401
 
         def get_param_file(n):
@@ -330,7 +332,7 @@ class Lima2Detector(AbstractDetector):
             "normalization_factor": 1.0,
             "cutoff_clip": 0,
             "cycle": 3,
-            #"empty": -9999.0,
+            # "empty": -9999.0,
             "noise": 0.5,
             "cutoff_pick": 4.0,
             "patch_size": 5,
@@ -345,27 +347,41 @@ class Lima2Detector(AbstractDetector):
 
         def get_dense_out_params(variant_name):
             variant_data = {
-                "i32":   {"pixel_type": "int32",
-                              "photon_adus": legacy_photon_adus,
-                              "photon_bias": 0.0},
-                "i16_1": {"pixel_type": "int16",
-                              "photon_adus": 16.0,
-                              "photon_bias": 0.0},
-                "i16_2": {"pixel_type": "int16",
-                              "photon_adus": 8.0,
-                              "photon_bias": 0.0},
-                "i16_3": {"pixel_type": "int16",
-                              "photon_adus": 1.0,
-                              "photon_bias": 0.0},
-                "u16_1": {"pixel_type": "uint16",
-                              "photon_adus": 16.0,
-                              "photon_bias": 32.0},
-                "u16_2": {"pixel_type": "uint16",
-                              "photon_adus": 8.0,
-                              "photon_bias": 32.0},
-                "f16":   {"pixel_type": "float16",
-                              "photon_adus": 1.0,
-                              "photon_bias": 0.0},
+                "i32": {
+                    "pixel_type": "int32",
+                    "photon_adus": legacy_photon_adus,
+                    "photon_bias": 0.0,
+                },
+                "i16_1": {
+                    "pixel_type": "int16",
+                    "photon_adus": 16.0,
+                    "photon_bias": 0.0,
+                },
+                "i16_2": {
+                    "pixel_type": "int16",
+                    "photon_adus": 8.0,
+                    "photon_bias": 0.0,
+                },
+                "i16_3": {
+                    "pixel_type": "int16",
+                    "photon_adus": 1.0,
+                    "photon_bias": 0.0,
+                },
+                "u16_1": {
+                    "pixel_type": "uint16",
+                    "photon_adus": 16.0,
+                    "photon_bias": 32.0,
+                },
+                "u16_2": {
+                    "pixel_type": "uint16",
+                    "photon_adus": 8.0,
+                    "photon_bias": 32.0,
+                },
+                "f16": {
+                    "pixel_type": "float16",
+                    "photon_adus": 1.0,
+                    "photon_bias": 0.0,
+                },
             }
 
             variant = variant_data[variant_name]
@@ -415,35 +431,30 @@ class Lima2Detector(AbstractDetector):
 
         proc_params = {
             "proc_mode": "fai",
-
             "fifo": {
                 "nb_fifo_frames": packet_fifo_depth,
             },
-
             "buffers": {
                 "nb_peak_counters_buffer": nb_recv_frames,
             },
-
-            "gpu" :{
+            "gpu": {
                 "device_idx": 0,
                 "cl_source_path": fai_kernels_base,
             },
-
-            "jfrau" :{
+            "jfrau": {
                 "gain_path": get_param_file("gains.h5"),
                 "pedestal_path": pedestal_path,
                 "photon_energy": energy,
             },
-
             "fai": fai_params,
         }
 
         _logger.info("FAI PARAMS: %s", fai_params)
         _logger.info("PARAMS: %s", proc_params)
 
-        proc_params.update({
-            f"saving_{stream}": get_saving(stream) for stream in saving_streams
-        })
+        proc_params.update(
+            {f"saving_{stream}": get_saving(stream) for stream in saving_streams}
+        )
 
         self.__device.nb_gpus_per_system = 2
 
@@ -453,7 +464,7 @@ class Lima2Detector(AbstractDetector):
         _logger.debug("proc_params: %s", self.__device.proc_params)
 
         uuid = uuid1()
-        _logger.info(f'UUID={uuid}')
+        _logger.info(f"UUID={uuid}")
 
         lima2_params = self.__device.prepareAcq(uuid)
         if dump_params_filename:
@@ -462,7 +473,7 @@ class Lima2Detector(AbstractDetector):
                 json.dump(lima2_params, f, indent=4, sort_keys=True)
 
         # Async version
-        #gevent.spawn(self.__device.prepareAcq, uuid).link_value(on_prepared)
+        # gevent.spawn(self.__device.prepareAcq, uuid).link_value(on_prepared)
 
         if self.__stopped:
             return
@@ -477,8 +488,11 @@ class Lima2Detector(AbstractDetector):
         beam_center = calib_params["beam_center"]
         if config_beam and all(config_beam):
             if any([fabs(c - b) > 1 for c, b in zip(config_beam, beam_center)]):
-                _logger.warning("config beam (%s) differs from "
-                                "beam_center (%s)", config_beam, beam_center)
+                _logger.warning(
+                    "config beam (%s) differs from beam_center (%s)",
+                    config_beam,
+                    beam_center,
+                )
 
         # Master file header: metadata
         hc_over_e = 12.398419
@@ -486,13 +500,12 @@ class Lima2Detector(AbstractDetector):
         adus_per_photon = dense_out_params["dense_intensity_factor"]
         bias_adus = dense_out_params["dense_intensity_offset"]
         photon_dynamic_range = [-1.0, 1e4]
-        trusted_range = [int(round(p * adus_per_photon + bias_adus))
-                         for p in photon_dynamic_range]
+        trusted_range = [
+            int(round(p * adus_per_photon + bias_adus)) for p in photon_dynamic_range
+        ]
 
         header = {
-            "beam": {
-                "incident_wavelength": (wavelength, "angstrom")
-            },
+            "beam": {"incident_wavelength": (wavelength, "angstrom")},
             "detector_information": {
                 "detector_distance": (sample_distance * 1e-3, "m"),
                 "detector_name": "jungfrau-4m",
@@ -504,7 +517,7 @@ class Lima2Detector(AbstractDetector):
                 "underload_value": trusted_range[0],
                 "saturation_value": trusted_range[1],
                 "trusted_range": trusted_range,
-            }
+            },
         }
 
         # Manage processing
@@ -541,9 +554,11 @@ class Lima2Detector(AbstractDetector):
     @logger
     def proc_loop(self, uuid, header={}):
         with ExitStack() as stack:
+
             def cleanup():
                 self.__proc_loop_task = None
                 self.__proc_stalled = None
+
             stack.callback(cleanup)
 
             _logger.debug("starting processing loop for %s", uuid)
@@ -552,19 +567,19 @@ class Lima2Detector(AbstractDetector):
             stack.callback(_logger.debug, "erasing processing for %s", uuid)
 
             # Aggregation (master file) writer
-            det_name = proc.detector.det_name    # or self.name()
+            det_name = proc.detector.det_name  # or self.name()
             local_2_shared_dir_map = {
-                os.path.join('/nobackup/lid29p9jfrau11/shared',
-                             'lima2/detectors/psi/data/processing',
-                             'jungfrau_4m_01'):
-                os.path.join('/data/id29/inhouse/opid291/Jungfrau',
-                             'Calibration'),
+                os.path.join(
+                    "/nobackup/lid29p9jfrau11/shared",
+                    "lima2/detectors/psi/data/processing",
+                    "jungfrau_4m_01",
+                ): os.path.join("/data/id29/inhouse/opid291/Jungfrau", "Calibration"),
             }
             writer_args = {
                 "det_name": det_name,
                 "master_subdir": "aggregated",
                 "header": header,
-                "local_2_shared_dir_map": local_2_shared_dir_map
+                "local_2_shared_dir_map": local_2_shared_dir_map,
             }
             stack.enter_context(SmxAggregationWriter(proc, **writer_args))
 

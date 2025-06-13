@@ -30,7 +30,6 @@ __category__ = "General"
 
 
 class EMBLDoorInterlock(HardwareObject):
-
     DoorInterlockState = {
         3: "unlocked",
         1: "closed",
@@ -40,7 +39,6 @@ class EMBLDoorInterlock(HardwareObject):
     }
 
     def __init__(self, name):
-
         super().__init__(name)
 
         self.use_door_interlock = None
@@ -57,7 +55,6 @@ class EMBLDoorInterlock(HardwareObject):
         self.ics_enabled = True
 
     def init(self):
-
         self.door_interlock_state = "unknown"
 
         self.use_door_interlock = self.get_property("useDoorInterlock", True)
@@ -147,8 +144,8 @@ class EMBLDoorInterlock(HardwareObject):
 
     def unlock_door_interlock(self):
         """Break Interlock (only if it is allowed by doorInterlockCanUnlock)
-           It doesn't matter what we are sending in the command
-           as long as it is a one char
+        It doesn't matter what we are sending in the command
+        as long as it is a one char
         """
         if HWR.beamline.diffractometer is not None:
             detector_distance = HWR.beamline.detector.distance

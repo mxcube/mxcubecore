@@ -87,7 +87,7 @@ class ESRFEnergyScan(AbstractEnergyScan):
                 "EnergyScan: you should specify the database hardware object"
             )
         self.scanInfo = None
-        #self._tunable_bl.energy_obj = self.energy_obj
+        # self._tunable_bl.energy_obj = self.energy_obj
 
     def is_connected(self):
         return True
@@ -103,7 +103,6 @@ class ESRFEnergyScan(AbstractEnergyScan):
         return pars
 
     def escan_prepare(self):
-
         if self.beamsize:
             bsX = self.beamsize.get_size(self.beamsize.get_value().name)
             self.energy_scan_parameters["beamSizeHorizontal"] = bsX
@@ -111,7 +110,7 @@ class ESRFEnergyScan(AbstractEnergyScan):
 
     def escan_postscan(self):
         self.ctrl.diffractometer.fldet_out()
-        #self.ctrl.fluodet.OUT
+        # self.ctrl.fluodet.OUT
 
     def escan_cleanup(self):
         self.close_fast_shutter()
@@ -126,7 +125,7 @@ class ESRFEnergyScan(AbstractEnergyScan):
         self.ctrl.diffractometer.msopen()
 
     def cancelEnergyScan(self, *args):
-        """ Called by queue_entry.py. To be removed"""
+        """Called by queue_entry.py. To be removed"""
         self.escan_cleanup()
 
     def storeEnergyScan(self):

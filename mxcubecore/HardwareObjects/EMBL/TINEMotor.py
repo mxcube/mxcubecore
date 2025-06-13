@@ -17,8 +17,7 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-"""TINEMotor class defines motor in the TINE control system
-"""
+"""TINEMotor class defines motor in the TINE control system"""
 
 import logging
 
@@ -41,8 +40,7 @@ TINE_STATE_DICT = {
 
 
 class TINEMotor(AbstractMotor):
-    """TINEMotor class defines motor in the TINE control system
-    """
+    """TINEMotor class defines motor in the TINE control system"""
 
     def __init__(self, name):
         AbstractMotor.__init__(self, name)
@@ -126,8 +124,7 @@ class TINEMotor(AbstractMotor):
                 self.update_value()
 
     def get_step_limits(self):
-        """Returns step limits
-        """
+        """Returns step limits"""
         return self.step_limits
 
     # def get_position(self):
@@ -151,8 +148,7 @@ class TINEMotor(AbstractMotor):
         return TINE_STATE_DICT.get(tine_state, HardwareObjectState.UNKNOWN)
 
     def abort(self):
-        """Stops motor movement
-        """
+        """Stops motor movement"""
         self.cmd_stop_axis()
 
     def _set_value(self, value):
@@ -170,8 +166,7 @@ class TINEMotor(AbstractMotor):
             self.chan_position.set_value(value)
 
     def update_tine_value(self, value=None):
-        """Updates motor position
-        """
+        """Updates motor position"""
         if type(value) in (list, tuple):
             value = value[0]
         super(TINEMotor, self).update_value(value)

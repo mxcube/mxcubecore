@@ -100,7 +100,7 @@ class Xtal(Sample.Sample):
         """
         In this cas we assume a well in the row is a cell
         """
-        return  self.get_cell().get_row_index() + 1
+        return self.get_cell().get_row_index() + 1
 
     @staticmethod
     def _get_xtal_address(drop, index):
@@ -162,7 +162,6 @@ class Drop(Container.Container):
         """
         sample = self.get_components()
         return sample[0]
-
 
 
 class Cell(Container.Container):
@@ -249,7 +248,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         self.update_state(self.STATES.READY)
 
     def _read_state(self):
-        return 'ready'
+        return "ready"
 
     def _ready(self):
         return True
@@ -453,7 +452,9 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         self._wait_device_ready()
 
     def _load_data(self, barcode):
-        processing_plan = Crims.get_processing_plan(barcode, self.crims_url, self.crims_user_agent, self.harvester_key)
+        processing_plan = Crims.get_processing_plan(
+            barcode, self.crims_url, self.crims_user_agent, self.harvester_key
+        )
 
         if processing_plan is None:
             msg = "No information about plate with barcode %s found in CRIMS" % barcode
@@ -555,8 +556,8 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         plate_info_dict["num_cols"] = self.num_cols
         plate_info_dict["num_rows"] = self.num_rows
         plate_info_dict["num_drops"] = self.num_drops
-        plate_info_dict["plate_label"] = self.plate_label or  "Demo plate label"
-        plate_info_dict["plate_barcode"] = self.plate_barcode or  ""
+        plate_info_dict["plate_label"] = self.plate_label or "Demo plate label"
+        plate_info_dict["plate_barcode"] = self.plate_barcode or ""
 
         return plate_info_dict
 

@@ -130,10 +130,15 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         time.sleep(exptime)
         self.close_fast_shutter()
 
-
     @task
     def do_oscillation(
-        self, start, end, exptime, number_of_images, shutterless, first_frame,
+        self,
+        start,
+        end,
+        exptime,
+        number_of_images,
+        shutterless,
+        first_frame,
     ):
         if shutterless:
             if first_frame:
@@ -154,7 +159,9 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             time.sleep(exptime)
             self.close_fast_shutter()
         else:
-            return self.execute_command("do_oscillation", start, end, exptime, number_of_images)
+            return self.execute_command(
+                "do_oscillation", start, end, exptime, number_of_images
+            )
 
     def set_wavelength(self, wavelength):
         if HWR.beamline.config.tunable_wavelength:
@@ -307,12 +314,14 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def prepare_input_files(
         self, files_directory, prefix, run_number, process_directory
     ):
-
         autoprocessing_input_file_dirname = "autoprocessing"
         autoprocessing_directory = os.path.join(
             process_directory, autoprocessing_input_file_dirname
         )
-        xds_input_file_dirname = "xds_%s_run%s" % (prefix, run_number,)
+        xds_input_file_dirname = "xds_%s_run%s" % (
+            prefix,
+            run_number,
+        )
         mosflm_input_file_dirname = "mosflm_%s_run%s" % (prefix, run_number)
         hkl2000_dirname = "hkl2000_%s_run%s" % (prefix, run_number)
 

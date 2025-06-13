@@ -166,9 +166,9 @@ class EMBLBSD(GenericDiffractometer):
 
     def set_phase(self, phase, timeout=80):
         """Sets diffractometer to the selected phase.
-           In the plate mode before going to or away from
-           Transfer or Beam location phase if needed then detector
-           is moved to the safe distance to avoid collision.
+        In the plate mode before going to or away from
+        Transfer or Beam location phase if needed then detector
+        is moved to the safe distance to avoid collision.
         """
         # self.wait_device_ready(2)
         logging.getLogger("GUI").warning(

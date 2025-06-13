@@ -26,21 +26,21 @@ from mxcubecore.HardwareObjects.abstract import AbstractActuator
 class EPICSActuator(AbstractActuator.AbstractActuator):
     """EPCIS actuator class"""
 
-    ACTUATOR_VAL  = 'epicsActuator_val' # target
-    ACTUATOR_RBV  = 'epicsActuator_rbv' # readback
+    ACTUATOR_VAL = "epicsActuator_val"  # target
+    ACTUATOR_RBV = "epicsActuator_rbv"  # readback
 
     def __init__(self, name):
         super(EPICSActuator, self).__init__(name)
         self.__wait_actuator_task = None
-        self._nominal_limits = (-1E4, 1E4)
+        self._nominal_limits = (-1e4, 1e4)
 
     def init(self):
-        """ Initialization method """
+        """Initialization method"""
         super(EPICSActuator, self).init()
         self.update_state(self.STATES.READY)
 
     def _wait_actuator(self):
-        """ Wait actuator to be ready."""
+        """Wait actuator to be ready."""
         time.sleep(0.3)
         self.update_state(self.STATES.READY)
 
@@ -49,7 +49,7 @@ class EPICSActuator(AbstractActuator.AbstractActuator):
         return self.get_channel_value(self.ACTUATOR_RBV)
 
     def set_value(self, value, timeout=0):
-        """ Override AbstractActuator method."""
+        """Override AbstractActuator method."""
         if self.read_only:
             raise ValueError("Attempt to set value for read-only Actuator")
         if self.validate_value(value):
@@ -64,9 +64,9 @@ class EPICSActuator(AbstractActuator.AbstractActuator):
                 self._set_value(value)
                 self.__wait_actuator_task = gevent.spawn(self._wait_actuator)
         else:
-            raise ValueError("Invalid value %s; limits are %s"
-                             % (value, self.get_limits())
-                             )
+            raise ValueError(
+                "Invalid value %s; limits are %s" % (value, self.get_limits())
+            )
 
     def abort(self):
         """Immediately halt movement. By default self.stop = self.abort"""
@@ -75,5 +75,5 @@ class EPICSActuator(AbstractActuator.AbstractActuator):
         self.update_state(self.STATES.READY)
 
     def _set_value(self, value):
-        """ Override AbstractActuator method."""
+        """Override AbstractActuator method."""
         self.set_channel_value(self.ACTUATOR_VAL, value)

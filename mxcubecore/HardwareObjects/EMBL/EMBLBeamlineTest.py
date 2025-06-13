@@ -42,7 +42,6 @@ from mxcubecore.HardwareObjects import SimpleHTML
 #    logging.getLogger("HWR").warning("pdfkit not available")
 
 
-
 __credits__ = ["EMBL Hamburg"]
 __version__ = "2.3."
 __category__ = "General"
@@ -79,8 +78,7 @@ class EMBLBeamlineTest(HardwareObject):
         self.beam_focusing_hwobj = None
 
     def init(self):
-        """Reads config xml, initiates all necessary hwobj, channels and cmds
-        """
+        """Reads config xml, initiates all necessary hwobj, channels and cmds"""
         self.ready_event = gevent.event.Event()
 
         self.bl_hwobj = self.get_object_by_role("beamline_setup")

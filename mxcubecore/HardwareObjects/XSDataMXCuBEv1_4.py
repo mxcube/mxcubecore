@@ -103,6 +103,7 @@ def warnEmptyAttribute(_strName, _strTypeName):
     # if not _strTypeName in ["float", "double", "string", "boolean", "integer"]:
     #    print("Warning! Non-optional attribute %s of type %s is None!" % (_strName, _strTypeName))
 
+
 class MixedContainer(object):
     # Constants for category:
     CategoryNone = 0
@@ -118,19 +119,25 @@ class MixedContainer(object):
     TypeDecimal = 5
     TypeDouble = 6
     TypeBoolean = 7
+
     def __init__(self, category, content_type, name, value):
         self.category = category
         self.content_type = content_type
         self.name = name
         self.value = value
+
     def getCategory(self):
         return self.category
+
     def getContenttype(self, content_type):
         return self.content_type
+
     def getValue(self):
         return self.value
+
     def getName(self):
         return self.name
+
     def export(self, outfile, level, name):
         if self.category == MixedContainer.CategoryText:
             outfile.write(self.value)
@@ -138,6 +145,7 @@ class MixedContainer(object):
             self.exportSimple(outfile, level, name)
         else:  # category == MixedContainer.CategoryComplex
             self.value.export(outfile, level, name)
+
     def exportSimple(self, outfile, level, name):
         if self.content_type == MixedContainer.TypeString:
             outfile.write(unicode("<%s>%s</%s>" % (self.name, self.value, self.name)))
@@ -172,6 +180,7 @@ class XSDataMXCuBEDataSet(object):
                 % self._imageFile.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'imageFile' attribute
     def getImageFile(self):
         return self._imageFile
@@ -207,6 +216,7 @@ class XSDataMXCuBEDataSet(object):
                 % value.__class__.__name__
             )
             raise BaseException(strMessage)
+
     def insertImageFile(self, index, value):
         if index is None:
             strMessage = (
@@ -240,10 +250,12 @@ class XSDataMXCuBEDataSet(object):
             imageFile_.export(outfile, level, name_="imageFile")
         if self.getImageFile() == []:
             warnEmptyAttribute("imageFile", "XSDataImage")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "imageFile":
             obj_ = XSDataImage()
@@ -479,6 +491,7 @@ class XSDataMXCuBEParameters(XSData):
             self._transmission = None
         else:
             self._transmission = float(transmission)
+
     # Methods and properties for the 'sessionId' attribute
     def getSessionId(self):
         return self._sessionId
@@ -584,6 +597,7 @@ class XSDataMXCuBEParameters(XSData):
         self._x_beam = None
 
     x_beam = property(getX_beam, setX_beam, delX_beam, "Property for x_beam")
+
     # Methods and properties for the 'y_beam' attribute
     def getY_beam(self):
         return self._y_beam
@@ -598,6 +612,7 @@ class XSDataMXCuBEParameters(XSData):
         self._y_beam = None
 
     y_beam = property(getY_beam, setY_beam, delY_beam, "Property for y_beam")
+
     # Methods and properties for the 'beam_size_x' attribute
     def getBeam_size_x(self):
         return self._beam_size_x
@@ -711,6 +726,7 @@ class XSDataMXCuBEParameters(XSData):
         self._prefix = None
 
     prefix = property(getPrefix, setPrefix, delPrefix, "Property for prefix")
+
     # Methods and properties for the 'overlap' attribute
     def getOverlap(self):
         return self._overlap
@@ -725,6 +741,7 @@ class XSDataMXCuBEParameters(XSData):
         self._overlap = None
 
     overlap = property(getOverlap, setOverlap, delOverlap, "Property for overlap")
+
     # Methods and properties for the 'osc_start' attribute
     def getOsc_start(self):
         return self._osc_start
@@ -818,6 +835,7 @@ class XSDataMXCuBEParameters(XSData):
         self._comments = None
 
     comments = property(getComments, setComments, delComments, "Property for comments")
+
     # Methods and properties for the 'osc_range' attribute
     def getOsc_range(self):
         return self._osc_range
@@ -863,6 +881,7 @@ class XSDataMXCuBEParameters(XSData):
         self._template = None
 
     template = property(getTemplate, setTemplate, delTemplate, "Property for template")
+
     # Methods and properties for the 'kappaStart' attribute
     def getKappaStart(self):
         return self._kappaStart
@@ -962,6 +981,7 @@ class XSDataMXCuBEParameters(XSData):
         self._residues = None
 
     residues = property(getResidues, setResidues, delResidues, "Property for residues")
+
     # Methods and properties for the 'run_number' attribute
     def getRun_number(self):
         return self._run_number
@@ -1013,6 +1033,7 @@ class XSDataMXCuBEParameters(XSData):
         self._phiStart = None
 
     phiStart = property(getPhiStart, setPhiStart, delPhiStart, "Property for phiStart")
+
     # Methods and properties for the 'anomalous' attribute
     def getAnomalous(self):
         return self._anomalous
@@ -1404,10 +1425,12 @@ class XSDataMXCuBEParameters(XSData):
             )
         else:
             warnEmptyAttribute("transmission", "float")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "sessionId":
             if child_.firstChild:
@@ -1938,6 +1961,7 @@ class XSDataInputMXCuBE(XSDataInput):
                 % self._currentResolution.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'characterisationInput' attribute
     def getCharacterisationInput(self):
         return self._characterisationInput
@@ -2088,6 +2112,7 @@ class XSDataInputMXCuBE(XSDataInput):
         self._sample = None
 
     sample = property(getSample, setSample, delSample, "Property for sample")
+
     # Methods and properties for the 'dataSet' attribute
     def getDataSet(self):
         return self._dataSet
@@ -2108,6 +2133,7 @@ class XSDataInputMXCuBE(XSDataInput):
         self._dataSet = None
 
     dataSet = property(getDataSet, setDataSet, delDataSet, "Property for dataSet")
+
     def addDataSet(self, value):
         if value is None:
             strMessage = "ERROR! XSDataInputMXCuBE.addDataSet argument is None"
@@ -2120,6 +2146,7 @@ class XSDataInputMXCuBE(XSDataInput):
                 % value.__class__.__name__
             )
             raise BaseException(strMessage)
+
     def insertDataSet(self, index, value):
         if index is None:
             strMessage = (
@@ -2139,6 +2166,7 @@ class XSDataInputMXCuBE(XSDataInput):
                 % value.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'htmlDir' attribute
     def getHtmlDir(self):
         return self._htmlDir
@@ -2159,6 +2187,7 @@ class XSDataInputMXCuBE(XSDataInput):
         self._htmlDir = None
 
     htmlDir = property(getHtmlDir, setHtmlDir, delHtmlDir, "Property for htmlDir")
+
     # Methods and properties for the 'token' attribute
     def getToken(self):
         return self._token
@@ -2244,6 +2273,7 @@ class XSDataInputMXCuBE(XSDataInput):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if (
             child_.nodeType == Node.ELEMENT_NODE
@@ -2435,6 +2465,7 @@ class XSDataResultMXCuBE(XSDataResult):
                 % self._screeningId.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'characterisationExecutiveSummary' attribute
     def getCharacterisationExecutiveSummary(self):
         return self._characterisationExecutiveSummary
@@ -2527,6 +2558,7 @@ class XSDataResultMXCuBE(XSDataResult):
                 % value.__class__.__name__
             )
             raise BaseException(strMessage)
+
     def insertCollectionPlan(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataResultMXCuBE.insertCollectionPlan argument 'index' is None"
@@ -2542,6 +2574,7 @@ class XSDataResultMXCuBE(XSDataResult):
                 % value.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'listOfOutputFiles' attribute
     def getListOfOutputFiles(self):
         return self._listOfOutputFiles
@@ -2614,6 +2647,7 @@ class XSDataResultMXCuBE(XSDataResult):
         self._htmlPage = None
 
     htmlPage = property(getHtmlPage, setHtmlPage, delHtmlPage, "Property for htmlPage")
+
     # Methods and properties for the 'screeningId' attribute
     def getScreeningId(self):
         return self._screeningId
@@ -2671,6 +2705,7 @@ class XSDataResultMXCuBE(XSDataResult):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if (
             child_.nodeType == Node.ELEMENT_NODE

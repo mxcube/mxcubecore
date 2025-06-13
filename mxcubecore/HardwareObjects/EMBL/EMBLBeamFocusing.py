@@ -30,8 +30,7 @@ __category__ = "General"
 
 
 class EMBLBeamFocusing(HardwareObject):
-    """Hardware Object is used to evaluate and set beam focusing mode.
-    """
+    """Hardware Object is used to evaluate and set beam focusing mode."""
 
     def __init__(self, name):
         HardwareObject.__init__(self, name)
@@ -48,7 +47,7 @@ class EMBLBeamFocusing(HardwareObject):
 
     def init(self):
         """Reads available focusing modes from the config xml and
-           attaches corresponding motors
+        attaches corresponding motors
         """
 
         self.cmd_set_calibration_name = self.get_command_object("cmdSetCalibrationName")
@@ -102,8 +101,7 @@ class EMBLBeamFocusing(HardwareObject):
         self.aperture_hwobj = self.get_object_by_role("aperture")
 
     def get_focus_motors(self):
-        """Returns a list with all focusing motors
-        """
+        """Returns a list with all focusing motors"""
 
         focus_motors = []
         if self.motors_groups is not None:

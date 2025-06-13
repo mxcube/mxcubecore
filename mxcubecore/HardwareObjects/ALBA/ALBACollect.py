@@ -19,6 +19,7 @@
 """
 ALBACollect
 """
+
 import logging
 import os
 import sys
@@ -37,8 +38,8 @@ __version__ = "2.2."
 
 class ALBACollect(AbstractCollect):
     """Main data collection class. Inherited from AbstractMulticollect
-       Collection is done by setting collection parameters and
-       executing collect command
+    Collection is done by setting collection parameters and
+    executing collect command
     """
 
     def __init__(self, name):
@@ -115,8 +116,7 @@ class ALBACollect(AbstractCollect):
         self.emit("collectReady", (True,))
 
     def data_collection_hook(self):
-        """Main collection hook
-        """
+        """Main collection hook"""
 
         logging.getLogger("HWR").info("Running ALBA data collection hook")
 
@@ -240,7 +240,6 @@ class ALBACollect(AbstractCollect):
         )
 
     def prepare_acquisition(self):
-
         fileinfo = self.current_dc_parameters["fileinfo"]
 
         basedir = fileinfo["directory"]
@@ -432,7 +431,6 @@ class ALBACollect(AbstractCollect):
         HWR.beamline.detector.set_image_headers(self.image_headers, angle_info)
 
     def wait_collection_done(self, nb_images, first_image_no):
-
         osc_seq = self.current_dc_parameters["oscillation_sequence"][0]
 
         # first_image_no = osc_seq['start_image_number']
@@ -445,7 +443,6 @@ class ALBACollect(AbstractCollect):
         self.wait_save_image(last_image_no)
 
     def wait_save_image(self, frame_number, timeout=25):
-
         fileinfo = self.current_dc_parameters["fileinfo"]
         basedir = fileinfo["directory"]
         template = fileinfo["template"]
@@ -491,7 +488,6 @@ class ALBACollect(AbstractCollect):
         return True
 
     def check_shutters(self):
-
         # Check fast shutter
         if HWR.beamline.fast_shutter.get_state() != 0:
             return False
@@ -623,7 +619,7 @@ class ALBACollect(AbstractCollect):
         self.ni_unconf_cmd()
 
     def open_safety_shutter(self):
-        """ implements prepare_shutters in collect macro """
+        """implements prepare_shutters in collect macro"""
 
         # prepare ALL shutters
 

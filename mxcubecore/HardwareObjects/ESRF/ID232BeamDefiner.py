@@ -140,7 +140,7 @@ class ID232BeamDefiner(ESRFBeamDefiner):
         if isinstance(value, Enum):
             value = value.name
 
-        tf1_cfg  = self.tf_cfg[value]["tf1"]
+        tf1_cfg = self.tf_cfg[value]["tf1"]
         tf2_cfg = self.tf_cfg[value]["tf2"]
         self.tf1.set(*tf1_cfg)
         self.tf2.set(*tf2_cfg)

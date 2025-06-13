@@ -96,7 +96,7 @@ class EMBLTransfocator(HardwareObject):
 
     def set_crl_value(self, value, timeout=None):
         """Sets CRL lens combination. If integer passed then
-           converts value to the bit list
+        converts value to the bit list
         """
         if not isinstance(value, (list, tuple)):
             value = self.convert_value(value)

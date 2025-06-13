@@ -806,7 +806,6 @@ class GenericDiffractometer(HardwareObject):
                 self.emit_centring_failed()
 
     def cancel_centring_method(self, reject=False):
-
         if self.current_centring_procedure is not None:
             try:
                 self.current_centring_procedure.kill()

@@ -141,11 +141,7 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
         self.chan_dozor_is = self.get_channel_object("chanDozorIS")
         if self.chan_dozor_is is not None:
             self.result_types.append(
-                {
-                    "key": "is",
-                    "descr": "Intensity",
-                    "color": (255, 0, 0)
-                }
+                {"key": "is", "descr": "Intensity", "color": (255, 0, 0)}
             )
             self.chan_dozor_is.connect_signal("update", self.dozor_is_changed)
 
@@ -189,7 +185,9 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
         input_file.setPixelMin(XSDataInteger(HWR.beamline.detector.get_pixel_min()))
         input_file.setPixelMax(XSDataInteger(HWR.beamline.detector.get_pixel_max()))
         input_file.setBeamstopSize(XSDataDouble(HWR.beamline.beamstop.get_size()))
-        input_file.setBeamstopDistance(XSDataDouble(HWR.beamline.beamstop.get_distance()))
+        input_file.setBeamstopDistance(
+            XSDataDouble(HWR.beamline.beamstop.get_distance())
+        )
         input_file.setBeamstopDirection(
             XSDataString(HWR.beamline.beamstop.get_direction())
         )
@@ -215,8 +213,7 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
             # Start dozor via EDNA
 
             input_filename = os.path.join(
-                    self.params_dict["process_directory"],
-                    "dozor_input.xml"
+                self.params_dict["process_directory"], "dozor_input.xml"
             )
             self.create_processing_input_file(input_filename)
 
@@ -229,8 +226,7 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
                 self.set_processing_status("Failed")
             else:
                 input_filename = os.path.join(
-                    self.params_dict["process_directory"],
-                    "dozor_input.xml"
+                    self.params_dict["process_directory"], "dozor_input.xml"
                 )
                 self.create_processing_input_file(input_filename)
 
@@ -265,7 +261,7 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
         :return:
         """
         if isinstance(frame_count, tuple):
-            frame_count=frame_count[1]
+            frame_count = frame_count[1]
         if self.started:
             self.emit("processingFrame", frame_count)
             """
@@ -290,138 +286,138 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
         spacegroup_dict = {}
 
         if "P212121" in proc_params.space_group:
-            spacegroup_dict["lattice_type"]       = "orthorhombic"
-            spacegroup_dict["point_group"]        = "mmm"
-            spacegroup_dict["space_group"]        = "P212121"
-            spacegroup_dict["centering"]          = "P"
-            spacegroup_dict["unique_axis"]        = ""
+            spacegroup_dict["lattice_type"] = "orthorhombic"
+            spacegroup_dict["point_group"] = "mmm"
+            spacegroup_dict["space_group"] = "P212121"
+            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["unique_axis"] = ""
             spacegroup_dict["space_group_number"] = 19
         elif "P21212" in proc_params.space_group:
-            spacegroup_dict["lattice_type"]       = "orthorhombic"
-            spacegroup_dict["point_group"]        = "mmm"
-            spacegroup_dict["space_group"]        = "P21212"
-            spacegroup_dict["centering"]          = "P"
-            spacegroup_dict["unique_axis"]        = ""
+            spacegroup_dict["lattice_type"] = "orthorhombic"
+            spacegroup_dict["point_group"] = "mmm"
+            spacegroup_dict["space_group"] = "P21212"
+            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["unique_axis"] = ""
             spacegroup_dict["space_group_number"] = 18
         elif "P213" in proc_params.space_group:
-            spacegroup_dict["lattice_type"]       = "cubic"
-            spacegroup_dict["point_group"]        = "m-3"
-            spacegroup_dict["space_group"]        = "P213"
-            spacegroup_dict["centering"]          = "P"
-            spacegroup_dict["unique_axis"]        = ""
+            spacegroup_dict["lattice_type"] = "cubic"
+            spacegroup_dict["point_group"] = "m-3"
+            spacegroup_dict["space_group"] = "P213"
+            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["unique_axis"] = ""
             spacegroup_dict["space_group_number"] = 198
         elif "P21" in proc_params.space_group:
-            spacegroup_dict["lattice_type"]       = "monoclinic"
-            spacegroup_dict["point_group"]        = "2/m"
-            spacegroup_dict["space_group"]        = "P21"
-            spacegroup_dict["centering"]          = "P"
-            spacegroup_dict["unique_axis"]        = ""
+            spacegroup_dict["lattice_type"] = "monoclinic"
+            spacegroup_dict["point_group"] = "2/m"
+            spacegroup_dict["space_group"] = "P21"
+            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["unique_axis"] = ""
             spacegroup_dict["space_group_number"] = 4
         elif "P3112" in proc_params.space_group:
-            spacegroup_dict["lattice_type"]       = "hexagonal"
-            spacegroup_dict["point_group"]        = "-31m_H"
-            spacegroup_dict["space_group"]        = "P3112"
-            spacegroup_dict["centering"]          = "P"
-            spacegroup_dict["unique_axis"]        = "unique_axis = c"
+            spacegroup_dict["lattice_type"] = "hexagonal"
+            spacegroup_dict["point_group"] = "-31m_H"
+            spacegroup_dict["space_group"] = "P3112"
+            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["unique_axis"] = "unique_axis = c"
             spacegroup_dict["space_group_number"] = 151
         elif "P3121" in proc_params.space_group:
-            spacegroup_dict["lattice_type"]       = "hexagonal"
-            spacegroup_dict["point_group"]        = "-3m1_H"
-            spacegroup_dict["space_group"]        = "P3121"
-            spacegroup_dict["centering"]          = "P"
-            spacegroup_dict["unique_axis"]        = "unique_axis = c"
+            spacegroup_dict["lattice_type"] = "hexagonal"
+            spacegroup_dict["point_group"] = "-3m1_H"
+            spacegroup_dict["space_group"] = "P3121"
+            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["unique_axis"] = "unique_axis = c"
             spacegroup_dict["space_group_number"] = 152
         elif "P3212" in proc_params.space_group:
-            spacegroup_dict["lattice_type"]       = "hexagonal"
-            spacegroup_dict["point_group"]        = "-31m_H"
-            spacegroup_dict["space_group"]        = "P3212"
-            spacegroup_dict["centering"]          = "P"
-            spacegroup_dict["unique_axis"]        = "unique_axis = c"
+            spacegroup_dict["lattice_type"] = "hexagonal"
+            spacegroup_dict["point_group"] = "-31m_H"
+            spacegroup_dict["space_group"] = "P3212"
+            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["unique_axis"] = "unique_axis = c"
             spacegroup_dict["space_group_number"] = 153
         elif "P3221" in proc_params.space_group:
-            spacegroup_dict["lattice_type"]       = "hexagonal"
-            spacegroup_dict["point_group"]        = "-3m1_H"
-            spacegroup_dict["space_group"]        = "P3221"
-            spacegroup_dict["centering"]          = "P"
-            spacegroup_dict["unique_axis"]        = "unique_axis = c"
+            spacegroup_dict["lattice_type"] = "hexagonal"
+            spacegroup_dict["point_group"] = "-3m1_H"
+            spacegroup_dict["space_group"] = "P3221"
+            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["unique_axis"] = "unique_axis = c"
             spacegroup_dict["space_group_number"] = 154
         elif "P321" in proc_params.space_group:
-            spacegroup_dict["lattice_type"]       = "hexagonal"
-            spacegroup_dict["point_group"]        = "-3m1_H"
-            spacegroup_dict["space_group"]        = "P321"
-            spacegroup_dict["centering"]          = "P"
-            spacegroup_dict["unique_axis"]        = "unique_axis = c"
+            spacegroup_dict["lattice_type"] = "hexagonal"
+            spacegroup_dict["point_group"] = "-3m1_H"
+            spacegroup_dict["space_group"] = "P321"
+            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["unique_axis"] = "unique_axis = c"
             spacegroup_dict["space_group_number"] = 150
         elif "P32" in proc_params.space_group:
-            spacegroup_dict["lattice_type"]       = "hexagonal"
-            spacegroup_dict["point_group"]        = "-3_H"
-            spacegroup_dict["space_group"]        = "P32"
-            spacegroup_dict["centering"]          = "P"
-            spacegroup_dict["unique_axis"]        = "unique_axis = c"
+            spacegroup_dict["lattice_type"] = "hexagonal"
+            spacegroup_dict["point_group"] = "-3_H"
+            spacegroup_dict["space_group"] = "P32"
+            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["unique_axis"] = "unique_axis = c"
             spacegroup_dict["space_group_number"] = 145
         elif "P41212" in proc_params.space_group:
-            spacegroup_dict["lattice_type"]       = "tetragonal"
-            spacegroup_dict["point_group"]        = "4/mmm"
-            spacegroup_dict["space_group"]        = "P41212"
-            spacegroup_dict["centering"]          = "P"
-            spacegroup_dict["unique_axis"]        = "unique_axis = c"
+            spacegroup_dict["lattice_type"] = "tetragonal"
+            spacegroup_dict["point_group"] = "4/mmm"
+            spacegroup_dict["space_group"] = "P41212"
+            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["unique_axis"] = "unique_axis = c"
             spacegroup_dict["space_group_number"] = 92
         elif "P42212" in proc_params.space_group:
-            spacegroup_dict["lattice_type"]       = "tetragonal"
-            spacegroup_dict["point_group"]        = "4/mmm"
-            spacegroup_dict["space_group"]        = "P42212"
-            spacegroup_dict["centering"]          = "P"
-            spacegroup_dict["unique_axis"]        = "unique_axis = c"
+            spacegroup_dict["lattice_type"] = "tetragonal"
+            spacegroup_dict["point_group"] = "4/mmm"
+            spacegroup_dict["space_group"] = "P42212"
+            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["unique_axis"] = "unique_axis = c"
             spacegroup_dict["space_group_number"] = 94
         elif "P43212" in proc_params.space_group:
-            spacegroup_dict["lattice_type"]       = "tetragonal"
-            spacegroup_dict["point_group"]        = "4/mmm"
-            spacegroup_dict["space_group"]        = "P43212"
-            spacegroup_dict["centering"]          = "P"
-            spacegroup_dict["unique_axis"]        = "unique_axis = c"
+            spacegroup_dict["lattice_type"] = "tetragonal"
+            spacegroup_dict["point_group"] = "4/mmm"
+            spacegroup_dict["space_group"] = "P43212"
+            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["unique_axis"] = "unique_axis = c"
             spacegroup_dict["space_group_number"] = 96
         elif "P6522" in proc_params.space_group:
-            spacegroup_dict["lattice_type"]       = "hexagonal"
-            spacegroup_dict["point_group"]        = "6/mmm"
-            spacegroup_dict["space_group"]        = "P6522"
-            spacegroup_dict["centering"]          = "P"
-            spacegroup_dict["unique_axis"]        = "unique_axis = c"
+            spacegroup_dict["lattice_type"] = "hexagonal"
+            spacegroup_dict["point_group"] = "6/mmm"
+            spacegroup_dict["space_group"] = "P6522"
+            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["unique_axis"] = "unique_axis = c"
             spacegroup_dict["space_group_number"] = 179
         elif "C2221" in proc_params.space_group:
-            spacegroup_dict["lattice_type"]       = "orthorhombic"
-            spacegroup_dict["point_group"]        = "mmm"
-            spacegroup_dict["space_group"]        = "C2221"
-            spacegroup_dict["centering"]          = "C"
-            spacegroup_dict["unique_axis"]        = ""
+            spacegroup_dict["lattice_type"] = "orthorhombic"
+            spacegroup_dict["point_group"] = "mmm"
+            spacegroup_dict["space_group"] = "C2221"
+            spacegroup_dict["centering"] = "C"
+            spacegroup_dict["unique_axis"] = ""
             spacegroup_dict["space_group_number"] = 20
         elif "C222" in proc_params.space_group:
-            spacegroup_dict["lattice_type"]       = "orthorhombic"
-            spacegroup_dict["point_group"]        = "mmm"
-            spacegroup_dict["space_group"]        = "C222"
-            spacegroup_dict["centering"]          = "C"
-            spacegroup_dict["unique_axis"]        = ""
+            spacegroup_dict["lattice_type"] = "orthorhombic"
+            spacegroup_dict["point_group"] = "mmm"
+            spacegroup_dict["space_group"] = "C222"
+            spacegroup_dict["centering"] = "C"
+            spacegroup_dict["unique_axis"] = ""
             spacegroup_dict["space_group_number"] = 21
         elif "C2" in proc_params.space_group:
-            spacegroup_dict["lattice_type"]       = "monoclinic"
-            spacegroup_dict["point_group"]        = "2/m_uab"
-            spacegroup_dict["space_group"]        = "C2"
-            spacegroup_dict["centering"]          = "C"
+            spacegroup_dict["lattice_type"] = "monoclinic"
+            spacegroup_dict["point_group"] = "2/m_uab"
+            spacegroup_dict["space_group"] = "C2"
+            spacegroup_dict["centering"] = "C"
             ## spacegroup_dict["unique_axis"]     = ""
-            spacegroup_dict["unique_axis"]        = "unique_axis = b"
+            spacegroup_dict["unique_axis"] = "unique_axis = b"
             spacegroup_dict["space_group_number"] = 5
         elif "I222" in proc_params.space_group:
-            spacegroup_dict["lattice_type"]       = "orthorhombic"
-            spacegroup_dict["point_group"]        = "mmm"
-            spacegroup_dict["space_group"]        = "I222"
-            spacegroup_dict["centering"]          = "I"
-            spacegroup_dict["unique_axis"]        = ""
+            spacegroup_dict["lattice_type"] = "orthorhombic"
+            spacegroup_dict["point_group"] = "mmm"
+            spacegroup_dict["space_group"] = "I222"
+            spacegroup_dict["centering"] = "I"
+            spacegroup_dict["unique_axis"] = ""
             spacegroup_dict["space_group_number"] = 23
         else:
-            spacegroup_dict["lattice_type"]       = "triclinic"
-            spacegroup_dict["point_group"]        = "1"
-            spacegroup_dict["space_group"]        = "P1"
-            spacegroup_dict["centering"]          = "P"
-            spacegroup_dict["unique_axis"]        = ""
+            spacegroup_dict["lattice_type"] = "triclinic"
+            spacegroup_dict["point_group"] = "1"
+            spacegroup_dict["space_group"] = "P1"
+            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["unique_axis"] = ""
             spacegroup_dict["space_group_number"] = 1
 
         return spacegroup_dict
@@ -440,10 +436,16 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
 
             if len(batch) >= self.params_dict["images_num"]:
                 self.all_frames_batch_processed = True
-                logging.getLogger("HWR").info("All dozor scores %s of %s"%(len(batch), self.params_dict["images_num"]))
+                logging.getLogger("HWR").info(
+                    "All dozor scores %s of %s"
+                    % (len(batch), self.params_dict["images_num"])
+                )
                 self.finish_processing()
             else:
-                logging.getLogger("HWR").info("Dozor scores %s of %s %s"%(len(batch), self.params_dict["images_num"],self.batch_count))
+                logging.getLogger("HWR").info(
+                    "Dozor scores %s of %s %s"
+                    % (len(batch), self.params_dict["images_num"], self.batch_count)
+                )
 
             for image in batch:
                 frame_num = int(image[0])
@@ -458,41 +460,50 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
     def align_result(self, score_key, frame_num):
         if self.params_dict["lines_num"] > 1:
             col, row = self.grid.get_col_row_from_image(frame_num)
-            self.results_aligned[score_key][col][row] = self.results_raw[score_key][frame_num]
+            self.results_aligned[score_key][col][row] = self.results_raw[score_key][
+                frame_num
+            ]
         else:
-            self.results_aligned[score_key][frame_num] = self.results_raw[score_key][frame_num]
+            self.results_aligned[score_key][frame_num] = self.results_raw[score_key][
+                frame_num
+            ]
 
     def dozor_is_changed(self, is_values):
         if self.started:
             for is_value in is_values:
-                if isinstance(is_value,(list,tuple)):
+                if isinstance(is_value, (list, tuple)):
                     self.results_raw["is"][is_value[0]] = is_value[1]
                     self.align_result("is", is_value[0])
                 else:
                     self.results_raw["is"][is_values[0]] = is_values[1]
                     self.align_result("is", is_values[0])
 
-            if isinstance(is_values,tuple):
+            if isinstance(is_values, tuple):
                 self.is_count = self.is_count + 1
-            elif isinstance(is_values,list):
+            elif isinstance(is_values, list):
                 self.is_count = self.is_count + len(is_values)
 
             if len(is_values) >= self.params_dict["images_num"]:
                 self.all_frames_dozor_is = True
-                logging.getLogger("HWR").info("All ISs %s of %s"%(len(is_values), self.params_dict["images_num"]))
+                logging.getLogger("HWR").info(
+                    "All ISs %s of %s"
+                    % (len(is_values), self.params_dict["images_num"])
+                )
                 self.finish_processing()
             else:
-                logging.getLogger("HWR").info("IS values %s of %s %s"%(len(is_values), self.params_dict["images_num"], self.is_count))
-
+                logging.getLogger("HWR").info(
+                    "IS values %s of %s %s"
+                    % (len(is_values), self.params_dict["images_num"], self.is_count)
+                )
 
     def finish_processing(self):
         if self.all_frames_dozor_is and self.all_frames_batch_processed:
-           logging.getLogger("HWR").info("Processing finished")
-           self.set_processing_status("Success")
-           self.all_frames_dozor_is = False
-           self.all_frames_batch_processed = False
-           self.is_count = 0
-           self.batch_count = 0
+            logging.getLogger("HWR").info("Processing finished")
+            self.set_processing_status("Success")
+            self.all_frames_dozor_is = False
+            self.all_frames_batch_processed = False
+            self.is_count = 0
+            self.batch_count = 0
 
     def dozor_average_i_changed(self, average_i_value):
         if self.started:
@@ -569,7 +580,7 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
                     self.params_dict["template"]
                     % (self.params_dict["run_number"], index + 1)
                     + "\n"
-                 )
+                )
             self.print_log(
                 "HWR",
                 "debug",
@@ -579,7 +590,8 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
             self.print_log(
                 "GUI",
                 "error",
-                "Online processing: Unable to store all-image list in %s" % all_file_filename,
+                "Online processing: Unable to store all-image list in %s"
+                % all_file_filename,
             )
         finally:
             lst_file.close()
@@ -587,28 +599,35 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
         if self.params_dict["num_images_per_trigger"] > 3:
             try:
                 lst_file_tpfirst = open(tpfirst_file_filename, "w")
-                lst_file_tplast  = open(tplast_file_filename, "w")
+                lst_file_tplast = open(tplast_file_filename, "w")
 
-                for index in range(self.params_dict["images_num"] / self.params_dict["num_images_per_trigger"]):
-                    index_tpfirst = ( index      * self.params_dict["num_images_per_trigger"]) + 1
-                    index_tplast  = ((index + 1) * self.params_dict["num_images_per_trigger"])
-
+                for index in range(
+                    self.params_dict["images_num"]
+                    / self.params_dict["num_images_per_trigger"]
+                ):
+                    index_tpfirst = (
+                        index * self.params_dict["num_images_per_trigger"]
+                    ) + 1
+                    index_tplast = (index + 1) * self.params_dict[
+                        "num_images_per_trigger"
+                    ]
 
                     lst_file_tpfirst.write(
                         self.params_dict["template"]
-                        % (self.params_dict["run_number"], index_tpfirst )
+                        % (self.params_dict["run_number"], index_tpfirst)
                         + "\n"
                     )
                     lst_file_tplast.write(
                         self.params_dict["template"]
-                        % (self.params_dict["run_number"], index_tplast )
+                        % (self.params_dict["run_number"], index_tplast)
                         + "\n"
                     )
 
                 self.print_log(
                     "HWR",
                     "debug",
-                    "Online processing: First/last timepoint image lists stored in %s and %s" % (tpfirst_file_filename,tplast_file_filename),
+                    "Online processing: First/last timepoint image lists stored in %s and %s"
+                    % (tpfirst_file_filename, tplast_file_filename),
                 )
             except BaseException:
                 self.print_log(
@@ -646,19 +665,24 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
 
             for index in range(self.params_dict["images_num"]):
                 if self.results_raw["score"][index] > 0:
-                    filename = self.params_dict["template"] % \
-                        (self.params_dict["run_number"], index + 1)
+                    filename = self.params_dict["template"] % (
+                        self.params_dict["run_number"],
+                        index + 1,
+                    )
                     lst_file.write(filename + "\n")
                     nxds_lst_file.write(os.path.basename(filename) + "\n")
                     # ADD number of spots and score here
-                    dozor_resolution_file.write("%s %s %s %s\n" % (
-                        filename,
-                        self.results_raw["score"][index],
-                        self.results_raw["spots_num"][index],
-                        self.results_raw["spots_resolution"][index]
-                        ))
+                    dozor_resolution_file.write(
+                        "%s %s %s %s\n"
+                        % (
+                            filename,
+                            self.results_raw["score"][index],
+                            self.results_raw["spots_num"][index],
+                            self.results_raw["spots_resolution"][index],
+                        )
+                    )
 
-                    num_dozor_hits = num_dozor_hits +1
+                    num_dozor_hits = num_dozor_hits + 1
             self.print_log(
                 "GUI",
                 "info",
@@ -672,9 +696,9 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
             self.print_log(
                 "GUI",
                 "info",
-                "Online processing: DOZOR results stored in %s" % dozor_results_filename,
+                "Online processing: DOZOR results stored in %s"
+                % dozor_results_filename,
             )
-
 
         except Exception:
             self.print_log(
@@ -688,13 +712,15 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
             nxds_lst_file.close()
             dozor_resolution_file.close()
 
-        msg = "Online processing: found %d dozor hits in %d collected images (%.2f%%)" % (
-            num_dozor_hits,
-            self.params_dict["images_num"],
-            (100.0 * num_dozor_hits / self.params_dict["images_num"])
+        msg = (
+            "Online processing: found %d dozor hits in %d collected images (%.2f%%)"
+            % (
+                num_dozor_hits,
+                self.params_dict["images_num"],
+                (100.0 * num_dozor_hits / self.params_dict["images_num"]),
+            )
         )
         self.print_log("GUI", "info", msg)
-
 
     def start_crystfel_autoproc(self, all_file_filename):
         """
@@ -713,13 +739,13 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
         # proc_params_list is a list of processing parameters
 
         if proc_params_list:
-             # proc_params = proc_params_list[0]
+            # proc_params = proc_params_list[0]
 
-             for proc_params in proc_params_list:
-                 self.start_crystfel_autoproc_launchjob(proc_params, all_file_filename)
+            for proc_params in proc_params_list:
+                self.start_crystfel_autoproc_launchjob(proc_params, all_file_filename)
         else:
-             proc_params = self.data_collection.processing_parameters
-             self.start_crystfel_autoproc_launchjob(proc_params, all_file_filename)
+            proc_params = self.data_collection.processing_parameters
+            self.start_crystfel_autoproc_launchjob(proc_params, all_file_filename)
 
     def start_crystfel_autoproc_launchjob(self, proc_params, all_file_filename):
         if proc_params.tag != "":
@@ -729,26 +755,52 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
 
         acq_params = self.data_collection.acquisitions[0].acquisition_parameters
 
-        sample_basename   = self.params_dict["template"].split("/")[-1].split("_%d_%0")[0]
+        sample_basename = self.params_dict["template"].split("/")[-1].split("_%d_%0")[0]
         # stream_filename   = sample_basename + "_crystfel_xgandalf.stream"
-        stream_filename   = sample_basename + cell_name_tag + "_crystfel.stream"
-        geom_filename     = "crystfel_detector.geom"
-        cell_filename     = "crystfel_cell" + cell_name_tag + ".cell"
-        crystfel_autoproc = os.path.join(self.params_dict["process_directory"], "crystfel_autoproc" + cell_name_tag + ".sh" )
-        log_filename      = "crystfel_xgandalf" + cell_name_tag + ".log"
-        nxdsinp_filename  = os.path.join(self.params_dict["process_directory"], "nXDS.INP" )
-        procdir_cluster   = self.params_dict["process_directory"].replace("/data/users/", "/home/")
+        stream_filename = sample_basename + cell_name_tag + "_crystfel.stream"
+        geom_filename = "crystfel_detector.geom"
+        cell_filename = "crystfel_cell" + cell_name_tag + ".cell"
+        crystfel_autoproc = os.path.join(
+            self.params_dict["process_directory"],
+            "crystfel_autoproc" + cell_name_tag + ".sh",
+        )
+        log_filename = "crystfel_xgandalf" + cell_name_tag + ".log"
+        nxdsinp_filename = os.path.join(
+            self.params_dict["process_directory"], "nXDS.INP"
+        )
+        procdir_cluster = self.params_dict["process_directory"].replace(
+            "/data/users/", "/home/"
+        )
 
-        cell_filename     = cell_filename.replace("_cell_cell", "_cell")
+        cell_filename = cell_filename.replace("_cell_cell", "_cell")
 
         beam_x, beam_y = self.detector_hwobj.get_beam_centre()
         pixel_size_mm_x, pixel_size_mm_y = self.detector_hwobj.get_pixel_size_mm()
 
-        self.print_log("HWR", "debug", "detector:          " + str(self.detector_hwobj.getProperty("type")) )
-        self.print_log("HWR", "debug", "resolution cutoff: " + str(proc_params.resolution_cutoff) )
-        self.print_log("HWR", "debug", "space group:       " + str(proc_params.space_group) )
-        self.print_log("HWR", "debug", "PDB file:          " + str(proc_params.pdb_file) )
-        self.print_log("HWR", "debug", "unit cell:         " + str(proc_params.cell_a) +", "+ str(proc_params.cell_b) +", "+ str(proc_params.cell_c) )
+        self.print_log(
+            "HWR",
+            "debug",
+            "detector:          " + str(self.detector_hwobj.getProperty("type")),
+        )
+        self.print_log(
+            "HWR", "debug", "resolution cutoff: " + str(proc_params.resolution_cutoff)
+        )
+        self.print_log(
+            "HWR", "debug", "space group:       " + str(proc_params.space_group)
+        )
+        self.print_log(
+            "HWR", "debug", "PDB file:          " + str(proc_params.pdb_file)
+        )
+        self.print_log(
+            "HWR",
+            "debug",
+            "unit cell:         "
+            + str(proc_params.cell_a)
+            + ", "
+            + str(proc_params.cell_b)
+            + ", "
+            + str(proc_params.cell_c),
+        )
 
         ### Eiger 4M:
         detector_size_x = 2070
@@ -758,68 +810,78 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
         # detector_size_y = 1679
 
         geom_file = CRYSTFEL_GEOM_FILE_TEMPLATE.format(
-           self.detector_hwobj.get_distance() / 1000.,
-           acq_params.energy * 1000,
-           1000. / pixel_size_mm_x,
-           detector_size_x -1,
-           detector_size_y -1,
-           -beam_x / pixel_size_mm_x,
-           -beam_y / pixel_size_mm_y
+            self.detector_hwobj.get_distance() / 1000.0,
+            acq_params.energy * 1000,
+            1000.0 / pixel_size_mm_x,
+            detector_size_x - 1,
+            detector_size_y - 1,
+            -beam_x / pixel_size_mm_x,
+            -beam_y / pixel_size_mm_y,
         )
 
-        data_file = open(os.path.join(self.params_dict["process_directory"], geom_filename), "w")
+        data_file = open(
+            os.path.join(self.params_dict["process_directory"], geom_filename), "w"
+        )
         data_file.write(geom_file)
         data_file.close()
 
+        spacegroup_dict = self.get_spacegroup_dict(proc_params, proc_params.space_group)
 
+        lattice_type = spacegroup_dict["lattice_type"]
+        point_group = spacegroup_dict["point_group"]
+        space_group = spacegroup_dict["space_group"]
+        centering = spacegroup_dict["centering"]
+        unique_axis = spacegroup_dict["unique_axis"]
+        space_group_number = spacegroup_dict["space_group_number"]
 
+        cell_a = proc_params.cell_a
+        cell_b = proc_params.cell_b
+        cell_c = proc_params.cell_c
+        cell_alpha = proc_params.cell_alpha
+        cell_beta = proc_params.cell_beta
+        cell_gamma = proc_params.cell_gamma
 
-        spacegroup_dict     = self.get_spacegroup_dict(proc_params, proc_params.space_group)
+        cell_file = CRYSTFEL_CELL_FILE_TEMPLATE.format(
+            lattice_type,
+            centering,
+            unique_axis,
+            cell_a,
+            cell_b,
+            cell_c,
+            cell_alpha,
+            cell_beta,
+            cell_gamma,
+        )
 
-        lattice_type        = spacegroup_dict["lattice_type"]
-        point_group         = spacegroup_dict["point_group"]
-        space_group         = spacegroup_dict["space_group"]
-        centering           = spacegroup_dict["centering"]
-        unique_axis         = spacegroup_dict["unique_axis"]
-        space_group_number  = spacegroup_dict["space_group_number"]
-
-
-        cell_a              = proc_params.cell_a
-        cell_b              = proc_params.cell_b
-        cell_c              = proc_params.cell_c
-        cell_alpha          = proc_params.cell_alpha
-        cell_beta           = proc_params.cell_beta
-        cell_gamma          = proc_params.cell_gamma
-
-        cell_file = CRYSTFEL_CELL_FILE_TEMPLATE.format(lattice_type, centering, unique_axis, cell_a, cell_b, cell_c, cell_alpha, cell_beta, cell_gamma)
-
-        data_file = open(os.path.join(self.params_dict["process_directory"], cell_filename), "w")
+        data_file = open(
+            os.path.join(self.params_dict["process_directory"], cell_filename), "w"
+        )
         data_file.write(cell_file)
         data_file.close()
 
         # print self.detector_hwobj.get_distance()
-        wavelength=1e10 * CONST_H * CONST_C / (acq_params.energy * 1000)
+        wavelength = 1e10 * CONST_H * CONST_C / (acq_params.energy * 1000)
         # print self.nxds_input_template
 
         nxds_file = self.nxds_input_template.format(
-           image_template=self.params_dict["template"],
-           image_directory=os.path.dirname(self.params_dict["template"]),
-           image_list="nxds_dozor_hits.lst",
-           space_group_number=int(space_group_number),
-           cell_a=cell_a,
-           cell_b=cell_b,
-           cell_c=cell_c,
-           cell_alpha=cell_alpha,
-           cell_beta=cell_beta,
-           cell_gamma=cell_gamma,
-           wavelength=wavelength,
-           pixel_size_mm_x=pixel_size_mm_x,
-           pixel_size_mm_y=pixel_size_mm_y,
-           detector_size_x=detector_size_x,
-           detector_size_y=detector_size_y,
-           org_x=beam_x / pixel_size_mm_x,
-           org_y=beam_y / pixel_size_mm_y,
-           detector_distance=self.detector_hwobj.get_distance()
+            image_template=self.params_dict["template"],
+            image_directory=os.path.dirname(self.params_dict["template"]),
+            image_list="nxds_dozor_hits.lst",
+            space_group_number=int(space_group_number),
+            cell_a=cell_a,
+            cell_b=cell_b,
+            cell_c=cell_c,
+            cell_alpha=cell_alpha,
+            cell_beta=cell_beta,
+            cell_gamma=cell_gamma,
+            wavelength=wavelength,
+            pixel_size_mm_x=pixel_size_mm_x,
+            pixel_size_mm_y=pixel_size_mm_y,
+            detector_size_x=detector_size_x,
+            detector_size_y=detector_size_y,
+            org_x=beam_x / pixel_size_mm_x,
+            org_y=beam_y / pixel_size_mm_y,
+            detector_distance=self.detector_hwobj.get_distance(),
         )
 
         data_file = open(nxdsinp_filename, "w")
@@ -836,26 +898,46 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
             proc_params.space_group,
             acq_params.resolution,
         )
-        self.print_log("HWR", "debug", "Online processing: Starting crystfel %s with parameters %s " % (self.crystfel_script, end_of_line_to_execute) )
+        self.print_log(
+            "HWR",
+            "debug",
+            "Online processing: Starting crystfel %s with parameters %s "
+            % (self.crystfel_script, end_of_line_to_execute),
+        )
 
         # num_cores_crystfel    = 160
         # num_cores_partialator =  50
 
         jobname = stream_filename.split("_crystfel_")[0]
-        self.print_log( "GUI", "error", "Online processing jobname: %s " % (jobname) )
+        self.print_log("GUI", "error", "Online processing jobname: %s " % (jobname))
         jobname = "CF_" + sample_basename + cell_name_tag
-        self.print_log( "GUI", "error", "Online processing jobname: %s " % (jobname) )
+        self.print_log("GUI", "error", "Online processing jobname: %s " % (jobname))
 
         # crystfel_command = "ssh bcrunch 'cd %s; bash crystfel_autoproc.sh'" % procdir_cluster
         # crystfel_command = "ssh bcrunch 'sbatch -c %d -t 3-00:00 -D %s -J %s %s/crystfel_autoproc.sh'" % (self.crystfel_params["num_cores_crystfel"], procdir_cluster, jobname, procdir_cluster)
-        crystfel_command = "ssh bcrunch 'sbatch -c %d -t 3-00:00 -D %s -J %s %s'" % (self.crystfel_params["num_cores_crystfel"], procdir_cluster, jobname, procdir_cluster + "/crystfel_autoproc" + cell_name_tag + ".sh")
+        crystfel_command = "ssh bcrunch 'sbatch -c %d -t 3-00:00 -D %s -J %s %s'" % (
+            self.crystfel_params["num_cores_crystfel"],
+            procdir_cluster,
+            jobname,
+            procdir_cluster + "/crystfel_autoproc" + cell_name_tag + ".sh",
+        )
 
         if self.params_dict["num_images_per_trigger"] > 3:
-            self.print_log( "HWR", "debug", "Trying to launch first/last timepoint jobs..." )
+            self.print_log(
+                "HWR", "debug", "Trying to launch first/last timepoint jobs..."
+            )
             # crystfel_command_tp_first = "ssh bcrunch 'sbatch -c %d -t 3-00:00 -D %s -J %s crystfel_autoproc.sh'" % (self.crystfel_params["num_cores_crystfel"] /2, procdir_cluster, jobname + "_fst")
             # crystfel_command_tp_last  = "ssh bcrunch 'sbatch -c %d -t 3-00:00 -D %s -J %s crystfel_autoproc.sh'" % (self.crystfel_params["num_cores_crystfel"] /2, procdir_cluster, jobname + "_lst")
 
-        self.print_log("HWR", "debug", "HARE_num, num_images_per_trigger: %f. %f" % (self.params_dict["hare_num"], self.params_dict["num_images_per_trigger"]) )
+        self.print_log(
+            "HWR",
+            "debug",
+            "HARE_num, num_images_per_trigger: %f. %f"
+            % (
+                self.params_dict["hare_num"],
+                self.params_dict["num_images_per_trigger"],
+            ),
+        )
 
         crystfel_script = self.crystfel_script_template.format(
             num_cores_crystfel=self.crystfel_params["num_cores_crystfel"],
@@ -872,13 +954,24 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
             burst_number=self.params_dict["num_images_per_trigger"],
             ## burst_number=1,
             pointgroup=point_group,
-            spacegroup=space_group
+            spacegroup=space_group,
         )
 
         data_file = open(crystfel_autoproc, "w")
         data_file.write(crystfel_script)
         data_file.close()
 
-        self.print_log("HWR", "debug", "Online processing: crystfel command: \n %s" % (crystfel_command) )
+        self.print_log(
+            "HWR",
+            "debug",
+            "Online processing: crystfel command: \n %s" % (crystfel_command),
+        )
 
-        subprocess.Popen(crystfel_command, shell=True, stdin=None, stdout=None, stderr=None, close_fds=True)
+        subprocess.Popen(
+            crystfel_command,
+            shell=True,
+            stdin=None,
+            stdout=None,
+            stderr=None,
+            close_fds=True,
+        )

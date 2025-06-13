@@ -78,7 +78,7 @@ class LNLSDiffractometer(GenericDiffractometer):
             "kappa": 11,
             "kappa_phi": 22.0,
         }
-        #self.move_motors(self._get_random_centring_position())
+        # self.move_motors(self._get_random_centring_position())
 
         self.current_state_dict = {}
         self.centring_status = {"valid": False}
@@ -95,7 +95,7 @@ class LNLSDiffractometer(GenericDiffractometer):
 
         # TODO FFS get this cleared up - one function, one name
         self.getPositions = self.get_positions
-        #self.moveMotors = self.move_motors
+        # self.moveMotors = self.move_motors
 
         self.connect(
             self.motor_hwobj_dict["phi"], "positionChanged", self.phi_motor_moved
@@ -323,38 +323,46 @@ class LNLSDiffractometer(GenericDiffractometer):
         Returns: dict of motor positions
         """
         # Update beam position
-        self.beam_position[0], self.beam_position[1] = HWR.beamline.beam.get_beam_position_on_screen()
+        self.beam_position[0], self.beam_position[1] = (
+            HWR.beamline.beam.get_beam_position_on_screen()
+        )
 
-        print(("moving to beam position: %d %d" % (
-            self.beam_position[0],
-            self.beam_position[1],
-        )))
+        print(
+            (
+                "moving to beam position: %d %d"
+                % (
+                    self.beam_position[0],
+                    self.beam_position[1],
+                )
+            )
+        )
 
         # Set velocity of omega to move during centring
-        #self.set_omega_default_velocity()
+        # self.set_omega_default_velocity()
 
         # Set scale of pixels per mm according to current zoom
-        #self.pixels_per_mm_x = self.motor_zoom_hwobj.getPixelsPerMm(0)
-        #self.pixels_per_mm_y = self.motor_zoom_hwobj.getPixelsPerMm(1)
+        # self.pixels_per_mm_x = self.motor_zoom_hwobj.getPixelsPerMm(0)
+        # self.pixels_per_mm_y = self.motor_zoom_hwobj.getPixelsPerMm(1)
 
         # Get clicked position of mouse pointer
-        #self.user_clicked_event = AsyncResult()
-        #x, y = self.user_clicked_event.get()
+        # self.user_clicked_event = AsyncResult()
+        # x, y = self.user_clicked_event.get()
         # Last clicked position
         self.last_centred_position[0] = x
         self.last_centred_position[1] = y
 
         # Get current value of involved motors
-        omega_pos  = self.motor_hwobj_dict["phi"].get_value()
+        omega_pos = self.motor_hwobj_dict["phi"].get_value()
         # For now, phiz refers to gonio x motor
         goniox_pos = self.motor_hwobj_dict["phiz"].get_value()
-        sampx_pos  = self.motor_hwobj_dict["sampx"].get_value()
-        sampy_pos  = self.motor_hwobj_dict["sampy"].get_value()
+        sampx_pos = self.motor_hwobj_dict["sampx"].get_value()
+        sampy_pos = self.motor_hwobj_dict["sampy"].get_value()
 
         # Pixels to move axis X of whole goniometer
         import math
-        drx_goniox = abs(- x - y + 1152) / math.sqrt(2)
-        if y <= (- x + 1152):
+
+        drx_goniox = abs(-x - y + 1152) / math.sqrt(2)
+        if y <= (-x + 1152):
             dir_goniox = 1
         else:
             dir_goniox = -1
@@ -367,19 +375,19 @@ class LNLSDiffractometer(GenericDiffractometer):
 
         # Calculate new position of X
         dry_samp = abs(x - y - 128) / math.sqrt(2)
-        if (y >= x - 128):
+        if y >= x - 128:
             dir_samp = 1
         else:
             dir_samp = -1
         move_samp = dir_samp * dry_samp
-        print('move_samp = ' + str(move_samp))
+        print("move_samp = " + str(move_samp))
 
-        move_sampx = (math.sin(math.radians(omega_pos)) * move_samp)
+        move_sampx = math.sin(math.radians(omega_pos)) * move_samp
         # print("math.cos(math.radians(omega_pos)): ", math.cos(math.radians(omega_pos)))
         # print("self.beam_position[1]: ", self.beam_position[1])
         # print("float(last_centred_position[1])", float(last_centred_position[1]))
         # print("move_sampx = (math.cos(math.radians(omega_pos)) * (self.beam_position[1] - float(last_centred_position[1]))): ", move_sampx)
-        #move_sampx = move_sampx / self.pixels_per_mm_x
+        # move_sampx = move_sampx / self.pixels_per_mm_x
         move_sampx = (move_sampx / self.pixels_per_mm_x) * -1
         # print("move_sampx = move_sampx / self.pixels_per_mm_x: ", move_sampx)
         # Move absolute
@@ -387,20 +395,24 @@ class LNLSDiffractometer(GenericDiffractometer):
         # print("move_sampx += sampx_pos: ", move_sampx)
 
         # Calculate new position of Y
-        move_sampy = (math.cos(math.radians(omega_pos)) * move_samp)
+        move_sampy = math.cos(math.radians(omega_pos)) * move_samp
         # print("math.sin(math.radians(omega_pos)): ", math.sin(math.radians(omega_pos)))
         # print("self.beam_position[1]: ", self.beam_position[1])
         # print("float(last_centred_position[1])", float(last_centred_position[1]))
         # print("move_sampy = (math.sin(math.radians(omega_pos)) * (self.beam_position[1] - float(last_centred_position[1]))): ", move_sampy)
-        move_sampy = (move_sampy / self.pixels_per_mm_y)
-        print('move_sampy = ' + str(move_sampy))
-        #move_sampy = move_sampy / self.pixels_per_mm_y
+        move_sampy = move_sampy / self.pixels_per_mm_y
+        print("move_sampy = " + str(move_sampy))
+        # move_sampy = move_sampy / self.pixels_per_mm_y
         # print("move_sampy = move_sampy / self.pixels_per_mm_y: ", move_sampy)
         # Move absolute
         move_sampy += sampy_pos
         # print("move_sampy += sampy_pos: ", move_sampy)
-        centred_pos_dir = { 'phiz': move_goniox, 'sampx': move_sampx, 'sampy': move_sampy }
-        print('Target pos = ' + str(centred_pos_dir))
+        centred_pos_dir = {
+            "phiz": move_goniox,
+            "sampx": move_sampx,
+            "sampy": move_sampy,
+        }
+        print("Target pos = " + str(centred_pos_dir))
         return centred_pos_dir
 
     def move_to_beam(self, x, y, omega=None):
@@ -410,7 +422,7 @@ class LNLSDiffractometer(GenericDiffractometer):
         """
 
         centred_pos_dir = self.calculate_move_to_beam_pos(x, y)
-        print('Moving motors to beam...')
+        print("Moving motors to beam...")
         self.move_to_motors_positions(centred_pos_dir, wait=True)
         return centred_pos_dir
 
@@ -500,7 +512,7 @@ class LNLSDiffractometer(GenericDiffractometer):
     def get_zoom_calibration(self):
         """Returns tuple with current zoom calibration (px per mm)."""
         zoom_enum = self.zoom.get_value()  # Get current zoom enum
-        zoom_enum_str = zoom_enum.name # as str
+        zoom_enum_str = zoom_enum.name  # as str
         self.x_calib = self.zoom_calibration_x.get(zoom_enum_str)
         self.y_calib = self.zoom_calibration_y.get(zoom_enum_str)
         try:
@@ -523,5 +535,4 @@ class LNLSDiffractometer(GenericDiffractometer):
         """
         Override method.
         """
-        self.emit("pixelsPerMmChanged", ((self.pixels_per_mm_x,
-                                          self.pixels_per_mm_y)))
+        self.emit("pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y)))

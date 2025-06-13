@@ -114,6 +114,7 @@ def warnEmptyAttribute(_strName, _strTypeName):
     # if not _strTypeName in ["float", "double", "string", "boolean", "integer"]:
     #    print("Warning! Non-optional attribute %s of type %s is None!" % (_strName, _strTypeName))
 
+
 class MixedContainer(object):
     # Constants for category:
     CategoryNone = 0
@@ -129,19 +130,25 @@ class MixedContainer(object):
     TypeDecimal = 5
     TypeDouble = 6
     TypeBoolean = 7
+
     def __init__(self, category, content_type, name, value):
         self.category = category
         self.content_type = content_type
         self.name = name
         self.value = value
+
     def getCategory(self):
         return self.category
+
     def getContenttype(self, content_type):
         return self.content_type
+
     def getValue(self):
         return self.value
+
     def getName(self):
         return self.name
+
     def export(self, outfile, level, name):
         if self.category == MixedContainer.CategoryText:
             outfile.write(self.value)
@@ -149,6 +156,7 @@ class MixedContainer(object):
             self.exportSimple(outfile, level, name)
         else:  # category == MixedContainer.CategoryComplex
             self.value.export(outfile, level, name)
+
     def exportSimple(self, outfile, level, name):
         if self.content_type == MixedContainer.TypeString:
             outfile.write(unicode("<%s>%s</%s>" % (self.name, self.value, self.name)))
@@ -219,6 +227,7 @@ class XSDataStatisticsIntegrationAverageAndNumberOfReflections(object):
                 % self._numberOfReflections.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'averageIOverSigma' attribute
     def getAverageIOverSigma(self):
         return self._averageIOverSigma
@@ -355,10 +364,12 @@ class XSDataStatisticsIntegrationAverageAndNumberOfReflections(object):
             self.numberOfReflections.export(outfile, level, name_="numberOfReflections")
         else:
             warnEmptyAttribute("numberOfReflections", "XSDataInteger")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "averageIOverSigma":
             obj_ = XSDataDouble()
@@ -448,6 +459,7 @@ class XSDataStatisticsIntegrationAverageAndNumberOfReflections(object):
 
 class XSDataAtom(XSData):
     """This object describes a single atom content (of type 'symbol' i.e 'S') that could be either expressed in concentration if dilute in a solvent (mM) or in number in a structure"""
+
     def __init__(self, symbol=None, numberOf=None, concentration=None):
         XSData.__init__(
             self,
@@ -482,6 +494,7 @@ class XSDataAtom(XSData):
                 % self._symbol.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'concentration' attribute
     def getConcentration(self):
         return self._concentration
@@ -528,6 +541,7 @@ class XSDataAtom(XSData):
         self._numberOf = None
 
     numberOf = property(getNumberOf, setNumberOf, delNumberOf, "Property for numberOf")
+
     # Methods and properties for the 'symbol' attribute
     def getSymbol(self):
         return self._symbol
@@ -566,10 +580,12 @@ class XSDataAtom(XSData):
             self.symbol.export(outfile, level, name_="symbol")
         else:
             warnEmptyAttribute("symbol", "XSDataString")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "concentration":
             obj_ = XSDataDouble()
@@ -655,6 +671,7 @@ class XSDataAtomicComposition(XSData):
                 % self._atom.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'atom' attribute
     def getAtom(self):
         return self._atom
@@ -675,6 +692,7 @@ class XSDataAtomicComposition(XSData):
         self._atom = None
 
     atom = property(getAtom, setAtom, delAtom, "Property for atom")
+
     def addAtom(self, value):
         if value is None:
             strMessage = "ERROR! XSDataAtomicComposition.addAtom argument is None"
@@ -687,6 +705,7 @@ class XSDataAtomicComposition(XSData):
                 % value.__class__.__name__
             )
             raise BaseException(strMessage)
+
     def insertAtom(self, index, value):
         if index is None:
             strMessage = (
@@ -723,6 +742,7 @@ class XSDataAtomicComposition(XSData):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "atom":
             obj_ = XSDataAtom()
@@ -877,6 +897,7 @@ class XSDataBeam(XSData):
                 % self._apertureSize.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'exposureTime' attribute
     def getExposureTime(self):
         return self._exposureTime
@@ -920,6 +941,7 @@ class XSDataBeam(XSData):
         self._flux = None
 
     flux = property(getFlux, setFlux, delFlux, "Property for flux")
+
     # Methods and properties for the 'minExposureTimePerImage' attribute
     def getMinExposureTimePerImage(self):
         return self._minExposureTimePerImage
@@ -966,6 +988,7 @@ class XSDataBeam(XSData):
         self._size = None
 
     size = property(getSize, setSize, delSize, "Property for size")
+
     # Methods and properties for the 'transmission' attribute
     def getTransmission(self):
         return self._transmission
@@ -1065,6 +1088,7 @@ class XSDataBeam(XSData):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "exposureTime":
             obj_ = XSDataTime()
@@ -1229,6 +1253,7 @@ class XSDataCell(XSData):
                 % self._length_c.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'angle_alpha' attribute
     def getAngle_alpha(self):
         return self._angle_alpha
@@ -1318,6 +1343,7 @@ class XSDataCell(XSData):
         self._length_a = None
 
     length_a = property(getLength_a, setLength_a, delLength_a, "Property for length_a")
+
     # Methods and properties for the 'length_b' attribute
     def getLength_b(self):
         return self._length_b
@@ -1338,6 +1364,7 @@ class XSDataCell(XSData):
         self._length_b = None
 
     length_b = property(getLength_b, setLength_b, delLength_b, "Property for length_b")
+
     # Methods and properties for the 'length_c' attribute
     def getLength_c(self):
         return self._length_c
@@ -1392,10 +1419,12 @@ class XSDataCell(XSData):
             self.length_c.export(outfile, level, name_="length_c")
         else:
             warnEmptyAttribute("length_c", "XSDataLength")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "angle_alpha":
             obj_ = XSDataAngle()
@@ -1527,6 +1556,7 @@ class XSDataChain(XSData):
                 % self._type.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'heavyAtoms' attribute
     def getHeavyAtoms(self):
         return self._heavyAtoms
@@ -1648,10 +1678,12 @@ class XSDataChain(XSData):
             self.type.export(outfile, level, name_="type")
         else:
             warnEmptyAttribute("type", "XSDataString")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "heavyAtoms":
             obj_ = XSDataAtomicComposition()
@@ -1728,6 +1760,7 @@ class XSDataChain(XSData):
 
 class XSDataChemicalCompositionMM(XSData):
     """This is the composition of a crystal sample of a Macro Molecule (MM stand for Macro Molecule)"""
+
     def __init__(self, structure=None, solvent=None):
         XSData.__init__(
             self,
@@ -1752,6 +1785,7 @@ class XSDataChemicalCompositionMM(XSData):
                 % self._structure.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'solvent' attribute
     def getSolvent(self):
         return self._solvent
@@ -1772,6 +1806,7 @@ class XSDataChemicalCompositionMM(XSData):
         self._solvent = None
 
     solvent = property(getSolvent, setSolvent, delSolvent, "Property for solvent")
+
     # Methods and properties for the 'structure' attribute
     def getStructure(self):
         return self._structure
@@ -1812,10 +1847,12 @@ class XSDataChemicalCompositionMM(XSData):
             self.structure.export(outfile, level, name_="structure")
         else:
             warnEmptyAttribute("structure", "XSDataStructure")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "solvent":
             obj_ = XSDataSolvent()
@@ -1884,6 +1921,7 @@ class XSDataChemicalCompositionMM(XSData):
 
 class XSDataCollection(XSData):
     """The data collection carried out or to be carried out with a particular sample with specific user inputs defined by the diffraction plan."""
+
     def __init__(self, subWedge=None, sample=None, diffractionPlan=None):
         XSData.__init__(
             self,
@@ -1918,6 +1956,7 @@ class XSDataCollection(XSData):
                 % self._subWedge.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'diffractionPlan' attribute
     def getDiffractionPlan(self):
         return self._diffractionPlan
@@ -1964,6 +2003,7 @@ class XSDataCollection(XSData):
         self._sample = None
 
     sample = property(getSample, setSample, delSample, "Property for sample")
+
     # Methods and properties for the 'subWedge' attribute
     def getSubWedge(self):
         return self._subWedge
@@ -1984,6 +2024,7 @@ class XSDataCollection(XSData):
         self._subWedge = None
 
     subWedge = property(getSubWedge, setSubWedge, delSubWedge, "Property for subWedge")
+
     def addSubWedge(self, value):
         if value is None:
             strMessage = "ERROR! XSDataCollection.addSubWedge argument is None"
@@ -1996,6 +2037,7 @@ class XSDataCollection(XSData):
                 % value.__class__.__name__
             )
             raise BaseException(strMessage)
+
     def insertSubWedge(self, index, value):
         if index is None:
             strMessage = (
@@ -2033,10 +2075,12 @@ class XSDataCollection(XSData):
             subWedge_.export(outfile, level, name_="subWedge")
         if self.getSubWedge() == []:
             warnEmptyAttribute("subWedge", "XSDataSubWedge")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "diffractionPlan":
             obj_ = XSDataDiffractionPlan()
@@ -2803,6 +2847,7 @@ class XSDataDetector(XSData):
                 % self._type.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'beamPositionX' attribute
     def getBeamPositionX(self):
         return self._beamPositionX
@@ -2875,6 +2920,7 @@ class XSDataDetector(XSData):
         self._bin = None
 
     bin = property(getBin, setBin, delBin, "Property for bin")
+
     # Methods and properties for the 'byteOrder' attribute
     def getByteOrder(self):
         return self._byteOrder
@@ -2918,6 +2964,7 @@ class XSDataDetector(XSData):
         self._dataType = None
 
     dataType = property(getDataType, setDataType, delDataType, "Property for dataType")
+
     # Methods and properties for the 'distance' attribute
     def getDistance(self):
         return self._distance
@@ -2938,6 +2985,7 @@ class XSDataDetector(XSData):
         self._distance = None
 
     distance = property(getDistance, setDistance, delDistance, "Property for distance")
+
     # Methods and properties for the 'gain' attribute
     def getGain(self):
         return self._gain
@@ -2958,6 +3006,7 @@ class XSDataDetector(XSData):
         self._gain = None
 
     gain = property(getGain, setGain, delGain, "Property for gain")
+
     # Methods and properties for the 'imageSaturation' attribute
     def getImageSaturation(self):
         return self._imageSaturation
@@ -3004,6 +3053,7 @@ class XSDataDetector(XSData):
         self._name = None
 
     name = property(getName, setName, delName, "Property for name")
+
     # Methods and properties for the 'numberBytesInHeader' attribute
     def getNumberBytesInHeader(self):
         return self._numberBytesInHeader
@@ -3165,6 +3215,7 @@ class XSDataDetector(XSData):
         self._twoTheta = None
 
     twoTheta = property(getTwoTheta, setTwoTheta, delTwoTheta, "Property for twoTheta")
+
     # Methods and properties for the 'type' attribute
     def getType(self):
         return self._type
@@ -3261,10 +3312,12 @@ class XSDataDetector(XSData):
             self.type.export(outfile, level, name_="type")
         else:
             warnEmptyAttribute("type", "XSDataString")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "beamPositionX":
             obj_ = XSDataLength()
@@ -3703,6 +3756,7 @@ class XSDataDiffractionPlan(XSData):
                 % self._userDefinedRotationStart.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'aimedCompleteness' attribute
     def getAimedCompleteness(self):
         return self._aimedCompleteness
@@ -4077,6 +4131,7 @@ class XSDataDiffractionPlan(XSData):
                 % value.__class__.__name__
             )
             raise BaseException(strMessage)
+
     def insertKappaStrategyOption(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataDiffractionPlan.insertKappaStrategyOption argument 'index' is None"
@@ -4092,6 +4147,7 @@ class XSDataDiffractionPlan(XSData):
                 % value.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'maxExposureTimePerDataCollection' attribute
     def getMaxExposureTimePerDataCollection(self):
         return self._maxExposureTimePerDataCollection
@@ -4294,6 +4350,7 @@ class XSDataDiffractionPlan(XSData):
         self._rFriedel = None
 
     rFriedel = property(getRFriedel, setRFriedel, delRFriedel, "Property for rFriedel")
+
     # Methods and properties for the 'strategyOption' attribute
     def getStrategyOption(self):
         return self._strategyOption
@@ -4481,6 +4538,7 @@ class XSDataDiffractionPlan(XSData):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "aimedCompleteness":
             obj_ = XSDataDouble()
@@ -4801,6 +4859,7 @@ class XSDataGoniostat(XSData):
                 % self._phi.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'maxOscillationSpeed' attribute
     def getMaxOscillationSpeed(self):
         return self._maxOscillationSpeed
@@ -4899,6 +4958,7 @@ class XSDataGoniostat(XSData):
         self._overlap = None
 
     overlap = property(getOverlap, setOverlap, delOverlap, "Property for overlap")
+
     # Methods and properties for the 'rotationAxis' attribute
     def getRotationAxis(self):
         return self._rotationAxis
@@ -5117,6 +5177,7 @@ class XSDataGoniostat(XSData):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "maxOscillationSpeed":
             obj_ = XSDataAngularSpeed()
@@ -5219,6 +5280,7 @@ class XSDataGoniostat(XSData):
 
 class XSDataExperimentalCondition(XSData):
     """This object encapsulates all the physical properties of an experiment instrumentation. i.e: Beam, detector, Goniostat."""
+
     def __init__(self, goniostat=None, detector=None, beam=None):
         XSData.__init__(
             self,
@@ -5253,6 +5315,7 @@ class XSDataExperimentalCondition(XSData):
                 % self._goniostat.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'beam' attribute
     def getBeam(self):
         return self._beam
@@ -5273,6 +5336,7 @@ class XSDataExperimentalCondition(XSData):
         self._beam = None
 
     beam = property(getBeam, setBeam, delBeam, "Property for beam")
+
     # Methods and properties for the 'detector' attribute
     def getDetector(self):
         return self._detector
@@ -5293,6 +5357,7 @@ class XSDataExperimentalCondition(XSData):
         self._detector = None
 
     detector = property(getDetector, setDetector, delDetector, "Property for detector")
+
     # Methods and properties for the 'goniostat' attribute
     def getGoniostat(self):
         return self._goniostat
@@ -5336,6 +5401,7 @@ class XSDataExperimentalCondition(XSData):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "beam":
             obj_ = XSDataBeam()
@@ -5983,6 +6049,7 @@ class XSDataImageQualityIndicators(XSData):
         self._iceRings = None
 
     iceRings = property(getIceRings, setIceRings, delIceRings, "Property for iceRings")
+
     # Methods and properties for the 'image' attribute
     def getImage(self):
         return self._image
@@ -6003,6 +6070,7 @@ class XSDataImageQualityIndicators(XSData):
         self._image = None
 
     image = property(getImage, setImage, delImage, "Property for image")
+
     # Methods and properties for the 'inResTotal' attribute
     def getInResTotal(self):
         return self._inResTotal
@@ -6479,6 +6547,7 @@ class XSDataImageQualityIndicators(XSData):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "dozor_score":
             obj_ = XSDataDouble()
@@ -6701,6 +6770,7 @@ class XSDataIndexingSolution(XSData):
                 % self._penalty.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'crystal' attribute
     def getCrystal(self):
         return self._crystal
@@ -6721,6 +6791,7 @@ class XSDataIndexingSolution(XSData):
         self._crystal = None
 
     crystal = property(getCrystal, setCrystal, delCrystal, "Property for crystal")
+
     # Methods and properties for the 'number' attribute
     def getNumber(self):
         return self._number
@@ -6741,6 +6812,7 @@ class XSDataIndexingSolution(XSData):
         self._number = None
 
     number = property(getNumber, setNumber, delNumber, "Property for number")
+
     # Methods and properties for the 'penalty' attribute
     def getPenalty(self):
         return self._penalty
@@ -6783,10 +6855,12 @@ class XSDataIndexingSolution(XSData):
             self.penalty.export(outfile, level, name_="penalty")
         else:
             warnEmptyAttribute("penalty", "XSDataFloat")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "crystal":
             obj_ = XSDataCrystal()
@@ -7133,6 +7207,7 @@ class XSDataIntegrationSubWedgeResult(XSData):
                 % self._subWedgeNumber.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'bestfileDat' attribute
     def getBestfileDat(self):
         return self._bestfileDat
@@ -7344,6 +7419,7 @@ class XSDataIntegrationSubWedgeResult(XSData):
                 % value.__class__.__name__
             )
             raise BaseException(strMessage)
+
     def insertStatisticsPerResolutionBin(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataIntegrationSubWedgeResult.insertStatisticsPerResolutionBin argument 'index' is None"
@@ -7359,6 +7435,7 @@ class XSDataIntegrationSubWedgeResult(XSData):
                 % value.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'subWedgeNumber' attribute
     def getSubWedgeNumber(self):
         return self._subWedgeNumber
@@ -7439,10 +7516,12 @@ class XSDataIntegrationSubWedgeResult(XSData):
             self.subWedgeNumber.export(outfile, level, name_="subWedgeNumber")
         else:
             warnEmptyAttribute("subWedgeNumber", "XSDataInteger")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "bestfileDat":
             obj_ = XSDataString()
@@ -7741,6 +7820,7 @@ class XSDataKappaSolution(XSData):
 
 class XSDataLigand(XSData):
     """A polymer ligand that contains a set of heavy atoms, the number of all the light atoms (weight <= Oxygen) and the number of copies of this particular ligand in the polymer."""
+
     def __init__(self, numberOfLightAtoms=None, numberOfCopies=None, heavyAtoms=None):
         XSData.__init__(
             self,
@@ -7775,6 +7855,7 @@ class XSDataLigand(XSData):
                 % self._numberOfLightAtoms.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'heavyAtoms' attribute
     def getHeavyAtoms(self):
         return self._heavyAtoms
@@ -7871,10 +7952,12 @@ class XSDataLigand(XSData):
             self.numberOfLightAtoms.export(outfile, level, name_="numberOfLightAtoms")
         else:
             warnEmptyAttribute("numberOfLightAtoms", "XSDataDouble")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "heavyAtoms":
             obj_ = XSDataAtomicComposition()
@@ -7970,6 +8053,7 @@ class XSDataOrientation(XSData):
                 % self._matrixU.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'matrixA' attribute
     def getMatrixA(self):
         return self._matrixA
@@ -7990,6 +8074,7 @@ class XSDataOrientation(XSData):
         self._matrixA = None
 
     matrixA = property(getMatrixA, setMatrixA, delMatrixA, "Property for matrixA")
+
     # Methods and properties for the 'matrixU' attribute
     def getMatrixU(self):
         return self._matrixU
@@ -8028,10 +8113,12 @@ class XSDataOrientation(XSData):
             self.matrixU.export(outfile, level, name_="matrixU")
         else:
             warnEmptyAttribute("matrixU", "XSDataMatrixDouble")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "matrixA":
             obj_ = XSDataMatrixDouble()
@@ -8248,6 +8335,7 @@ class XSDataResolutionBin(XSData):
                 % self._redundancy.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'IOverSigma' attribute
     def getIOverSigma(self):
         return self._IOverSigma
@@ -8392,6 +8480,7 @@ class XSDataResolutionBin(XSData):
         self._chi2 = None
 
     chi2 = property(getChi2, setChi2, delChi2, "Property for chi2")
+
     # Methods and properties for the 'completeness' attribute
     def getCompleteness(self):
         return self._completeness
@@ -8513,6 +8602,7 @@ class XSDataResolutionBin(XSData):
         self._rFactor = None
 
     rFactor = property(getRFactor, setRFactor, delRFactor, "Property for rFactor")
+
     # Methods and properties for the 'rFriedel' attribute
     def getRFriedel(self):
         return self._rFriedel
@@ -8533,6 +8623,7 @@ class XSDataResolutionBin(XSData):
         self._rFriedel = None
 
     rFriedel = property(getRFriedel, setRFriedel, delRFriedel, "Property for rFriedel")
+
     # Methods and properties for the 'redundancy' attribute
     def getRedundancy(self):
         return self._redundancy
@@ -8611,10 +8702,12 @@ class XSDataResolutionBin(XSData):
             self.redundancy.export(outfile, level, name_="redundancy")
         else:
             warnEmptyAttribute("redundancy", "XSDataDouble")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "IOverSigma":
             obj_ = XSDataDouble()
@@ -8818,6 +8911,7 @@ class XSDataSample(XSData):
                 % self._susceptibility.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'absorbedDoseRate' attribute
     def getAbsorbedDoseRate(self):
         return self._absorbedDoseRate
@@ -8916,6 +9010,7 @@ class XSDataSample(XSData):
         self._shape = None
 
     shape = property(getShape, setShape, delShape, "Property for shape")
+
     # Methods and properties for the 'size' attribute
     def getSize(self):
         return self._size
@@ -8957,6 +9052,7 @@ class XSDataSample(XSData):
         self._omegaMin = None
 
     omegaMin = property(getOmegaMin, setOmegaMin, delOmegaMin, "Property for omegaMin")
+
     # Methods and properties for the 'susceptibility' attribute
     def getSusceptibility(self):
         return self._susceptibility
@@ -9015,6 +9111,7 @@ class XSDataSample(XSData):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "absorbedDoseRate":
             obj_ = XSDataAbsorbedDoseRate()
@@ -9109,6 +9206,7 @@ class XSDataSample(XSData):
 
 class XSDataSolvent(XSData):
     """Defines the content of the solvent by defining the concentration of elements in millimoles/litre. Note that this atom composition should not include oxygen and lighter atoms."""
+
     def __init__(self, atoms=None):
         XSData.__init__(
             self,
@@ -9123,6 +9221,7 @@ class XSDataSolvent(XSData):
                 % self._atoms.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'atoms' attribute
     def getAtoms(self):
         return self._atoms
@@ -9157,10 +9256,12 @@ class XSDataSolvent(XSData):
             self.atoms.export(outfile, level, name_="atoms")
         else:
             warnEmptyAttribute("atoms", "XSDataAtomicComposition")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "atoms":
             obj_ = XSDataAtomicComposition()
@@ -9225,6 +9326,7 @@ class XSDataSolvent(XSData):
 
 class XSDataSpaceGroup(XSData):
     """Crystallographic properties"""
+
     def __init__(self, name=None, ITNumber=None):
         XSData.__init__(
             self,
@@ -9249,6 +9351,7 @@ class XSDataSpaceGroup(XSData):
                 % self._name.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'ITNumber' attribute
     def getITNumber(self):
         return self._ITNumber
@@ -9269,6 +9372,7 @@ class XSDataSpaceGroup(XSData):
         self._ITNumber = None
 
     ITNumber = property(getITNumber, setITNumber, delITNumber, "Property for ITNumber")
+
     # Methods and properties for the 'name' attribute
     def getName(self):
         return self._name
@@ -9305,10 +9409,12 @@ class XSDataSpaceGroup(XSData):
             self.name.export(outfile, level, name_="name")
         else:
             warnEmptyAttribute("name", "XSDataString")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "ITNumber":
             obj_ = XSDataInteger()
@@ -9448,6 +9554,7 @@ class XSDataStatisticsIndexing(XSData):
                 % self._spotsUsed.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'beamPositionShiftX' attribute
     def getBeamPositionShiftX(self):
         return self._beamPositionShiftX
@@ -9635,10 +9742,12 @@ class XSDataStatisticsIndexing(XSData):
             self.spotsUsed.export(outfile, level, name_="spotsUsed")
         else:
             warnEmptyAttribute("spotsUsed", "XSDataInteger")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "beamPositionShiftX":
             obj_ = XSDataLength()
@@ -9832,6 +9941,7 @@ class XSDataStatisticsIntegration(XSData):
                 % self._numberOfReflectionsGenerated.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'RMSSpotDeviation' attribute
     def getRMSSpotDeviation(self):
         return self._RMSSpotDeviation
@@ -10125,10 +10235,12 @@ class XSDataStatisticsIntegration(XSData):
             )
         else:
             warnEmptyAttribute("numberOfReflectionsGenerated", "XSDataInteger")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "RMSSpotDeviation":
             obj_ = XSDataLength()
@@ -10275,6 +10387,7 @@ class XSDataStatisticsIntegrationPerReflectionType(XSData):
                 % self._partials.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'fullyRecorded' attribute
     def getFullyRecorded(self):
         return self._fullyRecorded
@@ -10359,6 +10472,7 @@ class XSDataStatisticsIntegrationPerReflectionType(XSData):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "fullyRecorded":
             obj_ = XSDataStatisticsIntegrationAverageAndNumberOfReflections()
@@ -10482,6 +10596,7 @@ class XSDataStatisticsIntegrationPerResolutionBin(XSData):
                 % self._summation.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'maxResolution' attribute
     def getMaxResolution(self):
         return self._maxResolution
@@ -10627,6 +10742,7 @@ class XSDataStatisticsIntegrationPerResolutionBin(XSData):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "maxResolution":
             obj_ = XSDataDouble()
@@ -10720,6 +10836,7 @@ class XSDataStatisticsStrategy(XSData):
                 % self._resolutionBin.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'resolutionBin' attribute
     def getResolutionBin(self):
         return self._resolutionBin
@@ -10760,6 +10877,7 @@ class XSDataStatisticsStrategy(XSData):
                 % value.__class__.__name__
             )
             raise BaseException(strMessage)
+
     def insertResolutionBin(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataStatisticsStrategy.insertResolutionBin argument 'index' is None"
@@ -10792,6 +10910,7 @@ class XSDataStatisticsStrategy(XSData):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "resolutionBin":
             obj_ = XSDataResolutionBin()
@@ -10962,6 +11081,7 @@ class XSDataStrategySummary(XSData):
                 % self._totalExposureTime.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'attenuation' attribute
     def getAttenuation(self):
         return self._attenuation
@@ -11028,6 +11148,7 @@ class XSDataStrategySummary(XSData):
         self._iSigma = None
 
     iSigma = property(getISigma, setISigma, delISigma, "Property for iSigma")
+
     # Methods and properties for the 'rankingResolution' attribute
     def getRankingResolution(self):
         return self._rankingResolution
@@ -11223,10 +11344,12 @@ class XSDataStrategySummary(XSData):
             self.totalExposureTime.export(outfile, level, name_="totalExposureTime")
         else:
             warnEmptyAttribute("totalExposureTime", "XSDataTime")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "attenuation":
             obj_ = XSDataDouble()
@@ -11364,6 +11487,7 @@ class XSDataStructure(XSData):
                 % self._numberOfCopiesInAsymmetricUnit.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'chain' attribute
     def getChain(self):
         return self._chain
@@ -11384,6 +11508,7 @@ class XSDataStructure(XSData):
         self._chain = None
 
     chain = property(getChain, setChain, delChain, "Property for chain")
+
     def addChain(self, value):
         if value is None:
             strMessage = "ERROR! XSDataStructure.addChain argument is None"
@@ -11396,6 +11521,7 @@ class XSDataStructure(XSData):
                 % value.__class__.__name__
             )
             raise BaseException(strMessage)
+
     def insertChain(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataStructure.insertChain argument 'index' is None"
@@ -11411,6 +11537,7 @@ class XSDataStructure(XSData):
                 % value.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'ligand' attribute
     def getLigand(self):
         return self._ligand
@@ -11431,6 +11558,7 @@ class XSDataStructure(XSData):
         self._ligand = None
 
     ligand = property(getLigand, setLigand, delLigand, "Property for ligand")
+
     def addLigand(self, value):
         if value is None:
             strMessage = "ERROR! XSDataStructure.addLigand argument is None"
@@ -11443,6 +11571,7 @@ class XSDataStructure(XSData):
                 % value.__class__.__name__
             )
             raise BaseException(strMessage)
+
     def insertLigand(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataStructure.insertLigand argument 'index' is None"
@@ -11458,6 +11587,7 @@ class XSDataStructure(XSData):
                 % value.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'numberOfCopiesInAsymmetricUnit' attribute
     def getNumberOfCopiesInAsymmetricUnit(self):
         return self._numberOfCopiesInAsymmetricUnit
@@ -11503,10 +11633,12 @@ class XSDataStructure(XSData):
             )
         else:
             warnEmptyAttribute("numberOfCopiesInAsymmetricUnit", "XSDataDouble")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "chain":
             obj_ = XSDataChain()
@@ -11631,6 +11763,7 @@ class XSDataSubWedge(XSData):
                 % self._subWedgeNumber.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'action' attribute
     def getAction(self):
         return self._action
@@ -11651,6 +11784,7 @@ class XSDataSubWedge(XSData):
         self._action = None
 
     action = property(getAction, setAction, delAction, "Property for action")
+
     # Methods and properties for the 'experimentalCondition' attribute
     def getExperimentalCondition(self):
         return self._experimentalCondition
@@ -11697,6 +11831,7 @@ class XSDataSubWedge(XSData):
         self._image = None
 
     image = property(getImage, setImage, delImage, "Property for image")
+
     def addImage(self, value):
         if value is None:
             strMessage = "ERROR! XSDataSubWedge.addImage argument is None"
@@ -11709,6 +11844,7 @@ class XSDataSubWedge(XSData):
                 % value.__class__.__name__
             )
             raise BaseException(strMessage)
+
     def insertImage(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataSubWedge.insertImage argument 'index' is None"
@@ -11724,6 +11860,7 @@ class XSDataSubWedge(XSData):
                 % value.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'subWedgeNumber' attribute
     def getSubWedgeNumber(self):
         return self._subWedgeNumber
@@ -11776,6 +11913,7 @@ class XSDataSubWedge(XSData):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "action":
             obj_ = XSDataString()
@@ -13780,6 +13918,7 @@ class XSDataInputCharacterisation(XSDataInput):
                 % self._currentResolution.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'dataCollection' attribute
     def getDataCollection(self):
         return self._dataCollection
@@ -13875,6 +14014,7 @@ class XSDataInputCharacterisation(XSDataInput):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "dataCollection":
             obj_ = XSDataCollection()
@@ -14122,6 +14262,7 @@ class XSDataInputControlISPyB(XSDataInput):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if (
             child_.nodeType == Node.ELEMENT_NODE
@@ -14425,6 +14566,7 @@ class XSDataInputControlImageQualityIndicators(XSDataInput):
         self._image = None
 
     image = property(getImage, setImage, delImage, "Property for image")
+
     def addImage(self, value):
         if value is None:
             strMessage = "ERROR! XSDataInputControlImageQualityIndicators.addImage argument is None"
@@ -14437,6 +14579,7 @@ class XSDataInputControlImageQualityIndicators(XSDataInput):
                 % value.__class__.__name__
             )
             raise BaseException(strMessage)
+
     def insertImage(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataInputControlImageQualityIndicators.insertImage argument 'index' is None"
@@ -14646,6 +14789,7 @@ class XSDataInputControlImageQualityIndicators(XSDataInput):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if (
             child_.nodeType == Node.ELEMENT_NODE
@@ -14766,6 +14910,7 @@ class XSDataInputControlXDSGenerateBackgroundImage(XSDataInput):
                 % self._dataCollection.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'dataCollection' attribute
     def getDataCollection(self):
         return self._dataCollection
@@ -14809,10 +14954,12 @@ class XSDataInputControlXDSGenerateBackgroundImage(XSDataInput):
             self.dataCollection.export(outfile, level, name_="dataCollection")
         else:
             warnEmptyAttribute("dataCollection", "XSDataCollection")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "dataCollection":
             obj_ = XSDataCollection()
@@ -16967,6 +17114,7 @@ class XSDataResultControlImageQualityIndicators(XSDataResult):
                 % self._inputDozor.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'imageQualityIndicators' attribute
     def getImageQualityIndicators(self):
         return self._imageQualityIndicators
@@ -17005,6 +17153,7 @@ class XSDataResultControlImageQualityIndicators(XSDataResult):
                 % value.__class__.__name__
             )
             raise BaseException(strMessage)
+
     def insertImageQualityIndicators(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataResultControlImageQualityIndicators.insertImageQualityIndicators argument 'index' is None"
@@ -17066,6 +17215,7 @@ class XSDataResultControlImageQualityIndicators(XSDataResult):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if (
             child_.nodeType == Node.ELEMENT_NODE
@@ -17330,6 +17480,7 @@ class XSDataResultControlXDSGenerateBackgroundImage(XSDataResult):
                 % self._xdsBackgroundImage.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'xdsBackgroundImage' attribute
     def getXdsBackgroundImage(self):
         return self._xdsBackgroundImage
@@ -17373,10 +17524,12 @@ class XSDataResultControlXDSGenerateBackgroundImage(XSDataResult):
             self.xdsBackgroundImage.export(outfile, level, name_="xdsBackgroundImage")
         else:
             warnEmptyAttribute("xdsBackgroundImage", "XSDataFile")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "xdsBackgroundImage":
             obj_ = XSDataFile()
@@ -17476,6 +17629,7 @@ class XSDataResultInducedRadiationProcess(XSDataResult):
                 % self._scale.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'bFactor' attribute
     def getBFactor(self):
         return self._bFactor
@@ -17496,6 +17650,7 @@ class XSDataResultInducedRadiationProcess(XSDataResult):
         self._bFactor = None
 
     bFactor = property(getBFactor, setBFactor, delBFactor, "Property for bFactor")
+
     # Methods and properties for the 'crystal' attribute
     def getCrystal(self):
         return self._crystal
@@ -17516,6 +17671,7 @@ class XSDataResultInducedRadiationProcess(XSDataResult):
         self._crystal = None
 
     crystal = property(getCrystal, setCrystal, delCrystal, "Property for crystal")
+
     # Methods and properties for the 'scale' attribute
     def getScale(self):
         return self._scale
@@ -17560,10 +17716,12 @@ class XSDataResultInducedRadiationProcess(XSDataResult):
             self.scale.export(outfile, level, name_="scale")
         else:
             warnEmptyAttribute("scale", "XSDataDouble")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "bFactor":
             obj_ = XSDataDouble()
@@ -17636,6 +17794,7 @@ class XSDataResultInducedRadiationProcess(XSDataResult):
 
 class XSDataResultReadImageHeader(XSDataResult):
     """These two definitions are used by the read image header plugin."""
+
     def __init__(self, status=None, subWedge=None):
         XSDataResult.__init__(self, status)
         if subWedge is None:
@@ -17648,6 +17807,7 @@ class XSDataResultReadImageHeader(XSDataResult):
                 % self._subWedge.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'subWedge' attribute
     def getSubWedge(self):
         return self._subWedge
@@ -17682,10 +17842,12 @@ class XSDataResultReadImageHeader(XSDataResult):
             self.subWedge.export(outfile, level, name_="subWedge")
         else:
             warnEmptyAttribute("subWedge", "XSDataSubWedge")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "subWedge":
             obj_ = XSDataSubWedge()
@@ -17822,6 +17984,7 @@ class XSDataResultStrategy(XSDataResult):
                 % self._timeToReachHendersonLimit.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'bestGraphFile' attribute
     def getBestGraphFile(self):
         return self._bestGraphFile
@@ -17860,6 +18023,7 @@ class XSDataResultStrategy(XSDataResult):
                 % value.__class__.__name__
             )
             raise BaseException(strMessage)
+
     def insertBestGraphFile(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataResultStrategy.insertBestGraphFile argument 'index' is None"
@@ -17875,6 +18039,7 @@ class XSDataResultStrategy(XSDataResult):
                 % value.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'bestLogFile' attribute
     def getBestLogFile(self):
         return self._bestLogFile
@@ -17938,6 +18103,7 @@ class XSDataResultStrategy(XSDataResult):
                 % value.__class__.__name__
             )
             raise BaseException(strMessage)
+
     def insertCollectionPlan(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataResultStrategy.insertCollectionPlan argument 'index' is None"
@@ -17953,6 +18119,7 @@ class XSDataResultStrategy(XSDataResult):
                 % value.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'raddoseLogFile' attribute
     def getRaddoseLogFile(self):
         return self._raddoseLogFile
@@ -18054,6 +18221,7 @@ class XSDataResultStrategy(XSDataResult):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "bestGraphFile":
             obj_ = XSDataFile()
@@ -18141,6 +18309,7 @@ class XSDataResultStrategy(XSDataResult):
 
 class XSDataResultSubWedgeAssemble(XSDataResult):
     """These two definitions are used by the sub wedge assemble plugin."""
+
     def __init__(self, status=None, subWedge=None):
         XSDataResult.__init__(self, status)
         if subWedge is None:
@@ -18153,6 +18322,7 @@ class XSDataResultSubWedgeAssemble(XSDataResult):
                 % self._subWedge.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'subWedge' attribute
     def getSubWedge(self):
         return self._subWedge
@@ -18173,6 +18343,7 @@ class XSDataResultSubWedgeAssemble(XSDataResult):
         self._subWedge = None
 
     subWedge = property(getSubWedge, setSubWedge, delSubWedge, "Property for subWedge")
+
     def addSubWedge(self, value):
         if value is None:
             strMessage = (
@@ -18187,6 +18358,7 @@ class XSDataResultSubWedgeAssemble(XSDataResult):
                 % value.__class__.__name__
             )
             raise BaseException(strMessage)
+
     def insertSubWedge(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataResultSubWedgeAssemble.insertSubWedge argument 'index' is None"
@@ -18216,10 +18388,12 @@ class XSDataResultSubWedgeAssemble(XSDataResult):
             subWedge_.export(outfile, level, name_="subWedge")
         if self.getSubWedge() == []:
             warnEmptyAttribute("subWedge", "XSDataSubWedge")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "subWedge":
             obj_ = XSDataSubWedge()
@@ -18284,6 +18458,7 @@ class XSDataResultSubWedgeAssemble(XSDataResult):
 
 class XSDataResultSubWedgeMerge(XSDataResult):
     """These two definitions are used by the sub wedge merge plugins."""
+
     def __init__(self, status=None, subWedge=None):
         XSDataResult.__init__(self, status)
         if subWedge is None:
@@ -18296,6 +18471,7 @@ class XSDataResultSubWedgeMerge(XSDataResult):
                 % self._subWedge.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'subWedge' attribute
     def getSubWedge(self):
         return self._subWedge
@@ -18316,6 +18492,7 @@ class XSDataResultSubWedgeMerge(XSDataResult):
         self._subWedge = None
 
     subWedge = property(getSubWedge, setSubWedge, delSubWedge, "Property for subWedge")
+
     def addSubWedge(self, value):
         if value is None:
             strMessage = "ERROR! XSDataResultSubWedgeMerge.addSubWedge argument is None"
@@ -18328,6 +18505,7 @@ class XSDataResultSubWedgeMerge(XSDataResult):
                 % value.__class__.__name__
             )
             raise BaseException(strMessage)
+
     def insertSubWedge(self, index, value):
         if index is None:
             strMessage = "ERROR! XSDataResultSubWedgeMerge.insertSubWedge argument 'index' is None"
@@ -18357,10 +18535,12 @@ class XSDataResultSubWedgeMerge(XSDataResult):
             subWedge_.export(outfile, level, name_="subWedge")
         if self.getSubWedge() == []:
             warnEmptyAttribute("subWedge", "XSDataSubWedge")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "subWedge":
             obj_ = XSDataSubWedge()
@@ -18457,6 +18637,7 @@ class XSDataSampleCrystal(XSDataSample):
                 % self._crystal.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'crystal' attribute
     def getCrystal(self):
         return self._crystal
@@ -18491,10 +18672,12 @@ class XSDataSampleCrystal(XSDataSample):
             self.crystal.export(outfile, level, name_="crystal")
         else:
             warnEmptyAttribute("crystal", "XSDataCrystal")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "crystal":
             obj_ = XSDataCrystal()
@@ -18594,6 +18777,7 @@ class XSDataIntegrationInput(XSDataGeneratePredictionInput):
                 % self._experimentalConditionRefined.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'crystalRefined' attribute
     def getCrystalRefined(self):
         return self._crystalRefined
@@ -18669,6 +18853,7 @@ class XSDataIntegrationInput(XSDataGeneratePredictionInput):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "crystalRefined":
             obj_ = XSDataCrystal()
@@ -18774,6 +18959,7 @@ class XSDataSampleCrystalMM(XSDataSampleCrystal):
                 % self._chemicalComposition.__class__.__name__
             )
             raise BaseException(strMessage)
+
     # Methods and properties for the 'chemicalComposition' attribute
     def getChemicalComposition(self):
         return self._chemicalComposition
@@ -18813,10 +18999,12 @@ class XSDataSampleCrystalMM(XSDataSampleCrystal):
             self.chemicalComposition.export(outfile, level, name_="chemicalComposition")
         else:
             warnEmptyAttribute("chemicalComposition", "XSDataChemicalCompositionMM")
+
     def build(self, node_):
         for child_ in node_.childNodes:
             nodeName_ = child_.nodeName.split(":")[-1]
             self.buildChildren(child_, nodeName_)
+
     def buildChildren(self, child_, nodeName_):
         if child_.nodeType == Node.ELEMENT_NODE and nodeName_ == "chemicalComposition":
             obj_ = XSDataChemicalCompositionMM()

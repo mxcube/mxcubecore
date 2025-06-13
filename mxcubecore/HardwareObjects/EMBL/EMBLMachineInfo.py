@@ -49,12 +49,11 @@ __category__ = "General"
 
 
 class EMBLMachineInfo(HardwareObject):
-    """Displays actual information about the beamline
-    """
+    """Displays actual information about the beamline"""
 
     def __init__(self, name):
         """OrderedDict is used to have a sorted items for display
-           and directory like access when updating values
+        and directory like access when updating values
         """
 
         HardwareObject.__init__(self, name)
@@ -119,7 +118,6 @@ class EMBLMachineInfo(HardwareObject):
         self.chan_sc_dewar_overflow_alarm = None
 
     def init(self):
-
         self.update_interval = int(self.get_property("updateIntervalS"))
         self.limits_dict = eval(self.get_property("limits"))
         self.hutch_temp_addr = self.get_property("hutchTempAddress")
@@ -397,9 +395,9 @@ class EMBLMachineInfo(HardwareObject):
 
         if flux_info["measured"] is None:
             self.values_ordered_dict["flux"]["value"] = 0
-            self.values_ordered_dict["flux"][
-                "value_str"
-            ] = "Beamline mode changed\nRemeasure flux!"
+            self.values_ordered_dict["flux"]["value_str"] = (
+                "Beamline mode changed\nRemeasure flux!"
+            )
             self.values_ordered_dict["flux"]["in_range"] = False
         else:
             msg_str = "Flux: %.2E ph/s\n" % flux_info["measured"]["flux"]
@@ -435,9 +433,9 @@ class EMBLMachineInfo(HardwareObject):
                 ):
                     self.hutch_temp = temp
                     self.hutch_hum = hum
-                    self.values_ordered_dict["temp_hum"][
-                        "value"
-                    ] = "%.1f C, %.1f %%" % (temp, hum)
+                    self.values_ordered_dict["temp_hum"]["value"] = (
+                        "%.1f C, %.1f %%" % (temp, hum)
+                    )
                     self.values_ordered_dict["temp_hum"]["in_range"] = (
                         temp < 25 and hum < 60
                     )
@@ -445,8 +443,7 @@ class EMBLMachineInfo(HardwareObject):
             time.sleep(sleep_time)
 
     def get_current(self):
-        """Returns machine current in mA
-        """
+        """Returns machine current in mA"""
         return self.values_ordered_dict["current"]["value"]
 
     def get_current_value(self):

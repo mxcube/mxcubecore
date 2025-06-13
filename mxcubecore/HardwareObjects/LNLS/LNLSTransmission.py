@@ -36,7 +36,7 @@ __license__ = "LGPLv3+"
 
 
 class LNLSTransmission(EPICSActuator, AbstractTransmission):
-    """Transmission value as a percentage """
+    """Transmission value as a percentage"""
 
     def init(self):
         """Override method."""
@@ -61,13 +61,12 @@ class LNLSTransmission(EPICSActuator, AbstractTransmission):
         """Override method."""
         try:
             energy_val = float(self.energy.get_value())  # Check if valid energy
-            _, actual_transmission, filter_setup = get_transmission(
-                energy_val, value)
+            _, actual_transmission, filter_setup = get_transmission(energy_val, value)
             actual_transmission = round(actual_transmission * 100, 2)
 
             logging.getLogger("HWR").info(
-                "Requested transmission: %s. Closest possible value: %s" %
-                (str(value), str(actual_transmission))
+                "Requested transmission: %s. Closest possible value: %s"
+                % (str(value), str(actual_transmission))
             )
 
             # status 0 is ok, status 1 is failure
@@ -78,11 +77,9 @@ class LNLSTransmission(EPICSActuator, AbstractTransmission):
             )
         else:
             if foil_status == 0:
-                logging.getLogger("HWR").info(
-                    "Transmission is successfully set!"
-                )
+                logging.getLogger("HWR").info("Transmission is successfully set!")
                 return
             logging.getLogger("HWR").error(
-                "Error: transmission could not be set (returned status %s)." %
-                foil_status
+                "Error: transmission could not be set (returned status %s)."
+                % foil_status
             )

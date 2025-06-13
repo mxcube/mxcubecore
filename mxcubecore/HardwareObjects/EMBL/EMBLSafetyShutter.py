@@ -32,6 +32,7 @@ __credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"
 __category__ = "General"
 
+
 @unique
 class ShutterValueEnum(Enum):
     """Defines only the compulsory values."""
@@ -75,7 +76,6 @@ class EMBLSafetyShutter(AbstractShutter):
         self.chan_cmd_open_error = None
         self.cmd_open = None
         self.cmd_close = None
-
 
     def init(self):
         super(EMBLSafetyShutter, self).init()

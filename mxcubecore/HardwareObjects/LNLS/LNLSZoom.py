@@ -8,6 +8,7 @@ Example xml file
 EL6": 6}</values>
 </object>
 """
+
 import time
 from enum import Enum
 
@@ -63,7 +64,7 @@ class LNLSZoom(EPICSActuator, AbstractNState):
         self.emit("limitsChanged", (limits,))
 
     def _initialise_values(self):
-        """Initialise the ValueEnum """
+        """Initialise the ValueEnum"""
         low, high = self.get_limits()
 
         values = {"LEVEL%s" % str(v): v for v in range(low, high + 1)}

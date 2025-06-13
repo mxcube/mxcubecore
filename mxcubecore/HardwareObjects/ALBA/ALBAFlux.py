@@ -29,7 +29,7 @@ class ALBAFlux(Device, AbstractFlux.AbstractFlux):
         return default_flux
 
     def get_transmission(self):
-        """ returns transmission between 0 and 1"""
+        """returns transmission between 0 and 1"""
         return self.trans_mot.position / 100.0
 
     def last_current_trans(self):

@@ -9,6 +9,7 @@ Example xml file:
   <values>{"in": True, "out": False}</values>
 </object>
 """
+
 import logging
 from enum import Enum
 
@@ -17,7 +18,6 @@ from mxcubecore.HardwareObjects.LNLS.EPICSActuator import EPICSActuator
 
 
 class EPICSNState(AbstractNState, EPICSActuator):
-
     def __init__(self, name):
         AbstractNState.__init__(self, name)
         self.username = "unknown"
@@ -46,7 +46,7 @@ class EPICSNState(AbstractNState, EPICSActuator):
             except TypeError:
                 value = value.value
         EPICSActuator._set_value(self, value)
-        #self.set_channel_value(self.ACTUATOR_VAL, value)
+        # self.set_channel_value(self.ACTUATOR_VAL, value)
         self.update_state()
 
     def get_value(self):
@@ -55,13 +55,13 @@ class EPICSNState(AbstractNState, EPICSActuator):
             (Enum): Enum member, corresponding to the value or UNKNOWN.
         """
         value = EPICSActuator.get_value(self)
-        #value = self.get_channel_value(self.ACTUATOR_RBV)
+        # value = self.get_channel_value(self.ACTUATOR_RBV)
         return self.value_to_enum(value)
 
     def get_actuator_state(self, read=False):
         current_value = self.get_value()
-        self.state_attr = current_value.value # Bool
-        self.actuatorState = self.states.get(self.state_attr, "unknown") # Name
+        self.state_attr = current_value.value  # Bool
+        self.actuatorState = self.states.get(self.state_attr, "unknown")  # Name
         return self.actuatorState
 
     def valueChanged(self, value):
@@ -75,9 +75,7 @@ class EPICSNState(AbstractNState, EPICSActuator):
             self.state_attr = self.moves["in"]
             self.valueChanged(self.state_attr)
         except BaseException:
-            logging.getLogger("user_level_log").error(
-                "Cannot put %s in", self.username
-            )
+            logging.getLogger("user_level_log").error("Cannot put %s in", self.username)
 
     def actuatorOut(self, wait=True, timeout=None):
         try:

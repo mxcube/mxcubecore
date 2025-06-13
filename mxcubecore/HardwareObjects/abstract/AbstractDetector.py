@@ -329,7 +329,9 @@ class AbstractDetector(HardwareObject):
         template = "%s_%s_%%0" + str(path_template.precision) + "d.%s"
         suffix = suffix or path_template.suffix
         file_name = template % (
-            path_template.get_prefix(), path_template.run_number, suffix
+            path_template.get_prefix(),
+            path_template.run_number,
+            suffix,
         )
         if path_template.compression:
             file_name = "%s.gz" % file_name
