@@ -29,8 +29,7 @@ from test import TestAbstractNStateBase
 
 @pytest.fixture
 def test_object(beamline):
-    result = beamline.safety_shutter
-    yield result
+    return beamline.safety_shutter
     # Cleanup code here - restores starting state for next call:
     # NBNB TODO
 

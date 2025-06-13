@@ -5983,7 +5983,6 @@ convention = "google"
 ]
 "test/TestHardwareObjectBase.py" = [
     "N999",
-    "PT022",
     "SLF001",
 ]
 "test/conftest.py" = [
@@ -5998,7 +5997,6 @@ convention = "google"
 ]
 "test/test_aperture.py" = [
     "ERA001",
-    "PT022",
     "SLF001",
 ]
 "test/test_base_hardware_objects.py" = [
@@ -6012,7 +6010,6 @@ convention = "google"
     "PT003",
     "PT007",
     "PT018",
-    "PT022",
     "PYI041",
     "SIM118",
     "SLF001",
@@ -6026,7 +6023,6 @@ convention = "google"
     "ERA001",
 ]
 "test/test_beamline_ho_id.py" = [
-    "PT022",
     "SIM300",
 ]
 "test/test_command_container.py" = [
@@ -6043,7 +6039,6 @@ convention = "google"
     "PT003",
     "PT007",
     "PT018",
-    "PT022",
     "SIM102",
     "SIM118",
     "SIM910",
@@ -6052,18 +6047,14 @@ convention = "google"
 "test/test_detector.py" = [
     "F841",
     "PIE808",
-    "PT022",
 ]
 "test/test_detector_distance.py" = [
-    "PT022",
 ]
 "test/test_energy.py" = [
     "ERA001",
-    "PT022",
 ]
 "test/test_flux.py" = [
     "ERA001",
-    "PT022",
     "SLF001",
     "T201",
 ]
@@ -6076,33 +6067,27 @@ convention = "google"
     "E501",
 ]
 "test/test_mach_info.py" = [
-    "PT022",
     "SLF001",
 ]
 "test/test_procedure.py" = [
     "PIE804",
 ]
 "test/test_resolution.py" = [
-    "PT022",
     "SLF001",
 ]
 "test/test_sample_view.py" = [
-    "PT022",
 ]
 "test/test_shutter.py" = [
     "ERA001",
-    "PT022",
     "T201",
 ]
 "test/test_transmission.py" = [
     "ERA001",
-    "PT022",
 ]
 "test/test_utils_units.py" = [
     "N802",
 ]
 "test/test_xrf.py" = [
     "ERA001",
-    "PT022",
     "S108",
 ]

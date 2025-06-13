@@ -31,8 +31,7 @@ __license__ = "LGPLv3+"
 
 @pytest.fixture
 def test_object(beamline):
-    result = beamline
-    yield result
+    return beamline
 
 
 class TestBeamlineHoId:

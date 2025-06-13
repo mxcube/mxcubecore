@@ -28,75 +28,69 @@ if TYPE_CHECKING:
 
 
 @pytest.fixture(scope="function")
-def configured_object() -> Generator[ConfiguredObject, None, None]:
+def configured_object() -> ConfiguredObject:
     """Pytest fixture to instantiate a new "ConfiguredObject" object.
 
     Yields:
         Generator[ConfiguredObject, None, None]: New object instance.
     """
 
-    configured_object = ConfiguredObject(name="RootObject")
-    yield configured_object
+    return ConfiguredObject(name="RootObject")
 
 
 @pytest.fixture(scope="function")
-def property_set() -> Generator[PropertySet, None, None]:
+def property_set() -> PropertySet:
     """Pytest fixture to instantiate a new "PropertySet" object.
 
     Yields:
         Generator[PropertySet, None, None]: New object instance.
     """
 
-    property_set = PropertySet()
-    yield property_set
+    return PropertySet()
 
 
 @pytest.fixture(scope="function")
-def hw_obj_node() -> Generator[HardwareObjectNode, None, None]:
+def hw_obj_node() -> HardwareObjectNode:
     """Pytest fixture to instantiate a new "HardwareObjectNode" object.
 
     Yields:
         Generator[HardwareObjectNode, None, None]: New object instance.
     """
 
-    hw_obj_node = HardwareObjectNode(node_name="test_node")
-    yield hw_obj_node
+    return HardwareObjectNode(node_name="test_node")
 
 
 @pytest.fixture(scope="function")
-def hw_obj_mixin() -> Generator[HardwareObjectMixin, None, None]:
+def hw_obj_mixin() -> HardwareObjectMixin:
     """Pytest fixture to instantiate a new "HardwareObjectMixin" object.
 
     Yields:
         Generator[HardwareObjectMixin, None, None]: New object instance.
     """
 
-    hw_obj_mixin = HardwareObjectMixin()
-    yield hw_obj_mixin
+    return HardwareObjectMixin()
 
 
 @pytest.fixture(scope="function")
-def hardware_object() -> Generator[HardwareObject, None, None]:
+def hardware_object() -> HardwareObject:
     """Pytest fixture to instantiate a new "HardwareObject" object.
 
     Yields:
         Generator[HardwareObject, None, None]: New object instance.
     """
 
-    hardware_object = HardwareObject(name="RootObject")
-    yield hardware_object
+    return HardwareObject(name="RootObject")
 
 
 @pytest.fixture(scope="function")
-def hw_obj_yml() -> Generator[HardwareObjectYaml, None, None]:
+def hw_obj_yml() -> HardwareObjectYaml:
     """Pytest fixture to instantiate a new "HardwareObjectYaml" object.
 
     Yields:
         Generator[HardwareObjectYaml, None, None]: New object instance.
     """
 
-    hw_obj_yml = HardwareObjectYaml("RootObject")
-    yield hw_obj_yml
+    return HardwareObjectYaml("RootObject")
 
 
 class TestConfiguredObject:

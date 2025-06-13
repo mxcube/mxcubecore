@@ -28,8 +28,7 @@ from test import TestAbstractActuatorBase
 
 @pytest.fixture
 def test_object(beamline):
-    result = beamline.energy
-    yield result
+    return beamline.energy
     # Cleanup code here - restores starting state for next call:
     # NBNB TODO
 

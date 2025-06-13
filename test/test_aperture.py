@@ -28,8 +28,7 @@ from test.TestAbstractNStateBase import TestAbstractNStateBase
 
 @pytest.fixture
 def test_object(beamline):
-    result = beamline.diffractometer.aperture
-    yield result
+    return beamline.diffractometer.aperture
 
 
 class TestAperture(TestAbstractNStateBase):
