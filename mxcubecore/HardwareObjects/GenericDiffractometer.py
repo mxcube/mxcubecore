@@ -1095,7 +1095,9 @@ class GenericDiffractometer(HardwareObject):
                 "Diffractometer: could not center to beam, aborting"
             )
 
-    def image_clicked(self, x: float, y: float, xi: float | None=None, yi: float | None=None):
+    def image_clicked(
+        self, x: float, y: float, xi: float | None = None, yi: float | None = None
+    ):
         """Handles a user click sent from the frontend during the manual centring.
 
         This method is called by the backend when the user clicks on the sample
