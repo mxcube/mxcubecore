@@ -268,7 +268,7 @@ class GenericDiffractometer(HardwareObject):
         self.use_sample_centring = None
 
         # Preventing user multiple clicks during manual centring step
-        self.waiting_for_click = None # None = legacy/no-wait mode, True = waiting, False = manual centring in progress
+        self.waiting_for_click = None  # None = legacy/no-wait mode, True = waiting, False = manual centring in progress
         self.click_lock = Semaphore()
 
         # time to delay for state polling for controllers
@@ -1095,7 +1095,7 @@ class GenericDiffractometer(HardwareObject):
                 "Diffractometer: could not center to beam, aborting"
             )
 
-    def image_clicked(self, x: float, y: float, xi=None, yi=None):
+    def image_clicked(self, x: float, y: float, xi: float | None=None, yi: float | None=None):
         """Handles a user click sent from the frontend during the manual centring.
 
         This method is called by the backend when the user clicks on the sample
@@ -1108,10 +1108,10 @@ class GenericDiffractometer(HardwareObject):
           - False: already received a click, ignore further clicks
 
         Args:
-            x (float): X coordinate of the click.
-            y (float): Y coordinate of the click.
-            xi (float, optional): ...
-            yi (float, optional): ...
+            x: X coordinate of the click.
+            y: Y coordinate of the click.
+            xi: ...
+            yi: ...
 
         Raises:
             RuntimeError: If a click is received while a previous one is still being processed.
