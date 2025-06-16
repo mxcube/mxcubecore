@@ -2,14 +2,9 @@ import json
 import logging
 import pathlib
 import shutil
-from datetime import (
-    datetime,
-    timedelta,
-)
-from typing import (
-    List,
-    Optional,
-)
+from collections import defaultdict
+from datetime import datetime, timedelta
+from typing import List, Optional
 from zoneinfo import ZoneInfo
 
 import requests
@@ -20,6 +15,7 @@ from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.abstract.AbstractLims import AbstractLims
 from mxcubecore.model.lims_session import (
+    Download,
     Lims,
     LimsSessionManager,
     SampleInformation,
@@ -122,7 +118,7 @@ class ICATLIMS(AbstractLims):
         )
         return self.lims_rest.to_sessions(self.lims_rest.investigations)
 
-    def _get_loaded_pucks(self):
+    def _get_loaded_pucks(self, parcels):
         """
         Retrieves all pucks from the parcels that have a defined 'sampleChangerLocation'.
 
@@ -134,8 +130,8 @@ class ICATLIMS(AbstractLims):
         """
         loaded_pucks = []
 
-        if self.parcels:
-            for parcel in self.parcels:
+        if parcels:
+            for parcel in parcels:
                 pucks = parcel.get("content", [])
                 for puck in pucks:
                     if "sampleChangerLocation" in puck:
@@ -163,7 +159,7 @@ class ICATLIMS(AbstractLims):
             list: A list of processed sample objects ready for queuing.
         """
         logger = logging.getLogger("HWR")
-        queue_samples = []
+        self.samples = []
 
         try:
             session = self.session_manager.active_session
@@ -183,7 +179,7 @@ class ICATLIMS(AbstractLims):
             )
 
             # Filter for loaded pucks
-            self.loaded_pucks = self._get_loaded_pucks()
+            self.loaded_pucks = self._get_loaded_pucks(self.parcels)
             logger.debug("[ICATClient] %d loaded pucks found", len(self.loaded_pucks))
 
             # Extract and process samples from loaded pucks
@@ -201,21 +197,13 @@ class ICATLIMS(AbstractLims):
 
                 for tracking_sample in tracking_samples:
                     sample = self.__to_sample(tracking_sample, puck, self.sample_sheets)
-                    queue_samples.append(sample)
-
+                    self.samples.append(sample)
+            logger.debug("[ICATClient] Total %d samples read", len(self.samples))
+            return self.samples
         except Exception as e:
             logger.error("[ICATClient] Error retrieving samples: %s", str(e))
-            return []
 
-        logger.debug("[ICATClient] Total %d samples read", len(queue_samples))
-        self.samples = queue_samples
-        return queue_samples
-
-    def find(self, arr, atribute_name):
-        for x in arr:
-            if x["key"] == atribute_name:
-                return x["value"]
-        return ""
+        return []
 
     def get_sample_sheet_by_id(
         self, samples: List[SampleSheet], sample_id: int
@@ -237,6 +225,29 @@ class ICATLIMS(AbstractLims):
 
     def int_to_objectid(self, i):
         return hex(i)[2:].zfill(24)
+
+    def __add_download_path_to_processing_plan(
+        self, processing_plan, downloads: List[Download]
+    ):
+        # Build a lookup for file_path by filename
+        file_path_lookup = {d.filename: d.path for d in downloads}
+        group_paths = defaultdict(list)
+        for d in downloads:
+            if d.groupName is not None:
+                group_paths[d.groupName].append(d.path)
+
+        # Enrich the processing_plan
+        for item in processing_plan:
+            if item["key"] == "pipelines":
+                for pipeline in item["value"]:
+                    # Match reference to filename
+                    ref = pipeline.get("reference")
+                    if ref in file_path_lookup:
+                        pipeline["reference_path"] = file_path_lookup[ref]
+                    # Match search_models to groupName
+                    group = pipeline.get("search_models")
+                    if group in group_paths:
+                        pipeline["search_models_path"] = group_paths[group]
 
     def __to_sample(
         self, tracking_sample: dict, puck: dict, sample_sheets: List[SampleSheet]
@@ -288,27 +299,52 @@ class ICATLIMS(AbstractLims):
         if sample_sheet:
             protein_acronym = sample_sheet.name
 
-        experiment_plan = tracking_sample.get("experimentPlan", {})
+        # This converts to key-value pairs
+        experiment_plan = {
+            item["key"]: item["value"]
+            for item in tracking_sample.get("experimentPlan", {})
+        }
 
         processing_plan = tracking_sample.get("processingPlan", [])
-        search_models = None
-        reference = None
 
         if processing_plan:
+            for item in processing_plan:
+                # converting string-like pipelines to json
+                item["value"] = json.loads(item["value"])
+            sample_information = None
             try:
-                parsed_plan = json.loads(processing_plan[0]["value"])[0]
-            except (ValueError, KeyError, IndexError, TypeError) as e:
-                parsed_plan = {}
+                sample_information: SampleInformation = (
+                    self.__get_sample_information_by(sample_sheet_id)
+                )
+                if sample_information is not None:
+                    if len(HWR.beamline.session.get_full_path()) > 0:
+                        destination_folder = HWR.beamline.session.get_full_path()[0]
+                        logging.getLogger("HWR").debug(
+                            "[ICAT] Download restource. sample_sheet_id=%s destination_folder=%s"
+                            % (sample_sheet_id, destination_folder)
+                        )
+                        downloads: List[Download] = self._download_resources(
+                            sample_sheet_id,
+                            sample_information.resources,
+                            destination_folder,
+                            sample_name,
+                        )
+                        logging.getLogger("HWR").debug(
+                            "[ICAT] donwloaded %s resources" % len(downloads)
+                        )
+                if len(downloads) > 0:
+                    self.__add_download_path_to_processing_plan(
+                        processing_plan, downloads
+                    )
 
-            try:
-                search_models = parsed_plan.get("search_models")
-            except Exception:
-                search_models = None
+                    processing_plan = {
+                        item["key"]: item["value"] for item in processing_plan
+                    }
 
-            try:
-                reference = parsed_plan.get("reference")
-            except Exception:
-                reference = None
+            except RuntimeError as e:
+                logging.getLogger("HWR").warning(
+                    "[ICAT] error getting sample information %s " % e
+                )
 
         comments = tracking_sample.get("comments")
 
@@ -318,8 +354,6 @@ class ICATLIMS(AbstractLims):
             "sample_sheet_id": sample_sheet_id,
             "trackingSampleId": trackingSampleId,
             "proteinAcronym": protein_acronym,
-            "searchModels": search_models,
-            "reference": reference,
             "sampleLocation": sample_location,
             "containerCode": puck_name,
             "containerSampleChangerLocation": puck_location,
@@ -328,33 +362,25 @@ class ICATLIMS(AbstractLims):
             "SampleTrackingContainer_id": puck_name,
             "SampleTrackingContainer_name": parcel_id,
             "smiles": None,  # Placeholder for future chemical structure info
-            "experimentType": self.find(experiment_plan, "workflowType"),
-            "crystalSpaceGroup": self.find(experiment_plan, "forceSpaceGroup"),
+            "experimentType": experiment_plan.get("workflowType"),
+            "crystalSpaceGroup": experiment_plan.get("forceSpaceGroup"),
             "diffractionPlan": {
                 # "diffractionPlanId": 457980, TODO: do we need this?
-                "experimentKind": self.find(experiment_plan, "experimentKind"),
-                "numberOfPositions": self.find(experiment_plan, "numberOfPositions"),
-                "observedResolution": self.find(experiment_plan, "observedResolution"),
-                "preferredBeamDiameter": self.find(
-                    experiment_plan, "preferredBeamDiameter"
-                ),
-                "radiationSensitivity": self.find(
-                    experiment_plan, "radiationSensitivity"
-                ),
-                "requiredCompleteness": self.find(
-                    experiment_plan, "requiredCompleteness"
-                ),
-                "requiredMultiplicity": self.find(
-                    experiment_plan, "requiredMultiplicity"
-                ),
-                "requiredResolution": self.find(experiment_plan, "requiredResolution"),
+                "experimentKind": experiment_plan.get("experimentKind"),
+                "numberOfPositions": experiment_plan.get("numberOfPositions"),
+                "observedResolution": experiment_plan.get("observedResolution"),
+                "preferredBeamDiameter": experiment_plan.get("preferredBeamDiameter"),
+                "radiationSensitivity": experiment_plan.get("radiationSensitivity"),
+                "requiredCompleteness": experiment_plan.get("requiredCompleteness"),
+                "requiredMultiplicity": experiment_plan.get("requiredMultiplicity"),
+                "requiredResolution": experiment_plan.get("requiredResolution"),
             },
-            "cellA": self.find(experiment_plan, "unit_cell_a"),
-            "cellB": self.find(experiment_plan, "unit_cell_b"),
-            "cellC": self.find(experiment_plan, "unit_cell_c"),
-            "cellAlpha": self.find(experiment_plan, "unit_cell_alpha"),
-            "cellBeta": self.find(experiment_plan, "unit_cell_beta"),
-            "cellGamma": self.find(experiment_plan, "unit_cell_gamma"),
+            "cellA": experiment_plan.get("unit_cell_a"),
+            "cellB": experiment_plan.get("unit_cell_b"),
+            "cellC": experiment_plan.get("unit_cell_c"),
+            "cellAlpha": experiment_plan.get("unit_cell_alpha"),
+            "cellBeta": experiment_plan.get("unit_cell_beta"),
+            "cellGamma": experiment_plan.get("unit_cell_gamma"),
             "experimentPlan": experiment_plan,
             "processingPlan": processing_plan,
             "comments": comments,
@@ -818,7 +844,9 @@ class ICATLIMS(AbstractLims):
             logging.error("Failed to fetch sample information for %s: %s", sample_id, e)
         return None
 
-    def _download_resources(self, sample_id, resources, output_folder: str):
+    def _download_resources(
+        self, sample_id, resources, output_folder: str, sample_name: str
+    ) -> List[Download]:
         """
         Downloads resources related to a given sample and saves them to the specified directory.
 
@@ -829,9 +857,10 @@ class ICATLIMS(AbstractLims):
         Returns:
             dict: A dictionary containing the paths of the downloaded files.
         """
-        downloaded_files = []
+        downloaded_files: List[Download] = []
         for resource in resources:
-            resource_folder = pathlib.Path(output_folder) / (
+            resource_folder = pathlib.Path(output_folder) / sample_name
+            resource_folder = pathlib.Path(resource_folder) / (
                 resource.groupName if resource.groupName else ""
             )
             resource_folder.mkdir(
@@ -852,11 +881,21 @@ class ICATLIMS(AbstractLims):
                     ):  # Efficient chunked download
                         file.write(chunk)
 
-                downloaded_files.append(str(file_path))
-                logging.info("Downloaded %s to %s", resource.filename, file_path)
+                # Create a new Download instance with updated path
+                downloaded = Download(
+                    path=str(file_path),
+                    filename=resource.filename,
+                    groupName=resource.groupName,
+                )
+                downloaded_files.append(downloaded)
+                logging.getLogger("HWR").info(
+                    "Downloaded %s to %s", resource.filename, downloaded.path
+                )
 
             except requests.exceptions.RequestException as e:
-                logging.error("Failed to download %s: %s", resource.filename, e)
+                logging.getLogger("HWR").error(
+                    "Failed to download %s: %s", resource.filename, e
+                )
 
         return downloaded_files
 
@@ -975,61 +1014,27 @@ class ICATLIMS(AbstractLims):
                 collection_parameters.get("blSampleId")
             )
 
-            if sample is not None:
-                metadata["SampleProtein_acronym"] = sample.get("proteinAcronym")
-                metadata["SampleTrackingContainer_id"] = sample.get(
-                    "containerCode"
-                )  # containerCode instead of sampletrackingcontainer_id for ISPyB's compatibility
-                metadata["SampleTrackingParcel_id"] = sample.get(
-                    "SampleTrackingParcel_id"
+            try:
+                if sample is not None:
+                    metadata["SampleProtein_acronym"] = sample.get("proteinAcronym")
+                    metadata["SampleTrackingContainer_id"] = sample.get(
+                        "containerCode"
+                    )  # containerCode instead of sampletrackingcontainer_id for ISPyB's compatiblity
+                    metadata["SampleTrackingParcel_id"] = sample.get(
+                        "SampleTrackingParcel_id"
+                    )
+                    metadata["SampleTrackingParcel_name"] = sample.get(
+                        "SampleTrackingParcel_name"
+                    )
+            except RuntimeError as e:
+                logging.getLogger("HWR").warning("Failed to add sample metadata.%s", e)
+
+            try:
+                self.add_beamline_configuration_metadata(metadata, self.beamline_config)
+            except RuntimeError as e:
+                logging.getLogger("HWR").warning(
+                    "Failed to add_beamline_configuration_metadata.%s", e
                 )
-                metadata["SampleTrackingParcel_name"] = sample.get(
-                    "SampleTrackingParcel_name"
-                )
-
-                reference_paths = None
-                search_models_paths = None
-                try:
-                    if (
-                        # self.download_sample_resources and
-                        sample.get("sample_sheet_id") is not None
-                        and scan_type == "datacollection"
-                    ):
-                        sample_info = self.__get_sample_information_by(
-                            sample.get("sample_sheet_id")
-                        )
-
-                        sample_resource_folder = directory
-
-                        if sample.get("reference") is not None:
-                            # Assuming `sample_info` is your SampleInformation instance
-                            matching_resources = [
-                                res
-                                for res in sample_info.resources
-                                if res.filename == sample.get("reference")
-                            ]
-                            reference_paths = self._download_resources(
-                                sample.get("sample_sheet_id"),
-                                matching_resources,
-                                sample_resource_folder,
-                            )
-
-                        if sample.get("searchModels") is not None:
-                            matching_resources = [
-                                res
-                                for res in sample_info.resources
-                                if res.groupName == sample.get("searchModels")
-                            ]
-                            search_models_paths = self._download_resources(
-                                sample.get("sample_sheet_id"),
-                                matching_resources,
-                                sample_resource_folder,
-                            )
-
-                except RuntimeError:
-                    logging.getLogger("HWR").error("Failed to get download resources")
-
-            self.add_beamline_configuration_metadata(metadata, self.beamline_config)
 
             # MX_axis_end
             try:
@@ -1037,7 +1042,7 @@ class ICATLIMS(AbstractLims):
                     oscillation_sequence
                 )
             except RuntimeError:
-                logging.getLogger("HWR").error("Failed to get MX_axis_end")
+                logging.getLogger("HWR").warning("Failed to get MX_axis_end")
 
             # MX_axis_end
             try:
@@ -1045,7 +1050,7 @@ class ICATLIMS(AbstractLims):
                     oscillation_sequence
                 )
             except RuntimeError:
-                logging.getLogger("HWR").exception("Failed to get MX_axis_end")
+                logging.getLogger("HWR").warning("Failed to get MX_axis_end")
 
             icat_metadata_path = pathlib.Path(directory) / "metadata.json"
             with open(icat_metadata_path, "w") as f:
@@ -1056,35 +1061,37 @@ class ICATLIMS(AbstractLims):
                     if sample is not None:
                         merged["experimentPlan"] = sample.get("experimentPlan")
                         merged["processingPlan"] = sample.get("processingPlan")
-                        merged["search_models_paths"] = search_models_paths
-                        merged["reference"] = reference_paths
-                except Exception:
-                    logging.getLogger("HWR").exception(
-                        "Failed to get merged sample plan"
+                except RuntimeError as e:
+                    logging.getLogger("HWR").warning(
+                        "Failed to get merged sample plan. %s", e
                     )
 
                 f.write(json.dumps(merged, indent=4))
+
             # Create ICAT gallery
-            gallery_path = directory / "gallery"
-            gallery_path.mkdir(mode=0o755, exist_ok=True)
-            for snapshot_index in range(1, 5):
-                key = f"xtalSnapshotFullPath{snapshot_index}"
-                if key in collection_parameters:
-                    snapshot_path = pathlib.Path(collection_parameters[key])
-                    if snapshot_path.exists():
-                        logging.getLogger("HWR").debug(
-                            f"Copying snapshot index {snapshot_index} to gallery"
-                        )
-                        shutil.copy(snapshot_path, gallery_path)
+            try:
+                gallery_path = directory / "gallery"
+                gallery_path.mkdir(mode=0o755, exist_ok=True)
+                for snapshot_index in range(1, 5):
+                    key = f"xtalSnapshotFullPath{snapshot_index}"
+                    if key in collection_parameters:
+                        snapshot_path = pathlib.Path(collection_parameters[key])
+                        if snapshot_path.exists():
+                            logging.getLogger("HWR").debug(
+                                f"Copying snapshot index {snapshot_index} to gallery"
+                            )
+                            shutil.copy(snapshot_path, gallery_path)
+            except RuntimeError as e:
+                logging.getLogger("HWR").warning("Failed to create gallery. %s", e)
 
             try:
                 beamline = self._get_scheduled_beamline()
                 logging.getLogger("HWR").info(
                     f"Dataset Beamline={beamline} Current Beamline={HWR.beamline.session.beamline_name}"
                 )
-            except Exception:
-                logging.getLogger("HWR").exception(
-                    "Failed to get _get_scheduled_beamline"
+            except RuntimeError as e:
+                logging.getLogger("HWR").warning(
+                    "Failed to get _get_scheduled_beamline. %s", e
                 )
 
             # __actualInstrument is a dataset parameter that indicates where the dataset has been actually collected
@@ -1095,8 +1102,10 @@ class ICATLIMS(AbstractLims):
                     or not self.active_session.is_scheduled_beamline
                 ):
                     metadata["__actualInstrument"] = HWR.beamline.session.beamline_name
-            except Exception:
-                logging.getLogger("HWR").exception("")
+            except RuntimeError as e:
+                logging.getLogger("HWR").warning(
+                    "Failed to set __actualInstrument. %s", e
+                )
 
             self.icatClient.store_dataset(
                 beamline=beamline,
@@ -1107,7 +1116,7 @@ class ICATLIMS(AbstractLims):
             )
             logging.getLogger("HWR").debug("Done uploading to ICAT")
         except Exception as e:
-            logging.getLogger("HWR").exception("Failed uploading to ICAT")
+            logging.getLogger("HWR").warning("Failed uploading to ICAT. %s", e)
 
     def _get_scheduled_beamline(self):
         """
