@@ -371,7 +371,7 @@ class ICATLIMS(AbstractLims):
 
     @property
     def only_staff_session_selection(self):
-        return bool(self.get_property("only_staff_session_selection", True))
+        return bool(self.get_property("only_staff_session_selection", default=True))
 
     @property
     def filter(self):
@@ -514,28 +514,26 @@ class ICATLIMS(AbstractLims):
                     + timedelta(days=float(self.after_offset_days)),
                     instrument_name=self.compatible_beamlines,
                 )
-            else:
-
-                if self.only_staff_session_selection is True:
-                    if self.session_manager.active_session is None:
-                        # If no session selected and only staff is allowed then print warning an return no investigations
-                        logging.getLogger("HWR").warning(
-                            "No session selected. Only staff can select a session"
-                        )
-                        return []
-                    else:
-                        self.investigations = self.icatClient.get_investigations_by(
-                            ids=[self.session_manager.active_session.session_id]
-                        )
-                else:
-                    self.investigations = self.icatClient.get_investigations_by(
-                        filter=self.filter,
-                        instrument_name=self.compatible_beamlines,
-                        start_date=datetime.today()
-                        - timedelta(days=float(self.before_offset_days)),
-                        end_date=datetime.today()
-                        + timedelta(days=float(self.after_offset_days)),
+            elif self.only_staff_session_selection:
+                if self.session_manager.active_session is None:
+                    # If no session selected and only staff is allowed then print warning an return no investigations
+                    logging.getLogger("HWR").warning(
+                        "No session selected. Only staff can select a session"
                     )
+                    return []
+
+                self.investigations = self.icatClient.get_investigations_by(
+                    ids=[self.session_manager.active_session.session_id]
+                )
+            else:
+                self.investigations = self.icatClient.get_investigations_by(
+                    filter=self.filter,
+                    instrument_name=self.compatible_beamlines,
+                    start_date=datetime.today()
+                    - timedelta(days=float(self.before_offset_days)),
+                    end_date=datetime.today()
+                    + timedelta(days=float(self.after_offset_days)),
+                )
             logging.getLogger("HWR").debug(
                 "[ICAT] __get_all_investigations retrieved %s investigations"
                 % len(self.investigations)
