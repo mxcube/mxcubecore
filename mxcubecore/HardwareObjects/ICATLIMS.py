@@ -44,7 +44,6 @@ class ICATLIMS(AbstractLims):
     def init(self):
         self.url = self.get_property("ws_root")
         self.ingesters = self.get_property("queue_urls")
-
         self.investigations = []
 
         # Initialize ICAT client
@@ -83,8 +82,6 @@ class ICATLIMS(AbstractLims):
 
         # Retrieving user's investigations
         sessions = self.to_sessions(self.__get_all_investigations())
-        for session in sessions:
-            print(session)
 
         if len(sessions) == 0:
             raise Exception("No sessions available for user %s" % (user_name))
@@ -504,9 +501,6 @@ class ICATLIMS(AbstractLims):
                     self.compatible_beamlines,
                 )
             )
-            import pdb
-
-            pdb.set_trace()
 
             if self.icat_session is not None and (
                 self.icat_session["isAdministrator"]
