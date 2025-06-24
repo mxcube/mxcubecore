@@ -50,7 +50,7 @@ class ISPyBAbstractLIMS(AbstractLims):
             if self.ldapConnection is None:
                 logging.getLogger("HWR").debug("LDAP Server is not available")
 
-        self.loginTranslate = self.get_property("loginTranslate") or True
+        self.loginTranslate = self.get_property("loginTranslate", default_value=True)
 
         # ISPyB Credentials
         self.ws_root = self.get_property("ws_root")
