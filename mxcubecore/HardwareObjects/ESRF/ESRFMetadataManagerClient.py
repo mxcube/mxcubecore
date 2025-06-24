@@ -1,7 +1,5 @@
 """A simple client for MetadataManager and MetaExperiment"""
 
-from __future__ import print_function
-
 import logging
 import math
 import os

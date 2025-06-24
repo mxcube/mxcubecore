@@ -2,8 +2,6 @@
 A client for ISPyB Webservices.
 """
 
-from __future__ import print_function
-
 import logging
 from datetime import datetime
 from urllib.parse import urljoin

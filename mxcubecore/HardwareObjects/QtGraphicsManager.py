@@ -36,8 +36,6 @@ example xml:
 </object>
 """
 
-from __future__ import print_function
-
 import logging
 import math
 import os

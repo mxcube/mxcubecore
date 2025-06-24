@@ -19,8 +19,6 @@ Known sites using cats90
        PX2. (CATS)
 """
 
-from __future__ import print_function
-
 import logging
 import time
 
