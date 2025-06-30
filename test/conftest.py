@@ -19,7 +19,6 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 """Tests configuration"""
 
-import sys
 from pathlib import Path
 
 import pytest
@@ -31,12 +30,6 @@ monkey.patch_all(thread=False)
 
 
 TESTS_DIR = Path(__file__).parent
-ROOT_DIR = TESTS_DIR.parent
-
-sys.path.insert(0, ROOT_DIR)
-
-print("DEBUG TESTS")
-print(sys.path)
 
 
 def _get_hwr_paths():

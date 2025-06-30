@@ -4699,7 +4699,6 @@ convention = "google"
 "test/conftest.py" = [
     "PT003",
     "SLF001",
-    "T201",
 ]
 "test/test_aperture.py" = [
     "SLF001",
