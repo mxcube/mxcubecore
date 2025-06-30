@@ -255,6 +255,12 @@ class ICATLIMS(AbstractLims):
                 for model in models:
                     model["path"] = group_paths[model["pdb_group"]]
 
+    def _safe_json_loads(self, json):
+        try:
+            return json.loads(json)
+        except json.JSONDecodeError:
+            return str(json)
+
     def __to_sample(
         self, tracking_sample: dict, puck: dict, sample_sheets: List[SampleSheet]
     ) -> dict:
@@ -315,11 +321,8 @@ class ICATLIMS(AbstractLims):
         downloads: List[Download] = []
         if processing_plan:
             for item in processing_plan:
-                # malformed JSONs are rare and performance is not a bottleneck imo acceptable to ignore the warning.
-                try:
-                    item["value"] = json.loads(item["value"])
-                except Exception:
-                    item["value"] = str(item["value"])
+                item["value"] = self._safe_json_loads(item["value"])
+
             sample_information = None
             try:
                 sample_information: SampleInformation = (
@@ -415,10 +418,6 @@ class ICATLIMS(AbstractLims):
 
     def store_robot_action(self, proposal_id: str):
         raise Exception("Not implemented")
-
-    @property
-    def only_staff_session_selection(self):
-        return bool(self.get_property("only_staff_session_selection", default=True))
 
     @property
     def filter(self):
