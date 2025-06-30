@@ -200,7 +200,7 @@ class ICATLIMS(AbstractLims):
                     self.samples.append(sample)
             logger.debug("[ICATClient] Total %d samples read", len(self.samples))
             return self.samples
-        except Exception as e:
+        except RuntimeError as e:
             logger.error("[ICATClient] Error retrieving samples: %s", str(e))
 
         return []
@@ -248,6 +248,12 @@ class ICATLIMS(AbstractLims):
                     group = pipeline.get("search_models")
                     if group in group_paths:
                         pipeline["search_models_path"] = group_paths[group]
+        for item in processing_plan:
+            if item["key"] == "search_models":
+                # Match reference to filename
+                models = item.get("value")
+                for model in models:
+                    model["path"] = group_paths[model["pdb_group"]]
 
     def __to_sample(
         self, tracking_sample: dict, puck: dict, sample_sheets: List[SampleSheet]
@@ -306,24 +312,29 @@ class ICATLIMS(AbstractLims):
         }
 
         processing_plan = tracking_sample.get("processingPlan", [])
-
+        downloads: List[Download] = []
         if processing_plan:
             for item in processing_plan:
-                # converting string-like pipelines to json
-                item["value"] = json.loads(item["value"])
+                # malformed JSONs are rare and performance is not a bottleneck, it’s acceptable to ignore the warning.
+                try:  # noqa: PERF203
+                    item["value"] = json.loads(item["value"])
+                except Exception:
+                    item["value"] = str(item["value"])
             sample_information = None
             try:
                 sample_information: SampleInformation = (
                     self.__get_sample_information_by(sample_sheet_id)
                 )
                 if sample_information is not None:
-                    if len(HWR.beamline.session.get_full_path()) > 0:
-                        destination_folder = HWR.beamline.session.get_full_path()[0]
+                    if len(HWR.beamline.session.get_full_path("", "")) > 0:
+                        destination_folder = HWR.beamline.session.get_full_path("", "")[
+                            0
+                        ]
                         logging.getLogger("HWR").debug(
                             "[ICAT] Download restource. sample_sheet_id=%s destination_folder=%s"
                             % (sample_sheet_id, destination_folder)
                         )
-                        downloads: List[Download] = self._download_resources(
+                        downloads = self._download_resources(
                             sample_sheet_id,
                             sample_information.resources,
                             destination_folder,
@@ -332,14 +343,20 @@ class ICATLIMS(AbstractLims):
                         logging.getLogger("HWR").debug(
                             "[ICAT] donwloaded %s resources" % len(downloads)
                         )
-                if len(downloads) > 0:
-                    self.__add_download_path_to_processing_plan(
-                        processing_plan, downloads
-                    )
+                        if len(downloads) > 0:
+                            try:
+                                self.__add_download_path_to_processing_plan(
+                                    processing_plan, downloads
+                                )
+                            except RuntimeError as e:
+                                logging.getLogger("HWR").warning(
+                                    "[ICAT] error __add_download_path_to_processing_plan %s "
+                                    % e
+                                )
 
-                    processing_plan = {
-                        item["key"]: item["value"] for item in processing_plan
-                    }
+                processing_plan = {
+                    item["key"]: item["value"] for item in processing_plan
+                }
 
             except RuntimeError as e:
                 logging.getLogger("HWR").warning(
@@ -391,6 +408,10 @@ class ICATLIMS(AbstractLims):
 
     def _store_data_collection_group(self, group_data):
         pass
+
+    @property
+    def only_staff_session_selection(self):
+        return bool(self.get_property("only_staff_session_selection", default=False))
 
     def store_robot_action(self, proposal_id: str):
         raise Exception("Not implemented")
@@ -770,7 +791,11 @@ class ICATLIMS(AbstractLims):
 
     def find_sample_by_sample_id(self, sample_id):
         return next(
-            (sample for sample in self.samples if sample["limsID"] == sample_id),
+            (
+                sample
+                for sample in self.samples
+                if str(sample["limsID"]) == str(sample_id)
+            ),
             None,
         )
 
@@ -856,8 +881,14 @@ class ICATLIMS(AbstractLims):
             return SampleInformation(
                 **response.json(),
             )  # Parse the response into a SampleInformation model
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 404:
+                logging.info("Sample %s not found (404)", sample_id)
+            else:
+                logging.warning("HTTP error for sample %s: %s", sample_id, e)
+
         except requests.exceptions.RequestException as e:
-            logging.error("Failed to fetch sample information for %s: %s", sample_id, e)
+            logging.warning("Request error for sample %s: %s", sample_id, e)
         return None
 
     def _download_resources(
@@ -944,7 +975,7 @@ class ICATLIMS(AbstractLims):
             try:
                 dt_naive = datetime.strptime(
                     collection_parameters.get("collection_start_time"),
-                    "%Y-%m-%d %H:%M:%S%z",
+                    "%Y-%m-%d %H:%M:%S",
                 )
                 dt_aware = dt_naive.replace(tzinfo=ZoneInfo("Europe/Paris"))
                 start_time = dt_aware.isoformat(timespec="microseconds")
@@ -1029,6 +1060,18 @@ class ICATLIMS(AbstractLims):
             sample = HWR.beamline.lims.find_sample_by_sample_id(
                 collection_parameters.get("blSampleId")
             )
+
+            try:
+                metadata["InstrumentSource_current"] = (
+                    HWR.beamline.machine_info.get_value().get("current")
+                )
+                metadata["InstrumentSource_mode"] = (
+                    HWR.beamline.machine_info.get_value().get("fill_mode")
+                )
+            except Exception as e:
+                logging.getLogger("HWR").warning(
+                    "Failed to read machine_info metadata.%s", e
+                )
 
             try:
                 if sample is not None:
