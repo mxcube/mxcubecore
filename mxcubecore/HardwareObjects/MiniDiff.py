@@ -21,6 +21,7 @@ from mxcubecore.TaskUtils import task
 
 class MiniDiff(HardwareObject):
     MANUAL3CLICK_MODE = "Manual 3-click"
+    CENTRING_METHOD_MANUAL = MANUAL3CLICK_MODE
     C3D_MODE = "Computer automatic"
     # MOVE_TO_BEAM_MODE = "Move to Beam"
 
