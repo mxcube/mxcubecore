@@ -106,7 +106,6 @@ If access is required by outside code, then it should be provided by the object'
 ### Accessing child objects
 
 The `objects` dictionary in the YAML configuration file specifies the child objects.
-These child objects can be accessed via the parent object's `role_name` attribute.
 For example, if a hardware object is configured with this configuration file:
 
 ```yaml
@@ -117,7 +116,13 @@ objects:
 
 An instance of the `Foo` class will be created.
 This instance will have a child object with `bar` role, with configuration from `gazonk.yaml` file.
-That child object will be accessible with `foo.bar` python expression, where `foo` is the parent object.
+That child object is accessible using `get_object_by_role()` method of the parent object.
+The `get_object_by_role()` method requires `role` argument.
+For example, if `foo` is an instance of `Foo` class, its `bar` object can be fetched as follows:
+
+```python
+  bar = foo.get_object_by_role("foo")
+```
 
 The Beamline object (`HardwareRepository.beamline`) is a YAML-configured object,
 and is the starting point for finding other hardware objects.

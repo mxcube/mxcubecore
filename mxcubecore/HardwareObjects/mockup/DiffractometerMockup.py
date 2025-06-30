@@ -148,6 +148,7 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         for click in range(3):
             self.user_clicked_event = AsyncResult()
+            self.waiting_for_click = True
             x, y = self.user_clicked_event.get()
             if click < 2:
                 self.motor_hwobj_dict["phi"].set_value_relative(90)

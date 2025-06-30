@@ -417,6 +417,10 @@ class ICATLIMS(AbstractLims):
         raise Exception("Not implemented")
 
     @property
+    def only_staff_session_selection(self):
+        return bool(self.get_property("only_staff_session_selection", default=True))
+
+    @property
     def filter(self):
         return self.get_property("filter", None)
 

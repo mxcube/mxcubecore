@@ -251,6 +251,7 @@ class MyDataModel(BaseModel):
                 "ui:order": [
                     "field1",
                     "field2",
+                    "field3",
                     "*",
                 ],
                 "field1": {
@@ -259,12 +260,20 @@ class MyDataModel(BaseModel):
                 "field2": {
                     "ui:options": {"col": 8}
                 },
+                "field3": {
+                    "ui:options": {"group": 'SomeGroup'}
+                }
             }
         )
 ```
 
-**Note**: The `"ui:options.col"` key is specific to MXCuBE-Web, i.e. it is not defined in the `rjsf` library.
-These values correspond to Bootstrap's `col-*` classes; i.e. these should be integers between 1 and 12 or `auto`.
-Here's more about Bootstrap's [grid system](https://getbootstrap.com/docs/4.0/layout/grid/#grid-options)
+**Note**: The `"ui:options.col"` and `"ui:options.group` keys are specific to MXCuBE-Web, i.e. it is not defined in the `rjsf` library.
+
+-   `ui:options.col`
+    These values correspond to Bootstrap's `col-*` classes; i.e. these should be integers between 1 and 12 or `auto`.
+    Here's more about Bootstrap's [grid system](https://getbootstrap.com/docs/4.0/layout/grid/#grid-options)
+-   `ui:options.group`
+    These define groups of fields. Fields in one group are displayed together. A group may be collapsed, to hide fields from one group.
+    If a field is not assigned to any group, it is assigned to a default `Acquisition` group.
 
 For a complete example see: [test_collection.py](https://github.com/mxcube/mxcubecore/blob/develop/mxcubecore/queue_entry/test_collection.py)
