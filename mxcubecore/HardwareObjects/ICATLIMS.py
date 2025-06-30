@@ -315,8 +315,8 @@ class ICATLIMS(AbstractLims):
         downloads: List[Download] = []
         if processing_plan:
             for item in processing_plan:
-                # malformed JSONs are rare and performance is not a bottleneck, it’s acceptable to ignore the warning.
-                try:  # noqa: PERF203
+                # malformed JSONs are rare and performance is not a bottleneck imo acceptable to ignore the warning.
+                try:
                     item["value"] = json.loads(item["value"])
                 except Exception:
                     item["value"] = str(item["value"])
@@ -969,11 +969,10 @@ class ICATLIMS(AbstractLims):
                     dataset_name = fileinfo["prefix"]
 
             try:
-                dt_naive = datetime.strptime(
+                dt_aware = datetime.strptime(
                     collection_parameters.get("collection_start_time"),
                     "%Y-%m-%d %H:%M:%S",
-                )
-                dt_aware = dt_naive.replace(tzinfo=ZoneInfo("Europe/Paris"))
+                ).replace(tzinfo=ZoneInfo("Europe/Paris"))
                 start_time = dt_aware.isoformat(timespec="microseconds")
                 end_time = datetime.now(ZoneInfo("Europe/Paris")).isoformat()
             except RuntimeError:

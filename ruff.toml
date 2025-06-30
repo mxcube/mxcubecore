@@ -2622,6 +2622,7 @@ convention = "google"
     "TRY300",
     "TRY400",
     "TRY401",
+    "PERF203"
 ]
 "mxcubecore/HardwareObjects/ISARAMaint.py" = [
     "B904",
