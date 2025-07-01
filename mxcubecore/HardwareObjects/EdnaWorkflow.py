@@ -146,7 +146,7 @@ class EdnaWorkflow(HardwareObject):
         workflow_list = []
 
         for _wf in self.get_property("workflow"):
-            wf = {_wf}
+            wf = dict(_wf)
             workflow_list.append(wf)
             wf["requires"] = [r.strip() for r in wf.get("requires", "").split(",")]
             wf["doc"] = ""

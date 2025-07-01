@@ -91,7 +91,7 @@ def prepare(centring_motors_dict):
     move_motors(motors_to_move)
 
     SAVED_INITIAL_POSITIONS = {
-        [(m.motor, m.motor.get_value()) for m in centring_motors_dict.values()]
+        m.motor: m.motor.get_value() for m in centring_motors_dict.values()
     }
 
     phi = centring_motors_dict["phi"]
