@@ -887,7 +887,7 @@ class ICATLIMS(AbstractLims):
                 logging.warning("HTTP error for sample %s: %s", sample_id, e)
 
         except requests.exceptions.RequestException as e:
-            logging.warning("Request error for sample %s: %s", sample_id, e)
+            logging.exception("Request error for sample %s", sample_id)
         return None
 
     def _download_resources(
