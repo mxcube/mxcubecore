@@ -868,7 +868,7 @@ class ICATLIMS(AbstractLims):
             else:
                 logging.exception("HTTP error for sample %s", sample_id)
 
-        except requests.exceptions.RequestException:
+        except requests.exceptions.RequestException as e:
             logging.exception("Request error for sample %s", sample_id)
         return None
 

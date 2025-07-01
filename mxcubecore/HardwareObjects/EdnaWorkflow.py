@@ -237,7 +237,7 @@ class EdnaWorkflow(HardwareObject):
             )
 
         except RuntimeError as e:
-            logging.warning("Failed to fetch sample information for %s", e)
+            logging.exception("Failed to fetch sample information for")
 
         self.dict_parameters["token"] = (
             self.token
