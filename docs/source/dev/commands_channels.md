@@ -43,6 +43,7 @@ Currently, the following protocols can be configured using YAML configuration fi
  - [Tango](#tango-protocol)
  - [exporter](#exporter-protocol)
  - [EPICS](#epics-protocol)
+ - [Sardana](#sardana-protocol)
 
 ## Tango Protocol
 
@@ -295,3 +296,55 @@ In the above example channels `State` and `Volume` are configured.
 The `State` channel will be mapped to PV name _MNC:B:PB04.State_.
 The `Volume` channel will be mapped to PV name _MNC:B:PB04.vlm_.
 For `Volume` channel, polling will be enabled.
+
+## Sardana protocol
+
+The format for specifying _Sardana_ `CommandObject` objects is as follows:
+
+```yaml
+class: <hardware-object-class>
+sardana:
+  <sardana-door-name>:
+    commands:
+      <command-1-name>:
+        <config-prop-1>: <val-1>
+      <command-2-name>:
+        <config-prop-1>: <val-1>
+```
+
+`<sardana-door-name>` specifies the Sardana door to use.
+Multiple `<sardana-door-name>` sections can be specified, in order to use different Sardana doors.
+Each `<sardana-door-name>` contains `commands` sections.
+These sections specify `CommandObject` objects to create using the `<sardana-door-name>` Sardana door.
+
+### Commands
+
+`commands` is a dictionary where each key specifies a `CommandObject` object.
+The key defines the MXCuBE name for the command.
+The values specify an optional dictionary with configuration properties for the `CommandObject` object.
+The following configuration properties are supported:
+
+| property | purpose            | default             |
+|----------|--------------------|---------------------|
+| name     | sardana macro name | MXCuBE command name |
+
+### Example
+
+Below is an example of a hardware object that specifies Sardana commands.
+
+```yaml
+class: MySardana
+sardana:
+  some/sardana/door:
+    commands:
+      Open:
+      Close:
+      Reset:
+        name: Reboot
+```
+
+In the above example, `Open`, `Close` and `Reset` commands are configured.
+All command objects will be executed using _some/sardana/door_ Sardana door.
+
+`Open` and `Close` commands are bound to _Open_ and _Close_ Sardana macros.
+The `Reset` has a configuration property that binds it to _Reboot_ macro.
