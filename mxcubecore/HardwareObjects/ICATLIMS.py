@@ -197,6 +197,7 @@ class ICATLIMS(AbstractLims):
                     sample = self.__to_sample(tracking_sample, puck, self.sample_sheets)
                     self.samples.append(sample)
             logger.debug("[ICATClient] Total %d samples read", len(self.samples))
+
             return self.samples
         except RuntimeError:
             logger.exception("[ICATClient] Error retrieving samples: %s")
@@ -238,6 +239,7 @@ class ICATLIMS(AbstractLims):
         for item in processing_plan:
             if item["key"] == "pipelines":
                 for pipeline in item["value"]:
+
                     # Match reference to filename
                     ref = pipeline.get("reference")
                     if ref in file_path_lookup:
@@ -253,11 +255,11 @@ class ICATLIMS(AbstractLims):
                 for model in models:
                     model["path"] = group_paths[model["pdb_group"]]
 
-    def _safe_json_loads(self, json):
+    def _safe_json_loads(self, json_str):
         try:
-            return json.loads(json)
-        except json.JSONDecodeError:
-            return str(json)
+            return json.loads(json_str)
+        except Exception:
+            return str(json_str)
 
     def __to_sample(
         self, tracking_sample: dict, puck: dict, sample_sheets: List[SampleSheet]
@@ -319,6 +321,7 @@ class ICATLIMS(AbstractLims):
         downloads: List[Download] = []
         if processing_plan:
             for item in processing_plan:
+                # when possible this converts the string to json
                 item["value"] = self._safe_json_loads(item["value"])
 
             sample_information = None
@@ -347,10 +350,9 @@ class ICATLIMS(AbstractLims):
                                 self.__add_download_path_to_processing_plan(
                                     processing_plan, downloads
                                 )
-                            except RuntimeError as e:
-                                logging.warning(
-                                    "error __add_download_path_to_processing_plan %s "
-                                    % e
+                            except RuntimeError:
+                                logging.error(
+                                    "Failed __add_download_path_to_processing_plan"
                                 )
 
                 processing_plan = {
