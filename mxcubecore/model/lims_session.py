@@ -285,7 +285,7 @@ class SampleInformation(BaseModel):
     """
     Parameters metadata related to a sample, including a list of associated resources.
 
-    Attributes:
+    Parameters:
         id (str): The unique identifier for the sample. The key "_id" is used
             in JSON and mapped to "id" in the class.
         investigationId (int): The unique identifier of the investigation this
