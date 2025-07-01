@@ -456,6 +456,7 @@ class MiniDiff(HardwareObject):
         self.emit("zoomMotorPredefinedPositionChanged", (positionName, offset))
 
     def zoomMotorStateChanged(self, state):
+        HWR.beamline.beam.re_emit_values()
         self.emit("zoomMotorStateChanged", (state,))
         self.emit("minidiffStateChanged", (state,))
 

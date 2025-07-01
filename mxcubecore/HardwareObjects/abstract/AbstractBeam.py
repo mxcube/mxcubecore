@@ -292,6 +292,7 @@ class AbstractBeam(HardwareObject):
 
         HardwareObject.re_emit_values(self)
         if self._beam_width != 9999 and self._beam_height != 9999:
+            self.get_beam_position_on_screen()
             self.emit("beamSizeChanged", (self._beam_width, self._beam_height))
             self.emit("beamInfoChanged", (self._beam_info_dict))
             self.emit("beamPosChanged", (self._beam_position_on_screen,))
