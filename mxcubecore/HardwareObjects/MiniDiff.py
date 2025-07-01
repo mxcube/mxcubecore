@@ -245,10 +245,10 @@ class MiniDiff(HardwareObject):
         # Agree on a correct method name, inconsistent arguments for move_to_beam, disabled temporarily
         # self.move_to_coord = self.move_to_beam()
 
-    def set_rotation_axis_position(self, value: float, motor_name="phiz"):
-        self._set_rotation_axis_position(value, motor_name=motor_name)
+    def set_rotation_axis_position(self, value: float):
+        self._set_rotation_axis_position(value, motor_name="phiz")
 
-    def _set_rotation_axis_position(self, value: float, motor_name="phiy"):
+    def _set_rotation_axis_position(self, value: float, motor_name="phiz"):
         logging.getLogger("HWR").info(
             f"Setting rotation axis ({motor_name}) position to {value}"
         )

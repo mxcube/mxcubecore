@@ -76,7 +76,7 @@ class MD3UP(Microdiff.Microdiff):
             "DetectorGatePulseReadoutTime",
         )
 
-    def set_rotation_axis_position(self, value: float, motor_name="phiy"):
+    def set_rotation_axis_position(self, value: float):
         self._set_rotation_axis_position(value, motor_name="phiy")
 
     # def getBeamPosX(self):
