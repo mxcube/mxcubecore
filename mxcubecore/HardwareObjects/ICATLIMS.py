@@ -239,7 +239,6 @@ class ICATLIMS(AbstractLims):
         for item in processing_plan:
             if item["key"] == "pipelines":
                 for pipeline in item["value"]:
-
                     # Match reference to filename
                     ref = pipeline.get("reference")
                     if ref in file_path_lookup:
