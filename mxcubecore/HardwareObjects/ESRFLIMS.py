@@ -28,9 +28,7 @@ class ESRFLIMS(AbstractLims):
         return self.drac.get_lims_name() + self.ispyb.get_lims_name()
 
     def get_session_id(self) -> str:
-        logging.getLogger("HWR").debug(
-            "Setting up drac session_id=%s" % (self.drac.get_session_id())
-        )
+        logging.debug("Setting up drac session_id=%s" % (self.drac.get_session_id()))
         return self.drac.get_session_id()
 
     def is_single_session_available(self):
@@ -48,9 +46,7 @@ class ESRFLIMS(AbstractLims):
         session_manager, lims_username, sessions = self.drac.login(
             user_name, token, self.session_manager
         )
-        logging.getLogger("HWR").debug(
-            "%s sessions found. user=%s" % (len(sessions), user_name)
-        )
+        logging.debug("%s sessions found. user=%s" % (len(sessions), user_name))
 
         self.session_manager = self.drac.session_manager
 
@@ -59,14 +55,14 @@ class ESRFLIMS(AbstractLims):
         # In case there is a single available session then it is selected automatically
         if self.is_single_session_available():
             single_session = self.session_manager.sessions[0]
-            logging.getLogger("HWR").debug(
+            logging.debug(
                 "Single session available which will be selected automatically. session_id=%s"
                 % (single_session.session_id)
             )
             self.set_active_session_by_id(single_session.session_id)
 
         if session_manager.active_session is None:
-            logging.getLogger("HWR").debug(
+            logging.debug(
                 "DRAC no session selected then no activation of session in ISPyB"
             )
         else:
@@ -99,7 +95,7 @@ class ESRFLIMS(AbstractLims):
 
     def get_samples(self, lims_name):
         self.set_lims_name(lims_name)
-        logging.getLogger("HWR").debug("[ESRFLIMS] get_samples %s" % self.lims_name)
+        logging.debug("[ESRFLIMS] get_samples %s" % self.lims_name)
 
         if self.is_drac():
             return self.drac.get_samples(lims_name)
@@ -117,19 +113,19 @@ class ESRFLIMS(AbstractLims):
         return self.ispyb._store_data_collection_group(group_data)
 
     def store_data_collection(self, mx_collection, bl_config=None):
-        logging.getLogger("HWR").info("Storing datacollection")
+        logging.info("Storing datacollection")
         mx_collection["sessionId"] = self.ispyb.get_session_id()
         self.drac.store_data_collection(mx_collection, bl_config)
         return self.ispyb.store_data_collection(mx_collection, bl_config)
 
     def update_data_collection(self, mx_collection):
-        logging.getLogger("HWR").info("Updating datacollection")
+        logging.info("Updating datacollection")
         mx_collection["sessionId"] = self.ispyb.get_session_id()
         self.drac.update_data_collection(mx_collection)
         return self.ispyb.update_data_collection(mx_collection)
 
     def finalize_data_collection(self, mx_collection):
-        logging.getLogger("HWR").info("Storing datacollection")
+        logging.info("Storing datacollection")
         mx_collection["sessionId"] = self.ispyb.get_session_id()
         self.drac.finalize_data_collection(mx_collection)
         return self.ispyb.finalize_data_collection(mx_collection)
@@ -150,9 +146,7 @@ class ESRFLIMS(AbstractLims):
         return self.drac.is_session_already_active(session_id)
 
     def set_active_session_by_id(self, session_id: str) -> Session:
-        logging.getLogger("HWR").debug(
-            "set_active_session_by_id. session_id=%s", str(session_id)
-        )
+        logging.debug("set_active_session_by_id. session_id=%s", str(session_id))
 
         if self.drac.session_manager.active_session is not None:
             if self.ispyb.session_manager.active_session is not None:
@@ -180,7 +174,7 @@ class ESRFLIMS(AbstractLims):
                 self.drac.session_manager.active_session is not None
                 and self.ispyb.session_manager.active_session is not None
             ):
-                logging.getLogger("HWR").info(
+                logging.info(
                     "[ESRFLIMS] MXCuBE succesfully connected to DRAC:(%s, %s) ISPYB:(%s,%s)"
                     % (
                         self.drac.session_manager.active_session.proposal_name,
@@ -190,7 +184,7 @@ class ESRFLIMS(AbstractLims):
                     )
                 )
             else:
-                logging.getLogger("HWR").warning(
+                logging.exception(
                     "[ESRFLIMS] Problem when set_active_session_by_id. DRAC:(%s) ISPYB:(%s)"
                     % (
                         self.drac.session_manager.active_session.proposal_name,

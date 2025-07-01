@@ -60,19 +60,19 @@ class ICATLIMS(AbstractLims):
         password: str,
         session_manager: Optional[LimsSessionManager],
     ) -> LimsSessionManager:
-        logging.getLogger("HWR").debug("[ICAT] authenticate %s" % (user_name))
+        logging.debug("authenticate %s" % (user_name))
 
         self.icat_session: ICATSession = self.icatClient.do_log_in(password)
 
         if self.icatClient is None or self.icatClient is None:
-            logging.getLogger("HWR").error(
-                "[ICAT] Error initializing icatClient. icatClient=%s" % (self.url)
+            logging.exception(
+                "Error initializing icatClient. icatClient=%s" % (self.url)
             )
             raise RuntimeError("Could not initialize icatClient")
 
         # Connected to metadata icatClient
-        logging.getLogger("HWR").debug(
-            "[ICAT] Connected succesfully to icatClient. fullName=%s url=%s"
+        logging.debug(
+            "Connected succesfully to icatClient. fullName=%s url=%s"
             % (self.icat_session["fullName"], self.url)
         )
 
@@ -82,9 +82,7 @@ class ICATLIMS(AbstractLims):
         if len(sessions) == 0:
             raise Exception("No sessions available for user %s" % (user_name))
 
-        logging.getLogger("HWR").debug(
-            "[ICAT] Successfully retrieved %s sessions" % (len(sessions))
-        )
+        logging.debug("Successfully retrieved %s sessions" % (len(sessions)))
 
         # This is done because ICATLims can be used standalone or from ESRFLims
         if session_manager is not None:
@@ -111,9 +109,9 @@ class ICATLIMS(AbstractLims):
         return True
 
     def get_proposals_by_user(self, user_name):
-        logging.getLogger("HWR").debug("get_proposals_by_user %s" % user_name)
+        logging.debug("get_proposals_by_user %s" % user_name)
 
-        logging.getLogger("HWR").debug(
+        logging.debug(
             "[ICATCLient] Read %s investigations" % len(self.lims_rest.investigations)
         )
         return self.lims_rest.to_sessions(self.lims_rest.investigations)
@@ -200,8 +198,8 @@ class ICATLIMS(AbstractLims):
                     self.samples.append(sample)
             logger.debug("[ICATClient] Total %d samples read", len(self.samples))
             return self.samples
-        except RuntimeError as e:
-            logger.error("[ICATClient] Error retrieving samples: %s", str(e))
+        except RuntimeError:
+            logger.exception("[ICATClient] Error retrieving samples: %s")
 
         return []
 
@@ -292,7 +290,7 @@ class ICATLIMS(AbstractLims):
         # identifier that points to the sample tracking
         trackingSampleId = tracking_sample.get("_id")
 
-        logging.getLogger("HWR").debug(
+        logging.debug(
             "[ICATClient] Sample ids sample_id=%s sample_sheet_id=%s trackingSampleId=%s",
             sample_id,
             sample_sheet_id,
@@ -333,8 +331,8 @@ class ICATLIMS(AbstractLims):
                         destination_folder = HWR.beamline.session.get_full_path("", "")[
                             0
                         ]
-                        logging.getLogger("HWR").debug(
-                            "[ICAT] Download restource. sample_sheet_id=%s destination_folder=%s"
+                        logging.debug(
+                            "Download restource. sample_sheet_id=%s destination_folder=%s"
                             % (sample_sheet_id, destination_folder)
                         )
                         downloads = self._download_resources(
@@ -343,17 +341,15 @@ class ICATLIMS(AbstractLims):
                             destination_folder,
                             sample_name,
                         )
-                        logging.getLogger("HWR").debug(
-                            "[ICAT] donwloaded %s resources" % len(downloads)
-                        )
+                        logging.debug("donwloaded %s resources" % len(downloads))
                         if len(downloads) > 0:
                             try:
                                 self.__add_download_path_to_processing_plan(
                                     processing_plan, downloads
                                 )
                             except RuntimeError as e:
-                                logging.getLogger("HWR").warning(
-                                    "[ICAT] error __add_download_path_to_processing_plan %s "
+                                logging.warning(
+                                    "error __add_download_path_to_processing_plan %s "
                                     % e
                                 )
 
@@ -362,9 +358,7 @@ class ICATLIMS(AbstractLims):
                 }
 
             except RuntimeError as e:
-                logging.getLogger("HWR").warning(
-                    "[ICAT] error getting sample information %s " % e
-                )
+                logging.warning("error getting sample information %s " % e)
 
         comments = tracking_sample.get("comments")
 
@@ -475,24 +469,22 @@ class ICATLIMS(AbstractLims):
             return None
 
     def set_active_session_by_id(self, session_id: str) -> Session:
-        logging.getLogger("HWR").debug(f"set_active_session_by_id: {session_id}")
+        logging.debug(f"set_active_session_by_id: {session_id}")
 
         if self.is_session_already_active(self.session_manager.active_session):
             return self.session_manager.active_session
 
         sessions = self.session_manager.sessions
 
-        logging.getLogger("HWR").debug(f"Sessions: {len(sessions)}")
+        logging.debug(f"Sessions: {len(sessions)}")
 
         if len(sessions) == 0:
-            logging.getLogger("HWR").error(
-                "Session list is empty. No session candidates"
-            )
+            logging.warning("Session list is empty. No session candidates")
             raise Exception("No sessions available")
 
         if len(sessions) == 1:
             self.session_manager.active_session = sessions[0]
-            logging.getLogger("HWR").debug(
+            logging.debug(
                 "Session list contains a single session. proposal_name=%s",
                 self.session_manager.active_session.proposal_name,
             )
@@ -509,14 +501,12 @@ class ICATLIMS(AbstractLims):
 
     def allow_session(self, session: Session):
         self.active_session = session
-        logging.getLogger("HWR").debug(
-            "[ICAT] allow_session investigationId=%s", session.session_id
-        )
+        logging.debug("allow_session investigationId=%s", session.session_id)
         self.icatClient.reschedule_investigation(session.session_id)
 
     def get_session_by_id(self, id: str):
-        logging.getLogger("HWR").debug(
-            "[ICAT] get_session_by_id investigationId=%s investigations=%s",
+        logging.debug(
+            "get_session_by_id investigationId=%s investigations=%s",
             id,
             str(len(self.investigations)),
         )
@@ -524,8 +514,8 @@ class ICATLIMS(AbstractLims):
         if len(investigation_list) == 1:
             self.investigation = investigation_list[0]
             return self.__to_session(investigation_list[0])
-        logging.getLogger("HWR").warn(
-            "[ICAT] No investigation found. get_session_by_id investigationId=%s investigations=%s",
+        logging.warn(
+            "No investigation found. get_session_by_id investigationId=%s investigations=%s",
             id,
             str(len(self.investigations)),
         )
@@ -536,8 +526,8 @@ class ICATLIMS(AbstractLims):
         one experimental session. It returns an empty array in case of error"""
         try:
             self.investigations = []
-            logging.getLogger("HWR").debug(
-                "[ICAT] __get_all_investigations before=%s after=%s beamline=%s isInstrumentScientist=%s isAdministrator=%s compatible_beamlines=%s"
+            logging.debug(
+                "__get_all_investigations before=%s after=%s beamline=%s isInstrumentScientist=%s isAdministrator=%s compatible_beamlines=%s"
                 % (
                     self.before_offset_days,
                     self.after_offset_days,
@@ -563,7 +553,7 @@ class ICATLIMS(AbstractLims):
             elif self.only_staff_session_selection:
                 if self.session_manager.active_session is None:
                     # If no session selected and only staff is allowed then print warning an return no investigations
-                    logging.getLogger("HWR").warning(
+                    logging.warning(
                         "No session selected. Only staff can select a session"
                     )
                     return []
@@ -580,14 +570,14 @@ class ICATLIMS(AbstractLims):
                     end_date=datetime.today()
                     + timedelta(days=float(self.after_offset_days)),
                 )
-            logging.getLogger("HWR").debug(
-                "[ICAT] __get_all_investigations retrieved %s investigations"
+            logging.debug(
+                "__get_all_investigations retrieved %s investigations"
                 % len(self.investigations)
             )
             return self.investigations
-        except Exception as e:
+        except Exception:
             self.investigations = []
-            logging.getLogger("HWR").error("[ICAT] __get_all_investigations %s " % e)
+            logging.exception("Failed on __get_all_investigations")
         return self.investigations
 
     def __get_proposal_number_by_investigation(self, investigation):
@@ -720,42 +710,34 @@ class ICATLIMS(AbstractLims):
     def get_parcels(self):
         """Returns the parcels associated to an investigation"""
         try:
-            logging.getLogger("HWR").debug(
-                "[ICAT] Retrieving parcels by investigation_id %s "
+            logging.debug(
+                "Retrieving parcels by investigation_id %s "
                 % (self.session_manager.active_session.session_id)
             )
             parcels = self.icatClient.get_parcels_by(
                 self.session_manager.active_session.session_id
             )
-            logging.getLogger("HWR").debug(
-                "[ICAT] Successfully retrieved %s parcels" % (len(parcels))
-            )
+            logging.debug("Successfully retrieved %s parcels" % (len(parcels)))
             return parcels
-        except Exception as e:
-            logging.getLogger("HWR").error(
-                "[ICAT] get_parcels_by_investigation_id %s " % (str(e))
-            )
+        except Exception:
+            logging.exception("Failed on get_parcels_by_investigation_id")
         return []
 
     def get_samples_sheets(self) -> List[SampleSheet]:
         """Returns the samples sheets associated to an investigation"""
         try:
-            logging.getLogger("HWR").debug(
-                "[ICAT] Retrieving samples by investigation_id %s "
+            logging.debug(
+                "Retrieving samples by investigation_id %s "
                 % (self.session_manager.active_session.session_id)
             )
             samples = self.icatClient.get_samples_by(
                 self.session_manager.active_session.session_id
             )
-            logging.getLogger("HWR").debug(
-                "[ICAT] Successfully retrieved %s samples" % (len(samples))
-            )
+            logging.debug("Successfully retrieved %s samples" % (len(samples)))
             # Convert to object
             return [SampleSheet.parse_obj(sample) for sample in samples]
-        except Exception as e:
-            logging.getLogger("HWR").error(
-                "[ICAT] get_samples_by_investigation_id %s " % (str(e))
-            )
+        except Exception:
+            logging.exception("Failed on get_samples_by_investigation_id")
         return []
 
     def echo(self):
@@ -818,10 +800,10 @@ class ICATLIMS(AbstractLims):
                 if cell is not None and puck is not None:
                     position = int(cell * 3) + int(puck)
             except Exception as e:
-                logging.getLogger("HWR").exception(e)
+                logging.exception(e)
             return position, sample_position
         except Exception as e:
-            logging.getLogger("HWR").exception(e)
+            logging.exception(e)
 
     def store_beamline_setup(self, session_id: str, bl_config_dict: dict):
         pass
@@ -884,10 +866,10 @@ class ICATLIMS(AbstractLims):
             if e.response.status_code == 404:
                 logging.info("Sample %s not found (404)", sample_id)
             else:
-                logging.warning("HTTP error for sample %s: %s", sample_id, e)
+                logging.exception("HTTP error for sample %s", sample_id)
 
-        except requests.exceptions.RequestException as e:
-            logging.warning("Request error for sample %s: %s", sample_id, e)
+        except requests.exceptions.RequestException:
+            logging.exception("Request error for sample %s", sample_id)
         return None
 
     def _download_resources(
@@ -934,19 +916,15 @@ class ICATLIMS(AbstractLims):
                     groupName=resource.groupName,
                 )
                 downloaded_files.append(downloaded)
-                logging.getLogger("HWR").info(
-                    "Downloaded %s to %s", resource.filename, downloaded.path
-                )
+                logging.info("Downloaded %s to %s", resource.filename, downloaded.path)
 
-            except requests.exceptions.RequestException as e:
-                logging.getLogger("HWR").error(
-                    "Failed to download %s: %s", resource.filename, e
-                )
+            except requests.exceptions.RequestException:
+                logging.exception("Failed to download %s", resource.filename)
 
         return downloaded_files
 
     def finalize_data_collection(self, collection_parameters):
-        logging.getLogger("HWR").info("Storing datacollection in ICAT")
+        logging.info("Storing datacollection in ICAT")
 
         try:
             fileinfo = collection_parameters["fileinfo"]
@@ -979,7 +957,7 @@ class ICATLIMS(AbstractLims):
                 start_time = dt_aware.isoformat(timespec="microseconds")
                 end_time = datetime.now(ZoneInfo("Europe/Paris")).isoformat()
             except RuntimeError:
-                logging.getLogger("HWR").error("Failed to parse start and end time")
+                logging.warning("Failed to parse start and end time")
 
             if collection_parameters["sample_reference"]["acronym"]:
                 sample_name = (
@@ -992,7 +970,7 @@ class ICATLIMS(AbstractLims):
                     "sample_name"
                 ].replace(":", "-")
 
-            logging.getLogger("HWR").info(f"LIMS sample name {sample_name}")
+            logging.info(f"LIMS sample name {sample_name}")
             oscillation_sequence = collection_parameters["oscillation_sequence"][0]
 
             beamline = HWR.beamline.session.beamline_name.lower()
@@ -1067,9 +1045,7 @@ class ICATLIMS(AbstractLims):
                     HWR.beamline.machine_info.get_value().get("fill_mode")
                 )
             except Exception as e:
-                logging.getLogger("HWR").warning(
-                    "Failed to read machine_info metadata.%s", e
-                )
+                logging.warning("Failed to read machine_info metadata.%s", e)
 
             try:
                 if sample is not None:
@@ -1084,14 +1060,12 @@ class ICATLIMS(AbstractLims):
                         "SampleTrackingParcel_name"
                     )
             except RuntimeError as e:
-                logging.getLogger("HWR").warning("Failed to add sample metadata.%s", e)
+                logging.warning("Failed to add sample metadata.%s", e)
 
             try:
                 self.add_beamline_configuration_metadata(metadata, self.beamline_config)
             except RuntimeError as e:
-                logging.getLogger("HWR").warning(
-                    "Failed to add_beamline_configuration_metadata.%s", e
-                )
+                logging.warning("Failed to add_beamline_configuration_metadata.%s", e)
 
             # MX_axis_end
             try:
@@ -1099,7 +1073,7 @@ class ICATLIMS(AbstractLims):
                     oscillation_sequence
                 )
             except RuntimeError:
-                logging.getLogger("HWR").warning("Failed to get MX_axis_end")
+                logging.warning("Failed to get MX_axis_end")
 
             # MX_axis_end
             try:
@@ -1107,7 +1081,7 @@ class ICATLIMS(AbstractLims):
                     oscillation_sequence
                 )
             except RuntimeError:
-                logging.getLogger("HWR").warning("Failed to get MX_axis_end")
+                logging.warning("Failed to get MX_axis_end")
 
             icat_metadata_path = pathlib.Path(directory) / "metadata.json"
             with open(icat_metadata_path, "w") as f:
@@ -1119,9 +1093,7 @@ class ICATLIMS(AbstractLims):
                         merged["experimentPlan"] = sample.get("experimentPlan")
                         merged["processingPlan"] = sample.get("processingPlan")
                 except RuntimeError as e:
-                    logging.getLogger("HWR").warning(
-                        "Failed to get merged sample plan. %s", e
-                    )
+                    logging.warning("Failed to get merged sample plan. %s", e)
 
                 f.write(json.dumps(merged, indent=4))
 
@@ -1134,22 +1106,20 @@ class ICATLIMS(AbstractLims):
                     if key in collection_parameters:
                         snapshot_path = pathlib.Path(collection_parameters[key])
                         if snapshot_path.exists():
-                            logging.getLogger("HWR").debug(
+                            logging.debug(
                                 f"Copying snapshot index {snapshot_index} to gallery"
                             )
                             shutil.copy(snapshot_path, gallery_path)
             except RuntimeError as e:
-                logging.getLogger("HWR").warning("Failed to create gallery. %s", e)
+                logging.warning("Failed to create gallery. %s", e)
 
             try:
                 beamline = self._get_scheduled_beamline()
-                logging.getLogger("HWR").info(
+                logging.info(
                     f"Dataset Beamline={beamline} Current Beamline={HWR.beamline.session.beamline_name}"
                 )
             except RuntimeError as e:
-                logging.getLogger("HWR").warning(
-                    "Failed to get _get_scheduled_beamline. %s", e
-                )
+                logging.warning("Failed to get _get_scheduled_beamline. %s", e)
 
             # __actualInstrument is a dataset parameter that indicates where the dataset has been actually collected
             # only filled when it does not match the scheduled beamline
@@ -1160,9 +1130,7 @@ class ICATLIMS(AbstractLims):
                 ):
                     metadata["__actualInstrument"] = HWR.beamline.session.beamline_name
             except RuntimeError as e:
-                logging.getLogger("HWR").warning(
-                    "Failed to set __actualInstrument. %s", e
-                )
+                logging.warning("Failed to set __actualInstrument. %s", e)
 
             self.icatClient.store_dataset(
                 beamline=beamline,
@@ -1171,9 +1139,9 @@ class ICATLIMS(AbstractLims):
                 path=str(directory),
                 metadata=metadata,
             )
-            logging.getLogger("HWR").debug("Done uploading to ICAT")
+            logging.debug("Done uploading to ICAT")
         except Exception as e:
-            logging.getLogger("HWR").warning("Failed uploading to ICAT. %s", e)
+            logging.warning("Failed uploading to ICAT. %s", e)
 
     def _get_scheduled_beamline(self):
         """
@@ -1186,9 +1154,7 @@ class ICATLIMS(AbstractLims):
             return HWR.beamline.session.beamline_name.lower()
 
         beamline = str(active_session.beamline_name.lower())
-        logging.getLogger("HWR").info(
-            f"Session have been moved to another beamline: {beamline}"
-        )
+        logging.info(f"Session have been moved to another beamline: {beamline}")
         return beamline
 
     def update_bl_sample(self, bl_sample: str):
