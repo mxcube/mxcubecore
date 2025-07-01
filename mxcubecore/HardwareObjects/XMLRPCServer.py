@@ -638,17 +638,6 @@ class XMLRPCServer(HardwareObject):
         """
         return HWR.beamline.diffractometer.getBackLightLevel()
 
-    def centre_beam(self):
-        """
-        Centers the beam using the beamcmds hardware object.
-        """
-        self.beamcmds_hwobj.centrebeam()
-        while (
-            self.beamcmds_hwobj.centrebeam._cmd_execution
-            and not self.beamcmds_hwobj.centrebeam._cmd_execution.ready()
-        ):
-            time.sleep(1)
-
     def _register_module_functions(self, module_name, recurse=True, prefix=""):
         log = logging.getLogger("HWR")
         # log.info("Registering functions in module %s with XML-RPC server" % module_name)
@@ -744,3 +733,10 @@ class XMLRPCServer(HardwareObject):
 
     def set_rotation_axis_position(self, value: float):
         HWR.beamline.diffractometer.set_rotation_axis_position(value, motor_name="phiy")
+
+    def centre_beam(self):
+        """
+        Centers the beam using the beamcmds hardware object.
+        """
+        actions = HWR.beamline.beamline_actions.get_object_by_role("controller")
+        actions.centrebeam()
