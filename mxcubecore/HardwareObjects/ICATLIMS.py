@@ -903,9 +903,9 @@ class ICATLIMS(AbstractLims):
                     dataset_name = fileinfo["prefix"]
 
             try:
-                dt_naive = datetime.strptime(
+                dt_naive = datetime.strptime(  # noqa: DTZ007
                     collection_parameters.get("collection_start_time"),
-                    "%Y-%m-%d %H:%M:%S%z",
+                    "%Y-%m-%d %H:%M:%S",
                 )
                 dt_aware = dt_naive.replace(tzinfo=ZoneInfo("Europe/Paris"))
                 start_time = dt_aware.isoformat(timespec="microseconds")
