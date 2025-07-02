@@ -313,11 +313,11 @@ class Download(BaseModel):
     Represents a downloadable file with metadata used to match pipeline references.
 
     Parameters:
-        path (str): Absolute file path to the downloaded file on the filesystem.
-        filename (str): Name of the file, used for matching with pipeline references.
-        groupName (Optional[str]): Optional group identifier, used to match with
-        search models.
-        Can be None or a string such as 'Group1', 'Group2', etc.
+        path: Absolute file path to the downloaded file on the filesystem.
+        filename: Name of the file, used for matching with pipeline references.
+        groupName:
+            Optional group identifier, used to match with search models.
+            Can be None or a string such as 'Group1', 'Group2', etc.
     """
 
     path: str = Field(..., description="Full path to the file on disk")
