@@ -287,7 +287,7 @@ class ICATLIMS(AbstractLims):
 
         # MXCuBE needs to be an integer while in DRAC is a ObjectId
         # Mongo @BES needs to be smaller then 8 bytes
-        sample_id = int(str(self.objectid_to_int(tracking_sample.get("id")))[0:6])
+        sample_id = int(str(self.objectid_to_int(tracking_sample.get("id")))[-6:])
         # id to the sample sheet declared in the user portal
         sample_sheet_id = tracking_sample.get("sampleId")
         # identifier that points to the sample tracking

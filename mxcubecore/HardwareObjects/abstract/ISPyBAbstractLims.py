@@ -176,7 +176,9 @@ class ISPyBAbstractLIMS(AbstractLims):
         for sample in self.samples:
             try:
                 if str(sample.get("limsID")) == str(sample_id):
-                    logging.getLogger("HWR").debug("Sample found by limsID=%s")
+                    logging.getLogger("HWR").debug(
+                        "Sample found by limsID=%s" % (sample_id)
+                    )
                     return sample
             except (TypeError, KeyError):
                 pass
