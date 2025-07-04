@@ -120,14 +120,14 @@ That child object is accessible using `get_object_by_role()` method of the paren
 The `get_object_by_role()` method requires `role` argument.
 For example, if `foo` is an instance of `Foo` class, its `bar` object can be fetched as follows:
 
+```python
+  bar = foo.get_object_by_role("foo")
+```
+
 The `get_object_by_role` function is intended for private child objects; it is scheduled
 to be renamed to `_get_object_by_role` to reflect this. Child objects that are part of a class public interface -
 particularly that of abstract classes - must be defined as a property
 of the class, so they can (and should) be accessed as, in the example given above, `myFoo.bar`.
-
-```python
-  bar = foo.get_object_by_role("foo")
-```
 
 The Beamline object (`HardwareRepository.beamline`) is a YAML-configured object,
 and is the starting point for finding other hardware objects.
