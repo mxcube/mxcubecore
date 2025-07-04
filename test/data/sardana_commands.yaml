@@ -1,0 +1,12 @@
+# yamllint disable rule:empty-values
+%YAML 1.2
+---
+class: Dummy
+configuration: {}
+sardana:
+  my/sardana/door:
+    commands:
+      Go:
+      Stop:
+        name: halt
+      Abort:

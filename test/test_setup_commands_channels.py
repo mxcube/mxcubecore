@@ -109,6 +109,14 @@ class _EpicsCh:
     polling: Optional[int] = None
 
 
+@dataclass
+class _SardanaCmd:
+    """describes expected Sardana command object"""
+
+    door_name: str
+    macro_format: str
+
+
 def test_no_commands_channels(test_hwo):
     """test loading a config that does not specify any command or channels"""
     config = _parse_yaml_config("no_commands_channels.yaml")
@@ -396,3 +404,42 @@ def test_epics(test_hwo):
     }
 
     _assert_epics_channels(test_hwo.get_channels(), expected_channels)
+
+
+def _assert_sardana_commands(commands, expected_commands):
+    commands = {command.name(): command for command in commands}
+
+    # check by name that we got all the expected commands
+    assert commands.keys() == expected_commands.keys()
+
+    # check the details of each command
+    for name, command in commands.items():
+        expected = expected_commands[name]
+        assert command.doorname == expected.door_name
+        assert command.macro_format == expected.macro_format
+
+
+def test_sardana(test_hwo):
+    """test loading config with Sardana commands"""
+    door_name = "my/sardana/door"
+    config = _parse_yaml_config("sardana_commands.yaml")
+
+    #
+    # install mock 'taurus' and 'sardana' python modules,
+    # otherwise MXCuBE will fail to create Sardana command objects
+    #
+    import sys
+
+    sys.modules["taurus"] = mock.Mock()
+    sys.modules["sardana.taurus.core.tango.sardana"] = mock.Mock()
+
+    # parse the config with sardana commands
+    setup_commands_channels(test_hwo, config)
+
+    # check that expected command objects were created
+    expected_commands = {
+        "Go": _SardanaCmd(door_name, "Go"),
+        "Stop": _SardanaCmd(door_name, "halt"),
+        "Abort": _SardanaCmd(door_name, "Abort"),
+    }
+    _assert_sardana_commands(test_hwo.get_commands(), expected_commands)

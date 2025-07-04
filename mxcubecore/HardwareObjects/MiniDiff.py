@@ -21,6 +21,7 @@ from mxcubecore.TaskUtils import task
 
 class MiniDiff(HardwareObject):
     MANUAL3CLICK_MODE = "Manual 3-click"
+    CENTRING_METHOD_MANUAL = MANUAL3CLICK_MODE
     C3D_MODE = "Computer automatic"
     # MOVE_TO_BEAM_MODE = "Move to Beam"
 
@@ -244,10 +245,10 @@ class MiniDiff(HardwareObject):
         # Agree on a correct method name, inconsistent arguments for move_to_beam, disabled temporarily
         # self.move_to_coord = self.move_to_beam()
 
-    def set_rotation_axis_position(self, value: float, motor_name="phiz"):
-        self._set_rotation_axis_position(value, motor_name=motor_name)
+    def set_rotation_axis_position(self, value: float):
+        self._set_rotation_axis_position(value, motor_name="phiz")
 
-    def _set_rotation_axis_position(self, value: float, motor_name="phiy"):
+    def _set_rotation_axis_position(self, value: float, motor_name="phiz"):
         logging.getLogger("HWR").info(
             f"Setting rotation axis ({motor_name}) position to {value}"
         )
@@ -455,6 +456,7 @@ class MiniDiff(HardwareObject):
         self.emit("zoomMotorPredefinedPositionChanged", (positionName, offset))
 
     def zoomMotorStateChanged(self, state):
+        HWR.beamline.beam.re_emit_values()
         self.emit("zoomMotorStateChanged", (state,))
         self.emit("minidiffStateChanged", (state,))
 

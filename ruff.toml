@@ -2070,10 +2070,6 @@ convention = "google"
     "ERA001",
     "N999",
 ]
-"mxcubecore/HardwareObjects/ESRF/ID30Controller.py" = [
-    "ARG002",
-    "N999",
-]
 "mxcubecore/HardwareObjects/ESRF/MD2MultiCollect.py" = [
     "A001",
     "ARG002",
@@ -3336,15 +3332,6 @@ convention = "google"
     "T201",
     "T203",
 ]
-"mxcubecore/HardwareObjects/Q315dist.py" = [
-    "E501",
-    "ERA001",
-    "N802",
-    "N814",
-    "N999",
-    "RET505",
-    "SLF001",
-]
 "mxcubecore/HardwareObjects/QtAxisCamera.py" = [
     "ERA001",
     "EXE002",
@@ -3534,59 +3521,7 @@ convention = "google"
     "ERA001",
     "N999",
 ]
-"mxcubecore/HardwareObjects/Robodiff.py" = [
-    "ARG002",
-    "B006",
-    "B009",
-    "BLE001",
-    "C901",
-    "EM101",
-    "ERA001",
-    "FBT002",
-    "FBT003",
-    "N803",
-    "N999",
-    "PERF401",
-    "SIM201",
-    "SLF001",
-    "TRY003",
-]
-"mxcubecore/HardwareObjects/RobodiffController.py" = [
-    "ARG002",
-    "N999",
-]
-"mxcubecore/HardwareObjects/RobodiffFShut.py" = [
-    "ARG002",
-    "FBT002",
-    "N802",
-    "N999",
-]
-"mxcubecore/HardwareObjects/RobodiffLight.py" = [
-    "BLE001",
-    "F401",
-    "F821",
-    "N802",
-    "N999",
-    "RUF012",
-]
-"mxcubecore/HardwareObjects/RobodiffMotor.py" = [
-    "ERA001",
-    "FBT002",
-    "N802",
-    "N803",
-    "N814",
-    "N999",
-]
-"mxcubecore/HardwareObjects/RobodiffMotorWPositions.py" = [
-    "ARG002",
-    "BLE001",
-    "FBT002",
-    "N802",
-    "N803",
-    "N806",
-    "N999",
-    "TRY400",
-]
+
 "mxcubecore/HardwareObjects/SC3.py" = [
     "ARG002",
     "BLE001",
@@ -5852,12 +5787,7 @@ convention = "google"
     "RET505",
     "SIM108",
 ]
-"mxcubecore/utils/dataobject.py" = [
-    "ARG002",
-    "ERA001",
-    "RUF012",
-    "T201",
-]
+
 "mxcubecore/utils/qt_import.py" = [
     "BLE001",
     "E501",
