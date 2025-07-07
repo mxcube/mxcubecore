@@ -21,5 +21,6 @@ Developer documentation
     api
     json-schema-generated-user-interface
     yaml_conf_migration
+    user-based-login-details
 
 ..  # EOF
