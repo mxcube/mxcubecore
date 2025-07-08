@@ -18,12 +18,12 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-"""Abstract XRF spectrum class. Compliant with queue_entry/xrf_spectrum.py"""
+"""Abstract XRF spectrum class. Complient with queue_entry/xrf_spectrum.py"""
 
 import abc
 import logging
-import os
 import time
+from pathlib import Path
 
 import gevent
 
@@ -51,7 +51,7 @@ class AbstractXRFSpectrum(HardwareObject):
 
     Note:
         _execute_spectrum and spectrum_analyse are hooks to be overloaded
-        for specific implementation.
+        for spcific implementation.
     """
 
     __metaclass__ = abc.ABCMeta
@@ -73,29 +73,30 @@ class AbstractXRFSpectrum(HardwareObject):
 
     def start_spectrum(
         self,
-        integration_time=None,
-        data_dir=None,
-        prefix=None,
-        archive_dir=None,
-        session_id=None,
-        blsample_id=None,
-        cpos=None,
+        integration_time: float | None = None,
+        data_dir: str | None = None,
+        prefix: str | None = None,
+        archive_dir: str | None = None,
+        session_id: int | None = None,
+        blsample_id: int | None = None,
+        cpos: int | None = None,
     ):
         """Start the procedure. Called by the queue_model.
 
         Args:
-            integration_time (float): Inregration time [s].
-            data_dir (str): Directory to save the data (full path).
-            archive_dir (str): Directory to save the archive data (full path).
-            prefix (str): File prefix
-            session_id (int): Session ID number (from ISpyB)
-            blsample_id (int): Sample ID number (from ISpyB)
+            integration_time: Inregration time [s].
+            data_dir: Directory to save the data (full path).
+            archive_dir: Directory to save the archive data (full path).
+            prefix: File prefix
+            session_id: Session ID number (from ISpyB)
+            blsample_id: Sample ID number (from ISpyB)
         """
         self.cpos = cpos
         self.spectrum_info_dict = {"sessionId": session_id, "blSampleId": blsample_id}
         integration_time = integration_time or self.default_integration_time
         self.spectrum_info_dict["exposureTime"] = integration_time
         self.spectrum_info_dict["filename"] = ""
+
         # Create the data and the archive directory (if needed) and files
         if data_dir:
             if not self.create_directory(data_dir):
@@ -125,12 +126,16 @@ class AbstractXRFSpectrum(HardwareObject):
         )
         return True
 
-    def execute_spectrum(self, integration_time=None, filename=None):
+    def execute_spectrum(
+        self,
+        integration_time: float | None = None,
+        filename: str | None = None,
+    ):
         """Do the acquisition.
 
         Args:
-            integration_time (float): MCA integration time [s].
-            filename (str): Data file (full path).
+            integration_time: MCA integration time [s].
+            filename: Data file (full path).
         Raises:
             RuntimeError: Cannot acquire data.
         """
@@ -149,23 +154,27 @@ class AbstractXRFSpectrum(HardwareObject):
             self.update_state(self.STATES.FAULT)
 
     @abc.abstractmethod
-    def _execute_spectrum(self, integration_time=None, filename=None):
+    def _execute_spectrum(
+        self,
+        integration_time: float | None = None,
+        filename: str | None = None,
+    ) -> bool:
         """Specific XRF acquisition procedure"""
         return True
 
-    def create_directory(self, directory):
+    def create_directory(self, directory: str) -> bool:
         """Create a directory, if needed.
         Args:
-            directory (str): Directory to save the data (full path).
+            directory: Directory to save the data (full path).
         Returns:
-           (bool): Tue if directory created or already exists, False if error.
+           (bool): True if directory created or already exists, False if error.
         """
-        if not os.path.isdir(directory):
+        if not Path(directory).is_dir():
             msg = f"XRFSpectrum: directory creating {directory}"
             try:
-                if not os.path.exists(directory):
+                if not Path(directory).exists():
                     logging.getLogger("user_level_log").debug(msg)
-                    os.makedirs(directory)
+                    Path(directory).mkdir(parents=True)
                 return True
             except OSError as err:
                 msg += f": {err}"
@@ -175,7 +184,7 @@ class AbstractXRFSpectrum(HardwareObject):
                 return False
         return True
 
-    def get_filename(self, directory, prefix):
+    def get_filename(self, directory: str, prefix: str) -> str:
         """Create file template.
         Args:
             directory(str): directory name (full path)
@@ -183,19 +192,16 @@ class AbstractXRFSpectrum(HardwareObject):
             (str): File template
         """
         _pattern = f"{prefix}_{time.strftime('%d_%b_%Y')}_%02d_xrf"
-        filename_pattern = os.path.join(directory, _pattern)
-        filename = filename_pattern % 1
-        # fileprefix = _pattern % 1
+        filename = Path(directory) / (_pattern % 1)
 
         i = 2
-        while os.path.isfile(filename):
-            filename = filename_pattern % i
-            # fileprefix = _pattern % i
-            i = i + 1
+        while Path(filename).is_file():
+            filename = Path(directory) / (_pattern % i)
+            i += 1
 
-        return filename
+        return str(filename)
 
-    def spectrum_status_change(self, status_msg):
+    def spectrum_status_change(self, status_msg: str):
         """Emit the signal xrfSpectrumStatusChanged with appropriate message.
         Args:
             status_msg(str): Message to send.
