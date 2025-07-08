@@ -308,7 +308,7 @@ class CommandContainer:
                 "__getattr__ should not be used to retrieve "
                 "commands. Use get_command_object() instead."
             )
-        super().__getattr__(attr)
+        return super().__getattribute__(attr)
 
     def get_channel_object(
         self,
