@@ -292,13 +292,13 @@ class ICATLIMS(AbstractLims):
         # id to the sample sheet declared in the user portal
         sample_sheet_id = tracking_sample.get("sampleId")
         # identifier that points to the sample tracking
-        trackingSampleId = tracking_sample.get("_id")
+        tracking_sample_id = tracking_sample.get("_id")
 
         logger.debug(
-            "[ICATClient] Sample ids sample_id=%s sample_sheet_id=%s trackingSampleId=%s",
+            "[ICATClient] Sample ids sample_id=%s sample_sheet_id=%s tracking_sample_id=%s",
             sample_id,
             sample_sheet_id,
-            trackingSampleId,
+            tracking_sample_id,
         )
 
         sample_location = tracking_sample.get("sampleContainerPosition")
@@ -353,7 +353,7 @@ class ICATLIMS(AbstractLims):
                                     processing_plan, downloads
                                 )
                             except RuntimeError:
-                                logger.error(
+                                logger.exception(
                                     "Failed __add_download_path_to_processing_plan"
                                 )
 
@@ -370,7 +370,7 @@ class ICATLIMS(AbstractLims):
             "sampleName": sample_name,
             "sampleId": sample_id,
             "sample_sheet_id": sample_sheet_id,
-            "trackingSampleId": trackingSampleId,
+            "trackingSampleId": tracking_sample_id,
             "proteinAcronym": protein_acronym,
             "sampleLocation": sample_location,
             "containerCode": puck_name,
@@ -805,11 +805,11 @@ class ICATLIMS(AbstractLims):
             try:
                 if cell is not None and puck is not None:
                     position = int(cell * 3) + int(puck)
-            except Exception as e:
-                logger.exception(e)
+            except Exception:
+                logger.exception()
             return position, sample_position
-        except Exception as e:
-            logger.exception(e)
+        except Exception:
+            logger.exception()
 
     def store_beamline_setup(self, session_id: str, bl_config_dict: dict):
         pass
@@ -848,7 +848,7 @@ class ICATLIMS(AbstractLims):
                 start_time = dt_aware.isoformat(timespec="microseconds")
                 end_time = dt_aware_end.isoformat(timespec="microseconds")
             except TypeError:
-                logging.getLogger("HWR").error("Failed to parse start and end time")
+                logging.getLogger("HWR").exception("Failed to parse start and end time")
 
             directory = Path(collection_parameters["filename"]).parent
 
@@ -886,8 +886,8 @@ class ICATLIMS(AbstractLims):
                 path=str(directory),
                 metadata=metadata,
             )
-        except Exception as e:
-            logging.getLogger("ispyb_client").exception(str(e))
+        except Exception:
+            logging.getLogger("ispyb_client").exception()
 
         return status
 
@@ -942,7 +942,7 @@ class ICATLIMS(AbstractLims):
             else:
                 logger.exception("HTTP error for sample %s", sample_id)
 
-        except requests.exceptions.RequestException as e:
+        except requests.exceptions.RequestException:
             logger.exception("Request error for sample %s", sample_id)
         return None
 
@@ -1238,4 +1238,3 @@ class ICATLIMS(AbstractLims):
         :param sample_dict: A dictionary with the properties for the entry.
         :type sample_dict: dict
         """
-        pass
