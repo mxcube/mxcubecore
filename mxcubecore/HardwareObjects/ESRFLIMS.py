@@ -8,6 +8,8 @@ from mxcubecore.model.lims_session import (
     Session,
 )
 
+logger = logging.getLogger("HWR")
+
 
 class ESRFLIMS(AbstractLims):
     """
@@ -22,15 +24,13 @@ class ESRFLIMS(AbstractLims):
         self.ispyb = self.get_object_by_role("ispyb")
 
         self.is_local_host = False
-        self.lims_name = self.drac.get_lims_name()
+        self.active_lims = self.drac.get_lims_name()
 
     def get_lims_name(self) -> List[Lims]:
         return self.drac.get_lims_name() + self.ispyb.get_lims_name()
 
     def get_session_id(self) -> str:
-        logging.getLogger("HWR").debug(
-            "Setting up drac session_id=%s" % (self.drac.get_session_id())
-        )
+        logger.debug("Setting up drac session_id=%s" % (self.drac.get_session_id()))
         return self.drac.get_session_id()
 
     def is_single_session_available(self):
@@ -48,9 +48,7 @@ class ESRFLIMS(AbstractLims):
         session_manager, lims_username, sessions = self.drac.login(
             user_name, token, self.session_manager
         )
-        logging.getLogger("HWR").debug(
-            "%s sessions found. user=%s" % (len(sessions), user_name)
-        )
+        logger.debug("%s sessions found. user=%s" % (len(sessions), user_name))
 
         self.session_manager = self.drac.session_manager
 
@@ -59,14 +57,14 @@ class ESRFLIMS(AbstractLims):
         # In case there is a single available session then it is selected automatically
         if self.is_single_session_available():
             single_session = self.session_manager.sessions[0]
-            logging.getLogger("HWR").debug(
+            logger.debug(
                 "Single session available which will be selected automatically. session_id=%s"
                 % (single_session.session_id)
             )
             self.set_active_session_by_id(single_session.session_id)
 
         if session_manager.active_session is None:
-            logging.getLogger("HWR").debug(
+            logger.debug(
                 "DRAC no session selected then no activation of session in ISPyB"
             )
         else:
@@ -84,27 +82,32 @@ class ESRFLIMS(AbstractLims):
         """
         Returns true if the lims used for synchronization of the samples is DRAC
         """
-        try:
-            drac_lims = [
-                lims
-                for lims in self.drac.get_lims_name()
-                if lims.name == self.lims_name
-            ]
-            return len(drac_lims) == 1
-        except RuntimeError:
-            return True
+        return self.get_active_lims().name == self.drac.get_lims_name()[0].name
 
-    def set_lims_name(self, lims_name):
-        self.lims_name = lims_name
+    def set_active_lims(self, lims):
+        self.active_lims = lims
 
-    def get_samples(self, lims_name):
-        self.set_lims_name(lims_name)
-        logging.getLogger("HWR").debug("[ESRFLIMS] get_samples %s" % self.lims_name)
+    def get_active_lims(self):
+        return self.active_lims
+
+    def get_samples(self, lims_id):
+        """
+        lims_id is the identifier of the lims to be used: ISPyB | DRAC
+        """
+        logger.debug("[ESRFLIMS] get_samples by lims %s" % lims_id)
+
+        lims_list = [i for i in self.get_lims_name() if i.name == lims_id]
+        if len(lims_list) == 1:
+            active_lims = lims_list[0]
+            logger.debug("[ESRFLIMS] Setting active lims %s" % active_lims.name)
+            self.set_active_lims(active_lims)
+
+        logger.debug("[ESRFLIMS] get_samples %s" % self.get_active_lims().name)
 
         if self.is_drac():
-            return self.drac.get_samples(lims_name)
+            return self.drac.get_samples(lims_id)
         else:
-            return self.ispyb.get_samples(lims_name)
+            return self.ispyb.get_samples(lims_id)
 
     def get_proposals_by_user(self, login_id: str):
         raise Exception("Not implemented")
@@ -114,25 +117,45 @@ class ESRFLIMS(AbstractLims):
 
     def _store_data_collection_group(self, group_data):
         group_data["sessionId"] = self.ispyb.get_session_id()
-        return self.ispyb._store_data_collection_group(group_data)
+        return self.ispyb._store_data_collection_group(
+            self._clean_sample_id(group_data)
+        )
 
     def store_data_collection(self, mx_collection, bl_config=None):
-        logging.getLogger("HWR").info("Storing datacollection")
+        logger.info("Storing datacollection")
         mx_collection["sessionId"] = self.ispyb.get_session_id()
+
         self.drac.store_data_collection(mx_collection, bl_config)
-        return self.ispyb.store_data_collection(mx_collection, bl_config)
+        return self.ispyb.store_data_collection(
+            self._clean_sample_id(mx_collection), bl_config
+        )
 
     def update_data_collection(self, mx_collection):
-        logging.getLogger("HWR").info("Updating datacollection")
+        logger.info("Updating datacollection")
         mx_collection["sessionId"] = self.ispyb.get_session_id()
         self.drac.update_data_collection(mx_collection)
-        return self.ispyb.update_data_collection(mx_collection)
+
+        return self.ispyb.update_data_collection(self._clean_sample_id(mx_collection))
+
+    def _clean_sample_id(self, mx_collection):
+        """
+        The sample_id corresponds to the ID in DRAC so when pushing the data
+        to ISPyB when DRAC was used we need to remove the id
+        """
+        mx_collection_copy = mx_collection.copy()
+        if self.is_drac():
+            if "blSampleId" in mx_collection_copy:
+                mx_collection_copy["blSampleId"] = None
+                if "sample_reference" in mx_collection_copy:
+                    mx_collection_copy["sample_reference"]["blSampleId"] = None
+        return mx_collection_copy
 
     def finalize_data_collection(self, mx_collection):
-        logging.getLogger("HWR").info("Storing datacollection")
+        logger.info("Storing datacollection")
+
         mx_collection["sessionId"] = self.ispyb.get_session_id()
         self.drac.finalize_data_collection(mx_collection)
-        return self.ispyb.finalize_data_collection(mx_collection)
+        return self.ispyb.finalize_data_collection(self._clean_sample_id(mx_collection))
 
     def store_image(self, image_dict):
         self.ispyb.store_image(image_dict)
@@ -150,9 +173,7 @@ class ESRFLIMS(AbstractLims):
         return self.drac.is_session_already_active(session_id)
 
     def set_active_session_by_id(self, session_id: str) -> Session:
-        logging.getLogger("HWR").debug(
-            "set_active_session_by_id. session_id=%s", str(session_id)
-        )
+        logger.debug("set_active_session_by_id. session_id=%s", str(session_id))
 
         if self.drac.session_manager.active_session is not None:
             if self.ispyb.session_manager.active_session is not None:
@@ -180,7 +201,7 @@ class ESRFLIMS(AbstractLims):
                 self.drac.session_manager.active_session is not None
                 and self.ispyb.session_manager.active_session is not None
             ):
-                logging.getLogger("HWR").info(
+                logger.info(
                     "[ESRFLIMS] MXCuBE succesfully connected to DRAC:(%s, %s) ISPYB:(%s,%s)"
                     % (
                         self.drac.session_manager.active_session.proposal_name,
@@ -190,7 +211,7 @@ class ESRFLIMS(AbstractLims):
                     )
                 )
             else:
-                logging.getLogger("HWR").warning(
+                logger.exception(
                     "[ESRFLIMS] Problem when set_active_session_by_id. DRAC:(%s) ISPYB:(%s)"
                     % (
                         self.drac.session_manager.active_session.proposal_name,

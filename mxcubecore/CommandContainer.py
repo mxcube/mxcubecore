@@ -302,11 +302,13 @@ class CommandContainer:
         self.__commands_to_add: List[Tuple[Dict[str, Any], Union[str, None]]] = []
         self.__channels_to_add: List[Tuple[Dict[str, Any], str]] = []
 
-    def __getattr__(self, attr: str) -> CommandObject:
-        try:
-            return self.__dict__["_CommandContainer__commands"][attr]
-        except KeyError:
-            raise AttributeError(attr)
+    def __getattr__(self, attr: str):
+        if attr in self.__commands:
+            logging.getLogger("HWR").warning(
+                "__getattr__ should not be used to retrieve "
+                "commands. Use get_command_object() instead."
+            )
+        super().__getattr__(attr)
 
     def get_channel_object(
         self,

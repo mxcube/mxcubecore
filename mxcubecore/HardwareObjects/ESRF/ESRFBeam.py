@@ -348,17 +348,18 @@ class ESRFBeam(AbstractBeam):
         Returns:
             X and Y coordinates of the beam position in pixels.
         """
-        if self._beam_position_on_screen == [0, 0]:
-            try:
-                _beam_position_on_screen = (
-                    HWR.beamline.diffractometer.get_beam_position()
-                )
-            except AttributeError:
-                _beam_position_on_screen = (
-                    HWR.beamline.sample_view.camera.get_width() / 2,
-                    HWR.beamline.sample_view.camera.get_height() / 2,
-                )
-            self._beam_position_on_screen = _beam_position_on_screen
+        try:
+            _beam_position_on_screen = HWR.beamline.diffractometer.get_beam_position()
+        except AttributeError:
+            msg = "Could not read beam position from MD, using OAV center"
+            logging.getLogger("HWR").warning(msg)
+            _beam_position_on_screen = (
+                HWR.beamline.sample_view.camera.get_width() / 2,
+                HWR.beamline.sample_view.camera.get_height() / 2,
+            )
+
+        self._beam_position_on_screen = _beam_position_on_screen
+
         return self._beam_position_on_screen
 
     def get_beam_size(self) -> tuple[float, float]:

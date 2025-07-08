@@ -146,7 +146,7 @@ class EdnaWorkflow(HardwareObject):
         workflow_list = []
 
         for _wf in self.get_property("workflow"):
-            wf = {_wf}
+            wf = dict(_wf)
             workflow_list.append(wf)
             wf["requires"] = [r.strip() for r in wf.get("requires", "").split(",")]
             wf["doc"] = ""
@@ -231,9 +231,14 @@ class EdnaWorkflow(HardwareObject):
         self.dict_parameters["initiator"] = HWR.beamline.session.endstation_name
         self.dict_parameters["sessionId"] = HWR.beamline.session.session_id
         self.dict_parameters["externalRef"] = HWR.beamline.session.get_proposal()
-        self.dict_parameters["sample"] = HWR.beamline.lims.find_sample_by_sample_id(
-            self.dict_parameters.get("sample_lims_id")
-        )
+        try:
+            self.dict_parameters["sample"] = HWR.beamline.lims.find_sample_by_sample_id(
+                self.dict_parameters.get("sample_lims_id")
+            )
+
+        except RuntimeError:
+            logging.exception("Failed to fetch sample information for")
+
         self.dict_parameters["token"] = (
             self.token
         )  # Deprecated in favor of mxcubeParameters

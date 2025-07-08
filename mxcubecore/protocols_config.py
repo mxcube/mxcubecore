@@ -112,11 +112,32 @@ def _setup_epics_channels(hwobj: HardwareObject, epics_config: dict):
         setup_prefix(prefix, prefix_config)
 
 
+def _setup_sardana_commands(hwobj: HardwareObject, sardana_config: dict):
+    from mxcubecore.model.protocols.sardana import (
+        Door,
+        SardanaConfig,
+    )
+
+    def setup_door(door_name: str, door_config: Door):
+        for command_name, command_config in door_config.get_commands():
+            attrs = {
+                "type": "sardana",
+                "doorname": door_name,
+                "name": command_name,
+            }
+            hwobj.add_command(attrs, command_config.name)
+
+    sardana_cfg = SardanaConfig.model_validate(sardana_config)
+    for door_name, door_config in sardana_cfg.get_doors():
+        setup_door(door_name, door_config)
+
+
 def _protocol_handles():
     return {
         "tango": _setup_tango_commands_channels,
         "exporter": _setup_exporter_commands_channels,
         "epics": _setup_epics_channels,
+        "sardana": _setup_sardana_commands,
     }
 
 

@@ -30,13 +30,6 @@ class ISPyBAbstractLIMS(AbstractLims):
         self.base_result_url = None
         self.login_ok = False
 
-        #
-        # WebService related configuration
-        #
-        self.ws_root = None
-        self.ws_username = None
-        self.ws_password = None
-
     def init(self):
         super().init()
         self.pyispyb = self.get_object_by_role("pyispyb")
@@ -182,7 +175,10 @@ class ISPyBAbstractLIMS(AbstractLims):
     def find_sample_by_sample_id(self, sample_id):
         for sample in self.samples:
             try:
-                if int(sample.get("limsID")) == sample_id:
+                if str(sample.get("limsID")) == str(sample_id):
+                    logging.getLogger("HWR").debug(
+                        "Sample found by limsID=%s" % (sample_id)
+                    )
                     return sample
             except (TypeError, KeyError):
                 pass

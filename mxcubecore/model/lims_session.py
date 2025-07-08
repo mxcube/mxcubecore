@@ -306,3 +306,22 @@ class SampleInformation(BaseModel):
     createdAt: datetime
     updatedAt: datetime
     resources: List[Resource]  # List of associated resources
+
+
+class Download(BaseModel):
+    """
+    Represents a downloadable file with metadata used to match pipeline references.
+
+    Parameters:
+        path: Absolute file path to the downloaded file on the filesystem.
+        filename: Name of the file, used for matching with pipeline references.
+        groupName:
+            Optional group identifier, used to match with search models.
+            Can be None or a string such as 'Group1', 'Group2', etc.
+    """
+
+    path: str = Field(..., description="Full path to the file on disk")
+    filename: str = Field(..., description="Name of the file (e.g., 'example.hkl')")
+    groupName: Optional[str] = Field(
+        None, description="Group name used for model matching (e.g., 'Group1')"
+    )
