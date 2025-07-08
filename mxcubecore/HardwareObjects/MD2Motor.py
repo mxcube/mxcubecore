@@ -77,7 +77,6 @@ class MD2Motor(AbstractMotor):
     def updateMotorState(self, motor_states):
         d = dict([x.split("=") for x in motor_states])
 
-        # new_motor_state = MotorStates.DESC_TO_STATE[d[self.actuator_name]]
         new_motor_state = MotorStates.__members__[d[self.actuator_name].upper()]
 
         if self.motor_state == new_motor_state:
@@ -92,21 +91,6 @@ class MD2Motor(AbstractMotor):
             "{}: in motorStateChanged: motor state changed to {}".format(self.id, state)
         )
         self.emit("stateChanged", (state,))
-
-    # Replaced by AbstractMotor.update_value:
-    #
-    # NB - was already broken (__position not set)
-    #
-    # def motor_positions_changed(self, position, private={}):
-    #     """
-    #     logging.getLogger().debug(
-    #         "{}: in motor_positions_changed: motor position changed to {}".format(self.name(), position))
-    #     """
-    #     if abs(position - self.__position) <= self.motor_resolution:
-    #         return
-    #     self.__position = position
-    #     print("%s --- %s" % (position, self.__position))
-    #     self.emit("valueChanged", (self.__position,))
 
     def motorLimitsChanged(self):
         self.emit("limitsChanged", (self.get_limits(),))

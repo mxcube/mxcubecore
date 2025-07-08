@@ -104,10 +104,6 @@ class MicrodiffKappaMotor(ExporterMotor):
         t_kappa_zero = np.array(MicrodiffKappaMotor.conf["KappaTrans"])
         t_phi_zero = np.array(MicrodiffKappaMotor.conf["PhiTrans"])
         t_start = np.array([-sampx, -sampy, -phiy])
-        # if beamline in ["id29", "id30b"]:
-        #    t_start = np.array([-sampx, -sampy, -phiy])
-        # else:
-        #    t_start = np.array([sampx, sampy, -phiy])
         kappaRotMat1 = self.rotation_matrix(kappaRot, -kappaAngle1 * np.pi / 180.0)
         kappaRotMat2 = self.rotation_matrix(kappaRot, kappaAngle2 * np.pi / 180.0)
         phiRotMat = self.rotation_matrix(

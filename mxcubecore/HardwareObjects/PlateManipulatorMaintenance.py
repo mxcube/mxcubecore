@@ -69,7 +69,6 @@ class PlateManipulatorMaintenance(HardwareObject):
         """ """
         state = self._sc._read_state()
         scan_limits = self._scan_limits
-        # ready = self._sc._ready()
         running = state in ("RUNNING",)
         plate_info_dict = self._sc.get_plate_info()
         state_dict = {
@@ -115,6 +114,4 @@ class PlateManipulatorMaintenance(HardwareObject):
             self._do_abort()
         if cmdname == "setPlateBarcode":
             self.set_plate_barcode(args)
-        # if cmdname == "change_mode":
-        #     self._do_change_mode(args)
         return True

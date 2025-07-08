@@ -93,7 +93,6 @@ class MotorWPositions(AbstractMotor, Device):
 
     def get_predefined_positions_list(self):
         return sorted(self.predefined_positions.keys())
-        # return self.predefined_positions
 
     def get_current_position_name(self, pos=None):
         if pos is None:

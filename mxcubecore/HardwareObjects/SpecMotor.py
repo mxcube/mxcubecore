@@ -29,16 +29,12 @@ class SpecMotor(HardwareObject, SpecMotorA):
 
     def motorIsMoving(self):
         return not self._ready_state_event.is_set()
-        # return self.get_state() in (SpecMotor.MOVESTARTED, SpecMotor.MOVING)
 
     def motorLimitsChanged(self):
         self.emit("limitsChanged", (self.get_limits(),))
 
     def motorMoveDone(self, channelValue):
         SpecMotorA.motorMoveDone(self, channelValue)
-
-        # print "motor state is ready ? %s (%s)" %
-        # ((self.get_state()==SpecMotor.READY), self.get_state())
         if self.get_state() == SpecMotor.READY:
             self.emit("moveDone", (self.specversion, self.specname))
 

@@ -10,8 +10,6 @@ import requests
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
-
-# import threading
 from mxcubecore.HardwareObjects.SecureXMLRpcRequestHandler import (
     SecureXMLRpcRequestHandler,
 )

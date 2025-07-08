@@ -271,20 +271,11 @@ class QueueModel(HardwareObject):
         view_item._data_model = task_model
         cls = queue_entry.MODEL_QUEUE_ENTRY_MAPPINGS[task_model.__class__]
         qe = cls(view_item, task_model)
-        # view_item.setText(0, task_model.get_name())
-
-        # if isinstance(task_model, queue_model_objects.Sample) or \
-        #  isinstance(task_model, queue_model_objects.TaskGroup):
-        #    view_item.setText(0, task_model.get_name())
-        # else:
         view_item.setText(0, task_model.get_display_name())
-
         view_item.setOn(task_model.is_enabled())
-
         if isinstance(task_model, queue_model_objects.Sample):
             HWR.beamline.queue_manager.enqueue(qe)
         elif not isinstance(task_model, queue_model_objects.Basket):
-            # else:
             view_item.parent().get_queue_entry().enqueue(qe)
         view_item.update_tool_tip()
 
@@ -425,7 +416,6 @@ class QueueModel(HardwareObject):
         of dictionaries. Information about samples and baskets is not saved
         """
         if not filename:
-            # filename = os.path.join(self.user_file_directory, "queue_active.dat")
             filename = "queue_active.dat"
 
         items_to_save = []

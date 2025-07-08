@@ -147,7 +147,6 @@ class FlexHCD(SampleChanger):
         }
 
         SampleChanger.init(self)
-        # self._set_state(SampleChangerState.Disabled)
         self._update_selection()
         self.state = self._read_state()
 
@@ -189,7 +188,6 @@ class FlexHCD(SampleChanger):
         return
 
     def _do_update_info(self):
-        # self._update_selection()
         self._update_state()
 
     def _do_scan(self, component, recursive=True, saved={"barcodes": None}):
@@ -363,8 +361,6 @@ class FlexHCD(SampleChanger):
         else:
             logging.getLogger("HWR").info("reset loaded sample")
             self._reset_loaded_sample()
-            # if self.controller:
-            #    self.controller.hutch_actions(release_interlock=True)
             return False
 
     def reset_loaded_sample(self):
@@ -620,14 +616,6 @@ class FlexHCD(SampleChanger):
         pass
 
     def _update_state(self):
-        # see if the command exists for exporter
-        if not self.exporter_addr:
-            pass
-            # defreezing = self._execute_cmd("isDefreezing")
-
-            # if defreezing:
-            #    self._set_state(SampleChangerState.Moving)
-
         try:
             state = self._read_state()
         except Exception:

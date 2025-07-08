@@ -922,7 +922,6 @@ class GraphicsItemGrid(GraphicsItem):
                 self.__center_coord.setY(start_coord[1] + self.__grid_size_pix[1] / 2.0)
 
         if in_draw or adjust_size:
-            # if True:
             # Frame polygon is defined by 4 corner points:
             # 0 1
             # 3 2
@@ -944,9 +943,6 @@ class GraphicsItemGrid(GraphicsItem):
                 start_coord[0],
                 start_coord[1] + self.__grid_size_pix[1],
             )
-
-            # self.__num_cols = int(self.__grid_size_pix[0] / self.__spacing_pix[0])
-            # self.__num_rows = int(self.__grid_size_pix[1] / self.__spacing_pix[1])
 
         self.__grid_range_pix["fast"] = abs(
             self.grid_direction["fast"][0]
@@ -1273,9 +1269,6 @@ class GraphicsItemGrid(GraphicsItem):
             self.custom_pen.setStyle(qt_import.Qt.DashLine)
         if self.__draw_mode or self.isSelected():
             self.custom_pen.setColor(SELECTED_COLOR)
-        # if self.used_count > 0:
-        #    brush_color = LIGHT_GREEN
-        # else:
         brush_color = self.base_color
 
         painter.setPen(self.custom_pen)
@@ -1618,8 +1611,6 @@ class GraphicsItemScale(GraphicsItem):
         scene_width = self.scene().width()
         scene_height = self.scene().height()
 
-        # self.custom_pen.setStyle(SOLID_LINE_STYLE)
-        # self.custom_pen.setColor(self.custom_pen_color)
         painter.setPen(self.custom_pen)
 
         if self.anchor_position == GraphicsItemScale.LOWER_LEFT:
@@ -2543,7 +2534,6 @@ class GraphicsMagnificationItem(GraphicsItem):
         """
         self.custom_pen.setColor(SELECTED_COLOR)
         painter.setPen(self.custom_pen)
-        # painter.setBrush(self.custom_brush)
 
         if self.end_coord[0] > (
             self.scene().width() - self.area_size * self.scale + self.area_size / 2.0
@@ -2616,8 +2606,6 @@ class GraphicsView(qt_import.QGraphicsView):
         self.graphics_scene.clearSelection()
         self.setMouseTracking(True)
         self.setDragMode(qt_import.QGraphicsView.RubberBandDrag)
-        # self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        # self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.setHorizontalScrollBarPolicy(qt_import.Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(qt_import.Qt.ScrollBarAlwaysOff)
 
@@ -2657,10 +2645,8 @@ class GraphicsView(qt_import.QGraphicsView):
             self.keyPressedSignal.emit("Escape")
         elif event.key() == qt_import.Qt.Key_Up:
             self.scene().moveItemClickedSignal.emit("up")
-            # self.keyPressedSignal.emit("Up")
         elif event.key() == qt_import.Qt.Key_Down:
             self.scene().moveItemClickedSignal.emit("down")
-            # self.keyPressedSignal.emit("Down")
         elif event.key() == qt_import.Qt.Key_Left:
             self.scene().moveItemClickedSignal.emit("left")
         elif event.key() == qt_import.Qt.Key_Right:

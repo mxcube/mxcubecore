@@ -968,7 +968,6 @@ class __HardwareRepositoryClient:
             func = func_ref()
 
             if func is None:
-                # self.killTimer(t_ev.timerId())
                 del TIMERS[t_ev.timerId()]
             else:
                 try:

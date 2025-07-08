@@ -23,7 +23,6 @@ class MiniDiff(HardwareObject):
     MANUAL3CLICK_MODE = "Manual 3-click"
     CENTRING_METHOD_MANUAL = MANUAL3CLICK_MODE
     C3D_MODE = "Computer automatic"
-    # MOVE_TO_BEAM_MODE = "Move to Beam"
 
     def __init__(self, *args):
         super().__init__(*args)
@@ -242,9 +241,6 @@ class MiniDiff(HardwareObject):
             )
             self.connect(self.aperture, "positionReached", self.apertureChanged)
 
-        # Agree on a correct method name, inconsistent arguments for move_to_beam, disabled temporarily
-        # self.move_to_coord = self.move_to_beam()
-
     def set_rotation_axis_position(self, value: float):
         self._set_rotation_axis_position(value, motor_name="phiz")
 
@@ -267,7 +263,6 @@ class MiniDiff(HardwareObject):
             tree.write(fname)
         except:
             logging.getLogger("HWR").info(f"Could not update {fname}")
-            # raise
         else:
             logging.getLogger("HWR").info(f"Wrote {fname}")
 
@@ -493,12 +488,6 @@ class MiniDiff(HardwareObject):
     def sampleChangerSampleIsLoaded(self, state):
         if time.time() - self.centredTime > 1.0:
             self.invalidateCentring()
-
-    # def getBeamPosX(self):
-    #     return self.imgWidth / 2
-    #
-    # def getBeamPosY(self):
-    #     return self.imgHeight / 2
 
     def move_to_beam(self, x, y):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
@@ -756,7 +745,7 @@ class MiniDiff(HardwareObject):
             ]
         )
         chiRot.shape = (2, 2)
-        sx, sy = numpy.dot(numpy.array([0, dsy]), numpy.array(chiRot))  # .I))
+        sx, sy = numpy.dot(numpy.array([0, dsy]), numpy.array(chiRot))
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
 
         x = sx + (phiy * self.pixelsPerMmY) + beam_pos_x
@@ -798,13 +787,6 @@ class MiniDiff(HardwareObject):
         sampy = sampy + dsampy
         phiy = phiy - dx
 
-        #        chi_angle = math.radians(self.chiAngle)
-        #        chiRot = numpy.matrix([math.cos(chi_angle), -math.sin(chi_angle),
-        #                               math.sin(chi_angle), math.cos(chi_angle)])
-        #        chiRot.shape = (2,2)
-        #        sx, sy = numpy.dot(numpy.array([0, dsy]),
-        #                           numpy.array(chiRot)) ))
-
         return {
             "phi": self.centringPhi.get_value(),
             "phiz": float(phiz),
@@ -830,7 +812,6 @@ class MiniDiff(HardwareObject):
                 logging.exception("Could not move to centred position")
                 self.emitCentringFailed()
 
-            # logging.info("EMITTING CENTRING SUCCESSFUL")
             self.centredTime = time.time()
             self.emitCentringSuccessful()
             self.emitProgressMessage("")
@@ -960,7 +941,6 @@ class MiniDiff(HardwareObject):
             )
 
     def emitProgressMessage(self, msg=None):
-        # logging.getLogger("HWR").debug("%s: %s", self.name, msg)
         self.emit("progressMessage", (msg,))
 
     def get_centring_status(self):
@@ -1041,7 +1021,6 @@ class MiniDiff(HardwareObject):
             self.emit("centringSnapshots", (True,))
             self.emitProgressMessage("")
         self.emitProgressMessage("Sample is centred!")
-        # self.emit('centringAccepted', (True,self.get_centring_status()))
 
     def simulateAutoCentring(self, sample_info=None):
         pass

@@ -185,14 +185,11 @@ class CatsBessy(SampleChanger):
             if (selected_basket is None) or (
                 selected_basket != component.get_container()
             ):
-                # self._execute_server_task(self._select_basket , component.get_basket_no())
                 self._selected_basket = component.get_basket_no()
-            # self._execute_server_task(self._select_sample, component.get_index()+1)
             self._selected_sample = component.get_index() + 1
         elif isinstance(component, Container) and (
             component.get_type() == Basket.__TYPE__
         ):
-            # self._execute_server_task(self._select_basket, component.get_index()+1)
             self._selected_basket = component.get_index() + 1
 
     def _do_abort(self):
@@ -206,7 +203,6 @@ class CatsBessy(SampleChanger):
                 selected_basket != component.get_container()
             ):
                 self._do_select(component)
-            # self._execute_server_task(self._scan_samples, [component.get_index()+1,])
             lid = ((self._selected_basket - 1) / 3) + 1
             sample = (((self._selected_basket - 1) % 3) * 10) + (
                 component.get_index() + 1
@@ -219,11 +215,9 @@ class CatsBessy(SampleChanger):
             # component is a basket
             if recursive:
                 pass
-                # self._execute_server_task(self._scan_basket, (component.get_index()+1))
             else:
                 if (selected_basket is None) or (selected_basket != component):
                     self._do_select(component)
-                # self._execute_server_task(self._scan_samples, (0,))
                 for sample_index in range(Basket.NO_OF_SAMPLES_PER_PUCK):
                     lid = ((self._selected_basket - 1) / 3) + 1
                     sample = (((self._selected_basket - 1) % 3) * 10) + (
@@ -258,7 +252,6 @@ class CatsBessy(SampleChanger):
                     sample = selected
             elif (sample is not None) and (sample != selected):
                 self._do_select(sample)
-            # self._execute_server_task(self._load,sample.get_holder_length())
             lid = ((self._selected_basket - 1) / 3) + 1
             sample = (((self._selected_basket - 1) % 3) * 10) + self._selected_sample
             argin = ["2", str(lid), str(sample), "0", "0", "0", "0", "0"]
@@ -293,10 +286,6 @@ class CatsBessy(SampleChanger):
         else:
             while str(self._path_running.get_value()).lower() == "true":
                 gevent.sleep(0.1)
-            # try:
-            #    ret = self._check_task_result(task_id)
-            # except Exception,err:
-            #    raise
             ret = True
         return ret
 
@@ -319,7 +308,6 @@ class CatsBessy(SampleChanger):
             stateStr = str(state).upper()
         else:
             stateStr = ""
-        # state = str(self._state.get_value() or "").upper()
         state_converter = {
             "ALARM": SampleChangerState.Alarm,
             "ON": SampleChangerState.Ready,

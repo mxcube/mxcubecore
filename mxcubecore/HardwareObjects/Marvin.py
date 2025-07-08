@@ -322,9 +322,6 @@ class Marvin(AbstractSampleChanger.SampleChanger):
             )
 
     def wait_sample_on_gonio(self, timeout):
-        # with gevent.Timeout(timeout, Exception("Timeout waiting for sample on gonio")):
-        #    while not self._sample_detected:
-        #        gevent.sleep(0.05)
         with gevent.Timeout(timeout, Exception("Timeout waiting for centring phase")):
             while (
                 HWR.beamline.diffractometer.get_current_phase()
@@ -336,11 +333,6 @@ class Marvin(AbstractSampleChanger.SampleChanger):
 
     def is_sample_on_gonio(self):
         return self.chan_sample_is_loaded.get_value()
-        # logging.getLogger("GUI").info("Sample on gonio check 1: %s" %first_try)
-        # gevent.sleep(1.0)
-        # second_try = self.chan_sample_is_loaded.get_value()
-        # logging.getLogger("GUI").info("Sample on gonio check 2: %s" %second_try)
-        # return first_try and second_try
 
     def mounted_sample_puck_changed(self, mounted_sample_puck):
         """Updates mounted puck index"""
@@ -381,10 +373,6 @@ class Marvin(AbstractSampleChanger.SampleChanger):
             logging.getLogger("GUI").error(
                 "Sample changer: %s" % self._process_step_info
             )
-            # GB: 20190304: this seemed to lock mxcube forever on any marvin error
-            # self._in_error_state = True
-            # self._set_state(AbstractSampleChanger.SampleChangerState.Alarm)
-
         else:
             logging.getLogger("GUI").info(
                 "Sample changer: %s" % self._process_step_info
@@ -404,14 +392,6 @@ class Marvin(AbstractSampleChanger.SampleChanger):
     def close_lid(self):
         self.cmd_close_lid(1)
 
-    def base_to_center(self):
-        return
-        # self.cmd_base_to_center(1)
-
-    def center_to_base(self):
-        return
-        # self.cmd_center_to_base(1)
-
     def dry_gripper(self):
         self.cmd_dry_gripper(1)
 
@@ -426,10 +406,6 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         """Updates the sample changers status: mounted pucks, state,
         currently loaded sample
         """
-        # self._update_state()
-        # self._updateSCContents()
-        # call this method if status string changed
-        # self._update_loaded_sample()
 
     def _directly_update_selected_component(self, basket_no, sample_no):
         """Directly updates necessary sample"""
@@ -479,7 +455,6 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         old + mount of  new sample) if a sample is already mounted on
         the diffractometer.
         """
-        # self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
         log = logging.getLogger("GUI")
 
         if self._focusing_mode not in (
@@ -492,10 +467,6 @@ class Marvin(AbstractSampleChanger.SampleChanger):
             error_msg = "Focusing mode is undefined. Sample loading is disabled"
             log.error(error_msg)
             return
-
-        # if self._focusing_mode in ("Collimated", "Double") and not self._centre_puck:
-        #    log.error("No center puck detected. Please do Base-to-Center with any puck.")
-        #    return
 
         if self._in_error_state:
             log.error(
@@ -570,9 +541,6 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                 )
                 raise Exception("Unable to set Transfer phase")
 
-        # logging.getLogger("HWR").debug("Sample changer: Closing guillotine...")
-        # HWR.beamline.detector.close_cover()
-        # logging.getLogger("HWR").debug("Sample changer: Guillotine closed")
         # 3. If necessary move detector to save position
         if self._focusing_mode == "P13mode":
             if HWR.beamline.detector.distance.get_value() < 399.0:
@@ -582,11 +550,6 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                 time.sleep(1)
                 self.waitVeto(20.0)
                 log.info("Sample changer: Detector moved to save position")
-        else:
-            pass
-            # logging.getLogger("HWR").debug("Sample changer: Closing guillotine...")
-            # HWR.beamline.detector.close_cover()
-            ##logging.getLogger("HWR").debug("Sample changer: Guillotine closed")
 
         # 4. Executed command and wait till device is ready
         if self._focusing_mode == "P13mode":
@@ -618,7 +581,6 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                 HWR.beamline.diffractometer.set_phase(
                     HWR.beamline.diffractometer.PHASE_CENTRING, 60.0
                 )
-                # HWR.beamline.diffractometer.close_kappa()
         else:
             log.error(
                 "Sample changer: Failed to load sample %d:%d"
@@ -628,7 +590,6 @@ class Marvin(AbstractSampleChanger.SampleChanger):
 
     def load(self, sample=None, wait=True):
         """Load a sample"""
-        # self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
         if self._focusing_mode == "P13mode":
             AbstractSampleChanger.SampleChanger.load(self, sample, wait)
         else:
@@ -645,7 +606,6 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         """Unloads a sample from the diffractometer"""
         log = logging.getLogger("GUI")
 
-        # self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
         if self._focusing_mode not in (
             "Collimated",
             "Double",
@@ -693,7 +653,6 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                 )
                 raise Exception("Unable to set Transfer phase")
 
-        # HWR.beamline.detector.close_cover()
         if self._focusing_mode == "P13mode":
             if HWR.beamline.detector.distance.get_value() < 399.0:
                 log.info("Sample changer: Moving detector to save position ...")
@@ -702,9 +661,6 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                 time.sleep(1)
                 self.waitVeto(20.0)
                 log.info("Sample changer: Detector moved to save position")
-        else:
-            pass
-            # HWR.beamline.detector.close_cover()
 
         start_time = datetime.now()
 
@@ -763,7 +719,6 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         """Executes called cmd, waits until sample changer is ready and
         updates loaded sample info
         """
-        # self.wait_ready(60.0)
         self._state_string = "Bsy"
         self._progress = 5
 
@@ -783,7 +738,6 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         self._action_started = True
         gevent.sleep(5)
         if method == self.cmd_mount_sample:
-            # self.wait_sample_on_gonio(120.0)
             self._was_mount_error = False
             self.wait_sample_to_disappear(40.0)
             self.wait_sample_to_appear(60.0)
@@ -793,12 +747,8 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         logging.getLogger("HWR").debug("Sample changer: Waiting veto...")
         self.waitVeto(20.0)
         logging.getLogger("HWR").debug("Sample changer: Veto ready")
-        # if self._is_device_busy():
-        #    raise Exception("Action finished to early. Sample changer is not ready!!!")
         self.sample_is_loaded_changed(self.chan_sample_is_loaded.get_value())
-        # self._update_state()
         self._update_loaded_sample()
-        # self._set_state(AbstractSampleChanger.SampleChangerState.Ready)
         self.update_state(HardwareObjectState.READY)
         self._action_started = False
 

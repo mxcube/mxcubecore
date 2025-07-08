@@ -74,7 +74,6 @@ class BlissEnergy(AbstractEnergy):
             self.energy_motor.connect("stateChanged", self.update_state)
 
         if self.read_only and not self.energy_motor:
-            # self._nominal_value = float(self.get_property("energy", 0))
             try:
                 self._nominal_value = float(self.default_value)
             except TypeError as err:

@@ -209,7 +209,6 @@ class QtGraphicsManager(AbstractSampleView):
             self.item_double_clicked
         )
         self.graphics_view.scene().moveItemClickedSignal.connect(self.move_item_clicked)
-        # self.graphics_view.scene().gridClickedSignal.connect(self.grid_clicked)
 
         self.graphics_view.mouseMovedSignal.connect(self.mouse_moved)
         self.graphics_view.keyPressedSignal.connect(self.key_pressed)
@@ -339,23 +338,12 @@ class QtGraphicsManager(AbstractSampleView):
             self.get_property("enable_move_buttons") is True
         )
         """
-
-        # self.set_scrollbars_off(\
-        #     self.get_property("scrollbars_always_off") is True)
-
         try:
             self.graphics_magnification_item.set_properties(
                 eval(self.get_property("magnification_tool"))
             )
         except Exception:
             pass
-
-        # try:
-        #    self.set_view_scale(self.get_property("view_scale"))
-        # except:
-        #    pass
-
-        # self.temp_animation_dir = os.path.join(self.user_file_directory, "animation")
 
         self.omega_move_delta = self.get_property("omega_move_delta", 10)
 
@@ -705,7 +693,6 @@ class QtGraphicsManager(AbstractSampleView):
 
             self.show_all_items()
             self.graphics_view.graphics_scene.update()
-            # self.update_histogram()
             self.emit("diffractometerReady", True)
         else:
             self.hide_all_items()
@@ -909,7 +896,6 @@ class QtGraphicsManager(AbstractSampleView):
             self.stop_move_beam_mark()
         elif self.in_beam_define_state:
             self.stop_beam_define()
-            # self.graphics_beam_define_item.store_coord(pos_x, pos_y)
         elif self.in_one_click_centering:
             self.diffractometer_hwobj.start_move_to_beam(pos_x, pos_y)
         else:
@@ -928,8 +914,6 @@ class QtGraphicsManager(AbstractSampleView):
                     GraphicsLib.GraphicsItemGrid,
                 ]:
                     self.emit("shapeSelected", graphics_item, False)
-                    # if isinstance(graphics_item, GraphicsLib.GraphicsItemPoint):
-                    #    self.emit("pointSelected", graphics_item)
 
     def mouse_double_clicked(self, pos_x, pos_y):
         """If in one of the measuring states, then stops measuring.
@@ -972,9 +956,6 @@ class QtGraphicsManager(AbstractSampleView):
             self.emit("shapeCreated", self.graphics_grid_draw_item, "Grid")
             self.graphics_grid_draw_item.setSelected(True)
             self.graphics_grid_draw_item.update_coordinate_map()
-            # self._shapes.add_shape(self.graphics_grid_draw_item.get_display_name(),
-            #                       self.graphics_grid_draw_item
-            # )
             self.shape_dict[self.graphics_grid_draw_item.get_display_name()] = (
                 self.graphics_grid_draw_item
             )
@@ -1059,12 +1040,7 @@ class QtGraphicsManager(AbstractSampleView):
             self.graphics_magnification_item.set_end_position(
                 scene_point.x(), scene_point.y()
             )
-
         # TODO add grid commands
-        # else:
-        #    for shape in self.get_selected_shapes():
-        #        if isinstance(shape, GraphicsLib.GraphicsItemGrid):
-        #            print(shape)
 
     def key_pressed(self, key_event):
         """Method when key on GraphicsView pressed.
@@ -1089,14 +1065,6 @@ class QtGraphicsManager(AbstractSampleView):
                 self.set_magnification_mode(False)
             self.in_move_beam_mark_state = False
             self.graphics_move_beam_mark_item.hide()
-            # self.graphics_beam_item.set_detected_beam_position(None, None)
-
-        # elif key_event == "Up":
-        #    self.diffractometer_hwobj.move_to_beam(self.beam_position[0],
-        #                                           self.beam_position[1] - 50)
-        # elif key_event == "Down":
-        #    self.diffractometer_hwobj.move_to_beam(self.beam_position[0],
-        #                                           self.beam_position[1] + 50)
         elif key_event == "Plus":
             self.diffractometer_hwobj.zoom_in()
         elif key_event == "Minus":
@@ -1187,7 +1155,6 @@ class QtGraphicsManager(AbstractSampleView):
             self.graphics_scene_size = size
             self.graphics_scale_item.set_start_position(size[0], size[1])
             self.graphics_view.scene().setSceneRect(0, 0, size[0], size[1])
-            # self.graphics_view.setFixedSize(size[0] + 2, size[1] + 2)
 
     def set_centring_state(self, state):
         """Sets centrin state
@@ -1255,7 +1222,6 @@ class QtGraphicsManager(AbstractSampleView):
             self.line_count += 1
             shape.index = self.line_count
         self.shape_dict[shape.get_display_name()] = shape
-        # self._shapes.add_shape(shape.get_display_name(), shape)
         self.graphics_view.graphics_scene.addItem(shape)
 
         if isinstance(shape, GraphicsLib.GraphicsItemPoint):
@@ -1305,7 +1271,6 @@ class QtGraphicsManager(AbstractSampleView):
         :returns: GraphicsLib.GraphicsItem
         """
         return self.shape_dict.get(shape_name)
-        # self._shapes.get_shape_by_name(shape_name)
 
     def clear_all_shapes(self):
         """Clear the shape history, remove all contents."""
@@ -1351,7 +1316,6 @@ class QtGraphicsManager(AbstractSampleView):
         for shape in self.get_points():
             if shape.get_centred_position() == cpos:
                 shape.setSelected(True)
-        # self.graphics_view.graphics_scene.update()
 
     def get_selected_shapes(self):
         """Returns selected shapes
@@ -1418,11 +1382,7 @@ class QtGraphicsManager(AbstractSampleView):
         """
         if shape:
             self.hide_all_items()
-            # self.de_select_all()
             shape.show()
-            # shape.setSelected(True)
-            # self.select_shape_with_cpos(shape.get_centred_position())
-        # self.graphics_omega_reference_item.hide()
 
         image = qt_import.QImage(
             self.graphics_view.graphics_scene.sceneRect().size().toSize(),
@@ -1465,7 +1425,6 @@ class QtGraphicsManager(AbstractSampleView):
         """Saves animated gif of a rotating sample"""
         """Save animation task"""
 
-        # self.diffractometer_hwobj.set_ready(False)
         gevent.spawn(self.diffractometer_hwobj.move_omega_relative, 180)
         gevent.spawn(self.save_scene_animation_task, filename, duration_sec)
 
@@ -1474,7 +1433,6 @@ class QtGraphicsManager(AbstractSampleView):
 
         image_list = []
 
-        # while not self.diffractometer_hwobj.is_ready():
         for i in range(4):
             arr = self.get_scene_snapshot(return_as_array=True)
             width = arr.shape[0]
@@ -1558,7 +1516,6 @@ class QtGraphicsManager(AbstractSampleView):
             antialiased=False,
         )
 
-        # fig.colorbar(surf, shrink=0.5, aspect=5)
         plt.show()
 
     def start_measure_distance(self, wait_click=False):
@@ -1629,8 +1586,6 @@ class QtGraphicsManager(AbstractSampleView):
         self.start_graphics_item(
             self.graphics_move_beam_mark_item, start_pos=self.beam_position
         )
-        # self.graphics_move_beam_mark_item.set_beam_mark(\
-        #     self.beam_info_dict, self.pixels_per_mm)
 
     def start_define_beam(self):
         """Method to define beam size.
@@ -1753,7 +1708,6 @@ class QtGraphicsManager(AbstractSampleView):
             )
             self.emit("infoMsg", "3 click centring")
         else:
-            # self.accept_centring()
             self.diffractometer_hwobj.start_move_to_beam(
                 self.beam_position[0], self.beam_position[1]
             )
@@ -1898,7 +1852,6 @@ class QtGraphicsManager(AbstractSampleView):
             self.wait_grid_drawing_click = True
 
     def create_auto_grid(self):
-        # self.start_auto_centring(wait=True)
         grid_size = (1, 1)
         grid_spacing = (self.beam_info_dict["size_x"], self.beam_info_dict["size_y"])
 
@@ -1918,12 +1871,9 @@ class QtGraphicsManager(AbstractSampleView):
 
         self.emit("shapeCreated", temp_grid, "Grid")
         self.shape_dict[temp_grid.get_display_name()] = temp_grid
-        # self._shapes.add_shape(temp_grid.get_display_name(), temp_grid)
         self.grid_count += 1
 
         return temp_grid
-
-        # spawn(self.auto_grid_procedure)
 
     def auto_grid_procedure(self):
         """Test"""
@@ -2023,7 +1973,6 @@ class QtGraphicsManager(AbstractSampleView):
         select_middle_y = (select_start_coord[1] + select_end_coord[1]) / 2.0
 
         for shape in self.shape_dict.values():
-            # for shape in self._shapes.get_all_shapes():
             if isinstance(shape, GraphicsLib.GraphicsItemLine):
                 (start_point, end_point) = shape.get_graphics_points()
                 if min(
@@ -2091,8 +2040,6 @@ class QtGraphicsManager(AbstractSampleView):
 
     def start_auto_centring(self, wait=False):
         """Starts auto centring"""
-        # self.display_info_msg(["Auto centring in progress...",
-        #                       "Please wait."])
         self.emit("centringInProgress", True)
         self.diffractometer_hwobj.start_centring_method(
             self.diffractometer_hwobj.CENTRING_METHOD_AUTO, wait=wait
@@ -2107,7 +2054,6 @@ class QtGraphicsManager(AbstractSampleView):
         HWR.beamline.beam.set_beam_position(
             beam_shape_dict["center"][0], beam_shape_dict["center"][1]
         )
-        # self.graphics_beam_item.set_detected_beam_position(beam_shape_dict)
 
     def detect_object_shape(self):
         """Method used to detect a shape on the image.
@@ -2146,14 +2092,10 @@ class QtGraphicsManager(AbstractSampleView):
                 object_shape_dict["width"] = int(hor_roots[-1] - hor_roots[0])
                 object_shape_dict["height"] = int(ver_roots[-1] - ver_roots[0])
 
-            # beam_spl_x = (hor_roots[0] + hor_roots[1]) / 2.0
-            # beam_spl_y = (ver_roots[0] + ver_roots[1]) / 2.0
         except Exception:
             logging.getLogger("user_level_log").debug(
                 "QtGraphicsManager: " + "Unable to detect object shape"
             )
-            # beam_spl_x = 0
-            # beam_spl_y = 0
 
         f = interpolate.interp1d(np.arange(0, hor_sum.size, 1), hor_sum)
         xx = np.arange(0, hor_sum.size, 1)
@@ -2186,12 +2128,8 @@ class QtGraphicsManager(AbstractSampleView):
         """
 
         if None in (beam_x, beam_y):
-            # image_array = np.transpose(image_array)
             beam_x = beam_mass_x
             beam_y = beam_mass_y
-        # else:
-        #    beam_x = int((beam_x + beam_mass_x) / 2)
-        #    beam_y = int((beam_y + beam_mass_y) / 2)
 
         object_shape_dict["center"] = (beam_x, beam_y)
 
@@ -2273,10 +2211,8 @@ class QtGraphicsManager(AbstractSampleView):
         """Displays info message on the screen"""
         if pos_x is None:
             pos_x = 10
-            # pos_x = self.beam_position[0]
         if pos_y is None:
             pos_y = 50
-            # pos_y = self.beam_position[1]
         self.graphics_info_item.display_info(msg, pos_x, pos_y, hide_msg)
 
     def hide_info_msg(self):

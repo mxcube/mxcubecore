@@ -131,11 +131,6 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             for index, entry in enumerate(self.entry_list[:-1]):
                 entry.in_queue = index + 1
 
-        # msg = "Starting to execute queue with %d elements: " % len(self.entry_list)
-        # for entry in self.entry_list:
-        #    msg += str(entry) + " (in_queue=%s) " % entry.in_queue
-        # logging.getLogger('queue_exec').info(msg)
-
     def is_executing(self, node_id=None):
         """
         :returns: True if the queue is executing otherwise False
@@ -158,7 +153,6 @@ class QueueManager(HardwareObject, QueueEntryContainer):
 
     def __execute_task(self):
         self._running = True
-        # self.emit('centringAllowed', (False, ))
         try:
             for qe in self._queue_entry_list:
                 try:
@@ -257,7 +251,6 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         else:
             entry.post_execute()
         finally:
-            # self.emit('queue_entry_execute_finished', (entry, ))
             self.set_current_entry(None)
             self._current_queue_entries.pop(self._current_queue_entries.index(entry))
 
@@ -306,7 +299,6 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         """
         self.emit("queue_paused", (state,))
         self.emit("statusMessage", ("status", "Queue paused", "action_req"))
-        # self.emit('centringAllowed', (True, ))
         if state:
             self._paused_event.clear()
         else:

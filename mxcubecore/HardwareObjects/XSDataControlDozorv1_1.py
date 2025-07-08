@@ -74,8 +74,6 @@ def showIndent(outfile, level):
 
 def warnEmptyAttribute(_strName, _strTypeName):
     pass
-    # if not _strTypeName in ["float", "double", "string", "boolean", "integer"]:
-    #    print("Warning! Non-optional attribute %s of type %s is None!" % (_strName, _strTypeName))
 
 
 class MixedContainer(object):

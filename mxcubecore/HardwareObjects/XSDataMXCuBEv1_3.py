@@ -105,13 +105,6 @@ def checkType(_strClassName, _strMethodName, _value, _strExpectedType):
                     _value.__class__.__name__,
                 )
                 print(strMessage)
-                # raise Exception(strMessage)
-
-
-# 	elif _value is None:
-# 		strMessage = "ERROR! %s.%s argument which should be %s is None" % (_strClassName, _strMethodName, _strExpectedType)
-# 		print(strMessage)
-# 		#raise Exception(strMessage)
 
 
 def warnEmptyAttribute(_strName, _strTypeName):

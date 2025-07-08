@@ -79,12 +79,6 @@ class MD3UP(Microdiff.Microdiff):
     def set_rotation_axis_position(self, value: float):
         self._set_rotation_axis_position(value, motor_name="phiy")
 
-    # def getBeamPosX(self):
-    #     return self.beam_info.get_beam_position_on_screen()[0]
-    #
-    # def getBeamPosY(self):
-    #     return self.beam_info.get_beam_position_on_screen()[1]
-
     def setNbImages(self, number_of_images):
         self.scan_nb_frames = number_of_images
 

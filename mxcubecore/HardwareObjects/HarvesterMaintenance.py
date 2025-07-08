@@ -110,7 +110,6 @@ class HarvesterMaintenance(HardwareObject):
         :returns: True
         """
         state = self._harvester.get_state()
-        # ready = self._harvester._is_device_busy()
         running = state in ["RUNNING", "running"]
         plate_ID = self._harvester.get_plate_id()
 

@@ -51,9 +51,6 @@ class XRFSpectrum(HardwareObject):
 
         self.ctrl_hwobj = self.get_object_by_role("controller")
         self.mca_hwobj = self.ctrl_hwobj.mca
-        # self.mca_hwobj = self.get_object_by_role("mca")
-        # if self.mca_hwobj:
-        #    self.mca_hwobj.set_calibration(calib_cf=self.mca_hwobj.calib_cf)
 
         self.archive_path = self.get_property("archive_path")
         if not self.archive_path:
@@ -75,7 +72,6 @@ class XRFSpectrum(HardwareObject):
     # Handler for spec connection
     def sConnected(self):
         self.emit("connected", ())
-        # curr = self.getSpectrumParams()
 
     # Handler for spec disconnection
     def sDisconnected(self):
@@ -195,7 +191,6 @@ class XRFSpectrum(HardwareObject):
     def spectrumCommandReady(self):
         if not self.scanning:
             self.emit("xrfSpectrumReady", (True,))
-            # self.emit('xrfScanReady', (True,))
 
     def spectrumCommandNotReady(self):
         if not self.scanning:
@@ -244,7 +239,6 @@ class XRFSpectrum(HardwareObject):
             mcaConfig["bsX"] = self.spectrumInfo["beamSizeHorizontal"]
             mcaConfig["bsY"] = self.spectrumInfo["beamSizeVertical"]
             roi = self.ctrl_hwobj.mca.get_roi()
-            # roi = self.mca_hwobj.get_roi()
             mcaConfig["min"] = roi["chmin"]
             mcaConfig["max"] = roi["chmax"]
             mcaConfig["legend"] = self.spectrumInfo["annotatedPymcaXfeSpectrum"]

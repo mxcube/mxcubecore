@@ -97,8 +97,6 @@ class SpecShell(HardwareObject):
             "lsdef *",
         )
         cmd = self.get_command_object("SpecShellLsdef")
-        # cmd.connect_signal('commandReady',self.commandReady)
-        # cmd.connect_signal('commandNotReady',self.commandNotReady)
         cmd.connect_signal("commandReplyArrived", self.commandFinished)
         cmd.connect_signal("commandBeginWaitReply", self.commandStarted)
         cmd.connect_signal("commandFailed", self.commandFailed)
@@ -207,7 +205,6 @@ class SpecShell(HardwareObject):
         if command == "SpecShellLsdef":
             self.lsdefRunning = False
             self.lsdefBuffer = []
-            # self.emit('allCommandsList', ((),))
         self.commandRunning = False
         self.emit("aborted", ())
 

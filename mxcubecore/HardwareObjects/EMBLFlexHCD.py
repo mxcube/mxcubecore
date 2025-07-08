@@ -180,7 +180,6 @@ class EMBLFlexHCD(SampleChanger):
         }
 
         SampleChanger.init(self)
-        # self._set_state(SampleChangerState.Disabled)
         self._update_selection()
         self.state = self._read_state()
 
@@ -423,10 +422,6 @@ class EMBLFlexHCD(SampleChanger):
             for msg in self.get_robot_exceptions():
                 if msg is not None:
                     logging.getLogger("HWR").error(msg)
-
-        # if res:
-        #    self.prepare_centring()
-
         return res
 
     @task

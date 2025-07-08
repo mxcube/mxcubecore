@@ -100,7 +100,6 @@ class Basket(Container):
         return self.samples_num
 
     def clear_info(self):
-        # self.get_container()._reset_basket_info(self.get_index()+1)
         self.get_container()._trigger_info_changed_event()
 
 
@@ -737,7 +736,6 @@ class Cats90(SampleChanger):
 
             selected = self.get_selected_sample()
 
-            # self._execute_server_task(self._scan_samples, [component.get_index()+1,])
             lid, sample = self.basketsample_to_lidsample(
                 selected.get_basket_no(), selected.get_vial_no()
             )
@@ -1216,8 +1214,6 @@ class Cats90(SampleChanger):
                 % (self.has_loaded_sample(), self._chnSampleIsDetected.get_value())
             )
             _state = SampleChangerState.Unknown
-        # elif not lids_closed:
-        # _state = SampleChangerState.Charging
         elif dev_state == PyTango.DevState.ON:
             _state = SampleChangerState.Ready
         else:

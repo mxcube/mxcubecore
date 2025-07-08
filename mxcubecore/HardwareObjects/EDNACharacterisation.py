@@ -34,9 +34,6 @@ from mxcubecore.HardwareObjects.XSDataMXCuBEv1_4 import (
 from mxcubecore.model import queue_model_enumerables as qme
 from mxcubecore.model import queue_model_objects as qmo
 
-# from edna_test_data import EDNA_DEFAULT_INPUT
-# from edna_test_data import EDNA_TEST_DATA
-
 
 class EDNACharacterisation(AbstractCharacterisation):
     def __init__(self, name) -> None:
@@ -80,7 +77,6 @@ class EDNACharacterisation(AbstractCharacterisation):
         logging.getLogger("queue_exec").info(msg)
         self.characterisationResult = None
         args = (self.start_edna_command, input_file, results_file, process_directory)
-        # subprocess.call("%s %s %s %s" % args, shell=True)
         p = subprocess.Popen("%s %s %s %s --verbose --debug" % args, shell=True)
 
         do_continue = True

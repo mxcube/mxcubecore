@@ -50,12 +50,12 @@ def logger(fn):
 
 def convert_state(state):
     """Convert detector state to MxCube HWR state"""
-    # UNKNOWN = 0
-    # WARNING = 1
-    # BUSY = 2
-    # READY = 3
-    # FAULT = 4
-    # OFF = 5
+    # UNKNOWN   - 0
+    # WARNING   - 1
+    # BUSY      - 2
+    # READY     - 3
+    # FAULT     - 4
+    # OFF       - 5
     if state == Detector.State.IDLE or state == Detector.State.PREPARED:
         s = HardwareObjectState.READY
     elif state == Detector.State.RUNNING:
@@ -89,7 +89,6 @@ class Lima2Detector(AbstractDetector):
         )
 
         lima_ctrl_device = self.get_property("lima_ctrl_device", "")
-        # lima_recv_devices = ast.literal_eval(self.get_property("lima_recv_devices", ""))
         lima_recv_devices = self.get_property("lima_recv_devices", "").split(",")
 
         _logger.info(
@@ -199,7 +198,6 @@ class Lima2Detector(AbstractDetector):
         acq_params = {
             "acq": {
                 "expo_time": int(exptime * 1e6),
-                # "latency_time": 990,
                 "nb_frames": number_of_images,
                 "trigger_mode": "external",
                 "nb_frames_per_trigger": 1,
@@ -313,9 +311,7 @@ class Lima2Detector(AbstractDetector):
 
         manage_proc = True
 
-        # energy = 11.56
         energy = HWR.beamline.energy.get_value()
-        # energy = 12.75
         jungfrau_gain0_ave = 41.401
 
         def get_param_file(n):
@@ -332,7 +328,6 @@ class Lima2Detector(AbstractDetector):
             "normalization_factor": 1.0,
             "cutoff_clip": 0,
             "cycle": 3,
-            # "empty": -9999.0,
             "noise": 0.5,
             "cutoff_pick": 4.0,
             "patch_size": 5,
@@ -396,11 +391,6 @@ class Lima2Detector(AbstractDetector):
         dense_out_params = get_dense_out_params(dense_variant_name)
         fai_params.update(dense_out_params)
 
-        # pf_params_fname = get_param_file("peakfinder_params.json")
-        # if os.path.exists(pf_params_fname):
-        #     with open(pf_params_fname, "rt") as f:
-        #         pf_params = json.load(f)
-
         fpath = HWR.get_hardware_repository().find_in_repository(
             self.image_rejection_settings_file
         )
@@ -425,7 +415,6 @@ class Lima2Detector(AbstractDetector):
             "connected": pf_params["connected"],
             "min_nb_peaks": pf_params["min_nb_peaks"],
             "dense_skip_nohits": dense_skip_nohits,
-            # "dense_skip_nohits": pf_params["discard_no_hits"],
         }
         fai_params.update(fai_user_params)
 
@@ -471,9 +460,6 @@ class Lima2Detector(AbstractDetector):
             _logger.info("saving lima2 params to %s", dump_params_filename)
             with open(dump_params_filename, "wt") as f:
                 json.dump(lima2_params, f, indent=4, sort_keys=True)
-
-        # Async version
-        # gevent.spawn(self.__device.prepareAcq, uuid).link_value(on_prepared)
 
         if self.__stopped:
             return

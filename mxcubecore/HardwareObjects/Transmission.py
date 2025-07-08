@@ -11,10 +11,6 @@ class Transmission(HardwareObject):
         self.labels = []
         self.indexes = []
         self.attno = 0
-        # TO DO: clean this!!!
-        # self.get_value = self.get_value
-        # self.getAttFactor = self.get_value
-        # self.setTransmission = self.set_value
 
     def init(self):
         self.__matt = matt_control.MattControl(

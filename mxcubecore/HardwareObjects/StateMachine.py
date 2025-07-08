@@ -112,8 +112,6 @@ class StateMachine(HardwareObject):
         self.bl_setup_hwobj = self.get_object_by_role("beamline_setup")
         for hwobj_name in dir(self.bl_setup_hwobj):
             if hwobj_name.endswith("hwobj"):
-                # logging.getLogger("HWR").debug(\
-                #     "StateMachine: Attaching hwobj: %s " % hwobj_name)
                 self.connect(
                     getattr(self.bl_setup_hwobj, hwobj_name),
                     "fsmConditionChanged",
@@ -136,10 +134,6 @@ class StateMachine(HardwareObject):
 
         condition = self.get_condition_by_name(condition_name)
         if condition:
-            # logging.getLogger("HWR").debug(\
-            #  "StateMachine: condition '%s' changed to '%s'" \
-            #   % (condition_name, value))
-
             if condition["value"] != value:
                 condition["value"] = value
                 self.emit("conditionChanged", self.condition_list)

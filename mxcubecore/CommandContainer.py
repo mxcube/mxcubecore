@@ -329,7 +329,6 @@ class CommandContainer:
         if channel is None and not optional:
             msg = "%s: Unable to get channel %s" % (self.id, channel_name)
             logging.getLogger("user_level_log").error(msg)
-            # raise Exception(msg)
         return channel
 
     def get_channel_names_list(self) -> List[str]:

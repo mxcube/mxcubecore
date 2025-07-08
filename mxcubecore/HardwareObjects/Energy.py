@@ -103,41 +103,6 @@ class Energy(HardwareObject):
             lims = (12.3984 / self.en_lims[1], 12.3984 / self.en_lims[0])
         return lims
 
-    # def start_move_energy(self, value, wait=True):
-    #     if not self.tunable:
-    #         return False
-    #
-    #     try:
-    #         value = float(value)
-    #     except (TypeError, ValueError) as diag:
-    #         logging.getLogger("user_level_log").error(
-    #             "Energy: invalid energy (%s)" % value
-    #         )
-    #         return False
-    #
-    #     current_en = self.get_current_energy()
-    #     if current_en:
-    #         if math.fabs(value - current_en) < 0.001:
-    #             self.moveEnergyCmdFinished(True)
-    #     if self.checkLimits(value) is False:
-    #         return False
-    #
-    #     self.moveEnergyCmdStarted()
-    #
-    #     def change_egy():
-    #         try:
-    #             self.set_value(value, wait=True)
-    #         except Exception:
-    #             sys.excepthook(*sys.exc_info())
-    #             self.moveEnergyCmdFailed()
-    #         else:
-    #             self.moveEnergyCmdFinished(True)
-    #
-    #     if wait:
-    #         change_egy()
-    #     else:
-    #         gevent.spawn(change_egy)
-
     def moveEnergyCmdStarted(self):
         self.moving = True
         self.emit("moveEnergyStarted", ())
@@ -161,10 +126,6 @@ class Energy(HardwareObject):
                 return True
             logging.getLogger("user_level_log").info("Requested value is out of limits")
         return False
-
-    # def start_move_wavelength(self, value, wait=True):
-    #     logging.getLogger("HWR").info("Moving wavelength to (%s)" % value)
-    #     return self.startMoveEnergy(12.3984 / value, wait)
 
     def cancelMoveEnergy(self):
         logging.getLogger("user_level_log").info("Cancel move")

@@ -89,7 +89,6 @@ class PyISPyBClient(HardwareObject):
 
                 self._configuration = Configuration(
                     host=self._host,
-                    #                   access_token=api_response.body.token,
                 )
                 self._configuration.access_token = api_response.body.token
             except pyispyb_client.ApiException as e:
@@ -155,39 +154,29 @@ class PyISPyBClient(HardwareObject):
             ssx_data_collection_group_create = {
                 "sessionId": session_id,
                 "startTime": datetime.datetime.now(),
-                # "endTime": datetime.datetime.now(),
                 "experimentType": self.mxcube_to_ispyb_collection_type(
                     collection_parameters.common_parameters.type
                 ),
                 "experimentName": collection_parameters.common_parameters.label,
-                #                "comments": "comments_example",
                 "sample": {
                     "name": sname,
                     "support": "support_example",
                     "crystal": {
-                        #                        "size_X": -1.0,
-                        #                        "size_Y": -1.0,
-                        #                        "size_Z": -1.0,
-                        #                        "abundance": -1.0,
+                        # "size_X": -1.0,
+                        # "size_Y": -1.0,
+                        # "size_Z": -1.0,
+                        # "abundance": -1.0,
                         "protein": {
                             "name": sname,
                             "acronym": sacronym,
                         },
                         "components": [],
-                        #                      "components": [{
-                        #                               "name": "name",
-                        #                               "componentType": "Ligand",
-                        #                               "composition": "composition_example",
-                        #    "abundance": -1.0,
-                        #                           },
-                        #                       ],
-                        #                   },"components":[{
-                        #                           "name": "name",
-                        #                           "componentType": "Ligand",
-                        #                           "composition": "composition_example",
-                        #                            "abundance": -1.0,
-                        #                       },
-                        #                    ],
+                        # "components":[{
+                        #     "name": "name",
+                        #     "componentType": "Ligand",
+                        #     "composition": "composition_example",
+                        #     "abundance": -1.0,
+                        # }],
                     },
                     "components": [],
                 },
@@ -197,7 +186,6 @@ class PyISPyBClient(HardwareObject):
                 api_response = api_instance.create_datacollectiongroup(
                     ssx_data_collection_group_create
                 )
-                # pprint.pprint(api_response)
                 return int(api_response.body)
             except pyispyb_client.ApiException as e:
                 print(

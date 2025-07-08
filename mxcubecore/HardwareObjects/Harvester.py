@@ -67,11 +67,6 @@ class HarvesterState:
     Running = 4
     Harvesting = 5
     ContinueHarvesting = 6
-    # Disabled = 7
-    # Running = 8
-    # StandBy = 9
-    # Alarm = 10
-    # Fault = 11
 
     STATE_DESC = {
         Initializing: "Initializing",
@@ -632,7 +627,6 @@ class Harvester(HardwareObject):
                             self._wait_sample_transfer_ready(None)
                         res = True
                     else:
-                        # logging.getLogger("user_level_log").info("ERROR: Sample Could not be Harvested (Harvester Ready, ) ")
                         msg = self.get_status()
                         logging.getLogger("user_level_log").exception(
                             "ERROR: Sample Could not be Harvested"

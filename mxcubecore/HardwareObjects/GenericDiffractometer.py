@@ -334,15 +334,6 @@ class GenericDiffractometer(HardwareObject):
         self.capillary = self.get_object_by_role("capillary")
         self.cryo = self.get_object_by_role("cryo")
 
-        # Hardware objects ----------------------------------------------------
-        # if HWR.beamline.sample_view.camera is not None:
-        #     self.image_height = HWR.beamline.sample_view.camera.get_height()
-        #     self.image_width = HWR.beamline.sample_view.camera.get_width()
-        # else:
-        #     logging.getLogger("HWR").debug(
-        #         "Diffractometer: " + "Camera hwobj is not defined"
-        #     )
-
         if HWR.beamline.beam is not None:
             self.beam_position = HWR.beamline.beam.get_beam_position_on_screen()
             self.connect(
@@ -616,11 +607,9 @@ class GenericDiffractometer(HardwareObject):
         :param timeout: timeout in seconds
         :type timeout: seconds
         """
-        # self.ready_event.clear()
         self.current_state = DiffractometerState.tostring(DiffractometerState.Busy)
         method(*args)
         time.sleep(5)
-        # gevent.sleep(2)
         self.wait_device_ready(timeout)
         self.ready_event.set()
 
@@ -725,9 +714,6 @@ class GenericDiffractometer(HardwareObject):
         """
         self.beam_position = list(value)
 
-    # def get_motor_positions(self):
-    #    return
-
     # TODO rename to get_motor_positions
     def get_positions(self):
         """
@@ -819,16 +805,9 @@ class GenericDiffractometer(HardwareObject):
                     "Diffractometer: problem aborting the centring method"
                 )
             try:
-                # TODO... do we need this at all?
-                # fun = self.cancel_centring_methods[self.current_centring_method]
-                pass
-            except KeyError:
+                fun()
+            except Exception:
                 self.emit_centring_failed()
-            else:
-                try:
-                    fun()
-                except Exception:
-                    self.emit_centring_failed()
         else:
             self.emit_centring_failed()
         self.emit_progress_message("")
@@ -949,15 +928,6 @@ class GenericDiffractometer(HardwareObject):
             except Exception:
                 logging.exception("Could not move to centred position")
                 self.emit_centring_failed()
-            else:
-                # if 3 click centring move -180. well. dont, in principle the calculated
-                # centred positions include omega to initial position
-                pass
-                # if not self.in_plate_mode():
-                #    logging.getLogger("HWR").debug("Centring finished. Moving omega back to initial position")
-                #    self.motor_hwobj_dict['phi'].set_value_relative(-180, timeout=None)
-                #    logging.getLogger("HWR").debug("         Moving omega done")
-
             if (
                 self.current_centring_method
                 == GenericDiffractometer.CENTRING_METHOD_AUTO

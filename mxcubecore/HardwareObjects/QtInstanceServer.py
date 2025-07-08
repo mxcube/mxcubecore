@@ -43,10 +43,6 @@ class QtInstanceServer(Procedure):
         self.idCount = {}  # server only
         self.clients = {}  # server only
 
-        # self.serverId = None # to remove
-        # self.controlId = None # to remove
-        # self.myProposal = None # to remove
-
         self.clientId2 = [None, None]  # client only
         self.serverId2 = [None, None]  # client AND server
         self.controlId2 = [None, None]  # client AND server
@@ -475,7 +471,6 @@ class QtInstanceServer(Procedure):
             send_data_to_server(self.instanceClient, data)
 
     def parseReceivedMessage(self, data):
-        # logging.getLogger().debug("******** RECEIVED MESSAGE = %r", data)
         msg_obj = None
         try:
             message = InstanceMessage(data=data)

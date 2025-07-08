@@ -423,7 +423,6 @@ class PlateManipulator(SampleChanger):
                 pos_y = self.stored_pos_y
             else:
                 self.stored_pos_y = pos_y
-                # pos_y = float(drop) / (self.num_drops + 1)
 
             if self.cmd_move_to_location:
                 self.cmd_move_to_location(row, col, pos_x, pos_y)
@@ -604,7 +603,6 @@ class PlateManipulator(SampleChanger):
         if self.plate_location is not None:
             new_sample = self.get_loaded_sample()
             if new_sample is not None:
-                # self._update_sample_barcode(new_sample)
                 loaded = True
                 has_been_loaded = True
                 new_sample._set_loaded(loaded, has_been_loaded)
@@ -710,7 +708,6 @@ class PlateManipulator(SampleChanger):
 
         if self.cmd_move_to_crystal_position and crystal_uuid:
             try:
-                # ret = self.cmd_move_to_crystal_position(row, col, drop, x.image_url, x.offset_x, x.offset_y, 0.0, 0.0, False)
                 ret = self.cmd_move_to_crystal_position(
                     self.plate_barcode, crystal_uuid
                 )
