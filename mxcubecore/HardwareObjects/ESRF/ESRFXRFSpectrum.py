@@ -38,12 +38,13 @@ __copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 import logging
-import os.path
 from ast import literal_eval
+from pathlib import Path
+from shutil import copy2
 from unittest.mock import MagicMock
 from warnings import warn
 
-import numpy
+import numpy as np
 from PyMca5.PyMca import (
     ClassMcaTheory,
     ConfigDict,
@@ -62,7 +63,7 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
     def __init__(self, name):
         super().__init__(name)
         self.cfgfile = None
-        self.config_fit = None
+        self.config = None
         self.ctrl_hwobj = None
         self.mcafit = None
         self.default_erange = None
@@ -73,15 +74,16 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
         super().init()
         self.ctrl_hwobj = self.get_object_by_role("controller")
         self.cfgfile = self.get_property(
-            "cfgfile", "/users/blissadm/local/beamline_configuration/misc/15keV.cfg"
+            "cfgfile",
+            "/users/blissadm/local/beamline_configuration/misc/15keV.cfg",
         )
-        self.config_fit = ConfigDict.ConfigDict()
+        self.config = ConfigDict.ConfigDict()
         self.mcafit = ClassMcaTheory.McaTheory(self.cfgfile)
         self.default_erange = literal_eval(
-            self.get_property("default_energy_range", "[2.0, 15.0]")
+            self.get_property("default_energy_range", "[2.0, 15.0]"),
         )
         self.cfg_energies = literal_eval(
-            self.get_property("cfg_energies", "[7, 9, 12, 15]")
+            self.get_property("cfg_energies", "[7, 9, 12, 15]"),
         )
 
     def _doSpectrum(self, ctime, filename):
@@ -92,14 +94,18 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
         )
         return self._execute_spectrum(ctime, filename)
 
-    def _execute_spectrum(self, integration_time=None, filename=None):
+    def _execute_spectrum(
+        self,
+        integration_time: float | None = None,
+        filename: str | None = None,
+    ) -> bool:
         """Local XRF spectrum sequence.
 
         Args:
-            integration_time (float): MCA integration time [s].
-            filename (str): Data file (full path).
+            integration_time: MCA integration time [s].
+            filename: Data file (full path).
         Returns:
-            (bool): Procedure executed correctly (True) or error (False)
+            Procedure executed correcly (True) or error (False)
         """
         filename = filename or self.spectrum_info_dict["filename"]
         integration_time = integration_time or self.default_integration_time
@@ -124,13 +130,13 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
 
     # Next methods are for fitting the data with pymca
 
-    def mcafit_configuration(self, config=None):
+    def mcafit_configuration(self, config: dict | None = None):
         """Configure the fitting parameters. The procedure is time consuming.
            It is only executed if the last configuration file is not the same.
 
         Args:
-            config(dict): Configuration dictionary, containing among others the
-                          configuration file name.
+            config: Configuration dictionary, containing among others the
+                    configuration file name.
         """
         change = False
         if not config or "file" not in config:
@@ -141,33 +147,36 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
         if self.cfgfile != cfgfile:
             self.cfgfile = cfgfile
             change = True
-        self.config_fit.read(self.cfgfile)
-        if "concentrations" not in self.config_fit:
-            self.config_fit["concentrations"] = {}
+        self.config.read(self.cfgfile)
+        if "concentrations" not in self.config:
+            self.config["concentrations"] = {}
             change = True
-        if "attenuators" not in self.config_fit:
-            self.config_fit["attenuators"] = {
-                "Matrix": [1, "Water", 1.0, 0.01, 45.0, 45.0]
-            }
+        if "attenuators" not in self.config:
+            self.config["attenuators"] = {"Matrix": [1, "Water", 1.0, 0.01, 45.0, 45.0]}
             change = True
         if "flux" in config:
-            self.config_fit["concentrations"]["flux"] = float(config["flux"])
+            self.config["concentrations"]["flux"] = float(config["flux"])
             change = True
         if "time" in config:
-            self.config_fit["concentrations"]["time"] = float(config["time"])
+            self.config["concentrations"]["time"] = float(config["time"])
             change = True
 
         if change:
-            self.mcafit.configure(self.config_fit)
+            self.mcafit.configure(self.config)
 
-    def spectrum_analyse(self, data=None, calib=None, config=None):
+    def spectrum_analyse(
+        self,
+        data: list | None = None,
+        calib: list | None = None,
+        config: dict | None = None,
+    ) -> bool:
         """Execute the fitting. Write the fitted data files to the archive
         directory.
 
         Args:
-            data (list): The raw data.
-            calib (list): The mca calibration.
-            config (dict): The configuration dictionary.
+            data: The raw data.
+            calib: The mca calibration.
+            config: The configuration dictionary.
         """
 
         if not config:
@@ -177,9 +186,9 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
                 "bsX": self.spectrum_info_dict["beamSizeHorizontal"],
                 "bsY": self.spectrum_info_dict["beamSizeVertical"],
                 "legend": self.spectrum_info_dict["annotatedPymcaXfeSpectrum"],
-                "htmldir": os.path.split(
-                    self.spectrum_info_dict["annotatedPymcaXfeSpectrum"]
-                )[0],
+                "htmldir": Path(
+                    self.spectrum_info_dict["annotatedPymcaXfeSpectrum"],
+                ).parent,
             }
 
         self.mcafit_configuration(config)
@@ -191,15 +200,15 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
 
         try:
             if data[0].size == 2:
-                xdata = numpy.array(data[:, 0]) * 1.0
-                ydata = numpy.array(data[:, 1])
+                xdata = np.array(data[:, 0]) * 1.0
+                ydata = np.array(data[:, 1])
             else:
                 xdata = data[0] * 1.0
                 ydata = data[1]
 
             try:
-                xmin = self.config_fit["fit"]["xmin"]
-                xmax = self.config_fit["fit"]["xmax"]
+                xmin = self.config["fit"]["xmin"]
+                xmax = self.config["fit"]["xmax"]
             except KeyError:
                 xmin = data[0][0]
                 xmax = data[0][-1]
@@ -211,19 +220,26 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
             if fitresult:
                 fitresult = {"fitresult": fitresult[0], "result": fitresult[1]}
 
-                # write the csv file to pyarch
+                # create the gallery directory
+                new_dir = Path(self.spectrum_info_dict["filename"]).parent / "gallery"
+                if not self.create_directory(new_dir):
+                    self.update_state(self.STATES.FAULT)
+                    return False
+
+                # write the csv file to pyarch and gallery
                 csvname = self.spectrum_info_dict["fittedDataFileFullPath"]
                 self._write_csv_file(fitresult["result"], csvname)
+                copy2(csvname, new_dir / Path(csvname).name)
 
                 # write html report to pyarch
-                fname = os.path.basename(self.spectrum_info_dict["filename"])
+                fname = Path(self.spectrum_info_dict["filename"]).name
                 outfile = fname.split(".")[0]
-                outdir = os.path.dirname(
-                    self.spectrum_info_dict["annotatedPymcaXfeSpectrum"]
-                )
+                outdir = Path(
+                    self.spectrum_info_dict["annotatedPymcaXfeSpectrum"],
+                ).parent
 
                 _kw = {
-                    "outdir": outdir,
+                    "outdir": str(outdir),
                     "outfile": outfile,
                     "fitresult": fitresult,
                     "plotdict": {"logy": False},
@@ -232,6 +248,13 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
                 report = QtMcaAdvancedFitReport.QtMcaAdvancedFitReport(**_kw)
                 text = report.getText()
                 report.writeReport(text=text)
+
+                # copy png file to galery
+                copy2(
+                    self.spectrum_info_dict["jpegScanFileFullPath"],
+                    new_dir,
+                )
+
                 return True
             return False
         except Exception as exp:
@@ -241,17 +264,17 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
             self.spectrum_command_failed()
             return False
 
-    def _write_csv_file(self, fitresult, fname=None):
+    def _write_csv_file(self, fitresult: dict, fname: str | None = None):
         """Write fitted data to a csv file.
 
         Args:
-            fitresult(dict): Data as dictionary.
+            fitresult: Data as dictionary.
         Kwargs:
-            fname (str): Filename to write to (full path).
+            fname: Filename to write to (full path).
         """
         fname = fname or self.spectrum_info_dict["fittedDataFileFullPath"]
-        if os.path.exists(fname):
-            os.remove(fname)
+        if Path(fname).exists():
+            Path(fname).unlink()
 
         # get the significant peaks
         peaks_dict = {}
@@ -283,7 +306,7 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
             header += delimiter + f'"{key}"'
 
         # logging.getLogger("user_level_log").info("Writing %s" % fname)
-        with open(fname, "w") as csv_fd:
+        with Path(fname).open("w") as csv_fd:
             csv_fd.write(header)
             csv_fd.write("\n")
             for i in range(fitresult["xdata"].size):
@@ -301,23 +324,21 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
                         fitresult["continuum"][i],
                         delimiter,
                         fitresult["pileup"][i],
-                    )
+                    ),
                 )
                 for val in peaks_dict.values():
                     csv_fd.write(f"{delimiter}{val[i]:.7g}")
 
                 csv_fd.write("\n")
 
-    def _get_cfgfile(self, energy):
+    def _get_cfgfile(self, energy: float) -> str:
         """Get the correct configuration file.
 
         Args:
             energy(float): The energy to choose which configuration file.
         """
         self.cfg_energies.sort()
-
-        cfg_path = os.path.split(self.cfgfile)[0]
         for egy in self.cfg_energies:
             if egy > energy:
-                return os.path.join(cfg_path, f"{str(egy)}keV.cfg")
-        return self.cfgfile
+                return str(Path(self.cfgfile).parent / f"{egy}keV.cfg")
+        return str(self.cfgfile)

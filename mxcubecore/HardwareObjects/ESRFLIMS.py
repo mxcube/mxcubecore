@@ -24,7 +24,7 @@ class ESRFLIMS(AbstractLims):
         self.ispyb = self.get_object_by_role("ispyb")
 
         self.is_local_host = False
-        self.active_lims = self.drac.get_lims_name()
+        self.active_lims = self.drac.get_lims_name()[0]
 
     def get_lims_name(self) -> List[Lims]:
         return self.drac.get_lims_name() + self.ispyb.get_lims_name()
@@ -252,11 +252,13 @@ class ESRFLIMS(AbstractLims):
 
     def store_energy_scan(self, energyscan_dict):
         energyscan_dict["sessionId"] = self.ispyb.get_session_id()
-        return self.ispyb.store_energy_scan(energyscan_dict)
+        self.drac.store_energy_scan(energyscan_dict)
+        return self.ispyb.store_energy_scan(self._clean_sample_id(energyscan_dict))
 
     def store_xfe_spectrum(self, xfespectrum_dict):
         xfespectrum_dict["sessionId"] = self.ispyb.get_session_id()
-        return self.ispyb.store_xfe_spectrum(xfespectrum_dict)
+        self.drac.store_xfe_spectrum(xfespectrum_dict)
+        return self.ispyb.store_xfe_spectrum(self._clean_sample_id(xfespectrum_dict))
 
     def store_workflow(self, *args, **kwargs):
         pass

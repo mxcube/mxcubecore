@@ -67,7 +67,7 @@ class XrfSpectrumQueueEntry(BaseQueueEntry):
                 archive_dir=xrf_spectrum.path_template.get_archive_directory(),
                 prefix=f"{path_template.get_prefix()}_{path_template.run_number}",
                 session_id=HWR.beamline.session.session_id,
-                blsample_id=xrf_spectrum._node_id,
+                blsample_id=xrf_spectrum.sample.lims_id,
                 cpos=xrf_spectrum.centred_position,
             )
             HWR.beamline.xrf_spectrum._ready_event.wait()
@@ -111,7 +111,7 @@ class XrfSpectrumQueueEntry(BaseQueueEntry):
     def xrf_spectrum_status_changed(self, msg):
         """xrfSpectrumStatusChanged handler.
         Args:
-            msg (str): Message when xrfSpectrumStatusChanged emitted.
+            msg (str): Message when xrfSpectrumStatusChanged emited.
         """
         logging.getLogger("user_level_log").info(msg)
 

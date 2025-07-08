@@ -1,9 +1,9 @@
 import json
 import logging
-import pathlib
 import shutil
 from collections import defaultdict
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import List, Optional
 from zoneinfo import ZoneInfo
 
@@ -82,7 +82,8 @@ class ICATLIMS(AbstractLims):
         sessions = self.to_sessions(self.__get_all_investigations())
 
         if len(sessions) == 0:
-            raise Exception("No sessions available for user %s" % (user_name))
+            msg = f"No sessions available for user {user_name}"
+            raise RuntimeError(msg)
 
         logger.debug("Successfully retrieved %s sessions" % (len(sessions)))
 
@@ -410,8 +411,10 @@ class ICATLIMS(AbstractLims):
         pass
 
     @property
-    def only_staff_session_selection(self):
-        return bool(self.get_property("only_staff_session_selection", default=False))
+    def only_staff_session_selection(self) -> bool:
+        return bool(
+            self.get_property("only_staff_session_selection", default_value=False)
+        )
 
     def store_robot_action(self, proposal_id: str):
         raise Exception("Not implemented")
@@ -817,8 +820,76 @@ class ICATLIMS(AbstractLims):
     def store_energy_scan(self, energyscan_dict: dict):
         pass
 
-    def store_xfe_spectrum(self, xfespectrum_dict: dict):
-        pass
+    def store_xfe_spectrum(self, collection_parameters: dict):
+        status = {"xfeFluorescenceSpectrumId": -1}
+        try:
+            try:
+                beamline = self._get_scheduled_beamline()
+                msg = f"Dataset Beamline={beamline} "
+                msg += f"Current Beamline={HWR.beamline.session.beamline_name}"
+                logging.getLogger("HWR").info(msg)
+            except Exception:
+                logging.getLogger("HWR").exception(
+                    "Failed to get _get_scheduled_beamline",
+                )
+            _session = HWR.beamline.session
+            proposal = f"{_session.proposal_code}{_session.proposal_number}"
+
+            try:
+                dt_aware = datetime.strptime(
+                    collection_parameters.get("startTime"),
+                    "%Y-%m-%d %H:%M:%S",
+                ).replace(tzinfo=ZoneInfo("Europe/Paris"))
+                dt_aware_end = datetime.strptime(
+                    collection_parameters.get("endTime"),
+                    "%Y-%m-%d %H:%M:%S",
+                ).replace(tzinfo=ZoneInfo("Europe/Paris"))
+
+                start_time = dt_aware.isoformat(timespec="microseconds")
+                end_time = dt_aware_end.isoformat(timespec="microseconds")
+            except TypeError:
+                logging.getLogger("HWR").error("Failed to parse start and end time")
+
+            directory = Path(collection_parameters["filename"]).parent
+
+            msg = f"SampleId is: {collection_parameters.get('blSampleId')}"
+            logging.getLogger("HWR").debug(msg)
+            try:
+                sample = HWR.beamline.lims.find_sample_by_sample_id(
+                    collection_parameters.get("blSampleId")
+                )
+                sample_name = sample["sampleName"]
+            except (AttributeError, TypeError):
+                sample_name = "unknown"
+                msg = f"Sample not found {collection_parameters.get('blSampleId')}"
+                logging.getLogger("HWR").debug(msg)
+
+            metadata = {
+                "sampleId": collection_parameters.get("blSampleId"),
+                "MX_beamSizeAtSampleX": collection_parameters.get("beamSizeHorizontal"),
+                "MX_beamSizeAtSampleY": collection_parameters.get("beamSizeVertical"),
+                "MX_directory": str(directory),
+                "MX_exposureTime": collection_parameters.get("exposureTime"),
+                "MX_flux": collection_parameters.get("flux"),
+                "scanType": "xrf",
+                "MX_transmission": collection_parameters.get("beamTransmission"),
+                "Sample_name": sample_name,
+                "InstrumentMonochromator_energy": collection_parameters.get("energy"),
+                "startDate": start_time,
+                "endDate": end_time,
+            }
+
+            self.icatClient.store_dataset(
+                beamline=beamline,
+                proposal=proposal,
+                dataset=str(directory.name),
+                path=str(directory),
+                metadata=metadata,
+            )
+        except Exception as e:
+            logging.getLogger("ispyb_client").exception(str(e))
+
+        return status
 
     def store_workflow(self, workflow_dict: dict):
         pass
@@ -883,15 +954,15 @@ class ICATLIMS(AbstractLims):
 
         Parameters:
             sample (str): Sample identifier.
-            output_folder (str): Directory where files will be saved.
+            output_folder (str): Directory where storefiles will be saved.
 
         Returns:
             dict: A dictionary containing the paths of the downloaded files.
         """
         downloaded_files: List[Download] = []
         for resource in resources:
-            resource_folder = pathlib.Path(output_folder) / sample_name
-            resource_folder = pathlib.Path(resource_folder) / (
+            resource_folder = Path(output_folder) / sample_name
+            resource_folder = Path(resource_folder) / (
                 resource.groupName if resource.groupName else ""
             )
             resource_folder.mkdir(
@@ -931,7 +1002,7 @@ class ICATLIMS(AbstractLims):
 
         try:
             fileinfo = collection_parameters["fileinfo"]
-            directory = pathlib.Path(fileinfo["directory"])
+            directory = Path(fileinfo["directory"])
             dataset_name = directory.name
             # Determine the scan type
             if dataset_name.endswith("mesh"):
@@ -1086,7 +1157,7 @@ class ICATLIMS(AbstractLims):
             except RuntimeError:
                 logger.warning("Failed to get MX_axis_end")
 
-            icat_metadata_path = pathlib.Path(directory) / "metadata.json"
+            icat_metadata_path = Path(directory) / "metadata.json"
             with open(icat_metadata_path, "w") as f:
                 # We add the processing and experiment plan only in the metadata.json
                 # it will not work thought pyicat-plus
@@ -1107,7 +1178,7 @@ class ICATLIMS(AbstractLims):
                 for snapshot_index in range(1, 5):
                     key = f"xtalSnapshotFullPath{snapshot_index}"
                     if key in collection_parameters:
-                        snapshot_path = pathlib.Path(collection_parameters[key])
+                        snapshot_path = Path(collection_parameters[key])
                         if snapshot_path.exists():
                             logger.debug(
                                 f"Copying snapshot index {snapshot_index} to gallery"
