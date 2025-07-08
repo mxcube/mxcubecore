@@ -102,7 +102,7 @@ class ICATLIMS(AbstractLims):
                     break
 
             if not session_found:
-                raise Exception(
+                raise RuntimeError(
                     "Current session in-use (with id %s) not avaialble to user %s"
                     % (self.session_manager.active_session.session_id, user_name)
                 )
@@ -417,7 +417,7 @@ class ICATLIMS(AbstractLims):
         )
 
     def store_robot_action(self, proposal_id: str):
-        raise Exception("Not implemented")
+        raise NotImplementedError("Not implemented")
 
     @property
     def filter(self):
@@ -455,11 +455,11 @@ class ICATLIMS(AbstractLims):
     def after_offset_days(self):
         return self.get_property("after_offset_days", "1")
 
-    def _string_to_format_date(self, date: str, format: str) -> str:
+    def _string_to_format_date(self, date: str, fmt: str) -> str:
         if date is not None:
             date_time = self._tz_aware_fromisoformat(date)
             if date_time is not None:
-                return date_time.strftime(format)
+                return date_time.strftime(fmt)
         return ""
 
     def _string_to_date(self, date: str) -> str:
@@ -471,7 +471,7 @@ class ICATLIMS(AbstractLims):
     def _tz_aware_fromisoformat(self, date: str) -> datetime:
         try:
             return datetime.fromisoformat(date).astimezone()
-        except Exception:
+        except (TypeError, ValueError):
             return None
 
     def set_active_session_by_id(self, session_id: str) -> Session:
@@ -486,7 +486,7 @@ class ICATLIMS(AbstractLims):
 
         if len(sessions) == 0:
             logger.warning("Session list is empty. No session candidates")
-            raise Exception("No sessions available")
+            raise RuntimeError("No sessions available")
 
         if len(sessions) == 1:
             self.session_manager.active_session = sessions[0]
@@ -498,7 +498,7 @@ class ICATLIMS(AbstractLims):
 
         session_list = [obj for obj in sessions if obj.session_id == session_id]
         if len(session_list) != 1:
-            raise Exception(
+            raise RuntimeError(
                 "Session not found in the local list of sessions. session_id="
                 + session_id
             )
@@ -510,19 +510,19 @@ class ICATLIMS(AbstractLims):
         logger.debug("allow_session investigationId=%s", session.session_id)
         self.icatClient.reschedule_investigation(session.session_id)
 
-    def get_session_by_id(self, id: str):
+    def get_session_by_id(self, sid: str):
         logger.debug(
             "get_session_by_id investigationId=%s investigations=%s",
-            id,
+            sid,
             str(len(self.investigations)),
         )
-        investigation_list = list(filter(lambda p: p["id"] == id, self.investigations))
+        investigation_list = list(filter(lambda p: p["id"] == sid, self.investigations))
         if len(investigation_list) == 1:
             self.investigation = investigation_list[0]
             return self.__to_session(investigation_list[0])
         logger.warn(
             "No investigation found. get_session_by_id investigationId=%s investigations=%s",
-            id,
+            sid,
             str(len(self.investigations)),
         )
         return None

@@ -2239,7 +2239,6 @@ convention = "google"
     "SLF001",
 ]
 "mxcubecore/HardwareObjects/ESRFLIMS.py" = [
-    "A002",
     "ARG002",
     "E501",
     "EM101",
@@ -2585,7 +2584,6 @@ convention = "google"
     "TRY300",
 ]
 "mxcubecore/HardwareObjects/ICATLIMS.py" = [
-    "A002",
     "ARG002",
     "BLE001",
     "C901",

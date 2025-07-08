@@ -225,8 +225,8 @@ class ESRFLIMS(AbstractLims):
     def allow_session(self, session: Session):
         return self.drac.allow_session(session)
 
-    def get_session_by_id(self, id: str):
-        return self.drac.get_session_by_id(id)
+    def get_session_by_id(self, sid: str):
+        return self.drac.get_session_by_id(sid)
 
     def get_user_name(self):
         return self.drac.get_user_name()
