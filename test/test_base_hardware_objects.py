@@ -1081,48 +1081,6 @@ class TestHardwareObjectMixin:
             HardwareObjectMixin,
         )
 
-    # def test_misc(self):
-    #     """ """
-
-    #     # __bool__
-    #     # __nonzero__
-    #     # _init
-    #     # init
-    #     # pydantic_model
-    #     # exported_attributes
-
-    # def test_get_type_annotations(self): ...
-
-    # def test_execute_exported_command(self): ...
-
-    # def test_abort(self): ...
-
-    # def test_stop(self): ...
-
-    # def test_get_state(self): ...
-
-    # def test_get_specific_state(self): ...
-
-    # def test_wait_ready(self): ...
-
-    # def test_is_ready(self): ...
-
-    # def test_update_state(self): ...
-
-    # def test_update_specific_state(self): ...
-
-    # def test_re_emit_values(self): ...
-
-    # def test_force_emit_signals(self): ...
-
-    # def test_clear_gevent(self): ...
-
-    # def test_emit(self): ...
-
-    # def test_connect(self): ...
-
-    # def test_disconnect(self): ...
-
 
 class TestHardwareObject:
     """Run tests for "HardwareObject" class"""
@@ -1139,24 +1097,6 @@ class TestHardwareObject:
             HardwareObject,
         )
 
-    # def test_misc(self):
-    #     """ """
-
-    #     # exported_attributes
-    #     # __getstate__
-
-    # def test_init(self): ...
-
-    # def test_setstate(self): ...
-
-    # def test_getattr(self): ...
-
-    # def test_commit_changes(self): ...
-
-    # def test_rewrite_xml(self): ...
-
-    # def test_xml_source(self): ...
-
 
 class TestHardwareObjectYaml:
     """Run tests for "HardwareObjectYaml" class"""
@@ -1169,7 +1109,3 @@ class TestHardwareObjectYaml:
         """
 
         assert hw_obj_yml is not None and isinstance(hw_obj_yml, HardwareObjectYaml)
-
-    # def test_user_name(self): ...
-
-    # def test_gui(self): ...

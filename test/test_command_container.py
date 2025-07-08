@@ -864,24 +864,6 @@ class TestCommandContainer:
     @pytest.mark.parametrize(
         "attributes_dict",
         (
-            # {
-            #     "name": "test1",
-            #     "type": "spec",
-            # },
-            # {
-            #     "name": "test2",
-            #     "type": "spec",
-            #     "version": "test_version",
-            # },
-            # {
-            #     "name": "test3",
-            #     "type": "taco",
-            # },
-            # {
-            #     "name": "test4",
-            #     "type": "taco",
-            #     "taconame": "test_taconame",
-            # },
             {
                 "name": "test5",
                 "type": "tango",
@@ -904,24 +886,6 @@ class TestCommandContainer:
                 "name": "test9",
                 "type": "epics",
             },
-            # {
-            #     "name": "test10",
-            #     "type": "tine",
-            # },
-            # {
-            #     "name": "test11",
-            #     "type": "tine",
-            #     "tinename": "test_tinename",
-            # },
-            # {
-            #     "name": "test12",
-            #     "type": "sardana",
-            # },
-            # {
-            #     "name": "test13",
-            #     "type": "sardana",
-            #     "taurusname": "test_taurusname",
-            # },
             {
                 "name": "test14",
                 "type": "mockup",
@@ -976,13 +940,9 @@ class TestCommandContainer:
         get_logger_patch = mocker.patch("logging.getLogger", return_value=logger_patch)
 
         # Patch imports to test in isolation
-        # mocker.patch("mxcubecore.Command.Spec.SpecChannel")
-        # mocker.patch("mxcubecore.Command.Taco.TacoChannel")
         mocker.patch("mxcubecore.Command.Tango.TangoChannel")
         mocker.patch("mxcubecore.Command.Exporter.ExporterChannel")
         mocker.patch("mxcubecore.Command.Epics.EpicsChannel")
-        # mocker.patch("mxcubecore.Command.Tine.TineChannel")
-        # mocker.patch("mxcubecore.Command.Sardana.SardanaChannel")
         mocker.patch("mxcubecore.Command.Mockup.MockupChannel")
 
         # Reset logger patch to remove calls from mock imports
@@ -1359,10 +1319,6 @@ class TestCommandContainer:
     @pytest.mark.parametrize(
         "arg1",
         (
-            # {"name": "test1", "type": "spec"},
-            # {"name": "test2", "type": "spec", "version": "test_version"},
-            # {"name": "test3", "type": "taco"},
-            # {"name": "test4", "type": "taco", "taconame": "test_taconame"},
             {"name": "test5", "type": "tango"},
             {"name": "test6", "type": "tango", "tangoname": "test_tangoname"},
             {"name": "test7", "type": "tango", "polling": 500},
@@ -1399,10 +1355,6 @@ class TestCommandContainer:
                 "exporter_address": "localhost:9000",
             },
             {"name": "test15", "type": "epics"},
-            # {"name": "test16", "type": "tine"},
-            # {"name": "test17", "type": "tine", "tinename": "test_tinename"},
-            # {"name": "test18", "type": "sardana"},
-            # {"name": "test19", "type": "sardana", "taurusname": "test_taurusname"},
             {"name": "test20", "type": "mockup"},
             {"name": "test21", "type": "mockup", "default_value": "1"},
         ),
@@ -1443,15 +1395,9 @@ class TestCommandContainer:
         get_logger_patch = mocker.patch("logging.getLogger", return_value=logger_patch)
 
         # Patch imports to test in isolation
-        # mocker.patch("mxcubecore.Command.Spec.SpecCommand")
-        # mocker.patch("mxcubecore.Command.Taco.TacoCommand")
         mocker.patch("mxcubecore.Command.Tango.TangoCommand")
         mocker.patch("mxcubecore.Command.Exporter.ExporterCommand")
         mocker.patch("mxcubecore.Command.Epics.EpicsCommand")
-        # mocker.patch("mxcubecore.Command.Sardana.SardanaCommand")
-        # mocker.patch("mxcubecore.Command.Sardana.SardanaMacro")
-        # mocker.patch("mxcubecore.Command.Pool.PoolCommand")
-        # mocker.patch("mxcubecore.Command.Tine.TineCommand")
         mocker.patch("mxcubecore.Command.Mockup.MockupCommand")
 
         # Reset logger patch to remove calls from mock imports

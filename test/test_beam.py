@@ -207,7 +207,6 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
         # slit size in mm, aperture diameters are in microns
         target_width = target_height = max_diameter / 2000.0
         test_object.set_value([target_width, target_height])
-        # beam_width, beam_height, beam_shape, _ = test_object.get_value()
         beam_width, beam_height = test_object.get_beam_size()
         assert target_width == beam_width
         assert target_height == beam_height

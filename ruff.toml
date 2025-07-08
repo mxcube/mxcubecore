@@ -5809,7 +5809,6 @@ convention = "google"
     "SLF001",
 ]
 "test/conftest.py" = [
-    "ERA001",
     "N814",
     "PT003",
     "PTH100",
@@ -5819,7 +5818,6 @@ convention = "google"
     "T201",
 ]
 "test/test_aperture.py" = [
-    "ERA001",
     "SLF001",
 ]
 "test/test_base_hardware_objects.py" = [
@@ -5828,7 +5826,6 @@ convention = "google"
     "C419",
     "E501",
     "E713",
-    "ERA001",
     "PLR0913",
     "PT003",
     "PT007",
@@ -5838,12 +5835,10 @@ convention = "google"
     "SLF001",
 ]
 "test/test_beam.py" = [
-    "ERA001",
     "PERF401",
     "SLF001",
 ]
 "test/test_beam_definer.py" = [
-    "ERA001",
 ]
 "test/test_beamline_ho_id.py" = [
     "SIM300",
@@ -5853,7 +5848,6 @@ convention = "google"
     "E501",
     "E712",
     "E713",
-    "ERA001",
     "F821",
     "FBT001",
     "PLR0913",
@@ -5874,10 +5868,8 @@ convention = "google"
 "test/test_detector_distance.py" = [
 ]
 "test/test_energy.py" = [
-    "ERA001",
 ]
 "test/test_flux.py" = [
-    "ERA001",
     "SLF001",
     "T201",
 ]
@@ -5901,16 +5893,13 @@ convention = "google"
 "test/test_sample_view.py" = [
 ]
 "test/test_shutter.py" = [
-    "ERA001",
     "T201",
 ]
 "test/test_transmission.py" = [
-    "ERA001",
 ]
 "test/test_utils_units.py" = [
     "N802",
 ]
 "test/test_xrf.py" = [
-    "ERA001",
     "S108",
 ]
