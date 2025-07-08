@@ -173,7 +173,6 @@ class EpicsCommand(CommandObject):
         self.__value_changed_callback_ref = saferef.safe_ref(value_changed_callback)
 
         # store the call to get as a function object
-        # poll_cmd = self.pv.get
         poll_cmd = self.get_pv_value
 
         Poller.poll(

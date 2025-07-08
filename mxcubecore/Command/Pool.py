@@ -100,9 +100,7 @@ class PoolCommand(CommandObject):
                 logging.getLogger("HWR").debug(
                     "%s: %s, args=%s", str(self.name()), tango_cmd_object, args
                 )
-                ret = tango_cmd_object(
-                    args
-                )  # eval('self.device.%s(*%s)' % (self.command, args))
+                ret = tango_cmd_object(args)
             except PyTango.DevFailed as error_dict:
                 logging.getLogger("HWR").error(
                     "%s: Tango, %s", str(self.name()), error_dict
@@ -251,7 +249,6 @@ class PoolChannel(ChannelObject):
             s = self.device.State()
         except Exception:
             pass
-            # logging.getLogger("HWR").exception("Could not read State attribute")
         else:
             if s == PyTango.DevState.OFF:
                 return
@@ -278,9 +275,6 @@ class PoolChannel(ChannelObject):
         return self.value
 
     def set_value(self, new_value):
-        # newval = PyTango.AttributeValue()
-        # newval.value = newValue
-        # self.device.write_attribute(self.attribute_name, newval)
         attr = PyTango.AttributeProxy(self.device_name + "/" + self.attribute_name)
         a = attr.read()
         a.value = new_value

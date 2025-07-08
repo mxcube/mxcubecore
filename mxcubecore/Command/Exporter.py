@@ -20,7 +20,6 @@
 
 """Exporter, ExporterChannel and ExporterCommand implementation"""
 
-# from warnings import warn
 import logging
 
 import gevent

@@ -18,15 +18,6 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-# import time
-# import logging
-# import weakref
-
-# try:
-#     import Queue as queue
-# except ImportError:
-#     import queue
-
 
 from mxcubecore.CommandContainer import (
     ChannelObject,
