@@ -417,7 +417,7 @@ class ICATLIMS(AbstractLims):
         )
 
     def store_robot_action(self, proposal_id: str):
-        raise NotImplementedError("Not implemented")
+        raise NotImplementedError
 
     @property
     def filter(self):

@@ -43,12 +43,12 @@ class XrfSpectrumQueueEntry(BaseQueueEntry):
         super().__init__(view, data_model)
         self._failed = False
 
-    def __getstate__(self):
+    def __getstate__(self) -> dict:
         d = dict(self.__dict__)
         d["xrf_spectrum_task"] = None
         return d
 
-    def __setstate__(self, d):
+    def __setstate__(self, d: dict):
         self.__dict__.update(d)
 
     def execute(self):
@@ -108,10 +108,10 @@ class XrfSpectrumQueueEntry(BaseQueueEntry):
         self.get_view().set_checkable(False)
         super().post_execute()
 
-    def xrf_spectrum_status_changed(self, msg):
+    def xrf_spectrum_status_changed(self, msg: str):
         """xrfSpectrumStatusChanged handler.
         Args:
-            msg (str): Message when xrfSpectrumStatusChanged emited.
+            msg: Message when ``xrfSpectrumStatusChanged`` emitted.
         """
         logging.getLogger("user_level_log").info(msg)
 
@@ -136,5 +136,5 @@ class XrfSpectrumQueueEntry(BaseQueueEntry):
             logging.getLogger("user_level_log").error("XRF spectrum failed.")
             raise QueueExecutionException("XRF spectrum failed", self)
 
-    def get_type_str(self):
+    def get_type_str(self) -> str:
         return "XRF spectrum"

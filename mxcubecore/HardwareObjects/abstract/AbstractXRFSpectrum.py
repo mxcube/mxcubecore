@@ -18,7 +18,7 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-"""Abstract XRF spectrum class. Complient with queue_entry/xrf_spectrum.py"""
+"""Abstract XRF spectrum class. Compliant with queue_entry/xrf_spectrum.py"""
 
 import abc
 import logging
@@ -51,7 +51,7 @@ class AbstractXRFSpectrum(HardwareObject):
 
     Note:
         _execute_spectrum and spectrum_analyse are hooks to be overloaded
-        for spcific implementation.
+        for specific implementation.
     """
 
     __metaclass__ = abc.ABCMeta
@@ -167,7 +167,7 @@ class AbstractXRFSpectrum(HardwareObject):
         Args:
             directory: Directory to save the data (full path).
         Returns:
-           (bool): True if directory created or already exists, False if error.
+           ``True`` if directory created or already exists, ``False`` if error.
         """
         if not Path(directory).is_dir():
             msg = f"XRFSpectrum: directory creating {directory}"
