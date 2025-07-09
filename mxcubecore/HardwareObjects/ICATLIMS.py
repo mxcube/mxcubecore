@@ -1,9 +1,9 @@
 import json
 import logging
-import pathlib
 import shutil
 from collections import defaultdict
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import List, Optional
 from zoneinfo import ZoneInfo
 
@@ -82,7 +82,8 @@ class ICATLIMS(AbstractLims):
         sessions = self.to_sessions(self.__get_all_investigations())
 
         if len(sessions) == 0:
-            raise Exception("No sessions available for user %s" % (user_name))
+            msg = f"No sessions available for user {user_name}"
+            raise RuntimeError(msg)
 
         logger.debug("Successfully retrieved %s sessions" % (len(sessions)))
 
@@ -101,7 +102,7 @@ class ICATLIMS(AbstractLims):
                     break
 
             if not session_found:
-                raise Exception(
+                raise RuntimeError(
                     "Current session in-use (with id %s) not avaialble to user %s"
                     % (self.session_manager.active_session.session_id, user_name)
                 )
@@ -291,13 +292,13 @@ class ICATLIMS(AbstractLims):
         # id to the sample sheet declared in the user portal
         sample_sheet_id = tracking_sample.get("sampleId")
         # identifier that points to the sample tracking
-        trackingSampleId = tracking_sample.get("_id")
+        tracking_sample_id = tracking_sample.get("_id")
 
         logger.debug(
-            "[ICATClient] Sample ids sample_id=%s sample_sheet_id=%s trackingSampleId=%s",
+            "[ICATClient] Sample ids sample_id=%s sample_sheet_id=%s tracking_sample_id=%s",
             sample_id,
             sample_sheet_id,
-            trackingSampleId,
+            tracking_sample_id,
         )
 
         sample_location = tracking_sample.get("sampleContainerPosition")
@@ -352,7 +353,7 @@ class ICATLIMS(AbstractLims):
                                     processing_plan, downloads
                                 )
                             except RuntimeError:
-                                logger.error(
+                                logger.exception(
                                     "Failed __add_download_path_to_processing_plan"
                                 )
 
@@ -369,7 +370,7 @@ class ICATLIMS(AbstractLims):
             "sampleName": sample_name,
             "sampleId": sample_id,
             "sample_sheet_id": sample_sheet_id,
-            "trackingSampleId": trackingSampleId,
+            "trackingSampleId": tracking_sample_id,
             "proteinAcronym": protein_acronym,
             "sampleLocation": sample_location,
             "containerCode": puck_name,
@@ -410,13 +411,13 @@ class ICATLIMS(AbstractLims):
         pass
 
     @property
-    def only_staff_session_selection(self):
+    def only_staff_session_selection(self) -> bool:
         return bool(
             self.get_property("only_staff_session_selection", default_value=False)
         )
 
     def store_robot_action(self, proposal_id: str):
-        raise Exception("Not implemented")
+        raise NotImplementedError
 
     @property
     def filter(self):
@@ -454,11 +455,11 @@ class ICATLIMS(AbstractLims):
     def after_offset_days(self):
         return self.get_property("after_offset_days", "1")
 
-    def _string_to_format_date(self, date: str, format: str) -> str:
+    def _string_to_format_date(self, date: str, fmt: str) -> str:
         if date is not None:
             date_time = self._tz_aware_fromisoformat(date)
             if date_time is not None:
-                return date_time.strftime(format)
+                return date_time.strftime(fmt)
         return ""
 
     def _string_to_date(self, date: str) -> str:
@@ -470,7 +471,7 @@ class ICATLIMS(AbstractLims):
     def _tz_aware_fromisoformat(self, date: str) -> datetime:
         try:
             return datetime.fromisoformat(date).astimezone()
-        except Exception:
+        except (TypeError, ValueError):
             return None
 
     def set_active_session_by_id(self, session_id: str) -> Session:
@@ -485,7 +486,7 @@ class ICATLIMS(AbstractLims):
 
         if len(sessions) == 0:
             logger.warning("Session list is empty. No session candidates")
-            raise Exception("No sessions available")
+            raise RuntimeError("No sessions available")
 
         if len(sessions) == 1:
             self.session_manager.active_session = sessions[0]
@@ -497,7 +498,7 @@ class ICATLIMS(AbstractLims):
 
         session_list = [obj for obj in sessions if obj.session_id == session_id]
         if len(session_list) != 1:
-            raise Exception(
+            raise RuntimeError(
                 "Session not found in the local list of sessions. session_id="
                 + session_id
             )
@@ -509,19 +510,19 @@ class ICATLIMS(AbstractLims):
         logger.debug("allow_session investigationId=%s", session.session_id)
         self.icatClient.reschedule_investigation(session.session_id)
 
-    def get_session_by_id(self, id: str):
+    def get_session_by_id(self, sid: str):
         logger.debug(
             "get_session_by_id investigationId=%s investigations=%s",
-            id,
+            sid,
             str(len(self.investigations)),
         )
-        investigation_list = list(filter(lambda p: p["id"] == id, self.investigations))
+        investigation_list = list(filter(lambda p: p["id"] == sid, self.investigations))
         if len(investigation_list) == 1:
             self.investigation = investigation_list[0]
             return self.__to_session(investigation_list[0])
         logger.warn(
             "No investigation found. get_session_by_id investigationId=%s investigations=%s",
-            id,
+            sid,
             str(len(self.investigations)),
         )
         return None
@@ -804,11 +805,11 @@ class ICATLIMS(AbstractLims):
             try:
                 if cell is not None and puck is not None:
                     position = int(cell * 3) + int(puck)
-            except Exception as e:
-                logger.exception(e)
+            except Exception:
+                logger.exception()
             return position, sample_position
-        except Exception as e:
-            logger.exception(e)
+        except Exception:
+            logger.exception()
 
     def store_beamline_setup(self, session_id: str, bl_config_dict: dict):
         pass
@@ -819,8 +820,76 @@ class ICATLIMS(AbstractLims):
     def store_energy_scan(self, energyscan_dict: dict):
         pass
 
-    def store_xfe_spectrum(self, xfespectrum_dict: dict):
-        pass
+    def store_xfe_spectrum(self, collection_parameters: dict):
+        status = {"xfeFluorescenceSpectrumId": -1}
+        try:
+            try:
+                beamline = self._get_scheduled_beamline()
+                msg = f"Dataset Beamline={beamline} "
+                msg += f"Current Beamline={HWR.beamline.session.beamline_name}"
+                logging.getLogger("HWR").info(msg)
+            except Exception:
+                logging.getLogger("HWR").exception(
+                    "Failed to get _get_scheduled_beamline",
+                )
+            _session = HWR.beamline.session
+            proposal = f"{_session.proposal_code}{_session.proposal_number}"
+
+            try:
+                dt_aware = datetime.strptime(
+                    collection_parameters.get("startTime"),
+                    "%Y-%m-%d %H:%M:%S",
+                ).replace(tzinfo=ZoneInfo("Europe/Paris"))
+                dt_aware_end = datetime.strptime(
+                    collection_parameters.get("endTime"),
+                    "%Y-%m-%d %H:%M:%S",
+                ).replace(tzinfo=ZoneInfo("Europe/Paris"))
+
+                start_time = dt_aware.isoformat(timespec="microseconds")
+                end_time = dt_aware_end.isoformat(timespec="microseconds")
+            except TypeError:
+                logging.getLogger("HWR").exception("Failed to parse start and end time")
+
+            directory = Path(collection_parameters["filename"]).parent
+
+            msg = f"SampleId is: {collection_parameters.get('blSampleId')}"
+            logging.getLogger("HWR").debug(msg)
+            try:
+                sample = HWR.beamline.lims.find_sample_by_sample_id(
+                    collection_parameters.get("blSampleId")
+                )
+                sample_name = sample["sampleName"]
+            except (AttributeError, TypeError):
+                sample_name = "unknown"
+                msg = f"Sample not found {collection_parameters.get('blSampleId')}"
+                logging.getLogger("HWR").debug(msg)
+
+            metadata = {
+                "sampleId": collection_parameters.get("blSampleId"),
+                "MX_beamSizeAtSampleX": collection_parameters.get("beamSizeHorizontal"),
+                "MX_beamSizeAtSampleY": collection_parameters.get("beamSizeVertical"),
+                "MX_directory": str(directory),
+                "MX_exposureTime": collection_parameters.get("exposureTime"),
+                "MX_flux": collection_parameters.get("flux"),
+                "scanType": "xrf",
+                "MX_transmission": collection_parameters.get("beamTransmission"),
+                "Sample_name": sample_name,
+                "InstrumentMonochromator_energy": collection_parameters.get("energy"),
+                "startDate": start_time,
+                "endDate": end_time,
+            }
+
+            self.icatClient.store_dataset(
+                beamline=beamline,
+                proposal=proposal,
+                dataset=str(directory.name),
+                path=str(directory),
+                metadata=metadata,
+            )
+        except Exception:
+            logging.getLogger("ispyb_client").exception()
+
+        return status
 
     def store_workflow(self, workflow_dict: dict):
         pass
@@ -873,7 +942,7 @@ class ICATLIMS(AbstractLims):
             else:
                 logger.exception("HTTP error for sample %s", sample_id)
 
-        except requests.exceptions.RequestException as e:
+        except requests.exceptions.RequestException:
             logger.exception("Request error for sample %s", sample_id)
         return None
 
@@ -885,15 +954,15 @@ class ICATLIMS(AbstractLims):
 
         Parameters:
             sample (str): Sample identifier.
-            output_folder (str): Directory where files will be saved.
+            output_folder (str): Directory where storefiles will be saved.
 
         Returns:
             dict: A dictionary containing the paths of the downloaded files.
         """
         downloaded_files: List[Download] = []
         for resource in resources:
-            resource_folder = pathlib.Path(output_folder) / sample_name
-            resource_folder = pathlib.Path(resource_folder) / (
+            resource_folder = Path(output_folder) / sample_name
+            resource_folder = Path(resource_folder) / (
                 resource.groupName if resource.groupName else ""
             )
             resource_folder.mkdir(
@@ -933,7 +1002,7 @@ class ICATLIMS(AbstractLims):
 
         try:
             fileinfo = collection_parameters["fileinfo"]
-            directory = pathlib.Path(fileinfo["directory"])
+            directory = Path(fileinfo["directory"])
             dataset_name = directory.name
             # Determine the scan type
             if dataset_name.endswith("mesh"):
@@ -1088,7 +1157,7 @@ class ICATLIMS(AbstractLims):
             except RuntimeError:
                 logger.warning("Failed to get MX_axis_end")
 
-            icat_metadata_path = pathlib.Path(directory) / "metadata.json"
+            icat_metadata_path = Path(directory) / "metadata.json"
             with open(icat_metadata_path, "w") as f:
                 # We add the processing and experiment plan only in the metadata.json
                 # it will not work thought pyicat-plus
@@ -1109,7 +1178,7 @@ class ICATLIMS(AbstractLims):
                 for snapshot_index in range(1, 5):
                     key = f"xtalSnapshotFullPath{snapshot_index}"
                     if key in collection_parameters:
-                        snapshot_path = pathlib.Path(collection_parameters[key])
+                        snapshot_path = Path(collection_parameters[key])
                         if snapshot_path.exists():
                             logger.debug(
                                 f"Copying snapshot index {snapshot_index} to gallery"
@@ -1169,4 +1238,3 @@ class ICATLIMS(AbstractLims):
         :param sample_dict: A dictionary with the properties for the entry.
         :type sample_dict: dict
         """
-        pass
