@@ -411,7 +411,9 @@ class ICATLIMS(AbstractLims):
 
     @property
     def only_staff_session_selection(self):
-        return bool(self.get_property("only_staff_session_selection", default_value=False))
+        return bool(
+            self.get_property("only_staff_session_selection", default_value=False)
+        )
 
     def store_robot_action(self, proposal_id: str):
         raise Exception("Not implemented")
