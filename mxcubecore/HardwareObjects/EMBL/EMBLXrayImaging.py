@@ -1,6 +1,6 @@
 # pylint: disable=E
 #
-#  Project: MXCuBE
+#  Project name: MXCuBE
 #  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
