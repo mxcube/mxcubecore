@@ -50,6 +50,7 @@ Hardware objects used: energy
 
 import abc
 import ast
+import logging
 import math
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
@@ -70,7 +71,6 @@ class AbstractDetector(HardwareObject):
         self._temperature = None
         self._humidity = None
         self._actual_frame_rate = None
-        self._exposure_time_limits = (None, None)
         self._pixel_size = (None, None)
         self._binning_mode = None
         self._roi_mode = 0
@@ -79,6 +79,29 @@ class AbstractDetector(HardwareObject):
 
         self._threshold_energy = None
         self._distance_motor_hwobj = None
+
+        min_exp_time = self.get_property("minimum_exposure_time", None)
+        max_exp_time = self.get_property("maximum_exposure_time", None)
+
+        if min_exp_time is None:
+            logging.getLogger("HWR").warning(
+                "Minimum exposure time not set for detector, using None"
+            )
+        else:
+            min_exp_time = float(min_exp_time)
+
+        if max_exp_time is None:
+            logging.getLogger("HWR").warning(
+                "Maximum exposure time not set for detector, using None"
+            )
+        else:
+            max_exp_time = float(max_exp_time)
+
+        self._exposure_time_limits = (
+            min_exp_time,
+            max_exp_time,
+        )
+
         self._width = None  # [pixel]
         self._height = None  # [pixel]
         self._metadata = {}

@@ -45,7 +45,7 @@ Currently, two scenarios can occur:
 
 * If the user opens MXCuBE again within **the same browser session** by opening multiple public tabs/windows or multiple private tabs/windows in the same browser, the browser sends the MXCuBE session cookie to the back-end. As a result, the user is automatically logged in within the same  MXCuBE "user session". In this case, the new login inherits all session data, including queues, drawn points, control state etc.
 
-* If the user opens MXCuBE in a **separate browser session**, by opening windows in different browser modes - public vs. private, browser profiles, different browsers or computers, the browser has no MXCuBE session cookie to send. Consequently, the user lands on the login page and must log in again. Once logged in, MXCuBE creates new "user session", the UI displays two active users where the second instance of the user is classified as an **observer**.
+* If the user opens MXCuBE in a **separate browser session**, by opening windows in different browser modes - public vs. private, browser profiles, different browsers or computers, the browser has no MXCuBE session cookie to send. Consequently, the user lands on the login page and must log in again. Once logged in, MXCuBE creates a new "user session" and quits the previous one. There can be only one user session per user at any given time.
 
 ## User with **staff** privileges
 

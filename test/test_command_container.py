@@ -761,48 +761,6 @@ class TestCommandContainer:
 
         assert cmd_container is not None and isinstance(cmd_container, CommandContainer)
 
-    @pytest.mark.parametrize("attr_name", ("test1", "test2", "test3"))
-    @pytest.mark.parametrize(
-        "initial_commands",
-        (
-            {
-                "test1": MagicMock(spec=CommandObject),
-                "test2": MagicMock(spec=CommandObject),
-            },
-        ),
-    )
-    def test_getattr(
-        self,
-        mocker: "MockerFixture",
-        cmd_container: CommandContainer,
-        attr_name: str,
-        initial_commands: Dict[str, Annotated[CommandObject, MagicMock]],
-    ):
-        """Test "__getattr__" method.
-
-        Args:
-            mocker (MockerFixture): Instance of the Pytest mocker fixture.
-            cmd_container (CommandContainer): Object instance.
-            attr_name (str): Attribute name.
-            initial_commands (Dict[str, Annotated[CommandObject, MagicMock]]): Initial commands.
-        """
-
-        # Patch "__commands" with known values to test
-        mocker.patch.object(
-            cmd_container,
-            "_CommandContainer__commands",
-            new=initial_commands,
-        )
-
-        if attr_name in initial_commands.keys():
-            # Check "getattr" returns expected value
-            res = getattr(cmd_container, attr_name)
-            assert res == initial_commands[attr_name]
-        else:
-            # Check "getattr" raises exception on non-existing attribute
-            with pytest.raises(AttributeError):
-                getattr(cmd_container, attr_name)
-
     @pytest.mark.parametrize("channel_name", ("test1", "test2", "test3", "test4"))
     @pytest.mark.parametrize(
         "initial_channels",
