@@ -79,7 +79,7 @@ class AbstractXRFSpectrum(HardwareObject):
         archive_dir: str | None = None,
         session_id: int | None = None,
         blsample_id: int | None = None,
-        cpos: int | None = None,
+        cpos: dict | None = None,
     ):
         """Start the procedure. Called by the queue_model.
 
@@ -90,6 +90,7 @@ class AbstractXRFSpectrum(HardwareObject):
             prefix: File prefix
             session_id: Session ID number (from ISpyB)
             blsample_id: Sample ID number (from ISpyB)
+            cpos: The centred position motors and their values.
         """
         self.cpos = cpos
         self.spectrum_info_dict = {"sessionId": session_id, "blSampleId": blsample_id}
@@ -230,7 +231,8 @@ class AbstractXRFSpectrum(HardwareObject):
 
     def spectrum_analyse(self):
         """Get the spectrum data. Do analysis and save fitted data.
-        The method has to be implemented as specific for each site.
+        The method has to be implemented as specific for each site, but
+        is only optional.
         """
 
     def spectrum_command_aborted(self):
