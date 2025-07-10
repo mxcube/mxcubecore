@@ -103,9 +103,9 @@ class AbstractCollect(HardwareObject, object):
 
         undulators = []
         try:
-            for undulator in self["undulators"]:
+            for undulator in self.config.undulators:
                 undulators.append(undulator)
-        except BaseException:
+        except Exception:
             pass
 
         beam_div_hor, beam_div_ver = HWR.beamline.beam.get_beam_divergence()
