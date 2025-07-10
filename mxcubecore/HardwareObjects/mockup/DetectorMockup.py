@@ -35,7 +35,7 @@ class DetectorMockup(AbstractDetector):
         )
         self._roi_mode = 0
         self._exposure_time_limits = eval(
-            self.get_property("exposure_time_limits", "[0.04, 60000]")
+            self.get_property("exposure_time_limits", "[0.02, 60000]")
         )
         self.update_state(self.STATES.READY)
         self.distance_motor_hwobj = self.get_object_by_role("detector_distance")

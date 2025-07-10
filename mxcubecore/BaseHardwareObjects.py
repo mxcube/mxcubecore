@@ -881,7 +881,7 @@ class HardwareObjectMixin(CommandContainer):
     def re_emit_values(self) -> None:
         """Update values for all internal attributes
 
-        Should be expanded in subclasse with more updatable attributes
+        Should be expanded in subclasses with more updatable attributes
         (e.g. value, limits)
         """
         self.update_state()

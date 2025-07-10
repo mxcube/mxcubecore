@@ -145,6 +145,7 @@ class QtGraphicsManager(AbstractSampleView):
         self.graphics_move_down_item = None
         self.graphics_move_left_item = None
         self.graphics_magnification_item = None
+        self.camera_hwobj = None
 
     def init(self):
         """Main init function. Initiates all graphics items, hwobjs and

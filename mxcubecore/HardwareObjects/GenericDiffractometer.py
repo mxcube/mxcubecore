@@ -527,7 +527,7 @@ class GenericDiffractometer(HardwareObject):
             return HardwareObject.__getattr__(self, attr)
 
     # Contained Objects
-    # NBNB Temp[orary hack - should be cleaned up together with configuration
+    # NBNB Temporary hack - should be cleaned up together with configuration
     @property
     def omega(self):
         """omega motor object
@@ -536,6 +536,24 @@ class GenericDiffractometer(HardwareObject):
             AbstractActuator
         """
         return self.motor_hwobj_dict.get("phi")
+
+    @property
+    def kappa(self):
+        """kappa motor object
+
+        Returns:
+            AbstractActuator
+        """
+        return self.get_object_by_role("kappa")
+
+    @property
+    def kappa_phi(self):
+        """kappa motor object
+
+        Returns:
+            AbstractActuator
+        """
+        return self.get_object_by_role("kappa_phi")
 
     @property
     def centring_x(self):
