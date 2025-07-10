@@ -91,6 +91,9 @@ class BeamMockup(AbstractBeam):
         if _check_beam:
             self._check_beam = literal_eval(_check_beam)
 
+        # Needed to trigger first value setting
+        self.get_value()
+
         self.re_emit_values()
         self.emit("beamPosChanged", (self._beam_position_on_screen,))
 

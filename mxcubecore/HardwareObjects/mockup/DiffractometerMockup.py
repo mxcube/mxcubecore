@@ -49,8 +49,6 @@ class DiffractometerMockup(GenericDiffractometer):
         self.focus = None
         self.frontlight = None
         self.frontlightswitch = None
-        self.kappa = None
-        self.kappa_phi = None
         self.phi = None
         self.phiy = None
         self.phiz = None
