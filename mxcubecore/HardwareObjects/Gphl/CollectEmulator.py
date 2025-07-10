@@ -45,15 +45,6 @@ class CollectEmulator(CollectMockup):
 
         self._counter = 1
 
-    # def init(self):
-    #     CollectMockup.init(self)
-    #     # NBNB you get an error if you use 'HWR.beamline.session'
-    #     # session_hwobj = self.get_object_by_role("session")
-    #     session = HWR.beamline.session
-    #     if session and self.has_object("override_data_directories"):
-    #         dirs = self["override_data_directories"].get_properties()
-    #         session.set_base_data_directories(**dirs)
-
     def _get_simcal_input(self, data_collect_parameters, crystal_data):
         """Get ordered dict with simcal input from available data"""
 
