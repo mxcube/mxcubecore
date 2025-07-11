@@ -2847,7 +2847,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/LimaEigerDetector.py" = [
     "ARG002",
     "BLE001",
-    "ERA001",
     "FURB188",
     "N806",
     "N814",
@@ -2866,7 +2865,6 @@ convention = "google"
     "A004",
     "ARG002",
     "BLE001",
-    "ERA001",
     "FBT003",
     "FURB188",
     "G002",

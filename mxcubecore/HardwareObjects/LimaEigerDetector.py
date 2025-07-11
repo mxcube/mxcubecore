@@ -96,7 +96,6 @@ class LimaEigerDetector(AbstractDetector):
         self.update_state(self.STATES.READY)
 
     def last_image_saved(self):
-        # return 0
         return self.get_channel_object("last_image_saved").get_value() + 1
 
     def get_deadtime(self):
@@ -167,10 +166,10 @@ class LimaEigerDetector(AbstractDetector):
             "omega_increment=%0.4f" % osc_range,
             "wavelength=%s" % HWR.beamline.energy.get_wavelength(),
         ]
-        # either we set the wavelength, or we set the energy_threshold
-        # up to now we were doing both (lost of time)
-        # "wavelength=%s" % HWR.beamline.energy.get_wavelength(),
-        # self.set_energy_threshold(HWR.beamline.energy.get_value())
+        # Either we set the wavelength or we set the energy_threshold.
+        # Up to now both ways are possible:
+        # self.set_energy_threshold(HWR.beamline.energy.get_value())  # noqa: ERA001
+        # "wavelength=%s" % HWR.beamline.energy.get_wavelength()  # noqa: ERA001
 
         self.get_channel_object("saving_common_header").set_value(header_info)
 
@@ -179,7 +178,6 @@ class LimaEigerDetector(AbstractDetector):
             self.get_channel_object("acq_trigger_mode").set_value("EXTERNAL_TRIGGER_SEQUENCES")
             self.get_channel_object("acq_nb_sequences").set_value(mesh_num_lines)
             """
-            # self.get_channel_object("acq_trigger_mode").set_value("EXTERNAL_GATE")
             self.get_channel_object("acq_trigger_mode").set_value(
                 "EXTERNAL_TRIGGER_MULTI"
             )
@@ -227,8 +225,6 @@ class LimaEigerDetector(AbstractDetector):
             prefix + "%01d" % frame_number
         )
         self.get_channel_object("saving_suffix").set_value(suffix)
-        # self.get_channel_object("saving_next_number").set_value(frame_number)
-        # self.get_channel_object("saving_index_format").set_value("%04d")
         self.get_channel_object("saving_format").set_value("HDF5")
 
     def start_acquisition(self):

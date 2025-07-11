@@ -140,14 +140,6 @@ class LimaPilatusDetector(AbstractDetector):
         self.roi_mode = self.roi_modes_list.index(str(mode))
         self.emit("detectorRoiModeChanged", (self.roi_mode,))
 
-    def set_roi_mode(self, mode):
-        """Sets roi mode
-
-        :param mode: roi mode
-        :type mode: str
-        """
-        # self.chan_roi_mode.set_value(self.roi_modes_list[mode])
-
     def prepare_acquisition(
         self,
         take_dark,
