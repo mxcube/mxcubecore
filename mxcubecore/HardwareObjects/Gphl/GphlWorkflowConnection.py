@@ -1031,6 +1031,8 @@ class GphlWorkflowConnection(HardwareObject):
         for item in collectionDone.scanIdMap.items():
             scanIdMap[jvm.java.util.UUID.fromString(conversion.text_type(item[0]))] = (
                 jvm.java.util.UUID.fromString(conversion.text_type(item[1]))
+                if item[1]
+                else None
             )
         return jvm.astra.messagebus.messages.information.CollectionDoneImpl(
             proposalId,
