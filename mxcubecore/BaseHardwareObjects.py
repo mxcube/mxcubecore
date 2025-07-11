@@ -87,9 +87,6 @@ class DefaultSpecificState(enum.Enum):
 class ConfiguredObject:
     """Superclass for classes that take configuration from YAML files"""
 
-    # class HOConfig(pydantic.BaseModel):
-    #     model_config = pydantic.ConfigDict(extra="allow")
-
     class HOConfig:
         """Temporary replacement for Pydantic class
 
