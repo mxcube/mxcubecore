@@ -645,7 +645,7 @@ class HardwareObjectMixin(CommandContainer):
         self._exports_config_list = []
 
         self.log: "Logger" = logging.getLogger("HWR").getChild(self.__class__.__name__)
-        self.user_log: "Logger" = logging.getLogger("user_log_level")
+        self.user_log: "Logger" = logging.getLogger("user_level_log")
 
     def __bool__(self) -> Literal[True]:
         return True
