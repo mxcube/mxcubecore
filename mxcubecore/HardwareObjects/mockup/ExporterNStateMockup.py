@@ -48,8 +48,6 @@ class ExporterNStateMockup(AbstractNState):
 
     def __init__(self, name):
         AbstractNState.__init__(self, name)
-        # self._mock_value = "OUT"
-        # self._mock_state= "READY"
 
     def init(self):
         """Initialise the device"""
@@ -91,13 +89,6 @@ class ExporterNStateMockup(AbstractNState):
         except (AttributeError, KeyError):
             return self.STATES.UNKNOWN
 
-    # def get_state(self):
-    #     """Get the device state.
-    #     Returns:
-    #         (enum 'HardwareObjectState'): Device state.
-    #     """
-    #     return self._value2state(self._mock_state)
-
     def abort(self):
         """Stop the action."""
         pass
@@ -125,5 +116,4 @@ class ExporterNStateMockup(AbstractNState):
         Returns:
             (Enum): Enum member, corresponding to the value or UNKNOWN.
         """
-        # _val = self._mock_value
         return self._nominal_value
