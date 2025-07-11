@@ -71,7 +71,6 @@ convention = "google"
     "C901",
     "E501",
     "E722",
-    "ERA001",
     "F841",
     "FBT002",
     "N999",
