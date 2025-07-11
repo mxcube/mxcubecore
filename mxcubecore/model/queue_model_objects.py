@@ -2055,8 +2055,6 @@ class GphlWorkflow(TaskNode):
             "initial_strategy",
             "strategy_variant",
             "strategy_options",
-            "acquisition_dose",
-            "characterisation_dose",
         ):
             summary[tag] = getattr(self, tag)
         summary["wavelengths"] = tuple(x.wavelength for x in self.wavelengths)
@@ -2064,7 +2062,13 @@ class GphlWorkflow(TaskNode):
         summary["orgxy"] = self.detector_setting.orgxy
         summary["strategy_variant"] = self.strategy_options.get("variant", "not set")
         summary["orientation_count"] = len(self.goniostat_translations)
-        summary["radiation_dose"] = self.calc_maximum_dose() * self.transmission / 100.0
+        summary["characterisation_dose"] = self.characterisation_dose
+        summary["dose_per_repetition"] = self.acquisition_dose
+
+        summary["total_radiation_dose"] = (
+            summary["dose_per_repetition"] * summary["repetition_count"]
+            + summary["characterisation_dose"]
+        )
         summary["total_dose_budget"] = self.recommended_dose_budget()
         return summary
 
