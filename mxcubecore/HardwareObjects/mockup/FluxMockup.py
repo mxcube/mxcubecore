@@ -45,15 +45,10 @@ class FluxMockup(AbstractFlux):
     def init(self):
         super().init()
         self.current_flux_dict["flux"] = self.default_value
-        gevent.spawn(self._update_flux)
-
-    def _update_flux(self):
-        while True:
-            self.measure_flux()
-            gevent.sleep(3)
 
     def get_value(self):
         """Get flux at current transmission in units of photons/s"""
+        self.measure_flux()
         return self.current_flux_dict["flux"]
 
     def measure_flux(self) -> None:
