@@ -62,11 +62,9 @@ class TineCommand(CommandObject):
         else:
             commandArgument = args[0]
         try:
-            # logging.getLogger("HWR").info("Tine command %s sent" % self.commandName)
             ret = tine.set(
                 self.tineName, self.commandName, commandArgument, self.timeout
             )
-            # logging.getLogger("HWR").info("Tine command %s reply arrived" % self.commandName)
             self.emit("commandReplyArrived", (ret, str(self.name())))
         except IOError as strerror:
             logging.getLogger("user_level_log").exception("TINE: %s" % strerror)
@@ -122,9 +120,6 @@ class TineChannel(ChannelObject):
     attach = {"timer": tine.attach, "event": tine.notify, "datachange": tine.update}
 
     updates = queue.Queue()
-    # updates_emitter = QtCore.QTimer()
-    # QtCore.QObject.connect(updates_emitter, QtCore.SIGNAL('timeout()'), emitTineChannelUpdates)
-    # updates_emitter.start(20)
     updates_emitter = gevent.spawn(do_tine_channel_update, 0.1)
 
     def __init__(
@@ -167,10 +162,6 @@ class TineChannel(ChannelObject):
             self.linkid = TineChannel.attach[kwargs.get("attach", "timer")](
                 self.tineName, self.attributeName, self.tineEventCallback, self.timeout
             )
-        # except IOError as strerror:
-        #   logging.getLogger("HWR").error("%s" %strerror)
-        # except ValueError:
-        #   logging.getLogger("HWR").error("TINE attach object is not callable")
 
         if self.linkid > 0 and kwargs.get("attach", "timer") == "datachange":
             tolerance = kwargs.get("tolerance", 0.0)
@@ -179,9 +170,6 @@ class TineChannel(ChannelObject):
             except AttributeError:
                 if tolerance != 0.0:
                     tine.tolerance(self.linkid, float(tolerance), 0.0)
-
-        # TODO Remove this sleep. Tine lib bug when after attach directly get is called
-        # time.sleep(0.025)
 
         atexit.register(self.__del__)
 
@@ -232,9 +220,6 @@ class TineChannel(ChannelObject):
             """
 
     def update(self, value=None):
-        # if self.tineName.split("/")[2] == 'ics':
-        #   print '>>>>>>>>>>>>>>>>>>', self.attributeName, value, self.value, self.oldvalue
-
         if value is None:
             logging.getLogger("HWR").warning(
                 "Update with value None on: %s %s" % (self.tineName, self.attributeName)
@@ -245,14 +230,8 @@ class TineChannel(ChannelObject):
         if value != self.oldvalue:
             TineChannel.updates.put((weakref.ref(self), value))
             self.oldvalue = value
-            # if self.tineName == "/P14/BCUIntensity/Device0":
-            #    logging.getLogger("HWR").debug('----------------- %s %s' %(self.attributeName,self.value))
 
     def get_value(self, force=False):
-        # logging.getLogger("HWR").debug('TINE channel %s, %s get at val=%s'%(self.tineName,self.attributeName,self.value))
-        # if self.tineName == "/P14/BCUIntensity/Device0":
-        #   print self.attributeName, self.value
-
         # GB: if forced while having a value already, i.e. well after connecting a channel, do a real synchronous get and return
         if force:
             if self.value is not None:
@@ -279,7 +258,6 @@ class TineChannel(ChannelObject):
             # but now tine lib should be standing the get, so we try....
 
             self.value = self._synchronous_get()
-            # time.sleep(0.02)
             _counter += 1
         if self.value is None:
             logging.getLogger("HWR").warning(

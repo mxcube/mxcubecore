@@ -98,7 +98,6 @@ convention = "google"
 ]
 "mxcubecore/Command/Mockup.py" = [
     "ARG002",
-    "ERA001",
     "EXE002",
     "FBT002",
     "FIX001",
@@ -113,7 +112,6 @@ convention = "google"
     "ARG002",
     "B904",
     "BLE001",
-    "ERA001",
     "EXE002",
     "F821",
     "N813",
@@ -139,7 +137,6 @@ convention = "google"
     "C901",
     "E402",
     "E501",
-    "ERA001",
     "F401",
     "F841",
     "G002",
@@ -159,7 +156,6 @@ convention = "google"
     "TRY400",
 ]
 "mxcubecore/Command/Spec.py" = [
-    "ERA001",
     "I001",
     "N802",
     "N803",
@@ -169,7 +165,6 @@ convention = "google"
     "ARG002",
     "BLE001",
     "E501",
-    "ERA001",
     "FBT002",
     "FBT003",
     "N802",
@@ -191,7 +186,6 @@ convention = "google"
     "B904",
     "E501",
     "E713",
-    "ERA001",
     "FBT003",
     "FIX002",
     "ICN001",
@@ -216,7 +210,6 @@ convention = "google"
     "ARG002",
     "BLE001",
     "E501",
-    "ERA001",
     "EXE002",
     "F841",
     "FBT002",
@@ -302,7 +295,6 @@ convention = "google"
     "BLE001",
     "C901",
     "E501",
-    "ERA001",
     "F841",
     "FBT001",
     "FBT002",

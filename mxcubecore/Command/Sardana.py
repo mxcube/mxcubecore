@@ -29,8 +29,6 @@ import os
 import gevent
 from gevent.event import Event
 
-# import time
-# import types
 from mxcubecore.dispatcher import saferef
 
 try:
@@ -156,17 +154,6 @@ class SardanaMacro(CommandObject, SardanaObject, ChannelObject):
         self.door.set_timeout_millis(10000)
         self.doorstate = self.door.state.name.upper()
 
-        #
-        # DIRTY FIX to make compatible taurus listeners and existence of Tango channels/commands
-        # as defined in Command/Tango.py
-        #
-        # if self.door.__class__ == taurus.core.tango.tangodevice.TangoDevice:
-        #    dp = self.door.getHWObj()
-        #    try:
-        #        dp.subscribe_event = dp._subscribe_event
-        #    except AttributeError:
-        #        pass
-
         if self.macroStatusAttr is None:
             self.macroStatusAttr = self.door.getAttribute("State")
             self.macroStatusAttr.addListener(self.object_listener)
@@ -261,9 +248,8 @@ class SardanaMacro(CommandObject, SardanaObject, ChannelObject):
 
         try:
             if not isinstance(data, PyTango.DeviceAttribute):
-                # Events different than a value changed on attribute.  Taurus sends an event with attribute info
-                # logging.getLogger('HWR').debug("==========. Got an event, but it is not an attribute . it is %s" % type(data))
-                # logging.getLogger('HWR').debug("doorstate event. type is %s" % str(type(data)))
+                # Events different than a value changed on attribute.
+                # Taurus sends an event with attribute info.
                 return
 
             # Handling macro state changed event
@@ -275,18 +261,14 @@ class SardanaMacro(CommandObject, SardanaObject, ChannelObject):
             if doorstate != self.doorstate:
                 self.doorstate = doorstate
 
-                # logging.getLogger('HWR').debug("self.doorstate is %s" % self.canExecute())
                 self.emit("commandCanExecute", (self.can_execute(),))
 
                 if doorstate in ["ON", "ALARM"]:
-                    # logging.getLogger('HWR').debug("Macroserver ready for commands")
                     self.emit("commandReady", ())
                 else:
-                    # logging.getLogger('HWR').debug("Macroserver busy ")
                     self.emit("commandNotReady", ())
 
             if self.macrostate == SardanaMacro.STARTED and doorstate == "RUNNING":
-                # logging.getLogger('HWR').debug("Macro server is running")
                 self.macrostate = SardanaMacro.RUNNING
             elif self.macrostate == SardanaMacro.RUNNING and (
                 doorstate in ["ON", "ALARM"]
@@ -323,7 +305,6 @@ class SardanaMacro(CommandObject, SardanaObject, ChannelObject):
         if self.door is not None:
             logging.getLogger("HWR").debug("SardanaMacro / aborting macro")
             self.door.abortMacro()
-            # self.emit('commandReady', ())
 
     def is_connected(self):
         return self.door is not None
@@ -417,18 +398,6 @@ class SardanaChannel(ChannelObject, SardanaObject):
     def init_device(self):
         try:
             self.attribute = Attribute(self.model)
-            #
-            # DIRTY FIX to make compatible taurus listeners and existence of Tango channels/commands
-            # as defined in Command/Tango.py
-            #
-            # if self.attribute.__class__ == taurus.core.tango.tangoattribute.TangoAttribute:
-            #    dev = self.attribute.getParentObj()
-            #    dp = dev.getHWObj()
-            #    try:
-            #        dp.subscribe_event = dp._subscribe_event
-            #    except AttributeError:
-            #        pass
-            # logging.getLogger("HWR").debug("initialized")
         except DevFailed as traceback:
             self.imported = False
             return

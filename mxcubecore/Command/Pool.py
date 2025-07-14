@@ -251,7 +251,6 @@ class PoolChannel(ChannelObject):
             s = self.device.State()
         except Exception:
             pass
-            # logging.getLogger("HWR").exception("Could not read State attribute")
         else:
             if s == PyTango.DevState.OFF:
                 return
@@ -278,9 +277,6 @@ class PoolChannel(ChannelObject):
         return self.value
 
     def set_value(self, new_value):
-        # newval = PyTango.AttributeValue()
-        # newval.value = newValue
-        # self.device.write_attribute(self.attribute_name, newval)
         attr = PyTango.AttributeProxy(self.device_name + "/" + self.attribute_name)
         a = attr.read()
         a.value = new_value
