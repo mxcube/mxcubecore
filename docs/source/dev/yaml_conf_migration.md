@@ -139,37 +139,6 @@ def init(self):
     foo = self.get_property("foo")
 ```
 
-## `@property` annotation for child objects
-
-Using `@property` annotated attribute to provide access to a child object is not supported.
-
-Consider this old-style code:
-
-```python
-class Shanxi(HardwareObject):
-    def init(self):
-        self._session = self.get_object_by_role("session")
-
-    @property
-    def session(self):
-        return self._session
-```
-
-This code provides access to its child hardware object `session` via the annotated `session` attribute.
-This style does not work anymore.
-Remove the annotated `session` attribute and assignment to `self._session` attribute.
-Use the following configuration file.
-
-```yaml
-class: Shanxi.Shanxi
-objects:
-  session: session.yml
-```
-
-During the initialization of the `Shanxi` object,
-the child object will be automatically assigned to the `session` attribute.
-See [Accessing child objects](configuration_files.md#accessing-child-objects) for more details.
-
 ## `name` parameter in `__init__` method
 
 When a hardware object is loaded using a YAML configuration file, it is created with the following code:
