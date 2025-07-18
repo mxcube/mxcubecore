@@ -16,15 +16,13 @@ REST_ROOT = "http://example.com/rest/"
 USER = "testusr"
 PASS = "testpsd"  # noqa: S105
 
-# @patch("suds.client.Client")
-# @patch("mxcubecore.HardwareRepository")
-
 
 @pytest.fixture
 @patch("mxcubecore.HardwareObjects.abstract.AbstractLims.HWR")
 @patch("mxcubecore.HardwareObjects.abstract.ISPyBAbstractLims.HWR")
 @patch("mxcubecore.HardwareObjects.abstract.ISPyBDataAdapter.Client")
-def ispyb_lims(_suds_mock, _hwr_mock, hwr_mock):
+@patch("mxcubecore.HardwareObjects.UserTypeISPyBLims.Client")
+def ispyb_lims(_suds_mock1, _suds_mock2, _hwr_mock, hwr_mock):
     # make sure mocked session HWOBJ have session set
     hwr_mock.beamline.session.beamline_name = "ID42"
 
