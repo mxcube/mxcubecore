@@ -185,14 +185,26 @@ class SsxBaseQueueEntry(BaseQueueEntry):
         logging.getLogger("user_level_log").info(
             f"Storing pedestal in {pedestal_dir}"
         )
-        subprocess.Popen(
-            "mkdir --parents %s && chmod -R 755 %s" % (pedestal_dir, pedestal_dir),
-            shell=True,
-            stdin=None,
-            stdout=None,
-            stderr=None,
-            close_fds=True,
-        ).wait()
+        nb_retries = 2
+        for r in range(nb_retries):
+            try:
+                cmd = ("mkdir --parents %s && chmod -R 755 %s" %
+                       (pedestal_dir, pedestal_dir))
+                subprocess.run(cmd, shell=True, check=True, close_fds=True)
+            except Exception as e:
+                logging.getLogger("user_level_log").warning(
+                    "Error creating pedestal directory %s: %s", pedestal_dir, e
+                )
+            else:
+                logging.getLogger("user_level_log").info(
+                    "Created pedestal directory %s", pedestal_dir
+                )
+                break
+        else:
+            msg = ("Failing creating pedestal directory %s after %s retries" %
+                   (pedestal_dir, nb_retries))
+            logging.getLogger("user_level_log").error(msg)
+            raise RuntimeError(msg)
 
         if len(HWR.beamline.detector.lima2_device.recvs) == 4:
             rr = "rr4"
@@ -236,15 +248,9 @@ class SsxBaseQueueEntry(BaseQueueEntry):
         finally:
             self.__pedestal_task = None
 
-        subprocess.Popen(
-            "cd %s && rm -f pedestal.h5 && ln -s %s/pedestal.h5"
-            % (data_root_path, pedestal_dir),
-            shell=True,
-            stdin=None,
-            stdout=None,
-            stderr=None,
-            close_fds=True,
-        ).wait()
+        cmd = ("cd %s && rm -f pedestal.h5 && ln -s %s/pedestal.h5" %
+               (data_root_path, pedestal_dir))
+        subprocess.run(cmd, shell=True, check=True, close_fds=True)
 
     def start_processing(self, exp_type):
         data_root_path = self.get_data_path()
