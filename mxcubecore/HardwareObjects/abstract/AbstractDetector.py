@@ -76,9 +76,30 @@ class AbstractDetector(HardwareObject):
         self._roi_mode = 0
         self._images_per_file = 0
         self._roi_modes_list = []
+        self._exposure_time_limits = (None, None)
 
         self._threshold_energy = None
         self._distance_motor_hwobj = None
+
+        self._width = None  # [pixel]
+        self._height = None  # [pixel]
+        self._metadata = {}
+
+    def init(self):
+        """Initialise some common parameters"""
+        super().init()
+
+        self._metadata = self.get_property("beam", {})
+
+        self._images_per_file = self.get_property("images_per_file", 100)
+
+        self._distance_motor_hwobj = self.get_object_by_role("detector_distance")
+
+        self._roi_modes_list = ast.literal_eval(self.get_property("roiModes", "()"))
+
+        self._pixel_size = (self.get_property("px"), self.get_property("py"))
+        self._width = self.get_property("width")
+        self._height = self.get_property("height")
 
         min_exp_time = self.get_property("minimum_exposure_time", None)
         max_exp_time = self.get_property("maximum_exposure_time", None)
@@ -101,26 +122,6 @@ class AbstractDetector(HardwareObject):
             min_exp_time,
             max_exp_time,
         )
-
-        self._width = None  # [pixel]
-        self._height = None  # [pixel]
-        self._metadata = {}
-
-    def init(self):
-        """Initialise some common parameters"""
-        super().init()
-
-        self._metadata = self.get_property("beam", {})
-
-        self._images_per_file = self.get_property("images_per_file", 100)
-
-        self._distance_motor_hwobj = self.get_object_by_role("detector_distance")
-
-        self._roi_modes_list = ast.literal_eval(self.get_property("roiModes", "()"))
-
-        self._pixel_size = (self.get_property("px"), self.get_property("py"))
-        self._width = self.get_property("width")
-        self._height = self.get_property("height")
 
     def force_emit_signals(self):
         """Emit all hardware object signals."""
