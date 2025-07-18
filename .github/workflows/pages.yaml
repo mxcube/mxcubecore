@@ -3,6 +3,9 @@
 
 name: Pages
 
+permissions:
+  contents: read
+
 concurrency:
   group: pages
 

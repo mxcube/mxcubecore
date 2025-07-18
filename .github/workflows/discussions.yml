@@ -18,6 +18,11 @@ name: Notify Team on New Discussion
   discussion:
     types: [created]
 
+permissions:
+  discussions: write
+  contents: read
+  organization: read
+
 jobs:
   notify_team:
     runs-on: ubuntu-latest

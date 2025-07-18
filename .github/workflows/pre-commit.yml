@@ -6,6 +6,9 @@ name: Linting & Code Quality
   pull_request:
     types: [opened, reopened, synchronize]
 
+permissions:
+  contents: read
+
 jobs:
 
   pre-commit:
