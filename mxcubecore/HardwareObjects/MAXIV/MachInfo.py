@@ -57,8 +57,8 @@ class MachInfo(AbstractMachineInfo):
         parameters (str): topics to export, see AbstractMachineInfo class for details
     """
 
-    def __init__(self, *args):
-        super().__init__(*args)
+    def __init__(self, name):
+        super().__init__(name)
         self.mach_info = None
         self.mach_curr = None
 

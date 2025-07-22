@@ -91,13 +91,16 @@ class ISARAMaint(HardwareObject):
         self._message = None
 
     def init(self):
-        self.isara_dev = DeviceProxy(self.tangoname)
+        tangoname = self.get_property("tangoname")
+        self.isara_dev = DeviceProxy(tangoname)
 
         polling = self._get_polling()
 
-        self._poll_attribute("Powered", polling, self._powered_updated)
-        self._poll_attribute("PositionName", polling, self._position_name_updated)
-        self._poll_attribute("Message", polling, self._message_updated)
+        self._poll_attribute(tangoname, "Powered", polling, self._powered_updated)
+        self._poll_attribute(
+            tangoname, "PositionName", polling, self._position_name_updated
+        )
+        self._poll_attribute(tangoname, "Message", polling, self._message_updated)
 
     def _get_polling(self):
         """
@@ -110,12 +113,12 @@ class ISARAMaint(HardwareObject):
             # no polling is specified in the XML, use default polling value
             return DEFAULT_POLLING
 
-    def _poll_attribute(self, attr_name: str, polling: int, callback):
+    def _poll_attribute(self, tangoname: str, attr_name: str, polling: int, callback):
         channel = self.add_channel(
             {
                 "type": "tango",
                 "name": f"_chn{attr_name}",
-                "tangoname": self.tangoname,
+                "tangoname": tangoname,
                 "polling": polling,
             },
             attr_name,
