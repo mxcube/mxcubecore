@@ -120,7 +120,8 @@ def isara_maint():
     # create ISARAMaint hardware object
     #
     maint = ISARAMaint("/sc_maint")
-    maint.tangoname = dev_ctx.get_device_access()
+    maint._config = maint.HOConfig(tangoname=dev_ctx.get_device_access())
+
     # make polling faster, to speed up the tests
     maint.polling = 10
 
@@ -302,7 +303,7 @@ def test_manual_mode_error(isara_maint: ISARAMaint):
     cb_tracker.wait_for_callback()
 
     # put robot into 'manual mode'
-    DeviceProxy(isara_maint.tangoname).disable_remote_mode()
+    DeviceProxy(isara_maint.get_property("tangoname")).disable_remote_mode()
 
     #
     # trying to power on or off the robot, should generate an appropriate error message
