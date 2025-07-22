@@ -2,9 +2,6 @@
 
 name: Pytest
 
-permissions:
-  contents: read
-
 "on":
   pull_request:
     types: [opened, reopened, synchronize]
@@ -14,6 +11,8 @@ jobs:
   Python:
 
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
 
     strategy:
       matrix:

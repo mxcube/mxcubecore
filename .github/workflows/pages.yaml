@@ -3,9 +3,6 @@
 
 name: Pages
 
-permissions:
-  contents: read
-
 concurrency:
   group: pages
 
@@ -18,6 +15,8 @@ jobs:
   pages-build:
 
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
 
     steps:
 

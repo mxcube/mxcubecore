@@ -18,14 +18,13 @@ name: Notify Team on New Discussion
   discussion:
     types: [created]
 
-permissions:
-  discussions: write
-  contents: read
-  organization: read
-
 jobs:
   notify_team:
     runs-on: ubuntu-latest
+    permissions:
+      discussions: write
+      contents: read
+      organization: read
     steps:
       # First generate the app token for authentication
       - name: Get GitHub App token

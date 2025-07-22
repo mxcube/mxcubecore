@@ -5,12 +5,13 @@ name: Create/Update Tag
   push:
     branches:
       - develop
-permissions:
-  contents: write
-  packages: write
+
 jobs:
   create-version-tag:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
     steps:
       - uses: actions/checkout@v3
         with:

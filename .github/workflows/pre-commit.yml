@@ -6,14 +6,13 @@ name: Linting & Code Quality
   pull_request:
     types: [opened, reopened, synchronize]
 
-permissions:
-  contents: read
-
 jobs:
 
   pre-commit:
 
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
 
     steps:
 
