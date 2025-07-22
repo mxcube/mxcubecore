@@ -20,6 +20,10 @@ jobs:
       - name: Generate Bandit skips from Ruff
         id: bandit_skips
         run: |
+          # Extract all Ruff security rules (Sxxx), convert them to Bandit codes (Bxxx),
+          # and join them as a comma-separated list for Bandit's --skip option.
+          # This keeps Bandit and Ruff in sync,
+          # so ignored security rules in Ruff are also skipped by Bandit.
           pip install ruff jq
           SKIPS=$(ruff rule --all --output-format json \
             | jq -r '.[] | select(.code | test("^S[0-9]{3}$")) | .code' \
