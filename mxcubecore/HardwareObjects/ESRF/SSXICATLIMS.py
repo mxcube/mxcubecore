@@ -79,6 +79,7 @@ class SSXICATLIMS(ICATLIMS):
                 "energyBandwidth": beamline_parameters.energy_bandwidth,
                 "detector_id": HWR.beamline.detector.get_property("detector_id"),
                 "experimentType": collection_parameters.common_parameters.type,
+                "Experiment_name": collection_parameters.path_parameters.experiment_name,
             }
 
             data.update(collection_parameters.user_collection_parameters.dict())
