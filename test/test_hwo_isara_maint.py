@@ -1,5 +1,7 @@
+from typing import Callable
+
 import pytest
-from gevent.event import Event
+from gevent.queue import Queue
 from tango import (
     DeviceProxy,
     Except,
@@ -98,9 +100,9 @@ def _disconnect_channels(maint: ISARAMaint):
 
     # the hard-coded list of attribute poller callbacks
     callbacks = {
-        "_chnPowered": maint._powered_updated,
-        "_chnPositionName": maint._position_name_updated,
-        "_chnMessage": maint._message_updated,
+        "Powered": maint._powered_updated,
+        "PositionName": maint._position_name_updated,
+        "Message": maint._message_updated,
     }
 
     for ch in maint.get_channels():
@@ -136,19 +138,20 @@ def isara_maint():
 
 
 class CallbackTracker:
-    """
-    allows tests to wait until signal callback is invoked
-    """
-
     def __init__(self):
-        self._cb_received = Event()
+        self._received_callbacks = Queue()
 
     def callback(self, *a, **k):
-        self._cb_received.set()
+        self._received_callbacks.put((a, k))
 
     def wait_for_callback(self):
-        self._cb_received.wait()
-        self._cb_received.clear()
+        return self._received_callbacks.get()
+
+    def wait_until(self, condition: Callable):
+        while received_callback := self.wait_for_callback():
+            if condition(received_callback):
+                # specified condition is fulfilled
+                return
 
 
 def test_power_on_home(isara_maint: ISARAMaint):
@@ -201,6 +204,13 @@ def test_power_off(isara_maint: ISARAMaint):
     """
     test running 'power off' command
     """
+
+    def power_is_off(callback_args):
+        data, _ = callback_args
+        state, _ = data
+
+        return state["PowerOn"]
+
     cb_tracker = CallbackTracker()
 
     isara_maint.connect("globalStateChanged", cb_tracker.callback)
@@ -211,7 +221,9 @@ def test_power_off(isara_maint: ISARAMaint):
 
     # issue 'power off' command
     isara_maint.send_command("PowerOff")
-    cb_tracker.wait_for_callback()
+
+    # wait until command 'propagates'
+    cb_tracker.wait_until(power_is_off)
 
     #
     # check that commands state is correct
@@ -238,6 +250,21 @@ def test_change_positions(isara_maint: ISARAMaint):
     using commands
     """
 
+    def get_state(callback_args):
+        data, _ = callback_args
+        state, _ = data
+
+        return state
+
+    def is_in_soak(callback_args):
+        return not get_state(callback_args)["soak"]
+
+    def is_in_dry(callback_args):
+        return not get_state(callback_args)["dry"]
+
+    def is_in_home(callback_args):
+        return not get_state(callback_args)["home"]
+
     cb_tracker = CallbackTracker()
 
     isara_maint.connect("globalStateChanged", cb_tracker.callback)
@@ -256,7 +283,7 @@ def test_change_positions(isara_maint: ISARAMaint):
     # move to 'soak' position
     #
     isara_maint.send_command("soak")
-    cb_tracker.wait_for_callback()
+    cb_tracker.wait_until(is_in_soak)
 
     # check that the state of commands is correct 'soak' position
     _, commands_state, _ = isara_maint.get_global_state()
@@ -268,7 +295,7 @@ def test_change_positions(isara_maint: ISARAMaint):
     # move to 'dry' position
     #
     isara_maint.send_command("dry")
-    cb_tracker.wait_for_callback()
+    cb_tracker.wait_until(is_in_dry)
 
     # check that the state of commands is correct 'dry' position
     _, commands_state, _ = isara_maint.get_global_state()
@@ -280,7 +307,7 @@ def test_change_positions(isara_maint: ISARAMaint):
     # move to 'home' position
     #
     isara_maint.send_command("home")
-    cb_tracker.wait_for_callback()
+    cb_tracker.wait_until(is_in_home)
 
     # check that the state of commands is correct 'home' position
     _, commands_state, _ = isara_maint.get_global_state()

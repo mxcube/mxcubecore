@@ -6,6 +6,7 @@ from tango import (
 )
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.utils.tango import TangoAttributeReadError, add_attribute_channel
 
 """
 The sample changer maintenance hardware object for ISARA2 robot.
@@ -93,14 +94,7 @@ class ISARAMaint(HardwareObject):
     def init(self):
         tangoname = self.get_property("tangoname")
         self.isara_dev = DeviceProxy(tangoname)
-
-        polling = self._get_polling()
-
-        self._poll_attribute(tangoname, "Powered", polling, self._powered_updated)
-        self._poll_attribute(
-            tangoname, "PositionName", polling, self._position_name_updated
-        )
-        self._poll_attribute(tangoname, "Message", polling, self._message_updated)
+        self._setup_attribute_polling(tangoname)
 
     def _get_polling(self):
         """
@@ -113,18 +107,36 @@ class ISARAMaint(HardwareObject):
             # no polling is specified in the XML, use default polling value
             return DEFAULT_POLLING
 
-    def _poll_attribute(self, tangoname: str, attr_name: str, polling: int, callback):
-        channel = self.add_channel(
-            {
-                "type": "tango",
-                "name": f"_chn{attr_name}",
-                "tangoname": tangoname,
-                "polling": polling,
-            },
-            attr_name,
-        )
+    def _setup_attribute_polling(self, tangoname: str):
+        polling = self._get_polling()
 
-        channel.connect_signal("update", callback)
+        try:
+            add_attribute_channel(
+                self,
+                tangoname,
+                "Powered",
+                polling,
+                self._powered_updated,
+            )
+            add_attribute_channel(
+                self,
+                tangoname,
+                "PositionName",
+                polling,
+                self._position_name_updated,
+            )
+            add_attribute_channel(
+                self,
+                tangoname,
+                "Message",
+                polling,
+                self._message_updated,
+            )
+        except TangoAttributeReadError as ex:
+            self.log.warning(
+                "ISARA: could not connect to '%s' tango attribute",
+                ex.attribute_name,
+            )
 
     def _update_state(self):
         for attr in [self._powered, self._position_name, self._message]:
