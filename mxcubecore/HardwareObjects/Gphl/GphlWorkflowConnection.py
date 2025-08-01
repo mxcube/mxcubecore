@@ -68,24 +68,6 @@ sys.modules["_socket"] = _origsocket
 del origsocket
 del _origsocket
 
-try:
-    # This file already does the alternative imports plus some tweaking
-    # TODO It ought to be moved out as an accessible Util file, but meanwhile
-    # Here we take care of the case where it is missing.
-    from mxcubecore.dispatcher import dispatcher
-except ImportError:
-    try:
-        from louie import dispatcher
-    except ImportError:
-        from pydispatch import (
-            dispatcher,
-            robustapply,
-            saferef,
-        )
-
-        saferef.safe_ref = saferef.safeRef
-        robustapply.robust_apply = robustapply.robustApply
-
 __copyright__ = """ Copyright © 2016 - 2019 by Global Phasing Ltd. """
 __license__ = "LGPLv3+"
 __author__ = "Rasmus H Fogh"
