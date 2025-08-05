@@ -41,12 +41,8 @@ Example Hardware Object XML file :
 """
 
 import logging
-import os
-import struct
-import time
 
 import gevent
-import numpy as np
 from camera import camera
 from GenericVideoDevice import GenericVideoDevice
 

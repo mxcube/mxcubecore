@@ -7,7 +7,6 @@ import sys
 from logging.handlers import RotatingFileHandler
 
 from colorama import (
-    Back,
     Fore,
     Style,
 )

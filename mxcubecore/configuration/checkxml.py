@@ -5,7 +5,6 @@ import pprint
 import pydantic
 import xmltodict
 from colorama import (
-    Back,
     Fore,
     Style,
 )

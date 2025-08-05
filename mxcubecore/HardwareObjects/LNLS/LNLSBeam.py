@@ -29,7 +29,6 @@ import ast
 
 from mxcubecore.HardwareObjects.abstract.AbstractBeam import (
     AbstractBeam,
-    BeamShape,
 )
 
 

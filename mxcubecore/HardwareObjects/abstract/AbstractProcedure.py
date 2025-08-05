@@ -27,11 +27,6 @@ import gevent.event
 # Using jsonschma for validating the JSCONSchemas
 # https://json-schema.org/
 # https://github.com/Julian/jsonschema
-from jsonschema import (
-    ValidationError,
-    validate,
-)
-
 from mxcubecore.BaseHardwareObjects import ConfiguredObject
 from mxcubecore.dispatcher import dispatcher
 

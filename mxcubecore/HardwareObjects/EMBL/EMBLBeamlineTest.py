@@ -19,19 +19,9 @@
 
 import logging
 import os
-import tempfile
-from csv import reader
 from datetime import datetime
-from random import random
-from time import sleep
 
 import gevent
-import numpy
-import numpy as np
-import tine
-from matplotlib.backends.backend_agg import FigureCanvasAgg
-from matplotlib.figure import Figure
-from scipy.interpolate import interp1d
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects import SimpleHTML

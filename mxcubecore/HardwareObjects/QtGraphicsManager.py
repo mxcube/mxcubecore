@@ -41,12 +41,6 @@ from __future__ import print_function
 import logging
 import math
 import os
-
-try:
-    import cPickle as pickle
-except Exception:
-    import _pickle as pickle
-
 from copy import deepcopy
 from datetime import datetime
 
@@ -59,14 +53,6 @@ from scipy import (
     ndimage,
     signal,
 )
-
-try:
-    import lucid2 as lucid
-except ImportError:
-    try:
-        import lucid
-    except ImportError:
-        pass
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects import QtGraphicsLib as GraphicsLib

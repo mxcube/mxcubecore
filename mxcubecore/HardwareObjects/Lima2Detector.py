@@ -6,7 +6,6 @@ from contextlib import ExitStack
 from uuid import uuid1
 
 import gevent
-import numpy as np
 from gevent import subprocess
 from lima2.client import Detector
 from lima2.client.smx.aggregation.writer import Writer as SmxAggregationWriter
@@ -15,7 +14,6 @@ from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.CommandContainer import ConnectionError
 from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
-from mxcubecore.TaskUtils import task
 
 _logger = logging.getLogger("HWR")
 

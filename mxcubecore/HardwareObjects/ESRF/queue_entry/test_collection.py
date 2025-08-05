@@ -1,11 +1,5 @@
 from devtools import debug
-from pydantic.v1 import (
-    BaseModel,
-    Field,
-)
-from typing_extensions import Literal
 
-from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.ESRF.queue_entry.ssx_base_queue_entry import (
     BaseUserCollectionParameters,
     SsxBaseQueueEntry,

@@ -30,7 +30,6 @@ from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.HardwareObjects.abstract import AbstractSampleChanger
 from mxcubecore.HardwareObjects.abstract.sample_changer import (
     Container,
-    Crims,
     Sample,
 )
 

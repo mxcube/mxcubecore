@@ -63,13 +63,6 @@ Example Hardware Object XML file :
 import logging
 import os
 import time
-from datetime import (
-    datetime,
-    timedelta,
-)
-
-from gevent import spawn
-from urllib2 import urlopen
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 

@@ -5,7 +5,10 @@ try:
 
     louie = 1
 except ImportError:
-    from pydispatch import dispatcher  # pyright: ignore[reportMissingImports]
+    # `dispatcher` is imported here but unused, on purpose.
+    # It is here so that one can `from mxcubecore.dispatcher import dispatcher`.
+    # Maybe this can be solved differently, though.
+    from pydispatch import dispatcher  # pyright: ignore[reportMissingImports]  # noqa: F401
     from pydispatch import robustapply  # pyright: ignore[reportMissingImports]
     from pydispatch import saferef  # pyright: ignore[reportMissingImports]
 

@@ -22,15 +22,7 @@ __copyright__ = """Copyright The MXCuBE Collaboration"""
 __license__ = "LGPLv3+"
 
 
-import gevent
-import numpy
-from gevent import Timeout
-
 # import DeviceProxy function and DevState:
-from PyTango import (
-    DeviceProxy,
-    DevState,
-)
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 

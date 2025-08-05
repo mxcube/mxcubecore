@@ -20,11 +20,8 @@
 import base64
 import time
 
-import Image
 import numpy as np
 import urllib2
-from cStringIO import StringIO
-from PIL.ImageQt import ImageQt
 
 from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import AbstractVideoDevice
 from mxcubecore.utils import qt_import

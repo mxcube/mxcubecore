@@ -37,14 +37,11 @@ Example xml file:
 
 import ast
 
-import gevent
-
 from mxcubecore.HardwareObjects.BeamlineActions import (
     BeamlineActions,
     ControllerCommand,
     HWObjActuatorCommand,
 )
-from mxcubecore.TaskUtils import task
 
 __copyright__ = """ Copyright © 2010-2023 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"

@@ -1,14 +1,6 @@
-import enum
 import logging
-import os
-import subprocess
 
 import gevent
-from devtools import debug
-from pydantic.v1 import (
-    BaseModel,
-    Field,
-)
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.ESRF.queue_entry.ssx_base_queue_entry import (

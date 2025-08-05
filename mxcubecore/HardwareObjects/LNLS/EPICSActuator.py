@@ -15,7 +15,6 @@ Example of xml file:
 </object>
 """
 
-import random
 import time
 
 import gevent

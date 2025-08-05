@@ -5,7 +5,6 @@ import time
 
 import gevent
 import PyChooch
-import Xane
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
 

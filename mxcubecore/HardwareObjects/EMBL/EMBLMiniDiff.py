@@ -35,7 +35,6 @@ except ImportError:
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.GenericDiffractometer import GenericDiffractometer
-from mxcubecore.TaskUtils import task
 
 __credits__ = ["EMBL Hamburg"]
 __category__ = "General"

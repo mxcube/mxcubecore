@@ -18,8 +18,6 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 
-import gevent
-
 from mxcubecore.HardwareObjects.abstract.AbstractTransmission import (
     AbstractTransmission,
 )

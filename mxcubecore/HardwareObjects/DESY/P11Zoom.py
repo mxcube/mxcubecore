@@ -26,7 +26,6 @@ from enum import Enum
 
 from mxcubecore.HardwareObjects.abstract.AbstractNState import (
     AbstractNState,
-    BaseValueEnum,
 )
 
 redis_flag = False

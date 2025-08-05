@@ -25,7 +25,6 @@ from enum import (
     unique,
 )
 
-from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 
 __credits__ = ["EMBL Hamburg"]

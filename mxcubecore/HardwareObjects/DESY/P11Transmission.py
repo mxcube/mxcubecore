@@ -24,8 +24,6 @@ __license__ = "LGPLv3+"
 import logging
 import time
 
-import gevent
-
 from mxcubecore.HardwareObjects.abstract.AbstractTransmission import (
     AbstractTransmission,
 )

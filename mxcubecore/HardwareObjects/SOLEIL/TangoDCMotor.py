@@ -1,8 +1,6 @@
 import logging
 
-import gevent
 import numpy
-from PyQt4.QtGui import QApplication
 from PyTango import DeviceProxy
 
 from mxcubecore import HardwareRepository as HWR

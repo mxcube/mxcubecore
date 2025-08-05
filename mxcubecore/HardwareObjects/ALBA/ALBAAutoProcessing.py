@@ -6,7 +6,6 @@ from datetime import datetime
 
 from ALBAClusterJob import ALBAEdnaProcJob
 from PyTango import DeviceProxy
-from xaloc import XalocJob
 from XSDataAutoprocv1_0 import XSDataAutoprocInput
 from XSDataCommon import (
     XSDataFile,

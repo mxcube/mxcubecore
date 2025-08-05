@@ -30,8 +30,6 @@ from enum import (
 
 import gevent
 
-import mxcubecore.HardwareObjects.abstract.AbstractShutter as absshut
-from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 
 __credits__ = ["DESY P11"]

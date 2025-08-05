@@ -11,20 +11,9 @@ import pyispyb_client
 from pyispyb_client import Configuration
 from pyispyb_client.apis.tags import (
     authentication_api,
-    serial_crystallography_api,
     webservices_serial_crystallography_api,
 )
-from pyispyb_client.model.event_chain_create import EventChainCreate
-from pyispyb_client.model.event_create import EventCreate
 from pyispyb_client.model.login import Login
-from pyispyb_client.model.ssx_crystal_create import SSXCrystalCreate
-from pyispyb_client.model.ssx_data_collection_create import SSXDataCollectionCreate
-from pyispyb_client.model.ssx_data_collection_group_create import (
-    SSXDataCollectionGroupCreate,
-)
-from pyispyb_client.model.ssx_protein_create import SSXProteinCreate
-from pyispyb_client.model.ssx_sample_component_create import SSXSampleComponentCreate
-from pyispyb_client.model.ssx_sample_create import SSXSampleCreate
 from typing_extensions import Literal
 
 from mxcubecore import HardwareRepository as HWR

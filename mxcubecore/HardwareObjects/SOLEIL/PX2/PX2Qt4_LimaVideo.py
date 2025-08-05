@@ -44,26 +44,11 @@ Example Hardware Object XML file :
 </object>
 """
 
-import logging
-import os
-import struct
-import time
-
 from mxcubecore.HardwareObjects.QtLimaVideo import QtLimaVideo
 
 try:
     from Lima import Core
 except Exception:
-    pass
-
-try:
-    from Lima import Prosilica
-except ImportError as e:
-    pass
-
-try:
-    from Lima import Basler
-except ImportError as e:
     pass
 
 

@@ -26,7 +26,6 @@ from enum import (
     unique,
 )
 
-from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractNState
 
 __credits__ = ["DESY P11"]
@@ -38,8 +37,6 @@ from enum import (
     Enum,
     unique,
 )
-
-from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 
 
 @unique

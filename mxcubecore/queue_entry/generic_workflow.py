@@ -19,8 +19,6 @@
 import logging
 import time
 
-import gevent
-
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.queue_entry.base_queue_entry import (
     BaseQueueEntry,

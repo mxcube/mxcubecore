@@ -18,12 +18,7 @@ Example XML::
 
 """
 
-import logging
-
 from ALBAEpsActuator import ALBAEpsActuator
-
-from mxcubecore import BaseHardwareObjects
-from mxcubecore import HardwareRepository as HWR
 
 
 class ALBAFrontEnd(ALBAEpsActuator):

@@ -29,7 +29,6 @@ from PyQt5.QtCore import (
     pyqtSignal,
 )
 
-from mxcubecore.HardwareObjects.abstract.AbstractMachineInfo import AbstractMachineInfo
 from mxcubecore.HardwareObjects.TangoMachineInfo import TangoMachineInfo
 
 

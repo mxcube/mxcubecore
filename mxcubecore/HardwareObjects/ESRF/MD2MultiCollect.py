@@ -2,10 +2,7 @@ import logging
 import os
 import shutil
 
-import gevent
-
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.HardwareObjects.LimaPilatusDetector import LimaPilatusDetector
 from mxcubecore.TaskUtils import task
 
 from .ESRFMultiCollect import ESRFMultiCollect

@@ -23,7 +23,6 @@ __license__ = "LGPLv3+"
 
 from enum import Enum
 
-from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractNState
 
 __credits__ = ["DESY P11"]
@@ -31,8 +30,6 @@ __license__ = "LGPLv3+"
 __category__ = "General"
 
 from enum import Enum
-
-from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 
 
 class P11FastShutter(AbstractNState):

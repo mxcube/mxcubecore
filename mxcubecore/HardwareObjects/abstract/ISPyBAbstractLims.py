@@ -11,7 +11,6 @@ from mxcubecore.HardwareObjects.abstract.AbstractLims import AbstractLims
 from mxcubecore.HardwareObjects.abstract.ISPyBDataAdapter import ISPyBDataAdapter
 from mxcubecore.model.lims_session import (
     Lims,
-    LimsSessionManager,
 )
 
 

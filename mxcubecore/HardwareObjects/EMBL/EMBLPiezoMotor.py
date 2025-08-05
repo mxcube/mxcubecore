@@ -21,8 +21,6 @@
 EMBLPiezoMotor
 """
 
-import logging
-
 from mxcubecore.HardwareObjects.EMBL.TINEMotor import TINEMotor
 
 __credits__ = ["EMBL Hamburg"]

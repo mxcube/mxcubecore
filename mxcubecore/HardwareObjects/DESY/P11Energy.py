@@ -23,7 +23,6 @@ __license__ = "LGPLv3+"
 
 import logging
 
-from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
 
 log = logging.getLogger("HWR")

@@ -3,7 +3,6 @@ import os
 import sys
 import time
 
-from PyTango import DeviceProxy
 from xaloc import XalocJob
 from XSDataCommon import (
     XSDataFile,

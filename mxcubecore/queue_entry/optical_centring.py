@@ -17,8 +17,6 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 
-import gevent
-
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.queue_entry.base_queue_entry import BaseQueueEntry
 

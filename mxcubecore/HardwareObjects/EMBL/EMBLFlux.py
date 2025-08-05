@@ -19,11 +19,9 @@
 
 import logging
 from copy import deepcopy
-from datetime import datetime
 
 import gevent
 import numpy
-import tine
 from scipy.interpolate import interp1d
 
 from mxcubecore import HardwareRepository as HWR

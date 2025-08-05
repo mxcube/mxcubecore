@@ -27,7 +27,6 @@ import os
 import time
 from configparser import ConfigParser
 from datetime import date
-from select import EPOLL_CLOEXEC
 
 import yaml
 

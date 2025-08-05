@@ -1,10 +1,8 @@
 # from qt import *
 
 import logging
-import os
 import time
 
-from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.Command.Tango import DeviceProxy
 from mxcubecore.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
 

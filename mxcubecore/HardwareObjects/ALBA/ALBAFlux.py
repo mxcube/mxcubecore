@@ -2,7 +2,6 @@ import logging
 
 import taurus
 
-from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.abstract import AbstractFlux
 
 

@@ -42,13 +42,11 @@ except ImportError:
     traceback.print_exc()
     redis_flag = False
 
-from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import AbstractVideoDevice
 from mxcubecore.utils.conversion import string_types
 from mxcubecore.utils.qt_import import (
     QImage,
     QPixmap,
-    QPoint,
 )
 
 

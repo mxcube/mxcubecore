@@ -30,7 +30,6 @@ from XSDataCommon import (
     XSDataAngle,
     XSDataBoolean,
     XSDataDouble,
-    XSDataFile,
     XSDataFlux,
     XSDataImage,
     XSDataInteger,
@@ -47,13 +46,7 @@ from XSDataMXCuBEv1_4 import (
 )
 
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.HardwareObjects.abstract.AbstractCharacterisation import (
-    AbstractCharacterisation,
-)
 from mxcubecore.HardwareObjects.EDNACharacterisation import EDNACharacterisation
-from mxcubecore.HardwareObjects.SecureXMLRpcRequestHandler import (
-    SecureXMLRpcRequestHandler,
-)
 from mxcubecore.model import queue_model_enumerables as qme
 from mxcubecore.model import queue_model_objects as qmo
 

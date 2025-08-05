@@ -58,7 +58,6 @@ except Exception:
 
 try:
     import taurus
-    from sardana.taurus.core.tango.sardana import registerExtensions
     from taurus import (
         Attribute,
         Device,

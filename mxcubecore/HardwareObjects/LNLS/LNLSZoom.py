@@ -12,8 +12,6 @@ EL6": 6}</values>
 import time
 from enum import Enum
 
-import gevent
-
 from mxcubecore.HardwareObjects.abstract.AbstractNState import (
     AbstractNState,
     BaseValueEnum,

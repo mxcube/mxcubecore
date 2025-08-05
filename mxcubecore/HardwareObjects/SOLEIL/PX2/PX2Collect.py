@@ -17,22 +17,15 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-import os
 
 import gevent
-from energy_scan import energy_scan
-from film import film
-from fluorescence_spectrum import fluorescence_spectrum
 from helical_scan import helical_scan
-from inverse_scan import inverse_scan
-from nested_helical_acquisition import nested_helical_acquisition
 from omega_scan import omega_scan
 
 # from xray_centring import xray_centring
 from raster_scan import raster_scan
 from reference_images import reference_images
 from slits import slits1
-from tomography import tomography
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject

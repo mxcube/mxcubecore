@@ -45,7 +45,6 @@ Public Interface:
 import logging
 
 from mxcubecore import BaseHardwareObjects
-from mxcubecore import HardwareRepository as HWR
 
 STATE_OUT, STATE_IN, STATE_MOVING, STATE_FAULT, STATE_ALARM, STATE_UNKNOWN = (
     0,

@@ -11,13 +11,9 @@ import time
 
 import gevent
 import numpy
-from matplotlib.backends.backend_agg import FigureCanvasAgg
-from matplotlib.figure import Figure
 
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.abstract.AbstractEnergyScan import AbstractEnergyScan
-from mxcubecore.TaskUtils import task
 
 
 class GetStaticParameters:

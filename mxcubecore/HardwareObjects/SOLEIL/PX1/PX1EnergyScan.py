@@ -25,7 +25,6 @@ from matplotlib.figure import Figure
 from xabs_lib import McMaster
 
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.Command.Tango import DeviceProxy
 from mxcubecore.TaskUtils import (
     cleanup,

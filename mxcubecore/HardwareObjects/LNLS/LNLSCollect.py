@@ -1,6 +1,5 @@
 import logging
 import os
-import time
 
 import gevent
 
@@ -187,7 +186,6 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
                 return
 
             import subprocess
-            import sys
 
             try:
                 process = subprocess.Popen(

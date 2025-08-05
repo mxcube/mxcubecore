@@ -19,8 +19,6 @@
 
 """TINEMotor class defines motor in the TINE control system"""
 
-import logging
-
 import gevent
 
 from mxcubecore.BaseHardwareObjects import HardwareObjectState

@@ -23,12 +23,9 @@ __license__ = "LGPLv3+"
 __credits__ = ["DESY P11"]
 __category__ = "General"
 
-import numpy as np
 
-from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.HardwareObjects.abstract.AbstractBeam import (
     AbstractBeam,
-    BeamShape,
 )
 
 

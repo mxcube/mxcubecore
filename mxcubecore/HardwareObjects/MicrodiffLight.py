@@ -1,4 +1,3 @@
-from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.HardwareObjects.ExporterMotor import ExporterMotor
 
 

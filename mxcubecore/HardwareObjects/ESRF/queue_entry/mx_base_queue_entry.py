@@ -11,7 +11,6 @@ from pydantic.v1 import (
     Field,
 )
 from typing_extensions import (
-    Literal,
     Union,
 )
 

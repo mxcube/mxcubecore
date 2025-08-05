@@ -1,9 +1,6 @@
-import logging
-
 from beam_center import beam_center
 from resolution import resolution
 
-from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractResolution import AbstractResolution
 
 

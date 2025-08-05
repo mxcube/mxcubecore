@@ -11,7 +11,6 @@ import time
 
 try:
     from sdm import (
-        Visitor,
         storage,
     )
 except Exception:

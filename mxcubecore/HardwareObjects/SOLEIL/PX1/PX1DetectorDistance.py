@@ -2,7 +2,6 @@ import time
 
 import gevent
 
-from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 
