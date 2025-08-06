@@ -4,7 +4,8 @@ name: Bandit and SonarQube
 
 "on":
   pull_request: null
-  push: null
+  push:
+    branches: [develop]
   workflow_dispatch: null
 
 jobs:
@@ -57,8 +58,10 @@ jobs:
       contents: read
       security-events: write
       actions: read
-    if: >
-      github.repository == 'mxcube/mxcubecore'
+    if: |
+      (github.event_name == 'push' && github.repository == 'mxcube/mxcubecore') ||
+      (github.event_name == 'pull_request' &&
+       github.event.pull_request.base.repo.full_name == 'mxcube/mxcubecore')
     steps:
       - uses: actions/checkout@v4
       - name: Set up Java
