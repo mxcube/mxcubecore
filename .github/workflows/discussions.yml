@@ -24,7 +24,6 @@ jobs:
     permissions:
       discussions: write
       contents: read
-      organization: read
     steps:
       # First generate the app token for authentication
       - name: Get GitHub App token
