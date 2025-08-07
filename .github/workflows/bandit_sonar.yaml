@@ -82,7 +82,7 @@ jobs:
         with:
           args: >
             -Dsonar.organization=mxcubeweb
-            -Dsonar.projectKey=mxcube_mxcubeweb
+            -Dsonar.projectKey=mxcube_mxcubecore
             -Dsonar.coverage.exclusions=**
             -Dsonar.cpd.exclusions=**
             -Dsonar.cpd.skip=true
