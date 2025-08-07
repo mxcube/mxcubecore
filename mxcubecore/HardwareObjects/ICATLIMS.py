@@ -1080,6 +1080,7 @@ class ICATLIMS(AbstractLims):
                 "InstrumentMonochromator_wavelength": collection_parameters.get(
                     "wavelength"
                 ),
+                "InstrumentMonochromator_energy": collection_parameters.get("energy"),
                 "Workflow_name": workflow_params.get("workflow_name"),
                 "Workflow_type": workflow_params.get("workflow_type"),
                 "Workflow_id": workflow_params.get("workflow_uid"),
