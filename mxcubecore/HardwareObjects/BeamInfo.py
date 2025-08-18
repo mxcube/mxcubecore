@@ -23,14 +23,7 @@ from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 class BeamInfo(HardwareObject):
-    """
-    Description:
-    """
-
     def __init__(self, *args):
-        """
-        Descrip. :
-        """
         super().__init__(*args)
 
         self.aperture_hwobj = None
@@ -48,9 +41,6 @@ class BeamInfo(HardwareObject):
         self.chan_beam_shape_ellipse = None
 
     def init(self):
-        """
-        Descript. :
-        """
         self.beam_size_slits = [9999, 9999]
         self.beam_size_aperture = [9999, 9999]
         self.beam_size_definer = [9999, 9999]
@@ -100,76 +90,40 @@ class BeamInfo(HardwareObject):
         self.re_emit_values()
 
     def get_beam_divergence_hor(self):
-        """
-        Descript. :
-        """
         if self.beam_definer is not None:
             return self.beam_definer.get_divergence_hor()
         else:
             return self.default_beam_divergence[0]
 
     def get_beam_divergence_ver(self):
-        """
-        Descript. :
-        """
         if self.beam_definer is not None:
             return self.beam_definer.get_divergence_ver()
         else:
             return self.default_beam_divergence[1]
 
     def get_beam_position(self):
-        """
-        Descript. :
-        Arguments :
-        Return    :
-        """
         return (0, 0)
         # raise NotImplementedError
 
     def set_beam_position(self, beam_x, beam_y):
-        """
-        Descript. :
-        Arguments :
-        Return    :
-        """
         raise NotImplementedError
 
     def aperture_pos_changed(self, size):
-        """
-        Descript. :
-        Arguments :
-        Return    :
-        """
         self.beam_size_aperture = size
         self.evaluate_beam_info()
         self.re_emit_values()
 
     def slits_gap_changed(self, size):
-        """
-        Descript. :
-        Arguments :
-        Return    :
-        """
         self.beam_size_slits = size
         self.evaluate_beam_info()
         self.re_emit_values()
 
     def definer_pos_changed(self, name, size):
-        """
-        Descript. :
-        Arguments :
-        Return    :
-        """
         self.beam_size_definer = size
         self.evaluate_beam_info()
         self.re_emit_values()
 
     def get_beam_info(self):
-        """
-        Descript. :
-        Arguments :
-        Return    :
-        """
         return self.evaluate_beam_info()
 
     def get_beam_size(self):
@@ -181,20 +135,10 @@ class BeamInfo(HardwareObject):
         return self.beam_info_dict["size_x"], self.beam_info_dict["size_y"]
 
     def get_beam_shape(self):
-        """
-        Descript. :
-        Arguments :
-        Return    :
-        """
         self.evaluate_beam_info()
         return self.beam_info_dict["shape"]
 
     def get_slits_gap(self):
-        """
-        Descript. :
-        Arguments :
-        Return    :
-        """
         self.evaluate_beam_info()
         return self.beam_size_slits
 
@@ -226,11 +170,6 @@ class BeamInfo(HardwareObject):
         return self.beam_info_dict
 
     def re_emit_values(self):
-        """
-        Descript. :
-        Arguments :
-        Return    :
-        """
         if (
             self.beam_info_dict["size_x"] != 9999
             and self.beam_info_dict["size_y"] != 9999

@@ -977,9 +977,6 @@ class GenericDiffractometer(HardwareObject):
             logging.exception("Diffractometer: Could not complete 2D centring")
 
     def centring_done(self, centring_procedure):
-        """
-        Descript. :
-        """
         try:
             motor_pos = centring_procedure.get()
             if isinstance(motor_pos, gevent.GreenletExit):
@@ -1198,9 +1195,6 @@ class GenericDiffractometer(HardwareObject):
         self.emit("fsmConditionChanged", "centering_position_accepted", True)
 
     def reject_centring(self):
-        """
-        Descript. :
-        """
         if self.current_centring_procedure:
             self.current_centring_procedure.kill()
         self.centring_status = {"valid": False}
@@ -1209,22 +1203,13 @@ class GenericDiffractometer(HardwareObject):
         self.emit("fsmConditionChanged", "centering_position_accepted", False)
 
     def emit_centring_started(self, method):
-        """
-        Descript. :
-        """
         self.current_centring_method = method
         self.emit("centringStarted", (method, False))
 
     def emit_centring_moving(self):
-        """
-        Descript. :
-        """
         self.emit("centringMoving", ())
 
     def emit_centring_failed(self):
-        """
-        Descript. :
-        """
         self.centring_status = {"valid": False}
         method = self.current_centring_method
         self.current_centring_method = None
@@ -1232,9 +1217,6 @@ class GenericDiffractometer(HardwareObject):
         self.emit("centringFailed", (method, self.get_centring_status()))
 
     def emit_centring_successful(self):
-        """
-        Descript. :
-        """
         if self.current_centring_procedure is not None:
             curr_time = time.strftime("%Y-%m-%d %H:%M:%S")
             self.centring_status["endTime"] = curr_time
@@ -1255,15 +1237,9 @@ class GenericDiffractometer(HardwareObject):
             )
 
     def emit_progress_message(self, msg=None):
-        """
-        Descript. :
-        """
         self.emit("progressMessage", (msg,))
 
     def get_centring_status(self):
-        """
-        Descript. :
-        """
         return copy.deepcopy(self.centring_status)
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):

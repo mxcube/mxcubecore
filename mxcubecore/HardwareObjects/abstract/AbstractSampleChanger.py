@@ -231,9 +231,6 @@ class SampleChanger(Container, HardwareObject):
         self.use_update_timer = None
 
     def init(self):
-        """
-        HardwareObject init method
-        """
         use_update_timer = self.get_property("useUpdateTimer", True)
 
         msg = f"SampleChanger: Using update timer is {use_update_timer}"
@@ -589,19 +586,15 @@ class SampleChanger(Container, HardwareObject):
         self._reset_dirty()
 
     def is_transient(self):
-        """???"""
         return self._transient
 
     def _set_transient(self, value):
-        """???"""
         self._transient = value
 
     def get_token(self):
-        """???"""
         return self._token
 
     def set_token(self, token):
-        """???"""
         self._token = token
 
     def get_sample_properties(self):
