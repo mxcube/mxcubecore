@@ -398,9 +398,32 @@ def wait_ready(motor_positions_dict, timeout=None):
             time.sleep(0.1)
 
 
+def _retry_on_ex(fun, N, *args, **kwargs):
+    """
+    """
+    for attempt in range(1, N + 1):
+        try:
+            return fun(*args, **kwargs)
+        except Exception as e:
+            if attempt == N:
+                raise Exception(f"Tried cenring {N} times and failed") from e
+
+        time.sleep(1)
+
 def move_motors(motor_positions_dict):
+    _retry_on_ex(_move_motors, 5, motor_positions_dict)
+
+def _move_motors(motor_positions_dict):
     if not motor_positions_dict:
         return
+
+#    import random
+
+#    random_bit = random.choice([0, 1])
+
+#    if random_bit:
+ #       print("SIMULATING ERRROR")
+ #       raise Exception("")
 
     wait_ready(motor_positions_dict, timeout=30)
 
@@ -616,6 +639,7 @@ def auto_center(
         i += 1
         if i > 4:
             if callable(msg_cb):
+                logging.getLogger("HWR").info("No loop detected")
                 msg_cb("No loop detected, aborting")
             return
 

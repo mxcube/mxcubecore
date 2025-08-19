@@ -37,6 +37,7 @@ differ from the default ones.
 
 import math
 import sys
+import time
 
 from gevent import (
     Timeout,
@@ -237,13 +238,34 @@ class ExporterMotor(AbstractMotor):
         """
         return self.__get_limits("getMotorDynamicLimits")
 
-    def _set_value(self, value):
+    def _retry_on_ex(self, fun, N, *args, **kwargs):
+        """
+        """
+        for attempt in range(1, N + 1):
+            try:
+                return fun(*args, **kwargs)
+            except Exception as e:
+                logging.getLogger("HWR").exception("Error when moving %s, re-trying" % self.actuator_name)
+                if attempt == N:
+                    msg = f"Tried moving {self.actuator_name} {N} times and failed"
+                    raise Exception(msg) from e
+
+                time.sleep(1)
+
+    def _retry_set_value(self, value):
         """Move motor to absolute value.
         Args:
             value (float): target value
         """
         self.update_state(self.STATES.BUSY)
         self.motor_position_chan.set_value(value)
+        
+    def _set_value(self, value):
+        """Move motor to absolute value.
+        Args:
+            value (float): target value
+        """
+        self._retry_on_ex(self._retry_set_value, 5, value)
 
     def abort(self):
         """Stop the motor movement immediately."""
@@ -261,6 +283,6 @@ class ExporterMotor(AbstractMotor):
     def get_max_speed(self):
         """Get the motor maximum speed.
         Returns:
-            (float): the maximum speed [unit/s].
+            (float): the maximim speed [unit/s].
         """
         return self._exporter.execute("getMotorMaxSpeed", (self.actuator_name,))
