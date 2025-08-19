@@ -629,6 +629,7 @@ def auto_center(
         i += 1
         if i > 4:
             if callable(msg_cb):
+                logging.getLogger("HWR").info("No loop detected")
                 msg_cb("No loop detected, aborting")
             return
 
