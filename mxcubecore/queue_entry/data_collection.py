@@ -50,8 +50,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
         self.collect_task = None
         self.centring_task = None
-        self.enable_take_snapshots = True
-        self.enable_store_in_lims = True
         self.in_queue = False
 
     def __setstate__(self, d):
