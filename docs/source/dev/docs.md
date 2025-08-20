@@ -13,7 +13,6 @@ Sphinx will also read [Python docstrings](https://peps.python.org/pep-0257/) fro
 
 Refer to the {doc}`contributing guidelines </dev/contributing>`.
 
-
 ### Building documentation
 
 Follow the instructions for [Installing a development environment](https://mxcubeweb.readthedocs.io/en/latest/dev/environment.html).
@@ -26,15 +25,16 @@ but should mostly apply equally well for MXCuBE-Core.
 
 Once you have a working environment, use these commands to build the documentation:
 
-    # goto docs folder
-    $ cd docs
+```
+# goto docs folder
+$ cd docs
 
-    # build documents with Sphinx
-    $ make html
+# build documents with Sphinx
+$ make html
+```
 
 The commands above will generate documentation in `docs/html/` directory.
 The generated docs can be viewed by opening `docs/html/index.html` in your web browser.
-
 
 ## More details about documentation system
 
@@ -90,7 +90,7 @@ A
 [custom section](https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html#confval-napoleon_custom_sections)
 title for docstrings is available to document *hardware objects*:
 
-* `Emits` for signals emitted by *hardware objects*
+- `Emits` for signals emitted by *hardware objects*
 
 It can be used like in this example:
 
@@ -104,7 +104,6 @@ class Thing(HardwareObject):
     """
 ```
 
-
 ### Diagrams
 
 The
@@ -114,14 +113,14 @@ in the documentation.
 
 For example the following code in a Markdown document:
 
-~~~markdown
+````markdown
 ```{mermaid}
 sequenceDiagram
 participant Alice
 participant Bob
 Alice->John: Hello John, how are you?
 ```
-~~~
+````
 
 or the following in a ReStructuredText document:
 

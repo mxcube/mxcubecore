@@ -75,7 +75,6 @@ When proposal-based login is used, the user authenticates with the proposal
 credentials. Only one proposal can be active at the time; however, a proposal
 can be logged-in any number of times (with only one instance active at the time).
 
-
 ## Internal data model
 
 The data structures passed to the LIMS system via `AbstractLims` are still, as
@@ -145,6 +144,7 @@ configuration
 ```
 
 Example:
+
 ```
 <object class="ProposalTypeISPyBLims"> <!-- or <object class="UserTypeISPyBLims"> -->
   <object role="ldapServer" href="/ldapconnection" />
@@ -159,6 +159,7 @@ Example:
 ```
 
 ### Migrating to AbstractLims
+
 To use `AbstractLims` instead of ISPyBClient, change object in the configuration
 file to `ProposalTypeISPyBLims` or `UserTypeISPyBLims`, as in the example below.
 
@@ -179,8 +180,6 @@ file to `ProposalTypeISPyBLims` or `UserTypeISPyBLims`, as in the example below.
 ```
 
 The method `AbstractLims.login` now returns a `LimsSessionManager` [model](https://github.com/mxcube/mxcubecore/blob/3a87598e81c17edd6785c71a4800b89d87e52f98/mxcubecore/model/lims_session.py#L72) instead of a list with dictionaries.
-
-
 
 ### ICAT
 

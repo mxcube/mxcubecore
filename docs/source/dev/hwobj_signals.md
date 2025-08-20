@@ -8,7 +8,6 @@ in both cases they expect periodic signal updates
 for displaying the most recent information to the user
 (e.g. motor positions, data collection state, etc.)
 
-
 ## Implementation
 
 Depending on the installed modules,
@@ -23,9 +22,10 @@ Can we remove any of those dependencies?
 :::
 
 {attribution="[PyDispatcher](https://pypi.org/project/PyDispatcher/2.0.7/)"}
+
 > PyDispatcher provides the Python programmer with a
-  multiple-producer-multiple-consumer signal registration and routing infrastructure
-  for use in multiple contexts.
+> multiple-producer-multiple-consumer signal registration and routing infrastructure
+> for use in multiple contexts.
 
 When certain events or conditions occur within a hardware object,
 corresponding signals are emitted
@@ -43,7 +43,6 @@ Strictly speaking it is the `HardwareObject` or `HardwareObjectYaml` class
 Once we unify the YAML and XML configuration,
 this distinction should hopefully disappear.
 :::
-
 
 ### Emit
 
@@ -78,9 +77,8 @@ So, in a custom hardware object, since it inherits from
 one only needs to call:
 
 ```python
-self.emit('my_signal', new_value)
+self.emit("my_signal", new_value)
 ```
-
 
 ### Receive
 
@@ -150,22 +148,26 @@ Since this connect happens at application initialization,
 this typically triggers the emission of all signals during initialization,
 and thus all receivers start with the most recent value.
 
-
 ## Basic example
 
 Given two hardware objects:
 
 ```python
-from mxcubecore.BaseHardwareObjects import HardwareObject
-import gevent
+# fmt: off
 from gevent import monkey; monkey.patch_all(thread=False)
+# fmt: on
+
+from mxcubecore.BaseHardwareObjects import HardwareObject
+
+import gevent
 import random
 import datetime
 
+
 class HO1(HardwareObject):
     """
-        <object class="HO1">
-        </object>
+    <object class="HO1">
+    </object>
     """
 
     def __init__(self, name):
@@ -180,7 +182,9 @@ class HO1(HardwareObject):
         while self.run:
             _new_val = random.random()
             self._value = _new_val
-            print(f'{datetime.datetime.now()} | valueChanged emitted, new value: {self._value}')
+            print(
+                f"{datetime.datetime.now()} | valueChanged emitted, new value: {self._value}"
+            )
             self.emit("valueChanged", self._value)
             gevent.sleep(3)
 
@@ -198,13 +202,13 @@ and a data consumer:
 from mxcubecore.BaseHardwareObjects import HardwareObject
 import datetime
 
+
 class HO2(HardwareObject):
     """
-        <object class="HO2">
-          <object hwrid="/ho1" role="ho1"/>
-        </object>
+    <object class="HO2">
+      <object hwrid="/ho1" role="ho1"/>
+    </object>
     """
-
 
     def __init__(self, name):
         super().__init__(name)
@@ -264,7 +268,6 @@ In this case only the procedure mockup is present, all the other mockups are com
 That is why only a few items appear in the loading table.
 :::
 
-
 ## General signals List
 
 The following tables list the generic signals
@@ -276,60 +279,55 @@ For example, `"energyScanFinished"` by the energy scan object, and similar.
 For the sake of keeping this document digestable not all the signals are listed.
 :::
 
-
 ### State related
 
-| Signal                 | Description | Signature | Notes  |
-| ---------------------- | ----------- | --------- | ------ |
-| stateChanged | Notifies when the state has changed, new state value emitted      |  ('stateChanged', newState)   | |
-| specificStateChanged | Notifies when a particular state has changed, new state value emitted      |  ('stateChanged', newState)   | Defined in HardwareObjectMixin, only used in AbstractDetector  |
-| deviceReady | Notifies that the device is now ready      |  'deviceReady'  |  **Deprecated**|
-| deviceNotReady | Notifies that the device is now not ready      |  'deviceNotReady'  |  **Deprecated**|
-| equipmentReady | Notifies that the device is now ready      |  'equipmentReady'  |  **Deprecated**|
-| equipmentNotReady | Notifies that the device is now not ready      |  'equipmentNotReady'  |  **Deprecated**|
-
+| Signal               | Description                                                           | Signature                  | Notes                                                         |
+| -------------------- | --------------------------------------------------------------------- | -------------------------- | ------------------------------------------------------------- |
+| stateChanged         | Notifies when the state has changed, new state value emitted          | ('stateChanged', newState) |                                                               |
+| specificStateChanged | Notifies when a particular state has changed, new state value emitted | ('stateChanged', newState) | Defined in HardwareObjectMixin, only used in AbstractDetector |
+| deviceReady          | Notifies that the device is now ready                                 | 'deviceReady'              | **Deprecated**                                                |
+| deviceNotReady       | Notifies that the device is now not ready                             | 'deviceNotReady'           | **Deprecated**                                                |
+| equipmentReady       | Notifies that the device is now ready                                 | 'equipmentReady'           | **Deprecated**                                                |
+| equipmentNotReady    | Notifies that the device is now not ready                             | 'equipmentNotReady'        | **Deprecated**                                                |
 
 ### Value related
 
-| Signal                 | Description | Signature | Notes  |
-| ---------------------- | ----------- | --------- | ------ |
-| valueChanged | Notifies when the value has changed      |  ('valueChanged', newValue)   | |
-| update | Notifies when the value has changed      |  ('update', newValue)   | **Deprecated**|
-| limitsChanged | Notifies when the limits have changed     |  ('limitsChanged', (low, high))   | |
-
+| Signal        | Description                           | Signature                      | Notes          |
+| ------------- | ------------------------------------- | ------------------------------ | -------------- |
+| valueChanged  | Notifies when the value has changed   | ('valueChanged', newValue)     |                |
+| update        | Notifies when the value has changed   | ('update', newValue)           | **Deprecated** |
+| limitsChanged | Notifies when the limits have changed | ('limitsChanged', (low, high)) |                |
 
 ### Data collection related
 
-| Signal                 | Description | Signature | Notes  |
-| ---------------------- | ----------- | --------- | ------ |
-| energyScanStarted |    |  "energyScanStarted" | |
-| energyScanFinished |   |  "energyScanFinished", dict: energyScanParameters   | |
-| collectReady | collect hwobj readiness  |  "collectReady", bool  | |
-| collectOscillationStarted |  | "collectOscillationStarted", (owner, sampleIid, sampleCode, sampleLocation, dataCollectParameters, oscId) | |
-| collectOscillationFinished |  | "collectOscillationFinished", (owner, True, msgg, collectionId, oscId, dataCollectParameters) | |
-| collectOscillationFailed |  | "collectOscillationFailed", (owner, False, msg, collectionId, osc_id)| |
-| collectEnded |  | "collectEnded", (owner, bool, msg) | in AbstractMultiCollect|
-| progressInit |  | "progressInit", ("Collection", 100, False)| |
-| progressStop |  | "progressStop"| |
-| collectImageTaken |   | ("collectImageTaken", frameNumber)  | |
-| collectNumberOfFrames |   | ("collectNumberOfFrames", nframes, exposure_time) |in AbstractMultiCollect |
-
+| Signal                     | Description             | Signature                                                                                                 | Notes                   |
+| -------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------------- | ----------------------- |
+| energyScanStarted          |                         | "energyScanStarted"                                                                                       |                         |
+| energyScanFinished         |                         | "energyScanFinished", dict: energyScanParameters                                                          |                         |
+| collectReady               | collect hwobj readiness | "collectReady", bool                                                                                      |                         |
+| collectOscillationStarted  |                         | "collectOscillationStarted", (owner, sampleIid, sampleCode, sampleLocation, dataCollectParameters, oscId) |                         |
+| collectOscillationFinished |                         | "collectOscillationFinished", (owner, True, msgg, collectionId, oscId, dataCollectParameters)             |                         |
+| collectOscillationFailed   |                         | "collectOscillationFailed", (owner, False, msg, collectionId, osc_id)                                     |                         |
+| collectEnded               |                         | "collectEnded", (owner, bool, msg)                                                                        | in AbstractMultiCollect |
+| progressInit               |                         | "progressInit", ("Collection", 100, False)                                                                |                         |
+| progressStop               |                         | "progressStop"                                                                                            |                         |
+| collectImageTaken          |                         | ("collectImageTaken", frameNumber)                                                                        |                         |
+| collectNumberOfFrames      |                         | ("collectNumberOfFrames", nframes, exposure_time)                                                         | in AbstractMultiCollect |
 
 ### Queue
 
-| Signal                 | Description | Signature | Notes  |
-| ---------------------- | ----------- | --------- | ------ |
-| child\_added |    | "child\_added", (parent_node, child_node) | |
-| child\_removed |    | "child\_removed", (parent, child)) | |
-| statusMessage |    | "statusMessage", ("status", "message"", "message") | Unclear purpose, arbitrary usage of the messages |
-| queue\_execution\_finished |    | "queue\_execution\_finished" | |
-| queue\_execution\_finished |    | "queue\_execution\_finished" | |
-| queue\_entry\_execute\_started |    | "queue\_entry\_execute\_started", entry | |
-| queue\_entry\_execute\_finished |    | "queue\_entry\_execute\_finished", statusMessage | |
-| queue\_stopped |    | "queue\_stopped" | |
-| queue\_paused |    | "queue\_paused" | |
-| show\_workflow\_tab |    | "show\_workflow\_tab" | |
-
+| Signal                       | Description | Signature                                          | Notes                                            |
+| ---------------------------- | ----------- | -------------------------------------------------- | ------------------------------------------------ |
+| child_added                  |             | "child_added", (parent_node, child_node)           |                                                  |
+| child_removed                |             | "child_removed", (parent, child))                  |                                                  |
+| statusMessage                |             | "statusMessage", ("status", "message"", "message") | Unclear purpose, arbitrary usage of the messages |
+| queue_execution_finished     |             | "queue_execution_finished"                         |                                                  |
+| queue_execution_finished     |             | "queue_execution_finished"                         |                                                  |
+| queue_entry_execute_started  |             | "queue_entry_execute_started", entry               |                                                  |
+| queue_entry_execute_finished |             | "queue_entry_execute_finished", statusMessage      |                                                  |
+| queue_stopped                |             | "queue_stopped"                                    |                                                  |
+| queue_paused                 |             | "queue_paused"                                     |                                                  |
+| show_workflow_tab            |             | "show_workflow_tab"                                |                                                  |
 
 ### Difractometer
 
@@ -360,56 +358,54 @@ motor_positions = {
 }
 ```
 
-
 #### `GenericDiffractometer.py`
 
-| Signal                 | Description | Signature | Notes  |
-| ---------------------- | ----------- | --------- | ------ |
-| minidiffTransferModeChanged |    | "minidiffTransferModeChanged", mode | |
-| minidiffPhaseChanged |    | "minidiffPhaseChanged", currentPhase | |
-| newAutomaticCentringPoint   |    | "newAutomaticCentringPoint", motorPositions | |
-| centringInvalid |    | "centringInvalid"| |
-| centringStarted |    | "centringStarted", (method, False) | |
-| centringMoving |    | "centringMoving" | |
-| centringFailed |    | "centringFailed", (method, dict:centring_status) | |
-| centringSuccessful |    | "centringSuccessful", (method, dict:centring_status) | |
-| newAutomaticCentringPoint |    | "newAutomaticCentringPoint", motorPos | |
-| centringAccepted |    | "centringAccepted", (bool: accepted, dict:centring_status) | |
-| fsmConditionChanged |    | "fsmConditionChanged", (message, bool) |Also emitted in collect so unclear purpose |
-| progressMessage |    | "progressMessage", msg | |
-| diffractometerMoved |    | "diffractometerMoved" | |
-| pixelsPerMmChanged |    | "pixelsPerMmChanged", (pixels\_per\_mm\_x, pixels\_per\_mm\_y) | |
-| zoomMotorStateChanged |    | "zoomMotorStateChanged", state | |
-| zoomMotorPredefinedPositionChanged |    | "zoomMotorPredefinedPositionChanged", (position_name, offset) | |
-| minidiffStateChanged |    | "minidiffStateChanged", state | |
-| minidiffReady |    | "minidiffReady" | |
-| minidiffNotReady |    | "minidiffNotReady" | |
-| minidiffSampleIsLoadedChanged |    | "minidiffSampleIsLoadedChanged", sampleIsLoaded  | |
-| minidiffHeadTypeChanged |    | "minidiffHeadTypeChanged", headType | |
-| minidiffNotReady |    | "minidiffNotReady" | |
-
+| Signal                             | Description | Signature                                                     | Notes                                      |
+| ---------------------------------- | ----------- | ------------------------------------------------------------- | ------------------------------------------ |
+| minidiffTransferModeChanged        |             | "minidiffTransferModeChanged", mode                           |                                            |
+| minidiffPhaseChanged               |             | "minidiffPhaseChanged", currentPhase                          |                                            |
+| newAutomaticCentringPoint          |             | "newAutomaticCentringPoint", motorPositions                   |                                            |
+| centringInvalid                    |             | "centringInvalid"                                             |                                            |
+| centringStarted                    |             | "centringStarted", (method, False)                            |                                            |
+| centringMoving                     |             | "centringMoving"                                              |                                            |
+| centringFailed                     |             | "centringFailed", (method, dict:centring_status)              |                                            |
+| centringSuccessful                 |             | "centringSuccessful", (method, dict:centring_status)          |                                            |
+| newAutomaticCentringPoint          |             | "newAutomaticCentringPoint", motorPos                         |                                            |
+| centringAccepted                   |             | "centringAccepted", (bool: accepted, dict:centring_status)    |                                            |
+| fsmConditionChanged                |             | "fsmConditionChanged", (message, bool)                        | Also emitted in collect so unclear purpose |
+| progressMessage                    |             | "progressMessage", msg                                        |                                            |
+| diffractometerMoved                |             | "diffractometerMoved"                                         |                                            |
+| pixelsPerMmChanged                 |             | "pixelsPerMmChanged", (pixels_per_mm_x, pixels_per_mm_y)      |                                            |
+| zoomMotorStateChanged              |             | "zoomMotorStateChanged", state                                |                                            |
+| zoomMotorPredefinedPositionChanged |             | "zoomMotorPredefinedPositionChanged", (position_name, offset) |                                            |
+| minidiffStateChanged               |             | "minidiffStateChanged", state                                 |                                            |
+| minidiffReady                      |             | "minidiffReady"                                               |                                            |
+| minidiffNotReady                   |             | "minidiffNotReady"                                            |                                            |
+| minidiffSampleIsLoadedChanged      |             | "minidiffSampleIsLoadedChanged", sampleIsLoaded               |                                            |
+| minidiffHeadTypeChanged            |             | "minidiffHeadTypeChanged", headType                           |                                            |
+| minidiffNotReady                   |             | "minidiffNotReady"                                            |                                            |
 
 #### `Minidiff.py`
 
-| Signal                 | Description | Signature | Notes  |
-| ---------------------- | ----------- | --------- | ------ |
-| diffractometerMoved |    | "diffractometerMoved" | |
-| minidiffReady |    | "minidiffReady" | |
-| minidiffNotReady |    | "minidiffNotReady" | |
-| minidiffStateChanged |    | "minidiffStateChanged", state | |
-| zoomMotorStateChanged |    | "zoomMotorStateChanged", state | |
-| zoomMotorPredefinedPositionChanged |    | "zoomMotorPredefinedPositionChanged", (position_name, offset) | |
-| phiMotorStateChanged   |    | "phiMotorStateChanged", state | |
-| phizMotorStateChanged   |    | "phizMotorStateChanged", state | |
-| phiyMotorStateChanged   |    | "phiyMotorStateChanged", state | |
-| sampxMotorStateChanged   |    | "sampxMotorStateChanged", state | |
-| sampyMotorStateChanged   |    | "sampyMotorStateChanged", state | |
-| centringInvalid |    | "centringInvalid"| |
-| centringStarted |    | "centringStarted", (method, False) | |
-| centringMoving |    | "centringMoving" | |
-| centringFailed |    | "centringFailed", (method, dict:centring_status) | |
-| centringSuccessful |    | "centringSuccessful", (method, dict:centring_status) | |
-| newAutomaticCentringPoint |    | "newAutomaticCentringPoint", motorPos | |
-| centringAccepted |    | "centringAccepted", (bool: accepted, dict:centring_status) | |
-| centringSnapshots |    | "centringSnapshots", boolean | |
-| progressMessage |    | "progressMessage", msg | |
+| Signal                             | Description | Signature                                                     | Notes |
+| ---------------------------------- | ----------- | ------------------------------------------------------------- | ----- |
+| diffractometerMoved                |             | "diffractometerMoved"                                         |       |
+| minidiffReady                      |             | "minidiffReady"                                               |       |
+| minidiffNotReady                   |             | "minidiffNotReady"                                            |       |
+| minidiffStateChanged               |             | "minidiffStateChanged", state                                 |       |
+| zoomMotorStateChanged              |             | "zoomMotorStateChanged", state                                |       |
+| zoomMotorPredefinedPositionChanged |             | "zoomMotorPredefinedPositionChanged", (position_name, offset) |       |
+| phiMotorStateChanged               |             | "phiMotorStateChanged", state                                 |       |
+| phizMotorStateChanged              |             | "phizMotorStateChanged", state                                |       |
+| phiyMotorStateChanged              |             | "phiyMotorStateChanged", state                                |       |
+| sampxMotorStateChanged             |             | "sampxMotorStateChanged", state                               |       |
+| sampyMotorStateChanged             |             | "sampyMotorStateChanged", state                               |       |
+| centringInvalid                    |             | "centringInvalid"                                             |       |
+| centringStarted                    |             | "centringStarted", (method, False)                            |       |
+| centringMoving                     |             | "centringMoving"                                              |       |
+| centringFailed                     |             | "centringFailed", (method, dict:centring_status)              |       |
+| centringSuccessful                 |             | "centringSuccessful", (method, dict:centring_status)          |       |
+| newAutomaticCentringPoint          |             | "newAutomaticCentringPoint", motorPos                         |       |
+| centringAccepted                   |             | "centringAccepted", (bool: accepted, dict:centring_status)    |       |
+| centringSnapshots                  |             | "centringSnapshots", boolean                                  |       |
+| progressMessage                    |             | "progressMessage", msg                                        |       |

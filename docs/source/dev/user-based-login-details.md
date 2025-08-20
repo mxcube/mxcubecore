@@ -5,8 +5,9 @@ When logging in the very first user sees modal dialog `Select session` and must 
 ## Multiple users:
 
 Any number of users can be logged in at the same time if:
-* they belong to the same `session`
-* they are **staff**.
+
+- they belong to the same `session`
+- they are **staff**.
 
 Users, who are not part of the proposal, can not log in. After unsuccessful login attempt the user should see the message: “Authentication failed”.
 
@@ -18,12 +19,14 @@ The **user in control** is able to force logout other users.
 
 The **user in control** can change session without signing out. The users can only see the sessions they have in common - to which all logged-in users belong to. Hence, the list of available sessions displayed is the same for every user. Example:
 
-    User 1 has access to sessions A B C
-    User 2 has access to sessions A B
-    User 3 has access to session A
-    All of them are logged in and see only session A.
-    If user 3 logs out, user 1 and 2 will see sessions A and B.
-    If only user 1 stays logged in, all the sessions are visible.
+```
+User 1 has access to sessions A B C
+User 2 has access to sessions A B
+User 3 has access to session A
+All of them are logged in and see only session A.
+If user 3 logs out, user 1 and 2 will see sessions A and B.
+If only user 1 stays logged in, all the sessions are visible.
+```
 
 ## Control:
 
@@ -43,17 +46,18 @@ A new login occurs when the same user logs into MXCuBE and then opens it again i
 
 Currently, two scenarios can occur:
 
-* If the user opens MXCuBE again within **the same browser session** by opening multiple public tabs/windows or multiple private tabs/windows in the same browser, the browser sends the MXCuBE session cookie to the back-end. As a result, the user is automatically logged in within the same  MXCuBE "user session". In this case, the new login inherits all session data, including queues, drawn points, control state etc.
+- If the user opens MXCuBE again within **the same browser session** by opening multiple public tabs/windows or multiple private tabs/windows in the same browser, the browser sends the MXCuBE session cookie to the back-end. As a result, the user is automatically logged in within the same MXCuBE "user session". In this case, the new login inherits all session data, including queues, drawn points, control state etc.
 
-* If the user opens MXCuBE in a **separate browser session**, by opening windows in different browser modes - public vs. private, browser profiles, different browsers or computers, the browser has no MXCuBE session cookie to send. Consequently, the user lands on the login page and must log in again. Once logged in, MXCuBE creates a new "user session" and quits the previous one. There can be only one user session per user at any given time.
+- If the user opens MXCuBE in a **separate browser session**, by opening windows in different browser modes - public vs. private, browser profiles, different browsers or computers, the browser has no MXCuBE session cookie to send. Consequently, the user lands on the login page and must log in again. Once logged in, MXCuBE creates a new "user session" and quits the previous one. There can be only one user session per user at any given time.
 
 ## User with **staff** privileges
 
 They can always:
-* Login - they do not need to be part of any session, and this is not checked during login procedure. After logging in, they see the `Select session` modal with the list of sessions they belong to. They could choose any session from this list, or if they type in a number or keyword, they can search through full list of sessions, including ones they do not belong to, and they can select each one.
-* Logout any user (including the **user in control**).
-* Move experimental session timewise - reschedule it.
-* Move experimental session beamline-wise.
+
+- Login - they do not need to be part of any session, and this is not checked during login procedure. After logging in, they see the `Select session` modal with the list of sessions they belong to. They could choose any session from this list, or if they type in a number or keyword, they can search through full list of sessions, including ones they do not belong to, and they can select each one.
+- Logout any user (including the **user in control**).
+- Move experimental session timewise - reschedule it.
+- Move experimental session beamline-wise.
 
 ## Improper logout (without sign out button):
 

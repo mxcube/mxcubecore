@@ -40,10 +40,10 @@ The semantics for the protocol are similar but protocol-specific, see below for 
 
 Currently, the following protocols can be configured using YAML configuration files:
 
- - [Tango](#tango-protocol)
- - [exporter](#exporter-protocol)
- - [EPICS](#epics-protocol)
- - [Sardana](#sardana-protocol)
+- [Tango](#tango-protocol)
+- [exporter](#exporter-protocol)
+- [EPICS](#epics-protocol)
+- [Sardana](#sardana-protocol)
 
 ## Tango Protocol
 
@@ -79,7 +79,7 @@ The values specify an optional dictionary with configuration properties for the 
 The following configuration properties are supported:
 
 | property | purpose            | default             |
-|----------|--------------------|---------------------|
+| -------- | ------------------ | ------------------- |
 | name     | tango command name | MXCuBE command name |
 
 ### Channels
@@ -90,7 +90,7 @@ The values specify an optional dictionary with configuration properties for the 
 The following configuration properties are supported:
 
 | property       | purpose                            | default             |
-|----------------|------------------------------------|---------------------|
+| -------------- | ---------------------------------- | ------------------- |
 | attribute      | tango attribute name               | MXCuBE channel name |
 | polling_period | polling periodicity, milliseconds  | polling is disabled |
 | timeout        | tango device timeout, milliseconds | 10000               |
@@ -176,7 +176,7 @@ The values specify an optional dictionary with configuration properties for the 
 The following configuration properties are supported:
 
 | property | purpose               | default             |
-|----------|-----------------------|---------------------|
+| -------- | --------------------- | ------------------- |
 | name     | exporter command name | MXCuBE command name |
 
 ### Channels
@@ -186,9 +186,9 @@ The key defines the MXCuBE name for the channel.
 The values specify an optional dictionary with configuration properties for the `ChannelObject` object.
 The following configuration properties are supported:
 
-| property  | purpose                  | default             |
-|-----------|--------------------------|---------------------|
-| attribute | exporter attribute name  | MXCuBE channel name |
+| property  | purpose                 | default             |
+| --------- | ----------------------- | ------------------- |
+| attribute | exporter attribute name | MXCuBE channel name |
 
 ### Example
 
@@ -249,10 +249,10 @@ The key defines the MXCuBE name for the channel.
 The values specify an optional dictionary with configuration properties for the `ChannelObject` object.
 The following configuration properties are supported:
 
-| property       | purpose               | default             |
-|----------------|-----------------------|---------------------|
-| suffix         | PV name suffix        | MXCuBE channel name |
-| polling_period | polling periodicity   |                     |
+| property       | purpose             | default             |
+| -------------- | ------------------- | ------------------- |
+| suffix         | PV name suffix      | MXCuBE channel name |
+| polling_period | polling periodicity |                     |
 
 #### PV names
 
@@ -325,7 +325,7 @@ The values specify an optional dictionary with configuration properties for the 
 The following configuration properties are supported:
 
 | property | purpose            | default             |
-|----------|--------------------|---------------------|
+| -------- | ------------------ | ------------------- |
 | name     | sardana macro name | MXCuBE command name |
 
 ### Example

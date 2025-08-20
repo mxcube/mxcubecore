@@ -15,6 +15,7 @@ HardwareObjects can be configured to contain both other hardware objects and pro
 The former are identified relative to the container by a role.
 
 ## Finding the files
+
 Configuration files are searched for by name in a series of directories given as a lookup path.
 
 In mxcubeqt this is specified either with the `--coreConfigPath` command line parameter to MXCuBE,
@@ -32,7 +33,9 @@ but these are mostly not up to date.
 The actual beamline configuration files are mostly held in a separate (and non-comitted) directory at the beamlines.
 
 ## Yaml-configured objects
+
 ### Code and file structure
+
 Each YAML-configured object has a `name` attribute,
 which is equal to the role that identifies the object within the containing object
 (the name of the Beamline object is `beamline`).
@@ -134,9 +137,10 @@ and is the starting point for finding other hardware objects.
 These may in turn contain other objects, so you can do e.g.
 `HardwareRepository.beamline.detector.distance` to get the detector distance motor object.
 
-
 ## XML-configured objects
+
 ### Code and file structure
+
 XML-configured objects have a `name()` method,
 that returns the name of the configuration file used to specify it (without the `.xml` suffix).
 It is this name that is used in internal data structures and a number of access functions.
@@ -150,7 +154,6 @@ with the `href` attribute giving the configuration file name to pick up
 and the `role` attribute giving the role name.
 Simple properties are given as contained XML elements,
 and complex properties (dictionaries) are given as elements of type 'object' without a 'href' attribute.
-
 
 The configuration data are kept in complex internal data structures,
 with links back to the original XML.

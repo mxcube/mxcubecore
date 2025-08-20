@@ -1,21 +1,20 @@
-	Title: Development and release guidelines
-	MEP: 1
-	State: CANDIDATE
-	Date: 2022-02-28
-	Drivers: Rasmus Fogh, Marcus Oscrasson
-	URL:
-	Abstract:
-	This MEP describes how to create releases for the mxcubecore package by adopting
-      a tag schema compliant with PEP440. It is a further development of the original
-      gitflow proposal by Jordi Andreu, as refined by the mxcube developers, inspired
-      by the oneflow workflow. It deviates from the latest consensus (hopefully in a
-      way that will simplify the work), particularly in reducing and simplifying the
-      versioning scheme.
+```
+Title: Development and release guidelines
+MEP: 1
+State: CANDIDATE
+Date: 2022-02-28
+Drivers: Rasmus Fogh, Marcus Oscrasson
+URL:
+Abstract:
+This MEP describes how to create releases for the mxcubecore package by adopting
+  a tag schema compliant with PEP440. It is a further development of the original
+  gitflow proposal by Jordi Andreu, as refined by the mxcube developers, inspired
+  by the oneflow workflow. It deviates from the latest consensus (hopefully in a
+  way that will simplify the work), particularly in reducing and simplifying the
+  versioning scheme.
+```
 
-
-
-Introduction
-============
+# Introduction
 
 While reaching the last part of the massive refactoring of the HardwareRepository
 (renamed to `mxcubecore`), and with the aim to converge again the code in all sites,
@@ -27,9 +26,8 @@ This version is based on recent discussions among the MXCuBE developers, and ins
 by the oneflow workflow. It proposes a simplified versioning model, that is
 consistent with semantic versioning.
 
+# Out of scope
 
-Out of scope
-============
 The mechanism (manual or automated) to create the library package for each release and
 its upload to a software repository is out of the scope of this proposal.
 
@@ -42,9 +40,7 @@ dealt with ad-hoc. This system also does not allow for making either releases or
 anywhere but at the newest release; i.e. you cannot make release 2.2.1 after 2.3.0 is
 released, or 2.4.0 after 3.0.0 is released.
 
-
-Glossary
-========
+# Glossary
 
 - `master branch:` The permanent main branch that is checked out by default. Used solely for holding tagged releases.
 
@@ -55,9 +51,8 @@ Glossary
 - [Release Lifecycle:](https://en.wikipedia.org/wiki/Software_release_life_cycle) Set of
   actions involved in the creation of a new piece of software.
 
+# Prior situation (previous to MEP1)
 
-Prior situation (previous to MEP1)
-====================================
 The [canonical repository](http://www.github.com/mxcube/mxcubecore) is hosted at
 `github.com` under the `mxcube` organization. Current development guidelines are based
 on the so called [GitHub flow](https://guides.github.com/introduction/flow/). We use a
@@ -71,30 +66,27 @@ still foresee important changes in the API defined so far. This fact together wi
 need to easily track the version of the library used at each different site, makes the
 adoption of a versioning model a tool to effectively address this challenges.
 
-
-Goals & considerations
-======================
+# Goals & considerations
 
 The following lists the main goals taken into consideration for this proposal:
 
 1. A release schema has to provide a clear versioning of the code at different stages.
    This will facilitate the identification of the code used at any time.
 
-2. Each release should provide a comprehensive list of changes with all additions and
+1. Each release should provide a comprehensive list of changes with all additions and
    changes.
 
-3. Any non-backward compatible change on the code must be discussed and agreed by the
+1. Any non-backward compatible change on the code must be discussed and agreed by the
    developers, any new feature must be backward compatible with the existent code and
    any bug fix must be also be backward compatible.
 
-4. We need to adopt development and release guidelines according to the project nature:
+1. We need to adopt development and release guidelines according to the project nature:
    code need to be tested with site-specific hardware and is difficult to perform functional
    tests covering most of the scenarios.
-5.  The scheme should be as simple in everyday use as possible, to maximise compliance.
 
+1. The scheme should be as simple in everyday use as possible, to maximise compliance.
 
-Implementation
-==============
+# Implementation
 
 This section presents some technical solutions and tools proposed to achieve the proposed
 goals:
@@ -126,18 +118,16 @@ two-branch variant. We can summarize the most important procedures in this model
   necessary changes and the completed fix is merged to the `master branch` and
   also to the `develop branch`.
 
-
-
 ## Versioning guidelines
 
 The general schema described in the [PEP440](https://www.python.org/dev/peps/pep-0440/):
-  is highly powerful and flexible, and in this probably superior to the more common
-  [semantic versioning](https://semver.org/). Nevertheless it is unavoidably complex
-  and labour intensive to keep and track a separate version for every commit in the
-  `develop` branch. The scheme presented here applies semantic versioning, but
-  *only to the actual releases* with their associated `release` and `hotfix` branches.
-  After all, how often do you need an external and reliable reference to a specific
-  non-released commit (beyond, of course, the git commit hash)?
+is highly powerful and flexible, and in this probably superior to the more common
+[semantic versioning](https://semver.org/). Nevertheless it is unavoidably complex
+and labour intensive to keep and track a separate version for every commit in the
+`develop` branch. The scheme presented here applies semantic versioning, but
+*only to the actual releases* with their associated `release` and `hotfix` branches.
+After all, how often do you need an external and reliable reference to a specific
+non-released commit (beyond, of course, the git commit hash)?
 
 - We will use the segments `major.minor.patch` to assign a version released from the
   `master branch`, following semantic versioning. Changes that break the API require
@@ -157,15 +147,14 @@ The general schema described in the [PEP440](https://www.python.org/dev/peps/pep
   have to rely on updating release notes at each commit, noting explicitly when we have
   a breaking change.
 
-
 ### Bumpversion model
+
 We will use [bumpversion](https://github.com/c4urself/bump2version) as a
 tool to track the different versions. In this case, `bumpversion` assumes that the version
 string is written in (at least) one project file. When bumping the version, `bumpversion`
 will search for the current version string, will calculate the next version
 according to the segment to bump and will replace the old version string by the new one.
 We will not use bumpversion to tag the repository, since the tagging needs to be done after the bump.
-
 
 ## Release and versioning life cycle
 
@@ -243,7 +232,6 @@ It is recommended to periodically rebase your feature branch on develop.
 
 When you are ready to merge in your feature, you rebase on develop and make a pull request.
 
-
 Edit the release notes, adding the changes from your feature to the `Unreleased` list,
 and commit the result.
 
@@ -269,12 +257,12 @@ This will add a merge commit for every feature merge, so the feature can be undo
 single operation. It will keep a nice, linear commit graph, *provided* all users
 remember to rebase before merging, as above. Alternatives are:
 
-`rebase / merge --ff-only`  (Option #1 from oneflow)
+`rebase / merge --ff-only` (Option #1 from oneflow)
 
 This will add the individual commits from the feature to the tip of the `develop branch`
 without a merge commit
 
-`merge --squash`   (Option #2 from oneflow)
+`merge --squash` (Option #2 from oneflow)
 
 This will collapse the feature commits into a single commit, and put that on the tip of the develop branch.
 
@@ -287,7 +275,7 @@ Release branches are named as proposed by oneflow. This is not the only possibil
 but is a clear and visible way to signal that this is a release branch. It avoids
 the 'rc0' etc. suffixes, since we are not versioning the individual commits.
 
-$ git checkout -b release/2.3.0 develop   # If you want a specific commit check out that instead
+$ git checkout -b release/2.3.0 develop # If you want a specific commit check out that instead
 
 $ git push origin release/2.3.0
 
@@ -335,8 +323,7 @@ always increases the patch level. The naming of the hotfix branches should be e.
 `hotfix/2.3.1` (an alternative would be `patch/2.3.1`). Apart from these points,
 hotfix branches are treated exactly like release branches.
 
-License
-=======
+# License
 
 The following copyright statement and license apply to MEP1 (this
 document).
@@ -362,9 +349,7 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-
-Changes
-=======
+# Changes
 
 2021-05-03
 [Jordi Andreu](https://github.com/jordiandreu/): Creation of MEP1

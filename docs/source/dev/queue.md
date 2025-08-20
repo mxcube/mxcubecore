@@ -88,18 +88,18 @@ As mentioned above, the execution order is depth first, so that all the children
 
 A queue entry has a state internally called `status` that indicates the state of execution; the state can be one of:
 
--   `SUCCESS`: The item was executed successfully, indicated with a green color in the UI
--   `WARNING`: The item was executed successfully, but there was a problem with, for instance, processing. For example, a characterization that finishes without a collection plan or a collection without diffraction. Warning is indicated in yellow in the UI
--   `FAILED`: The execution failed, indicated with red in the UI
--   `SKIPPED`: Item was skipped, indicated with red in the UI
--   `RUNNING`: Item is currently being executed, indicated with blue in the UI
--   `NOT_EXECUTED`: Item has not yet been executed; the default item color is gray.
+- `SUCCESS`: The item was executed successfully, indicated with a green color in the UI
+- `WARNING`: The item was executed successfully, but there was a problem with, for instance, processing. For example, a characterization that finishes without a collection plan or a collection without diffraction. Warning is indicated in yellow in the UI
+- `FAILED`: The execution failed, indicated with red in the UI
+- `SKIPPED`: Item was skipped, indicated with red in the UI
+- `RUNNING`: Item is currently being executed, indicated with blue in the UI
+- `NOT_EXECUTED`: Item has not yet been executed; the default item color is gray.
 
 While running the queue, it emits a set of signals/events via `self.emit`. The signals are:
 
--   `queue_entry_execute_finished`: When a queue entry finishes execution for any given reason, the queue entry in question and one of the strings (Failed, Successful, Skipped or Aborted) are passed with the signal.
--   `queue_stopped`: When the queue was stopped
--   `queue_paused`: When the queue was/is paused
+- `queue_entry_execute_finished`: When a queue entry finishes execution for any given reason, the queue entry in question and one of the strings (Failed, Successful, Skipped or Aborted) are passed with the signal.
+- `queue_stopped`: When the queue was stopped
+- `queue_paused`: When the queue was/is paused
 
 The exception `QueueSkipEntryException` can be raised at any time to skip to the next entry in the queue. Raising `QueueSkipEntryException` will skip to the next entry at the same level as the current node, meaning that all child nodes will be skipped as well. The
 status of the skipped queue entry will be set to `SKIPPED` and `queue_entry_execute_finished` will be emitted with `Skipped`
@@ -127,11 +127,11 @@ With time, the `QueueModel` objects were extended with methods, deviating from t
 
 A new kind of "dynamic" queue entry that can be loaded on demand has been introduced to solve some of these limitations. The new queue entry has the following properties:
 
--   Can be self-contained within a single Python file defining the collection protocol
--   Can be loaded on demand by the application
--   The data model is defined by a schema (JSON Schema), via Python type hints
--   The data model only contains data
--   The data model and its schema are JSON-serializable and hence easy to use in message passing protocols
+- Can be self-contained within a single Python file defining the collection protocol
+- Can be loaded on demand by the application
+- The data model is defined by a schema (JSON Schema), via Python type hints
+- The data model only contains data
+- The data model and its schema are JSON-serializable and hence easy to use in message passing protocols
 
 The new system makes it very easy to add a new collection protocol by simply adding a Python file in a certain directory (the `site_entry_path`) that is scanned when the application starts. The data model is also better defined and, to a certain extent, self-documenting. The data and the schema can easily be passed over a message queue protocol, or RPC solution. The user interface for the collection protocols can, in many cases, be automatically generated via the schema. Making it possible to add a new collection protocol without updating the user interface.
 
@@ -201,10 +201,10 @@ class TestCollectionQueueEntry(BaseQueueEntry):
 
 The part that differ from the native queue entry is the four class variables `QMO`, `DATA_MODEL`, `NAME` and `REQUIRES`.
 
--   `QMO`: (Queue model object) is used internally to tell which QueueModel object this entry is associated with so that the entry can be added to [MODEL_QUEUE_ENTRY_MAPPINGS](https://github.com/mxcube/mxcubecore/blob/develop/mxcubecore/queue_entry/__init__.py#L83)
--   `DATA_MODEL`: Specifies the Pydantic model
--   `NAME`: The name of the queue entry (also the name displayed to the user)
--   `REQUIRES`: A set of prerequisites that need to be fulfilled for this entry
+- `QMO`: (Queue model object) is used internally to tell which QueueModel object this entry is associated with so that the entry can be added to [MODEL_QUEUE_ENTRY_MAPPINGS](https://github.com/mxcube/mxcubecore/blob/develop/mxcubecore/queue_entry/__init__.py#L83)
+- `DATA_MODEL`: Specifies the Pydantic model
+- `NAME`: The name of the queue entry (also the name displayed to the user)
+- `REQUIRES`: A set of prerequisites that need to be fulfilled for this entry
 
 #### Dynamic queue entry data model
 
@@ -222,11 +222,11 @@ class TestCollectionTaskParameters(BaseModel):
 
 The task parameters have currently been split into four different parts:
 
--   `path_parameters`: Parameters related to the data path, complements the `PathTemplate` object
--   `common_parameters`: Parameters that are common between different kinds of collection protocols
--   `collection_parameters`: Collection parameters for the specific protocol
--   `user_collection_parameters`: Collection parameters relevant to the user complements `collection_parameters`
--   `legacy_parameters`: Parameters that are still being passed around in the application but not used (for backward compatibility)
+- `path_parameters`: Parameters related to the data path, complements the `PathTemplate` object
+- `common_parameters`: Parameters that are common between different kinds of collection protocols
+- `collection_parameters`: Collection parameters for the specific protocol
+- `user_collection_parameters`: Collection parameters relevant to the user complements `collection_parameters`
+- `legacy_parameters`: Parameters that are still being passed around in the application but not used (for backward compatibility)
 
 There are also additional static methods that are used by MXCuBE-Web frontend: `update_dependent_fields` and `ui_schema`.
 
@@ -243,7 +243,6 @@ Example:
 
 ```python
 class MyDataModel(BaseModel):
-
     @staticmethod
     def ui_schema():
         return json.dumps(
@@ -255,25 +254,25 @@ class MyDataModel(BaseModel):
                     "*",
                 ],
                 "field1": {
-                    "ui:options": {"col": 4}
+                    "ui:options": {"col": 4},
                 },
                 "field2": {
-                    "ui:options": {"col": 8}
+                    "ui:options": {"col": 8},
                 },
                 "field3": {
-                    "ui:options": {"group": 'SomeGroup'}
-                }
+                    "ui:options": {"group": "SomeGroup"},
+                },
             }
         )
 ```
 
 **Note**: The `"ui:options.col"` and `"ui:options.group` keys are specific to MXCuBE-Web, i.e. it is not defined in the `rjsf` library.
 
--   `ui:options.col`
-    These values correspond to Bootstrap's `col-*` classes; i.e. these should be integers between 1 and 12 or `auto`.
-    Here's more about Bootstrap's [grid system](https://getbootstrap.com/docs/4.0/layout/grid/#grid-options)
--   `ui:options.group`
-    These define groups of fields. Fields in one group are displayed together. A group may be collapsed, to hide fields from one group.
-    If a field is not assigned to any group, it is assigned to a default `Acquisition` group.
+- `ui:options.col`
+  These values correspond to Bootstrap's `col-*` classes; i.e. these should be integers between 1 and 12 or `auto`.
+  Here's more about Bootstrap's [grid system](https://getbootstrap.com/docs/4.0/layout/grid/#grid-options)
+- `ui:options.group`
+  These define groups of fields. Fields in one group are displayed together. A group may be collapsed, to hide fields from one group.
+  If a field is not assigned to any group, it is assigned to a default `Acquisition` group.
 
 For a complete example see: [test_collection.py](https://github.com/mxcube/mxcubecore/blob/develop/mxcubecore/queue_entry/test_collection.py)

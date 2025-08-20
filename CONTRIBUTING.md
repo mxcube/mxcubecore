@@ -4,24 +4,26 @@ Before submitting the code to the repository please read these contributing guid
 The aim of these guidelines is to help the developers community to maintain the code stable and reusable.
 
 ### Reporting bugs
+
 Before submitting a new bug check if the bug is not already reported in the [issues](https://github.com/mxcube/mxcubecore/issues).
 If the corresponding issue do not exist then:
 
-* Open a new issue with a short description in the title.
-* In the description describe the bug:
-    * Conditions when the bug appears.
-    * How it can be reproduced.
-    * Possible cause of the bug and source code where it occurs.
-    * If possible add error log and screenshot.
-* Assign a label to the issue (see available labels).
+- Open a new issue with a short description in the title.
+- In the description describe the bug:
+  - Conditions when the bug appears.
+  - How it can be reproduced.
+  - Possible cause of the bug and source code where it occurs.
+  - If possible add error log and screenshot.
+- Assign a label to the issue (see available labels).
 
 ### Submitting code to the repository
+
 Pull requests (PR's) are used to submit new code to the repository, it helps developers to review and discuss the proposed change.
 To avoid any conflicts in the code base it is important to keep your local git repository synchronised with the latest code in the upstream repository.
 If the repository is checked out directly then use `git pull --rebase` to obtain the latest code,
 if a fork is used then add the official mxcubecore repository to the list of remotes.
 
-* If necessary add link to the official mxcubecore repository:
+- If necessary add link to the official mxcubecore repository:
 
   ```bash
   git remote add upstream git@github.com:mxcube/mxcubecore.git
@@ -31,62 +33,70 @@ A branching model based on the popular [gitflow model](https://nvie.com/posts/a-
 
 This means that all pull requests should be made against the [**develop**](https://github.com/mxcube/mxcubecore/tree/develop) branch. The work on the **develop** branch is performed by simply creating a branch for the work to be done and then making a PR according to the description below.
 
-* To fetch all branches and merge upstream to your forked develop branch:
+- To fetch all branches and merge upstream to your forked develop branch:
+
   ```bash
   git fetch --all
   git checkout develop
   git rebase upstream/develop
   ```
 
-* If you already are working on the **develop** branch and tracking the official repository, simply:
+- If you already are working on the **develop** branch and tracking the official repository, simply:
+
   ```bash
   git pull --rebase develop
   ```
 
 We **recommend to always rebase your local changes instead of merging them**, git can be configured to do this by default:
-  ```bash
-  git config --global pull.rebase true
-  ```
+
+```bash
+git config --global pull.rebase true
+```
 
 #### Preparing a new commit
-* First, make sure that you are working with the latest changes from develop
+
+- First, make sure that you are working with the latest changes from develop
+
 ```bash
 git checkout develop`
 git pull --rebase develop
 ```
-* Create a new branch, it's recommended to use a meaningful name. for instance [initials]-[fix/feature]-[some name] i.e mo-feature-gizmo1
- `git checkout -b mo-feature-gizmo1`
-* If the pull request is associated with an issue then reference the issue in the name. For example:
+
+- Create a new branch, it's recommended to use a meaningful name. for instance [initials]-[fix/feature]-[some name] i.e mo-feature-gizmo1
+  `git checkout -b mo-feature-gizmo1`
+- If the pull request is associated with an issue then reference the issue in the name. For example:
   `git checkout -b issue_100`
-* Edit necessary files, delete existing or add a new file.
-* Add files to the staging area:
-   `git add ChangedFile1 ChangedFile2`
-* Save your new commit to the local repository:
-   `git commit`
-* Commit command will open a text editor:
-  * In the first line write a short commit summary (max 50 characters. It will appear as a title of PR.
-  * Add an empty line.
-  * Write a longer description.
-* Upload the content of the new branch to the remote repository:
-   `git push origin NEW_BRACH_NAME`
-* Go to the github webpage and create a new PR.
+- Edit necessary files, delete existing or add a new file.
+- Add files to the staging area:
+  `git add ChangedFile1 ChangedFile2`
+- Save your new commit to the local repository:
+  `git commit`
+- Commit command will open a text editor:
+  - In the first line write a short commit summary (max 50 characters. It will appear as a title of PR.
+  - Add an empty line.
+  - Write a longer description.
+- Upload the content of the new branch to the remote repository:
+  `git push origin NEW_BRACH_NAME`
+- Go to the github webpage and create a new PR.
 
 #### Creating a new pull request via github webpage
 
-* Keep the pull requests small preferably containing a single feature
-* Give enough information about the changes in the pull request summary so that the reviewers easily understands what's been done
-* Highlight technically complex/complicated sections of the code and supply additional comments to code that might need extra explication/motivation by making inline comments
-* If needed assign a developer who shall review the PR.
+- Keep the pull requests small preferably containing a single feature
+- Give enough information about the changes in the pull request summary so that the reviewers easily understands what's been done
+- Highlight technically complex/complicated sections of the code and supply additional comments to code that might need extra explication/motivation by making inline comments
+- If needed assign a developer who shall review the PR.
 
 ### Accepting a pull request
-* The author of a PR may request a PR review from a certain number of developers.
-* A reviewer can Comment, Approve or Request changes.
-* The changes made in the PR are assumed to be tested by the author
-* All the assigned reviewers of a PR have to review the PR before it can be merged.
-* A PR that has no reviewer assigned can be reviewed by anyone.
-* The author of the PR is free to merge the PR once its been reviewed and all pending comments/discussions are solved
+
+- The author of a PR may request a PR review from a certain number of developers.
+- A reviewer can Comment, Approve or Request changes.
+- The changes made in the PR are assumed to be tested by the author
+- All the assigned reviewers of a PR have to review the PR before it can be merged.
+- A PR that has no reviewer assigned can be reviewed by anyone.
+- The author of the PR is free to merge the PR once its been reviewed and all pending comments/discussions are solved
 
 ### Versioning
+
 Versioning is partly automated by GitHub actions and [Poetry](https://python-poetry.org/) and based on the gitflow branching model:
 
 - Each new feature is implemented in a `feature branch`, branching from the `develop branch`.
@@ -126,76 +136,84 @@ which will make the unit conversion explicit.
 Furthermore, it has been agreed that, whenever possible,
 the following units must be used across the code base:
 
-* mm (millimetre) for translational motors and sizes
-* degree for rotational motors
-* percentage (%) for ratios like attenuation
-* keV for energy
-* K (Kelvin) for temperature
-* Å (Ångström) for resolution
-* pixel for beam location (centre)
-* YYYY-MM-DD HH:MM:SS(.ff) for date and time,
+- mm (millimetre) for translational motors and sizes
+- degree for rotational motors
+- percentage (%) for ratios like attenuation
+- keV for energy
+- K (Kelvin) for temperature
+- Å (Ångström) for resolution
+- pixel for beam location (centre)
+- YYYY-MM-DD HH:MM:SS(.ff) for date and time,
   possibly with hundreds of seconds (ff), and with 24-hour clock.
 
 Even if the code uses those units, they must be documented.
 
-
 #### Value update signals/callbacks
+
 The "valueChanged" and "stateChanged" signals should be used when a HardwareObjects value or state
 has been changed. Defined in for instance the base class [HardwareObject](https://github.com/mxcube/HardwareRepository/blob/ea8369ab2c08dbe539fd92ffee18fd21bb3a81b8/BaseHardwareObjects.py#L666), [AbstractMotor](https://github.com/mxcube/HardwareRepository/blob/master/HardwareObjects/abstract/AbstractMotor.py) and
 [AbstractActutor](https://github.com/mxcube/HardwareRepository/blob/master/HardwareObjects/abstract/AbstractActuator.py)
 
 The use of the signal "attributeChanged" with a key, value pair is encouraged for all other
-attributes, for instance ```self.emit("attributeChanged", "attr1", 0)``` instead of using a
+attributes, for instance `self.emit("attributeChanged", "attr1", 0)` instead of using a
 specific signal with for instance a single dictionary as data.
 
-####  Python 2.7 and 3.7 imports
+#### Python 2.7 and 3.7 imports
+
 Imports that are incompatible between Python 2x and 3x should be handled with:
-  ```
-  try:
-      import myfile
-  except ImportError:
-      import myotherfile
-  ```
+
+```python
+try:
+    import myfile
+except ImportError:
+    import myotherfile
+```
+
 #### Type hints
+
 We strongly encourage the usage of type hints
 
 #### Naming convention
 
 ##### Language and spelling
-* UK english should be used for the spelling in documentation and code. Relevant examples for the mxcubecore code base are for instance the words *centring* and *characterisation* that are the preferred spelling instead of *centering* and *characterization*.
+
+- UK english should be used for the spelling in documentation and code. Relevant examples for the mxcubecore code base are for instance the words *centring* and *characterisation* that are the preferred spelling instead of *centering* and *characterization*.
 
 ##### Functions
-  * functions names should be recognisable as actions and should generally contain a verb
+
+- functions names should be recognisable as actions and should generally contain a verb
 
 ##### Variables and parameters:
- * names of objects and values are singular
- * names of collections are plural or contain an internal 'list' (or 'tuple', 'tpl')
- * names of maps are plural or contain 'map', 'dict', 'data', or an internal '2', like 'name2state'
- * variables should distinguish between objects (e.g. 'motor') and their names or string representations (e.g. 'motor_name'))
- * Booleans can be indicated by participles (e.g. 'enabled', 'tunable') or an 'is_' prefix. We should use positive rather than negative expressions (e.g. 'enabled' rather than 'disabled')
+
+- names of objects and values are singular
+- names of collections are plural or contain an internal 'list' (or 'tuple', 'tpl')
+- names of maps are plural or contain 'map', 'dict', 'data', or an internal '2', like 'name2state'
+- variables should distinguish between objects (e.g. 'motor') and their names or string representations (e.g. 'motor_name'))
+- Booleans can be indicated by participles (e.g. 'enabled', 'tunable') or an 'is\_' prefix. We should use positive rather than negative expressions (e.g. 'enabled' rather than 'disabled')
 
 #### Properties v. functions
-  * You should prefer functions ('get_', 'set_', 'update_') when attributes are mutable and changing the value requires moving hardware or is slow or has side effects, or where you (might) need additional parameters like switches or timeout values.
-    * For Boolean states prefer e.g. set_enabled (True/False) rather than separate enable()/disable() functions.
-  * You should prefer properties for simple properties or states of objects (e.g. 'name', 'user_name', 'tolerance'). Contained HardwareObjects also use properties
 
+- You should prefer functions ('get\_', 'set\_', 'update\_') when attributes are mutable and changing the value requires moving hardware or is slow or has side effects, or where you (might) need additional parameters like switches or timeout values.
+  - For Boolean states prefer e.g. set_enabled (True/False) rather than separate enable()/disable() functions.
+- You should prefer properties for simple properties or states of objects (e.g. 'name', 'user_name', 'tolerance'). Contained HardwareObjects also use properties
 
 #### Style guidelines
 
 It is very important to write a clean and readable code. Therefore we follow the [PEP8 guidelines](https://www.python.org/dev/peps/pep-0008/). Minimal required guidelines are:
-* Maximum 88 characters per line.
-* Use 4 spaces (not a tab) per indentation level.
-* Do not use wild (star) imports.
-* Used naming styles:
-   * lower_case_with_underscores (snake style) for variables, methods.
-   * CapitalizedWords for class names.
-   * UPPERCASE for constants.
-* When catching exceptions, mention specific exceptions whenever possible instead of using a bare except.
-* Add [google style](https://www.sphinx-doc.org/en/master/usage/extensions/example_google.html?highlight=google%20style) doc strings to describe methods and classes. Types should be omitted in doc strings if the method is type hinted.
+
+- Maximum 88 characters per line.
+- Use 4 spaces (not a tab) per indentation level.
+- Do not use wild (star) imports.
+- Used naming styles:
+  - lower_case_with_underscores (snake style) for variables, methods.
+  - CapitalizedWords for class names.
+  - UPPERCASE for constants.
+- When catching exceptions, mention specific exceptions whenever possible instead of using a bare except.
+- Add [google style](https://www.sphinx-doc.org/en/master/usage/extensions/example_google.html?highlight=google%20style) doc strings to describe methods and classes. Types should be omitted in doc strings if the method is type hinted.
 
 An example how to describe a class:
 
-  ```bash
+```python
 class ExampleClass(object):
     """The summary line for a class docstring should fit on one line.
 
@@ -237,16 +255,15 @@ class ExampleClass(object):
         self.attr3 = param3  #: Doc comment *inline* with attribute
 
         #: list(str): Doc comment *before* attribute, with type specified
-        self.attr4 = ['attr4']
+        self.attr4 = ["attr4"]
 
         self.attr5 = None
         """str: Docstring *after* attribute, with type specified."""
-
-  ```
+```
 
 An example how to describe a function:
 
-  ```bash
+```python
 def function_with_types_in_docstring(param1, param2):
     """Example function with types documented in the docstring.
 
@@ -265,8 +282,7 @@ def function_with_types_in_docstring(param1, param2):
         https://www.python.org/dev/peps/pep-0484/
 
     """
-
-  ```
+```
 
 The Python code is to be formatted and checked for lint with
 [*Ruff*](https://astral.sh/ruff).
@@ -280,21 +296,21 @@ One can also run the Ruff linter and Ruff formatter locally with commands like
 To get Ruff to automatically fix some of the issues it detects,
 one can run a command like this: `poetry run ruff check --fix`.
 
-
 ### Continuous integration (CI)
 
 GitHub Action are used for continues integration
 
 ### Additional notes
+
 Abstract classes hierarchy scheme can be found [here](https://github.com/mxcube/mxcubecore/blob/hierarchy/Hierarchy.pdf).
 
 Issue and Pull request Labels
 
-* bug: indicates a bug in the code. Issue has a highest priority.
-* abstract: Abstract class involved. Issue has a high priority.
-* question: general question.
-* not used code: suggestion to remove a code block or a file from the repository.
-* wip: work in progress
-* enhancement: code improvement.
+- bug: indicates a bug in the code. Issue has a highest priority.
+- abstract: Abstract class involved. Issue has a high priority.
+- question: general question.
+- not used code: suggestion to remove a code block or a file from the repository.
+- wip: work in progress
+- enhancement: code improvement.
 
 Milestones

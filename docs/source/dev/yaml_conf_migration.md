@@ -55,7 +55,6 @@ The changes to the format are outlined below.
 
 The `_initialise_class` dictionary has been replaced by a `class` key-value pair.
 
-
 ### `_objects`
 
 The `_objects` dictionary has been renamed to `objects`.
