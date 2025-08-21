@@ -22,5 +22,7 @@ Developer documentation
     json-schema-generated-user-interface
     yaml_conf_migration
     user-based-login-details
+    hwobj-signals
+    lims-integration
 
 ..  # EOF
