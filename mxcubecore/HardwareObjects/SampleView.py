@@ -138,20 +138,27 @@ class SampleView(AbstractSampleView):
 
         self._last_oav_image = path
 
-    def take_snapshot(self, overlay_data=None, bw=False):
+    def take_snapshot(self, overlay_data=None, bw=False) -> Image:
         """
         Get snapshot with overlaid data.
 
         Args:
-            overlay_data (str): base64 encoded image to lay over camera image
-            bw (bool): return grayscale image
+            overlay_data: base64 encoded image to lay over camera image
+            bw: return black and white image
 
         Returns:
-            (Image) rgb or grayscale image
+            RGB or black and white image
         """
-        data, width, height = self.camera.get_last_image()
 
-        img = Image.frombytes("RGB", (width, height), data)
+        last_image = self.camera.get_last_image()
+
+        if len(last_image) == 3:
+            data, width, height = last_image
+            mode = "RGB"
+        elif len(last_image) == 4:
+            data, width, height, mode = last_image
+
+        img = Image.frombytes(mode, (width, height), data)
 
         if overlay_data:
             overlay_data = base64.b64decode(overlay_data)
