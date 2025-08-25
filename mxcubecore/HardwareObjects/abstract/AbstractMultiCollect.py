@@ -801,7 +801,7 @@ class AbstractMultiCollect(object):
             self.open_safety_shutter()
 
             try:
-                HWR.beamline.flux.wait_for_beam()
+                HWR.beamline.beam.wait_for_beam()
                 HWR.beamline.cryo.wait_temperature()
             except AttributeError:
                 pass

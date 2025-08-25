@@ -33,6 +33,7 @@ Example yml configuration:
  objects:
    aperture: udiff_aperture.yml
    definer: beam_definer.yml
+   monitor_beam: monitor_beam.yaml
 """
 
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
@@ -99,9 +100,10 @@ class ESRFBeam(AbstractBeam):
 
         self._monitorbeam_obj = self.get_object_by_role("monitor_beam")
 
-        beam_check = self.get_property("beam_check_name")
-        if beam_check and _bliss_obj:
-            self._beam_check_obj = getattr(_bliss_obj, beam_check)
+        if self._monitorbeam_obj:
+            beam_check = self._monitorbeam_obj.actuator_name
+            if beam_check and _bliss_obj:
+                self._beam_check_obj = getattr(_bliss_obj, beam_check)
 
     def _re_emit_values(self, value):
         """Redefine as re_emit_values takes no arguments"""
@@ -394,7 +396,6 @@ class ESRFBeam(AbstractBeam):
             try:
                 timeout = timeout or self._beam_check_obj.timeout
                 if self._monitorbeam_obj.get_value().value:
-                    return self._beam_check_obj.wait_for_beam(timeout)
+                    self._beam_check_obj.wait_for_beam(timeout)
             except AttributeError:
-                return True
-        return True
+                pass

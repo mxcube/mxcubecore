@@ -1807,8 +1807,8 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/ESRF/ESRFBeam.py" = [
     "ARG002",
+    "C901",
     "EM101",
-    "ERA001",
     "N814",
     "N999",
     "TRY003",

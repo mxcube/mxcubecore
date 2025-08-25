@@ -25,14 +25,12 @@ Example xml_ configuration:
 
  class: ESRF.ESRFPhotonFlux.ESRFPhotonFlux
   configuration:
-    beam_check_name: checkbeam
     counter_name: i0
     threshold: 5000000000.0
     username: Photon flux
   objects:
     aperture: udiff_aperture.yaml
     controller: bliss.yaml
-    monitor_beam: monitor_beam.yaml
 """
 
 import logging
@@ -50,13 +48,10 @@ class ESRFPhotonFlux(AbstractFlux):
         super().__init__(name)
         self._counter = None
         self._flux_calc = None
-        self._beam_check_obj = None
-        self.beam_check_name = None
         self.counter_name = None
         self.threshold = None
         self.aperture = None
         self.controller = None
-        self.monitor_beam = None
 
     def init(self):
         """Initialisation"""
@@ -79,9 +74,6 @@ class ESRFPhotonFlux(AbstractFlux):
             logging.getLogger("HWR").exception(
                 "Counter to read the flux is not configured"
             )
-
-        if self.beam_check_name:
-            self._beam_check_obj = getattr(self.controller, self.beam_check_name)
 
         try:
             HWR.beamline.safety_shutter.connect("stateChanged", self.update_value)
@@ -132,27 +124,3 @@ class ESRFPhotonFlux(AbstractFlux):
             return 0.0
 
         return counts
-
-    @property
-    def check_beam(self):
-        """Check if there is beam
-        Returns:
-            (bool): True if beam present, False otherwise
-        """
-        return self._beam_check_obj.check_beam()
-
-    def wait_for_beam(self, timeout=None):
-        """Wait until beam present.
-        Args:
-            timeout (float): optional - timeout [s],
-                             If timeout == 0: return at once and do not wait
-                                              (default);
-                             if timeout is None: wait forever.
-        """
-        try:
-            if self.monitor_beam.get_value().value is True:
-                if self._beam_check_obj:
-                    return self._beam_check_obj.wait_for_beam(timeout)
-                return True
-        except AttributeError:
-            return True
