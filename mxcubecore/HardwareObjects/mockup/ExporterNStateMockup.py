@@ -107,7 +107,7 @@ class ExporterNStateMockup(AbstractNState):
             else:
                 value = value.value
 
-        self._nominal_value = self.value_to_enum(value)
+        self.update_value(self.value_to_enum(value))
         self.update_state(self.STATES.READY)
 
     def get_value(self):
