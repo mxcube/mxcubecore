@@ -727,6 +727,7 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/BlissEnergy.py" = [
     "ERA001",
+    "N814",
     "N999",
 ]
 "mxcubecore/HardwareObjects/BlissHutchTrigger.py" = [
@@ -1814,7 +1815,6 @@ convention = "google"
     "TRY003",
 ]
 "mxcubecore/HardwareObjects/ESRF/ESRFBeamDefiner.py" = [
-    "ERA001",
     "N999",
 ]
 "mxcubecore/HardwareObjects/ESRF/ESRFBeamInfo.py" = [
@@ -1981,7 +1981,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/ESRF/ID232BeamDefiner.py" = [
     "ARG002",
     "EM101",
-    "ERA001",
     "N999",
     "TRY003",
 ]
@@ -2007,7 +2006,10 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/ESRF/ID30A3BeamDefiner.py" = [
     "ARG002",
-    "ERA001",
+    "N999",
+]
+"mxcubecore/HardwareObjects/ESRF/ID30BBeamDefiner.py" = [
+    "ARG002",
     "N999",
 ]
 "mxcubecore/HardwareObjects/ESRF/MD2MultiCollect.py" = [

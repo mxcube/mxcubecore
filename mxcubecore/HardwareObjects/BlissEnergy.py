@@ -44,6 +44,7 @@ import math
 
 from gevent import spawn
 
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
 
@@ -108,9 +109,14 @@ class BlissEnergy(AbstractEnergy):
         Args:
             value (float): target energy
         """
+        try:
+            defocus = HWR.beamline.beam.definer.defocused_beam
+        except AttributeError:
+            defocus = False
+
         self.update_state(HardwareObjectState.BUSY)
         try:
-            self.controller.change_energy(value)
+            self.controller.change_energy(value, defocus=defocus)
         except (AttributeError, RuntimeError):
             self.energy_motor.set_value(value)
         self.update_state(HardwareObjectState.READY)

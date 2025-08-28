@@ -53,14 +53,14 @@ class ESRFBeamDefiner(AbstractNState):
     def __init__(self, *args):
         super().__init__(*args)
         self.beam_config = {}
-        self.config = []
+        self.bd_config = []
 
     def init(self):
         super().init()
         self._default_name = self.get_property("default_size_name")
 
         # keep the config is needed by the inheriring classes
-        self.config = self.init_config()
+        self.bd_config = self.init_config()
 
         # check if we have values other that UNKNOWN
         if len(self.VALUES) == 1:

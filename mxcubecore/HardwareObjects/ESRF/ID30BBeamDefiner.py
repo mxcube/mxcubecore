@@ -64,7 +64,9 @@ Example xml configuration:
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
+
 from enum import Enum
+
 from mxcubecore.HardwareObjects.ESRF.ESRFBeamDefiner import ESRFBeamDefiner
 
 
