@@ -89,6 +89,8 @@ class AbstractVideoDevice(HardwareObject):
         """Initialise the values from config and set default values,
         when appropriate
         """
+        # import pdb
+        # pdb.set_trace()
         self.cam_name = self.get_property("name", "camera")
 
         try:

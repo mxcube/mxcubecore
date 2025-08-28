@@ -923,8 +923,6 @@ class FlexMaint(Equipment):
             self.change_Cryo_Out_state()
 
 
-
-
         if cmd_name == "powerOn":
             SC = HWR.beamline.sample_changer
             SC._set_state(AbstractSampleChanger.SampleChangerState.Ready)

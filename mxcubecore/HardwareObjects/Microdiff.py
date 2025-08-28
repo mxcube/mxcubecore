@@ -80,15 +80,7 @@ class Microdiff(MiniDiff.MiniDiff):
             },
             "CurrentPhase",
         )
-        # Add cold head
-        # self.Get_Rex_Position = self.add_channel(
-        #     {
-        #         "type": "exporter",
-        #         "exporter_address": self.exporter_addr,
-        #         "name": "Get_Rex_Position",
-        #     },
-        #     "GetRexPosition",
-        # )
+
         self.rexPosition = self.add_channel(
             {
                 "type": "exporter",

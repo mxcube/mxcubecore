@@ -707,7 +707,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
 
             # TODO: investigate gevent.timeout exception handing, this wait is to ensure
             # that conf is done before arming
-            time.sleep(2)
+            time.sleep(1)
             for i in range(len(self.triggers_to_collect)):
                 (
                     osc_start,
@@ -724,10 +724,10 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
                     # self.prepare_detector(i+1)
 
                 try:
-                    ######## need check dettector status ---------------
+                    ######## need check detector status ---------------
                     # HWR.beamline.detector.wait_config_done()
                     # gevent.sleep(3)
-                    ######## need check dettector status ---------------
+                    ######## need check detector status ---------------
                     logging.getLogger("HWR").info("[Detector] trigger starting acquisition")
                     HWR.beamline.detector.start_acquisition()
                     # Check that detector state was correctly armed by start_acquisition()

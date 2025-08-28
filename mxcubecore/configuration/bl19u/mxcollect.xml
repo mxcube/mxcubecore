@@ -1,7 +1,7 @@
 <object class="mxcubecore.HardwareObjects.SSRF.BL19U1.BL19U1Collect">
   <synchrotron_name>SSRF</synchrotron_name>
   <!--directory_prefix>/home/det/testdata1/BL19U11</directory_prefix-->
-    <directory_prefix>/ramdisk/BL19U1</directory_prefix>
+  <directory_prefix>/ramdisk/BL19U1</directory_prefix>
   <!--object href="/isara_maint" role="sample_changer_maintenance"/-->
   <default_exposure_time>1</default_exposure_time>
   <minimum_exposure_time>0.1</minimum_exposure_time>
