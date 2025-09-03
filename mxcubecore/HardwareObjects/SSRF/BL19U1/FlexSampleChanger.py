@@ -94,7 +94,7 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         self._selected_basket = -1
         self._scIsCharging = None
         self.centring_method = "AUTO_LOOP"
-        # self.use_magnet = self.getroperty("")
+        # self.use_magnet = self.getproperty("")
 
         self.no_of_baskets = self.get_property(
             "no_of_baskets", FlexSampleChanger.NO_OF_BASKETS

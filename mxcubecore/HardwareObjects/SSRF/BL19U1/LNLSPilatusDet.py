@@ -717,7 +717,7 @@ class LNLSPilatusDet(AbstractDetector):
         # self.set_channel_value("det_phi_omega_incr", file_template)
         self.set_channel_value("det_phi_oscill_axis", self.header["Oscillation_axis"])
         self.set_channel_value("det_num_oscill", self.header["N_oscillations"])
-        self.set_channel_value("det_beam_x", 1229)
+        self.set_channel_value("det_beam_x", 1246)
         # self.set_channel_value("det_beam_y", 1331.00)
         beamy = self.get_beamy()
         self.set_channel_value("det_beam_y", beamy)
@@ -766,11 +766,6 @@ class LNLSPilatusDet(AbstractDetector):
         #     HWR.beamline.collect.getObjectByRole("detector_cover").set_out()
         # except Exception:
         #     pass
-
-        # self.wait_ready()
-        # self.execute_command("stop_acq")
-        # self.execute_command("prepare_acq")
-        # self.execute_command("start_acq")
 
         self.wait_ready()
         self.set_channel_value("det_acq", 0)
