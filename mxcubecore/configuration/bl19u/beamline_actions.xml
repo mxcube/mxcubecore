@@ -1,0 +1,11 @@
+<object class="mxcubecore.HardwareObjects.SSRF.BL19U1.BeamlineActionsMockup">
+    <commands>[
+      {"type": "controller", "name": "Centre Beam", "command": "HardwareObjects.SSRF.BL19U1.BeamlineActionsMockup.SimulatedAction"},
+      {"type": "controller", "name": "Quick Realign", "command": "HardwareObjects.SSRF.BL19U1.BeamlineActionsMockup.LongSimulatedAction"},
+      {"type": "controller", "name": "Anneal", "command": "HardwareObjects.SSRF.BL19U1.BeamlineActionsMockup.SimulatedActionError"},
+      {"type": "annotated", "command": "HardwareObjects.SSRF.BL19U1.BeamlineActionsMockup.Anneal2"},
+      {"type": "annotated", "command": "HardwareObjects.SSRF.BL19U1.BeamlineActionsMockup.QuickRealign2"},
+      {"type": "annotated", "command": "HardwareObjects.SSRF.BL19U1.BeamlineActionsMockup.ComboTest2"},
+    ]
+    </commands>
+</object>
