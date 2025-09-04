@@ -1,6 +1,6 @@
 import logging
 
-from mxcubecore import HardwareRepository as HWR  # noqa: N814
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.MAXIV.MAXIVMD3 import NoPositionBookmarkedError
 
 log = logging.getLogger("user_level_log")
