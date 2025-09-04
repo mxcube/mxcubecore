@@ -3,6 +3,7 @@ from math import isclose
 from mxcubecore.utils.units import (
     A_to_mA,
     ev_to_kev,
+    kev_to_ev,
     meter_to_mm,
     mm_to_meter,
     ms_to_sec,
@@ -36,6 +37,11 @@ def test_sec_to_hour():
 def test_ev_to_kev():
     assert isclose(ev_to_kev(12000), 12.0)
     assert isclose(ev_to_kev(10.5), 0.0105)
+
+
+def test_kev_to_ev():
+    assert isclose(kev_to_ev(14.5), 14500)
+    assert isclose(kev_to_ev(0.014), 14)
 
 
 def test_meter_to_mm():

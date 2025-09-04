@@ -47,6 +47,13 @@ def ev_to_kev(ev: float) -> float:
     return ev / 1000.0
 
 
+def kev_to_ev(ev: float) -> float:
+    """
+    convert KeV value to eV value
+    """
+    return ev * 1000.0
+
+
 #
 # length units
 #
