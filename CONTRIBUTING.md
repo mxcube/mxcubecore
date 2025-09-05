@@ -158,17 +158,6 @@ The use of the signal "attributeChanged" with a key, value pair is encouraged fo
 attributes, for instance `self.emit("attributeChanged", "attr1", 0)` instead of using a
 specific signal with for instance a single dictionary as data.
 
-#### Python 2.7 and 3.7 imports
-
-Imports that are incompatible between Python 2x and 3x should be handled with:
-
-```python
-try:
-    import myfile
-except ImportError:
-    import myotherfile
-```
-
 #### Type hints
 
 We strongly encourage the usage of type hints
