@@ -11,7 +11,7 @@ from colorama import (
     Style,
 )
 
-from mxcubecore import BaseHardwareObjects as BHWO
+from mxcubecore import BaseHardwareObjects as BHWO  # noqa: N814
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore import __version__
 
