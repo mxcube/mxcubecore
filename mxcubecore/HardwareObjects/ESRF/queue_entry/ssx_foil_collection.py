@@ -24,6 +24,7 @@ class SSXUserCollectionParameters(BaseUserCollectionParameters):
     num_images: int = Field(0, description="")
     horizontal_spacing: float = Field(20, gt=0, lt=1000, description="um")
     vertical_spacing: float = Field(20, gt=0, lt=1000, description="um")
+    use_current_focus: bool = Field(False, description="")
 
     _chip_name_tuple = tuple(
         HWR.beamline.diffractometer.get_head_configuration().available.keys()
@@ -131,6 +132,7 @@ class SsxFoilCollectionQueueEntry(SsxBaseQueueEntry):
         params = self._data_model._task_data.user_collection_parameters
         enforce_centring_phase = False
         packet_fifo_depth = 20000
+        focus_value = HWR.beamline.diffractometer.focusMotor.get_value()
 
         (
             num_images,
@@ -176,7 +178,7 @@ class SsxFoilCollectionQueueEntry(SsxBaseQueueEntry):
         fname_prefix = self._data_model._task_data.path_parameters.prefix
         fname_prefix += f"_foil_"
 
-        region = (
+        region = [
             chip_data.calibration_data.top_left[0],
             chip_data.calibration_data.top_left[1],
             chip_data.calibration_data.top_left[2],
@@ -186,8 +188,13 @@ class SsxFoilCollectionQueueEntry(SsxBaseQueueEntry):
             chip_data.calibration_data.bottom_left[0],
             chip_data.calibration_data.bottom_left[1],
             chip_data.calibration_data.bottom_left[2],
-        )
+        ]
 
+        if self._data_model._task_data.user_collection_parameters.use_current_focus:
+            region[2] = focus_value
+            region[5] = focus_value
+            region[8] = focus_value
+            
         self.start_processing("FOIL")
 
         logging.getLogger("user_level_log").info(f"Defining region {region}")

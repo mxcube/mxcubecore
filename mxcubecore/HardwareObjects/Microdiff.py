@@ -398,6 +398,15 @@ class Microdiff(MiniDiff.MiniDiff):
             "doSSXAutoFocus",
         )
 
+        self.start_ssx_all_block_calibration = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_ssx_all_block_calibration",
+            },
+            "startSSXAllBlockCalibration",
+        )        
+
         MiniDiff.MiniDiff.init(self)
         self.centringPhiy.direction = -1
         self.MOTOR_TO_EXPORTER_NAME = self.getMotorToExporterNames()
@@ -420,13 +429,15 @@ class Microdiff(MiniDiff.MiniDiff):
         HardwareObject.init(self)
         self.handle_detector_cover = self.get_object_by_role("handle_detcover")
 
-    def use_position_for_callibration(self):
-        x = self.get_object_by_role("ssx_translation").get_value()
-        y = self.get_object_by_role("phiz").get_value()
-        z = self.get_object_by_role("phix").get_value()
+    def use_position_for_callibration(self, data):
+        for _d in data:
+            if len(data[_d]) > 0:
+                x, y, z = data[_d]
+                logging.getLogger("HWR").info(f"Setting fiducial {_d} to: ({x}, {y}, {z})")
+                res = self.add_ssx_chip_calibration_fiducial(x, y, z)
 
-        logging.getLogger("HWR").info(f"Setting fiducial at: {x}{y}{z}")
-        # res = self.add_ssx_chip_calibration_fiducial(x, y, z)
+        self.start_ssx_all_block_calibration()
+
         res = 1
         return res == 1
 

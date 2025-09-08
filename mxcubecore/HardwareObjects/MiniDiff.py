@@ -495,12 +495,12 @@ class MiniDiff(HardwareObject):
         dx = (x - beam_pos_x) / self.pixelsPerMmY
         dy = (y - beam_pos_y) / self.pixelsPerMmZ
 
-        vertical_motor = self.get_object_by_role("phiz")
+        vertical_motor = self.get_object_by_role("phiy")
         horizontal_motor = self.get_object_by_role("ssx_translation")
 
         try:
-            vertical_motor.set_value_relative(dx)
-            horizontal_motor.set_value_relative(dy)
+            vertical_motor.set_value_relative(dy)
+            horizontal_motor.set_value_relative(dx)
         except Exception:
             logging.getLogger("HWR").exception(
                 "MiniDiff: could not center to beam, aborting"
