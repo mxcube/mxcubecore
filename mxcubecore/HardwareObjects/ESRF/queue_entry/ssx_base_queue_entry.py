@@ -477,8 +477,14 @@ class SsxBaseQueueEntry(BaseQueueEntry):
     def get_additional_lims_values(self):
         return ISPYBCollectionParameters(
             **{
-                "flux_start": 3e15,
-                "flux_end": 3e15,
+                "flux_start": 3e15
+                * HWR.beamline.transmission.get_value()/100
+                * HWR.beamline.machine_info.get_current()
+                / 200,
+                "flux_end": 3e15
+                * HWR.beamline.transmission.get_value()/100
+                * HWR.beamline.machine_info.get_current()
+                / 200,
                 "start_time": datetime.datetime.now(),
                 "end_time": datetime.datetime.now(),
                 "chip_model": "",
