@@ -24,10 +24,9 @@ class MD2(Microdiff.Microdiff):
 
         self.readPhase.connectSignal("update", self.current_phase_changed)
         self.centringPhi = CentringMotor(self.phiMotor, direction=-1)
-        self.centringPhiz = CentringMotor(self.phizMotor)
-        self.centringPhiy = CentringMotor(
-            self.phiyMotor, direction=-1, reference_position=None
-        )
+        # self.centringPhiz = CentringMotor(self.phizMotor)
+        self.centringPhiz = CentringMotor(self.phizMotor, direction=1)
+        self.centringPhiy = CentringMotor(self.phiyMotor, direction=1, reference_position=None)
         self.centringSamplex = CentringMotor(self.sampleXMotor, direction=-1)   #-1 for MD2-S
         self.centringSampley = CentringMotor(self.sampleYMotor, direction=1)
         self.scan_nb_frames = -1
@@ -146,6 +145,7 @@ class MD2(Microdiff.Microdiff):
         # self.save_centring_positions.set_value()
 
         self.connect("update", self.state_changed)
+        
     def abort(self):
         self.abort_cmd()
 
@@ -255,79 +255,6 @@ class MD2(Microdiff.Microdiff):
     def wait_ready(self):
         self._wait_ready(300)
 
-    # def oscilScanMesh(
-    #     self,
-    #     start,
-    #     end,
-    #     exptime_per_frame,
-    #     dead_time,
-    #     mesh_num_lines,
-    #     mesh_total_nb_frames,
-    #     mesh_center,
-    #     mesh_range,
-    #     wait=False,
-    # ):
-    
-    #     self.scan_detector_gate_pulse_enabled.set_value(True)
-    
-    #     # Adding the servo time to the readout time to avoid any
-    #     # servo cycle jitter
-    #     servo_time = 0.110
-    
-    #     self.scan_detector_gate_pulse_readout_time.set_value(
-    #         dead_time * 1000 + servo_time
-    #     )
-    
-    #     # Prepositionning at the center of the grid
-    #     self.move_motors(mesh_center.as_dict())
-    
-    #     positions = self.get_positions()
-    #     #import pdb;pdb.set_trace()
-    #     """
-    #     # TODO the hack below overrides the num_lines from queue entry
-    #     # that is correct for MD2 but not for MD3
-    #     # a better implementation would be to fix the value in the set_dc_params
-    #     shape = HWR.beamline.sample_view.get_selected_shapes()[0].as_dict()
-    #     mesh_num_lines = shape.get("num_cols")
-    #     # TODO the hack below overrides the mesh_total_nb_frames from queue entry
-    #     mesh_total_nb_frames = shape.get("num_cols") * shape.get("num_rows")
-    #     """
-    #     num_rows =  mesh_total_nb_frames / mesh_num_lines
-    #     params = "%0.3f\t" % (end - start)
-    #     # Set positive pitch to move phiz towards the top because it starts from grid top left corner
-    #     params += "%0.3f\t" % (mesh_range["vertical_range"] / 1000.0)   # TODO check why BIOMAX used to pass micrometers
-    #     # Set negative pitch to move CT towards the left because it starts from grid top left corner
-    #     params += "%0.3f\t" % (mesh_range["horizontal_range"] / 1000.0)
-    #     params += "%0.3f\t" % start
-    #     params += "%0.3f\t" % positions["phiz"]
-    #     params += "%0.3f\t" % positions["phiy"]
-    #     params += "%0.3f\t" % positions["sampx"]
-    #     params += "%0.3f\t" % positions["sampy"]
-    #     params += "%d\t" % num_rows
-    #     params += "%d\t" % mesh_num_lines
-    #     params += "%0.3f\t" % exptime_per_frame  # MD expects time per line (per column in MD2)
-    #     params += "%r\t" % True
-    #     params += "%r\t" % True
-    #     params += "%r\t" % True
-    #     print("Params of startRasterScanEX of expoter method: ",params)
-    #     scan = self.add_command(
-    #         {
-    #             "type": "exporter",
-    #             "exporter_address": self.exporter_addr,
-    #             "name": "start_raster_scan",
-    #         },
-    #         "startRasterScanEx",
-    #     )
-    #     # self.abort_cmd()
-    #     self._wait_ready()
-    #     scan(params)
-    
-    #     if wait:
-    #         # Timeout of 30 min
-    #         self._wait_ready()
-
-
-    # 修改测试
     def oscilScanMesh(
         self,
         start,
@@ -338,25 +265,23 @@ class MD2(Microdiff.Microdiff):
         mesh_total_nb_frames,
         mesh_center,
         mesh_range,
-        mesh_center_topRightPoint_phiy =None ,
         wait=False,
     ):
-
+    
         self.scan_detector_gate_pulse_enabled.set_value(True)
-
+    
         # Adding the servo time to the readout time to avoid any
         # servo cycle jitter
         servo_time = 0.110
-
+    
         self.scan_detector_gate_pulse_readout_time.set_value(
             dead_time * 1000 + servo_time
         )
-
+    
         # Prepositionning at the center of the grid
         self.move_motors(mesh_center.as_dict())
-
+    
         positions = self.get_positions()
-        print("mesh scan method in md2, positions: ",positions)
         #import pdb;pdb.set_trace()
         """
         # TODO the hack below overrides the num_lines from queue entry
@@ -370,22 +295,15 @@ class MD2(Microdiff.Microdiff):
         num_rows =  mesh_total_nb_frames / mesh_num_lines
         params = "%0.3f\t" % (end - start)
         # Set positive pitch to move phiz towards the top because it starts from grid top left corner
-        # params += "%0.3f\t" % (mesh_range["vertical_range"] / 1000.0)   # TODO check why BIOMAX used to pass micrometers
-        # # Set negative pitch to move CT towards the left because it starts from grid top left corner
-        # params += "%0.3f\t" % (mesh_range["horizontal_range"] / 1000.0)
-
-        #感觉 上面两个参数前后顺序反了
-        # params += "%0.3f\t" % (mesh_range["horizontal_range"] / 1000.0)   # TODO check why BIOMAX used to pass micrometers
-        # # Set negative pitch to move CT towards the left because it starts from grid top left corner
-        # params += "%0.3f\t" % (mesh_range["vertical_range"] / 1000.0)
-        #改，放大两倍,20240507,改回，不放大了
-        params += "%0.3f\t" % (mesh_range["horizontal_range"] / 1000.0)  # TODO check why BIOMAX used to pass micrometers
+        params += "%0.3f\t" % (mesh_range["vertical_range"] / 1000.0)   # TODO check why BIOMAX used to pass micrometers
         # Set negative pitch to move CT towards the left because it starts from grid top left corner
-        params += "%0.3f\t" % (mesh_range["vertical_range"] / 1000.0)
+        params += "%0.3f\t" % (mesh_range["horizontal_range"] / 1000.0)
         params += "%0.3f\t" % start
+        # phiz和phiy调一下位置
+        # params += "%0.3f\t" % positions["phiz"]
+        params += "%0.3f\t" % positions["phiy"]
         # params += "%0.3f\t" % positions["phiy"]
-        params += "%0.3f\t" % mesh_center_topRightPoint_phiy    #改
-        params += "%0.3f\t" % (positions["phiz"])
+        params += "%0.3f\t" % positions["phiz"]
         params += "%0.3f\t" % positions["sampx"]
         params += "%0.3f\t" % positions["sampy"]
         params += "%d\t" % num_rows
@@ -394,7 +312,7 @@ class MD2(Microdiff.Microdiff):
         params += "%r\t" % True
         params += "%r\t" % True
         params += "%r\t" % True
-        print("[RasterScanEX info] Params of startRasterScanEX of exporter method: ",params)
+        print("Params of startRasterScanEX of expoter method: ",params)
         scan = self.add_command(
             {
                 "type": "exporter",
@@ -406,10 +324,95 @@ class MD2(Microdiff.Microdiff):
         # self.abort_cmd()
         self._wait_ready()
         scan(params)
-
+    
         if wait:
             # Timeout of 30 min
             self._wait_ready()
+
+
+    # 修改测试zhang
+    # def oscilScanMesh(
+    #     self,
+    #     start,
+    #     end,
+    #     exptime_per_frame,
+    #     dead_time,
+    #     mesh_num_lines,
+    #     mesh_total_nb_frames,
+    #     mesh_center,
+    #     mesh_range,
+    #     mesh_center_topRightPoint_phiy =None ,
+    #     wait=False,
+    # ):
+
+    #     self.scan_detector_gate_pulse_enabled.set_value(True)
+
+    #     # Adding the servo time to the readout time to avoid any
+    #     # servo cycle jitter
+    #     servo_time = 0.110
+
+    #     self.scan_detector_gate_pulse_readout_time.set_value(
+    #         dead_time * 1000 + servo_time
+    #     )
+
+    #     # Prepositionning at the center of the grid
+    #     self.move_motors(mesh_center.as_dict())
+
+    #     positions = self.get_positions()
+    #     print("mesh scan method in md2, positions: ",positions)
+    #     #import pdb;pdb.set_trace()
+    #     """
+    #     # TODO the hack below overrides the num_lines from queue entry
+    #     # that is correct for MD2 but not for MD3
+    #     # a better implementation would be to fix the value in the set_dc_params
+    #     shape = HWR.beamline.sample_view.get_selected_shapes()[0].as_dict()
+    #     mesh_num_lines = shape.get("num_cols")
+    #     # TODO the hack below overrides the mesh_total_nb_frames from queue entry
+    #     mesh_total_nb_frames = shape.get("num_cols") * shape.get("num_rows")
+    #     """
+    #     num_rows =  mesh_total_nb_frames / mesh_num_lines
+    #     params = "%0.3f\t" % (end - start)
+    #     # Set positive pitch to move phiz towards the top because it starts from grid top left corner
+    #     # params += "%0.3f\t" % (mesh_range["vertical_range"] / 1000.0)   # TODO check why BIOMAX used to pass micrometers
+    #     # # Set negative pitch to move CT towards the left because it starts from grid top left corner
+    #     # params += "%0.3f\t" % (mesh_range["horizontal_range"] / 1000.0)
+
+    #     #感觉 上面两个参数前后顺序反了
+    #     # params += "%0.3f\t" % (mesh_range["horizontal_range"] / 1000.0)   # TODO check why BIOMAX used to pass micrometers
+    #     # # Set negative pitch to move CT towards the left because it starts from grid top left corner
+    #     # params += "%0.3f\t" % (mesh_range["vertical_range"] / 1000.0)
+    #     #改，放大两倍,20240507,改回，不放大了
+    #     params += "%0.3f\t" % (mesh_range["horizontal_range"] / 1000.0)  # TODO check why BIOMAX used to pass micrometers
+    #     # Set negative pitch to move CT towards the left because it starts from grid top left corner
+    #     params += "%0.3f\t" % (mesh_range["vertical_range"] / 1000.0)
+    #     params += "%0.3f\t" % start
+    #     # params += "%0.3f\t" % positions["phiy"]
+    #     params += "%0.3f\t" % mesh_center_topRightPoint_phiy    #改
+    #     params += "%0.3f\t" % (positions["phiz"])
+    #     params += "%0.3f\t" % positions["sampx"]
+    #     params += "%0.3f\t" % positions["sampy"]
+    #     params += "%d\t" % num_rows
+    #     params += "%d\t" % mesh_num_lines
+    #     params += "%0.3f\t" % exptime_per_frame  # MD expects time per line (per column in MD2)
+    #     params += "%r\t" % True
+    #     params += "%r\t" % True
+    #     params += "%r\t" % True
+    #     print("[RasterScanEX info] Params of startRasterScanEX of exporter method: ",params)
+    #     scan = self.add_command(
+    #         {
+    #             "type": "exporter",
+    #             "exporter_address": self.exporter_addr,
+    #             "name": "start_raster_scan",
+    #         },
+    #         "startRasterScanEx",
+    #     )
+    #     # self.abort_cmd()
+    #     self._wait_ready()
+    #     scan(params)
+
+    #     if wait:
+    #         # Timeout of 30 min
+    #         self._wait_ready()
 
     # def get_centred_point_from_coord(self, x, y, return_by_names=None):
     #     # import pdb
@@ -485,117 +488,183 @@ class MD2(Microdiff.Microdiff):
     
     #     return dict
 
-
-
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
-        # 20240312
-        # 此函数根据 mesh scan画的正方形的点坐标生成对应移动 md2 的参数
-        # 初步判断，mesh scan时，会传送左上和右下的坐标到此函数，其中左上的坐标和gotobeam函数所获得的坐标是一致的，右下不是
-
-        # 20240319
-        # 此函数作用是
-        # 根据坐标点求出对应电机位置：
-        # "phi": round(self.centringPhi.get_value()),
-        # "phiz": round(phiz, 4),
-        # "phiy": round(phiy, 4),
-        # "sampx": round(sampx, 4),
-        # "sampy": round(sampy, 4),
-        # 其中phi ， phiz 不变, 需要知道sampx 和 sampy 和 phiy 的位置
-        # phiy的位置可以根据move_to_beam的代码得知，
-        # 但sampx与sampy的具体位置不知道，只能得到centring vertical的值,因此需要先通过move_to_beam实际移动过去，再分别读取
-        # sampx 和 sampy
-        logging.getLogger("HWR.MX3").info("get into get_centred_point_from_coord in MD2")
-        self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
-            self.zoomMotor.get_value()
-        )
+        # 获取校准数据
+        self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(self.zoomMotor.get_value())
+        
         if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
-            return 0, 0
-        self.log.debug(
-            "the pixelsPerMmY: %d, Z: %d. the selected x: %d, y: %d. " % (self.pixelsPerMmY, self.pixelsPerMmZ, x, y))
-
-
-
+            return {"phi": 0, "phiz": 0, "phix": 0, "phiy": 0, "sampx": 0, "sampy": 0}
+        
+        # 获取光束中心位置
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
-        self.log.debug("the beam_pos_x: %d, y: %d. " % (beam_pos_x, beam_pos_y))
-
-        dx = (x - beam_pos_x) / (self.pixelsPerMmY)
-        dy = (y - beam_pos_y) / (self.pixelsPerMmZ)
-
-        # from move to beam
-        sampeVertical = self.centringVertical.get_value()
-        phiy = self.centringPhiy.get_value()
-
-        # 改变前先记录原始位置
-        old_sampeVertical = sampeVertical
-        old_phiy = phiy
-        sampeVertical = sampeVertical + dy
-        phiy = phiy - dx
-
-        # 让md2移动到目标点来获取对应的 samp-x 与 samp-y 的值
-        self.centringVertical.set_value(sampeVertical)  # 此函数控制md2上下移动，会移动mxcube界面Samp-X 和 Samp-Y电机
-        self.centringPhiy.set_value(phiy)  # 此函数控制md2左右移动，会移动mxcube界面上的phiy电机
-
-        # 等待centringVertical重新变回ready
-        # if self.centring_table_vertical_state.get_value() == "Ready":
-        self.centringVertical.wait_move()
-        self.centringPhiy.wait_move()
-
-
-
-
-        phiz = self.centringPhiz.direction * self.centringPhiz.get_value()
-
-        # sampx = self.centringSamplex.direction * self.centringSamplex.get_value()
-        # sampy = self.centringSampley.direction * self.centringSampley.get_value()
-        sampx = -self.centringSamplex.direction * self.centringSamplex.get_value()
-        sampy = self.centringSampley.direction * self.centringSampley.get_value()
-
-        # 按照源代码尝试解决sampx 与sampy问题：
-        # 尝试的不太行
-        # sampx = self.centringSamplex.direction * self.centringSamplex.get_value()
-        # sampy = self.centringSampley.direction * self.centringSampley.get_value()
-        # phi_angle = math.radians(
-        #     self.centringPhi.direction * self.centringPhi.get_value()
-        # )
-        # rotMatrix = numpy.matrix(
-        #     [
-        #         [math.cos(phi_angle), -math.sin(phi_angle)],
-        #         [math.sin(phi_angle), math.cos(phi_angle)],
-        #     ]
-        # )
-        # invRotMatrix = numpy.array(rotMatrix.I)
-        # dsampx, dsampy = numpy.dot(numpy.array([0, dx]), invRotMatrix)
-        # chi_angle = math.radians(-self.chiAngle)
-        # chiRot = numpy.matrix(
-        #     [
-        #         [math.cos(chi_angle), -math.sin(chi_angle)],
-        #         [math.sin(chi_angle), math.cos(chi_angle)],
-        #     ]
-        # )
-        # sx, sy = numpy.dot(numpy.array([dsampx, dsampy]), numpy.array(chiRot))
-        # sampx = sampx + sx
-        # sampy = sampy + sy
-
-        # 移动完之后再移动回来，否则影响整体坐标系的位置
-        self.centringVertical.set_value(old_sampeVertical)
-        self.centringPhiy.set_value(old_phiy)
-        self.centringVertical.wait_move()
-        self.centringPhiy.wait_move()
-
-
+        dx = (x - beam_pos_x) / self.pixelsPerMmY  # 水平偏移，右为正 (X 轴)
+        dy = (y - beam_pos_y) / self.pixelsPerMmZ  # 垂直偏移，下为正 (Z 轴)
+        
+        # 计算 phi 角度
+        phi_angle = math.radians(self.centringPhi.direction * self.centringPhi.get_value())
+        
+        # 获取当前电机位置
+        sampx = self.centringSamplex.direction * self.centringSamplex.get_value()  # CX, 向右为正
+        sampy = self.centringSampley.direction * self.centringSampley.get_value()  # CY, 向上为正
+        phiy = -self.centringPhiy.direction * self.centringPhiy.get_value()  # AY, 向前为正
+        phiz = self.centringPhiz.direction * self.centringPhiz.get_value()  # AZ, 向上为正        
+        # 旋转矩阵（顺时针旋转）
+        rotMatrix = numpy.matrix([
+            [math.cos(phi_angle), -math.sin(phi_angle)],
+            [math.sin(phi_angle), math.cos(phi_angle)]
+        ])
+        
+        invRotMatrix = numpy.array(rotMatrix.I)
+        
+        # 计算 sampx, sampy 的偏移（考虑 dx 和 dy）
+        dsampx, dsampy = numpy.dot(numpy.array([dx, dy]), invRotMatrix)
+        
+        # 考虑 chi 角度
+        chi_angle = math.radians(-self.chiAngle)
+        chiRot = numpy.matrix([
+            [math.cos(chi_angle), -math.sin(chi_angle)],
+            [math.sin(chi_angle), math.cos(chi_angle)]
+        ])
+        
+        sx, sy = numpy.dot(numpy.array([dsampx, dsampy]), numpy.array(chiRot))
+        
+        # 更新电机位置
+        sampx = sampx + sx
+        sampy = sampy + sy
+        phiz = phiz + dy  # 直接加 dy，向上为正
+        
+        # 构建返回字典
         dict = {
-            "phi": round(self.centringPhi.get_value()),
+            "phi": round(self.centringPhi.get_value(), 4),
             "phiz": round(phiz, 4),
             "phiy": round(phiy, 4),
             "sampx": round(sampx, 4),
-            "sampy": round(sampy, 4),
+            "sampy": round(sampy, 4)
         }
-
-        logging.getLogger("HWR").debug("MD2: centring point from coord (%d,%d) -> %s" %(x, y, str(dict)))
-
+        
+        # 日志记录
+        logging.getLogger("HWR").debug(f"输入: x={x}, y={y}, beam_pos_x={beam_pos_x}, beam_pos_y={beam_pos_y}")
+        logging.getLogger("HWR").debug(f"校准: pixelsPerMmY={self.pixelsPerMmY}, pixelsPerMmZ={self.pixelsPerMmZ}")
+        logging.getLogger("HWR").debug(f"偏移: dx={dx:.4f}, dy={dy:.4f}")
+        logging.getLogger("HWR").debug(f"角度: phi_angle={math.degrees(phi_angle):.2f}度, chi_angle={math.degrees(chi_angle):.2f}度")
+        logging.getLogger("HWR").debug(f"电机方向: Phi={self.centringPhi.direction}, SampleX={self.centringSamplex.direction}, "
+                                    f"SampleY={self.centringSampley.direction}, PhiY={self.centringPhiy.direction}, "
+                                    f"PhiZ={self.centringPhiz.direction}")
+        logging.getLogger("HWR").debug(f"计算: dsampx={dsampx:.4f}, dsampy={dsampy:.4f}, sx={sx:.4f}, sy={sy:.4f}")
+        logging.getLogger("HWR").debug(f"MD2: centring point from coord ({x},{y}) -> {dict}")
+        
         return dict
 
 
+    # def get_centred_point_from_coord(self, x, y, return_by_names=None):
+    #     # 20240312
+    #     # 此函数根据 mesh scan画的正方形的点坐标生成对应移动 md2 的参数
+    #     # 初步判断，mesh scan时，会传送左上和右下的坐标到此函数，其中左上的坐标和gotobeam函数所获得的坐标是一致的，右下不是
+
+    #     # 20240319
+    #     # 此函数作用是
+    #     # 根据坐标点求出对应电机位置：
+    #     # "phi": round(self.centringPhi.get_value()),
+    #     # "phiz": round(phiz, 4),
+    #     # "phiy": round(phiy, 4),
+    #     # "sampx": round(sampx, 4),
+    #     # "sampy": round(sampy, 4),
+    #     # 其中phi ， phiz 不变, 需要知道sampx 和 sampy 和 phiy 的位置
+    #     # phiy的位置可以根据move_to_beam的代码得知，
+    #     # 但sampx与sampy的具体位置不知道，只能得到centring vertical的值,因此需要先通过move_to_beam实际移动过去，再分别读取
+    #     # sampx 和 sampy
+    #     # import pdb
+    #     # pdb.set_trace()
+    #     logging.getLogger("HWR.MX3").info("get into get_centred_point_from_coord in MD2")
+    #     self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
+    #         self.zoomMotor.get_value()
+    #     )
+    #     if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
+    #         return 0, 0
+    #     self.log.debug(
+    #         "the pixelsPerMmY: %d, Z: %d. the selected x: %d, y: %d. " % (self.pixelsPerMmY, self.pixelsPerMmZ, x, y))
+
+
+
+    #     beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
+    #     self.log.debug("the beam_pos_x: %d, y: %d. " % (beam_pos_x, beam_pos_y))
+
+    #     dx = (x - beam_pos_x) / (self.pixelsPerMmY)
+    #     dy = (y - beam_pos_y) / (self.pixelsPerMmZ)
+
+    #     # from move to beam
+    #     sampeVertical = self.centringVertical.get_value()
+    #     phiy = self.centringPhiy.get_value()
+
+    #     # 改变前先记录原始位置
+    #     old_sampeVertical = sampeVertical
+    #     old_phiy = phiy
+    #     sampeVertical = sampeVertical + dy
+    #     phiy = phiy - dx
+
+    #     # 让md2移动到目标点来获取对应的 samp-x 与 samp-y 的值
+    #     self.centringVertical.set_value(sampeVertical)  # 此函数控制md2上下移动，会移动mxcube界面Samp-X 和 Samp-Y电机
+    #     self.centringPhiy.set_value(phiy)  # 此函数控制md2左右移动，会移动mxcube界面上的phiy电机
+
+    #     # 等待centringVertical重新变回ready
+    #     # if self.centring_table_vertical_state.get_value() == "Ready":
+    #     self.centringVertical.wait_move()
+    #     self.centringPhiy.wait_move()
+
+
+
+
+    #     phiz = self.centringPhiz.direction * self.centringPhiz.get_value()
+
+    #     # sampx = self.centringSamplex.direction * self.centringSamplex.get_value()
+    #     # sampy = self.centringSampley.direction * self.centringSampley.get_value()
+    #     sampx = -self.centringSamplex.direction * self.centringSamplex.get_value()
+    #     sampy = self.centringSampley.direction * self.centringSampley.get_value()
+
+    #     # 按照源代码尝试解决sampx 与sampy问题：
+    #     # 尝试的不太行
+    #     # sampx = self.centringSamplex.direction * self.centringSamplex.get_value()
+    #     # sampy = self.centringSampley.direction * self.centringSampley.get_value()
+    #     # phi_angle = math.radians(
+    #     #     self.centringPhi.direction * self.centringPhi.get_value()
+    #     # )
+    #     # rotMatrix = numpy.matrix(
+    #     #     [
+    #     #         [math.cos(phi_angle), -math.sin(phi_angle)],
+    #     #         [math.sin(phi_angle), math.cos(phi_angle)],
+    #     #     ]
+    #     # )
+    #     # invRotMatrix = numpy.array(rotMatrix.I)
+    #     # dsampx, dsampy = numpy.dot(numpy.array([0, dx]), invRotMatrix)
+    #     # chi_angle = math.radians(-self.chiAngle)
+    #     # chiRot = numpy.matrix(
+    #     #     [
+    #     #         [math.cos(chi_angle), -math.sin(chi_angle)],
+    #     #         [math.sin(chi_angle), math.cos(chi_angle)],
+    #     #     ]
+    #     # )
+    #     # sx, sy = numpy.dot(numpy.array([dsampx, dsampy]), numpy.array(chiRot))
+    #     # sampx = sampx + sx
+    #     # sampy = sampy + sy
+
+    #     # 移动完之后再移动回来，否则影响整体坐标系的位置
+    #     self.centringVertical.set_value(old_sampeVertical)
+    #     self.centringPhiy.set_value(old_phiy)
+    #     self.centringVertical.wait_move()
+    #     self.centringPhiy.wait_move()
+
+
+    #     dict = {
+    #         "phi": round(self.centringPhi.get_value()),
+    #         "phiz": round(phiz, 4),
+    #         "phiy": round(phiy, 4),
+    #         "sampx": round(sampx, 4),
+    #         "sampy": round(sampy, 4),
+    #     }
+
+    #     logging.getLogger("HWR").debug("MD2: centring point from coord (%d,%d) -> %s" %(x, y, str(dict)))
+
+    #     return dict
 
     # Override using value from Camera device instead than from exporter MD2 server
     def getCalibrationData(self, offset):
