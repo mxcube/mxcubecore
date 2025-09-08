@@ -257,6 +257,14 @@ class Beamline(HardwareObject):
         return self.get_object_by_role("procedure")
 
     @property
+    def argus(self)-> HardwareObject | None:
+        return self.get_object_by_role("argus")
+
+    @property
+    def tape(self)-> HardwareObject | None:
+        return self.get_object_by_role("tape")
+
+    @property
     def data_publisher(self) -> HardwareObject | None:
         return self.get_object_by_role("data_publisher")
 

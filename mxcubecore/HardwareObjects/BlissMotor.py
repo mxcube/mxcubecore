@@ -91,8 +91,10 @@ class BlissMotor(AbstractMotor):
 
         # init state to match motor's one
         self.update_state(self.get_state())
-
-        self.connect(self.motor_obj, "position", self.update_value)
+        if self.actuator_name == "tape":
+            self.connect(self.motor_obj, "velocity", self.update_value)
+        else:
+            self.connect(self.motor_obj, "position", self.update_value)
         self.connect(self.motor_obj, "state", self._update_state)
         self.connect(self.motor_obj, "move_done", self._update_state)
 
@@ -164,7 +166,7 @@ class BlissMotor(AbstractMotor):
         Returns:
             float: Motor position.
         """
-        return self.motor_obj.position
+        return self.motor_obj.velocity if self.actuator_name == "tape" else self.motor_obj.position
 
     def get_limits(self):
         """Returns motor low and high limits.
@@ -175,7 +177,11 @@ class BlissMotor(AbstractMotor):
         # for some GUI components (like MotorSpinBox), so
         # instead we return very large value.
 
-        _low, _high = self.motor_obj.limits
+        if self.actuator_name == "tape":
+            _low = -1e6
+            _high = 1e6
+        else:
+            _low, _high = self.motor_obj.limits
         _low = _low if _low else -1e6
         _high = _high if _high else 1e6
         self._nominal_limits = (_low, _high)
@@ -194,7 +200,11 @@ class BlissMotor(AbstractMotor):
         Args:
             value (float): target value
         """
-        self.motor_obj.move(value, wait=False)
+        if self.actuator_name == "tape":
+            self.motor_obj.velocity = value if value >0 else -value
+            self.motor_obj.jog(value)
+        else:
+            self.motor_obj.move(value, wait=False)
 
     def abort(self):
         """Stop the motor movement"""
