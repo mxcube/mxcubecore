@@ -35,6 +35,7 @@ class Session(HardwareObject):
         self.base_directory = None
         self.base_process_directory = None
         self.base_archive_directory = None
+        self._endstation_name : str = ""
 
         self.raw_data_folder_name = default_raw_data_folder
         self.processed_data_folder_name = default_processed_data_folder
@@ -49,7 +50,11 @@ class Session(HardwareObject):
 
     @property
     def endstation_name(self) -> str:
-        return self.config.endstation_name
+        return self._endstation_name
+
+    def set_endstation_name(self, name) -> None:
+        self.log.info(f"Setting end-station name to {name}")
+        self._endstation_name = name
 
     def init(self):
         def get_inhouse_proposals():
@@ -103,6 +108,8 @@ class Session(HardwareObject):
         PathTemplate.set_path_template_style(
             self.synchrotron_name, file_info.get("file_template")
         )
+
+        self._endstation_name = self.config.endstation_name
 
     def set_base_data_directories(
         self,

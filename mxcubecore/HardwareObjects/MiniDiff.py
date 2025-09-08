@@ -877,7 +877,7 @@ class MiniDiff(HardwareObject):
     def moveToCentredPosition(self, centred_position):
         return self.move_motors(centred_position.as_dict())
 
-    def image_clicked(self, x, y, xi, yi):
+    def image_clicked(self, x, y):
         logging.getLogger("user_level_log").info(
             "Centring click at, x: %s, y: %s" % (int(x), int(y))
         )

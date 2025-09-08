@@ -485,9 +485,15 @@ class Microdiff(MiniDiff.MiniDiff):
             return
 
         current_phase = self.get_current_phase()
+        
+        if current_phase == phase:
+            msg = f"Already in {current_phase}, not moving"
+            logging.getLogger("user_level_log").info(msg)          
+            return
+
         msg = f"Current phase is {current_phase} and moving to {phase}"
         logging.getLogger("user_level_log").info(msg)
-
+        
         if phase in self.phases:
             if phase in ["BeamLocation", "Transfer"]:
                 self.close_detector_cover()
