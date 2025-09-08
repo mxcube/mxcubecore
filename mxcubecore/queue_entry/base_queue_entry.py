@@ -764,6 +764,16 @@ class SampleQueueEntry(BaseQueueEntry):
         BaseQueueEntry.post_execute(self)
         params = []
 
+        # We want to make the sample entry enabled if it contains
+        # any skipped collections, so that the user can restart them
+        has_executable_child = False
+        for child_queue_entry in self._queue_entry_list:
+            if child_queue_entry.is_enabled():
+                has_executable_child = True
+                break
+        self.set_enabled(has_executable_child)
+        self.get_data_model().set_enabled(has_executable_child)
+
         # Start grouped processing, get information from each collection
         # and call autoproc with grouped processing option
         for child in self.get_data_model().get_children():
