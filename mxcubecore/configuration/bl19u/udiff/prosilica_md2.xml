@@ -1,0 +1,11 @@
+<device class="mxcubecore.HardwareObjects.SSRF.BL19U1.ArinaxCameraZoom">
+  <username>Prosilica 1350C</username>
+  <tangoname>tango://10.30.61.67:9999/md/oav/bzoom#dbase=no</tangoname>
+  <bpmname>id23/bpm/id232_oav</bpmname>
+  <exposure_time>0.066</exposure_time>
+  <video_mode>RGB24</video_mode>
+  <video_gain>0.2</video_gain>
+  <control_video>True</control_video>
+  <compression>10</compression>
+</device>
+
