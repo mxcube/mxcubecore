@@ -24,9 +24,8 @@ class MD2(Microdiff.Microdiff):
 
         self.readPhase.connectSignal("update", self.current_phase_changed)
         self.centringPhi = CentringMotor(self.phiMotor, direction=-1)
-        # self.centringPhiz = CentringMotor(self.phizMotor)
-        self.centringPhiz = CentringMotor(self.phizMotor, direction=1)
-        self.centringPhiy = CentringMotor(self.phiyMotor, direction=1, reference_position=None)
+        self.centringPhiz = CentringMotor(self.phizMotor)
+        self.centringPhiy = CentringMotor(self.phiyMotor, direction=-1, reference_position=None)
         self.centringSamplex = CentringMotor(self.sampleXMotor, direction=-1)   #-1 for MD2-S
         self.centringSampley = CentringMotor(self.sampleYMotor, direction=1)
         self.scan_nb_frames = -1

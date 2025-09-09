@@ -10,6 +10,7 @@
   <monochromator>Si(111)</monochromator>
   <input_files_server>localhost:5698</input_files_server>
   <polarisation>0.99</polarisation>
+  <property name="auto_mount_sample">True</property>
 
   <!--channel type="epics" name="detector_cover">SSRF:BL19U1:DetectorCoverOpen</channel-->
   <beam>
