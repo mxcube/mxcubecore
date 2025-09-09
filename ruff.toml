@@ -2789,22 +2789,6 @@ convention = "google"
     "N999",
     "RET504",
 ]
-"mxcubecore/HardwareObjects/MAXIV/MaxIVSession.py" = [
-    "ARG002",
-    "B904",
-    "BLE001",
-    "EM101",
-    "G002",
-    "N999",
-    "PTH118",
-    "RET505",
-    "SIM103",
-    "SIM108",
-    "T201",
-    "TRY002",
-    "TRY003",
-    "TRY400",
-]
 "mxcubecore/HardwareObjects/MD2Motor.py" = [
     "B028",
     "B904",
