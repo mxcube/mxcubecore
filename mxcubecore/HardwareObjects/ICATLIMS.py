@@ -1115,7 +1115,7 @@ class ICATLIMS(AbstractLims):
             try:
                 metadata["lims"] = HWR.beamline.lims.get_active_lims()
             except Exception as e:
-                logger.exception("Failed to read get_active_lims.%s")
+                logger.exception("Failed to read get_active_lims.")
 
             try:
                 metadata["InstrumentSource_current"] = (
