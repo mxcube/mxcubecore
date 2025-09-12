@@ -38,11 +38,9 @@ class TestBeamlineHoId:
     def test_beamline_id(self, test_object):
         # Test if we can retrieve a object located directly on
         # the beamline object
-        ho = test_object.get_hardware_object("diffractometer")
-        ho_id = test_object.get_id(ho)
-        assert "diffractometer" == ho_id
+        ho = test_object.get_by_id("diffractometer")
+        assert "diffractometer" == ho.id
 
         # Test if we can get an object further down the structure
-        ho = test_object.get_hardware_object("diffractometer.sampx")
-        ho_id = test_object.get_id(ho)
-        assert "diffractometer.sampx" == ho_id
+        ho = test_object.get_by_id("diffractometer.sampx")
+        assert "diffractometer.sampx" == ho.id
