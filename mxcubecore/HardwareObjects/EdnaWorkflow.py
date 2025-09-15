@@ -240,7 +240,9 @@ class EdnaWorkflow(HardwareObject):
             logging.warning("Failed to fetch sample information for")
 
         try:
-            self.dict_parameters["investigationId"] = HWR.beamline.lims.session_manager.active_session.session_id
+            self.dict_parameters["investigationId"] = (
+                HWR.beamline.lims.session_manager.active_session.session_id
+            )
         except (RuntimeError, AttributeError):
             logging.warning("Failed to fetch investigationId from HWR.beamline.lims")
 
