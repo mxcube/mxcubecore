@@ -50,7 +50,6 @@ class ESRFPhotonFlux(AbstractFlux):
         self._flux_calc = None
         self.counter_name = None
         self.threshold = None
-        self.aperture = None
         self.controller = None
 
     def init(self):
@@ -111,13 +110,16 @@ class ESRFPhotonFlux(AbstractFlux):
             calib = 0
 
         factor = 1.0
-        if self.aperture:
-            label = self.aperture.get_value().name
-            aperture_factor = self.aperture.get_factor(label)
+        try:
+            aperture = HWR.beamline.diffractometer.aperture
+            label = aperture.get_value().name
+            aperture_factor = aperture.get_factor(label)
             if isinstance(aperture_factor, tuple):
                 factor = aperture_factor[0] + aperture_factor[1] * egy
             else:
                 factor = float(aperture_factor)
+        except AttributeError:
+            factor = 1.0
 
         counts = abs(counts * calib * factor)
         if counts < self.threshold:

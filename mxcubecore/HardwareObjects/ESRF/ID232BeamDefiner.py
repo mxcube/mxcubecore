@@ -66,18 +66,16 @@ class ID232BeamDefiner(ESRFBeamDefiner):
     def __init__(self, *args):
         super().__init__(*args)
         self.tf_cfg = {}
-        self.controller = None
         self.tf1 = None
         self.tf2 = None
 
     def init(self):
         """Initialisation"""
         super().init()
-
-        self.controller = self.get_object_by_role("controller")
-        self.tf1 = self.controller.config.get(self.get_property("tf1"))
-        self.tf2 = self.controller.config.get(self.get_property("tf2"))
-        for beam_cfg in self.config:
+        controller = self.get_object_by_role("controller")
+        self.tf1 = getattr(controller, self.get_property("tf1"))
+        self.tf2 = getattr(controller, self.get_property("tf2"))
+        for beam_cfg in self.bd_config:
             name = beam_cfg.get_property("name")
             tf1 = [int(x) for x in beam_cfg.get_property("tf1").split()]
             tf2 = [int(x) for x in beam_cfg.get_property("tf2").split()]
