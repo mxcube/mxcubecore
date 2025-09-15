@@ -236,8 +236,13 @@ class EdnaWorkflow(HardwareObject):
                 self.dict_parameters.get("sample_lims_id")
             )
 
-        except RuntimeError:
-            logging.exception("Failed to fetch sample information for")
+        except (RuntimeError, AttributeError):
+            logging.warning("Failed to fetch sample information for")
+
+        try:
+            self.dict_parameters["investigationId"] = HWR.beamline.lims.session_manager.active_session.session_id
+        except (RuntimeError, AttributeError):
+            logging.warning("Failed to fetch investigationId from HWR.beamline.lims")
 
         self.dict_parameters["token"] = (
             self.token
