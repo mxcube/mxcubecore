@@ -25,8 +25,7 @@ Example xml_ configuration:
 
  <object class="ESRF.ESRFXRFSpectrum">
    <object href="/bliss" role="controller"/>
-   <cfgfile>/users/blissadm/local/beamline_configuration/misc/15keV.cfg</cfgfile
->
+   <cfgfile>/users/blissadm/local/beamline_configuration/misc/15keV.cfg</cfgfile>
    <default_integration_time>3</default_integration_time>
    <default_energy_range>[2.0, 15]</default_energy_range>
    <cfg_energies>[15]</cfg_energies>
