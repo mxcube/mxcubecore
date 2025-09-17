@@ -22,6 +22,8 @@ __license__ = "LGPLv3+"
 
 import base64
 import copy
+import logging
+import math
 from functools import reduce
 from io import BytesIO
 
@@ -29,6 +31,7 @@ import numpy as np
 from PIL import Image
 
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.HardwareObjects import sample_centring
 from mxcubecore.HardwareObjects.abstract.AbstractSampleView import (
     AbstractSampleView,
     ShapeState,
@@ -61,46 +64,102 @@ def combine_images(img1, img2):
 
 
 class SampleView(AbstractSampleView):
-    def __init__(self, name):
-        AbstractSampleView.__init__(self, name)
-        self._shapes = {}
+    """SampleView class"""
 
     def init(self):
         super(SampleView, self).init()
         self._last_oav_image = None
 
         self.hide_grid_threshold = self.get_property("hide_grid_threshold", 5)
-        for motor_name, motor_ho in HWR.beamline.diffractometer.get_motors().items():
-            if motor_ho:
-                motor_ho.connect("stateChanged", self._update_shape_positions)
+        _dm = HWR.beamline.diffractometer
+        for role in _dm.motors_hwobj_dict:
+            motor_obj = _dm.motors_hwobj_dict[role]
+            motor_obj.connect("stateChanged", self._update_shape_positions)
 
     def _update_shape_positions(self, *args, **kwargs):
         for shape in self.get_shapes():
-            shape.update_position(HWR.beamline.diffractometer.motor_positions_to_screen)
+            shape.update_position(self.motor_positions_to_screen())
 
         self.emit("shapesChanged")
 
     @property
-    def shapes(self):
+    def shapes(self) -> dict:
         return self._shapes
 
-    def start_centring(self, tree_click=True):
-        """
-        Starts centring procedure
-        """
-        pass
+    def motor_positions_to_screen(self, positions_dict: dict) -> tuple:
+        """Get the motor positions according to the calibration"""
+        try:
+            dm = HWR.beamline.diffractometer
+            p_x, p_y = dm.get_pixels_per_mm()
+            if None in (p_x, p_y):
+                return 0, 0
+            beam_position = HWR.beamline.beam.get_beam_position_on_screen()
+            omega_angle = math.radians(dm.omega.get_value())
+            sampx = positions_dict["sampx"] - dm.sampx.get_value()
+            sampy = positions_dict["sampy"] - dm.sampy.get_value()
+            phiy = positions_dict["phiy"] - dm.phiy.get_value()
+            phiz = positions_dict["phiz"] - dm.phiz.get_value()
+            rot_matrix = np.matrix(
+                [
+                    math.cos(omega_angle),
+                    -math.sin(omega_angle),
+                    math.sin(omega_angle),
+                    math.cos(omega_angle),
+                ]
+            )
+            rot_matrix.shape = (2, 2)
+            inv_rot_matrix = np.array(rot_matrix.I)
+            dx, dy = np.dot(np.array([sampx, sampy]), inv_rot_matrix) * p_x
 
-    def cancel_centring(self):
+            x = (phiy * p_x) + beam_position[0]
+            y = dy + (phiz * p_y) + beam_position[1]
+
+        except AttributeError as err:
+            raise NotImplementedError from err
+        else:
+            return x, y
+
+    def start_manual_centring(self, nb_click=3):
+        """Do the manual centring procedure.
+        Args:
+           nb_click (int): Number of clicks.
         """
-        Cancels current centring procedure
-        """
-        pass
+        if self.current_centring_procedure is not None:
+            logging.getLogger("HWR").error("Already centring")
+            return
+
+        self.emit("centringStarted", ("Manual"))
+        beam_pos = HWR.beamline.beam.get_beam_position_on_screen()
+        dm = HWR.beamline.diffractometer
+        pixels_per_mm = dm.get_pixels_per_mm()
+        dm.wait_ready(5)
+
+        self.current_centring_procedure = sample_centring.start(
+            self.centring_motors,
+            pixels_per_mm[0],
+            pixels_per_mm[1],
+            beam_pos[0],
+            beam_pos[1],
+            chi_angle=0.0,
+        )
+
+        self.current_centring_procedure.link(self.centring_done)
 
     def start_auto_centring(self):
-        """
-        Start automatic centring procedure
-        """
-        pass
+        """Start automatic centring procedure"""
+
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
+        dm = HWR.beamline.diffractometer
+        dm.wait_ready(5)
+        self.emit("centringStarted", ("Automatic"))
+        dm.set_phase("Centring", wait=True)
+
+    def move_to_beam(self, x: float, y: float):
+        """Move the sample to the x,y coordinates"""
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
+        dm = HWR.beamline.diffractometer
+        # pixels_per_mm = dm.get_pixels_per_mm()
+        dm.wait_ready(5)
 
     def get_snapshot(self, overlay=None, bw=False, return_as_array=False):
         """
@@ -521,7 +580,7 @@ class Shape(object):
             self.screen_coord = screen_coord
 
     def update_from_dict(self, shape_dict):
-        # We don't allow id or result updates
+        # We do not allow id or result updates
         shape_dict.pop("id", None)
         shape_dict.pop("result", None)
 

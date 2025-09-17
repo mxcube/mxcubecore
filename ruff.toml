@@ -2866,6 +2866,12 @@ convention = "google"
     "TRY002",
     "TRY003",
 ]
+"mxcubecore/HardwareObjects/MicroDiffractometer.py" = [
+    "FBT001",
+    "FBT002",
+    "N999",
+    "PERF203",
+]
 "mxcubecore/HardwareObjects/Microdiff.py" = [
     "ARG002",
     "BLE001",
@@ -4420,6 +4426,14 @@ convention = "google"
     "RET504",
     "TRY003",
 ]
+"mxcubecore/HardwareObjects/abstract/AbstractDiffractometer.py" = [
+    "EM102",
+    "FBT001",
+    "FBT002",
+    "N999",
+    "PERF203",
+    "I001",
+]
 "mxcubecore/HardwareObjects/abstract/AbstractEnergy.py" = [
     "ERA001",
     "FIX002",
@@ -4588,7 +4602,8 @@ convention = "google"
     "TRY400",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractSampleView.py" = [
-    "ERA001",
+    "ARG002",
+    "FBT001",
     "FBT002",
     "N999",
 ]
