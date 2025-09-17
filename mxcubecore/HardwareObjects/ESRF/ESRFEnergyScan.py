@@ -422,4 +422,4 @@ def store_energy_scan_thread(db_conn, scan_info):
                 asso = {"blSampleId": blsample_id, "energyScanId": escan_id}
                 db_conn.associate_bl_sample_and_energy_scan(asso)
     except Exception as err:
-        print(err)
+        logging.getLogger("HWR").exception("Could not store energy")
