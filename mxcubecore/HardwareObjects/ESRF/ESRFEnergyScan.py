@@ -374,8 +374,9 @@ class ESRFEnergyScan(AbstractEnergyScan):
         eroi_min = self.energy_scan_parameters["eroi_min"]
         eroi_max = self.energy_scan_parameters["eroi_max"]
         self.ctrl.detcover.set_in()
+        mcafile = Path(self.energy_scan_parameters["directory"]) / "mca.raw"
         self.ctrl.find_max_attenuation(
-            ctime=2, roi=[eroi_min, eroi_max], datafile="/tmp/abb"
+            ctime=2, roi=[eroi_min, eroi_max], datafile=mcafile
         )
         self.energy_scan_parameters["transmissionFactor"] = (
             HWR.beamline.transmission.get_value()
