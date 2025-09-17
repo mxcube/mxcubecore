@@ -1797,7 +1797,6 @@ convention = "google"
     "ARG002",
     "BLE001",
     "C901",
-    "I001",
     "N802",
     "N999",
     "PLR0915",
