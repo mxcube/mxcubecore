@@ -422,6 +422,16 @@ class GenericDiffractometer(HardwareObject):
                         "valueChanged",
                         self.emit_diffractometer_moved,
                     )
+                    #
+                    # A work-around to make mesh grid 'Rotate to' feature work.
+                    #
+                    # MXCuBE requires that diffractometer HWO have a `self.centringPhi`
+                    # attribute, used to change 'omega' rotation when running
+                    # mesh 'Rotate to' routine.
+                    #
+                    # See https://github.com/mxcube/mxcubecore/issues/1360 for details.
+                    #
+                    self.centringPhi = self.motor_hwobj_dict["phi"]
                 elif motor_name == "zoom":
                     self.connect(
                         temp_motor_hwobj,
