@@ -222,11 +222,14 @@ class EMBLFlexHarvester(EMBLFlexHCD):
         # wait for 10 minutes then timeout !
         self._wait_ready(600)
 
+        sample_uuid = self.get_sample_uuid(sample.get_address())
         previous_sample = self._loaded_sample
+
         # Start loading from harvester
         load_task = gevent.spawn(
             self._execute_cmd_exporter,
             "loadSampleFromHarvester",
+            sample_uuid,
             self.pin_cleaning,
             command=True,
         )
@@ -248,6 +251,11 @@ class EMBLFlexHarvester(EMBLFlexHCD):
         err_msg = "Timeout while waiting to sample to be loaded"
         with gevent.Timeout(600, RuntimeError(err_msg)):
             while not load_task.ready():
+                loaded_sample = self._execute_cmd_exporter(
+                    "getMountedCrystalId", attribute=True
+                )
+                if loaded_sample == sample_uuid:
+                    break
                 gevent.sleep(2)
 
         with gevent.Timeout(600, RuntimeError(err_msg)):
