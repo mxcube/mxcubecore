@@ -18,361 +18,318 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-"""Abstract Diffractometer class.
-Initialises the username property and all the motors and nstate (discrete
-possitions) equipment, which are part of the diffractometer.
-The equipment is identified by the roles.
-The fixed motor roles are:
-omega, kappa, kappa_phi, horizontal_alignment, vertical_alignment,
-horizontal_centring, vertical_centring, focus, front_light, back_light
-The fixed nstate equipment roles are:
-fast_shutter, scintillator, fluo_detector, cryostream, front_light, back_light,
-zoom, aperture, beamstop, capillary, diode
+from gevent import Timeout, sleep
 
-Defines:
-  methods: get/set_value_motors, get/set_phase, get_set_constraint
-  properties: get_head_type, in_kappa_mode, in_plate_mode
-
-Emits signals valueChanged and limitsChanged.
-
-"""
-
-import abc
-import logging
-from enum import Enum, unique
-
-from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.Command.Exporter import Exporter, ExporterStates
+from mxcubecore.HardwareObjects.abstract.AbstractDiffractometer import (
+    AbstractDiffractometer,
+    DiffractometerHead,
+    DiffractometerPhase,
+)
 
 __copyright__ = """ Copyright © 2010-2022 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
-@unique
-class DiffractometerHead(Enum):
-    """Enumeration diffractometer head types"""
-
-    UNKNOWN = "Unknown"
-    MINI_KAPPA = "MiniKappa"
-    SMART_MAGNET = "SmartMagnet"
-    PLATE = "Plate"
-    SSX = "SSX"
-
-
-@unique
-class DiffractometerPhase(Enum):
-    """Enumeration diffractometer phases"""
-
-    UNKNOWN = "Unknown"
-    CENTRE = "Centring"
-    COLLECT = "DataCollection"
-    SEE_BEAM = "BeamLocation"
-    TRANSFER = "Transfer"
-    SEE_SAMPLE = "LightSample"
-
-
-@unique
-class DiffractometerConstraint(Enum):
-    """Enumeration diffractometer constraint types"""
-
-    UNKNOWN = "Unknown"
-    RELEASE = "Normal"
-    INJECTOR = "Injector"
-    STILL = "LockRotation"
-
-
-class AbstractDiffractometer(HardwareObject):
-    """Abstract Diffractometer"""
-
-    __metaclass__ = abc.ABCMeta
-
-    unit = None
+class MicroDiffractometer(AbstractDiffractometer):
+    """Microdiff with Exporter implementation of AbstartDiffractometer"""
 
     def __init__(self, name):
         super().__init__(name)
-        self.motors_hwobj_dict = {}
-        self.nstate_equipment_hwobj_dict = {}
-        self.username = name
-        self.current_phase = None
-        self.head_type = None
-        self.current_constraint = None
-        self.timeout = 3  # default timeout 3 s
+        self._exporter = None
 
     def init(self):
-        """Initialise actuator_name and username properties.
-        Initialise the equipment, defined in the configuration file
-        """
-        self.username = self.get_property("username") or self.username
+        """Initialise the device"""
+        super().init()
+        # Initialise the commands and channels
+        exporter_address = self.get_property("exporter_address")
+        _host, _port = exporter_address.split(":")
+        self._exporter = Exporter(_host, int(_port))
+        self.update_state(self.get_state())
 
-        # motors
-        for role in self["motors"].get_roles():
-            try:
-                self.motors_hwobj_dict[role] = self["motors"].get_object_by_role(role)
-            except KeyError:
-                logging.getLogger("HWR").warning("Diffractometer: No motors configured")
+    def abort(self):
+        """Immediately terminate action."""
+        self._exporter.execute("abort")
 
-        # nstate (discrete positions) equipment
-        for role in self["nstate_equipment"].get_roles():
-            try:
-                self.nstate_equipment_hwobj_dict[role] = self[
-                    "nstate_equipment"
-                ].get_object_by_role(role)
-            except KeyError:
-                logging.getLogger("HWR").warning(
-                    "No nstate (discrete positions) equipment configured"
-                )
-
-    def get_motors(self):
-        """Get the dictionary of all configured motors or the ones to use.
+    @property
+    def _get_hwstate(self) -> str:
+        """Get the hardware state, reported by the MD2 application.
         Returns:
-            (dict): Dictionary key=role: value=hardware_object
+            (str): The state.
         """
-        return self.motors_hwobj_dict.copy()
+        try:
+            return self._exporter.read_property("HardwareState")
+        except AttributeError:
+            return "Ready"
 
-    def get_nstate_equipment(self):
-        """Get the dictionary of all the nstate (discrete positions) equipment.
+    @property
+    def _get_swstate(self) -> str:
+        """Get the software state, reported by the MD2 application.
         Returns:
-            (dict): Dictionary key=role: value=hardware_object
+            (str): The state.
         """
-        return self.nstate_equipment_hwobj_dict
+        return self._exporter.read_property("State")
 
-    # -------- Motor Groups --------
+    def get_state(self):
+        """Get the diffractometer general state.
+        Returns:
+            (enum 'HardwareObjectState'): state
+        """
+        try:
+            self._state = ExporterStates(self._get_swstate)
+        except ValueError:
+            self._state = self.STATES.UNKNOWN
+        return self._state
 
-    def set_value_motors(
-        self,
-        motors_positions_dict: dict,
-        simultaneous: bool = True,
-        timeout: [bool | None] = None,
-    ):
-        """Move specified motors to the requested positions
+    @property
+    def _ready(self) -> bool:
+        """Get the "Ready" state - software and hardware.
+        Returns:
+            (bool): True if both "Ready", False otherwise.
+        """
+        return self._get_swstate == "Ready" and self._get_hwstate == "Ready"
+
+    def _wait_ready(self, timeout: [None | float] = None):
+        """Wait timeout seconds until status is ready.
         Args:
-            motors_positions_dict (dict): Dictionary {motor_role: target_value}.
-            simultaneous (bool): Move the motors simultaneously
-                                 (True - default) or not.
+            timeout(float): Timeout [s]. None means infinite timeout.
+        """
+        with Timeout(timeout, RuntimeError("Timeout waiting for status ready")):
+            while not self._ready:
+                sleep(0.5)
+
+    def set_values_motors(
+        self,
+        motors_positions_list: list,
+        timeout: [None | float] = None,
+    ):
+        """Move specified motors to the requested positions.
+        Args:
+            motors_positions_list (list): list of tuples (motor role, target value).
             timeout (float): optional - timeout [s],
-                             if timeout = 0: return at once and do not wait,
+                             If timeout = 0: return at once and do not wait
                              if timeout is None: wait forever (default).
         Raises:
             TimeoutError: Timeout
             KeyError: The name does not correspond to an existing motor
         """
+        # prepare the command
+        argin = ""
+        for mot, pos in motors_positions_list:
+            name = self.motors_hwobj[mot].name
+            argin += f"{name}={pos:0.3f};"
 
-        # use only the available motors
-        mot_hwobj_dict = self.get_motors()
+        self._exporter.execute("startSimultaneousMoveMotors", (argin,))
+        if timeout != 0:
+            self.wait_ready(timeout)
 
-        tout = timeout
-        if simultaneous:
-            tout = 0
-
-        for key, val in motors_positions_dict.items():
-            try:
-                mot_hwobj_dict[key].set_value(val, timeout=tout)
-            except KeyError as err:
-                msg = f"Invalid motor name {key}"
-                raise RuntimeError(msg) from err
-
-        # wait for the end of move of all the motors, if needed
-        if simultaneous:
-            for key in motors_positions_dict:
-                mot_hwobj_dict[key].wait_ready(timeout)
-
-    def get_value_motors(self, motors_list=None):
-        """Get the positions of diffractometer motors. If the motors_list is
-            empty, return the positions of all the available motors.
+    def get_values_motors(self, motors_list: [list | None] = None) -> dict:
+        """Get the positions of diffractometer motors. If the
+            motors_positions_list is empty, return the positions of all
+            the availble motors
         Args:
-            motors_list (list): List of motor roles (optional).
+            motors_list (list): List of motor names or hwobj
         Returns:
-            (dict): Dictionary {motor_role: position}
+            motors_positions_dict (dict): role: position dictionary
         """
-        mot_pos_dict = {}
-
-        # use only the available motors
-        mot_hwobj_dict = self.get_motors()
-
-        if not motors_list:
-            for role, motor in mot_hwobj_dict.items():
-                try:
-                    mot_pos_dict[role] = float(motor.get_value())
-                except TypeError:
-                    msg = f"No value for {role}"
-                    logging.getLogger("HWR").warning(msg)
-            return mot_pos_dict
-
-        for motor in motors_list:
-            try:
-                mot_pos_dict[str(motor)] = float(mot_hwobj_dict[motor].get_value())
-            except KeyError:
-                msg = f"Invalid motor name {motor}"
-                logging.getLogger("HWR").exception(msg)
-            except TypeError:
-                msg = f"No value for {motor}"
-                logging.getLogger("HWR").warning(msg)
-        return mot_pos_dict
-
-    # -------- Head Type and Modes --------
+        motors_positions_dict = super().get_values_motors(self, motors_list)
+        if not self.in_kappa_mode():
+            motors_positions_dict["kappa"] = None
+            motors_positions_dict["kappa_phi"] = None
+        return motors_positions_dict
 
     @property
-    def get_head_type(self):
+    def get_head_type(self) -> DiffractometerHead:
         """Get the head type
         Returns:
-            (Enum): DiffractometerHead member.
-        """
-        return self.head_type
-
-    @property
-    def in_plate_mode(self):
-        """Check if the head is a plate.
-        Returns:
-            (bool): True/False
-        """
-        return self.get_head_type == DiffractometerHead.PLATE
-
-    @property
-    def in_kappa_mode(self):
-        """Check if the head is MiniKappa.
-        Returns:
-            (bool): True/False
-        """
-        return self.get_head_type == DiffractometerHead.MINI_KAPPA
-
-    def get_head_enum(self):
-        """Get the diffractometer head Enum. Used when no import possible.
-        Returns:
-            (Enum): DiffractometerHead.
-        """
-        return DiffractometerHead
-
-    # -------- Phases --------
-
-    def set_phase(self, value, timeout=None):
-        """Sets diffractometer to selected phase.
-        Args:
-            value (Enum): DiffractometerPhase value.
-            timeout (float): optional - timeout [s],
-                             If timeout = 0: return at once and do not wait;
-                             if timeout is None: wait forever (default).
-        """
-        if isinstance(value, DiffractometerPhase):
-            self.current_phase = value
-        else:
-            self.current_phase = self.value_to_enum(value, DiffractometerPhase)
-        if self.current_phase != DiffractometerPhase.UNKNOWN:
-            self._set_phase(self.current_phase)
-            self._update_value(value_cmp=self.get_phase())
-            if timeout == 0:
-                return
-            self.wait_ready(timeout)
-
-    def _set_phase(self, value):
-        """Specific implementation to set the diffractometer to selected phase
-        Args:
-            value (Enum): DiffractometerPhase value.
-        """
-
-    def get_phase(self):
-        """Get the current phase
-        Returns:
-            (Enum): DiffractometerPhase member.
-        """
-        return self.current_phase
-
-    def get_phase_enum(self):
-        """Get the phase Enum. Used when no import possible.
-        Returns:
-            (Enum): DiffractometerPhase.
-        """
-        return DiffractometerPhase
-
-    # -------- Constraints --------
-
-    def set_constraint(self, value, timeout=None):
-        """Sets diffractometer to selected constraint.
-        Args:
-            value (Enum): DiffractometerConstraint member.
-            timeout (float): optional - timeout [s],
-                             if timeout = 0: return at once and do not wait,
-                             if timeout is None: wait forever (default).
-        """
-        if isinstance(value, DiffractometerConstraint):
-            self.current_constraint = value
-        else:
-            self.current_constraint = self.value_to_enum(
-                value, DiffractometerConstraint
-            )
-            self._set_constraint(self.current_constraint)
-            self._update_value(value_cmp=self.get_constraint())
-            if timeout == 0:
-                return
-            self.wait_ready(timeout)
-
-    def _set_constraint(self, value):
-        """Specific implementation to set the diffractometer to selected
-        constraint.
-        Args:
-            value (Enum): DiffractometerConstraint member
-        """
-
-    def get_constraint(self):
-        """Get the current constraint
-        Returns:
-            (Enum): DiffractometerConstraint member.
-        """
-        return self.current_constraint
-
-    def get_constraint_enum(self):
-        """Get the constraints Enum. Used when no import possible.
-        Returns:
-            (Enum): DiffractometerConstraint.
-        """
-        return DiffractometerConstraint
-
-    # -------- data acquisition scans --------
-    def do_oscillation_scan(self, *args, **kwargs):
-        """Do an oscillation scan."""
-        raise NotImplementedError
-
-    def do_line_scan(self, *args, **kwargs):
-        """Do a line (helical) scan."""
-        raise NotImplementedError
-
-    def do_mesh_scan(self, *args, **kwargs):
-        """Do a mesh scan."""
-        raise NotImplementedError
-
-    def do_still_scan(self, *args, **kwargs):
-        """Do a zero oscillation acquisition."""
-        raise NotImplementedError
-
-    def do_characterisation_scan(self, *args, **kwargs):
-        """Do characterisation."""
-        raise NotImplementedError
-
-    def _update_value(self, value=None, value_cmp=None):
-        """Check if the value has changed. Emits signal valueChanged.
-        Args:
-            value: value
-            value_cmp: Value to compare with.
-        """
-        curr_value = None
-        if value_cmp and value is None:
-            curr_value = value_cmp
-
-        if value != curr_value:
-            self.emit("valueChanged", (value,))
-
-    # -------- auxilarly methods --------
-
-    def value_to_enum(self, value, which_enum):
-        """Tranform a value to Enum
-        Args:
-           value(str, int, float, tuple, list): value
-           which_enum (Enum): The enum to be checked.
-        Returns:
-            (Enum): Enum member, corresponding to the value or UNKNOWN.
+            head_type(enum): Head type
         """
         try:
-            return which_enum(value)
+            self.head_type = DiffractometerHead(
+                self._exporter.read_property("HeadType")
+            )
         except ValueError:
-            for evar in which_enum:
-                if isinstance(evar.value, (tuple, list)) and (value in evar.value):
-                    return evar
-        return which_enum.UNKNOWN
+            self.head_type = DiffractometerHead.UNKNOWN
+        return self.head_type
+
+    def _set_phase(self, phase: DiffractometerPhase):
+        """Specific implementation to set the diffractometer to selected phase
+        Args:
+            phase (Enum): DiffractometerPhase value.
+        """
+        self._exporter.execute("startSetPhase", (phase.value,))
+
+    def get_phase(self) -> DiffractometerPhase:
+        """Get the current phase
+        Returns:
+            (Enum): DiffractometerPhase value.
+        """
+        phase = self._exporter.read_property("CurrentPhase")
+        try:
+            self.current_phase = DiffractometerPhase(phase)
+        except ValueError:
+            self.current_phase = DiffractometerPhase.UNKNOWN
+        return self.current_phase
+
+    def get_phase_list(self) -> list:
+        """Get the available phases list."""
+        phase_list = []
+        for member in DiffractometerPhase:
+            _nam = member.name
+            if _nam not in ["IN", "OUT", "UNKNOWN"]:
+                phase_list.append(_nam)
+        return phase_list
+
+    def get_pixels_per_mm(self) -> tuple:
+        """Get the pixel/mm values.
+        Returns:
+            (tuple): x,y [pixel/mm]
+        """
+        x_calib = self._exporter.read_property("CoaxCamScaleX")
+        y_calib = self._exporter.read_property("CoaxCamScaleY")
+        return 1.0 / x_calib, 1.0 / y_calib
+
+    def check_scan_limits(self, start: float, end: float, exptime: float) -> bool:
+        """Check if the scan parameters are within the limits
+        Args:
+            start (float): scan start position.
+            end (float): scan end position.
+            exptime (float): scan exposure time (total).
+        Returns:
+            (bool): True (parameters within the limits), False otherwise.
+        """
+        if self.in_plate_mode():
+            scan_speed = abs(end - start) / exptime
+            llim, hlim = map(
+                float,
+                self._exporter.execute("getOmegaMotorDynamicScanLimits", (scan_speed,)),
+            )
+            if start < llim:
+                msg = f"Scan start below the allowed value {llim}"
+                raise ValueError(msg)
+            if end > hlim:
+                msg = f"Scan end above the allowed value {hlim}"
+                raise ValueError(msg)
+        return True
+
+    def do_oscillation_scan(
+        self, start: float, end: float, exptime: float, timeout: [None | float] = None
+    ):
+        """Do an oscillation scan on omega.
+        Args:
+            start (float): scan start position.
+            end (float): scan end position.
+            exptime (float): scan exposure time (total).
+            timeout (float): optional - timeout [s],
+                             If timeout = 0: return at once and do not wait
+                             if timeout is None: wait forever (default).
+        Raises:
+            RuntimeError: Timeout waiting for status ready.
+            ValueError: Scan parameters not within limits (if relevant).
+        """
+        # check the scan limits
+        self.check_scan_limits(start, end, exptime)
+        # set only one frame
+        self._exporter.write_property("ScanNumberOfFrames", 1)
+        scan_params = f"1\t{start:0.3f}\t{(end - start):0.3f}\t{exptime:0.3f}\t1"
+        self._exporter.execute("startScanEx", (scan_params,))
+        self._wait_ready(timeout)
+
+    def do_line_scan(self, start, end, exptime, motors_pos, timeout=None):
+        """Do helical (line) scan on omega.
+        Args:
+            start (float): scan start position.
+            end (float): scan end position.
+            exptime (float): scan exposure time (total).
+            timeout (float): optional - timeout [s],
+                             If timeout = 0: return at once and do not wait
+                             if timeout is None: wait forever (default).
+        Raises:
+            RuntimeError: Timeout waiting for status ready.
+            ValueError: Scan parameters not within limits (if relevant).
+        """
+        # check the scan limits
+        self.check_scan_limits(start, end, exptime)
+        # set only one frame
+        self._exporter.write_property("ScanNumberOfFrames", 1)
+        scan_params = f"{start:0.3f}\t{(end - start):0.3f}\t{exptime:0.3f}\t"
+        for name in ["phiy", "phiz", "sampx", "sampy"]:
+            scan_params += f"{motors_pos['1'][name]:0.3f}"
+        for name in ["phiy", "phiz", "sampx", "sampy"]:
+            scan_params += f"{motors_pos['2'][name]:0.3f}"
+
+        self._exporter.execute("startScan4DEx", (scan_params,))
+        self._wait_ready(timeout)
+
+    def do_mesh_scan(
+        self,
+        start: float,
+        end: float,
+        exptime: float,
+        nb_lines: int,
+        nb_frames_total: int,
+        grid_centre: list,
+        mesh_range: dict,
+        dead_time: float = 0,
+        timeout: [None | float] = None,
+    ):
+        """Do a mesh scan.
+        Args:
+            start (float): scan start position.
+            end (float): scan end position.
+            exptime (float): scan exposure time (total).
+            nb_lines (int): Total number of lines.
+            nb_frames_total (int): Total number of frames
+            grid_centre (list): List of tuples (motor_role, position)
+                                representing the centre of the mesh grid.
+            mesh_range (dict): Hirizontal and vertical range.
+            dead_time (float): Dead time between the adjust the pulses.
+            timeout (float): optional - timeout [s],
+                             If timeout = 0: return at once and do not wait
+                             if timeout is None: wait forever (default).
+        Raises:
+            RuntimeError: Timeout waiting for status ready.
+        """
+
+        # enable gate pulses
+        self._exporter.write_property("DetectorGatePulseEnabled", value=True)
+        # Adding the servo time to the readout time to avoid any
+        # servo cycle jitter
+        servo_time = 0.110
+
+        self._exporter.write_property(
+            "DetectorGatePulseReadoutTime", (dead_time * 1000 + servo_time)
+        )
+
+        self.set_values_motors(grid_centre, simultaneous=True, timeout=timeout)
+        scan_params = f"{(end - start):0.3f}\t"
+        scan_params += f"{-mesh_range['horizontal_range']:0.3f}\t"
+        scan_params += f"{-mesh_range['vertical_range']:0.3f}\t"
+        scan_params += f"{start:0.3f}\t"
+        for name in ["phiy", "phiz", "sampx", "sampy"]:
+            for mot in grid_centre:
+                if name == mot[0].name:
+                    scan_params += f"{float(mot[1]):0.3f}\t"
+        scan_params += f"{nb_lines}\t"
+        scan_params += f"{nb_frames_total / nb_lines}\t"
+        scan_params += f"{exptime / nb_lines}\t"
+        scan_params += "True\tTrue\tTrue\t"
+        self._exporter.execute("startRasterScanEx", (scan_params,))
+        self._wait_ready(timeout)
+
+    def do_still_scan(
+        self,
+        pulse_duration: float,
+        pulse_period: float,
+        nb_pulse: int,
+        timeout: [None | float] = None,
+    ):
+        """Do a zero oscillation acquisition.
+        Args:
+            pulse_duration (float): Duration of the pulse sent to the detector.
+            pulse_period (float): The period of the pulse sent to the detector.
+            nb_pulse (int): Number of pulses to be sent.
+        """
+        scan_params = f"{pulse_duration:0.6f}\t{pulse_period:0.6f}\t{nb_pulse}"
+        self._exporter.execute("startStillScan", (scan_params,))
+        self._wait_ready(timeout)
