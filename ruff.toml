@@ -1797,26 +1797,13 @@ convention = "google"
     "ARG002",
     "BLE001",
     "C901",
-    "ERA001",
-    "FLY002",
-    "G002",
-    "ICN001",
+    "I001",
     "N802",
-    "N806",
     "N999",
-    "PLR0912",
     "PLR0915",
-    "PLR5501",
-    "PTH103",
-    "PTH110",
-    "PTH113",
-    "PTH118",
-    "PTH123",
-    "RET502",
+    "S108",
     "S603",
-    "SIM115",
-    "T201",
-    "TRY300",
+    "T201"
 ]
 "mxcubecore/HardwareObjects/ESRF/ESRFMD2SC3.py" = [
     "ERA001",
@@ -1940,14 +1927,6 @@ convention = "google"
     "EM101",
     "N999",
     "TRY003",
-]
-"mxcubecore/HardwareObjects/ESRF/ID29EnergyScan.py" = [
-    "DTZ005",
-    "E501",
-    "N806",
-    "N999",
-    "S108",
-    "T201",
 ]
 "mxcubecore/HardwareObjects/ESRF/ID29HutchTrigger.py" = [
     "ARG002",
@@ -2462,18 +2441,12 @@ convention = "google"
     "DTZ002",
     "E501",
     "EM101",
-    "G002",
-    "G010",
     "N999",
     "PLR0912",
     "PLR0915",
-    "PTH123",
     "SIM102",
-    "SIM210",
     "TC002",
-    "TRY002",
     "TRY003",
-    "TRY300",
 ]
 "mxcubecore/HardwareObjects/ISARAMaint.py" = [
     "B904",
