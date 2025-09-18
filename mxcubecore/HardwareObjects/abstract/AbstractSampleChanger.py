@@ -312,6 +312,98 @@ class SampleChanger(Container, HardwareObject):
         """
         return self.status
 
+    def get_contents_as_dict(self) -> dict:
+        """
+        Build and return the hierarchical structure of the sample changer contents.
+
+        Returns:
+            dict: A nested dictionary describing the sample changer contents.
+                {
+                    "name": <str>,  # root sample changer address
+                    "room_temperature_mode": <bool> (optional),
+                    "children": [
+                        {
+                            "name": <str>,       # element address
+                            "status": <str>,     # "Loaded", "Used", "Present", or ""
+                            "id": <str>,         # element ID
+                            "selected": <bool>,  # whether element is selected
+                            "children": [ ... ]  # nested elements, same structure
+                        },
+                        ...
+                    ]
+                }
+        """
+        contents = {"name": self.get_address()}
+
+        if hasattr(self, "get_room_temperature_mode"):
+            contents["room_temperature_mode"] = self.get_room_temperature_mode()
+
+        for element in self.get_components():
+            if element.is_present():
+                self._add_element(contents, element)
+
+        return contents
+
+    def _get_status(self, element) -> str:
+        """
+        Determine the status string for a sample changer element.
+
+        Args:
+            element: The element object to check.
+
+        Returns:
+            str: One of:
+                - "Loaded":  element is a leaf and currently loaded
+                - "Used":    element is a leaf and has been loaded before
+                - "Present": element is present in the changer
+                - "":        element is not present
+        """
+        if element.is_leaf():
+            if element.is_loaded():
+                return "Loaded"
+            if element.has_been_loaded():
+                return "Used"
+            return ""
+        return "Present" if element.is_present() else ""
+
+    def _get_id(self, element) -> str:
+        """
+        Get the unique identifier (ID or token) for a sample changer element.
+
+        Args:
+            element: The element to get the ID for.
+
+        Returns:
+            str: The token (if root sample changer and available),
+                 the element ID (if available), or an empty string.
+        """
+        if element == self:
+            token = element.get_token()
+            return token if token else ""
+
+        return element.get_id() or ""
+
+    def _add_element(self, parent, element) -> dict:
+        """
+        Recursively add an element and its children into the contents dictionary.
+
+        Args:
+            parent (dict): The parent dictionary to append the element to.
+            element: The element object to add.
+        """
+        new_element = {
+            "name": element.get_address(),
+            "status": self._get_status(element),
+            "id": self._get_id(element),
+            "selected": element.is_selected(),
+        }
+
+        parent.setdefault("children", []).append(new_element)
+
+        if not element.is_leaf():
+            for child in element.get_components():
+                self._add_element(new_element, child)
+
     @property
     def progress_message(self) -> str:
         """
