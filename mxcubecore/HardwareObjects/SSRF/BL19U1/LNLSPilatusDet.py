@@ -631,7 +631,7 @@ class LNLSPilatusDet(AbstractDetector):
                 dirname = dirname[len(os.path.sep):]
             logging.getLogger('HWR').debug(f'the dirname when set_detector_filenames are {dirname}')
 
-            saving_directory = os.path.join(self.getProperty("buffer"), dirname)
+            saving_directory = os.path.join(self.getProperty("buffer"), dirname).replace(":", "-")
             logging.getLogger('HWR').debug(f'the saving_directory when set_detector_filenames are {saving_directory}')
 
             logging.getLogger("HWR").info('=============Start subprocess')
