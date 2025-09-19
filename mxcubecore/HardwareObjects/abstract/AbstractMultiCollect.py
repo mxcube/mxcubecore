@@ -836,7 +836,7 @@ class AbstractMultiCollect(object):
 
                     und = self.get_undulators_gaps()
                     i = 1
-                    for jj in HWR.beamline.undulators:
+                    for jj in self.bl_config.undulators:
                         key = jj.type
                         if key in und:
                             data_collect_parameters["undulatorGap%d" % (i)] = und[key]

@@ -221,9 +221,10 @@ class BlissMultiCollect(ESRFMultiCollect):
                 "beam_center_x@units": "pixel",
                 "beam_center_y": beam_y,
                 "beam_center_y@units": "pixel",
-                "count_time": exptime,
+                "count_time": exptime/nb_images,
                 "count_time@units": "s",
-                "frame_time": exptime + readout_time,
+                "frame_time": (exptime/nb_images) + readout_time,
+                "readout_time": readout_time,
                 "frame_time@units": "s",
                 "distance": HWR.beamline.detector.distance.get_value()/ 1000.0,
                 "distance@units": "m",
@@ -232,7 +233,8 @@ class BlissMultiCollect(ESRFMultiCollect):
                 "x_pixel_size@units": "m",
                 "y_pixel_size": pixel_size_y / 1000.0,
                 "y_pixel_size@units": "m",
-                "counter_name": "pilatus4_4m_lima2"
+                "counter_name": "pilatus4_4m_lima2",
+                "detector_number": "D029099",
             }
           }
         )
