@@ -17,17 +17,19 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-__copyright__ = """2019 by the MXCuBE collaboration """
+__copyright__ = """by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 import base64
 import copy
 import logging
 import math
+from ast import literal_eval
 from functools import reduce
 from io import BytesIO
 
 import numpy as np
+from gevent import GreenletExit
 from PIL import Image
 
 from mxcubecore import HardwareRepository as HWR
@@ -66,15 +68,40 @@ def combine_images(img1, img2):
 class SampleView(AbstractSampleView):
     """SampleView class"""
 
+    def __init__(self, name):
+        super().__init__(name)
+        self.centring_motors = {}
+        self.centring_status = {}
+        self.current_centring_method = None
+
     def init(self):
-        super(SampleView, self).init()
+        super().init()
+
+        centring_motor_roles = literal_eval(self.get_property("centring_motors", []))
+        centring_ref_position = literal_eval(
+            self.get_property("centring_reference_position", {})
+        )
+        dm = HWR.beamline.diffractometer
+
+        for role in centring_motor_roles:
+            if role in dm.motors_hwobj_dict:
+                motor_obj = dm.motors_hwobj_dict[role]
+                if role in centring_ref_position:
+                    ref_position = centring_ref_position[role]
+                else:
+                    ref_position = None
+            self.centring_motors[role] = sample_centring.CentringMotor(
+                motor_obj, reference_position=ref_position
+            )
+            self.centring_motors[role].motor.connect(
+                "stateChanged", self._update_shape_positions
+            )
+
+        self._camera = self.get_object_by_role("camera")
         self._last_oav_image = None
 
         self.hide_grid_threshold = self.get_property("hide_grid_threshold", 5)
-        _dm = HWR.beamline.diffractometer
-        for role in _dm.motors_hwobj_dict:
-            motor_obj = _dm.motors_hwobj_dict[role]
-            motor_obj.connect("stateChanged", self._update_shape_positions)
+        self.centring_status = {"valid": False}
 
     def _update_shape_positions(self, *args, **kwargs):
         for shape in self.get_shapes():
@@ -85,6 +112,16 @@ class SampleView(AbstractSampleView):
     @property
     def shapes(self) -> dict:
         return self._shapes
+
+    def get_positions(self) -> dict:
+        """Get motor positions for the centring motors.
+        Returns:
+            Centring motor positions as {role: position}
+        """
+        motors_dict = {}
+        for key, val in self.centring_motors.items():
+            motors_dict.update({key: val.motor.get_value()})
+        return motors_dict
 
     def motor_positions_to_screen(self, positions_dict: dict) -> tuple:
         """Get the motor positions according to the calibration"""
@@ -128,6 +165,7 @@ class SampleView(AbstractSampleView):
             logging.getLogger("HWR").error("Already centring")
             return
 
+        self.current_centring_method = "Manual"
         self.emit("centringStarted", ("Manual"))
         beam_pos = HWR.beamline.beam.get_beam_position_on_screen()
         dm = HWR.beamline.diffractometer
@@ -143,7 +181,81 @@ class SampleView(AbstractSampleView):
             chi_angle=0.0,
         )
 
-        self.current_centring_procedure.link(self.centring_done)
+        self.current_centring_procedure.link(self.manual_centring_done)
+
+    def get_centring_status(self):
+        return copy.deepcopy(self.centring_status)
+
+    def image_clicked(self, x, y):
+        logging.getLogger("user_level_log").info(
+            "Centring click at, x: %s, y: %s" % (int(x), int(y))
+        )
+        sample_centring.user_click(x, y, True)
+
+    def manual_centring_done(self, manual_centring_procedure):
+        try:
+            motor_pos = manual_centring_procedure.get()
+            if isinstance(motor_pos, GreenletExit):
+                raise motor_pos
+        except Exception:
+            logging.exception("Could not complete manual centring")
+            self.centring_failed()
+        else:
+            self.emit("centringMoving", ())
+            try:
+                sample_centring.end()
+            except Exception:
+                logging.exception("Could not move to centred position")
+                self.centring_failed()
+
+            self.centring_done()
+
+    def centring_failed(self):
+        self.centring_status["valid"] = False
+        self.emit(
+            "centringFailed", (self.current_centring_method, self.get_centring_status())
+        )
+        self.current_centring_procedure = None
+        self.current_centring_method = None
+
+    def centring_done(self):
+        self.centring_status = {"motors": {}, "method": self.current_centring_method}
+        self.centring_status["motors"] = self.get_positions()
+
+        self.centring_status["valid"] = True
+
+        self.emit(
+            "centringSuccessful",
+            (self.current_centring_method, self.get_centring_status()),
+        )
+        self.current_centring_method = None
+        self.current_centring_procedure = None
+
+    def accept_centring(self):
+        self.centring_status["valid"] = True
+        # self.centring_status["accepted"] = True
+        self.emit("centringAccepted", (True, self.get_centring_status()))
+        logging.getLogger("user_level_log").info("Centring successful")
+
+    def reject_centring(self):
+        if self.current_centring_procedure:
+            self.current_centring_procedure.kill(block=True)
+        self.centring_status["valid"] = False
+        self.emit("centringAccepted", (False, self.get_centring_status()))
+        logging.getLogger("user_level_log").info("Centring cancelled")
+
+    def cancel_centring(self):
+        """Cancels current centring procedure."""
+        if self.current_centring_procedure:
+            try:
+                self.current_centring_procedure.kill(block=True)
+            except Exception:
+                logging.getLogger("HWR").exception(
+                    "Problem aborting the centring method"
+                )
+
+            logging.getLogger("HWR").exception("Centring canceled")
+        self.centring_failed()
 
     def start_auto_centring(self):
         """Start automatic centring procedure"""
@@ -151,6 +263,7 @@ class SampleView(AbstractSampleView):
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
         dm = HWR.beamline.diffractometer
         dm.wait_ready(5)
+        self.current_centring_method = "Automatic"
         self.emit("centringStarted", ("Automatic"))
         dm.set_phase("Centring", wait=True)
 
@@ -363,7 +476,7 @@ class SampleView(AbstractSampleView):
 
     def select_shape_with_cpos(self, cpos):
         """
-        Selects shape with the assocaitaed centered position <cpos>
+        Selects shape with the assocaitaed centred position <cpos>
 
         Args:
             cpos (CenteredPosition)
@@ -531,7 +644,7 @@ class Shape(object):
         self.cp_list = []
         self.name = ""
         self.state: ShapeState = "SAVED"
-        self.user_state: ShapeState = "SAVED"  # used to persist user preferences in regards whether to show or hide particular shape.
+        self.user_state: ShapeState = "SAVED"  # used to persist user preferences to show or hide particular shape.
         self.label = ""
         self.screen_coord = screen_coord
         self.selected = False
