@@ -23,6 +23,7 @@ from __future__ import absolute_import
 import ast
 import copy
 import enum
+import itertools
 import logging
 import typing
 import warnings
@@ -520,14 +521,14 @@ class HardwareObjectNode:
         #
         # Look-up object by role the old way.
         #
-        objects = [self]
 
-        for curr in objects:
-            result = curr._objects_by_role.get(role)
-            if result is None:
-                objects.extend(obj for obj in curr if obj)
-
-            else:
+        #
+        # Look for object recursively, starting with our self
+        # and then checking the child objects.
+        #
+        for object in itertools.chain([self], *self.__objects):
+            result = object._objects_by_role.get(role)
+            if result is not None:
                 return result
 
     def _objects_names(self) -> List[Union[str, None]]:

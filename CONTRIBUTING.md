@@ -285,6 +285,28 @@ One can also run the Ruff linter and Ruff formatter locally with commands like
 To get Ruff to automatically fix some of the issues it detects,
 one can run a command like this: `poetry run ruff check --fix`.
 
+#### Logging
+
+When logging hardware object messages, use the `self.log` or `self.user_log` attributes.
+
+These attributes refer to logger objects from the standard `logging` module.
+`self.log` sends messages to `HWR` log, `user_log` to `user_level_log` log.
+The `self.log` will prefix log entries with the hardware object's class name.
+
+Below is an example of logging in a hardware object.
+
+```python
+class MyHardwareObject(HardwareObject):
+    def my_method(self):
+        # log messages to 'HWR' log
+        self.log.info("an information level message")
+        self.log.warning("a warning message")
+
+        # log message to 'user_level_log' log
+        self.user_log.info("an information level message")
+        self.user_log.error("an error have been encountered")
+```
+
 ### Continuous integration (CI)
 
 GitHub Action are used for continues integration

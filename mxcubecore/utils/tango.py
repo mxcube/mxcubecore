@@ -14,7 +14,7 @@ def add_attribute_channel(
     hwo: HardwareObject,
     tango_device: str,
     attribute_name: str,
-    polling: int,
+    polling: int | None = None,
     update_callback=None,
 ) -> TangoChannel:
     """Utility function to add Tango attribute Channel to a hardware object.

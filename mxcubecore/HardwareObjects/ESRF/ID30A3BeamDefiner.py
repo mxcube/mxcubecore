@@ -65,7 +65,7 @@ class ID30A3BeamDefiner(ESRFBeamDefiner):
 
         self.controller = self.get_object_by_role("controller")
         _dict = {}
-        for beam_cfg in self.config:
+        for beam_cfg in self.bd_config:
             name = beam_cfg.get_property("name")
             _ap_size = beam_cfg.get_property("aperture_size")
             _aperture = self.controller.value_to_enum(_ap_size, idx=1)
@@ -96,8 +96,8 @@ class ID30A3BeamDefiner(ESRFBeamDefiner):
             (str): Current beam size name.
         """
         _aperture = self.controller.get_value()
-        for name in self.beam_config:
-            if self.beam_config[name][1] == _aperture:
+        for name, val in self.beam_config.items():
+            if val[1] == _aperture:
                 return name
         return "UNKNOWN"
 
