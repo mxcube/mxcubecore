@@ -816,22 +816,14 @@ class SampleChanger(Container, HardwareObject):
         self._trigger_loaded_sample_changed_event(None)
 
     def _set_loaded_sample(self, sample):
-        previous_loaded = None
-
-        for smp in self.get_sample_list():
-            if smp.is_loaded():
-                previous_loaded = smp
-                break
-
-        for smp in self.get_sample_list():
-            if smp != sample:
-                smp._set_loaded(False)
+        for s in self.get_sample_list():
+            if s != sample:
+                s._set_loaded(False)
             else:
-                if self.get_loaded_sample() == smp:
-                    smp._set_loaded(True)
+                if self.get_loaded_sample() != s:
+                    s._set_loaded(True)
 
-        if previous_loaded != self.get_loaded_sample():
-            self._trigger_loaded_sample_changed_event(sample)
+        self._trigger_loaded_sample_changed_event(sample)
 
     def _set_selected_sample(self, sample):
         cur = self.get_selected_sample()
