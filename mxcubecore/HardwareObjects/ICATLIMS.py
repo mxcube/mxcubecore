@@ -235,22 +235,21 @@ class ICATLIMS(AbstractLims):
 
         # Enrich the processing_plan
         for item in processing_plan:
-            if item["key"] == "pipelines":
+            if item["key"] == "Advanced_processing":
                 for pipeline in item["value"]:
-                    # Match reference to filename
+                    # Update reference
                     ref = pipeline.get("reference")
                     if ref in file_path_lookup:
-                        pipeline["reference_path"] = file_path_lookup[ref]
-                    # Match search_models to groupName
-                    group = pipeline.get("search_models")
-                    if group in group_paths:
-                        pipeline["search_models_path"] = group_paths[group]
-        for item in processing_plan:
-            if item["key"] == "search_models":
-                # Match reference to filename
-                models = item.get("value")
-                for model in models:
-                    model["path"] = group_paths[model["pdb_group"]]
+                        pipeline["reference"] = {"filepath": file_path_lookup[ref]}
+
+                    # Update search_models
+                    if "search_models" in pipeline:
+                        models = json.loads(pipeline["search_models"])
+                        for model in models:
+                            group = model.get("pdb_group")
+                            if group in group_paths:
+                                model["file_paths"] = group_paths[group]
+                        pipeline["search_models"] = models
 
     def _safe_json_loads(self, json_str):
         try:
