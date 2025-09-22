@@ -20,14 +20,15 @@
 
 from gevent import Timeout, sleep
 
-from mxcubecore.Command.Exporter import Exporter, ExporterStates
+from mxcubecore.Command.Exporter import Exporter
+from mxcubecore.Command.exporter.ExporterStates import ExporterStates
 from mxcubecore.HardwareObjects.abstract.AbstractDiffractometer import (
     AbstractDiffractometer,
     DiffractometerHead,
     DiffractometerPhase,
 )
 
-__copyright__ = """ Copyright © 2010-2022 by the MXCuBE collaboration """
+__copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
@@ -100,12 +101,14 @@ class MicroDiffractometer(AbstractDiffractometer):
 
     def set_values_motors(
         self,
-        motors_positions_list: list,
+        motors_positions_dict: dict,
+        simultaneous: bool = True,
         timeout: [None | float] = None,
     ):
         """Move specified motors to the requested positions.
         Args:
-            motors_positions_list (list): list of tuples (motor role, target value).
+            motors_positions_dict (dict): Dictionary {motor_role: target_value}.
+            simultaneous: Move the motors simultaneousl (True - default) or not.
             timeout (float): optional - timeout [s],
                              If timeout = 0: return at once and do not wait
                              if timeout is None: wait forever (default).
@@ -113,15 +116,18 @@ class MicroDiffractometer(AbstractDiffractometer):
             TimeoutError: Timeout
             KeyError: The name does not correspond to an existing motor
         """
-        # prepare the command
-        argin = ""
-        for mot, pos in motors_positions_list:
-            name = self.motors_hwobj[mot].name
-            argin += f"{name}={pos:0.3f};"
+        if not simultaneous:
+            super().set_value_motors(motors_positions_dict, simultaneous, timeout)
+        else:
+            # prepare the command
+            cmd = ""
+            for role, pos in motors_positions_dict:
+                name = self.motors_hwobj[role].name
+                cmd += f"{name}={pos:0.3f};"
 
-        self._exporter.execute("startSimultaneousMoveMotors", (argin,))
-        if timeout != 0:
-            self.wait_ready(timeout)
+            self._exporter.execute("startSimultaneousMoveMotors", (cmd,))
+            if timeout != 0:
+                self.wait_ready(timeout)
 
     def get_values_motors(self, motors_list: [list | None] = None) -> dict:
         """Get the positions of diffractometer motors. If the
@@ -132,7 +138,7 @@ class MicroDiffractometer(AbstractDiffractometer):
         Returns:
             motors_positions_dict (dict): role: position dictionary
         """
-        motors_positions_dict = super().get_values_motors(self, motors_list)
+        motors_positions_dict = super().get_value_motors(self, motors_list)
         if not self.in_kappa_mode():
             motors_positions_dict["kappa"] = None
             motors_positions_dict["kappa_phi"] = None
@@ -152,12 +158,12 @@ class MicroDiffractometer(AbstractDiffractometer):
             self.head_type = DiffractometerHead.UNKNOWN
         return self.head_type
 
-    def _set_phase(self, phase: DiffractometerPhase):
+    def _set_phase(self, value: DiffractometerPhase):
         """Specific implementation to set the diffractometer to selected phase
         Args:
-            phase (Enum): DiffractometerPhase value.
+            value (Enum): DiffractometerPhase value.
         """
-        self._exporter.execute("startSetPhase", (phase.value,))
+        self._exporter.execute("startSetPhase", (value.value,))
 
     def get_phase(self) -> DiffractometerPhase:
         """Get the current phase
@@ -332,4 +338,40 @@ class MicroDiffractometer(AbstractDiffractometer):
         """
         scan_params = f"{pulse_duration:0.6f}\t{pulse_period:0.6f}\t{nb_pulse}"
         self._exporter.execute("startStillScan", (scan_params,))
+        self._wait_ready(timeout)
+
+    def do_characterisation_scan(
+        self,
+        start: float,
+        scan_range: float,
+        nb_frames: int,
+        exptime: float,
+        nb_scans: int,
+        angle: float,
+        timeout: [None | float] = None,
+    ):
+        """Do N scans continuously.
+        Args:
+            start (float): Position of omega for the first scan [deg].
+            scan_range (float): range for each scan [deg].
+            nb_frames (int): Frame numbers for each scan.
+            exptime (float): Total exposure time for each scan [s].
+            nb_scans (int): How many times a scan to be repeated.
+            angle (float): The angle between each scan [deg]. This number,
+                           added to the last position of each scan and will
+                           be the start position of the consequent scan.
+            timeout (float): optional - timeout [s],
+                             If timeout = 0: return at once and do not wait
+                             if timeout is None: wait forever (default).
+        """
+
+        if self.in_plate_mode:
+            # to see if needed when plates
+            return
+
+        scan_params = f"{nb_frames}\t{start:0.3f}\t{scan_range:0.3f}\t"
+        scan_params += f"{exptime:0.3f}\t{nb_scans}\t{angle:0.3f}"
+        self._exporter.execute("startCharacterisationScanEx", (scan_params,))
+
+        timeout = 15 * 60  # timeout of 20 min
         self._wait_ready(timeout)
