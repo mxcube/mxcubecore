@@ -496,8 +496,7 @@ class GphlWorkflowConnection(HardwareObject):
                           "co.gphl.beamline.v2_unstable.instrumentation.CentringStatus",
                           "co.gphl.beamline.v2_unstable.domain_types.CrystalClass",
                           "co.gphl.beamline.v2_unstable.domain_types.ChemicalElement",
-                          "co.gphl.beamline.v2_unstable.domain_types.AbsorptionEdge",
-                          ""):
+                          "co.gphl.beamline.v2_unstable.domain_types.AbsorptionEdge"):
                     java_gateway.java_import(self._gateway.jvm, qualified_class_name)
                 logging.getLogger("HWR").warn("Importing required unqualified class names from the JVM explicitly")
                 logging.getLogger("HWR").warn("Please consider upgrading the GPhL workflow application")
