@@ -188,9 +188,9 @@ class SampleView(AbstractSampleView):
 
     def image_clicked(self, x, y):
         logging.getLogger("user_level_log").info(
-            "Centring click at, x: %s, y: %s" % (int(x), int(y))
+            f"Centring click at x:{int(x)}, y:{int(y)}"
         )
-        sample_centring.user_click(x, y, True)
+        sample_centring.user_click(x, y, wait=True)
 
     def manual_centring_done(self, manual_centring_procedure):
         try:
@@ -233,7 +233,6 @@ class SampleView(AbstractSampleView):
 
     def accept_centring(self):
         self.centring_status["valid"] = True
-        # self.centring_status["accepted"] = True
         self.emit("centringAccepted", (True, self.get_centring_status()))
         logging.getLogger("user_level_log").info("Centring successful")
 
@@ -271,15 +270,20 @@ class SampleView(AbstractSampleView):
         """Move the sample to the x,y coordinates"""
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
         dm = HWR.beamline.diffractometer
-        # pixels_per_mm = dm.get_pixels_per_mm()
         dm.wait_ready(5)
 
-    def get_snapshot(self, overlay=None, bw=False, return_as_array=False):
+    def get_snapshot(
+        self,
+        overlay: [str | None] = None,
+        bw: bool = False,
+        return_as_array: bool = False,
+    ) -> BytesIO:
         """
         Get snapshot(s)
 
         Args:
-            overlay(str): Image data with shapes and other items to display on the snapshot
+            overlay(str): Image data with shapes and other items to display
+                          on the snapshot
             bw(bool): return grayscale image
             return_as_array(bool): return as np array
 
@@ -296,21 +300,22 @@ class SampleView(AbstractSampleView):
 
         return buffered
 
-    def save_snapshot(self, path, overlay=None, bw=False):
+    def save_snapshot(self, path: str, overlay: [str | None] = None, bw: bool = False):
         """
         Save a snapshot to file.
 
         Args:
-            path (str): The filename.
-            overlay(str): Image data with shapes and other items to display on the snapshot
-            bw(bool): return grayscale image
+            path(str): The filename.
+            overlay(str): Image data with shapes and other items to display
+                          on the snapshot
+            bw(bool): return grayscale image. Default False
         """
         img = self.take_snapshot(overlay_data=overlay, bw=bw)
         img.save(path)
 
         self._last_oav_image = path
 
-    def take_snapshot(self, overlay_data=None, bw=False):
+    def take_snapshot(self, overlay_data: [str | None] = None, bw: bool = False):
         """
         Get snapshot with overlaid data.
 
@@ -577,18 +582,18 @@ class SampleView(AbstractSampleView):
 
         return grid
 
-    def set_grid_data(self, sid, result_data, data_file_path):
+    def set_grid_data(self, sid: str, result_data, data_file_path: str):
         """
         Sets grid rsult data for a shape with the specified id.
 
         Args:
-            sid (str): The id of the shape to set grid data for.
-            result_data: The result data to set for the shape. Either a base64 encoded string for PNG/image
-            or a dictionary for RGB (keys are cell number and value RGBa list). Data is only updated if result is RGB based
-            data_file_path (str): The path to the data file associated with the result data.
-
-        Returns:
-            None
+            sid: The id of the shape to set grid data for.
+            result_data: The result data to set for the shape.
+                         Either a base64 encoded string for PNG/image or a
+                         dictionary for RGB (keys are cell number and value
+                         RGBa list). Data is only updated if result is RGB based
+            data_file_path: The path to the data file associated with the
+                            result data.
 
         Raises:
             AttributeError: If no shape with the specified id exists.
@@ -597,7 +602,7 @@ class SampleView(AbstractSampleView):
         shape = self.get_shape(sid)
 
         if shape:
-            if shape.result and type(shape.result) == dict:
+            if shape.result and isinstance(shape.result, dict):
                 # append data
                 shape.result.update(result_data)
             else:
@@ -626,7 +631,6 @@ class SampleView(AbstractSampleView):
         Args:
             cpos (CenteredPosition): CenteredPosition of shape
         """
-        pass
 
 
 class Shape(object):
@@ -636,7 +640,7 @@ class Shape(object):
 
     SHAPE_COUNT = 0
 
-    def __init__(self, mpos_list=[], screen_coord=(-1, -1)):
+    def __init__(self, mpos_list=None, screen_coord=(-1, -1)):
         object.__init__(self)
         Shape.SHAPE_COUNT += 1
         self.t = "S"
@@ -644,13 +648,14 @@ class Shape(object):
         self.cp_list = []
         self.name = ""
         self.state: ShapeState = "SAVED"
-        self.user_state: ShapeState = "SAVED"  # used to persist user preferences to show or hide particular shape.
+        # used to persist user preferences to show or hide particular shape.
+        self.user_state: ShapeState = "SAVED"
         self.label = ""
         self.screen_coord = screen_coord
         self.selected = False
         self.refs = []
         self.shapes_hw_object = None
-
+        mpos_list = mpos_list or []
         self.add_cp_from_mp(mpos_list)
 
     def get_centred_positions(self):
@@ -674,7 +679,7 @@ class Shape(object):
 
     def update_position(self, transform):
         spos_list = [transform(cp.as_dict()) for cp in self.cp_list]
-        spos_list = tuple([pos for l in spos_list for pos in l])
+        spos_list = tuple([pos for x in spos_list for pos in x])
         self.screen_coord = spos_list
 
     def add_cp_from_mp(self, mpos_list):
@@ -685,7 +690,7 @@ class Shape(object):
         self.id = self.t + "%s" % id_num
         self.name = self.label + "-%s" % id_num
 
-    def move_to_mpos(self, mpos_list, screen_coord=[]):
+    def move_to_mpos(self, mpos_list, screen_coord=None):
         self.cp_list = []
         self.add_cp_from_mp(mpos_list)
 
@@ -702,10 +707,7 @@ class Shape(object):
                 setattr(self, key, value)
 
     def as_dict(self):
-        cpos_list = []
-
-        for cpos in self.cp_list:
-            cpos_list.append(cpos.as_dict())
+        cpos_list = [x.as_dict() for x in self.cp_list]
 
         d = copy.deepcopy(vars(self))
 
@@ -773,6 +775,7 @@ class Line(Shape):
     def get_points_index(self):
         if all(self.cp_list):
             return (self.cp_list[0].get_index(), self.cp_list[1].get_index())
+        return (None, None)
 
 
 class Grid(Shape):
@@ -832,10 +835,9 @@ class Grid(Shape):
     def get_num_lines(self):
         if self.cell_count_fun == "zig-zag":
             return self.num_rows
-        elif self.cell_count_fun == "inverse-zig-zag":
+        if self.cell_count_fun == "inverse-zig-zag":
             return self.num_cols
-        else:
-            return self.num_rows
+        return self.num_rows
 
     def set_id(self, id_num):
         Shape.set_id(self, id_num)

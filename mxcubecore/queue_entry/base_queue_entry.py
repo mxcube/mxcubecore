@@ -707,7 +707,7 @@ class SampleQueueEntry(BaseQueueEntry):
 
         # Only execute samples with collections and when sample changer is used
         if len(self.get_data_model().get_children()) != 0 and sc_used:
-            if HWR.beamline.diffractometer.in_plate_mode():
+            if HWR.beamline.diffractometer.in_plate_mode:
                 return
             else:
                 mount_device = HWR.beamline.sample_changer

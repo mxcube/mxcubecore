@@ -24,6 +24,8 @@ extend-ignore-names = [
     "HWR",  # `HWR` is often used as a shorthand for `mxcubecore.HardwareRepository`.
 ]
 
+[lint.pylint]
+max-args = 10 # some methods require more than 5 arguments - PLR0913
 
 [lint.pydocstyle]
 convention = "google"
@@ -2870,7 +2872,6 @@ convention = "google"
     "FBT001",
     "FBT002",
     "N999",
-    "PERF203",
 ]
 "mxcubecore/HardwareObjects/Microdiff.py" = [
     "ARG002",
@@ -2882,7 +2883,6 @@ convention = "google"
     "N806",
     "N999",
     "PERF203",
-    "PLR0913",
     "PLR0915",
     "PLR5501",
     "PLW0603",
@@ -3906,21 +3906,13 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/SampleView.py" = [
     "ARG002",
-    "B006",
-    "B007",
-    "E501",
-    "E721",
-    "E741",
     "EM101",
-    "ERA001",
+    "FBT001",
     "FBT002",
     "N999",
-    "PERF102",
     "PERF401",
-    "PIE790",
-    "RET503",
-    "RET505",
     "TRY003",
+    "TRY301",
 ]
 "mxcubecore/HardwareObjects/SardanaMotor.py" = [
     "BLE001",
