@@ -1795,13 +1795,12 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/ESRF/ESRFEnergyScan.py" = [
     "ARG002",
-    "BLE001",
     "C901",
+    "DTZ005",
     "N802",
     "N999",
     "PLR0915",
     "S603",
-    "T201"
 ]
 "mxcubecore/HardwareObjects/ESRF/ESRFMD2SC3.py" = [
     "ERA001",
@@ -1913,12 +1912,6 @@ convention = "google"
     "N999",
     "TRY300",
     "TRY401",
-]
-"mxcubecore/HardwareObjects/ESRF/ID231EnergyScan.py" = [
-    "ARG002",
-    "N806",
-    "N999",
-    "RET504",
 ]
 "mxcubecore/HardwareObjects/ESRF/ID232BeamDefiner.py" = [
     "ARG002",

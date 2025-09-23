@@ -71,7 +71,7 @@ class ICATLIMS(AbstractLims):
         if self.icatClient is None or self.icatClient is None:
             msg = "Error initializing icatClient: "
             msg += f"icatClient={self.url}"
-            logger.exception(msg)
+            logger.error(msg)
             raise RuntimeError("Could not initialize icatClient")
 
         # Connected to metadata icatClient
@@ -789,15 +789,11 @@ class ICATLIMS(AbstractLims):
                 (puck, sample_position) = location
 
             position = None
-            try:
-                if cell is not None and puck is not None:
-                    position = int(cell * 3) + int(puck)
-            except Exception:
-                logger.exception()
+            if None not in (cell, puck):
+                position = int(cell * 3) + int(puck)
         except Exception:
-            logger.exception()
-        else:
-            return position, sample_position
+            logger.exception("Cannot retrieve sample position")
+        return position, sample_position
 
     def store_beamline_setup(self, session_id: str, bl_config_dict: dict):
         pass
@@ -805,7 +801,7 @@ class ICATLIMS(AbstractLims):
     def store_image(self, image_dict: dict):
         pass
 
-    def store_energy_scan(self, collection_parameters: dict):
+    def store_energy_scan(self, energyscan_dict: dict):
         try:
             try:
                 beamline = self._get_scheduled_beamline()
@@ -821,11 +817,11 @@ class ICATLIMS(AbstractLims):
 
             try:
                 dt_aware = datetime.strptime(
-                    collection_parameters.get("startTime"),
+                    energyscan_dict.get("startTime"),
                     "%Y-%m-%d %H:%M:%S",
                 ).replace(tzinfo=ZoneInfo("Europe/Paris"))
                 dt_aware_end = datetime.strptime(
-                    collection_parameters.get("endTime"),
+                    energyscan_dict.get("endTime"),
                     "%Y-%m-%d %H:%M:%S",
                 ).replace(tzinfo=ZoneInfo("Europe/Paris"))
 
@@ -834,52 +830,52 @@ class ICATLIMS(AbstractLims):
             except TypeError:
                 logging.getLogger("HWR").exception("Failed to parse start and end time")
 
-            directory = Path(collection_parameters["scanFileFullPath"]).parent
+            directory = Path(energyscan_dict["scanFileFullPath"]).parent
 
-            msg = f"SampleId is: {collection_parameters.get('blSampleId')}"
+            msg = f"SampleId is: {energyscan_dict.get('blSampleId')}"
             logging.getLogger("HWR").debug(msg)
             try:
                 sample = HWR.beamline.lims.find_sample_by_sample_id(
-                    collection_parameters.get("blSampleId")
+                    energyscan_dict.get("blSampleId")
                 )
                 sample_name = sample["sampleName"]
             except (AttributeError, TypeError):
                 sample_name = "unknown"
-                msg = f"Sample not found {collection_parameters.get('blSampleId')}"
+                msg = f"Sample not found {energyscan_dict.get('blSampleId')}"
                 logging.getLogger("HWR").debug(msg)
 
-            bsx, bsy, shape, label = HWR.beamline.beam.get_value()
+            bsx, bsy, shape, _ = HWR.beamline.beam.get_value()
 
             metadata = {
-                "sampleId": collection_parameters.get("blSampleId"),
+                "sampleId": energyscan_dict.get("blSampleId"),
                 "MX_beamShape": shape.value,
                 "MX_beamSizeAtSampleX": bsx,
                 "MX_beamSizeAtSampleY": bsy,
                 "MX_directory": str(directory),
-                "MX_exposureTime": collection_parameters.get("exposureTime"),
-                "MX_flux": collection_parameters.get("flux"),
+                "MX_exposureTime": energyscan_dict.get("exposureTime"),
+                "MX_flux": energyscan_dict.get("flux"),
                 "scanType": "energy_scan",
-                "MX_transmission": collection_parameters.get("transmissionFactor"),
+                "MX_transmission": energyscan_dict.get("transmissionFactor"),
                 "Sample_name": sample_name,
                 "startDate": start_time,
                 "endDate": end_time,
-                "InstrumentDetector01_model": collection_parameters.get(
+                "InstrumentDetector01_model": energyscan_dict.get(
                     "fluorescenceDetector"
                 ),
-                "MX_element": collection_parameters.get("element"),
-                "MX_edgeEnergy": collection_parameters.get("edgeEnergy"),
-                "MX_startEnergy": collection_parameters.get("startEnergy"),
-                "MX_endEnergy": collection_parameters.get("endEnergy"),
-                "MX_peakEnergy": collection_parameters.get("endEnergy"),
-                "MX_inflectioEnergy": collection_parameters.get("inflectioEnergy"),
-                "MX_remoteEnergy": collection_parameters.get("remoteEnergy"),
-                "MX_peakFPrime": collection_parameters.get("peakFPrime"),
-                "MX_peakFDoublePrime": collection_parameters.get("peakFDoublePrime"),
-                "MX_inflectionFPrime": collection_parameters.get("inflectionFPrime"),
-                "MX_inflectionFDoublePrime": collection_parameters.get(
+                "MX_element": energyscan_dict.get("element"),
+                "MX_edgeEnergy": energyscan_dict.get("edgeEnergy"),
+                "MX_startEnergy": energyscan_dict.get("startEnergy"),
+                "MX_endEnergy": energyscan_dict.get("endEnergy"),
+                "MX_peakEnergy": energyscan_dict.get("endEnergy"),
+                "MX_inflectioEnergy": energyscan_dict.get("inflectioEnergy"),
+                "MX_remoteEnergy": energyscan_dict.get("remoteEnergy"),
+                "MX_peakFPrime": energyscan_dict.get("peakFPrime"),
+                "MX_peakFDoublePrime": energyscan_dict.get("peakFDoublePrime"),
+                "MX_inflectionFPrime": energyscan_dict.get("inflectionFPrime"),
+                "MX_inflectionFDoublePrime": energyscan_dict.get(
                     "inflectionFDoublePrime"
                 ),
-                "MX_comments": collection_parameters.get("comments"),
+                "MX_comments": energyscan_dict.get("comments"),
             }
 
             self.icatClient.store_dataset(
@@ -892,7 +888,7 @@ class ICATLIMS(AbstractLims):
         except Exception:
             logging.getLogger("ispyb_client").exception()
 
-    def store_xfe_spectrum(self, collection_parameters: dict):
+    def store_xfe_spectrum(self, xfespectrum_dict: dict):
         status = {"xfeFluorescenceSpectrumId": -1}
         try:
             try:
@@ -909,11 +905,11 @@ class ICATLIMS(AbstractLims):
 
             try:
                 dt_aware = datetime.strptime(
-                    collection_parameters.get("startTime"),
+                    xfespectrum_dict.get("startTime"),
                     "%Y-%m-%d %H:%M:%S",
                 ).replace(tzinfo=ZoneInfo("Europe/Paris"))
                 dt_aware_end = datetime.strptime(
-                    collection_parameters.get("endTime"),
+                    xfespectrum_dict.get("endTime"),
                     "%Y-%m-%d %H:%M:%S",
                 ).replace(tzinfo=ZoneInfo("Europe/Paris"))
 
@@ -922,34 +918,34 @@ class ICATLIMS(AbstractLims):
             except TypeError:
                 logging.getLogger("HWR").exception("Failed to parse start and end time")
 
-            directory = Path(collection_parameters["filename"]).parent
+            directory = Path(xfespectrum_dict["filename"]).parent
 
-            msg = f"SampleId is: {collection_parameters.get('blSampleId')}"
+            msg = f"SampleId is: {xfespectrum_dict.get('blSampleId')}"
             logging.getLogger("HWR").debug(msg)
             try:
                 sample = HWR.beamline.lims.find_sample_by_sample_id(
-                    collection_parameters.get("blSampleId")
+                    xfespectrum_dict.get("blSampleId")
                 )
                 sample_name = sample["sampleName"]
             except (AttributeError, TypeError):
                 sample_name = "unknown"
-                msg = f"Sample not found {collection_parameters.get('blSampleId')}"
+                msg = f"Sample not found {xfespectrum_dict.get('blSampleId')}"
                 logging.getLogger("HWR").debug(msg)
 
-            bsx, bsy, shape, label = HWR.beamline.beam.get_value()
+            bsx, bsy, shape, _ = HWR.beamline.beam.get_value()
 
             metadata = {
-                "sampleId": collection_parameters.get("blSampleId"),
+                "sampleId": xfespectrum_dict.get("blSampleId"),
                 "MX_beamShape": shape.value,
                 "MX_beamSizeAtSampleX": bsx,
                 "MX_beamSizeAtSampleY": bsy,
                 "MX_directory": str(directory),
-                "MX_exposureTime": collection_parameters.get("exposureTime"),
-                "MX_flux": collection_parameters.get("flux"),
+                "MX_exposureTime": xfespectrum_dict.get("exposureTime"),
+                "MX_flux": xfespectrum_dict.get("flux"),
                 "scanType": "xrf",
-                "MX_transmission": collection_parameters.get("beamTransmission"),
+                "MX_transmission": xfespectrum_dict.get("beamTransmission"),
                 "Sample_name": sample_name,
-                "InstrumentMonochromator_energy": collection_parameters.get("energy"),
+                "InstrumentMonochromator_energy": xfespectrum_dict.get("energy"),
                 "startDate": start_time,
                 "endDate": end_time,
             }
@@ -969,14 +965,14 @@ class ICATLIMS(AbstractLims):
     def store_workflow(self, workflow_dict: dict):
         pass
 
-    def store_data_collection(self, mx_collection, bl_config=None):
+    def store_data_collection(self, datacollection_dict, beamline_config_dict=None):
         """Store the dictionary with the information about the beamline
         to be sent when a dataset is produced.
         """
-        self.beamline_config = bl_config
+        self.beamline_config = beamline_config_dict
 
-    def update_data_collection(self, mx_collection):
-        pass
+    def update_data_collection(self, datacollection_dict: dict):
+        """Update data collection."""
 
     def _get_oscillation_end(self, oscillation_sequence):
         return float(oscillation_sequence["start"]) + (
@@ -1075,21 +1071,21 @@ class ICATLIMS(AbstractLims):
 
         return downloaded_files
 
-    def finalize_data_collection(self, collection_parameters):
+    def finalize_data_collection(self, datacollection_dict):
         logger.info("Storing datacollection in ICAT")
 
         try:
-            fileinfo = collection_parameters["fileinfo"]
+            fileinfo = datacollection_dict["fileinfo"]
             directory = Path(fileinfo["directory"])
             dataset_name = directory.name
             # Determine the scan type
             scan_types = ["mesh", "line", "characterisation", "datacollection"]
-            scan_type = collection_parameters["experiment_type"]
+            scan_type = datacollection_dict["experiment_type"]
             for nam in scan_types:
                 if dataset_name.endswith(nam):
                     scan_type = nam
 
-            workflow_params = collection_parameters.get("workflow_parameters", {})
+            workflow_params = datacollection_dict.get("workflow_parameters", {})
             workflow_type = workflow_params.get("workflow_type")
 
             if workflow_type is None and not directory.name.startswith("run"):
@@ -1097,7 +1093,7 @@ class ICATLIMS(AbstractLims):
 
             try:
                 dt_aware = datetime.strptime(
-                    collection_parameters.get("collection_start_time"),
+                    datacollection_dict.get("collection_start_time"),
                     "%Y-%m-%d %H:%M:%S",
                 ).replace(tzinfo=ZoneInfo("Europe/Paris"))
                 start_time = dt_aware.isoformat(timespec="microseconds")
@@ -1105,56 +1101,56 @@ class ICATLIMS(AbstractLims):
             except RuntimeError:
                 logger.warning("Failed to parse start and end time")
 
-            if collection_parameters["sample_reference"]["acronym"]:
+            if datacollection_dict["sample_reference"]["acronym"]:
                 sample_name = (
-                    collection_parameters["sample_reference"]["acronym"]
+                    datacollection_dict["sample_reference"]["acronym"]
                     + "-"
-                    + collection_parameters["sample_reference"]["sample_name"]
+                    + datacollection_dict["sample_reference"]["sample_name"]
                 )
             else:
-                sample_name = collection_parameters["sample_reference"][
+                sample_name = datacollection_dict["sample_reference"][
                     "sample_name"
                 ].replace(":", "-")
 
             logger.info(f"LIMS sample name {sample_name}")
-            oscillation_sequence = collection_parameters["oscillation_sequence"][0]
+            oscillation_sequence = datacollection_dict["oscillation_sequence"][0]
 
             beamline = HWR.beamline.session.beamline_name.lower()
             distance = HWR.beamline.detector.distance.get_value()
             proposal = f"{HWR.beamline.session.proposal_code}"
             proposal += f"{HWR.beamline.session.proposal_number}"
-            bsx, bsy, shape, label = HWR.beamline.beam.get_value()
+            bsx, bsy, shape, _ = HWR.beamline.beam.get_value()
             metadata = {
                 "MX_beamShape": shape.value,
-                "sampleId": collection_parameters.get("blSampleId"),
+                "sampleId": datacollection_dict.get("blSampleId"),
                 "MX_beamSizeAtSampleX": bsx,
                 "MX_beamSizeAtSampleY": bsy,
-                "MX_dataCollectionId": collection_parameters.get("collection_id"),
+                "MX_dataCollectionId": datacollection_dict.get("collection_id"),
                 "MX_detectorDistance": distance,
                 "MX_directory": str(directory),
                 "MX_exposureTime": oscillation_sequence["exposure_time"],
-                "MX_flux": collection_parameters.get("flux"),
-                "MX_fluxEnd": collection_parameters.get("flux_end"),
-                "MX_positionName": collection_parameters.get("position_name"),
+                "MX_flux": datacollection_dict.get("flux"),
+                "MX_fluxEnd": datacollection_dict.get("flux_end"),
+                "MX_positionName": datacollection_dict.get("position_name"),
                 "MX_numberOfImages": oscillation_sequence["number_of_images"],
                 "MX_oscillationRange": oscillation_sequence["range"],
                 "MX_axis_start": oscillation_sequence["start"],
                 "MX_oscillationOverlap": oscillation_sequence["overlap"],
-                "MX_resolution": collection_parameters.get("resolution"),
-                "MX_resolution_at_corner": collection_parameters.get(
+                "MX_resolution": datacollection_dict.get("resolution"),
+                "MX_resolution_at_corner": datacollection_dict.get(
                     "resolutionAtCorner"
                 ),
                 "scanType": scan_type,
                 "MX_startImageNumber": oscillation_sequence["start_image_number"],
                 "MX_template": fileinfo["template"],
-                "MX_transmission": collection_parameters.get("transmission"),
+                "MX_transmission": datacollection_dict.get("transmission"),
                 "MX_xBeam": bsx,
                 "MX_yBeam": bsy,
                 "Sample_name": sample_name,
-                "InstrumentMonochromator_wavelength": collection_parameters.get(
+                "InstrumentMonochromator_wavelength": datacollection_dict.get(
                     "wavelength"
                 ),
-                "InstrumentMonochromator_energy": collection_parameters.get("energy"),
+                "InstrumentMonochromator_energy": datacollection_dict.get("energy"),
                 "Workflow_name": workflow_params.get("workflow_name"),
                 "Workflow_type": workflow_params.get("workflow_type"),
                 "Workflow_id": workflow_params.get("workflow_uid"),
@@ -1183,7 +1179,7 @@ class ICATLIMS(AbstractLims):
             metadata["SampleTrackingContainer_position"] = sample_position
             # Find sample by sampleId
             sample = HWR.beamline.lims.find_sample_by_sample_id(
-                collection_parameters.get("blSampleId")
+                datacollection_dict.get("blSampleId")
             )
 
             try:
@@ -1258,8 +1254,8 @@ class ICATLIMS(AbstractLims):
                 gallery_path.mkdir(mode=0o755, exist_ok=True)
                 for snapshot_index in range(1, 5):
                     key = f"xtalSnapshotFullPath{snapshot_index}"
-                    if key in collection_parameters:
-                        snapshot_path = Path(collection_parameters[key])
+                    if key in datacollection_dict:
+                        snapshot_path = Path(datacollection_dict[key])
                         if snapshot_path.exists():
                             msg = f"Copying snapshot index {snapshot_index} to gallery"
                             logger.debug(msg)
