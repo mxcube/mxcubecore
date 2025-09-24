@@ -36,12 +36,13 @@ __copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
-import datetime as dt
 import logging
 import subprocess
 import time
+from datetime import datetime as dt
 from pathlib import Path
 from shutil import copy2
+from zoneinfo import ZoneInfo
 
 import numpy as np
 from gevent import event, spawn
@@ -401,7 +402,7 @@ class ESRFEnergyScan(AbstractEnergyScan):
         """
         start_en = energy_scan_parameters["startEnergy"]
         end_en = energy_scan_parameters["endEnergy"]
-        dd = dt.datetime.now()  # this is only from python 3.11 tz=dt.UTC)
+        dd = dt.now(tz=ZoneInfo("Europe/Paris"))
         fname = "%s/%s_%s_%s_%s.scan" % (
             energy_scan_parameters["directory"],
             energy_scan_parameters["prefix"],

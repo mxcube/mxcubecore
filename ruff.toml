@@ -1796,7 +1796,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/ESRF/ESRFEnergyScan.py" = [
     "ARG002",
     "C901",
-    "DTZ005",
     "N802",
     "N999",
     "PLR0915",
@@ -2436,7 +2435,6 @@ convention = "google"
     "PLR0912",
     "PLR0915",
     "SIM102",
-    "TC002",
     "TRY003",
 ]
 "mxcubecore/HardwareObjects/ISARAMaint.py" = [
