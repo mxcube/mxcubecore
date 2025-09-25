@@ -715,10 +715,14 @@ class SampleQueueEntry(BaseQueueEntry):
     def centring_done(self, success, centring_info):
         if not success:
             msg = (
-                "Loop centring failed or was cancelled, " + "please continue manually."
+                "Loop centring failed or was cancelled, " + "please continue manually." + str(centring_info)
             )
             logging.getLogger("user_level_log").warning(msg)
+
         self.sample_centring_result.set(centring_info)
+        if not success:
+            HWR.beamline.queue_manager.pause(False)
+            print('===== loop centring failed, auto unpause queue')
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)

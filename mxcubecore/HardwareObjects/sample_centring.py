@@ -554,6 +554,10 @@ def find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb):
     snapshot_filename = os.path.join(
         tempfile.gettempdir(), "mxcube_sample_snapshot.png"
     )
+    print(f"==== find loop: {camera} - {snapshot_filename}")
+    if hasattr(camera, "take_snapshot"):
+        print(f"===== camera has take_snapshot method!")
+
     camera.take_snapshot(snapshot_filename, bw=True)
 
     # Lucid does not accept 0 degree rotation and

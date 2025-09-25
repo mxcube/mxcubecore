@@ -1490,7 +1490,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         # take image from server
         # HWR.beamline.sample_view._camera.take_snapshot(filename)
         logging.getLogger("HWR").debug("_take_crystal_snapshot() in BL19U1Collect.py")
-        HWR.beamline.sample_view._camera.takeSnapshot(filename)
+        HWR.beamline.sample_view._camera.take_snapshot(filename)
         # pass
 
     def set_helical(self, helical_on):
@@ -1752,7 +1752,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
 
         try:
             # TODO check if oscillation_parameters["images_per_file"] is provided
-            #config["nimages_per_file"] = {"value": self.images_per_file,
+            #config["nimages_per_f ile"] = {"value": self.images_per_file,
             #                           "api_name": "filewriter"}
             config["nimages_per_file"] = {"value": 1,
                                        "api_name": "filewriter"}
