@@ -883,6 +883,8 @@ def mount_sample(view, data_model, centring_done_cb, async_result):
                     log.info("Centring saved")
                 else:
                     view.setText(1, "Centring failed !")
+                    HWR.beamline.queue_manager.pause(False)
+                    print('===== loop centring failed 2, auto unpause queue')
                     if centring_method == CENTRING_METHOD.FULLY_AUTOMATIC:
                         raise QueueSkippEntryException(
                             "Could not center sample, skipping", ""
