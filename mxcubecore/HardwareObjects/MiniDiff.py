@@ -1010,10 +1010,11 @@ class MiniDiff(HardwareObject):
             time.sleep(0.1)
 
     def take_snapshot(self, image_path_list: list) -> None:
-        if self.get_current_phase() != "Centring":
-            use_custom_snapshot_routine = self.get_property(
-                "custom_snapshot_script_dir", False
-            )
+        if len(image_path_list) > 0:
+            if self.get_current_phase() != "Centring":
+                use_custom_snapshot_routine = self.get_property(
+                    "custom_snapshot_script_dir", False
+                )
 
             if not use_custom_snapshot_routine:
                 self.set_phase("Centring", wait=True, timeout=200)
@@ -1024,7 +1025,9 @@ class MiniDiff(HardwareObject):
                 f"Taking {snapshot_index + 1} sample snapshot(s)"
             )
             HWR.beamline.sample_view.save_snapshot(path=image_path)
-            self.phiMotor.set_value_relative(90, timeout=5)
+            # do not move 90 degrees if not needed
+            if not self.in_plate_mode() or snapshot_index > 0:
+                self.phiMotor.set_value_relative(90, timeout=5)
 
     def snapshotsDone(self, snapshotsProcedure):
         HWR.beamline.sample_view.camera.forceUpdate = False

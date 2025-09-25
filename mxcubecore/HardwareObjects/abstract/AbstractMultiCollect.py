@@ -315,6 +315,10 @@ class AbstractMultiCollect(object):
             pass
 
     def take_snapshots(self, dc_params):
+        # do nothing if no snapshots asked
+        if not self.number_of_snapshots:
+            return
+
         snapshot_directory = dc_params["fileinfo"]["archive_directory"]
 
         if HWR.beamline.diffractometer.in_plate_mode():
