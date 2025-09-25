@@ -213,7 +213,7 @@ class BlissMultiCollect(ESRFMultiCollect):
 
         pixel_size_x, pixel_size_y = HWR.beamline.detector.get_pixel_size()
         beam_x, beam_y = HWR.beamline.detector.get_beam_position()
-        readout_time = -1 # HWR.beamline.detector.get_property("detector_readout_time")
+        readout_time = HWR.beamline.detector.get_property("deadtime")
 
         self.metadata.detector.update({
             "detector": {
@@ -225,6 +225,7 @@ class BlissMultiCollect(ESRFMultiCollect):
                 "count_time@units": "s",
                 "frame_time": (exptime/nb_images) + readout_time,
                 "readout_time": readout_time,
+                "readout_time@units": "s",
                 "frame_time@units": "s",
                 "distance": HWR.beamline.detector.distance.get_value()/ 1000.0,
                 "distance@units": "m",
