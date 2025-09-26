@@ -429,11 +429,13 @@ class Microdiff(MiniDiff.MiniDiff):
         HardwareObject.init(self)
         self.handle_detector_cover = self.get_object_by_role("handle_detcover")
 
-    def use_position_for_callibration(self, data):
+    def use_position_for_calibration(self, data):
         for _d in data:
             if len(data[_d]) > 0:
                 x, y, z = data[_d]
-                logging.getLogger("HWR").info(f"Setting fiducial {_d} to: ({x}, {y}, {z})")
+                logging.getLogger("HWR").info(
+                    f"Setting fiducial {_d} to: ({x}, {y}, {z})"
+                )
                 res = self.add_ssx_chip_calibration_fiducial(x, y, z)
 
         self.start_ssx_all_block_calibration()
