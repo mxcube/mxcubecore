@@ -36,7 +36,7 @@ from mxcubecore.HardwareObjects.abstract.AbstractSampleView import (
     AbstractSampleView,
     ShapeState,
 )
-from mxcubecore.model import queue_model_objects
+from mxcubecore.model import queue_model_objects as qmo
 
 __copyright__ = """by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -72,13 +72,16 @@ class SampleView(AbstractSampleView):
     def __init__(self, name):
         super().__init__(name)
         self.centring_motors = {}
-        self.centring_status = {}
+        self.current_centring_procedure = None
         self.current_centring_method = None
+        self.centring_status = {}
 
     def init(self):
         super().init()
 
         centring_motor_roles = literal_eval(self.get_property("centring_motors", []))
+        # need to set the motor names for the centring points
+        qmo.CentredPosition.DIFFRACTOMETER_MOTOR_NAMES = centring_motor_roles
         centring_ref_position = literal_eval(
             self.get_property("centring_reference_position", {})
         )
@@ -96,7 +99,6 @@ class SampleView(AbstractSampleView):
                 self.centring_motors[role].motor.connect(
                     "stateChanged", self._update_shape_positions
                 )
-
         self._camera = self.get_object_by_role("camera")
         self._last_oav_image = None
 
@@ -236,7 +238,7 @@ class SampleView(AbstractSampleView):
         logging.getLogger("user_level_log").info("Centring cancelled")
 
     def cancel_centring(self):
-        """Cancels current centring procedure."""
+        """Cancel current centring procedure."""
         if self.current_centring_procedure:
             try:
                 self.current_centring_procedure.kill(block=True)
@@ -247,6 +249,15 @@ class SampleView(AbstractSampleView):
 
             logging.getLogger("HWR").exception("Centring canceled")
         self.centring_failed()
+
+    def centring_failed(self):
+        """Execute if centring failed or canceled."""
+        self.centring_status["valid"] = False
+        self.emit(
+            "centringFailed", (self.current_centring_method, self.get_centring_status())
+        )
+        self.current_centring_procedure = None
+        self.current_centring_method = None
 
     def start_auto_centring(self):
         """Start automatic centring procedure"""
@@ -731,7 +742,7 @@ class Shape:
 
     def add_cp_from_mp(self, mpos_list):
         for mp in mpos_list:
-            self.cp_list.append(queue_model_objects.CentredPosition(mp))
+            self.cp_list.append(qmo.CentredPosition(mp))
 
     def set_id(self, id_num):
         self.id = f"{self.t}{id_num}"

@@ -4594,7 +4594,6 @@ convention = "google"
     "TRY400",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractSampleView.py" = [
-    "ARG002",
     "FBT001",
     "FBT002",
     "N999",

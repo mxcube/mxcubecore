@@ -25,7 +25,6 @@ __copyright__ = """2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 import abc
-import logging
 from typing import (
     Literal,
     Union,
@@ -48,7 +47,6 @@ class AbstractSampleView(HardwareObject):
         self._frontlight = None
         self._backlight = None
         self._shapes = {}
-        self.current_centring_procedure = None
 
     @property
     def camera(self):
@@ -129,45 +127,12 @@ class AbstractSampleView(HardwareObject):
     def move_to_beam(self, x: float, y: float):
         """Move the sample to the x,y coordinates"""
 
-    def cancel_centring(self):
-        """Cancels current centring procedure"""
-        if self.current_centring_procedure:
-            try:
-                self.current_centring_procedure.kill(block=True)
-            except Exception:
-                logging.getLogger("HWR").exception(
-                    "Problem aborting the centring method"
-                )
-            self.centring_failed()
-
-    def centring_failed(self):
-        self.centring_status["valid"] = False
-        self.emit(
-            "centringFailed", (self.current_centring_method, self.get_centring_status())
-        )
-        self.current_centring_procedure = None
-        self.current_centring_method = None
-
-    def centring_done(self):
-        self.centring_status = {"motors": {}, "method": self.current_centring_method}
-        self.centring_status["motors"] = self.get_positions()
-
-        self.centring_status["valid"] = True
-
-        self.emit(
-            "centringSuccessful",
-            (self.current_centring_method, self.get_centring_status()),
-        )
-        self.current_centring_method = None
-        self.current_centring_procedure = None
-
     @abc.abstractmethod
     def get_positions(self) -> dict:
         """Get motor positions for the centring motors.
         Returns:
             Centring motor positions as {role: position}
         """
-        return {}
 
     @abc.abstractmethod
     def add_shape(self, shape):
@@ -175,14 +140,13 @@ class AbstractSampleView(HardwareObject):
         Args:
             shape(Shape): Shape to add
         """
-        return
 
     @abc.abstractmethod
     def add_shape_from_mpos(
         self,
-        mpos_list,
-        screen_coord,
-        _type,
+        mpos_list: list,
+        screen_coord: tuple,
+        _type: str,
         state: ShapeState = "SAVED",
         user_state: ShapeState = "SAVED",
     ):
@@ -196,10 +160,9 @@ class AbstractSampleView(HardwareObject):
         Returns:
             (Shape): Shape of type _type
         """
-        return
 
     @abc.abstractmethod
-    def delete_shape(self, sid):
+    def delete_shape(self, sid: str):
         """Remove the shape with specified id from the list of handled shapes.
         Args:
             sid (str): The id of the shape to remove
@@ -209,7 +172,7 @@ class AbstractSampleView(HardwareObject):
         return
 
     @abc.abstractmethod
-    def select_shape(self, sid):
+    def select_shape(self, sid: str):
         """Select the shape <shape>.
         Args:
             sid (str): Id of the shape to select.
@@ -217,7 +180,7 @@ class AbstractSampleView(HardwareObject):
         return
 
     @abc.abstractmethod
-    def de_select_shape(self, sid):
+    def de_select_shape(self, sid: str):
         """De-select the shape with id <sid>.
         Args:
             sid (str): The id of the shape to de-select.
@@ -225,26 +188,24 @@ class AbstractSampleView(HardwareObject):
         return
 
     @abc.abstractmethod
-    def is_selected(self, sid):
+    def is_selected(self, sid: str) -> bool:
         """Check if Shape with specified id is selected.
         Args:
-            sid (int): Shape id.
+            sid (str): Shape id.
         Returns:
             (Boolean) True if selected, False otherwise.
         """
 
     @abc.abstractmethod
-    def get_selected_shapes(self):
+    def get_selected_shapes(self) -> list:
         """Get all selected shapes.
         Returns:
            (list) List of the selected Shapes.
         """
-        return
 
     @abc.abstractmethod
     def de_select_all(self):
         """De-select all shapes."""
-        return
 
     @abc.abstractmethod
     def select_shape_with_cpos(self, cpos):
@@ -252,14 +213,10 @@ class AbstractSampleView(HardwareObject):
         Args:
             cpos (CentredPosition): Centred position
         """
-        return
 
     @abc.abstractmethod
     def clear_all(self):
-        """
-        Clear the shapes, remove all contents.
-        """
-        return
+        """Clear the shapes, remove all contents."""
 
     @abc.abstractmethod
     def get_shape(self, sid: str):
@@ -272,7 +229,6 @@ class AbstractSampleView(HardwareObject):
         Returns:
             (Shape) All the shapes
         """
-        return
 
     @abc.abstractmethod
     def get_grid(self):
@@ -281,32 +237,28 @@ class AbstractSampleView(HardwareObject):
         Returns:
             (dict): The first selected grid as a dictionary.
         """
-        return
 
     @abc.abstractmethod
-    def get_points(self):
+    def get_points(self) -> list:
         """Get all currently handled centred points.
         Returns:
             (list): All points currently handled as list.
         """
-        return
 
     @abc.abstractmethod
-    def get_lines(self):
+    def get_lines(self) -> list:
         """Get all the currently handled lines.
 
         Returns:
             (list): All lines currently handled as list.
         """
-        return
 
     @abc.abstractmethod
-    def get_grids(self):
+    def get_grids(self) -> list:
         """Get all currently handled grids.
         Returns:
             (list): All grids currently handled as list.
         """
-        return
 
     @abc.abstractmethod
     def inc_used_for_collection(self, cpos):
@@ -318,5 +270,3 @@ class AbstractSampleView(HardwareObject):
 
     def motor_positions_to_screen(self, positions_dict: dict) -> tuple:
         """Get the motor positions according to the calibration"""
-
-        return ()
