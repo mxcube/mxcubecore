@@ -307,6 +307,26 @@ class MyHardwareObject(HardwareObject):
         self.user_log.error("an error have been encountered")
 ```
 
+When logging a caught exception, consider using `self.log.exception()`.
+The `exception()` method adds raised exception's type, message and traceback to the log entry.
+Include any relevant variables to the log message explicitly.
+These details are essential for proper troubleshooting.
+
+Below is an example of logging an exception.
+
+```python
+try:
+    output = transform(input)
+except Exception:
+    # log the raised exception
+    self.log.exception("Could not transform: %s", input)
+```
+
+Avoid using `debug()` and `exception()` level when logging to `user_log`.
+The user log is aimed to convey information to the users.
+The debug and exception logging should be used for logging information suitable for developers,
+to help with troubleshooting.
+
 ### Continuous integration (CI)
 
 GitHub Action are used for continues integration
