@@ -71,9 +71,9 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         if dd0:
             if (
                 not hasattr(HWR.beamline.diffractometer, "in_kappa_mode")
-                or HWR.beamline.diffractometer.in_kappa_mode()
+                or HWR.beamline.diffractometer.in_kappa_mode
             ):
-                HWR.beamline.diffractometer.move_motors(dd0)
+                HWR.beamline.diffractometer.set_value_motors(dd0)
 
         motor_positions = dict(
             tt0
@@ -81,7 +81,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
             if tt0[1] is not None
         )
         if motor_positions:
-            HWR.beamline.diffractometer.move_motors(motor_positions)
+            HWR.beamline.diffractometer.set_value_motors(motor_positions)
 
         log.warning("Please center a new or select an existing point and press resume.")
         self.get_queue_controller().pause(True)
