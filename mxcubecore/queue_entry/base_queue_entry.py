@@ -923,7 +923,7 @@ def center_before_collect(view, dm, queue, sample_view):
 
     queue.pause(True)
     pos, shape = None, None
-    dm = None
+    dm = dm or None
     if len(sample_view.get_selected_shapes()):
         shape = sample_view.get_selected_shapes()[0]
         pos = shape.mpos()
