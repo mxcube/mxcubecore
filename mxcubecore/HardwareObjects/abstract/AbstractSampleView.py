@@ -138,9 +138,36 @@ class AbstractSampleView(HardwareObject):
                 logging.getLogger("HWR").exception(
                     "Problem aborting the centring method"
                 )
-            self.current_centring_procedure = None
-            self.emit("centringFailed")
-            logging.getLogger("HWR").exception("Centring canceled")
+            self.centring_failed()
+
+    def centring_failed(self):
+        self.centring_status["valid"] = False
+        self.emit(
+            "centringFailed", (self.current_centring_method, self.get_centring_status())
+        )
+        self.current_centring_procedure = None
+        self.current_centring_method = None
+
+    def centring_done(self):
+        self.centring_status = {"motors": {}, "method": self.current_centring_method}
+        self.centring_status["motors"] = self.get_positions()
+
+        self.centring_status["valid"] = True
+
+        self.emit(
+            "centringSuccessful",
+            (self.current_centring_method, self.get_centring_status()),
+        )
+        self.current_centring_method = None
+        self.current_centring_procedure = None
+
+    @abc.abstractmethod
+    def get_positions(self) -> dict:
+        """Get motor positions for the centring motors.
+        Returns:
+            Centring motor positions as {role: position}
+        """
+        return {}
 
     @abc.abstractmethod
     def add_shape(self, shape):
@@ -154,7 +181,7 @@ class AbstractSampleView(HardwareObject):
     def add_shape_from_mpos(
         self,
         mpos_list,
-        screen_cord,
+        screen_coord,
         _type,
         state: ShapeState = "SAVED",
         user_state: ShapeState = "SAVED",

@@ -17,8 +17,6 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-__copyright__ = """by the MXCuBE collaboration """
-__license__ = "LGPLv3+"
 
 import base64
 import copy
@@ -39,6 +37,9 @@ from mxcubecore.HardwareObjects.abstract.AbstractSampleView import (
     ShapeState,
 )
 from mxcubecore.model import queue_model_objects
+
+__copyright__ = """by the MXCuBE collaboration """
+__license__ = "LGPLv3+"
 
 
 def combine_images(img1, img2):
@@ -86,16 +87,15 @@ class SampleView(AbstractSampleView):
         for role in centring_motor_roles:
             if role in dm.motors_hwobj_dict:
                 motor_obj = dm.motors_hwobj_dict[role]
+                ref_position = None
                 if role in centring_ref_position:
                     ref_position = centring_ref_position[role]
-                else:
-                    ref_position = None
-            self.centring_motors[role] = sample_centring.CentringMotor(
-                motor_obj, reference_position=ref_position
-            )
-            self.centring_motors[role].motor.connect(
-                "stateChanged", self._update_shape_positions
-            )
+                self.centring_motors[role] = sample_centring.CentringMotor(
+                    motor_obj, reference_position=ref_position
+                )
+                self.centring_motors[role].motor.connect(
+                    "stateChanged", self._update_shape_positions
+                )
 
         self._camera = self.get_object_by_role("camera")
         self._last_oav_image = None
@@ -105,13 +105,9 @@ class SampleView(AbstractSampleView):
 
     def _update_shape_positions(self, *args, **kwargs):
         for shape in self.get_shapes():
-            shape.update_position(self.motor_positions_to_screen())
+            shape.update_position(self.motor_positions_to_screen)
 
         self.emit("shapesChanged")
-
-    @property
-    def shapes(self) -> dict:
-        return self._shapes
 
     def get_positions(self) -> dict:
         """Get motor positions for the centring motors.
@@ -123,19 +119,25 @@ class SampleView(AbstractSampleView):
             motors_dict.update({key: val.motor.get_value()})
         return motors_dict
 
+    def get_centred_point_from_coord(self, x, y, return_by_names=None):
+        return self.get_positions()
+
     def motor_positions_to_screen(self, positions_dict: dict) -> tuple:
         """Get the motor positions according to the calibration"""
+        if not positions_dict:
+            raise RuntimeError("Unknown position")
         try:
             dm = HWR.beamline.diffractometer
             p_x, p_y = dm.get_pixels_per_mm()
             if None in (p_x, p_y):
                 return 0, 0
+
             beam_position = HWR.beamline.beam.get_beam_position_on_screen()
             omega_angle = math.radians(dm.omega.get_value())
-            sampx = positions_dict["sampx"] - dm.sampx.get_value()
-            sampy = positions_dict["sampy"] - dm.sampy.get_value()
-            phiy = positions_dict["phiy"] - dm.phiy.get_value()
-            phiz = positions_dict["phiz"] - dm.phiz.get_value()
+            sampx = positions_dict.get("sampx") - dm.sampx.get_value()
+            sampy = positions_dict.get("sampy") - dm.sampy.get_value()
+            phiy = positions_dict.get("phiy") - dm.phiy.get_value()
+            phiz = positions_dict.get("phiz") - dm.phiz.get_value()
             rot_matrix = np.matrix(
                 [
                     math.cos(omega_angle),
@@ -153,8 +155,7 @@ class SampleView(AbstractSampleView):
 
         except AttributeError as err:
             raise NotImplementedError from err
-        else:
-            return x, y
+        return x, y
 
     def start_manual_centring(self, nb_click=3):
         """Do the manual centring procedure.
@@ -162,8 +163,7 @@ class SampleView(AbstractSampleView):
            nb_click (int): Number of clicks.
         """
         if self.current_centring_procedure is not None:
-            logging.getLogger("HWR").error("Already centring")
-            return
+            logging.getLogger("HWR").exception("Already centring")
 
         self.current_centring_method = "Manual"
         self.emit("centringStarted", ("Manual"))
@@ -210,14 +210,6 @@ class SampleView(AbstractSampleView):
 
             self.centring_done()
 
-    def centring_failed(self):
-        self.centring_status["valid"] = False
-        self.emit(
-            "centringFailed", (self.current_centring_method, self.get_centring_status())
-        )
-        self.current_centring_procedure = None
-        self.current_centring_method = None
-
     def centring_done(self):
         self.centring_status = {"motors": {}, "method": self.current_centring_method}
         self.centring_status["motors"] = self.get_positions()
@@ -258,19 +250,73 @@ class SampleView(AbstractSampleView):
 
     def start_auto_centring(self):
         """Start automatic centring procedure"""
+        if self.current_centring_procedure is not None:
+            logging.getLogger("HWR").exception("Already centring")
 
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
         dm = HWR.beamline.diffractometer
+        dm.set_phase("Centring", wait=True)
+
+        pixels_per_mm_x, pixels_per_mm_y = dm.get_pixels_per_mm()
         dm.wait_ready(5)
+
+        self.current_centring_procedure = sample_centring.start_auto(
+            self,
+            self.centring_motors,
+            pixels_per_mm_x,
+            pixels_per_mm_y,
+            beam_pos_x,
+            beam_pos_y,
+            chi_angle=0.0,
+        )
+
         self.current_centring_method = "Automatic"
         self.emit("centringStarted", ("Automatic"))
-        dm.set_phase("Centring", wait=True)
+        self.current_centring_procedure.link(self.auto_centring_done)
 
     def move_to_beam(self, x: float, y: float):
         """Move the sample to the x,y coordinates"""
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
         dm = HWR.beamline.diffractometer
+        pixels_per_mm_x, pixels_per_mm_y = dm.get_pixels_per_mm()
+        if not all([pixels_per_mm_x, pixels_per_mm_y]):
+            logging.getLogger("HWR").exception("Cannot move to beam")
+
+        # here added the calculation for moving to the beam position
+        dx = (x - beam_pos_x) / pixels_per_mm_x
+        dy = (y - beam_pos_y) / pixels_per_mm_y
+
         dm.wait_ready(5)
+
+        motors_dict = self.get_positions()
+        omega_angle = math.radians(motors_dict.get("omega", 0))
+
+        rot_matrix = np.matrix(
+            [
+                [math.cos(omega_angle), -math.sin(omega_angle)],
+                [math.sin(omega_angle), math.cos(omega_angle)],
+            ]
+        )
+        inv_rot_matrix = np.array(rot_matrix.I)
+        dsampx, dsampy = np.dot(np.array([0, dy]), inv_rot_matrix)
+
+        chi_angle = math.radians(motors_dict.get("chi", 0))
+        chi_rot = np.matrix(
+            [
+                [math.cos(chi_angle), -math.sin(chi_angle)],
+                [math.sin(chi_angle), math.cos(chi_angle)],
+            ]
+        )
+
+        sx, sy = np.dot(np.array([dsampx, dsampy]), np.array(chi_rot))
+
+        sampx = motors_dict.get("sampx") + sx
+        sampy = motors_dict.get("sampx") + sy
+        phiy = motors_dict.get("phiy") + dx
+
+        self.centring_motors.get("sampx").set_value(-sampx)
+        self.centring_motors.get("sampy").set_value(sampy)
+        self.centring_motors.get("phiy").set_value(-phiy)
 
     def get_snapshot(
         self,
@@ -300,20 +346,22 @@ class SampleView(AbstractSampleView):
 
         return buffered
 
-    def save_snapshot(self, path: str, overlay: [str | None] = None, bw: bool = False):
+    def save_snapshot(
+        self, filename: str, overlay: [str | None] = None, bw: bool = False
+    ):
         """
         Save a snapshot to file.
 
         Args:
-            path(str): The filename.
+            filename(str): The filename.
             overlay(str): Image data with shapes and other items to display
                           on the snapshot
             bw(bool): return grayscale image. Default False
         """
         img = self.take_snapshot(overlay_data=overlay, bw=bw)
-        img.save(path)
+        img.save(filename)
 
-        self._last_oav_image = path
+        self._last_oav_image = filename
 
     def take_snapshot(self, overlay_data: [str | None] = None, bw: bool = False):
         """
@@ -611,7 +659,7 @@ class SampleView(AbstractSampleView):
 
             self.emit("newGridResult", shape)
         else:
-            msg = "Cant set result for %s, no shape with id %s" % (sid, sid)
+            msg = f"Cant set result, no shape with id {sid}"
             raise AttributeError(msg)
 
     def get_grid_data(self, key):
@@ -633,7 +681,7 @@ class SampleView(AbstractSampleView):
         """
 
 
-class Shape(object):
+class Shape:
     """
     Base class for shapes.
     """
@@ -641,7 +689,6 @@ class Shape(object):
     SHAPE_COUNT = 0
 
     def __init__(self, mpos_list=None, screen_coord=(-1, -1)):
-        object.__init__(self)
         Shape.SHAPE_COUNT += 1
         self.t = "S"
         self.id = ""
@@ -687,8 +734,8 @@ class Shape(object):
             self.cp_list.append(queue_model_objects.CentredPosition(mp))
 
     def set_id(self, id_num):
-        self.id = self.t + "%s" % id_num
-        self.name = self.label + "-%s" % id_num
+        self.id = f"{self.t}{id_num}"
+        self.name = f"{self.label}-{id_num}"
 
     def move_to_mpos(self, mpos_list, screen_coord=None):
         self.cp_list = []
@@ -759,7 +806,7 @@ class Line(Shape):
     SHAPE_COUNT = 0
 
     def __init__(self, mpos_list, screen_coord):
-        Shape.__init__(self, mpos_list, screen_coord)
+        super().__init__(mpos_list, screen_coord)
         Line.SHAPE_COUNT += 1
         self.t = "L"
         self.label = "Line"
@@ -768,9 +815,6 @@ class Line(Shape):
     def set_id(self, id_num):
         Shape.set_id(self, id_num)
         self.cp_list[0].index = self.name
-
-    def get_centred_positions(self):
-        return [self.start_cpos, self.end_cpos]
 
     def get_points_index(self):
         if all(self.cp_list):
@@ -782,7 +826,7 @@ class Grid(Shape):
     SHAPE_COUNT = 0
 
     def __init__(self, mpos_list, screen_coord):
-        Shape.__init__(self, mpos_list, screen_coord)
+        super().__init__(mpos_list, screen_coord)
         Grid.SHAPE_COUNT += 1
         self.t = "G"
         self.set_id(Grid.SHAPE_COUNT)
@@ -820,7 +864,7 @@ class Grid(Shape):
         if min(_d, 360 - _d) > self.shapes_hw_object.hide_grid_threshold:
             self.state = "HIDDEN"
         else:
-            super(Grid, self).update_position(transform)
+            super().update_position(transform)
             self.state = "SAVED"
 
     def get_centred_position(self):

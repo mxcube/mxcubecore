@@ -856,29 +856,29 @@ def mount_sample(data_model, centring_done_cb, async_result):
         raise QueueSkipEntryException("Sample not loaded", "")
     else:
         HWR.beamline.sample_changer.trigger_progress_message("Sample loaded")
-        dm = HWR.beamline.diffractometer
+        sview = HWR.beamline.sample_view
         centring_method = HWR.beamline.queue_manager.centring_method
 
         if centring_method != CENTRING_METHOD.NONE:
             try:
-                dm.connect("centringAccepted", centring_done_cb)
+                sview.connect("centringAccepted", centring_done_cb)
 
                 if centring_method == CENTRING_METHOD.MANUAL:
                     log.warning(
                         "Manual centring used, waiting for" + " user to center sample"
                     )
-                    dm.start_centring_method(dm.MANUAL3CLICK_MODE)
+                    sview.start_manual_centring()
                 elif centring_method == CENTRING_METHOD.LOOP:
-                    dm.start_centring_method(dm.C3D_MODE)
+                    sview.start_auto_centring()
                     log.warning(
                         "Centring in progress. Please save"
                         + " the suggested centring or re-center"
                     )
                 elif centring_method == CENTRING_METHOD.FULLY_AUTOMATIC:
                     log.info("Centring sample, please wait.")
-                    dm.start_centring_method(dm.C3D_MODE)
+                    sview.start_auto_centring()
                 else:
-                    dm.start_centring_method(dm.MANUAL3CLICK_MODE)
+                    sview.start_manual_centring()
 
                 HWR.beamline.sample_changer.trigger_progress_message("Centring !")
                 centring_result = async_result.get()
@@ -901,7 +901,7 @@ def mount_sample(data_model, centring_done_cb, async_result):
             except Exception:
                 logging.getLogger("HWR").exception("")
             finally:
-                dm.disconnect("centringAccepted", centring_done_cb)
+                sview.disconnect("centringAccepted", centring_done_cb)
 
 
 class DelayQueueEntry(BaseQueueEntry):
@@ -923,7 +923,7 @@ def center_before_collect(view, dm, queue, sample_view):
 
     queue.pause(True)
     pos, shape = None, None
-
+    dm = None
     if len(sample_view.get_selected_shapes()):
         shape = sample_view.get_selected_shapes()[0]
         pos = shape.mpos()
@@ -932,7 +932,7 @@ def center_before_collect(view, dm, queue, sample_view):
         log.info(msg)
 
         # Create a centred positions of the current position
-        pos = dm.get_positions()
+        pos = sample_view.get_positions()
         shape = sample_view.add_shape_from_mpos([pos], (0, 0), "P")
 
     view(1, "Centring completed")
