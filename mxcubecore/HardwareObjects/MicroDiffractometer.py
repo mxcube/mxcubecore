@@ -74,7 +74,7 @@ __license__ = "LGPLv3+"
 
 
 class MicroDiffractometer(AbstractDiffractometer):
-    """Microdiff with Exporter implementation of AbstartDiffractometer"""
+    """Microdiff with Exporter implementation of AbstractDiffractometer"""
 
     def __init__(self, name):
         super().__init__(name)
