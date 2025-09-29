@@ -18,10 +18,9 @@
 
 """Test suite for AbstractDiffractometer"""
 
-from test import TestHardwareObjectBase
-
 import pytest
 
+from test.TestHardwareObjectBase import TestHardwareObjectBase
 
 _copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -33,7 +32,7 @@ def test_object(beamline):
     return beamline.diffractometer
 
 
-class TestDiffarctometer(TestHardwareObjectBase.TestHardwareObjectBase):
+class TestDiffarctometer(TestHardwareObjectBase):
     def test_diffractometer_atributes(self, test_object):
         assert test_object is not None, (
             "Diffractometer hardware objects is None (not initialized)"
