@@ -62,7 +62,7 @@ class DiffractometerMockup(AbstractDiffractometer):
         super().init()
         self.head_type = DiffractometerHead.MINI_KAPPA
         self.current_phase = DiffractometerPhase.CENTRE
-        self.current_constraint = DiffractometerConstraint.STILL
+        self.current_constraint = DiffractometerConstraint.RELEASE
         self.update_state(HardwareObjectState.READY)
         for mot in self.motors_hwobj_dict.values():
             mot.set_value(random.uniform(0.0, 8.8))
@@ -108,13 +108,10 @@ class DiffractometerMockup(AbstractDiffractometer):
         )
         return self.get_phase().name
 
-    def get_phase_list(self):
-        phase_list = []
-        for member in DiffractometerPhase:
-            _nam = member.name
-            if _nam not in ["IN", "OUT", "UNKNOWN"]:
-                phase_list.append(_nam)
-        return phase_list
-
-    def _set_phase(self, value):
+    def _set_phase(self, value: DiffractometerPhase):
+        """Set a phase."""
         print(f"Change phase to ---> {value}")
+        self.current_phase = value
+
+    def _set_constraint(self, value):
+        self.current_constraint = value

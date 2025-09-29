@@ -147,7 +147,7 @@ class AbstractDiffractometer(HardwareObject):
         Returns:
             Dictionary key=role: value=hardware_object
         """
-        return self.nstate_equipment_hwobj_dict
+        return self.nstate_equipment_hwobj_dict.copy()
 
     # -------- Motor Groups --------
 
@@ -286,6 +286,7 @@ class AbstractDiffractometer(HardwareObject):
 
         return self.get_head_type == DiffractometerHead.MINI_KAPPA
 
+    @property
     def get_head_enum(self) -> DiffractometerHead:
         """Get the diffractometer head Enum. Used when no import possible.
         Returns:
@@ -328,6 +329,16 @@ class AbstractDiffractometer(HardwareObject):
         """
         return self.current_phase
 
+    def get_phase_list(self) -> list:
+        """Return a list of all the defined in DiffractometerPhase phases."""
+        phase_list = []
+        for member in DiffractometerPhase:
+            _nam = member.name
+            if _nam not in ["IN", "OUT", "UNKNOWN"]:
+                phase_list.append(_nam)
+        return phase_list
+
+    @property
     def get_phase_enum(self) -> DiffractometerPhase:
         """Get the phase Enum. Used when no import possible.
 
@@ -359,13 +370,12 @@ class AbstractDiffractometer(HardwareObject):
                              if timeout is None: wait forever (default).
         """
         if isinstance(value, DiffractometerConstraint):
-            self.current_constraint = value
+            constraint = value
         else:
-            self.current_constraint = self.value_to_enum(
-                value, DiffractometerConstraint
-            )
-        self._set_constraint(self.current_constraint)
-        self._update_value(self.current_constraint, value_cmp=self.get_constraint())
+            constraint = self.value_to_enum(value, DiffractometerConstraint)
+
+        self._set_constraint(constraint)
+        self._update_value(constraint, value_cmp=self.get_constraint())
         if timeout == 0:
             return
         self.wait_ready(timeout)
@@ -384,6 +394,7 @@ class AbstractDiffractometer(HardwareObject):
         """
         return self.current_constraint
 
+    @property
     def get_constraint_enum(self):
         """Get the constraints Enum. Used when no import possible.
         Returns:
