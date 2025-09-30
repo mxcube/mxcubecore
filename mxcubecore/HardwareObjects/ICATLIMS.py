@@ -833,7 +833,7 @@ class ICATLIMS(AbstractLims):
 
             start_time = dt_aware.isoformat(timespec="microseconds")
             end_time = dt_aware_end.isoformat(timespec="microseconds")
-        except TypeError:
+        except (ValueError, TypeError):
             logging.getLogger("HWR").exception("Cannot parse start and end time")
         bsx, bsy, shape, _ = HWR.beamline.beam.get_value()
         flux_end = datacollection_dict.get("flux_end") or HWR.beamline.flux.get_value()
