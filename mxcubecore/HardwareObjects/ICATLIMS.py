@@ -326,9 +326,9 @@ class ICATLIMS(AbstractLims):
                 )
                 if sample_information is not None:
                     if len(HWR.beamline.session.get_full_path("", "")) > 0:
-                        destination_folder = HWR.beamline.session.get_full_path("", "")[
-                            0
-                        ]
+                        destination_folder = (
+                            HWR.beamline.session.get_base_process_directory()
+                        )
                         msg = "Download restource: "
                         msg += f"sample_sheet_id={sample_sheet_id} "
                         msg += f"destination_folder={destination_folder}"
@@ -820,21 +820,20 @@ class ICATLIMS(AbstractLims):
             msg = f"Sample {sample_id} not found"
             logging.getLogger("HWR").debug(msg)
 
-        start_time = datacollection_dict.get("startTime", "")
-        end_time = datacollection_dict.get("endTime", "")
+        start_time = datacollection_dict.get("collection_start_time", "")
+        end_time = datetime.now(ZoneInfo("Europe/Paris")).isoformat()
 
-        try:
-            dt_aware = datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S").replace(
-                tzinfo=ZoneInfo("Europe/Paris")
-            )
-            dt_aware_end = datetime.strptime(end_time, "%Y-%m-%d %H:%M:%S").replace(
-                tzinfo=ZoneInfo("Europe/Paris")
-            )
+        if start_time:
+            try:
+                dt_aware = datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S").replace(
+                    tzinfo=ZoneInfo("Europe/Paris")
+                )
+                start_time = dt_aware.isoformat(timespec="microseconds")
+            except (ValueError, TypeError):
+                logging.getLogger("HWR").exception("Cannot parse start time")
+        else:
+            start_time = datetime.now(ZoneInfo("Europe/Paris")).isoformat()
 
-            start_time = dt_aware.isoformat(timespec="microseconds")
-            end_time = dt_aware_end.isoformat(timespec="microseconds")
-        except (ValueError, TypeError):
-            logging.getLogger("HWR").exception("Cannot parse start and end time")
         bsx, bsy, shape, _ = HWR.beamline.beam.get_value()
         flux_end = datacollection_dict.get("flux_end") or HWR.beamline.flux.get_value()
 
@@ -886,6 +885,29 @@ class ICATLIMS(AbstractLims):
             proposal = f"{_session.proposal_code}{_session.proposal_number}"
 
             directory = Path(energyscan_dict["scanFileFullPath"]).parent
+
+            start_time = energyscan_dict.get("startTime", "")
+            end_time = energyscan_dict.get("endTime", "")
+
+            if start_time:
+                try:
+                    dt_aware = datetime.strptime(
+                        start_time, "%Y-%m-%d %H:%M:%S"
+                    ).replace(tzinfo=ZoneInfo("Europe/Paris"))
+                    start_time = dt_aware.isoformat(timespec="microseconds")
+                    metadata.update({"startDate": start_time})
+                except (ValueError, TypeError):
+                    logging.getLogger("HWR").exception("Cannot parse start time")
+
+            if end_time:
+                try:
+                    dt_aware = datetime.strptime(end_time, "%Y-%m-%d %H:%M:%S").replace(
+                        tzinfo=ZoneInfo("Europe/Paris")
+                    )
+                    end_time = dt_aware.isoformat(timespec="microseconds")
+                    metadata.update({"endDate": end_time})
+                except (ValueError, TypeError):
+                    logging.getLogger("HWR").exception("Cannot parse start time")
 
             metadata.update(
                 {
@@ -939,6 +961,29 @@ class ICATLIMS(AbstractLims):
             proposal = f"{_session.proposal_code}{_session.proposal_number}"
 
             directory = Path(xfespectrum_dict["filename"]).parent
+
+            start_time = xfespectrum_dict.get("startTime", "")
+            end_time = xfespectrum_dict.get("endTime", "")
+
+            if start_time:
+                try:
+                    dt_aware = datetime.strptime(
+                        start_time, "%Y-%m-%d %H:%M:%S"
+                    ).replace(tzinfo=ZoneInfo("Europe/Paris"))
+                    start_time = dt_aware.isoformat(timespec="microseconds")
+                    metadata.update({"startDate": start_time})
+                except (ValueError, TypeError):
+                    logging.getLogger("HWR").exception("Cannot parse start time")
+
+            if end_time:
+                try:
+                    dt_aware = datetime.strptime(end_time, "%Y-%m-%d %H:%M:%S").replace(
+                        tzinfo=ZoneInfo("Europe/Paris")
+                    )
+                    end_time = dt_aware.isoformat(timespec="microseconds")
+                    metadata.update({"endDate": end_time})
+                except (ValueError, TypeError):
+                    logging.getLogger("HWR").exception("Cannot parse end time")
 
             metadata.update(
                 {
@@ -1045,7 +1090,7 @@ class ICATLIMS(AbstractLims):
             try:
                 token = self.icat_session["sessionId"]
                 url = f"{self.url}/catalogue/{token}/files/download?sampleId={sample_id}&resourceId={resource.id}"
-                response = requests.get(url, stream=True, timeout=3)
+                response = requests.get(url, stream=True, timeout=30)
                 response.raise_for_status()
 
                 file_path = resource_folder / resource.filename
@@ -1110,15 +1155,6 @@ class ICATLIMS(AbstractLims):
             proposal = f"{HWR.beamline.session.proposal_code}"
             proposal += f"{HWR.beamline.session.proposal_number}"
 
-            try:
-                dt_aware = datetime.strptime(
-                    datacollection_dict.get("collection_start_time"),
-                    "%Y-%m-%d %H:%M:%S",
-                ).replace(tzinfo=ZoneInfo("Europe/Paris"))
-                start_time = dt_aware.isoformat(timespec="microseconds")
-            except RuntimeError:
-                logger.warning("Failed to parse start and end time")
-
             metadata.update(
                 {
                     "MX_dataCollectionId": datacollection_dict.get("collection_id"),
@@ -1149,7 +1185,6 @@ class ICATLIMS(AbstractLims):
                     ),
                     "MX_position_id": workflow_params.get("workflow_position_id"),
                     "group_by": workflow_params.get("workflow_group_by"),
-                    "startDate": start_time,
                 }
             )
 
@@ -1171,7 +1206,7 @@ class ICATLIMS(AbstractLims):
             )
 
             try:
-                metadata["lims"] = HWR.beamline.lims.get_active_lims()
+                metadata["lims"] = HWR.beamline.lims.get_active_lims().name
             except Exception:
                 logger.exception("Failed to read get_active_lims.")
 
