@@ -720,9 +720,9 @@ class SampleQueueEntry(BaseQueueEntry):
             logging.getLogger("user_level_log").warning(msg)
 
         self.sample_centring_result.set(centring_info)
-        if not success:
-            HWR.beamline.queue_manager.pause(False)
-            print('===== loop centring failed, auto unpause queue')
+        # if not success:
+        HWR.beamline.queue_manager.pause(False)
+        print('===== loop centring failed, auto unpause queue')
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
@@ -856,45 +856,46 @@ def mount_sample(view, data_model, centring_done_cb, async_result):
                     "Mockup",
                 ):
                     return
-            try:
-                dm.connect("centringAccepted", centring_done_cb)
-                centring_method = view.listView().parent().parent().centring_method
-                if centring_method == CENTRING_METHOD.MANUAL:
-                    log.warning(
-                        "Manual centring used, waiting for" + " user to center sample"
-                    )
-                    dm.start_centring_method(dm.MANUAL3CLICK_MODE)
-                elif centring_method == CENTRING_METHOD.LOOP:
-                    dm.start_centring_method(dm.C3D_MODE)
-                    log.warning(
-                        "Centring in progress. Please save"
-                        + " the suggested centring or re-center"
-                    )
-                elif centring_method == CENTRING_METHOD.FULLY_AUTOMATIC:
-                    log.info("Centring sample, please wait.")
-                    dm.start_centring_method(dm.C3D_MODE)
-                else:
-                    dm.start_centring_method(dm.MANUAL3CLICK_MODE)
-
-                view.setText(1, "Centring !")
-                centring_result = async_result.get()
-                if centring_result["valid"]:
-                    view.setText(1, "Centring done !")
-                    log.info("Centring saved")
-                else:
-                    view.setText(1, "Centring failed !")
-                    HWR.beamline.queue_manager.pause(False)
-                    print('===== loop centring failed 2, auto unpause queue')
-                    if centring_method == CENTRING_METHOD.FULLY_AUTOMATIC:
-                        raise QueueSkippEntryException(
-                            "Could not center sample, skipping", ""
-                        )
-                    else:
-                        raise RuntimeError("Could not center sample")
-            except Exception as ex:
-                log.exception("Could not center sample: " + str(ex))
-            finally:
-                dm.disconnect("centringAccepted", centring_done_cb)
+            # try:
+            #     dm.connect("centringAccepted", centring_done_cb)
+            #     centring_method = view.listView().parent().parent().centring_method
+            #     if centring_method == CENTRING_METHOD.MANUAL:
+            #         log.warning(
+            #             "Manual centring used, waiting for" + " user to center sample"
+            #         )
+            #         dm.start_centring_method(dm.MANUAL3CLICK_MODE)
+            #     elif centring_method == CENTRING_METHOD.LOOP:
+            #         dm.start_centring_method(dm.C3D_MODE)
+            #         log.warning(
+            #             "Centring in progress. Please save"
+            #             + " the suggested centring or re-center"
+            #         )
+            #     elif centring_method == CENTRING_METHOD.FULLY_AUTOMATIC:
+            #         log.info("Centring sample, please wait.")
+            #         dm.start_centring_method(dm.C3D_MODE)
+            #     else:
+            #         dm.start_centring_method(dm.MANUAL3CLICK_MODE)
+            #
+            #     view.setText(1, "Centring !")
+            #     centring_result = async_result.get()
+            #     if centring_result["valid"]:
+            #         view.setText(1, "Centring done !")
+            #         HWR.beamline.queue_manager.pause(False)
+            #         log.info("Centring saved")
+            #     else:
+            #         view.setText(1, "Centring failed !")
+            #         HWR.beamline.queue_manager.pause(False)
+            #         print('===== loop centring failed 2, auto unpause queue')
+            #         if centring_method == CENTRING_METHOD.FULLY_AUTOMATIC:
+            #             raise QueueSkippEntryException(
+            #                 "Could not center sample, skipping", ""
+            #             )
+            #         else:
+            #             raise RuntimeError("Could not center sample")
+            # except Exception as ex:
+            #     log.exception("Could not center sample: " + str(ex))
+            # finally:
+            #     dm.disconnect("centringAccepted", centring_done_cb)
 
 
 class DelayQueueEntry(BaseQueueEntry):

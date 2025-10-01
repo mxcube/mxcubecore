@@ -456,10 +456,10 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         HWR.beamline.diffractometer.set_phase("Centring")
         HWR.beamline.diffractometer._wait_ready(30000)
         if self.centring_method == "AUTO_LOOP":
-            logging.getLogger("HWR").info("CENTRING_METHOD: auto LOOP CENTRING")
+            logging.getLogger("HWR").info("@@@ CENTRING_METHOD: auto LOOP CENTRING")
             HWR.beamline.diffractometer.start_auto_sample_centring("LOOP_CENTRING_ONLY")
         elif self.centring_method == "MANUAL":
-            logging.getLogger("HWR").info("CENTRING_METHOD: MANUAL CENTRING")
+            logging.getLogger("HWR").info("@@@ CENTRING_METHOD: MANUAL CENTRING")
 
     def test_exception(self):
         try:

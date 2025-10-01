@@ -168,7 +168,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                 logging.getLogger("HWR").debug(
                     "queue entry in list: "
                 )  # 添加
-                print(qe)
+                print(f"__execute_task - queueEntry: {qe}")
                 try:
                     self.__execute_entry(qe)
                 except (base_queue_entry.QueueAbortedException, Exception) as ex:
@@ -213,9 +213,9 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         if self.is_paused():
             logging.getLogger("user_level_log").info("Queue paused, waiting ...")
             entry.get_view().setText(1, "Queue paused, waiting")
-
+        print('@@@ before wait_for_pause_event')
         self.wait_for_pause_event()
-
+        print('@@@ after wait_for_pause_event')
         try:
             # Procedure to be done before main implementation
             # of task.
