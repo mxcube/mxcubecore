@@ -1473,6 +1473,8 @@ class P11NanoDiff(GenericDiffractometer):
                 self.log.rror(
                     "motor_positions is not a dict and cannot be converted using as_dict()"
                 )
+
+                logging.getLogger("HWR").exception("")
                 return
 
         # Move translation motors

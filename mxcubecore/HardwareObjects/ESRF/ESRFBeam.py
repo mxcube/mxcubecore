@@ -398,4 +398,4 @@ class ESRFBeam(AbstractBeam):
                 if self._monitorbeam_obj.get_value().value:
                     self._beam_check_obj.wait_for_beam(timeout)
             except AttributeError:
-                pass
+                logging.getLogger("HWR").exception("")

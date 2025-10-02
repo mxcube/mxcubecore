@@ -63,7 +63,7 @@ class SpecState(Procedure):
         try:
             cmd = self.get_command_object("SpecStateMacro")
         except KeyError:
-            pass
+            logging.getLogger("HWR").exception("")
         else:
             if cmd is not None:
                 cmd.disconnect_signal("commandReady", self.commandReady)

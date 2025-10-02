@@ -106,7 +106,7 @@ class P11ISPyBClient(ProposalISPyBClient):
                 logging.debug("P11 ISPyBClient - %s is %s " % (prop, ispyb_path))
                 mx_collect_dict[prop] = ispyb_path
             except RuntimeWarning("Can not get ISPyB path for %s" % prop):
-                pass
+                logging.getLogger("HWR").exception("")
 
     def prepare_image_for_lims(self, image_dict):
         for prop in ["jpegThumbnailFileFullPath", "jpegFileFullPath"]:
@@ -115,7 +115,7 @@ class P11ISPyBClient(ProposalISPyBClient):
                 ispyb_path = HWR.beamline.session.path_to_ispyb(path)
                 image_dict[prop] = ispyb_path
             except RuntimeWarning("Can not prepare image path fir LIMS for %s" % prop):
-                pass
+                logging.getLogger("HWR").exception("")
 
     def get_proposal(self, proposal_code, proposal_number):
         logging.getLogger("HWR").debug(

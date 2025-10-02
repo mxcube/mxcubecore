@@ -55,6 +55,8 @@ class DigitalZoomMotor(AbstractMotor, HardwareObject):
             self.camera = self.get_object_by_role("camera")
         except KeyError:
             logging.getLogger("HWR").warning("DigitalZoomMotor: camera not defined")
+
+            logging.getLogger("HWR").exception("")
             return
         try:
             self.read_only = not (self.camera.zoom_exists())

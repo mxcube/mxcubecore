@@ -262,6 +262,8 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
             ft = ft / 100  # [0, 1]
         except Exception as e:
             print("Error on setting Pilatus transmission: {}".format(str(e)))
+
+            logging.getLogger("HWR").exception("")
             return False
 
         # Write to det (values will be on the cbf header)

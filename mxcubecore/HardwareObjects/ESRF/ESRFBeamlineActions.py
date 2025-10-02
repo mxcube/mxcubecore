@@ -36,6 +36,7 @@ Example xml file:
 """
 
 import ast
+import logging
 
 from mxcubecore.HardwareObjects.BeamlineActions import (
     BeamlineActions,
@@ -69,7 +70,7 @@ class ESRFBeamlineActions(BeamlineActions):
                     action = getattr(controller, key)
                     self.ctrl_list.append(ControllerCommand(name, action))
         except KeyError:
-            pass
+            logging.getLogger("HWR").exception("")
 
         try:
             hwobj_cmd_roles = ast.literal_eval(
@@ -86,7 +87,7 @@ class ESRFBeamlineActions(BeamlineActions):
                     except:
                         pass
         except AttributeError:
-            pass
+            logging.getLogger("HWR").exception("")
 
     def get_commands(self):
         """Get which objects to be used in the GUI

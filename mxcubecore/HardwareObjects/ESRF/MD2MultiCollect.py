@@ -22,7 +22,7 @@ class MD2MultiCollect(ESRFMultiCollect):
             comment = HWR.beamline.sample_changer.get_crystal_id()
             data_collect_parameters["comment"] = comment
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
 
     @task
     def get_beam_size(self):

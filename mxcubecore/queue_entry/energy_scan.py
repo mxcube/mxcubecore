@@ -195,7 +195,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         try:
             energy_scan.result.data = HWR.beamline.energy_scan.get_scan_data()
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
 
         if (
             sample.crystals[0].energy_scan_result.peak

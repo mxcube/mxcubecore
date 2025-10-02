@@ -141,9 +141,9 @@ def process_tango_events():
                     try:
                         receiver_cb(event.attr_value.value)
                     except AttributeError:
-                        pass
+                        logging.getLogger("HWR").exception("")
             except KeyError:
-                pass
+                logging.getLogger("HWR").exception("")
 
 
 class PoolChannel(ChannelObject):
@@ -217,7 +217,7 @@ class PoolChannel(ChannelObject):
                                 self.attribute_name, PyTango.EventType.CHANGE, self, []
                             )
                         except PyTango.EventSystemFailed:
-                            pass
+                            logging.getLogger("HWR").exception("")
 
     def push_event(self, event):
         PoolChannel._eventReceivers[id(event)] = BoundMethodWeakref(self.update)
@@ -250,7 +250,7 @@ class PoolChannel(ChannelObject):
         try:
             s = self.device.State()
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
         else:
             if s == PyTango.DevState.OFF:
                 return

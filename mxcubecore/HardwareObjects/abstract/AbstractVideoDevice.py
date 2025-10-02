@@ -42,7 +42,7 @@ import numpy as np
 try:
     import cv2
 except ImportError:
-    pass
+    logging.getLogger("HWR").exception("")
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
@@ -120,7 +120,7 @@ class AbstractVideoDevice(HardwareObject):
         try:
             self.cam_gain = float(self.get_property("gain"))
         except TypeError:
-            pass
+            logging.getLogger("HWR").exception("")
 
         try:
             self.cam_exposure = float(self.get_property("exposure"))

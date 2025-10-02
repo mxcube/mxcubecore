@@ -77,6 +77,8 @@ class wrap_errors(object):
             return func(*args, **kwargs)
         except Exception:
             sys.excepthook(*sys.exc_info())
+
+            logging.getLogger("HWR").exception("")
             return TaskException(*sys.exc_info())
 
     def __str__(self):

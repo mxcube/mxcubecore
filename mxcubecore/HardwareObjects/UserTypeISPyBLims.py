@@ -185,7 +185,7 @@ class UserTypeISPyBLims(ISPyBAbstractLIMS):
                                         session.endDate, "%Y-%m-%d %H:%M:%S"
                                     )
                                 except Exception:
-                                    pass
+                                    logging.getLogger("HWR").exception("")
                                 sessions.append(utf_encode(asdict(session)))
 
                     except WebFault as e:
@@ -281,7 +281,7 @@ class UserTypeISPyBLims(ISPyBAbstractLIMS):
                                 session.endDate, "%Y-%m-%d %H:%M:%S"
                             )
                         except Exception:
-                            pass
+                            logging.getLogger("HWR").exception("")
 
                         sessions.append(utf_encode(asdict(session)))
 
@@ -291,6 +291,8 @@ class UserTypeISPyBLims(ISPyBAbstractLIMS):
 
         except URLError:
             logging.getLogger("ispyb_client").warning(_CONNECTION_ERROR_MSG)
+
+            logging.getLogger("HWR").exception("")
             return empty_dict
 
         logging.getLogger("ispyb_client").info(str(sessions))

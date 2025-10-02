@@ -640,7 +640,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                         "queue_entry"
                     ].execute()
                 except Exception:
-                    pass
+                    logging.getLogger("HWR").exception("")
                 self.interleave_items[item["collect_index"]][
                     "queue_entry"
                 ].post_execute()
@@ -804,7 +804,7 @@ class SampleQueueEntry(BaseQueueEntry):
             programs = HWR.beamline.collect["auto_processing"]
             autoprocessing.start(programs, "end_multicollect", params)
         except KeyError:
-            pass
+            logging.getLogger("HWR").exception("")
 
         self._set_background_color()
         self._view.setText(1, "")

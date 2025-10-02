@@ -59,7 +59,7 @@ class ExporterClient(StandardClient):
                 tokens = msg[4:].split(PARAMETER_SEPARATOR)
                 self.on_event(tokens[0], tokens[1], int(tokens[2]))
             except Exception:
-                pass
+                logging.getLogger("HWR").exception("")
         else:
             StandardClient.on_message_received(self, msg)
 
@@ -187,7 +187,7 @@ class ExporterClient(StandardClient):
         try:
             process_return = self.__process_return(ret)
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
         return process_return
 
     def read_property_as_string_array(self, prop):

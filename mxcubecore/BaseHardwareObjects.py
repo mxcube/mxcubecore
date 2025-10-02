@@ -486,7 +486,7 @@ class HardwareObjectNode:
         try:
             index = self.__objects_names.index(object_name)
         except ValueError:
-            pass
+            logging.getLogger("HWR").exception("")
         else:
             for obj in self.__objects[index]:
                 yield obj

@@ -20,6 +20,7 @@
 
 """ProtocolError and StandardClient implementation"""
 
+import logging
 import socket
 import sys
 
@@ -109,7 +110,7 @@ class StandardClient:
         try:
             self.__sock.close()
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
         self._is_connected = False
         self.__sock = None
         self.received_msg = None
@@ -249,7 +250,7 @@ class StandardClient:
         try:
             self.on_connected()
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
         buffer = empty_buffer()
         mReceivedSTX = False
         while True:
@@ -288,7 +289,7 @@ class StandardClient:
         try:
             self.on_disconnected()
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
 
     def __send_stream(self, cmd):
         """Send a command.

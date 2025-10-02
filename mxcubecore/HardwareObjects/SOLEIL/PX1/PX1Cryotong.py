@@ -104,7 +104,7 @@ class PX1Cryotong(Cats90):
                     self._cmdAckSampleMemory()
                 except Exception:
                     """ do nothing if cmd not to acknowledge not in xml """
-                    pass
+                    logging.getLogger("HWR").exception("")
             self.incoherent_state = value
 
     def _dry_and_soak_needed(self, value=None):

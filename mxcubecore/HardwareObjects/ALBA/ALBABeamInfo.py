@@ -78,7 +78,7 @@ class ALBABeamInfo(HardwareObject):
                 self.get_property("beam_divergence_horizontal")
             )
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
 
         self.default_beam_divergence = [
             default_beam_divergence_horizontal,

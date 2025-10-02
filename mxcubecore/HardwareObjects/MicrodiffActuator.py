@@ -54,7 +54,7 @@ class MicrodiffActuator(AbstractActuator):
             tt = float(self.get_property("timeout"))
             self.timeout = tt
         except TypeError:
-            pass
+            logging.getLogger("HWR").exception("")
 
         if self.get_property("use_hwstate"):
             self.hwstate_attr = self.add_channel(

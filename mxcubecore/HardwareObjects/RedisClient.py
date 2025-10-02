@@ -88,7 +88,7 @@ class RedisClient(HardwareObject):
         try:
             self.connect(HWR.beamline.flux, "fluxChanged", self.flux_changed)
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
 
         self.proposal_id = HWR.beamline.session.get_proposal()
         self.beamline_name = HWR.beamline.session.beamline_name
@@ -162,7 +162,7 @@ class RedisClient(HardwareObject):
                 )
                 logging.getLogger("HWR").debug("RedisClient: Graphics loaded")
             except Exception:
-                pass
+                logging.getLogger("HWR").exception("")
 
     def save_queue_history_item(self, item):
         """Saves queue history in redisDB"""
@@ -187,7 +187,7 @@ class RedisClient(HardwareObject):
                 for item in items:
                     result.append(eval(item))
             except Exception:
-                pass
+                logging.getLogger("HWR").exception("")
         return result
 
     def clear_db(self):

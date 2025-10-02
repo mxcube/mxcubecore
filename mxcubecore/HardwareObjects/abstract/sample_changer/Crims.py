@@ -16,6 +16,8 @@ def get_image(url: str) -> Optional[bytes]:
         logging.getLogger("user_level_log").warning(
             "Failed to fetch image from %s: %s", url, e
         )
+
+        logging.getLogger("HWR").exception("")
         return None
 
 
@@ -28,6 +30,8 @@ def get_image_size(url: str) -> Tuple[int, int]:
         logging.getLogger("user_level_log").warning(
             "Failed to get image size from %s: %s", url, e
         )
+
+        logging.getLogger("HWR").exception("")
         return (0, 0)
 
 
@@ -147,6 +151,8 @@ def get_processing_plan(
         logging.getLogger("user_level_log").warning(
             "Error getting processing plan from  %s : %s", url, e
         )
+
+        logging.getLogger("HWR").exception("")
         return None
 
 
@@ -174,4 +180,6 @@ def send_data_collection_info_to_crims(
         return True
     except requests.RequestException as e:
         logging.getLogger("user_level_log").warning("Request to %s failed: %s", url, e)
+
+        logging.getLogger("HWR").exception("")
         return False

@@ -255,20 +255,20 @@ class P11EDNACharacterisation(EDNACharacterisation):
             wavelength = HWR.beamline.energy.get_wavelength()
             beam.setWavelength(XSDataWavelength(wavelength))
         except AttributeError:
-            pass
+            logging.getLogger("HWR").exception("")
 
         try:
             # Flux get_value() subsequently executing measure_flux() to fill in the dictionary
 
             beam.setFlux(XSDataFlux(HWR.beamline.flux.get_value()))
         except AttributeError:
-            pass
+            logging.getLogger("HWR").exception("")
 
         try:
             min_exp_time = self.collect_obj.detector_hwobj.get_exposure_time_limits()[0]
             beam.setMinExposureTimePerImage(XSDataTime(min_exp_time))
         except AttributeError:
-            pass
+            logging.getLogger("HWR").exception("")
 
         try:
             beamsize = self.collect_obj.beam_info_hwobj.get_beam_size()
@@ -281,7 +281,7 @@ class P11EDNACharacterisation(EDNACharacterisation):
                     )
                 )
         except AttributeError:
-            pass
+            logging.getLogger("HWR").exception("")
 
         # Optimization parameters
         diff_plan = edna_input.getDiffractionPlan()
@@ -476,7 +476,7 @@ class P11EDNACharacterisation(EDNACharacterisation):
             collection_plan = edna_strategy.getCollectionPlan()[0]
             wedges = collection_plan.getCollectionStrategy().getSubWedge()
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
         else:
             try:
                 resolution = (
@@ -558,7 +558,7 @@ class P11EDNACharacterisation(EDNACharacterisation):
                         goniostat.getRotationAxisStart().getValue()
                     )
                 except AttributeError:
-                    pass
+                    logging.getLogger("HWR").exception("")
                 """ GB:
                 try:
                     acquisition_parameters.osc_end = (
@@ -574,7 +574,7 @@ class P11EDNACharacterisation(EDNACharacterisation):
                         goniostat.getOscillationWidth().getValue()
                     )
                 except AttributeError:
-                    pass
+                    logging.getLogger("HWR").exception("")
 
                 try:
                     num_images = int(
@@ -591,26 +591,26 @@ class P11EDNACharacterisation(EDNACharacterisation):
                     acq.path_template.start_num = 1
 
                 except AttributeError:
-                    pass
+                    logging.getLogger("HWR").exception("")
 
                 try:
                     acquisition_parameters.transmission = (
                         beam.getTransmission().getValue()
                     )
                 except AttributeError:
-                    pass
+                    logging.getLogger("HWR").exception("")
 
                 try:
                     acquisition_parameters.energy = round(
                         (123_984.0 / beam.getWavelength().getValue()) / 10000.0, 4
                     )
                 except AttributeError:
-                    pass
+                    logging.getLogger("HWR").exception("")
 
                 try:
                     acquisition_parameters.exp_time = beam.getExposureTime().getValue()
                 except AttributeError:
-                    pass
+                    logging.getLogger("HWR").exception("")
 
                 dc = qmo.DataCollection([acq], crystal, processing_parameters)
                 data_collections.append(dc)
@@ -652,6 +652,6 @@ class P11EDNACharacterisation(EDNACharacterisation):
             html_report = html_report.replace("/beamline/p11", "/gpfs")
 
         except AttributeError:
-            pass
+            logging.getLogger("HWR").exception("")
 
         return html_report

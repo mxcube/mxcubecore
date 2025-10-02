@@ -24,6 +24,7 @@ Implements validate_value, set/update limits.
 
 import abc
 import ast
+import logging
 from enum import (
     Enum,
     unique,
@@ -92,7 +93,7 @@ class AbstractNState(AbstractActuator):
             values_dict.update(values)
             self.VALUES = Enum("ValueEnum", values_dict)
         except (ValueError, TypeError):
-            pass
+            logging.getLogger("HWR").exception("")
 
     def value_to_enum(self, value, idx=0):
         """Transform a value to Enum

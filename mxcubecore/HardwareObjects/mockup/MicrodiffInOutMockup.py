@@ -45,7 +45,7 @@ class MicrodiffInOutMockup(HardwareObject):
             tt = float(self.get_property("timeout"))
             self.timeout = tt
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
 
         self.moves = dict((self.states[k], k) for k in self.states)
 

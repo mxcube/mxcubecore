@@ -133,9 +133,9 @@ def process_tango_events():
                     try:
                         gevent.spawn(receiverCb, ev.event.attr_value.value)
                     except AttributeError:
-                        pass
+                        logging.getLogger("HWR").exception("")
             except KeyError:
-                pass
+                logging.getLogger("HWR").exception("")
 
 
 class E:

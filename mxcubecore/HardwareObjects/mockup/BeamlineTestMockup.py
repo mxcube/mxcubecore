@@ -130,6 +130,8 @@ class BeamlineTestMockup(HardwareObject):
                 logging.getLogger("HWR").warning(
                     "BeamlineTest: Unable to create test directories"
                 )
+
+                logging.getLogger("HWR").exception("")
                 return
 
         self.results_list = []

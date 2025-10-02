@@ -112,7 +112,7 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
             beam_x = self.beamx_chan.get_value()
             beam_y = self.beamy_chan.get_value()
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
         return beam_x, beam_y
 
     def get_manufacturer(self):

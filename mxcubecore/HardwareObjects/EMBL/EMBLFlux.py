@@ -428,7 +428,7 @@ class EMBLFlux(AbstractFlux):
                 self.cmd_flux_record([_x["flux"] for _x in self.measured_flux_list])
                 gevent.sleep(2)
             except Exception:
-                pass
+                logging.getLogger("HWR").exception("")
 
             max_frame_rate = 25
         else:

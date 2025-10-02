@@ -85,7 +85,7 @@ class ALBACollect(AbstractCollect):
             for undulator in self["undulators"]:
                 undulators.append(undulator)
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
 
         self.exp_type_dict = {"Mesh": "raster", "Helical": "Helical"}
 
@@ -815,7 +815,7 @@ class ALBACollect(AbstractCollect):
                 else:
                     return und_gaps
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
         return {}
 
     def get_slit_gaps(self):

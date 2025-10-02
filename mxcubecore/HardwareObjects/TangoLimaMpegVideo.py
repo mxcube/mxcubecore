@@ -117,7 +117,7 @@ class TangoLimaMpegVideo(TangoLimaVideo):
                 for p in ps:
                     p.kill()
             except psutil.NoSuchProcess:
-                pass
+                logging.getLogger("HWR").exception("")
 
             self._video_stream_process = None
 

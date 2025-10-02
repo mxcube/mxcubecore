@@ -377,6 +377,8 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
             self.store_energy_scan()
 
             logging.getLogger("GUI").error("Energy scan: Chooch failed")
+
+            logging.getLogger("HWR").exception("")
             return None, None, None, None, None, None, None, [], [], [], None
 
         rm = (pk + 30) / 1000.0
@@ -514,7 +516,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                     }
                 )
         except IndexError:
-            pass
+            logging.getLogger("HWR").exception("")
         return elements
 
     def get_scan_data(self):
