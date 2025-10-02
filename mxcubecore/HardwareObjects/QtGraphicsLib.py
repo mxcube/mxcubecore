@@ -466,7 +466,7 @@ class GraphicsItemPoint(GraphicsItem):
                 self.__centred_position.kappa_phi,
             )
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
         return full_name
 
     def get_centred_position(self):
@@ -602,7 +602,7 @@ class GraphicsItemLine(GraphicsItem):
                 start_cpos.kappa_phi,
             )
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
         return full_name
 
     def paint(self, painter, option, widget):

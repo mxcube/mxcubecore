@@ -59,7 +59,7 @@ def utf_decode(res_d):
         try:
             res_d[key] = value.decode("utf8", "ignore")
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
 
     return res_d
 
@@ -529,7 +529,7 @@ class ISPyBDataAdapter:
                         session_dict["timeStamp"].split("+")[0], "%Y-%m-%d %H:%M:%S"
                     )
                 except Exception:
-                    pass
+                    logging.getLogger("HWR").exception("")
 
                 # return data to original codification
                 decoded_dict = utf_decode(session_dict)
@@ -673,7 +673,7 @@ class ISPyBDataAdapter:
             try:
                 del energyscan_dict["remoteEnergy"]
             except KeyError:
-                pass
+                logging.getLogger("HWR").exception("")
 
             status["energyScanId"] = self._collection.service.storeOrUpdateEnergyScan(
                 energyscan_dict

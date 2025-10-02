@@ -392,7 +392,7 @@ class EnergyScanMockup(AbstractEnergyScan):
             for el in self.config.elements["element"]:
                 elements.append({"symbol": el["symbol"], "energy": el["energy"]})
         except IndexError:
-            pass
+            logging.getLogger("HWR").exception("")
         return elements
 
     #

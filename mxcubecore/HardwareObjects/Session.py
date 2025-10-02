@@ -5,6 +5,7 @@ Contains information regarding the current session and methods to
 access and manipulate this information.
 """
 
+import logging
 import os
 import socket
 import time
@@ -93,7 +94,7 @@ class Session(HardwareObject):
                 domain = socket.getfqdn().split(".")
                 self.email_extension = ".".join((domain[-2], domain[-1]))
             except (TypeError, IndexError):
-                pass
+                logging.getLogger("HWR").exception("")
 
         self.set_base_data_directories(
             file_info["base_directory"],

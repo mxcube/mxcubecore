@@ -294,7 +294,7 @@ class QtGraphicsManager(AbstractSampleView):
                 self.image_scale = self.get_property("default_image_scale")
                 self.set_image_scale(self.image_scale, self.image_scale is not None)
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
 
         """
         if self.get_property("store_graphics_config") == True:
@@ -335,7 +335,7 @@ class QtGraphicsManager(AbstractSampleView):
                 eval(self.get_property("magnification_tool"))
             )
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
 
         # try:
         #    self.set_view_scale(self.get_property("view_scale"))
@@ -797,7 +797,7 @@ class QtGraphicsManager(AbstractSampleView):
             date_time_str = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
             result_image.save("/opt/embl-hh/var/crystal_images/%s.png" % date_time_str)
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
 
     def diffractometer_centring_failed(self, method, centring_status):
         """CleanUp method after centring failed

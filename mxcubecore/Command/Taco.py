@@ -104,7 +104,7 @@ class TacoCommand(CommandObject):
         try:
             callback = self.__value_changed_callback_ref()
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
         else:
             if callback is not None:
                 callback(device_name, value)
@@ -116,7 +116,7 @@ class TacoCommand(CommandObject):
             try:
                 poller.restart(1000)
             except Exception:
-                pass
+                logging.getLogger("HWR").exception("")
 
     def poll(
         self,

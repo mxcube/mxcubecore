@@ -20,6 +20,8 @@
 TangoMotor class defines motor in the Tango control system (used and tested in DESY/P11
 """
 
+import logging
+
 import gevent
 
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
@@ -106,7 +108,7 @@ class TangoMotor(AbstractMotor):
                 if self.get_property("default_limits"):
                     self.update_limits(eval(self.get_property("default_limits")))
             except Exception:
-                pass
+                logging.getLogger("HWR").exception("")
 
         self.cmd_stop = self.get_command_object("stopAxis")
         if self.cmd_stop is None:

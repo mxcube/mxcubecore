@@ -168,7 +168,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                         qe.handle_exception(ex)
                         self.stop()
                     except gevent.GreenletExit:
-                        pass
+                        logging.getLogger("HWR").exception("")
 
                     if isinstance(ex, base_queue_entry.QueueAbortedException):
                         logging.getLogger("user_level_log").warning(
@@ -276,9 +276,9 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                     qe.stop()
                     qe.post_execute()
                 except base_queue_entry.QueueAbortedException:
-                    pass
+                    logging.getLogger("HWR").exception("")
                 except Exception:
-                    pass
+                    logging.getLogger("HWR").exception("")
 
         if self._root_task:
             self._root_task.kill(block=False)

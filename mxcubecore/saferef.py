@@ -1,6 +1,7 @@
 """Refactored 'safe reference from dispatcher.py"""
 
 import collections
+import logging
 import traceback
 import weakref
 
@@ -115,7 +116,7 @@ class BoundMethodWeakref(object):
             try:
                 del self.__class__._all_instances[self.key]
             except KeyError:
-                pass
+                logging.getLogger("HWR").exception("")
             for function in methods:
                 try:
                     if isinstance(function, collections.abc.Callable):

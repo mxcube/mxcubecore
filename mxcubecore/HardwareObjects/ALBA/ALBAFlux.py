@@ -19,7 +19,7 @@ class ALBAFlux(Device, AbstractFlux.AbstractFlux):
             if fluxlast > 1e7:
                 return self.last_current_trans()
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
 
         logging.getLogger("HWR").debug(
             " Abnormally low value of flux. Returning default value"

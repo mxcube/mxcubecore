@@ -88,7 +88,7 @@ class XMLRPCServer(HardwareObject):
             self._server.server_close()
             del self._server
         except AttributeError:
-            pass
+            logging.getLogger("HWR").exception("")
 
     def open(self):
         # The value of the member self.port is set in the xml configuration
@@ -691,7 +691,7 @@ class XMLRPCServer(HardwareObject):
                         module_name + "." + sub_module[1], recurse=False, prefix=prefix
                     )
                 except StopIteration:
-                    pass
+                    logging.getLogger("HWR").exception("")
 
     def set_token(self, token):
         SecureXMLRpcRequestHandler.setReferenceToken(token)

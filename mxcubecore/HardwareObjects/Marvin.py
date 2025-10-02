@@ -871,7 +871,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                         Container.Pin.get_sample_address(basket_no, sample_no)
                     )
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
         self._set_selected_component(basket)
         self._set_selected_sample(sample)
 
@@ -1042,7 +1042,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                         self.emit("progressStep", self._progress)
                         self._info_dict["progress"] = self._progress
                 except Exception:
-                    pass
+                    logging.getLogger("HWR").exception("")
             elif prop_name == "CPuck":
                 if prop_value == "1":
                     centre_puck = True

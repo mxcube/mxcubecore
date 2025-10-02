@@ -58,7 +58,7 @@ class ISPyBAbstractLIMS(AbstractLims):
         try:
             self.base_result_url = self.get_property("base_result_url").strip()
         except AttributeError:
-            pass
+            logging.getLogger("HWR").exception("")
 
         self.adapter = self._create_data_adapter()
         logging.getLogger("HWR").debug("[ISPYB] Proxy address: %s" % self.proxy)
@@ -72,15 +72,15 @@ class ISPyBAbstractLIMS(AbstractLims):
                 try:
                     self._translations[code]["ldap"] = proposal.ldap
                 except AttributeError:
-                    pass
+                    logging.getLogger("HWR").exception("")
                 try:
                     self._translations[code]["ispyb"] = proposal.ispyb
                 except AttributeError:
-                    pass
+                    logging.getLogger("HWR").exception("")
                 try:
                     self._translations[code]["gui"] = proposal.gui
                 except AttributeError:
-                    pass
+                    logging.getLogger("HWR").exception("")
 
     def _create_data_adapter(self) -> ISPyBDataAdapter:
         return ISPyBDataAdapter(
@@ -180,7 +180,7 @@ class ISPyBAbstractLIMS(AbstractLims):
                     )
                     return sample
             except (TypeError, KeyError):
-                pass
+                logging.getLogger("HWR").exception("")
         return None
 
     def get_samples(self, lims_name):

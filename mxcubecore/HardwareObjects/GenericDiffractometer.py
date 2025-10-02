@@ -363,7 +363,7 @@ class GenericDiffractometer(HardwareObject):
             try:
                 self.used_channels_list = eval(ss0)
             except Exception:
-                pass  # used the default value
+                logging.getLogger("HWR").exception("")
 
         for channel_name in self.used_channels_list:
             self.channel_dict[channel_name] = self.get_channel_object(channel_name)
@@ -392,7 +392,7 @@ class GenericDiffractometer(HardwareObject):
         try:
             self.used_commands_list = eval(self.get_property("used_commands", "[]"))
         except Exception:
-            pass  # used the default value
+            logging.getLogger("HWR").exception("")
         for command_name in self.used_commands_list:
             self.command_dict[command_name] = self.get_command_object(command_name)
 
@@ -479,12 +479,12 @@ class GenericDiffractometer(HardwareObject):
                     self.motor_hwobj_dict["sampy"]
                 )
         except Exception:
-            pass  # used the default value
+            logging.getLogger("HWR").exception("")
 
         try:
             self.delay_state_polling = self.get_property("delay_state_polling")
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
 
         # Other parameters ---------------------------------------------------
         try:
@@ -1412,7 +1412,7 @@ class GenericDiffractometer(HardwareObject):
                 self.sample_is_loaded_changed,
             )
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
 
         if (
             head_type == GenericDiffractometer.HEAD_TYPE_MINIKAPPA

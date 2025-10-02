@@ -1,3 +1,4 @@
+import logging
 import xml.sax
 from xml.sax.handler import ContentHandler
 
@@ -374,7 +375,7 @@ class SC3(SampleChanger):
                         Pin.get_sample_address(basket_no, sample_no)
                     )
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
         self._set_selected_component(basket)
         self._set_selected_sample(sample)
 

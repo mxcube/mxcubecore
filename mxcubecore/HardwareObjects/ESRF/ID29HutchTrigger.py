@@ -42,6 +42,8 @@ class ID29HutchTrigger(BaseHardwareObjects.HardwareObject):
             self.card, self.channel = map(int, PSSinfo.split("/"))
         except Exception:
             logging.getLogger().error("%s: cannot find PSS number", self.name())
+
+            logging.getLogger("HWR").exception("")
             return
 
         if self.device is not None:

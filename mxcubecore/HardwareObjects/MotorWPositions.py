@@ -67,6 +67,8 @@ class MotorWPositions(AbstractMotor, Device):
             self.motor = self.get_object_by_role(role)
         except KeyError:
             logging.getLogger("HWR").error("MotorWPositions: motor not defined")
+
+            logging.getLogger("HWR").exception("")
             return
         try:
             self.delta = self["deltas"].get_property(role)

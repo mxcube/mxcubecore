@@ -82,7 +82,7 @@ class TineCommand(CommandObject):
         except IOError as strerror:
             logging.getLogger("HWR").error("%s" % strerror)
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
         return result
 
     def abort(self):

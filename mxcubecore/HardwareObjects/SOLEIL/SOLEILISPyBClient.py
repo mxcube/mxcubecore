@@ -45,7 +45,7 @@ class SOLEILISPyBClient(ISPyBClient):
             hdlr.setFormatter(formatter)
             logger.addHandler(hdlr)
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
 
         logger.setLevel(logging.INFO)
 
@@ -111,19 +111,19 @@ class SOLEILISPyBClient(ISPyBClient):
                 try:
                     self._translations[code]["ldap"] = proposal.ldap
                 except AttributeError:
-                    pass
+                    logging.getLogger("HWR").exception("")
                 try:
                     self._translations[code]["ispyb"] = proposal.ispyb
                 except AttributeError:
-                    pass
+                    logging.getLogger("HWR").exception("")
                 try:
                     self._translations[code]["gui"] = proposal.gui
                 except AttributeError:
-                    pass
+                    logging.getLogger("HWR").exception("")
         except IndexError:
-            pass
+            logging.getLogger("HWR").exception("")
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
 
     def translate(self, code, what):
         """
@@ -187,7 +187,7 @@ class SOLEILISPyBClient(ISPyBClient):
                 logging.debug("SOLEIL ISPyBClient - %s is %s " % (prop, ispyb_path))
                 mx_collect_dict[prop] = ispyb_path
             except Exception:
-                pass
+                logging.getLogger("HWR").exception("")
 
     def prepare_image_for_lims(self, image_dict):
         for prop in ["jpegThumbnailFileFullPath", "jpegFileFullPath"]:
@@ -196,7 +196,7 @@ class SOLEILISPyBClient(ISPyBClient):
                 ispyb_path = HWR.beamline.session.path_to_ispyb(path)
                 image_dict[prop] = ispyb_path
             except Exception:
-                pass
+                logging.getLogger("HWR").exception("")
 
 
 def test_hwo(hwo):

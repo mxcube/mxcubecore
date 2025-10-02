@@ -60,7 +60,7 @@ class TangoDCMotor(HardwareObject):
             try:
                 self.threshold = float(threshold)
             except Exception:
-                pass
+                logging.getLogger("HWR").exception("")
 
         self.set_is_ready(True)
         try:

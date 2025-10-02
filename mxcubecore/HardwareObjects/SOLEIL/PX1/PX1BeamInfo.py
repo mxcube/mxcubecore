@@ -85,7 +85,7 @@ class PX1BeamInfo(HardwareObject):
                     self.beam_info_dict["size_x"] = self.beam_size[0] = float(beamx)
                     self.beam_info_dict["size_y"] = self.beam_size[1] = float(beamy)
             except Exception:
-                pass
+                logging.getLogger("HWR").exception("")
 
     def connect_notify(self, signal):
         if signal == "beamInfoChanged":

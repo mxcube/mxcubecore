@@ -142,7 +142,7 @@ class MiniDiff(HardwareObject):
             try:
                 self.lightWago = hwr.get_hardware_object(wl_prop)
             except Exception:
-                pass
+                logging.getLogger("HWR").exception("")
 
         if self.phiMotor is not None:
             self.connect(self.phiMotor, "stateChanged", self.phiMotorStateChanged)

@@ -270,12 +270,12 @@ class AbstractMultiCollect(object):
         try:
             sample_container_number = int(sample_info["container_reference"])
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
         else:
             try:
                 vial_number = int(sample_info["sample_location"])
             except Exception:
-                pass
+                logging.getLogger("HWR").exception("")
             else:
                 sample_location = (sample_container_number, vial_number)
 
@@ -540,7 +540,7 @@ class AbstractMultiCollect(object):
             logging.getLogger("user_level_log").info("Getting centring status")
             centring_status = self.diffractometer().get_centring_status()
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
         else:
             centring_info = dict(centring_status)
 
@@ -644,7 +644,7 @@ class AbstractMultiCollect(object):
                         try:
                             f.close()
                         except Exception:
-                            pass
+                            logging.getLogger("HWR").exception("")
 
                     data_collect_parameters["xtalSnapshotFullPath%i" % snapshot_i] = (
                         full_snapshot
@@ -808,7 +808,7 @@ class AbstractMultiCollect(object):
                 HWR.beamline.beam.wait_for_beam()
                 HWR.beamline.cryo.wait_temperature()
             except AttributeError:
-                pass
+                logging.getLogger("HWR").exception("")
 
             logging.getLogger("user_level_log").info("Preparing intensity monitors")
             self.prepare_intensity_monitors()
@@ -1149,7 +1149,7 @@ class AbstractMultiCollect(object):
                             ),
                         )
                 except Exception:
-                    pass
+                    logging.getLogger("HWR").exception("")
                 else:
                     collections_analyse_params.append(
                         (

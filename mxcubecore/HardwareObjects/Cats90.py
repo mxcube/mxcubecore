@@ -429,7 +429,7 @@ class Cats90(SampleChanger):
             self.basket_types = self.cats_device.read_attribute("CassetteType").value
             self.number_of_baskets = len(self.basket_types)
         except PyTango.DevFailed:
-            pass
+            logging.getLogger("HWR").exception("")
 
         # find number of baskets and number of samples per basket
         if self.number_of_baskets is not None:
@@ -539,7 +539,7 @@ class Cats90(SampleChanger):
             if unipuck_tool:
                 self.set_unipuck_tool(unipuck_tool)
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
 
         self.update_info()
 
@@ -690,7 +690,7 @@ class Cats90(SampleChanger):
                         Pin.get_sample_address(basket_no, sample_no)
                     )
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
         self._set_selected_component(basket)
         self._set_selected_sample(sample)
 

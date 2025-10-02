@@ -84,7 +84,7 @@ class ISPyBRestClientMockup(HardwareObject):
         try:
             self.base_result_url = self.get_property("base_result_url").strip()
         except AttributeError:
-            pass
+            logging.getLogger("HWR").exception("")
 
         self.__update_rest_token()
 

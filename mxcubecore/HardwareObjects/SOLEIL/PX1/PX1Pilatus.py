@@ -111,7 +111,7 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
                 beam_x = value[0]
                 beam_y = value[1]
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
         return beam_x, beam_y
 
     def get_manufacturer(self):

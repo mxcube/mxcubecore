@@ -155,7 +155,7 @@ class SpecShell(HardwareObject):
                 try:
                     buf_list = buf.split()
                 except Exception:
-                    pass
+                    logging.getLogger("HWR").exception("")
                 else:
                     i = 0
                     while i < len(buf_list):
@@ -163,20 +163,20 @@ class SpecShell(HardwareObject):
                         try:
                             cmd_aux = buf_list[i + 1]
                         except Exception:
-                            pass
+                            logging.getLogger("HWR").exception("")
                         else:
                             try:
                                 left_par = cmd_aux[0]
                                 right_par = cmd_aux[-1]
                                 midle_num = cmd_aux[1:-1]
                             except Exception:
-                                pass
+                                logging.getLogger("HWR").exception("")
                             else:
                                 if left_par == "(" and right_par == ")":
                                     try:
                                         int(midle_num)
                                     except Exception:
-                                        pass
+                                        logging.getLogger("HWR").exception("")
                                     else:
                                         commands_list.append(cmd_name.lstrip("*"))
                         i += 2
@@ -222,7 +222,7 @@ class SpecShell(HardwareObject):
             try:
                 self.specShellCommand.abort()
             except SpecClient.SpecClientError.SpecClientError as diag:
-                pass
+                logging.getLogger("HWR").exception("")
 
     def outputReceived(self, output):
         if self.lsdefRunning:
@@ -250,7 +250,7 @@ class SpecShell(HardwareObject):
                 else:
                     cmds.append(cmd.method)
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
         return cmds
 
     def getAllCommands(self):

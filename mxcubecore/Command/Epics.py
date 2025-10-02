@@ -141,7 +141,7 @@ class EpicsCommand(CommandObject):
         try:
             callback = self.__value_changed_callback_ref()
         except Exception:
-            pass
+            logging.getLogger("HWR").exception("")
         else:
             if callback is not None:
                 callback(value)
@@ -155,7 +155,7 @@ class EpicsCommand(CommandObject):
             try:
                 poller.restart(1000)
             except Exception:
-                pass
+                logging.getLogger("HWR").exception("")
 
     def get_pv_value(self):
         """wrapper function to pv.get() in order to supply additional named parameter"""

@@ -253,7 +253,7 @@ class MXCuBEMetadataClient(object):
                 )
                 smtp.quit()
             except Exception:
-                pass
+                logging.getLogger("HWR").exception("")
         return errorMessage
 
     def start(self, data_collect_parameters):

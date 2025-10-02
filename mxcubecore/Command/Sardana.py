@@ -84,9 +84,9 @@ def processSardanaEvents():
                     try:
                         gevent.spawn(receiver_cb, ev)
                     except AttributeError:
-                        pass
+                        logging.getLogger("HWR").exception("")
             except KeyError:
-                pass
+                logging.getLogger("HWR").exception("")
 
 
 def wait_end_of_command(cmdobj):
@@ -188,6 +188,8 @@ class SardanaMacro(CommandObject, SardanaObject, ChannelObject):
                 "  - Wrong format for macro arguments. Macro is %s / args are (%s)"
                 % (self.macro_format, str(args))
             )
+
+            logging.getLogger("HWR").exception("")
             return
 
         try:
@@ -399,6 +401,8 @@ class SardanaChannel(ChannelObject, SardanaObject):
             self.attribute = Attribute(self.model)
         except DevFailed as traceback:
             self.imported = False
+
+            logging.getLogger("HWR").exception("")
             return
 
         # read information
@@ -471,7 +475,7 @@ class SardanaChannel(ChannelObject, SardanaObject):
             self.emit("update", self.value)
         except AttributeError:
             # No value in data... this is probably a connection error
-            pass
+            logging.getLogger("HWR").exception("")
 
     def is_connected(self):
         return self.attribute is not None

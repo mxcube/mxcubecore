@@ -1137,6 +1137,8 @@ class P11Collect(AbstractCollect):
                         os.mkdir(path, mode=0o777)
                     except RuntimeError:
                         self.log.debug("mkdir failed:", str(sys.exc_info()))
+
+                        logging.getLogger("HWR").exception("")
                         return False
                 else:
                     self.log.debug("dir not found:", str(sys.exc_info()))

@@ -119,6 +119,8 @@ class LNLSPilatusDet(AbstractDetector):
             logging.getLogger("HWR").error(
                 "Error while setting Pilatus threshold. Value must be float."
             )
+
+            logging.getLogger("HWR").exception("")
             return False
 
         target_threshold = energy / 2
@@ -178,6 +180,8 @@ class LNLSPilatusDet(AbstractDetector):
             logging.getLogger("HWR").error(
                 "Error while setting Pilatus wavelength. Value must be float."
             )
+
+            logging.getLogger("HWR").exception("")
             return False
 
         # if abs(self.wavelength - wavelength) < 0.0001:
@@ -223,6 +227,8 @@ class LNLSPilatusDet(AbstractDetector):
             logging.getLogger("HWR").error(
                 "Error while setting Pilatus det distance. Value must be float."
             )
+
+            logging.getLogger("HWR").exception("")
             return False
 
         # if abs(self.det_distance - det_distance) < 0.001:
@@ -380,6 +386,8 @@ class LNLSPilatusDet(AbstractDetector):
             logging.getLogger("HWR").error(
                 "Error while setting Pilatus transmission. Value must be float."
             )
+
+            logging.getLogger("HWR").exception("")
             return False
 
         logging.getLogger("HWR").info(
@@ -417,6 +425,8 @@ class LNLSPilatusDet(AbstractDetector):
             logging.getLogger("HWR").error(
                 "Error while setting Pilatus start angle. Value must be float."
             )
+
+            logging.getLogger("HWR").exception("")
             return False
 
         logging.getLogger("HWR").info(
@@ -454,6 +464,8 @@ class LNLSPilatusDet(AbstractDetector):
             logging.getLogger("HWR").error(
                 "Error while setting Pilatus angle increment. Value must be float."
             )
+
+            logging.getLogger("HWR").exception("")
             return False
 
         logging.getLogger("HWR").info(

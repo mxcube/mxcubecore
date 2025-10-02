@@ -68,6 +68,7 @@ splot is licensed under LGPL license
 
 """
 
+import logging
 import os
 import sys
 
@@ -99,9 +100,9 @@ try:
             if m:
                 mpl_version_no[2] = int(m.group("release"))
         except BaseException:
-            pass
+            logging.getLogger("HWR").exception("")
 except BaseException:
-    pass
+    logging.getLogger("HWR").exception("")
 
 if "--pyqt5" in sys.argv:
     qt_variant = "PyQt5"
@@ -239,12 +240,12 @@ if (qt_variant == "PyQt5") or (qt_variant is None and not qt_imported):
         ver = _ver + ["0"] * (3 - len(_ver))
         pyqt_version_no = list(map(int, ver))[:3]
     except ImportError:
-        pass
+        logging.getLogger("HWR").exception("")
 
     try:
         from PyQt5.QtWebKit import QWebPage
     except ImportError:
-        pass
+        logging.getLogger("HWR").exception("")
 
 #
 # PyQt4
@@ -380,12 +381,12 @@ if (qt_variant == "PyQt4") or (qt_variant is None and not qt_imported):
         ver = _ver + ["0"] * (3 - len(_ver))
         pyqt_version_no = list(map(int, ver))[:3]
     except BaseException:
-        pass
+        logging.getLogger("HWR").exception("")
 
     try:
         from PyQt4.QtWebKit import QWebPage
     except ImportError:
-        pass
+        logging.getLogger("HWR").exception("")
 
 #
 # PySide
@@ -423,7 +424,7 @@ if (qt_variant == "PySide") or (qt_variant is None and not qt_imported):
             return ui
 
     except BaseException:
-        pass
+        logging.getLogger("HWR").exception("")
 
 #
 #  Matplotlib backend assignment
