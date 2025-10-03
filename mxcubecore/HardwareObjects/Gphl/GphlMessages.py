@@ -1310,7 +1310,8 @@ class SampleCentred(Payload):
             self._wavelengths = tuple((data_model.wavelengths[0],))
             # if data_model.wftype != "diffractcal":
             #     self._detectorSetting = data_model.detector_setting
-        self._detectorSetting = data_model.detector_setting
+        if data_model.wftype != "diffractcal":
+            self._detectorSetting = data_model.detector_setting
 
     @property
     def imageWidth(self):
