@@ -111,8 +111,9 @@ class SampleView(AbstractSampleView):
 
         self.emit("shapesChanged")
 
-    def get_positions(self) -> dict:
+    def get_positions(self) -> dict[str, float]:
         """Get motor positions for the centring motors.
+
         Returns:
             Centring motor positions as {role: position}
         """
@@ -124,8 +125,14 @@ class SampleView(AbstractSampleView):
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
         return self.get_positions()
 
-    def motor_positions_to_screen(self, positions_dict: dict) -> tuple:
-        """Get the motor positions according to the calibration"""
+    def motor_positions_to_screen(
+        self, positions_dict: dict[str, float]
+    ) -> tuple[int, int]:
+        """Get the x,y pixel value according to the calibration.
+
+        Args:
+            positions_dict: Dictionary {role: position}
+        """
         if not positions_dict:
             raise RuntimeError("Unknown position")
         try:
@@ -159,10 +166,11 @@ class SampleView(AbstractSampleView):
             raise NotImplementedError from err
         return x, y
 
-    def start_manual_centring(self, nb_click=3):
+    def start_manual_centring(self, nb_click: int = 3):
         """Do the manual centring procedure.
+
         Args:
-           nb_click (int): Number of clicks.
+           nb_click: Number of clicks.
         """
         if self.current_centring_procedure is not None:
             logging.getLogger("HWR").exception("Already centring")
@@ -213,6 +221,7 @@ class SampleView(AbstractSampleView):
             self.centring_done()
 
     def centring_done(self):
+        """Execute if centring accepted."""
         self.centring_status = {"motors": {}, "method": self.current_centring_method}
         self.centring_status["motors"] = self.get_positions()
 
@@ -226,11 +235,13 @@ class SampleView(AbstractSampleView):
         self.current_centring_procedure = None
 
     def accept_centring(self):
+        """Accept the current centred position."""
         self.centring_status["valid"] = True
         self.emit("centringAccepted", (True, self.get_centring_status()))
         logging.getLogger("user_level_log").info("Centring successful")
 
     def reject_centring(self):
+        """Reject the current centred position."""
         if self.current_centring_procedure:
             self.current_centring_procedure.kill(block=True)
         self.centring_status["valid"] = False
@@ -286,7 +297,11 @@ class SampleView(AbstractSampleView):
         self.current_centring_procedure.link(self.auto_centring_done)
 
     def move_to_beam(self, x: float, y: float):
-        """Move the sample to the x,y coordinates"""
+        """Move the sample to the x,y coordinates.
+        Args:
+            x: Pixels on x axis
+            y: Pixels on y axis
+        """
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
         dm = HWR.beamline.diffractometer
         pixels_per_mm_x, pixels_per_mm_y = dm.get_pixels_per_mm()
@@ -331,18 +346,17 @@ class SampleView(AbstractSampleView):
 
     def get_snapshot(
         self,
-        overlay: [str | None] = None,
+        overlay: str | None = None,
         bw: bool = False,
         return_as_array: bool = False,
     ) -> BytesIO:
-        """
-        Get snapshot(s)
+        """Get snapshot(s)
 
         Args:
-            overlay(str): Image data with shapes and other items to display
+            overlay: Image data with shapes and other items to display
                           on the snapshot
-            bw(bool): return grayscale image
-            return_as_array(bool): return as np array
+            bw: return grayscale image
+            return_as_array: return as np array if True, Default False
 
         Returns:
             (BytesIO) snapshot as bytes image
@@ -358,29 +372,27 @@ class SampleView(AbstractSampleView):
         return buffered
 
     def save_snapshot(
-        self, filename: str, overlay: [str | None] = None, bw: bool = False
+        self, filename: str, overlay: str | None = None, bw: bool = False
     ):
-        """
-        Save a snapshot to file.
+        """Save a snapshot to file.
 
         Args:
-            filename(str): The filename.
-            overlay(str): Image data with shapes and other items to display
-                          on the snapshot
-            bw(bool): return grayscale image. Default False
+            filename: The filename.
+            overlay: Image data with shapes and other items to display
+                      on the snapshot
+            bw): return grayscale image if true. Default False
         """
         img = self.take_snapshot(overlay_data=overlay, bw=bw)
         img.save(filename)
 
         self._last_oav_image = filename
 
-    def take_snapshot(self, overlay_data: [str | None] = None, bw: bool = False):
-        """
-        Get snapshot with overlaid data.
+    def take_snapshot(self, overlay_data: str | None = None, bw: bool = False):
+        """Get snapshot with overlaid data.
 
         Args:
-            overlay_data (str): base64 encoded image to lay over camera image
-            bw (bool): return grayscale image
+            overlay_data: base64 encoded image to lay over camera image
+            bw: return grayscale image if True, Default False
 
         Returns:
             (Image) rgb or grayscale image
@@ -406,21 +418,19 @@ class SampleView(AbstractSampleView):
         return self._last_oav_image
 
     def add_shape(self, shape):
-        """
-        Add the shape <shape> to the dictionary of handled shapes.
+        """Add the shape <shape> to the dictionary of handled shapes.
 
         Args:
-            param (shape): Shape to add.
-            type (shape): Shape object.
+            shape: Shape to add.
         """
         self.shapes[shape.id] = shape
         shape.shapes_hw_object = self
 
     def add_shape_from_mpos(
         self,
-        mpos_list,
-        screen_coord,
-        t,
+        mpos_list: list[float],
+        screen_coord: tuple[int, int],
+        t: str,
         state: ShapeState = "SAVED",
         user_state: ShapeState = "SAVED",
     ):
@@ -429,9 +439,9 @@ class SampleView(AbstractSampleView):
         screen position screen_coord.
 
         Args:
-            mpos_list (list[mpos_list]): List of motor positions
-            screen_coord (tuple(x, y): Screen coordinate for shape
-            t (str): Type str for shape, P (Point), L (Line), G (Grid)
+            mpos_list: List of motor positions
+            screen_coord: Screen coordinate for shape (x, y)
+            t: Type str for shape, P (Point), L (Line), G (Grid)
 
         Returns:
             (Shape) Shape of type <t>
@@ -556,21 +566,19 @@ class SampleView(AbstractSampleView):
         Line.SHAPE_COUNT = 0
         Point.SHAPE_COUNT = 0
 
-    def get_shapes(self):
-        """
-        Get all Shapes.
+    def get_shapes(self) -> list:
+        """Get all Shapes.
 
         Returns:
             (list[Shape]) All the shapes
         """
         return self.shapes.values()
 
-    def get_points(self):
-        """
-        Get all Points currently handled.
+    def get_points(self) -> list:
+        """Get all Points currently handled.
 
         Returns:
-            (list[Point]) All points currently handled
+            List[Point] - All currently handled points.
         """
         current_points = []
 
@@ -580,12 +588,11 @@ class SampleView(AbstractSampleView):
 
         return current_points
 
-    def get_lines(self):
-        """
-        Get all Lines currently handled.
+    def get_lines(self) -> list:
+        """Get all Lines currently handled.
 
         Returns:
-            (list[Line]) All lines currently handled
+            List[Line] - All currently handled lines.
         """
         lines = []
 
@@ -595,12 +602,11 @@ class SampleView(AbstractSampleView):
 
         return lines
 
-    def get_grids(self):
-        """
-        Get all Grids currently handled.
+    def get_grids(self) -> list:
+        """Get all Grids currently handled.
 
         Returns:
-            (list[Grid]) All lines currently handled
+            List[Grid] - All currently handled grids,
         """
         grid = []
 
@@ -610,12 +616,11 @@ class SampleView(AbstractSampleView):
 
         return grid
 
-    def get_shape(self, sid):
-        """
-        Get Shape with id <sid>.
+    def get_shape(self, sid: str):
+        """Get Shape with id <sid>.
 
         Args:
-            sid (str): id of Shape to retrieve
+            sid: id of Shape to retrieve
 
         Returns:
             (Shape) All the shapes
@@ -904,7 +909,8 @@ class Grid(Shape):
     def get_result(self):
         return self.result
 
-    def as_dict(self):
+    def as_dict(self) -> dict:
+        """Convert a shape to a dictionary."""
         d = Shape.as_dict(self)
         # replace cpos_list with the motor positions
         d["motor_positions"] = self.cp_list[0].as_dict()

@@ -20,14 +20,43 @@
 
 """Abstract Diffractometer class.
 Initialises the username property and all the motors and nstate (discrete
-possitions) equipment, which are part of the diffractometer.
-The equipment is identified by the roles.
-The fixed motor roles are:
-omega, kappa, kappa_phi, horizontal_alignment, vertical_alignment,
-horizontal_centring, vertical_centring, focus, front_light, back_light
-The fixed nstate equipment roles are:
-fast_shutter, scintillator, fluo_detector, cryostream, front_light, back_light,
-zoom, aperture, beamstop, capillary, diode
+positions) equipment, which are part of the diffractometer.
+Certain number of roles are fixed and define a corresponding motor or nstate
+actuator object. This allows to use them in a standard way by the MXCuBE
+application (web or Qt).
+There is also a convention of the direction of the motors:
+  - x axis is parallel to the beam. Positive direction is from right to left.
+  - y axis is perpendicular to the beam, parallel to the ground. Positive
+      direction is from left to right when facing the beam.
+  - z axis is perpendicular to the floor. Positive direction is top down.
+
+Here follows the list of the fixed roles and the description of the
+corresponding objects, accessible via beamline.diffractometer hardware object.
+
+1. Motor objects (roles)  and their functionality:
+  omega - the rotation axis, independent of the orientation (up, down or side).
+  sampx - centring table x axis
+  sampy - centring table y axis
+  focus - alignment table x axis
+  phiy - alignment table y axis
+  phiz - alignment table z axis
+  sample_horizontal - x axis, combination of sampx and sampy. Equivalent to
+                      sampx at omega=0 and sampy for omega=90.
+  samle_vertical - y axis, combination of sampx and sampy. Equivalent to
+                   sampy at omega=0 and sampx for omega=90.
+  backlight - adjust the intensity of the back light
+  frontlight - adjust the intensity of the front light
+  kappa - the minikappa kappa axis
+  kappa_phi - the minikappa phi axis
+
+2. Discrete (N) state equipment and its functionality:
+zoom - zoom levels
+fshutter - fast (ms) shutter - allow beam on the sample
+beamstop - put in front of a detector to avoid the direct beam.
+capillary - if present, a tube to reduce the scattering background.
+backlightswitch - move the backlight on the level of the on-axis viewer
+frontlightswitch - switch on/off the front light
+fluo_detector - if present, actuator to move a fluorescence detector close to the sample
 """
 
 import abc
@@ -112,6 +141,7 @@ class AbstractDiffractometer(HardwareObject):
         Initialise the equipment, defined in the configuration file
         """
         self.username = self.get_property("username") or self.username
+
         # motors
         for role in self.config.motors:
             try:
@@ -138,14 +168,15 @@ class AbstractDiffractometer(HardwareObject):
         """Get the dictionary of all configured motors or the ones to use.
 
         Returns:
-            Dictionary key=role: value=hardware_object
+            Dictionary {role: hardware_object}
         """
         return self.motors_hwobj_dict.copy()
 
     def get_nstate_equipment(self) -> dict:
         """Get the dictionary of all the nstate (discrete positions) equipment.
+
         Returns:
-            Dictionary key=role: value=hardware_object
+            Dictionary {role: hardware_object}
         """
         return self.nstate_equipment_hwobj_dict.copy()
 
@@ -288,10 +319,7 @@ class AbstractDiffractometer(HardwareObject):
 
     @property
     def get_head_enum(self) -> DiffractometerHead:
-        """Get the diffractometer head Enum. Used when no import possible.
-        Returns:
-            DiffractometerHead Enum.
-        """
+        """Get the diffractometer head Enum. Used when no import possible."""
         return DiffractometerHead
 
     # -------- Phases --------
@@ -318,19 +346,15 @@ class AbstractDiffractometer(HardwareObject):
         """Specific implementation to set the diffractometer to selected phase
 
         Args:
-            DiffractometerPhase value.
+            value: requested phase.
         """
 
     def get_phase(self) -> DiffractometerPhase:
-        """Get the current phase.
-
-        Returns:
-            DiffractometerPhase member.
-        """
+        """Get the current phase."""
         return self.current_phase
 
     def get_phase_list(self) -> list:
-        """Return a list of all the defined in DiffractometerPhase phases."""
+        """Return a list of all the defined phases."""
         phase_list = []
         for member in DiffractometerPhase:
             _nam = member.name
@@ -340,17 +364,14 @@ class AbstractDiffractometer(HardwareObject):
 
     @property
     def get_phase_enum(self) -> DiffractometerPhase:
-        """Get the phase Enum. Used when no import possible.
-
-        Returns:
-            DiffractometerPhase Enum.
-        """
+        """Get the phase Enum. Used when no import possible."""
         return DiffractometerPhase
 
-    def update_phase(self, value=None):
+    def update_phase(self, value: DiffractometerPhase | None = None):
         """Update the phase value, Emit phaseChanged signal.
+
         Args:
-            (Enum): DiffractometerPhase member. Optional.
+            value: DiffractometerPhase member. Optional.
         """
         if value is None:
             value = self.get_phase()
@@ -360,14 +381,16 @@ class AbstractDiffractometer(HardwareObject):
 
     # -------- Constraints --------
 
-    def set_constraint(self, value, timeout=None):
+    def set_constraint(
+        self, value: DiffractometerConstraint, timeout: float | None = None
+    ):
         """Sets diffractometer to selected constraint.
 
         Args:
-            value (Enum): DiffractometerConstraint member.
-            timeout (float): optional - timeout [s],
-                             if timeout = 0: return at once and do not wait,
-                             if timeout is None: wait forever (default).
+            value: DiffractometerConstraint member.
+            timeout: optional - timeout [s],
+                     if timeout = 0: return at once and do not wait,
+                     if timeout is None: wait forever (default).
         """
         if isinstance(value, DiffractometerConstraint):
             constraint = value
@@ -380,11 +403,9 @@ class AbstractDiffractometer(HardwareObject):
             return
         self.wait_ready(timeout)
 
-    def _set_constraint(self, value):
+    def _set_constraint(self, value: DiffractometerConstraint):
         """Specific implementation to set the diffractometer to selected
         constraint.
-        Args:
-            value (Enum): DiffractometerConstraint member
         """
 
     def get_constraint(self):
@@ -395,11 +416,8 @@ class AbstractDiffractometer(HardwareObject):
         return self.current_constraint
 
     @property
-    def get_constraint_enum(self):
-        """Get the constraints Enum. Used when no import possible.
-        Returns:
-            (Enum): DiffractometerConstraint.
-        """
+    def get_constraint_enum(self) -> DiffractometerConstraint:
+        """Get the constraints Enum. Used when no import possible."""
         return DiffractometerConstraint
 
     # -------- data acquisition scans --------
@@ -427,7 +445,7 @@ class AbstractDiffractometer(HardwareObject):
         """Check if the value has changed. Emits signal valueChanged.
 
         Args:
-            value: value
+            value: value of any type
             value_cmp: Value to compare with.
         """
         curr_value = None
@@ -441,9 +459,11 @@ class AbstractDiffractometer(HardwareObject):
 
     def value_to_enum(self, value, which_enum):
         """Tranform a value to Enum
+
         Args:
            value(str, int, float, tuple, list): value
            which_enum (Enum): The enum to be checked.
+
         Returns:
             (Enum): Enum member, corresponding to the value or UNKNOWN.
         """
@@ -454,8 +474,3 @@ class AbstractDiffractometer(HardwareObject):
                 if isinstance(evar.value, (tuple, list)) and (value in evar.value):
                     return evar
         return which_enum.UNKNOWN
-
-    """
-    def motor_positions_to_screen(self, centred_positions_dict):
-        print("To be moved to sampleview")
-    """

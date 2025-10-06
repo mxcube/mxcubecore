@@ -20,42 +20,7 @@
 
 """MD2 implementation of the AbstractDiffractometer class.
 Overloads the methods:
-set_value_motors, _get_value_motors, set_phase, get_phase and all the scans.
-
-Example xml file:
-<object class = "MicroDiffractometer"
-  <username>MD2S</username>
-  <exporter_address>wid30bmd2s:9001</exporter_address>
-  <motors>
-    <device role="omega" hwrid="/udiff_omega"/>
-    <device role="phiy" hwrid="/udiff_phiy"/>
-    <device role="phiz" hwrid="/udiff_phiz"/>
-    <device role="sampx" hwrid="/udiff_sampx"/>
-    <device role="sampy" hwrid="/udiff_sampy"/>
-    <device role="kappa" hwrid="/udiff_kappa"/>
-    <device role="kappa_phi" hwrid="/udiff_kappaphi"/>
-    <device role="focus" hwrid="/udiff_phix"/>
-    <device role="front_light" hwrid="/udiff_frontlight_intensity"/>
-    <device role="back_light" hwrid="/udiff_backlight_intensity"/>
-    <device role="horizontal_alignment" hwrid="/udiff_phiy"/>
-    <device role="vertical_alignment" hwrid="/udiff_phiz"/>
-    <device role="horizontal_centring" hwrid="/udiff_sampx"/>
-    <device role="vertical_centring" hwrid="/udiff_sampy"/>
-  </motors>
-  <nstate_equipment>
-    <object role="fast_shutter" href="/udiff_fastshut"/>
-    <object role="scintillator" href="/udiff_scint"/>
-    <object role="diode" href="/udiff_diode"/>
-    <object role="fluo_detector" href="/udiff_fluodet"/>
-    <object role="cryostream" href="/udiff_cryostream"/>
-    <object role="front_light" href="/udiff_frontlight_inout"/>
-    <object role="back_light" href="/udiff_backlight_inout"/>
-    <object role="beamstop" href="/udiff_beamstop"/>
-    <object role="capillary" href="/udiff_capillary"/>
-    <object role="aperture" href="/udiff_aperturemot"/>
-    <object role="zoom" href="/udiff_zoom"/>
-  </nstate_equipment>
-</object>
+set_value_motors, get_value_motors, set_phase, get_phase,  and all the scans.
 """
 
 from gevent import Timeout, sleep
@@ -97,8 +62,9 @@ class MicroDiffractometer(AbstractDiffractometer):
     @property
     def _get_hwstate(self) -> str:
         """Get the hardware state, reported by the MD2 application.
+
         Returns:
-            (str): The state.
+            The state.
         """
         try:
             return self._exporter.read_property("HardwareState")
@@ -108,13 +74,15 @@ class MicroDiffractometer(AbstractDiffractometer):
     @property
     def _get_swstate(self) -> str:
         """Get the software state, reported by the MD2 application.
+
         Returns:
-            (str): The state.
+            The state.
         """
         return self._exporter.read_property("State")
 
     def get_state(self):
         """Get the diffractometer general state.
+
         Returns:
             (enum 'HardwareObjectState'): state
         """
@@ -127,40 +95,37 @@ class MicroDiffractometer(AbstractDiffractometer):
     @property
     def _ready(self) -> bool:
         """Get the "Ready" state - software and hardware.
+
         Returns:
-            (bool): True if both "Ready", False otherwise.
+            True if both "Ready", False otherwise.
         """
         return self._get_swstate == "Ready" and self._get_hwstate == "Ready"
 
-    def _wait_ready(self, timeout: [None | float] = None):
+    def _wait_ready(self, timeout: float | None = None):
         """Wait timeout seconds until status is ready.
+
         Args:
-            timeout(float): Timeout [s]. None means infinite timeout.
+            Timeout [s]. None means infinite timeout.
         """
         with Timeout(timeout, RuntimeError("Timeout waiting for status ready")):
             while not self._ready:
                 sleep(0.5)
 
-    def get_motors(self):
-        """Get the dictionary of all configured motors or the ones to use.
-        Returns:
-            (dict): Dictionary key=role: value=hardware_object
-        """
-        return self.get_movable_motors()
-
     def set_value_motors(
         self,
-        motors_positions_dict: dict,
+        motors_positions_dict: dict[str, float],
         simultaneous: bool = True,
-        timeout: [None | float] = None,
+        timeout: float | None = None,
     ):
         """Move specified motors to the requested positions.
+
         Args:
             motors_positions_dict (dict): Dictionary {motor_role: target_value}.
-            simultaneous (bool): Move the motors simultaneously (True - default) or not.
-            timeout (float): optional - timeout [s],
-                             if timeout = 0: return at once and do not wait,
-                             if timeout is None: wait forever (default).
+            simultaneous: Move the motors simultaneously (True - default) or not.
+            timeout: optional - timeout [s],
+                     if timeout = 0: return at once and do not wait,
+                     if timeout is None: wait forever (default).
+
         Raises:
             TimeoutError: Timeout
             KeyError: The name does not correspond to an existing motor
@@ -178,23 +143,26 @@ class MicroDiffractometer(AbstractDiffractometer):
             if timeout != 0:
                 self.wait_ready(timeout)
 
-    def get_value_motors(self, motors_list: [list | None] = None) -> dict:
+    def get_value_motors(self, motors_list: [list | None] = None) -> dict[str, float]:
         """Get the positions of diffractometer motors. If the motors_list
            is empty, return the positions of all the availble motors.
+
         Args:
-            motors_list (list): List of motor roles.
+            motors_list: List of motor roles.
+
         Returns:
-            (dict): role: position dictionary
+            Dictionary {role: position}.
         """
         motors_positions_dict = super().get_value_motors(motors_list)
         if not self.in_kappa_mode:
             motors_positions_dict.update({"kappa": None, "kappa_phi": None})
         return motors_positions_dict
 
-    def get_movable_motors(self):
+    def get_motors(self):
         """Get the dictionary of all the motors which can be used.
+
         Returns:
-            (dict): Dictionary key=role: value=hardware_object
+            Ddctionary {role: hardware_object}.
         """
 
         def find_elem(ddict, val):
@@ -216,10 +184,7 @@ class MicroDiffractometer(AbstractDiffractometer):
 
     @property
     def get_head_type(self) -> DiffractometerHead:
-        """Get the head type
-        Returns:
-            head_type(enum): Head type
-        """
+        """Get the head type."""
         try:
             self.head_type = DiffractometerHead(
                 self._exporter.read_property("HeadType")
@@ -229,17 +194,15 @@ class MicroDiffractometer(AbstractDiffractometer):
         return self.head_type
 
     def _set_phase(self, value: DiffractometerPhase):
-        """Specific implementation to set the diffractometer to selected phase
+        """Specific implementation to set the diffractometer to selected phase.
+
         Args:
-            value (Enum): DiffractometerPhase value.
+            value: requested phase.
         """
         self._exporter.execute("startSetPhase", (value.value,))
 
     def get_phase(self) -> DiffractometerPhase:
-        """Get the current phase
-        Returns:
-            (Enum): DiffractometerPhase value.
-        """
+        """Get the current phase."""
         value = self._exporter.read_property("CurrentPhase")
         try:
             self.current_phase = DiffractometerPhase(value)
@@ -247,27 +210,15 @@ class MicroDiffractometer(AbstractDiffractometer):
             self.current_phase = DiffractometerPhase.UNKNOWN
         return self.current_phase
 
-    def get_phase_list(self) -> list:
-        """Get the available phases list."""
-        phase_list = []
-        for member in DiffractometerPhase:
-            _nam = member.name
-            if _nam not in ["IN", "OUT", "UNKNOWN"]:
-                phase_list.append(_nam)
-        return phase_list
-
-    def _set_constraint(self, value):
+    def _set_constraint(self, value: DiffractometerConstraint):
         """Specific implementation to set the diffractometer to selected constraint
         Args:
-            value (Enum): DiffractometerConstraint member.
+            value: requested constraint.
         """
         self._exporter.execute("startSetMode", (value.value,))
 
-    def get_constraint(self):
-        """Get the diffrractometer constraint type.
-        Returns:
-            (Enum): DiffractometerConstraint member.
-        """
+    def get_constraint(self) -> DiffractometerConstraint:
+        """Get the diffrractometer constraint type."""
         value = self._exporter.read_property("CurrentMode")
         try:
             self.current_constraint = DiffractometerConstraint(value)
@@ -277,12 +228,14 @@ class MicroDiffractometer(AbstractDiffractometer):
 
     def check_scan_limits(self, start: float, end: float, exptime: float) -> bool:
         """Check if the scan parameters are within the limits
+
         Args:
-            start (float): scan start position.
-            end (float): scan end position.
-            exptime (float): scan exposure time (total).
+            start: scan start position.
+            end: scan end position.
+            exptime: scan exposure time (total) [s].
+
         Returns:
-            (bool): True (parameters within the limits), False otherwise.
+            True (parameters within the limits), False otherwise.
         """
         if self.in_plate_mode:
             scan_speed = abs(end - start) / exptime
@@ -299,16 +252,18 @@ class MicroDiffractometer(AbstractDiffractometer):
         return True
 
     def do_oscillation_scan(
-        self, start: float, end: float, exptime: float, timeout: [None | float] = None
+        self, start: float, end: float, exptime: float, timeout: float | None = None
     ):
         """Do an oscillation scan on omega.
+
         Args:
-            start (float): omega start position.
-            end (float): omega end position.
-            exptime (float): scan exposure time (total).
-            timeout (float): optional - timeout [s],
-                             if timeout = 0: return at once and do not wait,
-                             if timeout is None: wait forever (default).
+            start: omega start position.
+            end: omega end position.
+            exptime: scan exposure time (total).
+            timeout: optional - timeout [s],
+                     if timeout = 0: return at once and do not wait,
+                     if timeout is None: wait forever (default).
+
         Raises:
             RuntimeError: Timeout waiting for status ready.
             ValueError: Scan parameters not within limits (if relevant).
@@ -321,15 +276,24 @@ class MicroDiffractometer(AbstractDiffractometer):
         self._exporter.execute("startScanEx", (scan_params,))
         self._wait_ready(timeout)
 
-    def do_line_scan(self, start, end, exptime, motors_pos, timeout=None):
+    def do_line_scan(
+        self,
+        start: float,
+        end: float,
+        exptime: float,
+        motors_pos: dict[str, dict],
+        timeout: float | None = None,
+    ):
         """Do helical (line) scan on omega.
         Args:
-            start (float): scan start position.
-            end (float): scan end position.
-            exptime (float): scan exposure time (total).
-            timeout (float): optional - timeout [s],
-                             if timeout = 0: return at once and do not wait,
-                             if timeout is None: wait forever (default).
+            start: scan start position.
+            end: scan end position.
+            exptime: scan exposure time (total).
+            timeout: optional - timeout [s],
+                     if timeout = 0: return at once and do not wait,
+                     if timeout is None: wait forever (default).
+            motors_pos: {"1": [centred position], "2": [centred position]}
+
         Raises:
             RuntimeError: Timeout waiting for status ready.
             ValueError: Scan parameters not within limits (if relevant).
@@ -354,25 +318,27 @@ class MicroDiffractometer(AbstractDiffractometer):
         exptime: float,
         nb_lines: int,
         nb_frames_total: int,
-        grid_centre: list,
+        grid_centre: list[tuple[str, float]],
         mesh_range: dict,
         dead_time: float = 0,
-        timeout: [None | float] = None,
+        timeout: float | None = None,
     ):
         """Do a mesh scan.
+
         Args:
-            start (float): scan start position.
-            end (float): scan end position.
-            exptime (float): scan exposure time (total).
-            nb_lines (int): Total number of lines.
-            nb_frames_total (int): Total number of frames
-            grid_centre (list): List of tuples (motor_role, position)
-                                representing the centre of the mesh grid.
-            mesh_range (dict): Horizontal and vertical range.
-            dead_time (float): Dead time between the adjust the pulses.
-            timeout (float): optional - timeout [s],
-                             if timeout = 0: return at once and do not wait,
-                             if timeout is None: wait forever (default).
+            start: scan start position.
+            end: scan end position.
+            exptime: scan exposure time (total).
+            nb_lines: Total number of lines.
+            nb_frames_total: Total number of frames.
+            grid_centre: List of tuples (motor_role, position).
+                         representing the centre of the mesh grid.
+            mesh_range: Horizontal and vertical range.
+            dead_time: Dead time between the adjust the pulses.
+            timeout: optional - timeout [s],
+                     if timeout = 0: return at once and do not wait,
+                     if timeout is None: wait forever (default).
+
         Raises:
             RuntimeError: Timeout waiting for status ready.
         """
@@ -411,13 +377,15 @@ class MicroDiffractometer(AbstractDiffractometer):
         timeout: [None | float] = None,
     ):
         """Do a zero oscillation acquisition.
+
         Args:
-            pulse_duration (float): Duration of the pulse sent to the detector.
-            pulse_period (float): The period of the pulse sent to the detector.
-            nb_pulse (int): Number of pulses to be sent.
-            timeout (float): optional - timeout [s],
-                             if timeout = 0: return at once and do not wait,
-                             if timeout is None: wait forever (default).
+            pulse_duration: Duration of the pulse sent to the detector.
+            pulse_period: The period of the pulse sent to the detector.
+            nb_pulse: Number of pulses to be sent.
+            timeout: optional - timeout [s],
+                     if timeout = 0: return at once and do not wait,
+                     if timeout is None: wait forever (default).
+
         Raises:
             RuntimeError: Timeout waiting for status ready.
         """
@@ -433,21 +401,22 @@ class MicroDiffractometer(AbstractDiffractometer):
         exptime: float,
         nb_scans: int,
         angle: float,
-        timeout: [None | float] = None,
+        timeout: float | None = None,
     ):
         """Do fast characterisation.
         Args:
-            start (float): Position of omega for the first scan [deg].
-            scan_range (float): range for each scan [deg].
-            nb_frames (int): Frame numbers for each scan.
-            exptime (float): Total exposure time for each scan [s].
-            nb_scans (int): How many times a scan to be repeated.
-            angle (float): The angle between each scan [deg]. This number,
-                           added to the last position of each scan and will
-                           be the start position of the consequent scan.
+            start: Position of omega for the first scan [deg].
+            scan_range: range for each scan [deg].
+            nb_frames: Frame numbers for each scan.
+            exptime: Total exposure time for each scan [s].
+            nb_scans: How many times a scan to be repeated.
+            angle: The angle between each scan [deg]. This number,
+                   added to the last position of each scan and will
+                   be the start position of the following scan.
             timeout (float): optional - timeout [s],
                              if timeout = 0: return at once and do not wait,
                              if timeout is None: wait forever (default).
+
         Raises:
             RuntimeError: Timeout waiting for status ready.
         """
@@ -465,10 +434,11 @@ class MicroDiffractometer(AbstractDiffractometer):
 
         self._wait_ready(timeout)
 
-    def get_pixels_per_mm(self) -> tuple:
+    def get_pixels_per_mm(self) -> tuple[int, int]:
         """Get the pixel/mm values.
+
         Returns:
-            (tuple): x,y [pixel/mm]
+            (x ,y) [pixel/mm]
         """
         x_calib = self._exporter.read_property("CoaxCamScaleX")
         y_calib = self._exporter.read_property("CoaxCamScaleY")
