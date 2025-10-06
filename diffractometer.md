@@ -14,21 +14,21 @@ Here follows the list of the hardcoded roles and the description of the correspo
 
 - **omega** - the rotation axis, independent of the orientation (up, down or side).
 - **sampx** - centring table x axis
-- **sampy** \- centring table y axis
+- **sampy** - centring table y axis
 - **focus** - alignment table x axis
 - **phiy** - alignment table y axis
 - **phiz** - alignment table z axis
 - **sample_horizontal** - x axis, combination of sampx and sampy. Equivalent to sampx at omega=0 and sampy for omega=90.
 - **samle_vertical** - y axis, combination of sampx and sampy. Equivalent to sampy at omega=0 and sampx for omega=90.
 - **backlight** - adjust the intensity of the back light
-- **frontlight** \- adjust the intensity of the front light
+- **frontlight** - adjust the intensity of the front light
 
 2\. Discrete (N) state equipment and its functionality:
 
 - **zoom** - zoom levels
 - **fshutter** - fast shutter - allow beam on the sample
 - **beamstop** - put in front of a detector to avoid the direct beam.
-- **capillary** \- if present, a tube to reduce the scattering background.
+- **capillary** - if present, a tube to reduce the scattering background.
 - **Backlightswitch** - move the backlight on the level of the onaxis viewer
 - **Frontlightswitch** - switch on/off the front light
 - **fluo_detector** - if present, actuator to move a fluorescence detector close to the sample
