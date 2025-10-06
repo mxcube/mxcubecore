@@ -610,6 +610,22 @@ class GenericDiffractometer(HardwareObject):
         """
         return self.motor_hwobj_dict.get("phiz")
 
+    @property
+    def zoom(self):
+        """zoom motor object
+
+        NBNB TBD This is supposedly now living in AbstractSampleView,
+        And the property was removed in an earlier PR (20251021, 15:24 Elmir Jagudin)
+        BUT 1) there does not seem to be any mechanism to set it from config there
+        2) it is configured on the diffractometer according to available config files
+        3) accessing diffractometer.zoom is all through the code
+        This needs global refactoring, but meanwhile this property should remain
+
+        Returns:
+            AbstractActuator
+        """
+        return self.motor_hwobj_dict.get("zoom")
+
     def is_ready(self):
         """
         Detects if device is ready
