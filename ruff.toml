@@ -10,6 +10,7 @@ ignore = [
     "COM812",  # Ruff recommends to ignore this linter rule when using its formatter
     "D",  # pydocstyle: ignored, too many hits (16292)
     "N818", # error-suffix-on-exception-name: rather pointless outside of Python itself
+    "N999",  # invalid-module-name: ignored since we have many modules with `PascalCase`
     "PLR2004",  # magic-value-comparison: ignored, too many hits (249)
     "UP",  # pyupgrade: ignored for now, can be fixed automatically by ruff itself
     "G004", # Allow uses of f-strings to format logging messages
@@ -53,7 +54,6 @@ convention = "google"
     "FIX002",
     "I001",
     "N802",
-    "N999",
     "PERF102",
     "PIE790",
     "PLR5501",
@@ -78,7 +78,6 @@ convention = "google"
     "E722",
     "F841",
     "FBT002",
-    "N999",
     "PLR0913",
     "RET502",
     "RET503",
@@ -94,7 +93,6 @@ convention = "google"
     "ARG001",
     "ARG002",
     "BLE001",
-    "N999",
     "PERF203",
     "PLR0913",
     "PLR5501",
@@ -107,7 +105,6 @@ convention = "google"
     "EXE002",
     "FBT002",
     "FIX001",
-    "N999",
     "TD001",
     "TD002",
     "TD003",
@@ -122,7 +119,6 @@ convention = "google"
     "F821",
     "N813",
     "N815",
-    "N999",
     "PERF203",
     "PLR0913",
     "PLR5501",
@@ -149,7 +145,6 @@ convention = "google"
     "N806",
     "N813",
     "N815",
-    "N999",
     "PERF203",
     "PLR1714",
     "PTH118",
@@ -164,7 +159,6 @@ convention = "google"
     "I001",
     "N802",
     "N803",
-    "N999",
 ]
 "mxcubecore/Command/Taco.py" = [
     "ARG002",
@@ -174,7 +168,6 @@ convention = "google"
     "FBT003",
     "N802",
     "N803",
-    "N999",
     "PLR0913",
     "RET502",
     "RET503",
@@ -197,7 +190,6 @@ convention = "google"
     "N806",
     "N813",
     "N815",
-    "N999",
     "PERF203",
     "PLR0913",
     "PLR5501",
@@ -224,7 +216,6 @@ convention = "google"
     "N803",
     "N806",
     "N813",
-    "N999",
     "PERF203",
     "PLR0913",
     "RET504",
@@ -245,7 +236,6 @@ convention = "google"
 ]
 "mxcubecore/Command/exporter/ExporterClient.py" = [
     "BLE001",
-    "N999",
     "PLW2901",
     "RUF010",
     "S110",
@@ -254,7 +244,6 @@ convention = "google"
     "TRY002",
 ]
 "mxcubecore/Command/exporter/ExporterStates.py" = [
-    "N999",
     "PIE796",
 ]
 "mxcubecore/Command/exporter/MDEvents.py" = [
@@ -264,7 +253,6 @@ convention = "google"
     "BLE001",
     "FIX001",
     "N802",
-    "N999",
     "RUF012",
     "T201",
     "TD001",
@@ -280,7 +268,6 @@ convention = "google"
     "EM101",
     "F841",
     "N806",
-    "N999",
     "PERF203",
     "PIE808",
     "PLR5501",
@@ -305,7 +292,6 @@ convention = "google"
     "FBT002",
     "N802",
     "N803",
-    "N999",
     "PLR0912",
     "PLR0915",
     "RET502",
@@ -328,7 +314,6 @@ convention = "google"
     "FIX002",
     "G002",
     "N802",
-    "N999",
     "PERF203",
     "PLR0912",
     "PLR0915",
@@ -358,7 +343,6 @@ convention = "google"
     "F841",
     "FIX002",
     "G002",
-    "N999",
     "PLR0915",
     "PTH100",
     "PTH118",
@@ -379,7 +363,6 @@ convention = "google"
     "FBT002",
     "G002",
     "N802",
-    "N999",
     "RET505",
     "SIM108",
     "T201",
@@ -387,7 +370,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/ALBA/ALBABeamInfo.py" = [
     "ARG002",
     "BLE001",
-    "N999",
     "S110",
     "T201",
 ]
@@ -395,7 +377,6 @@ convention = "google"
     "ERA001",
     "G002",
     "N802",
-    "N999",
     "T201",
 ]
 "mxcubecore/HardwareObjects/ALBA/ALBACats.py" = [
@@ -409,7 +390,6 @@ convention = "google"
     "FBT002",
     "FIX002",
     "G002",
-    "N999",
     "PLR0912",
     "PLR0915",
     "PLR1714",
@@ -427,7 +407,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/ALBA/ALBACatsMaint.py" = [
     "ARG002",
-    "N999",
     "SLF001",
     "T201",
 ]
@@ -436,7 +415,6 @@ convention = "google"
     "F821",
     "FBT002",
     "G002",
-    "N999",
     "PTH110",
     "PTH118",
     "PTH119",
@@ -455,7 +433,6 @@ convention = "google"
     "FIX002",
     "G002",
     "N802",
-    "N999",
     "PERF402",
     "PIE790",
     "PLR0915",
@@ -483,7 +460,6 @@ convention = "google"
     "ERA001",
     "G002",
     "N806",
-    "N999",
     "PTH103",
     "PTH110",
     "PTH118",
@@ -497,13 +473,11 @@ convention = "google"
 "mxcubecore/HardwareObjects/ALBA/ALBAEnergy.py" = [
     "F821",
     "G002",
-    "N999",
     "T201",
 ]
 "mxcubecore/HardwareObjects/ALBA/ALBAEpsActuator.py" = [
     "BLE001",
     "N802",
-    "N999",
     "RET505",
     "RUF012",
     "T201",
@@ -513,7 +487,6 @@ convention = "google"
     "ERA001",
     "F821",
     "N802",
-    "N999",
     "RET505",
     "RUF012",
     "SIM103",
@@ -523,7 +496,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/ALBA/ALBAFlux.py" = [
     "BLE001",
     "F821",
-    "N999",
     "RET504",
     "S110",
     "T201",
@@ -531,14 +503,12 @@ convention = "google"
 "mxcubecore/HardwareObjects/ALBA/ALBAFrontEnd.py" = [
     "ERA001",
     "N802",
-    "N999",
     "T201",
 ]
 "mxcubecore/HardwareObjects/ALBA/ALBAFrontLight.py" = [
     "BLE001",
     "G002",
     "N802",
-    "N999",
     "SIM102",
     "T201",
 ]
@@ -547,7 +517,6 @@ convention = "google"
     "E501",
     "ERA001",
     "G002",
-    "N999",
     "PERF203",
     "S108",
     "S110",
@@ -561,7 +530,6 @@ convention = "google"
     "ERA001",
     "F841",
     "G002",
-    "N999",
     "T201",
     "TRY400",
 ]
@@ -572,7 +540,6 @@ convention = "google"
     "FIX002",
     "G002",
     "N802",
-    "N999",
     "PLR0912",
     "PLR0915",
     "T201",
@@ -588,7 +555,6 @@ convention = "google"
     "FIX002",
     "G002",
     "N806",
-    "N999",
     "PERF401",
     "S110",
     "T201",
@@ -602,7 +568,6 @@ convention = "google"
     "E501",
     "ERA001",
     "G002",
-    "N999",
     "PTH118",
     "S108",
     "SIM108",
@@ -612,12 +577,10 @@ convention = "google"
     "ARG002",
     "ERA001",
     "N802",
-    "N999",
     "T201",
 ]
 "mxcubecore/HardwareObjects/ALBA/ALBATransmission.py" = [
     "N802",
-    "N999",
     "T201",
 ]
 "mxcubecore/HardwareObjects/ALBA/ALBAZoomMotor.py" = [
@@ -629,7 +592,6 @@ convention = "google"
     "F841",
     "G002",
     "N802",
-    "N999",
     "PLR1714",
     "RET505",
     "SIM103",
@@ -643,35 +605,29 @@ convention = "google"
     "F841",
     "G002",
     "N802",
-    "N999",
     "T201",
 ]
 "mxcubecore/HardwareObjects/ALBA/XalocCalibration.py" = [
     "N802",
-    "N999",
     "T201",
 ]
 "mxcubecore/HardwareObjects/ALBA/XalocMachineInfo.py" = [
     "E501",
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/ALBA/XalocMiniDiff.py" = [
     "ARG002",
     "ERA001",
     "N802",
-    "N999",
     "PLR0912",
     "PLR5501",
 ]
 "mxcubecore/HardwareObjects/Attenuators.py" = [
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/BeamInfo.py" = [
     "ARG002",
     "BLE001",
-    "N999",
     "RET505",
     "S110",
 ]
@@ -681,7 +637,6 @@ convention = "google"
     "ERA001",
     "FIX002",
     "G002",
-    "N999",
     "PLR0912",
     "PLR0915",
     "RUF012",
@@ -693,19 +648,16 @@ convention = "google"
 "mxcubecore/HardwareObjects/BeamlineActions.py" = [
     "ARG002",
     "BLE001",
-    "N999",
     "PERF401",
     "SIM118",
     "TRY002",
 ]
 "mxcubecore/HardwareObjects/BeamlineTools.py" = [
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/Bliss.py" = [
     "ERA001",
     "ICN001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/BlissActuator.py" = [
     "ARG002",
@@ -713,25 +665,21 @@ convention = "google"
     "FBT002",
     "G002",
     "N815",
-    "N999",
     "PLR5501",
 ]
 "mxcubecore/HardwareObjects/BlissEnergy.py" = [
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/BlissHutchTrigger.py" = [
     "ARG002",
     "BLE001",
     "N802",
     "N806",
-    "N999",
     "RET505",
     "TRY400",
 ]
 "mxcubecore/HardwareObjects/BlissMotor.py" = [
     "ERA001",
-    "N999",
     "PERF203",
     "PERF401",
     "RUF012",
@@ -742,22 +690,18 @@ convention = "google"
     "N802",
     "N803",
     "N806",
-    "N999",
     "TRY400",
 ]
 "mxcubecore/HardwareObjects/BlissNState.py" = [
     "ARG002",
     "ERA001",
-    "N999",
     "SIM108",
 ]
 "mxcubecore/HardwareObjects/BlissRontecMCA.py" = [
     "FBT002",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/BlissShutter.py" = [
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/Cats90.py" = [
     "ARG002",
@@ -772,7 +716,6 @@ convention = "google"
     "FIX004",
     "G002",
     "N806",
-    "N999",
     "PERF401",
     "PLR0912",
     "PLR0915",
@@ -796,7 +739,6 @@ convention = "google"
     "FBT003",
     "N802",
     "N806",
-    "N999",
     "PERF401",
     "RET506",
     "S110",
@@ -817,7 +759,6 @@ convention = "google"
     "FBT002",
     "FBT003",
     "N802",
-    "N999",
     "PLR0912",
     "PLR0915",
     "RET504",
@@ -840,7 +781,6 @@ convention = "google"
     "N802",
     "N803",
     "N806",
-    "N999",
     "PERF401",
     "PIE808",
     "RET503",
@@ -855,12 +795,10 @@ convention = "google"
     "FBT002",
     "ICN001",
     "N802",
-    "N999",
     "T201",
 ]
 "mxcubecore/HardwareObjects/DESY/DigitalZoomMotor.py" = [
     "ERA001",
-    "N999",
     "SIM108",
 ]
 "mxcubecore/HardwareObjects/DESY/MjpgStreamVideo.py" = [
@@ -876,7 +814,6 @@ convention = "google"
     "G001",
     "G002",
     "N802",
-    "N999",
     "PLR0915",
     "PLR1714",
     "RET501",
@@ -899,7 +836,6 @@ convention = "google"
     "F821",
     "F841",
     "FBT002",
-    "N999",
     "PLR0912",
     "PLR0915",
     "RUF021",
@@ -909,13 +845,11 @@ convention = "google"
 "mxcubecore/HardwareObjects/DESY/P11BackLight.py" = [
     "ERA001",
     "F811",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/DESY/P11Beam.py" = [
     "E501",
     "ERA001",
     "F541",
-    "N999",
     "RET505",
 ]
 "mxcubecore/HardwareObjects/DESY/P11BeamStop.py" = [
@@ -925,7 +859,6 @@ convention = "google"
     "EM102",
     "ERA001",
     "F541",
-    "N999",
     "RET503",
     "SLF001",
     "TRY003",
@@ -946,7 +879,6 @@ convention = "google"
     "G003",
     "ISC003",
     "N806",
-    "N999",
     "PERF203",
     "PERF401",
     "PLE1205",
@@ -975,7 +907,6 @@ convention = "google"
     "EM101",
     "EM102",
     "ERA001",
-    "N999",
     "RET503",
     "RET505",
     "SLF001",
@@ -987,7 +918,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/DESY/P11DetectorCover.py" = [
     "ERA001",
     "G002",
-    "N999",
     "PLR5501",
     "SIM102",
 ]
@@ -995,7 +925,6 @@ convention = "google"
     "ERA001",
     "G002",
     "N802",
-    "N999",
     "PLR5501",
     "RET508",
     "RUF021",
@@ -1006,7 +935,6 @@ convention = "google"
     "ERA001",
     "F841",
     "N802",
-    "N999",
     "PERF203",
     "RET503",
     "S310",
@@ -1023,7 +951,6 @@ convention = "google"
     "F841",
     "FBT003",
     "FIX002",
-    "N999",
     "PIE808",
     "PLR0912",
     "PLR0915",
@@ -1047,7 +974,6 @@ convention = "google"
     "FIX002",
     "FURB188",
     "G002",
-    "N999",
     "RET504",
     "S307",
     "T201",
@@ -1062,7 +988,6 @@ convention = "google"
     "ERA001",
     "G001",
     "G002",
-    "N999",
     "RET505",
     "T201",
     "TRY400",
@@ -1070,7 +995,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/DESY/P11FastShutter.py" = [
     "ERA001",
     "F811",
-    "N999",
     "SIM108",
 ]
 "mxcubecore/HardwareObjects/DESY/P11Flux.py" = [
@@ -1081,7 +1005,6 @@ convention = "google"
     "F841",
     "FIX002",
     "N806",
-    "N999",
     "PLR0913",
     "TD002",
     "TD003",
@@ -1097,7 +1020,6 @@ convention = "google"
     "FBT002",
     "FIX002",
     "G002",
-    "N999",
     "PERF203",
     "SLF001",
     "TD002",
@@ -1110,7 +1032,6 @@ convention = "google"
     "BLE001",
     "ERA001",
     "N815",
-    "N999",
     "RET504",
     "TRY300",
     "TRY400",
@@ -1131,7 +1052,6 @@ convention = "google"
     "G002",
     "G003",
     "N806",
-    "N999",
     "PERF102",
     "PLC0206",
     "PLR0912",
@@ -1161,7 +1081,6 @@ convention = "google"
     "EM101",
     "EM102",
     "ERA001",
-    "N999",
     "RET503",
     "RET505",
     "SLF001",
@@ -1179,7 +1098,6 @@ convention = "google"
     "FBT003",
     "FIX002",
     "G002",
-    "N999",
     "PERF401",
     "PLR1711",
     "RET504",
@@ -1204,7 +1122,6 @@ convention = "google"
     "F821",
     "F841",
     "G003",
-    "N999",
     "PLR0912",
     "PTH110",
     "PTH112",
@@ -1225,14 +1142,12 @@ convention = "google"
     "F841",
     "G002",
     "N813",
-    "N999",
     "S310",
 ]
 "mxcubecore/HardwareObjects/DESY/P11Transmission.py" = [
     "ARG002",
     "E501",
     "ERA001",
-    "N999",
     "T201",
 ]
 "mxcubecore/HardwareObjects/DESY/P11YagDiode.py" = [
@@ -1241,7 +1156,6 @@ convention = "google"
     "EM101",
     "EM102",
     "ERA001",
-    "N999",
     "RET503",
     "SLF001",
     "TRY003",
@@ -1253,13 +1167,11 @@ convention = "google"
     "E722",
     "ERA001",
     "G002",
-    "N999",
     "T201",
 ]
 "mxcubecore/HardwareObjects/DESY/ValueStateChannel.py" = [
     "C901",
     "ERA001",
-    "N999",
     "PLR0912",
     "RUF021",
 ]
@@ -1268,7 +1180,6 @@ convention = "google"
     "ERA001",
     "F821",
     "FBT002",
-    "N999",
     "PLR0913",
     "RET504",
     "SIM118",
@@ -1277,7 +1188,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/DozorOnlineProcessing.py" = [
     "ERA001",
     "FBT003",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/EDNACharacterisation.py" = [
     "BLE001",
@@ -1287,7 +1197,6 @@ convention = "google"
     "ERA001",
     "FBT003",
     "N806",
-    "N999",
     "PIE808",
     "PLR0912",
     "PLR0915",
@@ -1305,19 +1214,16 @@ convention = "google"
 "mxcubecore/HardwareObjects/EMBL/EMBLAperture.py" = [
     "ARG002",
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLBSD.py" = [
     "ARG002",
     "ERA001",
     "G002",
-    "N999",
     "SIM108",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLBeam.py" = [
     "ERA001",
     "F811",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLBeamCentering.py" = [
     "B007",
@@ -1330,7 +1236,6 @@ convention = "google"
     "FBT003",
     "FIX002",
     "G002",
-    "N999",
     "PLR0912",
     "PLR0915",
     "PLR1730",
@@ -1344,7 +1249,6 @@ convention = "google"
     "BLE001",
     "ERA001",
     "G002",
-    "N999",
     "PERF401",
     "PERF402",
     "RET503",
@@ -1364,7 +1268,6 @@ convention = "google"
     "G003",
     "ICN001",
     "ISC003",
-    "N999",
     "PERF401",
     "PTH103",
     "PTH110",
@@ -1381,12 +1284,10 @@ convention = "google"
 "mxcubecore/HardwareObjects/EMBL/EMBLBeamstop.py" = [
     "ERA001",
     "F821",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLCRL.py" = [
     "ERA001",
     "G003",
-    "N999",
     "RET505",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLCollect.py" = [
@@ -1395,7 +1296,6 @@ convention = "google"
     "E712",
     "ERA001",
     "FBT003",
-    "N999",
     "PLR0912",
     "PLR0915",
     "PTH110",
@@ -1406,7 +1306,6 @@ convention = "google"
     "ARG002",
     "ERA001",
     "FBT002",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLDoorInterlock.py" = [
     "BLE001",
@@ -1415,7 +1314,6 @@ convention = "google"
     "FBT003",
     "G002",
     "ISC003",
-    "N999",
     "PLR0912",
     "PLR5501",
     "RUF012",
@@ -1427,7 +1325,6 @@ convention = "google"
     "BLE001",
     "ERA001",
     "FBT002",
-    "N999",
     "S307",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLEnergyScan.py" = [
@@ -1444,7 +1341,6 @@ convention = "google"
     "ISC003",
     "N802",
     "N806",
-    "N999",
     "PERF401",
     "PIE804",
     "PLR0913",
@@ -1463,7 +1359,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLExporterClient.py" = [
     "ERA001",
-    "N999",
     "RET503",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLFlux.py" = [
@@ -1479,7 +1374,6 @@ convention = "google"
     "G002",
     "ICN001",
     "ISC003",
-    "N999",
     "PLR0912",
     "PLR0915",
     "RET504",
@@ -1489,7 +1383,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLImageTracking.py" = [
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLMachineInfo.py" = [
     "BLE001",
@@ -1498,7 +1391,6 @@ convention = "google"
     "ERA001",
     "G002",
     "ISC003",
-    "N999",
     "PTH110",
     "RET505",
     "S307",
@@ -1516,7 +1408,6 @@ convention = "google"
     "G002",
     "G003",
     "ISC003",
-    "N999",
     "PLR5501",
     "RET503",
     "RET504",
@@ -1531,7 +1422,6 @@ convention = "google"
     "E101",
     "ERA001",
     "G002",
-    "N999",
     "S307",
     "SIM102",
     "SIM118",
@@ -1543,7 +1433,6 @@ convention = "google"
     "FBT002",
     "G001",
     "G003",
-    "N999",
     "PTH110",
     "PTH116",
     "PTH118",
@@ -1561,7 +1450,6 @@ convention = "google"
     "F841",
     "FBT003",
     "G002",
-    "N999",
     "PLR0912",
     "PLR0915",
     "PTH113",
@@ -1577,20 +1465,16 @@ convention = "google"
 "mxcubecore/HardwareObjects/EMBL/EMBLPPUControl.py" = [
     "ERA001",
     "FBT003",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLPiezoMotor.py" = [
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLQueueEntry.py" = [
     "ERA001",
     "FBT002",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLResolution.py" = [
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLSSXChip.py" = [
     "ARG002",
@@ -1601,7 +1485,6 @@ convention = "google"
     "ERA001",
     "F821",
     "G002",
-    "N999",
     "PERF401",
     "PIE808",
     "PLR0912",
@@ -1619,18 +1502,15 @@ convention = "google"
     "F841",
     "FBT003",
     "G002",
-    "N999",
     "PLR5501",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLSession.py" = [
     "ERA001",
-    "N999",
     "PTH118",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLSlitBox.py" = [
     "ARG002",
     "ERA001",
-    "N999",
     "SIM102",
     "SIM118",
 ]
@@ -1639,25 +1519,21 @@ convention = "google"
     "BLE001",
     "ERA001",
     "FBT002",
-    "N999",
     "TRY400",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLTransfocator.py" = [
     "ARG002",
     "ERA001",
     "G003",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLTransmission.py" = [
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLXRFSpectrum.py" = [
     "ARG002",
     "ERA001",
     "FBT002",
     "G002",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLXrayImaging.py" = [
     "ARG002",
@@ -1676,7 +1552,6 @@ convention = "google"
     "G003",
     "N802",
     "N815",
-    "N999",
     "PERF401",
     "PLR0912",
     "PLR0915",
@@ -1702,7 +1577,6 @@ convention = "google"
     "E501",
     "ERA001",
     "FBT002",
-    "N999",
     "SIM108",
     "T201",
 ]
@@ -1710,7 +1584,6 @@ convention = "google"
     "BLE001",
     "ERA001",
     "FIX002",
-    "N999",
     "RET505",
     "S110",
     "S307",
@@ -1730,7 +1603,6 @@ convention = "google"
     "FBT002",
     "FBT003",
     "N803",
-    "N999",
     "PERF401",
     "RET503",
     "S301",
@@ -1748,7 +1620,6 @@ convention = "google"
     "EM101",
     "ERA001",
     "N803",
-    "N999",
     "PERF401",
     "RET503",
     "RET504",
@@ -1762,34 +1633,23 @@ convention = "google"
     "ARG002",
     "B904",
     "ERA001",
-    "N999",
-]
-"mxcubecore/HardwareObjects/ESRF/BlissTurret.py" = [
-    "N999",
 ]
 "mxcubecore/HardwareObjects/ESRF/BlissVolpi.py" = [
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/ESRF/ESRFBeam.py" = [
     "ARG002",
     "C901",
     "EM101",
-    "N999",
     "TRY003",
-]
-"mxcubecore/HardwareObjects/ESRF/ESRFBeamDefiner.py" = [
-    "N999",
 ]
 "mxcubecore/HardwareObjects/ESRF/ESRFBeamInfo.py" = [
     "ARG002",
     "G003",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/ESRF/ESRFBeamlineActions.py" = [
     "E722",
     "ERA001",
-    "N999",
     "PERF203",
     "S110",
 ]
@@ -1797,14 +1657,12 @@ convention = "google"
     "ARG002",
     "C901",
     "N802",
-    "N999",
     "PLR0915",
     "S603",
 ]
 "mxcubecore/HardwareObjects/ESRF/ESRFMD2SC3.py" = [
     "ERA001",
     "N802",
-    "N999",
     "PLR0402",
     "SLF001",
 ]
@@ -1821,7 +1679,6 @@ convention = "google"
     "N803",
     "N806",
     "N816",
-    "N999",
     "PLR0912",
     "PLR0913",
     "PTH118",
@@ -1844,7 +1701,6 @@ convention = "google"
     "FIX002",
     "N802",
     "N806",
-    "N999",
     "PLR0913",
     "PLR5501",
     "PLW2901",
@@ -1868,7 +1724,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/ESRF/ESRFPhotonFlux.py" = [
     "EM101",
     "ERA001",
-    "N999",
     "TRY003",
 ]
 "mxcubecore/HardwareObjects/ESRF/ESRFSC3.py" = [
@@ -1881,7 +1736,6 @@ convention = "google"
     "N802",
     "N803",
     "N806",
-    "N999",
     "PLR0913",
     "PLR5501",
     "SIM117",
@@ -1889,7 +1743,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/ESRF/ESRFSession.py" = [
     "FBT003",
-    "N999",
     "PERF401",
     "PTH110",
     "PTH118",
@@ -1899,7 +1752,6 @@ convention = "google"
     "G001",
     "G002",
     "N806",
-    "N999",
     "PTH118",
     "S113",
     "SLF001",
@@ -1908,14 +1760,12 @@ convention = "google"
     "B028",
     "ERA001",
     "N802",
-    "N999",
     "TRY300",
     "TRY401",
 ]
 "mxcubecore/HardwareObjects/ESRF/ID232BeamDefiner.py" = [
     "ARG002",
     "EM101",
-    "N999",
     "TRY003",
 ]
 "mxcubecore/HardwareObjects/ESRF/ID29HutchTrigger.py" = [
@@ -1924,17 +1774,14 @@ convention = "google"
     "BLE001",
     "N802",
     "N806",
-    "N999",
     "RET505",
     "TRY400",
 ]
 "mxcubecore/HardwareObjects/ESRF/ID30A3BeamDefiner.py" = [
     "ARG002",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/ESRF/ID30BBeamDefiner.py" = [
     "ARG002",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/ESRF/MD2MultiCollect.py" = [
     "A001",
@@ -1944,7 +1791,6 @@ convention = "google"
     "C419",
     "ERA001",
     "FBT002",
-    "N999",
     "PLR0913",
     "PTH110",
     "PTH118",
@@ -1956,13 +1802,11 @@ convention = "google"
     "EM101",
     "ERA001",
     "FBT002",
-    "N999",
     "SLF001",
     "TRY003",
 ]
 "mxcubecore/HardwareObjects/ESRF/SSXICATLIMS.py" = [
     "E501",
-    "N999",
     "PTH123",
     "TRY401",
 ]
@@ -1971,11 +1815,9 @@ convention = "google"
     "ERA001",
     "FBT002",
     "N802",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/ESRF/Transmission.py" = [
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/ESRF/calc_flux.py" = [
     "ARG002",
@@ -2096,7 +1938,6 @@ convention = "google"
     "EM101",
     "FBT002",
     "G002",
-    "N999",
     "RET505",
     "SIM102",
     "SLF001",
@@ -2107,7 +1948,6 @@ convention = "google"
     "ERA001",
     "N802",
     "N806",
-    "N999",
     "PTH119",
     "RET505",
     "S113",
@@ -2119,19 +1959,16 @@ convention = "google"
     "F841",
     "FBT002",
     "N802",
-    "N999",
     "TRY300",
 ]
 "mxcubecore/HardwareObjects/ExporterMotor.py" = [
     "BLE001",
     "FBT003",
     "G002",
-    "N999",
     "SIM103",
     "TRY300",
 ]
 "mxcubecore/HardwareObjects/ExporterNState.py" = [
-    "N999",
     "SIM108",
     "SIM201",
 ]
@@ -2145,7 +1982,6 @@ convention = "google"
     "FBT002",
     "FBT003",
     "N803",
-    "N999",
     "PERF401",
     "RET503",
     "RET505",
@@ -2160,7 +1996,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/FlexHCDMaintenance.py" = [
     "BLE001",
-    "N999",
     "PERF401",
     "S110",
     "SLF001",
@@ -2182,7 +2017,6 @@ convention = "google"
     "G003",
     "ICN001",
     "ISC003",
-    "N999",
     "PLR0911",
     "PLR0912",
     "PLR0915",
@@ -2212,7 +2046,6 @@ convention = "google"
     "ERA001",
     "FIX002",
     "N806",
-    "N999",
     "PLR0912",
     "PLR0915",
     "PLW1509",
@@ -2243,7 +2076,6 @@ convention = "google"
     "N802",
     "N803",
     "N806",
-    "N999",
     "PLR0913",
     "PYI024",
     "RET506",
@@ -2253,7 +2085,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/Gphl/GphlQueueEntry.py" = [
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/Gphl/GphlWorkflow.py" = [
     "ARG002",
@@ -2275,7 +2106,6 @@ convention = "google"
     "G003",
     "N803",
     "N806",
-    "N999",
     "PLR0912",
     "PLR0913",
     "PLR0915",
@@ -2323,7 +2153,6 @@ convention = "google"
     "N802",
     "N803",
     "N806",
-    "N999",
     "PLR0911",
     "PLR0912",
     "PLR0915",
@@ -2349,7 +2178,6 @@ convention = "google"
     "ARG001",
     "C400",
     "E722",
-    "N999",
     "PERF401",
     "PLR0913",
     "PTH113",
@@ -2358,22 +2186,14 @@ convention = "google"
     "SIM115",
     "T201",
 ]
-"mxcubecore/HardwareObjects/Grob.py" = [
-    "N999",
-]
 "mxcubecore/HardwareObjects/GrobDiff.py" = [
     "A002",
-    "N999",
-]
-"mxcubecore/HardwareObjects/GrobGonio.py" = [
-    "N999",
 ]
 "mxcubecore/HardwareObjects/GrobMotor.py" = [
     "B006",
     "F821",
     "N802",
     "N803",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/GrobSampleChanger.py" = [
     "ARG002",
@@ -2383,7 +2203,6 @@ convention = "google"
     "FBT002",
     "N802",
     "N803",
-    "N999",
     "PLR0913",
     "RET502",
     "RET503",
@@ -2400,7 +2219,6 @@ convention = "google"
     "FBT002",
     "FBT003",
     "N806",
-    "N999",
     "PLR0911",
     "PLR0912",
     "PLR0915",
@@ -2418,7 +2236,6 @@ convention = "google"
     "E501",
     "ERA001",
     "N806",
-    "N999",
     "RET504",
     "SLF001",
     "T201",
@@ -2431,7 +2248,6 @@ convention = "google"
     "DTZ002",
     "E501",
     "EM101",
-    "N999",
     "PLR0912",
     "PLR0915",
     "SIM102",
@@ -2444,7 +2260,6 @@ convention = "google"
     "EM102",
     "FBT001",
     "FBT003",
-    "N999",
     "TRY002",
     "TRY003",
     "TRY201",
@@ -2453,7 +2268,6 @@ convention = "google"
     "E501",
     "EM101",
     "F841",
-    "N999",
     "Q000",
     "TRY003",
 ]
@@ -2462,7 +2276,6 @@ convention = "google"
     "E501",
     "F841",
     "G002",
-    "N999",
     "Q000",
 ]
 "mxcubecore/HardwareObjects/LNLS/EPICSNState.py" = [
@@ -2472,7 +2285,6 @@ convention = "google"
     "ERA001",
     "FBT002",
     "N802",
-    "N999",
     "PLE1206",
     "SLF001",
     "TRY400",
@@ -2480,14 +2292,12 @@ convention = "google"
 "mxcubecore/HardwareObjects/LNLS/LNLSAperture.py" = [
     "BLE001",
     "ERA001",
-    "N999",
     "S307",
     "TRY400",
 ]
 "mxcubecore/HardwareObjects/LNLS/LNLSBeam.py" = [
     "ARG002",
     "ERA001",
-    "N999",
     "RET503",
 ]
 "mxcubecore/HardwareObjects/LNLS/LNLSCamera.py" = [
@@ -2500,7 +2310,6 @@ convention = "google"
     "N802",
     "N803",
     "N806",
-    "N999",
     "PLR0913",
     "PTH103",
     "PTH110",
@@ -2524,7 +2333,6 @@ convention = "google"
     "G002",
     "G003",
     "N802",
-    "N999",
     "PLR0913",
     "PLR0915",
     "PLR1711",
@@ -2543,7 +2351,6 @@ convention = "google"
     "B007",
     "E501",
     "G002",
-    "N999",
     "PIE790",
     "Q000",
 ]
@@ -2556,7 +2363,6 @@ convention = "google"
     "FBT002",
     "FIX002",
     "N802",
-    "N999",
     "Q000",
     "RET504",
     "RET505",
@@ -2570,7 +2376,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/LNLS/LNLSEnergy.py" = [
     "ERA001",
-    "N999",
     "PIE790",
 ]
 "mxcubecore/HardwareObjects/LNLS/LNLSPilatusDet.py" = [
@@ -2583,7 +2388,6 @@ convention = "google"
     "FBT002",
     "G001",
     "G002",
-    "N999",
     "Q000",
     "RET504",
     "T201",
@@ -2591,19 +2395,16 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/LNLS/LNLSSlits.py" = [
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/LNLS/LNLSTransmission.py" = [
     "BLE001",
     "ERA001",
     "F841",
     "G002",
-    "N999",
     "RET504",
     "TRY400",
 ]
 "mxcubecore/HardwareObjects/LNLS/LNLSZoom.py" = [
-    "N999",
     "RET504",
 ]
 "mxcubecore/HardwareObjects/LNLS/read_transmission_mnc.py" = [
@@ -2633,7 +2434,6 @@ convention = "google"
     "C901",
     "FBT002",
     "G002",
-    "N999",
     "PLR0911",
     "PLR0912",
     "RET505",
@@ -2656,7 +2456,6 @@ convention = "google"
     "FBT002",
     "FIX002",
     "G002",
-    "N999",
     "PLR0915",
     "PLR1714",
     "PTH110",
@@ -2679,7 +2478,6 @@ convention = "google"
     "BLE001",
     "FURB188",
     "N806",
-    "N999",
     "PLR0913",
     "PLR1730",
     "PTH118",
@@ -2698,7 +2496,6 @@ convention = "google"
     "FURB188",
     "G002",
     "N806",
-    "N999",
     "PLR0913",
     "PLR1730",
     "PTH118",
@@ -2719,7 +2516,6 @@ convention = "google"
     "EM102",
     "G003",
     "ISC003",
-    "N999",
     "S113",
     "TRY002",
     "TRY003",
@@ -2736,7 +2532,6 @@ convention = "google"
     "G001",
     "G002",
     "N806",
-    "N999",
     "PTH110",
     "PTH116",
     "PTH118",
@@ -2748,7 +2543,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/MAXIV/MachInfo.py" = [
     "EXE002",
-    "N999",
     "RET504",
 ]
 "mxcubecore/HardwareObjects/MD2Motor.py" = [
@@ -2759,7 +2553,6 @@ convention = "google"
     "ERA001",
     "G001",
     "N802",
-    "N999",
     "TRY300",
     "TRY301",
 ]
@@ -2771,7 +2564,6 @@ convention = "google"
     "ICN001",
     "N802",
     "N806",
-    "N999",
     "PLR0913",
     "RET506",
     "T201",
@@ -2779,12 +2571,10 @@ convention = "google"
 "mxcubecore/HardwareObjects/MachCurrent.py" = [
     "E501",
     "ERA001",
-    "N999",
     "TRY401",
 ]
 "mxcubecore/HardwareObjects/Mar225.py" = [
     "ARG002",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/Marvin.py" = [
     "ARG002",
@@ -2803,7 +2593,6 @@ convention = "google"
     "G003",
     "ISC003",
     "N802",
-    "N999",
     "PERF401",
     "PERF402",
     "PLR0912",
@@ -2836,7 +2625,6 @@ convention = "google"
     "G002",
     "N802",
     "N806",
-    "N999",
     "PERF203",
     "PLR0913",
     "PLR0915",
@@ -2854,7 +2642,6 @@ convention = "google"
     "C402",
     "F841",
     "FBT002",
-    "N999",
     "PLR5501",
     "RET508",
     "TRY400",
@@ -2865,7 +2652,6 @@ convention = "google"
     "E501",
     "EM101",
     "ERA001",
-    "N999",
     "TRY003",
 ]
 "mxcubecore/HardwareObjects/MicrodiffBeamstop.py" = [
@@ -2874,19 +2660,14 @@ convention = "google"
     "FBT002",
     "N802",
     "N803",
-    "N999",
     "S110",
     "SIM105",
-]
-"mxcubecore/HardwareObjects/MicrodiffFocusMotor.py" = [
-    "N999",
 ]
 "mxcubecore/HardwareObjects/MicrodiffInOut.py" = [
     "BLE001",
     "C402",
     "FBT002",
     "N802",
-    "N999",
     "PLR5501",
     "RET508",
     "S110",
@@ -2903,16 +2684,11 @@ convention = "google"
     "N802",
     "N803",
     "N806",
-    "N999",
     "PLR0913",
     "RUF012",
     "TRY003",
 ]
-"mxcubecore/HardwareObjects/MicrodiffLight.py" = [
-    "N999",
-]
 "mxcubecore/HardwareObjects/MicrodiffLightBeamstop.py" = [
-    "N999",
     "PLR5501",
 ]
 "mxcubecore/HardwareObjects/MicrodiffMotor.py" = [
@@ -2922,7 +2698,6 @@ convention = "google"
     "BLE001",
     "C901",
     "N802",
-    "N999",
     "PLR5501",
     "RET505",
     "RUF012",
@@ -2933,13 +2708,11 @@ convention = "google"
 "mxcubecore/HardwareObjects/MicrodiffSamplePseudo.py" = [
     "N802",
     "N803",
-    "N999",
     "RET503",
 ]
 "mxcubecore/HardwareObjects/MicrodiffZoom.py" = [
     "ARG002",
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/MiniDiff.py" = [
     "ARG002",
@@ -2959,7 +2732,6 @@ convention = "google"
     "N802",
     "N803",
     "N806",
-    "N999",
     "PLR0912",
     "PLR0915",
     "PTH113",
@@ -2976,13 +2748,11 @@ convention = "google"
 "mxcubecore/HardwareObjects/MiniKappaCorrection.py" = [
     "N802",
     "N806",
-    "N999",
     "S307",
     "SIM108",
 ]
 "mxcubecore/HardwareObjects/MinidiffAperture.py" = [
     "N802",
-    "N999",
     "RET504",
     "RET505",
 ]
@@ -2992,7 +2762,6 @@ convention = "google"
     "F821",
     "N802",
     "N803",
-    "N999",
     "RUF021",
     "TRY400",
 ]
@@ -3002,7 +2771,6 @@ convention = "google"
     "E501",
     "ERA001",
     "G002",
-    "N999",
     "RET503",
     "SIM102",
 ]
@@ -3015,7 +2783,6 @@ convention = "google"
     "N802",
     "N803",
     "N806",
-    "N999",
     "RET505",
     "S112",
     "T201",
@@ -3023,7 +2790,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/NState.py" = [
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/Native/__init__.py" = [
     "ARG001",
@@ -3036,7 +2802,6 @@ convention = "google"
     "TRY401",
 ]
 "mxcubecore/HardwareObjects/ObjectsController.py" = [
-    "N999",
     "PTH118",
 ]
 "mxcubecore/HardwareObjects/PlateManipulator.py" = [
@@ -3053,7 +2818,6 @@ convention = "google"
     "F841",
     "FBT002",
     "FBT003",
-    "N999",
     "PERF401",
     "PLR0912",
     "PLR1714",
@@ -3074,7 +2838,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/PlateManipulatorMaintenance.py" = [
     "ERA001",
-    "N999",
     "Q000",
     "RET504",
     "SLF001",
@@ -3086,7 +2849,6 @@ convention = "google"
     "EM101",
     "FBT001",
     "G002",
-    "N999",
     "RUF010",
     "SIM102",
     "TRY002",
@@ -3099,7 +2861,6 @@ convention = "google"
     "E501",
     "ERA001",
     "FBT002",
-    "N999",
     "PIE804",
     "PTH100",
     "PTH110",
@@ -3112,7 +2873,6 @@ convention = "google"
     "ERA001",
     "EXE002",
     "F821",
-    "N999",
     "PLR5501",
     "RET505",
 ]
@@ -3128,7 +2888,6 @@ convention = "google"
     "FBT002",
     "N802",
     "N815",
-    "N999",
     "PERF401",
     "PLR0912",
     "PLR5501",
@@ -3157,7 +2916,6 @@ convention = "google"
     "N802",
     "N806",
     "N813",
-    "N999",
     "PERF401",
     "PLR0912",
     "PLR0915",
@@ -3197,7 +2955,6 @@ convention = "google"
     "N802",
     "N803",
     "N806",
-    "N999",
     "PLR0912",
     "PLR0915",
     "PLW0603",
@@ -3213,7 +2970,6 @@ convention = "google"
     "F841",
     "FBT003",
     "G002",
-    "N999",
     "RET504",
     "RET505",
     "S110",
@@ -3222,7 +2978,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/QtTangoLimaVideo.py" = [
     "ERA001",
-    "N999",
     "RET503",
     "RET504",
     "RET505",
@@ -3236,7 +2991,6 @@ convention = "google"
     "FBT002",
     "G002",
     "G003",
-    "N999",
     "PERF203",
     "RET503",
     "RET505",
@@ -3256,7 +3010,6 @@ convention = "google"
     "FBT002",
     "G002",
     "G003",
-    "N999",
     "PERF401",
     "PIE790",
     "PLR1704",
@@ -3279,7 +3032,6 @@ convention = "google"
     "F841",
     "G002",
     "G003",
-    "N999",
     "PERF401",
     "RET503",
     "S110",
@@ -3290,7 +3042,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/Resolution.py" = [
     "ERA001",
-    "N999",
 ]
 
 "mxcubecore/HardwareObjects/SC3.py" = [
@@ -3299,7 +3050,6 @@ convention = "google"
     "EM101",
     "FBT003",
     "N802",
-    "N999",
     "PERF203",
     "PERF401",
     "RET506",
@@ -3317,7 +3067,6 @@ convention = "google"
     "N802",
     "N803",
     "N815",
-    "N999",
     "RET502",
     "RUF012",
     "TRY400",
@@ -3326,13 +3075,11 @@ convention = "google"
     "ARG002",
     "BLE001",
     "N802",
-    "N999",
     "S110",
     "T201",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/PX1/PX1CatsMaint.py" = [
     "FBT002",
-    "N999",
     "SLF001",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Collect.py" = [
@@ -3344,7 +3091,6 @@ convention = "google"
     "F841",
     "G002",
     "N802",
-    "N999",
     "PIE790",
     "PTH101",
     "PTH103",
@@ -3367,7 +3113,6 @@ convention = "google"
     "ERA001",
     "FBT003",
     "N802",
-    "N999",
     "T201",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Cryotong.py" = [
@@ -3378,7 +3123,6 @@ convention = "google"
     "F841",
     "G002",
     "N806",
-    "N999",
     "PIE790",
     "RET505",
     "SIM103",
@@ -3393,7 +3137,6 @@ convention = "google"
     "BLE001",
     "F821",
     "N815",
-    "N999",
     "PLW0120",
     "RET503",
     "RET505",
@@ -3416,7 +3159,6 @@ convention = "google"
     "FBT002",
     "G002",
     "N802",
-    "N999",
     "RET503",
     "RUF012",
     "SIM102",
@@ -3440,7 +3182,6 @@ convention = "google"
     "N802",
     "N806",
     "N815",
-    "N999",
     "PERF401",
     "PIE804",
     "PLR0912",
@@ -3475,7 +3216,6 @@ convention = "google"
     "G002",
     "N802",
     "N815",
-    "N999",
     "RET501",
     "RET503",
     "RET504",
@@ -3490,7 +3230,6 @@ convention = "google"
     "F821",
     "FBT002",
     "G002",
-    "N999",
     "PLW2901",
     "RUF012",
     "SIM118",
@@ -3503,14 +3242,12 @@ convention = "google"
     "ERA001",
     "G002",
     "N806",
-    "N999",
     "RET503",
     "S110",
     "T201",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Pss.py" = [
     "G002",
-    "N999",
     "RUF012",
     "T201",
 ]
@@ -3520,7 +3257,6 @@ convention = "google"
     "ERA001",
     "N802",
     "N815",
-    "N999",
     "RET504",
     "RUF012",
     "SIM114",
@@ -3531,7 +3267,6 @@ convention = "google"
     "BLE001",
     "G002",
     "N802",
-    "N999",
     "SIM118",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/PX2/PX2Attenuator.py" = [
@@ -3545,7 +3280,6 @@ convention = "google"
     "N803",
     "N806",
     "N815",
-    "N999",
     "PLE1205",
     "PLR5501",
     "RUF012",
@@ -3558,7 +3292,6 @@ convention = "google"
     "FIX002",
     "G002",
     "N802",
-    "N999",
     "TD002",
     "TD003",
     "TD004",
@@ -3573,7 +3306,6 @@ convention = "google"
     "FBT003",
     "G002",
     "N802",
-    "N999",
     "PERF401",
     "PERF402",
     "PLR0915",
@@ -3596,7 +3328,6 @@ convention = "google"
     "G002",
     "G003",
     "ISC003",
-    "N999",
     "PLR0912",
     "PLR0913",
     "PLR0915",
@@ -3619,7 +3350,6 @@ convention = "google"
     "ERA001",
     "F841",
     "G002",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/PX2/PX2Guillotine.py" = [
     "BLE001",
@@ -3631,7 +3361,6 @@ convention = "google"
     "N802",
     "N806",
     "N815",
-    "N999",
     "RET505",
     "RUF012",
     "SIM103",
@@ -3648,20 +3377,17 @@ convention = "google"
     "F821",
     "F841",
     "N801",
-    "N999",
     "S110",
     "SIM105",
     "T201",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/PX2/PX2Resolution.py" = [
     "ARG002",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/PX2/PX2Video.py" = [
     "ARG002",
     "E712",
     "ERA001",
-    "N999",
     "RET503",
     "T201",
 ]
@@ -3674,7 +3400,6 @@ convention = "google"
     "FBT003",
     "G002",
     "N802",
-    "N999",
     "RET504",
     "RET505",
     "SIM108",
@@ -3696,7 +3421,6 @@ convention = "google"
     "N802",
     "N803",
     "N806",
-    "N999",
     "PERF401",
     "PIE804",
     "PLR0912",
@@ -3716,7 +3440,6 @@ convention = "google"
     "TRY400",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/SOLEILFlux.py" = [
-    "N999",
     "T201",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/SOLEILGuillotine.py" = [
@@ -3729,7 +3452,6 @@ convention = "google"
     "N802",
     "N806",
     "N815",
-    "N999",
     "RET505",
     "RUF012",
     "SIM103",
@@ -3743,7 +3465,6 @@ convention = "google"
     "ERA001",
     "F841",
     "G002",
-    "N999",
     "PERF203",
     "PLR0912",
     "PLR0915",
@@ -3763,7 +3484,6 @@ convention = "google"
     "G002",
     "G003",
     "ISC001",
-    "N999",
     "PLR0912",
     "PLR0915",
     "PTH110",
@@ -3776,7 +3496,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/SOLEIL/SOLEILPss.py" = [
     "BLE001",
     "N802",
-    "N999",
     "RUF012",
     "TRY400",
 ]
@@ -3784,7 +3503,6 @@ convention = "google"
     "BLE001",
     "ERA001",
     "G002",
-    "N999",
     "PTH100",
     "PTH110",
     "PTH112",
@@ -3800,7 +3518,6 @@ convention = "google"
     "G002",
     "G003",
     "N802",
-    "N999",
     "T201",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/SOLEILSession.py" = [
@@ -3808,7 +3525,6 @@ convention = "google"
     "ERA001",
     "F841",
     "G002",
-    "N999",
     "PTH118",
     "PTH120",
     "RET504",
@@ -3831,7 +3547,6 @@ convention = "google"
     "G003",
     "ISC003",
     "N806",
-    "N999",
     "RET501",
     "T201",
     "TRY003",
@@ -3847,7 +3562,6 @@ convention = "google"
     "N802",
     "N803",
     "N815",
-    "N999",
     "PLR1714",
     "RUF012",
     "S110",
@@ -3858,7 +3572,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/SampleStage.py" = [
     "EXE002",
     "N802",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/SampleView.py" = [
     "ARG002",
@@ -3870,7 +3583,6 @@ convention = "google"
     "EM101",
     "ERA001",
     "FBT002",
-    "N999",
     "PERF102",
     "PERF401",
     "PIE790",
@@ -3883,7 +3595,6 @@ convention = "google"
     "E501",
     "EM101",
     "G001",
-    "N999",
     "PIE796",
     "RUF013",
     "TRY003",
@@ -3895,7 +3606,6 @@ convention = "google"
     "F821",
     "N802",
     "N806",
-    "N999",
     "PYI006",
     "SLF001",
 ]
@@ -3903,7 +3613,6 @@ convention = "google"
     "ARG002",
     "ERA001",
     "FBT002",
-    "N999",
     "PLR0913",
     "PTH118",
     "RET505",
@@ -3915,7 +3624,6 @@ convention = "google"
     "B020",
     "C901",
     "FBT002",
-    "N999",
     "PLR0912",
     "PLR1704",
     "PTH123",
@@ -3927,14 +3635,12 @@ convention = "google"
     "ERA001",
     "N802",
     "N803",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/SpecMotorWPositions.py" = [
     "BLE001",
     "N802",
     "N803",
     "N806",
-    "N999",
     "TRY400",
 ]
 "mxcubecore/HardwareObjects/SpecMotorWSpecPositions.py" = [
@@ -3942,7 +3648,6 @@ convention = "google"
     "N802",
     "N803",
     "N806",
-    "N999",
     "RET503",
 ]
 "mxcubecore/HardwareObjects/SpecScan.py" = [
@@ -3950,7 +3655,6 @@ convention = "google"
     "N802",
     "N803",
     "N806",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/SpecShell.py" = [
     "BLE001",
@@ -3959,7 +3663,6 @@ convention = "google"
     "ERA001",
     "F841",
     "N802",
-    "N999",
     "PERF203",
     "S110",
     "SIM105",
@@ -3971,7 +3674,6 @@ convention = "google"
     "ERA001",
     "F841",
     "N802",
-    "N999",
     "PLR1714",
     "SIM102",
     "TRY400",
@@ -3982,7 +3684,6 @@ convention = "google"
     "ERA001",
     "G002",
     "G003",
-    "N999",
     "PLR0912",
     "PTH123",
     "RET503",
@@ -3990,7 +3691,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/TangoLimaMpegVideo.py" = [
     "FBT003",
-    "N999",
     "RUF005",
     "S603",
     "S607",
@@ -4000,14 +3700,12 @@ convention = "google"
     "EXE002",
     "FBT003",
     "N803",
-    "N999",
     "PLR5501",
     "SIM102",
     "TRY400",
 ]
 "mxcubecore/HardwareObjects/TangoLimaVideoDevice.py" = [
     "ERA001",
-    "N999",
     "RET503",
     "RET504",
     "RET505",
@@ -4016,7 +3714,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/TangoMachineInfo.py" = [
     "ARG002",
     "E501",
-    "N999",
     "PERF203",
     "TRY401",
 ]
@@ -4029,7 +3726,6 @@ convention = "google"
     "FBT003",
     "G002",
     "N802",
-    "N999",
     "RET503",
     "RET504",
     "S110",
@@ -4038,17 +3734,14 @@ convention = "google"
 "mxcubecore/HardwareObjects/TangoShutter.py" = [
     "E501",
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/Transmission.py" = [
     "ERA001",
     "N802",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/UnitTest.py" = [
     "ERA001",
     "F841",
-    "N999",
     "PLW0603",
     "PT009",
 ]
@@ -4064,7 +3757,6 @@ convention = "google"
     "ISC003",
     "N803",
     "N806",
-    "N999",
     "PLR0912",
     "PLW0603",
     "PYI006",
@@ -4076,7 +3768,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/VimbaVideo.py" = [
     "FBT003",
-    "N999",
     "SIM105",
 ]
 "mxcubecore/HardwareObjects/XMLRPCServer.py" = [
@@ -4091,7 +3782,6 @@ convention = "google"
     "G002",
     "ISC003",
     "N803",
-    "N999",
     "PLR0915",
     "PYI006",
     "RET504",
@@ -4112,7 +3802,6 @@ convention = "google"
     "G002",
     "N802",
     "N806",
-    "N999",
     "PERF401",
     "PLE1206",
     "PLR0913",
@@ -4142,7 +3831,6 @@ convention = "google"
     "N806",
     "N815",
     "N816",
-    "N999",
     "PLC0206",
     "PLR0912",
     "PLR0913",
@@ -4173,7 +3861,6 @@ convention = "google"
     "N805",
     "N806",
     "N815",
-    "N999",
     "PLR0912",
     "PLR0913",
     "PLR0915",
@@ -4197,7 +3884,6 @@ convention = "google"
     "N806",
     "N815",
     "N816",
-    "N999",
     "PLC0206",
     "PLR0912",
     "PLR0913",
@@ -4228,7 +3914,6 @@ convention = "google"
     "N806",
     "N815",
     "N816",
-    "N999",
     "PLC0206",
     "PLR0912",
     "PLR0913",
@@ -4259,7 +3944,6 @@ convention = "google"
     "N806",
     "N815",
     "N816",
-    "N999",
     "PIE790",
     "PLC0206",
     "PLR0912",
@@ -4293,7 +3977,6 @@ convention = "google"
     "N806",
     "N815",
     "N816",
-    "N999",
     "PIE790",
     "PLC0206",
     "PLR0912",
@@ -4315,7 +3998,6 @@ convention = "google"
     "EM101",
     "EM102",
     "ERA001",
-    "N999",
     "RET501",
     "SIM102",
     "T201",
@@ -4327,24 +4009,20 @@ convention = "google"
     "E501",
     "ERA001",
     "G002",
-    "N999",
     "S307",
     "TRY400",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractAuthenticator.py" = [
     "ERA001",
     "N805",
-    "N999",
     "PIE790",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractBeam.py" = [
     "B028",
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractCharacterisation.py" = [
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractCollect.py" = [
     "ARG002",
@@ -4354,7 +4032,6 @@ convention = "google"
     "FIX002",
     "G002",
     "N802",
-    "N999",
     "PERF203",
     "PERF402",
     "PIE790",
@@ -4377,7 +4054,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/abstract/AbstractDetector.py" = [
     "EM101",
     "ERA001",
-    "N999",
     "RET501",
     "RET504",
     "TRY003",
@@ -4385,7 +4061,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/abstract/AbstractEnergy.py" = [
     "ERA001",
     "FIX002",
-    "N999",
     "TD002",
     "TD003",
     "TD004",
@@ -4394,7 +4069,6 @@ convention = "google"
     "ARG002",
     "BLE001",
     "EM101",
-    "N999",
     "PLR0913",
     "PTH103",
     "PTH110",
@@ -4404,7 +4078,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractFlux.py" = [
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractLims.py" = [
     "ARG002",
@@ -4415,7 +4088,6 @@ convention = "google"
     "ERA001",
     "FBT001",
     "G002",
-    "N999",
     "RET505",
     "SIM102",
     "SIM103",
@@ -4426,18 +4098,15 @@ convention = "google"
     "B006",
     "B028",
     "E501",
-    "N999",
     "PIE790",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractMachineInfo.py" = [
     "ERA001",
-    "N999",
     "PERF203",
     "SIM102",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractMotor.py" = [
     "ERA001",
-    "N999",
     "SIM102",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractMultiCollect.py" = [
@@ -4456,7 +4125,6 @@ convention = "google"
     "N802",
     "N803",
     "N806",
-    "N999",
     "PERF203",
     "PIE790",
     "PLR0912",
@@ -4482,7 +4150,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractNState.py" = [
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractOnlineProcessing.py" = [
     "ARG002",
@@ -4495,7 +4162,6 @@ convention = "google"
     "FIX002",
     "G002",
     "ISC003",
-    "N999",
     "PERF401",
     "PLR0912",
     "PLR0915",
@@ -4518,13 +4184,11 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractProcedure.py" = [
     "ERA001",
-    "N999",
     "PIE790",
     "RUF012",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractResolution.py" = [
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractSampleChanger.py" = [
     "ARG002",
@@ -4537,7 +4201,6 @@ convention = "google"
     "FBT002",
     "FBT003",
     "N806",
-    "N999",
     "PERF401",
     "PLR5501",
     "RET502",
@@ -4552,21 +4215,17 @@ convention = "google"
 "mxcubecore/HardwareObjects/abstract/AbstractSampleView.py" = [
     "ERA001",
     "FBT002",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractShutter.py" = [
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractSlits.py" = [
     "B028",
     "ERA001",
-    "N999",
     "PIE790",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractTransmission.py" = [
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractVideoDevice.py" = [
     "ARG002",
@@ -4574,7 +4233,6 @@ convention = "google"
     "BLE001",
     "ERA001",
     "FBT002",
-    "N999",
     "PTH123",
     "RET503",
     "S307",
@@ -4584,14 +4242,12 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractXRFSpectrum.py" = [
     "ERA001",
-    "N999",
     "PLR0913",
     "TRY300",
     "TRY400",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractXrayCentring.py" = [
     "EM101",
-    "N999",
     "TRY003",
 ]
 "mxcubecore/HardwareObjects/abstract/ISPyBAbstractLims.py" = [
@@ -4600,7 +4256,6 @@ convention = "google"
     "EM101",
     "G002",
     "N802",
-    "N999",
     "PERF203",
     "SIM102",
     "SIM105",
@@ -4624,7 +4279,6 @@ convention = "google"
     "N802",
     "N803",
     "N806",
-    "N999",
     "PERF401",
     "PGH003",
     "PYI006",
@@ -4650,7 +4304,6 @@ convention = "google"
     "F821",
     "F841",
     "ISC003",
-    "N999",
     "PLR0912",
     "PLR0915",
     "S110",
@@ -4665,7 +4318,6 @@ convention = "google"
     "E712",
     "FBT002",
     "FBT003",
-    "N999",
     "PERF401",
     "SLF001",
 ]
@@ -4674,14 +4326,12 @@ convention = "google"
     "E501",
     "ERA001",
     "FBT003",
-    "N999",
     "PERF401",
     "SIM110",
     "SLF001",
 ]
 "mxcubecore/HardwareObjects/abstract/sample_changer/Crims.py" = [
     "ARG002",
-    "N999",
     "PLR0913",
     "S310",
     "TRY300",
@@ -4690,7 +4340,6 @@ convention = "google"
     "ARG002",
     "BLE001",
     "E501",
-    "N999",
     "RET504",
     "S310",
     "SIM102",
@@ -4718,7 +4367,6 @@ convention = "google"
     "EM101",
     "EM102",
     "ERA001",
-    "N999",
     "S311",
     "TRY003",
 ]
@@ -4727,25 +4375,21 @@ convention = "google"
     "E501",
     "EM101",
     "ERA001",
-    "N999",
     "TRY003",
 ]
 "mxcubecore/HardwareObjects/mockup/BeamDefinerMockup.py" = [
     "E501",
     "ERA001",
-    "N999",
     "S311",
     "T201",
 ]
 "mxcubecore/HardwareObjects/mockup/BeamMockup.py" = [
     "ARG002",
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/mockup/BeamlineActionsMockup.py" = [
     "ARG002",
     "EM101",
-    "N999",
     "TRY003",
 ]
 "mxcubecore/HardwareObjects/mockup/BeamlineTestMockup.py" = [
@@ -4758,7 +4402,6 @@ convention = "google"
     "G002",
     "G003",
     "ISC003",
-    "N999",
     "PERF401",
     "PTH103",
     "PTH110",
@@ -4771,7 +4414,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/mockup/BeamstopMockup.py" = [
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/mockup/CatsMaintMockup.py" = [
     "BLE001",
@@ -4782,7 +4424,6 @@ convention = "google"
     "F841",
     "FBT002",
     "FBT003",
-    "N999",
     "PIE790",
     "PLR0912",
     "RET504",
@@ -4797,7 +4438,6 @@ convention = "google"
     "ERA001",
     "FBT003",
     "FIX002",
-    "N999",
     "PTH110",
     "PTH118",
     "RET504",
@@ -4807,7 +4447,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/mockup/DetectorMockup.py" = [
     "ARG002",
-    "N999",
     "S307",
 ]
 "mxcubecore/HardwareObjects/mockup/DiffractometerMockup.py" = [
@@ -4816,7 +4455,6 @@ convention = "google"
     "ERA001",
     "FBT002",
     "N802",
-    "N999",
     "PLR1711",
     "RET504",
     "RET505",
@@ -4825,16 +4463,13 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/mockup/DoorInterlockMockup.py" = [
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/mockup/EDNACharacterisationMockup.py" = [
     "ARG002",
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/mockup/EnergyMockup.py" = [
     "ERA001",
-    "N999",
     "RET504",
 ]
 "mxcubecore/HardwareObjects/mockup/EnergyScanMockup.py" = [
@@ -4849,7 +4484,6 @@ convention = "google"
     "G003",
     "N802",
     "N806",
-    "N999",
     "PERF401",
     "PIE804",
     "PLR0915",
@@ -4864,13 +4498,11 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/mockup/ExporterNStateMockup.py" = [
     "ARG002",
-    "N999",
     "PIE790",
     "RET503",
 ]
 "mxcubecore/HardwareObjects/mockup/FluxMockup.py" = [
     "ERA001",
-    "N999",
     "S311",
 ]
 "mxcubecore/HardwareObjects/mockup/HarvesterMockup.py" = [
@@ -4878,7 +4510,6 @@ convention = "google"
     "E501",
     "ERA001",
     "N806",
-    "N999",
     "RET501",
     "RET503",
     "RET505",
@@ -4897,7 +4528,6 @@ convention = "google"
     "G003",
     "N802",
     "N815",
-    "N999",
     "PIE790",
     "SIM102",
     "SIM105",
@@ -4913,7 +4543,6 @@ convention = "google"
     "EM101",
     "FBT002",
     "ISC003",
-    "N999",
     "PIE790",
     "RET504",
     "SIM105",
@@ -4923,7 +4552,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/mockup/LimaDetectorMockup.py" = [
     "ARG002",
-    "N999",
     "PLR0913",
     "PLR1711",
 ]
@@ -4931,7 +4559,6 @@ convention = "google"
     "E501",
     "ERA001",
     "N802",
-    "N999",
     "PTH123",
     "RUF005",
     "S603",
@@ -4941,7 +4568,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/mockup/MachineInfoMockup.py" = [
     "E501",
-    "N999",
     "T201",
 ]
 "mxcubecore/HardwareObjects/mockup/MicrodiffApertureMockup.py" = [
@@ -4952,7 +4578,6 @@ convention = "google"
     "N802",
     "N803",
     "N806",
-    "N999",
     "RUF021",
     "TRY300",
 ]
@@ -4962,29 +4587,22 @@ convention = "google"
     "EXE002",
     "FBT002",
     "N802",
-    "N999",
     "PLR5501",
     "RET508",
     "S110",
     "TRY400",
 ]
-"mxcubecore/HardwareObjects/mockup/MicrodiffZoomMockup.py" = [
-    "N999",
-]
 "mxcubecore/HardwareObjects/mockup/MotorMockup.py" = [
     "E501",
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/mockup/MotorMockupBis.py" = [
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/mockup/MultiCollectMockup.py" = [
     "ARG002",
     "F841",
     "N802",
-    "N999",
     "PLR0913",
     "PLR1711",
     "PTH110",
@@ -4999,7 +4617,6 @@ convention = "google"
     "FBT002",
     "G001",
     "G003",
-    "N999",
     "PTH110",
     "PTH116",
     "PTH118",
@@ -5012,7 +4629,6 @@ convention = "google"
     "ERA001",
     "FBT003",
     "ICN001",
-    "N999",
     "NPY002",
     "RET508",
     "SIM113",
@@ -5028,7 +4644,6 @@ convention = "google"
     "FBT003",
     "G002",
     "N806",
-    "N999",
     "PERF401",
     "PLR1714",
     "PLR1730",
@@ -5044,27 +4659,20 @@ convention = "google"
 "mxcubecore/HardwareObjects/mockup/PlottingMockup.py" = [
     "ARG002",
     "ICN001",
-    "N999",
     "NPY002",
 ]
 "mxcubecore/HardwareObjects/mockup/ProcedureMockup.py" = [
-    "N999",
     "T201",
 ]
 "mxcubecore/HardwareObjects/mockup/QtVideoMockup.py" = [
     "ARG002",
     "ERA001",
     "EXE002",
-    "N999",
     "PLR5501",
     "RET505",
 ]
-"mxcubecore/HardwareObjects/mockup/ResolutionMockup.py" = [
-    "N999",
-]
 "mxcubecore/HardwareObjects/mockup/SOLEILCharacterisationMockup.py" = [
     "ARG002",
-    "N999",
     "RET504",
 ]
 "mxcubecore/HardwareObjects/mockup/SampleChangerMockup.py" = [
@@ -5072,13 +4680,11 @@ convention = "google"
     "FBT002",
     "FBT003",
     "G002",
-    "N999",
     "PERF401",
     "SLF001",
 ]
 "mxcubecore/HardwareObjects/mockup/ScanMockup.py" = [
     "ERA001",
-    "N999",
     "S311",
 ]
 "mxcubecore/HardwareObjects/mockup/ShapeHistoryMockup.py" = [
@@ -5086,7 +4692,6 @@ convention = "google"
     "ERA001",
     "FBT003",
     "G003",
-    "N999",
     "PERF401",
     "PIE790",
     "PTH109",
@@ -5099,15 +4704,12 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/mockup/ShutterMockup.py" = [
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/mockup/SlitsMockup.py" = [
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/mockup/TransmissionMockup.py" = [
     "ERA001",
-    "N999",
 ]
 "mxcubecore/HardwareObjects/mockup/XRFMockup.py" = [
     "ARG002",
@@ -5117,7 +4719,6 @@ convention = "google"
     "ICN001",
     "N802",
     "N806",
-    "N999",
     "NPY002",
     "PERF203",
     "PERF401",
@@ -5127,10 +4728,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/mockup/XRFSpectrumMockup.py" = [
     "ARG002",
     "ERA001",
-    "N999",
-]
-"mxcubecore/HardwareObjects/mockup/XrayCentringMockup.py" = [
-    "N999",
 ]
 "mxcubecore/HardwareObjects/sample_centring.py" = [
     "ARG001",
@@ -5172,7 +4769,6 @@ convention = "google"
     "FIX002",
     "N802",
     "N803",
-    "N999",
     "PERF203",
     "PERF401",
     "PLR0912",
@@ -5205,7 +4801,6 @@ convention = "google"
     "FBT002",
     "ICN001",
     "N813",
-    "N999",
     "PLR0912",
     "PLR0913",
     "RET503",
@@ -5215,7 +4810,6 @@ convention = "google"
     "BLE001",
     "C901",
     "N801",
-    "N999",
     "RET506",
     "SLF001",
     "TRY301",
@@ -5496,19 +5090,15 @@ convention = "google"
     "N802",
 ]
 "test/TestAbstractActuatorBase.py" = [
-    "N999",
     "SLF001",
 ]
 "test/TestAbstractMotorBase.py" = [
-    "N999",
     "SLF001",
 ]
 "test/TestAbstractNStateBase.py" = [
     "C400",
-    "N999",
 ]
 "test/TestHardwareObjectBase.py" = [
-    "N999",
     "SLF001",
 ]
 "test/conftest.py" = [
@@ -5540,8 +5130,6 @@ convention = "google"
     "PERF401",
     "SLF001",
 ]
-"test/test_beam_definer.py" = [
-]
 "test/test_beamline_ho_id.py" = [
     "SIM300",
 ]
@@ -5567,10 +5155,6 @@ convention = "google"
     "F841",
     "PIE808",
 ]
-"test/test_detector_distance.py" = [
-]
-"test/test_energy.py" = [
-]
 "test/test_flux.py" = [
     "SLF001",
     "T201",
@@ -5592,12 +5176,8 @@ convention = "google"
 "test/test_resolution.py" = [
     "SLF001",
 ]
-"test/test_sample_view.py" = [
-]
 "test/test_shutter.py" = [
     "T201",
-]
-"test/test_transmission.py" = [
 ]
 "test/test_utils_units.py" = [
     "N802",
