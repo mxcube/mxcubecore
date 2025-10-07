@@ -62,11 +62,9 @@ fluo_detector - if present, actuator to move a fluorescence detector close to th
 
 import abc
 import json
-import logging
 from enum import Enum, unique
 from typing import Dict, List, Optional, Tuple, Union
-
-from pathlin import Path
+from pathlib import Path
 from pydantic.v1 import BaseModel, Field, ValidationError
 
 from mxcubecore.BaseHardwareObjects import HardwareObject, HardwareObjectState
@@ -155,7 +153,7 @@ class SampleHolderSectionModel(BaseModel):
     block_spacing: Tuple[float, float] = Field(
         [15, 15], description="Spacing between blocks horizontal, vertical in mm"
     )
-    block_shape: ChipShapeEnum = ChipShapeEnum.rectangular
+    block_shape: ChipShapeEnum = ChipShapeEnum.RECTANGULAR
     number_of_rows: int = Field(6, description="Numer of rows")
     number_of_collumns: int = Field(6, description="Numer of collumns")
     row_labels: List[str] = Field([], description="Row lables")
@@ -230,7 +228,7 @@ class AbstractDiffractometer(HardwareObject):
                 setattr(self, role, _hobj)
                 self.connect(_hobj, "valueChanged", _hobj.update_value)
             except KeyError:
-                logging.getLogger("HWR").warning("Diffractometer: No motors configured")
+                self.log.warning("Diffractometer: No motors configured")
 
         # nstate (discrete positions) equipment
         for role in self.config.nstate_equipment:
@@ -240,9 +238,7 @@ class AbstractDiffractometer(HardwareObject):
                 setattr(self, role, _hobj)
                 self.connect(_hobj, "valueChanged", _hobj.update_value)
             except KeyError:
-                logging.getLogger("HWR").warning(
-                    "No nstate (discrete positions) equipment configured"
-                )
+                self.log.warning("No nstate (discrete positions) equipment configured")
 
         # chip definition
         _fp = self.get_property("chip_definition_file", "")
@@ -330,7 +326,7 @@ class AbstractDiffractometer(HardwareObject):
                     mot_pos_dict[role] = float(motor.get_value())
                 except TypeError:
                     msg = f"No value for {role}"
-                    logging.getLogger("HWR").warning(msg)
+                    self.log.warning(msg)
             return mot_pos_dict
 
         for motor in motors_list:
@@ -338,10 +334,10 @@ class AbstractDiffractometer(HardwareObject):
                 mot_pos_dict[str(motor)] = float(mot_hwobj_dict[motor].get_value())
             except KeyError:
                 msg = f"Invalid motor name {motor}"
-                logging.getLogger("HWR").exceptionb(msg)
+                self.log.exceptionb(msg)
             except TypeError:
                 msg = f"No value for {motor}"
-                logging.getLogger("HWR").warning(msg)
+                self.log.warning(msg)
         return mot_pos_dict
 
     def get_state_motors(self, motors_list: list | None = None) -> dict:
@@ -367,7 +363,7 @@ class AbstractDiffractometer(HardwareObject):
                     mot_state_dict[role] = float(motor.get_state())
                 except TypeError:
                     msg = f"No value for {role}"
-                    logging.getLogger("HWR").warning(msg)
+                    self.log.warning(msg)
             return mot_state_dict
 
         for motor in motors_list:
@@ -375,10 +371,10 @@ class AbstractDiffractometer(HardwareObject):
                 mot_state_dict[str(motor)] = float(mot_hwobj_dict[motor].get_state())
             except KeyError:
                 msg = f"Invalid motor name {motor}"
-                logging.getLogger("HWR").exception(msg)
+                self.log.exception(msg)
             except TypeError:
                 msg = f"No value for {motor}"
-                logging.getLogger("HWR").warning(msg)
+                self.log.warning(msg)
         return mot_state_dict
 
     # -------- Head Type and Modes --------
@@ -436,7 +432,7 @@ class AbstractDiffractometer(HardwareObject):
                     data = GonioHeadConfiguration(**chip_def)
                 except ValidationError:
                     msg = f"Validation error in {self.chip_definition_file}"
-                    logging.getLogger("HWR").exception(msg)
+                    self.log.exception(msg)
         return data
 
     def set_head_configuration(self, str_data: str) -> None:
@@ -452,7 +448,7 @@ class AbstractDiffractometer(HardwareObject):
                     GonioHeadConfiguration(**data)
                 except ValidationError:
                     msg = f"Validation error in {self.chip_definition_file}"
-                    logging.getLogger("HWR").exception(msg)
+                    self.log.exception(msg)
                 else:
                     _f.write(json.dumps(data, indent=4))
 
