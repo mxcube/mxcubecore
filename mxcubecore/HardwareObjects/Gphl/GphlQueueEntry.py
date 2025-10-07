@@ -49,7 +49,7 @@ class GphlWorkflowQueueEntry(BaseQueueEntry):
             )
             HWR.beamline.gphl_workflow.post_execute()
         HWR.beamline.gphl_workflow.pre_execute(self)
-        logging.getLogger("HWR").debug("Done GphlWorkflowQueueEntry.pre_execute")
+        self.log.debug("Done GphlWorkflowQueueEntry.pre_execute")
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
@@ -60,5 +60,5 @@ class GphlWorkflowQueueEntry(BaseQueueEntry):
     def stop(self):
         HWR.beamline.gphl_workflow.workflow_aborted("Dummy", "Dummy")
         BaseQueueEntry.stop(self)
-        logging.getLogger("HWR").info("MXCuBE aborting current GΦL workflow")
+        self.log.info("MXCuBE aborting current GΦL workflow")
         self.get_view().setText(1, "Stopped")

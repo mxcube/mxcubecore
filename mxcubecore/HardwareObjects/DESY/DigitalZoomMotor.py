@@ -24,8 +24,6 @@ __author__ = "Jan Meyer"
 __email__ = "jan.meyer@desy.de"
 
 
-import logging
-
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import (
     AbstractMotor,
@@ -54,9 +52,9 @@ class DigitalZoomMotor(AbstractMotor, HardwareObject):
         try:
             self.camera = self.get_object_by_role("camera")
         except KeyError:
-            logging.getLogger("HWR").warning("DigitalZoomMotor: camera not defined")
+            self.log.warning("DigitalZoomMotor: camera not defined")
 
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
             return
         try:
             self.read_only = not (self.camera.zoom_exists())
@@ -73,7 +71,7 @@ class DigitalZoomMotor(AbstractMotor, HardwareObject):
             self.update_state(self.STATES.READY)
         else:
             self.update_state(self.STATES.OFF)
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "DigitalZoomMotor: digital zoom is not supported by camera object"
             )
 

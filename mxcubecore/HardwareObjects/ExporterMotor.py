@@ -35,7 +35,6 @@ differ from the default ones.
   <use_global_state>False</use_global_state>
 """
 
-import logging
 import math
 import sys
 
@@ -194,7 +193,7 @@ class ExporterMotor(AbstractMotor):
         _val = self.motor_position_chan.get_value()
 
         if _val is None or math.isnan(_val):
-            logging.getLogger("HWR").debug("Value of %s is NaN" % self.actuator_name)
+            self.log.debug("Value of %s is NaN" % self.actuator_name)
             _val = self._nominal_value
 
         self._nominal_value = _val

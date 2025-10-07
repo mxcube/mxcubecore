@@ -1,5 +1,3 @@
-import logging
-
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
@@ -29,7 +27,7 @@ class ALBAFrontLight(HardwareObject):
                 self.off_threshold = float(threshold)
             except Exception:
                 self.off_threshold = self.default_threshold
-                logging.getLogger("HWR").info(
+                self.log.info(
                     "OFF Threshold for front light is not valid. Using %s"
                     % self.off_threshold
                 )
@@ -95,25 +93,23 @@ class ALBAFrontLight(HardwareObject):
         return self.current_level
 
     def setLevel(self, level):
-        logging.getLogger("HWR").debug(
-            "Setting level in %s to %s" % (self.username, level)
-        )
+        self.log.debug("Setting level in %s to %s" % (self.username, level))
         self.level_channel.set_value(float(level))
 
     def setOn(self):
-        logging.getLogger("HWR").debug("Setting front light on")
+        self.log.debug("Setting front light on")
         if self.memorized_level is not None:
             if self.memorized_level < self.off_threshold:
                 value = self.off_threshold
             else:
                 value = self.memorized_level
-            logging.getLogger("HWR").debug("   setting value to")
+            self.log.debug("   setting value to")
             self.level_channel.set_value(value)
         else:
             self.level_channel.set_value(self.off_threshold)
 
     def setOff(self):
-        logging.getLogger("HWR").debug("Setting front light off")
+        self.log.debug("Setting front light off")
         self.level_channel.set_value(0.0)
 
 

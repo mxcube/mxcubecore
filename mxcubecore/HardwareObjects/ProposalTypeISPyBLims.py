@@ -46,26 +46,20 @@ class ProposalTypeISPyBLims(ISPyBAbstractLIMS):
         """
 
         if self.authServerType == "ldap":
-            logging.getLogger("HWR").debug(
-                "Starting LDAP authentication %s" % user_name
-            )
+            self.log.debug("Starting LDAP authentication %s" % user_name)
             ok = self.ldap_login(user_name, psd)
         elif self.authServerType == "ispyb":
-            logging.getLogger("HWR").debug("ISPyB login")
+            self.log.debug("ISPyB login")
             ok, _ = self.ispyb_login(user_name, psd)
         else:
             raise Exception("Authentication server type is not defined")
 
         if not ok:
             # refuse Login
-            logging.getLogger("HWR").error(
-                "Authentication with %s failed" % self.authServerType
-            )
+            self.log.error("Authentication with %s failed" % self.authServerType)
             raise Exception("Authentication failed")
 
-        logging.getLogger("HWR").debug(
-            "User %s logged in %s" % (user_name, self.authServerType)
-        )
+        self.log.debug("User %s logged in %s" % (user_name, self.authServerType))
 
     def is_session_already_active_by_code(self, code: str, number: str) -> bool:
         # If current selected session is already selected no need to do
@@ -84,18 +78,16 @@ class ProposalTypeISPyBLims(ISPyBAbstractLIMS):
         Given a proposal name it will select a session that is scheduled on this beamline in the current timeslot
         """
         if self.is_session_already_active(self.session_manager.active_session):
-            logging.getLogger("HWR").debug("[ISPYB] is_session_already_active")
+            self.log.debug("[ISPYB] is_session_already_active")
             return self.session_manager.active_session
 
         if len(self.session_manager.sessions) == 0:
-            logging.getLogger("HWR").error(
-                "Session list is empty. No session candidates"
-            )
+            self.log.error("Session list is empty. No session candidates")
             raise Exception("No sessions available")
 
         if len(self.session_manager.sessions) == 1:
             self.session_manager.active_session = self.session_manager.sessions[0]
-            logging.getLogger("HWR").debug(
+            self.log.debug(
                 "Session list contains a single session. proposal_name=%s",
                 self.session_manager.active_session.proposal_name,
             )
@@ -111,7 +103,7 @@ class ProposalTypeISPyBLims(ISPyBAbstractLIMS):
             )
         ]
         if len(session_list) > 1:
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "Session not found in the local list of sessions. Found %s sessions. proposal_name=%s"
                 % (len(session_list), proposal_name)
             )

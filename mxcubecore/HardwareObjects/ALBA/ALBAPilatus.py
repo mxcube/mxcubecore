@@ -19,7 +19,6 @@
 
 from __future__ import print_function
 
-import logging
 import time
 
 from PyTango.gevent import DeviceProxy
@@ -64,7 +63,7 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
             self.latency_time = None
 
         if self.latency_time is None:
-            logging.getLogger("HWR").debug(
+            self.log.debug(
                 "Cannot obtain latency time from Pilatus XML. Using %s"
                 % self.default_latency_time
             )
@@ -112,7 +111,7 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
             beam_x = self.beamx_chan.get_value()
             beam_y = self.beamy_chan.get_value()
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
         return beam_x, beam_y
 
     def get_manufacturer(self):
@@ -161,7 +160,7 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
         kev_diff = abs(det_energy - currentenergy)
 
         if kev_diff > 1.2:
-            logging.getLogger("HWR").debug(
+            self.log.debug(
                 "programming energy_threshold on pilatus to: %s" % currentenergy
             )
             # if self.wait_standby():
@@ -197,19 +196,17 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
         trig_mode = "EXTERNAL_TRIGGER"
         # latency_time = 0.003
 
-        logging.getLogger("HWR").debug(
+        self.log.debug(
             " Preparing detector (dev=%s) for data collection" % self.devname
         )
 
-        logging.getLogger("HWR").debug("    /saving directory: %s" % basedir)
-        logging.getLogger("HWR").debug("    /prefix          : %s" % prefix)
-        logging.getLogger("HWR").debug("    /saving_format   : %s" % fileformat)
-        logging.getLogger("HWR").debug("    /trigger_mode    : %s" % trig_mode)
-        logging.getLogger("HWR").debug("    /acq_nb_frames   : %s" % nb_frames)
-        logging.getLogger("HWR").debug(
-            "    /acq_expo_time   : %s" % str(exp_time - self.latency_time)
-        )
-        logging.getLogger("HWR").debug("    /latency_time    : %s" % self.latency_time)
+        self.log.debug("    /saving directory: %s" % basedir)
+        self.log.debug("    /prefix          : %s" % prefix)
+        self.log.debug("    /saving_format   : %s" % fileformat)
+        self.log.debug("    /trigger_mode    : %s" % trig_mode)
+        self.log.debug("    /acq_nb_frames   : %s" % nb_frames)
+        self.log.debug("    /acq_expo_time   : %s" % str(exp_time - self.latency_time))
+        self.log.debug("    /latency_time    : %s" % self.latency_time)
 
         self.device.write_attribute("saving_mode", "AUTO_FRAME")
         self.device.write_attribute("saving_directory", basedir)
@@ -234,7 +231,7 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
         return True
 
     def prepare_collection(self, nb_frames, first_img_no):
-        logging.getLogger("HWR").debug(
+        self.log.debug(
             "ALBAPilatus. preparing collection. nb_images: %s, first_no: %s"
             % (nb_frames, first_img_no)
         )

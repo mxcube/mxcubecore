@@ -40,7 +40,7 @@ class ISPyBAbstractLIMS(AbstractLims):
             # Initialize ldap
             self.ldapConnection = self.get_object_by_role("ldapServer")
             if self.ldapConnection is None:
-                logging.getLogger("HWR").debug("LDAP Server is not available")
+                self.log.debug("LDAP Server is not available")
 
         self.loginTranslate = self.get_property("loginTranslate", default_value=True)
 
@@ -58,10 +58,10 @@ class ISPyBAbstractLIMS(AbstractLims):
         try:
             self.base_result_url = self.get_property("base_result_url").strip()
         except AttributeError:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
 
         self.adapter = self._create_data_adapter()
-        logging.getLogger("HWR").debug("[ISPYB] Proxy address: %s" % self.proxy)
+        self.log.debug("[ISPYB] Proxy address: %s" % self.proxy)
 
         # Add the proposal codes defined in the configuration xml file
         # to a directory. Used by translate()
@@ -72,15 +72,15 @@ class ISPyBAbstractLIMS(AbstractLims):
                 try:
                     self._translations[code]["ldap"] = proposal.ldap
                 except AttributeError:
-                    logging.getLogger("HWR").exception("")
+                    self.log.exception("")
                 try:
                     self._translations[code]["ispyb"] = proposal.ispyb
                 except AttributeError:
-                    logging.getLogger("HWR").exception("")
+                    self.log.exception("")
                 try:
                     self._translations[code]["gui"] = proposal.gui
                 except AttributeError:
-                    logging.getLogger("HWR").exception("")
+                    self.log.exception("")
 
     def _create_data_adapter(self) -> ISPyBDataAdapter:
         return ISPyBDataAdapter(
@@ -175,12 +175,10 @@ class ISPyBAbstractLIMS(AbstractLims):
         for sample in self.samples:
             try:
                 if str(sample.get("limsID")) == str(sample_id):
-                    logging.getLogger("HWR").debug(
-                        "Sample found by limsID=%s" % (sample_id)
-                    )
+                    self.log.debug("Sample found by limsID=%s" % (sample_id))
                     return sample
             except (TypeError, KeyError):
-                logging.getLogger("HWR").exception("")
+                self.log.exception("")
         return None
 
     def get_samples(self, lims_name):
@@ -189,7 +187,7 @@ class ISPyBAbstractLIMS(AbstractLims):
             self.samples = self.adapter.get_samples(
                 self.session_manager.active_session.proposal_id
             )
-            logging.getLogger("HWR").debug(
+            self.log.debug(
                 "get_samples. %s samples retrieved. proposal_id=%s lims_name=%s"
                 % (
                     len(self.samples),
@@ -200,9 +198,9 @@ class ISPyBAbstractLIMS(AbstractLims):
         return self.samples
 
     def create_session(self, proposal_id: str):
-        logging.getLogger("HWR").debug("create_session. proposal_id=%s" % proposal_id)
+        self.log.debug("create_session. proposal_id=%s" % proposal_id)
         session_manager = self.adapter.create_session(proposal_id, self.beamline_name)
-        logging.getLogger("HWR").debug("Session created. proposal_id=%s" % proposal_id)
+        self.log.debug("Session created. proposal_id=%s" % proposal_id)
         return session_manager
 
     def store_energy_scan(self, energyscan_dict):

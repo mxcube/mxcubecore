@@ -115,7 +115,7 @@ class AbstractEnergyScan(HardwareObject):
             HWR.beamline.safety_shutter.open(timeout=10)
             self.choose_attenuation()
             self.close_fast_shutter()
-            logging.getLogger("HWR").debug("Doing the scan, please wait...")
+            self.log.debug("Doing the scan, please wait...")
             self.execute_energy_scan(self.energy_scan_parameters)
             self.escan_postscan()
             self.close_fast_shutter()

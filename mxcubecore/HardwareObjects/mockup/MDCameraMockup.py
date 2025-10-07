@@ -1,7 +1,6 @@
 """Class for cameras connected to framegrabbers run by Taco Device Servers"""
 
 import atexit
-import logging
 import os
 import signal
 import subprocess
@@ -40,7 +39,7 @@ class MDCameraMockup(BaseHardwareObjects.HardwareObject):
         self._current_stream_size = (0, 0)
 
     def init(self):
-        logging.getLogger("HWR").info("initializing camera object")
+        self.log.info("initializing camera object")
         if self.get_property("interval"):
             self.pollInterval = self.get_property("interval")
         self.stopper = False  # self.polling_timer(self.pollInterval, self.poll)
@@ -60,14 +59,14 @@ class MDCameraMockup(BaseHardwareObjects.HardwareObject):
         return self.connected
 
     def poll(self) -> None:
-        logging.getLogger("HWR").info("going to poll images")
+        self.log.info("going to poll images")
         while not self.stopper:
             time.sleep(1)
             try:
                 img = open(self.image, "rb").read()
                 self.emit("imageReceived", img, 659, 493)
             except Exception:
-                logging.getLogger("HWR").exception("Could not read image")
+                self.log.exception("Could not read image")
 
     def imageUpdated(self, value) -> None:
         print("<HW> got new image")
@@ -119,7 +118,7 @@ class MDCameraMockup(BaseHardwareObjects.HardwareObject):
         return (width, height, scale)
 
     def clean_up(self):
-        logging.getLogger("HWR").info("Shutting down video_stream...")
+        self.log.info("Shutting down video_stream...")
         os.kill(self._video_stream_process.pid, signal.SIGTERM)
 
     def start_video_stream_process(self) -> None:
@@ -160,7 +159,7 @@ class MDCameraMockup(BaseHardwareObjects.HardwareObject):
                 for p in ps:
                     p.kill()
             except psutil.NoSuchProcess:
-                logging.getLogger("HWR").exception("")
+                self.log.exception("")
 
             self._video_stream_process = None
 

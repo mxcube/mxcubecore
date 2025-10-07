@@ -20,7 +20,6 @@
 """ """
 
 import abc
-import logging
 from datetime import datetime
 from typing import (
     Dict,
@@ -451,7 +450,7 @@ class AbstractLims(HardwareObject, abc.ABC):
         :param session: lims session value
         :return:
         """
-        logging.getLogger("HWR").debug(
+        self.log.debug(
             "%s sessions available for users %s"
             % (len(sessions), self.session_manager.users.keys())
         )
@@ -504,7 +503,7 @@ class AbstractLims(HardwareObject, abc.ABC):
     def remove_user(self, user_name: str):
         if user_name in self.session_manager.users:
             del self.session_manager.users[user_name]
-            logging.getLogger("HWR").debug("User %s has been removed" % user_name)
+            self.log.debug("User %s has been removed" % user_name)
             self.__set_sessions(self.get_shared_sessions())
 
     def add_user_and_shared_sessions(self, user_name: str, sessions: List[Session]):
@@ -516,7 +515,7 @@ class AbstractLims(HardwareObject, abc.ABC):
         self.session_manager.users[user_name] = LimsUser(
             user_name=user_name, sessions=sessions
         )
-        logging.getLogger("HWR").debug(
+        self.log.debug(
             "User added to session manager, user_name=%s sessions=%s"
             % (user_name, len(sessions))
         )

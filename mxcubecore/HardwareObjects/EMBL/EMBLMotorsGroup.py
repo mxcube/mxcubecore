@@ -75,7 +75,6 @@ Example Hardware Object XML file :
 </object>
 """
 
-import logging
 import time
 
 import gevent
@@ -147,7 +146,7 @@ class EMBLMotorsGroup(HardwareObject):
                 self.group_address,
                 self.positionAddr,
             )
-            logging.getLogger("HWR").error(msg)
+            self.log.error(msg)
 
         try:
             self.chan_status = self.add_channel(
@@ -166,7 +165,7 @@ class EMBLMotorsGroup(HardwareObject):
                 self.group_address,
                 self.statusAddr,
             )
-            logging.getLogger("HWR").error(msg)
+            self.log.error(msg)
 
     def get_motors_dict(self):
         """Returns dict with motors"""
@@ -188,16 +187,14 @@ class EMBLMotorsGroup(HardwareObject):
                     motor["setCmd"],
                     new_position,
                 )
-                logging.getLogger("HWR").debug(
+                self.log.debug(
                     "EMBLMotorsGroup: send %s : %.4f"
                     % (motor["motorAddr"], new_position)
                 )
                 time.sleep(0.2)
                 self.wait_motor_ready(motor_name, timeout=10)
                 time.sleep(1)
-                logging.getLogger("HWR").debug(
-                    "EMBLMotorsGroup: motor %s ready" % motor["motorAddr"]
-                )
+                self.log.debug("EMBLMotorsGroup: motor %s ready" % motor["motorAddr"])
                 break
 
     def set_motor_focus_mode(self, motor_name, focus_mode):
@@ -248,14 +245,14 @@ class EMBLMotorsGroup(HardwareObject):
                     motor["setCmd"],
                     motor["focusingModes"][str(focus_mode)],
                 )
-                logging.getLogger("HWR").debug(
+                self.log.debug(
                     "EMBLMotorsGroup: send %s : %.4f"
                     % (motor["motorAddr"], motor["focusingModes"][str(focus_mode)])
                 )
                 if motor["motorName"] in ("In", "Out", "Top", "But"):
                     self.wait_motor_ready(motor["motorName"], timeout=10)
                     time.sleep(1.1)
-                    logging.getLogger("HWR").debug(
+                    self.log.debug(
                         "EMBLMotorsGroup: motor %s ready" % motor["motorAddr"]
                     )
 

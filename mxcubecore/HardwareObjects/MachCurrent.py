@@ -51,7 +51,7 @@ class MachCurrent(AbstractMachineInfo):
             curr.connect_signal("update", self.value_changed)
             self.update_state(self.STATES.READY)
         except Exception as err:
-            logging.getLogger("HWR").exception(err)
+            self.log.exception(err)
 
     def value_changed(self, value):
         """Get information from the control software, emit valueChanged"""
@@ -64,7 +64,7 @@ class MachCurrent(AbstractMachineInfo):
 
             refill = self.get_channel_object("RefillCountdown").get_value()
         except Exception as err:
-            logging.getLogger("HWR").exception(err)
+            self.log.exception(err)
             opmsg, fillmode, value, refill = ("", "", -1, -1)
 
         if opmsg and opmsg != self.opmsg:
@@ -80,19 +80,19 @@ class MachCurrent(AbstractMachineInfo):
         try:
             return self.get_channel_object("Current").get_value()
         except Exception as err:
-            logging.getLogger("HWR").exception(err)
+            self.log.exception(err)
             return -1
 
     def get_message(self) -> str:
         try:
             return self.get_channel_object("OperatorMsg").get_value()
         except Exception as err:
-            logging.getLogger("HWR").exception(err)
+            self.log.exception(err)
             return ""
 
     def get_fill_mode(self) -> str:
         try:
             return self.get_channel_object("FillingMode").get_value()
         except Exception as err:
-            logging.getLogger("HWR").exception(err)
+            self.log.exception(err)
             return ""

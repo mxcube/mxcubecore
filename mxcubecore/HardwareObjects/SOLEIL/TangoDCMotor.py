@@ -60,7 +60,7 @@ class TangoDCMotor(HardwareObject):
             try:
                 self.threshold = float(threshold)
             except Exception:
-                logging.getLogger("HWR").exception("")
+                self.log.exception("")
 
         self.set_is_ready(True)
         try:
@@ -81,13 +81,11 @@ class TangoDCMotor(HardwareObject):
         self.positionValue = value
         if abs(float(value) - self.old_value) > self.threshold:
             try:
-                # logging.getLogger("HWR").error("%s: TangoDCMotor new position  , %s", self.name(), value)
+                # self.log.error("%s: TangoDCMotor new position  , %s", self.name(), value)
                 self.emit("valueChanged", (value,))
                 self.old_value = value
             except Exception:
-                logging.getLogger("HWR").error(
-                    "%s: TangoDCMotor not responding, %s", self.id, ""
-                )
+                self.log.error("%s: TangoDCMotor not responding, %s", self.id, "")
                 self.old_value = value
 
     def is_ready(self):
@@ -116,14 +114,14 @@ class TangoDCMotor(HardwareObject):
 
     def get_limits(self):
         try:
-            logging.getLogger("HWR").info(
+            self.log.info(
                 "TangoDCMotor.get_limits: trying to get limits for motor_name %s "
                 % (self.motor_name)
             )
             limits = self.ho.getMotorLimits(
                 self.motor_name
             )  # limitsCommand() # self.ho.getMotorLimits(self.motor_name)
-            logging.getLogger("HWR").info(
+            self.log.info(
                 "TangoDCMotor.get_limits: Getting limits for %s -- %s "
                 % (self.motor_name, str(limits))
             )
@@ -131,7 +129,7 @@ class TangoDCMotor(HardwareObject):
                 limits = numpy.array([-10000, 10000])
         except Exception:
             # import traceback
-            # logging.getLogger("HWR").info("TangoDCMotor.get_limits: Cannot get limits for %s.\nException %s " % (self.motor_name, traceback.print_exc()))
+            # self.log.info("TangoDCMotor.get_limits: Cannot get limits for %s.\nException %s " % (self.motor_name, traceback.print_exc()))
             if self.motor_name in [
                 "detector_distance",
                 "detector_horizontal",
@@ -149,12 +147,10 @@ class TangoDCMotor(HardwareObject):
         if limits is None:
             try:
                 limits = self.get_property("min"), self.get_property("max")
-                logging.getLogger("HWR").info(
-                    "TangoDCMotor.get_limits: %.4f ***** %.4f" % limits
-                )
+                self.log.info("TangoDCMotor.get_limits: %.4f ***** %.4f" % limits)
                 limits = numpy.array(limits)
             except Exception:
-                # logging.getLogger("HWR").info("TangoDCMotor.get_limits: Cannot get limits for %s" % self.name())
+                # self.log.info("TangoDCMotor.get_limits: Cannot get limits for %s" % self.name())
                 limits = None
         return limits
 
@@ -210,9 +206,7 @@ class TangoDCMotor(HardwareObject):
                 type(value),
             )
         logging.info("TangoDCMotor: move. motor will go to %s " % str(value))
-        logging.getLogger("HWR").info(
-            "TangoDCMotor.move to absolute position: %.3f" % value
-        )
+        self.log.info("TangoDCMotor.move to absolute position: %.3f" % value)
         logging.getLogger("TangoClient").info(
             "TangoDCMotor move. Trying to go to %s: that is a '%s'",
             value,
@@ -232,7 +226,7 @@ class TangoDCMotor(HardwareObject):
         #     logging.info("TangoDCMotor: value %s " % str(value))
 
     def stop(self):
-        logging.getLogger("HWR").info("TangoDCMotor.stop")
+        self.log.info("TangoDCMotor.stop")
         stopcmd = self.get_command_object("Stop")()
         if not stopcmd:
             stopcmd = TangoCommand("stopcmd", "Stop", self.tangoname)

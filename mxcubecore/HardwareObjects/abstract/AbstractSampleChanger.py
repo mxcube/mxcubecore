@@ -237,7 +237,7 @@ class SampleChanger(Container, HardwareObject):
         use_update_timer = self.get_property("useUpdateTimer", True)
 
         msg = f"SampleChanger: Using update timer is {use_update_timer}"
-        logging.getLogger("HWR").info(msg)
+        self.log.info(msg)
 
         if use_update_timer:
             task1s = self.__timer_1s_task(wait=False)

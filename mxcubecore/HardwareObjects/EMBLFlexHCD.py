@@ -422,7 +422,7 @@ class EMBLFlexHCD(SampleChanger):
         finally:
             for msg in self.get_robot_exceptions():
                 if msg is not None:
-                    logging.getLogger("HWR").error(msg)
+                    self.log.error(msg)
 
         # if res:
         #    self.prepare_centring()
@@ -458,7 +458,7 @@ class EMBLFlexHCD(SampleChanger):
         finally:
             for msg in self.get_robot_exceptions():
                 if msg is not None:
-                    logging.getLogger("HWR").error(msg)
+                    self.log.error(msg)
 
     def get_gripper(self):
         gripper_type = self._execute_cmd_exporter("get_gripper_type", attribute=True)
@@ -535,7 +535,7 @@ class EMBLFlexHCD(SampleChanger):
         try:
             _tt = time.time()
             self._wait_busy(300)
-            logging.getLogger("HWR").info(f"Waited SC activity {time.time() - _tt}")
+            self.log.info(f"Waited SC activity {time.time() - _tt}")
         except Exception:
             for msg in self.get_robot_exceptions():
                 logging.getLogger("user_level_log").error(msg)
@@ -584,7 +584,7 @@ class EMBLFlexHCD(SampleChanger):
 
         for msg in self.get_robot_exceptions():
             if msg is not None:
-                logging.getLogger("HWR").error(msg)
+                self.log.error(msg)
                 logging.getLogger("user_level_log").error(msg)
 
         return self._set_loaded_sample_and_prepare(loaded_sample, previous_sample)
@@ -609,7 +609,7 @@ class EMBLFlexHCD(SampleChanger):
 
         for msg in self.get_robot_exceptions():
             if msg is not None:
-                logging.getLogger("HWR").error(msg)
+                self.log.error(msg)
                 logging.getLogger("user_level_log").error(msg)
 
         if loaded_sample == (-1, -1, -1):

@@ -58,9 +58,7 @@ class QtInstanceServer(Procedure):
 
         # Check the HO configuration
         if self.serverPort is None:
-            logging.getLogger("HWR").error(
-                "InstanceServer: you must specify a port number"
-            )
+            self.log.error("InstanceServer: you must specify a port number")
         else:
             pass
 
@@ -117,7 +115,7 @@ class QtInstanceServer(Procedure):
         elif self.isClient():
             my_nick = self.clientId2[0]
         else:
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "InstanceServer: printing an id while not server nor client"
             )
 
@@ -142,7 +140,7 @@ class QtInstanceServer(Procedure):
     # Starts the server
     def startServer(self):
         if self.asyncServer is not None:
-            logging.getLogger("HWR").error("InstanceServer: server already started")
+            self.log.error("InstanceServer: server already started")
         elif self.serverPort is not None:
             try:
                 async_server = gevent.server.StreamServer(
@@ -150,14 +148,14 @@ class QtInstanceServer(Procedure):
                 )  # AsyncServer(self,self.serverHost,self.serverPort)
                 async_server.start()
             except Exception:
-                logging.getLogger("HWR").warning(
+                self.log.warning(
                     "InstanceServer: cannot create server, so trying to connect to it"
                 )
                 self.connectToServer()
             else:
                 self.asyncServer = async_server
                 server_hostname = self.serverHost.split(".")[0]
-                logging.getLogger("HWR").debug(
+                self.log.debug(
                     "InstanceServer: listening to connections on %s:%d"
                     % (server_hostname, self.serverPort)
                 )
@@ -169,7 +167,7 @@ class QtInstanceServer(Procedure):
 
                 self.emit("serverInitialized", (True, self.serverId2))
         else:
-            logging.getLogger("HWR").error(
+            self.log.error(
                 "InstanceServer: not property configured to start the server"
             )
             self.emit("serverInitialized", (False,))
@@ -190,9 +188,7 @@ class QtInstanceServer(Procedure):
         except Exception:
             self.instanceClient = None
             if not quiet:
-                logging.getLogger("HWR").error(
-                    "InstanceServer: cannot connect to server"
-                )
+                self.log.error("InstanceServer: cannot connect to server")
             self.emit("clientInitialized", (False, (None, None), None, quiet))
         else:
             my_login = pwd.getpwuid(os.getuid())[0]
@@ -223,9 +219,7 @@ class QtInstanceServer(Procedure):
         return self.controlId2
 
     def serverClosed(self):
-        logging.getLogger("HWR").error(
-            "InstanceServer: server has closed the connection!"
-        )
+        self.log.error("InstanceServer: server has closed the connection!")
         self.emit("serverClosed", (self.serverId2,))
 
     def clientConnected(self, addr, req_handler):
@@ -300,7 +294,7 @@ class QtInstanceServer(Procedure):
             data = msg.encode()
             send_data_to_server(self.instanceClient, data)
         else:
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "InstanceServer: requestIdChange while not server nor client!"
             )
 
@@ -318,7 +312,7 @@ class QtInstanceServer(Procedure):
             send_data_to_server(self.instanceClient, data)
             my_id = self.clientId2
         else:
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "InstanceServer: sendChatMessage while not server nor client!"
             )
         self.emit("chatMessageReceived", (priority, my_id, message))
@@ -344,7 +338,7 @@ class QtInstanceServer(Procedure):
         elif self.isClient():
             send_data_to_server(self.instanceClient, data)
         else:
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "InstanceServer: sendBrickUpdateMessage while not server nor client!"
             )
 
@@ -358,7 +352,7 @@ class QtInstanceServer(Procedure):
         elif self.isClient():
             send_data_to_server(self.instanceClient, data)
         else:
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "InstanceServer: sendTabUpdateMessage while not server nor client!"
             )
 
@@ -393,9 +387,7 @@ class QtInstanceServer(Procedure):
             data = msg.encode()
             send_data_to_server(self.instanceClient, data)
         else:
-            logging.getLogger("HWR").warning(
-                "InstanceServer: giveControl while not server nor client!"
-            )
+            self.log.warning("InstanceServer: giveControl while not server nor client!")
 
     def askForControl(self):
         msg = AskControlInstanceMessage()
@@ -427,7 +419,7 @@ class QtInstanceServer(Procedure):
 
                 self.emit("haveControl", (True,))
             else:
-                logging.getLogger("HWR").warning(
+                self.log.warning(
                     "InstanceServer: takeControl while already in control!"
                 )
 
@@ -437,7 +429,7 @@ class QtInstanceServer(Procedure):
                 data = msg.encode()
                 send_data_to_server(self.instanceClient, data)
             else:
-                logging.getLogger("HWR").warning(
+                self.log.warning(
                     "InstanceServer: takeControl while already in control!"
                 )
 
@@ -452,13 +444,11 @@ class QtInstanceServer(Procedure):
                 client_addr = self.clients[self.controlId2[0]][0]
                 send_data_to_client(client_addr, data)
             else:
-                logging.getLogger("HWR").warning(
+                self.log.warning(
                     "InstanceServer: calling a brick while having control!"
                 )
         else:
-            logging.getLogger("HWR").warning(
-                "InstanceServer: only the server can call a brick!"
-            )
+            self.log.warning("InstanceServer: only the server can call a brick!")
 
     def answerToServer(self, brick, method, method_args):
         msg = BrickCallInstanceMessage()
@@ -467,9 +457,7 @@ class QtInstanceServer(Procedure):
         msg.setBrickUpdate(brick_name, widget_name, method, method_args)
         data = msg.encode()
         if self.isServer():
-            logging.getLogger("HWR").warning(
-                "InstanceServer: only a client can answer to the server!"
-            )
+            self.log.warning("InstanceServer: only a client can answer to the server!")
         else:
             data = msg.encode()
             send_data_to_server(self.instanceClient, data)
@@ -480,16 +468,12 @@ class QtInstanceServer(Procedure):
         try:
             message = InstanceMessage(data=data)
         except Exception:
-            logging.getLogger("HWR").exception(
-                "InstanceServer: problem parsing received message"
-            )
+            self.log.exception("InstanceServer: problem parsing received message")
         else:
             try:
                 t = message.getType()
             except Exception:
-                logging.getLogger("HWR").exception(
-                    "InstanceServer: problem parsing received message"
-                )
+                self.log.exception("InstanceServer: problem parsing received message")
             else:
                 if t == InstanceMessage.TYPE_CHAT:
                     msg_obj = ChatInstanceMessage(message)
@@ -514,7 +498,7 @@ class QtInstanceServer(Procedure):
                 elif t == InstanceMessage.TYPE_BRICKCALL:
                     msg_obj = BrickCallInstanceMessage(message)
                 else:
-                    logging.getLogger("HWR").warning(
+                    self.log.warning(
                         "InstanceServer: unknown message type %s " % str(t)
                     )
         return msg_obj
@@ -607,9 +591,7 @@ class QtInstanceServer(Procedure):
                     exec("method=brick.%s.%s" % (widget_name, widget_method))
                 self.emit("widgetCall", (timestamp, method, widget_method_args))
             except Exception:
-                logging.getLogger("HWR").exception(
-                    "InstanceServer: problem while calling a brick!"
-                )
+                self.log.exception("InstanceServer: problem while calling a brick!")
 
         elif isinstance(m, BrickUpdateInstanceMessage):
             try:
@@ -631,9 +613,7 @@ class QtInstanceServer(Procedure):
                     "widgetUpdate", (timestamp, method, widget_method_args, masterSync)
                 )
             except Exception:
-                logging.getLogger("HWR").exception(
-                    "InstanceServer: problem while updating a brick!"
-                )
+                self.log.exception("InstanceServer: problem while updating a brick!")
 
         elif isinstance(m, TabUpdateInstanceMessage):
             try:
@@ -646,9 +626,7 @@ class QtInstanceServer(Procedure):
                 method_args = (tab_index,)
                 self.emit("widgetUpdate", (timestamp, method, method_args))
             except Exception:
-                logging.getLogger("HWR").exception(
-                    "InstanceServer: problem while updating a tab!"
-                )
+                self.log.exception("InstanceServer: problem while updating a tab!")
 
     def serverMessageReceived(self, client_addr, data):
         m = self.parseReceivedMessage(data)
@@ -855,9 +833,7 @@ class QtInstanceServer(Procedure):
                     exec("method=brick.%s.%s" % (widget_name, widget_method))
                 self.emit("widgetCall", (timestamp, method, widget_method_args))
             except Exception:
-                logging.getLogger("HWR").exception(
-                    "InstanceServer: problem while calling a brick!"
-                )
+                self.log.exception("InstanceServer: problem while calling a brick!")
 
         elif isinstance(m, BrickUpdateInstanceMessage):
             broadcast_to_clients(data, avoid=(client_addr,))
@@ -878,9 +854,7 @@ class QtInstanceServer(Procedure):
                     "widgetUpdate", (timestamp, method, widget_method_args, masterSync)
                 )
             except Exception:
-                logging.getLogger("HWR").exception(
-                    "InstanceServer: problem while updating a brick!"
-                )
+                self.log.exception("InstanceServer: problem while updating a brick!")
 
         elif isinstance(m, TabUpdateInstanceMessage):
             broadcast_to_clients(data, avoid=(client_addr,))
@@ -895,9 +869,7 @@ class QtInstanceServer(Procedure):
                 method_args = (tab_index,)
                 self.emit("widgetUpdate", (timestamp, method, method_args))
             except Exception:
-                logging.getLogger("HWR").exception(
-                    "InstanceServer: problem while updating a tab!"
-                )
+                self.log.exception("InstanceServer: problem while updating a tab!")
 
         elif isinstance(m, TakeControlInstanceMessage):
             found_id = None

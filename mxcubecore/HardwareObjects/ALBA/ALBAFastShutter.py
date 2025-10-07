@@ -101,7 +101,7 @@ class ALBAFastShutter(BaseHardwareObjects.HardwareObject):
         except Exception:
             import traceback
 
-            logging.getLogger("HWR").warning(traceback.format_exc())
+            self.log.warning(traceback.format_exc())
             self.state_strings = self.default_state_strings
 
     def get_state(self):

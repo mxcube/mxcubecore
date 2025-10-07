@@ -4,8 +4,6 @@ This module serves to connect to and Ldap server.
 It works in principle for ESRF, Soleil Proxima and MAXIV beamlines
 """
 
-import logging
-
 import ldap
 
 from mxcubecore.HardwareObjects.abstract.AbstractAuthenticator import (
@@ -42,17 +40,15 @@ class LdapAuthenticator(AbstractAuthenticator):
         domain = self.get_property("ldapdomain")
 
         if ldaphost is None:
-            logging.getLogger("HWR").error(
-                "LdapAuthenticator: you must specify the LDAP hostname"
-            )
+            self.log.error("LdapAuthenticator: you must specify the LDAP hostname")
         else:
             if ldapport is None:
-                logging.getLogger("HWR").debug(
+                self.log.debug(
                     "LdapAuthenticator: connecting to LDAP server %s", ldaphost
                 )
                 self._ldapConnection = ldap.initialize("ldap://" + ldaphost)
             else:
-                logging.getLogger("HWR").debug(
+                self.log.debug(
                     "LdapAuthenticator: connecting to LDAP server %s:%s",
                     ldaphost,
                     ldapport,
@@ -61,7 +57,7 @@ class LdapAuthenticator(AbstractAuthenticator):
                     "ldap://%s:%s" % (ldaphost, int(ldapport))
                 )
 
-            logging.getLogger("HWR").debug(
+            self.log.debug(
                 "LdapAuthenticator: got connection %s" % str(self._ldapConnection)
             )
 
@@ -73,7 +69,7 @@ class LdapAuthenticator(AbstractAuthenticator):
                 domstr += "%sdc=%s" % (comma, part)
                 comma = ","
             self.domstr = domstr
-            logging.getLogger("HWR").debug(
+            self.log.debug(
                 "LdapAuthenticator: got connection %s" % str(self._ldapConnection)
             )
         else:
@@ -88,12 +84,12 @@ class LdapAuthenticator(AbstractAuthenticator):
                 ldaphost = self.get_property("ldaphost")
                 ldapport = self.get_property("ldapport")
                 if ldapport is None:
-                    logging.getLogger("HWR").debug(
+                    self.log.debug(
                         "LdapAuthenticator: reconnecting to LDAP server %s", ldaphost
                     )
                     self._connect()
                 else:
-                    logging.getLogger("HWR").debug(
+                    self.log.debug(
                         "LdapAuthenticator: reconnecting to LDAP server %s:%s",
                         ldaphost,
                         ldapport,
@@ -109,7 +105,7 @@ class LdapAuthenticator(AbstractAuthenticator):
 
             self._reconnect()
 
-        logging.getLogger("HWR").info("LdapAuthenticator: %s" % msg)
+        self.log.info("LdapAuthenticator: %s" % msg)
 
         return False
 
@@ -129,7 +125,7 @@ class LdapAuthenticator(AbstractAuthenticator):
         if self._ldapConnection is None:
             return self._cleanup(msg="no LDAP server configured")
 
-        logging.getLogger("HWR").debug(
+        self.log.debug(
             "LdapAuthenticator: searching for %s / %s" % (username, self.domstr)
         )
         try:
@@ -158,14 +154,14 @@ class LdapAuthenticator(AbstractAuthenticator):
         if password == "":
             return self._cleanup(msg="invalid password for %s" % username)
 
-        logging.getLogger("HWR").debug("LdapAuthenticator: validating %s" % username)
+        self.log.debug("LdapAuthenticator: validating %s" % username)
 
         try:
             bind_str = "uid=%s, ou=%s, %s" % (username, self.ldapou, self.domstr)
         except AttributeError:
             bind_str = "uid=%s,%s" % (username, self.domstr)
 
-        logging.getLogger("HWR").debug("LdapAuthenticator: binding to %s" % bind_str)
+        self.log.debug("LdapAuthenticator: binding to %s" % bind_str)
         handle = self._ldapConnection.simple_bind(bind_str, password)
 
         try:

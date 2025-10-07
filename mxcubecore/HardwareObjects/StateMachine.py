@@ -17,7 +17,6 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 import time
 from datetime import datetime
 
@@ -71,12 +70,12 @@ class StateMachine(HardwareObject):
 
         for transition in self.transition_list:
             if not self.get_state_by_name(transition["source"]):
-                logging.getLogger("HWR").error(
+                self.log.error(
                     "Transition %s " % str(transition)
                     + "has a none existing source state: %s" % transition["source"]
                 )
             if not self.get_state_by_name(transition["dest"]):
-                logging.getLogger("HWR").error(
+                self.log.error(
                     "Transition %s " % str(transition)
                     + "has a none existing destination state: %s" % transition["dest"]
                 )
@@ -90,19 +89,19 @@ class StateMachine(HardwareObject):
 
             for condition_name in transition["conditions_true"]:
                 if not self.get_condition_by_name(condition_name):
-                    logging.getLogger("HWR").error(
+                    self.log.error(
                         "Transition %s " % str(transition)
                         + "has a none existing condition: %s" % condition_name
                     )
             for condition_name in transition["conditions_false"]:
                 if not self.get_condition_by_name(condition_name):
-                    logging.getLogger("HWR").error(
+                    self.log.error(
                         "Transition %s " % str(transition)
                         + "has a none existing condition: %s" % condition_name
                     )
             for condition_name in transition["conditions_false_or"]:
                 if not self.get_condition_by_name(condition_name):
-                    logging.getLogger("HWR").error(
+                    self.log.error(
                         "Transition %s " % str(transition)
                         + "has a none existing condition: %s" % condition_name
                     )
@@ -112,7 +111,7 @@ class StateMachine(HardwareObject):
         self.bl_setup_hwobj = self.get_object_by_role("beamline_setup")
         for hwobj_name in dir(self.bl_setup_hwobj):
             if hwobj_name.endswith("hwobj"):
-                # logging.getLogger("HWR").debug(\
+                # self.log.debug(\
                 #     "StateMachine: Attaching hwobj: %s " % hwobj_name)
                 self.connect(
                     getattr(self.bl_setup_hwobj, hwobj_name),
@@ -136,7 +135,7 @@ class StateMachine(HardwareObject):
 
         condition = self.get_condition_by_name(condition_name)
         if condition:
-            # logging.getLogger("HWR").debug(\
+            # self.log.debug(\
             #  "StateMachine: condition '%s' changed to '%s'" \
             #   % (condition_name, value))
 
@@ -145,7 +144,7 @@ class StateMachine(HardwareObject):
                 self.emit("conditionChanged", self.condition_list)
                 self.update_fsm_state()
         else:
-            logging.getLogger("HWR").debug(
+            self.log.debug(
                 "StateMachine: condition '%s' not in the condition list"
                 % condition_name
             )
@@ -199,7 +198,7 @@ class StateMachine(HardwareObject):
             }
             self.history_state_list.append(history_state_item)
             self.previous_state = self.current_state
-            logging.getLogger("HWR").debug(
+            self.log.debug(
                 "StateMachine: current state " + "changed to : %s" % self.current_state
             )
             self.emit("stateChanged", self.history_state_list)

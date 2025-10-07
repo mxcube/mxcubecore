@@ -1,4 +1,3 @@
-import logging
 import time
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
@@ -86,9 +85,7 @@ class PX1TangoLight(HardwareObject):
 
     def zoom_changed(self, position_name, value):
         if self.currentState == "in":
-            logging.getLogger("HWR").debug(
-                "Zoom changed. and light is in. setting light level"
-            )
+            self.log.debug("Zoom changed. and light is in. setting light level")
             self.adjustLightLevel()
 
     def adjustLightLevel(self):
@@ -102,9 +99,7 @@ class PX1TangoLight(HardwareObject):
                 light_level = float(props["lightLevel"])
                 light_current = self.light_hwo.get_value()
                 if light_current != light_level:
-                    logging.getLogger("HWR").debug(
-                        "Setting light level to %s" % light_level
-                    )
+                    self.log.debug("Setting light level to %s" % light_level)
                     self.light_hwo.set_value(light_level)
         except Exception:
-            logging.getLogger("HWR").debug("Cannot set light level")
+            self.log.debug("Cannot set light level")

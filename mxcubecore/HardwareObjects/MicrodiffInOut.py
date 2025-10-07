@@ -57,7 +57,7 @@ class MicrodiffInOut(HardwareObject):
             tt = float(self.get_property("timeout"))
             self.timeout = tt
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
 
         if self.get_property("use_hwstate"):
             self.hwstate_attr = self.add_channel(

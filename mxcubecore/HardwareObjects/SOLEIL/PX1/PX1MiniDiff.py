@@ -54,16 +54,14 @@ class PX1MiniDiff(GenericDiffractometer):
                 if env_state != "RUNNING" and self.px1env_ho.isPhaseVisuSample():
                     break
                 if time.time() - t0 > timeout:
-                    logging.getLogger("HWR").debug(
-                        "timeout sending supervisor to sample view phase"
-                    )
+                    self.log.debug("timeout sending supervisor to sample view phase")
                     break
                 gevent.sleep(0.1)
 
         self.lightarm_hwobj.adjustLightLevel()
 
     def smargon_state_changed(self, value):
-        logging.getLogger("HWR").debug("smargon state changed")
+        self.log.debug("smargon state changed")
         self.smargon_state = value
         self.emit("minidiffStateChanged", (value,))
 
@@ -106,7 +104,7 @@ class PX1MiniDiff(GenericDiffractometer):
     def px1_manual_centring(self, sample_info=None, wait_result=None):
         """ """
         self.emit_progress_message("Manual 3 click centring...")
-        logging.getLogger("HWR").debug(
+        self.log.debug(
             "   starting manual 3 click centring. phiy is %s" % str(self.centring_phiy)
         )
 
@@ -137,7 +135,7 @@ class PX1MiniDiff(GenericDiffractometer):
         """
         Descript. :
         """
-        logging.getLogger("HWR").debug("Diffractometer: centring procedure done.")
+        self.log.debug("Diffractometer: centring procedure done.")
         try:
             motor_pos = centring_procedure.get()
             if isinstance(motor_pos, gevent.GreenletExit):
@@ -146,15 +144,11 @@ class PX1MiniDiff(GenericDiffractometer):
             logging.exception("Could not complete centring")
             self.emit_centring_failed()
         else:
-            logging.getLogger("HWR").debug(
-                "Diffractometer: centring procedure done. %s" % motor_pos
-            )
+            self.log.debug("Diffractometer: centring procedure done. %s" % motor_pos)
 
             for motor in motor_pos:
                 position = motor_pos[motor]
-                logging.getLogger("HWR").debug(
-                    "   - motor is %s - going to %s" % (motor.id, position)
-                )
+                self.log.debug("   - motor is %s - going to %s" % (motor.id, position))
 
             self.emit_progress_message("Moving sample to centred position...")
             self.emit_centring_moving()
@@ -213,12 +207,10 @@ class PX1MiniDiff(GenericDiffractometer):
             # We do not want to modify the input dict
             motor_positions_copy = motor_positions.copy()
 
-        logging.getLogger("HWR").debug(
-            "MiniDiff moving motors. %s" % str(motor_positions_copy)
-        )
+        self.log.debug("MiniDiff moving motors. %s" % str(motor_positions_copy))
 
         self.wait_device_ready(timeout)
-        logging.getLogger("HWR").debug("   now ready to move them")
+        self.log.debug("   now ready to move them")
         for motor in motor_positions_copy.keys():
             position = motor_positions_copy[motor]
             if type(motor) in (str, unicode):
@@ -229,19 +221,17 @@ class PX1MiniDiff(GenericDiffractometer):
                     continue
                 motor_positions_copy[motor] = position
 
-            logging.getLogger("HWR").debug(
-                "  / moving motor. %s to %s" % (motor.id, position)
-            )
+            self.log.debug("  / moving motor. %s to %s" % (motor.id, position))
             self.wait_device_ready(timeout)
             try:
                 motor.set_value(position, timeout=None)
             except Exception:
                 import traceback
 
-                logging.getLogger("HWR").debug(
+                self.log.debug(
                     "  / error moving motor on diffractometer. state is %s"
                     % (self.smargon_state)
                 )
-                logging.getLogger("HWR").debug("     / %s " % traceback.format_exc())
+                self.log.debug("     / %s " % traceback.format_exc())
 
         self.wait_device_ready(timeout)

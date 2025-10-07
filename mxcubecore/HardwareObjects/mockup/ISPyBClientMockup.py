@@ -35,7 +35,7 @@ class ISPyBClientMockup(ProposalTypeISPyBLims):
         try:
             self.base_result_url = self.get_property("base_result_url").strip()
         except AttributeError:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
 
         self.__test_proposal = {
             "status": {"code": "ok"},
@@ -111,7 +111,9 @@ class ISPyBClientMockup(ProposalTypeISPyBLims):
             "is_scheduled_time": True,
             "is_scheduled_beamline": True,
             "user_portal_URL": "",
-            "data_portal_URL": "https://data2.esrf.fr/investigation/1565334143/datasets",
+            "data_portal_URL": (
+                "https://data2.esrf.fr/investigation/1565334143/datasets"
+            ),
             "logbook_URL": "https://data2.esrf.fr/investigation/1565334143/logbook",
         }
 
@@ -219,12 +221,10 @@ class ISPyBClientMockup(ProposalTypeISPyBLims):
         :returns: None
 
         """
-        logging.getLogger("HWR").debug(
+        self.log.debug(
             "Data collection parameters stored " + "in ISPyB: %s" % str(mx_collection)
         )
-        logging.getLogger("HWR").debug(
-            "Beamline setup stored in ISPyB: %s" % str(bl_config)
-        )
+        self.log.debug("Beamline setup stored in ISPyB: %s" % str(bl_config))
 
         return None, None
 

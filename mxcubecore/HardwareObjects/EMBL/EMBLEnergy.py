@@ -104,7 +104,7 @@ class EMBLEnergy(AbstractEnergy):
         try:
             self._default_energy = self.get_property("defaultEnergy")
         except Exception:
-            logging.getLogger("HWR").warning("Energy: no default energy defined")
+            self.log.warning("Energy: no default energy defined")
 
         try:
             self._energy_limits = eval(self.get_property("staticLimits"))
@@ -135,9 +135,7 @@ class EMBLEnergy(AbstractEnergy):
                 value = self.chan_energy.get_value()
                 return value[0] / 1000
             except Exception:
-                logging.getLogger("HWR").exception(
-                    "Energy: could not read current energy"
-                )
+                self.log.exception("Energy: could not read current energy")
                 return None
         return value
 
@@ -153,9 +151,7 @@ class EMBLEnergy(AbstractEnergy):
                     self.chan_limit_high.get_value(),
                 )
             except Exception:
-                logging.getLogger("HWR").exception(
-                    "Energy: could not read energy limits"
-                )
+                self.log.exception("Energy: could not read energy limits")
         return self._energy_limits
 
     def get_wavelength_limits(self):
@@ -205,11 +201,11 @@ class EMBLEnergy(AbstractEnergy):
         """
         Checks given value if it is within limits
         """
-        logging.getLogger("HWR").info("Checking the move limits")
+        self.log.info("Checking the move limits")
         result = False
 
         if self._energy_limits[0] <= value <= self.en_lims[1]:
-            logging.getLogger("HWR").info("Limits ok")
+            self.log.info("Limits ok")
             result = True
         else:
             logging.getLogger("GUI").info("Energy: Requested value is out of limits")
@@ -223,7 +219,7 @@ class EMBLEnergy(AbstractEnergy):
     #     :param wait: boolean
     #     :return:
     #     """
-    #     logging.getLogger("HWR").info("Moving wavelength to (%s)" % value)
+    #     self.log.info("Moving wavelength to (%s)" % value)
     #     return self.move_energy(12.3984 / value, wait)
     #     # return self.startMoveEnergy(value, wait)
 
@@ -313,7 +309,7 @@ class EMBLEnergy(AbstractEnergy):
                 self._moving = False
                 self.set_break_bragg()
                 if self.cmd_reset_perp is not None:
-                    logging.getLogger("HWR").info("Energy: Perp reset sent")
+                    self.log.info("Energy: Perp reset sent")
                     self.cmd_reset_perp()
             self.move_energy_finished(0)
             self.update_state(self.STATES.READY)
@@ -402,22 +398,18 @@ class EMBLEnergy(AbstractEnergy):
             self.wait_ready()
             gevent.sleep(1)
             self.wait_ready()
-            logging.getLogger("HWR").info("Energy: Set bragg break cmd send")
+            self.log.info("Energy: Set bragg break cmd send")
             self.cmd_set_break_bragg(1)
             gevent.sleep(2)
             if self.chan_status_bragg_break is not None:
-                logging.getLogger("HWR").warning(
-                    "Energy: Waiting for break set (first try) ..."
-                )
+                self.log.warning("Energy: Waiting for break set (first try) ...")
                 with gevent.Timeout(
                     20, Exception("Energy: Timeout waiting for break set")
                 ):
                     while self.chan_status_bragg_break.get_value() != 0:
                         gevent.sleep(0.1)
                 gevent.sleep(3)
-                logging.getLogger("HWR").warning(
-                    "Waiting for break set (second try) ..."
-                )
+                self.log.warning("Waiting for break set (second try) ...")
                 with gevent.Timeout(20, Exception("Timeout waiting for break set")):
                     while self.chan_status_bragg_break.get_value() != 0:
                         gevent.sleep(0.1)

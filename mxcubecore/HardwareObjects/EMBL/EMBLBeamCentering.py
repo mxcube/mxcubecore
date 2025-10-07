@@ -101,9 +101,7 @@ class EMBLBeamCentering(HardwareObject):
                 self.focusing_mode_changed,
             )
         else:
-            logging.getLogger("HWR").debug(
-                "BeamlineTest: Beam focusing hwobj is not defined"
-            )
+            self.log.debug("BeamlineTest: Beam focusing hwobj is not defined")
 
     def focusing_mode_changed(self, focusing_mode, beam_size):
         """Reemits focusing changed signal
@@ -128,7 +126,7 @@ class EMBLBeamCentering(HardwareObject):
         with gevent.Timeout(20, Exception("Timeout waiting for pitch scan ready")):
             while self.scan_status != 0:  # chan_pitch_scan_status.get_value() != 0:
                 gevent.sleep(0.1)
-                logging.getLogger("HWR").error("scan status %s" % self.scan_status)
+                self.log.error("scan status %s" % self.scan_status)
         self.cmd_set_vmax_pitch(1)
         sleep(3)
 

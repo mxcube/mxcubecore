@@ -1,5 +1,3 @@
-import logging
-
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 """
@@ -94,7 +92,7 @@ class MicrodiffBeamstop(HardwareObject):
         try:
             pos = self.beamstop.states[pos]
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
 
         if not noEmit:
             if pos:

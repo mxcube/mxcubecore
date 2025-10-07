@@ -3,7 +3,6 @@ FLEX HCD maintenance mockup.
 """
 
 import ast
-import logging
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
@@ -160,7 +159,7 @@ class FlexHCDMaintenance(HardwareObject):
         try:
             grippers = self._sc.get_available_grippers()
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
         else:
             gripper_cmd_list = []
 

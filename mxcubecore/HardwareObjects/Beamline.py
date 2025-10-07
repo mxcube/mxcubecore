@@ -42,7 +42,6 @@ __copyright__ = """ Copyright © 2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 __author__ = "Rasmus H Fogh"
 
-import logging
 
 from mxcubecore.BaseHardwareObjects import (
     ConfiguredObject,
@@ -330,7 +329,7 @@ class Beamline(HardwareObject):
         if acquisition_type != "default":
             dd0 = self.config.default_acquisition_parameters.get(acquisition_type)
             if dd0 is None:
-                logging.getLogger("HWR").warning(
+                self.log.warning(
                     "No separate parameters for acquisition type: %s - using default."
                     % acquisition_type
                 )
@@ -362,7 +361,7 @@ class Beamline(HardwareObject):
         try:
             acq_parameters.resolution = self.resolution.get_value()
         except Exception:
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "get_default_acquisition_parameters: "
                 "No current resolution, setting to 0.0"
             )
@@ -371,7 +370,7 @@ class Beamline(HardwareObject):
         try:
             acq_parameters.energy = self.energy.get_value()
         except Exception:
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "get_default_acquisition_parameters: No current energy, setting to 0.0"
             )
             acq_parameters.energy = 0.0
@@ -379,7 +378,7 @@ class Beamline(HardwareObject):
         try:
             acq_parameters.transmission = self.transmission.get_value()
         except Exception:
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "get_default_acquisition_parameters: "
                 "No current transmission, setting to 0.0"
             )
@@ -390,7 +389,7 @@ class Beamline(HardwareObject):
         try:
             acq_parameters.detector_binning_mode = self.detector.get_binning_mode()
         except Exception:
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "get_default_acquisition_parameters: "
                 "Could not get detector mode, setting to ''"
             )
@@ -399,7 +398,7 @@ class Beamline(HardwareObject):
         try:
             acq_parameters.detector_roi_mode = self.detector.get_roi_mode()
         except Exception:
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "get_default_acquisition_parameters: "
                 "Could not get roi mode, setting to ''"
             )

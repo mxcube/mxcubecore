@@ -142,13 +142,13 @@ class MiniDiff(HardwareObject):
             try:
                 self.lightWago = hwr.get_hardware_object(wl_prop)
             except Exception:
-                logging.getLogger("HWR").exception("")
+                self.log.exception("")
 
         if self.phiMotor is not None:
             self.connect(self.phiMotor, "stateChanged", self.phiMotorStateChanged)
             self.connect(self.phiMotor, "valueChanged", self.emit_diffractometer_moved)
         else:
-            logging.getLogger("HWR").error(
+            self.log.error(
                 "MiniDiff: phi motor is not defined in minidiff equipment %s",
                 str(self.name),
             )
@@ -157,7 +157,7 @@ class MiniDiff(HardwareObject):
             self.connect(self.phizMotor, "valueChanged", self.phizMotorMoved)
             self.connect(self.phizMotor, "valueChanged", self.emit_diffractometer_moved)
         else:
-            logging.getLogger("HWR").error(
+            self.log.error(
                 "MiniDiff: phiz motor is not defined in minidiff equipment %s",
                 str(self.name),
             )
@@ -166,7 +166,7 @@ class MiniDiff(HardwareObject):
             self.connect(self.phiyMotor, "valueChanged", self.phiyMotorMoved)
             self.connect(self.phiyMotor, "valueChanged", self.emit_diffractometer_moved)
         else:
-            logging.getLogger("HWR").error(
+            self.log.error(
                 "MiniDiff: phiy motor is not defined in minidiff equipment %s",
                 str(self.name),
             )
@@ -182,7 +182,7 @@ class MiniDiff(HardwareObject):
             )
             self.connect(self.zoomMotor, "stateChanged", self.zoomMotorStateChanged)
         else:
-            logging.getLogger("HWR").error(
+            self.log.error(
                 "MiniDiff: zoom motor is not defined in minidiff equipment %s",
                 str(self.name),
             )
@@ -195,7 +195,7 @@ class MiniDiff(HardwareObject):
                 self.sampleXMotor, "valueChanged", self.emit_diffractometer_moved
             )
         else:
-            logging.getLogger("HWR").error(
+            self.log.error(
                 "MiniDiff: sampx motor is not defined in minidiff equipment %s",
                 str(self.name),
             )
@@ -208,13 +208,13 @@ class MiniDiff(HardwareObject):
                 self.sampleYMotor, "valueChanged", self.emit_diffractometer_moved
             )
         else:
-            logging.getLogger("HWR").error(
+            self.log.error(
                 "MiniDiff: sampx motor is not defined in minidiff equipment %s",
                 str(self.name),
             )
 
         if HWR.beamline.sample_changer is None:
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "MiniDiff: sample changer is not defined in minidiff equipment %s",
                 str(self.name),
             )
@@ -226,13 +226,13 @@ class MiniDiff(HardwareObject):
                     self.sampleChangerSampleIsLoaded,
                 )
             except Exception:
-                logging.getLogger("HWR").exception(
+                self.log.exception(
                     "MiniDiff: could not connect to sample changer smart magnet"
                 )
         if self.lightWago is not None:
             self.connect(self.lightWago, "wagoStateChanged", self.wagoLightStateChanged)
         else:
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "MiniDiff: wago light is not defined in minidiff equipment %s",
                 str(self.name),
             )
@@ -249,13 +249,11 @@ class MiniDiff(HardwareObject):
         self._set_rotation_axis_position(value, motor_name="phiz")
 
     def _set_rotation_axis_position(self, value: float, motor_name="phiz"):
-        logging.getLogger("HWR").info(
-            f"Setting rotation axis ({motor_name}) position to {value}"
-        )
+        self.log.info(f"Setting rotation axis ({motor_name}) position to {value}")
 
         try:
             fname = self.get_xml_path()
-            logging.getLogger("HWR").info(f"Updating {fname}")
+            self.log.info(f"Updating {fname}")
 
             tree = ET.parse(fname)
             motor_tag = (
@@ -266,10 +264,10 @@ class MiniDiff(HardwareObject):
             motor_tag.text = str(value)
             tree.write(fname)
         except:
-            logging.getLogger("HWR").info(f"Could not update {fname}")
+            self.log.info(f"Could not update {fname}")
             # raise
         else:
-            logging.getLogger("HWR").info(f"Wrote {fname}")
+            self.log.info(f"Wrote {fname}")
 
         if motor_name == "phiz":
             self.centringPhiz = sample_centring.CentringMotor(
@@ -285,13 +283,11 @@ class MiniDiff(HardwareObject):
         )
 
         try:
-            logging.getLogger("HWR").info(f"Setting MD Alignment reference position")
+            self.log.info(f"Setting MD Alignment reference position")
             print(f" script name {script_name} value {value}")
             self.run_script(f"{script_name}, {value}")
         except:
-            logging.getLogger("HWR").exception(
-                f"Setting MD Alignment reference position failed"
-            )
+            self.log.exception(f"Setting MD Alignment reference position failed")
             raise
 
     # Contained Objects
@@ -550,9 +546,7 @@ class MiniDiff(HardwareObject):
             self.centringSampley.set_value(sampy)
             self.centringPhiy.set_value(-phiy)
         except Exception:
-            logging.getLogger("HWR").exception(
-                "MiniDiff: could not center to beam, aborting"
-            )
+            self.log.exception("MiniDiff: could not center to beam, aborting")
 
     def getAvailableCentringMethods(self):
         return self.centringMethods.keys()
@@ -565,7 +559,7 @@ class MiniDiff(HardwareObject):
             else:
                 time.sleep(0.5)
                 self.wait_ready(60)
-                logging.getLogger("HWR").info("Using MD script for sample centring")
+                self.log.info("Using MD script for sample centring")
                 self.run_script("sample_centering")
                 time.sleep(0.5)
                 self.wait_ready(120)
@@ -577,23 +571,17 @@ class MiniDiff(HardwareObject):
                         res_centering[0].endswith("sample_centering.java")
                         and res_centering[6] == "-1"
                     ):
-                        logging.getLogger("HWR").exception(
-                            "MiniDiff: problem while centring"
-                        )
+                        self.log.exception("MiniDiff: problem while centring")
                         self.emitCentringFailed()
                     else:
-                        logging.getLogger("HWR").info(
+                        self.log.info(
                             "MiniDiff: centring went fine with %s" % str(res_centering)
                         )
                 except:
-                    logging.getLogger("HWR").exception(
-                        "MD script for sample centering had a problem"
-                    )
+                    self.log.exception("MD script for sample centering had a problem")
 
         except KeyError as diag:
-            logging.getLogger("HWR").error(
-                "MiniDiff: unknown centring method (%s)" % str(diag)
-            )
+            self.log.error("MiniDiff: unknown centring method (%s)" % str(diag))
             self.emitCentringFailed()
         else:
             try:
@@ -603,7 +591,7 @@ class MiniDiff(HardwareObject):
                     pass
 
             except Exception:
-                logging.getLogger("HWR").exception("MiniDiff: problem while centring")
+                self.log.exception("MiniDiff: problem while centring")
                 self.emitCentringFailed()
 
     def run_standard_centring(self, method, sample_info):
@@ -613,15 +601,13 @@ class MiniDiff(HardwareObject):
             self.wait_ready(30)
             fun = self.centringMethods[method]
         except KeyError as diag:
-            logging.getLogger("HWR").error(
-                "MiniDiff: unknown centring method (%s)" % str(diag)
-            )
+            self.log.error("MiniDiff: unknown centring method (%s)" % str(diag))
             self.emitCentringFailed()
         else:
             try:
                 fun(sample_info)
             except Exception:
-                logging.getLogger("HWR").exception("MiniDiff: problem while centring")
+                self.log.exception("MiniDiff: problem while centring")
                 self.emitCentringFailed()
 
     def start_centring_method(self, method, sample_info=None):
@@ -636,7 +622,7 @@ class MiniDiff(HardwareObject):
             return
 
         if self.current_centring_procedure is not None:
-            logging.getLogger("HWR").error(
+            self.log.error(
                 "MiniDiff: already in centring method %s" % self.currentCentringMethod
             )
             return
@@ -656,11 +642,9 @@ class MiniDiff(HardwareObject):
             try:
                 self.current_centring_procedure.kill(block=True)
             except Exception:
-                logging.getLogger("HWR").exception(
-                    "MiniDiff: problem aborting the centring method"
-                )
+                self.log.exception("MiniDiff: problem aborting the centring method")
 
-            logging.getLogger("HWR").exception("MiniDiff: Centring canceled")
+            self.log.exception("MiniDiff: Centring canceled")
 
             try:
                 fun = self.cancel_centring_methods[self.currentCentringMethod]
@@ -689,7 +673,7 @@ class MiniDiff(HardwareObject):
         self.accept_centring()
 
     def start_manual_centring(self, sample_info=None):
-        logging.getLogger("HWR").info("Starting centring procedure ...")
+        self.log.info("Starting centring procedure ...")
 
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
 
@@ -913,7 +897,7 @@ class MiniDiff(HardwareObject):
         # save position in MD2 software
         self.save_centring_positions()
 
-        logging.getLogger("HWR").info("DEBUG %s" % self.get_centring_status())
+        self.log.info("DEBUG %s" % self.get_centring_status())
         logging.getLogger("user_level_log").info("Centring successful")
 
     def reject_centring(self):
@@ -955,12 +939,12 @@ class MiniDiff(HardwareObject):
             self.currentCentringMethod = None
             self.current_centring_procedure = None
         else:
-            logging.getLogger("HWR").debug(
+            self.log.debug(
                 "MiniDiff: trying to emit centringSuccessful outside of a centring"
             )
 
     def emitProgressMessage(self, msg=None):
-        # logging.getLogger("HWR").debug("%s: %s", self.name, msg)
+        # self.log.debug("%s: %s", self.name, msg)
         self.emit("progressMessage", (msg,))
 
     def get_centring_status(self):
@@ -1035,9 +1019,7 @@ class MiniDiff(HardwareObject):
         try:
             self.centringStatus["images"] = snapshotsProcedure.get()
         except Exception:
-            logging.getLogger("HWR").exception(
-                "MiniDiff: could not take crystal snapshots"
-            )
+            self.log.exception("MiniDiff: could not take crystal snapshots")
             self.emit("centringSnapshots", (False,))
             self.emitProgressMessage("")
         else:
@@ -1067,9 +1049,7 @@ class MiniDiff(HardwareObject):
                 try:
                     data = GonioHeadConfiguration(**chip_def)
                 except ValidationError:
-                    logging.getLogger("HWR").exception(
-                        "Validation error in %s" % chip_def_fpath
-                    )
+                    self.log.exception("Validation error in %s" % chip_def_fpath)
 
         return data
 
@@ -1086,9 +1066,7 @@ class MiniDiff(HardwareObject):
                 try:
                     GonioHeadConfiguration(**data)
                 except ValidationError:
-                    logging.getLogger("HWR").exception(
-                        "Validation error in %s" % chip_def_fpath
-                    )
+                    self.log.exception("Validation error in %s" % chip_def_fpath)
 
                 _f.write(json.dumps(data, indent=4))
 

@@ -1,6 +1,5 @@
 # pylint: skip-file
 
-import logging
 import time
 
 from PyTango import DeviceProxy
@@ -125,7 +124,7 @@ class LimaDetectorMockup:
 
     @task
     def start_acquisition(self):
-        logging.getLogger("HWR").info("Mockup detector starts acquisition")
+        self.log.info("Mockup detector starts acquisition")
         return
 
     def stop(self):

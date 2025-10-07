@@ -1,4 +1,3 @@
-import logging
 import os
 import sys
 import time
@@ -73,36 +72,34 @@ class ALBADataAnalysis(EDNACharacterisation):
 
         jobname = os.path.basename(os.path.dirname(edna_directory))
 
-        logging.getLogger("HWR").debug("  XalocJob submiting ")
-        logging.getLogger("HWR").debug("      job_name: %s" % jobname)
-        logging.getLogger("HWR").debug("      sls_script: %s, " % sls_script)
-        logging.getLogger("HWR").debug("      input file: %s" % input_file)
-        logging.getLogger("HWR").debug("      results file: %s" % results_file)
-        logging.getLogger("HWR").debug("      edna directory: %s" % edna_directory)
+        self.log.debug("  XalocJob submiting ")
+        self.log.debug("      job_name: %s" % jobname)
+        self.log.debug("      sls_script: %s, " % sls_script)
+        self.log.debug("      input file: %s" % input_file)
+        self.log.debug("      results file: %s" % results_file)
+        self.log.debug("      edna directory: %s" % edna_directory)
 
         self.job = XalocJob(
             "edna-strategy", jobname, sls_script, input_file, edna_directory
         )
         self.job.submit()
 
-        logging.getLogger("HWR").debug("  XalocJob submitted %s" % self.job.id)
+        self.log.debug("  XalocJob submitted %s" % self.job.id)
 
         self.edna_directory = os.path.dirname(input_file)
         self.input_file = os.path.basename(input_file)
         # self.results_file = self.fix_path(results_file)
         self.results_file = results_file
-        logging.getLogger("HWR").debug(
-            "      self.results file: %s" % self.results_file
-        )
+        self.log.debug("      self.results file: %s" % self.results_file)
 
         state = self.wait_done()
 
         if state == "COMPLETED":
-            logging.getLogger("HWR").debug("EDNA Job completed")
+            self.log.debug("EDNA Job completed")
             time.sleep(0.5)
             result = self.get_result()
         else:
-            logging.getLogger("HWR").debug(
+            self.log.debug(
                 "EDNA Job finished without success / state was %s" % (self.job.state)
             )
             result = ""
@@ -117,28 +114,26 @@ class ALBADataAnalysis(EDNACharacterisation):
         return outpath
 
     def wait_done(self):
-        logging.getLogger("HWR").debug("Polling for Job state")
+        self.log.debug("Polling for Job state")
         time.sleep(0.5)
-        logging.getLogger("HWR").debug("Polling for Job state 2")
+        self.log.debug("Polling for Job state 2")
 
         try:
             state = self.job.state
-            logging.getLogger("HWR").debug("Job / is %s" % str(state))
+            self.log.debug("Job / is %s" % str(state))
         except Exception:
             import traceback
 
-            logging.getLogger("HWR").debug(
-                "Polling for Job state 3. exception happened"
-            )
-            logging.getLogger("HWR").debug("  %s " % traceback.format_exc())
+            self.log.debug("Polling for Job state 3. exception happened")
+            self.log.debug("  %s " % traceback.format_exc())
 
         while state in ["RUNNING", "PENDING"]:
-            logging.getLogger("HWR").debug("Job / is %s" % state)
+            self.log.debug("Job / is %s" % state)
             time.sleep(0.5)
             state = self.job.state
 
-        logging.getLogger("HWR").debug("Returning")
-        logging.getLogger("HWR").debug("Returning %s" % str(state))
+        self.log.debug("Returning")
+        self.log.debug("Returning %s" % str(state))
         return state
 
     def get_result(self):
@@ -147,22 +142,22 @@ class ALBADataAnalysis(EDNACharacterisation):
         # outname = self.input_file.replace("Input", "Output")
         # outfile = os.path.join( self.edna_directory, outname)
 
-        logging.getLogger("HWR").debug("Job / state is COMPLETED")
-        logging.getLogger("HWR").debug("  job status dump: %s" % jobstatus)
-        logging.getLogger("HWR").debug("  looking for file: %s" % self.results_file)
+        self.log.debug("Job / state is COMPLETED")
+        self.log.debug("  job status dump: %s" % jobstatus)
+        self.log.debug("  looking for file: %s" % self.results_file)
 
         if os.path.exists(self.results_file):
             # job_output = open(outfile).read()
-            # logging.getLogger("HWR").debug("     EDNA results file found. loading it")
+            # self.log.debug("     EDNA results file found. loading it")
             # open(self.results_file, "w").write(job_output)
-            logging.getLogger("HWR").debug("     EDNA results file found 2")
+            self.log.debug("     EDNA results file found 2")
             result = XSDataResultMXCuBE.parseFile(self.results_file)
-            logging.getLogger("HWR").debug("     EDNA results file found 3")
-            logging.getLogger("HWR").debug(
+            self.log.debug("     EDNA results file found 3")
+            self.log.debug(
                 "EDNA Result loaded from file / result is=%s" % str(type(result))
             )
         else:
-            logging.getLogger("HWR").debug(
+            self.log.debug(
                 "EDNA Job finished without success / cannot find output file "
             )
             result = ""

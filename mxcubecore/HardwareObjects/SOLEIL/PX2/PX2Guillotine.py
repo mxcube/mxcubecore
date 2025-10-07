@@ -123,7 +123,7 @@ class PX2Guillotine(BaseHardwareObjects.HardwareObject):
         try:
             self.pss_door = self.get_property("tangoname_pss")
         except Exception:
-            logging.getLogger("HWR").error(
+            self.log.error(
                 "Guillotine I11-MA-CE/PSS/DB_DATA: tangopssDevice is not defined "
             )
 
@@ -131,7 +131,7 @@ class PX2Guillotine(BaseHardwareObjects.HardwareObject):
             self.memIntChan = self.get_channel_object("memInt")
             self.connect(self.memIntChan, "update", self.updateGuillotine)
         else:
-            logging.getLogger("HWR").error("Guillotine: tangopssDevice is not defined ")
+            self.log.error("Guillotine: tangopssDevice is not defined ")
 
     def shutterStateChanged(self, value):
         #

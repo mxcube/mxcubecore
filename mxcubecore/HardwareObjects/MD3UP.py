@@ -1,4 +1,3 @@
-import logging
 import math
 import time
 
@@ -423,4 +422,4 @@ class MD3UP(Microdiff.Microdiff):
             self.centringPhiz.set_value(phiz)
         except Exception:
             msg = "MiniDiff: could not center to beam, aborting"
-            logging.getLogger("HWR").exception(msg)
+            self.log.exception(msg)

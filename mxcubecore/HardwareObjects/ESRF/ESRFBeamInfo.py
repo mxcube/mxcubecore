@@ -1,5 +1,3 @@
-import logging
-
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects import BeamInfo
 
@@ -37,9 +35,7 @@ class ESRFBeamInfo(BeamInfo.BeamInfo):
         if beam_position:
             self.beam_position = tuple(map(float, beam_position.split()))
         else:
-            logging.getLogger("HWR").warning(
-                "ESRFBeamInfo: " + "beam position not configured"
-            )
+            self.log.warning("ESRFBeamInfo: " + "beam position not configured")
         self.difrractometer_hwobj = self.get_object_by_role("difrractometer")
         self.flux = self.get_object_by_role("flux")
         self.beam_definer = self.get_object_by_role("beam_definer")

@@ -120,7 +120,7 @@ class AbstractVideoDevice(HardwareObject):
         try:
             self.cam_gain = float(self.get_property("gain"))
         except TypeError:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
 
         try:
             self.cam_exposure = float(self.get_property("exposure"))
@@ -152,7 +152,7 @@ class AbstractVideoDevice(HardwareObject):
             self.set_video_live(True)
             self.change_owner()
 
-            logging.getLogger("HWR").info("Starting polling for camera")
+            self.log.info("Starting polling for camera")
             self.image_polling = gevent.spawn(
                 self.do_image_polling, self.poll_interval / 1000.0
             )
@@ -167,10 +167,10 @@ class AbstractVideoDevice(HardwareObject):
         return self.cam_name
 
     def polling_ended(self, gl=None):
-        logging.getLogger("HWR").info("Polling ended for qt camera")
+        self.log.info("Polling ended for qt camera")
 
     def polling_ended_exc(self, gl=None):
-        logging.getLogger("HWR").info("Polling ended exception for qt camera")
+        self.log.info("Polling ended exception for qt camera")
 
     # -------- Generic methods --------
 

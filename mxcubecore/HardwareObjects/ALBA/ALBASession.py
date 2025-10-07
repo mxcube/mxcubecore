@@ -1,4 +1,3 @@
-import logging
 import os
 import time
 
@@ -53,9 +52,7 @@ class ALBASession(Session.Session):
         # else:
         #    thedir = os.path.join(thedir, 'ARCHIVE')
 
-        logging.getLogger("HWR").debug(
-            "ALBASession. returning archive directory: %s" % archive_dir
-        )
+        self.log.debug("ALBASession. returning archive directory: %s" % archive_dir)
         return archive_dir
 
     def set_ldap_homedir(self, homedir):

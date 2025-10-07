@@ -40,8 +40,6 @@ __copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
-import logging
-
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractBeam import AbstractBeam, BeamShape
 
@@ -137,7 +135,7 @@ class ESRFBeam(AbstractBeam):
             if value.name != "UNKNOWN":
                 return list(value.value), value.name
         except AttributeError:
-            logging.getLogger("HWR").info("Could not read beam size")
+            self.log.info("Could not read beam size")
         return [-1, -1], "UNKNOWN"
 
     def _get_slits_size(self) -> dict[str, float]:
@@ -354,7 +352,7 @@ class ESRFBeam(AbstractBeam):
             _beam_position_on_screen = HWR.beamline.diffractometer.get_beam_position()
         except AttributeError:
             msg = "Could not read beam position from MD, using OAV center"
-            logging.getLogger("HWR").warning(msg)
+            self.log.warning(msg)
             _beam_position_on_screen = (
                 HWR.beamline.sample_view.camera.get_width() / 2,
                 HWR.beamline.sample_view.camera.get_height() / 2,
@@ -398,4 +396,4 @@ class ESRFBeam(AbstractBeam):
                 if self._monitorbeam_obj.get_value().value:
                     self._beam_check_obj.wait_for_beam(timeout)
             except AttributeError:
-                logging.getLogger("HWR").exception("")
+                self.log.exception("")

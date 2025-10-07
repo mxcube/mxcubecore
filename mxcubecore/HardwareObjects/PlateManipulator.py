@@ -242,7 +242,7 @@ class PlateManipulator(SampleChanger):
                     self.num_drops,
                 ) = cmd_get_config.get_value()
             except Exception:
-                logging.getLogger("HWR").exception("")
+                self.log.exception("")
         else:
             self.num_cols = self.get_property("numCols")
             self.num_rows = self.get_property("numRows")
@@ -323,7 +323,7 @@ class PlateManipulator(SampleChanger):
             self.plate_location_changed(self.chan_plate_location.get_value())
             self._on_state_changed(state)
         except AttributeError:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
 
     def _on_state_changed(self, state):
         """

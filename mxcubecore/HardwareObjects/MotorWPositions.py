@@ -66,9 +66,9 @@ class MotorWPositions(AbstractMotor, Device):
             role = roles[0]
             self.motor = self.get_object_by_role(role)
         except KeyError:
-            logging.getLogger("HWR").error("MotorWPositions: motor not defined")
+            self.log.error("MotorWPositions: motor not defined")
 
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
             return
         try:
             self.delta = self["deltas"].get_property(role)
@@ -108,7 +108,7 @@ class MotorWPositions(AbstractMotor, Device):
         try:
             self.motor.set_value(self.predefined_positions[position_name])
         except Exception:
-            logging.getLogger("HWR").exception("MotorWPositions: invalid position name")
+            self.log.exception("MotorWPositions: invalid position name")
 
     def setNewPredefinedPosition(self, positionName, positionOffset):
         raise NotImplementedError

@@ -93,16 +93,12 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
             path = output_directory
             try:
                 if os.path.isdir(path):
-                    logging.getLogger("HWR").info("Directory exists: %s " % path)
+                    self.log.info("Directory exists: %s " % path)
                 else:
                     os.makedirs(path)
-                    logging.getLogger("HWR").info(
-                        "Successfully created the directory %s " % path
-                    )
+                    self.log.info("Successfully created the directory %s " % path)
             except OSError:
-                logging.getLogger("HWR").error(
-                    "Creation of the directory %s failed." % path
-                )
+                self.log.error("Creation of the directory %s failed." % path)
 
             if not output_directory.endswith("/"):
                 output_directory = output_directory + "/"
@@ -162,25 +158,23 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
 
             # command = 'scan -c {} -m "{}" -o {} --motor {} --xlabel {} --plot-type {} {} --start {} --end {} --step-or-points {} --time {} --prescan={} --postscan={}'.format(config_yml, message, output_file, motor_mnenomic, xlabel, plot_type, mode, start, end, step_or_points, time, prescan, postscan)
 
-            logging.getLogger("HWR").info("[SCAN-UTILS] Command: " + str(command))
+            self.log.info("[SCAN-UTILS] Command: " + str(command))
             print("\n[SCAN-UTILS] Command: " + str(command) + "\n")
 
             # Store values for clean up
-            logging.getLogger("HWR").info("[Clean up] Configuring...")
+            self.log.info("[Clean up] Configuring...")
             omega = HWR.beamline.diffractometer.motor_hwobj_dict.get("phi")
             if omega is None:
-                logging.getLogger("HWR").error("[Clean up] Could not get omega motor.")
+                self.log.error("[Clean up] Could not get omega motor.")
             else:
                 omega_original_velo = omega.get_velocity()
-                logging.getLogger("HWR").info(
-                    "[Clean up] Omega velo: {}".format(omega_original_velo)
-                )
-            logging.getLogger("HWR").info("[Clean up] Configured.")
+                self.log.info("[Clean up] Omega velo: {}".format(omega_original_velo))
+            self.log.info("[Clean up] Configured.")
 
             # Set detector cbf header
             header_ok = self.set_pilatus_det_header(start_float, step_size)
             if not header_ok:
-                logging.getLogger("HWR").error(
+                self.log.error(
                     "[Collect] Pilatus header params could not be set! Collection aborted."
                 )
                 return
@@ -192,41 +186,37 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
                     command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
                 )
 
-                logging.getLogger("HWR").info("[SCAN-UTILS] Executing scan...")
+                self.log.info("[SCAN-UTILS] Executing scan...")
                 logging.getLogger("user_level_log").info("Executing scan...")
                 stdout, stderr = process.communicate()
                 # stdout
-                logging.getLogger("HWR").info(
-                    "[SCAN-UTILS] output : " + stdout.decode("utf-8")
-                )
+                self.log.info("[SCAN-UTILS] output : " + stdout.decode("utf-8"))
                 print("[SCAN-UTILS] output : " + stdout.decode("utf-8"))
                 # stderr
-                logging.getLogger("HWR").error(
-                    "[SCAN-UTILS] errors : " + stderr.decode("utf-8")
-                )
+                self.log.error("[SCAN-UTILS] errors : " + stderr.decode("utf-8"))
                 print("[SCAN-UTILS] errors : " + stderr.decode("utf-8"))
 
             except BaseException:
-                logging.getLogger("HWR").error("[SCAN-UTILS] Error in calling scan.")
+                self.log.error("[SCAN-UTILS] Error in calling scan.")
                 # print("[SCAN-UTILS] Error in calling scan.")
                 raise
             else:
-                logging.getLogger("HWR").info("[SCAN-UTILS] Finished scan!")
+                self.log.info("[SCAN-UTILS] Finished scan!")
                 logging.getLogger("user_level_log").info("Finished scan!")
                 # print("[SCAN-UTILS] Finished scan!")
             finally:
                 # Clean up
-                logging.getLogger("HWR").info("[Clean up] Applying...")
+                self.log.info("[Clean up] Applying...")
                 import time as timee
 
                 timee.sleep(10)
                 if omega is not None:
                     # Restore omega default velocity
                     omega.set_velocity(omega_original_velo)
-                    logging.getLogger("HWR").info(
+                    self.log.info(
                         "[Clean up] Omega velo reset to: {}".format(omega_original_velo)
                     )
-                logging.getLogger("HWR").info("[Clean up] Done!")
+                self.log.info("[Clean up] Done!")
 
             data_collect_parameters["status"] = "Running"
             data_collect_parameters["status"] = "Data collection successful"
@@ -248,12 +238,12 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
             not failed,
             failed_msg if failed else "Data collection successful",
         )
-        logging.getLogger("HWR").info("data collection successful in loop")
+        self.log.info("data collection successful in loop")
         self.emit("collectReady", (True,))
 
     def set_pilatus_det_header(self, start_angle, step_size):
         # Read current params
-        logging.getLogger("HWR").info("Setting Pilatus CBF header...")
+        self.log.info("Setting Pilatus CBF header...")
         wl = self.bl_control.energy.get_wavelength()
         dd = self.bl_control.detector_distance.get_value()
         te = self.bl_control.energy.get_value()
@@ -263,7 +253,7 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
         except Exception as e:
             print("Error on setting Pilatus transmission: {}".format(str(e)))
 
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
             return False
 
         # Write to det (values will be on the cbf header)

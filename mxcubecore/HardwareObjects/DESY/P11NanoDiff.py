@@ -327,7 +327,7 @@ class P11NanoDiff(GenericDiffractometer):
             self.emit_centring_moving()
 
             try:
-                logging.getLogger("HWR").debug(
+                self.log.debug(
                     "Centring finished. Moving motors to position %s" % str(motor_pos)
                 )
                 self.move_to_motors_positions(motor_pos, wait=True)
@@ -339,9 +339,9 @@ class P11NanoDiff(GenericDiffractometer):
                 # centred positions include omega to initial position
                 pass
                 # if not self.in_plate_mode():
-                #    logging.getLogger("HWR").debug("Centring finished. Moving omega back to initial position")
+                #    self.log.debug("Centring finished. Moving omega back to initial position")
                 #    self.motor_hwobj_dict['phi'].set_value_relative(-180, timeout=None)
-                #    logging.getLogger("HWR").debug("         Moving omega done")
+                #    self.log.debug("         Moving omega done")
 
             if (
                 self.current_centring_method
@@ -429,7 +429,7 @@ class P11NanoDiff(GenericDiffractometer):
             vertical_discplacements.append(y)
             horizontal_displacements.append(x)
 
-            logging.getLogger("HWR").info("click %d %f %f %f" % (k + 1, omega, x, y))
+            self.log.info("click %d %f %f %f" % (k + 1, omega, x, y))
 
             dev_gonio = DeviceProxy("p11/servomotor/eh.1.01")
             if k <= n_clicks:
@@ -1474,7 +1474,7 @@ class P11NanoDiff(GenericDiffractometer):
                     "motor_positions is not a dict and cannot be converted using as_dict()"
                 )
 
-                logging.getLogger("HWR").exception("")
+                self.log.exception("")
                 return
 
         # Move translation motors

@@ -19,8 +19,6 @@
 
 """TINEMotor class defines motor in the TINE control system"""
 
-import logging
-
 import gevent
 
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
@@ -65,7 +63,7 @@ class TINEMotor(AbstractMotor):
                 if self.get_property("default_limits"):
                     self.update_limits(eval(self.get_property("default_limits")))
             except Exception:
-                logging.getLogger("HWR").exception("")
+                self.log.exception("")
 
         self.chan_position = self.get_channel_object("axisPosition")
         if self.chan_position is not None:
@@ -94,7 +92,7 @@ class TINEMotor(AbstractMotor):
         try:
             self.step_limits = eval(self.get_property("stepLimits"))
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
 
     def connected(self):
         """

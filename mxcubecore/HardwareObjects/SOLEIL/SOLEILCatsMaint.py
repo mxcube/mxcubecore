@@ -264,14 +264,14 @@ class SOLEILCatsMaint(HardwareObject):
 
         self.running_safe = True
         self._update_message("RUNNING Safe process. Phase is: going to Safe")
-        logging.getLogger("HWR").info("Executing safe")
+        self.log.info("Executing safe")
         self._execute_server_task(self._cmdSafe, argin, waitstart=True)
-        logging.getLogger("HWR").info("Executing safe done")
+        self.log.info("Executing safe done")
 
         self._update_message("RUNNING Safe process. Phase is: Drying")
-        logging.getLogger("HWR").info("Executing dry")
+        self.log.info("Executing dry")
         self._execute_server_task(self._cmdDry, argin, waitstart=True)
-        logging.getLogger("HWR").info("Executing dry done")
+        self.log.info("Executing dry done")
 
         self._update_message("RUNNING Safe process. Phase is: SoakToolCal")
         logging.getLogger("Executing SoakToolCal")
@@ -484,13 +484,11 @@ class SOLEILCatsMaint(HardwareObject):
             t0 = time.time()
             while str(self._chnPathRunning.get_value()).lower() != "true":
                 if time.time() - t0 > timeout:
-                    logging.getLogger("HWR").info(
-                        "Could not detect the start of the task. Continuing"
-                    )
+                    self.log.info("Could not detect the start of the task. Continuing")
                     break
                 gevent.sleep(0.1)
 
-        logging.getLogger("HWR").info(
+        self.log.info(
             "server task started. path running %s" % self._chnPathRunning.get_value()
         )
         while str(self._chnPathRunning.get_value()).lower() == "true":

@@ -188,7 +188,7 @@ class EMBLDoorInterlock(HardwareObject):
                 )
                 logging.getLogger("GUI").error(msg)
         else:
-            logging.getLogger("HWR").info("Door is Interlocked")
+            self.log.info("Door is Interlocked")
 
     def re_emit_values(self):
         """Updates state"""

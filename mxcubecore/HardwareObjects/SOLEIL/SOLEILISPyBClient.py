@@ -45,7 +45,7 @@ class SOLEILISPyBClient(ISPyBClient):
             hdlr.setFormatter(formatter)
             logger.addHandler(hdlr)
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
 
         logger.setLevel(logging.INFO)
 
@@ -58,7 +58,7 @@ class SOLEILISPyBClient(ISPyBClient):
             # Initialize ldap
             self.ldapConnection = self.get_object_by_role("ldapServer")
             if self.ldapConnection is None:
-                logging.getLogger("HWR").debug("LDAP Server is not available")
+                self.log.debug("LDAP Server is not available")
 
         self.loginType = self.get_property("loginType") or "proposal"
         self.loginTranslate = self.get_property("loginTranslate") or True
@@ -100,7 +100,7 @@ class SOLEILISPyBClient(ISPyBClient):
                     return
         except Exception:
             print(traceback.print_exc())
-            logging.getLogger("HWR").exception(_CONNECTION_ERROR_MSG)
+            self.log.exception(_CONNECTION_ERROR_MSG)
             return
         try:
             proposals = HWR.beamline.session["proposals"]
@@ -111,19 +111,19 @@ class SOLEILISPyBClient(ISPyBClient):
                 try:
                     self._translations[code]["ldap"] = proposal.ldap
                 except AttributeError:
-                    logging.getLogger("HWR").exception("")
+                    self.log.exception("")
                 try:
                     self._translations[code]["ispyb"] = proposal.ispyb
                 except AttributeError:
-                    logging.getLogger("HWR").exception("")
+                    self.log.exception("")
                 try:
                     self._translations[code]["gui"] = proposal.gui
                 except AttributeError:
-                    logging.getLogger("HWR").exception("")
+                    self.log.exception("")
         except IndexError:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
 
     def translate(self, code, what):
         """
@@ -187,7 +187,7 @@ class SOLEILISPyBClient(ISPyBClient):
                 logging.debug("SOLEIL ISPyBClient - %s is %s " % (prop, ispyb_path))
                 mx_collect_dict[prop] = ispyb_path
             except Exception:
-                logging.getLogger("HWR").exception("")
+                self.log.exception("")
 
     def prepare_image_for_lims(self, image_dict):
         for prop in ["jpegThumbnailFileFullPath", "jpegFileFullPath"]:
@@ -196,7 +196,7 @@ class SOLEILISPyBClient(ISPyBClient):
                 ispyb_path = HWR.beamline.session.path_to_ispyb(path)
                 image_dict[prop] = ispyb_path
             except Exception:
-                logging.getLogger("HWR").exception("")
+                self.log.exception("")
 
 
 def test_hwo(hwo):

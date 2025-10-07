@@ -1,4 +1,3 @@
-import logging
 import math
 import os
 import sys
@@ -28,7 +27,7 @@ class ALBAAutoProcessing(HardwareObject):
 
         self.template_dir = self.get_property("template_dir")
         var_dsname = self.get_property("variables_ds")
-        logging.getLogger("HWR").debug(
+        self.log.debug(
             "ALBAAutoProcessing INIT: var_ds=%s, template_dir=%s"
             % (var_dsname, self.template_dir)
         )
@@ -194,15 +193,13 @@ class ALBAAutoProcessing(HardwareObject):
 
     # trigger auto processing for standard collection
     def trigger_auto_processing(self, dc_pars):
-        logging.getLogger("HWR").debug(
-            " ALBAAutoProcessing. triggering auto processing."
-        )
+        self.log.debug(" ALBAAutoProcessing. triggering auto processing.")
 
         dc_id = dc_pars["collection_id"]
         output_dir = dc_pars["ednaproc_dir"]
 
-        logging.getLogger("HWR").debug("    - collection_id = %s " % dc_id)
-        logging.getLogger("HWR").debug("    - output_dir    = %s " % output_dir)
+        self.log.debug("    - collection_id = %s " % dc_id)
+        self.log.debug("    - output_dir    = %s " % output_dir)
 
         job = ALBAEdnaProcJob()
         input_file = self.input_file  # TODO

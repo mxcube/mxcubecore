@@ -12,8 +12,6 @@ template:
   </object>
 """
 
-import logging
-
 from mxcubecore.HardwareObjects import SpecMotor
 
 
@@ -71,7 +69,7 @@ class SpecMotorWSpecPositions(SpecMotor.SpecMotor):
         try:
             self.move(self.predefinedPositions[positionName])
         except Exception:
-            logging.getLogger("HWR").exception(
+            self.log.exception(
                 "Cannot move motor %s: invalid position name.", str(self.username)
             )
 
@@ -90,4 +88,4 @@ class SpecMotorWSpecPositions(SpecMotor.SpecMotor):
         try:
             self.execute_command("setNewPosition", positionName, positionOffset)
         except AttributeError:
-            logging.getLogger("HWR").exception("Cannot set new predefined position")
+            self.log.exception("Cannot set new predefined position")

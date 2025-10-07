@@ -1,4 +1,3 @@
-import logging
 import time
 
 import gevent
@@ -15,7 +14,7 @@ class XalocMiniDiff(GenericDiffractometer):
         self.calibration = self.get_object_by_role("calibration")
         self.centring_hwobj = self.get_object_by_role("centring")
         if self.centring_hwobj is None:
-            logging.getLogger("HWR").debug("EMBLMinidiff: Centring math is not defined")
+            self.log.debug("EMBLMinidiff: Centring math is not defined")
 
         self.cmd_start_auto_focus = self.get_command_object("startAutoFocus")
 
@@ -33,7 +32,7 @@ class XalocMiniDiff(GenericDiffractometer):
             )
             self.connect(self.phi_motor_hwobj, "valueChanged", self.phi_motor_moved)
         else:
-            logging.getLogger("HWR").error("EMBLMiniDiff: Phi motor is not defined")
+            self.log.error("EMBLMiniDiff: Phi motor is not defined")
 
         if self.phiz_motor_hwobj is not None:
             self.connect(
@@ -41,7 +40,7 @@ class XalocMiniDiff(GenericDiffractometer):
             )
             self.connect(self.phiz_motor_hwobj, "valueChanged", self.phiz_motor_moved)
         else:
-            logging.getLogger("HWR").error("EMBLMiniDiff: Phiz motor is not defined")
+            self.log.error("EMBLMiniDiff: Phiz motor is not defined")
 
         if self.phiy_motor_hwobj is not None:
             self.connect(
@@ -49,7 +48,7 @@ class XalocMiniDiff(GenericDiffractometer):
             )
             self.connect(self.phiy_motor_hwobj, "valueChanged", self.phiy_motor_moved)
         else:
-            logging.getLogger("HWR").error("EMBLMiniDiff: Phiy motor is not defined")
+            self.log.error("EMBLMiniDiff: Phiy motor is not defined")
 
         if self.zoom_motor_hwobj is not None:
             self.connect(
@@ -64,7 +63,7 @@ class XalocMiniDiff(GenericDiffractometer):
                 self.zoom_motor_hwobj, "stateChanged", self.zoom_motor_state_changed
             )
         else:
-            logging.getLogger("HWR").error("EMBLMiniDiff: Zoom motor is not defined")
+            self.log.error("EMBLMiniDiff: Zoom motor is not defined")
 
         if self.sample_x_motor_hwobj is not None:
             self.connect(
@@ -76,7 +75,7 @@ class XalocMiniDiff(GenericDiffractometer):
                 self.sample_x_motor_hwobj, "valueChanged", self.sampleX_motor_moved
             )
         else:
-            logging.getLogger("HWR").error("EMBLMiniDiff: Sampx motor is not defined")
+            self.log.error("EMBLMiniDiff: Sampx motor is not defined")
 
         if self.sample_y_motor_hwobj is not None:
             self.connect(
@@ -88,7 +87,7 @@ class XalocMiniDiff(GenericDiffractometer):
                 self.sample_y_motor_hwobj, "valueChanged", self.sampleY_motor_moved
             )
         else:
-            logging.getLogger("HWR").error("EMBLMiniDiff: Sampx motor is not defined")
+            self.log.error("EMBLMiniDiff: Sampx motor is not defined")
 
         if self.focus_motor_hwobj is not None:
             self.connect(self.focus_motor_hwobj, "valueChanged", self.focus_motor_moved)

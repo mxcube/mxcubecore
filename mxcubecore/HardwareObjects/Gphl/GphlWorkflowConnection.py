@@ -173,7 +173,7 @@ class GphlWorkflowConnection(HardwareObject):
 
     def open_connection(self):
         if self._gateway is None:
-            logging.getLogger("HWR").debug("Opening GΦL connection")
+            self.log.debug("Opening GΦL connection")
         else:
             return
 
@@ -195,7 +195,7 @@ class GphlWorkflowConnection(HardwareObject):
         if val is not None:
             java_parameters["port"] = val
 
-        logging.getLogger("HWR").debug(
+        self.log.debug(
             "Opening GΦL connection: %s ",
             (", ".join("%s:%s" % tt0 for tt0 in sorted(params.items()))),
         )
@@ -211,7 +211,7 @@ class GphlWorkflowConnection(HardwareObject):
         # the workflow is invoked remotely through ssh.
 
         if self.get_state() == self.STATES.UNKNOWN:
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "GphlWorkflowConnection not correctly initialised - check for errors"
             )
 
@@ -324,16 +324,14 @@ class GphlWorkflowConnection(HardwareObject):
                 os.makedirs(wdir)
             except:
                 # No need to raise error - program will fail downstream
-                logging.getLogger("HWR").error(
-                    "Could not create GΦL working directory: %s", wdir
-                )
+                self.log.error("Could not create GΦL working directory: %s", wdir)
 
         for ss0 in command_list:
             ss0 = ss0.rsplit("=", maxsplit=1)[-1]
             if ss0.startswith("/") and "*" not in ss0 and not os.path.exists(ss0):
-                logging.getLogger("HWR").warning("File does not exist : %s", ss0)
+                self.log.warning("File does not exist : %s", ss0)
 
-        logging.getLogger("HWR").info("GΦL execute :\n%s", " ".join(command_list))
+        self.log.info("GΦL execute :\n%s", " ".join(command_list))
 
         # Get environmental variables
         envs = os.environ.copy()
@@ -360,9 +358,7 @@ class GphlWorkflowConnection(HardwareObject):
         if runworkflow_opts:
             envs["RUNWORKFLOW_OPTS"] = " ".join(runworkflow_opts)
 
-        logging.getLogger("HWR").debug(
-            "Executing GΦL workflow, in environment %s", envs
-        )
+        self.log.debug("Executing GΦL workflow, in environment %s", envs)
         try:
             self._running_process = subprocess.Popen(command_list, env=envs)
         except Exception:
@@ -373,7 +369,7 @@ class GphlWorkflowConnection(HardwareObject):
         logging.getLogger("py4j.clientserver").setLevel(logging.WARNING)
         self.update_state(self.STATES.READY)
 
-        logging.getLogger("HWR").debug(
+        self.log.debug(
             "GΦL workflow pid, returncode : %s, %s"
             % (self._running_process.pid, self._running_process.returncode)
         )
@@ -383,7 +379,7 @@ class GphlWorkflowConnection(HardwareObject):
             # No workflow to abort
             return
 
-        logging.getLogger("HWR").debug("GΦL workflow ended")
+        self.log.debug("GΦL workflow ended")
         self.update_state(self.STATES.OFF)
         if self._await_result is not None:
             # We are awaiting an answer - give an abort
@@ -410,13 +406,13 @@ class GphlWorkflowConnection(HardwareObject):
                         if xx0.poll() is None:
                             xx0.kill()
             except:
-                logging.getLogger("HWR").info(
+                self.log.info(
                     "Exception while terminating external workflow process %s", xx0
                 )
-                logging.getLogger("HWR").info("Error was:", exc_info=True)
+                self.log.info("Error was:", exc_info=True)
 
     def close_connection(self):
-        logging.getLogger("HWR").debug("GΦL Close connection ")
+        self.log.debug("GΦL Close connection ")
         xx0 = self._gateway
         self._gateway = None
         if xx0 is not None:
@@ -428,14 +424,12 @@ class GphlWorkflowConnection(HardwareObject):
                 # xx0.shutdown(raise_exception=True)
                 xx0.shutdown()
             except Exception:
-                logging.getLogger("HWR").debug(
-                    "Exception during py4j gateway shutdown. Ignored"
-                )
+                self.log.debug("Exception during py4j gateway shutdown. Ignored")
 
     def abort_workflow(self, message=None):
         """Abort workflow - may be called from controller in any state"""
 
-        logging.getLogger("HWR").info("Aborting workflow: %s", message)
+        self.log.info("Aborting workflow: %s", message)
         logging.getLogger("user_level_log").info("Aborting workflow ...")
         if self._await_result is not None:
             # Workflow waiting for answer - send abort
@@ -461,9 +455,7 @@ class GphlWorkflowConnection(HardwareObject):
         correlation_id = xx0.correlation_id
 
         if not payload:
-            logging.getLogger("HWR").warning(
-                "GΦL Empty or unparsable information message. Ignored"
-            )
+            self.log.warning("GΦL Empty or unparsable information message. Ignored")
         elif self.workflow_queue is not None:
             # Could happen if we have ended the workflow
             self.workflow_queue.put_nowait(
@@ -500,10 +492,10 @@ class GphlWorkflowConnection(HardwareObject):
                     "co.gphl.beamline.v2_unstable.domain_types.AbsorptionEdge",
                 ):
                     java_gateway.java_import(self._gateway.jvm, qualified_class_name)
-                logging.getLogger("HWR").warning(
+                self.log.warning(
                     "Importing required unqualified class names from the JVM explicitly"
                 )
-                logging.getLogger("HWR").warning(
+                self.log.warning(
                     "Please consider upgrading the GPhL workflow application"
                 )
 
@@ -520,7 +512,7 @@ class GphlWorkflowConnection(HardwareObject):
             self._enactment_id = xx0.enactment_id
 
         elif not payload:
-            logging.getLogger("HWR").error(
+            self.log.error(
                 "GΦL message lacks payload - sending 'Abort' to external workflow"
             )
             return self._response_to_server(
@@ -533,7 +525,7 @@ class GphlWorkflowConnection(HardwareObject):
                 self.workflow_queue.put_nowait(
                     (message_type, payload, correlation_id, None)
                 )
-            logging.getLogger("HWR").debug("Subprocess start/stop - return None")
+            self.log.debug("Subprocess start/stop - return None")
             return None
 
         elif message_type in (
@@ -576,7 +568,7 @@ class GphlWorkflowConnection(HardwareObject):
                     )
                     self.workflow_ended()
                 else:
-                    logging.getLogger("HWR").debug(
+                    self.log.debug(
                         "GΦL - response=%s messageId=%s"
                         % (result.__class__.__name__, correlation_id)
                     )
@@ -589,13 +581,11 @@ class GphlWorkflowConnection(HardwareObject):
                     (message_type, payload, correlation_id, None)
                 )
                 self.workflow_ended()
-            logging.getLogger("HWR").debug("Aborting - return None")
+            self.log.debug("Aborting - return None")
             return None
 
         else:
-            logging.getLogger("HWR").error(
-                "GΦL Unknown message type: %s - aborting", message_type
-            )
+            self.log.error("GΦL Unknown message type: %s - aborting", message_type)
             return self._response_to_server(
                 GphlMessages.BeamlineAbort(), correlation_id
             )
@@ -621,7 +611,7 @@ class GphlWorkflowConnection(HardwareObject):
             payload = py4j_message.getPayload()
 
         else:
-            logging.getLogger("HWR").debug(
+            self.log.debug(
                 "GPhL incoming: message=%s, jobId=%s,  messageId=%s"
                 % (message_type, enactment_id, correlation_id)
             )
@@ -631,7 +621,7 @@ class GphlWorkflowConnection(HardwareObject):
                 # determine converter function
                 converter = getattr(self, converterName)
             except AttributeError:
-                logging.getLogger("HWR").error(
+                self.log.error(
                     "GΦL Message type %s not recognised (no %s function)"
                     % (message_type, converterName)
                 )
@@ -641,7 +631,7 @@ class GphlWorkflowConnection(HardwareObject):
                     # Convert to Python objects
                     payload = converter(py4j_message.getPayload())
                 except NotImplementedError:
-                    logging.getLogger("HWR").error(
+                    self.log.error(
                         "Processing of GΦL message %s not implemented", message_type
                     )
                     payload = None

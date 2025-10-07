@@ -492,10 +492,10 @@ class GphlWorkflow(HardwareObject):
         }
         fields["input_space_group"] = {
             "title": "Space Group",
-            "default": crystal_symmetry.regularise_space_group(
-                data_model.input_space_group
-            )
-            or "",
+            "default": (
+                crystal_symmetry.regularise_space_group(data_model.input_space_group)
+                or ""
+            ),
             "type": "string",
             "readOnly": True,
         }
@@ -938,13 +938,13 @@ class GphlWorkflow(HardwareObject):
 
                 tt0 = self._workflow_queue.get()
                 if tt0 is StopIteration:
-                    logging.getLogger("HWR").debug("GΦL queue StopIteration")
+                    self.log.debug("GΦL queue StopIteration")
                     break
 
                 message_type, payload, correlation_id, result_list = tt0
                 func = self._processor_functions.get(message_type)
                 if func is None:
-                    logging.getLogger("HWR").error(
+                    self.log.error(
                         "GΦL message %s not recognised by MXCuBE. Terminating...",
                         message_type,
                     )
@@ -953,9 +953,7 @@ class GphlWorkflow(HardwareObject):
                     if not self.config.settings.get("suppress_external_log_output"):
                         func(payload, correlation_id)
                 else:
-                    logging.getLogger("HWR").info(
-                        "GΦL queue processing %s", message_type
-                    )
+                    self.log.info("GΦL queue processing %s", message_type)
                     response = func(payload, correlation_id)
                     if result_list is not None:
                         result_list.append((response, correlation_id))
@@ -1019,22 +1017,22 @@ class GphlWorkflow(HardwareObject):
         """Print text info to console,. log etc."""
         subprocess_name = self._server_subprocess_names.get(correlation_id)
         if subprocess_name:
-            logging.getLogger("HWR").info("%s: %s" % (subprocess_name, payload))
+            self.log.info("%s: %s" % (subprocess_name, payload))
         else:
-            logging.getLogger("HWR").info(payload)
+            self.log.info(payload)
 
     def echo_subprocess_started(self, payload, correlation_id):
         name = payload.name
         if correlation_id:
             self._server_subprocess_names[correlation_id] = name
-        logging.getLogger("HWR").info("%s : STARTING", name)
+        self.log.info("%s : STARTING", name)
 
     def echo_subprocess_stopped(self, payload, correlation_id):
         try:
             name = self._server_subprocess_names.pop(correlation_id)
         except KeyError:
             name = "Unknown process"
-        logging.getLogger("HWR").info("%s : FINISHED", name)
+        self.log.info("%s : FINISHED", name)
 
     def get_configuration_data(self, payload, correlation_id):
         return GphlMessages.ConfigurationData(self.file_paths["gphl_beamline_config"])
@@ -1166,9 +1164,7 @@ class GphlWorkflow(HardwareObject):
         if not allowed_widths:
             allowed_widths = list(self.config.settings.get("default_image_widths"))
             allowed_widths.sort()
-            logging.getLogger("HWR").info(
-                "No allowed image widths returned by strategy - use defaults"
-            )
+            self.log.info("No allowed image widths returned by strategy - use defaults")
 
         # set starting and unchanging values of parameters
         resolution = HWR.beamline.resolution.get_value()
@@ -1633,7 +1629,7 @@ class GphlWorkflow(HardwareObject):
             user_modifiable = geometric_strategy.isUserModifiable
             if user_modifiable:
                 # Query user for new rotationSetting and make it,
-                logging.getLogger("HWR").warning(
+                self.log.warning(
                     "User modification of sweep settings not implemented. Ignored"
                 )
             new_dose = parameters["use_dose"]
@@ -1687,7 +1683,7 @@ class GphlWorkflow(HardwareObject):
             new_dcg_name = "GΦL DiffractCal"
         else:
             new_dcg_name = "GΦL Characterisation"
-        logging.getLogger("HWR").debug("setup_data_collection %s", new_dcg_name)
+        self.log.debug("setup_data_collection %s", new_dcg_name)
         new_dcg_model = queue_model_objects.TaskGroup()
         new_dcg_model.set_enabled(True)
         new_dcg_model.set_name(new_dcg_name)
@@ -1760,7 +1756,7 @@ class GphlWorkflow(HardwareObject):
                 translation_settings = self.calculate_recentring(
                     okp, ref_xyz=current_xyz, ref_okp=current_okp
                 )
-                logging.getLogger("HWR").debug(
+                self.log.debug(
                     "GPHL Recentring. okp, motors, %s, %s"
                     % (okp, sorted(translation_settings.items()))
                 )
@@ -1846,7 +1842,7 @@ class GphlWorkflow(HardwareObject):
 
             if recentring_mode == "start":
                 q_e = self.enqueue_sample_centring(motor_settings=settings)
-                logging.getLogger("HWR").debug(
+                self.log.debug(
                     "GPHL recenter at : "
                     + ", ".join("%s:%s" % item for item in sorted(settings.items()))
                 )
@@ -1861,7 +1857,7 @@ class GphlWorkflow(HardwareObject):
                 translation = GphlMessages.GoniostatTranslation(
                     rotation=sweepSetting, **settings
                 )
-                logging.getLogger("HWR").debug(
+                self.log.debug(
                     "GPHL calculate recentring: "
                     + ", ".join("%s:%s" % item for item in sorted(settings.items()))
                 )
@@ -1911,9 +1907,7 @@ class GphlWorkflow(HardwareObject):
         # output from bytes to string (with default encoding),
         # avoiding an explicit decoding step.
         result = {}
-        logging.getLogger("HWR").debug(
-            "Running Recen command: %s", " ".join(command_list)
-        )
+        self.log.debug("Running Recen command: %s", " ".join(command_list))
         try:
             output = subprocess.check_output(
                 command_list,
@@ -1922,7 +1916,7 @@ class GphlWorkflow(HardwareObject):
                 universal_newlines=True,
             )
         except subprocess.CalledProcessError as err:
-            logging.getLogger("HWR").error(
+            self.log.error(
                 "Recen failed with returncode %s. Output was:\n%s",
                 err.returncode,
                 err.output,
@@ -1942,7 +1936,7 @@ class GphlWorkflow(HardwareObject):
             elif ss0 == "NORMAL termination":
                 terminated_ok = True
         else:
-            logging.getLogger("HWR").error(
+            self.log.error(
                 "Recen failed with normal termination=%s. Output was:\n" % terminated_ok
                 + output
             )
@@ -1953,14 +1947,14 @@ class GphlWorkflow(HardwareObject):
             if limits:
                 limit = limits[0]
                 if limit is not None and val < limit:
-                    logging.getLogger("HWR").warning(
+                    self.log.warning(
                         "WARNING, centring motor "
                         "%s position %s recentred to below minimum limit %s"
                         % (tag, val, limit)
                     )
                 limit = limits[1]
                 if limit is not None and val > limit:
-                    logging.getLogger("HWR").warning(
+                    self.log.warning(
                         "WARNING, centring motor "
                         "%s position %s recentred to above maximum limit %s"
                         % (tag, val, limit)
@@ -2036,7 +2030,7 @@ class GphlWorkflow(HardwareObject):
             acq_parameters.num_images = scan.width.numImages
             acq_parameters.osc_start = scan.start
             acq_parameters.osc_range = scan.width.imageWidth
-            logging.getLogger("HWR").info(
+            self.log.info(
                 "Scan: %s images of %s deg. starting at %s (%s deg)",
                 acq_parameters.num_images,
                 acq_parameters.osc_range,
@@ -2498,9 +2492,7 @@ class GphlWorkflow(HardwareObject):
                     )
                     zoom_motor.moveToPosition(ll0[-1])
                 else:
-                    logging.getLogger("HWR").warning(
-                        "No predefined positions for zoom motor."
-                    )
+                    self.log.warning("No predefined positions for zoom motor.")
             else:
                 logging.getLogger("user_level_log").info(
                     "Sample re-centering now active - Zoom in before continuing."
@@ -2593,9 +2585,7 @@ class GphlWorkflow(HardwareObject):
                     snapshot_index + 1,
                 )
                 snapshot_filename = os.path.join(snapshot_directory, snapshot_filename)
-                logging.getLogger("HWR").debug(
-                    "Centring snapshot stored at %s", snapshot_filename
-                )
+                self.log.debug("Centring snapshot stored at %s", snapshot_filename)
                 collect_hwobj._take_crystal_snapshot(snapshot_filename)
             if summed_angle:
                 HWR.beamline.diffractometer.move_omega_relative(-summed_angle)
@@ -2641,9 +2631,7 @@ class GphlWorkflow(HardwareObject):
                 os.makedirs(image_root)
             except Exception:
                 # No need to raise error - program will fail downstream
-                logging.getLogger("HWR").error(
-                    "Could not create image root directory: %s", image_root
-                )
+                self.log.error("Could not create image root directory: %s", image_root)
 
         priorInformation = GphlMessages.PriorInformation(workflow_model, image_root)
 
@@ -2889,9 +2877,7 @@ class GphlWorkflow(HardwareObject):
                 raise ValueError("Test sample requires gphl_test_samples dir specified")
             sample_dir = os.path.join(sample_dir, sample_name)
         if not sample_dir:
-            logging.getLogger("HWR").warning(
-                "No emulation sample dir found for sample %s", sample_name
-            )
+            self.log.warning("No emulation sample dir found for sample %s", sample_name)
         return sample_dir
 
     def get_emulation_crystal_data(self, sample_name=None):
@@ -2942,7 +2928,7 @@ class GphlWorkflow(HardwareObject):
                 elif instruction == "reffiles":
                     update_dict = self.update_reference_files(parameters)
             except:
-                logging.getLogger("HWR").error(
+                self.log.error(
                     "Error in GΦL parameter update for %s, Continuing ...",
                     instruction,
                 )
@@ -2989,7 +2975,7 @@ class GphlWorkflow(HardwareObject):
                 ):
                     update_dict = self.adjust_dose(parameters)
             except:
-                logging.getLogger("HWR").error(
+                self.log.error(
                     "Error in GΦL parameter update for %s, Continuing ...",
                     instruction,
                 )

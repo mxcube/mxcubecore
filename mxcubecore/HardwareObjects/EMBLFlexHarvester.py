@@ -208,7 +208,7 @@ class EMBLFlexHarvester(EMBLFlexHCD):
         try:
             _tt = time.time()
             self._wait_busy(300)
-            logging.getLogger("HWR").info(f"Waited SC activity {time.time() - _tt}")
+            self.log.info(f"Waited SC activity {time.time() - _tt}")
         except Exception:
             logging.getLogger("user_level_log").error(
                 "ERROR While Waited SC activity to start"
@@ -237,7 +237,7 @@ class EMBLFlexHarvester(EMBLFlexHCD):
                 logging.getLogger("user_level_log").error(
                     "ERROR While SC activity After Loaded Sample "
                 )
-                logging.getLogger("HWR").error(msg)
+                self.log.error(msg)
                 logging.getLogger("user_level_log").error(msg)
                 # Temp: In Harvester mode any robot Exception is consider as Loading failed
                 # Except Pin Cleaning Station Exception

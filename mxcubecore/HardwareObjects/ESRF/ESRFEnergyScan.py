@@ -110,7 +110,7 @@ class ESRFEnergyScan(AbstractEnergyScan):
         self.ctrl = self.get_object_by_role("controller")
         self.ready_event = event.Event()
         if HWR.beamline.lims is None:
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "EnergyScan: you should specify the database hardware object"
             )
 
@@ -273,7 +273,7 @@ class ESRFEnergyScan(AbstractEnergyScan):
 
         msg = f"Chooch results: pk = {pk}, ip = {ip}. rm = {rm}.\n"
         msg += f"Theoretical edge: {th_edge}."
-        logging.getLogger("HWR").info(msg)
+        self.log.info(msg)
 
         # +- shift from the theoretical edge [eV]
         edge_shift = 50
@@ -307,7 +307,7 @@ class ESRFEnergyScan(AbstractEnergyScan):
         self.energy_scan_parameters["inflectionFPrime"] = fp_infl
         self.energy_scan_parameters["inflectionFDoublePrime"] = fpp_infl
 
-        logging.getLogger("HWR").info("Saving png")
+        self.log.info("Saving png")
         # prepare to save png files
         title = "%10s  %6s  %6s\n%10s  %6.2f  %6.2f\n%10s  %6.2f  %6.2f" % (
             "energy",

@@ -227,7 +227,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
             self.log_filename = os.path.join(
                 tempfile.gettempdir(), "mxcube", "marvin.log"
             )
-        logging.getLogger("HWR").debug("Marvin log filename: %s" % self.log_filename)
+        self.log.debug("Marvin log filename: %s" % self.log_filename)
         AbstractSampleChanger.SampleChanger.init(self)
 
         self.update_state(HardwareObjectState.READY)
@@ -268,9 +268,9 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         """Updates sample is loaded"""
         if self._sample_detected != sample_detected:
             if sample_detected:
-                logging.getLogger("HWR").debug("Sample changer: sample re-appeared")
+                self.log.debug("Sample changer: sample re-appeared")
             else:
-                logging.getLogger("HWR").debug("Sample changer: sample disappeared")
+                self.log.debug("Sample changer: sample disappeared")
 
             self._sample_detected = sample_detected
             self._info_dict["sample_detected"] = sample_detected
@@ -281,44 +281,32 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         with gevent.Timeout(
             timeout, Exception("Timeout waiting for command acknowldegement")
         ):
-            logging.getLogger("HWR").debug(
-                "Sample changer: start waiting command acknowldegement"
-            )
+            self.log.debug("Sample changer: start waiting command acknowldegement")
             while not self._command_acknowledgement:
                 gevent.sleep(0.05)
-            logging.getLogger("HWR").debug(
-                "Sample changer: done waiting command acknowldegement"
-            )
+            self.log.debug("Sample changer: done waiting command acknowldegement")
 
     def wait_sample_to_disappear(self, timeout):
         with gevent.Timeout(
             timeout, Exception("Timeout waiting for sample to disappear")
         ):
-            logging.getLogger("HWR").debug(
-                "Sample changer: start waiting sample to disappear"
-            )
+            self.log.debug("Sample changer: start waiting sample to disappear")
             while self._sample_detected:
                 if self._was_mount_error:
                     self._was_mount_error = False
                     return
                 gevent.sleep(0.05)
-            logging.getLogger("HWR").debug(
-                "Sample changer: done  waiting sample to disappear"
-            )
+            self.log.debug("Sample changer: done  waiting sample to disappear")
 
     def wait_sample_to_appear(self, timeout):
         with gevent.Timeout(timeout, Exception("Timeout waiting for sample to appear")):
-            logging.getLogger("HWR").debug(
-                "Sample changer: start waiting sample to appear"
-            )
+            self.log.debug("Sample changer: start waiting sample to appear")
             while not self._sample_detected:
                 if self._was_mount_error:
                     self._was_mount_error = False
                     return
                 gevent.sleep(0.05)
-            logging.getLogger("HWR").debug(
-                "Sample changer: done  waiting sample to appear"
-            )
+            self.log.debug("Sample changer: done  waiting sample to appear")
 
     def wait_sample_on_gonio(self, timeout):
         # with gevent.Timeout(timeout, Exception("Timeout waiting for sample on gonio")):
@@ -543,7 +531,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         self.emit("progressInit", (msg, 100, False))
 
         # 2. Set diffractometer transfer phase
-        logging.getLogger("HWR").debug(
+        self.log.debug(
             "%s %s"
             % (
                 HWR.beamline.diffractometer.get_current_phase(),
@@ -554,7 +542,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
             HWR.beamline.diffractometer.get_current_phase()
             != HWR.beamline.diffractometer.PHASE_TRANSFER
         ):
-            logging.getLogger("HWR").debug("set transfer")
+            self.log.debug("set transfer")
             HWR.beamline.diffractometer.set_phase(
                 HWR.beamline.diffractometer.PHASE_TRANSFER, 60.0
             )
@@ -569,9 +557,9 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                 )
                 raise Exception("Unable to set Transfer phase")
 
-        # logging.getLogger("HWR").debug("Sample changer: Closing guillotine...")
+        # self.log.debug("Sample changer: Closing guillotine...")
         # HWR.beamline.detector.close_cover()
-        # logging.getLogger("HWR").debug("Sample changer: Guillotine closed")
+        # self.log.debug("Sample changer: Guillotine closed")
         # 3. If necessary move detector to save position
         if self._focusing_mode == "P13mode":
             if HWR.beamline.detector.distance.get_value() < 399.0:
@@ -583,9 +571,9 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                 log.info("Sample changer: Detector moved to save position")
         else:
             pass
-            # logging.getLogger("HWR").debug("Sample changer: Closing guillotine...")
+            # self.log.debug("Sample changer: Closing guillotine...")
             # HWR.beamline.detector.close_cover()
-            ##logging.getLogger("HWR").debug("Sample changer: Guillotine closed")
+            ##self.log.debug("Sample changer: Guillotine closed")
 
         # 4. Executed command and wait till device is ready
         if self._focusing_mode == "P13mode":
@@ -770,14 +758,14 @@ class Marvin(AbstractSampleChanger.SampleChanger):
         for arg in args:
             arg_arr.append(arg)
 
-        logging.getLogger("HWR").debug(
+        self.log.debug(
             "Sample changer: Sending cmd with arguments: %s..." % str(arg_arr)
         )
 
         self._command_acknowledgement = False
 
         method(arg_arr)
-        logging.getLogger("HWR").debug("Sample changer: Waiting ready...")
+        self.log.debug("Sample changer: Waiting ready...")
         self.wait_command_acknowledgement(5.0)
         self._action_started = True
         gevent.sleep(5)
@@ -788,10 +776,10 @@ class Marvin(AbstractSampleChanger.SampleChanger):
             self.wait_sample_to_appear(60.0)
         else:
             self.wait_ready(120.0)
-        logging.getLogger("HWR").debug("Sample changer: Ready")
-        logging.getLogger("HWR").debug("Sample changer: Waiting veto...")
+        self.log.debug("Sample changer: Ready")
+        self.log.debug("Sample changer: Waiting veto...")
         self.waitVeto(20.0)
-        logging.getLogger("HWR").debug("Sample changer: Veto ready")
+        self.log.debug("Sample changer: Veto ready")
         # if self._is_device_busy():
         #    raise Exception("Action finished to early. Sample changer is not ready!!!")
         self.sample_is_loaded_changed(self.chan_sample_is_loaded.get_value())
@@ -871,7 +859,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                         Container.Pin.get_sample_address(basket_no, sample_no)
                     )
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
         self._set_selected_component(basket)
         self._set_selected_sample(sample)
 
@@ -1031,7 +1019,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                     and self._action_started
                 ):
                     self._state_string = prop_value
-                    logging.getLogger("HWR").debug(
+                    self.log.debug(
                         "Sample changer: status changed: %s" % self._state_string
                     )
                     self._update_state()
@@ -1042,7 +1030,7 @@ class Marvin(AbstractSampleChanger.SampleChanger):
                         self.emit("progressStep", self._progress)
                         self._info_dict["progress"] = self._progress
                 except Exception:
-                    logging.getLogger("HWR").exception("")
+                    self.log.exception("")
             elif prop_name == "CPuck":
                 if prop_value == "1":
                     centre_puck = True

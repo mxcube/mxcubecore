@@ -69,21 +69,21 @@ class LNLSCamera(BaseHardwareObjects.HardwareObject):
         self.array_size = self.read_array_size()
 
     def poll(self):
-        logging.getLogger("HWR").debug("LNLS Camera image acquiring has started.")
+        self.log.debug("LNLS Camera image acquiring has started.")
         self.imageGenerator(self.delay)
 
     def imageGenerator(self, delay):
         while self.liveState:
             self.getCameraImage()
             gevent.sleep(delay)
-        logging.getLogger("HWR").debug("LNLS Camera image acquiring has stopped.")
+        self.log.debug("LNLS Camera image acquiring has stopped.")
 
     def getCameraImage(self):
         # Get the image from uEye camera IOC
         self.imgArray = self.get_channel_value(CAMERA_DATA)
         if self.imgArray is None:
             if self._print_cam_error_null:
-                logging.getLogger("HWR").error(
+                self.log.error(
                     "%s - Error: null camera image!" % (self.__class__.__name__)
                 )
                 self._print_cam_sucess = True
@@ -97,7 +97,7 @@ class LNLSCamera(BaseHardwareObjects.HardwareObject):
             # PS: This check possibly can be removed and the treatment can be
             # moved into the except scope.
             if self._print_cam_error_size:
-                logging.getLogger("HWR").error(
+                self.log.error(
                     "%s - Error in array lenght! Expected %d, but got %d."
                     % (self.__class__.__name__, self.array_size, len(self.imgArray))
                 )
@@ -129,12 +129,10 @@ class LNLSCamera(BaseHardwareObjects.HardwareObject):
                 img_bin_str = f.getvalue()
             # Sent image to gui
             self.emit("imageReceived", img_bin_str, self.height, self.width)
-            # logging.getLogger("HWR").debug('Got camera image: ' + \
+            # self.log.debug('Got camera image: ' + \
             # str(img_bin_str[0:10]))
             if self._print_cam_sucess:
-                logging.getLogger("HWR").info(
-                    "LNLSCamera is emitting images! Cam routine is ok."
-                )
+                self.log.info("LNLSCamera is emitting images! Cam routine is ok.")
                 self._print_cam_sucess = False
                 self._print_cam_error_null = True
                 self._print_cam_error_size = True
@@ -142,7 +140,7 @@ class LNLSCamera(BaseHardwareObjects.HardwareObject):
             return 0
         except:
             if self._print_cam_error_format:
-                logging.getLogger("HWR").error("Error while formatting camera image")
+                self.log.error("Error while formatting camera image")
                 self._print_cam_sucess = True
                 self._print_cam_error_null = True
                 self._print_cam_error_size = True
@@ -158,7 +156,7 @@ class LNLSCamera(BaseHardwareObjects.HardwareObject):
         except:
             print("Error on getting camera pixel size.")
         finally:
-            logging.getLogger("HWR").info("LNLSCamera pixel size is %d." % (pixel_size))
+            self.log.info("LNLSCamera pixel size is %d." % (pixel_size))
             return pixel_size
 
     def read_width(self):
@@ -170,7 +168,7 @@ class LNLSCamera(BaseHardwareObjects.HardwareObject):
         except:
             print("Error on getting camera width.")
         finally:
-            logging.getLogger("HWR").info("LNLSCamera width is %d." % (width))
+            self.log.info("LNLSCamera width is %d." % (width))
             return width
 
     def read_height(self):
@@ -182,7 +180,7 @@ class LNLSCamera(BaseHardwareObjects.HardwareObject):
         except:
             print("Error on getting camera height.")
         finally:
-            logging.getLogger("HWR").info("LNLSCamera height is %d." % (height))
+            self.log.info("LNLSCamera height is %d." % (height))
             return height
 
     def read_array_size(self):
@@ -343,7 +341,7 @@ class LNLSCamera(BaseHardwareObjects.HardwareObject):
             self.liveState = live
 
             if live:
-                logging.getLogger("HWR").info("LNLSCamera is going to poll images")
+                self.log.info("LNLSCamera is going to poll images")
                 self.delay = float(int(self.getProperty("interval")) / 1000.0)
                 thread = Thread(target=self.poll)
                 thread.daemon = True
@@ -414,7 +412,7 @@ class LNLSCamera(BaseHardwareObjects.HardwareObject):
                 while motorHwobj.getPosition() < positions[index]:
                     gevent.sleep(0.02)
 
-                logging.getLogger("HWR").info(
+                self.log.info(
                     "%s - taking snapshot #%d" % (self.__class__.__name__, index + 1)
                 )
 
@@ -443,7 +441,7 @@ class LNLSCamera(BaseHardwareObjects.HardwareObject):
                 # centred_images.append((0, str(imageInfo)))
                 # centred_images.reverse()
         except:
-            logging.getLogger("HWR").exception(
+            self.log.exception(
                 "%s - could not take crystal snapshots" % (self.__class__.__name__)
             )
 
@@ -493,7 +491,7 @@ class LNLSCamera(BaseHardwareObjects.HardwareObject):
         try:
             self.centring_status["images"] = snapshots_procedure.get()
         except:
-            logging.getLogger("HWR").exception(
+            self.log.exception(
                 "%s - could not take crystal snapshots" % (self.__class__.__name__)
             )
 

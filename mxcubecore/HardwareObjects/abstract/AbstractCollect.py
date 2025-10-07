@@ -106,7 +106,7 @@ class AbstractCollect(HardwareObject, object):
             for undulator in self.config.undulators:
                 undulators.append(undulator)
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
 
         beam_div_hor, beam_div_ver = HWR.beamline.beam.get_beam_divergence()
 
@@ -192,9 +192,7 @@ class AbstractCollect(HardwareObject, object):
                 "%Y-%m-%d %H:%M:%S"
             )
 
-            logging.getLogger("HWR").info(
-                "Collection parameters: %s" % str(self.current_dc_parameters)
-            )
+            self.log.info("Collection parameters: %s" % str(self.current_dc_parameters))
 
             log.info("Collection: Storing data collection in LIMS")
             self.store_data_collection_in_lims()
@@ -621,9 +619,7 @@ class AbstractCollect(HardwareObject, object):
                 if detector_id:
                     self.current_dc_parameters["detector_id"] = detector_id
             except BaseException:
-                logging.getLogger("HWR").exception(
-                    "Could not store data collection in LIMS"
-                )
+                self.log.exception("Could not store data collection in LIMS")
 
     def update_data_collection_in_lims(self) -> None:
         """Update current data collection information in LIMS database."""
@@ -658,9 +654,7 @@ class AbstractCollect(HardwareObject, object):
             try:
                 HWR.beamline.lims.update_data_collection(params)
             except BaseException:
-                logging.getLogger("HWR").exception(
-                    "Could not update data collection in LIMS"
-                )
+                self.log.exception("Could not update data collection in LIMS")
 
     def store_sample_info_in_lims(self):
         """Store current sample information in LIMS database."""
@@ -742,9 +736,7 @@ class AbstractCollect(HardwareObject, object):
                     )
                 HWR.beamline.lims.update_data_collection(self.current_dc_parameters)
             except BaseException:
-                logging.getLogger("HWR").exception(
-                    "Could not store data collection into ISPyB"
-                )
+                self.log.exception("Could not store data collection into ISPyB")
 
     def get_sample_info(self) -> None:
         """Get current sample information in LIMS database.
@@ -816,9 +808,7 @@ class AbstractCollect(HardwareObject, object):
                 try:
                     self.create_directories(snapshot_directory)
                 except BaseException:
-                    logging.getLogger("HWR").exception(
-                        "Collection: Error creating snapshot directory"
-                    )
+                    self.log.exception("Collection: Error creating snapshot directory")
         if number_of_snapshots > 0 and not self.current_dc_parameters["in_interleave"]:
             logging.getLogger("user_level_log").info(
                 "Collection: Taking %d sample snapshot(s)" % number_of_snapshots

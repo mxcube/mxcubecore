@@ -111,7 +111,7 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
                 beam_x = value[0]
                 beam_y = value[1]
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
         return beam_x, beam_y
 
     def get_manufacturer(self):
@@ -158,15 +158,15 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
         # trig_mode = "EXTERNAL_TRIGGER"
         # latency_time = 0.023
         #
-        # logging.getLogger("HWR").debug(" Preparing detector (dev=%s) for data collection" % self.devname)
+        # self.log.debug(" Preparing detector (dev=%s) for data collection" % self.devname)
         #
-        # logging.getLogger("HWR").debug("    /saving directory: %s" % basedir)
-        # logging.getLogger("HWR").debug("    /prefix          : %s" % prefix)
-        # logging.getLogger("HWR").debug("    /saving_format   : %s" % fileformat)
-        # logging.getLogger("HWR").debug("    /trigger_mode    : %s" % trig_mode)
-        # logging.getLogger("HWR").debug("    /acq_nb_frames   : %s" % nb_frames)
-        # logging.getLogger("HWR").debug("    /acq_expo_time   : %s" % exp_time)
-        # logging.getLogger("HWR").debug("    /latency_time    : %s" % latency_time)
+        # self.log.debug("    /saving directory: %s" % basedir)
+        # self.log.debug("    /prefix          : %s" % prefix)
+        # self.log.debug("    /saving_format   : %s" % fileformat)
+        # self.log.debug("    /trigger_mode    : %s" % trig_mode)
+        # self.log.debug("    /acq_nb_frames   : %s" % nb_frames)
+        # self.log.debug("    /acq_expo_time   : %s" % exp_time)
+        # self.log.debug("    /latency_time    : %s" % latency_time)
         #
         # self.device.write_attribute('saving_mode', 'AUTO_FRAME')
         # self.device.write_attribute('saving_directory', basedir)

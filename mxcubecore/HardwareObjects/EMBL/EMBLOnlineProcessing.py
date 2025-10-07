@@ -436,13 +436,13 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
 
             if len(batch) >= self.params_dict["images_num"]:
                 self.all_frames_batch_processed = True
-                logging.getLogger("HWR").info(
+                self.log.info(
                     "All dozor scores %s of %s"
                     % (len(batch), self.params_dict["images_num"])
                 )
                 self.finish_processing()
             else:
-                logging.getLogger("HWR").info(
+                self.log.info(
                     "Dozor scores %s of %s %s"
                     % (len(batch), self.params_dict["images_num"], self.batch_count)
                 )
@@ -485,20 +485,20 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
 
             if len(is_values) >= self.params_dict["images_num"]:
                 self.all_frames_dozor_is = True
-                logging.getLogger("HWR").info(
+                self.log.info(
                     "All ISs %s of %s"
                     % (len(is_values), self.params_dict["images_num"])
                 )
                 self.finish_processing()
             else:
-                logging.getLogger("HWR").info(
+                self.log.info(
                     "IS values %s of %s %s"
                     % (len(is_values), self.params_dict["images_num"], self.is_count)
                 )
 
     def finish_processing(self):
         if self.all_frames_dozor_is and self.all_frames_batch_processed:
-            logging.getLogger("HWR").info("Processing finished")
+            self.log.info("Processing finished")
             self.set_processing_status("Success")
             self.all_frames_dozor_is = False
             self.all_frames_batch_processed = False
@@ -558,7 +558,7 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
             )
             dozor_result.addImageDozor(dozor_image)
         dozor_result.exportToFile(processing_xml_filename)
-        logging.getLogger("HWR").info(
+        self.log.info(
             "Online processing: Results saved in %s" % processing_xml_filename
         )
 

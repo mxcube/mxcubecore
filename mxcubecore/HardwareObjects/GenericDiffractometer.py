@@ -339,7 +339,7 @@ class GenericDiffractometer(HardwareObject):
         #     self.image_height = HWR.beamline.sample_view.camera.get_height()
         #     self.image_width = HWR.beamline.sample_view.camera.get_width()
         # else:
-        #     logging.getLogger("HWR").debug(
+        #     self.log.debug(
         #         "Diffractometer: " + "Camera hwobj is not defined"
         #     )
 
@@ -350,9 +350,7 @@ class GenericDiffractometer(HardwareObject):
             )
         else:
             self.beam_position = [0, 0]
-            logging.getLogger("HWR").warning(
-                "Diffractometer: " + "BeamInfo hwobj is not defined"
-            )
+            self.log.warning("Diffractometer: " + "BeamInfo hwobj is not defined")
 
         self.front_light_switch = self.get_object_by_role("frontlightswitch")
         self.back_light_switch = self.get_object_by_role("backlightswitch")
@@ -363,7 +361,7 @@ class GenericDiffractometer(HardwareObject):
             try:
                 self.used_channels_list = eval(ss0)
             except Exception:
-                logging.getLogger("HWR").exception("")
+                self.log.exception("")
 
         for channel_name in self.used_channels_list:
             self.channel_dict[channel_name] = self.get_channel_object(channel_name)
@@ -392,7 +390,7 @@ class GenericDiffractometer(HardwareObject):
         try:
             self.used_commands_list = eval(self.get_property("used_commands", "[]"))
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
         for command_name in self.used_commands_list:
             self.command_dict[command_name] = self.get_command_object(command_name)
 
@@ -442,7 +440,7 @@ class GenericDiffractometer(HardwareObject):
                         temp_motor_hwobj, "stateChanged", self.zoom_motor_state_changed
                     )
             else:
-                logging.getLogger("HWR").warning(
+                self.log.warning(
                     "Diffractometer: Motor "
                     + "%s listed in the centring motor list, but not initalized"
                     % motor_name
@@ -450,9 +448,7 @@ class GenericDiffractometer(HardwareObject):
 
         # sample changer -----------------------------------------------------
         if HWR.beamline.sample_changer is None:
-            logging.getLogger("HWR").warning(
-                "Diffractometer: Sample Changer is not defined"
-            )
+            self.log.warning("Diffractometer: Sample Changer is not defined")
         else:
             # By default use sample changer if it's defined and transfer_mode
             # is set to SAMPLE_CHANGER.
@@ -479,21 +475,19 @@ class GenericDiffractometer(HardwareObject):
                     self.motor_hwobj_dict["sampy"]
                 )
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
 
         try:
             self.delay_state_polling = self.get_property("delay_state_polling")
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
 
         # Other parameters ---------------------------------------------------
         try:
             self.zoom_centre = eval(self.get_property("zoom_centre"))
         except Exception:
             self.zoom_centre = {"x": 0, "y": 0}
-            logging.getLogger("HWR").warning(
-                "Diffractometer: " + "zoom centre not configured"
-            )
+            self.log.warning("Diffractometer: " + "zoom centre not configured")
 
         self.reversing_rotation = self.get_property("reversing_rotation")
         try:
@@ -503,7 +497,7 @@ class GenericDiffractometer(HardwareObject):
             self.grid_direction = eval(self.get_property("grid_direction"))
         except Exception:
             self.grid_direction = {"fast": (0, 1), "slow": (1, 0), "omega_ref": 0}
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "Diffractometer: Grid " + "direction is not defined. Using default."
             )
 
@@ -698,9 +692,7 @@ class GenericDiffractometer(HardwareObject):
         if flag:
             # check both transfer_mode and sample_Changer
             if HWR.beamline.sample_changer is None:
-                logging.getLogger("HWR").error(
-                    "Diffractometer: Sample " + "Changer is not available"
-                )
+                self.log.error("Diffractometer: Sample " + "Changer is not available")
                 return False
 
             if (
@@ -710,7 +702,7 @@ class GenericDiffractometer(HardwareObject):
                 # if transferMode is not defined, ignore the checkup
                 self.use_sc = True
             else:
-                logging.getLogger("HWR").error(
+                self.log.error(
                     "Diffractometer: Set the "
                     + "diffractometer TransferMode to SAMPLE_CHANGER first!!"
                 )
@@ -723,9 +715,7 @@ class GenericDiffractometer(HardwareObject):
         """
         Descript. :
         """
-        logging.getLogger("HWR").info(
-            "current_transfer_mode is set to %s" % transfer_mode
-        )
+        self.log.info("current_transfer_mode is set to %s" % transfer_mode)
         self.transfer_mode = transfer_mode
         if transfer_mode != "SAMPLE_CHANGER":
             self.use_sc = False
@@ -825,7 +815,7 @@ class GenericDiffractometer(HardwareObject):
         """ """
 
         if self.current_centring_method is not None:
-            logging.getLogger("HWR").error(
+            self.log.error(
                 "Diffractometer: already in centring method %s"
                 % self.current_centring_method
             )
@@ -841,17 +831,13 @@ class GenericDiffractometer(HardwareObject):
         try:
             centring_method = self.centring_methods[method]
         except KeyError as diag:
-            logging.getLogger("HWR").error(
-                "Diffractometer: unknown centring method (%s)" % str(diag)
-            )
+            self.log.error("Diffractometer: unknown centring method (%s)" % str(diag))
             self.emit_centring_failed()
         else:
             try:
                 centring_method(sample_info, wait_result=wait)
             except Exception:
-                logging.getLogger("HWR").exception(
-                    "Diffractometer: problem while centring"
-                )
+                self.log.exception("Diffractometer: problem while centring")
                 self.emit_centring_failed()
 
     def cancel_centring_method(self, reject=False):
@@ -859,7 +845,7 @@ class GenericDiffractometer(HardwareObject):
             try:
                 self.current_centring_procedure.kill()
             except Exception:
-                logging.getLogger("HWR").exception(
+                self.log.exception(
                     "Diffractometer: problem aborting the centring method"
                 )
             try:
@@ -986,7 +972,7 @@ class GenericDiffractometer(HardwareObject):
             self.emit_centring_moving()
 
             try:
-                logging.getLogger("HWR").debug(
+                self.log.debug(
                     "Centring finished. Moving motors to position %s" % str(motor_pos)
                 )
                 self.move_to_motors_positions(motor_pos, wait=True)
@@ -998,9 +984,9 @@ class GenericDiffractometer(HardwareObject):
                 # centred positions include omega to initial position
                 pass
                 # if not self.in_plate_mode():
-                #    logging.getLogger("HWR").debug("Centring finished. Moving omega back to initial position")
+                #    self.log.debug("Centring finished. Moving omega back to initial position")
                 #    self.motor_hwobj_dict['phi'].set_value_relative(-180, timeout=None)
-                #    logging.getLogger("HWR").debug("         Moving omega done")
+                #    self.log.debug("         Moving omega done")
 
             if (
                 self.current_centring_method
@@ -1135,9 +1121,7 @@ class GenericDiffractometer(HardwareObject):
                 pos["phiMotor"] = omega
             self.move_to_motors_positions(pos)
         except Exception:
-            logging.getLogger("HWR").exception(
-                "Diffractometer: could not center to beam, aborting"
-            )
+            self.log.exception("Diffractometer: could not center to beam, aborting")
 
     def image_clicked(
         self, x: float, y: float, xi: float | None = None, yi: float | None = None
@@ -1245,7 +1229,7 @@ class GenericDiffractometer(HardwareObject):
             self.current_centring_method = None
             self.current_centring_procedure = None
         else:
-            logging.getLogger("HWR").debug(
+            self.log.debug(
                 "Diffractometer: Trying to emit "
                 + "centringSuccessful outside of a centring"
             )
@@ -1412,7 +1396,7 @@ class GenericDiffractometer(HardwareObject):
                 self.sample_is_loaded_changed,
             )
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
 
         if (
             head_type == GenericDiffractometer.HEAD_TYPE_MINIKAPPA
@@ -1424,7 +1408,7 @@ class GenericDiffractometer(HardwareObject):
                 self.sample_is_loaded_changed,
             )
         else:
-            logging.getLogger("HWR").info(
+            self.log.info(
                 "Diffractometer: SmartMagnet "
                 + "is not available, only works for Minikappa and SmartMagnet head"
             )
@@ -1469,9 +1453,7 @@ class GenericDiffractometer(HardwareObject):
                 try:
                     data = GonioHeadConfiguration(**chip_def)
                 except ValidationError:
-                    logging.getLogger("HWR").exception(
-                        "Validation error in %s" % chip_def_fpath
-                    )
+                    self.log.exception("Validation error in %s" % chip_def_fpath)
 
         return data
 
@@ -1488,9 +1470,7 @@ class GenericDiffractometer(HardwareObject):
                 try:
                     GonioHeadConfiguration(**data)
                 except ValidationError:
-                    logging.getLogger("HWR").exception(
-                        "Validation error in %s" % chip_def_fpath
-                    )
+                    self.log.exception("Validation error in %s" % chip_def_fpath)
                 else:
                     _f.write(json.dumps(data, indent=4))
 

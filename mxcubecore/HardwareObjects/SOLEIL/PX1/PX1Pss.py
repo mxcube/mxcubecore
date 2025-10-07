@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
@@ -13,7 +12,7 @@ class PX1Pss(HardwareObject):
 
     def value_changed(self, value):
         state = self.get_state(value)
-        logging.getLogger("HWR").debug("state changed. value is %s" % state)
+        self.log.debug("state changed. value is %s" % state)
         self.emit("stateChanged", (state,))
 
     def get_state(self, value=None):

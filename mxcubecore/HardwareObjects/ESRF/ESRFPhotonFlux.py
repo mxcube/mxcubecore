@@ -33,8 +33,6 @@ Example xml_ configuration:
     controller: bliss.yaml
 """
 
-import logging
-
 from gevent import sleep, spawn
 
 from mxcubecore import HardwareRepository as HWR
@@ -62,17 +60,13 @@ class ESRFPhotonFlux(AbstractFlux):
             self._flux_calc = self.controller.CalculateFlux()
             self._flux_calc.init()
         except AttributeError:
-            logging.getLogger("HWR").exception(
-                "Could not get flux calculation from BLISS"
-            )
+            self.log.exception("Could not get flux calculation from BLISS")
         counter_name = self.get_property("counter_name")
 
         if counter_name:
             self._counter = getattr(self.controller, counter_name)
         else:
-            logging.getLogger("HWR").exception(
-                "Counter to read the flux is not configured"
-            )
+            self.log.exception("Counter to read the flux is not configured")
 
         try:
             HWR.beamline.safety_shutter.connect("stateChanged", self.update_value)

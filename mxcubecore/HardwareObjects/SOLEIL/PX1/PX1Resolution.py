@@ -1,5 +1,3 @@
-import logging
-
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 DETECTOR_DIAMETER = 424.0
@@ -143,9 +141,7 @@ class PX1Resolution(HardwareObject):
         try:
             self.stop_command()
         except Exception:
-            logging.getLogger("HWR").err(
-                "%s: PX1Resolution.stop: error while trying to stop!", self.id
-            )
+            self.log.err("%s: PX1Resolution.stop: error while trying to stop!", self.id)
 
     def re_emit_values(self):
         self.stateChanged()

@@ -184,7 +184,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.beam_position = value
 
     def state_changed(self, state):
-        # logging.getLogger("HWR").debug("State changed: %s" % str(state))
+        # self.log.debug("State changed: %s" % str(state))
         self.current_state = state
         self.emit("minidiffStateChanged", (self.current_state))
         self.emit("minidiffStatusChanged", (self.current_state))
@@ -308,7 +308,7 @@ class EMBLMiniDiff(GenericDiffractometer):
             in (GenericDiffractometer.PHASE_TRANSFER, GenericDiffractometer.PHASE_BEAM)
         ):
             detector_distance = HWR.beamline.detector.distance.get_value()
-            logging.getLogger("HWR").debug(
+            self.log.debug(
                 "Diffractometer current phase: %s " % self.current_phase
                 + "selected phase: %s" % phase
                 + "detector distance: %d mm" % detector_distance
@@ -330,7 +330,7 @@ class EMBLMiniDiff(GenericDiffractometer):
             self.wait_device_ready(30)
             _howlong = time.time() - _start
             if _howlong > 11.0:
-                logging.getLogger("HWR").error(
+                self.log.error(
                     "Changing phase to %s took %.1f seconds" % (phase, _howlong)
                 )
         else:
@@ -375,7 +375,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         if self.current_phase != "BeamLocation":
             GenericDiffractometer.move_to_beam(self, x, y, omega)
         else:
-            logging.getLogger("HWR").debug(
+            self.log.debug(
                 "Diffractometer: Move to screen"
                 + " position disabled in BeamLocation phase."
             )
@@ -519,13 +519,17 @@ class EMBLMiniDiff(GenericDiffractometer):
                     self.motor_hwobj_dict["sampx"]: centred_position.sampx,
                     self.motor_hwobj_dict["sampy"]: centred_position.sampy,
                     self.motor_hwobj_dict["phi"]: centred_position.phi,
-                    self.motor_hwobj_dict["phiy"]: centred_position.phiy
-                    + self.centring_hwobj.camera2alignmentMotor(
-                        self.motor_hwobj_dict["phiy"], {"X": dx, "Y": dy}
+                    self.motor_hwobj_dict["phiy"]: (
+                        centred_position.phiy
+                        + self.centring_hwobj.camera2alignmentMotor(
+                            self.motor_hwobj_dict["phiy"], {"X": dx, "Y": dy}
+                        )
                     ),
-                    self.motor_hwobj_dict["phiz"]: centred_position.phiz
-                    + self.centring_hwobj.camera2alignmentMotor(
-                        self.motor_hwobj_dict["phiz"], {"X": dx, "Y": dy}
+                    self.motor_hwobj_dict["phiz"]: (
+                        centred_position.phiz
+                        + self.centring_hwobj.camera2alignmentMotor(
+                            self.motor_hwobj_dict["phiz"], {"X": dx, "Y": dy}
+                        )
                     ),
                     self.motor_hwobj_dict["kappa"]: centred_position.kappa,
                     self.motor_hwobj_dict["kappa_phi"]: centred_position.kappa_phi,
@@ -534,9 +538,7 @@ class EMBLMiniDiff(GenericDiffractometer):
             except BaseException:
                 logging.exception("Could not move to centred position")
         else:
-            logging.getLogger("HWR").debug(
-                "Move to centred position disabled in BeamLocation phase."
-            )
+            self.log.debug("Move to centred position disabled in BeamLocation phase.")
 
     def move_kappa_and_phi(self, kappa=None, kappa_phi=None, wait=False):
         return gevent.spawn(self.move_kappa_and_phi_procedure, kappa, kappa_phi)
@@ -600,9 +602,7 @@ class EMBLMiniDiff(GenericDiffractometer):
 
     def visual_align(self, point_1, point_2):
         if self.in_plate_mode():
-            logging.getLogger("HWR").info(
-                "EMBLMiniDiff: Visual align not available in Plate mode"
-            )
+            self.log.info("EMBLMiniDiff: Visual align not available in Plate mode")
         else:
             t1 = [point_1.sampx, point_1.sampy, point_1.phiy]
             t2 = [point_2.sampx, point_2.sampy, point_2.phiy]
@@ -656,12 +656,12 @@ class EMBLMiniDiff(GenericDiffractometer):
 
     def close_kappa_task(self):
         """Close kappa task"""
-        logging.getLogger("HWR").debug("Diffractometer: Closing Kappa started...")
+        self.log.debug("Diffractometer: Closing Kappa started...")
         self.move_kappa_and_phi_procedure(0, 270)
         self.wait_device_ready(180)
         self.motor_hwobj_dict["kappa"].home()
         self.wait_device_ready(60)
-        logging.getLogger("HWR").debug("Diffractometer: Done Closing Kappa")
+        self.log.debug("Diffractometer: Done Closing Kappa")
 
     def set_zoom(self, position):
         self.zoom_motor_hwobj.move_to_position(position)

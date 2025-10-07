@@ -101,7 +101,7 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
             not failed,
             failed_msg if failed else "Data collection successful",
         )
-        logging.getLogger("HWR").info("data collection successful in loop")
+        self.log.info("data collection successful in loop")
         self.emit("collectReady", (True,))
 
     @task

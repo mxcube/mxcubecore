@@ -58,7 +58,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
         self.scan_info = {}
         self.scan_data = []
 
-        self.log = logging.getLogger("HWR")
+        self.log = self.log
 
     def init(self):
         self.ready_event = gevent.event.Event()
@@ -268,7 +268,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
     def start_energy_scan(
         self, element, edge, directory, prefix, session_id=None, blsample_id=None
     ):
-        log = logging.getLogger("HWR")
+        log = self.log
 
         self.scan_info = {
             "sessionId": session_id,
@@ -315,7 +315,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
         except Exception:
             import traceback
 
-            logging.getLogger("HWR").error(
+            self.log.error(
                 "EnergyScan: problem starting energy scan. %s" % traceback.format_exc()
             )
             self.scanCommandFailed()
@@ -379,7 +379,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
         self.ready_event.set()
 
     def scanCommandFinished(self, *args):
-        logging.getLogger("HWR").debug("EnergyScan: finished")
+        self.log.debug("EnergyScan: finished")
 
         with cleanup(self.ready_event.set):
             self.scan_info["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -425,17 +425,13 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
             if not os.path.exists(archive_directory):
                 os.makedirs(archive_directory)
         except Exception:
-            logging.getLogger("HWR").exception(
-                "PX1EnergyScan: could not create results directory."
-            )
+            self.log.exception("PX1EnergyScan: could not create results directory.")
             self.store_energy_scan()
             self.scanCommandFailed()
             return
 
         if not self.save_raw(scan_file_raw_filename, archive_file_raw_filename):
-            logging.getLogger("HWR").exception(
-                "PX1EnergyScan: could not save data raw file"
-            )
+            self.log.exception("PX1EnergyScan: could not save data raw file")
             self.store_energy_scan()
             self.scanCommandFailed()
             return
@@ -490,9 +486,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
                 ) = result_data
             else:
                 self.store_energy_scan()
-                logging.getLogger("HWR").error(
-                    "Energy scan: Chooch cannot parse results"
-                )
+                self.log.error("Energy scan: Chooch cannot parse results")
                 return
             # scan_data = self.get_scan_data()
             # self.log.debug("running chooch with values: element=%s, element=%s" % (elt,edge))
@@ -507,7 +501,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
 
             self.log.debug(traceback.format_exc())
             self.store_energy_scan()
-            logging.getLogger("HWR").error("Energy scan: Chooch failed")
+            self.log.error("Energy scan: Chooch failed")
             return
 
         self.log.info("EnergyScan. running chooch done")
@@ -524,7 +518,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
 
         self.thEdge = self.e_edge
 
-        logging.getLogger("HWR").info(
+        self.log.info(
             "th. Edge %s ; chooch results are pk=%f, ip=%f, rm=%f"
             % (self.thEdge, pk, ip, rm)
         )
@@ -541,20 +535,20 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
             ip = 0
             rm = self.thEdge + 0.03
 
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "EnergyScan: calculated peak is %s theoretical value more than 20eV"
                 % side
             )
-            logging.getLogger("HWR").warning("   calculated = %s" % savpk)
-            logging.getLogger("HWR").warning("  theoretical = %s" % self.thEdge)
+            self.log.warning("   calculated = %s" % savpk)
+            self.log.warning("  theoretical = %s" % self.thEdge)
 
         if not self.copy_efs(scan_file_efs_filename, archive_file_efs_filename):
-            logging.getLogger("HWR").warning("  copy efs failed ")
+            self.log.warning("  copy efs failed ")
             self.store_energy_scan()
             self.scanCommandFailed()
             return
 
-        logging.getLogger("HWR").warning(
+        self.log.warning(
             "  efs file has been archived at %s" % archive_file_efs_filename
         )
 
@@ -574,16 +568,14 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
         self.scan_info["filename"] = archive_file_raw_filename
         # self.scan_info["workingDirectory"] = archive_directory
 
-        logging.getLogger("HWR").warning(
-            "  generating graph data from %s" % str(chooch_graph_data)
-        )
+        self.log.warning("  generating graph data from %s" % str(chooch_graph_data))
 
         chooch_graph_x, chooch_graph_y1, chooch_graph_y2 = zip(*chooch_graph_data)
         chooch_graph_x = list(chooch_graph_x)
         for i in range(len(chooch_graph_x)):
             chooch_graph_x[i] = chooch_graph_x[i] / 1000.0
 
-        logging.getLogger("HWR").info("PX1EnergScan. Saving png")
+        self.log.info("PX1EnergScan. Saving png")
 
         # prepare to save png files
         title = "%10s  %6s  %6s\n%10s  %6.2f  %6.2f\n%10s  %6.2f  %6.2f" % (
@@ -620,21 +612,21 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
         self.scan_info["jpegChoochFileFullPath"] = str(escan_ispyb_path)
 
         try:
-            logging.getLogger("HWR").info(
+            self.log.info(
                 "Rendering energy scan and Chooch graphs to PNG file : %s",
                 scan_file_png_filename,
             )
             canvas.print_figure(scan_file_png_filename, dpi=80)
         except Exception:
-            logging.getLogger("HWR").exception("could not print figure")
+            self.log.exception("could not print figure")
         try:
-            logging.getLogger("HWR").info(
+            self.log.info(
                 "Rendering energy scan and Chooch graphs to PNG file : %s",
                 archive_file_png_filename,
             )
             canvas.print_figure(archive_file_png_filename, dpi=80)
         except Exception:
-            logging.getLogger("HWR").exception("could not save figure")
+            self.log.exception("could not save figure")
 
         self.store_energy_scan()
 
@@ -680,9 +672,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
             self.log.info("EnergyScan. saving data in %s" % scan_filename)
             self.log.info("EnergyScan. archiving data in %s" % archive_filename)
         except Exception:
-            logging.getLogger("HWR").exception(
-                "EMBLEnergyScan: could not create results raw file"
-            )
+            self.log.exception("EMBLEnergyScan: could not create results raw file")
             return False
 
         scan_data = self.get_scan_data()

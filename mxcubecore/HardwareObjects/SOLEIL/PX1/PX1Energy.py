@@ -1,6 +1,5 @@
 # from qt import *
 
-import logging
 import time
 
 from mxcubecore.Command.Tango import DeviceProxy
@@ -50,13 +49,13 @@ class PX1Energy(Device, AbstractEnergy):
 
     def connect_notify(self, signal):
         if signal == "energyChanged":
-            logging.getLogger("HWR").debug(
+            self.log.debug(
                 "PX1Energy. connect_notify. sending energy value %s" % self.get_value()
             )
             self.energyChanged(self.get_energy())
 
         if signal == "stateChanged":
-            logging.getLogger("HWR").debug(
+            self.log.debug(
                 "PX1Energy. connect_notify. sending state value %s" % self.get_state()
             )
             self.stateChanged(self.get_state())
@@ -179,7 +178,7 @@ class PX1Energy(Device, AbstractEnergy):
                             self.und_device.gap = newgap + backlash
                         time.sleep(1)
                 except Exception:
-                    logging.getLogger("HWR").error(
+                    self.log.error(
                         "%s: Cannot move undulator U20 : State device = %s",
                         self.id,
                         str(self.und_device.State()),
@@ -189,14 +188,14 @@ class PX1Energy(Device, AbstractEnergy):
                 self.energy_chan.set_value(value)
                 return value
             except Exception:
-                logging.getLogger("HWR").error(
+                self.log.error(
                     "%s: Cannot move Energy : State device = %s",
                     self.id,
                     self.get_state(),
                 )
 
         else:
-            logging.getLogger("HWR").error(
+            self.log.error(
                 "%s: Cannot move Energy : State device = %s",
                 self.id,
                 self.get_state(),
@@ -204,7 +203,7 @@ class PX1Energy(Device, AbstractEnergy):
 
     def set_wavelength(self, value, wait=False):
         egy_value = self.lambda_to_energy(float(value))
-        logging.getLogger("HWR").debug(
+        self.log.debug(
             "%s: Moving wavelength to : %s (egy to %s" % (self.id, value, egy_value)
         )
         self.set_valuey(egy_value)

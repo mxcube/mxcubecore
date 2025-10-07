@@ -1,4 +1,3 @@
-import logging
 import time
 
 import gevent
@@ -48,7 +47,7 @@ class XRFMockup(HardwareObject):
         )
         raw_data = s1 + s2
 
-        logging.getLogger("HWR").info("XRF Spectrum Started, task id: %d" % blsample_id)
+        self.log.info("XRF Spectrum Started, task id: %d" % blsample_id)
         self.scanning = True
         self.emit("xrfSpectrumStarted", ())
         with cleanup(self.ready_event.set):
@@ -85,9 +84,7 @@ class XRFMockup(HardwareObject):
                     self.emit("plot_data", {"id": scan_id, "data": aux})
                     if divmod(i, SCAN_LENGTH / 10)[1] == 0:
                         progress = i / float(SCAN_LENGTH)
-                        logging.getLogger("HWR").info(
-                            "XRF Spectrum Progress %f" % progress
-                        )
+                        self.log.info("XRF Spectrum Progress %f" % progress)
                         self.emit("xrf_task_progress", (blsample_id, progress))
 
                     gevent.sleep(0.02)
@@ -115,5 +112,5 @@ class XRFMockup(HardwareObject):
                 res.append(arr[0].tolist())
 
             self.emit("xrfSpectrumFinished", (res, mcaCalib, mcaConfig))
-            logging.getLogger("HWR").info("XRF Spectrum Finished")
+            self.log.info("XRF Spectrum Finished")
             del self.__scan_data[scan_id]

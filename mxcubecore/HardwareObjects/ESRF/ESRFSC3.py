@@ -1,7 +1,6 @@
 """ESRF SC3 Sample Changer Hardware Object"""
 
 import functools
-import logging
 
 import SC3
 
@@ -40,7 +39,7 @@ class ESRFSC3(SC3.SC3):
         try:
             self.operationalFlagsChanged(chan)
         except Exception:
-            logging.getLogger("HWR").exception(
+            self.log.exception(
                 "%s: error getting SC vs MD operational flags" % self.name()
             )
 
@@ -53,7 +52,7 @@ class ESRFSC3(SC3.SC3):
 
     def __getSample(self, sample_id, sample_location):
         if sample_id and sample_location:
-            logging.getLogger("HWR").debug(
+            self.log.debug(
                 "%s: both sample barcode and location provided, discarding barcode...",
                 self.name(),
             )
@@ -103,10 +102,10 @@ class ESRFSC3(SC3.SC3):
                     )
 
                 if loaded:
-                    logging.getLogger("HWR").debug("%s: sample is loaded", self.name())
+                    self.log.debug("%s: sample is loaded", self.name())
 
                     if self.prepareCentringAfterLoad and prepareCentring:
-                        logging.getLogger("HWR").debug(
+                        self.log.debug(
                             "%s: preparing minidiff for sample centring", self.name()
                         )
                         self.emit("stateChanged", SC3.SampleChangerState.Moving)
@@ -125,7 +124,7 @@ class ESRFSC3(SC3.SC3):
         pass
 
     def __load_sample(self, holderLength, sample_id, sample_location):
-        logging.getLogger("HWR").debug("%s: in load_sample", self.name())
+        self.log.debug("%s: in load_sample", self.name())
 
         sample = self.__getSample(sample_id, sample_location)
 
@@ -134,7 +133,7 @@ class ESRFSC3(SC3.SC3):
 
         if not holderLength:
             holderLength = 22
-            logging.getLogger("HWR").debug(
+            self.log.debug(
                 "%s: loading sample: using default holder length (%d mm)",
                 self.name(),
                 holderLength,
@@ -185,9 +184,7 @@ class ESRFSC3(SC3.SC3):
                     )
 
                 if unloaded:
-                    logging.getLogger("HWR").debug(
-                        "%s: sample has been unloaded", self.name()
-                    )
+                    self.log.debug("%s: sample has been unloaded", self.name())
 
                     self.emit("statusChanged", "Ready")
 
@@ -199,7 +196,7 @@ class ESRFSC3(SC3.SC3):
 
         if not holderLength:
             holderLength = 22
-            logging.getLogger("HWR").debug(
+            self.log.debug(
                 "%s: unloading sample: using default holder length (%d mm)",
                 self.name(),
                 holderLength,
@@ -236,9 +233,7 @@ class ESRFSC3(SC3.SC3):
         try:
             val = int(val)
         except Exception:
-            logging.getLogger("HWR").exception(
-                "%s: error reading operational flags" % self.name()
-            )
+            self.log.exception("%s: error reading operational flags" % self.name())
             return
 
         old_sc_can_load = self.lastOperationalFlags & ESRFSC3.FLAG_SC_CAN_LOAD
@@ -274,9 +269,7 @@ class ESRFSC3(SC3.SC3):
         try:
             self.unlockMinidiffMotors()
         except Exception:
-            logging.getLogger("HWR").exception(
-                "%s: error unlocking minidiff motors" % self.name()
-            )
+            self.log.exception("%s: error unlocking minidiff motors" % self.name())
             return False
         return True
 
@@ -285,7 +278,7 @@ class ESRFSC3(SC3.SC3):
         try:
             r=self._moveToLoadingPosition()
         except:
-            logging.getLogger("HWR").exception("%s: error moving sample changer to loading position" % self.name())
+            self.log.exception("%s: error moving sample changer to loading position" % self.name())
             return False
         return True
     """

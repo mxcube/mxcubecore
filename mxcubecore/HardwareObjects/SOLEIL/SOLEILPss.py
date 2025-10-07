@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 
 from PyTango import DeviceProxy
 
@@ -25,12 +24,12 @@ class SOLEILPss(HardwareObject):
         try:
             self.device = DeviceProxy(self.get_property("tangoname"))
         except Exception:
-            logging.getLogger("HWR").error(
+            self.log.error(
                 "%s: unknown pss device name", self.get_property("tangoname")
             )
 
         if self.get_property("hutch") not in ("optical", "experimental"):
-            logging.getLogger("HWR").error(
+            self.log.error(
                 "SOLEILPss.init Hutch property %s is not correct",
                 self.get_property("hutch"),
             )
@@ -48,6 +47,6 @@ class SOLEILPss(HardwareObject):
         return self.get_state(self.stateChan.get_value())
 
     def value_changed(self, value):
-        logging.getLogger("HWR").info("%s: SOLEILPss.valueChanged, %s", self.id, value)
+        self.log.info("%s: SOLEILPss.valueChanged, %s", self.id, value)
         state = self.get_state(value)
         self.emit("wagoStateChanged", (state,))

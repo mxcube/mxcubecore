@@ -1,5 +1,3 @@
-import logging
-
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
@@ -64,7 +62,7 @@ class PX1Attenuator(HardwareObject):
         try:
             value = self.get_value()
         except Exception:
-            logging.getLogger("HWR").error(
+            self.log.error(
                 "%s attFactorChanged : received value on channel is not a float value",
                 str(self.name()),
             )

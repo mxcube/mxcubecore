@@ -161,7 +161,7 @@ class EMBLMachineInfo(HardwareObject):
             self.cryojet_in_changed(self.chan_cryojet_in.get_value())
             self.chan_cryojet_in.connect_signal("update", self.cryojet_in_changed)
         else:
-            logging.getLogger("HWR").debug("MachineInfo: Cryojet channel not defined")
+            self.log.debug("MachineInfo: Cryojet channel not defined")
 
         self.chan_sc_dewar_low_level_alarm = self.get_channel_object(
             "scLowLevelAlarm", optional=True
@@ -524,7 +524,7 @@ class EMBLMachineInfo(HardwareObject):
                         last_value = line_el[-1]
             last_value = float(last_value)
         except Exception:
-            logging.getLogger("HWR").debug("MachineInfo: Unable to read epics values")
+            self.log.debug("MachineInfo: Unable to read epics values")
         finally:
             if url_file:
                 url_file.close()
