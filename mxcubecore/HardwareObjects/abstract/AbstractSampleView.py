@@ -55,7 +55,7 @@ class AbstractSampleView(HardwareObject):
     @abc.abstractmethod
     def get_snapshot(
         self,
-        overlay: Union[bool, str] = True,
+        overlay: bool | str = True,
         bw: bool = False,
         return_as_array: bool = False,
     ):
