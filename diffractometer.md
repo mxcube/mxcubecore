@@ -8,11 +8,11 @@ We also introduce a convention about the direction of the alignment and centring
 - y axis is perpendicular to the beam, parallel to the ground. Positive direction is from left to right, facing the beam.
 - z axis is perpendicular to the floor. Positive direction is top down.
 
-Here follows the list of the hardcoded roles and the description of the corresponding objects, accessible via beamline.diffractometer hardware object.
+Here follows the list of the fixed roles and the description of the corresponding objects, accessible via beamline.diffractometer hardware object.
 
 1\. Motor objects (roles) and their functionality:
 
-- **omega** - the rotation axis, independent of the orientation (up, down or side).
+- **omega** - the rotation axis, independent of the orientation (up, down or side). Pisitive direction is clockwise
 - **sampx** - centring table x axis
 - **sampy** - centring table y axis
 - **focus** - alignment table x axis
@@ -29,8 +29,8 @@ Here follows the list of the hardcoded roles and the description of the correspo
 - **fshutter** - fast shutter - allow beam on the sample
 - **beamstop** - put in front of a detector to avoid the direct beam.
 - **capillary** - if present, a tube to reduce the scattering background.
-- **Backlightswitch** - move the backlight on the level of the onaxis viewer
-- **Frontlightswitch** - switch on/off the front light
+- **backlightswitch** - move the backlight on the level of the onaxis viewer
+- **frontlightswitch** - switch on/off the front light
 - **fluo_detector** - if present, actuator to move a fluorescence detector close to the sample
 
 Possibly there is equipment physically part of the diffractometer, but not accessed via beamline.diffractometer:

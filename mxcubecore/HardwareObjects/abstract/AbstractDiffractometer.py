@@ -35,6 +35,7 @@ corresponding objects, accessible via beamline.diffractometer hardware object.
 
 1. Motor objects (roles)  and their functionality:
   omega - the rotation axis, independent of the orientation (up, down or side).
+          Pisitive direction is clockwise.
   sampx - centring table x axis
   sampy - centring table y axis
   focus - alignment table x axis
@@ -60,10 +61,16 @@ fluo_detector - if present, actuator to move a fluorescence detector close to th
 """
 
 import abc
+import json
 import logging
 from enum import Enum, unique
+from typing import Dict, List, Optional, Tuple, Union
+
+from pathlin import Path
+from pydantic.v1 import BaseModel, Field, ValidationError
 
 from mxcubecore.BaseHardwareObjects import HardwareObject, HardwareObjectState
+from mxcubecore import HardwareRepository as HWR
 
 
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
@@ -72,7 +79,7 @@ __license__ = "LGPLv3+"
 
 @unique
 class DiffractometerHead(Enum):
-    """Enumeration diffractometer head types"""
+    """Enumeration diffractometer head types."""
 
     UNKNOWN = "Unknown"
     MINI_KAPPA = "MiniKappa"
@@ -84,7 +91,7 @@ class DiffractometerHead(Enum):
 
 @unique
 class DiffractometerPhase(Enum):
-    """Enumeration diffractometer phases"""
+    """Enumeration diffractometer phases."""
 
     UNKNOWN = "Unknown"
     CENTRE = "Centring"
@@ -96,12 +103,84 @@ class DiffractometerPhase(Enum):
 
 @unique
 class DiffractometerConstraint(Enum):
-    """Enumeration diffractometer constraint types"""
+    """Enumeration diffractometer constraint types."""
 
     UNKNOWN = "Unknown"
     RELEASE = "Normal"
     INJECTOR = "Injector"
     STILL = "LockRotation"
+
+
+class HolderTypeEnum(Enum):
+    """Enumeration of chip holder geometry."""
+
+    KNOWN_GEOMETRY = "known_geometry"
+    FREE_GEOMETRY = "free_geometry"
+
+
+class ChipShapeEnum(Enum):
+    """Enumeration of chip holder shape."""
+
+    RECTANGULAR = "RECTANGULAR"
+    ELLIPTICAL = "ELLIPTICAL"
+
+
+# Diffractometer pydantic models
+
+
+class CalibrationData(BaseModel):
+    """Chip calibration model."""
+
+    top_left: Tuple[float, float, float] = Field(
+        [0, 0, 0], description="Top left corner motor position"
+    )
+    top_right: Tuple[float, float, float] = Field(
+        [0, 0, 0], description="Top right corner motor position"
+    )
+    bottom_left: Tuple[float, float, float] = Field(
+        [0, 0, 0], description="Bottom left corner motor position"
+    )
+
+
+class SampleHolderSectionModel(BaseModel):
+    """Generic sample holder."""
+
+    calibration_data: Optional[CalibrationData]
+    section_offset: Tuple[int, int] = Field(
+        [0, 0], description="Block offset in grid layout system coordinates x, y"
+    )
+    block_size: Tuple[float, float] = Field(
+        [15, 15], description="Block size horizontal, vertical in mm"
+    )
+    block_spacing: Tuple[float, float] = Field(
+        [15, 15], description="Spacing between blocks horizontal, vertical in mm"
+    )
+    block_shape: ChipShapeEnum = ChipShapeEnum.rectangular
+    number_of_rows: int = Field(6, description="Numer of rows")
+    number_of_collumns: int = Field(6, description="Numer of collumns")
+    row_labels: List[str] = Field([], description="Row lables")
+    column_lables: List[str] = Field([], description="Collumn lables")
+    targets_per_block: Tuple[int, int] = Field(
+        [20, 20], description="Targets per block dim1 and dim2"
+    )
+
+
+class ChipLayout(BaseModel):
+    """Chip layout model."""
+
+    head_type: DiffractometerHead = DiffractometerHead.SSX
+    holder_type: HolderTypeEnum = HolderTypeEnum.KNOWN_GEOMETRY
+    holder_brand: str = Field("", description="Brand/make of sample holder")
+    holder_size: Tuple[float, float] = Field(
+        [0, 0], description="Size of sample holder in mm horizontal and vertical"
+    )
+    sections: List[SampleHolderSectionModel]
+    calibration_data: CalibrationData
+
+
+class GonioHeadConfiguration(BaseModel):
+    current: str = Field("", description="Selected chip layout")
+    available: Dict[str, ChipLayout]
 
 
 class AbstractDiffractometer(HardwareObject):
@@ -135,6 +214,7 @@ class AbstractDiffractometer(HardwareObject):
         self.head_type = None
         self.current_constraint = None
         self.timeout = 3  # default timeout 3 s
+        self.chip_definition_file = ""
 
     def init(self):
         """Initialise username property.
@@ -163,6 +243,12 @@ class AbstractDiffractometer(HardwareObject):
                 logging.getLogger("HWR").warning(
                     "No nstate (discrete positions) equipment configured"
                 )
+
+        # chip definition
+        _fp = self.get_property("chip_definition_file", "")
+        self.chip_definition_file = HWR.get_hardware_repository().find_in_repository(
+            _fp
+        )
 
     def get_motors(self) -> dict:
         """Get the dictionary of all configured motors or the ones to use.
@@ -318,9 +404,67 @@ class AbstractDiffractometer(HardwareObject):
         return self.get_head_type == DiffractometerHead.MINI_KAPPA
 
     @property
+    def in_chip_mode(self) -> bool:
+        """Check if there is chip configuration of the head."""
+        return (
+            self.get_head_type == DiffractometerHead.SSX
+            and self.current_constraint == DiffractometerConstraint.STILL
+        )
+
+    @property
+    def in_injector_mode(self) -> bool:
+        """Check if there is injector on the head."""
+        return (
+            self.get_head_type == DiffractometerHead.SSX
+            and self.current_constraint == DiffractometerConstraint.INJECTOR
+        )
+
+    @property
     def get_head_enum(self) -> DiffractometerHead:
         """Get the diffractometer head Enum. Used when no import possible."""
         return DiffractometerHead
+
+    def get_chip_configuration(self) -> Union[GonioHeadConfiguration, None]:
+        """Get the chip configuration."""
+
+        data = None
+
+        if Path(self.chip_definition_file).is_file():
+            with Path(self.chip_definition_file).open("r") as _f:
+                chip_def = json.load(_f)
+                try:
+                    data = GonioHeadConfiguration(**chip_def)
+                except ValidationError:
+                    msg = f"Validation error in {self.chip_definition_file}"
+                    logging.getLogger("HWR").exception(msg)
+        return data
+
+    def set_head_configuration(self, str_data: str) -> None:
+        """Write the chip configuration in the chip configuration json file.
+        Args:
+            String containing the configuration.
+        """
+        data = json.loads(str_data)
+
+        if Path(self.chip_definition_file).is_file():
+            with Path(self.chip_definition_file).open("w+") as _f:
+                try:
+                    GonioHeadConfiguration(**data)
+                except ValidationError:
+                    msg = f"Validation error in {self.chip_definition_file}"
+                    logging.getLogger("HWR").exception(msg)
+                else:
+                    _f.write(json.dumps(data, indent=4))
+
+    def set_chip_layout(self, layout_name: str) -> bool:
+        """Choose the chip configuration layout.
+        Args:
+            The layout name.
+        """
+        data = self.get_head_configuration().dict()
+        data["current"] = layout_name
+        self.set_head_configuration(json.dumps(data))
+        return True
 
     # -------- Phases --------
 
