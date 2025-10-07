@@ -27,7 +27,7 @@ class ESRFSession(Session.Session):
                 archive_base_directory, archive_folder
             )
 
-    def get_full_path(self, subdir: str, tag: str) -> Tuple[str, str]:
+    def get_full_paths(self, subdir: str, tag: str) -> Tuple[str, str]:
         """
         Returns the full path to both image and processed data.
         The path(s) returned will follow the convention:

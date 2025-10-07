@@ -1,5 +1,0 @@
-<object class ="ShutterMockup">
-    <actuator_name>fast_shutter</actuator_name>
-    <user_name>FastShutter</user_name>
-    <values>{"OPEN": "open", "CLOSED": "closed"}</values>
-</object>

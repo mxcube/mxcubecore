@@ -844,6 +844,7 @@ class GphlWorkflow(HardwareObject):
         HWR.beamline.gphl_connection.open_connection()
 
         if data_model.wftype == "transcal":
+            self._workflow_queue = gevent.queue.Queue()
             return
         elif data_model.automation_mode:
             params = data_model.auto_acq_parameters[0]

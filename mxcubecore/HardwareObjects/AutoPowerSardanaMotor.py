@@ -1,13 +1,3 @@
-#
-# Disable 'Invalid module name' check.
-#
-# We can possibly make module name ruff compliant once we migrated to
-# YAML config files. With YAML configs we get more flexibility with module
-# names.
-#
-# ruff: noqa: N999
-#
-
 from mxcubecore.HardwareObjects.SardanaMotor import SardanaMotor
 
 

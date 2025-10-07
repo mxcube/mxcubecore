@@ -79,7 +79,11 @@ _instance = None
 TIMERS = []
 
 beamline = None
-BEAMLINE_CONFIG_FILE = "beamline_config.yml"
+#
+# Supported beamline configuration filenames.
+# The first name in the list takes precedence.
+#
+BEAMLINE_CONFIG_FILES = ["beamline.yaml", "beamline_config.yml"]
 
 
 def load_from_yaml(
@@ -394,8 +398,16 @@ def init_hardware_repository(
     logging.getLogger("HWR").info("Hardware repository: %s", configuration_path)
     _instance = __HardwareRepositoryClient(configuration_path)
     _instance.connect()
+
+    beamline_config_file = _instance.find_beamline_config_file()
+    if beamline_config_file.endswith(".yml"):
+        warn(  # noqa: B028 we don't care about stacklevel for this warning
+            f"Config file '{beamline_config_file}' have deprecated extension 'yml', "
+            "change to 'yaml'."
+        )
+
     beamline = load_from_yaml(
-        BEAMLINE_CONFIG_FILE,
+        beamline_config_file,
         role="beamline",
         yaml_export_directory=yaml_export_directory,
     )
@@ -454,6 +466,21 @@ class __HardwareRepositoryClient:
             self.server = None
         finally:
             self.__connected = True
+
+    def find_beamline_config_file(self) -> str | None:
+        """Find beamline configuration file name.
+
+        Look in the repository paths for beamline config file.
+
+        Returns:
+            The found config file name, or None if not found.
+        """
+        for file_name in BEAMLINE_CONFIG_FILES:
+            file = self.find_in_repository(file_name)
+            if file is not None:
+                return Path(file).name
+
+        return None
 
     def find_in_repository(self, relative_path):
         """Finds absolute path of a file or directory matching relativePath

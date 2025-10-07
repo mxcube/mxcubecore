@@ -4,6 +4,7 @@ import functools
 import logging
 import os
 import sys
+import time
 from logging.handlers import RotatingFileHandler
 
 from colorama import (
@@ -50,9 +51,10 @@ def trace_call_log(_func=None, *, level: int = logging.DEBUG):
                     " HardwareObject instance's methods only"
                 )
                 raise TypeError(err_msg)
+
             args = list(args)
             self = args.pop(0)
-            hwo_name = f" ({self.name.strip('/')})" if self.name else ""
+
             # Remove named parameters which are not in the signature of the method
             code_obj = func.__code__
             kwargs = {
@@ -61,13 +63,30 @@ def trace_call_log(_func=None, *, level: int = logging.DEBUG):
                 if k in code_obj.co_varnames[: code_obj.co_argcount]
             }
 
+            hwo_name = f" ({self.name.strip('/')})" if self.name else ""
             args_str = ",".join([str(arg) for arg in args])
             kwargs_str = ",".join(["%s=%s" % (k, v) for k, v in kwargs.items()])
             params_str = f"{args_str}{', ' if args and kwargs else ''}{kwargs_str}"
             method_name = func.__name__
             signature = f"{method_name}({params_str})"
-            self.log.log(level, f"{hwo_name} In {signature}")
-            return func(self, *args, **kwargs)
+
+            t0 = time.time()
+            try:
+                result = func(self, *args, **kwargs)
+            except Exception:
+                self.log.log(
+                    level,
+                    f"{hwo_name} In {signature} -> ! Raise exception ! "
+                    f"[Execution time: {time.time() - t0} sec]",
+                )
+                raise
+            else:
+                self.log.log(
+                    level,
+                    f"{hwo_name} In {signature} -> {result} "
+                    f"[Execution time: {time.time() - t0} sec]",
+                )
+                return result
 
         return fun_wrapper
 
