@@ -19,8 +19,6 @@ beamPosChanged
 -----------------------------------------------------------------------
 """
 
-import logging
-
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
@@ -66,20 +64,20 @@ class BeamInfo(HardwareObject):
                 self.aperture_hwobj, "apertureChanged", self.aperture_pos_changed
             )
         else:
-            logging.getLogger("HWR").debug("BeamInfo: Aperture hwobj not defined")
+            self.log.debug("BeamInfo: Aperture hwobj not defined")
 
         self.slits_hwobj = self.get_object_by_role("slits")
         if self.slits_hwobj is not None:
             self.connect(self.slits_hwobj, "gapSizeChanged", self.slits_gap_changed)
         else:
-            logging.getLogger("HWR").debug("BeamInfo: Slits hwobj not defined")
+            self.log.debug("BeamInfo: Slits hwobj not defined")
 
         if self.beam_definer is not None:
             self.connect(
                 self.beam_definer, "definerPosChanged", self.definer_pos_changed
             )
         else:
-            logging.getLogger("HWR").debug("BeamInfo: Beam definer hwobj not defined")
+            self.log.debug("BeamInfo: Beam definer hwobj not defined")
 
         default_beam_divergence_vertical = None
         default_beam_divergence_horizontal = None
@@ -91,7 +89,7 @@ class BeamInfo(HardwareObject):
                 self.get_property("beam_divergence_horizontal")
             )
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
         self.default_beam_divergence = [
             default_beam_divergence_horizontal,
             default_beam_divergence_vertical,

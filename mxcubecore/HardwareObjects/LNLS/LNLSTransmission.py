@@ -18,7 +18,6 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractTransmission import (
@@ -64,7 +63,7 @@ class LNLSTransmission(EPICSActuator, AbstractTransmission):
             _, actual_transmission, filter_setup = get_transmission(energy_val, value)
             actual_transmission = round(actual_transmission * 100, 2)
 
-            logging.getLogger("HWR").info(
+            self.log.info(
                 "Requested transmission: %s. Closest possible value: %s"
                 % (str(value), str(actual_transmission))
             )
@@ -72,14 +71,12 @@ class LNLSTransmission(EPICSActuator, AbstractTransmission):
             # status 0 is ok, status 1 is failure
             foil_status = set_foils(filter_setup)
         except Exception as e:
-            logging.getLogger("HWR").error(
-                "Error while setting transmission: %s" % str(e)
-            )
+            self.log.error("Error while setting transmission: %s" % str(e))
         else:
             if foil_status == 0:
-                logging.getLogger("HWR").info("Transmission is successfully set!")
+                self.log.info("Transmission is successfully set!")
                 return
-            logging.getLogger("HWR").error(
+            self.log.error(
                 "Error: transmission could not be set (returned status %s)."
                 % foil_status
             )

@@ -14,7 +14,6 @@ Example configuration:
 """
 
 import atexit
-import logging
 import os
 import signal
 import subprocess
@@ -76,7 +75,7 @@ class TangoLimaMpegVideo(TangoLimaVideo):
         return video_sizes
 
     def clean_up(self) -> None:
-        logging.getLogger("HWR").info("Shutting down video_stream...")
+        self.log.info("Shutting down video_stream...")
         os.kill(self._video_stream_process.pid, signal.SIGTERM)
 
     def start_video_stream_process(self) -> None:
@@ -117,7 +116,7 @@ class TangoLimaMpegVideo(TangoLimaVideo):
                 for p in ps:
                     p.kill()
             except psutil.NoSuchProcess:
-                logging.getLogger("HWR").exception("")
+                self.log.exception("")
 
             self._video_stream_process = None
 

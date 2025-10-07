@@ -68,8 +68,6 @@ Example Hardware Object XML file :
 </object>
 """
 
-import logging
-
 from mxcubecore.HardwareObjects.abstract.AbstractSlits import AbstractSlits
 
 __credits__ = ["EMBL Hamburg"]
@@ -154,7 +152,7 @@ class EMBLSlitBox(AbstractSlits):
             )
             self.beam_focus_hwobj.re_emit_values()
         else:
-            logging.getLogger("HWR").debug("EMBLSlitBox: beamFocus HO not defined")
+            self.log.debug("EMBLSlitBox: beamFocus HO not defined")
 
     def get_step_sizes(self):
         """Returns Hor and Ver step sizes (list of two values)"""

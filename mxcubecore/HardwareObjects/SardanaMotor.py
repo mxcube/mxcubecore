@@ -1,5 +1,4 @@
 import enum
-import logging
 import time
 
 from gevent import Timeout
@@ -72,27 +71,27 @@ class SardanaMotor(AbstractMotor):
 
         self.actuator_name = self.get_property("actuator_name")
         if not self.name:
-            logging.getLogger("HWR").info(
+            self.log.info(
                 "Undefined property actuator_name in xml. Applying name during instance creation."
             )
             self.actuator_name = self.name
 
         self.threshold = self.get_property("threshold", self.threshold_default)
-        logging.getLogger("HWR").debug(
+        self.log.debug(
             "Motor {0} threshold = {1}".format(self.actuator_name, self.threshold)
         )
 
         self.move_threshold = self.get_property(
             "move_threshold", self.move_threshold_default
         )
-        logging.getLogger("HWR").debug(
+        self.log.debug(
             "Motor {0} move_threshold = {1}".format(
                 self.actuator_name, self.move_threshold
             )
         )
 
         self.polling = self.get_property("interval", self.polling_default)
-        logging.getLogger("HWR").debug(
+        self.log.debug(
             "Motor {0} polling = {1}".format(self.actuator_name, self.polling)
         )
 

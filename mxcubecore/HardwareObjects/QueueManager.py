@@ -168,7 +168,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                         qe.handle_exception(ex)
                         self.stop()
                     except gevent.GreenletExit:
-                        logging.getLogger("HWR").exception("")
+                        self.log.exception("")
 
                     if isinstance(ex, base_queue_entry.QueueAbortedException):
                         logging.getLogger("user_level_log").warning(
@@ -222,7 +222,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                 self.emit("queue_entry_execute_finished", (entry, "Successful"))
                 self.emit("statusMessage", ("status", "", "ready"))
         except base_queue_entry.QueueSkipEntryException as ex:
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "encountered Exception (continuing):\n%s" % ex.stack_trace or ex.message
             )
             # Queue entry, failed, skip.
@@ -234,7 +234,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             # Definitely not good state, but call post_execute
             # anyway, there might be code that cleans up things
             # done in _pre_execute or before the exception in _execute.
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "encountered Exception (continuing):\n%s" % ex.stack_trace or ex.message
             )
             entry.status = QUEUE_ENTRY_STATUS.FAILED
@@ -243,16 +243,14 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             entry.handle_exception(ex)
             raise ex
         except base_queue_entry.QueueExecutionException as ex:
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "encountered Exception (continuing):\n%s" % ex.stack_trace or ex.message
             )
             entry.status = QUEUE_ENTRY_STATUS.FAILED
             self.emit("queue_entry_execute_finished", (entry, "Failed"))
             self.emit("statusMessage", ("status", "Queue execution failed", "error"))
         except:
-            logging.getLogger("HWR").warning(
-                "encountered Exception:\n%s" % traceback.format_exc()
-            )
+            self.log.warning("encountered Exception:\n%s" % traceback.format_exc())
             raise
         else:
             entry.post_execute()
@@ -276,9 +274,9 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                     qe.stop()
                     qe.post_execute()
                 except base_queue_entry.QueueAbortedException:
-                    logging.getLogger("HWR").exception("")
+                    self.log.exception("")
                 except Exception:
-                    logging.getLogger("HWR").exception("")
+                    self.log.exception("")
 
         if self._root_task:
             self._root_task.kill(block=False)

@@ -181,7 +181,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         :type exptime: float
         :return: True if success, otherwise returns False
         """
-        log = logging.getLogger("HWR")
+        log = self.log
 
         self.scan_info = {
             "sessionId": session_id,
@@ -304,7 +304,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
     def scanCommandFinished(self, *args):
         with TaskUtils.cleanup(self.ready_event.set):
             self.scan_info["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
-            logging.getLogger("HWR").debug("Energy scan: finished")
+            self.log.debug("Energy scan: finished")
             self.scanning = False
             self.scan_info["startEnergy"] = self.scan_data[-1][0]
             self.scan_info["endEnergy"] = self.scan_data[-1][1]
@@ -330,9 +330,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
             if not os.path.exists(archive_directory):
                 os.makedirs(archive_directory)
         except Exception:
-            logging.getLogger("HWR").exception(
-                "EMBLEnergyScan: could not create results directory."
-            )
+            self.log.exception("EMBLEnergyScan: could not create results directory.")
             self.store_energy_scan()
             self.emit("energyScanFailed", ())
             return
@@ -340,9 +338,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         try:
             archive_file_raw = open(archive_file_raw_filename, "w")
         except Exception:
-            logging.getLogger("HWR").exception(
-                "EMBLEnergyScan: could not create results raw file"
-            )
+            self.log.exception("EMBLEnergyScan: could not create results raw file")
             self.store_energy_scan()
             self.emit("energyScanFailed", ())
             return
@@ -378,7 +374,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
 
             logging.getLogger("GUI").error("Energy scan: Chooch failed")
 
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
             return None, None, None, None, None, None, None, [], [], [], None
 
         rm = (pk + 30) / 1000.0
@@ -409,7 +405,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         for i in range(len(chooch_graph_x)):
             chooch_graph_x[i] = chooch_graph_x[i] / 1000.0
 
-        # logging.getLogger("HWR").info("EMBLEnergyScan: Saving png" )
+        # self.log.info("EMBLEnergyScan: Saving png" )
         # prepare to save png files
         title = "%s  %s  %s\n%.4f  %.2f  %.2f\n%.4f  %.2f  %.2f" % (
             "energy",
@@ -459,13 +455,13 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
 
         self.scan_info["jpegChoochFileFullPath"] = str(archive_file_png_filename)
         try:
-            logging.getLogger("HWR").info(
+            self.log.info(
                 "Saving energy scan to archive directory for ISPyB : %s",
                 archive_file_png_filename,
             )
             canvas.print_figure(archive_file_png_filename, dpi=80)
         except Exception:
-            logging.getLogger("HWR").exception("could not save figure")
+            self.log.exception("could not save figure")
 
         self.store_energy_scan()
 
@@ -516,7 +512,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                     }
                 )
         except IndexError:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
         return elements
 
     def get_scan_data(self):

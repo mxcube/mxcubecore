@@ -1,4 +1,3 @@
-import logging
 import os
 import sys
 import time
@@ -31,11 +30,11 @@ class ALBAClusterJob(object):
             return state
 
         while state in ["RUNNING", "PENDING"]:
-            logging.getLogger("HWR").debug("Job / is %s" % state)
+            self.log.debug("Job / is %s" % state)
             time.sleep(0.5)
             state = self.job.state
 
-        logging.getLogger("HWR").debug(' job finished with state: "%s"' % state)
+        self.log.debug(' job finished with state: "%s"' % state)
         return state
 
     def get_result(self, state):
@@ -68,7 +67,7 @@ class ALBAStrategyJob(ALBAClusterJob):
     sls_script = os.path.join(root, "edna-mx/strategy/edna-mx.strategy.sl")
 
     def run(self, *args):
-        logging.getLogger("HWR").debug("Starting StrategyJob - ")
+        self.log.debug("Starting StrategyJob - ")
 
         input_file, results_file, edna_directory = args
 
@@ -79,13 +78,13 @@ class ALBAStrategyJob(ALBAClusterJob):
         )
         self.job.submit()
 
-        logging.getLogger("HWR").debug("         StrategyJob - %s" % str(self.job))
+        self.log.debug("         StrategyJob - %s" % str(self.job))
 
         self.edna_directory = os.path.dirname(input_file)
         self.results_file = results_file
 
-        logging.getLogger("HWR").debug("  input file: %s" % input_file)
-        logging.getLogger("HWR").debug("  edna directory: %s" % self.edna_directory)
+        self.log.debug("  input file: %s" % input_file)
+        self.log.debug("  edna directory: %s" % self.edna_directory)
 
     def get_result(self, state):
         if state == "COMPLETED":
@@ -93,19 +92,19 @@ class ALBAStrategyJob(ALBAClusterJob):
                 self.edna_directory, "ControlInterfaceToMXCuBEv1_3_dataOutput.xml"
             )
 
-            logging.getLogger("HWR").debug("Job / state is COMPLETED")
-            logging.getLogger("HWR").debug("  looking for file: %s" % outfile)
+            self.log.debug("Job / state is COMPLETED")
+            self.log.debug("  looking for file: %s" % outfile)
             if os.path.exists(outfile):
                 job_output = open(outfile).read()
                 open(self.results_file, "w").write(job_output)
                 result = XSDataResultMXCuBE.parseFile(self.results_file)
             else:
-                logging.getLogger("HWR").debug(
+                self.log.debug(
                     "EDNA Job finished without success / cannot find output file "
                 )
                 result = ""
         else:
-            logging.getLogger("HWR").debug(
+            self.log.debug(
                 "EDNA Job finished without success / state was %s" % (job.state)
             )
             result = ""

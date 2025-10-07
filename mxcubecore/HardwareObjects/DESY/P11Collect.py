@@ -726,8 +726,8 @@ class P11Collect(AbstractCollect):
             image_filename (str): Filename of the image to be loaded.
             image_num (int, optional): Image number to load in ADXV. Defaults to 1.
         """
-        logging.getLogger("HWR").info(f"ADXV notify {image_filename}")
-        logging.getLogger("HWR").info(f"ADXV notify {image_num}")
+        self.log.info(f"ADXV notify {image_filename}")
+        self.log.info(f"ADXV notify {image_num}")
         adxv_host = "localhost"
         adxv_port = 8100
 
@@ -739,7 +739,7 @@ class P11Collect(AbstractCollect):
             )
             adxv_socket.close()
         except RuntimeWarning:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
         else:
             pass
 
@@ -1138,7 +1138,7 @@ class P11Collect(AbstractCollect):
                     except RuntimeError:
                         self.log.debug("mkdir failed:", str(sys.exc_info()))
 
-                        logging.getLogger("HWR").exception("")
+                        self.log.exception("")
                         return False
                 else:
                     self.log.debug("dir not found:", str(sys.exc_info()))
@@ -1220,7 +1220,7 @@ class P11Collect(AbstractCollect):
 
         auto_directory = xds_directory
 
-        logging.getLogger("HWR").info(
+        self.log.info(
             "[COLLECT] Processing input file directories: XDS: %s, AUTO: %s"
             % (xds_directory, auto_directory)
         )
@@ -1236,9 +1236,7 @@ class P11Collect(AbstractCollect):
                 try:
                     self.create_directories(snapshot_directory)
                 except Exception:
-                    logging.getLogger("HWR").exception(
-                        "Collection: Error creating snapshot directory"
-                    )
+                    self.log.exception("Collection: Error creating snapshot directory")
 
             number_of_snapshots = self.current_dc_parameters["take_snapshots"]
             logging.getLogger("user_level_log").info(

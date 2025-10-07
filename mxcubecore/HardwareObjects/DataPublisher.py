@@ -17,7 +17,6 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 import json
-import logging
 from enum import (
     Enum,
     unique,
@@ -164,10 +163,10 @@ class DataPublisher(HardwareObject):
                         )
                     else:
                         msg = "Unknown frame type %s" % message
-                        logging.getLogger("HWR").error(msg)
+                        self.log.error(msg)
                 except Exception:
                     msg = "Could not parse data in %s" % message
-                    logging.getLogger("HWR").exception(msg)
+                    self.log.exception(msg)
 
     def _remove_available(self, _id):
         """

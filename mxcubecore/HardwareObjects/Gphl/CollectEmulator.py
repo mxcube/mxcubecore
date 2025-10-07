@@ -21,7 +21,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
 """
 
-import logging
 import os
 import re
 import subprocess
@@ -296,8 +295,8 @@ class CollectEmulator(CollectMockup):
 
         for tag, val in self.config.simcal_options.items():
             command_list.extend(conversion.command_option(tag, val, prefix="--"))
-        logging.getLogger("HWR").info("Executing command: %s", " ".join(command_list))
-        logging.getLogger("HWR").info("Executing environment: %s", sorted(envs.items()))
+        self.log.info("Executing command: %s", " ".join(command_list))
+        self.log.info("Executing environment: %s", sorted(envs.items()))
 
         if compress_data:
             command_list.append("--gzip-img")
@@ -323,23 +322,23 @@ class CollectEmulator(CollectMockup):
             # # NBNB leaving this in causes simulations to be killed and missing images
             # super(CollectEmulator, self).data_collection_hook()
 
-            logging.getLogger("HWR").info("Waiting for simcal collection emulation.")
+            self.log.info("Waiting for simcal collection emulation.")
             # NBNB TODO put in time-out, somehow
             return_code = running_process.wait()
         except Exception:
-            logging.getLogger("HWR").error("Error in GΦL collection emulation")
+            self.log.error("Error in GΦL collection emulation")
             raise
         finally:
             fp1.close()
         process = gphl_connection.collect_emulator_process
         gphl_connection.collect_emulator_process = None
         if process == "ABORTED":
-            logging.getLogger("HWR").info("Simcal collection emulation aborted")
+            self.log.info("Simcal collection emulation aborted")
         elif return_code:
             raise RuntimeError(
                 "simcal process terminated with return code %s" % return_code
             )
         else:
-            logging.getLogger("HWR").info("Simcal collection emulation successful")
+            self.log.info("Simcal collection emulation successful")
         self.ready_event.set()
         return

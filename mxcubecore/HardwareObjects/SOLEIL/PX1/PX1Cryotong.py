@@ -103,8 +103,8 @@ class PX1Cryotong(Cats90):
                 try:
                     self._cmdAckSampleMemory()
                 except Exception:
-                    """ do nothing if cmd not to acknowledge not in xml """
-                    logging.getLogger("HWR").exception("")
+                    """do nothing if cmd not to acknowledge not in xml"""
+                    self.log.exception("")
             self.incoherent_state = value
 
     def _dry_and_soak_needed(self, value=None):
@@ -125,9 +125,7 @@ class PX1Cryotong(Cats90):
             value = self._chnCountDown.get_value()
 
         if value != self.count_down:
-            logging.getLogger("HWR").info(
-                "PX1Cats. CountDown changed. Now is: %s" % value
-            )
+            self.log.info("PX1Cats. CountDown changed. Now is: %s" % value)
             self.count_down = value
             self.emit("countdownSignal", value)
 
@@ -254,9 +252,7 @@ class PX1Cryotong(Cats90):
         while not self._chnPowered.get_value():
             gevent.sleep(0.3)
             if time.time() - t0 > timeout:
-                logging.getLogger("HWR").warning(
-                    "CRYOTONG: timeout waiting for power on"
-                )
+                self.log.warning("CRYOTONG: timeout waiting for power on")
                 break
 
         if self._chnPowered.get_value():
@@ -275,9 +271,7 @@ class PX1Cryotong(Cats90):
         wait_n = 0
         while self._is_device_busy():
             if wait_n % 10 == 3:
-                logging.getLogger("HWR").warning(
-                    "CRYOTONG: waiting for dry and soak to complete"
-                )
+                self.log.warning("CRYOTONG: waiting for dry and soak to complete")
             gevent.sleep(0.3)
             wait_n += 1
 
@@ -300,18 +294,14 @@ class PX1Cryotong(Cats90):
         while not self.environment.readyForTransfer():
             gevent.sleep(0.3)
             if time.time() - t0 > timeout:
-                logging.getLogger("HWR").warning(
-                    "CRYOTONG: timeout waiting for transfer phase"
-                )
+                self.log.warning("CRYOTONG: timeout waiting for transfer phase")
                 break
-            logging.getLogger("HWR").warning(
-                "CRYOTONG: waiting for transfer phase to be set"
-            )
+            self.log.warning("CRYOTONG: waiting for transfer phase to be set")
 
         if not self.environment.readyForTransfer():
             return False
 
-        logging.getLogger("HWR").warning("CRYOTONG: ready for transfer now")
+        self.log.warning("CRYOTONG: ready for transfer now")
         return True
 
     # ## (END) OVERLOADED CATS90 methods ####

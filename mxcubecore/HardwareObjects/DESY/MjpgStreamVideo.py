@@ -1,5 +1,3 @@
-import logging
-
 # encoding: utf-8
 #
 #  Project name: MXCuBE
@@ -378,7 +376,7 @@ class MjpgStreamVideo(AbstractVideoDevice):
                 )
             )
 
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
             return None
         if response.status != 200:
             self.log.error(

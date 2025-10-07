@@ -75,10 +75,10 @@ class PX2Energy(EnergyMockup):
         self.set_value(energy)
 
     def check_limits(self, value):
-        logging.getLogger("HWR").debug("Checking the move limits")
+        self.log.debug("Checking the move limits")
         en_lims = self.get_limits()
         if value >= self.en_lims[0] and value <= self.en_lims[1]:
-            logging.getLogger("HWR").info("Limits ok")
+            self.log.info("Limits ok")
             return True
         logging.getLogger("user_level_log").info("Requested value is out of limits")
         return False
@@ -97,12 +97,10 @@ class PX2Energy(EnergyMockup):
                 if self.current_wavelength is not None:
                     self.re_emit_values()
         except Exception:
-            logging.getLogger("HWR").info(
-                "energy_changed: error occured during an energy update"
-            )
+            self.log.info("energy_changed: error occured during an energy update")
 
     def energy_state_changed(self, state):
-        logging.getLogger("HWR").info("energy_state_changed %s" % str(state))
+        self.log.info("energy_state_changed %s" % str(state))
         # self.energy_server_check_for_errors(state)
         if state == "STANDBY":
             if self.moving:

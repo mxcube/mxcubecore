@@ -1,4 +1,3 @@
-import logging
 import time
 
 from mxcubecore.HardwareObjects.abstract.AbstractSampleChanger import (
@@ -372,7 +371,7 @@ class CatsBessy(SampleChanger):
                         Pin.get_sample_address(basket_no, sample_no)
                     )
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
         self._set_selected_component(basket)
         self._set_selected_sample(sample)
 

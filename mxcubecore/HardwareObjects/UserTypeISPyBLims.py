@@ -90,14 +90,12 @@ class UserTypeISPyBLims(ISPyBAbstractLIMS):
 
         # Authentication
         if self.authServerType == "ldap":
-            logging.getLogger("HWR").debug(
-                "Starting LDAP authentication %s" % login_name
-            )
+            self.log.debug("Starting LDAP authentication %s" % login_name)
             self.login_ok = self.ldap_login(login_name, psd, ldap_connection)
             msg = loginID
-            logging.getLogger("HWR").debug("User %s logged in LDAP" % login_name)
+            self.log.debug("User %s logged in LDAP" % login_name)
         elif self.authServerType == "ispyb":
-            logging.getLogger("HWR").debug("ISPyB login")
+            self.log.debug("ISPyB login")
             self.login_ok, msg = self.ispyb_login(login_name, psd)
         else:
             raise Exception("Authentication server type is not defined")
@@ -105,7 +103,7 @@ class UserTypeISPyBLims(ISPyBAbstractLIMS):
         if not self.login_ok:
             msg = "%s." % msg.capitalize()
             # refuse Login
-            logging.getLogger("HWR").error("ISPyB login not ok")
+            self.log.error("ISPyB login not ok")
             raise Exception("Error lims authentication")
 
         # login succeed, get proposal and sessions
@@ -185,7 +183,7 @@ class UserTypeISPyBLims(ISPyBAbstractLIMS):
                                         session.endDate, "%Y-%m-%d %H:%M:%S"
                                     )
                                 except Exception:
-                                    logging.getLogger("HWR").exception("")
+                                    self.log.exception("")
                                 sessions.append(utf_encode(asdict(session)))
 
                     except WebFault as e:
@@ -281,7 +279,7 @@ class UserTypeISPyBLims(ISPyBAbstractLIMS):
                                 session.endDate, "%Y-%m-%d %H:%M:%S"
                             )
                         except Exception:
-                            logging.getLogger("HWR").exception("")
+                            self.log.exception("")
 
                         sessions.append(utf_encode(asdict(session)))
 
@@ -292,7 +290,7 @@ class UserTypeISPyBLims(ISPyBAbstractLIMS):
         except URLError:
             logging.getLogger("ispyb_client").warning(_CONNECTION_ERROR_MSG)
 
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
             return empty_dict
 
         logging.getLogger("ispyb_client").info(str(sessions))

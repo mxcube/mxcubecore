@@ -1,4 +1,3 @@
-import logging
 import time
 
 import gevent
@@ -94,8 +93,8 @@ class MicrodiffKappaMotor(ExporterMotor):
         For more info see Acta Cryst.(2011). A67, 219-228, Sandor Brockhauser et al., formula (3).
         See also MXSUP-1823.
         """
-        logging.getLogger("HWR").info("In MicrodiffKappaMotor.getNewSamplePosition")
-        logging.getLogger("HWR").info(
+        self.log.info("In MicrodiffKappaMotor.getNewSamplePosition")
+        self.log.info(
             "Input arguments: Kappa %.2f Phi %.2f sampx %.3f sampy %.3f phiy %.3f Kappa2 %.2f Phi2 %.2f"
             % (kappaAngle1, phiAngle1, sampx, sampy, phiy, kappaAngle2, phiAngle2)
         )
@@ -123,7 +122,7 @@ class MicrodiffKappaMotor(ExporterMotor):
         new_motor_pos["sampx"] = float(-t_end[0])
         new_motor_pos["sampy"] = float(-t_end[1])
         new_motor_pos["phiy"] = float(-t_end[2])
-        logging.getLogger("HWR").info("New motor positions: %r" % new_motor_pos)
+        self.log.info("New motor positions: %r" % new_motor_pos)
         return new_motor_pos
 
     def rotation_invariant(self, v):

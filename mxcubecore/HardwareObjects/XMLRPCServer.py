@@ -80,7 +80,7 @@ class XMLRPCServer(HardwareObject):
         try:
             self.open()
         except Exception:
-            logging.getLogger("HWR").exception("Can't start XML-RPC server")
+            self.log.exception("Can't start XML-RPC server")
 
     def close(self):
         try:
@@ -88,7 +88,7 @@ class XMLRPCServer(HardwareObject):
             self._server.server_close()
             del self._server
         except AttributeError:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
 
     def open(self):
         # The value of the member self.port is set in the xml configuration
@@ -110,7 +110,7 @@ class XMLRPCServer(HardwareObject):
             )
 
         msg = "XML-RPC server listening on: %s:%s" % (self.host, self.port)
-        logging.getLogger("HWR").info(msg)
+        self.log.info(msg)
 
         self.connect(
             HWR.beamline.gphl_workflow,
@@ -187,7 +187,7 @@ class XMLRPCServer(HardwareObject):
         try:
             cryoshutter_hwobj.getCommandObject("anneal")(time)
         except Exception as ex:
-            logging.getLogger("HWR").exception(str(ex))
+            self.log.exception(str(ex))
             raise
         return True
 
@@ -216,7 +216,7 @@ class XMLRPCServer(HardwareObject):
             self.emit("add_to_queue", (task, None, set_on))
 
         except Exception as ex:
-            logging.getLogger("HWR").exception(str(ex))
+            self.log.exception(str(ex))
             raise
         return True
 
@@ -230,7 +230,7 @@ class XMLRPCServer(HardwareObject):
         try:
             self.emit("start_queue")
         except Exception as ex:
-            logging.getLogger("HWR").exception(str(ex))
+            self.log.exception(str(ex))
             raise
         return True
 
@@ -279,7 +279,7 @@ class XMLRPCServer(HardwareObject):
         try:
             node_id = HWR.beamline.queue_model.add_child_at_id(parent_id, child)
         except Exception as ex:
-            logging.getLogger("HWR").exception(str(ex))
+            self.log.exception(str(ex))
             raise
         return node_id
 
@@ -291,7 +291,7 @@ class XMLRPCServer(HardwareObject):
         try:
             node = HWR.beamline.queue_model.get_node(node_id)
         except Exception as ex:
-            logging.getLogger("HWR").exception(str(ex))
+            self.log.exception(str(ex))
             raise
         return node
 
@@ -312,7 +312,7 @@ class XMLRPCServer(HardwareObject):
                 )
 
         except Exception as ex:
-            logging.getLogger("HWR").exception(str(ex))
+            self.log.exception(str(ex))
             raise
         return True
 
@@ -329,7 +329,7 @@ class XMLRPCServer(HardwareObject):
             model = HWR.beamline.queue_model.get_node(node_id)
             model.lims_id = lims_id
         except Exception as ex:
-            logging.getLogger("HWR").exception(str(ex))
+            self.log.exception(str(ex))
             raise
         else:
             return True
@@ -342,7 +342,7 @@ class XMLRPCServer(HardwareObject):
         try:
             return HWR.beamline.queue_manager.is_executing(node_id)
         except Exception as ex:
-            logging.getLogger("HWR").exception(str(ex))
+            self.log.exception(str(ex))
             raise
 
     def queue_status(self):
@@ -415,7 +415,7 @@ class XMLRPCServer(HardwareObject):
                 ho = self._getattr_from_path(HWR, path)
                 value = ho.get_value()
             except:
-                logging.getLogger("HWR").exception("Could no get %s " % str(path))
+                self.log.exception("Could no get %s " % str(path))
 
         return value
 
@@ -443,13 +443,11 @@ class XMLRPCServer(HardwareObject):
 
     def save_twelve_snapshots_script(self, path):
         path = path[14:]  # NBNB: Temporary fix, to be addressed in calling code
-        logging.getLogger("HWR").info(
-            "Taking 6 snapshots to be saved in  %s " % str(path)
-        )
+        self.log.info("Taking 6 snapshots to be saved in  %s " % str(path))
         HWR.beamline.diffractometer.run_script("Take6Snapshots, " + path)
 
     def save_multiple_snapshots(self, path_list, show_scale=False):
-        logging.getLogger("HWR").info("Taking snapshot %s " % str(path_list))
+        self.log.info("Taking snapshot %s " % str(path_list))
 
         try:
             for angle, path in path_list:
@@ -459,11 +457,11 @@ class XMLRPCServer(HardwareObject):
                 HWR.beamline.diffractometer.wait_ready()
                 self.save_snapshot(path, show_scale, handle_light=False)
         except Exception as ex:
-            logging.getLogger("HWR").exception("Could not take snapshot %s " % str(ex))
+            self.log.exception("Could not take snapshot %s " % str(ex))
 
     def save_snapshot(self, imgpath, showScale=False, handle_light=True):
         res = True
-        logging.getLogger("HWR").info("Taking snapshot %s " % str(imgpath))
+        self.log.info("Taking snapshot %s " % str(imgpath))
 
         try:
             if showScale:
@@ -471,7 +469,7 @@ class XMLRPCServer(HardwareObject):
             else:
                 HWR.beamline.sample_view.save_snapshot(imgpath, overlay=False, bw=False)
         except Exception as ex:
-            logging.getLogger("HWR").exception("Could not take snapshot %s " % str(ex))
+            self.log.exception("Could not take snapshot %s " % str(ex))
             res = False
         finally:
             pass
@@ -482,7 +480,7 @@ class XMLRPCServer(HardwareObject):
         """
         Saves the current position as a centered position.
         """
-        logging.getLogger("HWR").debug("Saving position via XMLRPC")
+        self.log.debug("Saving position via XMLRPC")
         HWR.beamline.diffractometer.save_current_position()
         return True
 
@@ -629,7 +627,7 @@ class XMLRPCServer(HardwareObject):
         """
         Sets the level of the back light
         """
-        logging.getLogger("HWR").info("Setting backlight level to %s" % level)
+        self.log.info("Setting backlight level to %s" % level)
         HWR.beamline.diffractometer.setBackLightLevel(level)
 
     def get_back_light_level(self):

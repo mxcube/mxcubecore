@@ -143,7 +143,7 @@ class ALBACats(Cats90):
                 )
                 return False
 
-            logging.getLogger("HWR").debug("Supervisor waiting to finish phase change")
+            self.log.debug("Supervisor waiting to finish phase change")
             time.sleep(0.2)
 
         time.sleep(0.1)
@@ -189,9 +189,7 @@ class ALBACats(Cats90):
         @return:
         """
 
-        logging.getLogger("HWR").debug(
-            "Loading sample %s / type(%s)" % (sample, type(sample))
-        )
+        self.log.debug("Loading sample %s / type(%s)" % (sample, type(sample)))
 
         ret, msg = self._check_coherence()
         if not ret:
@@ -312,7 +310,7 @@ class ALBACats(Cats90):
         # get sample selection
         selected = self.get_selected_sample()
 
-        logging.getLogger("HWR").debug(
+        self.log.debug(
             "  ==========CATS=== selected sample is %s (prev %s)"
             % (str(selected), str(sample))
         )
@@ -344,9 +342,7 @@ class ALBACats(Cats90):
             )
 
         if not self.has_loaded_sample() and self.cats_sample_on_diffr() == 1:
-            logging.getLogger("HWR").warning(
-                "  ==========CATS=== sample on diffr, loading aborted"
-            )
+            self.log.warning("  ==========CATS=== sample on diffr, loading aborted")
             self._update_state()  # remove transient states like Loading. Reflect hardware state
             raise Exception(
                 "The sample "
@@ -373,15 +369,13 @@ class ALBACats(Cats90):
         if use_ht:  # loading HT sample
             if loaded_ht == -1:  # has loaded but it is not HT
                 # first unmount (non HT)
-                logging.getLogger("HWR").warning(
+                self.log.warning(
                     "  ==========CATS=== mix load/unload dewar vs HT (NOT IMPLEMENTED YET)"
                 )
                 return
 
             argin = ["2", str(sample), "0", "0", xshift, yshift, zshift]
-            logging.getLogger("HWR").warning(
-                "  ==========CATS=== about to load HT. %s" % str(argin)
-            )
+            self.log.warning("  ==========CATS=== about to load HT. %s" % str(argin))
             if loaded_ht == 1:  # has ht loaded
                 cmd_ok = self._execute_server_task(
                     self._cmdChainedLoadHT, argin, waitsafe=True
@@ -397,7 +391,7 @@ class ALBACats(Cats90):
         else:
             if loaded_ht == 1:  # has an HT sample mounted
                 # first unmount HT
-                logging.getLogger("HWR").warning(
+                self.log.warning(
                     "  ==========CATS=== mix load/unload dewar vs HT (NOT IMPLEMENTED YET)"
                 )
                 return
@@ -414,7 +408,7 @@ class ALBACats(Cats90):
             stype = self.get_cassette_type(basketno)
 
             if tool != current_tool:
-                logging.getLogger("HWR").warning(
+                self.log.warning(
                     "  ==========CATS=== changing tool from %s to %s"
                     % (current_tool, tool)
                 )
@@ -448,7 +442,7 @@ class ALBACats(Cats90):
                 )
             else:
                 if self.read_datamatrix:
-                    logging.getLogger("HWR").warning(
+                    self.log.warning(
                         "  ==========CATS=== reading barcode only possible with spine pucks"
                     )
                 read_barcode = False
@@ -460,7 +454,7 @@ class ALBACats(Cats90):
                     )
 
                 if read_barcode:
-                    logging.getLogger("HWR").warning(
+                    self.log.warning(
                         "  ==========CATS=== chained load sample (barcode), sending to cats:  %s"
                         % argin
                     )
@@ -468,7 +462,7 @@ class ALBACats(Cats90):
                         self._cmdChainedLoadBarcode, argin, waitsafe=True
                     )
                 else:
-                    logging.getLogger("HWR").warning(
+                    self.log.warning(
                         "  ==========CATS=== chained load sample, sending to cats:  %s"
                         % argin
                     )
@@ -477,7 +471,7 @@ class ALBACats(Cats90):
                     )
             elif loaded_ht == 0:
                 if read_barcode:
-                    logging.getLogger("HWR").warning(
+                    self.log.warning(
                         "  ==========CATS=== load sample (barcode), sending to cats:  %s"
                         % argin
                     )
@@ -485,7 +479,7 @@ class ALBACats(Cats90):
                         self._cmdLoadBarcode, argin, waitsafe=True
                     )
                 else:
-                    logging.getLogger("HWR").warning(
+                    self.log.warning(
                         "  ==========CATS=== load sample, sending to cats:  %s" % argin
                     )
                     cmd_ok = self._execute_server_task(
@@ -493,18 +487,18 @@ class ALBACats(Cats90):
                     )
 
         if not cmd_ok:
-            logging.getLogger("HWR").info("  LOAD Command failed on device server")
+            self.log.info("  LOAD Command failed on device server")
         elif self.auto_prepare_diff and not changing_tool:
-            logging.getLogger("HWR").info(
+            self.log.info(
                 "  AUTO_PREPARE_DIFF (On) sample changer is in safe state... preparing diff now"
             )
             # ret = self.diff_send_sampleview()
             self.go_sampleview_cmd()
-            logging.getLogger("HWR").info("     restoring detector distance")
+            self.log.info("     restoring detector distance")
             self.restore_detdist_position()
             self._wait_phase_done("SAMPLE")
         else:
-            logging.getLogger("HWR").info(
+            self.log.info(
                 "  AUTO_PREPARE_DIFF (Off) sample loading done / or changing tool (%s)"
                 % changing_tool
             )
@@ -548,7 +542,7 @@ class ALBACats(Cats90):
         loaded_num = self._chnNumLoadedSample.get_value()
 
         if loaded_lid == -1:
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "  ==========CATS=== unload sample, no sample mounted detected"
             )
             return
@@ -561,7 +555,7 @@ class ALBACats(Cats90):
 
         argin = [str(tool), "0", xshift, yshift, zshift]
 
-        logging.getLogger("HWR").warning(
+        self.log.warning(
             "  ==========CATS=== unload sample, sending to cats:  %s" % argin
         )
         if loaded_ht == 1:

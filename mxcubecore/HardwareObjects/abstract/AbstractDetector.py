@@ -50,7 +50,6 @@ Hardware objects used: energy
 
 import abc
 import ast
-import logging
 import math
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
@@ -105,16 +104,12 @@ class AbstractDetector(HardwareObject):
         max_exp_time = self.get_property("maximum_exposure_time", None)
 
         if min_exp_time is None:
-            logging.getLogger("HWR").warning(
-                "Minimum exposure time not set for detector, using None"
-            )
+            self.log.warning("Minimum exposure time not set for detector, using None")
         else:
             min_exp_time = float(min_exp_time)
 
         if max_exp_time is None:
-            logging.getLogger("HWR").warning(
-                "Maximum exposure time not set for detector, using None"
-            )
+            self.log.warning("Maximum exposure time not set for detector, using None")
         else:
             max_exp_time = float(max_exp_time)
 

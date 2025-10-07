@@ -14,7 +14,6 @@ If video mode is not specified, BAYER_RG16 is used by default.
 """
 
 import io
-import logging
 import struct
 import time
 
@@ -78,7 +77,7 @@ class TangoLimaVideo(BaseHardwareObjects.HardwareObject):
             self.device.ping()
         except PyTango.DevFailed as traceback:
             last_error = traceback[-1]
-            logging.getLogger("HWR").error("%s: %s", str(self.name()), last_error.desc)
+            self.log.error("%s: %s", str(self.name()), last_error.desc)
 
             self.device = BaseHardwareObjects.Null()
         else:
@@ -88,7 +87,7 @@ class TangoLimaVideo(BaseHardwareObjects.HardwareObject):
                 self._sleep_time = float(self.get_property("interval")) / 1000.0
 
             if self.get_property("control_video", "True"):
-                logging.getLogger("HWR").info("MXCuBE controlling video")
+                self.log.info("MXCuBE controlling video")
 
                 if self.device.video_live:
                     self.device.video_live = False
@@ -98,7 +97,7 @@ class TangoLimaVideo(BaseHardwareObjects.HardwareObject):
 
                 self.device.video_live = True
             else:
-                logging.getLogger("HWR").info("MXCuBE NOT controlling video")
+                self.log.info("MXCuBE NOT controlling video")
 
         self.update_state(BaseHardwareObjects.HardwareObjectState.READY)
 

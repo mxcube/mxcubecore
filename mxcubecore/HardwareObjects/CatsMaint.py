@@ -396,7 +396,7 @@ class CatsMaint(HardwareObject):
         :returns: None
         :rtype: None
         """
-        logging.getLogger("HWR").debug("CatsMaint. doing reset")
+        self.log.debug("CatsMaint. doing reset")
         return
         self._cmdReset()
 
@@ -516,7 +516,7 @@ class CatsMaint(HardwareObject):
         :returns: None
         :rtype: None
         """
-        logging.getLogger("HWR").debug("   running power state command ")
+        self.log.debug("   running power state command ")
         if state:
             self._cmdPowerOn()
         else:

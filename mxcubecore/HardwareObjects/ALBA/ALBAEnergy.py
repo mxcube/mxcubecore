@@ -1,5 +1,3 @@
-import logging
-
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
@@ -45,9 +43,7 @@ class ALBAEnergy(HardwareObject):
     def set_value(self, value):
         current_egy = self.get_value()
 
-        logging.getLogger("HWR").debug(
-            "moving energy to %s. now is %s" % (value, current_egy)
-        )
+        self.log.debug("moving energy to %s. now is %s" % (value, current_egy))
         HWR.beamline.energy.set_value(value)
 
     def wait_move_energy_done(self):

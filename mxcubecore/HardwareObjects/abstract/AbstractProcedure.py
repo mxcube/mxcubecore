@@ -16,7 +16,6 @@
 #
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
-import logging
 from enum import (
     IntEnum,
     unique,
@@ -184,14 +183,14 @@ class AbstractProcedure(ConfiguredObject):
         except Exception as ex:
             self._state = ProcedureState.ERROR
             self._msg = "Procedure execution error (%s)" % str(ex)
-            logging.getLogger("HWR").exception(self._msg)
+            self.log.exception(self._msg)
         finally:
             try:
                 self._post_execute(data_model)
             except Exception as ex:
                 self._state = ProcedureState.ERROR
                 self._msg = "Procedure post_execute error (%s)" % str(ex)
-                logging.getLogger("HWR").exception(self._msg)
+                self.log.exception(self._msg)
 
             self._ready_event.set()
 
@@ -265,7 +264,7 @@ class AbstractProcedure(ConfiguredObject):
         """
         if self._state != ProcedureState.READY:
             self._msg = "Procedure (%s) is already running" % str(self)
-            logging.getLogger("HWR").error(self._msg)
+            self.log.error(self._msg)
         else:
             self._task = gevent.spawn(self._start, data_model)
 

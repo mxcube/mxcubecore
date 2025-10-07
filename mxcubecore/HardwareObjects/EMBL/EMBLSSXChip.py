@@ -17,7 +17,6 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 
 from mxcubecore.HardwareObjects import QtGraphicsLib as GraphicsLib
 from mxcubecore.HardwareObjects.QtGraphicsManager import QtGraphicsManager
@@ -110,9 +109,7 @@ class EMBLSSXChip(QtGraphicsManager):
         if item_name in self.chip_config_list[self.current_chip_index]:
             self.chip_config_list[self.current_chip_index][item_name] = item_value
         else:
-            logging.getLogger("HWR").warning(
-                "Item %s not found in the config dict" % item_name
-            )
+            self.log.warning("Item %s not found in the config dict" % item_name)
 
     def get_dg_channels_list(self):
         return self.dg_channels_list

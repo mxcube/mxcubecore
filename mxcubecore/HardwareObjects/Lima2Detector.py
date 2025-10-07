@@ -15,7 +15,7 @@ from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.CommandContainer import ConnectionError
 from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
 
-_logger = logging.getLogger("HWR")
+_logger = self.log
 
 _logger_det = logging.getLogger("lima2.client.detector")
 _logger_smx = logging.getLogger("lima2.client.smx")

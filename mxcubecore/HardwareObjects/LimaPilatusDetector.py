@@ -1,4 +1,3 @@
-import logging
 import os
 import subprocess
 import time
@@ -112,9 +111,7 @@ class LimaPilatusDetector(AbstractDetector):
 
         except ConnectionError:
             self.update_state(HardwareObjectState.FAULT)
-            logging.getLogger("HWR").error(
-                "Could not connect to detector %s" % lima_device
-            )
+            self.log.error("Could not connect to detector %s" % lima_device)
             self._emit_status()
 
     def has_shutterless(self):

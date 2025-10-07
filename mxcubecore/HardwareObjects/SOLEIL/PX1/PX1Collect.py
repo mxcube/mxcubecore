@@ -112,7 +112,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
         collection_type = self.current_dc_parameters["experiment_type"]
 
-        logging.getLogger("HWR").info(
+        self.log.info(
             "PX1Collect: Running PX1 data collection hook. Type is %s" % collection_type
         )
 
@@ -161,7 +161,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
         fileinfo = self.current_dc_parameters["fileinfo"]
         basedir = fileinfo["directory"]
 
-        logging.getLogger("HWR").info("PX1Collect: fileinfo is %s " % str(fileinfo))
+        self.log.info("PX1Collect: fileinfo is %s " % str(fileinfo))
         imgname = fileinfo["template"] % osc_seq["start_image_number"]
 
         # move omega to start angle
@@ -171,7 +171,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
         osc_range = osc_seq["range"]
         exp_time = osc_seq["exposure_time"]
 
-        logging.getLogger("HWR").info(
+        self.log.info(
             "PX1Collect:  nb_images: %s / osc_range: %s / exp_time: %s"
             % (nb_images, osc_range, exp_time)
         )
@@ -354,14 +354,14 @@ class PX1Collect(AbstractCollect, HardwareObject):
         #
         # data collection end (or abort)
         #
-        logging.getLogger("HWR").info("PX1Collect: finishing data collection ")
+        self.log.info("PX1Collect: finishing data collection ")
         HWR.beamline.diffractometer.omega.stop()
         HWR.beamline.fast_shutter.closeShutter()
 
         self.emit("progressStop")
 
     def data_collection_failed(self):
-        logging.getLogger("HWR").info(
+        self.log.info(
             "PX1Collect: Data collection failed. recovering sequence should go here"
         )
 
@@ -428,7 +428,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
         time.sleep(0.3)  # allow time to refresh display after
 
         HWR.beamline.sample_view.save_snapshot(filename)
-        logging.getLogger("HWR").debug("PX1Collect:  - snapshot saved to %s" % filename)
+        self.log.debug("PX1Collect:  - snapshot saved to %s" % filename)
 
     def generate_thumbnails(self, filename, jpeg_filename, thumbnail_filename):
         #
@@ -489,10 +489,10 @@ class PX1Collect(AbstractCollect, HardwareObject):
         except Exception:
             import traceback
 
-            logging.getLogger("HWR").error(
+            self.log.error(
                 "PX1Collect: Error changing permissions for PROCESS directory"
             )
-            logging.getLogger("HWR").error(traceback.format_exc())
+            self.log.error(traceback.format_exc())
 
         self.create_goimg_file(process_dir)
 
@@ -616,7 +616,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
         if not self.is_collect_phase():
             success = self.go_to_collect()
             if not success:
-                logging.getLogger("HWR").info("PX1Collect: Cannot set COLLECT phase")
+                self.log.info("PX1Collect: Cannot set COLLECT phase")
                 return False
         return True
 
@@ -744,7 +744,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
             if env_state != "RUNNING" and self.is_collect_phase():
                 break
             if time.time() - t0 > timeout:
-                logging.getLogger("HWR").debug(
+                self.log.debug(
                     "PX1Collect: timeout sending supervisor to collect phase"
                 )
                 break
@@ -766,7 +766,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
             if env_state != "RUNNING" and self.is_sampleview_phase():
                 break
             if time.time() - t0 > timeout:
-                logging.getLogger("HWR").debug(
+                self.log.debug(
                     "PX1Collect: timeout sending supervisor to sample view phase"
                 )
                 break

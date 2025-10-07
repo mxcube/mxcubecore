@@ -88,7 +88,7 @@ class EMBLBeamFocusing(HardwareObject):
                 )
                 motors_group.re_emit_values()
         else:
-            logging.getLogger("HWR").debug("BeamFocusing: No motors defined")
+            self.log.debug("BeamFocusing: No motors defined")
             self.active_focus_mode = self.focus_modes[0]["modeName"]
             self.size = self.focus_modes[0]["size"]
         self.re_emit_values()
@@ -96,7 +96,7 @@ class EMBLBeamFocusing(HardwareObject):
         try:
             self.cmd_set_phase = eval(self.get_property("setPhaseCmd"))
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
 
         self.aperture_hwobj = self.get_object_by_role("aperture")
 
@@ -240,7 +240,7 @@ class EMBLBeamFocusing(HardwareObject):
         :type focus_mode: str
         """
         gevent.spawn(self.focus_mode_task, focus_mode)
-        logging.getLogger("HWR").info("Focusing: %s mode requested" % focus_mode)
+        self.log.info("Focusing: %s mode requested" % focus_mode)
         self.emit("focusingModeRequested", focus_mode)
 
     def focus_mode_task(self, focus_mode):

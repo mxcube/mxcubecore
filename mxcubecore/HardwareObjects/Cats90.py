@@ -429,7 +429,7 @@ class Cats90(SampleChanger):
             self.basket_types = self.cats_device.read_attribute("CassetteType").value
             self.number_of_baskets = len(self.basket_types)
         except PyTango.DevFailed:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
 
         # find number of baskets and number of samples per basket
         if self.number_of_baskets is not None:
@@ -495,7 +495,7 @@ class Cats90(SampleChanger):
                         "di_Cassette%dPresence" % (basket_index + 1),
                     )
                 self.basket_channels[basket_index] = chan
-                logging.getLogger("HWR").debug(
+                self.log.debug(
                     "Creating channel for cassette presence %d" % (basket_index + 1)
                 )
 
@@ -539,7 +539,7 @@ class Cats90(SampleChanger):
             if unipuck_tool:
                 self.set_unipuck_tool(unipuck_tool)
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
 
         self.update_info()
 
@@ -560,7 +560,7 @@ class Cats90(SampleChanger):
         :returns: None
         :rtype: None
         """
-        logging.getLogger("HWR").warning("Cats90:  initializing contents")
+        self.log.warning("Cats90:  initializing contents")
 
         self.basket_presence = [None] * self.number_of_baskets
 
@@ -601,7 +601,7 @@ class Cats90(SampleChanger):
             sample._set_loaded(loaded, has_been_loaded)
             sample._set_holder_length(spl[4])
 
-        logging.getLogger("HWR").warning("Cats90:  initializing contents done")
+        self.log.warning("Cats90:  initializing contents done")
 
     def get_sample_properties(self):
         """
@@ -690,7 +690,7 @@ class Cats90(SampleChanger):
                         Pin.get_sample_address(basket_no, sample_no)
                     )
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
         self._set_selected_component(basket)
         self._set_selected_sample(sample)
 
@@ -780,9 +780,7 @@ class Cats90(SampleChanger):
             return
 
         self._update_state()  # remove software flags like Loading.
-        logging.getLogger("HWR").debug(
-            "   ==========CATS== load cmd .state is:  %s " % (self.state)
-        )
+        self.log.debug("   ==========CATS== load cmd .state is:  %s " % (self.state))
 
         sample = self._resolve_component(sample)
         self.assert_not_charging()
@@ -843,7 +841,7 @@ class Cats90(SampleChanger):
             yshift,
             zshift,
         ]
-        logging.getLogger("HWR").debug(
+        self.log.debug(
             "  ==========CATS=== doLoad argin:  %s / %s:%s"
             % (argin, basketno, sampleno)
         )
@@ -857,37 +855,37 @@ class Cats90(SampleChanger):
                 )
             else:
                 if self.read_datamatrix and self._cmdChainedLoadBarcode is not None:
-                    logging.getLogger("HWR").warning(
+                    self.log.warning(
                         "  ==========CATS=== chained load sample (brcd), sending to cats:  %s"
                         % argin
                     )
                     self._execute_server_task(self._cmdChainedLoadBarcode, argin)
                 else:
-                    logging.getLogger("HWR").warning(
+                    self.log.warning(
                         "  ==========CATS=== chained load sample, sending to cats:  %s"
                         % argin
                     )
                     self._execute_server_task(self._cmdChainedLoad, argin)
         else:
             if self.cats_sample_on_diffr() == 1:
-                logging.getLogger("HWR").warning(
+                self.log.warning(
                     "  ==========CATS=== trying to load sample, but sample detected on diffr. aborting"
                 )
                 self._update_state()  # remove software flags like Loading.
             elif self.cats_sample_on_diffr() == -1:
-                logging.getLogger("HWR").warning(
+                self.log.warning(
                     "  ==========CATS=== trying to load sample, but there is a conflict on loaded sample info. aborting"
                 )
                 self._update_state()  # remove software flags like Loading.
             else:
                 if self.read_datamatrix and self._cmdLoadBarcode is not None:
-                    logging.getLogger("HWR").warning(
+                    self.log.warning(
                         "  ==========CATS=== load sample (bcrd), sending to cats:  %s"
                         % argin
                     )
                     self._execute_server_task(self._cmdLoadBarcode, argin)
                 else:
-                    logging.getLogger("HWR").warning(
+                    self.log.warning(
                         "  ==========CATS=== load sample, sending to cats:  %s" % argin
                     )
                     self._execute_server_task(self._cmdLoad, argin)
@@ -905,7 +903,7 @@ class Cats90(SampleChanger):
             )
 
         if not self.has_loaded_sample() or not self._chnSampleIsDetected.get_value():
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "  Trying do unload sample, but it does not seem to be any on diffr:  %s"
                 % argin
             )
@@ -922,7 +920,7 @@ class Cats90(SampleChanger):
         loaded_num = self._chnNumLoadedSample.get_value()
 
         if loaded_lid == -1:
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "  ==========CATS=== unload sample, no sample mounted detected"
             )
             return
@@ -935,14 +933,14 @@ class Cats90(SampleChanger):
 
         argin = [str(tool), "0", xshift, yshift, zshift]
 
-        logging.getLogger("HWR").warning(
+        self.log.warning(
             "  ==========CATS=== unload sample, sending to cats:  %s" % argin
         )
         self._execute_server_task(self._cmdUnload, argin)
 
     def _on_task_failed(self, task, exception):
         if task in [SampleChangerState.Loading, SampleChangerState.Unloading]:
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "  ==========CATS=== load/unload operation failed :  %s" % exception
             )
             self.emit("taskFailed", str(exception))
@@ -975,7 +973,7 @@ class Cats90(SampleChanger):
             while value in [PyTango.DevState.ALARM, PyTango.DevState.ON]:
                 time.sleep(0.1)
                 trials += 1
-                logging.getLogger("HWR").warning(
+                self.log.warning(
                     "SAMPLE CHANGER could be in transient state. trying again"
                 )
                 value = self._chnState.get_value()
@@ -1017,15 +1015,13 @@ class Cats90(SampleChanger):
             presence[basket_index] = value
 
         if presence != self.basket_presence:
-            logging.getLogger("HWR").warning(
-                "Basket presence changed. Updating contents"
-            )
+            self.log.warning("Basket presence changed. Updating contents")
             self.basket_presence = presence
             self._update_cats_contents()
             self._update_loaded_sample()
 
     def cats_baskets_changed(self, value):
-        logging.getLogger("HWR").warning("Baskets changed. %s" % value)
+        self.log.warning("Baskets changed. %s" % value)
         for idx, val in enumerate(value):
             self.basket_presence[idx] = val
         self._update_cats_contents()
@@ -1053,7 +1049,7 @@ class Cats90(SampleChanger):
             return
 
         basketno, sampleno = self.lidsample_to_basketsample(lid_on_tool, sample_on_tool)
-        logging.getLogger("HWR").warning(
+        self.log.warning(
             "Barcode %s read. Assigning it to sample %s:%s"
             % (value, basketno, sampleno)
         )
@@ -1090,14 +1086,12 @@ class Cats90(SampleChanger):
         except Exception:
             import traceback
 
-            logging.getLogger("HWR").debug(
-                "Cats90. exception while executing server task"
-            )
-            logging.getLogger("HWR").debug(traceback.format_exc())
+            self.log.debug("Cats90. exception while executing server task")
+            self.log.debug(traceback.format_exc())
             task_id = None
 
         waitsafe = kwargs.get("waitsafe", False)
-        logging.getLogger("HWR").debug(
+        self.log.debug(
             "Cats90. executing method %s / task_id %s / waiting only for safe status is %s"
             % (str(method), task_id, waitsafe)
         )
@@ -1114,13 +1108,13 @@ class Cats90(SampleChanger):
             while True:
                 if waitsafe:
                     if self.path_safe():
-                        logging.getLogger("HWR").debug(
+                        self.log.debug(
                             "Cats90. server execution polling finished as path is safe"
                         )
                         break
                 else:
                     if not self.path_running():
-                        logging.getLogger("HWR").debug(
+                        self.log.debug(
                             "Cats90. server execution polling finished as path is not running"
                         )
                         break
@@ -1180,9 +1174,7 @@ class Cats90(SampleChanger):
         while _state in [PyTango.DevState.ALARM, PyTango.DevState.ON]:
             time.sleep(0.1)
             trials += 1
-            logging.getLogger("HWR").warning(
-                "SAMPLE CHANGER could be in transient state. trying again"
-            )
+            self.log.warning("SAMPLE CHANGER could be in transient state. trying again")
             _state = self._chnState.get_value()
             if trials > 2:
                 break
@@ -1211,7 +1203,7 @@ class Cats90(SampleChanger):
         elif has_loaded ^ on_diff:
             # go to Unknown state if a sample is detected on the gonio but not registered in the internal database
             # or registered but not on the gonio anymore
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "SAMPLE CHANGER Unknown 2 (hasLoaded: %s / detected: %s)"
                 % (self.has_loaded_sample(), self._chnSampleIsDetected.get_value())
             )
@@ -1325,7 +1317,7 @@ class Cats90(SampleChanger):
         else:
             tool = -1
 
-        logging.getLogger("HWR").debug(
+        self.log.debug(
             "   finding basket type for %s - is %s / tool is %s"
             % (basketno, basket_type, tool)
         )
@@ -1362,7 +1354,7 @@ class Cats90(SampleChanger):
         self.cats_loaded_lid = loadedSampleLid
         self.cats_loaded_num = loadedSampleNum
 
-        logging.getLogger("HWR").info(
+        self.log.info(
             "Updating loaded sample %s:%s" % (loadedSampleLid, loadedSampleNum)
         )
 
@@ -1379,7 +1371,7 @@ class Cats90(SampleChanger):
 
         old_sample = self.get_loaded_sample()
 
-        logging.getLogger("HWR").debug(
+        self.log.debug(
             "----- Cats90 -----.  Sample has changed. Dealing with it - new_sample = %s / old_sample = %s"
             % (new_sample, old_sample)
         )
@@ -1445,9 +1437,7 @@ class Cats90(SampleChanger):
         self._update_cats_contents()
 
     def _update_cats_contents(self):
-        logging.getLogger("HWR").warning(
-            "Updating contents %s" % str(self.basket_presence)
-        )
+        self.log.warning("Updating contents %s" % str(self.basket_presence))
         for basket_index in range(self.number_of_baskets):
             # get saved presence information from object's internal bookkeeping
             basket = self.get_components()[basket_index]

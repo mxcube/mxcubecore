@@ -258,9 +258,7 @@ class QtGraphicsManager(AbstractSampleView):
                 self.diffractometer_phase_changed,
             )
         else:
-            logging.getLogger("HWR").error(
-                "GraphicsManager: Diffractometer hwobj not defined"
-            )
+            self.log.error("GraphicsManager: Diffractometer hwobj not defined")
 
         if HWR.beamline.beam is not None:
             self.beam_info_dict = HWR.beamline.beam.get_beam_info_dict()
@@ -273,9 +271,7 @@ class QtGraphicsManager(AbstractSampleView):
             self.beam_info_changed(self.beam_info_dict)
             self.beam_position_changed(HWR.beamline.beam.get_beam_position_on_screen())
         else:
-            logging.getLogger("HWR").error(
-                "GraphicsManager: BeamInfo hwobj not defined"
-            )
+            self.log.error("GraphicsManager: BeamInfo hwobj not defined")
 
         self.camera_hwobj = self.get_object_by_role(
             self.get_property("camera_name", "camera")
@@ -286,7 +282,7 @@ class QtGraphicsManager(AbstractSampleView):
             self.camera_hwobj.start_camera()
             self.connect(self.camera_hwobj, "imageReceived", self.camera_image_received)
         else:
-            logging.getLogger("HWR").error("GraphicsManager: Camera hwobj not defined")
+            self.log.error("GraphicsManager: Camera hwobj not defined")
 
         try:
             self.image_scale_list = eval(self.get_property("image_scale_list", "[]"))
@@ -294,7 +290,7 @@ class QtGraphicsManager(AbstractSampleView):
                 self.image_scale = self.get_property("default_image_scale")
                 self.set_image_scale(self.image_scale, self.image_scale is not None)
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
 
         """
         if self.get_property("store_graphics_config") == True:
@@ -335,7 +331,7 @@ class QtGraphicsManager(AbstractSampleView):
                 eval(self.get_property("magnification_tool"))
             )
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
 
         # try:
         #    self.set_view_scale(self.get_property("view_scale"))
@@ -482,7 +478,7 @@ class QtGraphicsManager(AbstractSampleView):
         if self.graphics_config_filename is None:
             return
 
-        logging.getLogger("HWR").debug("GraphicsManager: Saving graphics " + \
+        self.log.debug("GraphicsManager: Saving graphics " + \
             "in configuration file %s" % self.graphics_config_filename)
         try:
             if not os.path.exists(os.path.dirname(self.graphics_config_filename)):
@@ -508,7 +504,7 @@ class QtGraphicsManager(AbstractSampleView):
             graphics_config_file.write(repr(graphics_config))
             graphics_config_file.close()
         except:
-            logging.getLogger("HWR").error("GraphicsManager: Error saving graphics " + \
+            self.log.error("GraphicsManager: Error saving graphics " + \
                "in configuration file %s" % self.graphics_config_filename)
         """
 
@@ -516,7 +512,7 @@ class QtGraphicsManager(AbstractSampleView):
         """Loads graphics from file"""
         if os.path.exists(self.graphics_config_filename):
             try:
-                logging.getLogger("HWR").debug(
+                self.log.debug(
                     "GraphicsManager: Loading graphics "
                     + "from configuration file %s" % self.graphics_config_filename
                 )
@@ -542,7 +538,7 @@ class QtGraphicsManager(AbstractSampleView):
                 self.de_select_all()
                 graphics_config_file.close()
             except Exception:
-                logging.getLogger("HWR").error(
+                self.log.error(
                     "GraphicsManager: Unable to load "
                     + "graphics from configuration file %s"
                     % self.graphics_config_filename
@@ -797,7 +793,7 @@ class QtGraphicsManager(AbstractSampleView):
             date_time_str = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
             result_image.save("/opt/embl-hh/var/crystal_images/%s.png" % date_time_str)
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
 
     def diffractometer_centring_failed(self, method, centring_status):
         """CleanUp method after centring failed
@@ -1434,7 +1430,7 @@ class QtGraphicsManager(AbstractSampleView):
         :param file_name: file name
         :type file_name: str
         """
-        logging.getLogger("HWR").debug("Saving scene snapshot: %s" % filename)
+        self.log.debug("Saving scene snapshot: %s" % filename)
         try:
             if not os.path.exists(os.path.dirname(filename)):
                 os.makedirs(os.path.dirname(filename))
@@ -1504,9 +1500,7 @@ class QtGraphicsManager(AbstractSampleView):
             else:
                 self.camera_hwobj.save_snapshot(filename, "PNG")
         except Exception:
-            logging.getLogger("HWR").exception(
-                "Unable to save snapshot in %s" % filename
-            )
+            self.log.exception("Unable to save snapshot in %s" % filename)
 
     def save_beam_profile(self, profile_filename):
         image_array = self.get_raw_snapshot(bw=True, return_as_array=True)
@@ -1521,7 +1515,7 @@ class QtGraphicsManager(AbstractSampleView):
 
             fig.savefig(profile_filename, dpi=300, bbox_inches="tight")
         except Exception:
-            logging.getLogger("HWR").exception(
+            self.log.exception(
                 "Unable to save beam profile image: %s" % profile_filename
             )
 

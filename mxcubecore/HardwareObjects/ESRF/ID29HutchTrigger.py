@@ -26,9 +26,7 @@ class ID29HutchTrigger(BaseHardwareObjects.HardwareObject):
             self.device = PyTango.gevent.DeviceProxy(self.get_property("tangoname"))
         except PyTango.DevFailed as traceback:
             last_error = traceback[-1]
-            logging.getLogger("HWR").error(
-                "%s: %s", str(self.name()), last_error["desc"]
-            )
+            self.log.error("%s: %s", str(self.name()), last_error["desc"])
             self.device = None
 
         self.pollingTask = None
@@ -43,7 +41,7 @@ class ID29HutchTrigger(BaseHardwareObjects.HardwareObject):
         except Exception:
             logging.getLogger().error("%s: cannot find PSS number", self.name())
 
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
             return
 
         if self.device is not None:

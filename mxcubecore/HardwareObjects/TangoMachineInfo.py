@@ -29,8 +29,6 @@ Example xml_ configuration:
  </object>
 """
 
-import logging
-
 from mxcubecore.HardwareObjects.abstract.AbstractMachineInfo import AbstractMachineInfo
 
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
@@ -82,7 +80,7 @@ class TangoMachineInfo(AbstractMachineInfo):
             try:
                 self._mach_info_dict.update({name: getattr(self, name).get_value()})
             except Exception as err:
-                logging.getLogger("HWR").exception(err)
+                self.log.exception(err)
 
         return self._mach_info_dict.copy()
 

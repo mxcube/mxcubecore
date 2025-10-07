@@ -183,7 +183,7 @@ class AbstractXRFSpectrum(HardwareObject):
                 self.spectrum_status_change("Error creating directory")
                 self.spectrum_command_aborted()
 
-                logging.getLogger("HWR").exception("")
+                self.log.exception("")
                 return False
         return True
 

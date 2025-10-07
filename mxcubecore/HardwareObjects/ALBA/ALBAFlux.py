@@ -1,5 +1,3 @@
-import logging
-
 import taurus
 
 from mxcubecore.HardwareObjects.abstract import AbstractFlux
@@ -19,11 +17,9 @@ class ALBAFlux(Device, AbstractFlux.AbstractFlux):
             if fluxlast > 1e7:
                 return self.last_current_trans()
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
 
-        logging.getLogger("HWR").debug(
-            " Abnormally low value of flux. Returning default value"
-        )
+        self.log.debug(" Abnormally low value of flux. Returning default value")
         default_flux = 6e11 * self.get_transmission()
         return default_flux
 

@@ -132,20 +132,18 @@ class MAXIVAutoProcessing(HardwareObject):
                         )
                         will_execute = True
                 if will_execute:
-                    logging.getLogger("HWR").info(
-                        "[MAXIVAutoprocessing] Executing module: %s" % module
-                    )
+                    self.log.info("[MAXIVAutoprocessing] Executing module: %s" % module)
                     try:
                         mod.parse_and_execute()
                     except Exception as ex:
-                        logging.getLogger("HWR").error(
+                        self.log.error(
                             "[MAXIVAutoprocessing] Module %s  execution error." % module
                         )
                         print(module, ex)
 
     def autoproc_done(self, current_autoproc):
         self.current_autoproc_procedure = None
-        logging.getLogger("HWR").info("Autoprocessing executed.")
+        self.log.info("Autoprocessing executed.")
 
     def create_autoproc_input(self, event, params):
         WAIT_XDS_TIMEOUT = 20

@@ -170,7 +170,7 @@ class EMBLFlux(AbstractFlux):
                 self.intensity_ranges, key=lambda item: item["max"]
             )
         except Exception:
-            logging.getLogger("HWR").error("BeamlineTest: No intensity ranges defined")
+            self.log.error("BeamlineTest: No intensity ranges defined")
         """
 
         self.chan_intens_mean = self.get_channel_object("intensMean")
@@ -364,23 +364,23 @@ class EMBLFlux(AbstractFlux):
         # Close the fast shutter
         # -----------------------------------------------------------------
         HWR.beamline.fast_shutter.close(wait=True)
-        logging.getLogger("HWR").debug("Measure flux: Fast shutter closed")
+        self.log.debug("Measure flux: Fast shutter closed")
         gevent.sleep(0.2)
         HWR.beamline.diffractometer.wait_ready(10)
 
         # Move back light in, check beamstop position
         # -----------------------------------------------------------------
-        logging.getLogger("HWR").info("Measure flux: Moving backlight out...")
+        self.log.info("Measure flux: Moving backlight out...")
         self.emit("progressStep", 1, "Moving backlight out")
         HWR.beamline.back_light.move_in()
-        logging.getLogger("HWR").debug("Measure flux: Backlight moved out")
+        self.log.debug("Measure flux: Backlight moved out")
 
         beamstop_position = HWR.beamline.beamstop.get_value()
         if beamstop_position == "BEAM":
             self.emit("progressStep", 2, "Moving beamstop OFF")
             HWR.beamline.beamstop.set_position("OFF")
             HWR.beamline.diffractometer.wait_ready(30)
-            logging.getLogger("HWR").info("Measure flux: Beamstop moved off")
+            self.log.info("Measure flux: Beamstop moved off")
 
         # Check scintillator position
         # -----------------------------------------------------------------
@@ -390,9 +390,7 @@ class EMBLFlux(AbstractFlux):
             HWR.beamline.diffractometer.set_scintillator_position("PHOTODIODE")
             gevent.sleep(1)
             HWR.beamline.diffractometer.wait_ready(30)
-            logging.getLogger("HWR").debug(
-                "Measure flux: Scintillator set to photodiode"
-            )
+            self.log.debug("Measure flux: Scintillator set to photodiode")
 
         self.measured_flux_list = []
 
@@ -417,7 +415,7 @@ class EMBLFlux(AbstractFlux):
 
                 gevent.sleep(1)
                 intens_value = self.chan_intens_mean.get_value(force=True)
-                logging.getLogger("HWR").info("Measured current: %s" % intens_value)
+                self.log.info("Measured current: %s" % intens_value)
                 # HWR.beamline.fast_shutter.closeShutter(wait=True)
                 intensity_value = intens_value[0] + 1.860e-5  # 2.780e-6
                 self.measured_flux_list.append(self.get_flux_result(intensity_value))
@@ -428,21 +426,21 @@ class EMBLFlux(AbstractFlux):
                 self.cmd_flux_record([_x["flux"] for _x in self.measured_flux_list])
                 gevent.sleep(2)
             except Exception:
-                logging.getLogger("HWR").exception("")
+                self.log.exception("")
 
             max_frame_rate = 25
         else:
             self.emit("progressStep", 5, "Measuring the intensity")
             current_aperture_index = 0
             HWR.beamline.fast_shutter.open(wait=True)
-            logging.getLogger("HWR").debug("Measure flux: Fast shutter opened")
+            self.log.debug("Measure flux: Fast shutter opened")
 
             gevent.sleep(0.5)
             intens_value = self.chan_intens_mean.get_value()
 
             intens_range_now = self.chan_intens_range.get_value()
             HWR.beamline.fast_shutter.close(wait=True)
-            logging.getLogger("HWR").debug("Measure flux: Fast shutter closed")
+            self.log.debug("Measure flux: Fast shutter closed")
 
             intensity_value = intens_value[0] + 2.780e-6
             self.measured_flux_list.append(self.get_flux_result(intensity_value))

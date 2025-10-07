@@ -296,7 +296,7 @@ class PX1Environment(HardwareObject):
     def setAuthorizationFlag(self, value):
         # make here the logic with eventually other permits (like hardware permit)
         if value != self.auth:
-            logging.getLogger("HWR").debug(
+            self.log.debug(
                 "PX1Environment. received authorization from cryotong:  %s" % value
             )
             self.auth = value

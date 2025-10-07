@@ -17,7 +17,6 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 
 from mxcubecore.HardwareObjects.abstract.AbstractAperture import AbstractAperture
 
@@ -37,7 +36,7 @@ class LNLSAperture(AbstractAperture):
             self._diameter_size_list = eval(self.getProperty("diameter_size_list"))
         except BaseException:
             self._diameter_size_list = DEFAULT_DIAMETER_SIZE_LIST
-            logging.getLogger("HWR").error(
+            self.log.error(
                 "Aperture: no diameter size list defined, using default list"
             )
 
@@ -45,9 +44,7 @@ class LNLSAperture(AbstractAperture):
             self._position_list = eval(self.getProperty("position_list"))
         except BaseException:
             self._position_list = DEFAULT_POSITION_LIST
-            logging.getLogger("HWR").error(
-                "Aperture: no position list defined, using default list"
-            )
+            self.log.error("Aperture: no position list defined, using default list")
 
         self.set_position_index(0)
         self.set_diameter_index(1)  # 100um as default

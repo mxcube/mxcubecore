@@ -22,7 +22,7 @@ class MD2MultiCollect(ESRFMultiCollect):
             comment = HWR.beamline.sample_changer.get_crystal_id()
             data_collect_parameters["comment"] = comment
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
 
     @task
     def get_beam_size(self):
@@ -67,7 +67,7 @@ class MD2MultiCollect(ESRFMultiCollect):
         try:
             diffr.open_detector_cover()
         except Exception:
-            logging.getLogger("HWR").exception("Could not open detector cover")
+            self.log.exception("Could not open detector cover")
         """
         try:
             detcover = self.get_object_by_role("controller").detcover
@@ -75,7 +75,7 @@ class MD2MultiCollect(ESRFMultiCollect):
             if detcover.state == "IN":
                 detcover.set_out(10)
         except:
-            logging.getLogger("HWR").exception("Could not open detector cover")
+            self.log.exception("Could not open detector cover")
         """
 
         # send again the command as MD2 software only handles one
@@ -114,7 +114,7 @@ class MD2MultiCollect(ESRFMultiCollect):
 
             if sequence_trigger:
                 msg = "Using LIMA sequnce trigger mode for Eiger"
-                logging.getLogger("HWR").info(msg)
+                self.log.info(msg)
                 mesh_total_nb_frames = self.mesh_num_lines
             else:
                 mesh_total_nb_frames = self.mesh_total_nb_frames

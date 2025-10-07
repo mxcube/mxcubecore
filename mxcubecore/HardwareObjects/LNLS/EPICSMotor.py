@@ -20,7 +20,6 @@ Example of xml file:
 </object>
 """
 
-import logging
 import time
 
 import gevent
@@ -87,9 +86,7 @@ class EPICSMotor(EPICSActuator, AbstractMotor):
             # Treat infinite limits
             self._nominal_limits = (None, None)
 
-        logging.getLogger("HWR").info(
-            "Motor %s limits: %s" % (self.motor_name, self._nominal_limits)
-        )
+        self.log.info("Motor %s limits: %s" % (self.motor_name, self._nominal_limits))
         return self._nominal_limits
 
     def get_velocity(self):

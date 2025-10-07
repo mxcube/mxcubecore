@@ -4,7 +4,6 @@ A client for PyISPyB Webservices.
 
 import datetime
 import json
-import logging
 import os
 
 import pyispyb_client
@@ -64,7 +63,7 @@ class PyISPyBClient(HardwareObject):
             try:
                 self.authenticate()
             except Exception:
-                logging.getLogger("HWR").exception("")
+                self.log.exception("")
 
     def authenticate(self):
         with pyispyb_client.ApiClient(self._configuration) as api_client:
@@ -205,7 +204,9 @@ class PyISPyBClient(HardwareObject):
             )
             ssx_data_collection_create = {
                 "dataCollectionGroupId": dcg_id,
-                "exposureTime": collection_parameters.user_collection_parameters.exp_time,
+                "exposureTime": (
+                    collection_parameters.user_collection_parameters.exp_time
+                ),
                 "transmission": beamline_parameters.transmission,
                 "flux": extra_lims_values.flux_start,
                 "xBeam": beamline_parameters.beam_x,
@@ -221,7 +222,9 @@ class PyISPyBClient(HardwareObject):
                 "xtalSnapshotFullPath4": "",
                 "imagePrefix": collection_parameters.path_parameters.prefix,
                 "numberOfPasses": 1,
-                "numberOfImages": collection_parameters.collection_parameters.num_images,
+                "numberOfImages": (
+                    collection_parameters.collection_parameters.num_images
+                ),
                 "resolution": beamline_parameters.resolution,
                 "resolutionAtCorner": 0.0,
                 "flux_end": extra_lims_values.flux_end,
@@ -296,4 +299,4 @@ class PyISPyBClient(HardwareObject):
                     extra_lims_values,
                 )
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")

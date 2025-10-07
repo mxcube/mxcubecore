@@ -27,7 +27,7 @@ class SOLEILRuche(HardwareObject):
             if HWR.beamline.session.user_id is None:
                 return
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
         if os.path.isdir(path):
             path_to_sync = path
         elif os.path.exists(path):

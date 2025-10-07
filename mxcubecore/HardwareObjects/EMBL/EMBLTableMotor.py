@@ -20,7 +20,6 @@
 """EMBLTableMotor"""
 
 import atexit
-import logging
 import socket
 import time
 
@@ -112,6 +111,6 @@ class EMBLTableMotor(AbstractMotor):
         """
         try:
             self.socket.close()
-            logging.getLogger("HWR").info("EMBLTableMotor: Socket closed")
+            self.log.info("EMBLTableMotor: Socket closed")
         except Exception:
-            logging.getLogger("HWR").error("EMBLTableMotor: Failed to close the socket")
+            self.log.error("EMBLTableMotor: Failed to close the socket")

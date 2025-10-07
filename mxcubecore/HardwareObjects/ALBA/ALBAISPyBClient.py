@@ -22,7 +22,7 @@ class ALBAISPyBClient(ProposalISPyBClient):
             vals = ldap_connection.get_field_values()
             if "homeDirectory" in vals:
                 home_dir = vals["homeDirectory"][0]
-                logging.getLogger("HWR").debug(
+                self.log.debug(
                     "  homeDirectory for user %s is %s" % (login_name, home_dir)
                 )
                 # HWR.beamline.session.set_base_data_directories(home_dir, home_dir, home_dir)
@@ -38,7 +38,7 @@ class ALBAISPyBClient(ProposalISPyBClient):
         Given a proposal code, returns the correct code to use in the GUI,
         or what to send to LDAP, user office database, or the ISPyB database.
         """
-        logging.getLogger("HWR").debug("translating %s %s" % (code, what))
+        self.log.debug("translating %s %s" % (code, what))
         if what == "ldap":
             if code == "mx":
                 return "u"
@@ -60,7 +60,7 @@ class ALBAISPyBClient(ProposalISPyBClient):
                 logging.debug("ALBA ISPyBClient - %s is %s " % (prop, ispyb_path))
                 mx_collect_dict[prop] = ispyb_path
             except Exception:
-                logging.getLogger("HWR").exception("")
+                self.log.exception("")
 
     def prepare_image_for_lims(self, image_dict):
         for prop in ["jpegThumbnailFileFullPath", "jpegFileFullPath"]:
@@ -69,7 +69,7 @@ class ALBAISPyBClient(ProposalISPyBClient):
                 ispyb_path = HWR.beamline.session.path_to_ispyb(path)
                 image_dict[prop] = ispyb_path
             except Exception:
-                logging.getLogger("HWR").exception("")
+                self.log.exception("")
 
 
 def test_hwo(hwo):

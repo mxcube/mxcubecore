@@ -195,7 +195,7 @@ class SOLEILMachineInfo(HardwareObject):
             self.cryojet_in_changed(self.chan_cryojet_in.get_value())
             self.chan_cryojet_in.connect_signal("update", self.cryojet_in_changed)
         else:
-            logging.getLogger("HWR").debug("MachineInfo: Cryojet channel not defined")
+            self.log.debug("MachineInfo: Cryojet channel not defined")
 
         self.chan_sample_temperature = self.get_channel_object("sampleTemp")
         if self.chan_sample_temperature is not None:
@@ -240,7 +240,7 @@ class SOLEILMachineInfo(HardwareObject):
 
     def cryojet_in_changed(self, value):
         """Cryojet in/out value changed"""
-        logging.getLogger("HWR").debug("cryojet_in_changed: %s" % value)
+        self.log.debug("cryojet_in_changed: %s" % value)
         self.values_list[4]["in_range"] = False
         self.values_list[4]["bold"] = True
 
@@ -259,9 +259,7 @@ class SOLEILMachineInfo(HardwareObject):
                 % self.chan_sample_temperature.get_value()
             )
         else:
-            logging.getLogger("HWR").debug(
-                "chan_sample_temperature: %s" % self.chan_sample_temperature
-            )
+            self.log.debug("chan_sample_temperature: %s" % self.chan_sample_temperature)
         self.re_emit_values()
 
     def mach_current_changed(self, value):
@@ -363,9 +361,7 @@ class SOLEILMachineInfo(HardwareObject):
             self.values_list[5]["value"] = "Dewar level in range"
             self.values_list[5]["in_range"] = True
 
-        logging.getLogger("HWR").error(
-            "chan_sc_auto_refill %s" % self.chan_sc_auto_refill.get_value()
-        )
+        self.log.error("chan_sc_auto_refill %s" % self.chan_sc_auto_refill.get_value())
         if self.chan_sc_auto_refill.get_value() == 0:
             self.values_list[5]["value"] += ", refill OFF"
         else:

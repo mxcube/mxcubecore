@@ -181,7 +181,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             self.stop_oscillation()
             HWR.beamline.detector.stop_acquisition()
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
 
     def queue_finished_cleanup(self):
         logging.getLogger("user_level_log").info("Queue execution finished")
@@ -209,13 +209,13 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                     continue
                 motor_positions_copy[motor] = position
 
-            logging.getLogger("HWR").info(
+            self.log.info(
                 "Moving motor '%s' to %f", motor.get_motor_mnemonic(), position
             )
             motor.set_value(position)
 
         while any([motor.motorIsMoving() for motor in motor_positions_copy]):
-            logging.getLogger("HWR").info("Waiting for end of motors motion")
+            self.log.info("Waiting for end of motors motion")
             time.sleep(0.02)
 
     def open_safety_shutter(self):
@@ -226,7 +226,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                     HWR.beamline.safety_shutter.VALUES.OPEN, timeout=10
                 )
             except Exception:
-                logging.getLogger("HWR").exception("")
+                self.log.exception("")
 
     def safety_shutter_opened(self):
         state = False
@@ -234,7 +234,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         try:
             state = HWR.beamline.safety_shutter.get_value().name == "OPEN"
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
             state = True
 
         return state
@@ -247,7 +247,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                     HWR.beamline.safety_shutter.VALUES.CLOSED
                 )
             except Exception:
-                logging.getLogger("HWR").exception("")
+                self.log.exception("")
 
     @task
     def prepare_intensity_monitors(self):
@@ -455,7 +455,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         try:
             _gaps = HWR.beamline.config.undulators
         except Exception:
-            logging.getLogger("HWR").exception("Could not get undulator gaps")
+            self.log.exception("Could not get undulator gaps")
         all_gaps.clear()
         for key in _gaps:
             if "_Position" in key:

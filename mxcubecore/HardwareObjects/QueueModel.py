@@ -503,9 +503,9 @@ class QueueModel(HardwareObject):
                     )
                     for child in task_group_entry.get_children():
                         child.set_snapshot(snapshot)
-                logging.getLogger("HWR").info("Queue loading done")
+                self.log.info("Queue loading done")
             except Exception:
-                logging.getLogger("HWR").exception("Unable to load queue")
+                self.log.exception("Unable to load queue")
 
     def load_queue_from_file(self, filename, snapshot=None):
         """Loads queue from file. The problem is snapshots that are
@@ -515,7 +515,7 @@ class QueueModel(HardwareObject):
         :returns: model name 'free-pin', 'ispyb' or 'plate'
         """
 
-        logging.getLogger("HWR").info("Loading queue from file %s" % filename)
+        self.log.info("Loading queue from file %s" % filename)
         load_file = None
         try:
             # Read file and clear the model
@@ -545,13 +545,11 @@ class QueueModel(HardwareObject):
                     )
                     for child in task_group_entry.get_children():
                         child.set_snapshot(snapshot)
-                logging.getLogger("HWR").info("Queue loading done")
+                self.log.info("Queue loading done")
             else:
-                logging.getLogger("HWR").info("No queue content available in file")
+                self.log.info("No queue content available in file")
             return decoded_file[0]
         except Exception:
-            logging.getLogger("HWR").exception(
-                "Unable to load queue " + "from file %s", filename
-            )
+            self.log.exception("Unable to load queue " + "from file %s", filename)
             if load_file:
                 load_file.close()

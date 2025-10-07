@@ -65,13 +65,13 @@ class EMBLBeam(AbstractBeam):
                 self.aperture_diameter_changed,
             )
         else:
-            logging.getLogger("HWR").debug("BeamInfo: Aperture hwobj not defined")
+            self.log.debug("BeamInfo: Aperture hwobj not defined")
 
         self._slits = self.get_object_by_role("slits")
         if self._slits is not None:
             self.connect(self._slits, "valueChanged", self.slits_gap_changed)
         else:
-            logging.getLogger("HWR").debug("BeamInfo: Slits hwobj not defined")
+            self.log.debug("BeamInfo: Slits hwobj not defined")
 
         self._definer = self.get_object_by_role("beam_focusing")
         if self._definer is not None:
@@ -85,7 +85,7 @@ class EMBLBeam(AbstractBeam):
                 self.focusing_mode_changed,
             )
         else:
-            logging.getLogger("HWR").debug("BeamInfo: Beam focusing hwobj not defined")
+            self.log.debug("BeamInfo: Beam focusing hwobj not defined")
 
         self.chan_beam_position_hor = self.get_channel_object("BeamPositionHorizontal")
         if self.chan_beam_position_hor:

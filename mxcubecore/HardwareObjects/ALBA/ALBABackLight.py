@@ -1,4 +1,3 @@
-import logging
 import time
 
 import gevent
@@ -102,7 +101,7 @@ class ALBABackLight(HardwareObject):
             self.set_backlight_in()
             wait_ok = self.wait_backlight_in()
             if not wait_ok:
-                logging.getLogger("HWR").debug("could not set backlight in")
+                self.log.debug("could not set backlight in")
                 return
 
         level = None
@@ -112,7 +111,7 @@ class ALBABackLight(HardwareObject):
         if not level or level < self.minimum_level:
             level = self.minimum_level
 
-        logging.getLogger("HWR").debug("setting light level to : %s" % level)
+        self.log.debug("setting light level to : %s" % level)
         self.setLevel(level)
 
     def set_backlight_in(self):
@@ -124,22 +123,22 @@ class ALBABackLight(HardwareObject):
         while elapsed < timeout:
             isin = self.backlightin_channel.get_value()
             if isin == state:
-                logging.getLogger("HWR").debug(
+                self.log.debug(
                     "waiting for backlight took %s . In is: %s" % (elapsed, isin)
                 )
                 return True
             gevent.sleep(0.1)
             elapsed = time.time() - t0
 
-        logging.getLogger("HWR").debug("Timeout waiting for backlight In")
+        self.log.debug("Timeout waiting for backlight In")
         return False
 
     def _task_finished(self, g):
-        logging.getLogger("HWR").debug("Backlight task finished")
+        self.log.debug("Backlight task finished")
         self._task = None
 
     def _task_failed(self, g):
-        logging.getLogger("HWR").debug("Backlight task failed")
+        self.log.debug("Backlight task failed")
         self._task = None
 
     def setOff(self):

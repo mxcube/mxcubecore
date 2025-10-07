@@ -1,4 +1,3 @@
-import logging
 import math
 
 import numpy
@@ -38,8 +37,10 @@ class CentringMath(Procedure):
                     "type": axis["type"],
                     "direction": eval(axis["direction"]),
                     "motor_name": axis["motorname"],
-                    "motor_HO": HWR.get_hardware_repository().get_hardware_object(
-                        axis["motorHO"]
+                    "motor_HO": (
+                        HWR.get_hardware_repository().get_hardware_object(
+                            axis["motorHO"]
+                        )
                     ),
                 }
 
@@ -80,7 +81,7 @@ class CentringMath(Procedure):
     def listOfCentringsToScreen(self, list_of_centring_dicts):
         self.factorize()
         lst = []
-        logging.getLogger("HWR").debug(
+        self.log.debug(
             " in listOfCentringToScreen - %s points in list "
             % len(list_of_centring_dicts)
         )

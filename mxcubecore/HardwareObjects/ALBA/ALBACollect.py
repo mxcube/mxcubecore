@@ -85,7 +85,7 @@ class ALBACollect(AbstractCollect):
             for undulator in self["undulators"]:
                 undulators.append(undulator)
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
 
         self.exp_type_dict = {"Mesh": "raster", "Helical": "Helical"}
 
@@ -118,14 +118,14 @@ class ALBACollect(AbstractCollect):
     def data_collection_hook(self):
         """Main collection hook"""
 
-        logging.getLogger("HWR").info("Running ALBA data collection hook")
+        self.log.info("Running ALBA data collection hook")
 
-        logging.getLogger("HWR").info("  -- wait for devices to finish moving --")
-        logging.getLogger("HWR").info("       + wait for resolution...")
+        self.log.info("  -- wait for devices to finish moving --")
+        self.log.info("       + wait for resolution...")
         HWR.beamline.resolution.wait_end_of_move()
-        logging.getLogger("HWR").info("       + wait for detector distance...")
+        self.log.info("       + wait for detector distance...")
         HWR.beamline.detector.wait_move_distance_done()
-        logging.getLogger("HWR").info("       + wait for energy...")
+        self.log.info("       + wait for energy...")
         HWR.beamline.energy.wait_move_energy_done()
 
         if self.aborted_by_user:
@@ -136,44 +136,34 @@ class ALBACollect(AbstractCollect):
         ### EDNA_REF, OSC, MESH, HELICAL
 
         exp_type = self.current_dc_parameters["experiment_type"]
-        logging.getLogger("HWR").debug("Running a collect (exp_type=%s)" % exp_type)
+        self.log.debug("Running a collect (exp_type=%s)" % exp_type)
 
         if exp_type == "Characterization":
-            logging.getLogger("HWR").debug("Running a collect (CHARACTERIZATION)")
+            self.log.debug("Running a collect (CHARACTERIZATION)")
         elif exp_type == "Helical":
-            logging.getLogger("HWR").debug("Running a helical collection")
-            logging.getLogger("HWR").debug(
-                "   helical positions are: %s" % str(self.helical_positions)
-            )
+            self.log.debug("Running a helical collection")
+            self.log.debug("   helical positions are: %s" % str(self.helical_positions))
             hpos = self.helical_positions
-            logging.getLogger("HWR").debug(
+            self.log.debug(
                 "               phiy from %3.4f to %3.4f" % (hpos[0], hpos[4])
             )
-            logging.getLogger("HWR").debug(
+            self.log.debug(
                 "               phiz from %3.4f to %3.4f" % (hpos[1], hpos[5])
             )
-            logging.getLogger("HWR").debug(
+            self.log.debug(
                 "              sampx from %3.4f to %3.4f" % (hpos[2], hpos[6])
             )
-            logging.getLogger("HWR").debug(
+            self.log.debug(
                 "              sampy from %3.4f to %3.4f" % (hpos[3], hpos[7])
             )
         elif exp_type == "Mesh":
-            logging.getLogger("HWR").debug("Running a raster collection ()")
-            logging.getLogger("HWR").debug(
-                "   number of lines are: %s" % self.mesh_num_lines
-            )
-            logging.getLogger("HWR").debug(
-                "   total nb of frames: %s" % self.mesh_total_nb_frames
-            )
-            logging.getLogger("HWR").debug(
-                "          mesh range : %s" % self.mesh_range
-            )
-            logging.getLogger("HWR").debug(
-                "          mesh center : %s" % self.mesh_center
-            )
+            self.log.debug("Running a raster collection ()")
+            self.log.debug("   number of lines are: %s" % self.mesh_num_lines)
+            self.log.debug("   total nb of frames: %s" % self.mesh_total_nb_frames)
+            self.log.debug("          mesh range : %s" % self.mesh_range)
+            self.log.debug("          mesh center : %s" % self.mesh_center)
         else:
-            logging.getLogger("HWR").debug("Running a collect (STANDARD)")
+            self.log.debug("Running a collect (STANDARD)")
 
         osc_seq = self.current_dc_parameters["oscillation_sequence"][0]
 
@@ -194,7 +184,7 @@ class ALBACollect(AbstractCollect):
 
         omega_pos = osc_seq["start"]
 
-        logging.getLogger("HWR").info("Starting detector")
+        self.log.info("Starting detector")
         self.emit("collectStarted", (self.owner, 1))
 
         first_image_no = osc_seq["start_image_number"]
@@ -221,9 +211,7 @@ class ALBACollect(AbstractCollect):
         #
         # Run
         #
-        logging.getLogger("HWR").info(
-            "collecting images, by moving omega to %s" % final_pos
-        )
+        self.log.info("collecting images, by moving omega to %s" % final_pos)
         HWR.beamline.diffractometer.omega.set_value(final_pos)
         self.wait_collection_done(nb_images, first_image_no)
         self.data_collection_end()
@@ -235,9 +223,7 @@ class ALBACollect(AbstractCollect):
         self.unconfigure_ni()
 
     def data_collection_failed(self):
-        logging.getLogger("HWR").info(
-            "Data collection failed. recovering sequence should go here"
-        )
+        self.log.info("Data collection failed. recovering sequence should go here")
 
     def prepare_acquisition(self):
         fileinfo = self.current_dc_parameters["fileinfo"]
@@ -269,19 +255,17 @@ class ALBACollect(AbstractCollect):
             return False
 
         gevent.sleep(1)
-        logging.getLogger("HWR").info(
+        self.log.info(
             " Waiting for diffractometer to be ready. Now %s"
             % str(HWR.beamline.diffractometer.current_state)
         )
         HWR.beamline.diffractometer.wait_device_ready(timeout=10)
-        logging.getLogger("HWR").info("             diffractometer is now ready.")
+        self.log.info("             diffractometer is now ready.")
 
         # go to collect phase
         if not self.is_collect_phase():
-            logging.getLogger("HWR").info(
-                " Not in collect phase. Asking supervisor to go"
-            )
-            logging.getLogger("HWR").info(
+            self.log.info(" Not in collect phase. Asking supervisor to go")
+            self.log.info(
                 "  diffractometer is now ready. Now %s"
                 % str(HWR.beamline.diffractometer.current_state)
             )
@@ -310,16 +294,14 @@ class ALBACollect(AbstractCollect):
         total_time = nb_images * exp_time
         omega_speed = float(total_dist / total_time)
 
-        logging.getLogger("HWR").info("  prepare detector  was not ok.")
+        self.log.info("  prepare detector  was not ok.")
         self.write_image_headers(start_angle)
 
-        logging.getLogger("HWR").info(
+        self.log.info(
             "  nb_images: %s / img_range: %s / exp_time: %s / total_distance: %s / speed: %s"
             % (nb_images, img_range, exp_time, total_dist, omega_speed)
         )
-        logging.getLogger("HWR").info(
-            "  setting omega velocity to 60 to go to intial position"
-        )
+        self.log.info("  setting omega velocity to 60 to go to intial position")
         HWR.beamline.diffractometer.omega.set_velocity(60)
 
         omega_acceltime = HWR.beamline.diffractometer.omega.get_acceleration()
@@ -329,21 +311,21 @@ class ALBACollect(AbstractCollect):
         init_pos = start_angle - safe_delta
         final_pos = start_angle + total_dist + safe_delta
 
-        logging.getLogger("HWR").info("Moving omega to initial position %s" % init_pos)
+        self.log.info("Moving omega to initial position %s" % init_pos)
         HWR.beamline.diffractometer.omega.set_value(init_pos)
 
         HWR.beamline.detector.prepare_collection(nb_images, first_image_no)
 
         HWR.beamline.diffractometer.omega.wait_end_of_move(timeout=10)
 
-        logging.getLogger("HWR").info(
+        self.log.info(
             "Moving omega finished at %s"
             % HWR.beamline.diffractometer.omega.get_value()
         )
 
         # program omega speed depending on exposure time
 
-        logging.getLogger("HWR").info("Setting omega velocity to %s" % omega_speed)
+        self.log.info("Setting omega velocity to %s" % omega_speed)
         HWR.beamline.diffractometer.omega.set_velocity(omega_speed)
         if omega_speed != 0:
             self.configure_ni(start_angle, total_dist)
@@ -452,12 +434,12 @@ class ALBACollect(AbstractCollect):
 
         start_wait = time.time()
 
-        logging.getLogger("HWR").debug("   waiting for image on disk: %s", fullpath)
+        self.log.debug("   waiting for image on disk: %s", fullpath)
 
         while not os.path.exists(fullpath):
             dirlist = os.listdir(basedir)  # forces directory flush ?
             if (time.time() - start_wait) > timeout:
-                logging.getLogger("HWR").debug("   giving up waiting for image")
+                self.log.debug("   giving up waiting for image")
                 return False
             time.sleep(0.2)
 
@@ -473,7 +455,7 @@ class ALBACollect(AbstractCollect):
         thumb_fullpath = os.path.join(archive_dir, thumb_filename)
         jpeg_fullpath = os.path.join(archive_dir, jpeg_filename)
 
-        logging.getLogger("HWR").debug(
+        self.log.debug(
             "   creating thumbnails for  %s in: %s and %s"
             % (fullpath, jpeg_fullpath, thumb_fullpath)
         )
@@ -482,7 +464,7 @@ class ALBACollect(AbstractCollect):
         cmd = "adxv_thumb 0.1 %s %s" % (fullpath, thumb_fullpath)
         os.system(cmd)
 
-        logging.getLogger("HWR").debug("   writing thumbnails info in LIMS")
+        self.log.debug("   writing thumbnails info in LIMS")
         self._store_image_in_lims(frame_number)
 
         return True
@@ -514,7 +496,7 @@ class ALBACollect(AbstractCollect):
         #
         # data collection end (or abort)
         #
-        logging.getLogger("HWR").info(" finishing data collection ")
+        self.log.info(" finishing data collection ")
         HWR.beamline.fast_shutter.cmdOut()
         self.emit("progressStop")
 
@@ -552,9 +534,9 @@ class ALBACollect(AbstractCollect):
         self.data_collection_end()
 
     def go_to_collect(self, timeout=180):
-        logging.getLogger("HWR").debug("sending supervisor to collect phase")
+        self.log.debug("sending supervisor to collect phase")
         self.supervisor_hwobj.go_collect()
-        logging.getLogger("HWR").debug("supervisor sent to collect phase")
+        self.log.debug("supervisor sent to collect phase")
 
         gevent.sleep(0.5)
 
@@ -565,13 +547,11 @@ class ALBACollect(AbstractCollect):
             if super_state != "MOVING" and cphase == "COLLECT":
                 break
             if time.time() - t0 > timeout:
-                logging.getLogger("HWR").debug(
-                    "timeout sending supervisor to collect phase"
-                )
+                self.log.debug("timeout sending supervisor to collect phase")
                 break
             gevent.sleep(0.5)
 
-        logging.getLogger("HWR").debug(
+        self.log.debug(
             "supervisor finished go collect phase task. phase is now: %s" % cphase
         )
 
@@ -581,9 +561,9 @@ class ALBACollect(AbstractCollect):
         return self.supervisor_hwobj.get_current_phase().upper() == "COLLECT"
 
     def go_to_sampleview(self, timeout=180):
-        logging.getLogger("HWR").debug("sending supervisor to sample view phase")
+        self.log.debug("sending supervisor to sample view phase")
         self.supervisor_hwobj.go_sample_view()
-        logging.getLogger("HWR").debug("supervisor sent to sample view phase")
+        self.log.debug("supervisor sent to sample view phase")
 
         gevent.sleep(0.5)
 
@@ -594,13 +574,11 @@ class ALBACollect(AbstractCollect):
             if super_state != "MOVING" and cphase == "SAMPLE":
                 break
             if time.time() - t0 > timeout:
-                logging.getLogger("HWR").debug(
-                    "timeout sending supervisor to sample view phase"
-                )
+                self.log.debug("timeout sending supervisor to sample view phase")
                 break
             gevent.sleep(0.5)
 
-        logging.getLogger("HWR").debug(
+        self.log.debug(
             "supervisor finished go sample view phase task. phase is now: %s" % cphase
         )
 
@@ -610,7 +588,7 @@ class ALBACollect(AbstractCollect):
         return self.supervisor_hwobj.get_current_phase().upper() == "SAMPLE"
 
     def configure_ni(self, startang, total_dist):
-        logging.getLogger("HWR").debug(
+        self.log.debug(
             "Configuring NI660 with pars 0, %s, %s, 0, 1" % (startang, total_dist)
         )
         self.ni_conf_cmd(0.0, startang, total_dist, 0, 1)
@@ -693,7 +671,7 @@ class ALBACollect(AbstractCollect):
             self.go_to_sampleview()
 
         HWR.beamline.sample_view.save_snapshot(filename)
-        logging.getLogger("HWR").debug(" - snapshot saved to %s" % filename)
+        self.log.debug(" - snapshot saved to %s" % filename)
 
     @task
     def move_motors(self, motor_position_dict):
@@ -815,7 +793,7 @@ class ALBACollect(AbstractCollect):
                 else:
                     return und_gaps
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
         return {}
 
     def get_slit_gaps(self):

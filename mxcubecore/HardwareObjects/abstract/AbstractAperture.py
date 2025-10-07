@@ -22,7 +22,6 @@
 
 from __future__ import annotations
 
-import logging
 from warnings import warn
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
@@ -57,12 +56,12 @@ class AbstractAperture(HardwareObject):
         try:
             self._diameter_size_list = eval(self.get_property("diameter_size_list"))
         except Exception:
-            logging.getLogger("HWR").error("Aperture: no diameter size list defined")
+            self.log.error("Aperture: no diameter size list defined")
 
         try:
             self._position_list = eval(self.get_property("position_list"))
         except Exception:
-            logging.getLogger("HWR").error("Aperture: no position list defined")
+            self.log.error("Aperture: no position list defined")
 
     def get_diameter_size_list(self) -> list[float]:
         """Get list of diameter sizes.
@@ -102,7 +101,7 @@ class AbstractAperture(HardwareObject):
                 self._diameter_size_list[self._current_diameter_index] / 1000.0,
             )
         else:
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "Aperture: Diameter index %d is not valid" % diameter_index
             )
 
@@ -123,9 +122,7 @@ class AbstractAperture(HardwareObject):
         if diameter_size in self._diameter_size_list:
             self.set_diameter_index(self._diameter_size_list.index(diameter_size))
         else:
-            logging.getLogger("HWR").warning(
-                "Aperture: Selected diameter is not in the diameter list"
-            )
+            self.log.warning("Aperture: Selected diameter is not in the diameter list")
 
     def get_position_name(self) -> str:
         """Get current position name.
@@ -152,7 +149,7 @@ class AbstractAperture(HardwareObject):
             self._current_position_name = position_name
             self.emit("valueChanged", self._current_position_name)
         else:
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "Aperture: Position %s is not in the position list" % position_name
             )
 
@@ -166,9 +163,7 @@ class AbstractAperture(HardwareObject):
             self._current_position_name = self._position_list[position_index]
             self.emit("valueChanged", self._current_position_name)
         else:
-            logging.getLogger("HWR").warning(
-                "Aperture: Selected position is not in the position list"
-            )
+            self.log.warning("Aperture: Selected position is not in the position list")
 
     def set_in(self):
         """Set aperture in the beam."""

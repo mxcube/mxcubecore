@@ -396,9 +396,7 @@ class Microdiff(MiniDiff.MiniDiff):
         # None means infinite timeout
         # <=0 means default timeout
         if timeout is not None and timeout <= 0:
-            logging.getLogger("HWR").warning(
-                "DEBUG: Strange timeout value passed %s" % str(timeout)
-            )
+            self.log.warning("DEBUG: Strange timeout value passed %s" % str(timeout))
             timeout = 30
         with gevent.Timeout(
             timeout, RuntimeError("Timeout waiting for diffractometer to be ready")
@@ -454,18 +452,18 @@ class Microdiff(MiniDiff.MiniDiff):
                 diffr = self.get_object_by_role("controller").diffractometer
                 diffr.prepare("centre")
             except Exception:
-                logging.getLogger("HWR").exception("Cannot prepare centring")
+                self.log.exception("Cannot prepare centring")
 
     def set_light_in(self):
         """Set the backlight in - used by the XMLRPC calls"""
-        logging.getLogger("HWR").info("Moving backlight in")
+        self.log.info("Moving backlight in")
         light_hwobj = self.get_object_by_role("BackLightSwitch")
         light_hwobj.set_value(light_hwobj.VALUES.IN)
         self._wait_ready(20)
 
     def set_light_out(self):
         """Set the backlight out - used by the XMLRPC calls"""
-        logging.getLogger("HWR").info("Moving backlight out")
+        self.log.info("Moving backlight out")
         light_hwobj = self.get_object_by_role("BackLightSwitch")
         light_hwobj.set_value(light_hwobj.VALUES.OUT)
         self._wait_ready(20)
@@ -474,7 +472,7 @@ class Microdiff(MiniDiff.MiniDiff):
         """Set the phase"""
         _use_custom = self.get_property("use_custom_phase_script", False)
         if not self._ready():
-            logging.getLogger("HWR").exception("MD not ready - phase not set.")
+            self.log.exception("MD not ready - phase not set.")
             return
 
         current_phase = self.get_current_phase()
@@ -790,7 +788,7 @@ class Microdiff(MiniDiff.MiniDiff):
 
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
 
-        logging.getLogger("HWR").info("Starting centring procedure ...")
+        self.log.info("Starting centring procedure ...")
 
         if self.in_plate_mode():
             plateTranslation = self.get_object_by_role("plateTranslation")

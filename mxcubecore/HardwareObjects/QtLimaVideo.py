@@ -44,8 +44,6 @@ Example Hardware Object XML file :
 </object>
 """
 
-import logging
-
 from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import AbstractVideoDevice
 
 try:
@@ -92,9 +90,7 @@ class QtLimaVideo(AbstractVideoDevice):
             self.camera = Prosilica.Camera(self.cam_address, self.master_mode, False)
             self.interface = Prosilica.Interface(self.camera)
         elif self.cam_type == "basler":
-            logging.getLogger("HWR").info(
-                "Connecting to camera with address %s" % self.cam_address
-            )
+            self.log.info("Connecting to camera with address %s" % self.cam_address)
             self.camera = Basler.Camera(self.cam_address)
             self.interface = Basler.Interface(self.camera)
 

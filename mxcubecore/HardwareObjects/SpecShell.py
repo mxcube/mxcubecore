@@ -6,8 +6,6 @@ template:
   </procedure>
 """
 
-import logging
-
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 try:
@@ -54,7 +52,7 @@ class SpecShell(HardwareObject):
             )
         except AttributeError:
             self.specConnection = None
-            logging.getLogger("HWR").error("SpecShell: you must specify a spec version")
+            self.log.error("SpecShell: you must specify a spec version")
         else:
             self.specOutput.connectToSpec(
                 "output/tty",
@@ -155,7 +153,7 @@ class SpecShell(HardwareObject):
                 try:
                     buf_list = buf.split()
                 except Exception:
-                    logging.getLogger("HWR").exception("")
+                    self.log.exception("")
                 else:
                     i = 0
                     while i < len(buf_list):
@@ -163,20 +161,20 @@ class SpecShell(HardwareObject):
                         try:
                             cmd_aux = buf_list[i + 1]
                         except Exception:
-                            logging.getLogger("HWR").exception("")
+                            self.log.exception("")
                         else:
                             try:
                                 left_par = cmd_aux[0]
                                 right_par = cmd_aux[-1]
                                 midle_num = cmd_aux[1:-1]
                             except Exception:
-                                logging.getLogger("HWR").exception("")
+                                self.log.exception("")
                             else:
                                 if left_par == "(" and right_par == ")":
                                     try:
                                         int(midle_num)
                                     except Exception:
-                                        logging.getLogger("HWR").exception("")
+                                        self.log.exception("")
                                     else:
                                         commands_list.append(cmd_name.lstrip("*"))
                         i += 2
@@ -222,7 +220,7 @@ class SpecShell(HardwareObject):
             try:
                 self.specShellCommand.abort()
             except SpecClient.SpecClientError.SpecClientError as diag:
-                logging.getLogger("HWR").exception("")
+                self.log.exception("")
 
     def outputReceived(self, output):
         if self.lsdefRunning:
@@ -250,7 +248,7 @@ class SpecShell(HardwareObject):
                 else:
                     cmds.append(cmd.method)
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
         return cmds
 
     def getAllCommands(self):

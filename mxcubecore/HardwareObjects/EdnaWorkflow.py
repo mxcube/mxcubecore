@@ -97,12 +97,12 @@ class EdnaWorkflow(HardwareObject):
         return self.command_failed
 
     def set_command_failed(self, *args):
-        logging.getLogger("HWR").error("Workflow '%s' Tango command failed!", args[1])
+        self.log.error("Workflow '%s' Tango command failed!", args[1])
         self.command_failed = True
 
     def state_changed(self, new_value):
         new_value = str(new_value)
-        logging.getLogger("HWR").debug(f"{self.name}: state changed to {new_value}")
+        self.log.debug(f"{self.name}: state changed to {new_value}")
         self.emit("stateChanged", (new_value,))
 
     def workflow_end(self):
@@ -155,7 +155,7 @@ class EdnaWorkflow(HardwareObject):
 
     def abort(self):
         self.generateNewToken()
-        logging.getLogger("HWR").info("Aborting current workflow")
+        self.log.info("Aborting current workflow")
         # If necessary unblock dialog
         if not self.gevent_event.is_set():
             self.gevent_event.set()
@@ -164,11 +164,11 @@ class EdnaWorkflow(HardwareObject):
             abort_URL = (
                 f"http://{self.bes_host}:{self.bes_port}/ABORT/{self.bes_workflow_id}"
             )
-            logging.getLogger("HWR").info("BES abort web service URL: %r", abort_URL)
+            self.log.info("BES abort web service URL: %r", abort_URL)
             response = requests.get(abort_URL)
             if response.status_code == 200:
                 workflow_status = response.text
-                logging.getLogger("HWR").info(
+                self.log.info(
                     "BES workflow id %s: %s", self.bes_workflow_id, workflow_status
                 )
         self.state.value = "ON"
@@ -221,7 +221,7 @@ class EdnaWorkflow(HardwareObject):
 
         xml_rpc_server = HWR.beamline.xml_rpc_server
         if xml_rpc_server is None:
-            logging.getLogger("HWR").warning("No XMLRPCServer configured")
+            self.log.warning("No XMLRPCServer configured")
             return
 
         logging.info(
@@ -256,15 +256,13 @@ class EdnaWorkflow(HardwareObject):
         }
 
         start_URL = f"http://{self.bes_host}:{self.bes_port}/RUN/{self.workflow_name}"
-        logging.getLogger("HWR").info("BES start URL: %r", start_URL)
+        self.log.info("BES start URL: %r", start_URL)
         response = requests.post(start_URL, json=self.dict_parameters)
         if response.status_code == 200:
             self.state.value = "RUNNING"
             request_id = response.text
-            logging.getLogger("HWR").info(
-                "Workflow started, BES request id: %r", request_id
-            )
+            self.log.info("Workflow started, BES request id: %r", request_id)
             self.bes_workflow_id = request_id
         else:
-            logging.getLogger("HWR").error("Workflow didn't start!")
+            self.log.error("Workflow didn't start!")
             self.state.value = "ON"

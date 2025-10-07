@@ -905,7 +905,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
             if relative_angle:
                 if index >= abs(self.image_count / 360.0 * relative_angle):
                     break
-            logging.getLogger("HWR").debug("display: " + str(self.current_image_index))
+            self.log.debug("display: " + str(self.current_image_index))
             self.display_image(self.current_image_index)
             self.current_image_index += direction * step
             if self.repeat_image_play and self.current_image_index >= self.image_count:

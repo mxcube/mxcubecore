@@ -53,9 +53,7 @@ class ControllerCommand(CommandObject):
                 res = cmd_execution.get()
                 res = res if res else ""
             except Exception:
-                logging.getLogger("HWR").exception(
-                    "%s: execution failed", str(self.name())
-                )
+                self.log.exception("%s: execution failed", str(self.name()))
                 self.emit("commandFailed", (str(self.name()),))
             else:
                 if isinstance(res, gevent.GreenletExit):
@@ -199,7 +197,7 @@ class BeamlineActions(HardwareObject):
                     "Command with name %s already exists"
                     % command["command"].split(".")[-1]
                 )
-                logging.getLogger("HWR").warning(msg)
+                self.log.warning(msg)
                 continue
 
             if command["type"] == "annotated":
@@ -292,9 +290,7 @@ class BeamlineActions(HardwareObject):
         try:
             result = greenlet.get()
         except Exception:
-            logging.getLogger("HWR").exception(
-                "%s: execution failed", self._current_command.cmd_name
-            )
+            self.log.exception("%s: execution failed", self._current_command.cmd_name)
             cmd_obj.emit("commandFailed", (self._current_command.cmd_name,))
         else:
             self._current_command.set_last_result(result)

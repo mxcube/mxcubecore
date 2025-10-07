@@ -239,7 +239,7 @@ class LimaEigerDetector(AbstractDetector):
         try:
             self.get_command_object("stop_acq")()
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
 
         time.sleep(1)
         self.get_command_object("reset")()

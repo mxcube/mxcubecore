@@ -1,5 +1,4 @@
 import base64
-import logging
 import pickle
 
 import gevent
@@ -320,7 +319,7 @@ class FlexHCD(SampleChanger):
                 if "on_gonio" in loading_state:
                     self._set_loaded_sample(sample)
                     with gevent.Timeout(60, RuntimeError(err_msg)):
-                        logging.getLogger("HWR").info(err_msg)
+                        self.log.info(err_msg)
                         while not self._execute_cmd_exporter(
                             "getRobotIsSafe", attribute=True
                         ):
@@ -333,7 +332,7 @@ class FlexHCD(SampleChanger):
                 if "on_gonio" in loading_state:
                     self._set_loaded_sample(sample)
                     with gevent.Timeout(60, RuntimeError(err_msg)):
-                        logging.getLogger("HWR").info(err_msg)
+                        self.log.info(err_msg)
                         while (
                             not self._execute_cmd(
                                 "get_robot_cache_variable", "data:dioRobotIsSafe"
@@ -344,9 +343,9 @@ class FlexHCD(SampleChanger):
                     return True
             gevent.sleep(2)
 
-        logging.getLogger("HWR").info("unload load task done")
+        self.log.info("unload load task done")
         for msg in self.get_robot_exceptions():
-            logging.getLogger("HWR").error(msg)
+            self.log.error(msg)
 
         return self._check_pin_on_gonio()
 
@@ -361,7 +360,7 @@ class FlexHCD(SampleChanger):
             self._prepare_centring_task()
             return True
         else:
-            logging.getLogger("HWR").info("reset loaded sample")
+            self.log.info("reset loaded sample")
             self._reset_loaded_sample()
             # if self.controller:
             #    self.controller.hutch_actions(release_interlock=True)
@@ -392,7 +391,7 @@ class FlexHCD(SampleChanger):
             res = SampleChanger.load(self, sample)
         finally:
             for msg in self.get_robot_exceptions():
-                logging.getLogger("HWR").error(msg)
+                self.log.error(msg)
         if res:
             self.prepare_centring()
         return res
@@ -425,7 +424,7 @@ class FlexHCD(SampleChanger):
             SampleChanger.unload(self, sample)
         finally:
             for msg in self.get_robot_exceptions():
-                logging.getLogger("HWR").error(msg)
+                self.log.error(msg)
 
     def get_gripper(self):
         if self.exporter_addr:

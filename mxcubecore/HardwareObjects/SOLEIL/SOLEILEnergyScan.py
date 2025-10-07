@@ -15,7 +15,7 @@ from mxcubecore.TaskUtils import cleanup
 
 class SOLEILEnergyScan(HardwareObject):
     def init(self):
-        logging.getLogger("HWR").info(
+        self.log.info(
             "#############################    EnergyScan: INIT HWOBJ  ###################"
         )
         self.ready_event = gevent.event.Event()
@@ -48,7 +48,7 @@ class SOLEILEnergyScan(HardwareObject):
             try:
                 self.energyScanArgs = self.get_channel_object("escan_args")
             except KeyError:
-                logging.getLogger("HWR").warning(
+                self.log.warning(
                     "EnergyScan: error initializing energy scan arguments (missing channel)"
                 )
                 self.energyScanArgs = None
@@ -57,7 +57,7 @@ class SOLEILEnergyScan(HardwareObject):
                 self.scanStatusMessage = self.get_channel_object("scanStatusMsg")
             except KeyError:
                 self.scanStatusMessage = None
-                logging.getLogger("HWR").warning(
+                self.log.warning(
                     "EnergyScan: energy messages will not appear (missing channel)"
                 )
             else:
@@ -83,7 +83,7 @@ class SOLEILEnergyScan(HardwareObject):
                     "commandNotReady", self.scanCommandNotReady
                 )
             except AttributeError as diag:
-                logging.getLogger("HWR").warning(
+                self.log.warning(
                     "EnergyScan: error initializing energy scan (%s)" % str(diag)
                 )
                 self.do_energy_scan = Xanes  # .xanes(None, None) #None
@@ -95,26 +95,26 @@ class SOLEILEnergyScan(HardwareObject):
             self.lastResolution = None
 
             if HWR.beamline.lims is None:
-                logging.getLogger("HWR").warning(
+                self.log.warning(
                     "EnergyScan: you should specify the database hardware object"
                 )
             self.scanInfo = None
 
             self.cryostreamHO = self.get_object_by_role("cryostream")
             if self.cryostreamHO is None:
-                logging.getLogger("HWR").warning(
+                self.log.warning(
                     "EnergyScan: you should specify the cryo stream hardware object"
                 )
 
             self.machcurrentHO = self.get_object_by_role("machcurrent")
             if self.machcurrentHO is None:
-                logging.getLogger("HWR").warning(
+                self.log.warning(
                     "EnergyScan: you should specify the machine current hardware object"
                 )
 
             self.fluodetectorHO = self.get_object_by_role("fluodetector")
             if self.fluodetectorHO is None:
-                logging.getLogger("HWR").warning(
+                self.log.warning(
                     "EnergyScan: you should specify the fluorescence detector hardware object"
                 )
 
@@ -128,7 +128,7 @@ class SOLEILEnergyScan(HardwareObject):
                     "commandNotReady", self.moveEnergyCmdNotReady
                 )
             except AttributeError as diag:
-                logging.getLogger("HWR").warning(
+                self.log.warning(
                     "EnergyScan: error initializing move energy (%s)" % str(diag)
                 )
                 self.moveEnergy = None
@@ -138,7 +138,7 @@ class SOLEILEnergyScan(HardwareObject):
                 HWR.beamline.energy.connect("stateChanged", self.energyStateChanged)
                 HWR.beamline.energy.connect("limitsChanged", self.energyLimitsChanged)
             if HWR.beamline.resolution is None:
-                logging.getLogger("HWR").warning(
+                self.log.warning(
                     "EnergyScan: no resolution motor (unable to restore it after moving the energy)"
                 )
             else:
@@ -152,7 +152,7 @@ class SOLEILEnergyScan(HardwareObject):
 
         if self.is_connected():
             self.sConnected()
-        logging.getLogger("HWR").info(
+        self.log.info(
             "#############################    EnergyScan: INIT HWOBJ IS FINISHED ###################"
         )
 
@@ -186,17 +186,17 @@ class SOLEILEnergyScan(HardwareObject):
         self.emit("disconnected", ())
 
     def setElement(self):
-        logging.getLogger("HWR").debug("EnergyScan: setElement")
+        self.log.debug("EnergyScan: setElement")
         self.emit("setElement", (self._element, self._edge))
 
     def newPoint(self, x, y):
-        logging.getLogger("HWR").debug("EnergyScan:newPoint")
+        self.log.debug("EnergyScan:newPoint")
         logging.info("EnergyScan newPoint %s, %s" % (x, y))
         self.emit("addNewPoint", (x, y))
         self.emit("newScanPoint", (x, y))
 
     def newScan(self, scanParameters):
-        logging.getLogger("HWR").debug("EnergyScan:newScan")
+        self.log.debug("EnergyScan:newScan")
         self.emit("newScan", (scanParameters,))
 
     # # Energy scan commands
@@ -212,7 +212,7 @@ class SOLEILEnergyScan(HardwareObject):
     ):
         self._element = element
         self._edge = edge
-        logging.getLogger("HWR").debug(
+        self.log.debug(
             "EnergyScan: starting energy scan %s, %s" % (self._element, self._edge)
         )
         self.setElement()
@@ -236,13 +236,11 @@ class SOLEILEnergyScan(HardwareObject):
         if self.fluodetectorHO is not None:
             self.scanInfo["fluorescenceDetector"] = self.fluodetectorHO.username
         if not os.path.isdir(directory):
-            logging.getLogger("HWR").debug(
-                "EnergyScan: creating directory %s" % directory
-            )
+            self.log.debug("EnergyScan: creating directory %s" % directory)
             try:
                 os.makedirs(directory)
             except OSError as diag:
-                logging.getLogger("HWR").error(
+                self.log.error(
                     "EnergyScan: error creating directory %s (%s)"
                     % (directory, str(diag))
                 )
@@ -258,7 +256,7 @@ class SOLEILEnergyScan(HardwareObject):
         # try:
         # curr=self.energyScanArgs.get_value()
         # except:
-        # logging.getLogger("HWR").exception('EnergyScan: error getting energy scan parameters')
+        # self.log.exception('EnergyScan: error getting energy scan parameters')
         # self.emit('scanStatusChanged', ("Error getting energy scan parameters",))
         # return False
         # try:
@@ -273,14 +271,12 @@ class SOLEILEnergyScan(HardwareObject):
 
         try:
             # self.energyScanArgs.set_value(curr)
-            logging.getLogger("HWR").debug(
+            self.log.debug(
                 "EnergyScan: current energy scan parameters (%s, %s, %s, %s)"
                 % (element, edge, directory, prefix)
             )
         except Exception:
-            logging.getLogger("HWR").exception(
-                "EnergyScan: error setting energy scan parameters"
-            )
+            self.log.exception("EnergyScan: error setting energy scan parameters")
             self.emit("scanStatusChanged", ("Error setting energy scan parameters",))
             return False
         try:
@@ -291,7 +287,7 @@ class SOLEILEnergyScan(HardwareObject):
         except Exception:
             import traceback
 
-            logging.getLogger("HWR").error(
+            self.log.error(
                 "EnergyScan: problem calling sequence %s" % traceback.format_exc()
             )
             self.emit("scanStatusChanged", ("Error problem spec macro",))
@@ -330,12 +326,10 @@ class SOLEILEnergyScan(HardwareObject):
         self.ready_event.set()
 
     def scanCommandFinished(self, result, *args):
-        logging.getLogger("HWR").debug("EnergyScan: energy scan result is %s" % result)
+        self.log.debug("EnergyScan: energy scan result is %s" % result)
         with cleanup(self.ready_event.set):
             self.scanInfo["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
-            logging.getLogger("HWR").debug(
-                "EnergyScan: energy scan result is %s" % result
-            )
+            self.log.debug("EnergyScan: energy scan result is %s" % result)
             self.scanning = False
             if result == -1:
                 self.storeEnergyScan()
@@ -413,7 +407,7 @@ class SOLEILEnergyScan(HardwareObject):
         # f=open(rawScanFile, "w")
         # pyarch_f=open(archiveRawScanFile, "w")
         # except:
-        # logging.getLogger("HWR").exception("could not create raw scan files")
+        # self.log.exception("could not create raw scan files")
         # self.storeEnergyScan()
         # self.emit("energyScanFailed", ())
         # return
@@ -462,14 +456,14 @@ class SOLEILEnergyScan(HardwareObject):
         comm = ""
 
         self.thEdge = self.xanes.e_edge
-        logging.getLogger("HWR").info(
+        self.log.info(
             "th. Edge %s ; chooch results are pk=%f, ip=%f, rm=%f"
             % (self.thEdge, pk, ip, rm)
         )
         logging.info("math.fabs(self.thEdge - ip) %s" % math.fabs(self.thEdge - ip))
         logging.info("self.thEdgeThreshold %s" % self.thEdgeThreshold)
 
-        logging.getLogger("HWR").warning(
+        self.log.warning(
             "EnergyScan: calculated peak (%f) is more that 20eV %s the theoretical value (%f). Please check your scan and choose the energies manually"
             % (
                 savpk,
@@ -488,7 +482,7 @@ class SOLEILEnergyScan(HardwareObject):
                 % (savpk, self.thEdge)
             )
 
-            logging.getLogger("HWR").warning(
+            self.log.warning(
                 "EnergyScan: calculated peak (%f) is more that 20eV %s the theoretical value (%f). Please check your scan and choose the energies manually"
                 % (
                     savpk,
@@ -563,7 +557,7 @@ class SOLEILEnergyScan(HardwareObject):
         for i in range(len(chooch_graph_x)):
             chooch_graph_x[i] = chooch_graph_x[i] / 1000.0
 
-        logging.getLogger("HWR").info("<chooch> Saving png")
+        self.log.info("<chooch> Saving png")
         # prepare to save png files
         title = "%10s  %6s  %6s\n%10s  %6.2f  %6.2f\n%10s  %6.2f  %6.2f" % (
             "energy",
@@ -596,25 +590,25 @@ class SOLEILEnergyScan(HardwareObject):
         escan_archivepng = os.path.extsep.join((scanArchiveFilePrefix, "png"))
         self.scanInfo["jpegChoochFileFullPath"] = str(escan_archivepng)
         try:
-            logging.getLogger("HWR").info(
+            self.log.info(
                 "Rendering energy scan and Chooch graphs to PNG file : %s", escan_png
             )
             canvas.print_figure(escan_png, dpi=80)
         except Exception:
-            logging.getLogger("HWR").exception("could not print figure")
+            self.log.exception("could not print figure")
         try:
-            logging.getLogger("HWR").info(
+            self.log.info(
                 "Saving energy scan to archive directory for ISPyB : %s",
                 escan_archivepng,
             )
             canvas.print_figure(escan_archivepng, dpi=80)
         except Exception:
-            logging.getLogger("HWR").exception("could not save figure")
+            self.log.exception("could not save figure")
 
         self.storeEnergyScan()
         self.scanInfo = None
 
-        logging.getLogger("HWR").info("<chooch> returning")
+        self.log.info("<chooch> returning")
         self.emit(
             "chooch_finished",
             (
@@ -686,7 +680,7 @@ class SOLEILEnergyScan(HardwareObject):
             try:
                 return HWR.beamline.energy.get_value()
             except Exception:
-                logging.getLogger("HWR").exception("EnergyScan: couldn't read energy")
+                self.log.exception("EnergyScan: couldn't read energy")
                 return None
         elif (
             self.energy2WavelengthConstant is not None
@@ -711,7 +705,7 @@ class SOLEILEnergyScan(HardwareObject):
             try:
                 return self.energy2wavelength(HWR.beamline.energy.get_value())
             except Exception:
-                logging.getLogger("HWR").exception("EnergyScan: couldn't read energy")
+                self.log.exception("EnergyScan: couldn't read energy")
                 return None
         else:
             return self.defaultWavelength
@@ -724,41 +718,37 @@ class SOLEILEnergyScan(HardwareObject):
         return limits
 
     def startMoveEnergy(self, value, wait=True):
-        logging.getLogger("HWR").info("Moving energy to (%s)" % value)
+        self.log.info("Moving energy to (%s)" % value)
         try:
             value = float(value)
         except (TypeError, ValueError) as diag:
-            logging.getLogger("HWR").error("EnergyScan: invalid energy (%s)" % value)
+            self.log.error("EnergyScan: invalid energy (%s)" % value)
             return False
 
         try:
             curr_energy = HWR.beamline.energy.get_value()
         except Exception:
-            logging.getLogger("HWR").exception(
-                "EnergyScan: couldn't get current energy"
-            )
+            self.log.exception("EnergyScan: couldn't get current energy")
             curr_energy = None
 
         if value != curr_energy:
-            logging.getLogger("HWR").info("Moving energy: checking limits")
+            self.log.info("Moving energy: checking limits")
             try:
                 lims = HWR.beamline.energy.get_limits()
             except Exception:
-                logging.getLogger("HWR").exception(
-                    "EnergyScan: couldn't get energy limits"
-                )
+                self.log.exception("EnergyScan: couldn't get energy limits")
                 in_limits = False
             else:
                 in_limits = value >= lims[0] and value <= lims[1]
 
             if in_limits:
-                logging.getLogger("HWR").info("Moving energy: limits ok")
+                self.log.info("Moving energy: limits ok")
                 self.previousResolution = None
                 if HWR.beamline.resolution is not None:
                     try:
                         self.previousResolution = HWR.beamline.resolution.get_value()
                     except Exception:
-                        logging.getLogger("HWR").exception(
+                        self.log.exception(
                             "EnergyScan: couldn't get current resolution"
                         )
                 self.moveEnergyCmdStarted()
@@ -776,7 +766,7 @@ class SOLEILEnergyScan(HardwareObject):
                 else:
                     gevent.spawn(change_egy)
             else:
-                logging.getLogger("HWR").error(
+                self.log.error(
                     "EnergyScan: energy (%f) out of limits (%s)" % (value, lims)
                 )
                 return False
@@ -788,9 +778,7 @@ class SOLEILEnergyScan(HardwareObject):
     def set_wavelength(self, value, wait=True):
         energy_val = self.energy2wavelength(value)
         if energy_val is None:
-            logging.getLogger("HWR").error(
-                "EnergyScan: unable to convert wavelength to energy"
-            )
+            self.log.error("EnergyScan: unable to convert wavelength to energy")
             return False
         return self.startMoveEnergy(energy_val, wait)
 

@@ -86,20 +86,20 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum):
         """Controls execution"""
         if self.spectrum_running:
             if status == "scaning":
-                logging.getLogger("HWR").info("XRF spectrum in progress...")
+                self.log.info("XRF spectrum in progress...")
             elif status == "ready":
                 if self.spectrum_running:
                     self.spectrum_data = list(self.cmd_spectrum_start.get())
                     # self.mca_calib = self.chan_spectrum_consts.get_value()[::-1]
                     self.spectrum_command_finished()
-                    logging.getLogger("HWR").info("XRF spectrum finished")
+                    self.log.info("XRF spectrum finished")
             elif status == "aborting":
                 if self.spectrum_running:
                     self.spectrum_command_aborted()
-                    logging.getLogger("HWR").info("XRF spectrum aborted!")
+                    self.log.info("XRF spectrum aborted!")
             elif status == "error":
                 self.spectrum_command_failed()
-                logging.getLogger("HWR").error("XRF spectrum failed!")
+                self.log.error("XRF spectrum failed!")
 
     def cancel_spectrum(self, *args):
         """Cancels acquisition"""

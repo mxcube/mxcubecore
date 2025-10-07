@@ -142,10 +142,8 @@ class EDNACharacterisation(AbstractCharacterisation):
         except AttributeError:
             import traceback
 
-            logging.getLogger("HWR").debug(
-                "EDNACharacterisation. transmission not saved "
-            )
-            logging.getLogger("HWR").debug(traceback.format_exc())
+            self.log.debug("EDNACharacterisation. transmission not saved ")
+            self.log.debug(traceback.format_exc())
 
         try:
             wavelength = HWR.beamline.energy.get_wavelength()

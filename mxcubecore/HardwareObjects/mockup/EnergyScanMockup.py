@@ -1,4 +1,3 @@
-import logging
 import os
 import time
 
@@ -241,7 +240,7 @@ class EnergyScanMockup(AbstractEnergyScan):
             if not os.path.exists(archive_directory):
                 os.makedirs(archive_directory)
         except Exception:
-            logging.getLogger("HWR").exception(
+            self.log.exception(
                 "EnergyScan: could not create energy scan result directory."
             )
             self.store_energy_scan()
@@ -252,7 +251,7 @@ class EnergyScanMockup(AbstractEnergyScan):
             scan_file_raw = open(scan_file_raw_filename, "w")
             archive_file_raw = open(archive_file_raw_filename, "w")
         except Exception:
-            logging.getLogger("HWR").exception(
+            self.log.exception(
                 "EnergyScan: could not create energy scan result raw file"
             )
             self.store_energy_scan()
@@ -283,7 +282,7 @@ class EnergyScanMockup(AbstractEnergyScan):
         comm = "Mockup results"
         self.energy_scan_parameters["edgeEnergy"] = 0.1
         self.thEdge = self.energy_scan_parameters["edgeEnergy"]
-        logging.getLogger("HWR").info(
+        self.log.info(
             "th. Edge %s ; chooch results are pk=%f, ip=%f, rm=%f"
             % (self.thEdge, pk, ip, rm)
         )
@@ -336,25 +335,25 @@ class EnergyScanMockup(AbstractEnergyScan):
             archive_file_png_filename
         )
         try:
-            logging.getLogger("HWR").info(
+            self.log.info(
                 "Rendering energy scan and Chooch " + "graphs to PNG file : %s",
                 scan_file_png_filename,
             )
             canvas.print_figure(scan_file_png_filename, dpi=80)
         except Exception:
-            logging.getLogger("HWR").exception("could not print figure")
+            self.log.exception("could not print figure")
         try:
-            logging.getLogger("HWR").info(
+            self.log.info(
                 "Saving energy scan to archive " + "directory for ISPyB : %s",
                 archive_file_png_filename,
             )
             canvas.print_figure(archive_file_png_filename, dpi=80)
         except Exception:
-            logging.getLogger("HWR").exception("could not save figure")
+            self.log.exception("could not save figure")
 
         self.store_energy_scan()
 
-        logging.getLogger("HWR").info("<chooch> returning")
+        self.log.info("<chooch> returning")
         self.emit(
             "choochFinished",
             (
@@ -392,7 +391,7 @@ class EnergyScanMockup(AbstractEnergyScan):
             for el in self.config.elements["element"]:
                 elements.append({"symbol": el["symbol"], "energy": el["energy"]})
         except IndexError:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
         return elements
 
     #
@@ -436,7 +435,7 @@ class EnergyScanMockup(AbstractEnergyScan):
         """
         with cleanup(self.ready_event.set):
             self.energy_scan_parameters["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
-            logging.getLogger("HWR").debug("Energy Scan: finished")
+            self.log.debug("Energy Scan: finished")
             self.scanning = False
             self.energy_scan_parameters["startEnergy"] = self.scan_data[-1][0] / 1000.0
             self.energy_scan_parameters["endEnergy"] = self.scan_data[-1][1] / 1000.0

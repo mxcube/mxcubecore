@@ -89,7 +89,7 @@ class PX2Collect(AbstractCollect, HardwareObject):
             for undulator in self["undulators"]:
                 undulators.append(undulator)
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
 
         beam_div_hor, beam_div_ver = HWR.beamline.beam.get_beam_divergence()
 

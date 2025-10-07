@@ -19,8 +19,6 @@ beamPosChanged
 -----------------------------------------------------------------------
 """
 
-import logging
-
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
@@ -78,7 +76,7 @@ class ALBABeamInfo(HardwareObject):
                 self.get_property("beam_divergence_horizontal")
             )
         except Exception:
-            logging.getLogger("HWR").exception("")
+            self.log.exception("")
 
         self.default_beam_divergence = [
             default_beam_divergence_horizontal,
@@ -182,7 +180,7 @@ class ALBABeamInfo(HardwareObject):
         Arguments :
         Return    :
         """
-        logging.getLogger("HWR").debug(" emitting beam info")
+        self.log.debug(" emitting beam info")
         if (
             self.beam_info_dict["size_x"] != 9999
             and self.beam_info_dict["size_y"] != 9999

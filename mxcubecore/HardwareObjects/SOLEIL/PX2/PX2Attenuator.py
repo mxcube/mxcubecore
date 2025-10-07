@@ -99,7 +99,7 @@ class PX2Attenuator(HardwareObject):
             logging.getLogger().debug("Attenuator state read from the device %s", value)
 
         except Exception:
-            logging.getLogger("HWR").error(
+            self.log.error(
                 "%s getAttState : received value on channel is not a integer value",
                 str(self.name()),
             )
@@ -108,9 +108,7 @@ class PX2Attenuator(HardwareObject):
 
     def attStateChanged(self, channelValue):
         value = self.getAttState()
-        logging.getLogger("HWR").error(
-            "%s getAttState : new value is %s" % (str(self.name()), value)
-        )
+        self.log.error("%s getAttState : new value is %s" % (str(self.name()), value))
         self.emit("attStateChanged", (value,))
 
     def get_value(self):
@@ -131,7 +129,7 @@ class PX2Attenuator(HardwareObject):
             # Trouver la valeur de transmission par mesure sur QBPM1 doit etre autour
             # de 120%
         except Exception:
-            logging.getLogger("HWR").error(
+            self.log.error(
                 "%s get_value : received value on channel is not a float value",
                 str(self.name()),
             )
@@ -146,18 +144,18 @@ class PX2Attenuator(HardwareObject):
 
     def attFactorChanged(self, channelValue):
         try:
-            logging.getLogger("HWR").info(
+            self.log.info(
                 "%s attFactorChanged : received value %s"
                 % (str(self.name()), channelValue)
             )
             value = self.get_value()
         except Exception:
-            logging.getLogger("HWR").error(
+            self.log.error(
                 "%s attFactorChanged : received value on channel is not a float value",
                 str(self.name()),
             )
         else:
-            logging.getLogger("HWR").info(
+            self.log.info(
                 "%s attFactorChanged : calculated value is %s"
                 % (str(self.name()), value)
             )
@@ -167,7 +165,7 @@ class PX2Attenuator(HardwareObject):
         try:
             value = int(channelValue)
         except Exception:
-            logging.getLogger("HWR").error(
+            self.log.error(
                 "%s attToggleChanged : received value on channel is not a float value",
                 str(self.name()),
             )
@@ -180,9 +178,7 @@ class PX2Attenuator(HardwareObject):
             if (
                 self.Constdevice.FP_Area_FWHM <= 0.1
             ):  # Cas ou il n'y a pas de valeur dans le publisher PASSERELLE/CO/Primary_Slits
-                logging.getLogger("HWR").error(
-                    "Primary slits not correctly aligned", str(self.name())
-                )
+                self.log.error("Primary slits not correctly aligned", str(self.name()))
                 self.Constdevice.FP_Area_FWHM = 0.5
                 self.Constdevice.Ratio_FP_Gap = 0.5
 
@@ -200,7 +196,7 @@ class PX2Attenuator(HardwareObject):
             self.Ps_vdevice.gap = newGapFP_V
             # self.attFactorChanged(channelValue)
         except Exception:
-            logging.getLogger("HWR").error(
+            self.log.error(
                 "%s set Transmission : received value on channel is not valid",
                 str(self.name()),
             )

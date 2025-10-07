@@ -132,7 +132,7 @@ class EMBLPPUControl(HardwareObject):
                         logging.getLogger("GUI").error(msg)
         else:
             msg = "PPUControl: %s" % self.all_status
-            logging.getLogger("HWR").debug(msg)
+            self.log.debug(msg)
 
         self.msg = (
             "Restart result:\n\n%s\n\n" % self.restart_result

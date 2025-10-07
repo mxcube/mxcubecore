@@ -750,8 +750,12 @@ class ICATLIMS(AbstractLims):
             key_mapping = {
                 "detector_px": "InstrumentDetector01_beam_center_x",
                 "detector_py": "InstrumentDetector01_beam_center_y",
-                "beam_divergence_vertical": "InstrumentBeam_vertical_incident_beam_divergence",
-                "beam_divergence_horizontal": "InstrumentBeam_horizontal_incident_beam_divergence",
+                "beam_divergence_vertical": (
+                    "InstrumentBeam_vertical_incident_beam_divergence"
+                ),
+                "beam_divergence_horizontal": (
+                    "InstrumentBeam_horizontal_incident_beam_divergence"
+                ),
                 "polarisation": "InstrumentBeam_final_polarization",
                 "detector_model": "InstrumentDetector01_model",
                 "detector_manufacturer": "InstrumentDetector01_manufacturer",
@@ -810,14 +814,14 @@ class ICATLIMS(AbstractLims):
         """
         sample_id = datacollection_dict.get("blSampleId")
         msg = f"SampleId is: {sample_id}"
-        logging.getLogger("HWR").debug(msg)
+        self.log.debug(msg)
         try:
             sample = HWR.beamline.lims.find_sample_by_sample_id(sample_id)
             sample_name = sample.get("sampleName")
         except (AttributeError, TypeError):
             sample_name = "unknown"
             msg = f"Sample {sample_id} not found"
-            logging.getLogger("HWR").debug(msg)
+            self.log.debug(msg)
 
         start_time = datacollection_dict.get("collection_start_time", "")
         end_time = datetime.now(ZoneInfo("Europe/Paris")).isoformat()
@@ -829,7 +833,7 @@ class ICATLIMS(AbstractLims):
                 )
                 start_time = dt_aware.isoformat(timespec="microseconds")
             except (ValueError, TypeError):
-                logging.getLogger("HWR").exception("Cannot parse start time")
+                self.log.exception("Cannot parse start time")
         else:
             start_time = datetime.now(ZoneInfo("Europe/Paris")).isoformat()
 
@@ -875,9 +879,9 @@ class ICATLIMS(AbstractLims):
                 beamline = self._get_scheduled_beamline()
                 msg = f"Dataset Beamline={beamline} "
                 msg += f"Current Beamline={HWR.beamline.session.beamline_name}"
-                logging.getLogger("HWR").info(msg)
+                self.log.info(msg)
             except Exception:
-                logging.getLogger("HWR").exception(
+                self.log.exception(
                     "Failed to get _get_scheduled_beamline",
                 )
             _session = HWR.beamline.session
@@ -896,7 +900,7 @@ class ICATLIMS(AbstractLims):
                     start_time = dt_aware.isoformat(timespec="microseconds")
                     metadata.update({"startDate": start_time})
                 except (ValueError, TypeError):
-                    logging.getLogger("HWR").exception("Cannot parse start time")
+                    self.log.exception("Cannot parse start time")
 
             if end_time:
                 try:
@@ -906,7 +910,7 @@ class ICATLIMS(AbstractLims):
                     end_time = dt_aware.isoformat(timespec="microseconds")
                     metadata.update({"endDate": end_time})
                 except (ValueError, TypeError):
-                    logging.getLogger("HWR").exception("Cannot parse start time")
+                    self.log.exception("Cannot parse start time")
 
             metadata.update(
                 {
@@ -951,9 +955,9 @@ class ICATLIMS(AbstractLims):
                 beamline = self._get_scheduled_beamline()
                 msg = f"Dataset Beamline={beamline} "
                 msg += f"Current Beamline={HWR.beamline.session.beamline_name}"
-                logging.getLogger("HWR").info(msg)
+                self.log.info(msg)
             except Exception:
-                logging.getLogger("HWR").exception(
+                self.log.exception(
                     "Failed to get _get_scheduled_beamline",
                 )
             _session = HWR.beamline.session
@@ -972,7 +976,7 @@ class ICATLIMS(AbstractLims):
                     start_time = dt_aware.isoformat(timespec="microseconds")
                     metadata.update({"startDate": start_time})
                 except (ValueError, TypeError):
-                    logging.getLogger("HWR").exception("Cannot parse start time")
+                    self.log.exception("Cannot parse start time")
 
             if end_time:
                 try:
@@ -982,7 +986,7 @@ class ICATLIMS(AbstractLims):
                     end_time = dt_aware.isoformat(timespec="microseconds")
                     metadata.update({"endDate": end_time})
                 except (ValueError, TypeError):
-                    logging.getLogger("HWR").exception("Cannot parse end time")
+                    self.log.exception("Cannot parse end time")
 
             metadata.update(
                 {

@@ -17,7 +17,6 @@ between two Point objects.
 
 """
 
-import logging
 import os
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
@@ -50,7 +49,7 @@ class ShapeHistoryMockup(HardwareObject):
         :returns: None
         """
         if self._drawing:
-            logging.getLogger("HWR").info(
+            self.log.info(
                 "Setting previous drawing:" + str(self._drawing) + " to " + str(drawing)
             )
 
