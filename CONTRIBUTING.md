@@ -327,6 +327,126 @@ The user log is aimed to convey information to the users.
 The debug and exception logging should be used for logging information suitable for developers,
 to help with troubleshooting.
 
+#### Exceptions
+
+Using `try/except` clause to catch exceptions apply the following rules. Unless you have strong arguments to do it another way.
+
+- Do not catch *blind* and *bare* exceptions, unless there is no better option and there is a real need to catch all exceptions. In this case make sure to log the whole traceback by using **exception** method of the logger object *Blind* exception catches `BaseException` which is a parent of all exception classes (`KeyError`, `Exception`, `SystemExit` etc.). This may lead to unpredicted behaviour for instance with interrupting the program (ctrl+C)
+  `Incorrect code`
+
+  ```python
+  try:
+      # some code
+  except BaseException:
+      # handle exception
+  ```
+
+  *Bare* except clause comes down to the same as *blind* exception. Avoid it from the same reason.
+  `Incorrect code`
+
+  ```python
+  try:
+      # some code
+  except:
+      # handle exception
+  ```
+
+  Instead use a `try/except` with explicitly catched exception (list), or if there is a reason, with `Exception` base class that handles most of the common cases except system errors (like `KeyboardInterrupt` and `SystemExit`).
+  `Correct code`
+
+  ```python
+  try:
+      # some code
+  except KeyError:
+      # handle exception
+  except Exception:
+      # handle other exceptions
+  ```
+
+- Log full traceback when logging during handling exceptions. This may be done by running **exception** method of the logging object, which is preffered way. If the logging level really have to be at another level set `exc_info` flag to `True`.
+  `Correct code`
+
+  ```python
+  try:
+      # do something
+  except Exception:
+      logging.getLogger("").debug(msg, exc_info=True)
+  ```
+
+  However remember that this is the worse version:
+  `Incorrect code`
+
+  ```python
+  try:
+      # do something
+  except Exception:
+      logging.getLogger("").error(msg, exc_info=True)
+  ```
+
+  of below example, that will be always the preffered one:
+  `Correct code`
+
+  ```python
+  try:
+      # do something
+  except Exception:
+      logging.getLogger("").exception(msg)
+
+  ```
+
+- Re-raising exception is fine, however aviod redundant code:
+  `Incorrect code`
+
+  ```python
+  try:
+      # do something
+  except Exception:
+      raise
+  ```
+
+  Instead simple skip `try/except` at all:
+  `Correct code`
+
+  ```python
+  # do something
+  ```
+
+  Another example:
+  `Incorrect code`
+
+  ```python
+  try:
+    # do something
+  except Exception as exc:
+    # do something else
+    raise exc
+  ```
+
+  Instead:
+  `Correct code`
+
+  ```python
+  try:
+    # do something
+  except Exception:
+    # do something else
+    raise
+  ```
+
+- Importing the modules that may be not present or need alternatives does not requier neither re-raising exceptions nor logging:
+  `Correct code`
+
+  ```python
+  try:
+      import Queue as queue
+  except ImportError:
+      import queue
+  ```
+
+- ...
+
+<!-- WIP -->
+
 ### Continuous integration (CI)
 
 GitHub Action are used for continues integration
