@@ -206,21 +206,21 @@ class SardanaMacro(CommandObject, SardanaObject, ChannelObject):
                 )
                 self.emit("commandFailed", (-1, self.name()))
         except TypeError:
-            logging.getLogger("HWR").error(
+            logging.getLogger("HWR").exception(
                 "%s. Cannot properly format macro code. Format is: %s, args are %s",
                 str(self.name()),
                 self.macro_format,
                 str(args),
             )
             self.emit("commandFailed", (-1, self.name()))
-        except DevFailed as error_dict:
-            logging.getLogger("HWR").error(
-                "%s: Cannot run macro. %s", str(self.name()), error_dict
+        except DevFailed:
+            logging.getLogger("HWR").exception(
+                "%s: Cannot run macro.", str(self.name())
             )
             self.emit("commandFailed", (-1, self.name()))
-        except AttributeError as error_dict:
-            logging.getLogger("HWR").error(
-                "%s: MacroServer not running?, %s", str(self.name()), error_dict
+        except AttributeError:
+            logging.getLogger("HWR").exception(
+                "%s: MacroServer not running?", str(self.name())
             )
             self.emit("commandFailed", (-1, self.name()))
         except Exception:
@@ -321,7 +321,7 @@ class SardanaCommand(CommandObject):
             self.device = Device(self.taurusname)
         except DevFailed as traceback:
             last_error = traceback[-1]
-            logging.getLogger("HWR").error(
+            logging.getLogger("HWR").exception(
                 "%s: %s", str(self.name()), last_error["desc"]
             )
             self.device = None
@@ -341,10 +341,8 @@ class SardanaCommand(CommandObject):
         try:
             cmdObject = getattr(self.device, self.command)
             ret = cmdObject(*args)
-        except DevFailed as error_dict:
-            logging.getLogger("HWR").error(
-                "%s: Tango, %s", str(self.name()), error_dict
-            )
+        except DevFailed:
+            logging.getLogger("HWR").exception("%s: Tango", str(self.name()))
         except Exception:
             logging.getLogger("HWR").exception(
                 "%s: an error occured when calling Tango command %s",

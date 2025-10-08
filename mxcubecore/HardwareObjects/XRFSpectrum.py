@@ -104,10 +104,9 @@ class XRFSpectrum(HardwareObject):
             )
             try:
                 os.makedirs(directory)
-            except OSError as diag:
-                logging.getLogger("user_level_log").error(
-                    "XRFSpectrum: error creating directory %s (%s)"
-                    % (directory, str(diag))
+            except OSError:
+                logging.getLogger("user_level_log").exception(
+                    "XRFSpectrum: error creating directory %s", directory
                 )
                 self.spectrumStatusChanged("Error creating directory")
                 return False
@@ -136,10 +135,9 @@ class XRFSpectrum(HardwareObject):
                     "XRFSpectrum: creating %s", archive_directory
                 )
                 os.makedirs(archive_directory)
-            except OSError as diag:
-                logging.getLogger().error(
-                    "XRFSpectrum: error creating directory %s (%s)",
-                    (archive_directory, str(diag)),
+            except OSError:
+                logging.getLogger().exception(
+                    "XRFSpectrum: error creating directory %s", archive_directory
                 )
                 self.spectrumStatusChanged("Error creating directory")
                 return False
@@ -262,13 +260,15 @@ class XRFSpectrum(HardwareObject):
                 try:
                     shutil.copyfile(pngfile, self.spectrumInfo["jpegScanFileFullPath"])
                 except Exception:
-                    logging.getLogger().error("XRFSpectrum: cannot copy %s", pngfile)
+                    logging.getLogger().exception(
+                        "XRFSpectrum: cannot copy %s", pngfile
+                    )
 
             # copy raw data file to the archive directory
             try:
                 shutil.copyfile(fname, self.spectrumInfo["scanFileFullPath"])
             except Exception:
-                logging.getLogger().error(
+                logging.getLogger().exception(
                     "XRFSpectrum: cannot copy %s", self.spectrumInfo["filename"]
                 )
 
@@ -280,7 +280,7 @@ class XRFSpectrum(HardwareObject):
                 ff = self.spectrumInfo["filename"].replace(".dat", "_peaks.csv")
                 shutil.copyfile(self.spectrumInfo["fittedDataFileFullPath"], ff)
             except Exception:
-                logging.getLogger().error("XRFSpectrum: cannot copy %s", ff)
+                logging.getLogger().exception("XRFSpectrum: cannot copy %s", ff)
         else:
             self.spectrumCommandFailed()
         self.ready_event.set()

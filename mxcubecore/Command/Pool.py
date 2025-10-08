@@ -79,7 +79,7 @@ class PoolCommand(CommandObject):
             self.device = PyTango.DeviceProxy(self.device_name)
         except PyTango.DevFailed as traceback:
             last_error = traceback[-1]
-            logging.getLogger("HWR").error(
+            logging.getLogger("HWR").exception(
                 "%s: %s", str(self.name()), last_error["desc"]
             )
             self.device = None
@@ -103,10 +103,8 @@ class PoolCommand(CommandObject):
                 ret = tango_cmd_object(
                     args
                 )  # eval('self.device.%s(*%s)' % (self.command, args))
-            except PyTango.DevFailed as error_dict:
-                logging.getLogger("HWR").error(
-                    "%s: Tango, %s", str(self.name()), error_dict
-                )
+            except PyTango.DevFailed:
+                logging.getLogger("HWR").exception("%s: Tango", str(self.name()))
             except Exception:
                 logging.getLogger("HWR").exception(
                     "%s: an error occured when calling Tango command %s",
@@ -191,7 +189,7 @@ class PoolChannel(ChannelObject):
             self.device = PyTango.DeviceProxy(self.device_name)
         except PyTango.DevFailed as traceback:
             last_error = traceback[-1]
-            logging.getLogger("HWR").error(
+            logging.getLogger("HWR").exception(
                 "%s: %s", str(self.name()), last_error["desc"]
             )
         else:

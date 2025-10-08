@@ -538,7 +538,7 @@ class QtGraphicsManager(AbstractSampleView):
                 self.de_select_all()
                 graphics_config_file.close()
             except Exception:
-                self.log.error(
+                self.log.exception(
                     "GraphicsManager: Unable to load "
                     + "graphics from configuration file %s"
                     % self.graphics_config_filename
@@ -1440,7 +1440,7 @@ class QtGraphicsManager(AbstractSampleView):
             if not os.path.exists(filename):
                 raise Exception("Unable to save snapshot to %s" % filename)
         except Exception:
-            logging.getLogger("user_level_log").error(
+            logging.getLogger("user_level_log").exception(
                 "Unable to save snapshot: %s" % filename
             )
 

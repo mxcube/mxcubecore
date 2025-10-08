@@ -166,14 +166,14 @@ class MultiplePositions(HardwareObject):
             # Maybe do self["deltas"].get_properties().copy()?
             self.deltas = self["deltas"].get_properties()
         except Exception:
-            logging.getLogger().error("No deltas.")
+            logging.getLogger().exception("No deltas.")
 
         self.positions = {}
         self.positionsIndex = []
         try:
             positions = self["positions"]
         except Exception:
-            logging.getLogger().error("No positions.")
+            logging.getLogger().exception("No positions.")
         else:
             for position in positions:
                 name = position.get_property("name")

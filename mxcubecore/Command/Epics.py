@@ -111,8 +111,8 @@ class EpicsCommand(CommandObject):
                     if ret is not None:
                         self.emit("commandReplyArrived", (ret, str(self.name())))
                         return ret
-                except Exception as e:
-                    logging.getLogger("HWR").error(
+                except Exception:
+                    logging.getLogger("HWR").exception(
                         "%s: an error occured when getting value with Epics command %s",
                         str(self.name()),
                         self.pv_name,
@@ -126,8 +126,8 @@ class EpicsCommand(CommandObject):
                     value = args[0]
                     wait = kwargs.get("wait", False)
                     self.pv.put(value, wait=wait)
-                except:
-                    logging.getLogger("HWR").error(
+                except Exception:
+                    logging.getLogger("HWR").exception(
                         "%s: an error occured when putting a value with Epics command %s",
                         str(self.name()),
                         self.pv_name,

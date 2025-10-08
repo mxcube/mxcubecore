@@ -202,10 +202,11 @@ class ISARAMaint(HardwareObject):
 
             # this is not an ISARA command error, pass on the exception
             if isara_err is None:
-                raise ex
+                raise
 
-            state = "on" if power_on else "off"
-            raise RuntimeError(f"Can't power {state} sample changer, {isara_err}.")
+            raise RuntimeError(
+                f"Can't power {'on' if power_on else 'off'} sample changer, {isara_err}."
+            )
 
     def send_command(self, cmd_name, _args=None):
         if cmd_name == "PowerOn":

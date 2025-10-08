@@ -108,7 +108,7 @@ def instanciate_class(module_name, class_name, object_name):
         try:
             class_obj = getattr(module, class_name)
         except AttributeError:
-            logging.getLogger("HWR").error(
+            logging.getLogger("HWR").exception(
                 "No class %s in module %s", class_name, module_name
             )
         else:

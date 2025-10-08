@@ -127,8 +127,8 @@ class ISPyBAbstractLIMS(AbstractLims):
         try:
             self.adapter._shipping._shipping.service.echo()
             return True
-        except Exception as e:
-            logging.getLogger("ispyb_client").error(str(e))
+        except Exception:
+            logging.getLogger("ispyb_client").exception("")
 
         return False
 

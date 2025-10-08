@@ -51,8 +51,7 @@ class MicrodiffActuator(AbstractActuator):
 
             self.states = ast.literal_eval(states)
         try:
-            tt = float(self.get_property("timeout"))
-            self.timeout = tt
+            self.timeout = float(self.get_property("timeout"))
         except TypeError:
             self.log.exception("")
 
@@ -104,8 +103,8 @@ class MicrodiffActuator(AbstractActuator):
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)
                 self.value_changed(self.state_attr.get_value())
-            except Exception as e:
-                logging.getLogger("user_level_log").error(
+            except Exception:
+                logging.getLogger("user_level_log").exception(
                     "Cannot put %s in", self.username
                 )
         else:
@@ -122,8 +121,8 @@ class MicrodiffActuator(AbstractActuator):
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)
                 self.value_changed(self.state_attr.get_value())
-            except Exception as e:
-                logging.getLogger("user_level_log").error(
+            except Exception:
+                logging.getLogger("user_level_log").exception(
                     "Cannot put %s out", self.username
                 )
         else:

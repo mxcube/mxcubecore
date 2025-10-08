@@ -136,7 +136,7 @@ class MAXIVAutoProcessing(HardwareObject):
                     try:
                         mod.parse_and_execute()
                     except Exception as ex:
-                        self.log.error(
+                        self.log.exception(
                             "[MAXIVAutoprocessing] Module %s  execution error." % module
                         )
                         print(module, ex)

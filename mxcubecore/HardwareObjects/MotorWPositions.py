@@ -66,7 +66,7 @@ class MotorWPositions(AbstractMotor, Device):
             role = roles[0]
             self.motor = self.get_object_by_role(role)
         except KeyError:
-            self.log.error("MotorWPositions: motor not defined")
+            self.log.exception("MotorWPositions: motor not defined")
 
             self.log.exception("")
             return
@@ -79,7 +79,7 @@ class MotorWPositions(AbstractMotor, Device):
         try:
             positions = self["positions"]
         except Exception:
-            logging.getLogger().error("MotorWPositions: no positions defined")
+            logging.getLogger().exception("MotorWPositions: no positions defined")
         else:
             for position in positions:
                 name = position.get_property("name")

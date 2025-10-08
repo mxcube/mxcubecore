@@ -711,7 +711,7 @@ class AbstractOnlineProcessing(HardwareObject):
                 % self.params_dict["csv_file_path"]
             )
         except Exception:
-            log.error(
+            log.exception(
                 "Online processing: Unable to store raw data in %s"
                 % self.params_dict["csv_file_path"]
             )

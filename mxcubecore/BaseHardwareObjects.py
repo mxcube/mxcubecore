@@ -690,7 +690,7 @@ class HardwareObjectMixin(CommandContainer):
             try:
                 _attr = getattr(self, attr_name)
             except AttributeError:
-                logging.getLogger("HWR").error(
+                logging.getLogger("HWR").exception(
                     f"{attr_name} configured as exported for {self.name} but not implemented"
                 )
                 continue

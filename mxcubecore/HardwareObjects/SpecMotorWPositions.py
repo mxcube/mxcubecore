@@ -10,7 +10,7 @@ class SpecMotorWPositions(SpecMotor.SpecMotor):
         try:
             positions = self["positions"]
         except Exception:
-            self.log.error("%s does not define positions.", str(self.name()))
+            self.log.exception("%s does not define positions.", str(self.name()))
         else:
             for definedPosition in positions:
                 positionUsername = definedPosition.get_property("username")

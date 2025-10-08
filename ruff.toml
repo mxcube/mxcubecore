@@ -68,15 +68,12 @@ convention = "google"
     "TD002",
     "TD003",
     "TD004",
-    "TRY400",
 ]
 "mxcubecore/Command/Epics.py" = [
     "ARG002",
     "BLE001",
     "C901",
     "E501",
-    "E722",
-    "F841",
     "FBT002",
     "PLR0913",
     "RET502",
@@ -85,7 +82,6 @@ convention = "google"
     "RET505",
     "S307",
     "SLF001",
-    "TRY400",
 ]
 "mxcubecore/Command/Exporter.py" = [
     "ARG001",
@@ -124,7 +120,6 @@ convention = "google"
     "RUF005",
     "RUF012",
     "SLF001",
-    "TRY400",
 ]
 "mxcubecore/Command/Sardana.py" = [
     "A004",
@@ -147,7 +142,6 @@ convention = "google"
     "RET504",
     "RUF012",
     "SLF001",
-    "TRY400",
 ]
 "mxcubecore/Command/Spec.py" = [
     "I001",
@@ -168,7 +162,6 @@ convention = "google"
     "RET505",
     "S307",
     "TID252",
-    "TRY400",
 ]
 "mxcubecore/Command/Tango.py" = [
     "A004",
@@ -191,7 +184,6 @@ convention = "google"
     "SLF001",
     "TD002",
     "TD003",
-    "TRY400",
 ]
 "mxcubecore/Command/Tine.py" = [
     "A002",
@@ -214,7 +206,6 @@ convention = "google"
     "SIM108",
     "TRY201",
     "TRY300",
-    "TRY400",
     "TRY401",
 ]
 "mxcubecore/Command/__init__.py" = [
@@ -283,7 +274,6 @@ convention = "google"
     "SIM105",
     "SIM910",
     "SLF001",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjectFileParser.py" = [
     "ARG002",
@@ -314,7 +304,6 @@ convention = "google"
     "TD002",
     "TD003",
     "TD004",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/ALBA/ALBAAutoProcessing.py" = [
     "DTZ005",
@@ -1808,14 +1797,12 @@ convention = "google"
     "F841",
     "FBT002",
     "N802",
-    "TRY300",
 ]
 "mxcubecore/HardwareObjects/ExporterMotor.py" = [
     "BLE001",
     "FBT003",
     "G002",
     "SIM103",
-    "TRY300",
 ]
 "mxcubecore/HardwareObjects/ExporterNState.py" = [
     "SIM108",
@@ -1881,7 +1868,6 @@ convention = "google"
     "TD003",
     "TD004",
     "TRY301",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/Gphl/CollectEmulator.py" = [
     "C400",
@@ -2092,7 +2078,6 @@ convention = "google"
     "FBT001",
     "FBT003",
     "TRY002",
-    "TRY201",
 ]
 "mxcubecore/HardwareObjects/LNLS/EPICSActuator.py" = [
     "E501",
@@ -2277,8 +2262,6 @@ convention = "google"
     "TD003",
     "TD004",
     "TD005",
-    "TRY300",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/LimaEigerDetector.py" = [
     "ARG002",
@@ -2311,8 +2294,6 @@ convention = "google"
     "S110",
     "S602",
     "SIM105",
-    "TRY300",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/MAXIV/ISPyBLims.py" = [
     "BLE001",
@@ -2342,7 +2323,6 @@ convention = "google"
     "S605",
     "SIM102",
     "T201",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/MAXIV/MachInfo.py" = [
     "EXE002",
@@ -2356,8 +2336,6 @@ convention = "google"
     "ERA001",
     "G001",
     "N802",
-    "TRY300",
-    "TRY301",
 ]
 "mxcubecore/HardwareObjects/MD3UP.py" = [
     "ARG002",
@@ -2373,7 +2351,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/MachCurrent.py" = [
     "E501",
-    "TRY401",
 ]
 "mxcubecore/HardwareObjects/Mar225.py" = [
     "ARG002",
@@ -2437,13 +2414,10 @@ convention = "google"
     "T201",
 ]
 "mxcubecore/HardwareObjects/MicrodiffActuator.py" = [
-    "BLE001",
     "C402",
-    "F841",
     "FBT002",
     "PLR5501",
     "RET508",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/MicrodiffAperture.py" = [
     "B904",
@@ -2464,7 +2438,6 @@ convention = "google"
     "N802",
     "PLR5501",
     "RET508",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/MicrodiffKappaMotor.py" = [
     "E501",
@@ -2532,7 +2505,6 @@ convention = "google"
     "TD002",
     "TD003",
     "TRY301",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/MiniKappaCorrection.py" = [
     "N802",
@@ -2552,7 +2524,6 @@ convention = "google"
     "N802",
     "N803",
     "RUF021",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/MotorsNPosition.py" = [
     "ARG002",
@@ -2574,7 +2545,6 @@ convention = "google"
     "RET505",
     "S112",
     "T201",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/Native/__init__.py" = [
     "ARG001",
@@ -2710,7 +2680,6 @@ convention = "google"
     "TD005",
     "TRY002",
     "TRY301",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/QtInstanceServer.py" = [
     "ARG002",
@@ -2733,7 +2702,6 @@ convention = "google"
     "S110",
     "S301",
     "TRY203",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/QtLimaVideo.py" = [
     "BLE001",
@@ -2765,7 +2733,6 @@ convention = "google"
     "SIM101",
     "SLF001",
     "TRY201",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/QueueModel.py" = [
     "A002",
@@ -3370,7 +3337,6 @@ convention = "google"
     "N802",
     "N803",
     "N806",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/SpecMotorWSpecPositions.py" = [
     "E501",
@@ -3393,7 +3359,6 @@ convention = "google"
     "F841",
     "N802",
     "PERF203",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/SpecState.py" = [
     "BLE001",
@@ -3403,7 +3368,6 @@ convention = "google"
     "N802",
     "PLR1714",
     "SIM102",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/StateMachine.py" = [
     "C901",
@@ -3429,7 +3393,6 @@ convention = "google"
     "N803",
     "PLR5501",
     "SIM102",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/TangoLimaVideoDevice.py" = [
     "RET503",
@@ -3530,7 +3493,6 @@ convention = "google"
     "SIM105",
     "T201",
     "TRY300",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/XSDataAutoprocv1_0.py" = [
     "ARG002",
@@ -3722,7 +3684,6 @@ convention = "google"
     "E501",
     "G002",
     "S307",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractAuthenticator.py" = [
     "N805",
@@ -3872,7 +3833,6 @@ convention = "google"
     "TD002",
     "TD003",
     "TD004",
-    "TRY400",
     "TRY401",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractProcedure.py" = [
@@ -3899,7 +3859,6 @@ convention = "google"
     "SIM102",
     "SLF001",
     "TRY002",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractSampleView.py" = [
     "ERA001",
@@ -3923,7 +3882,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/abstract/AbstractXRFSpectrum.py" = [
     "PLR0913",
     "TRY300",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractXrayCentring.py" = [
     "EM101",
@@ -3939,7 +3897,6 @@ convention = "google"
     "SLF001",
     "TRY002",
     "TRY300",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/abstract/ISPyBDataAdapter.py" = [
     "A002",
@@ -4078,7 +4035,6 @@ convention = "google"
     "RET503",
     "S307",
     "SIM115",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/mockup/CatsMaintMockup.py" = [
     "BLE001",
@@ -4580,7 +4536,6 @@ convention = "google"
     "SLF001",
     "TRY203",
     "TRY301",
-    "TRY400",
 ]
 "mxcubecore/queue_entry/characterisation.py" = [
     "BLE001",

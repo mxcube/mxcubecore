@@ -885,9 +885,8 @@ class SampleChanger(Container, HardwareObject):
         try:
             msg = f"Task ended. Return value: {task.get()}"
             logging.debug(msg)
-        except Exception as err:
-            msg = f"Error while executing sample changer task: {err}"
-            logging.error(msg)
+        except Exception:
+            logging.exception("Error while executing sample changer task")
 
     def _set_state(self, state=None, status=None):
         """Set the state"""

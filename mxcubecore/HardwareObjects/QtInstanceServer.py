@@ -188,7 +188,7 @@ class QtInstanceServer(Procedure):
         except Exception:
             self.instanceClient = None
             if not quiet:
-                self.log.error("InstanceServer: cannot connect to server")
+                self.log.exception("InstanceServer: cannot connect to server")
             self.emit("clientInitialized", (False, (None, None), None, quiet))
         else:
             my_login = pwd.getpwuid(os.getuid())[0]

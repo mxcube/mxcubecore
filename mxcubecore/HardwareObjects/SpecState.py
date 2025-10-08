@@ -26,7 +26,7 @@ class SpecState(Procedure):
             )
         except AttributeError:
             self.specConnection = None
-            self.log.error("SpecState: you must specify a spec version")
+            self.log.exception("SpecState: you must specify a spec version")
         else:
             SpecClient.SpecEventsDispatcher.connect(
                 self.specConnection, "connected", self.specConnected

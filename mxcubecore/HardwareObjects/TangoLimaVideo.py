@@ -77,7 +77,7 @@ class TangoLimaVideo(BaseHardwareObjects.HardwareObject):
             self.device.ping()
         except PyTango.DevFailed as traceback:
             last_error = traceback[-1]
-            self.log.error("%s: %s", str(self.name()), last_error.desc)
+            self.log.exception("%s: %s", str(self.name()), last_error.desc)
 
             self.device = BaseHardwareObjects.Null()
         else:

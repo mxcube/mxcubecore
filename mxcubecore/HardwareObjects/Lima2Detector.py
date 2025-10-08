@@ -117,7 +117,7 @@ class Lima2Detector(AbstractDetector):
             self.__device.registerStateLogger(on_state_change)
         except (ConnectionError, AttributeError):
             self.update_state(HardwareObjectState.FAULT)
-            _logger.error("Could not connect to detector %s" % lima_ctrl_device)
+            _logger.exception("Could not connect to detector %s", lima_ctrl_device)
             self._emit_status()
 
     def has_shutterless(self):
@@ -152,9 +152,9 @@ class Lima2Detector(AbstractDetector):
     def last_image_saved(self):
         try:
             img = 0  # TODO
-            return img
         except Exception:
             return 0
+        return img
 
     def get_deadtime(self):
         return float(self.get_property("deadtime"))

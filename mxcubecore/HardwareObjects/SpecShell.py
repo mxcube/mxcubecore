@@ -52,7 +52,7 @@ class SpecShell(HardwareObject):
             )
         except AttributeError:
             self.specConnection = None
-            self.log.error("SpecShell: you must specify a spec version")
+            self.log.exception("SpecShell: you must specify a spec version")
         else:
             self.specOutput.connectToSpec(
                 "output/tty",

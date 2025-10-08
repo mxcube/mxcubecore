@@ -580,8 +580,8 @@ class MiniDiff(HardwareObject):
                 except:
                     self.log.exception("MD script for sample centering had a problem")
 
-        except KeyError as diag:
-            self.log.error("MiniDiff: unknown centring method (%s)" % str(diag))
+        except KeyError:
+            self.log.exception("MiniDiff: unknown centring method")
             self.emitCentringFailed()
         else:
             try:
@@ -600,8 +600,8 @@ class MiniDiff(HardwareObject):
         try:
             self.wait_ready(30)
             fun = self.centringMethods[method]
-        except KeyError as diag:
-            self.log.error("MiniDiff: unknown centring method (%s)" % str(diag))
+        except KeyError:
+            self.log.exception("MiniDiff: unknown centring method")
             self.emitCentringFailed()
         else:
             try:
@@ -826,7 +826,7 @@ class MiniDiff(HardwareObject):
         try:
             res = auto_centring_procedure.get()
         except Exception:
-            logging.error("Could not complete automatic centring")
+            logging.exception("Could not complete automatic centring")
             logging.getLogger("user_level_log").info("Automatic loop centring failed")
             self.emitCentringFailed()
             self.reject_centring()

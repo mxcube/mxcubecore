@@ -119,20 +119,22 @@ class MD2Motor(AbstractMotor):
             low_lim, hi_lim = map(
                 float, self.get_dynamic_limits_cmd(self.actuator_name)
             )
-            if low_lim == float(1e999) or hi_lim == float(1e999):
-                raise ValueError
-            return low_lim, hi_lim
         except Exception:
-            return (-1e4, 1e4)
+            low_lim, hi_lim = -1e4, 1e4
+        else:
+            if low_lim == float(1e999) or hi_lim == float(1e999):
+                low_lim, hi_lim = -1e4, 1e4
+        return low_lim, hi_lim
 
     def get_limits(self):
         try:
             low_lim, hi_lim = map(float, self.get_limits_cmd(self.actuator_name))
-            if low_lim == float(1e999) or hi_lim == float(1e999):
-                raise ValueError
-            return low_lim, hi_lim
         except Exception:
-            return (-1e4, 1e4)
+            low_lim, hi_lim = -1e4, 1e4
+        else:
+            if low_lim == float(1e999) or hi_lim == float(1e999):
+                low_lim, hi_lim = -1e4, 1e4
+        return low_lim, hi_lim
 
     def get_value(self):
         ret = self.position_attr.get_value()

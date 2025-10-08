@@ -86,7 +86,7 @@ class TacoCommand(CommandObject):
             try:
                 ret = eval("self.device.%s(*%s)" % (self.command, args))
             except Exception:
-                logging.getLogger("HWR").error(
+                logging.getLogger("HWR").exception(
                     "%s: an error occured when calling Taco command %s",
                     str(self.name()),
                     self.command,

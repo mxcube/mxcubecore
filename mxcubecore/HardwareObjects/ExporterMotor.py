@@ -216,9 +216,9 @@ class ExporterMotor(AbstractMotor):
             if _high == float("inf"):
                 _high = sys.float_info.max
 
-            return _low, _high
         except Exception:
             return self._nominal_limits
+        return _low, _high
 
     def get_limits(self):
         """Returns motor low and high limits.

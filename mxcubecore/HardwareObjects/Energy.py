@@ -84,10 +84,11 @@ class Energy(HardwareObject):
         if self.energy_motor is not None:
             try:
                 self.en_lims = self.energy_motor.get_limits()
-                return self.en_lims
             except Exception:
                 self.log.exception("EnergyHO: could not read energy motor limits")
                 return None
+            else:
+                return self.en_lims
         return None
 
     def get_wavelength_limits(self):

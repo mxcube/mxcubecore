@@ -291,7 +291,7 @@ class BeamlineTestMockup(HardwareObject):
                 "BeamlineTest: Test result written in file %s" % html_filename
             )
         except Exception:
-            self.log.error(
+            self.log.exception(
                 "BeamlineTest: Unable to generate html report file %s" % html_filename
             )
 

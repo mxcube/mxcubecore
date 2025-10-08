@@ -116,7 +116,7 @@ class MicrodiffInOut(HardwareObject):
                     self._wait_ready(timeout)
                 self.value_changed(self.state_attr.get_value())
             except Exception:
-                logging.getLogger("user_level_log").error(
+                logging.getLogger("user_level_log").exception(
                     "Cannot put %s in", self.username
                 )
         else:
@@ -133,7 +133,7 @@ class MicrodiffInOut(HardwareObject):
                     self._wait_ready(timeout)
                 self.value_changed(self.state_attr.get_value())
             except Exception:
-                logging.getLogger("user_level_log").error(
+                logging.getLogger("user_level_log").exception(
                     "Cannot put %s out", self.username
                 )
         else:

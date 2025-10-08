@@ -179,7 +179,7 @@ class AbstractXRFSpectrum(HardwareObject):
                 return True
             except OSError as err:
                 msg += f": {err}"
-                logging.getLogger().error(msg)
+                logging.getLogger().exception(msg)
                 self.spectrum_status_change("Error creating directory")
                 self.spectrum_command_aborted()
 

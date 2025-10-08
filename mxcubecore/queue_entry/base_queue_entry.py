@@ -732,7 +732,7 @@ class SampleQueueEntry(BaseQueueEntry):
                             + " sample changer: "
                             + str(e)
                         )
-                        log.error(msg)
+                        log.exception(msg)
                         self.status = QUEUE_ENTRY_STATUS.FAILED
                         if isinstance(e, QueueSkipEntryException):
                             raise

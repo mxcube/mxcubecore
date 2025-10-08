@@ -390,7 +390,7 @@ class CommandContainer:
 
                 new_channel = SpecChannel(channel_name, channel, **attributes_dict)
             except Exception:
-                logging.getLogger().error(
+                logging.getLogger().exception(
                     "%s: cannot add channel %s (hint: check attributes)",
                     self.id,
                     channel_name,
@@ -407,7 +407,7 @@ class CommandContainer:
 
                 new_channel = TacoChannel(channel_name, channel, **attributes_dict)
             except Exception:
-                logging.getLogger().error(
+                logging.getLogger().exception(
                     "%s: cannot add channel %s (hint: check attributes)",
                     self.id,
                     channel_name,
@@ -424,7 +424,7 @@ class CommandContainer:
 
                 new_channel = TangoChannel(channel_name, channel, **attributes_dict)
             except ConnectionError:
-                logging.getLogger().error(
+                logging.getLogger().exception(
                     "%s: could not connect to device server %s (hint: is it running ?)",
                     self.id,
                     attributes_dict["tangoname"],
@@ -591,7 +591,7 @@ class CommandContainer:
         """
         try:
             return self.__commands.get(cmd_name)
-        except Exception as e:
+        except Exception:
             return None
 
     def get_commands(self) -> Generator[CommandObject, None, None]:
@@ -654,12 +654,8 @@ class CommandContainer:
                 cmd_name = attributes_dict["name"]
                 cmd_type = attributes_dict["type"]
                 cmd = attributes_dict["toexecute"]
-            except KeyError as err:
-                logging.getLogger().error(
-                    '%s: cannot add command: missing "%s" property',
-                    self.id,
-                    err.args[0],
-                )
+            except KeyError:
+                logging.getLogger().exception("%s: cannot add command", self.id)
                 return
             else:
                 del attributes_dict["name"]
@@ -711,7 +707,7 @@ class CommandContainer:
 
                 new_command = TangoCommand(cmd_name, cmd, **attributes_dict)
             except ConnectionError:
-                logging.getLogger().error(
+                logging.getLogger().exception(
                     "%s: could not connect to device server %s (hint: is it running ?)",
                     self.id,
                     attributes_dict["tangoname"],
@@ -818,7 +814,7 @@ class CommandContainer:
                 try:
                     new_command = SardanaMacro(cmd_name, cmd, **attributes_dict)
                 except ConnectionError:
-                    logging.getLogger().error(
+                    logging.getLogger().exception(
                         "%s: could not connect to sardana door %s (hint: is it running ?)",
                         self.id,
                         attributes_dict["doorname"],
@@ -834,7 +830,7 @@ class CommandContainer:
                 try:
                     new_command = SardanaCommand(cmd_name, cmd, **attributes_dict)
                 except ConnectionError:
-                    logging.getLogger().error(
+                    logging.getLogger().exception(
                         "%s: could not connect to sardana device %s (hint: is it running ?)",
                         self.id,
                         taurusname,
@@ -862,7 +858,7 @@ class CommandContainer:
 
                 new_command = PoolCommand(cmd_name, cmd, **attributes_dict)
             except ConnectionError:
-                logging.getLogger().error(
+                logging.getLogger().exception(
                     "%s: could not connect to device server %s (hint: is it running ?)",
                     self.id,
                     attributes_dict["tangoname"],
@@ -928,7 +924,7 @@ class CommandContainer:
                                 valuefrom=value_from,
                             )
                         except AttributeError:
-                            logging.getLogger().error(
+                            logging.getLogger().exception(
                                 '%s, command "%s": could not add argument %d, missing type or name',
                                 self.id,
                                 cmd_name,

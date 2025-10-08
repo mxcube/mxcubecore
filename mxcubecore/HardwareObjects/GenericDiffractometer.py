@@ -830,8 +830,10 @@ class GenericDiffractometer(HardwareObject):
 
         try:
             centring_method = self.centring_methods[method]
-        except KeyError as diag:
-            self.log.error("Diffractometer: unknown centring method (%s)" % str(diag))
+        except KeyError:
+            logging.getLogger("HWR").exception(
+                "Diffractometer: unknown centring method"
+            )
             self.emit_centring_failed()
         else:
             try:

@@ -162,7 +162,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             for qe in self._queue_entry_list:
                 try:
                     self.__execute_entry(qe)
-                except (base_queue_entry.QueueAbortedException, Exception) as ex:
+                except Exception as ex:
                     try:
                         qe.handle_exception(ex)
                         self.stop()
@@ -170,15 +170,11 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                         self.log.exception("")
 
                     if isinstance(ex, base_queue_entry.QueueAbortedException):
-                        logging.getLogger("user_level_log").warning(
-                            "Queue execution was aborted, " + str(ex)
-                        )
+                        self.log.warning("Queue execution was aborted", exc_info=True)
                     else:
-                        logging.getLogger("user_level_log").error(
-                            "Queue execution failed with: " + str(ex)
-                        )
+                        self.log.exception("Queue execution failed")
 
-                    raise ex
+                    raise
         finally:
             self._running = False
             self.emit("queue_execution_finished", (None,))
