@@ -83,17 +83,10 @@ class SecureXMLRpcRequestHandler(SimpleXMLRPCRequestHandler):
                 response = self.server._marshaled_dispatch(
                     data, getattr(self, "_dispatch", None)
                 )
-            except Exception as e:  # This should only happen if the module is buggy
+            except Exception:  # This should only happen if the module is buggy
                 # internal error, report as HTTP server error
                 self.send_response(500)
-
-                # Send information about the exception if requested
-                if (
-                    hasattr(self.server, "_send_traceback_header")
-                    and self.server._send_traceback_header
-                ):
-                    self.send_header("X-exception", str(e))
-                    self.send_header("X-traceback", traceback.format_exc())
+                logging.getLogger("HWR").exception("Exception during request.")
 
                 self.end_headers()
             else:

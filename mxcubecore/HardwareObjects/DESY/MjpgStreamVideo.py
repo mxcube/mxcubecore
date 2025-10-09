@@ -25,7 +25,6 @@ __email__ = "jan.meyer@desy.de"
 
 
 import json
-import traceback
 
 import gevent
 
@@ -39,7 +38,6 @@ try:
 
     redis_flag = True
 except ImportError:
-    traceback.print_exc()
     redis_flag = False
 
 from mxcubecore.HardwareObjects.abstract.AbstractVideoDevice import AbstractVideoDevice

@@ -2,7 +2,6 @@
 
 import collections
 import logging
-import traceback
 import weakref
 
 
@@ -122,15 +121,9 @@ class BoundMethodWeakref(object):
                     if isinstance(function, collections.abc.Callable):
                         function(self)
                 except Exception:
-                    try:
-                        traceback.print_exc()
-                    except AttributeError as e:
-                        print(
-                            (
-                                "Exception during saferef %s "
-                                "cleanup function %s: %s" % (self, function, e)
-                            )
-                        )
+                    logging.getLogger("HWR").exception(
+                        f"Exception during `saferef` {self} cleanup function {function}"
+                    )
 
         self.deletion_methods = [on_delete]
         self.key = self.calculate_key(target)

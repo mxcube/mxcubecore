@@ -181,9 +181,6 @@ class SardanaMacro(CommandObject, SardanaObject, ChannelObject):
         try:
             fullcmd = self.macro_format + " " + " ".join([str(a) for a in args])
         except Exception:
-            import traceback
-
-            logging.getLogger("HWR").info(traceback.format_exc())
             logging.getLogger("HWR").info(
                 "  - Wrong format for macro arguments. Macro is %s / args are (%s)"
                 % (self.macro_format, str(args))
@@ -294,12 +291,7 @@ class SardanaMacro(CommandObject, SardanaObject, ChannelObject):
             logging.getLogger("HWR").debug("Cannot connect to door %s" % self.doorname)
             self.emit("commandFailed", (-1, str(self.name())))
         except Exception:
-            import traceback
-
-            logging.getLogger("HWR").debug(
-                "SardanaMacro / event handling problem. Uggh. %s"
-                % traceback.format_exc()
-            )
+            logging.getLogger("HWR").exception("SardanaMacro / event handling problem.")
             self.emit("commandFailed", (-1, str(self.name())))
 
     def abort(self):
@@ -421,10 +413,8 @@ class SardanaChannel(ChannelObject, SardanaObject):
                     self.info.maxval = maxval.magnitude
 
         except Exception:
-            import traceback
-
             logging.getLogger("HWR").info("info initialized. Cannot get limits")
-            logging.getLogger("HWR").info("%s" % traceback.format_exc())
+            logging.getLogger("HWR").exception("")
 
         # prepare polling
         # if the polling value is a number set it as the taurus polling period
@@ -454,9 +444,7 @@ class SardanaChannel(ChannelObject, SardanaObject):
             self.info.minval = limits[0].magnitude
             self.info.maxval = limits[1].magnitude
         except Exception:
-            import traceback
-
-            logging.getLogger("HWR").info("%s" % traceback.format_exc())
+            logging.getLogger("HWR").exception("")
         return self.info
 
     def update(self, event):

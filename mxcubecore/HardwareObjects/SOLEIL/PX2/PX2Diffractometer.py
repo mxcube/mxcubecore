@@ -23,7 +23,6 @@ import logging
 import os
 import pickle
 import time
-import traceback
 from math import sqrt
 
 import beam_align
@@ -812,7 +811,6 @@ class PX2Diffractometer(GenericDiffractometer):
         # motors[motor_role] = motor_pos[motor_obj]
         # except KeyError:
 
-        # self.log.exception('convert_from_obj_to_name %s' % traceback.format_exc())
         # if motor_obj:
         # motors[motor_role] = motor_obj.get_value()
 
@@ -912,7 +910,7 @@ class PX2Diffractometer(GenericDiffractometer):
                         c[key] = self.motor_hwobj_dict[key].get_value()
                     except Exception:
                         # self.log.info('motor_positions_to_screen exception key %s' % key)
-                        self.log.info(traceback.format_exc())
+                        self.log.exception("")
 
             if "kappa" in c and c["kappa"] is None:
                 kappa = self.motor_hwobj_dict["kappa"].get_value()
@@ -1402,14 +1400,14 @@ class PX2Diffractometer(GenericDiffractometer):
         try:
             self.nclicks = int(nclicks)
         except Exception:
-            self.log.exception(traceback.format_exc())
+            self.log.exception("")
 
     def set_step(self, step):
         self.log.info("PX2Diffractometer: centring step changed: %s" % step)
         try:
             self.step = float(step)
         except Exception:
-            self.log.exception(traceback.format_exc())
+            self.log.exception("")
 
     def set_centring_method(self, centring_method):
         self.log.info(
@@ -1418,7 +1416,7 @@ class PX2Diffractometer(GenericDiffractometer):
         try:
             self.centring_method = centring_method
         except Exception:
-            self.log.exception(traceback.format_exc())
+            self.log.exception("")
 
     def is_ready(self):
         """

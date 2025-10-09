@@ -29,7 +29,6 @@ import socket
 import subprocess
 import sys
 import time
-import traceback
 
 import gevent
 import h5py
@@ -329,7 +328,7 @@ class P11Collect(AbstractCollect):
                 )
 
         except RuntimeError:
-            self.log.error(traceback.format_exc())
+            self.log.exception("")
         finally:
             self.acquisition_cleanup()
 
@@ -783,7 +782,7 @@ class P11Collect(AbstractCollect):
             HWR.beamline.diffractometer.stop_motion()
 
         except RuntimeError:
-            self.log.error(traceback.format_exc())
+            self.log.exception("")
 
     def get_or_create_group(self, parent_group, group_name):
         """Gets or creates a group within a parent group.

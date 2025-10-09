@@ -450,10 +450,8 @@ class PX1Collect(AbstractCollect, HardwareObject):
                 )
                 return False
         except Exception:
-            import traceback
-
             logging.error("PX1Collect: Cannot generate thumbnails for %s" % filename)
-            logging.error(traceback.format_exc())
+            logging.exception("")
             return False
 
     ## generate snapshots and data thumbnails (END) ##
@@ -487,12 +485,10 @@ class PX1Collect(AbstractCollect, HardwareObject):
         try:
             os.chmod(process_dir, 0o777)
         except Exception:
-            import traceback
-
             self.log.error(
                 "PX1Collect: Error changing permissions for PROCESS directory"
             )
-            self.log.error(traceback.format_exc())
+            self.log.exception()
 
         self.create_goimg_file(process_dir)
 

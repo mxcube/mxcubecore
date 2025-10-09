@@ -128,8 +128,6 @@ class TangoDCMotor(HardwareObject):
             if numpy.inf in limits:
                 limits = numpy.array([-10000, 10000])
         except Exception:
-            # import traceback
-            # self.log.info("TangoDCMotor.get_limits: Cannot get limits for %s.\nException %s " % (self.motor_name, traceback.print_exc()))
             if self.motor_name in [
                 "detector_distance",
                 "detector_horizontal",
