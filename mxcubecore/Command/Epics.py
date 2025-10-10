@@ -72,7 +72,7 @@ class EpicsCommand(CommandObject):
             self.read_as_str,
         )
         self.pv = epics.PV(pv_name, auto_monitor=self.auto_monitor)
-        time.sleep(0.01)
+        time.sleep(0.1)
         self.pv_connected = self.pv.connect(timeout=0.1)
 
         if self.pv_connected:
