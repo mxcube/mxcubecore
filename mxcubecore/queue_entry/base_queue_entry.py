@@ -915,7 +915,12 @@ def center_before_collect(view, dm, queue, sample_view):
 
     log.info("Please select, or center on a new position and press continue.")
 
-    queue.pause(True)
+    # queue.pause(True)
+    #
+    # print(
+    #     f'@=@=@ base_queue_entry queue pause'
+    # )
+
     pos, shape = None, None
 
     if len(sample_view.get_selected_shapes()):
@@ -931,5 +936,5 @@ def center_before_collect(view, dm, queue, sample_view):
 
     view(1, "Centring completed")
     log.info("Centring completed")
-
+    queue.pause(False)
     return queue_model_objects.CentredPosition(pos), shape

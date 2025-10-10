@@ -90,6 +90,9 @@ class SampleCentringQueueEntry(BaseQueueEntry):
             "Please center a new or select an existing point and press continue."
         )
         self.get_queue_controller().pause(True)
+        print(
+            f'@=@=@ samplecentring queue pause'
+        )
         pos = None
 
         shapes = list(HWR.beamline.sample_view.get_selected_shapes())
