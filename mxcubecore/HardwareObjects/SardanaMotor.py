@@ -208,9 +208,9 @@ class SardanaMotor(AbstractMotor):
                 self.position_channel.info.minval,
                 self.position_channel.info.maxval,
             )
-            return self._nominal_limits
         except Exception:
             return (None, None)
+        return self._nominal_limits
 
     def get_value(self):
         """

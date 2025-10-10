@@ -204,9 +204,6 @@ convention = "google"
     "RET505",
     "RUF012",
     "SIM108",
-    "TRY201",
-    "TRY300",
-    "TRY401",
 ]
 "mxcubecore/Command/__init__.py" = [
     "E501",
@@ -249,7 +246,6 @@ convention = "google"
     "RET503",
     "RET504",
     "SIM102",
-    "TRY300",
 ]
 "mxcubecore/CommandContainer.py" = [
     "A001",
@@ -700,7 +696,6 @@ convention = "google"
     "SIM910",
     "T201",
     "TRY002",
-    "TRY300",
 ]
 "mxcubecore/HardwareObjects/CentringMath.py" = [
     "A002",
@@ -2048,7 +2043,6 @@ convention = "google"
     "RUF013",
     "SIM108",
     "T201",
-    "TRY300",
 ]
 "mxcubecore/HardwareObjects/HarvesterMaintenance.py" = [
     "E501",
@@ -2057,7 +2051,6 @@ convention = "google"
     "RET504",
     "SLF001",
     "T201",
-    "TRY300",
 ]
 "mxcubecore/HardwareObjects/ICATLIMS.py" = [
     "ARG002",
@@ -2304,7 +2297,6 @@ convention = "google"
     "ISC003",
     "S113",
     "TRY002",
-    "TRY300",
 ]
 "mxcubecore/HardwareObjects/MAXIV/MAXIVAutoProcessing.py" = [
     "ARG002",
@@ -2467,7 +2459,6 @@ convention = "google"
     "RET505",
     "RUF012",
     "SIM102",
-    "TRY300",
     "TRY301",
 ]
 "mxcubecore/HardwareObjects/MicrodiffSamplePseudo.py" = [
@@ -2584,7 +2575,6 @@ convention = "google"
     "SLF001",
     "TRY002",
     "TRY004",
-    "TRY300",
 ]
 "mxcubecore/HardwareObjects/PlateManipulatorMaintenance.py" = [
     "ERA001",
@@ -3294,7 +3284,6 @@ convention = "google"
     "G001",
     "PIE796",
     "RUF013",
-    "TRY300",
 ]
 "mxcubecore/HardwareObjects/SecureXMLRpcRequestHandler.py" = [
     "BLE001",
@@ -3492,7 +3481,6 @@ convention = "google"
     "S110",
     "SIM105",
     "T201",
-    "TRY300",
 ]
 "mxcubecore/HardwareObjects/XSDataAutoprocv1_0.py" = [
     "ARG002",
@@ -3881,7 +3869,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractXRFSpectrum.py" = [
     "PLR0913",
-    "TRY300",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractXrayCentring.py" = [
     "EM101",
@@ -3896,7 +3883,6 @@ convention = "google"
     "SIM102",
     "SLF001",
     "TRY002",
-    "TRY300",
 ]
 "mxcubecore/HardwareObjects/abstract/ISPyBDataAdapter.py" = [
     "A002",
@@ -3922,7 +3908,6 @@ convention = "google"
     "T201",
     "TRY201",
     "TRY203",
-    "TRY300",
     "TRY401",
 ]
 "mxcubecore/HardwareObjects/abstract/ISPyBValueFactory.py" = [
@@ -3965,7 +3950,6 @@ convention = "google"
     "ARG002",
     "PLR0913",
     "S310",
-    "TRY300",
 ]
 "mxcubecore/HardwareObjects/abstract/sample_changer/Sample.py" = [
     "ARG002",

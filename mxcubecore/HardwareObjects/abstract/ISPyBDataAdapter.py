@@ -262,6 +262,7 @@ class ISPyBDataAdapter:
     def find_sessions_by_proposal_and_beamLine(
         self, code: str, number: str, beamline: str
     ) -> List[Session]:
+        sessions: List[Session] = []
         try:
             self._debug(
                 "find_sessions_by_proposal_and_beamLine. code=%s number=%s beamline=%s"
@@ -271,14 +272,12 @@ class ISPyBDataAdapter:
             responses = self._collection.service.findSessionsByProposalAndBeamLine(
                 code.upper(), number, beamline
             )
-            sessions: List[Session] = []
             for response in responses:
                 sessions.append(self.__to_session(asdict(response)))
-            return sessions
         except Exception as e:
             self._exception(str(e))
             # raise e
-        return []
+        return sessions
 
     def _is_session_scheduled_today(self, session: Session) -> bool:
         now = datetime.now()
@@ -387,16 +386,17 @@ class ISPyBDataAdapter:
                     #  synchrotronCurrent (float | str): machine current,
                     #  temperature (float): temperature of the cryo system
                     image_id = self._collection.service.storeOrUpdateImage(image_dict)
-                    logging.getLogger("HWR").debug(
-                        "  - storing image in lims ok. id : %s" % image_id
-                    )
-                    return image_id
                 except WebFault:
                     logging.getLogger("ispyb_client").exception(
                         "ISPyBClient: exception in store_image"
                     )
-                except URLError as e:
-                    logging.getLogger("ispyb_client").exception(e)
+                except URLError:
+                    logging.getLogger("ispyb_client").exception("")
+                else:
+                    logging.getLogger("HWR").debug(
+                        "  - storing image in lims ok. id : %s" % image_id
+                    )
+                    return image_id
             else:
                 logging.getLogger("ispyb_client").error(
                     "Error in store_image: "
@@ -483,10 +483,10 @@ class ISPyBDataAdapter:
             dc = utf_encode(asdict(dc_response))
             dc["startTime"] = datetime.strftime(dc["startTime"], "%Y-%m-%d %H:%M:%S")
             dc["endTime"] = datetime.strftime(dc["endTime"], "%Y-%m-%d %H:%M:%S")
-            return dc
         except Exception as e:
             logging.getLogger("ispyb_client").exception(str(e))
             return {}
+        return dc
 
     def find_detector(self, type, manufacturer, model, mode):
         """
@@ -498,11 +498,11 @@ class ISPyBDataAdapter:
                 res = self._collection.service.findDetectorByParam(
                     "", manufacturer, model, mode
                 )
-                return res
             except WebFault:
                 logging.getLogger("ispyb_client").exception(
                     "ISPyBClient: exception in find_detector"
                 )
+            return res
         else:
             logging.getLogger("ispyb_client").exception(
                 "Error find_detector: could not connect to" + " server"

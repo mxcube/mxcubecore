@@ -200,18 +200,10 @@ class StandardClient:
         for i in range(0, self.retries):
             try:
                 ret = self.__send_receive_datagram_single(encode(cmd))
-                return ret
-            except TimeoutError:
+            except (TimeoutError, ProtocolError, SocketError):
                 if i >= self.retries - 1:
                     raise
-            except ProtocolError:
-                if i >= self.retries - 1:
-                    raise
-            except SocketError:
-                if i >= self.retries - 1:
-                    raise
-            except Exception:
-                raise
+            return ret
 
     def set_timeout(self, timeout):
         """Set the socket timeout.

@@ -309,15 +309,14 @@ class XRFSpectrum(HardwareObject):
         if self.energy_spectrum_args:
             try:
                 self.curr = self.energy_spectrum_args.get_value()
-                return self.curr
             except Exception:
                 logging.getLogger().exception(
                     "XRFSpectrum: error getting xrfspectrum parameters"
                 )
                 self.spectrumStatusChanged("Error getting xrfspectrum parameters")
                 return False
-        else:
-            return True
+            return self.curr
+        return True
 
     def setSpectrumParams(self, pars):
         self.energy_spectrum_args.set_value(pars)

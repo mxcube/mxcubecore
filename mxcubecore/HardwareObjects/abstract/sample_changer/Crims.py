@@ -146,7 +146,7 @@ def get_processing_plan(
                         "Error parsing crystal info: %s", e
                     )
                     continue
-        return processing_plan
+        return processing_plan  # noqa: TRY300
     except (URLError, HTTPError, ElementTree.ParseError) as e:
         logging.getLogger("user_level_log").warning(
             "Error getting processing plan from  %s : %s", url, e
@@ -174,12 +174,11 @@ def send_data_collection_info_to_crims(
     )
     try:
         response = requests.get(url, timeout=900)
-        logging.getLogger("user_level_log").info(
-            "Request to %s Proceed: %s", url, response.text
-        )
-        return True
     except requests.RequestException as e:
         logging.getLogger("user_level_log").warning("Request to %s failed: %s", url, e)
-
         logging.getLogger("HWR").exception("")
         return False
+    logging.getLogger("user_level_log").info(
+        "Request to %s Proceed: %s", url, response.text
+    )
+    return True

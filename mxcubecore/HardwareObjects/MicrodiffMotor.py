@@ -195,22 +195,24 @@ class MicrodiffMotor(AbstractMotor):
         else:
             try:
                 low_lim, hi_lim = map(float, self.get_limits_cmd(self.actuator_name))
-                if low_lim == float(1e999) or hi_lim == float(1e999):
-                    raise ValueError
-                return low_lim, hi_lim
             except Exception:
-                return (-1e4, 1e4)
+                low_lim, hi_lim = -1e4, 1e4
+            else:
+                if low_lim == float(1e999) or hi_lim == float(1e999):
+                    low_lim, hi_lim = -1e4, 1e4
+            return low_lim, hi_lim
 
     def get_dynamic_limits(self):
         try:
             low_lim, hi_lim = map(
                 float, self.get_dynamic_limits_cmd(self.actuator_name)
             )
-            if low_lim == float(1e999) or hi_lim == float(1e999):
-                raise ValueError
-            return low_lim, hi_lim
         except Exception:
-            return (-1e4, 1e4)
+            low_lim, hi_lim = -1e4, 1e4
+        else:
+            if low_lim == float(1e999) or hi_lim == float(1e999):
+                low_lim, hi_lim = -1e4, 1e4
+        return low_lim, hi_lim
 
     def get_max_speed(self):
         return self.get_max_speed_cmd(self.actuator_name)

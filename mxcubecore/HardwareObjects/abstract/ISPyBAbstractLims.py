@@ -126,11 +126,10 @@ class ISPyBAbstractLIMS(AbstractLims):
 
         try:
             self.adapter._shipping._shipping.service.echo()
-            return True
         except Exception:
             logging.getLogger("ispyb_client").exception("")
-
-        return False
+            return False
+        return True
 
     def ldap_login(self, login_name, psd):
         warnings.warn(

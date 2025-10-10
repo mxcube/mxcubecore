@@ -362,12 +362,12 @@ class Harvester(HardwareObject):
         """
         try:
             self._execute_cmd_exporter("harvestCrystal", crystal_uuid, command=True)
-            return "Crystal Harvested properly"
         except Exception:
             logging.getLogger("user_level_log").warning(
                 f"Warning: Could not harvest sample: {crystal_uuid}"
             )
             return "Could not Harvest Crystal"
+        return "Crystal Harvested properly"
 
     def transfer_sample(self) -> None:
         """Transfer the current Harvested Crystal"""
@@ -638,12 +638,11 @@ class Harvester(HardwareObject):
                             "ERROR: Sample Could not be Harvested"
                         )
                         logging.getLogger("user_level_log").exception(msg)
-
                         res = False
 
-                    return res
                 except RuntimeError:
-                    return False
+                    res = False
+                return res
 
             elif self._ready_to_transfer():
                 try:
@@ -681,9 +680,9 @@ class Harvester(HardwareObject):
                             )
                             return self.harvest_sample_before_mount(sample_uuid)
 
-                    return res
                 except RuntimeError:
-                    return False
+                    res = False
+                return res
             elif (
                 "Harvesting" in self.get_status()
                 or self.get_status() == "Finishing Harvesting"

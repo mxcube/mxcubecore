@@ -66,10 +66,6 @@ class TineCommand(CommandObject):
                 self.tineName, self.commandName, commandArgument, self.timeout
             )
             self.emit("commandReplyArrived", (ret, str(self.name())))
-        except IOError as ex:
-            logging.getLogger("user_level_log").exception("TINE")
-            self.emit("commandFailed", str(ex))
-            raise
         except Exception as ex:
             logging.getLogger("user_level_log").exception("TINE")
             self.emit("commandFailed", (str(ex)))
@@ -79,7 +75,7 @@ class TineCommand(CommandObject):
         result = None
         try:
             result = tine.get(self.tineName, self.commandName, self.timeout)
-        except (IOError, Exception):
+        except Exception:
             logging.getLogger("HWR").exception("")
         return result
 
@@ -178,13 +174,9 @@ class TineChannel(ChannelObject):
                 "TINE channel %s %s detached" % (self.tineName, self.attributeName)
             )
             self.linkid = -1
-        except IOError as strerror:
-            logging.getLogger("HWR").exception(
-                "%s detaching %s %s" % (strerror, self.tineName, self.attributeName)
-            )
         except Exception:
             logging.getLogger("HWR").exception(
-                "Exception on detaching %s %s" % (self.tineName, self.attributeName)
+                "Exception on detaching %s %s", self.tineName, self.attributeName
             )
 
     def tineEventCallback(self, id, cc, data_list):
@@ -267,16 +259,16 @@ class TineChannel(ChannelObject):
     def _synchronous_get(self):
         try:
             value = tine.get(self.tineName, self.attributeName, self.timeout)
-            return value
-        except IOError as strerror:
-            logging.getLogger("HWR").exception("%s" % strerror)
+        except IOError:
+            logging.getLogger("HWR").exception("")
+        return value
 
     def set_value(self, newValue):
         listData = newValue
         try:
             ret = tine.set(self.tineName, self.attributeName, listData, self.timeout)
-        except IOError as strerror:
-            logging.getLogger("HWR").exception("%s" % strerror)
+        except IOError:
+            logging.getLogger("HWR").exception("")
 
     def is_connected(self):
         return self.linkid > 0

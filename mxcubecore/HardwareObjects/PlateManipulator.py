@@ -450,9 +450,9 @@ class PlateManipulator(SampleChanger):
                     if new_sample is not None:
                         new_sample._set_loaded(True, True)
 
-            return True
         except:
             return False
+        return True
 
     def _do_unload(self, sample_slot=None):
         """

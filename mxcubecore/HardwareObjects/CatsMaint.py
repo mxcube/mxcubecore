@@ -822,10 +822,10 @@ class CatsMaint(HardwareObject):
                     ret = cmd(*args)
             else:
                 ret = cmd()
-            return ret
         except Exception as exc:
             self.log.exception("")
             raise
+        return ret
 
 
 def test_hwo(hwo):

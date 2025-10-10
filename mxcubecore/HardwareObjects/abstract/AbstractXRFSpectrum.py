@@ -176,10 +176,8 @@ class AbstractXRFSpectrum(HardwareObject):
                 if not Path(directory).exists():
                     logging.getLogger("user_level_log").debug(msg)
                     Path(directory).mkdir(parents=True)
-                return True
-            except OSError as err:
-                msg += f": {err}"
-                logging.getLogger().exception(msg)
+            except OSError:
+                logging.getLogger().exception("")
                 self.spectrum_status_change("Error creating directory")
                 self.spectrum_command_aborted()
 

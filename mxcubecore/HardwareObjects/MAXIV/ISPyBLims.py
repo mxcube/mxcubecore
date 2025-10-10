@@ -180,9 +180,9 @@ class ISPyBLims(UserTypeISPyBLims):
     def ispyb_login(self, user_name: str, password: str):
         try:
             self._rest_client.authenticate(user_name, password)
-            return True, None
         except Exception as ex:
             return False, str(ex)
+        return True, None
 
     def set_active_session_by_id(self, session_id: str) -> Session:
         """

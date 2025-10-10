@@ -221,16 +221,13 @@ class HarvesterMaintenance(HardwareObject):
                 logging.getLogger("user_level_log").info(
                     "User Need to Perform an  3 click centring"
                 )
-                return True
             except Exception:
                 logging.getLogger("user_level_log").exception("Pin Calibration Failed")
                 return False
-        else:
-            logging.getLogger("user_level_log").error("Pin Calibration Failed")
-            logging.getLogger("user_level_log").error(
-                "Sample Changer could not mount Pin"
-            )
-            return False
+            return True
+        logging.getLogger("user_level_log").error("Pin Calibration Failed")
+        logging.getLogger("user_level_log").error("Sample Changer could not mount Pin")
+        return False
 
     def validate_calibration(self) -> bool:
         """
