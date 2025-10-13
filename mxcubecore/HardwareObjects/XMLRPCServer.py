@@ -689,7 +689,7 @@ class XMLRPCServer(HardwareObject):
                         module_name + "." + sub_module[1], recurse=False, prefix=prefix
                     )
                 except StopIteration:
-                    logging.getLogger("HWR").exception("")
+                    pass
 
     def set_token(self, token):
         SecureXMLRpcRequestHandler.setReferenceToken(token)
