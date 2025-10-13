@@ -1084,10 +1084,8 @@ class Cats90(SampleChanger):
         try:
             task_id = method(*args)
         except Exception:
-            import traceback
-
             self.log.debug("Cats90. exception while executing server task")
-            self.log.debug(traceback.format_exc())
+            self.log.exception("")
             task_id = None
 
         waitsafe = kwargs.get("waitsafe", False)

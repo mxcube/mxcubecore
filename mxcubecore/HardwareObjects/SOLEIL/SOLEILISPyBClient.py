@@ -1,6 +1,5 @@
 import logging
 import os
-import traceback
 from collections import namedtuple
 
 import urllib2
@@ -95,11 +94,9 @@ class SOLEILISPyBClient(ISPyBClient):
                         "SOLEILISPyBClient: extracted from ISPyB values for shipping, collection and tools"
                     )
                 except Exception:
-                    print(traceback.print_exc())
-                    logging.exception("SOLEILISPyBClient: %s" % _CONNECTION_ERROR_MSG)
+                    self.log.exception("SOLEILISPyBClient: %s" % _CONNECTION_ERROR_MSG)
                     return
         except Exception:
-            print(traceback.print_exc())
             self.log.exception(_CONNECTION_ERROR_MSG)
             return
         try:

@@ -824,11 +824,8 @@ class CatsMaint(HardwareObject):
                 ret = cmd()
             return ret
         except Exception as exc:
-            import traceback
-
-            traceback.print_exc()
-            msg = exc[0].desc
-            raise Exception(msg)
+            self.log.exception("")
+            raise
 
 
 def test_hwo(hwo):

@@ -313,11 +313,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
 
             self.scanCommandFinished()
         except Exception:
-            import traceback
-
-            self.log.error(
-                "EnergyScan: problem starting energy scan. %s" % traceback.format_exc()
-            )
+            self.log.exception("EnergyScan: problem starting energy scan.")
             self.scanCommandFailed()
             self.scanStatusChanged("error starting energy scan")
             return False
@@ -497,9 +493,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
             # pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, chooch_graph_data = \
             #       result
         except Exception:
-            import traceback
-
-            self.log.debug(traceback.format_exc())
+            self.log.exception("")
             self.store_energy_scan()
             self.log.error("Energy scan: Chooch failed")
             return

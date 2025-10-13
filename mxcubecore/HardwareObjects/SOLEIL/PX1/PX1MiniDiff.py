@@ -226,12 +226,10 @@ class PX1MiniDiff(GenericDiffractometer):
             try:
                 motor.set_value(position, timeout=None)
             except Exception:
-                import traceback
-
                 self.log.debug(
                     "  / error moving motor on diffractometer. state is %s"
                     % (self.smargon_state)
                 )
-                self.log.debug("     / %s " % traceback.format_exc())
+                self.log.exception("")
 
         self.wait_device_ready(timeout)

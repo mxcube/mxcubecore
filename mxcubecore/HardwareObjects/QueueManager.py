@@ -9,7 +9,6 @@ documentation for the queue_entry module for more information.
 """
 
 import logging
-import traceback
 
 import gevent
 
@@ -250,7 +249,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             self.emit("queue_entry_execute_finished", (entry, "Failed"))
             self.emit("statusMessage", ("status", "Queue execution failed", "error"))
         except:
-            self.log.warning("encountered Exception:\n%s" % traceback.format_exc())
+            self.log.exception("")
             raise
         else:
             entry.post_execute()

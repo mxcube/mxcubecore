@@ -285,11 +285,7 @@ class SOLEILEnergyScan(HardwareObject):
             self.xanes.scan()  # start() #scan()
             self.scanCommandFinished("success")
         except Exception:
-            import traceback
-
-            self.log.error(
-                "EnergyScan: problem calling sequence %s" % traceback.format_exc()
-            )
+            self.log.exception("EnergyScan: problem calling sequence")
             self.emit("scanStatusChanged", ("Error problem spec macro",))
             return False
         return True
@@ -509,12 +505,9 @@ class SOLEILEnergyScan(HardwareObject):
                 )
                 return None
             except Exception:
-                import traceback
+                self.user_log.error("Error creating archive path")
+                self.log.exception("Error creating archive path")
 
-                logging.getLogger("user_level_log").error(
-                    "Error creating archive path (%s) \n   %s"
-                    % (dirname, traceback.format_exc())
-                )
                 return None
         else:
             if not os.path.isdir(dirname):
@@ -528,9 +521,7 @@ class SOLEILEnergyScan(HardwareObject):
             fi = open(scanFile)
             fo = open(archiveEfsFile, "w")
         except Exception:
-            import traceback
-
-            logging.getLogger("user_level_log").error(traceback.format_exc())
+            self.user_log.exception("")
             self.storeEnergyScan()
             self.emit("energyScanFailed", ())
             return None

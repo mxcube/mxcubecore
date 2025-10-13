@@ -88,9 +88,7 @@ class ALBAEpsActuator(BaseHardwareObjects.HardwareObject):
                 states = state_string.split(",")
                 self.state_strings = states[1].strip(), states[0].strip()
         except Exception:
-            import traceback
-
-            self.log.warning(traceback.format_exc())
+            self.log.exception()
             self.state_strings = self.default_state_strings
 
     def get_state(self):

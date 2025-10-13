@@ -140,10 +140,7 @@ class EDNACharacterisation(AbstractCharacterisation):
             transmission = HWR.beamline.transmission.get_value()
             beam.setTransmission(XSDataDouble(transmission))
         except AttributeError:
-            import traceback
-
-            self.log.debug("EDNACharacterisation. transmission not saved ")
-            self.log.debug(traceback.format_exc())
+            self.log.exception("EDNACharacterisation. transmission not saved ")
 
         try:
             wavelength = HWR.beamline.energy.get_wavelength()

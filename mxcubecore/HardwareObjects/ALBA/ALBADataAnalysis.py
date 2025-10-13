@@ -122,10 +122,8 @@ class ALBADataAnalysis(EDNACharacterisation):
             state = self.job.state
             self.log.debug("Job / is %s" % str(state))
         except Exception:
-            import traceback
-
             self.log.debug("Polling for Job state 3. exception happened")
-            self.log.debug("  %s " % traceback.format_exc())
+            self.log.exception("")
 
         while state in ["RUNNING", "PENDING"]:
             self.log.debug("Job / is %s" % state)

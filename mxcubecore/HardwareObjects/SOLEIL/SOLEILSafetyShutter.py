@@ -19,10 +19,7 @@ class SOLEILSafetyShutter(HardwareObject):
             self.connect(self.shutter, "shutterStateChanged", self.shutterStateChanged)
             self.connect(self.pss, "wagoStateChanged", self.shutterStateChanged)
         except Exception:
-            import traceback
-
-            print(traceback.print_exc())
-            logging.debug(traceback.format_exc())
+            logging.exception("")
             logging.getLogger().warning("pss device not configured")
 
     def getShutterState(self):
