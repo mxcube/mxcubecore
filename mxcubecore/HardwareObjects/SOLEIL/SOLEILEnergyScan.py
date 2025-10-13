@@ -521,7 +521,7 @@ class SOLEILEnergyScan(HardwareObject):
             fi = open(scanFile)
             fo = open(archiveEfsFile, "w")
         except Exception:
-            logging.getLogger("user_level_log").exception()
+            self.user_log.exception("")
             self.storeEnergyScan()
             self.emit("energyScanFailed", ())
             return None
