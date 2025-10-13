@@ -505,7 +505,7 @@ class SOLEILEnergyScan(HardwareObject):
                 )
                 return None
             except Exception:
-                self.user_log("user_level_log").error("Error creating archive path")
+                self.user_log.error("Error creating archive path")
                 self.log.exception("Error creating archive path")
 
                 return None
