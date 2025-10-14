@@ -51,7 +51,6 @@ from typing import (
 
 import gevent
 
-from mxcubecore import queue_entry
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
@@ -516,12 +515,12 @@ class Harvester(HardwareObject):
 
     def queue_harvest_sample(
         self, sample_loc_str, sample_uuid: str, current_queue_list: list[str]
-    ) -> None:
+    ) -> bool:
         """
         While queue execution send harvest request
-        current_queue_list : a build representation of the queue based
+        current_queue_list : a build representation of the queue
         """
-
+        harvest_res = False
         current_queue_index = None
         try:
             current_queue_index = current_queue_list.index(sample_loc_str)
@@ -544,9 +543,6 @@ class Harvester(HardwareObject):
                     logging.getLogger("user_level_log").error(
                         "Harvester could not Harvest sample, Stopping queue"
                     )
-                    raise queue_entry.QueueSkipEntryException(
-                        "Harvester could not Harvest sample", ""
-                    )
             else:
                 logging.getLogger("user_level_log").info("checking last Harvesting")
                 harvest_res = self.harvest_sample_before_mount(
@@ -557,9 +553,6 @@ class Harvester(HardwareObject):
                     logging.getLogger("user_level_log").error(
                         "There is no more Pins in the Harvester, Stopping queue"
                     )
-                    raise queue_entry.QueueSkipEntryException(
-                        "Harvester could not Harvest sample", ""
-                    )
         elif self.get_number_of_available_pin() == 0 and self._ready_to_transfer():
             logging.getLogger("user_level_log").warning(
                 "Warning: Harvester pins is approaching to ZERO"
@@ -567,14 +560,15 @@ class Harvester(HardwareObject):
             logging.getLogger("user_level_log").warning(
                 "Warning: Mounting last Sample, Queue will stop on next one"
             )
+            # in this case we just load the sample that is ready in the Harester
+            harvest_res = True
         else:
             # raise Not enough pins available in the pin provider
             logging.getLogger("user_level_log").error(
                 "There is no more Pins in the Harvester, Stopping queue"
             )
-            raise queue_entry.QueueSkipEntryException(
-                "There is no more Pins in the Harvester, Stopping queue", ""
-            )
+
+        return harvest_res
 
     def queue_harvest_next_sample(self, next_sample_loc_str: str, sample_uuid: str):
         """
@@ -715,7 +709,6 @@ class Harvester(HardwareObject):
         based on Harvested pin shape pre-calculated offsets
 
         Return (tuple(float)): (phiy_offset, centringFocus, centringTableVertical)
-
         """
 
         pin_to_beam = tuple(self.get_calibrated_pin_offset())

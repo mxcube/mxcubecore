@@ -40,8 +40,10 @@ import gevent
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.EMBLFlexHCD import EMBLFlexHCD
 from mxcubecore.model import queue_model_objects as qmo
-from mxcubecore.queue_entry.base_queue_entry import CENTRING_METHOD
-from mxcubecore.queue_entry.base_queue_entry import QueueExecutionException
+from mxcubecore.queue_entry.base_queue_entry import (
+    CENTRING_METHOD,
+    QueueExecutionException,
+)
 from mxcubecore.TaskUtils import task
 
 
