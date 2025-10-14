@@ -38,14 +38,18 @@ from typing import (
 import gevent
 
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore import queue_entry
 from mxcubecore.HardwareObjects.EMBLFlexHCD import EMBLFlexHCD
 from mxcubecore.model import queue_model_objects as qmo
 from mxcubecore.queue_entry.base_queue_entry import CENTRING_METHOD
+from mxcubecore.queue_entry.base_queue_entry import QueueExecutionException
 from mxcubecore.TaskUtils import task
 
 
 class EMBLFlexHarvester(EMBLFlexHCD):
+    """EMBLFlexHarvester is the Hardware Object interface for the EMBL Flex Sample Changer
+    It inherits from EMBLFlexHCD and implements the Harvester interface.
+    """
+
     __TYPE__ = "Flex Sample Changer"
 
     def __init__(self, *args, **kwargs):
@@ -182,13 +186,13 @@ class EMBLFlexHarvester(EMBLFlexHCD):
             computed_offset = HWR.beamline.harvester.get_offsets_for_sample_centering()
             dm.start_harvester_centring(computed_offset)
 
-        except Exception:
+        except Exception as exc:
             logging.getLogger("user_level_log").exception(
                 "Could not center sample, skipping"
             )
-            raise queue_entry.QueueSkipEntryException(
-                "Could not center sample, skipping", ""
-            )
+            raise QueueExecutionException(
+                "Could not center sample, skipping", self
+            ) from exc
 
     def _set_loaded_sample_and_prepare(self, loaded_sample_tup, previous_sample_tup):
         res = False
@@ -216,6 +220,9 @@ class EMBLFlexHarvester(EMBLFlexHCD):
         Load a Sample from Harvester
         """
         self.queue_harvest_sample(sample.get_address())
+        harvesting_result = self.queue_harvest_sample(sample.get_address())
+        if not harvesting_result:
+            raise QueueExecutionException("Harvester could not Harvest sample", self)
         self._update_state()
 
         # We wait for the sample changer if its already doing something, like defreezing
