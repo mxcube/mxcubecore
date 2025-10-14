@@ -14,6 +14,7 @@ ignore = [
     "PLR2004",  # magic-value-comparison: ignored, too many hits (249)
     "UP",  # pyupgrade: ignored for now, can be fixed automatically by ruff itself
     "G004", # Allow uses of f-strings to format logging messages
+    "TRY003", # Allow to add message when instantiating exceptions
 ]
 select = [
     "ALL",
@@ -67,7 +68,6 @@ convention = "google"
     "TD002",
     "TD003",
     "TD004",
-    "TRY003",
     "TRY400",
 ]
 "mxcubecore/Command/Epics.py" = [
@@ -258,7 +258,6 @@ convention = "google"
     "RET503",
     "RET504",
     "SIM102",
-    "TRY003",
     "TRY300",
 ]
 "mxcubecore/CommandContainer.py" = [
@@ -381,7 +380,6 @@ convention = "google"
     "TD002",
     "TD003",
     "TRY002",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/ALBA/ALBACatsMaint.py" = [
     "ARG002",
@@ -443,7 +441,6 @@ convention = "google"
     "RET504",
     "S108",
     "T201",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/ALBA/ALBAEnergy.py" = [
     "F821",
@@ -678,7 +675,6 @@ convention = "google"
     "SLF001",
     "T201",
     "TRY002",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/CatsBessy.py" = [
     "BLE001",
@@ -695,7 +691,6 @@ convention = "google"
     "SIM201",
     "SLF001",
     "TRY002",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/CatsMaint.py" = [
     "B026",
@@ -716,7 +711,6 @@ convention = "google"
     "SIM910",
     "T201",
     "TRY002",
-    "TRY003",
     "TRY300",
 ]
 "mxcubecore/HardwareObjects/CentringMath.py" = [
@@ -804,7 +798,6 @@ convention = "google"
     "F541",
     "RET503",
     "SLF001",
-    "TRY003",
     "TRY004",
     "TRY301",
     "TRY400",
@@ -841,7 +834,6 @@ convention = "google"
     "SIM108",
     "SIM110",
     "SIM115",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/DESY/P11Collimator.py" = [
     "B904",
@@ -851,7 +843,6 @@ convention = "google"
     "RET503",
     "RET505",
     "SLF001",
-    "TRY003",
     "TRY004",
     "TRY301",
     "TRY400",
@@ -900,7 +891,6 @@ convention = "google"
     "S605",
     "TD002",
     "TD003",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/DESY/P11EigerDetector.py" = [
     "ARG002",
@@ -941,7 +931,6 @@ convention = "google"
     "PLR0913",
     "TD002",
     "TD003",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/DESY/P11ISPyBClient.py" = [
     "E501",
@@ -957,7 +946,6 @@ convention = "google"
     "TD002",
     "TD003",
     "TD004",
-    "TRY003",
     "TRY301",
 ]
 "mxcubecore/HardwareObjects/DESY/P11MachineInfo.py" = [
@@ -1013,7 +1001,6 @@ convention = "google"
     "RET503",
     "RET505",
     "SLF001",
-    "TRY003",
     "TRY004",
     "TRY301",
     "TRY400",
@@ -1035,7 +1022,6 @@ convention = "google"
     "TD002",
     "TD003",
     "TRY002",
-    "TRY003",
     "TRY201",
 ]
 "mxcubecore/HardwareObjects/DESY/P11Session.py" = [
@@ -1062,7 +1048,6 @@ convention = "google"
     "RET508",
     "RUF005",
     "T201",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/DESY/P11Shutter.py" = [
     "ARG002",
@@ -1083,7 +1068,6 @@ convention = "google"
     "EM102",
     "RET503",
     "SLF001",
-    "TRY003",
     "TRY004",
     "TRY301",
     "TRY400",
@@ -1131,7 +1115,6 @@ convention = "google"
     "S602",
     "SIM105",
     "SIM114",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLAperture.py" = [
     "ARG002",
@@ -1494,7 +1477,6 @@ convention = "google"
     "SIM108",
     "SIM222",
     "SLF001",
-    "TRY003",
     "TRY400",
 ]
 "mxcubecore/HardwareObjects/EMBLFlexHarvester.py" = [
@@ -1509,7 +1491,6 @@ convention = "google"
     "RET504",
     "SIM108",
     "SLF001",
-    "TRY003",
     "TRY300",
     "TRY400",
 ]
@@ -1524,7 +1505,6 @@ convention = "google"
     "ARG002",
     "C901",
     "EM101",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/ESRF/ESRFBeamInfo.py" = [
     "ARG002",
@@ -1604,7 +1584,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/ESRF/ESRFPhotonFlux.py" = [
     "EM101",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/ESRF/ESRFSC3.py" = [
     "B018",
@@ -1646,7 +1625,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/ESRF/ID232BeamDefiner.py" = [
     "ARG002",
     "EM101",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/ESRF/ID29HutchTrigger.py" = [
     "ARG002",
@@ -1680,7 +1658,6 @@ convention = "google"
     "EM101",
     "FBT002",
     "SLF001",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/ESRF/SSXICATLIMS.py" = [
     "PTH123",
@@ -1815,7 +1792,6 @@ convention = "google"
     "SIM102",
     "SLF001",
     "TRY002",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/EdnaWorkflow.py" = [
     "ERA001",
@@ -1865,7 +1841,6 @@ convention = "google"
     "SIM108",
     "SIM201",
     "SLF001",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/FlexHCDMaintenance.py" = [
     "PERF401",
@@ -1931,7 +1906,6 @@ convention = "google"
     "TD002",
     "TD003",
     "TD004",
-    "TRY003",
     "TRY400",
 ]
 "mxcubecore/HardwareObjects/Gphl/GphlMessages.py" = [
@@ -1950,7 +1924,6 @@ convention = "google"
     "RET506",
     "S110",
     "SLF001",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/Gphl/GphlWorkflow.py" = [
     "ARG002",
@@ -1996,7 +1969,6 @@ convention = "google"
     "TD002",
     "TD003",
     "TD004",
-    "TRY003",
     "TRY400",
 ]
 "mxcubecore/HardwareObjects/Gphl/GphlWorkflowConnection.py" = [
@@ -2033,7 +2005,6 @@ convention = "google"
     "RUF012",
     "S603",
     "SIM108",
-    "TRY003",
     "TRY400",
 ]
 "mxcubecore/HardwareObjects/Gphl/Transcal2MiniKappa.py" = [
@@ -2091,7 +2062,6 @@ convention = "google"
     "RUF013",
     "SIM108",
     "T201",
-    "TRY003",
     "TRY300",
 ]
 "mxcubecore/HardwareObjects/HarvesterMaintenance.py" = [
@@ -2113,7 +2083,6 @@ convention = "google"
     "PLR0912",
     "PLR0915",
     "SIM102",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/ISARAMaint.py" = [
     "B904",
@@ -2123,14 +2092,12 @@ convention = "google"
     "FBT001",
     "FBT003",
     "TRY002",
-    "TRY003",
     "TRY201",
 ]
 "mxcubecore/HardwareObjects/LNLS/EPICSActuator.py" = [
     "E501",
     "EM101",
     "F841",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/LNLS/EPICSMotor.py" = [
     "BLE001",
@@ -2310,7 +2277,6 @@ convention = "google"
     "TD003",
     "TD004",
     "TD005",
-    "TRY003",
     "TRY300",
     "TRY400",
 ]
@@ -2357,7 +2323,6 @@ convention = "google"
     "ISC003",
     "S113",
     "TRY002",
-    "TRY003",
     "TRY300",
 ]
 "mxcubecore/HardwareObjects/MAXIV/MAXIVAutoProcessing.py" = [
@@ -2450,7 +2415,6 @@ convention = "google"
     "TD004",
     "TD005",
     "TRY002",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/Microdiff.py" = [
     "ARG002",
@@ -2486,7 +2450,6 @@ convention = "google"
     "B905",
     "E501",
     "EM101",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/MicrodiffBeamstop.py" = [
     "ARG002",
@@ -2516,7 +2479,6 @@ convention = "google"
     "N806",
     "PLR0913",
     "RUF012",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/MicrodiffLightBeamstop.py" = [
     "PLR5501",
@@ -2651,7 +2613,6 @@ convention = "google"
     "SIM103",
     "SLF001",
     "TRY002",
-    "TRY003",
     "TRY004",
     "TRY300",
 ]
@@ -2670,7 +2631,6 @@ convention = "google"
     "RUF010",
     "SIM102",
     "TRY002",
-    "TRY003",
     "TRY201",
     "TRY203",
 ]
@@ -2804,7 +2764,6 @@ convention = "google"
     "RET508",
     "SIM101",
     "SLF001",
-    "TRY003",
     "TRY201",
     "TRY400",
 ]
@@ -2856,7 +2815,6 @@ convention = "google"
     "SLF001",
     "T201",
     "TRY002",
-    "TRY003",
     "TRY203",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Attenuator.py" = [
@@ -2923,7 +2881,6 @@ convention = "google"
     "SLF001",
     "T201",
     "TRY002",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/PX1/PX1DetectorDistance.py" = [
     "A001",
@@ -3327,7 +3284,6 @@ convention = "google"
     "ISC003",
     "N806",
     "RET501",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/TangoDCMotor.py" = [
     "ARG002",
@@ -3363,7 +3319,6 @@ convention = "google"
     "PIE790",
     "RET503",
     "RET505",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/SardanaMotor.py" = [
     "BLE001",
@@ -3372,7 +3327,6 @@ convention = "google"
     "G001",
     "PIE796",
     "RUF013",
-    "TRY003",
     "TRY300",
 ]
 "mxcubecore/HardwareObjects/SecureXMLRpcRequestHandler.py" = [
@@ -3526,7 +3480,6 @@ convention = "google"
     "PYI006",
     "S307",
     "TRY002",
-    "TRY003",
     "TRY401",
 ]
 "mxcubecore/HardwareObjects/VimbaVideo.py" = [
@@ -3762,7 +3715,6 @@ convention = "google"
     "RET501",
     "SIM102",
     "T201",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractAperture.py" = [
     "B028",
@@ -3809,7 +3761,6 @@ convention = "google"
     "EM101",
     "RET501",
     "RET504",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractEnergy.py" = [
     "FIX002",
@@ -3826,7 +3777,6 @@ convention = "google"
     "PTH110",
     "S110",
     "SIM105",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractFlux.py" = [
     "ERA001",
@@ -3843,7 +3793,6 @@ convention = "google"
     "SIM102",
     "SIM103",
     "TRY002",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractMCA.py" = [
     "B006",
@@ -3950,7 +3899,6 @@ convention = "google"
     "SIM102",
     "SLF001",
     "TRY002",
-    "TRY003",
     "TRY400",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractSampleView.py" = [
@@ -3979,7 +3927,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractXrayCentring.py" = [
     "EM101",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/abstract/ISPyBAbstractLims.py" = [
     "B028",
@@ -3991,7 +3938,6 @@ convention = "google"
     "SIM102",
     "SLF001",
     "TRY002",
-    "TRY003",
     "TRY300",
     "TRY400",
 ]
@@ -4095,13 +4041,11 @@ convention = "google"
     "EM101",
     "EM102",
     "S311",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/mockup/ApertureMockup.py" = [
     "B905",
     "E501",
     "EM101",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/mockup/BeamDefinerMockup.py" = [
     "E501",
@@ -4115,7 +4059,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/mockup/BeamlineActionsMockup.py" = [
     "ARG002",
     "EM101",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/mockup/BeamlineTestMockup.py" = [
     "BLE001",
@@ -4153,7 +4096,6 @@ convention = "google"
     "RET506",
     "T201",
     "TRY002",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/mockup/CollectMockup.py" = [
     "ARG002",
@@ -4247,7 +4189,6 @@ convention = "google"
     "PIE790",
     "SIM102",
     "TRY002",
-    "TRY003",
     "TRY201",
     "TRY203",
 ]
@@ -4262,7 +4203,6 @@ convention = "google"
     "RET504",
     "T201",
     "TRY002",
-    "TRY003",
 ]
 "mxcubecore/HardwareObjects/mockup/LimaDetectorMockup.py" = [
     "ARG002",
@@ -4358,7 +4298,6 @@ convention = "google"
     "RET505",
     "SLF001",
     "TRY002",
-    "TRY003",
     "TRY004",
 ]
 "mxcubecore/HardwareObjects/mockup/PlottingMockup.py" = [
@@ -4449,7 +4388,6 @@ convention = "google"
     "RET508",
     "SIM108",
     "SLF001",
-    "TRY003",
 ]
 "mxcubecore/HardwareRepository.py" = [
     "BLE001",
@@ -4485,7 +4423,6 @@ convention = "google"
     "T201",
     "TD002",
     "TD003",
-    "TRY003",
 ]
 "mxcubecore/Poller.py" = [
     "BLE001",
@@ -4610,7 +4547,6 @@ convention = "google"
     "TD002",
     "TD003",
     "TD004",
-    "TRY003",
 ]
 "mxcubecore/queue_entry/__init__.py" = [
     "F403",
@@ -4642,7 +4578,6 @@ convention = "google"
     "RET506",
     "SIM102",
     "SLF001",
-    "TRY003",
     "TRY203",
     "TRY301",
     "TRY400",
@@ -4672,7 +4607,6 @@ convention = "google"
     "TD002",
     "TD003",
     "TD004",
-    "TRY003",
 ]
 "mxcubecore/queue_entry/energy_scan.py" = [
     "ARG002",
@@ -4681,7 +4615,6 @@ convention = "google"
     "G002",
     "G003",
     "N806",
-    "TRY003",
     "TRY203",
 ]
 "mxcubecore/queue_entry/generic_workflow.py" = [
@@ -4689,7 +4622,6 @@ convention = "google"
     "ERA001",
     "SIM108",
     "SLF001",
-    "TRY003",
 ]
 "mxcubecore/queue_entry/import_helper.py" = [
     "PTH120",
@@ -4713,7 +4645,6 @@ convention = "google"
 "mxcubecore/queue_entry/xrf_spectrum.py" = [
     "EM101",
     "SLF001",
-    "TRY003",
 ]
 "mxcubecore/saferef.py" = [
     "ARG001",
@@ -4753,7 +4684,6 @@ convention = "google"
     "PTH118",
     "PTH120",
     "PTH206",
-    "TRY003",
 ]
 "mxcubecore/utils/units.py" = [
     "N802",
