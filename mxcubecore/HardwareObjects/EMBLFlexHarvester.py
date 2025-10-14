@@ -368,9 +368,9 @@ class EMBLFlexHarvester(EMBLFlexHCD):
         samples_list = self.get_sample_list()
         sample_uuid = None
         for s in samples_list:
-            if s.get_address() == sampleID or s.get_id() == sampleID:
-                sample_uuid = s.get_id()
-                return sample_uuid
+            # it seems get_id() was broken
+            if s.get_address() == sample_loc_str or s.id == sample_loc_str:
+                sample_uuid = s.id
 
                 return sample_uuid
         return sample_uuid
