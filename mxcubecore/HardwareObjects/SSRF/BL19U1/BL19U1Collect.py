@@ -1490,7 +1490,7 @@ class BL19U1Collect(AbstractCollect, HardwareObject):
         # take image from server
         # HWR.beamline.sample_view._camera.take_snapshot(filename)
         logging.getLogger("HWR").debug("_take_crystal_snapshot() in BL19U1Collect.py")
-        HWR.beamline.sample_view._camera.take_snapshot(filename)
+        HWR.beamline.sample_view._camera.takeSnapshot(filename)
         # pass
 
     def set_helical(self, helical_on):

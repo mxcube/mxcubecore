@@ -30,7 +30,7 @@
   <object role="backlightswitch" href="/bl19u/udiff/udiff_backlightswitch"/>
   <device role="frontlight" hwrid="/bl19u/udiff/udiff_frontlight"/>
   <device role="backlight" hwrid="/bl19u/udiff/udiff_backlight"/>
-  <use_sample_changer>True</use_sample_changer> 
+  <use_sample_changer>True</use_sample_changer>
   <zoom_centre>{"x": 605,"y": 652}</zoom_centre>
 
   <!-- Alignment Z -->
