@@ -1,5 +1,3 @@
-# pylint: skip-file
-
 import time
 
 from PyTango import DeviceProxy

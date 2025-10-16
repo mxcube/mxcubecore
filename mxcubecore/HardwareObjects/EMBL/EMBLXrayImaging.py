@@ -1,5 +1,3 @@
-# pylint: disable=E
-#
 #  Project name: MXCuBE
 #  https://github.com/mxcube
 #
