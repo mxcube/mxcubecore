@@ -192,7 +192,7 @@ class CatsMaintMockup(HardwareObject):
         except Exception as ex:
             exception = ex
         if exception is not None:
-            raise exception  # pylint: disable-msg=E0702
+            raise exception
         return ret
 
     #########################           PRIVATE           #########################
