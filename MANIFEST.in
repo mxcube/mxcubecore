@@ -1,2 +1,0 @@
-#https://packaging.python.org/guides/using-manifest-in/
-recursive-include mxcubecore/configuration *.xml *.yml *.jpg
