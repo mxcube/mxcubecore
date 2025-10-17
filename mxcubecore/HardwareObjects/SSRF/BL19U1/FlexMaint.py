@@ -884,7 +884,6 @@ class FlexMaint(Equipment):
         tool = self.get_current_tool()
 
         if cmd_name == "dry":
-
             self._do_dry_gripper()
         if cmd_name == "home":
             self._do_home()
