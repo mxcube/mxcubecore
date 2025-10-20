@@ -34,16 +34,18 @@ class Argus(HardwareObject):
         self.retry_delay = retry_delay
         self._video_stream_processes: list[Popen] = []
         self._streams_to_run = []
+        self._argus_pid: Popen | None = None
         thread = Thread(target=self.emit_process_change)
         thread.daemon = True
         thread.start()
 
     def init(self):
+        streams_to_run = []
         if self.get_property("streams"):
-            self._streams_to_run = literal_eval(
+            streams_to_run = literal_eval(
                 self.get_property("streams").strip().replace("\n", ""),
             )
-        for stream in self._streams_to_run:
+        for stream in streams_to_run:
             stream["id"] = str(uuid1())
 
             if stream["create"]:
@@ -78,15 +80,22 @@ class Argus(HardwareObject):
                     ),
                 )
 
-                register(self.cleanup)
+        self._streams_to_run = streams_to_run
+
+        # start the argus server
+        self._argus_pid = Popen(["argussight"], close_fds=True, shell=False)
+
+        register(self.cleanup)
 
         super().init()
 
     def cleanup(self):
-        logging.getLogger("HWR").info("Shutting down streams created by Argus...")
+        logging.getLogger("HWR").info("Shutting down streams connected to Argus...")
         for streaming_process in self._video_stream_processes:
             if not streaming_process.poll():
                 kill(streaming_process.pid, SIGTERM)
+        logging.getLogger("HWR").info("Shutting down Argus server...")
+        kill(self._argus_pid.pid, SIGTERM)
 
     def add_camera_stream(self, stream: dict) -> None:
         logging.getLogger("HWR").info(
