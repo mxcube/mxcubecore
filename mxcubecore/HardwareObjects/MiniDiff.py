@@ -1000,8 +1000,8 @@ class MiniDiff(HardwareObject):
                     "custom_snapshot_script_dir", False
                 )
 
-            if not use_custom_snapshot_routine:
-                self.set_phase("Centring", wait=True, timeout=200)
+                if not use_custom_snapshot_routine:
+                    self.set_phase("Centring", wait=True, timeout=200)
 
         for image_path in image_path_list:
             snapshot_index = image_path_list.index(image_path)
