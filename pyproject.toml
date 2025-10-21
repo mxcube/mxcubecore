@@ -1,6 +1,6 @@
 [project]
 name = "mxcubecore"
-version = "1.402.0"
+version = "1.403.0"
 license = "LGPL-3.0-or-later"
 description = "Core libraries for the MXCuBE application"
 authors = [
