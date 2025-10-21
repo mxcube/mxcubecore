@@ -85,16 +85,18 @@ class SampleView(AbstractSampleView):
         centring_ref_position = literal_eval(
             self.get_property("centring_reference_position", {})
         )
-        dm = HWR.beamline.diffractometer
+        motor_directions = literal_eval(self.get_property("motor_directions", {}))
+        diffr = HWR.beamline.diffractometer
 
         for role in centring_motor_roles:
-            if role in dm.motors_hwobj_dict:
-                motor_obj = dm.motors_hwobj_dict[role]
+            if role in diffr.motors_hwobj_dict:
+                motor_obj = diffr.motors_hwobj_dict[role]
                 ref_position = None
                 if role in centring_ref_position:
                     ref_position = centring_ref_position[role]
+                direction = motor_directions.get(role, 1)
                 self.centring_motors[role] = sample_centring.CentringMotor(
-                    motor_obj, reference_position=ref_position
+                    motor_obj, reference_position=ref_position, direction=direction
                 )
                 self.centring_motors[role].motor.connect(
                     "stateChanged", self._update_shape_positions
@@ -136,31 +138,38 @@ class SampleView(AbstractSampleView):
         if not positions_dict:
             raise RuntimeError("Unknown position")
         try:
-            dm = HWR.beamline.diffractometer
-            p_x, p_y = dm.get_pixels_per_mm()
+            diffr = HWR.beamline.diffractometer
+            p_x, p_y = diffr.get_pixels_per_mm()
             if None in (p_x, p_y):
                 return 0, 0
 
-            beam_position = HWR.beamline.beam.get_beam_position_on_screen()
-            omega_angle = math.radians(dm.omega.get_value())
-            sampx = positions_dict.get("sampx") - dm.sampx.get_value()
-            sampy = positions_dict.get("sampy") - dm.sampy.get_value()
-            phiy = positions_dict.get("phiy") - dm.phiy.get_value()
-            phiz = positions_dict.get("phiz") - dm.phiz.get_value()
+            omega_angle = math.radians(-diffr.omega.get_value())
+            sampx = positions_dict.get("sampx") - diffr.sampx.get_value()
+            sampy = positions_dict.get("sampy") - diffr.sampy.get_value()
+            phiy = -(positions_dict.get("phiy") - diffr.phiy.get_value())
+            phiz = positions_dict.get("phiz") - diffr.phiz.get_value()
             rot_matrix = np.matrix(
                 [
-                    math.cos(omega_angle),
-                    -math.sin(omega_angle),
-                    math.sin(omega_angle),
-                    math.cos(omega_angle),
+                    [math.cos(omega_angle), -math.sin(omega_angle)],
+                    [math.sin(omega_angle), math.cos(omega_angle)],
                 ]
             )
-            rot_matrix.shape = (2, 2)
             inv_rot_matrix = np.array(rot_matrix.I)
             dx, dy = np.dot(np.array([sampx, sampy]), inv_rot_matrix) * p_x
 
-            x = (phiy * p_x) + beam_position[0]
-            y = dy + (phiz * p_y) + beam_position[1]
+            chi_angle = math.radians(positions_dict.get("chi", 0))
+            chi_rot = np.matrix(
+                [
+                    [math.cos(chi_angle), -math.sin(chi_angle)],
+                    [math.sin(chi_angle), math.cos(chi_angle)],
+                ]
+            )
+            sx, sy = np.dot(np.array([0, dy]), np.array(chi_rot))
+
+            beam_position = HWR.beamline.beam.get_beam_position_on_screen()
+
+            x = sx + (phiy * p_x) + beam_position[0]
+            y = sy + (phiz * p_y) + beam_position[1]
 
         except AttributeError as err:
             raise NotImplementedError from err
@@ -178,9 +187,9 @@ class SampleView(AbstractSampleView):
         self.current_centring_method = "Manual"
         self.emit("centringStarted", ("Manual"))
         beam_pos = HWR.beamline.beam.get_beam_position_on_screen()
-        dm = HWR.beamline.diffractometer
-        pixels_per_mm = dm.get_pixels_per_mm()
-        dm.wait_ready(5)
+        diffr = HWR.beamline.diffractometer
+        pixels_per_mm = diffr.get_pixels_per_mm()
+        diffr.wait_status_ready(5)
 
         self.current_centring_procedure = sample_centring.start(
             self.centring_motors,
@@ -276,11 +285,11 @@ class SampleView(AbstractSampleView):
             logging.getLogger("HWR").exception("Already centring")
 
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
-        dm = HWR.beamline.diffractometer
-        dm.set_phase("Centring", wait=True)
+        diffr = HWR.beamline.diffractometer
+        diffr.set_phase(diffr.get_phase_enum.CENTRE)
 
-        pixels_per_mm_x, pixels_per_mm_y = dm.get_pixels_per_mm()
-        dm.wait_ready(5)
+        pixels_per_mm_x, pixels_per_mm_y = diffr.get_pixels_per_mm()
+        diffr.wait_status_ready(5)
 
         self.current_centring_procedure = sample_centring.start_auto(
             self,
@@ -303,8 +312,8 @@ class SampleView(AbstractSampleView):
             y: Pixels on y axis
         """
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
-        dm = HWR.beamline.diffractometer
-        pixels_per_mm_x, pixels_per_mm_y = dm.get_pixels_per_mm()
+        diffr = HWR.beamline.diffractometer
+        pixels_per_mm_x, pixels_per_mm_y = diffr.get_pixels_per_mm()
         if not all([pixels_per_mm_x, pixels_per_mm_y]):
             logging.getLogger("HWR").exception("Cannot move to beam")
 
@@ -312,10 +321,10 @@ class SampleView(AbstractSampleView):
         dx = (x - beam_pos_x) / pixels_per_mm_x
         dy = (y - beam_pos_y) / pixels_per_mm_y
 
-        dm.wait_ready(5)
+        diffr.wait_status_ready(5)
 
         motors_dict = self.get_positions()
-        omega_angle = math.radians(motors_dict.get("omega", 0))
+        omega_angle = math.radians(-motors_dict.get("omega", 0))
 
         rot_matrix = np.matrix(
             [
@@ -336,9 +345,9 @@ class SampleView(AbstractSampleView):
 
         sx, sy = np.dot(np.array([dsampx, dsampy]), np.array(chi_rot))
 
-        sampx = motors_dict.get("sampx") + sx
+        sampx = -motors_dict.get("sampx") + sx
         sampy = motors_dict.get("sampx") + sy
-        phiy = motors_dict.get("phiy") + dx
+        phiy = -motors_dict.get("phiy") + dx
 
         self.centring_motors.get("sampx").set_value(-sampx)
         self.centring_motors.get("sampy").set_value(sampy)
@@ -370,6 +379,33 @@ class SampleView(AbstractSampleView):
         img.save(buffered, format="JPEG")
 
         return buffered
+
+    def take_acq_snapshot(self, image_path_list: list):
+        """Take snapshot in the acquisition sequence.
+        Args:
+           image_path_list: List of file name(s) to save the snapshot(s}
+                            (full path).
+        """
+        if len(image_path_list) > 0:
+            diffr = HWR.beamline.diffractometer
+            phase = diffr.get_phase_enum.CENTRE
+            if diffr.get_phase() != phase:
+                use_custom_snapshot_routine = (
+                    self.get_property("custom_snapshot_script_dir") or False
+                )
+
+                if not use_custom_snapshot_routine:
+                    diffr.set_phase(phase)
+
+        for image_path in image_path_list:
+            snapshot_index = image_path_list.index(image_path)
+            msg = f"Taking {snapshot_index + 1} sample snapshot(s)"
+            self.log.info(msg)
+
+            self.save_snapshot(filename=image_path)
+            # do not move 90 degrees if not needed
+            if not diffr.in_plate_mode and snapshot_index < len(image_path_list) - 1:
+                diffr.omega.set_value_relative(90, timeout=200)
 
     def save_snapshot(
         self, filename: str, overlay: str | None = None, bw: bool = False

@@ -52,7 +52,6 @@ class MicroDiffractometer(AbstractDiffractometer):
         _host, _port = exporter_address.split(":")
         self._exporter = Exporter(_host, int(_port))
         self.head_type = self._get_head_type
-        self.update_state(self.get_state())
 
         # add the custom commands
         for nam, cmd in self.get_property("commands").items():
@@ -71,6 +70,15 @@ class MicroDiffractometer(AbstractDiffractometer):
                 "name": nam,
             }
             setattr(self, nam, self.add_channel(_attr, attr))
+
+        self.update_state()
+
+        # we must have global_state and phase_channel channels configured
+        try:
+            self.phase_channel.connect_signal("update", self.update_phase)
+            self.global_state.connect_signal("update", self._update_state)
+        except AttributeError:
+            self.log.exception("global_state and phase_channel not configured!")
 
     def abort(self):
         """Immediately terminate action."""
@@ -95,7 +103,13 @@ class MicroDiffractometer(AbstractDiffractometer):
         Returns:
             The state.
         """
-        return self._exporter.read_property("State")
+        return self.global_state.get_value()
+
+    def _update_state(self, value):
+        if isinstance(value, str):
+            self.update_state(self.get_state())
+        else:
+            self.update_state(value)
 
     def get_state(self):
         """Get the diffractometer general state.
@@ -104,10 +118,9 @@ class MicroDiffractometer(AbstractDiffractometer):
             (enum 'HardwareObjectState'): state
         """
         try:
-            self._state = ExporterStates(self._get_swstate)
+            return ExporterStates[self._get_swstate.upper()].value
         except ValueError:
-            self._state = self.STATES.UNKNOWN
-        return self._state
+            return self.STATES.UNKNOWN
 
     @property
     def _ready(self) -> bool:
@@ -118,7 +131,7 @@ class MicroDiffractometer(AbstractDiffractometer):
         """
         return self._get_swstate == "Ready" and self._get_hwstate == "Ready"
 
-    def _wait_ready(self, timeout: float | None = None):
+    def wait_status_ready(self, timeout: float | None = None):
         """Wait timeout seconds until status is ready.
 
         Args:
@@ -152,13 +165,13 @@ class MicroDiffractometer(AbstractDiffractometer):
         else:
             # prepare the command
             cmd = ""
-            for role, pos in motors_positions_dict:
-                name = self.motors_hwobj[role].name
+            for role, pos in motors_positions_dict.items():
+                name = self.motors_hwobj_dict[role].actuator_name
                 cmd += f"{name}={pos:0.3f};"
-
             self._exporter.execute("startSimultaneousMoveMotors", (cmd,))
             if timeout != 0:
-                self.wait_ready(timeout)
+                self.wait_status_ready(timeout)
+            self.update_state()
 
     def get_value_motors(self, motors_list: [list | None] = None) -> dict[str, float]:
         """Get the positions of diffractometer motors. If the motors_list
@@ -200,7 +213,7 @@ class MicroDiffractometer(AbstractDiffractometer):
         return motors_dict
 
     @property
-    def get_head_type(self) -> DiffractometerHead:
+    def _get_head_type(self) -> DiffractometerHead:
         """Get the head type."""
         try:
             self.head_type = DiffractometerHead(
@@ -217,10 +230,11 @@ class MicroDiffractometer(AbstractDiffractometer):
             value: requested phase.
         """
         self._exporter.execute("startSetPhase", (value.value,))
+        self.wait_status_ready(timeout=200)
 
     def get_phase(self) -> DiffractometerPhase:
         """Get the current phase."""
-        value = self._exporter.read_property("CurrentPhase")
+        value = self.phase_channel.get_value()
         try:
             self.current_phase = DiffractometerPhase(value)
         except ValueError:
@@ -291,13 +305,14 @@ class MicroDiffractometer(AbstractDiffractometer):
         self._exporter.write_property("ScanNumberOfFrames", 1)
         scan_params = f"1\t{start:0.3f}\t{(end - start):0.3f}\t{exptime:0.3f}\t1"
         self._exporter.execute("startScanEx", (scan_params,))
-        self._wait_ready(timeout)
+        self.wait_status_ready(timeout)
 
     def do_line_scan(
         self,
         start: float,
         end: float,
         exptime: float,
+        number_of_images: int,
         motors_pos: dict[str, dict],
         timeout: float | None = None,
     ):
@@ -317,16 +332,19 @@ class MicroDiffractometer(AbstractDiffractometer):
         """
         # check the scan limits
         self.check_scan_limits(start, end, exptime)
-        # set only one frame
-        self._exporter.write_property("ScanNumberOfFrames", 1)
+        if not self.get_property("md_set_number_of_frames"):
+            number_of_images = 1
+
+        self._exporter.write_property("ScanNumberOfFrames", number_of_images)
+
         scan_params = f"{start:0.3f}\t{(end - start):0.3f}\t{exptime:0.3f}\t"
         for name in ["phiy", "phiz", "sampx", "sampy"]:
-            scan_params += f"{motors_pos['1'][name]:0.3f}"
+            scan_params += f"{motors_pos['1'][name]:0.3f}\t"
         for name in ["phiy", "phiz", "sampx", "sampy"]:
-            scan_params += f"{motors_pos['2'][name]:0.3f}"
+            scan_params += f"{motors_pos['2'][name]:0.3f}\t"
 
         self._exporter.execute("startScan4DEx", (scan_params,))
-        self._wait_ready(timeout)
+        self.wait_status_ready(timeout)
 
     def do_mesh_scan(
         self,
@@ -384,7 +402,7 @@ class MicroDiffractometer(AbstractDiffractometer):
         scan_params += f"{exptime / nb_lines}\t"
         scan_params += "True\tTrue\tTrue\t"
         self._exporter.execute("startRasterScanEx", (scan_params,))
-        self._wait_ready(timeout)
+        self.wait_status_ready(timeout)
 
     def do_still_scan(
         self,
@@ -408,7 +426,7 @@ class MicroDiffractometer(AbstractDiffractometer):
         """
         scan_params = f"{pulse_duration:0.6f}\t{pulse_period:0.6f}\t{nb_pulse}"
         self._exporter.execute("startStillScan", (scan_params,))
-        self._wait_ready(timeout)
+        self.wait_status_ready(timeout)
 
     def do_characterisation_scan(
         self,
@@ -449,7 +467,7 @@ class MicroDiffractometer(AbstractDiffractometer):
             # min timeout is 20 min
             timeout = max(timeout, 20 * 60)
 
-        self._wait_ready(timeout)
+        self.wait_status_ready(timeout)
 
     def get_pixels_per_mm(self) -> tuple[int, int]:
         """Get the pixel/mm values.
@@ -460,3 +478,10 @@ class MicroDiffractometer(AbstractDiffractometer):
         x_calib = self._exporter.read_property("CoaxCamScaleX")
         y_calib = self._exporter.read_property("CoaxCamScaleY")
         return 1.0 / x_calib, 1.0 / y_calib
+
+    def get_beam_position(self) -> tuple:
+        """Get the beam position defined in MD"""
+        return (
+            self.beam_position_horizontal.get_value(),
+            self.beam_position_vertical.get_value(),
+        )

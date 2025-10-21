@@ -63,13 +63,13 @@ fluo_detector - if present, actuator to move a fluorescence detector close to th
 import abc
 import json
 from enum import Enum, unique
-from typing import Dict, List, Optional, Tuple, Union
 from pathlib import Path
+from typing import Dict, List, Optional, Tuple, Union
+
 from pydantic.v1 import BaseModel, Field, ValidationError
 
-from mxcubecore.BaseHardwareObjects import HardwareObject, HardwareObjectState
 from mxcubecore import HardwareRepository as HWR
-
+from mxcubecore.BaseHardwareObjects import HardwareObject, HardwareObjectState
 
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -96,7 +96,6 @@ class DiffractometerPhase(Enum):
     COLLECT = "DataCollection"
     SEE_BEAM = "BeamLocation"
     TRANSFER = "Transfer"
-    SEE_SAMPLE = "LightSample"
 
 
 @unique
@@ -303,7 +302,7 @@ class AbstractDiffractometer(HardwareObject):
         if simultaneous:
             for key in motors_positions_dict:
                 mot_hwobj_dict[key].wait_ready(timeout)
-        self.update_state(self.get_state())
+        self.update_state()
 
     def get_value_motors(self, motors_list: list | None = None) -> dict:
         """Get the positions of diffractometer motors. If the motors_list is
@@ -476,8 +475,8 @@ class AbstractDiffractometer(HardwareObject):
         if not isinstance(value, DiffractometerPhase):
             value = self.value_to_enum(value, DiffractometerPhase)
         if value != DiffractometerPhase.UNKNOWN:
+            self.update_state(HardwareObjectState.BUSY)
             self._set_phase(value)
-            self.update_phase(value)
             if timeout == 0:
                 return
             self.wait_ready(timeout)
@@ -515,6 +514,8 @@ class AbstractDiffractometer(HardwareObject):
         """
         if value is None:
             value = self.get_phase()
+        if not isinstance(value, DiffractometerPhase):
+            value = DiffractometerPhase(value)
         if self.current_phase != value:
             self.current_phase = value
             self.emit("phaseChanged", (value.name,))
