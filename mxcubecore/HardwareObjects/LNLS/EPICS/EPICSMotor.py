@@ -77,7 +77,7 @@ class EPICSMotor(EPICSActuator, AbstractMotor):
             # Treat infinite limits
             self._nominal_limits = (None, None)
         logging.getLogger("HWR").info(
-            "Motor %s limits: %s" % (self._config.motor_name, self._nominal_limits)
+            "Motor %s limits: %s" % (self._name, self._nominal_limits)
         )
         return self._nominal_limits
 
