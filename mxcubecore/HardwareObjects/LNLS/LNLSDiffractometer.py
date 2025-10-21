@@ -31,7 +31,7 @@ from mxcubecore.HardwareObjects.GenericDiffractometer import (
 )
 
 
-class DiffractometerMockup(GenericDiffractometer):
+class LNLSDiffractometer(GenericDiffractometer):
     """
     Descript. :
     """
@@ -85,7 +85,6 @@ class DiffractometerMockup(GenericDiffractometer):
             "kappa": 11,
             "kappa_phi": 22.0,
         }
-        self.move_motors(self._get_random_centring_position())
 
         self.current_state_dict = {}
         self.centring_status = {"valid": False}
@@ -121,12 +120,6 @@ class DiffractometerMockup(GenericDiffractometer):
         self.connect(
             self.motor_hwobj_dict["sampy"], "valueChanged", self.sampy_motor_moved
         )
-
-    def execute_server_task(self, method, timeout=30, *args):
-        return
-
-    def in_plate_mode(self):
-        return self.mount_mode == "plate"
 
     def use_sample_changer(self):
         return self.mount_mode == "sample_changer"
@@ -225,12 +218,6 @@ class DiffractometerMockup(GenericDiffractometer):
         Descript. :
         """
         return
-
-    # def get_omega_axis_position(self):
-    #     """
-    #     Descript. :
-    #     """
-    #     return self.current_positions_dict.get("phi")
 
     def beam_position_changed(self, value):
         """
@@ -399,26 +386,3 @@ class DiffractometerMockup(GenericDiffractometer):
         self.current_phase = str(phase)
         self.emit("minidiffPhaseChanged", (self.current_phase,))
 
-    def get_point_from_line(self, point_one, point_two, index, images_num):
-        return point_one.as_dict()
-
-    def abort(self) -> None:
-        return None
-
-    def status(self) -> str:
-        return "READY"
-
-    def my_fancy_function(
-        self, speed: float, num_images: int, exp_time: float, phase: PhaseEnum
-    ) -> bool:
-        return True
-
-    def my_other_funny_function(self) -> None:
-        pass
-
-    def ssx_chip_scan(self, parameters):
-        return
-
-    def move_chip_to(self, x: int, y: int) -> None:
-        print("moving chip to")
-        return
