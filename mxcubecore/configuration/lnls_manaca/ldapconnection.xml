@@ -1,4 +1,0 @@
-<procedure class="LdapAuthenticatorMockup">
-  <ldaphost>ldap.cnpem.br</ldaphost>
-  <ldapport>389</ldapport>
-</procedure>
