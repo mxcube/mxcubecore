@@ -20,15 +20,11 @@
 import logging
 import random
 import time
-import warnings
 
 from gevent.event import AsyncResult
 
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.HardwareObjects.GenericDiffractometer import (
-    GenericDiffractometer,
-    PhaseEnum,
-)
+from mxcubecore.HardwareObjects.GenericDiffractometer import (GenericDiffractometer)
 
 
 class LNLSDiffractometer(GenericDiffractometer):
@@ -63,8 +59,9 @@ class LNLSDiffractometer(GenericDiffractometer):
         # self.image_height = 100
 
         GenericDiffractometer.init(self)
-        self.x_calib = 0.000444
-        self.y_calib = 0.000446
+        # Bzoom: 1.86 um/pixel (or 0.00186 mm/pixel) at minimum zoom
+        self.x_calib = 0.00186
+        self.y_calib = 0.00186
         self.last_centred_position = [318, 238]
 
         self.pixels_per_mm_x = 1.0 / self.x_calib
@@ -89,9 +86,6 @@ class LNLSDiffractometer(GenericDiffractometer):
         self.current_state_dict = {}
         self.centring_status = {"valid": False}
         self.centring_time = 0
-
-        # self.image_width = 400
-        # self.image_height = 400
 
         self.mount_mode = self.get_property("sample_mount_mode")
         if self.mount_mode is None:
@@ -121,37 +115,43 @@ class LNLSDiffractometer(GenericDiffractometer):
             self.motor_hwobj_dict["sampy"], "valueChanged", self.sampy_motor_moved
         )
 
-    def use_sample_changer(self):
-        return self.mount_mode == "sample_changer"
-
-    def is_reversing_rotation(self):
-        return True
-
-    def get_grid_direction(self):
-        """
-        Descript. :
-        """
-        return self.grid_direction
-
     def manual_centring(self):
         """
         Descript. :
         """
+        print("Iniciando centragem manual...")
         for click in range(3):
+            print(f"Aguardando clique do usuário ({click+1}/3)...")
             self.user_clicked_event = AsyncResult()
-            self.waiting_for_click = True
             x, y = self.user_clicked_event.get()
+            print(f"Usuário clicou nas coordenadas: x={x}, y={y}")
+
+            # go to beam
+            print("Movendo para o feixe com as coordenadas clicadas.")
+            res = self.move_to_beam(x, y)  # wait before continue
+            print(f"Resultado do movimento para o feixe: {res}")
+
             if click < 2:
+                print(f"Executando rotação relativa do motor phi em 90 graus (click={click})...")
                 self.motor_hwobj_dict["phi"].set_value_relative(90)
+
+        print(f"Salvando última posição centrada: x={x}, y={y}")
         self.last_centred_position[0] = x
         self.last_centred_position[1] = y
-        centred_pos_dir = self._get_random_centring_position()
-        return centred_pos_dir
+
+        print("Centragem manual finalizada.")
+        return {}
 
     def automatic_centring(self):
         """Automatic centring procedure"""
+        print("Iniciando centragem automática...")
+        
         centred_pos_dir = self._get_random_centring_position()
+        print(f"Posição centrada gerada automaticamente: {centred_pos_dir}")
+
         self.emit("newAutomaticCentringPoint", centred_pos_dir)
+        print("Sinal 'newAutomaticCentringPoint' emitido.")
+
         return centred_pos_dir
 
     def _get_random_centring_position(self):
@@ -184,20 +184,6 @@ class LNLSDiffractometer(GenericDiffractometer):
         """
         return True
 
-    def is_valid(self):
-        """
-        Descript. :
-        """
-        return True
-
-    def invalidate_centring(self):
-        """
-        Descript. :
-        """
-        if self.current_centring_procedure is None and self.centring_status["valid"]:
-            self.centring_status = {"valid": False}
-            # self.emitProgressMessage("")
-            self.emit("centringInvalid", ())
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
         """
@@ -206,45 +192,12 @@ class LNLSDiffractometer(GenericDiffractometer):
         centred_pos_dir = self._get_random_centring_position()
         return centred_pos_dir
 
-    def get_calibration_data(self, offset):
-        """
-        Descript. :
-        """
-        # return (1.0 / self.x_calib, 1.0 / self.y_calib)
-        return (1.0 / self.x_calib, 1.0 / self.y_calib)
-
-    def refresh_omega_reference_position(self):
-        """
-        Descript. :
-        """
-        return
-
-    def beam_position_changed(self, value):
-        """
-        Descript. :
-        """
-        self.beam_position = value
-
-    def get_current_centring_method(self):
-        """
-        Descript. :
-        """
-        return self.current_centring_method
 
     def motor_positions_to_screen(self, centred_positions_dict):
         """
         Descript. :
         """
         return self.last_centred_position[0], self.last_centred_position[1]
-
-    def moveToCentredPosition(self, centred_position, wait=False):
-        """
-        Descript. :
-        """
-        try:
-            return self.move_to_centred_position(centred_position)
-        except Exception:
-            logging.exception("Could not move to centred position")
 
     def phi_motor_moved(self, pos):
         """
@@ -285,43 +238,74 @@ class LNLSDiffractometer(GenericDiffractometer):
         self.emit_diffractometer_moved()
         self.emit("kappaPhiMotorMoved", pos)
 
-    def refresh_video(self):
+    def calculate_move_to_beam_pos(self, x, y):
         """
-        Descript. :
+        Descript. : calculate motor positions to put sample on the beam.
+        Returns: dict of motor positions
         """
-        self.emit("minidiffStateChanged", "testState")
-        if HWR.beamline.beam:
-            HWR.beamline.beam.beam_pos_hor_changed(300)
-            HWR.beamline.beam.beam_pos_ver_changed(200)
 
-    def start_auto_focus(self):
-        """
-        Descript. :
-        """
-        return
+        # Atualiza posição atual do feixe
+        self.beam_position[0], self.beam_position[1] = (
+            HWR.beamline.beam.get_beam_position_on_screen()
+        )
+        print(f"Posição atual do feixe na tela: {self.beam_position}")
+
+        # Armazena clique do usuário
+        self.last_centred_position[0] = x
+        self.last_centred_position[1] = y
+        print(f"Última posição clicada pelo usuário: x={x}, y={y}")
+
+        # Obtém posições atuais dos motores
+        omega_pos = self.motor_hwobj_dict["phi"].get_value()
+        goniox_pos = self.motor_hwobj_dict["phiz"].get_value()
+        sampx_pos = self.motor_hwobj_dict["sampx"].get_value()
+        sampy_pos = self.motor_hwobj_dict["sampy"].get_value()
+        print(f"Posições atuais dos motores: omega={omega_pos}, phiz={goniox_pos}, sampx={sampx_pos}, sampy={sampy_pos}")
+
+        # Cálculo da movimentação de goniox
+        import math
+        drx_goniox = abs(-x - y + 1152) / math.sqrt(2)
+        dir_goniox = 1 if y <= (-x + 1152) else -1
+        move_goniox = dir_goniox * drx_goniox / self.pixels_per_mm_x + goniox_pos
+        print(f"Movimento calculado para phiz (goniox): {move_goniox:.4f}")
+
+        # Cálculo da movimentação em Y
+        dry_samp = abs(x - y - 128) / math.sqrt(2)
+        dir_samp = 1 if y >= x - 128 else -1
+        move_samp = dir_samp * dry_samp
+        print(f"Movimento intermediário para centragem vertical (samp): {move_samp:.4f}")
+
+        move_sampy = move_samp / self.pixels_per_mm_y
+        print(f"Conversão para mm em Y: move_sampy = {move_sampy:.4f}")
+
+        move_sampy += sampy_pos
+        print(f"Posição absoluta destino para sampy: {move_sampy:.4f}")
+
+        # Criação do dicionário de destino
+        centred_pos_dir = {
+            "phiz": move_goniox,
+            "sampy": move_sampy
+        }
+        print(f"Posições alvo calculadas para centragem: {centred_pos_dir}")
+
+        return centred_pos_dir
 
     def move_to_beam(self, x, y, omega=None):
         """
         Descript. : function to create a centring point based on all motors
                     positions.
         """
+        logging.getLogger("HWR").info("Moving to beam...")
+        print(f"Initializing beam centering with beam at x={x}, y={y}...")
 
-        print(
-            (
-                "moving to beam position: %d %d"
-                % (self.beam_position[0], self.beam_position[1])
-            )
-        )
+        centred_pos_dir = self.calculate_move_to_beam_pos(x, y)
 
-    def move_to_coord(self, x, y, omega=None):
-        """
-        Descript. : function to create a centring point based on all motors
-                    positions.
-        """
-        warnings.warn(
-            "Deprecated method, call move_to_beam instead", DeprecationWarning
-        )
-        return self.move_to_beam(x, y, omega)
+        print("Moving to beam...")
+        self.move_to_motors_positions(centred_pos_dir, wait=True)
+
+        logging.getLogger("HWR").info("Move to beam has finished...")
+        return centred_pos_dir
+
 
     def start_move_to_beam(self, coord_x=None, coord_y=None, omega=None):
         """
@@ -337,8 +321,6 @@ class LNLSDiffractometer(GenericDiffractometer):
             "endTime": curr_time,
         }
         motors = self.get_positions()
-        # motors["beam_x"] = 0.1
-        # motors["beam_y"] = 0.1
         self.last_centred_position[0] = coord_x
         self.last_centred_position[1] = coord_y
         self.centring_status["motors"] = motors
@@ -354,30 +336,6 @@ class LNLSDiffractometer(GenericDiffractometer):
         omega_ref = [0, 238]
         self.emit("omegaReferenceChanged", omega_ref)
 
-    def move_kappa_and_phi(self, kappa, kappa_phi):
-        return
-
-    def get_osc_max_speed(self):
-        return 66
-
-    def get_osc_limits(self):
-        if self.in_plate_mode:
-            return (170, 190)
-        else:
-            return (-360, 360)
-
-    def get_scan_limits(self, speed=None, num_images=None, exp_time=None):
-        if self.in_plate_mode:
-            return (170, 190)
-        else:
-            return (-360, 360)
-
-    def get_osc_dynamic_limits(self):
-        """Returns dynamic limits of oscillation axis"""
-        return (0, 20)
-
-    def get_scan_dynamic_limits(self, speed=None):
-        return (-360, 360)
 
     def move_omega_relative(self, relative_angle):
         self.motor_hwobj_dict["phi"].set_value_relative(relative_angle, 5)
