@@ -248,19 +248,20 @@ class LNLSDiffractometer(GenericDiffractometer):
         self.beam_position[0], self.beam_position[1] = (
             HWR.beamline.beam.get_beam_position_on_screen()
         )
-        print(f"Posição atual do feixe na tela: {self.beam_position}")
+        print(f"Current beam position: {self.beam_position}")
 
         # Armazena clique do usuário
         self.last_centred_position[0] = x
         self.last_centred_position[1] = y
-        print(f"Última posição clicada pelo usuário: x={x}, y={y}")
 
+        zoom = self.getObjectByRole("zoom")
+        calibration_x = zoom.getProperty("mm_per_pixel_x")
+        calibration_y = zoom.getProperty("mm_per_pixel_y")
+        print(calibration_x, calibration_y)
         # Obtém posições atuais dos motores
-        omega_pos = self.motor_hwobj_dict["phi"].get_value()
-        goniox_pos = self.motor_hwobj_dict["phiz"].get_value()
         sampx_pos = self.motor_hwobj_dict["sampx"].get_value()
         sampy_pos = self.motor_hwobj_dict["sampy"].get_value()
-        print(f"Posições atuais dos motores: omega={omega_pos}, phiz={goniox_pos}, sampx={sampx_pos}, sampy={sampy_pos}")
+        print(f"Current motor positions: sampx={sampx_pos}, sampy={sampy_pos}")
 
         # Cálculo da movimentação de goniox
         import math
@@ -299,9 +300,8 @@ class LNLSDiffractometer(GenericDiffractometer):
         print(f"Initializing beam centering with beam at x={x}, y={y}...")
 
         centred_pos_dir = self.calculate_move_to_beam_pos(x, y)
-
         print("Moving to beam...")
-        self.move_to_motors_positions(centred_pos_dir, wait=True)
+        # self.move_to_motors_positions(centred_pos_dir, wait=True)
 
         logging.getLogger("HWR").info("Move to beam has finished...")
         return centred_pos_dir
