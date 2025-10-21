@@ -15,38 +15,41 @@ class EPICSMotor(EPICSActuator, AbstractMotor):
     MOTOR_EGU = "egu"
     MOTOR_PREC = "prec"
 
+    def _instantiate_attributes(self):
+        pvname = self._CommandContainer__channels[""].command.pv_name
+        self.add_channel(
+            {"type": "epics", "name": self.ACTUATOR_VAL}, pvname + ".VAL"
+        )
+        self.add_channel(
+            {"type": "epics", "name": self.ACTUATOR_RBV}, pvname + ".RBV"
+        )
+        self.add_channel(
+            {"type": "epics", "name": self.MOTOR_DMOV}, pvname + ".DMOV"
+        )
+        self.add_channel(
+            {"type": "epics", "name": self.MOTOR_STOP}, pvname + ".STOP"
+        )
+        self.add_channel(
+            {"type": "epics", "name": self.MOTOR_VELO}, pvname + ".VELO"
+        )
+        self.add_channel(
+            {"type": "epics", "name": self.MOTOR_HLM}, pvname + ".HLM"
+        )
+        self.add_channel(
+            {"type": "epics", "name": self.MOTOR_LLM}, pvname + ".LLM"
+        )
+        self.add_channel(
+            {"type": "epics", "name": self.MOTOR_EGU}, pvname + ".EGU"
+        )
+        self.add_channel(
+            {"type": "epics", "name": self.MOTOR_PREC}, pvname + ".PREC"
+        )
+
     def init(self):
         """Initialization method"""
         self._motor_channels = {}
         try:
-            pvname = self._CommandContainer__channels[""].command.pv_name
-            self.add_channel(
-                {"type": "epics", "name": self.ACTUATOR_VAL}, pvname + ".VAL"
-            )
-            self.add_channel(
-                {"type": "epics", "name": self.ACTUATOR_RBV}, pvname + ".RBV"
-            )
-            self.add_channel(
-                {"type": "epics", "name": self.MOTOR_DMOV}, pvname + ".DMOV"
-            )
-            self.add_channel(
-                {"type": "epics", "name": self.MOTOR_STOP}, pvname + ".STOP"
-            )
-            self.add_channel(
-                {"type": "epics", "name": self.MOTOR_VELO}, pvname + ".VELO"
-            )
-            self.add_channel(
-                {"type": "epics", "name": self.MOTOR_HLM}, pvname + ".HLM"
-            )
-            self.add_channel(
-                {"type": "epics", "name": self.MOTOR_LLM}, pvname + ".LLM"
-            )
-            self.add_channel(
-                {"type": "epics", "name": self.MOTOR_EGU}, pvname + ".EGU"
-            )
-            self.add_channel(
-                {"type": "epics", "name": self.MOTOR_PREC}, pvname + ".PREC"
-            )
+            self._instantiate_attributes()
             self.get_limits()
             self.get_velocity()
             self.get_precision()
