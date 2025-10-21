@@ -83,7 +83,7 @@ beamline = None
 # Supported beamline configuration filenames.
 # The first name in the list takes precedence.
 #
-BEAMLINE_CONFIG_FILES = ["beamline.yaml", "beamline_config.yml"]
+BEAMLINE_CONFIG_FILES = ["beamline_config.yaml", "beamline_config.yml"]
 
 
 def load_from_yaml(
