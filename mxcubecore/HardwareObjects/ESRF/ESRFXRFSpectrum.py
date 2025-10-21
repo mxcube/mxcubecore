@@ -152,7 +152,9 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
             self.config_fit["concentrations"] = {}
             change = True
         if "attenuators" not in self.config_fit:
-            self.config_fit["attenuators"] = {"Matrix": [1, "Water", 1.0, 0.01, 45.0, 45.0]}
+            self.config_fit["attenuators"] = {
+                "Matrix": [1, "Water", 1.0, 0.01, 45.0, 45.0]
+            }
             change = True
         if "flux" in config:
             self.config_fit["concentrations"]["flux"] = float(config["flux"])
