@@ -99,7 +99,7 @@ class BoundMethodWeakref(object):
           reconstructable via the following, which is true of built-in
           instance methods::
 
-            target.im_func.__get__( target.im_self )
+            target.im_func.__get__(target.im_self)
 
         - ``on_delete``: Optional callback which will be called when
           this weak reference ceases to be valid (i.e. either the
