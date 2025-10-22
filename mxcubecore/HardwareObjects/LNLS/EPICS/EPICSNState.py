@@ -41,6 +41,7 @@ class EPICSNState(EPICSActuator, AbstractNState):
                 value = value.value
 
         EPICSActuator._set_value(self, value)
+        self._wait_actuator(value)
 
     def get_value(self):
         """Get the device value
