@@ -38,11 +38,6 @@ convention = "google"
 "test/Test*.py" = [
     "S101",  # Allow uses of the `assert` keyword
 ]
-"docs/conf.py" = [
-    "A001",
-    "DTZ002",
-    "INP001",  # `implicit-namespace-package`: `conf.py` is not meant to be imported
-]
 "mxcubecore/BaseHardwareObjects.py" = [
     "A001",
     "ARG002",
