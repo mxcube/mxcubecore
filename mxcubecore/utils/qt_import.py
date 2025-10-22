@@ -42,6 +42,7 @@ could be all replaced by::
 Or you could directly import things in this way::
 
   import qt_import as Qt
+
   app = Qt.QApplication([])
 
 But import lines like::
