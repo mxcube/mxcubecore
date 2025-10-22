@@ -1,3 +1,6 @@
+# noqa: INP001  # The parent directory is not meant to be imported as a package.
+
+
 # Configuration file for the Sphinx documentation builder.
 #
 # For the full list of built-in configuration values, see the documentation:
@@ -16,7 +19,7 @@ PROJECT_PACKAGE_METADATA = importlib.metadata.metadata(PROJECT_PACKAGE_NAME)
 
 project = "MXCuBE-Core"
 author = PROJECT_PACKAGE_METADATA["Author"]
-copyright = (f"{datetime.datetime.today().year}, {author}",)
+project_copyright = f"{datetime.datetime.now(tz=datetime.timezone.utc).year}, {author}"
 
 version = PROJECT_PACKAGE_METADATA["Version"]
 release = version
