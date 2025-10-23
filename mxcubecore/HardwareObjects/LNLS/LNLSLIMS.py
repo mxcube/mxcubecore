@@ -16,8 +16,8 @@ class LNLSLIMS(ICATLIMS):
         
         self.icatClient = IcatClient(
             icatplus_restricted_url="https://icat-plus.cnpem.br",
-            metadata_urls=["10.39.50.51"],
-            reschedule_investigation_urls=["10.39.50.51"],
+            metadata_urls=["https://icat-plus.cnpem.br"],
+            reschedule_investigation_urls=["https://icat-plus.cnpem.br"],
         )
         
     def is_single_session_available(self):
@@ -30,6 +30,9 @@ class LNLSLIMS(ICATLIMS):
             and len(self.session_manager.sessions) == 1
         )
     
+    def _create_icat_session(self, user_name: str, password: str):
+        self.icat_session = self.icatClient.do_log_in(user_name, password)
+
     def login(self, user_name, token, is_local_host=False):
         session_manager, lims_username, sessions = super().login(user_name, token, self.session_manager)
         self.session_manager = session_manager
