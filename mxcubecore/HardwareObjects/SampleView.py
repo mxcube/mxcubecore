@@ -121,7 +121,7 @@ class SampleView(AbstractSampleView):
         """
         motors_dict = {}
         for key, val in self.centring_motors.items():
-            motors_dict.update({key: val.motor.get_value()})
+            motors_dict.update({key: val.motor.get_value()*val.direction})
         return motors_dict
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
@@ -142,12 +142,12 @@ class SampleView(AbstractSampleView):
             p_x, p_y = diffr.get_pixels_per_mm()
             if None in (p_x, p_y):
                 return 0, 0
-
             omega_angle = math.radians(-diffr.omega.get_value())
             sampx = positions_dict.get("sampx") - diffr.sampx.get_value()
             sampy = positions_dict.get("sampy") - diffr.sampy.get_value()
             phiy = -(positions_dict.get("phiy") - diffr.phiy.get_value())
             phiz = positions_dict.get("phiz") - diffr.phiz.get_value()
+
             rot_matrix = np.matrix(
                 [
                     [math.cos(omega_angle), -math.sin(omega_angle)],
@@ -324,7 +324,9 @@ class SampleView(AbstractSampleView):
         diffr.wait_status_ready(5)
 
         motors_dict = self.get_positions()
-        omega_angle = math.radians(-motors_dict.get("omega", 0))
+        for key, val in motors_dict.items():
+            motors_dict.update({key: self.centring_motors[key].direction*val})
+        omega_angle = math.radians(motors_dict.get("omega", 0))
 
         rot_matrix = np.matrix(
             [
@@ -346,8 +348,8 @@ class SampleView(AbstractSampleView):
         sx, sy = np.dot(np.array([dsampx, dsampy]), np.array(chi_rot))
 
         sampx = -motors_dict.get("sampx") + sx
-        sampy = motors_dict.get("sampx") + sy
-        phiy = -motors_dict.get("phiy") + dx
+        sampy = motors_dict.get("sampy") + sy
+        phiy = motors_dict.get("phiy") + dx
 
         self.centring_motors.get("sampx").set_value(-sampx)
         self.centring_motors.get("sampy").set_value(sampy)
