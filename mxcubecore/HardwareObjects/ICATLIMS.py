@@ -59,6 +59,9 @@ class ICATLIMS(AbstractLims):
             Lims(name="DRAC", description="Data Repository for Advancing open sCience"),
         ]
 
+    def _create_icat_session(self, user_name: str, password: str):
+        self.icat_session: ICATSession = self.icatClient.do_log_in(password)
+
     def login(
         self,
         user_name: str,
@@ -68,7 +71,7 @@ class ICATLIMS(AbstractLims):
         msg = f"authenticate {user_name}"
         logger.debug(msg)
 
-        self.icat_session: ICATSession = self.icatClient.do_log_in(password)
+        self._create_icat_session(user_name=user_name, password=password)
 
         if self.icatClient is None or self.icatClient is None:
             msg = "Error initializing icatClient: "
