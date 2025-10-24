@@ -370,6 +370,7 @@ class FlexMaint(Equipment):
         if wait:
             SC = HWR.beamline.sample_changer
             SC.wait_ready(timeout)
+            print("_home_clear")
             HWR.beamline.sample_changer.checkTaskResult(res)
         return res
 
@@ -379,6 +380,7 @@ class FlexMaint(Equipment):
         if wait:
             SC = HWR.beamline.sample_changer
             SC.wait_ready(timeout)
+            print("_park_robot")
             HWR.beamline.sample_changer.checkTaskResult(res)
         return res
     @set_running
@@ -387,6 +389,7 @@ class FlexMaint(Equipment):
         if wait:
             SC = HWR.beamline.sample_changer
             SC.wait_ready(timeout)
+            print("_trash_mounted_pin")
             HWR.beamline.sample_changer.checkTaskResult(res)
         self._do_synchronize()
         return res
@@ -404,6 +407,7 @@ class FlexMaint(Equipment):
         if wait:
             SC = HWR.beamline.sample_changer
             SC.wait_ready(timeout)
+            print("_do_dry_gripper")
             HWR.beamline.sample_changer.checkTaskResult(res)
         HWR.beamline.sample_changer.clear_memory()
         return res
@@ -428,6 +432,7 @@ class FlexMaint(Equipment):
         if wait:
             SC = HWR.beamline.sample_changer
             SC.wait_ready(timeout)
+            print("_do_home")
             HWR.beamline.sample_changer.checkTaskResult(res)
         return res
         # HWR.beamline.sample_changer.change_ifcloseLid_inBeginning_state(False)

@@ -330,6 +330,7 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
         res = self._cmdUnLoadSample(parm)
         if wait:
             self.wait_ready(timeout)
+            print("_do_unmount")
             self.checkTaskResult(res)
         return res
     @if_ErrorCode
@@ -427,12 +428,14 @@ class FlexSampleChanger(AbstractSampleChanger.SampleChanger):
                 if load_sample_state == 'on_gonio' and MD2.get_state() =='Ready':
                     break
                 if self._ready():
+                    print("wait_centring_ready_when_load 1")
                     self.checkTaskResult(task_id)
 
             res = self._do_getMountedSamplePosition()
             if res[1]==puck_num and res[2]==pin_num:
                 print("sample is ready to centring")
             else:
+                print("wait_centring_ready_when_load 2")
                 self.checkTaskResult(task_id)
 
 

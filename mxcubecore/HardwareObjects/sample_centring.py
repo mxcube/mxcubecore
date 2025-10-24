@@ -558,7 +558,7 @@ def find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb):
     if hasattr(camera, "take_snapshot"):
         print(f"===== camera has take_snapshot method!")
 
-    camera.take_snapshot(snapshot_filename, bw=True)
+    camera.takeSnapshot(snapshot_filename, bw=True)
 
     # Lucid does not accept 0 degree rotation and
     # has a reference frame that is reversed to the one used
