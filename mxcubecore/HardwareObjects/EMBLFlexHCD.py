@@ -34,6 +34,10 @@ import base64
 import logging
 import pickle
 import time
+from typing import (
+    Any,
+    List,
+)
 
 import gevent
 from PyTango.gevent import DeviceProxy
@@ -184,32 +188,52 @@ class EMBLFlexHCD(SampleChanger):
         self._update_selection()
         self.state = self._read_state()
 
-    def get_sample_list(self):
+    def get_sample_list(self) -> List[Any]:
+        """
+        Returns a list of present samples enriched with information
+        from the Flex getPresentSamples() call.
+        """
         sample_list = super().get_sample_list()
-
+        present_sample_list = []
+        # Get serialized Present samples
         sc_present_sample_list = self._execute_cmd_exporter(
             "getPresentSamples", attribute=True
         )
 
-        if sc_present_sample_list:
-            sc_present_sample_list = sc_present_sample_list.split(":")
-        else:
-            sc_present_sample_list = []
+        if not sc_present_sample_list:
+            return []
 
-        present_sample_list = []
+        # Parse colon-separated entries
+        entries = [e.strip() for e in sc_present_sample_list.split(":") if e.strip()]
 
+        # Convert entries to structured data
+        # and match parsed Flex samples with MXCuBECore sample objects
         for sample in sample_list:
-            for present_sample_str in sc_present_sample_list:
-                present_sample = present_sample_str.split(",")
-                if sample.get_address() == (
-                    str(present_sample[0])
-                    + ":"
-                    + str(present_sample[1])
-                    + ":"
-                    + "%02d" % int(present_sample[4])
-                ):
-                    present_sample_list.append(sample)
+            for entry in entries:
+                try:
+                    cell, puck, puck_type, puck_barcode, well, sample_barcode, state = [
+                        p.strip() for p in entry.split(",")
+                    ]
+                except ValueError:
+                    self.log.warning("Skipping unexpected sample entry: %s", entry)
+                    continue
 
+                sample_addr = f"{cell}:{puck}:{int(well):02d}"
+                if sample.get_address() == sample_addr:
+                    # Add extra info directly into the sample object
+                    sample.container_info = {
+                        "puck_barcode": puck_barcode,
+                        "sample_barcode": sample_barcode,
+                        "state": state,
+                        "puck_type": puck_type,
+                    }
+
+                    present_sample_list.append(sample)
+                    break  # stop inner loop once matched
+
+        self.user_log.info(
+            "Loaded %d samples from Flex Sample Changer", len(present_sample_list)
+        )
         return present_sample_list
 
     @task
