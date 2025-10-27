@@ -41,6 +41,7 @@ from mxcubecore import HardwareRepository as HWR
 from mxcubecore import queue_entry
 from mxcubecore.HardwareObjects.EMBLFlexHCD import EMBLFlexHCD
 from mxcubecore.model import queue_model_objects as qmo
+from mxcubecore.queue_entry.base_queue_entry import CENTRING_METHOD
 from mxcubecore.TaskUtils import task
 
 
@@ -80,28 +81,52 @@ class EMBLFlexHarvester(EMBLFlexHCD):
         """
         sample_list = super().get_sample_list()
         present_sample_list = []
-        ha_sample_lists = self._harvester_hwo.get_crystal_uuids()
-        ha_sample_names = self._harvester_hwo.get_sample_names()
+
+        # Retrieve metadata lists from harvester HWO
+        try:
+            ha_sample_lists = self._harvester_hwo.get_crystal_uuids()
+            ha_sample_names = self._harvester_hwo.get_sample_names()
+            ha_sample_states = self._harvester_hwo.get_samples_state()
+        except Exception as e:
+            self.user_log.error(
+                "Failed retrieving sample metadata from Harvester: %s", e
+            )
+            return present_sample_list
+
         ha_sample_acronyms = self._harvester_hwo.get_sample_acronyms()
 
-        if ha_sample_lists:
-            for i in range(len(ha_sample_lists)):
-                sample = sample_list[i]
-                sample.id = ha_sample_lists[i]
-                sample._name = ha_sample_names[i]
-                # if all sample come with proteinAcronym
-                if len(ha_sample_acronyms) > 0 and len(ha_sample_acronyms) == len(
-                    ha_sample_lists
-                ):
-                    sample.proteinAcronym = ha_sample_acronyms[i]
-                else:
-                    # if all sample does not have proteinAcronym
-                    # we set first proteinAcronym to all if exist at least one
-                    sample.proteinAcronym = (
-                        ha_sample_acronyms[0] if len(ha_sample_acronyms) > 0 else ""
-                    )
-                present_sample_list.append(sample)
+        # If no samples reported by Harvester
+        if not ha_sample_lists:
+            self.user_log.warning("No samples reported by Harvester")
+            return present_sample_list
 
+        # Process each sample independently to avoid global failure
+        for index, x_tal_uuid in enumerate(ha_sample_lists):
+            sample = sample_list[index]
+            img_url = self._harvester_hwo.get_crystal_images_urls(x_tal_uuid)
+            img_target_x = self._harvester_hwo.get_image_target_x(x_tal_uuid)
+            img_target_y = self._harvester_hwo.get_image_target_y(x_tal_uuid)
+
+            # Enrich sample object in MXCuBE
+            sample.id = x_tal_uuid
+            sample.container_info = {"state": ha_sample_states[index]}
+
+            sample._set_image_url(img_url)
+            sample._set_image_x(img_target_x)
+            sample._set_image_y(img_target_y)
+            sample._name = ha_sample_names[index]
+
+            # Protein acronym logic (fallback-safe)
+            if ha_sample_acronyms and len(ha_sample_acronyms) == len(ha_sample_lists):
+                sample.proteinAcronym = ha_sample_acronyms[index]
+            else:
+                sample.proteinAcronym = (
+                    ha_sample_acronyms[0] if ha_sample_acronyms else ""
+                )
+
+            present_sample_list.append(sample)
+
+        self.user_log.info("Loaded %d samples from Harvester", len(present_sample_list))
         return present_sample_list
 
     def _hw_get_mounted_sample(self) -> str:
@@ -179,7 +204,9 @@ class EMBLFlexHarvester(EMBLFlexHCD):
             if self._harvester_hwo.get_room_temperature_mode() == False:
                 self.queue_harvest_next_sample(loaded_sample.get_address())
 
-            # in this case we expect CENTRING_METHOD=None
+            # we expect CENTRING_METHOD to be None
+            # NB: move this call to base_queue_entry mount_sample and add Harvester Centering METHOD
+            HWR.beamline.queue_manager.centring_method = CENTRING_METHOD.NONE
             self.start_harvester_centring()
 
         return res
