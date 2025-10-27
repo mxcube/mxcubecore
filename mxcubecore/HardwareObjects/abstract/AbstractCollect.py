@@ -101,13 +101,6 @@ class AbstractCollect(HardwareObject, object):
     def init(self):
         self.ready_event = gevent.event.Event()
 
-        undulators = []
-        try:
-            for undulator in self.config.undulators:
-                undulators.append(undulator)
-        except Exception:
-            self.log.exception("")
-
         beam_div_hor, beam_div_ver = HWR.beamline.beam.get_beam_divergence()
 
         self.set_beamline_configuration(
@@ -126,7 +119,7 @@ class AbstractCollect(HardwareObject, object):
             detector_px=HWR.beamline.detector.get_property("px"),
             detector_py=HWR.beamline.detector.get_property("py"),
             detector_binning_mode=HWR.beamline.detector.get_binning_mode(),
-            undulators=undulators,
+            undulators=self.get_property("undulators", []),
             focusing_optic=self.get_property("focusing_optic"),
             monochromator_type=self.get_property("monochromator"),
             beam_divergence_vertical=beam_div_hor,
