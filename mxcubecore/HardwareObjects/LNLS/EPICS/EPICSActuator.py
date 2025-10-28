@@ -21,7 +21,7 @@ class EPICSActuator(AbstractActuator):
         self.update_state(self.STATES.READY)
         self.old_value = None
         if not self.unit:
-            self.unit = 0
+            self.unit = 10**-3
 
     def _watch(self):
         """Watch Actuator current value and update it on the UI."""
