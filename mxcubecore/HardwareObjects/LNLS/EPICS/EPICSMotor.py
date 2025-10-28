@@ -1,5 +1,5 @@
-import logging
 import time
+
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 from mxcubecore.HardwareObjects.LNLS.EPICS.EPICSActuator import EPICSActuator
 
@@ -17,44 +17,23 @@ class EPICSMotor(EPICSActuator, AbstractMotor):
 
     def _instantiate_attributes(self):
         pvname = self._CommandContainer__channels[""].command.pv_name
-        self.add_channel(
-            {"type": "epics", "name": self.ACTUATOR_VAL}, pvname + ".VAL"
-        )
-        self.add_channel(
-            {"type": "epics", "name": self.ACTUATOR_RBV}, pvname + ".RBV"
-        )
-        self.add_channel(
-            {"type": "epics", "name": self.MOTOR_DMOV}, pvname + ".DMOV"
-        )
-        self.add_channel(
-            {"type": "epics", "name": self.MOTOR_STOP}, pvname + ".STOP"
-        )
-        self.add_channel(
-            {"type": "epics", "name": self.MOTOR_VELO}, pvname + ".VELO"
-        )
-        self.add_channel(
-            {"type": "epics", "name": self.MOTOR_HLM}, pvname + ".HLM"
-        )
-        self.add_channel(
-            {"type": "epics", "name": self.MOTOR_LLM}, pvname + ".LLM"
-        )
-        self.add_channel(
-            {"type": "epics", "name": self.MOTOR_EGU}, pvname + ".EGU"
-        )
-        self.add_channel(
-            {"type": "epics", "name": self.MOTOR_PREC}, pvname + ".PREC"
-        )
+        self.add_channel({"type": "epics", "name": self.ACTUATOR_VAL}, pvname + ".VAL")
+        self.add_channel({"type": "epics", "name": self.ACTUATOR_RBV}, pvname + ".RBV")
+        self.add_channel({"type": "epics", "name": self.MOTOR_DMOV}, pvname + ".DMOV")
+        self.add_channel({"type": "epics", "name": self.MOTOR_STOP}, pvname + ".STOP")
+        self.add_channel({"type": "epics", "name": self.MOTOR_VELO}, pvname + ".VELO")
+        self.add_channel({"type": "epics", "name": self.MOTOR_HLM}, pvname + ".HLM")
+        self.add_channel({"type": "epics", "name": self.MOTOR_LLM}, pvname + ".LLM")
+        self.add_channel({"type": "epics", "name": self.MOTOR_EGU}, pvname + ".EGU")
+        self.add_channel({"type": "epics", "name": self.MOTOR_PREC}, pvname + ".PREC")
 
     def init(self):
         """Initialization method"""
         self._motor_channels = {}
-        try:
-            self._instantiate_attributes()
-            self.get_limits()
-            self.get_velocity()
-            self.get_precision()
-        except:
-            print("No PV name for the motor! Using yaml values.")
+        self._instantiate_attributes()
+        self.get_limits()
+        self.get_velocity()
+        self.get_precision()
         super().init()
 
     def _wait_actuator(self, value):
@@ -74,14 +53,11 @@ class EPICSMotor(EPICSActuator, AbstractMotor):
             low_limit = float(self.get_channel_value(self.MOTOR_LLM))
             high_limit = float(self.get_channel_value(self.MOTOR_HLM))
             self._nominal_limits = (low_limit, high_limit)
-        except BaseException:
+        except ValueError:
             self._nominal_limits = (None, None)
         if self._nominal_limits in [(0, 0), (float("-inf"), float("inf"))]:
             # Treat infinite limits
             self._nominal_limits = (None, None)
-        logging.getLogger("HWR").info(
-            "Motor %s limits: %s" % (self._name, self._nominal_limits)
-        )
         return self._nominal_limits
 
     def get_velocity(self):

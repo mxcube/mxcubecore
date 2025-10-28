@@ -1,5 +1,8 @@
-import numpy as np
+import time
+
 import gevent
+import numpy as np
+
 from mxcubecore.HardwareObjects.abstract.AbstractActuator import AbstractActuator
 
 
@@ -32,12 +35,18 @@ class EPICSActuator(AbstractActuator):
             self.update_value()
 
     def hasnt_arrived(self, setpoint):
-        return not np.isclose(self.get_value(), setpoint, rtol=self.unit, atol=self.unit)
+        return not np.isclose(
+            self.get_value(), setpoint, rtol=self.unit, atol=self.unit
+        )
 
-    def _wait_actuator(self, setpoint):
+    def _wait_actuator(self, setpoint, timeout):
         """Wait actuator to be ready."""
+        start = time.time()
         while self.hasnt_arrived(setpoint):
             gevent.sleep(0.15)
+            cur = time.time()
+            if (cur - start) > timeout:
+                raise TimeoutError
         self.update_state(self.STATES.READY)
 
     def get_value(self):
@@ -62,11 +71,13 @@ class EPICSActuator(AbstractActuator):
             RuntimeError: Timeout waiting for status ready  # From wait_ready
         """
         if self.read_only:
-            raise ValueError("Attempt to set value for read-only Actuator")
+            raise ValueError("Attempt to set %s for read-only Actuator" % value)
         if self.validate_value(value):
             self.update_state(self.STATES.BUSY)
             self._set_value(value)
-            self.__wait_actuator_task = gevent.spawn(lambda: self._wait_actuator(value))
+            self.__wait_actuator_task = gevent.spawn(
+                lambda: self._wait_actuator(value, timeout)
+            )
         else:
             raise ValueError(
                 "Invalid value %s; limits are %s" % (value, self.get_limits())
@@ -77,4 +88,3 @@ class EPICSActuator(AbstractActuator):
         if self.__wait_actuator_task is not None:
             self.__wait_actuator_task.kill()
         self.update_state(self.STATES.READY)
-

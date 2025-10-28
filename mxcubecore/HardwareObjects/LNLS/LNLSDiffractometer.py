@@ -24,7 +24,7 @@ import time
 from gevent.event import AsyncResult
 
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.HardwareObjects.GenericDiffractometer import (GenericDiffractometer)
+from mxcubecore.HardwareObjects.GenericDiffractometer import GenericDiffractometer
 
 
 class LNLSDiffractometer(GenericDiffractometer):
@@ -121,7 +121,7 @@ class LNLSDiffractometer(GenericDiffractometer):
         """
         print("Iniciando centragem manual...")
         for click in range(3):
-            print(f"Aguardando clique do usuário ({click+1}/3)...")
+            print(f"Aguardando clique do usuário ({click + 1}/3)...")
             self.user_clicked_event = AsyncResult()
             x, y = self.user_clicked_event.get()
             print(f"Usuário clicou nas coordenadas: x={x}, y={y}")
@@ -132,7 +132,9 @@ class LNLSDiffractometer(GenericDiffractometer):
             print(f"Resultado do movimento para o feixe: {res}")
 
             if click < 2:
-                print(f"Executando rotação relativa do motor phi em 90 graus (click={click})...")
+                print(
+                    f"Executando rotação relativa do motor phi em 90 graus (click={click})..."
+                )
                 self.motor_hwobj_dict["phi"].set_value_relative(90)
 
         print(f"Salvando última posição centrada: x={x}, y={y}")
@@ -145,7 +147,7 @@ class LNLSDiffractometer(GenericDiffractometer):
     def automatic_centring(self):
         """Automatic centring procedure"""
         print("Iniciando centragem automática...")
-        
+
         centred_pos_dir = self._get_random_centring_position()
         print(f"Posição centrada gerada automaticamente: {centred_pos_dir}")
 
@@ -184,14 +186,12 @@ class LNLSDiffractometer(GenericDiffractometer):
         """
         return True
 
-
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
         """
         Descript. :
         """
         centred_pos_dir = self._get_random_centring_position()
         return centred_pos_dir
-
 
     def motor_positions_to_screen(self, centred_positions_dict):
         """
@@ -260,10 +260,13 @@ class LNLSDiffractometer(GenericDiffractometer):
         goniox_pos = self.motor_hwobj_dict["phiz"].get_value()
         sampx_pos = self.motor_hwobj_dict["sampx"].get_value()
         sampy_pos = self.motor_hwobj_dict["sampy"].get_value()
-        print(f"Posições atuais dos motores: omega={omega_pos}, phiz={goniox_pos}, sampx={sampx_pos}, sampy={sampy_pos}")
+        print(
+            f"Posições atuais dos motores: omega={omega_pos}, phiz={goniox_pos}, sampx={sampx_pos}, sampy={sampy_pos}"
+        )
 
         # Cálculo da movimentação de goniox
         import math
+
         drx_goniox = abs(-x - y + 1152) / math.sqrt(2)
         dir_goniox = 1 if y <= (-x + 1152) else -1
         move_goniox = dir_goniox * drx_goniox / self.pixels_per_mm_x + goniox_pos
@@ -273,7 +276,9 @@ class LNLSDiffractometer(GenericDiffractometer):
         dry_samp = abs(x - y - 128) / math.sqrt(2)
         dir_samp = 1 if y >= x - 128 else -1
         move_samp = dir_samp * dry_samp
-        print(f"Movimento intermediário para centragem vertical (samp): {move_samp:.4f}")
+        print(
+            f"Movimento intermediário para centragem vertical (samp): {move_samp:.4f}"
+        )
 
         move_sampy = move_samp / self.pixels_per_mm_y
         print(f"Conversão para mm em Y: move_sampy = {move_sampy:.4f}")
@@ -282,10 +287,7 @@ class LNLSDiffractometer(GenericDiffractometer):
         print(f"Posição absoluta destino para sampy: {move_sampy:.4f}")
 
         # Criação do dicionário de destino
-        centred_pos_dir = {
-            "phiz": move_goniox,
-            "sampy": move_sampy
-        }
+        centred_pos_dir = {"phiz": move_goniox, "sampy": move_sampy}
         print(f"Posições alvo calculadas para centragem: {centred_pos_dir}")
 
         return centred_pos_dir
@@ -305,7 +307,6 @@ class LNLSDiffractometer(GenericDiffractometer):
 
         logging.getLogger("HWR").info("Move to beam has finished...")
         return centred_pos_dir
-
 
     def start_move_to_beam(self, coord_x=None, coord_y=None, omega=None):
         """
@@ -336,11 +337,9 @@ class LNLSDiffractometer(GenericDiffractometer):
         omega_ref = [0, 238]
         self.emit("omegaReferenceChanged", omega_ref)
 
-
     def move_omega_relative(self, relative_angle):
         self.motor_hwobj_dict["phi"].set_value_relative(relative_angle, 5)
 
     def set_phase(self, phase, timeout=None):
         self.current_phase = str(phase)
         self.emit("minidiffPhaseChanged", (self.current_phase,))
-
