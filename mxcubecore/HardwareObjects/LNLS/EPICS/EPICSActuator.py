@@ -37,7 +37,7 @@ class EPICSActuator(AbstractActuator):
     def _wait_actuator(self, setpoint):
         """Wait actuator to be ready."""
         while self.hasnt_arrived(setpoint):
-            gevent.sleep(0.25)
+            gevent.sleep(0.15)
         self.update_state(self.STATES.READY)
 
     def get_value(self):
