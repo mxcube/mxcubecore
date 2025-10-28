@@ -405,17 +405,6 @@ class EMBLFlexHCD(SampleChanger):
             + "%02d" % loaded_sample[2]
         )
 
-    def get_loaded_sample(self):
-        sample = None
-
-        loaded_sample_addr = self._hw_get_mounted_sample()
-
-        for s in self.get_sample_list():
-            if s.get_address() == loaded_sample_addr:
-                sample = s
-
-        return sample
-
     def get_sample_with_address(self, address):
         sample = None
         address = str(address[0]) + ":" + str(address[1]) + ":" + "%02d" % address[2]
