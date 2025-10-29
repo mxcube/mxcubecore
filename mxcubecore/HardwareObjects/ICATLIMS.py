@@ -1,10 +1,12 @@
 import json
 import logging
+import os
 import shutil
 from collections import defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional
+from typing import Any
 from zoneinfo import ZoneInfo
 
 import requests
@@ -262,25 +264,7 @@ class ICATLIMS(AbstractLims):
         except Exception:
             return str(json_str)
 
-    def __to_sample(
-        self, tracking_sample: dict, puck: dict, sample_sheets: List[SampleSheet]
-    ) -> dict:
-        """
-        Convert a tracking sample and associated metadata into the internal
-        sample data structure.
-        - Extracts relevant sample metadata.
-        - Resolves protein acronym from the sample sheet if available.
-        - Maps experiment plan details into a diffraction plan dictionary.
-        - Assembles all relevant fields into a structured sample dictionary.
-
-        Args:
-            tracking_sample (dict): The raw sample data from tracking.
-            puck (dict): The puck (container) metadata associated with the sample.
-            sample_sheets (List[SampleSheet]): List of sample sheets used for lookup.
-
-        Returns:
-            dict: A dictionary representing the standardized internal sample format.
-        """
+    def __extract_sample_identifiers(self, tracking_sample: dict, puck: dict) -> dict:
         # Basic identifiers
         sample_name = str(tracking_sample.get("name"))
 
@@ -302,66 +286,8 @@ class ICATLIMS(AbstractLims):
         puck_name = puck.get("name", "UnknownPuck")
         parcel_name = puck.get("parcelName")
         parcel_id = puck.get("parcelId")
-        # Determine protein acronym using sample sheet if available
-        protein_acronym = sample_name  # Default fallback
 
-        sample_sheet = self.get_sample_sheet_by_id(sample_sheets, sample_sheet_id)
-        if sample_sheet:
-            protein_acronym = sample_sheet.name
-
-        # This converts to key-value pairs
-        experiment_plan = {
-            item["key"]: item["value"]
-            for item in tracking_sample.get("experimentPlan", {})
-        }
-
-        processing_plan = tracking_sample.get("processingPlan", [])
-        downloads: List[Download] = []
-        if processing_plan:
-            for item in processing_plan:
-                # when possible this converts the string to json
-                item["value"] = self._safe_json_loads(item["value"])
-
-            sample_information = None
-            try:
-                sample_information: SampleInformation = (
-                    self.__get_sample_information_by(sample_sheet_id)
-                )
-                if sample_information is not None:
-                    destination_folder = (
-                        HWR.beamline.session.get_base_process_directory()
-                    )
-                    msg = "Download resource: "
-                    msg += f"sample_sheet_id={sample_sheet_id} "
-                    msg += f"destination_folder={destination_folder}"
-                    logger.debug(msg)
-                    downloads = self._download_resources(
-                        sample_sheet_id,
-                        sample_information.resources,
-                        destination_folder,
-                        sample_name,
-                    )
-                    msg = f"downloaded {len(downloads)} resources"
-                    logger.debug(msg)
-                    if len(downloads) > 0:
-                        try:
-                            self.__add_download_path_to_processing_plan(
-                                processing_plan, downloads
-                            )
-                        except RuntimeError:
-                            logger.exception(
-                                "Failed __add_download_path_to_processing_plan"
-                            )
-
-                processing_plan = {
-                    item["key"]: item["value"] for item in processing_plan
-                }
-
-            except RuntimeError as e:
-                msg = f"error getting sample information {e}"
-                logger.warning(msg)
-
-        comments = tracking_sample.get("comments")
+        protein_acronym = self.__resolve_protein_acronym(sample_name, sample_sheet_id)
 
         return {
             "sampleName": sample_name,
@@ -376,29 +302,125 @@ class ICATLIMS(AbstractLims):
             "SampleTrackingParcel_id": parcel_id,
             "SampleTrackingContainer_id": puck_name,
             "SampleTrackingContainer_name": parcel_id,
-            "smiles": None,  # Placeholder for future chemical structure info
+        }
+
+    def __resolve_protein_acronym(self, sample_name: str, sample_sheet_id: str) -> str:
+        sample_sheet = self.get_sample_sheet_by_id(self.sample_sheets, sample_sheet_id)
+        return sample_sheet.name if sample_sheet else sample_name
+
+    def __parse_experiment_plan(self, tracking_sample: dict) -> dict[str, Any]:
+        return {
+            item["key"]: item["value"]
+            for item in tracking_sample.get("experimentPlan", {})
+        }
+
+    def __build_diffraction_plan(self, experiment_plan: dict) -> dict[str, Any]:
+        return {
+            # "diffractionPlanId": 457980, TODO: do we need this?
+            "experimentKind": experiment_plan.get("experimentKind"),
+            "numberOfPositions": experiment_plan.get("numberOfPositions"),
+            "observedResolution": experiment_plan.get("observedResolution"),
+            "preferredBeamDiameter": experiment_plan.get("preferredBeamDiameter"),
+            "radiationSensitivity": experiment_plan.get("radiationSensitivity"),
+            "requiredCompleteness": experiment_plan.get("requiredCompleteness"),
+            "requiredMultiplicity": experiment_plan.get("requiredMultiplicity"),
+            "requiredResolution": experiment_plan.get("requiredResolution"),
+        }
+
+    def __prepare_processing_plan(
+        self, tracking_sample: dict, sample_sheet_id: str, protein_acronym: str
+    ) -> dict[str, Any]:
+        processing_plan = tracking_sample.get("processingPlan", [])
+        if not processing_plan:
+            return {}
+
+        for item in processing_plan:
+            # when possible this converts the string to json
+            item["value"] = self._safe_json_loads(item["value"])
+
+        downloads = self.__get_or_download_plan_resources(
+            sample_sheet_id, protein_acronym
+        )
+        if downloads:
+            try:
+                self.__add_download_path_to_processing_plan(processing_plan, downloads)
+            except RuntimeError:
+                logger.exception("Failed __add_download_path_to_processing_plan")
+
+        return {item["key"]: item["value"] for item in processing_plan}
+
+    def __get_or_download_plan_resources(
+        self, sample_sheet_id: str, protein_acronym: str
+    ) -> List[Download]:
+        if not hasattr(self, "_downloads_cache"):
+            self._downloads_cache = {}
+
+        cache_key = (sample_sheet_id, protein_acronym)
+        if cache_key in self._downloads_cache:
+            logger.debug(f"Reusing cached downloads for {cache_key}")
+            return self._downloads_cache[cache_key]
+
+        sample_information = self.__get_sample_information_by(sample_sheet_id)
+        if not sample_information:
+            return []
+
+        # create subfolder per protein acronym
+        destination_folder = os.path.join(
+            HWR.beamline.session.get_base_process_directory(),
+            "processing_plan_resources",
+            protein_acronym,
+        )
+        os.makedirs(destination_folder, exist_ok=True)
+
+        logger.debug(
+            f"Download resource: sample_sheet_id={sample_sheet_id} "
+            f"destination_folder={destination_folder}"
+        )
+
+        downloads = self._download_resources(
+            sample_sheet_id, sample_information.resources, destination_folder, ""
+        )
+
+        logger.debug(f"downloaded {len(downloads)} resources")
+
+        self._downloads_cache[cache_key] = downloads
+        return downloads
+
+    def __to_sample(
+        self, tracking_sample: dict, puck: dict, sample_sheets: List[SampleSheet]
+    ) -> dict[str, Any]:
+        """
+        Convert a tracking sample and associated metadata into the internal
+        sample data structure.
+        - Extracts relevant sample metadata.
+        - Resolves protein acronym from the sample sheet if available.
+        - Maps experiment plan details into a diffraction plan dictionary.
+        - Assembles all relevant fields into a structured sample dictionary.
+
+        Args:
+            tracking_sample (dict): The raw sample data from tracking.
+            puck (dict): The puck (container) metadata associated with the sample.
+            sample_sheets (List[SampleSheet]): List of sample sheets used for lookup.
+
+        Returns:
+            dict: A dictionary representing the standardized internal sample format.
+        """
+        sample_id_info = self.__extract_sample_identifiers(tracking_sample, puck)
+        experiment_plan = self.__parse_experiment_plan(tracking_sample)
+        processing_plan = self.__prepare_processing_plan(
+            tracking_sample,
+            sample_id_info["sample_sheet_id"],
+            sample_id_info["proteinAcronym"],
+        )
+
+        return {
+            **sample_id_info,
             "experimentType": experiment_plan.get("workflowType"),
             "crystalSpaceGroup": experiment_plan.get("forceSpaceGroup"),
-            "diffractionPlan": {
-                # "diffractionPlanId": 457980, TODO: do we need this?
-                "experimentKind": experiment_plan.get("experimentKind"),
-                "numberOfPositions": experiment_plan.get("numberOfPositions"),
-                "observedResolution": experiment_plan.get("observedResolution"),
-                "preferredBeamDiameter": experiment_plan.get("preferredBeamDiameter"),
-                "radiationSensitivity": experiment_plan.get("radiationSensitivity"),
-                "requiredCompleteness": experiment_plan.get("requiredCompleteness"),
-                "requiredMultiplicity": experiment_plan.get("requiredMultiplicity"),
-                "requiredResolution": experiment_plan.get("requiredResolution"),
-            },
-            "cellA": experiment_plan.get("unit_cell_a"),
-            "cellB": experiment_plan.get("unit_cell_b"),
-            "cellC": experiment_plan.get("unit_cell_c"),
-            "cellAlpha": experiment_plan.get("unit_cell_alpha"),
-            "cellBeta": experiment_plan.get("unit_cell_beta"),
-            "cellGamma": experiment_plan.get("unit_cell_gamma"),
+            "diffractionPlan": self.__build_diffraction_plan(experiment_plan),
             "experimentPlan": experiment_plan,
             "processingPlan": processing_plan,
-            "comments": comments,
+            "comments": tracking_sample.get("comments"),
         }
 
     def create_session(self, session_dict):
