@@ -233,7 +233,6 @@ class ICATLIMS(AbstractLims):
     def __add_download_path_to_processing_plan(
         self, processing_plan, downloads: List[Download]
     ):
-        # Build a lookup for file_path by filename
         file_path_lookup = {d.filename: d.path for d in downloads}
         group_paths = defaultdict(list)
         for d in downloads:
@@ -242,21 +241,19 @@ class ICATLIMS(AbstractLims):
 
         # Enrich the processing_plan
         for item in processing_plan:
-            if item["key"] == "Advanced_processing":
-                for pipeline in item["value"]:
-                    # Update reference
-                    ref = pipeline.get("reference")
-                    if ref in file_path_lookup:
-                        pipeline["reference"] = {"filepath": file_path_lookup[ref]}
-
-                    # Update search_models
-                    if "search_models" in pipeline:
-                        models = json.loads(pipeline["search_models"])
-                        for model in models:
-                            group = model.get("pdb_group")
-                            if group in group_paths:
-                                model["file_paths"] = group_paths[group]
-                        pipeline["search_models"] = models
+            key = item.get("key")
+            value = item.get("value")
+            if key == "reference" and isinstance(value, str) and value in file_path_lookup:
+                item["value"] = {"filepath": file_path_lookup[value]}
+            if key == "search_models":
+                models = value
+                if isinstance(models, str):
+                    models = json.loads(models)
+                for model in models:
+                    group = model.get("pdb_group")
+                    if group in group_paths:
+                        model["file_paths"] = group_paths[group]
+                item["value"] = models
 
     def _safe_json_loads(self, json_str):
         try:
@@ -334,19 +331,17 @@ class ICATLIMS(AbstractLims):
         if not processing_plan:
             return {}
 
+        # Convert string values to JSON if possible
         for item in processing_plan:
-            # when possible this converts the string to json
-            item["value"] = self._safe_json_loads(item["value"])
+            item["value"] = self._safe_json_loads(item.get("value"))
 
-        downloads = self.__get_or_download_plan_resources(
-            sample_sheet_id, protein_acronym
-        )
+        downloads = self.__get_or_download_plan_resources(sample_sheet_id, protein_acronym)
+
         if downloads:
             try:
                 self.__add_download_path_to_processing_plan(processing_plan, downloads)
             except RuntimeError:
                 logger.exception("Failed __add_download_path_to_processing_plan")
-
         return {item["key"]: item["value"] for item in processing_plan}
 
     def __get_or_download_plan_resources(
