@@ -1,12 +1,10 @@
 import json
 import logging
-import os
 import shutil
 from collections import defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Optional
-from typing import Any
+from typing import TYPE_CHECKING, Any, List, Optional
 from zoneinfo import ZoneInfo
 
 import requests
@@ -243,7 +241,11 @@ class ICATLIMS(AbstractLims):
         for item in processing_plan:
             key = item.get("key")
             value = item.get("value")
-            if key == "reference" and isinstance(value, str) and value in file_path_lookup:
+            if (
+                key == "reference"
+                and isinstance(value, str)
+                and value in file_path_lookup
+            ):
                 item["value"] = {"filepath": file_path_lookup[value]}
             if key == "search_models":
                 models = value
@@ -335,7 +337,9 @@ class ICATLIMS(AbstractLims):
         for item in processing_plan:
             item["value"] = self._safe_json_loads(item.get("value"))
 
-        downloads = self.__get_or_download_plan_resources(sample_sheet_id, protein_acronym)
+        downloads = self.__get_or_download_plan_resources(
+            sample_sheet_id, protein_acronym
+        )
 
         if downloads:
             try:
@@ -360,12 +364,12 @@ class ICATLIMS(AbstractLims):
             return []
 
         # create subfolder per protein acronym
-        destination_folder = os.path.join(
-            HWR.beamline.session.get_base_process_directory(),
-            "processing_plan_resources",
-            protein_acronym,
+        destination_folder = (
+            Path(HWR.beamline.session.get_base_process_directory())
+            / "processing_plan_resources"
+            / protein_acronym
         )
-        os.makedirs(destination_folder, exist_ok=True)
+        destination_folder.mkdir(parents=True, exist_ok=True)
 
         logger.debug(
             f"Download resource: sample_sheet_id={sample_sheet_id} "
