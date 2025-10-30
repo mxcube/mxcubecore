@@ -8,6 +8,7 @@ from typing import Any, List, Optional
 from zoneinfo import ZoneInfo
 
 import requests
+from pydantic import ValidationError
 from pyicat_plus.client.main import IcatClient
 
 from mxcubecore import HardwareRepository as HWR
@@ -1069,21 +1070,19 @@ class ICATLIMS(AbstractLims):
             Optional[SampleInformation]: Returns a SampleInformation object or None.
         """
         try:
-            token = self.icat_session["sessionId"]
-            url = f"{self.url}/catalogue/{token}/files?sampleId={sample_id}"
-            response = requests.get(url, timeout=3)
-            response.raise_for_status()  # Raise an exception for bad status codes
-            return SampleInformation(
-                **response.json(),
-            )  # Parse the response into a SampleInformation model
+            result = self.icatClient.get_sample_files_information_by(
+                sample_id=sample_id
+            )
+            SampleInformation.parse_obj(result)
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 404:
                 logger.info("Sample %s not found (404)", sample_id)
             else:
                 logger.exception("HTTP error for sample %s", sample_id)
-
         except requests.exceptions.RequestException:
             logger.exception("Request error for sample %s", sample_id)
+        except ValidationError:
+            logger.exception("Invalid response format for sample %s", sample_id)
         return None
 
     def _download_resources(
@@ -1112,21 +1111,19 @@ class ICATLIMS(AbstractLims):
             )  # Make sure the folder exists
 
             try:
-                token = self.icat_session["sessionId"]
-                url = f"{self.url}/catalogue/{token}/files/download?sampleId={sample_id}&resourceId={resource.id}"
-                response = requests.get(url, stream=True, timeout=30)
-                response.raise_for_status()
-
-                file_path = resource_folder / resource.filename
-                with file_path.open("wb") as file:
-                    for chunk in response.iter_content(
-                        chunk_size=8192,
-                    ):  # Efficient chunked download
-                        file.write(chunk)
+                result = self.icatClient.download_file_by(
+                    sample_id=sample_id,
+                    resource_id=resource.id,
+                    use_chunks=True,
+                    chunk_size=8192,
+                )
+                output_path = Path(resource_folder / resource.filename)
+                with output_path.open("wb") as f:
+                    f.write(result)
 
                 # Create a new Download instance with updated path
                 downloaded = Download(
-                    path=str(file_path),
+                    path=str(output_path),
                     filename=resource.filename,
                     groupName=resource.groupName,
                 )
