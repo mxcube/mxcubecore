@@ -4,14 +4,11 @@ import shutil
 from collections import defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import Any, List, Optional
 from zoneinfo import ZoneInfo
 
 import requests
 from pyicat_plus.client.main import IcatClient
-
-if TYPE_CHECKING:
-    from pyicat_plus.client.models.session import Session as ICATSession
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
@@ -60,7 +57,7 @@ class ICATLIMS(AbstractLims):
         ]
 
     def _create_icat_session(self, user_name: str, password: str):
-        self.icat_session: ICATSession = self.icatClient.do_log_in(password)
+        self.icat_session: dict = self.icatClient.do_log_in(password)
 
     def login(
         self,
