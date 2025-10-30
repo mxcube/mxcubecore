@@ -6,7 +6,6 @@ access and manipulate this information.
 """
 
 import os
-import socket
 import time
 from pathlib import Path
 from typing import Tuple
@@ -30,7 +29,6 @@ class Session(HardwareObject):
         self.in_house_users = []
         self.session_start_date = None
         self.user_group = ""
-        self.email_extension = None
         self.default_precision = 5
         self.base_directory = None
         self.base_process_directory = None
@@ -84,16 +82,6 @@ class Session(HardwareObject):
         self.in_house_users = [
             (prop["code"], str(prop["number"])) for prop in get_inhouse_proposals()
         ]
-
-        email_extension = self.get_property("email_extension")
-        if email_extension:
-            self.email_extension = email_extension
-        else:
-            try:
-                domain = socket.getfqdn().split(".")
-                self.email_extension = ".".join((domain[-2], domain[-1]))
-            except (TypeError, IndexError):
-                self.log.exception("")
 
         self.set_base_data_directories(
             file_info["base_directory"],
