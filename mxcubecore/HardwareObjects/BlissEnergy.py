@@ -152,7 +152,7 @@ class BlissEnergy(AbstractEnergy):
                 if timeout:
                     self._set_value(value)
                 else:
-                    self._cmd_execution = spawn(self._set_value(value))
+                    self._cmd_execution = spawn(self._set_value, value)
             else:
                 self.energy_motor.set_value(value, timeout=timeout)
         else:
