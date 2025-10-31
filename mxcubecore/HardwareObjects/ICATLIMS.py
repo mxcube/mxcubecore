@@ -1070,10 +1070,8 @@ class ICATLIMS(AbstractLims):
             Optional[SampleInformation]: Returns a SampleInformation object or None.
         """
         try:
-            result = self.icatClient.get_sample_files_information_by(
-                sample_id=sample_id
-            )
-            SampleInformation.parse_obj(result)
+            result = self.icatClient.get_sample_files_information_by(sample_id)
+            return SampleInformation.parse_obj(result)
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 404:
                 logger.info("Sample %s not found (404)", sample_id)
