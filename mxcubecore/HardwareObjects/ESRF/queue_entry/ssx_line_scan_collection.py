@@ -1,7 +1,7 @@
 import logging
 import math
 
-from pydantic.v1 import Field
+from pydantic import Field
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.ESRF.queue_entry.ssx_base_queue_entry import (

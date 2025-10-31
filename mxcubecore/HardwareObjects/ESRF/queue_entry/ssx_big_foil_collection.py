@@ -1,7 +1,7 @@
 import logging
 
 from devtools import debug
-from pydantic.v1 import (
+from pydantic import (
     Field,
 )
 

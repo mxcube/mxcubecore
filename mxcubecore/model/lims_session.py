@@ -9,7 +9,7 @@ from typing import (
     Optional,
 )
 
-from pydantic.v1 import (
+from pydantic import (
     BaseModel,
     Field,
 )

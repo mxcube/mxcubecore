@@ -45,7 +45,7 @@ from gevent import (
     Timeout,
     event,
 )
-from pydantic.v1 import (
+from pydantic import (
     Field,
     create_model,
 )
@@ -60,7 +60,7 @@ from mxcubecore.dispatcher import dispatcher
 if TYPE_CHECKING:
     from logging import Logger
 
-    from pydantic.v1 import BaseModel
+    from pydantic import BaseModel
 
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """

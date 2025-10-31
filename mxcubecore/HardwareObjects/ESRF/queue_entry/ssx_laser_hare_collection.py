@@ -1,7 +1,7 @@
 import logging
 
 import gevent
-from pydantic.v1 import (
+from pydantic import (
     Field,
 )
 

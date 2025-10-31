@@ -6,7 +6,7 @@ import xmlrpc.client
 
 import gevent
 from devtools import debug
-from pydantic.v1 import (
+from pydantic import (
     BaseModel,
     Field,
 )
