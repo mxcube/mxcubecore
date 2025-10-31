@@ -80,24 +80,6 @@ class MicroDiffractometer(AbstractDiffractometer):
         except AttributeError:
             self.log.exception("global_state and phase_channel not configured!")
 
-        # add the custom commands
-        for nam, cmd in self.get_property("commands").items():
-            _cmd = {
-                "type": "exporter",
-                "exporter_address": exporter_address,
-                "name": nam,
-            }
-            setattr(self, nam, self.add_command(_cmd, cmd))
-
-        # add the custom channels
-        for nam, attr in self.get_property("channels").items():
-            _attr = {
-                "type": "exporter",
-                "exporter_address": exporter_address,
-                "name": nam,
-            }
-            setattr(self, nam, self.add_channel(_attr, attr))
-
     def abort(self):
         """Immediately terminate action."""
         self._exporter.execute("abort")
