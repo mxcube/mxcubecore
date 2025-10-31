@@ -20,16 +20,9 @@ class EPICSActuator(AbstractActuator):
     def init(self):
         """Initialization method"""
         super(EPICSActuator, self).init()
-        gevent.spawn(self._watch)
         self.update_state(self.STATES.READY)
         if not self.unit:
             self.unit = 10**-3
-
-    def _watch(self):
-        """Watch Actuator current value and update it on the UI."""
-        while True:
-            gevent.sleep(0.25)
-            self.update_value()
 
     def hasnt_arrived(self, setpoint):
         return not np.isclose(
