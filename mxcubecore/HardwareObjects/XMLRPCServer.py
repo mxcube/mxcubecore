@@ -157,11 +157,11 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.get_image_num, "get_image_num")
         self._server.register_function(self.set_zoom_level)
         self._server.register_function(self.get_zoom_level)
-        self._server.register_function(self.get_available_zoom_levels)
-        self._server.register_function(self.set_front_light_level)
-        self._server.register_function(self.get_front_light_level)
-        self._server.register_function(self.set_back_light_level)
-        self._server.register_function(self.get_back_light_level)
+        # self._server.register_function(self.get_available_zoom_levels)
+        # self._server.register_function(self.set_front_light_level)
+        # self._server.register_function(self.get_front_light_level)
+        # self._server.register_function(self.set_back_light_level)
+        # self._server.register_function(self.get_back_light_level)
         self._server.register_function(self.centre_beam)
 
         self._server.register_function(self.get_gphl_workflow_status)
@@ -435,10 +435,10 @@ class XMLRPCServer(HardwareObject):
         return HWR.beamline.resolution.get_limits()
 
     def get_diffractometer_positions(self):
-        return HWR.beamline.diffractometer.get_positions()
+        return HWR.beamline.sample_view.get_positions()
 
     def move_diffractometer(self, roles_positions_dict):
-        HWR.beamline.diffractometer.move_motors(roles_positions_dict)
+        HWR.beamline.diffractometer.set_value_motors(roles_positions_dict)
         return True
 
     def save_twelve_snapshots_script(self, path):
@@ -451,21 +451,21 @@ class XMLRPCServer(HardwareObject):
 
         try:
             for angle, path in path_list:
-                HWR.beamline.diffractometer.phiMotor.set_value(angle)
+                HWR.beamline.diffractometer.omega.set_value(angle)
                 # give some time to get the snapshot
                 time.sleep(1)
-                HWR.beamline.diffractometer.wait_ready()
+                HWR.beamline.diffractometer.wait_status_ready()
                 self.save_snapshot(path, show_scale, handle_light=False)
         except Exception as ex:
             self.log.exception("Could not take snapshot %s " % str(ex))
 
-    def save_snapshot(self, imgpath, showScale=False, handle_light=True):
+    def save_snapshot(self, imgpath, show_scale=False, handle_light=True):
         res = True
         self.log.info("Taking snapshot %s " % str(imgpath))
 
         try:
-            if showScale:
-                HWR.beamline.diffractometer.save_snapshot(imgpath)
+            if show_scale:
+                HWR.beamline.sample_view.save_snapshot(imgpath)
             else:
                 HWR.beamline.sample_view.save_snapshot(imgpath, overlay=False, bw=False)
         except Exception as ex:
@@ -481,11 +481,12 @@ class XMLRPCServer(HardwareObject):
         Saves the current position as a centered position.
         """
         self.log.debug("Saving position via XMLRPC")
-        HWR.beamline.diffractometer.save_current_position()
+        # ??? HWR.beamline.sample_view.centring_done()
+        HWR.beamline.sample_view.accept_centring()
         return True
 
     def cryo_temperature(self):
-        return HWR.beamline.diffractometer.cryostream.get_value()
+        return HWR.beamline.cryo.get_value()
 
     def flux(self):
         flux = HWR.beamline.flux.get_value()
@@ -591,50 +592,45 @@ class XMLRPCServer(HardwareObject):
         """
         Sets the zoom to a pre-defined level.
         """
-        zoom = HWR.beamline.diffractometer.zoomMotor
+        zoom = HWR.beamline.diffractometer.zoom
         zoom.set_value(zoom.value_to_enum(pos))
 
     def get_zoom_level(self):
         """
         Returns the zoom level.
         """
-        zoom = HWR.beamline.diffractometer.zoomMotor
-        pos = zoom.get_value().value
-        return pos
+        return HWR.beamline.diffractometer.zoom.get_value().value
 
-    def get_available_zoom_levels(self):
+    def get_available_zoom_levels_obsolete(self):
         """
         Returns the available pre-defined zoom levels.
         """
-        _value_enum = HWR.beamline.diffractometer.zoomMotor.VALUES.items()
-        _names = [name for name, value in _value_enum.items()]
+        return [en.name for en in HWR.beamline.diffractometer.zoom.VALUES]
 
-        return _names
-
-    def set_front_light_level(self, level):
+    def set_front_light_level_obsolete(self, level):
         """
         Sets the level of the front light
         """
-        HWR.beamline.diffractometer.setFrontLightLevel(level)
+        HWR.beamline.diffractometer.frontlight.set_value(level)
 
-    def get_front_light_level(self):
+    def get_front_light_level_obsolete(self):
         """
         Gets the level of the front light
         """
-        return HWR.beamline.diffractometer.getFrontLightLevel()
+        return HWR.beamline.diffractometer.frontlight.get_value()
 
-    def set_back_light_level(self, level):
+    def set_back_light_level_obsolete(self, level):
         """
         Sets the level of the back light
         """
         self.log.info("Setting backlight level to %s" % level)
-        HWR.beamline.diffractometer.setBackLightLevel(level)
+        HWR.beamline.diffractometer.backlight.set_value(level)
 
-    def get_back_light_level(self):
+    def get_back_light_level_obsolete(self):
         """
         Gets the level of the back light
         """
-        return HWR.beamline.diffractometer.getBackLightLevel()
+        return HWR.beamline.diffractometerbacklight.get_value()
 
     def _register_module_functions(self, module_name, recurse=True, prefix=""):
         log = logging.getLogger("HWR")
@@ -730,7 +726,7 @@ class XMLRPCServer(HardwareObject):
         return self.gphl_workflow_status
 
     def set_rotation_axis_position(self, value: float):
-        HWR.beamline.diffractometer.set_rotation_axis_position(value)
+        HWR.beamline.sample_view.set_rotation_axis_position(value)
 
     def centre_beam(self):
         """

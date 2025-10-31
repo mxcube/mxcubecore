@@ -99,7 +99,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
             log.info(msg)
 
             # Create a centred positions of the current position
-            pos_dict = HWR.beamline.diffractometer.get_positions()
+            pos_dict = HWR.beamline.sample_view.get_positions()
             cpos = queue_model_objects.CentredPosition(pos_dict)
 
         self._data_model.set_centring_result(cpos)
