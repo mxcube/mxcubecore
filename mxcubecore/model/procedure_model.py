@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from pydantic.v1 import (
+from pydantic import (
     BaseModel,
     Field,
 )

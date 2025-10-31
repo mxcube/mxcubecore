@@ -31,7 +31,6 @@ import time
 from typing import (
     Dict,
     List,
-    Optional,
     Tuple,
     Union,
 )
@@ -40,7 +39,7 @@ import gevent
 import gevent.event
 import numpy
 from gevent.lock import Semaphore
-from pydantic.v1 import (
+from pydantic import (
     BaseModel,
     Field,
     ValidationError,
@@ -167,7 +166,7 @@ class CalibrationData(BaseModel):
 
 
 class SampleHolderSectionModel(BaseModel):
-    calibration_data: Optional[CalibrationData]
+    calibration_data: CalibrationData | None = None
     section_offset: Tuple[int, int] = Field(
         [0, 0], description="Block offset in grid layout system coordinates x, y"
     )
@@ -194,13 +193,13 @@ class ChipLayout(BaseModel):
     holder_size: Tuple[float, float] = Field(
         [0, 0], description="Size of sample holder in mm horizontal and vertical"
     )
-    sections: List[SampleHolderSectionModel]
-    calibration_data: CalibrationData
+    sections: List[SampleHolderSectionModel] = []
+    calibration_data: CalibrationData | None = None
 
 
 class GonioHeadConfiguration(BaseModel):
     current: str = Field("", description="Selected chip layout")
-    available: Dict[str, ChipLayout]
+    available: Dict[str, ChipLayout] = Field({}, description="Available chip layouts")
 
 
 class GenericDiffractometer(HardwareObject):

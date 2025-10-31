@@ -9,7 +9,7 @@ from typing import Union
 
 import gevent
 import numpy
-from pydantic.v1 import ValidationError
+from pydantic import ValidationError
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject

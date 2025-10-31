@@ -4,7 +4,7 @@ import math
 
 import gevent
 from devtools import debug
-from pydantic.v1 import Field
+from pydantic import Field
 from typing_extensions import Literal
 
 from mxcubecore import HardwareRepository as HWR
