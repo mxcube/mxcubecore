@@ -5,8 +5,6 @@ from mxcubecore.HardwareObjects.LNLS.EPICS.EPICSActuator import EPICSActuator
 
 
 class EPICSMotor(EPICSActuator, AbstractMotor):
-    """EPICS Motor class"""
-
     MOTOR_DMOV = "dmov"
     MOTOR_STOP = "stop"
     MOTOR_VELO = "velo"
@@ -18,7 +16,10 @@ class EPICSMotor(EPICSActuator, AbstractMotor):
     def _instantiate_attributes(self):
         pvname = self.get_channel_object("").command.pv_name
         self.add_channel({"type": "epics", "name": self.ACTUATOR_VAL}, pvname + ".VAL")
-        self.add_channel({"type": "epics", "polling": 200, "name": self.ACTUATOR_RBV}, pvname + ".RBV")
+        self.add_channel(
+            {"type": "epics", "polling": 200, "name": self.ACTUATOR_RBV},
+            pvname + ".RBV",
+        )
         self.add_channel({"type": "epics", "name": self.MOTOR_DMOV}, pvname + ".DMOV")
         self.add_channel({"type": "epics", "name": self.MOTOR_STOP}, pvname + ".STOP")
         self.add_channel({"type": "epics", "name": self.MOTOR_VELO}, pvname + ".VELO")
@@ -28,7 +29,6 @@ class EPICSMotor(EPICSActuator, AbstractMotor):
         self.add_channel({"type": "epics", "name": self.MOTOR_PREC}, pvname + ".PREC")
 
     def init(self):
-        """Initialization method"""
         self._motor_channels = {}
         self._instantiate_attributes()
         self.get_limits()
@@ -37,18 +37,16 @@ class EPICSMotor(EPICSActuator, AbstractMotor):
         super().init()
 
     def _wait_actuator(self, value, timeout):
-        """Override EPICSActuator method."""
+        self.timeout = timeout
         while not self.done_movement() or self.hasnt_arrived(value):
             time.sleep(0.25)
         self.update_state(self.STATES.READY)
 
     def abort(self):
-        """Override EPICSActuator method."""
         self.set_channel_value(self.MOTOR_STOP, 1)
         super().abort()
 
     def get_limits(self):
-        """Override AbstractActuator method."""
         try:
             low_limit = float(self.get_channel_value(self.MOTOR_LLM))
             high_limit = float(self.get_channel_value(self.MOTOR_HLM))
@@ -61,7 +59,6 @@ class EPICSMotor(EPICSActuator, AbstractMotor):
         return self._nominal_limits
 
     def get_velocity(self):
-        """Override AbstractMotor method."""
         self._velocity = self.get_channel_value(self.MOTOR_VELO)
         return self._velocity
 
@@ -69,11 +66,9 @@ class EPICSMotor(EPICSActuator, AbstractMotor):
         self._tolerance = self.get_channel_value(self.MOTOR_PREC)
 
     def set_velocity(self, value):
-        """Override AbstractMotor method."""
         self.set_channel_value(self.MOTOR_VELO, value)
         self._velocity = value
 
     def done_movement(self):
-        """Return whether motor finished movement or not."""
         dmov = self.get_channel_value(self.MOTOR_DMOV)
         return bool(dmov)
