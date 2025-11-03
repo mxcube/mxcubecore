@@ -36,7 +36,7 @@ class EPICSMotor(EPICSActuator, AbstractMotor):
         self.get_precision()
         super().init()
 
-    def _wait_actuator(self, value):
+    def _wait_actuator(self, value, timeout):
         """Override EPICSActuator method."""
         while not self.done_movement() or self.hasnt_arrived(value):
             time.sleep(0.25)
