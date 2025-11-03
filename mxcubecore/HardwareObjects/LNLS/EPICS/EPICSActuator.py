@@ -26,13 +26,13 @@ class EPICSActuator(AbstractActuator):
             self.get_value(), setpoint, rtol=self.unit, atol=self.unit
         )
 
-    def _wait_actuator(self, setpoint, timeout):
-        start = time.time()
-        while self.hasnt_arrived(setpoint):
-            gevent.sleep(0.15)
-            cur = time.time()
-            if (cur - start) > timeout:
-                raise TimeoutError
+    def _wait_actuator(self, value, timeout):
+        try:
+            with gevent.Timeout(timeout, exception=TimeoutError):
+                while self.hasnt_arrived(value):
+                    time.sleep(0.15)
+        except TimeoutError:
+            print(f"{self.get_channel_object('rbv').command.pv_name} motion has timed out.")
         self.update_state(self.STATES.READY)
 
     def get_value(self):
