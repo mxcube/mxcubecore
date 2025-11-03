@@ -147,7 +147,6 @@ class EpicsCommand(CommandObject):
     def on_polling_error(self, exception, poller_id):
         # try to reconnect the pv
         self.pv.connect()
-
         poller = Poller.get_poller(poller_id)
         if poller is not None:
             try:
@@ -155,7 +154,7 @@ class EpicsCommand(CommandObject):
             except Exception:
                 logging.getLogger("HWR").exception("")
 
-    def get_pv_value(self):
+    def get_value(self):
         """wrapper function to pv.get() in order to supply additional named parameter"""
         return self.pv.get(as_string=self.read_as_str)
 
@@ -171,7 +170,7 @@ class EpicsCommand(CommandObject):
         self.__value_changed_callback_ref = saferef.safe_ref(value_changed_callback)
 
         # store the call to get as a function object
-        poll_cmd = self.get_pv_value
+        poll_cmd = self.get_value
 
         Poller.poll(
             poll_cmd,

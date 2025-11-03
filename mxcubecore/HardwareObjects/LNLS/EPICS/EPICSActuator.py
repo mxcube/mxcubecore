@@ -19,8 +19,8 @@ class EPICSActuator(AbstractActuator):
 
     def init(self):
         """Initialization method"""
-        super(EPICSActuator, self).init()
         self.update_state(self.STATES.READY)
+        self.connect(self._CommandContainer__channels["rbv"], "update", self.update_value)
         if not self.unit:
             self.unit = 10**-3
 
