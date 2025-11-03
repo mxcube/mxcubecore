@@ -1,3 +1,4 @@
+import threading
 import time
 
 import gevent
@@ -12,8 +13,10 @@ class EPICSActuator(AbstractActuator):
 
     def __init__(self, name):
         super(EPICSActuator, self).__init__(name)
-        self.__wait_actuator_task = None
+        self._wait_task = None
+        self.setpoint = None
         self._nominal_limits = (-1e4, 1e4)
+        self.default_timeout = 180
 
     def init(self):
         self.update_state(self.STATES.READY)
@@ -26,36 +29,37 @@ class EPICSActuator(AbstractActuator):
             self.get_value(), setpoint, rtol=self.unit, atol=self.unit
         )
 
-    def _wait_actuator(self, value, timeout):
+    def _wait_thread(self, setpoint, timeout):
         try:
             with gevent.Timeout(timeout, exception=TimeoutError):
-                while self.hasnt_arrived(value):
+                while self.hasnt_arrived(setpoint) and not self._wait_task.is_set():
                     time.sleep(0.15)
         except TimeoutError:
-            print(f"{self.get_channel_object('rbv').command.pv_name} motion has timed out.")
+            pvname = self.get_channel_object("rbv").command.pv_name
+            self.log(f"{pvname} motion has timed out.")
         self.update_state(self.STATES.READY)
+
+    def wait_ready(self, timeout):
+        self._wait_task = threading.Event()
+        thread = threading.Thread(
+            target=self._wait_thread, args=(self.setpoint, timeout)
+        )
+        thread.start()
 
     def get_value(self):
         return self.get_channel_value(self.ACTUATOR_RBV)
 
     def _set_value(self, value):
+        self.setpoint = value
+        self.update_state(self.STATES.BUSY)
         self.set_channel_value(self.ACTUATOR_VAL, value)
 
-    def set_value(self, value, timeout=0):
-        if self.read_only:
-            raise ValueError("Attempt to set %s for read-only Actuator" % value)
-        if self.validate_value(value):
-            self.update_state(self.STATES.BUSY)
-            self._set_value(value)
-            self.__wait_actuator_task = gevent.spawn(
-                lambda: self._wait_actuator(value, timeout)
-            )
-        else:
-            raise ValueError(
-                "Invalid value %s; limits are %s" % (value, self.get_limits())
-            )
+    def set_value(self, value, timeout: float = 0):
+        if not timeout:
+            timeout = self.default_timeout
+        super().set_value(value, timeout)
 
     def abort(self):
-        if self.__wait_actuator_task is not None:
-            self.__wait_actuator_task.kill()
+        if self._wait_task is not None:
+            self._wait_task.set()
         self.update_state(self.STATES.READY)
