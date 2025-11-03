@@ -1,5 +1,5 @@
 import time
-
+import gevent
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 from mxcubecore.HardwareObjects.LNLS.EPICS.EPICSActuator import EPICSActuator
 
@@ -37,9 +37,15 @@ class EPICSMotor(EPICSActuator, AbstractMotor):
         super().init()
 
     def _wait_actuator(self, value, timeout):
-        self.timeout = timeout
-        while not self.done_movement() or self.hasnt_arrived(value):
-            time.sleep(0.25)
+        timeout_tolerance = 2.5
+        if not timeout:
+            timeout = abs(self.get_channel_value("rbv") - value)/self.get_velocity()
+        try:
+            with gevent.Timeout(timeout+timeout_tolerance, exception=TimeoutError):
+                while not self.done_movement() or self.hasnt_arrived(value):
+                    time.sleep(0.15)
+        except TimeoutError:
+            print(f"{self.get_channel_object('').command.pv_name} motion has timed out.")
         self.update_state(self.STATES.READY)
 
     def abort(self):
