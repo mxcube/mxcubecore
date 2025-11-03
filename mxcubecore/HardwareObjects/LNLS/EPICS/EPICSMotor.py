@@ -18,7 +18,7 @@ class EPICSMotor(EPICSActuator, AbstractMotor):
     def _instantiate_attributes(self):
         pvname = self.get_channel_object("").command.pv_name
         self.add_channel({"type": "epics", "name": self.ACTUATOR_VAL}, pvname + ".VAL")
-        self.add_channel({"type": "epics", "name": self.ACTUATOR_RBV}, pvname + ".RBV")
+        self.add_channel({"type": "epics", "polling": 200, "name": self.ACTUATOR_RBV}, pvname + ".RBV")
         self.add_channel({"type": "epics", "name": self.MOTOR_DMOV}, pvname + ".DMOV")
         self.add_channel({"type": "epics", "name": self.MOTOR_STOP}, pvname + ".STOP")
         self.add_channel({"type": "epics", "name": self.MOTOR_VELO}, pvname + ".VELO")
