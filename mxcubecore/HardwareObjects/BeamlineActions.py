@@ -19,6 +19,7 @@ from mxcubecore.utils.conversion import camel_to_snake
 class ControllerCommand(CommandObject):
     def __init__(self, name, cmd=None, username=None, klass=None):
         CommandObject.__init__(self, name, username)
+        self.log = logging.getLogger("HWR")
 
         if not cmd:
             self._cmd = klass()
@@ -185,23 +186,27 @@ class BeamlineActions(HardwareObject):
         return _cls
 
     def init(self):
-        command_list = ast.literal_eval(
-            self.get_property("commands").strip().replace("\n", "")
-        )
+        command_list = self.get_property("commands")
+        if isinstance(command_list, str):
+            command_list = ast.literal_eval(command_list.strip().replace("\n", ""))
 
         for command in command_list:
-            attrname = camel_to_snake(command["command"].split(".")[-1])
+            action = command["command"].split(".")[-1]
+            attrname = camel_to_snake(action)
+            if command.get("disabled", False):
+                self.log.warning(f"Action {attrname} is disabled in the configuration.")
+                continue
 
             if hasattr(self, attrname):
-                msg = (
-                    "Command with name %s already exists"
-                    % command["command"].split(".")[-1]
-                )
+                msg = f"Action {action} already exists"
                 self.log.warning(msg)
                 continue
 
             if command["type"] == "annotated":
-                _cls = self._get_command_object_class(command["command"])
+                try:
+                    _cls = self._get_command_object_class(command["command"])
+                except:
+                    self.log.exception(f"failed to load annotated action {action}")
                 fname = camel_to_snake(_cls.__name__)
                 _cls_inst = _cls(self, fname.replace("_", " ").title(), fname)
 
@@ -213,13 +218,18 @@ class BeamlineActions(HardwareObject):
                     cmd = operator.attrgetter(command["command"])(self)
                     _cmd_obj = ControllerCommand(command["name"], cmd, command["name"])
                 except AttributeError:
-                    _cls = self._get_command_object_class(command["command"])
-                    _cmd_obj = ControllerCommand(
-                        command["name"], None, command["name"], klass=_cls
-                    )
+                    try:
+                        _cls = self._get_command_object_class(command["command"])
+                        _cmd_obj = ControllerCommand(
+                            command["name"], None, command["name"], klass=_cls
+                        )
+                    except Exception:
+                        self.log.exception(f"failed to load controller action {action}")
+                        continue
 
                 self._command_list.append(_cmd_obj)
                 setattr(self, attrname, _cmd_obj)
+
             elif command["type"] == "actuator":
                 try:
                     cmd = operator.attrgetter(command["command"])
