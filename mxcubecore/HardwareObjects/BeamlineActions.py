@@ -205,7 +205,7 @@ class BeamlineActions(HardwareObject):
             if command["type"] == "annotated":
                 try:
                     _cls = self._get_command_object_class(command["command"])
-                except:
+                except Exception:
                     self.log.exception(f"failed to load annotated action {action}")
                 else:
                     fname = camel_to_snake(_cls.__name__)
