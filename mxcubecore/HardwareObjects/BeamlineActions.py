@@ -207,8 +207,9 @@ class BeamlineActions(HardwareObject):
                     _cls = self._get_command_object_class(command["command"])
                 except:
                     self.log.exception(f"failed to load annotated action {action}")
-                fname = camel_to_snake(_cls.__name__)
-                _cls_inst = _cls(self, fname.replace("_", " ").title(), fname)
+                else:
+                    fname = camel_to_snake(_cls.__name__)
+                    _cls_inst = _cls(self, fname.replace("_", " ").title(), fname)
 
                 self._annotated_command_dict[fname] = _cls_inst
                 setattr(self, attrname, getattr(_cls_inst, fname))
