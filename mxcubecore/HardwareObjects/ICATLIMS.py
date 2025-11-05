@@ -353,14 +353,18 @@ class ICATLIMS(AbstractLims):
             self._downloads_cache = {}
 
         cache_key = (sample_sheet_id, protein_acronym)
-        if cache_key in self._downloads_cache:
-            logger.debug(f"Reusing cached downloads for {cache_key}")
-            return self._downloads_cache[cache_key]
-
         sample_information = self.__get_sample_information_by(sample_sheet_id)
         if not sample_information:
             return []
 
+        cached = self._downloads_cache.get(cache_key)
+
+        # Validate cache by comparing resource count
+        if cached and len(cached) == len(sample_information.resources):
+            logger.debug(f"Reusing cached downloads for {cache_key}")
+            return cached
+
+        # Otherwise, re-download
         # create subfolder per protein acronym
         destination_folder = (
             Path(HWR.beamline.session.get_base_process_directory())
@@ -378,8 +382,7 @@ class ICATLIMS(AbstractLims):
             sample_sheet_id, sample_information.resources, destination_folder, ""
         )
 
-        logger.debug(f"downloaded {len(downloads)} resources")
-
+        logger.debug(f"Downloaded {len(downloads)} resources")
         self._downloads_cache[cache_key] = downloads
         return downloads
 
