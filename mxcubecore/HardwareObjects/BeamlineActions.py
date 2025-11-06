@@ -185,7 +185,7 @@ class BeamlineActions(HardwareObject):
 
         return _cls
 
-    def init(self):
+    def init(self): # noqa: C901
         command_list = self.get_property("commands")
         if isinstance(command_list, str):
             command_list = ast.literal_eval(command_list.strip().replace("\n", ""))
