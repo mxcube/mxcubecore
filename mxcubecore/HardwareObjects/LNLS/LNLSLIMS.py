@@ -29,7 +29,9 @@ class LNLSLIMS(ICATLIMS):
         )
 
     def _create_icat_session(self, user_name: str, password: str):
-        self.icat_session = self.icatClient.do_log_in(user_name, password)
+        self.icat_session = self.icatClient.do_log_in(
+            username=user_name, password=password, plugin="oidc"
+        )
 
     def login(self, user_name, token, is_local_host):
         self.is_local_host = is_local_host
