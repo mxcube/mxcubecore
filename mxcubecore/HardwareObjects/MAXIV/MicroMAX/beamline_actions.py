@@ -112,3 +112,14 @@ class SaveMD3Position:
 class MoveToMD3SavedPosition:
     def __call__(self):
         HWR.beamline.diffractometer.goto_centered_position()
+
+
+class EmptyMount:
+    def __call__(self):
+        isara = HWR.beamline.sample_changer
+
+        log.info("Performing empty mount recovery sequence.")
+
+        isara.execute_command("Reset")
+
+        log.info("Recovery sequence completed.")
