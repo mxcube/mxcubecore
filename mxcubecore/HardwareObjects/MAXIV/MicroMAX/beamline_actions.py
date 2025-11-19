@@ -1,7 +1,6 @@
 import logging
 
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.HardwareObjects.MAXIV.MAXIVMD3 import NoPositionBookmarkedError
 
 log = logging.getLogger("user_level_log")
 
@@ -69,12 +68,9 @@ class MeasureFlux:
 
 class SaveMD3Position:
     def __call__(self):
-        HWR.beamline.diffractometer.bookmark_position()
+        HWR.beamline.diffractometer.save_centered_position()
 
 
 class MoveToMD3SavedPosition:
     def __call__(self):
-        try:
-            HWR.beamline.diffractometer.goto_bookmarked_position()
-        except NoPositionBookmarkedError:
-            log.warning("No MD3 position saved.")
+        HWR.beamline.diffractometer.goto_centered_position()
