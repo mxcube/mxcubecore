@@ -75,6 +75,7 @@ class SampleView(AbstractSampleView):
         self.current_centring_procedure = None
         self.current_centring_method = None
         self.centring_status = {}
+        self.rotation_reference = None
 
     def init(self):
         super().init()
@@ -106,6 +107,12 @@ class SampleView(AbstractSampleView):
 
         self.hide_grid_threshold = self.get_property("hide_grid_threshold", 5)
         self.centring_status = {"valid": False}
+        self.rotation_reference = literal_eval(
+            self.get_property("rotation_reference", {})
+        )
+        self.rotation_reference.update(
+            {"motor": self.centring_motors[self.rotation_reference["name"]]}
+        )
 
     def _update_shape_positions(self, *args, **kwargs):
         for shape in self.get_shapes():
@@ -121,7 +128,7 @@ class SampleView(AbstractSampleView):
         """
         motors_dict = {}
         for key, val in self.centring_motors.items():
-            motors_dict.update({key: val.motor.get_value()*val.direction})
+            motors_dict.update({key: val.motor.get_value()})
         return motors_dict
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
@@ -325,7 +332,7 @@ class SampleView(AbstractSampleView):
 
         motors_dict = self.get_positions()
         for key, val in motors_dict.items():
-            motors_dict.update({key: self.centring_motors[key].direction*val})
+            motors_dict.update({key: self.centring_motors[key].direction * val})
         omega_angle = math.radians(motors_dict.get("omega", 0))
 
         rot_matrix = np.matrix(
@@ -733,6 +740,24 @@ class SampleView(AbstractSampleView):
         Args:
             cpos (CenteredPosition): CenteredPosition of shape
         """
+
+    def set_rotation_axis_position(self, value: float):
+        """Set the reference position for the rotation axis.
+
+        value: the position
+        """
+        motor = self.rotation_reference.get("motor")
+        if motor:
+            self.log.info(f"Setting rotation axis ({motor.name}) position to {value}")
+            self.centring_motors[motor.name].reference_position = value
+            script_name = self.rotation_reference["script"]
+            try:
+                self.log.info("Setting MD Alignment reference position")
+                self.log.info(f" script name {script_name} value {value}")
+                HWR.beamline.diffractometer.run_script(f"{script_name}, {value}")
+            except:
+                self.log.exception("Setting Alignment reference position failed")
+                raise
 
 
 class Shape:

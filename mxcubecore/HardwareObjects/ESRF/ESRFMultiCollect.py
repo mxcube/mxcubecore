@@ -92,6 +92,9 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
         # self._detector.init(HWR.beamline.detector, self)
 
+        self.detector_cover = self.get_object_by_role("detector_cover")
+        self.handle_detector_cover = self.get_object_by_role("handle_detcover")
+
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True,))
 
@@ -186,17 +189,31 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def queue_finished_cleanup(self):
         logging.getLogger("user_level_log").info("Queue execution finished")
 
-    @task
     def close_fast_shutter(self):
         self.execute_command("close_fast_shutter")
 
-    @task
     def open_fast_shutter(self):
         self.execute_command("open_fast_shutter")
 
+    def _handle_detector_cover(self, value=None, timeout=None):
+        use = True
+        if self.handle_detector_cover:
+            try:
+                use = self.handle_detector_cover.get_value().value
+            except AttributeError:
+                use = False
+        if use:
+            self.detector_cover.set_value(self.detector_cover.VALUES[value], timeout)
+
+    def open_detector_cover(self):
+        self._handle_detector_cover("OPEN")
+
+    def close_detector_cover(self):
+        self._handle_detector_cover("CLOSE")
+
     @task
     def move_motors(self, motor_position_dict):
-        # We do not wnta to modify the input dict
+        # We do not want to modify the input dict
         motor_positions_copy = motor_position_dict.copy()
         for motor in motor_positions_copy.keys():  # iteritems():
             position = motor_positions_copy[motor]
@@ -285,7 +302,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             return self._detector.set_detector_filenames(frame_number, start, filename)
 
     def stop_oscillation(self):
-        HWR.beamline.diffractometer.abort_cmd()
+        HWR.beamline.diffractometer.abort()
 
     def start_acquisition(self, exptime, npass, first_frame, shutterless):
         if first_frame:
@@ -410,6 +427,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         mosflm_file.close()
         os.chmod(mosflm_input_file, 0o666)
 
+        """
         # also write input file for STAC
         for stac_om_input_file_name, stac_om_dir in (
             ("xds.descr", self.xds_directory),
@@ -436,14 +454,15 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                 stac_template.format(
                     omfilename=om_filename,
                     omtype=om_type,
-                    phi=HWR.beamline.diffractometer.phiMotor.get_value(),
-                    sampx=HWR.beamline.diffractometer.sampleXMotor.get_value(),
-                    sampy=HWR.beamline.diffractometer.sampleYMotor.get_value(),
-                    phiy=HWR.beamline.diffractometer.phiyMotor.get_value(),
+                    phi=HWR.beamline.diffractometer.omega.get_value(),
+                    sampx=HWR.beamline.diffractometer.sampx.get_value(),
+                    sampy=HWR.beamline.diffractometer.sampy.get_value(),
+                    phiy=HWR.beamline.diffractometer.phiy.get_value(),
                 )
             )
             stac_om_file.close()
             os.chmod(stac_om_input_file, 0o666)
+        """
 
     def get_wavelength(self):
         return HWR.beamline.energy.get_wavelength()

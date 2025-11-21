@@ -115,21 +115,21 @@ class AbstractMultiCollect(object):
     def move_motors(self, motor_position_dict):
         return
 
-    @abc.abstractmethod
-    @task
     def open_safety_shutter(self):
         pass
+
+    def open_detector_cover(self):
+        """Placeholder for implementing opening of the detector cover"""
+
+    def close_detector_cover(self):
+        """Placeholder for implementing closing of the detector cover"""
 
     def safety_shutter_opened(self):
         return False
 
-    @abc.abstractmethod
-    @task
     def close_safety_shutter(self):
         pass
 
-    @abc.abstractmethod
-    @task
     def prepare_intensity_monitors(self):
         pass
 
@@ -252,12 +252,16 @@ class AbstractMultiCollect(object):
     def generate_image_jpeg(self, filename, jpeg_path, jpeg_thumbnail_path):
         pass
 
-    def get_sample_info_from_parameters(self, parameters):
-        """Returns sample_id, sample_location and sample_code from data collection parameters"""
+    def get_sample_info_from_parameters(self, parameters: dict):
+        """Returns sample_id, sample_location and sample_code from data
+           collection parameters.
+        Args:
+            parameters: Dictionary with the data collection parameters
+        """
         sample_info = parameters.get("sample_reference")
         try:
-            sample_id = int(sample_info["blSampleId"])
-        except Exception:
+            sample_id = int(sample_info.get("blSampleId"))
+        except (AttributeError, TypeError):
             sample_id = None
 
         try:
@@ -321,7 +325,8 @@ class AbstractMultiCollect(object):
 
         snapshot_directory = dc_params["fileinfo"]["archive_directory"]
 
-        if HWR.beamline.diffractometer.in_plate_mode():
+        diffr = HWR.beamline.diffractometer
+        if diffr.in_plate_mode:
             if self.number_of_snapshots > 0:
                 self.number_of_snapshots = 1
 
@@ -346,7 +351,7 @@ class AbstractMultiCollect(object):
                 snapshot_filename
             )
 
-        HWR.beamline.diffractometer.take_snapshot(image_path_list)
+        HWR.beamline.sample_view.take_acq_snapshot(image_path_list)
 
     @abc.abstractmethod
     def set_helical(self, helical_on):
@@ -538,7 +543,7 @@ class AbstractMultiCollect(object):
         centring_info = {}
         try:
             logging.getLogger("user_level_log").info("Getting centring status")
-            centring_status = self.diffractometer().get_centring_status()
+            centring_status = HWR.beamline.sample_view.get_centring_status()
         except Exception:
             logging.getLogger("HWR").exception("")
         else:
@@ -556,9 +561,9 @@ class AbstractMultiCollect(object):
                 continue
             motors_to_move_before_collect[motor] = pos
 
-        current_diffractometer_position = self.diffractometer().get_positions()
+        current_diffractometer_position = HWR.beamline.sample_view.get_positions()
 
-        for motor in motors_to_move_before_collect.keys():
+        for motor in motors_to_move_before_collect:
             if motors_to_move_before_collect[motor] is not None:
                 try:
                     if current_diffractometer_position[motor] is not None:
@@ -578,14 +583,17 @@ class AbstractMultiCollect(object):
         data_collect_parameters["actualCenteringPosition"] = positions_str.strip()
 
         self.move_motors(motors_to_move_before_collect)
-        HWR.beamline.diffractometer.save_centring_positions()
+        try:
+            HWR.beamline.diffractometer.save_centring_positions()
+        except AttributeError:
+            pass
 
         if data_collect_parameters.get("take_snapshots", False):
             logging.getLogger("user_level_log").info(
                 f"Taking sample ({self.number_of_snapshots}) snapshosts"
             )
             self.take_snapshots(data_collect_parameters)
-        centring_info = HWR.beamline.diffractometer.get_centring_status()
+        centring_info = HWR.beamline.sample_view.get_centring_status()
         # move *again* motors, since taking snapshots may change positions
         logging.getLogger("user_level_log").info(
             "Moving motors to centered position: %r", motors_to_move_before_collect
@@ -775,9 +783,9 @@ class AbstractMultiCollect(object):
                 "Setting resolution to %f", resolution
             )
             try:
-                HWR.beamline.diffractometer.open_detector_cover()
+                self.open_detector_cover()
                 HWR.beamline.resolution.set_value(resolution, timeout=3500)
-            except RuntimeError:
+            except (AttributeError, RuntimeError):
                 logging.getLogger("user_level_log").info(
                     "Failed to set resolution to %f", resolution
                 )
@@ -1074,7 +1082,7 @@ class AbstractMultiCollect(object):
             # Bug fix for MD2/3(UP): diffractometer still has things to do even after the last frame is taken (decelerate motors and
             # possibly download diagnostics) so we cannot trigger the cleanup (that will send an abort on the diffractometer) as soon as
             # the last frame is counted
-            self.diffractometer().wait_ready(1000)
+            self.diffractometer().wait_status_ready(1000)
 
         # data collection done
         self.data_collection_end_hook(data_collect_parameters)
