@@ -288,7 +288,7 @@ class HarvesterMockup(HardwareObject):
         Return (List):  list of crystal by image_url from current processing plan"
         """
         # crystal_images_url = self._execute_cmd_exporter("getImageURL", crystal_uuid, command=True)
-        return "https://htxlab.embl.org//rawimages/2025//CD042326/7/FORMULATRIX_CD042326_7_06-01-2025_10_01_02_00_99_Vis.jpg"
+        return ""
 
     def get_sample_acronyms(self):
         """Get the Harvester Sample List by Acronyms
