@@ -83,11 +83,13 @@ class BlissMultiCollect(ESRFMultiCollect):
             oscillation_parameters["overlap"]
         )
 
+        run_number = data_collect_parameters["fileinfo"]["run_number"]
+
         for wedge_number in range(1, len(wedges_to_collect) + 1):
             print("Calling convert_lima2_to_h5mx with %s %s %s" % (
                   Path(self.last_bliss_scan.scan_saving.data_fullpath),
                   Path(self.last_bliss_scan.scan_saving.get_path(),
-                     data_collect_parameters["fileinfo"]["prefix"]+"_1_%s_master.h5" % wedge_number
+                     data_collect_parameters["fileinfo"]["prefix"]+"_%s_%s_master.h5" % (run_number, wedge_number)
                   ),
                   "%s.1" % wedge_number
                 )
@@ -96,7 +98,7 @@ class BlissMultiCollect(ESRFMultiCollect):
             convert_lima2_to_h5mx(
                 Path(self.last_bliss_scan.scan_saving.data_fullpath),
                 Path(self.last_bliss_scan.scan_saving.get_path(),
-                     data_collect_parameters["fileinfo"]["prefix"]+"_1_%s_master.h5" % wedge_number
+                     data_collect_parameters["fileinfo"]["prefix"]+"_%s_%s_master.h5" % (run_number, wedge_number)
                 ),
                 "%s.1" % wedge_number
             )
