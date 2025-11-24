@@ -309,8 +309,8 @@ class Microdiff(MiniDiff.MiniDiff):
         self.MOTOR_TO_EXPORTER_NAME = self.getMotorToExporterNames()
         self.move_to_coord = self.move_to_beam
 
-        self.centringVertical = self.get_object_by_role("centringVertical")
-        self.centringFocus = self.get_object_by_role("centringFocus")
+        self.centringVertical = self.get_object_by_role("sample_vertical")
+        self.centringFocus = self.get_object_by_role("sample_focus")
 
         self.saved_motor_position = {}
 
