@@ -95,7 +95,7 @@ class TaskPrerequisite(str, Enum):
 
 
 class QueueExecutionException(Exception):
-    def __init__(self, message, origin):
+    def __init__(self, message, origin=None):
         Exception.__init__(self, message, origin)
         self.message = message
         self.origin = origin
