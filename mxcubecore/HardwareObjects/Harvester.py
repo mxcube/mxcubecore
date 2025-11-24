@@ -150,12 +150,21 @@ class Harvester(HardwareObject):
 
         err_msg = "Timeout waiting for Harvester to be ready to transfer"
 
-        with gevent.Timeout(timeout, RuntimeError(err_msg)):
-            while not self._ready_to_transfer():
-                logging.getLogger("user_level_log").info(
-                    "Waiting Harvester to be ready to transfer"
-                )
-                gevent.sleep(3)
+        try:
+            with gevent.Timeout(timeout, RuntimeError(err_msg)):
+                while not self._ready_to_transfer():
+                    logging.getLogger("user_level_log").info(
+                        "Waiting Harvester to be ready to transfer for 10 minutes"
+                    )
+                    gevent.sleep(3)
+        except RuntimeError as exc:
+            # In case of timeout we as abort, park and trash
+            self.abort()
+            self.park()
+            self._wait_ready(None)
+            logging.getLogger("user_level_log").info("Trash current Sample")
+            self.trash_sample()
+            raise RuntimeError("Harvester failed to become ready in time") from exc
 
     def _execute_cmd_exporter(self, cmd, *args, **kwargs):
         """Exporter Command implementation
@@ -353,6 +362,12 @@ class Harvester(HardwareObject):
         Abort any current Harvester Actions
         """
         return self._execute_cmd_exporter("abort", command=True)
+
+    def park(self) -> str:
+        """Send Park command
+        Park Harvester Actions
+        """
+        return self._execute_cmd_exporter("park", command=True)
 
     def harvest_crystal(self, crystal_uuid: str) -> str:
         """Harvester crystal
@@ -651,6 +666,7 @@ class Harvester(HardwareObject):
                         res = True
                     else:
                         self.abort()
+                        self.park()
                         self._wait_ready(None)
                         logging.getLogger("user_level_log").info("Trash current Sample")
                         self.trash_sample()
@@ -695,6 +711,7 @@ class Harvester(HardwareObject):
                 logging.getLogger("user_level_log").exception(msg)
                 # Try an abort and move to next sample
                 self.abort()
+                self.park()
                 self._wait_ready(None)
                 return False
         else:
