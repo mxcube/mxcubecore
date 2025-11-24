@@ -44,14 +44,10 @@ It has some functionalities, like Harvest Sample, etc....
 from __future__ import annotations
 
 import logging
-from typing import (
-    List,
-    Optional,
-)
+from typing import List, Optional, Union
 
 import gevent
 
-from mxcubecore import queue_entry
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
@@ -100,7 +96,7 @@ class Harvester(HardwareObject):
 
     def __init__(self, name):
         super().__init__(name)
-        self.timeout = 3  # default timeout
+        self.timeout = 600  # default timeout
 
         # Internal variables -----------
         self.calibration_state = False
@@ -120,12 +116,12 @@ class Harvester(HardwareObject):
 
         self.calibration_state = state
 
-    def _wait_ready(self, timeout: float = None):
+    def _wait_ready(self, timeout: Union[float, None] = None):
         """Wait Harvester to be ready
 
         Args:
         (timeout) : Whether to wait for a amount of time
-        None means wait forever timeout <=0 use default timeout
+        timeout is None wait forever, timeout <=0 use default timeout
         """
         if timeout is not None and timeout <= 0:
             timeout = self.timeout
@@ -139,24 +135,33 @@ class Harvester(HardwareObject):
                 )
                 gevent.sleep(3)
 
-    def _wait_sample_transfer_ready(self, timeout: float = None):
+    def _wait_sample_transfer_ready(self, timeout: Union[float, None] = None):
         """Wait Harvester to be ready to transfer a sample
 
         Args:
         timeout (second) : Whether to wait for a amount of time
-        None means wait forever timeout <=0 use default timeout
+        timeout is None wait forever, timeout <=0 use default timeout
         """
         if timeout is not None and timeout <= 0:
             timeout = self.timeout
 
         err_msg = "Timeout waiting for Harvester to be ready to transfer"
 
-        with gevent.Timeout(timeout, RuntimeError(err_msg)):
-            while not self._ready_to_transfer():
-                logging.getLogger("user_level_log").info(
-                    "Waiting Harvester to be ready to transfer"
-                )
-                gevent.sleep(3)
+        try:
+            with gevent.Timeout(timeout, RuntimeError(err_msg)):
+                while not self._ready_to_transfer():
+                    logging.getLogger("user_level_log").info(
+                        "Waiting Harvester to be ready to transfer for 10 minutes"
+                    )
+                    gevent.sleep(3)
+        except RuntimeError as exc:
+            # In case of timeout we as abort, park and trash
+            self.abort()
+            self.park()
+            self._wait_ready(self.timeout)
+            logging.getLogger("user_level_log").info("Trash current Sample")
+            self.trash_sample()
+            raise RuntimeError("Harvester failed to become ready in time") from exc
 
     def _execute_cmd_exporter(self, cmd, *args, **kwargs):
         """Exporter Command implementation
@@ -355,6 +360,12 @@ class Harvester(HardwareObject):
         """
         return self._execute_cmd_exporter("abort", command=True)
 
+    def park(self) -> str:
+        """Send Park command
+        Park Harvester Actions
+        """
+        return self._execute_cmd_exporter("park", command=True)
+
     def harvest_crystal(self, crystal_uuid: str) -> str:
         """Harvester crystal
 
@@ -516,12 +527,12 @@ class Harvester(HardwareObject):
 
     def queue_harvest_sample(
         self, sample_loc_str, sample_uuid: str, current_queue_list: list[str]
-    ) -> None:
+    ) -> bool:
         """
         While queue execution send harvest request
-        current_queue_list : a build representation of the queue based
+        current_queue_list : a build representation of the queue
         """
-
+        harvest_res = False
         current_queue_index = None
         try:
             current_queue_index = current_queue_list.index(sample_loc_str)
@@ -544,9 +555,6 @@ class Harvester(HardwareObject):
                     logging.getLogger("user_level_log").error(
                         "Harvester could not Harvest sample, Stopping queue"
                     )
-                    raise queue_entry.QueueSkipEntryException(
-                        "Harvester could not Harvest sample", ""
-                    )
             else:
                 logging.getLogger("user_level_log").info("checking last Harvesting")
                 harvest_res = self.harvest_sample_before_mount(
@@ -557,9 +565,6 @@ class Harvester(HardwareObject):
                     logging.getLogger("user_level_log").error(
                         "There is no more Pins in the Harvester, Stopping queue"
                     )
-                    raise queue_entry.QueueSkipEntryException(
-                        "Harvester could not Harvest sample", ""
-                    )
         elif self.get_number_of_available_pin() == 0 and self._ready_to_transfer():
             logging.getLogger("user_level_log").warning(
                 "Warning: Harvester pins is approaching to ZERO"
@@ -567,14 +572,15 @@ class Harvester(HardwareObject):
             logging.getLogger("user_level_log").warning(
                 "Warning: Mounting last Sample, Queue will stop on next one"
             )
+            # in this case we just load the sample that is ready in the Harester
+            harvest_res = True
         else:
             # raise Not enough pins available in the pin provider
             logging.getLogger("user_level_log").error(
                 "There is no more Pins in the Harvester, Stopping queue"
             )
-            raise queue_entry.QueueSkipEntryException(
-                "There is no more Pins in the Harvester, Stopping queue", ""
-            )
+
+        return harvest_res
 
     def queue_harvest_next_sample(self, next_sample_loc_str: str, sample_uuid: str):
         """
@@ -585,7 +591,7 @@ class Harvester(HardwareObject):
         if next_sample_loc_str is not None and self.get_number_of_available_pin() > 0:
             logging.getLogger("user_level_log").info("Harvesting Next Sample")
 
-            self._wait_ready(None)
+            self._wait_ready(self.timeout)
             self.harvest_sample_before_mount(sample_uuid, False)
         else:
             logging.getLogger("user_level_log").warning(
@@ -612,7 +618,7 @@ class Harvester(HardwareObject):
                             "Harvester:Trashing pending Sample"
                         )
                         self.trash_sample()
-                        self._wait_ready(None)
+                        self._wait_ready(self.timeout)
                     if (
                         self.current_crystal_state(sample_uuid) == "ready_to_execute"
                         or self.current_crystal_state(sample_uuid)
@@ -621,7 +627,7 @@ class Harvester(HardwareObject):
                         logging.getLogger("user_level_log").info("Harvesting started")
                         self.harvest_crystal(sample_uuid)
                         if wait_before_load:
-                            self._wait_sample_transfer_ready(None)
+                            self._wait_sample_transfer_ready(self.timeout)
                         res = True
                     elif self.check_crystal_state(sample_uuid) == "pending_and_current":
                         logging.getLogger("user_level_log").info(
@@ -629,7 +635,7 @@ class Harvester(HardwareObject):
                         )
                         self.transfer_sample()
                         if wait_before_load:
-                            self._wait_sample_transfer_ready(None)
+                            self._wait_sample_transfer_ready(self.timeout)
                         res = True
                     else:
                         # logging.getLogger("user_level_log").info("ERROR: Sample Could not be Harvested (Harvester Ready, ) ")
@@ -657,10 +663,11 @@ class Harvester(HardwareObject):
                         res = True
                     else:
                         self.abort()
-                        self._wait_ready(None)
+                        self.park()
+                        self._wait_ready(self.timeout)
                         logging.getLogger("user_level_log").info("Trash current Sample")
                         self.trash_sample()
-                        self._wait_ready(None)
+                        self._wait_ready(self.timeout)
                         if (
                             self.current_crystal_state(sample_uuid)
                             == "ready_to_execute"
@@ -672,7 +679,7 @@ class Harvester(HardwareObject):
                             )
                             self.harvest_crystal(sample_uuid)
                             if wait_before_load:
-                                self._wait_sample_transfer_ready(None)
+                                self._wait_sample_transfer_ready(self.timeout)
                             res = True
                         else:
                             msg = self.get_status()
@@ -691,7 +698,7 @@ class Harvester(HardwareObject):
                 logging.getLogger("user_level_log").info(
                     "Warning: Harvesting In Progress Try Again"
                 )
-                self._wait_sample_transfer_ready(None)
+                self._wait_sample_transfer_ready(self.timeout)
                 return self.harvest_sample_before_mount(sample_uuid)
             else:
                 msg = self.get_status()
@@ -701,7 +708,8 @@ class Harvester(HardwareObject):
                 logging.getLogger("user_level_log").exception(msg)
                 # Try an abort and move to next sample
                 self.abort()
-                self._wait_ready(None)
+                self.park()
+                self._wait_ready(self.timeout)
                 return False
         else:
             msg = self.get_status()
@@ -715,7 +723,6 @@ class Harvester(HardwareObject):
         based on Harvested pin shape pre-calculated offsets
 
         Return (tuple(float)): (phiy_offset, centringFocus, centringTableVertical)
-
         """
 
         pin_to_beam = tuple(self.get_calibrated_pin_offset())

@@ -22,6 +22,7 @@ import mxcubecore.HardwareObjects.MAXIV.beamline
 class SampleDelivery(Enum):
     osc = "osc"
     hve = "hve"
+    fixed_target = "fixed-target"
 
 
 class Beamline(mxcubecore.HardwareObjects.MAXIV.beamline.Beamline):
@@ -49,3 +50,7 @@ class Beamline(mxcubecore.HardwareObjects.MAXIV.beamline.Beamline):
     def is_hve_sample_delivery(self) -> bool:
         """True when HVE sample delivery mode is configured."""
         return self.sample_delivery == SampleDelivery.hve
+
+    def is_fixed_target_sample_delivery(self) -> bool:
+        """True when Fixed-target sample delivery mode is configured."""
+        return self.sample_delivery == SampleDelivery.fixed_target
