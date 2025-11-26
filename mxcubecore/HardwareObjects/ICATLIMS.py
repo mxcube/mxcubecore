@@ -883,19 +883,29 @@ class ICATLIMS(AbstractLims):
         # name of the beamline where the experiment was scheduled
         scheduled_beamline_name = HWR.beamline.session.beamline_name
         try:
-                scheduled_beamline_name = self._get_scheduled_beamline()
-                msg += f"Current Beamline={HWR.beamline.session.beamline_name}"
-                logger.info(msg)
+            scheduled_beamline_name = self._get_scheduled_beamline()
+            msg += f"Current Beamline={HWR.beamline.session.beamline_name}"
+            logger.info(msg)
         except RuntimeError as err:
-                msg = f"Failed to get _get_scheduled_beamline {err}"
-                logger.warning(msg)                    
+            msg = f"Failed to get _get_scheduled_beamline {err}"
+            logger.warning(msg)
+
+        investigation_id = None
+        investigation_name = None
+        if self.session_manager.active_session.session_id:
+            investigation_id = self.session_manager.active_session.session_id
+            session = self.get_session_by_id(investigation_id)
+            if session is not None:
+                investigation_name = session.proposal_name
 
         return {
             "sampleId": sample_id,
             "Sample_name": sample_name,
             "startDate": start_time,
             "endDate": end_time,
+            "investigation_id": investigation_id,
             "beamline_name": beamline_name,
+            "proposal": investigation_name,
             "scheduled_beamline_name": scheduled_beamline_name,
             "MX_beamShape": shape.value,
             "MX_beamSizeAtSampleX": bsx,
@@ -1224,13 +1234,6 @@ class ICATLIMS(AbstractLims):
                 }
             )
 
-            # This forces the ingester to associate the dataset
-            # to the experiment by ID
-            if self.session_manager.active_session.session_id:
-                metadata["investigationId"] = (
-                    self.session_manager.active_session.session_id
-                )
-
             metadata["SampleTrackingContainer_type"] = "UNIPUCK"
             metadata["SampleTrackingContainer_capacity"] = "16"
             (position, sample_position) = self._get_sample_position()
@@ -1310,7 +1313,7 @@ class ICATLIMS(AbstractLims):
                             logger.debug(msg)
                             shutil.copy(snapshot_path, gallery_path)
             except RuntimeError as e:
-                logger.warning("Failed to create gallery. %s", e)            
+                logger.warning("Failed to create gallery. %s", e)
 
             self.icatClient.store_dataset(
                 beamline=beamline,
