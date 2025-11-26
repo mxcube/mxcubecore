@@ -878,11 +878,25 @@ class ICATLIMS(AbstractLims):
 
         machine_info = HWR.beamline.machine_info.get_value()
 
+        # name of the beamline where the experiment is being conducted
+        beamline_name = HWR.beamline.session.beamline_name
+        # name of the beamline where the experiment was scheduled
+        scheduled_beamline_name = HWR.beamline.session.beamline_name
+        try:
+                scheduled_beamline_name = self._get_scheduled_beamline()
+                msg += f"Current Beamline={HWR.beamline.session.beamline_name}"
+                logger.info(msg)
+        except RuntimeError as err:
+                msg = f"Failed to get _get_scheduled_beamline {err}"
+                logger.warning(msg)                    
+
         return {
             "sampleId": sample_id,
             "Sample_name": sample_name,
             "startDate": start_time,
             "endDate": end_time,
+            "beamline_name": beamline_name,
+            "scheduled_beamline_name": scheduled_beamline_name,
             "MX_beamShape": shape.value,
             "MX_beamSizeAtSampleX": bsx,
             "MX_beamSizeAtSampleY": bsy,
@@ -1296,28 +1310,7 @@ class ICATLIMS(AbstractLims):
                             logger.debug(msg)
                             shutil.copy(snapshot_path, gallery_path)
             except RuntimeError as e:
-                logger.warning("Failed to create gallery. %s", e)
-
-            try:
-                beamline = self._get_scheduled_beamline()
-                msg = f"Dataset Beamline={beamline} "
-                msg += f"Current Beamline={HWR.beamline.session.beamline_name}"
-                logger.info(msg)
-            except RuntimeError as err:
-                msg = f"Failed to get _get_scheduled_beamline {err}"
-                logger.warning(msg)
-
-            # __actualInstrument is a dataset parameter that indicates
-            # where the dataset has been actually collected
-            # only filled when it does not match the scheduled beamline
-            try:
-                if (
-                    self.active_session is None
-                    or not self.active_session.is_scheduled_beamline
-                ):
-                    metadata["__actualInstrument"] = HWR.beamline.session.beamline_name
-            except RuntimeError as e:
-                logger.warning("Failed to set __actualInstrument. %s", e)
+                logger.warning("Failed to create gallery. %s", e)            
 
             self.icatClient.store_dataset(
                 beamline=beamline,
