@@ -12,7 +12,7 @@ Here follows the list of the fixed roles and the description of the correspondin
 
 1\. Motor objects (roles) and their functionality:
 
-- **omega** - the rotation axis, independent of the orientation (up, down or side). Pisitive direction is clockwise
+- **omega** - the rotation axis, independent of the orientation (up, down or side). Positive direction is clockwise
 - **sampx** - centring table x axis
 - **sampy** - centring table y axis
 - **focus** - alignment table x axis
