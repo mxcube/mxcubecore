@@ -67,6 +67,34 @@ def poll(
     return poller
 
 
+def _compare_numpy_array(new, old) -> bool:
+    """Check if a numpy array is equal to `old` value.
+
+    Deal with all the special cases when comparing either:
+
+      - numpy array `new` and non-numpy value `old`
+      - two numpy arrays `new` and `old`
+
+    Return:
+        True if `old` and `new` are equal numpy arrays, False otherwise.
+    """
+    if isinstance(old, numpy.ndarray) and old.shape != new.shape:
+        #
+        # It's not possible to do '==' on numpy arrays of different shapes,
+        # as it raises 'operands could not be broadcast' error.
+        #
+        # However, we know here that arrays are not equal duo to non-matching shapes.
+        #
+        return False
+
+    comparison = old == new
+
+    if isinstance(comparison, bool):
+        return comparison
+
+    return all(comparison)
+
+
 class _Poller:
     def __init__(
         self,
@@ -182,11 +210,7 @@ class _Poller:
                 break
 
             if isinstance(res, numpy.ndarray):  # for arrays
-                comparison = res == self.old_res
-                if isinstance(comparison, bool):
-                    is_equal = comparison
-                else:
-                    is_equal = all(comparison)
+                is_equal = _compare_numpy_array(res, self.old_res)
             else:
                 is_equal = res == self.old_res
 
