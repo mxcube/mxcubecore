@@ -21,6 +21,7 @@
 GenericDiffractometer
 """
 
+import ast
 import copy
 import enum
 import json
@@ -355,12 +356,9 @@ class GenericDiffractometer(HardwareObject):
         self.back_light_switch = self.get_object_by_role("backlightswitch")
 
         # Channels -----------------------------------------------------------
-        ss0 = self.get_property("used_channels")
-        if ss0:
-            try:
-                self.used_channels_list = eval(ss0)
-            except Exception:
-                self.log.exception("")
+        self.used_channels_list = self.get_property("used_channels", [])
+        if isinstance(self.used_channels_list, str):
+            self.used_channels_list = ast.literal_eval(self.used_channels_list)
 
         for channel_name in self.used_channels_list:
             self.channel_dict[channel_name] = self.get_channel_object(channel_name)
@@ -386,18 +384,19 @@ class GenericDiffractometer(HardwareObject):
                 self.connect(self.channel_dict["State"], "update", self.state_changed)
 
         # Commands -----------------------------------------------------------
-        try:
-            self.used_commands_list = eval(self.get_property("used_commands", "[]"))
-        except Exception:
-            self.log.exception("")
+        self.used_commands_list = self.get_property("used_commands", [])
+        if isinstance(self.used_commands_list, str):
+            self.used_commands_list = ast.literal_eval(self.used_commands_list)
+
         for command_name in self.used_commands_list:
             self.command_dict[command_name] = self.get_command_object(command_name)
 
         # Centring motors ----------------------------------------------------
-        try:
-            self.centring_motors_list = eval(self.get_property("centring_motors"))
-        except Exception:
-            self.centring_motors_list = GenericDiffractometer.CENTRING_MOTORS_NAME
+        self.centring_motors_list = self.get_property(
+            "centring_motors", GenericDiffractometer.CENTRING_MOTORS_NAME
+        )
+        if isinstance(self.centring_motors_list, str):
+            self.centring_motors_list = ast.literal_eval(self.centring_motors_list)
 
         queue_model_objects.CentredPosition.set_diffractometer_motor_names(
             *self.centring_motors_list
@@ -482,33 +481,55 @@ class GenericDiffractometer(HardwareObject):
             self.log.exception("")
 
         # Other parameters ---------------------------------------------------
-        try:
-            self.zoom_centre = eval(self.get_property("zoom_centre"))
-        except Exception:
+        self.zoom_centre = self.get_property("zoom_centre")
+        if self.zoom_centre is None:
             self.zoom_centre = {"x": 0, "y": 0}
-            self.log.warning("Diffractometer: " + "zoom centre not configured")
+            self.log.warning(
+                "Diffractometer: zoom centre not configured. Using default."
+            )
+        elif isinstance(self.zoom_centre, str):
+            self.zoom_centre = ast.literal_eval(self.zoom_centre)
+        elif isinstance(self.zoom_centre, dict):
+            self.zoom_centre = self.zoom_centre
+        else:
+            _m = "Diffractometer: zoom centre misconfigured. not a dict"
+            raise ValueError(_m)
+
+        if not all(key in self.zoom_centre for key in ["x", "y"]):
+            _m = "Diffractometer: zoom centre misconfigured. missing x or y"
+            raise ValueError(_m)
 
         self.reversing_rotation = self.get_property("reversing_rotation")
-        try:
-            # grid_direction describes how a grid is collected
-            # 'fast' is collection direction and 'slow' describes
-            # move to the next collection line
-            self.grid_direction = eval(self.get_property("grid_direction"))
-        except Exception:
+        # grid_direction describes how a grid is collected
+        # 'fast' is collection direction and 'slow' describes
+        # move to the next collection line
+        self.grid_direction = self.get_property("grid_direction")
+        if self.grid_direction is None:
             self.grid_direction = {"fast": (0, 1), "slow": (1, 0), "omega_ref": 0}
             self.log.warning(
-                "Diffractometer: Grid " + "direction is not defined. Using default."
+                "Diffractometer: Grid direction not configured. Using default."
             )
+        elif isinstance(self.grid_direction, str):
+            self.grid_direction = ast.literal_eval(self.grid_direction)
+        elif not isinstance(self.grid_direction, dict):
+            _m = "Diffractometer: grid direction misconfigured. not a dict"
+            raise ValueError(_m)
 
-        try:
-            self.phase_list = eval(self.get_property("phase_list"))
-        except Exception:
-            self.phase_list = [
+        if not all(key in self.grid_direction for key in ["fast", "slow", "omega_ref"]):
+            _m = "Diffractometer: grid direction misconfigured. missing fast, slow, or omega_ref"
+            raise ValueError(_m)
+
+        self.phase_list = self.get_property(
+            "phase_list",
+            [
                 GenericDiffractometer.PHASE_TRANSFER,
                 GenericDiffractometer.PHASE_CENTRING,
                 GenericDiffractometer.PHASE_COLLECTION,
                 GenericDiffractometer.PHASE_BEAM,
-            ]
+            ],
+        )
+        if isinstance(self.phase_list, str):
+            self.phase_list = ast.literal_eval(self.phase_list)
 
     # to make it compatible
     def __getattr__(self, attr):

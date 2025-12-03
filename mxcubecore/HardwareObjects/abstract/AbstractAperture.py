@@ -22,6 +22,7 @@
 
 from __future__ import annotations
 
+import ast
 from warnings import warn
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
@@ -49,19 +50,21 @@ class AbstractAperture(HardwareObject):
 
         self._current_position_name = None
         self._current_diameter_index = None
-        self._diameter_size_list = ()
-        self._position_list = ()
+        self._diameter_size_list = []
+        self._position_list = []
 
     def init(self):
-        try:
-            self._diameter_size_list = eval(self.get_property("diameter_size_list"))
-        except Exception:
-            self.log.error("Aperture: no diameter size list defined")
+        self._diameter_size_list = self.get_property("diameter_size_list", [])
+        if isinstance(self._diameter_size_list, str):
+            self._diameter_size_list = ast.literal_eval(self._diameter_size_list)
+        if not self._diameter_size_list:
+            self.log.warning("diameter_size_list is empty")
 
-        try:
-            self._position_list = eval(self.get_property("position_list"))
-        except Exception:
-            self.log.error("Aperture: no position list defined")
+        self._position_list = self.get_property("position_list", [])
+        if isinstance(self._position_list, str):
+            self._position_list = ast.literal_eval(self._position_list)
+        if not self._position_list:
+            self.log.warning("position_list is empty")
 
     def get_diameter_size_list(self) -> list[float]:
         """Get list of diameter sizes.

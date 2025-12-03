@@ -53,12 +53,10 @@ class AbstractMachineInfo(HardwareObject):
 
     def init(self):
         """Get the attributes to be defined as keys in the _machine_info_dict"""
-        attr = self.get_property("parameters")
-        if attr:
-            self._check_attributes(literal_eval(attr))
-        else:
-            # at least current should be in the list
-            self._check_attributes(["current"])
+        attr = self.get_property("parameters", ["current"])
+        if isinstance(attr, str):
+            attr = literal_eval(attr)
+        self._check_attributes(attr)
 
     @abc.abstractmethod
     def get_current(self) -> float:
