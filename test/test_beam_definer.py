@@ -37,6 +37,6 @@ def test_object(beamline):
 class TestBeamDefiner(TestAbstractNStateBase):
     """TestBeam class"""
 
-    def test_beam_atributes(self, test_object):
+    def test_beam_attributes(self, test_object):
         """Test if object exists."""
         assert test_object is not None, "Beam hardware object is None (not initialized)"

@@ -115,7 +115,7 @@ class TestBeam(TestHardwareObjectBase.TestHardwareObjectBase):
 
     def test_evaluate_beam_size(self, test_object):
         """
-        The apertutre and the slits have the same size,
+        The aperture and the slits have the same size,
         slits are the beam definer type.
         Slits are bigger than the aperture, slits are the beam definer type.
         """

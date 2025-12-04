@@ -37,7 +37,7 @@ class TestAbstractNStateBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
     __metaclass__ = abc.ABCMeta
 
     def test_values(self, test_object):
-        """Test there are at last trhee values, including UNKNOWN"""
+        """Test there are at last three values, including UNKNOWN"""
 
         assert len(test_object.VALUES) > 2, (
             f"Less than three values in enumeration: {test_object.VALUES}"

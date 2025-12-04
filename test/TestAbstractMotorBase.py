@@ -145,7 +145,7 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
             )
 
     def test_setting_timeouts_1(self, test_object):
-        """Test that setting is not istantaneuos,
+        """Test that setting is not instantaneous,
         and that timeout is raised only if too slow
         Using full range of valid values"""
         if test_object.read_only:
@@ -185,7 +185,7 @@ class TestAbstractMotorBase(TestAbstractActuatorBase.TestAbstractActuatorBase):
         test_object.connect("limitsChanged", catcher.catch)
         try:
             test_object.update_limits(limits)
-            # Timeout to guard against waiting foreer if signal is not sent)
+            # Timeout to guard against waiting forever if signal is not sent
             with gevent.Timeout(30):
                 result = catcher.async_result.get()
                 assert result == limits

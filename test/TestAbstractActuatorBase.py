@@ -115,7 +115,7 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
         )
 
     def test_limits_setting(self, test_object):
-        """Test update_limits and (if not read_oinly) set_limits"""
+        """Test update_limits and (if not read_only) set_limits"""
         limits = test_object.get_limits()
         if limits != (None, None):
             test_object.update_limits((None, None))
@@ -152,7 +152,7 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
         assert test_object.validate_value(value), f"Value {value} evaluates invalid"
 
     def test_setting_timeouts_1(self, test_object):
-        """Test that setting is not istantaneuos,
+        """Test that setting is not instantaneous,
         and that timeout is raised only if too slow"""
         if test_object.read_only:
             return
@@ -187,7 +187,7 @@ class TestAbstractActuatorBase(TestHardwareObjectBase.TestHardwareObjectBase):
         test_object.connect("valueChanged", catcher.catch)
         try:
             test_object.update_value(val)
-            # Timeout to guard against waiting foreer if signal is not sent)
+            # Timeout to guard against waiting forever if signal is not sent
             with gevent.Timeout(30):
                 result = catcher.async_result.get()
                 assert result == val

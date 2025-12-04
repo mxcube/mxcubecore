@@ -34,7 +34,7 @@ def test_object(beamline):
 
 
 class TestEnergy(TestAbstractActuatorBase.TestAbstractActuatorBase):
-    def test_energy_atributes(self, test_object):
+    def test_energy_attributes(self, test_object):
         assert test_object is not None, (
             "Energy hardware objects is None (not initialized)"
         )

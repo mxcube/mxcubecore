@@ -35,7 +35,7 @@ def test_object(beamline):
 class TestMachineInfo(TestHardwareObjectBase.TestHardwareObjectBase):
     """MachineInfo uses the HardwareObject tests."""
 
-    def test_mach_info_atributes(self, test_object):
+    def test_mach_info_attributes(self, test_object):
         """Test for attributes"""
         assert test_object is not None, (
             "Machine info hardware object is None (not initialized)"

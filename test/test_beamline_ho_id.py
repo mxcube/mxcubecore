@@ -36,7 +36,7 @@ def test_object(beamline):
 
 class TestBeamlineHoId:
     def test_beamline_id(self, test_object):
-        # Test if we can retrieve a object located directly on
+        # Test if we can retrieve an object located directly on
         # the beamline object
         ho = test_object.get_by_id("diffractometer")
         assert "diffractometer" == ho.id

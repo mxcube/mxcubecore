@@ -319,7 +319,7 @@ class AbstractBeam(HardwareObject):
             if timeout is None: wait forever (default).
 
         Raises:
-            RuntileError if no beam after the specified timeout.
+            RuntimeError if no beam after the specified timeout.
         """
         with Timeout(timeout, RuntimeError("Timeout waiting for beam")):
             while not self.is_beam():

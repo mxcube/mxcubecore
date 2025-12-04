@@ -119,7 +119,7 @@ class TestHardwareObjectBase:
 
 
 class SignalCatcher:
-    """Utility class to test emissoi of signals
+    """Utility class to test emission of signals.
 
     Connect the catch function of the signal, and use async_result.get()
     to get the value passed back by the signal.

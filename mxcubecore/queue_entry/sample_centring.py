@@ -110,7 +110,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         BaseQueueEntry.pre_execute(self)
 
     def post_execute(self):
-        # If centring is executed once then we dont have to execute it again
+        # If centring is executed once then we don't have to execute it again
         self.get_view().set_checkable(False)
         BaseQueueEntry.post_execute(self)
 
