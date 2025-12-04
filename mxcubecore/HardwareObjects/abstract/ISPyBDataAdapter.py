@@ -56,10 +56,10 @@ def utf_decode(res_d):
     for key, value in res_d.items():
         if isinstance(value, dict):
             utf_decode(value)
-        try:
+        try:  # noqa: SIM105
             res_d[key] = value.decode("utf8", "ignore")
-        except Exception:
-            logging.getLogger("HWR").exception("")
+        except Exception:  # noqa: S110
+            pass
 
     return res_d
 
