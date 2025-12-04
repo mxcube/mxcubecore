@@ -103,7 +103,6 @@ class BeamInfo(HardwareObject):
 
     def get_beam_position(self):
         return (0, 0)
-        # raise NotImplementedError
 
     def set_beam_position(self, beam_x, beam_y):
         raise NotImplementedError
