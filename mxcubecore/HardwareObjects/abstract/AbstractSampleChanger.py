@@ -393,6 +393,10 @@ class SampleChanger(Container, HardwareObject):
             "status": self._get_status(element),
             "id": self._get_id(element),
             "selected": element.is_selected(),
+            "state": element.state,
+            "puck_barcode": element.puck_barcode,
+            "sample_barcode": element.sample_barcode,
+            "puck_type": element.puck_type,
         }
 
         parent.setdefault("children", []).append(new_element)
@@ -944,6 +948,9 @@ class SampleChanger(Container, HardwareObject):
 
     def _trigger_info_changed_event(self):
         self.emit(self.INFO_CHANGED_EVENT, ())
+
+    def _trigger_sample_info_changed_event(self, sample):
+        self.emit(self.INFO_CHANGED_EVENT, (sample))
 
     def _trigger_task_finished_event(self, task, ret, exception):
         self.emit(self.TASK_FINISHED_EVENT, (task, ret, exception))
