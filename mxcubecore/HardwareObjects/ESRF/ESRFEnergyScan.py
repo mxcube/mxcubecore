@@ -229,13 +229,12 @@ class ESRFEnergyScan(AbstractEnergyScan):
             return ()
 
         # create the gallery directory
-        g_dir = Path(directory).parent / "gallery"
+        g_dir = Path(directory) / "gallery"
         if not Path(g_dir).exists():
             Path(g_dir).mkdir(parents=True)
 
         copy2(raw_scan_file, raw_arch_file)
-        copy2(raw_scan_file, g_dir / raw_arch_file.name)
-        self.energy_scan_parameters["scanFileFullPath"] = raw_arch_file
+        self.energy_scan_parameters["scanFileFullPath"] = g_dir / raw_arch_file.name
 
         # while waiting for chooch to work...
         subprocess.call(
@@ -292,7 +291,6 @@ class ESRFEnergyScan(AbstractEnergyScan):
         efs_arch_file = raw_arch_file.with_suffix(".efs")
         if Path(efs_scan_file).is_file():
             copy2(efs_scan_file, efs_arch_file)
-            copy2(efs_scan_file, g_dir / efs_arch_file.name)
         else:
             self.store_energy_scan()
             self.emit("energyScanFailed", ())
@@ -365,7 +363,9 @@ class ESRFEnergyScan(AbstractEnergyScan):
         beamline specific actions.
         """
         if self.energy_scan_parameters["findattEnergy"]:
-            HWR.beamline.energy.set_value(energy_scan_parameters["findattEnergy"])
+            HWR.beamline.energy.set_value(
+                energy_scan_parameters["findattEnergy"], timeout=None
+            )
 
     def set_mca_roi(self, eroi_min, eroi_max):
         self.energy_scan_parameters["fluorescenceDetector"] = "KETEK_AXAS-A"
@@ -406,9 +406,9 @@ class ESRFEnergyScan(AbstractEnergyScan):
         fname = "%s/%s_%s_%s_%s.scan" % (
             energy_scan_parameters["directory"],
             energy_scan_parameters["prefix"],
-            dt.datetime.strftime(dd, "%d"),
-            dt.datetime.strftime(dd, "%b"),
-            dt.datetime.strftime(dd, "%Y"),
+            dt.strftime(dd, "%d"),
+            dt.strftime(dd, "%b"),
+            dt.strftime(dd, "%Y"),
         )
         self.ctrl.energy_scan.do_energy_scan(start_en, end_en, datafile=fname)
         self.energy_scan_parameters["exposureTime"] = (

@@ -192,10 +192,10 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         energy_scan.result.chooch_graph_y1 = chooch_graph_y1
         energy_scan.result.chooch_graph_y2 = chooch_graph_y2
         energy_scan.result.title = title
-        try:
+        try:  # noqa: SIM105
             energy_scan.result.data = HWR.beamline.energy_scan.get_scan_data()
-        except Exception:
-            logging.getLogger("HWR").exception("")
+        except AttributeError:
+            pass
 
         if (
             sample.crystals[0].energy_scan_result.peak

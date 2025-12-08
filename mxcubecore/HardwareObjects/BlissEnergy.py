@@ -119,7 +119,8 @@ class BlissEnergy(AbstractEnergy):
             self.controller.change_energy(value, defocus=defocus)
         except (AttributeError, RuntimeError):
             self.energy_motor.set_value(value)
-        self.update_state(HardwareObjectState.READY)
+        finally:
+            self.update_state(HardwareObjectState.READY)
 
     def set_value(self, value, timeout=0):
         """Move energy to absolute position. Wait the move to finish.
@@ -149,7 +150,7 @@ class BlissEnergy(AbstractEnergy):
             )
 
             if _delta > 0.02:
-                if timeout:
+                if timeout != 0:
                     self._set_value(value)
                 else:
                     self._cmd_execution = spawn(self._set_value, value)

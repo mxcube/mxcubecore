@@ -936,7 +936,7 @@ class ICATLIMS(AbstractLims):
             _session = HWR.beamline.session
             proposal = f"{_session.proposal_code}{_session.proposal_number}"
 
-            directory = Path(energyscan_dict["scanFileFullPath"]).parent
+            directory = Path(energyscan_dict["scanFileFullPath"]).parent.parent
 
             start_time = energyscan_dict.get("startTime", "")
             end_time = energyscan_dict.get("endTime", "")
