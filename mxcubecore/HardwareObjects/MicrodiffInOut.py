@@ -53,11 +53,18 @@ class MicrodiffInOut(HardwareObject):
             import ast
 
             self.states = ast.literal_eval(states)
-        try:
-            tt = float(self.get_property("timeout"))
-            self.timeout = tt
-        except Exception:
-            self.log.exception("")
+        tt = self.get_property("timeout")
+        if tt is None:
+            warnings.warn(
+                "%s: %s is not configured"
+                % (self.__class__.__name__, "timeout")
+            )
+        else:
+            try:
+                tt = float(tt)
+            except TypeError:
+                self.log.exception("")
+        self.timeout = tt
 
         if self.get_property("use_hwstate"):
             self.hwstate_attr = self.add_channel(

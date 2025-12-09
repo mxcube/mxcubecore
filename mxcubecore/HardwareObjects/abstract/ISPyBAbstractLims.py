@@ -53,10 +53,14 @@ class ISPyBAbstractLIMS(AbstractLims):
         else:
             self.proxy = {}
 
-        try:
-            self.base_result_url = self.get_property("base_result_url").strip()
-        except AttributeError:
-            self.log.exception("")
+        base_result_url = self.get_property("base_result_url")
+        if base_result_url and isinstance(base_result_url, str):
+            self.base_result_url = base_result_url.strip()
+        else:
+            warnings.warn(
+                "%s.%s missing or misconfigured: %s"
+                % (self.__class__.__name__, "base_result_url", base_result_url)
+            )
 
         self.adapter = self._create_data_adapter()
         self.log.debug("[ISPYB] Proxy address: %s" % self.proxy)

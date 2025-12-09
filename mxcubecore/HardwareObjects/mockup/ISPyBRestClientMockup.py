@@ -3,6 +3,7 @@ A client for ISPyB Webservices.
 """
 
 import logging
+import warnings
 from datetime import datetime
 from urllib.parse import urljoin
 
@@ -11,8 +12,7 @@ from mxcubecore.BaseHardwareObjects import HardwareObject
 
 _CONNECTION_ERROR_MSG = (
     "Could not connect to ISPyB, please verify that "
-    + "the server is running and that your "
-    + "configuration is correct"
+    "the server is running and that your configuration is correct"
 )
 _NO_TOKEN_MSG = "Could not connect to ISPyB, no valid REST token available."  # noqa: S105
 
@@ -79,10 +79,14 @@ class ISPyBRestClientMockup(HardwareObject):
         self.__rest_password = self.get_property("restPass").strip()
         self.__site = self.get_property("site").strip()
 
-        try:
-            self.base_result_url = self.get_property("base_result_url").strip()
-        except AttributeError:
-            self.log.exception("")
+        base_result_url = self.get_property("base_result_url")
+        if base_result_url and isinstance(base_result_url, str):
+            self.base_result_url = base_result_url.strip()
+        else:
+            warnings.warn(
+                "%s.%s missing or misconfigured: %s"
+                % (self.__class__.__name__, "base_result_url", base_result_url)
+            )
 
         self.__update_rest_token()
 
