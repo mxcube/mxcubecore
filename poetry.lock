@@ -2170,13 +2170,13 @@ plugins = ["importlib-metadata ; python_version < \"3.8\""]
 
 [[package]]
 name = "pyicat-plus"
-version = "0.11.0"
+version = "0.12.0"
 description = "Python client to ICAT+"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "pyicat_plus-0.11.0.tar.gz", hash = "sha256:f8e9f78bb2db267311576918e7b2c47b62d5fe7d9c3e77ed99029d4a0051b008"},
+    {file = "pyicat_plus-0.12.0.tar.gz", hash = "sha256:b2bc58ffa4ca6745946151f0bc3d070c6cc22a65138ee94ca9e25c4785c9e077"},
 ]
 
 [package.dependencies]
@@ -3466,4 +3466,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.12"
-content-hash = "dda48a5dec6194ae5c868d274683566476033c701e1c033a9f6089a11d0c1593"
+content-hash = "39b7446379975705cae1cf1ac58223066dd0d47f7e3c8df396b19c8aba5f82d3"
