@@ -287,10 +287,12 @@ one can run a command like this: `poetry run ruff check --fix`.
 
 #### Logging
 
+##### Hardware objects code
+
 When logging hardware object messages, use the `self.log` or `self.user_log` attributes.
 
 These attributes refer to logger objects from the standard `logging` module.
-`self.log` sends messages to `HWR` log, `user_log` to `user_level_log` log.
+`self.log` sends messages to `HWR` log, `self.user_log` to `user_level_log` log.
 The `self.log` will prefix log entries with the hardware object's class name.
 
 Below is an example of logging in a hardware object.
@@ -306,6 +308,33 @@ class MyHardwareObject(HardwareObject):
         self.user_log.info("an information level message")
         self.user_log.error("an error have been encountered")
 ```
+
+##### Non-hardware object code
+
+When logging messages from the code that is not part of a hardware object,
+there is no access to `self.log` and `self.user_log` attributes.
+
+Instead use `hwr_log` and `user_log` objects provided by the `mxcubecore.log` module.
+These are instances of logger objects from the standard `logging` module.
+`hwr_log` sends messages to `HWR` log, `user_log` to `user_level_log` log.
+
+Below is an example of logging from the code that is not part of a hardware object.
+
+```python
+from mxcubecore.log import hwr_log, user_log
+
+
+def my_function():
+    # log messages to 'HWR' log
+    hwr_log.info("an information level message")
+    hwr_log.warning("a warning message")
+
+    # log message to 'user_level_log' log
+    user_log.info("an information level message")
+    user_log.error("an error have been encountered")
+```
+
+##### Logging exceptions
 
 When logging a caught exception, consider using `self.log.exception()`.
 The `exception()` method adds raised exception's type, message and traceback to the log entry.

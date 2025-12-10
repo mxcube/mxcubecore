@@ -56,6 +56,7 @@ from typing_extensions import (
 from types import MappingProxyType
 from mxcubecore.CommandContainer import CommandContainer
 from mxcubecore.dispatcher import dispatcher
+from mxcubecore.log import hwr_log, user_log
 
 if TYPE_CHECKING:
     from logging import Logger
@@ -642,8 +643,8 @@ class HardwareObjectMixin(CommandContainer):
         # List of member names (methods) to be exported (Set at configuration stage)
         self._exports_config_list = []
 
-        self.log: "Logger" = logging.getLogger("HWR").getChild(self.__class__.__name__)
-        self.user_log: "Logger" = logging.getLogger("user_level_log")
+        self.log: "Logger" = hwr_log.getChild(self.__class__.__name__)
+        self.user_log: "Logger" = user_log
 
     def __bool__(self) -> Literal[True]:
         return True
