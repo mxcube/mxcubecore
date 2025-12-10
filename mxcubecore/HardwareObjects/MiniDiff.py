@@ -251,8 +251,8 @@ class MiniDiff(HardwareObject):
     def _set_rotation_axis_position(self, value: float, motor_name="phiz"):
         self.log.info(f"Setting rotation axis ({motor_name}) position to {value}")
 
+        fname = self.get_xml_path()
         try:
-            fname = self.get_xml_path()
             self.log.info(f"Updating {fname}")
 
             tree = ET.parse(fname)
