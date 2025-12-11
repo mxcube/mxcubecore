@@ -43,8 +43,8 @@ gevent_version = list(map(int, gevent.__version__.split(".")))
 log = logging.getLogger("HWR")
 
 try:
-    import PyTango
-    from PyTango.gevent import DeviceProxy
+    import tango
+    from tango.gevent import DeviceProxy
 except ImportError:
     logging.getLogger("HWR").warning("Tango support is not available.")
 
@@ -66,7 +66,7 @@ class TangoCommand(CommandObject):
     def init_device(self):
         try:
             self.device = DeviceProxy(self.device_name)
-        except PyTango.DevFailed as traceback:
+        except tango.DevFailed as traceback:
             last_error = traceback[-1]
             logging.getLogger("HWR").error(
                 "%s: %s", str(self.name()), last_error["desc"]
@@ -75,7 +75,7 @@ class TangoCommand(CommandObject):
         else:
             try:
                 self.device.ping()
-            except PyTango.ConnectionFailed:
+            except tango.ConnectionFailed:
                 self.device = None
                 raise ConnectionError
 
@@ -92,7 +92,7 @@ class TangoCommand(CommandObject):
             ret = tango_cmd_object(
                 *args
             )  # eval('self.device.%s(*%s)' % (self.command, args))
-        except PyTango.DevFailed as error_dict:
+        except tango.DevFailed as error_dict:
             logging.getLogger("HWR").error(
                 "%s: Tango, %s", str(self.name()), error_dict
             )
@@ -148,7 +148,7 @@ def _device_has_attribute(device: DeviceProxy, attribute_name: str) -> bool:
 
     try:
         device.attribute_query(attribute_name)
-    except PyTango.DevFailed as ex:
+    except tango.DevFailed as ex:
         if ex.args[0].reason == "API_AttrNotFound":
             # query failed with 'attribute not found' error
             return False
@@ -234,7 +234,7 @@ class TangoChannel(ChannelObject):
                     self.polling_events = True
                     self.device.subscribe_event(
                         self.attribute_name,
-                        PyTango.EventType.CHANGE_EVENT,
+                        tango.EventType.CHANGE_EVENT,
                         self,
                         [],
                         True,
@@ -246,7 +246,7 @@ class TangoChannel(ChannelObject):
     def init_device(self):
         try:
             self.device = DeviceProxy(self.device_name)
-        except PyTango.DevFailed as traceback:
+        except tango.DevFailed as traceback:
             self.imported = False
             last_error = traceback[-1]
             logging.getLogger("HWR").error(
@@ -256,7 +256,7 @@ class TangoChannel(ChannelObject):
             self.imported = True
             try:
                 self.device.ping()
-            except PyTango.ConnectionFailed:
+            except tango.ConnectionFailed:
                 self.device = None
                 raise ConnectionError
             else:
@@ -275,7 +275,7 @@ class TangoChannel(ChannelObject):
         if (
             event.attr_value is None
             or event.err
-            or event.attr_value.quality != PyTango.AttrQuality.ATTR_VALID
+            or event.attr_value.quality != tango.AttrQuality.ATTR_VALID
         ):
             return
         else:
@@ -289,7 +289,7 @@ class TangoChannel(ChannelObject):
     def poll(self):
         if self.read_as_str:
             value = self.raw_device.read_attribute(
-                self.attribute_name, PyTango.DeviceAttribute.ExtractAs.String
+                self.attribute_name, tango.DeviceAttribute.ExtractAs.String
             ).value
         else:
             value = self.raw_device.read_attribute(self.attribute_name).value
@@ -322,7 +322,7 @@ class TangoChannel(ChannelObject):
     def get_value(self):
         if self.read_as_str:
             value = self.device.read_attribute(
-                self.attribute_name, PyTango.DeviceAttribute.ExtractAs.String
+                self.attribute_name, tango.DeviceAttribute.ExtractAs.String
             ).value
         else:
             value = self.device.read_attribute(self.attribute_name).value
