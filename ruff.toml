@@ -184,7 +184,6 @@ convention = "google"
     "SLF001",
     "TD002",
     "TD003",
-    "TRY400",
 ]
 "mxcubecore/Command/Tine.py" = [
     "A002",

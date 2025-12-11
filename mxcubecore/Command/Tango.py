@@ -66,10 +66,11 @@ class TangoCommand(CommandObject):
     def init_device(self):
         try:
             self.device = DeviceProxy(self.device_name)
-        except tango.DevFailed as traceback:
-            last_error = traceback[-1]
-            logging.getLogger("HWR").error(
-                "%s: %s", str(self.name()), last_error["desc"]
+        except tango.DevFailed:
+            logging.getLogger("HWR").exception(
+                "Failed to set-up tango command %s on %s device",
+                self.name(),
+                self.device_name,
             )
             self.device = None
         else:
@@ -92,9 +93,11 @@ class TangoCommand(CommandObject):
             ret = tango_cmd_object(
                 *args
             )  # eval('self.device.%s(*%s)' % (self.command, args))
-        except tango.DevFailed as error_dict:
-            logging.getLogger("HWR").error(
-                "%s: Tango, %s", str(self.name()), error_dict
+        except tango.DevFailed:
+            logging.getLogger("HWR").exception(
+                "Failed to run tango command %s on %s device",
+                self.name(),
+                self.device_name,
             )
         except Exception:
             logging.getLogger("HWR").exception(
@@ -247,11 +250,12 @@ class TangoChannel(ChannelObject):
     def init_device(self):
         try:
             self.device = DeviceProxy(self.device_name)
-        except tango.DevFailed as traceback:
+        except tango.DevFailed:
             self.imported = False
-            last_error = traceback[-1]
-            logging.getLogger("HWR").error(
-                "%s: %s", str(self.name()), last_error["desc"]
+            logging.getLogger("HWR").exception(
+                "Failed to set-up tango channel %s on %s device",
+                self.name(),
+                self.device_name,
             )
         else:
             self.imported = True
