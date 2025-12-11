@@ -170,7 +170,6 @@ convention = "google"
     "A004",
     "ARG002",
     "B904",
-    "E501",
     "FBT003",
     "FIX002",
     "ICN001",
