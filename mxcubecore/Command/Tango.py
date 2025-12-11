@@ -279,8 +279,6 @@ class TangoChannel(ChannelObject):
             or event.attr_value.quality != tango.AttrQuality.ATTR_VALID
         ):
             return
-        else:
-            pass
 
         ev = E(event)
         TangoChannel._eventReceivers[id(ev)] = saferef.safe_ref(self.update)

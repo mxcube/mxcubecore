@@ -180,7 +180,6 @@ convention = "google"
     "PLR0913",
     "PLR5501",
     "RET503",
-    "RET505",
     "RUF012",
     "SLF001",
     "TD002",
