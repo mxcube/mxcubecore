@@ -143,6 +143,23 @@ class E:
         self.event = event
 
 
+def _device_has_attribute(device: DeviceProxy, attribute_name: str) -> bool:
+    """Check if a tango device has an attribute."""
+
+    try:
+        device.attribute_query(attribute_name)
+    except PyTango.DevFailed as ex:
+        if ex.args[0].reason == "API_AttrNotFound":
+            # query failed with 'attribute not found' error
+            return False
+
+        # unexpected exception, re-raise
+        raise
+
+    # attribute query was successful, thus we know the attribute exits
+    return True
+
+
 class TangoChannel(ChannelObject):
     _tangoEventsQueue = queue.Queue()
     _eventReceivers = {}
@@ -246,9 +263,7 @@ class TangoChannel(ChannelObject):
                 self.device.set_timeout_millis(self.timeout)
 
                 # check that the attribute exists (to avoid Abort in PyTango grrr)
-                if not self.attribute_name.lower() in [
-                    attr.name.lower() for attr in self.device.attribute_list_query()
-                ]:
+                if not _device_has_attribute(self.device, self.attribute_name):
                     logging.getLogger("HWR").error(
                         "no attribute %s in Tango device %s",
                         self.attribute_name,

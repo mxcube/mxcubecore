@@ -18,31 +18,6 @@ from mxcubecore.protocols_config import setup_commands_channels
 
 
 @dataclass
-class _MockedAttribute:
-    name: str
-
-
-class _MockedDeviceProxy:
-    def __init__(self, _name):
-        pass
-
-    def ping(self):
-        pass
-
-    def set_timeout_millis(self, _timeout):
-        pass
-
-    def attribute_list_query(self):
-        return [
-            _MockedAttribute("simple"),
-            _MockedAttribute("tango_attr"),
-            _MockedAttribute("red"),
-            _MockedAttribute("green"),
-            _MockedAttribute("cyan"),
-        ]
-
-
-@dataclass
 class _MockedEpicsCommand:
     pv_name: str
     arg_list = None
@@ -163,7 +138,7 @@ def test_tango_commands_channels(test_hwo):
 
     config = _parse_yaml_config("tango_commands_channels.yaml")
 
-    with mock.patch("mxcubecore.Command.Tango.DeviceProxy", _MockedDeviceProxy):
+    with mock.patch("mxcubecore.Command.Tango.DeviceProxy"):
         setup_commands_channels(test_hwo, config)
 
     expected_channels = {
@@ -186,7 +161,7 @@ def test_tango_commands(test_hwo):
 
     config = _parse_yaml_config("tango_commands.yaml")
 
-    with mock.patch("mxcubecore.Command.Tango.DeviceProxy", _MockedDeviceProxy):
+    with mock.patch("mxcubecore.Command.Tango.DeviceProxy"):
         setup_commands_channels(test_hwo, config)
 
     # there should be no channels
@@ -207,7 +182,7 @@ def test_tango_channels(test_hwo):
 
     config = _parse_yaml_config("tango_channels.yaml")
 
-    with mock.patch("mxcubecore.Command.Tango.DeviceProxy", _MockedDeviceProxy):
+    with mock.patch("mxcubecore.Command.Tango.DeviceProxy"):
         setup_commands_channels(test_hwo, config)
 
     # there should be no commands
@@ -232,7 +207,7 @@ def test_tango_duo(test_hwo):
 
     config = _parse_yaml_config("tango_duo.yaml")
 
-    with mock.patch("mxcubecore.Command.Tango.DeviceProxy", _MockedDeviceProxy):
+    with mock.patch("mxcubecore.Command.Tango.DeviceProxy"):
         setup_commands_channels(test_hwo, config)
 
     expected_channels = {
