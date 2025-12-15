@@ -800,11 +800,12 @@ class SampleQueueEntry(BaseQueueEntry):
                         }
                     )
 
-        try:
-            programs = HWR.beamline.collect["auto_processing"]
-            autoprocessing.start(programs, "end_multicollect", params)
-        except KeyError:
-            logging.getLogger("HWR").exception("")
+        programs = HWR.beamline.collect.get("auto_processing")
+        if programs:
+            try:
+                autoprocessing.start(programs, "end_multicollect", params)
+            except KeyError:
+                logging.getLogger("HWR").exception("")
 
         self._set_background_color()
         self._view.setText(1, "")
