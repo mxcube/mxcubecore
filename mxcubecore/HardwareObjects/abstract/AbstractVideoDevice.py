@@ -117,10 +117,15 @@ class AbstractVideoDevice(HardwareObject):
 
         self.poll_interval = self.get_property("interval", self.default_poll_interval)
 
-        try:
-            self.cam_gain = float(self.get_property("gain"))
-        except TypeError:
-            self.log.exception("")
+        cam_gain = self.get_property("gain")
+        if cam_gain is None:
+            warnings.warn("VideoDevice gain is not configured")
+        else:
+            try:
+                cam_gain = float(cam_gain)
+            except TypeError:
+                self.log.exception("")
+        self.cam_gain = cam_gain
 
         try:
             self.cam_exposure = float(self.get_property("exposure"))

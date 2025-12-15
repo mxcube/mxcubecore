@@ -39,6 +39,7 @@ example xml:
 import logging
 import math
 import os
+import warnings
 from copy import deepcopy
 from datetime import datetime
 
@@ -324,12 +325,16 @@ class QtGraphicsManager(AbstractSampleView):
         # self.set_scrollbars_off(\
         #     self.get_property("scrollbars_always_off") is True)
 
-        try:
-            self.graphics_magnification_item.set_properties(
-                eval(self.get_property("magnification_tool"))
-            )
-        except Exception:
-            self.log.exception("")
+        magnification_tool = self.get_property("magnification_tool")
+        if not magnification_tool:
+            warnings.warn("GraphicsManager: Magnification tool not defined")
+        else:
+            if isinstance(magnification_tool, str):
+                try:
+                    magnification_tool = eval(magnification_tool)
+                except TypeError:
+                    self.log.exception("")
+            self.graphics_magnification_item.set_properties(magnification_tool)
 
         # try:
         #    self.set_view_scale(self.get_property("view_scale"))
