@@ -251,7 +251,7 @@ class MiniDiff(HardwareObject):
     def _set_rotation_axis_position(self, value: float, motor_name="phiz"):
         self.log.info(f"Setting rotation axis ({motor_name}) position to {value}")
 
-        fname = self.get_xml_path()
+        fname = self._path
         try:
             self.log.info(f"Updating {fname}")
 
