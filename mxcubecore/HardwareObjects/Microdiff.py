@@ -304,6 +304,15 @@ class Microdiff(MiniDiff.MiniDiff):
             "startSSXLineScan",
         )
 
+        self.get_last_task_info = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "get_last_task_info",
+            },
+            "getLastTaskInfo",
+        )
+
         MiniDiff.MiniDiff.init(self)
         self.centringPhiy.direction = -1
         self.MOTOR_TO_EXPORTER_NAME = self.getMotorToExporterNames()

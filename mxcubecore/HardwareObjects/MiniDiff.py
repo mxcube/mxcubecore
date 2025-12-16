@@ -994,14 +994,13 @@ class MiniDiff(HardwareObject):
             time.sleep(0.1)
 
     def take_snapshot(self, image_path_list: list) -> None:
-        if len(image_path_list) > 0:
-            if self.get_current_phase() != "Centring":
-                use_custom_snapshot_routine = self.get_property(
-                    "custom_snapshot_script_dir", False
-                )
+        if len(image_path_list) > 0 and self.get_current_phase() != "Centring":
+            use_custom_snapshot_routine = self.get_property(
+                "custom_snapshot_script_dir", False
+            )
 
-                if not use_custom_snapshot_routine:
-                    self.set_phase("Centring", wait=True, timeout=200)
+            if not use_custom_snapshot_routine:
+                self.set_phase("Centring", wait=True, timeout=200)
 
         for image_path in image_path_list:
             snapshot_index = image_path_list.index(image_path)
