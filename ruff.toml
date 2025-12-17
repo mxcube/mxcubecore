@@ -2409,6 +2409,13 @@ convention = "google"
     "TD005",
     "TRY002",
 ]
+"mxcubecore/HardwareObjects/MicroDiffractometer.py" = [
+    "FBT001",
+    "FBT002",
+    "N999",
+    "PERF203",
+    "PLR0913"
+]
 "mxcubecore/HardwareObjects/Microdiff.py" = [
     "ARG002",
     "BLE001",
@@ -3300,18 +3307,11 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/SampleView.py" = [
     "ARG002",
-    "B006",
-    "B007",
-    "E501",
-    "E721",
-    "E741",
     "EM101",
+    "FBT001",
     "FBT002",
-    "PERF102",
     "PERF401",
-    "PIE790",
-    "RET503",
-    "RET505",
+    "TRY301",
 ]
 "mxcubecore/HardwareObjects/SardanaMotor.py" = [
     "BLE001",
@@ -3755,6 +3755,14 @@ convention = "google"
     "RET501",
     "RET504",
 ]
+"mxcubecore/HardwareObjects/abstract/AbstractDiffractometer.py" = [
+    "EM102",
+    "FBT001",
+    "FBT002",
+    "N999",
+    "PERF203",
+    "I001",
+]
 "mxcubecore/HardwareObjects/abstract/AbstractEnergy.py" = [
     "FIX002",
     "TD002",
@@ -3882,7 +3890,8 @@ convention = "google"
     "TRY400",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractSampleView.py" = [
-    "ERA001",
+    "ARG002",
+    "FBT001",
     "FBT002",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractSlits.py" = [

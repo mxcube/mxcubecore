@@ -1,0 +1,10 @@
+<object class="SampleView">
+  <!-- <object hwrid="/camera-mockup" role="camera"/>-->
+  <centring_motors>["omega", "phiy", "phiz", "sampx", "sampy"]</centring_motors>
+  <centring_reference_position>{"phiz": 0.099}</centring_reference_position>
+  <motor_directions>{"omega": -1, "phiy": -1}</motor_directions>
+  <rotation_reference>{"name": "phiz", "script": "Change_AlignmentZ"}</rotation_reference>
+
+  <!--- Automatically hide grid when 5 deg from defined angle -->
+  <hide_grid_threshold>5</hide_grid_threshold>
+</object>

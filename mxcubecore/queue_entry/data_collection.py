@@ -232,7 +232,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 if cpos != empty_cpos:
                     HWR.beamline.sample_view.select_shape_with_cpos(cpos)
                 else:
-                    pos_dict = HWR.beamline.diffractometer.get_positions()
+                    pos_dict = HWR.beamline.sample_view.get_positions()
                     cpos = queue_model_objects.CentredPosition(pos_dict)
                     snapshot = HWR.beamline.sample_view.get_snapshot()
                     acq_1.acquisition_parameters.centred_position = cpos

@@ -32,7 +32,6 @@ objects:
   - flux: flux-mockup.xml
   - detector: detector-mockup.xml
   - resolution: resolution-mockup.xml
-  # - hutch_interlock: door-interlock-mockup.xml
   - safety_shutter: safety-shutter-mockup.xml
   # - fast_shutter: shutter-mockup.xml
   - sample_changer: sample-changer-mockup.xml
@@ -41,21 +40,9 @@ objects:
   - diffractometer: diffractometer-mockup.xml
   - sample_view: sample-view-mockup.xml
   - lims: lims-client-mockup.xml
-  # - queue_manager: queue.xml
-  # - queue_model: queue-model.xml
   # Procedures:
-  # - collect: mxcollect.xml
   - xrf_spectrum: xrf-spectrum-mockup.xml
-  # - energy_scan: energyscan-mockup.xml
-  # - imaging: xray-imaging.xml # Only in EMBL as of 201907
-  # - gphl_workflow: gphl-workflow.xml
-  # - gphl_connection: gphl-setup.xml
-  # - centring: centring.xml
   # Analysis:
-  # - offline_processing: auto-processing-mockup.xml
-  # - online_processing: parallel-processing.xml
-  # - characterisation: data-analysis.xml
-  # - beam_realign: # Skipped - optional
   - procedure: procedure-mockup.yml
 
 # Non-object attributes:

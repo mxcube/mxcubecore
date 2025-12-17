@@ -1,23 +1,23 @@
 <object class="DiffractometerMockup">
-  <object href="/diff-omega-mockup" role="phi"/>
-  <object href="/diff-kappa-mockup" role="kappa"/>
-  <object href="/diff-kappaphi-mockup" role="kappa_phi"/>
-
-  <!-- Next block added by rhfogh for better representation of move_motor behaviour -->
-  <object href="/diff-phiz-mockup" role="phiz"/>
-  <object href="/diff-phiy-mockup" role="phiy"/>
-  <object href="/diff-sampx-mockup" role="sampx"/>
-  <object href="/diff-sampy-mockup" role="sampy"/>
-  <object href="/diff-aperture-mockup" role="aperture"/>
-  <centring_motors>("phi", "kappa", "kappa_phi", "phiz", "phiy", "sampx", "sampy")</centring_motors>
-
-  <zoom_centre>{"x":340,"y":250}</zoom_centre>
-  <omega_reference>{"actuator_name": "phiz", "position":-0.2224, "camera_axis":"x"}</omega_reference>
-
-  <!-- MD2 -->
-  <!-- <gridDirection>{"fast": (1, 0), "slow": (0, -1)}</gridDirection>  -->
-  <sample_mount_mode>sample_changer</sample_mount_mode>
-  <!-- MD3 -->
-  <grid_direction>{"fast": (0, 1), "slow": (1, 0), "omega_ref": 0}</grid_direction>
-  <exports>["abort", "status", "my_fancy_function", "my_other_funny_function"]</exports>
+  <username>Mock Diffractometer</username>
+  <motors>
+    <object href="/diff-omega-mockup" role="omega"/>
+    <object href="/diff-kappa-mockup" role="kappa"/>
+    <object href="/diff-kappaphi-mockup" role="kappa_phi"/>
+    <object href="/diff-phix-mockup" role="focus"/>
+    <object href="/diff-phiy-mockup" role="phiy"/>
+    <object href="/diff-phiz-mockup" role="phiz"/>
+    <object href="/diff-sampx-mockup" role="sampx"/>
+    <object href="/diff-sampy-mockup" role="sampy"/>
+    <object href="/udiff_backlight" role="backlight"/>
+    <object href="/udiff_frontlight" role="frontlight"/>
+  </motors>
+  <nstate_equipment>
+    <object href="/fast-shutter-mockup" role="fshutter"/>
+    <object href="/diff-aperture-mockup" role="aperture"/>
+    <object href="/beamstop" role="beamstop"/>
+    <object href="/backlightswitch" role="backlightswitch"/>
+    <object href="/frontlightswitch" role="frontlightswitch"/>
+    <object href="/diff-zoom" role="zoom"/>
+  </nstate_equipment>
 </object>

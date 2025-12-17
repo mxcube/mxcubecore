@@ -25,6 +25,7 @@ __copyright__ = """2019 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 import abc
+import logging
 from typing import (
     Literal,
     Union,
@@ -46,7 +47,8 @@ class AbstractSampleView(HardwareObject):
         self._zoom = None
         self._frontlight = None
         self._backlight = None
-        self._shapes = None
+        self._shapes = {}
+        self.current_centring_procedure = None
 
     @property
     def camera(self):
@@ -54,7 +56,10 @@ class AbstractSampleView(HardwareObject):
 
     @abc.abstractmethod
     def get_snapshot(
-        self, overlay: Union[bool, str] = True, bw=False, return_as_array=False
+        self,
+        overlay: bool | str = True,
+        bw: bool = False,
+        return_as_array: bool = False,
     ):
         """Get snappshot(s)
         Args:
@@ -64,7 +69,9 @@ class AbstractSampleView(HardwareObject):
         """
 
     @abc.abstractmethod
-    def save_snapshot(self, filename, overlay: Union[bool, str] = True, bw=False):
+    def save_snapshot(
+        self, filename, overlay: Union[bool, str] = True, bw: bool = False
+    ):
         """Save a snapshot to file.
         Args:
             filename (str): The filename.
@@ -112,38 +119,28 @@ class AbstractSampleView(HardwareObject):
         return self._backlight
 
     @abc.abstractmethod
-    def start_centring(self, tree_click=True):
-        """
-        Starts centring procedure
-        """
-        return
-
-    @abc.abstractmethod
-    def cancel_centring(self):
-        """
-        Cancels current centring procedure
-        """
-        return
+    def start_manual_centring(self, nb_click=3):
+        """Starts manual centring procedure"""
 
     @abc.abstractmethod
     def start_auto_centring(self):
-        """
-        Start automatic centring procedure
-        """
-        return
+        """Start automatic centring procedure"""
 
-    # Not sure these should be abstarct ?
-    # @abc.abstractmethod
-    # def create_line(self):
-    #     return
+    def move_to_beam(self, x: float, y: float):
+        """Move the sample to the x,y coordinates"""
 
-    # @abc.abstractmethod
-    # def create_auto_line(self):
-    #     return
-
-    # @abc.abstractmethod
-    # def create_grid(self, spacing):
-    #     return
+    def cancel_centring(self):
+        """Cancels current centring procedure"""
+        if self.current_centring_procedure:
+            try:
+                self.current_centring_procedure.kill(block=True)
+            except Exception:
+                logging.getLogger("HWR").exception(
+                    "Problem aborting the centring method"
+                )
+            self.current_centring_procedure = None
+            self.emit("centringFailed")
+            logging.getLogger("HWR").exception("Centring canceled")
 
     @abc.abstractmethod
     def add_shape(self, shape):
@@ -238,7 +235,7 @@ class AbstractSampleView(HardwareObject):
         return
 
     @abc.abstractmethod
-    def get_shape(self, sid):
+    def get_shape(self, sid: str):
         """
         Get Shape with id <sid>.
 
@@ -291,4 +288,8 @@ class AbstractSampleView(HardwareObject):
         Args:
             cpos (CentredPosition): CentredPosition of shape
         """
-        return
+
+    def motor_positions_to_screen(self, positions_dict: dict) -> tuple:
+        """Get the motor positions according to the calibration"""
+
+        return ()

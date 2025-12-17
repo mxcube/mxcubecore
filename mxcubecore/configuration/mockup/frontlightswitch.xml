@@ -1,0 +1,5 @@
+<object class="ExporterNStateMockup">
+  <username>frontlight_switch</username>
+  <default_value>False</default_value>
+  <values>{"IN": True, "OUT": False}</values>
+</object>
