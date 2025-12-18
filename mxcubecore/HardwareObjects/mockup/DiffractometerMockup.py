@@ -71,6 +71,12 @@ class DiffractometerMockup(AbstractDiffractometer):
     def abort(self):
         self.update_state(HardwareObjectState.READY)
 
+    def wait_status_ready(self, timeout=None):
+        return True
+
+    def save_centring_positions(self):
+        """This is a place holder, as needed for some of the diffractometers"""
+
     def do_oscillation_scan(self, *args, **kwargs):
         if self.in_kappa_mode:
             self.update_state(HardwareObjectState.BUSY)
@@ -110,8 +116,8 @@ class DiffractometerMockup(AbstractDiffractometer):
 
     def _set_phase(self, value: DiffractometerPhase):
         """Set a phase."""
-        print(f"Change phase to ---> {value}")
         self.current_phase = value
+        self.update_state(self.STATES.READY)
 
     def _set_constraint(self, value):
         self.current_constraint = value
