@@ -3,6 +3,7 @@ In mxcubecore there are two classes, which could be seen as approximate abstract
 The new **AbstractDiffractometer** class and the refactoring of the **AbstractSampleView/SampleView** classes aim to make a standard diffractometer API as well as group all the sample viewing methods to the sample view classes. This intorduces some breaking changes.
 
 #### A convention has been introduced for the motors of the diffractometer.
+
 Thus, the object names change as follows:
 
 - **MiniDiff**:
@@ -18,6 +19,7 @@ Thus, the object names change as follows:
   - phi - omega
 
 #### Transfer of all the sample view and centring methods to the sample view objects, including the list of the sample centring motors.
+
 This implies that some methods are invoked not as HWR.beamline.diffractometer, but as HWR.beamline.sample_view. Here follows the list of these methods:
 
 - take_snapshot
@@ -31,15 +33,17 @@ This implies that some methods are invoked not as HWR.beamline.diffractometer, b
 - reject_centring
 
 #### The centring motors are defined in to sample_view and not diffractometer any more.
+
 They are defined in the sample_view configuration file, which also defines their directions and the centring_reference_position. The motors have the same roles as the diffractometer and are hold in the centring_motors dictionary. The motors change as follows:
 
-- centringPhi - centring_motors\["omega"\]
-- centringPhiy - centring_motors\["phiy"\]
-- centringPhiz - centring_motors\["phiz"\]
-- centringSamplex - centring_motors\["sampx"\]
-- centringSampley - centring_motors\["sampy"\]
+- centringPhi - centring_motors["omega"]
+- centringPhiy - centring_motors["phiy"]
+- centringPhiz - centring_motors["phiz"]
+- centringSamplex - centring_motors["sampx"]
+- centringSampley - centring_motors["sampy"]
 
 #### Some methods and global variables, used by the centring and defined in the diffractometer have been removed.
+
 Instead, a specific method for each type of centring has been introduced. The relevant method is set by the queue. Thus:
 
 - CENTRING_METHOD_MANUAL - replaced by start_manual_centring()
