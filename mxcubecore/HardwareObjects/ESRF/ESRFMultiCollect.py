@@ -20,6 +20,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         self._metadataClient = None
         self.__mesh_steps = None
         self._mesh_range = None
+        self._detector = None
 
     @property
     def _mesh_steps(self):
@@ -92,6 +93,9 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
         # self._detector.init(HWR.beamline.detector, self)
 
+        self.detector_cover = self.get_object_by_role("detector_cover")
+        self.handle_detector_cover = self.get_object_by_role("handle_detcover")
+
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True,))
 
@@ -147,7 +151,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                     start, end, exptime, number_of_images, wait=False
                 )
 
-            if self.oscillation_task.ready():
+            if self.oscillation_task and self.oscillation_task.ready():
                 self.oscillation_task.get()
         else:
             self.oscil(start, end, exptime, number_of_images)
@@ -186,17 +190,31 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def queue_finished_cleanup(self):
         logging.getLogger("user_level_log").info("Queue execution finished")
 
-    @task
     def close_fast_shutter(self):
         self.execute_command("close_fast_shutter")
 
-    @task
     def open_fast_shutter(self):
         self.execute_command("open_fast_shutter")
 
+    def _handle_detector_cover(self, value=None, timeout=None):
+        use = True
+        if self.handle_detector_cover:
+            try:
+                use = self.handle_detector_cover.get_value().value
+            except AttributeError:
+                use = False
+        if use:
+            self.detector_cover.set_value(self.detector_cover.VALUES[value], timeout)
+
+    def open_detector_cover(self):
+        self._handle_detector_cover("OPEN")
+
+    def close_detector_cover(self):
+        self._handle_detector_cover("CLOSE")
+
     @task
     def move_motors(self, motor_position_dict):
-        # We do not wnta to modify the input dict
+        # We do not want to modify the input dict
         motor_positions_copy = motor_position_dict.copy()
         for motor in motor_positions_copy.keys():  # iteritems():
             position = motor_positions_copy[motor]
@@ -285,7 +303,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             return self._detector.set_detector_filenames(frame_number, start, filename)
 
     def stop_oscillation(self):
-        HWR.beamline.diffractometer.abort_cmd()
+        HWR.beamline.diffractometer.abort()
 
     def start_acquisition(self, exptime, npass, first_frame, shutterless):
         if first_frame:
@@ -309,7 +327,9 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         return self._detector.stop_acquisition()
 
     def reset_detector(self):
-        return self._detector.reset()
+        self._detector.reset()
+        msg = "Problem with detector, aborting ..."
+        raise RuntimeError(msg)
 
     def prepare_input_files(
         self, files_directory, prefix, run_number, process_directory
@@ -409,41 +429,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         mosflm_file.write(conn.getresponse().read().decode())
         mosflm_file.close()
         os.chmod(mosflm_input_file, 0o666)
-
-        # also write input file for STAC
-        for stac_om_input_file_name, stac_om_dir in (
-            ("xds.descr", self.xds_directory),
-            ("mosflm.descr", self.mosflm_raw_data_input_file_dir),
-            ("xds.descr", self.raw_data_input_file_dir),
-        ):
-            stac_om_input_file = os.path.join(stac_om_dir, stac_om_input_file_name)
-            conn.request("GET", "/stac.descr/%d" % collection_id)
-            stac_om_file = open(stac_om_input_file, "w")
-            stac_template = conn.getresponse().read().decode()
-            if stac_om_input_file_name.startswith("xds"):
-                om_type = "xds"
-                if stac_om_dir == self.raw_data_input_file_dir:
-                    om_filename = os.path.join(stac_om_dir, "CORRECT.LP")
-                else:
-                    om_filename = os.path.join(
-                        stac_om_dir, "xds_fastproc", "CORRECT.LP"
-                    )
-            else:
-                om_type = "mosflm"
-                om_filename = os.path.join(stac_om_dir, "bestfile.par")
-
-            stac_om_file.write(
-                stac_template.format(
-                    omfilename=om_filename,
-                    omtype=om_type,
-                    phi=HWR.beamline.diffractometer.phiMotor.get_value(),
-                    sampx=HWR.beamline.diffractometer.sampleXMotor.get_value(),
-                    sampy=HWR.beamline.diffractometer.sampleYMotor.get_value(),
-                    phiy=HWR.beamline.diffractometer.phiyMotor.get_value(),
-                )
-            )
-            stac_om_file.close()
-            os.chmod(stac_om_input_file, 0o666)
 
     def get_wavelength(self):
         return HWR.beamline.energy.get_wavelength()
