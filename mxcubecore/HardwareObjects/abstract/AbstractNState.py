@@ -23,7 +23,7 @@ Implements validate_value, set/update limits.
 """
 
 import abc
-import ast
+from ast import literal_eval
 from enum import (
     Enum,
     unique,
@@ -86,17 +86,12 @@ class AbstractNState(AbstractActuator):
 
     def initialise_values(self):
         """Initialise the ValueEnum with the values from the config."""
-        try:
-            values = self.get_property("values", [])
-            if isinstance(values, str):
-                values = ast.literal_eval(values)
+        values = self.get_property("values", [])
+        if isinstance(values, str):
+            values = literal_eval(values)
             values_dict = dict(**{item.name: item.value for item in self.VALUES})
             values_dict.update(values)
             self.VALUES = Enum("ValueEnum", values_dict)
-        except (ValueError, TypeError):
-            self.log.exception(
-                "Error initialising values for %s", self.__class__.__name__
-            )
 
     def value_to_enum(self, value, idx=0):
         """Transform a value to Enum

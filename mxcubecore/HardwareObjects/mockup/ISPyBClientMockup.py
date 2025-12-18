@@ -32,10 +32,9 @@ class ISPyBClientMockup(ProposalTypeISPyBLims):
         self.loginType = LOGIN_TYPE_FALLBACK
 
     def init(self):
-        try:
-            self.base_result_url = self.get_property("base_result_url").strip()
-        except AttributeError:
-            self.log.exception("")
+        base_result_url = self.get_property("base_result_url")
+        if isinstance(base_result_url, str):
+            self.base_result_url = base_result_url.strip()
 
         self.__test_proposal = {
             "status": {"code": "ok"},

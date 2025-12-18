@@ -2,12 +2,8 @@ from mxcubecore.HardwareObjects.ExporterMotor import ExporterMotor
 
 
 class MicrodiffLight(ExporterMotor):
-    def __init__(self, name):
-        ExporterMotor.__init__(self, name)
-        self._motor_pos_suffix = "Level"
-
     def init(self):
-        ExporterMotor.init(self)
+        super().init()
         try:
             _low, _high = self.get_property("limits").split(",")
             self._limits = (float(_low), float(_high))

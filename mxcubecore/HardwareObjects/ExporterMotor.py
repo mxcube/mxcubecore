@@ -237,13 +237,34 @@ class ExporterMotor(AbstractMotor):
         """
         return self.__get_limits("getMotorDynamicLimits")
 
-    def _set_value(self, value):
+    def _retry_on_ex(self, fun, N, *args, **kwargs):  # noqa: N803
+        """ """
+        for attempt in range(1, N + 1):  # noqa: RET503
+            try:
+                return fun(*args, **kwargs)
+            except Exception as e:  # noqa: PERF203
+                msg = f"Error when moving {self.actuator_name}, re-trying"
+                self.log.exception(msg)
+                if attempt == N:
+                    msg = f"Tried moving {self.actuator_name} {N} times and failed"
+                    raise RuntimeError(msg) from e
+
+                sleep(1)
+
+    def _retry_set_value(self, value):
         """Move motor to absolute value.
         Args:
             value (float): target value
         """
         self.update_state(self.STATES.BUSY)
         self.motor_position_chan.set_value(value)
+
+    def _set_value(self, value):
+        """Move motor to absolute value.
+        Args:
+            value (float): target value
+        """
+        self._retry_on_ex(self._retry_set_value, 5, value)
 
     def abort(self):
         """Stop the motor movement immediately."""
@@ -256,7 +277,7 @@ class ExporterMotor(AbstractMotor):
             timeout (float): optional - timeout [s].
         """
         self._exporter.execute("startHomingMotor", (self.actuator_name,))
-        self.wait_ready(timeout)
+        self._wait_ready(timeout)
 
     def get_max_speed(self):
         """Get the motor maximum speed.
