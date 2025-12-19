@@ -19,7 +19,7 @@ Here follows the list of the fixed roles and the description of the correspondin
 - **phiy** - alignment table y axis
 - **phiz** - alignment table z axis
 - **sample_horizontal** - x axis, combination of sampx and sampy. Equivalent to sampx at omega=0 and sampy for omega=90.
-- **samle_vertical** - y axis, combination of sampx and sampy. Equivalent to sampy at omega=0 and sampx for omega=90.
+- **sample_vertical** - y axis, combination of sampx and sampy. Equivalent to sampy at omega=0 and sampx for omega=90.
 - **backlight** - adjust the intensity of the back light
 - **frontlight** - adjust the intensity of the front light
 
