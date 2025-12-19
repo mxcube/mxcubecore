@@ -32,7 +32,7 @@ This implies that some methods are invoked not as HWR.beamline.diffractometer, b
 - accept_centring
 - reject_centring
 
-#### The centring motors are defined in to sample_view and not diffractometer any more.
+#### The centring motors are defined in sample_view and not diffractometer any more.
 
 They are defined in the sample_view configuration file, which also defines their directions and the centring_reference_position. The motors have the same roles as the diffractometer and are hold in the centring_motors dictionary. The motors change as follows:
 
