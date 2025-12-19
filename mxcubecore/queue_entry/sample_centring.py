@@ -71,9 +71,9 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         if dd0:
             if (
                 not hasattr(HWR.beamline.diffractometer, "in_kappa_mode")
-                or HWR.beamline.diffractometer.in_kappa_mode()
+                or HWR.beamline.diffractometer.in_kappa_mode
             ):
-                HWR.beamline.diffractometer.move_motors(dd0)
+                HWR.beamline.diffractometer.set_value_motors(dd0)
 
         motor_positions = dict(
             tt0
@@ -81,7 +81,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
             if tt0[1] is not None
         )
         if motor_positions:
-            HWR.beamline.diffractometer.move_motors(motor_positions)
+            HWR.beamline.diffractometer.set_value_motors(motor_positions)
 
         log.warning("Please center a new or select an existing point and press resume.")
         self.get_queue_controller().pause(True)
@@ -99,7 +99,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
             log.info(msg)
 
             # Create a centred positions of the current position
-            pos_dict = HWR.beamline.diffractometer.get_positions()
+            pos_dict = HWR.beamline.sample_view.get_positions()
             cpos = queue_model_objects.CentredPosition(pos_dict)
 
         self._data_model.set_centring_result(cpos)
@@ -110,7 +110,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         BaseQueueEntry.pre_execute(self)
 
     def post_execute(self):
-        # If centring is executed once then we don't have to execute it again
+        # If centring is executed once, don't do it again
         self.get_view().set_checkable(False)
         BaseQueueEntry.post_execute(self)
 

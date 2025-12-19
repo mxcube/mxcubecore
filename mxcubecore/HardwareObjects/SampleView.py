@@ -764,27 +764,6 @@ class SampleView(AbstractSampleView):
                 self.log.exception("Setting Alignment reference position failed")
                 raise
 
-    def _set_rotation_axis_position(self, value: float, motor_name="phiz"):
-        if motor_name == "phiz":
-            self.centringPhiz = sample_centring.CentringMotor(
-                self.phizMotor, reference_position=value
-            )
-        elif motor_name == "phiy":
-            self.centringPhiy = sample_centring.CentringMotor(
-                self.phiyMotor, reference_position=value
-            )
-
-        script_name = (
-            "Change_AlignmentZ" if motor_name == "phiz" else "Change_AlignmentY"
-        )
-
-        try:
-            self.log.info("Setting MD Alignment reference position")
-            self.run_script(f"{script_name}, {value}")
-        except:
-            self.log.exception("Setting MD Alignment reference position failed")
-            raise
-
 
 class Shape:
     """
@@ -960,7 +939,7 @@ class Grid(Shape):
 
     def update_position(self, transform):
         phi_pos = HWR.beamline.diffractometer.omega.get_value() % 360
-        _d = abs((self.get_centred_position().phi % 360) - phi_pos)
+        _d = abs((self.get_centred_position().omega % 360) - phi_pos)
 
         if self.user_state == "HIDDEN":
             self.state = "HIDDEN"
