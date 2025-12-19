@@ -1,6 +1,6 @@
 Within the concept of the AbstractDiffractometer there are certain number of roles, which are fixed and define a corresponding motor or nstate actuator object.
 
-This allows to use them in a standard way by the MXCuBE application (web or Qt).
+This allows them to be used in a standard way by the MXCuBE application (web or Qt).
 
 We also introduce a convention about the direction of the alignment and centring motors:
 
