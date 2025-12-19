@@ -1,4 +1,4 @@
-In mxcubecore there are two classes, which could be seen as approximate abstraction for controlling a diffractometer - ***MiniDiff*** and ***GenericDiffractometer***. These classes handle also some sample view and sample centring functionalities. It exists as well an ***AbstractSampleView*** class, which contains only few methods, used to handle the sample visualisation.
+In mxcubecore there are two classes, which could be seen as approximate abstractions for controlling a diffractometer - ***MiniDiff*** and ***GenericDiffractometer***. These classes handle also some sample view and sample centring functionalities. There is also an ***AbstractSampleView*** class, which contains only few methods, used to handle the sample visualisation.
 
 The new **AbstractDiffractometer** class and the refactoring of the **AbstractSampleView/SampleView** classes aim to make a standard diffractometer API as well as group all the sample viewing methods to the sample view classes. This intorduces some breaking changes.
 
