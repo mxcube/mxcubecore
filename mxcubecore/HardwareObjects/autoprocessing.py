@@ -43,9 +43,9 @@ def grouped_processing(processEvent, params):
 def start(programs, processEvent, paramsDict):
     for program in programs["program"]:
         try:
-            allowed_events = program.get_property("event").split(" ")
+            allowed_events = program.get("event").split(" ")
             if processEvent in allowed_events:
-                executable = program.get_property("executable")
+                executable = program.get("executable")
 
                 if os.path.isfile(executable):
                     if processEvent == "end_multicollect":

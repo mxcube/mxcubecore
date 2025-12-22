@@ -800,7 +800,7 @@ class SampleQueueEntry(BaseQueueEntry):
                         }
                     )
 
-        programs = HWR.beamline.collect.get("auto_processing")
+        programs = HWR.beamline.collect.get_property("auto_processing")
         if programs:
             try:
                 autoprocessing.start(programs, "end_multicollect", params)
