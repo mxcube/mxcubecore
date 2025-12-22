@@ -783,20 +783,23 @@ class QtGraphicsManager(AbstractSampleView):
         gevent.spawn_later(2, self.save_crystal_image)
 
     def save_crystal_image(self):
-        try:
-            raw_snapshot = self.get_raw_snapshot()
-            result_image = raw_snapshot.copy(
-                self.beam_position[0]
-                - self.beam_info_dict["size_x"] * self.pixels_per_mm[0] / 2,
-                self.beam_position[1]
-                - self.beam_info_dict["size_y"] * self.pixels_per_mm[1] / 2,
-                self.beam_info_dict["size_x"] * self.pixels_per_mm[0] * 1.5,
-                self.beam_info_dict["size_y"] * self.pixels_per_mm[1] * 1.5,
-            )
-            date_time_str = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-            result_image.save("/opt/embl-hh/var/crystal_images/%s.png" % date_time_str)
-        except Exception:
-            self.log.exception("")
+        pass
+        # This code ios EMBL-specific and broken.
+        # Left as comment to mark ned for refactoring
+        # try:
+        #     raw_snapshot = self.get_raw_snapshot()
+        #     result_image = raw_snapshot.copy(
+        #         self.beam_position[0]
+        #         - self.beam_info_dict["size_x"] * self.pixels_per_mm[0] / 2,
+        #         self.beam_position[1]
+        #         - self.beam_info_dict["size_y"] * self.pixels_per_mm[1] / 2,
+        #         self.beam_info_dict["size_x"] * self.pixels_per_mm[0] * 1.5,
+        #         self.beam_info_dict["size_y"] * self.pixels_per_mm[1] * 1.5,
+        #     )
+        #     date_time_str = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+        #     result_image.save("/opt/embl-hh/var/crystal_images/%s.png" % date_time_str)
+        # except Exception:
+        #     self.log.exception("")
 
     def diffractometer_centring_failed(self, method, centring_status):
         """CleanUp method after centring failed
