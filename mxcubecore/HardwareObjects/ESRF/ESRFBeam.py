@@ -377,7 +377,9 @@ class ESRFBeam(AbstractBeam):
         Returns:
             ``True`` if beam present, ``False`` otherwise
         """
-        return self._beam_check_obj.is_beam()
+        if self._beam_check_obj:
+            return self._beam_check_obj.is_beam()
+        return True
 
     def wait_for_beam(self, timeout: float | None = None):
         """Wait until beam present.
