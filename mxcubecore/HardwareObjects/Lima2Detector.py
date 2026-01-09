@@ -14,9 +14,9 @@ from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.CommandContainer import ConnectionError
 from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
+import math
 
-_logger = self.log
-
+_logger = logging.getLogger("HWR")
 _logger_det = logging.getLogger("lima2.client.detector")
 _logger_smx = logging.getLogger("lima2.client.smx")
 _logger_smx_aggr = logging.getLogger("lima2.client.smx.aggregation")
@@ -487,7 +487,7 @@ class Lima2Detector(AbstractDetector):
         sample_distance = calib_params["sample_distance"]
         beam_center = calib_params["beam_center"]
         if config_beam and all(config_beam):
-            if any([fabs(c - b) > 1 for c, b in zip(config_beam, beam_center)]):
+            if any([math.fabs(c - b) > 1 for c, b in zip(config_beam, beam_center)]):
                 _logger.warning(
                     "config beam (%s) differs from beam_center (%s)",
                     config_beam,
