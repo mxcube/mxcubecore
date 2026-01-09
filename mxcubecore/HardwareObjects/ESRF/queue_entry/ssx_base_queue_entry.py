@@ -40,14 +40,14 @@ class SSXPathParameters(PathParameters):
 
 
 class BaseUserCollectionParameters(BaseModel):
-    exp_time: float = Field(95e-6, gt=0, lt=1, description="s")
+    exp_time: float = Field(75e-6, gt=0, lt=1, unit="s")
     sub_sampling: Literal[1, 2, 4, 6, 8] = Field(1)
     take_pedestal: bool = Field(True)
     reject_empty_frames: bool = Field(True)
 
     frequency: float = Field(
         float(HWR.beamline.diffractometer.get_property("max_freq", DEFAULT_MAX_FREQ)),
-        description="Hz",
+        unit="Hz",
     )
 
 

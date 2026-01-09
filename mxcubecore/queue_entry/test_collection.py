@@ -21,7 +21,7 @@ __category__ = "General"
 
 class TestUserCollectionParameters(BaseModel):
     num_images: int = Field(0, description="")
-    exp_time: float = Field(100e-6, gt=0, lt=1, description="s")
+    exp_time: float = Field(100e-6, gt=0, lt=1, unit="s")
     cell_a: float = Field(0.0, title="Cell A")
     cell_b: float = Field(0.0, title="Cell B")
     cell_c: float = Field(0.0, title="Cell C")

@@ -17,9 +17,9 @@ __category__ = "General"
 
 
 class SsxLineScanCollectionUserParameters(BaseUserCollectionParameters):
-    line_range: float = Field(50, gt=0, description="μm")
-    num_images: int = Field(0, gt=0, description="#")
-    spacing: float = Field(10, gt=0, description="μm")
+    line_range: float = Field(50, gt=0, unit="μm")
+    num_images: int = Field(0, gt=0, unit="#")
+    spacing: float = Field(10, gt=0, unit="μm")
     # exp_time: float = Field(100e-6, gt=0, lt=1, description='s')
 
     class Config:

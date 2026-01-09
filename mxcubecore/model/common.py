@@ -43,7 +43,7 @@ class StandardCollectionParameters(BaseModel):
     first_image: int
     kappa: Optional[float]
     kappa_phi: Optional[float]
-    beam_size: float
+    beam_size: str
     shutterless: bool
     selection: list = Field([])
     shape: str = ""
