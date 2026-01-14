@@ -55,7 +55,7 @@ class CollectMockup(AbstractCollect):
         """Main collection hook"""
         self.emit("collectStarted", (None, 1))
         self.emit("fsmConditionChanged", "data_collection_started", True)
-        self._store_image_in_lims_by_frame_num(1)
+        self.store_image_in_lims_by_frame_num(1)
         number_of_images = self.current_dc_parameters["oscillation_sequence"][0][
             "number_of_images"
         ]
@@ -84,20 +84,20 @@ class CollectMockup(AbstractCollect):
     def emit_collection_finished(self):
         """Collection finished behaviour"""
         if self.current_dc_parameters["experiment_type"] != "Collect - Multiwedge":
-            self._update_data_collection_in_lims()
+            self.update_data_collection_in_lims()
 
             last_frame = self.current_dc_parameters["oscillation_sequence"][0][
                 "number_of_images"
             ]
             if last_frame > 1:
-                self._store_image_in_lims_by_frame_num(last_frame)
+                self.store_image_in_lims_by_frame_num(last_frame)
             if (
                 self.current_dc_parameters["experiment_type"] in ("OSC", "Helical")
                 and self.current_dc_parameters["oscillation_sequence"][0]["overlap"]
                 == 0
                 and last_frame > 19
             ):
-                self.trigger_auto_processing("after", self.current_dc_parameters, 0)
+                self.trigger_auto_processing("after", 0)
 
         success_msg = "Data collection successful"
         # self.current_dc_parameters["status"] = success_msg
@@ -120,13 +120,16 @@ class CollectMockup(AbstractCollect):
         self._collecting = False
         self.ready_event.set()
 
-    def _store_image_in_lims_by_frame_num(self, frame, motor_position_id=None):
+    def store_image_in_lims_by_frame_num(self, frame, motor_position_id=None):
         """
         Descript. :
         """
-        self.trigger_auto_processing("image", self.current_dc_parameters, frame)
-        image_id = self._store_image_in_lims(frame)
-        return image_id
+        return
+        # This entire function is a mess and it is not clear what should be called
+        # when or how. Disabled till somebody knows how to fix it
+        # self.trigger_auto_processing("image", frame)
+        # image_id = self._store_image_in_lims(frame)
+        # return image_id
 
     def trigger_auto_processing(self, process_event, frame_number):
         """

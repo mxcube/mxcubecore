@@ -94,7 +94,9 @@ class AbstractNState(AbstractActuator):
             values_dict.update(values)
             self.VALUES = Enum("ValueEnum", values_dict)
         except (ValueError, TypeError):
-            self.log.exception("")
+            self.log.exception(
+                "Error initialising values for %s" % self.__class__.__name__
+            )
 
     def value_to_enum(self, value, idx=0):
         """Transform a value to Enum
