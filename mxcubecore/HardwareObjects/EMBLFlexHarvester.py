@@ -105,7 +105,7 @@ class EMBLFlexHarvester(EMBLFlexHCD):
         ha_sample_acronyms = self._harvester_hwo.get_sample_acronyms()
 
         # If no samples reported by Harvester
-        if not ha_sample_lists:
+        if not ha_sample_lists or (len(ha_sample_lists) == 1 and  ha_sample_lists[0] == "n"):
             self.user_log.warning("No samples reported by Harvester")
             return present_sample_list
 
@@ -135,7 +135,6 @@ class EMBLFlexHarvester(EMBLFlexHCD):
 
             present_sample_list.append(sample)
 
-        self.user_log.info("Loaded %d samples from Harvester", len(present_sample_list))
         return present_sample_list
 
     def _hw_get_mounted_sample(self) -> str:
@@ -151,6 +150,13 @@ class EMBLFlexHarvester(EMBLFlexHCD):
             + ":"
             + "%02d" % loaded_sample[2]
         )
+    
+    def get_loaded_sample(self):
+        """
+        Returns:
+            (Sample) Currently loaded sample
+        """
+        return self.get_sample_with_address(self._loaded_sample)
 
     def _hw_get_mounted_crystal_id(self) -> str:
         """Get the currently mounted crystal UUID"""
@@ -266,6 +272,7 @@ class EMBLFlexHarvester(EMBLFlexHCD):
         )
         load_task = gevent.spawn(
             self._execute_cmd_exporter,
+            "loadSampleFromHarvester",
             sample_uuid,
             self.pin_cleaning,
             command=True,

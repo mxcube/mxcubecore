@@ -249,7 +249,7 @@ class Harvester(HardwareObject):
 
         Return (List):  list of crystal state "waiting_for_transfer, Running etc.."
         """
-        return self._execute_cmd_exporter("getSampleStates", command=True)
+        return self._execute_cmd_exporter("getSampleStates", attribute=True)
 
     def get_current_crystal(self) -> str:
         """Get the Harvester current harvested crystal
