@@ -2,6 +2,7 @@
 Plate Manipulator maintenance.
 """
 
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
@@ -17,7 +18,7 @@ class PlateManipulatorMaintenance(HardwareObject):
         super().__init__(*args, **kwargs)
 
     def init(self):
-        self._sc = self.get_object_by_role("sample_changer")
+        self._sc = HWR.beamline.sample_changer
         self._scan_limits = ""
 
     def _do_abort(self):
