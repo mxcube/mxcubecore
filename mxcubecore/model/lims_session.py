@@ -155,7 +155,7 @@ class Investigation(BaseModel):
     id: int
     title: str
     visitId: str
-    summary: Optional[str] = ""
+    summary: Optional[str] = None
     parameters: Dict[str, Any]
     instrument: Instrument
     investigationUsers: List[Any]
