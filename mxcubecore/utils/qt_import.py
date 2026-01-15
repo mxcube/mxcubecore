@@ -242,11 +242,6 @@ if (qt_variant == "PyQt5") or (qt_variant is None and not qt_imported):
     except ImportError:
         logging.getLogger("HWR").exception("")
 
-    # try:
-    #     from PyQt5.QtWebKit import QWebPage
-    # except ImportError:
-    #     logging.getLogger("HWR").exception("")
-
 #
 # PyQt4
 #
@@ -382,11 +377,6 @@ if (qt_variant == "PyQt4") or (qt_variant is None and not qt_imported):
         pyqt_version_no = list(map(int, ver))[:3]
     except BaseException:
         logging.getLogger("HWR").exception("")
-
-    # try:
-    #     from PyQt4.QtWebKit import QWebPage
-    # except ImportError:
-    #     logging.getLogger("HWR").exception("")
 
 #
 # PySide
