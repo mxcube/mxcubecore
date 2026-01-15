@@ -41,7 +41,6 @@ import math
 import os
 import warnings
 from copy import deepcopy
-from datetime import datetime
 
 import gevent
 import matplotlib.pyplot as plt

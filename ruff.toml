@@ -16,6 +16,7 @@ ignore = [
     "UP",  # pyupgrade: ignored for now, can be fixed automatically by ruff itself
     "G004", # Allow uses of f-strings to format logging messages
     "TRY003", # Allow to add message when instantiating exceptions
+    "B028", # Allow to use the Python standard for warnings (oneline) instead of giving explicit stacklevel
 ]
 select = [
     "ALL",

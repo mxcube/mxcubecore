@@ -95,7 +95,7 @@ class AbstractNState(AbstractActuator):
             self.VALUES = Enum("ValueEnum", values_dict)
         except (ValueError, TypeError):
             self.log.exception(
-                "Error initialising values for %s" % self.__class__.__name__
+                "Error initialising values for %s", self.__class__.__name__
             )
 
     def value_to_enum(self, value, idx=0):

@@ -1,5 +1,6 @@
 import logging
 import time
+import warnings
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
@@ -56,8 +57,7 @@ class MicrodiffInOut(HardwareObject):
         tt = self.get_property("timeout")
         if tt is None:
             warnings.warn(
-                "%s: %s is not configured"
-                % (self.__class__.__name__, "timeout")
+                "%s: %s is not configured" % (self.__class__.__name__, "timeout")
             )
         else:
             try:
