@@ -22,6 +22,7 @@ class SSXICATLIMS(ICATLIMS):
         beamline_parameters = parameters["beamline_parameters"]
         data_path = parameters["data_path"]
         extra_lims_values = parameters["extra_lims_values"]
+        sample = parameters["sample"]
 
         horizontal_spacing = 0
         vertical_spacing = 0
@@ -49,7 +50,7 @@ class SSXICATLIMS(ICATLIMS):
                 "InstrumentLaser01_pulse_width": 0,
                 "InstrumentDetector01_frame_time": 0,
                 "Sample_support": 0,
-                "SampleProtein_acronym": "",
+                "SampleProtein_acronym": sample.protein_acronym,
                 "MX_wavelength": beamline_parameters.wavelength,
                 "MX_resolution_at_corner": 0,
                 "MX_scanType": "datacollection",

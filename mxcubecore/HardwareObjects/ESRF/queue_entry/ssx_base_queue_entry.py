@@ -29,7 +29,6 @@ from mxcubecore.model.common import (
 )
 from mxcubecore.queue_entry.base_queue_entry import BaseQueueEntry
 
-
 DEFAULT_MAX_FREQ = 925
 
 
@@ -129,9 +128,7 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             try:
                 self._take_pedestal_func()
             except Exception as e:
-                logging.getLogger("user_level_log").error(
-                    f"Error taking pedestal: {e}"
-                )
+                logging.getLogger("user_level_log").error(f"Error taking pedestal: {e}")
                 raise
 
         try:
@@ -183,14 +180,14 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             average="zip",
         )
 
-        logging.getLogger("user_level_log").info(
-            f"Storing pedestal in {pedestal_dir}"
-        )
+        logging.getLogger("user_level_log").info(f"Storing pedestal in {pedestal_dir}")
         nb_retries = 2
         for r in range(nb_retries):
             try:
-                cmd = ("mkdir --parents %s && chmod -R 755 %s" %
-                       (pedestal_dir, pedestal_dir))
+                cmd = "mkdir --parents %s && chmod -R 755 %s" % (
+                    pedestal_dir,
+                    pedestal_dir,
+                )
                 subprocess.run(cmd, shell=True, check=True, close_fds=True)
             except Exception as e:
                 logging.getLogger("user_level_log").warning(
@@ -202,8 +199,10 @@ class SsxBaseQueueEntry(BaseQueueEntry):
                 )
                 break
         else:
-            msg = ("Failing creating pedestal directory %s after %s retries" %
-                   (pedestal_dir, nb_retries))
+            msg = "Failing creating pedestal directory %s after %s retries" % (
+                pedestal_dir,
+                nb_retries,
+            )
             logging.getLogger("user_level_log").error(msg)
             raise RuntimeError(msg)
 
@@ -243,14 +242,14 @@ class SsxBaseQueueEntry(BaseQueueEntry):
                 gevent.sleep(0.1)
             self.__pedestal_task.get()
         except Exception as e:
-            logging.getLogger("user_level_log").error(
-                f"Error taking pedestal: {e}"
-            )
+            logging.getLogger("user_level_log").error(f"Error taking pedestal: {e}")
         finally:
             self.__pedestal_task = None
 
-        cmd = ("cd %s && rm -f pedestal.h5 && ln -s %s/pedestal.h5" %
-               (data_root_path, pedestal_dir))
+        cmd = "cd %s && rm -f pedestal.h5 && ln -s %s/pedestal.h5" % (
+            data_root_path,
+            pedestal_dir,
+        )
         subprocess.run(cmd, shell=True, check=True, close_fds=True)
 
     def start_processing(self, exp_type):
@@ -312,7 +311,9 @@ class SsxBaseQueueEntry(BaseQueueEntry):
     def pre_execute(self):
         super().pre_execute()
         self._current_data_path = self.get_data_model().get_path_template().directory
-        self._current_process_path = self.get_data_model().get_path_template().process_directory
+        self._current_process_path = (
+            self.get_data_model().get_path_template().process_directory
+        )
 
         try:
             HWR.beamline.beam.wait_for_beam()
@@ -338,6 +339,7 @@ class SsxBaseQueueEntry(BaseQueueEntry):
         parameters["data_process_path"] = data_process_path
         parameters["beamline_parameters"] = self._beamline_values
         parameters["extra_lims_values"] = self._data_model._task_data.lims_parameters
+        parameters["sample"] = self._data_model.get_parent().get_parent().crystals[0]
 
         HWR.beamline.lims.finalize_data_collection(parameters)
 
@@ -347,7 +349,7 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             move_back = HWR.beamline.detector.move_detector.get_value().value
         except ValueError:
             move_back = True
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         if move_back:
             logging.getLogger("user_level_log").info(f"Moving detector back")
             HWR.beamline.control.LDetX.move(1000, wait=False)
@@ -356,7 +358,7 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             logging.getLogger("user_level_log").info(f"Closing OH2 safety shutter")
             HWR.beamline.control.safshut_oh2.close()
 
-        #if move_back:
+        # if move_back:
         #    HWR.beamline.control.MDetX.wait_move()
 
         # self.emit_progress(1)
@@ -388,7 +390,6 @@ class SsxBaseQueueEntry(BaseQueueEntry):
     #     future = submit(args=args, kwargs=kwargs, queue="slurm")
 
     #     # fp = HWR.get_hardware_repository().find_in_repository("filename")
-
 
     def start_ewoks(self, parameters):
         raw_path = os.path.normpath(parameters["data_path"])
@@ -435,7 +436,9 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             workflow="ssx_workflow", queue="ssx", inputs=inputs_ssx, flag_icat=False
         )
 
-    def _start_ewoks_workflow(self, workflow, queue, inputs, flag_icat, upload_parameters=None):
+    def _start_ewoks_workflow(
+        self, workflow, queue, inputs, flag_icat, upload_parameters=None
+    ):
 
         kwargs = {
             "load_options": {"root_module": "ewoksid29.workflows"},
@@ -602,14 +605,20 @@ class SsxBaseQueueEntry(BaseQueueEntry):
     def get_additional_lims_values(self):
         return ISPYBCollectionParameters(
             **{
-                "flux_start": 3e15
-                * HWR.beamline.transmission.get_value()/100
-                * HWR.beamline.machine_info.get_current()
-                / 200,
-                "flux_end": 3e15
-                * HWR.beamline.transmission.get_value()/100
-                * HWR.beamline.machine_info.get_current()
-                / 200,
+                "flux_start": (
+                    3e15
+                    * HWR.beamline.transmission.get_value()
+                    / 100
+                    * HWR.beamline.machine_info.get_current()
+                    / 200
+                ),
+                "flux_end": (
+                    3e15
+                    * HWR.beamline.transmission.get_value()
+                    / 100
+                    * HWR.beamline.machine_info.get_current()
+                    / 200
+                ),
                 "start_time": datetime.datetime.now(),
                 "end_time": datetime.datetime.now(),
                 "chip_model": "",
