@@ -401,7 +401,7 @@ def init_hardware_repository(
 
     beamline_config_file = _instance.find_beamline_config_file()
     if beamline_config_file.endswith(".yml"):
-        warn(  # noqa: B028 we don't care about stacklevel for this warning
+        warn(
             f"Config file '{beamline_config_file}' have deprecated extension 'yml', "
             "change to 'yaml'."
         )
