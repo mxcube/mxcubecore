@@ -134,7 +134,52 @@ class SampleView(AbstractSampleView):
         return motors_dict
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
-        return self.get_positions()
+        """Get the motor positions form x,y pixel coordinates"""
+
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
+        diffr = HWR.beamline.diffractometer
+        pixels_per_mm_x, pixels_per_mm_y = diffr.get_pixels_per_mm()
+        if not all([pixels_per_mm_x, pixels_per_mm_y]):
+            return 0, 0
+
+        # distance from the point to the beam
+        dx = (x - beam_pos_x) / pixels_per_mm_x
+        dy = (y - beam_pos_y) / pixels_per_mm_y
+
+        motors_dict = self.get_positions()
+        for key, val in motors_dict.items():
+            motors_dict.update({key: self.centring_motors[key].direction * val})
+
+        omega_angle = math.radians(motors_dict.get("omega", 0))
+        rot_matrix = np.matrix(
+            [
+                [math.cos(omega_angle), -math.sin(omega_angle)],
+                [math.sin(omega_angle), math.cos(omega_angle)],
+            ]
+        )
+        inv_rot_matrix = np.array(rot_matrix.I)
+        dsampx, dsampy = np.dot(np.array([0, dy]), inv_rot_matrix)
+
+        chi_angle = math.radians(motors_dict.get("chi", 0))
+        chi_rot = np.matrix(
+            [
+                [math.cos(chi_angle), -math.sin(chi_angle)],
+                [math.sin(chi_angle), math.cos(chi_angle)],
+            ]
+        )
+        sx, sy = np.dot(np.array([dsampx, dsampy]), np.array(chi_rot))
+
+        sampx = -motors_dict.get("sampx") + sx
+        sampy = motors_dict.get("sampy") + sy
+        phiy = motors_dict.get("phiy") + dx
+
+        return {
+            "omega": motors_dict.get("omega"),
+            "phiy": float(-phiy),
+            "phiz": motors_dict.get("phiz"),
+            "sampx": float(-sampx),
+            "sampy": float(sampy),
+        }
 
     def motor_positions_to_screen(
         self, positions_dict: dict[str, float]
@@ -237,6 +282,23 @@ class SampleView(AbstractSampleView):
                 self.centring_failed()
 
             self.centring_done()
+
+    def auto_centring_done(self, auto_centring_procedure):
+        try:
+            res = auto_centring_procedure.get()
+        except Exception:
+            logging.exception("Could not complete automatic centring")
+            logging.getLogger("user_level_log").info("Automatic loop centring failed")
+            self.centring_failed()
+        else:
+            if res is None:
+                logging.error("Could not complete automatic centring")
+                logging.getLogger("user_level_log").info(
+                    "Automatic loop centring failed"
+                )
+                self.centring_failed()
+            else:
+                self.centring_done()
 
     def centring_done(self):
         """Execute if centring accepted."""
@@ -363,7 +425,7 @@ class SampleView(AbstractSampleView):
         self.centring_motors.get("sampx").set_value(-sampx)
         self.centring_motors.get("sampy").set_value(sampy)
         self.centring_motors.get("phiy").set_value(-phiy)
-        HWR.beamline.diffractometer.save_centring_positions()
+        diffr.save_centring_positions()
 
     def get_snapshot(
         self,
