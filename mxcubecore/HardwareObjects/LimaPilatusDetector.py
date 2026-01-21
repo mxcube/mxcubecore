@@ -107,6 +107,8 @@ class LimaPilatusDetector(AbstractDetector):
             )
 
             self.get_command_object("prepare_acq").set_device_timeout(10000)
+            if self.status.get("acq_satus") == "READY":
+                self.update_state(HardwareObjectState.READY)
             self._emit_status()
 
         except ConnectionError:

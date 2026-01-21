@@ -4,6 +4,7 @@ FLEX HCD maintenance mockup.
 
 import ast
 
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 TOOL_FLANGE, TOOL_UNIPUCK, TOOL_SPINE, TOOL_PLATE, TOOL_LASER, TOOL_DOUBLE_GRIPPER = (
@@ -36,7 +37,7 @@ class FlexHCDMaintenance(HardwareObject):
         super().__init__(*args, **kwargs)
 
     def init(self):
-        self._sc = self.get_object_by_role("sample_changer")
+        self._sc = HWR.beamline.sample_changer
 
     def get_current_tool(self):
         return self._sc.get_gripper()

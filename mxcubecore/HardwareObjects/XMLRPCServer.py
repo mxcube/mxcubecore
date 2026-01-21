@@ -699,3 +699,6 @@ class XMLRPCServer(HardwareObject):
         """
         actions = HWR.beamline.beamline_actions.get_object_by_role("controller")
         actions.centrebeam()
+
+    def get_current_cd_crystal_id(self):
+        return HWR.beamline.harvester.get_current_crystal_id()

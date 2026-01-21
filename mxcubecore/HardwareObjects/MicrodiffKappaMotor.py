@@ -21,13 +21,19 @@ class MicrodiffKappaMotor(ExporterMotor):
             raise RuntimeError("MicrodiffKappaMotor class is only for kappa motors")
         MicrodiffKappaMotor.motors[self.actuator_name] = self
         if self.actuator_name == "Kappa":
-            MicrodiffKappaMotor.conf["KappaTrans"] = self.stringToList(self.kappaTrans)
+            MicrodiffKappaMotor.conf["KappaTrans"] = self.stringToList(
+                self.get_property("kappaTrans")
+            )
             MicrodiffKappaMotor.conf["KappaTransD"] = self.stringToList(
-                self.kappaTransD
+                self.get_property("kappaTransD")
             )
         elif self.actuator_name == "Phi":
-            MicrodiffKappaMotor.conf["PhiTrans"] = self.stringToList(self.phiTrans)
-            MicrodiffKappaMotor.conf["PhiTransD"] = self.stringToList(self.phiTransD)
+            MicrodiffKappaMotor.conf["PhiTrans"] = self.stringToList(
+                self.get_property("phiTrans")
+            )
+            MicrodiffKappaMotor.conf["PhiTransD"] = self.stringToList(
+                self.get_property("phiTransD")
+            )
         self.sampx = self.get_object_by_role("sampx")
         self.sampy = self.get_object_by_role("sampy")
         self.phiy = self.get_object_by_role("phiy")

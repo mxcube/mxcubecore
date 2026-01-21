@@ -1775,9 +1775,12 @@ class AcquisitionParameters(object):
         return copy.deepcopy(self)
 
     def get_detector_mode_list(self):
-        return ast.literal_eval(
-            HWR.beamline.detector.get_property("roi_mode_list", "[]")
-        )
+        try:
+            return ast.literal_eval(
+                HWR.beamline.detector.get_property("roi_mode_list", "[]")
+            )
+        except AttributeError:
+            return []
 
 
 class XrayImagingParameters(object):

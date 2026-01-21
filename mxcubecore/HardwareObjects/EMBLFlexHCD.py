@@ -214,6 +214,7 @@ class EMBLFlexHCD(SampleChanger):
                     cell, puck, puck_type, puck_barcode, well, sample_barcode, state = [
                         p.strip() for p in entry.split(",")
                     ]
+                    state = "in_puck" if state == "on_gonio" else state
                 except ValueError:
                     self.log.warning("Skipping unexpected sample entry: %s", entry)
                     continue
@@ -231,9 +232,6 @@ class EMBLFlexHCD(SampleChanger):
                     present_sample_list.append(sample)
                     break  # stop inner loop once matched
 
-        self.user_log.info(
-            "Loaded %d samples from Flex Sample Changer", len(present_sample_list)
-        )
         return present_sample_list
 
     @task
