@@ -22,6 +22,7 @@
 
 from gevent import Timeout, sleep
 
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.Command.Exporter import Exporter
 from mxcubecore.Command.exporter.ExporterStates import ExporterStates
 from mxcubecore.HardwareObjects.abstract.AbstractDiffractometer import (
@@ -348,11 +349,11 @@ class MicroDiffractometer(AbstractDiffractometer):
         start: float,
         end: float,
         exptime: float,
+        dead_time: float,
         nb_lines: int,
         nb_frames_total: int,
         grid_centre: list[tuple[str, float]],
         mesh_range: dict,
-        dead_time: float = 0,
         timeout: float | None = None,
     ):
         """Do a mesh scan.
@@ -361,12 +362,12 @@ class MicroDiffractometer(AbstractDiffractometer):
             start: scan start position.
             end: scan end position.
             exptime: scan exposure time (total).
+            dead_time: Dead time between the pulses. Not used any more.
             nb_lines: Total number of lines.
             nb_frames_total: Total number of frames.
             grid_centre: List of tuples (motor_role, position).
                          representing the centre of the mesh grid.
             mesh_range: Horizontal and vertical range.
-            dead_time: Dead time between the adjust the pulses.
             timeout: optional - timeout [s],
                      if timeout = 0: return at once and do not wait,
                      if timeout is None: wait forever (default).
@@ -377,23 +378,22 @@ class MicroDiffractometer(AbstractDiffractometer):
 
         # enable gate pulses
         self._exporter.write_property("DetectorGatePulseEnabled", value=True)
-        # Adding the servo time to the readout time to avoid any
-        # servo cycle jitter
-        servo_time = 0.110
 
-        self._exporter.write_property(
-            "DetectorGatePulseReadoutTime", (dead_time * 1000 + servo_time)
-        )
+        # dead_time depends on the detector. We transform it to us
+        dead_time = HWR.beamline.detector.get_deadtime() * 1000
+        self._exporter.write_property("DetectorGatePulseReadoutTime", dead_time)
 
-        self.set_values_motors(grid_centre, simultaneous=True, timeout=timeout)
+        grid_centre = grid_centre.as_dict()
+        self.set_value_motors(grid_centre, simultaneous=True, timeout=timeout)
+
         scan_params = f"{(end - start):0.3f}\t"
         scan_params += f"{-mesh_range['horizontal_range']:0.3f}\t"
-        scan_params += f"{-mesh_range['vertical_range']:0.3f}\t"
+        scan_params += f"{mesh_range['vertical_range']:0.3f}\t"
         scan_params += f"{start:0.3f}\t"
         for name in ["phiy", "phiz", "sampx", "sampy"]:
-            for mot in grid_centre:
-                if name == mot[0].name:
-                    scan_params += f"{float(mot[1]):0.3f}\t"
+            for key, val in grid_centre.items():
+                if name == key:
+                    scan_params += f"{float(val):0.3f}\t"
         scan_params += f"{nb_lines}\t"
         scan_params += f"{nb_frames_total / nb_lines}\t"
         scan_params += f"{exptime / nb_lines}\t"
