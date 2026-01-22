@@ -1,8 +1,6 @@
 import abc
 import collections
 import errno
-
-# import types
 import logging
 import os
 import socket
@@ -13,11 +11,7 @@ import autoprocessing
 import gevent
 
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.TaskUtils import (
-    cleanup,
-    error_cleanup,
-    task,
-)
+from mxcubecore.TaskUtils import cleanup, error_cleanup, task
 
 BeamlineControl = collections.namedtuple(
     "BeamlineControl",
@@ -105,6 +99,9 @@ class AbstractMultiCollect(object):
     def data_collection_end_hook(self, data_collect_parameters):
         pass
 
+    def _bliss_data_collection_hook(self, data_collect_parameters):
+        pass
+
     @abc.abstractmethod
     @task
     def close_fast_shutter(self):
@@ -115,21 +112,21 @@ class AbstractMultiCollect(object):
     def move_motors(self, motor_position_dict):
         return
 
-    @abc.abstractmethod
-    @task
     def open_safety_shutter(self):
         pass
+
+    def open_detector_cover(self):
+        """Placeholder for implementing opening of the detector cover"""
+
+    def close_detector_cover(self):
+        """Placeholder for implementing closing of the detector cover"""
 
     def safety_shutter_opened(self):
         return False
 
-    @abc.abstractmethod
-    @task
     def close_safety_shutter(self):
         pass
 
-    @abc.abstractmethod
-    @task
     def prepare_intensity_monitors(self):
         pass
 
@@ -243,39 +240,42 @@ class AbstractMultiCollect(object):
         Use fast characterisation
 
         Args:
-            value (boolean): True if to use fast characterisation otherwise False
+            value: True if to use fast characterisation otherwise False
         """
-        pass
 
     @abc.abstractmethod
     @task
     def generate_image_jpeg(self, filename, jpeg_path, jpeg_thumbnail_path):
         pass
 
-    def get_sample_info_from_parameters(self, parameters):
-        """Returns sample_id, sample_location and sample_code from data collection parameters"""
+    def get_sample_info_from_parameters(self, parameters: dict):
+        """Returns sample_id, sample_location and sample_code from data
+           collection parameters.
+        Args:
+            parameters: Dictionary with the data collection parameters
+        """
         sample_info = parameters.get("sample_reference")
         try:
-            sample_id = int(sample_info["blSampleId"])
-        except Exception:
+            sample_id = int(sample_info.get("blSampleId"))
+        except (AttributeError, TypeError):
             sample_id = None
 
         try:
             sample_code = sample_info["code"]
-        except Exception:
+        except KeyError:
             sample_code = None
 
         sample_location = None
 
         try:
             sample_container_number = int(sample_info["container_reference"])
-        except Exception:
-            logging.getLogger("HWR").exception("")
+        except KeyError:
+            pass
         else:
             try:
                 vial_number = int(sample_info["sample_location"])
-            except Exception:
-                logging.getLogger("HWR").exception("")
+            except KeyError:
+                pass
             else:
                 sample_location = (sample_container_number, vial_number)
 
@@ -370,8 +370,6 @@ class AbstractMultiCollect(object):
         wedges_to_collect = []
 
         for wedge_size in wedge_sizes_list:
-            orig_start = start
-
             wedges_to_collect.append((start, wedge_size))
             start += wedge_size * osc_range - overlap
 
@@ -395,12 +393,11 @@ class AbstractMultiCollect(object):
         self, files_directory, prefix, run_number, process_directory
     ):
         """Return XDS input file directory"""
-        pass
 
     @abc.abstractmethod
     @task
     def write_input_files(self, collection_id):
-        pass
+        """Write the input files place holder."""
 
     def execute_collect_without_loop(self, data_collect_parameters):
         return
@@ -558,7 +555,7 @@ class AbstractMultiCollect(object):
 
         current_diffractometer_position = self.diffractometer().get_positions()
 
-        for motor in motors_to_move_before_collect.keys():
+        for motor in motors_to_move_before_collect:
             if motors_to_move_before_collect[motor] is not None:
                 try:
                     if current_diffractometer_position[motor] is not None:
@@ -624,7 +621,6 @@ class AbstractMultiCollect(object):
                 snapshot_i = 1
                 snapshots = []
                 for img in centring_info["images"]:
-                    img_phi_pos = img[0]
                     img_data = img[1]
                     snapshot_filename = "%s_%s_%s.snapshot.jpeg" % (
                         file_parameters["prefix"],
@@ -680,11 +676,6 @@ class AbstractMultiCollect(object):
         sample_id = data_collect_parameters["blSampleId"]
         subwedge_size = oscillation_parameters.get("reference_interval", 1)
 
-        # if data_collect_parameters["shutterless"]:
-        #    subwedge_size = 1
-        # else:
-        #    subwedge_size = oscillation_parameters["number_of_images"]
-
         wedges_to_collect = self.prepare_wedges_to_collect(
             oscillation_parameters["start"],
             oscillation_parameters["number_of_images"],
@@ -703,10 +694,9 @@ class AbstractMultiCollect(object):
         )
 
         start_image_number = oscillation_parameters["start_image_number"]
-        last_frame = start_image_number + nframes - 1
 
         if data_collect_parameters["skip_images"]:
-            for start, wedge_size in wedges_to_collect[:]:
+            for _start, wedge_size in wedges_to_collect[:]:
                 filename = image_file_template % start_image_number
                 file_location = file_parameters["directory"]
                 file_path = os.path.join(file_location, filename)
@@ -775,9 +765,9 @@ class AbstractMultiCollect(object):
                 "Setting resolution to %f", resolution
             )
             try:
-                HWR.beamline.diffractometer.open_detector_cover()
+                self.open_detector_cover()
                 HWR.beamline.resolution.set_value(resolution, timeout=3500)
-            except RuntimeError:
+            except (AttributeError, RuntimeError):
                 logging.getLogger("user_level_log").info(
                     "Failed to set resolution to %f", resolution
                 )
@@ -796,9 +786,6 @@ class AbstractMultiCollect(object):
                     data_collect_parameters["detector_distance"],
                 )
                 raise
-
-        # 0: software binned, 1: unbinned, 2:hw binned
-        # self.set_detector_mode(data_collect_parameters["detector_mode"])
 
         with cleanup(self.data_collection_cleanup):
             # if not self.safety_shutter_opened():
@@ -881,7 +868,7 @@ class AbstractMultiCollect(object):
                 self.write_input_files(self.collection_id, wait=False)
 
             # at this point input files should have been written
-            # TODO agree what parameters will be sent to this function
+            # TO DO: agree what parameters will be sent to this function
             if data_collect_parameters.get("processing", False) == "True":
                 self.trigger_auto_processing(
                     "before",
@@ -1028,11 +1015,10 @@ class AbstractMultiCollect(object):
                         )
 
                         if data_collect_parameters.get("shutterless"):
+                            msg = "Timeout waiting for detector trigger, no image taken"
                             with gevent.Timeout(
                                 self.first_image_timeout,
-                                RuntimeError(
-                                    "Timeout waiting for detector trigger, no image taken"
-                                ),
+                                RuntimeError(msg),
                             ):
                                 if last_image_saved <= 0:
                                     last_image_saved = self.last_image_saved(
@@ -1065,14 +1051,10 @@ class AbstractMultiCollect(object):
                         _total_time_spent += time.time() - _time_start
                         _total_exptime += exptime
 
-                        # if _total_time_spent > (wedge_size * (exptime + 0.005)) * 4:
-                        #    msg = "Data collection failure, detector not responding"
-                        #    logging.getLogger("user_level_log").info(msg)
-                        #    HWR.beamline.detector.recover_from_failure()
-                        #    raise RuntimeError(msg)
-
-            # Bug fix for MD2/3(UP): diffractometer still has things to do even after the last frame is taken (decelerate motors and
-            # possibly download diagnostics) so we cannot trigger the cleanup (that will send an abort on the diffractometer) as soon as
+            # Bug fix for MD2/3(UP): diffractometer still has things to do
+            # even after the last frame is taken (decelerate motors and
+            # possibly download diagnostics) so we cannot trigger the cleanup
+            # (that will send an abort on the diffractometer) as soon as
             # the last frame is counted
             self.diffractometer().wait_ready(1000)
 
@@ -1114,13 +1096,12 @@ class AbstractMultiCollect(object):
 
                     # now really start collect sequence
                     self.do_collect(owner, data_collect_parameters)
-                except Exception as ex:
+                except Exception:
                     failed = True
                     exc_type, exc_value, exc_tb = sys.exc_info()
+                    msg = f"Data collection failed: {exc_value}"
                     logging.exception("Data collection failed")
-                    logging.getLogger("user_level_log").info(
-                        "Data collection failed %s" % exc_value
-                    )
+                    logging.getLogger("user_level_log").info(msg)
                     data_collect_parameters["status"] = (
                         "Data collection failed!"  # Message to be stored in LIMS
                     )
@@ -1178,18 +1159,17 @@ class AbstractMultiCollect(object):
                 if failed:
                     # if one dc fails, stop the whole loop
                     break
-                else:
-                    self.emit(
-                        "collectOscillationFinished",
-                        (
-                            owner,
-                            True,
-                            data_collect_parameters["status"],
-                            self.collection_id,
-                            osc_id,
-                            data_collect_parameters,
-                        ),
-                    )
+                self.emit(
+                    "collectOscillationFinished",
+                    (
+                        owner,
+                        True,
+                        data_collect_parameters["status"],
+                        self.collection_id,
+                        osc_id,
+                        data_collect_parameters,
+                    ),
+                )
 
             if self.get_property("close_safety_shutter_if_idle", False):
                 try:
@@ -1208,10 +1188,7 @@ class AbstractMultiCollect(object):
             self.emit("collectReady", (True,))
 
     def collect_without_loop(self, data_collect_parameters_list):
-        in_multicollect = len(data_collect_parameters_list) > 1
-        collections_analyse_params = []
         self.emit("collectReady", (False,))
-        # self.emit("collectStarted", (self.owner, 1))
         total_frames = 0
         total_time_sec = 0
         # in principle data_collect_parameters_list always has one element
@@ -1303,13 +1280,12 @@ class AbstractMultiCollect(object):
         if isinstance(residues, str):
             try:
                 residues = int(residues)
-            except Exception:
+            except ValueError:
                 residues = 200
 
         # residues = zero should be interpreted as if no value was provided
         # use default of 200
-        if residues == 0:
-            residues = 200
+        residues = residues or 200
 
         processAnalyseParams = {}
         processAnalyseParams["EDNA_files_dir"] = EDNA_files_dir
@@ -1324,15 +1300,13 @@ class AbstractMultiCollect(object):
             processAnalyseParams["residues"] = residues
             processAnalyseParams["spacegroup"] = spacegroup
             processAnalyseParams["cell"] = cell
-        except Exception as msg:
-            logging.getLogger().exception("DataCollect:processing: %r" % str(msg))
+        except Exception as err:
+            msg = f"DataCollect:processing: {err}"
+            logging.getLogger().exception(msg)
         else:
-            # logging.info("AUTO PROCESSING: %s, %s, %s, %s, %s, %s, %r, %r", process_event, EDNA_files_dir, anomalous, residues, do_inducedraddam, spacegroup, cell)
-
+            programs = self.get_property("auto_processing")
             try:
-                autoprocessing.start(
-                    self["auto_processing"], process_event, processAnalyseParams
-                )
+                autoprocessing.start(programs, process_event, processAnalyseParams)
             except Exception:
                 logging.getLogger().exception("Error starting processing")
 
