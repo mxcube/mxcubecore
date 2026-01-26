@@ -37,6 +37,9 @@ from gevent import (
     sleep,
 )
 
+import logging
+
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.Command.Exporter import Exporter
 from mxcubecore.Command.exporter.ExporterStates import ExporterStates
 from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
@@ -157,6 +160,24 @@ class ExporterNState(AbstractNState):
         Args:
             value (str, int, float or enum): Value to be set.
         """
+
+        # Soft interlock for Microdiff DataCollection phase, prevents
+        # moving backlight IN during data collection
+        value_channel_name = self.get_property("value_channel_name")
+
+        if (
+            value_channel_name == "BackLightIsOn"
+            and HWR.beamline.diffractometer.get_current_phase() == "DataCollection"
+            and value == self.VALUES.IN
+        ):
+            logging.getLogger("user_level_log").exception(
+                (
+                    "MicroDiff: MXCuBE Soft interlock, cannot move backlight while in"
+                    " DataCollection phase"
+                )
+            )
+            return
+
         # NB Workaround because diffractomer does not send event on
         # change of actuators (light, scintillator, cryostream...)
         self.update_state(self.STATES.BUSY)
