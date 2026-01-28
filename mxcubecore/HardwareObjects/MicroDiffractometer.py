@@ -281,7 +281,12 @@ class MicroDiffractometer(AbstractDiffractometer):
         return True
 
     def do_oscillation_scan(
-        self, start: float, end: float, exptime: float, timeout: float | None = None
+        self,
+        start: float,
+        end: float,
+        exptime: float,
+        number_of_images: int = 1,
+        timeout: float | None = None,
     ):
         """Do an oscillation scan on omega.
 
@@ -289,6 +294,7 @@ class MicroDiffractometer(AbstractDiffractometer):
             start: omega start position.
             end: omega end position.
             exptime: scan exposure time (total).
+            number_of_images: Used if need to set number of frames.
             timeout: optional - timeout [s],
                      if timeout = 0: return at once and do not wait,
                      if timeout is None: wait forever (default).
@@ -299,8 +305,10 @@ class MicroDiffractometer(AbstractDiffractometer):
         """
         # check the scan limits
         self.check_scan_limits(start, end, exptime)
-        # set only one frame
-        self._exporter.write_property("ScanNumberOfFrames", 1)
+        # set the number of frames
+        if not self.get_property("md_set_number_of_frames"):
+            number_of_images = 1
+        self._exporter.write_property("ScanNumberOfFrames", number_of_images)
         scan_params = f"1\t{start:0.3f}\t{(end - start):0.3f}\t{exptime:0.3f}\t1"
         self._exporter.execute("startScanEx", (scan_params,))
         self.wait_status_ready(timeout)
@@ -319,6 +327,7 @@ class MicroDiffractometer(AbstractDiffractometer):
             start: scan start position.
             end: scan end position.
             exptime: scan exposure time (total).
+            number_of_images: Used only if more tahn one frame needed.
             timeout: optional - timeout [s],
                      if timeout = 0: return at once and do not wait,
                      if timeout is None: wait forever (default).

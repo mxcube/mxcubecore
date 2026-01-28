@@ -118,7 +118,7 @@ class SampleView(AbstractSampleView):
 
     def _update_shape_positions(self, *args, **kwargs):
         for shape in self.get_shapes():
-            shape.update_position(self.motor_positions_to_screen)
+            shape.update_position(self.motor_positions_to_screen())
 
         self.emit("shapesChanged")
 
@@ -274,7 +274,6 @@ class SampleView(AbstractSampleView):
             logging.exception("Could not complete manual centring")
             self.centring_failed()
         else:
-            self.emit("centringMoving", ())
             try:
                 sample_centring.end()
             except Exception:
@@ -299,6 +298,7 @@ class SampleView(AbstractSampleView):
                 self.centring_failed()
             else:
                 self.centring_done()
+                self.accept_centring()
 
     def centring_done(self):
         """Execute if centring accepted."""
@@ -318,6 +318,7 @@ class SampleView(AbstractSampleView):
     def accept_centring(self):
         """Accept the current centred position."""
         self.centring_status["valid"] = True
+        self.centring_status["accepted"] = True
         self.emit("centringAccepted", (True, self.get_centring_status()))
         logging.getLogger("user_level_log").info("Centring successful")
 
@@ -1000,8 +1001,8 @@ class Grid(Shape):
         self.set_id(Grid.SHAPE_COUNT)
 
     def update_position(self, transform):
-        phi_pos = HWR.beamline.diffractometer.omega.get_value() % 360
-        _d = abs((self.get_centred_position().omega % 360) - phi_pos)
+        omega_pos = HWR.beamline.diffractometer.omega.get_value() % 360
+        _d = abs((self.get_centred_position().omega % 360) - omega_pos)
 
         if self.user_state == "HIDDEN":
             self.state = "HIDDEN"

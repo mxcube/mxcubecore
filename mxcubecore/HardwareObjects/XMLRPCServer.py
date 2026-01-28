@@ -364,7 +364,7 @@ class XMLRPCServer(HardwareObject):
 
         """
         grid_dict = HWR.beamline.sample_view.get_shape(sid).as_dict()
-
+        grid_dict.update({"result": None})
         return grid_dict
 
     def shape_history_set_grid_data(self, key, result_data, data_file_path=None):
