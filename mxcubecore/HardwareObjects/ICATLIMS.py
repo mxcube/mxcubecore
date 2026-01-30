@@ -907,7 +907,7 @@ class ICATLIMS(AbstractLims):
         except RuntimeError as e:
             logger.warning("Failed to set __actualInstrument. %s", e)
 
-        result = {
+        return  {
             "sampleId": sample_id,
             "Sample_name": sample_name,
             "startDate": start_time,
@@ -930,8 +930,6 @@ class ICATLIMS(AbstractLims):
             "InstrumentSource_current": machine_info.get("current"),
             "InstrumentSource_mode": machine_info.get("fill_mode"),
         }
-
-        return result
 
     def store_energy_scan(self, energyscan_dict: dict):
         try:
