@@ -2210,11 +2210,15 @@ class GphlWorkflow(TaskNode):
                 resolution, orgxy=orgxy, Distance=distance
             )
 
+        maximum_chi = settings["maximum_chi"]
+        maximum_chi_from_limits = HWR.beamline.gphl_workflow.derive_maximum_chi()
+        if maximum_chi_from_limits:
+            maximum_chi = min(maximum_chi, maximum_chi_from_limits)
         self.strategy_options = {
             "strategy_type": self.strategy_type,
             "angular_tolerance": settings["angular_tolerance"],
             "clip_kappa": settings["angular_tolerance"],
-            "maximum_chi": settings["maximum_chi"],
+            "maximum_chi": maximum_chi,
         }
         for tag in ("allow_duplicate_orientations", "delphi_block", "stratcal_step"):
             if tag in settings:
