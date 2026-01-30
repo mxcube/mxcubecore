@@ -897,7 +897,8 @@ class ICATLIMS(AbstractLims):
             session = self.get_session_by_id(investigation_id)
             if session is not None:
                 investigation_name = session.proposal_name
-
+                
+        actual_instrument = None
         try:
             if (
                 self.active_session is None
@@ -907,7 +908,7 @@ class ICATLIMS(AbstractLims):
         except RuntimeError as e:
             logger.warning("Failed to set __actualInstrument. %s", e)
 
-        return  {
+        result = {
             "sampleId": sample_id,
             "Sample_name": sample_name,
             "startDate": start_time,
@@ -925,11 +926,14 @@ class ICATLIMS(AbstractLims):
             "MX_fluxEnd": flux_end,
             "MX_transmission": transmission,
             "InstrumentMonochromator_wavelength": wavelength,
-            "InstrumentMonochromator_energy": energy,
-            "__actualInstrument" : actual_instrument,
+            "InstrumentMonochromator_energy": energy,            
             "InstrumentSource_current": machine_info.get("current"),
             "InstrumentSource_mode": machine_info.get("fill_mode"),
         }
+        if actual_instrument is not None:
+            result ["__actualInstrument"] = actual_instrument
+
+        return result
 
     def store_energy_scan(self, energyscan_dict: dict):
         try:
