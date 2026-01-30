@@ -903,7 +903,7 @@ class ICATLIMS(AbstractLims):
             "Sample_name": sample_name,
             "startDate": start_time,
             "endDate": end_time,
-            "investigation_id": investigation_id,
+            "investigationId": investigation_id,
             "beamline_name": beamline_name,
             "proposal": investigation_name,
             "scheduled_beamline_name": scheduled_beamline_name,
