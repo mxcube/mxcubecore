@@ -897,7 +897,7 @@ class ICATLIMS(AbstractLims):
             session = self.get_session_by_id(investigation_id)
             if session is not None:
                 investigation_name = session.proposal_name
-                
+
         actual_instrument = None
         try:
             if (
@@ -926,12 +926,12 @@ class ICATLIMS(AbstractLims):
             "MX_fluxEnd": flux_end,
             "MX_transmission": transmission,
             "InstrumentMonochromator_wavelength": wavelength,
-            "InstrumentMonochromator_energy": energy,            
+            "InstrumentMonochromator_energy": energy,
             "InstrumentSource_current": machine_info.get("current"),
             "InstrumentSource_mode": machine_info.get("fill_mode"),
         }
         if actual_instrument is not None:
-            result ["__actualInstrument"] = actual_instrument
+            result["__actualInstrument"] = actual_instrument
 
         return result
 
