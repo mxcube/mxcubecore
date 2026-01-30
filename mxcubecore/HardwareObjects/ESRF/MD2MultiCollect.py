@@ -70,6 +70,9 @@ class MD2MultiCollect(ESRFMultiCollect):
         diffr.frontlightswitch.set_value(diffr.frontlightswitch.VALUES.IN)
         # diffr.frontlight.set_value(2)
 
+        back_light_switch = diffr.get_object_by_role("BackLightSwitch")
+        back_light_switch.disable()
+
         # move to DataCollection phase
         logging.getLogger("user_level_log").info("Moving MD2 to DataCollection")
         # AB next line to speed up the data collection
@@ -79,6 +82,7 @@ class MD2MultiCollect(ESRFMultiCollect):
     def data_collection_cleanup(self):
         HWR.beamline.diffractometer.wait_status_ready(10)
         self.close_fast_shutter()
+        HWR.beamline.diffractometer.get_object_by_role("BackLightSwitch").enable()
 
     @task
     def oscil(self, start, end, exptime, number_of_images, wait=True):
