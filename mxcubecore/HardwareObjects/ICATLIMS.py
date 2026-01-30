@@ -898,7 +898,16 @@ class ICATLIMS(AbstractLims):
             if session is not None:
                 investigation_name = session.proposal_name
 
-        return {
+        try:
+            if (
+                self.active_session is None
+                or not self.active_session.is_scheduled_beamline
+            ):
+                actual_instrument = HWR.beamline.session.beamline_name
+        except RuntimeError as e:
+            logger.warning("Failed to set __actualInstrument. %s", e)
+
+        result = {
             "sampleId": sample_id,
             "Sample_name": sample_name,
             "startDate": start_time,
@@ -917,9 +926,12 @@ class ICATLIMS(AbstractLims):
             "MX_transmission": transmission,
             "InstrumentMonochromator_wavelength": wavelength,
             "InstrumentMonochromator_energy": energy,
+            "__actualInstrument" : actual_instrument,
             "InstrumentSource_current": machine_info.get("current"),
             "InstrumentSource_mode": machine_info.get("fill_mode"),
         }
+
+        return result
 
     def store_energy_scan(self, energyscan_dict: dict):
         try:
