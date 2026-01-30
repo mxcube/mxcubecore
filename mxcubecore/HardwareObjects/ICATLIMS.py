@@ -524,7 +524,18 @@ class ICATLIMS(AbstractLims):
                 "Session not found in the local list of sessions. session_id="
                 + session_id
             )
+
         self.session_manager.active_session = session_list[0]
+
+        self.use_set_endstation_name = self.get_property(
+            "use_set_endstation_name",
+            False,  # noqa: FBT003
+        )
+
+        if self.use_set_endstation_name:
+            HWR.beamline.session.set_endstation_name(
+                self.session_manager.active_session.beamline_name.lower()
+            )
 
         return self.session_manager.active_session
 

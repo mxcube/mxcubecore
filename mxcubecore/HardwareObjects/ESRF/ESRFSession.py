@@ -29,6 +29,16 @@ class ESRFSession(Session.Session):
                 archive_base_directory, archive_folder
             )
 
+    def set_endstation_name(self, name: str) -> None:
+        name = name.lower().replace("-", "")
+        name = {
+            "id231": "id23eh1",
+            "id232": "id23eh2",
+        }.get(name, name)
+
+        self.log.info(f"Setting end-station name to {name}")
+        self._endstation_name = name
+
     def get_full_paths(self, subdir: str, tag: str) -> Tuple[str, str]:
         """
         Returns the full path to both image and processed data.

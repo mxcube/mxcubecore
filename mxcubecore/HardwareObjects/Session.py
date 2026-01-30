@@ -52,7 +52,7 @@ class Session(HardwareObject):
     def endstation_name(self) -> str:
         return self._endstation_name
 
-    def set_endstation_name(self, name) -> None:
+    def set_endstation_name(self, name: str) -> None:
         self.log.info(f"Setting end-station name to {name}")
         self._endstation_name = name
 
