@@ -3194,29 +3194,31 @@ class GphlWorkflow(HardwareObject):
                     result["dose_budget"] = {"highlight": "OK"}
         return result
 
-def derive_maximum_chi(self) -> float:
-    """Give maximum chi value (in degrees) derived from kappa motor limits
-    and rotation axis directions"""
-    result = None
-    margin = 0.1  # safety margin in degrees, to avoid overrunning kappa limit
-    omega_axis = self.rotation_axes.get("omega")
-    kappa_axis = self.rotation_axes.get("kappa")
-    # First make sure we have a kappa axis, just in case
-    if omega_axis and kappa_axis:
-        omega_axis = numpy.array(self.rotation_axes.get("omega"))
-        kappa_axis = numpy.array(self.rotation_axes.get("kappa"))
-        cos_alpha = omega_axis.dot(kappa_axis)
-        result = 2 * math.degrees(math.acos(cos_alpha))
-        kappa_limits = HWR.beamline.diffractometer.kappa.get_limits()
-        if None not in kappa_limits:
-            kappa_max = max(kappa_limits)
-        if kappa_max and kappa_max < 180:
-            result = math.acos(
-                1 + (1 - cos_alpha ** 2) * (cos(kappa_max) - 1)
-            )
-        result -= margin
-    #
-    return result
+    def derive_maximum_chi(self) -> float:
+        """Give maximum chi value (in degrees) derived from kappa motor limits
+        and rotation axis directions"""
+        margin = 0.1  # safety margin in degrees, to avoid overrunning kappa limit
+        omega_axis = self.rotation_axes.get("phi")
+        kappa_axis = self.rotation_axes.get("kappa")
+        # First make sure we have a kappa axis, just in case
+        if omega_axis and kappa_axis:
+            omega_axis = numpy.array(omega_axis)
+            omega_axis /= numpy.linalg.norm(omega_axis)
+            kappa_axis = numpy.array(kappa_axis)
+            kappa_axis /= numpy.linalg.norm(kappa_axis)
+            cos_alpha = omega_axis.dot(kappa_axis)
+            result = 2 * math.acos(cos_alpha)
+            kappa_limits = HWR.beamline.diffractometer.kappa.get_limits()
+            if None not in kappa_limits:
+                kappa_max = max(kappa_limits)
+                if kappa_max and kappa_max < 180:
+                    kappa_max = math.radians(kappa_max)
+                    result = math.acos(
+                        1 + (1 - cos_alpha ** 2) * (math.cos(kappa_max) - 1)
+                    )
+            return math.degrees(result) - margin
+        else:
+            return None
 
 def validate_url(value: str) -> bool:
     """Validate url string"""
