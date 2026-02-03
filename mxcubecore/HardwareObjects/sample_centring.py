@@ -397,7 +397,7 @@ def wait_ready(motor_positions_dict, timeout=None):
 
 def _retry_on_ex(fun, N, *args, **kwargs):
     """ """
-    for attempt in range(1, N + 1):
+    for attempt in range(1, N + 1):  # noqa: RET503
         try:
             return fun(*args, **kwargs)
         except Exception as e:
