@@ -94,7 +94,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         # self._detector.init(HWR.beamline.detector, self)
 
         self.detector_cover = self.get_object_by_role("detector_cover")
-        self.handle_detector_cover = self.get_object_by_role("handle_detcover")
 
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True,))
@@ -196,21 +195,11 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def open_fast_shutter(self):
         self.execute_command("open_fast_shutter")
 
-    def _handle_detector_cover(self, value=None, timeout=None):
-        use = True
-        if self.handle_detector_cover:
-            try:
-                use = self.handle_detector_cover.get_value().value
-            except AttributeError:
-                use = False
-        if use:
-            self.detector_cover.set_value(self.detector_cover.VALUES[value], timeout)
-
     def open_detector_cover(self):
-        self._handle_detector_cover("OPEN")
+        self.detector_cover.set_value(self.detector_cover.detector_cover.VALUES.OPEN)
 
     def close_detector_cover(self):
-        self._handle_detector_cover("CLOSE")
+        self.detector_cover.set_value(self.detector_cover.detector_cover.VALUES.CLOSE)
 
     @task
     def move_motors(self, motor_position_dict):

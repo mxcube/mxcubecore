@@ -738,9 +738,8 @@ class EMBLFlexHCD(SampleChanger):
                 self._set_loaded_sample(samp)
                 self._set_selected_sample(samp)
             else:
-                samp._set_loaded(False)
-
-        self._set_selected_sample(None)
+                samp._set_loaded(False, False)
+                self._set_selected_sample(None)
 
     def prepare_hutch(self, **kwargs):
         return

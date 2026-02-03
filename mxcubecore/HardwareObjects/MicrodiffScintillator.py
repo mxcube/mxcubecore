@@ -30,6 +30,7 @@ Example xml file:
     <value_channel_name>ScintillatorPosition</value_channel_name>
     <values>{"IN": "SCINTILLATOR", "OUT": "PARK"}</values>
     <state_channel_name>HardwareState</state_channel_name>
+    <object href="/detector_cover" role="detector_cover"/>
   </object>
 """
 
@@ -55,5 +56,9 @@ class MicrodiffScintillator(ExporterNState):
         if value == self.VALUES.IN:
             # use phase change instead of in
             HWR.beamline.diffractometer.set_phase(DiffractometerPhase.SEE_BEAM)
+            # close the detecor cover
+            detcover = self.get_object_by_role("detector_cover")
+            if detcover:
+                detcover.set_value(detcover.detector_cover.VALUES.CLOSE)
         else:
             super()._set_value(value)
