@@ -371,7 +371,7 @@ class MicroDiffractometer(AbstractDiffractometer):
             start: scan start position.
             end: scan end position.
             exptime: scan exposure time (total).
-            dead_time: Dead time between the pulses. Not used any more.
+            dead_time: Dead time between the pulses. Detector dependant.
             nb_lines: Total number of lines.
             nb_frames_total: Total number of frames.
             grid_centre: List of tuples (motor_role, position).
@@ -389,7 +389,7 @@ class MicroDiffractometer(AbstractDiffractometer):
         self._exporter.write_property("DetectorGatePulseEnabled", value=True)
 
         # dead_time depends on the detector. We transform it to us
-        dead_time = HWR.beamline.detector.get_deadtime() * 1000
+        dead_time = dead_time or HWR.beamline.detector.get_deadtime() * 1000
         self._exporter.write_property("DetectorGatePulseReadoutTime", dead_time)
 
         grid_centre = grid_centre.as_dict()
