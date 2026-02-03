@@ -415,8 +415,8 @@ class AbstractDiffractometer(HardwareObject):
         )
 
     @property
-    def get_head_enum(self) -> DiffractometerHead:
-        """Get the diffractometer head Enum. Used when no import possible."""
+    def get_head_enum(self):
+        """Get the diffractometer head Enum. Used when no import wished."""
         return DiffractometerHead
 
     def get_chip_configuration(self) -> Union[GonioHeadConfiguration, None]:
@@ -502,8 +502,8 @@ class AbstractDiffractometer(HardwareObject):
         return phase_list
 
     @property
-    def get_phase_enum(self) -> DiffractometerPhase:
-        """Get the phase Enum. Used when no import possible."""
+    def get_phase_enum(self):
+        """Get the phase Enum. Used when no import wished."""
         return DiffractometerPhase
 
     def update_phase(self, value: DiffractometerPhase | None = None):
@@ -557,8 +557,8 @@ class AbstractDiffractometer(HardwareObject):
         return self.current_constraint
 
     @property
-    def get_constraint_enum(self) -> DiffractometerConstraint:
-        """Get the constraints Enum. Used when no import possible."""
+    def get_constraint_enum(self):
+        """Get the constraints Enum. Used when no import wished."""
         return DiffractometerConstraint
 
     # -------- data acquisition scans --------

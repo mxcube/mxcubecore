@@ -406,7 +406,6 @@ def _retry_on_ex(fun, N, *args, **kwargs):
                 raise RuntimeError(msg) from e
 
         time.sleep(1)
-    return
 
 
 def move_motors(motor_positions_dict):

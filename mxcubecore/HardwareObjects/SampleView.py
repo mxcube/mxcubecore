@@ -209,7 +209,7 @@ class SampleView(AbstractSampleView):
                 ]
             )
             inv_rot_matrix = np.array(rot_matrix.I)
-            dx, dy = np.dot(np.array([sampx, sampy]), inv_rot_matrix) * p_x
+            _, dy = np.dot(np.array([sampx, sampy]), inv_rot_matrix) * p_x
 
             chi_angle = math.radians(positions_dict.get("chi", 0))
             chi_rot = np.matrix(
@@ -873,7 +873,7 @@ class Shape:
 
     def update_position(self, transform):
         spos_list = [transform(cp.as_dict()) for cp in self.cp_list]
-        spos_list = tuple([pos for x in spos_list for pos in x])
+        spos_list = tuple(pos for x in spos_list for pos in x)
         self.screen_coord = spos_list
 
     def add_cp_from_mp(self, mpos_list):
