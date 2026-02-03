@@ -118,7 +118,7 @@ class SampleView(AbstractSampleView):
 
     def _update_shape_positions(self, *args, **kwargs):
         for shape in self.get_shapes():
-            shape.update_position(self.motor_positions_to_screen())
+            shape.update_position(self.motor_positions_to_screen)
 
         self.emit("shapesChanged")
 
