@@ -37,12 +37,12 @@ jobs:
           git add -A
           git commit -m "[skip ci] Bumped minor version"
           git push -f
-          ${MAMBA_EXE} run --name mxcubecore poetry build
 
       - name: Publish package to PyPI
         id: publish-pacakge
         # yamllint disable rule:line-length
         run: |
+          ${MAMBA_EXE} run --name mxcubecore poetry build
           ${MAMBA_EXE} run --name mxcubecore poetry config pypi-token.pypi ${{ secrets.PYPI }}
           ${MAMBA_EXE} run --name mxcubecore poetry publish
         # yamllint enable rule:line-length
