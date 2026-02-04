@@ -28,14 +28,17 @@ jobs:
 
       - name: Update version
         id: update-version
+        if: |
+          !contains(github.event.head_commit.message, '[skip ci]') &&
+          !contains(github.event.head_commit.message, '[NO CI]')
         run: |
-            ${MAMBA_EXE} run --name mxcubecore poetry version minor
-            git config --global user.email "oscarsso@esrf.fr"
-            git config --global user.name "Marcus Oskarsson"
-            git add -A
-            git commit -m "[skip ci] Bumped minor version"
-            git push -f
-            ${MAMBA_EXE} run --name mxcubecore poetry build
+          ${MAMBA_EXE} run --name mxcubecore poetry version minor
+          git config --global user.email "oscarsso@esrf.fr"
+          git config --global user.name "Marcus Oskarsson"
+          git add -A
+          git commit -m "[skip ci] Bumped minor version"
+          git push -f
+          ${MAMBA_EXE} run --name mxcubecore poetry build
 
       - name: Publish package to PyPI
         id: publish-pacakge
