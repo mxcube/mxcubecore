@@ -38,11 +38,11 @@ class LNLSZoom(EPICSNState):
             dict(values, **{item.name: item.value for item in BaseValueEnum}),
         )
 
-    def _move(self, value):
-        """Override super class method."""
-        self.update_state(self.STATES.BUSY)
-        time.sleep(0.2)
-        self.update_state(self.STATES.READY)
-        current_value = self.get_value()
-        self.update_value(current_value)
-        return value
+    def update_value(self, value=None) -> None:
+        if value is None:
+            value = self.get_value()
+        value = self.value_to_enum(value)
+        print(f"overwritten update_value function: {self._nominal_value} {value}")
+        if self._nominal_value != value:
+            self._nominal_value = value
+            self.emit("valueChanged", (value,))
