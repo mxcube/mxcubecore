@@ -36,7 +36,7 @@ class EPICSNState(EPICSActuator, AbstractNState):
     def init(self):
         super().init()
         limits = self._nominal_limits
-        self.set_limits(limits)
+        EPICSActuator.set_limits(self, limits)
         self._initialise_values()
         current_value = self.get_value()
         self.update_value(current_value)
