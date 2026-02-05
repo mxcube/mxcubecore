@@ -53,7 +53,6 @@ class EPICSNState(EPICSActuator, AbstractNState):
         return value
 
     def _initialise_values(self):
-        low, high = self.get_limits()
         values = self.get_property("values")
         self.VALUES = Enum(
             "ValueEnum",
