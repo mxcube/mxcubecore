@@ -10,7 +10,6 @@ class LNLSZoom(EPICSNState):
 
     def init(self):
         EPICSNState.init(self)
-        self.initialise_values()
         limits = (1, 8)
         self.set_limits(limits)
         self._initialise_values()
@@ -21,6 +20,7 @@ class LNLSZoom(EPICSNState):
 
     def set_limits(self, limits=(None, None)):
         self._nominal_limits = limits
+        self.emit("limitsChanged", (self._nominal_limits,))
 
     def update_limits(self, limits=None):
         if limits is None:
