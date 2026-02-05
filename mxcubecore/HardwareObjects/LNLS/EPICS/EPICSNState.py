@@ -40,7 +40,6 @@ class EPICSNState(EPICSActuator, AbstractNState):
         self._initialise_values()
         current_value = self.get_value()
         self.update_value(current_value)
-        self.update_state(self.STATES.READY)
 
     def _set_value(self, value):
         if isinstance(value, Enum):
