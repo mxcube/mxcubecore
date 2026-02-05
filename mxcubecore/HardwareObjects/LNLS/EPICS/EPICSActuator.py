@@ -30,8 +30,6 @@ class EPICSActuator(AbstractActuator):
             self.set_limits(limits)
         if tolerance is not None:
             self.unit = tolerance
-        if self.get_property("read_only"):
-            self.read_only = True
 
     def hasnt_arrived(self, setpoint):
         readback = self.get_value()
