@@ -1,10 +1,10 @@
-import gevent
-import threading
-import time
 from enum import Enum
-from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
+
+from mxcubecore.HardwareObjects.abstract.AbstractNState import (
+    AbstractNState,
+    BaseValueEnum,
+)
 from mxcubecore.HardwareObjects.LNLS.EPICS.EPICSActuator import EPICSActuator
-from mxcubecore.HardwareObjects.abstract.AbstractNState import BaseValueEnum
 
 
 class EPICSNState(EPICSActuator, AbstractNState):
@@ -20,7 +20,7 @@ class EPICSNState(EPICSActuator, AbstractNState):
     def _set_value(self, value):
         if isinstance(value, Enum):
             value = value.value
-        EPICSActuator._set_value(self, value)
+        super()._set_value(value)
 
     def get_value(self):
         value = EPICSActuator.get_value(self)
