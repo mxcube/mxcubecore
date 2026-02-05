@@ -1,23 +1,24 @@
 import gevent
+import threading
+import time
+from enum import Enum
 from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
 from mxcubecore.HardwareObjects.LNLS.EPICS.EPICSActuator import EPICSActuator
 
 
 class EPICSNState(EPICSActuator, AbstractNState):
 
-    def init(self):
-        """Initialise the device"""
-        AbstractNState.init(self)
-        EPICSActuator.init(self)
-
-    def _wait_actuator(self, setpoint):
-        """Wait timeout seconds till status is ready.
-        Args:
-            timeout(float): Timeout [s]. None means infinite timeout.
-        """
-        enum_setpoint = self.value_to_enum(setpoint)
-        while enum_setpoint != self.get_value():
-            gevent.sleep(0.25)
+    def wait_ready(self, timeout):
+        self._wait_task = threading.Event()
+        try:
+            with gevent.Timeout(timeout, exception=TimeoutError):
+                while (
+                    self.setpoint != EPICSActuator.get_value(self) and not self._wait_task.is_set()
+                ):
+                    time.sleep(0.15)
+        except TimeoutError:
+            pvname = self.get_channel_object("rbv").command.pv_name
+            self.print_log(level="error", msg=f"Motion has timed out.")
         self.update_state(self.STATES.READY)
 
     def _set_value(self, value):
