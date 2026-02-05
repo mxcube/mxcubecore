@@ -62,7 +62,8 @@ class EPICSNState(EPICSActuator, AbstractNState):
     def update_value(self, value=None) -> None:
         if value is None:
             return
-        value = self.value_to_enum(value)
+        if not isinstance(value, Enum):
+            value = self.value_to_enum(value)
         super().update_value(value)
 
     def hasnt_arrived(self, setpoint):
