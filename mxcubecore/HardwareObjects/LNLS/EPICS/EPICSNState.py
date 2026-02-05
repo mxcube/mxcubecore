@@ -11,9 +11,7 @@ class EPICSNState(EPICSActuator, AbstractNState):
 
     def init(self):
         super().init()
-        low_limit = self.get_property("low_limit", "")
-        high_limit = self.get_property("high_limit", "")
-        limits = (int(low_limit), int(high_limit))
+        limits = self._nominal_limits
         self.set_limits(limits)
         self._initialise_values()
         self.update_limits(limits)
