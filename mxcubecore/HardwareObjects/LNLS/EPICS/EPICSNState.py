@@ -8,6 +8,31 @@ from mxcubecore.HardwareObjects.LNLS.EPICS.EPICSActuator import EPICSActuator
 
 
 class EPICSNState(EPICSActuator, AbstractNState):
+    """
+    This class manages devices that exist in a discrete number of states
+    and provides an interface between those states (configured in the yaml
+    files) and the EPICS PVs. It ensures that hardware states are treated as Enums.
+
+    YAML Example
+    ------------
+
+    %YAML 1.2
+    ---
+    class: LNLS.EPICS.EPICSNState.EPICSNState
+    epics:
+      "MNC:B:PB03:PV_ACTIVATE_BACKLIGHT":
+        channels:
+          rbv:
+            suffix: ':RBV'
+            polling_period: 200
+          val:
+            suffix: ':SET'
+    configuration:
+      low_limit: 0
+      high_limit: 1
+      values: {'LEVEL0': 1, 'LEVEL1': 0}
+    """
+
     def init(self):
         super().init()
         limits = self._nominal_limits
