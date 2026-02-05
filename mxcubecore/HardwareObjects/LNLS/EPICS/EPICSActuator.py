@@ -22,14 +22,6 @@ class EPICSActuator(AbstractActuator):
     def init(self):
         self.update_state(self.STATES.READY)
         self.connect(self.get_channel_object("rbv"), "update", self.update_value)
-        low_limit = self.get_property("low_limit")
-        high_limit = self.get_property("high_limit")
-        tolerance = self.get_property("tolerance")
-        if (low_limit is not None) and (high_limit is not None):
-            limits = (low_limit, high_limit)
-            self.set_limits(limits)
-        if tolerance is not None:
-            self.unit = tolerance
 
     def hasnt_arrived(self, setpoint):
         readback = self.get_value()
