@@ -1,20 +1,9 @@
-"""
-Example xml file
-<object class="LNLSZoom">
-  <username>zoom</username>
-  <actuator_name>zoom</actuator_name>
-  <exporter_address>130.235.94.124:9001</exporter_address>
-  <values>{"LEVEL1": 1, "LEVEL2": 2, "LEVEL3": 3, "LEVEL4": 4, "LEVEL5": 5, "LEV
-EL6": 6}</values>
-</object>
-"""
-
 from enum import Enum
 import gevent
 import time
 
-from HardwareRepository.HardwareObjects.abstract.AbstractNState import BaseValueEnum
-from HardwareRepository.HardwareObjects.LNLS.EPICSNState import EPICSNState
+from mxcubecore.HardwareObjects.abstract.AbstractNState import BaseValueEnum
+from mxcubecore.HardwareObjects.LNLS.EPICS.EPICSNState import EPICSNState
 
 
 class LNLSZoom(EPICSNState):
@@ -36,7 +25,7 @@ class LNLSZoom(EPICSNState):
             self.set_limits(limits)
         else:
             # Normally we get the limits from the hardware
-            limits = (1, 10)
+            limits = (1, 8)
             self.set_limits(limits)
             # there is nothing in the xml file, create ValueEnum from the limits
             self._initialise_values()
@@ -76,9 +65,3 @@ class LNLSZoom(EPICSNState):
         current_value = self.get_value()
         self.update_value(current_value)
         return value
-
-    def get_value(self):
-        """Override super class method."""
-        current_val = super(LNLSZoom, self).get_value()
-        current_enum = self.value_to_enum(current_val)
-        return current_enum
