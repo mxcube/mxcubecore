@@ -76,6 +76,10 @@ class EPICSActuator(AbstractActuator):
                 msg=msg,
             )
 
+    def set_limits(self, limits=(None, None)):
+        self._nominal_limits = limits
+        self.emit("limitsChanged", (self._nominal_limits,))
+
     def abort(self):
         if self._wait_task is not None:
             self._wait_task.set()
