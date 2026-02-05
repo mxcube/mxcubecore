@@ -14,7 +14,6 @@ class EPICSNState(EPICSActuator, AbstractNState):
         limits = self._nominal_limits
         self.set_limits(limits)
         self._initialise_values()
-        self.update_limits(limits)
         current_value = self.get_value()
         self.update_value(current_value)
         self.update_state(self.STATES.READY)
@@ -40,13 +39,6 @@ class EPICSNState(EPICSActuator, AbstractNState):
     def get_value(self):
         value = EPICSActuator.get_value(self)
         return self.value_to_enum(value)
-
-    def update_limits(self, limits=None):
-        if limits is None:
-            limits = self.get_limits()
-
-        self._nominal_limits = limits
-        self.emit("limitsChanged", (limits,))
 
     def _initialise_values(self):
         low, high = self.get_limits()
