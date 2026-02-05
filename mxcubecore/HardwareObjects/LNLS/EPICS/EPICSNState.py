@@ -38,7 +38,9 @@ class EPICSNState(EPICSActuator, AbstractNState):
 
     def get_value(self):
         value = EPICSActuator.get_value(self)
-        return self.value_to_enum(value)
+        if not isinstance(value, Enum):
+            value = self.value_to_enum(value)
+        return value
 
     def _initialise_values(self):
         low, high = self.get_limits()
