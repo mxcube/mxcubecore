@@ -4,9 +4,22 @@ import time
 from enum import Enum
 from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
 from mxcubecore.HardwareObjects.LNLS.EPICS.EPICSActuator import EPICSActuator
+from mxcubecore.HardwareObjects.abstract.AbstractNState import BaseValueEnum
 
 
 class EPICSNState(EPICSActuator, AbstractNState):
+
+    def init(self):
+        super().init()
+        low_limit = self.get_property("low_limit", "")
+        high_limit = self.get_property("high_limit", "")
+        limits = (int(low_limit), int(high_limit))
+        self.set_limits(limits)
+        self._initialise_values()
+        self.update_limits(limits)
+        current_value = self.get_value()
+        self.update_value(current_value)
+        self.update_state(self.STATES.READY)
 
     def wait_ready(self, timeout):
         self._wait_task = threading.Event()
@@ -29,3 +42,26 @@ class EPICSNState(EPICSActuator, AbstractNState):
     def get_value(self):
         value = EPICSActuator.get_value(self)
         return self.value_to_enum(value)
+
+    def set_limits(self, limits=(None, None)):
+        self._nominal_limits = limits
+        self.emit("limitsChanged", (self._nominal_limits,))
+
+    def update_limits(self, limits=None):
+        if limits is None:
+            limits = self.get_limits()
+
+        self._nominal_limits = limits
+        self.emit("limitsChanged", (limits,))
+
+    def _initialise_values(self):
+        low, high = self.get_limits()
+        values = self.get_property("values")
+        self.VALUES = Enum(
+            "ValueEnum",
+            dict(values, **{item.name: item.value for item in BaseValueEnum}),
+        )
+
+    def update_value(self, value=None) -> None:
+        value = self.value_to_enum(value)
+        super().update_value(value)
