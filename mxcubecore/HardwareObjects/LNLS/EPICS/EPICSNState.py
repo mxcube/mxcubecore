@@ -28,8 +28,7 @@ class EPICSNState(EPICSActuator, AbstractNState):
           val:
             suffix: ':SET'
     configuration:
-      low_limit: 0
-      high_limit: 1
+      default_limits: (0, 1)
       values: {'LEVEL0': 1, 'LEVEL1': 0}
     """
 
@@ -104,8 +103,7 @@ class EPICSNStateInterval(EPICSNState):
         val:
           suffix: ''
     configuration:
-      low_limit: 0
-      high_limit: 1
+      default_limits: (0, 1)
       values: {'LEVEL0': 15000, 'LEVEL1': 0}
     """
 
