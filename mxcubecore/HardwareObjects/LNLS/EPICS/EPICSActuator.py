@@ -26,7 +26,8 @@ class EPICSActuator(AbstractActuator):
         high_limit = self.get_property("high_limit")
         tolerance = self.get_property("tolerance")
         if (low_limit is not None) and (high_limit is not None):
-            self._nominal_limits = (low_limit, high_limit)
+            limits = (low_limit, high_limit)
+            self.set_limits(limits)
         if tolerance is not None:
             self.unit = tolerance
         if self.get_property("read_only"):
