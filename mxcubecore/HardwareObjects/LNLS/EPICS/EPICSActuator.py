@@ -29,6 +29,8 @@ class EPICSActuator(AbstractActuator):
             self._nominal_limits = (low_limit, high_limit)
         if tolerance is not None:
             self.unit = tolerance
+        if self.get_property("read_only"):
+            self.read_only = True
 
     def hasnt_arrived(self, setpoint):
         readback = self.get_value()
