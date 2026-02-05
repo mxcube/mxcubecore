@@ -109,9 +109,6 @@ class EPICSNStateInterval(EPICSNState):
       values: {'LEVEL0': 15000, 'LEVEL1': 0}
     """
 
-    def init(self):
-        super().init()
-
     def update_value(self, value=None) -> None:
         if value is None:
             return
