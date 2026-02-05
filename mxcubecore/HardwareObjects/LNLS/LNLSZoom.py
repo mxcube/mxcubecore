@@ -39,10 +39,5 @@ class LNLSZoom(EPICSNState):
         )
 
     def update_value(self, value=None) -> None:
-        if value is None:
-            value = self.get_value()
         value = self.value_to_enum(value)
-        print(f"overwritten update_value function: {self._nominal_value} {value}")
-        if self._nominal_value != value:
-            self._nominal_value = value
-            self.emit("valueChanged", (value,))
+        super().update_value(value)
