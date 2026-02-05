@@ -20,6 +20,7 @@ class EPICSActuator(AbstractActuator):
             self.unit = 10**-3
 
     def init(self):
+        super().init()
         self.update_state(self.STATES.READY)
         self.connect(self.get_channel_object("rbv"), "update", self.update_value)
 
