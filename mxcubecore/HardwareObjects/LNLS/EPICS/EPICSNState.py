@@ -18,19 +18,6 @@ class EPICSNState(EPICSActuator, AbstractNState):
         self.update_value(current_value)
         self.update_state(self.STATES.READY)
 
-    def wait_ready(self, timeout):
-        self._wait_task = threading.Event()
-        try:
-            with gevent.Timeout(timeout, exception=TimeoutError):
-                while (
-                    self.setpoint != EPICSActuator.get_value(self) and not self._wait_task.is_set()
-                ):
-                    time.sleep(0.15)
-        except TimeoutError:
-            pvname = self.get_channel_object("rbv").command.pv_name
-            self.print_log(level="error", msg=f"Motion has timed out.")
-        self.update_state(self.STATES.READY)
-
     def _set_value(self, value):
         if isinstance(value, Enum):
             value = value.value
@@ -53,3 +40,11 @@ class EPICSNState(EPICSActuator, AbstractNState):
     def update_value(self, value=None) -> None:
         value = self.value_to_enum(value)
         super().update_value(value)
+
+    def hasnt_arrived(self, setpoint):
+        if not isinstance(setpoint, Enum):
+            setpoint = self.value_to_enum(setpoint)
+        readback = self.get_value()
+        if not readback:
+            return False
+        return setpoint != readback
