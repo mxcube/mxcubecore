@@ -8,7 +8,6 @@ from mxcubecore.HardwareObjects.abstract.AbstractNState import BaseValueEnum
 
 
 class EPICSNState(EPICSActuator, AbstractNState):
-
     def init(self):
         super().init()
         limits = self._nominal_limits

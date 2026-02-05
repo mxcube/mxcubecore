@@ -27,7 +27,7 @@ class EPICSActuator(AbstractActuator):
         tolerance = self.get_property("tolerance")
         if (low_limit is not None) and (high_limit is not None):
             self._nominal_limits = (low_limit, high_limit)
-        if (tolerance is not None):
+        if tolerance is not None:
             self.unit = tolerance
 
     def hasnt_arrived(self, setpoint):
