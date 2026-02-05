@@ -80,12 +80,16 @@ class SampleView(AbstractSampleView):
     def init(self):
         super().init()
 
-        centring_motor_roles = literal_eval(self.get_property("centring_motors", []))
+        centring_motor_roles = self.get_property("centring_motors", [])
+        if isinstance(centring_motor_roles, str):
+            centring_motor_roles = literal_eval(centring_motor_roles)
         # need to set the motor names for the centring points
         qmo.CentredPosition.DIFFRACTOMETER_MOTOR_NAMES = centring_motor_roles
-        centring_ref_position = literal_eval(
-            self.get_property("centring_reference_position", {})
-        )
+
+        centring_ref_position = self.get_property("centring_reference_position", {})
+        if isinstance(centring_ref_position, str):
+            centring_ref_position = literal_eval(centring_ref_position)
+
         motor_directions = self.get_property("motor_directions", {})
         if isinstance(motor_directions, str):
             motor_directions = literal_eval(motor_directions)

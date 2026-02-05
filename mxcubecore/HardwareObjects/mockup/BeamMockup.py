@@ -83,13 +83,13 @@ class BeamMockup(AbstractBeam):
 
         self._definer_type = self.get_property("definer_type", _definer_type)
 
-        self._beam_position_on_screen = literal_eval(
-            self.get_property("beam_position", "[318, 238]"),
-        )
+        self._beam_position_on_screen = self.get_property("beam_position", "[318, 238]")
+        if isinstance(self._beam_position_on_screen, str):
+            self._beam_position_on_screen = literal_eval(self._beam_position_on_screen)
 
-        _check_beam = self.get_property("check_beam")
-        if _check_beam:
-            self._check_beam = literal_eval(_check_beam)
+        self._check_beam = self.get_property("check_beam")
+        if isinstance(self._check_beam, str):
+            self._check_beam = literal_eval(self._check_beam)
 
         # Needed to trigger first value setting
         self.get_value()

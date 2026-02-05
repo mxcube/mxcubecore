@@ -88,12 +88,10 @@ class AbstractActuator(HardwareObject):
         self.default_value = self.get_property("default_value")
         if self.default_value is not None:
             self.update_value(self.default_value)
-        limits = self.get_property("default_limits")
-        if limits:
-            try:
-                self._nominal_limits = tuple(literal_eval(limits))
-            except TypeError:
-                print("Invalid limits")
+        self._nominal_limits = self.get_property("default_limits", (None, None))
+        if isinstance(self._nominal_limits, str):
+            self._nominal_limits = tuple(literal_eval(self._nominal_limits))
+
         self.username = self.get_property("username")
 
     @abc.abstractmethod

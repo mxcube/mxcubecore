@@ -69,7 +69,7 @@ class ESRFBeamDefiner(AbstractNState):
     def init_config(self):
         """Get the configutarion from the file"""
 
-        cfg = self["beam_config"]
+        cfg = self.get_property("beam_config")
         if not isinstance(cfg, list):
             cfg = [cfg]
 
@@ -78,7 +78,7 @@ class ESRFBeamDefiner(AbstractNState):
             beam_size = beam_cfg.get_property("beam_size", (0.015, 0.015))
             if isinstance(beam_size, str):
                 beam_size = literal_eval(beam_size)
-                self.beam_config.update({name: beam_size})
+            self.beam_config.update({name: beam_size})
         return cfg
 
     def get_limits(self):

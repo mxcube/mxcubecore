@@ -32,13 +32,10 @@ Example of xml config file
 </object>
 """
 
-import ast
 import time
+from ast import literal_eval
 
-from mxcubecore.HardwareObjects.abstract.AbstractMotor import (
-    AbstractMotor,
-    MotorStates,
-)
+from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor, MotorStates
 from mxcubecore.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
@@ -69,11 +66,12 @@ class MotorMockup(ActuatorMockup, AbstractMotor):
             self.set_velocity(DEFAULT_VELOCITY)
         if None in self.get_limits():
             self.update_limits(DEFAULT_LIMITS)
-        try:
-            _wr = self.get_property("wrap_range")
-            self._wrap_range = DEFAULT_WRAP_RANGE if not _wr else ast.literal_eval(_wr)
-        except (ValueError, SyntaxError):
-            self._wrap_range = DEFAULT_WRAP_RANGE
+
+        self._wrap_range = DEFAULT_WRAP_RANGE
+        _wr = self.get_property("wrap_range")
+        if isinstance(_wr, str):
+            self._wrap_range = literal_eval(_wr)
+
         if self.default_value is None:
             self.default_value = DEFAULT_VALUE
             self.update_value(self.default_value)
