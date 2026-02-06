@@ -123,3 +123,6 @@ class LNLSDiffractometer(GenericDiffractometer):
 
     def motor_positions_to_screen(self, motor_positions):
         return self.beam_position
+
+    def get_value_motors(self):
+        return self.current_motor_positions
