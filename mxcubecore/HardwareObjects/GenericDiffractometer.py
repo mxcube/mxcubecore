@@ -22,6 +22,7 @@ GenericDiffractometer
 """
 
 import ast
+import contextlib
 import copy
 import enum
 import json
@@ -974,7 +975,7 @@ class GenericDiffractometer(HardwareObject):
             self.current_centring_method = None
             self.current_centring_procedure = None
         except Exception:
-            logging.exception("Diffractometer: Could not complete 2D centring")
+            self.log.exception("Diffractometer: Could not complete 2D centring")
 
     def centring_done(self, centring_procedure):
         try:
@@ -982,7 +983,7 @@ class GenericDiffractometer(HardwareObject):
             if isinstance(motor_pos, gevent.GreenletExit):
                 raise motor_pos
         except Exception:
-            logging.exception("Could not complete centring")
+            self.log.exception("Could not complete centring")
             self.emit_centring_failed()
         else:
             self.emit_progress_message("Moving sample to centred position...")
@@ -994,7 +995,7 @@ class GenericDiffractometer(HardwareObject):
                 )
                 self.move_to_motors_positions(motor_pos, wait=True)
             except Exception:
-                logging.exception("Could not move to centred position")
+                self.log.exception("Could not move to centred position")
                 self.emit_centring_failed()
             else:
                 # if 3 click centring move -180. well. dont, in principle the calculated
@@ -1065,7 +1066,7 @@ class GenericDiffractometer(HardwareObject):
             )
             rot_matrix.shape = (2, 2)
             inv_rot_matrix = numpy.array(rot_matrix.I)
-            dx, dy = (
+            _dx, dy = (
                 numpy.dot(numpy.array([sampx, sampy]), inv_rot_matrix)
                 * self.pixels_per_mm_x
             )
@@ -1385,14 +1386,12 @@ class GenericDiffractometer(HardwareObject):
 
         if "SampleIsLoaded" not in str(self.used_channels_list):
             return
-        try:
+        with contextlib.suppress(Exception):
             self.disconnect(
                 self.channel_dict["SampleIsLoaded"],
                 "update",
                 self.sample_is_loaded_changed,
             )
-        except Exception:
-            self.log.exception("")
 
         if (
             head_type == GenericDiffractometer.HEAD_TYPE_MINIKAPPA
