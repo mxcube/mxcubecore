@@ -478,6 +478,7 @@ class XMLRPCServer(HardwareObject):
         Saves the current position as a centered position.
         """
         self.log.debug("Saving position via XMLRPC")
+        HWR.beamline.sample_view.centring_done()
         HWR.beamline.sample_view.accept_centring()
         return True
 
