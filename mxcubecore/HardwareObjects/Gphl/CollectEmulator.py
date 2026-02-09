@@ -236,10 +236,10 @@ class CollectEmulator(CollectMockup):
         data_collect_parameters = self.current_dc_parameters
 
         if not HWR.beamline.gphl_workflow:
-            raise ValueError("Emulator requires GΦL workflow installation")
+            raise ValueError("Emulator requires GPhL workflow installation")
         gphl_connection = HWR.beamline.gphl_connection
         if not gphl_connection:
-            raise ValueError("Emulator requires GΦL connection installation")
+            raise ValueError("Emulator requires GPhL connection installation")
 
         # Get program locations
         simcal_executive = gphl_connection.get_executable("simcal")
@@ -326,7 +326,7 @@ class CollectEmulator(CollectMockup):
             # NBNB TODO put in time-out, somehow
             return_code = running_process.wait()
         except Exception:
-            self.log.error("Error in GΦL collection emulation")
+            self.log.error("Error in GPhL collection emulation")
             raise
         finally:
             fp1.close()
