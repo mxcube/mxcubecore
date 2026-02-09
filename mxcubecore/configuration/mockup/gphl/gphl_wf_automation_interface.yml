@@ -6,15 +6,15 @@
 # It shows the interfaces between the Global Phasing workflow and a calling
 # automation program running through MXCuBE,.
 
-# Adding a GΦL workflow is done in the same way as adding an EDNA workflow.
+# Adding a GPhL workflow is done in the same way as adding an EDNA workflow.
 # The parameters are a node ID and a task dictionary.
-# The parameters relevant for GΦL  are, in yaml notation:
+# The parameters relevant for GPhL  are, in yaml notation:
 
 task:
 
   parameters:
     # Process control and ???
-    wfpath: Gphl  # Mandatory – specifies  GΦL workflow
+    wfpath: Gphl  # Mandatory – specifies  GPhL workflow
     automation_mode: MASSIF1  # Optional,  defaults to None (manual)
     shape: some_shape_name  # Used for EDNA workflow, I do not know  what for
 
@@ -44,7 +44,7 @@ task:
       # The dictionaries are applied to the acquisitions in order;
       # if there is only one dictionary in the list, it applies to all acquisitions.
       # The following appear in task dictionaries in interactive MXCuBE3,
-      # but are NOT used by the  GΦL workflow: wfname, wftype, strategies, type
+      # but are NOT used by the  GPhL workflow: wfname, wftype, strategies, type
 
       # The first dictionary are the parameters needed for MASSIF1 characterisation
       # where characterisation and first XDS run are done BEFORE starting the workflow

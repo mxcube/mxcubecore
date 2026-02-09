@@ -173,7 +173,7 @@ class GphlWorkflowConnection(HardwareObject):
 
     def open_connection(self):
         if self._gateway is None:
-            self.log.debug("Opening GΦL connection")
+            self.log.debug("Opening GPhL connection")
         else:
             return
 
@@ -196,7 +196,7 @@ class GphlWorkflowConnection(HardwareObject):
             java_parameters["port"] = val
 
         self.log.debug(
-            "Opening GΦL connection: %s ",
+            "Opening GPhL connection: %s ",
             (", ".join("%s:%s" % tt0 for tt0 in sorted(params.items()))),
         )
 
@@ -324,14 +324,14 @@ class GphlWorkflowConnection(HardwareObject):
                 os.makedirs(wdir)
             except:
                 # No need to raise error - program will fail downstream
-                self.log.error("Could not create GΦL working directory: %s", wdir)
+                self.log.error("Could not create GPhL working directory: %s", wdir)
 
         for ss0 in command_list:
             ss0 = ss0.rsplit("=", maxsplit=1)[-1]
             if ss0.startswith("/") and "*" not in ss0 and not os.path.exists(ss0):
                 self.log.warning("File does not exist : %s", ss0)
 
-        self.log.info("GΦL execute :\n%s", " ".join(command_list))
+        self.log.info("GPhL execute :\n%s", " ".join(command_list))
 
         # Get environmental variables
         envs = os.environ.copy()
@@ -358,7 +358,7 @@ class GphlWorkflowConnection(HardwareObject):
         if runworkflow_opts:
             envs["RUNWORKFLOW_OPTS"] = " ".join(runworkflow_opts)
 
-        self.log.debug("Executing GΦL workflow, in environment %s", envs)
+        self.log.debug("Executing GPhL workflow, in environment %s", envs)
         try:
             self._running_process = subprocess.Popen(command_list, env=envs)
         except Exception:
@@ -370,7 +370,7 @@ class GphlWorkflowConnection(HardwareObject):
         self.update_state(self.STATES.READY)
 
         self.log.debug(
-            "GΦL workflow pid, returncode : %s, %s"
+            "GPhL workflow pid, returncode : %s, %s"
             % (self._running_process.pid, self._running_process.returncode)
         )
 
@@ -379,7 +379,7 @@ class GphlWorkflowConnection(HardwareObject):
             # No workflow to abort
             return
 
-        self.log.debug("GΦL workflow ended")
+        self.log.debug("GPhL workflow ended")
         self.update_state(self.STATES.OFF)
         if self._await_result is not None:
             # We are awaiting an answer - give an abort
@@ -412,7 +412,7 @@ class GphlWorkflowConnection(HardwareObject):
                 self.log.info("Error was:", exc_info=True)
 
     def close_connection(self):
-        self.log.debug("GΦL Close connection ")
+        self.log.debug("GPhL Close connection ")
         xx0 = self._gateway
         self._gateway = None
         if xx0 is not None:
@@ -455,7 +455,7 @@ class GphlWorkflowConnection(HardwareObject):
         correlation_id = xx0.correlation_id
 
         if not payload:
-            self.log.warning("GΦL Empty or unparsable information message. Ignored")
+            self.log.warning("GPhL Empty or unparsable information message. Ignored")
         elif self.workflow_queue is not None:
             # Could happen if we have ended the workflow
             self.workflow_queue.put_nowait(
@@ -513,7 +513,7 @@ class GphlWorkflowConnection(HardwareObject):
 
         elif not payload:
             self.log.error(
-                "GΦL message lacks payload - sending 'Abort' to external workflow"
+                "GPhL message lacks payload - sending 'Abort' to external workflow"
             )
             return self._response_to_server(
                 GphlMessages.BeamlineAbort(), correlation_id
@@ -569,7 +569,7 @@ class GphlWorkflowConnection(HardwareObject):
                     self.workflow_ended()
                 else:
                     self.log.debug(
-                        "GΦL - response=%s messageId=%s"
+                        "GPhL - response=%s messageId=%s"
                         % (result.__class__.__name__, correlation_id)
                     )
                 return self._response_to_server(result, correlation_id)
@@ -585,7 +585,7 @@ class GphlWorkflowConnection(HardwareObject):
             return None
 
         else:
-            self.log.error("GΦL Unknown message type: %s - aborting", message_type)
+            self.log.error("GPhL Unknown message type: %s - aborting", message_type)
             return self._response_to_server(
                 GphlMessages.BeamlineAbort(), correlation_id
             )
@@ -622,7 +622,7 @@ class GphlWorkflowConnection(HardwareObject):
                 converter = getattr(self, converterName)
             except AttributeError:
                 self.log.error(
-                    "GΦL Message type %s not recognised (no %s function)"
+                    "GPhL Message type %s not recognised (no %s function)"
                     % (message_type, converterName)
                 )
                 payload = None
@@ -632,7 +632,7 @@ class GphlWorkflowConnection(HardwareObject):
                     payload = converter(py4j_message.getPayload())
                 except NotImplementedError:
                     self.log.error(
-                        "Processing of GΦL message %s not implemented", message_type
+                        "Processing of GPhL message %s not implemented", message_type
                     )
                     payload = None
         return GphlMessages.ParsedMessage(
