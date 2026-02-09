@@ -426,7 +426,7 @@ class GphlWorkflow(HardwareObject):
             lattice_tags = [""] + list(lattice2point_group_tags)
             point_groups = [""] + all_point_group_tags
         schema = {
-            "title": "GΦL Pre-strategy parameters",
+            "title": "GPhL Pre-strategy parameters",
             "type": "object",
             "properties": {},
         }
@@ -941,14 +941,14 @@ class GphlWorkflow(HardwareObject):
 
                 tt0 = self._workflow_queue.get()
                 if tt0 is StopIteration:
-                    self.log.debug("GΦL queue StopIteration")
+                    self.log.debug("GPhL queue StopIteration")
                     break
 
                 message_type, payload, correlation_id, result_list = tt0
                 func = self._processor_functions.get(message_type)
                 if func is None:
                     self.log.error(
-                        "GΦL message %s not recognised by MXCuBE. Terminating...",
+                        "GPhL message %s not recognised by MXCuBE. Terminating...",
                         message_type,
                     )
                     break
@@ -956,7 +956,7 @@ class GphlWorkflow(HardwareObject):
                     if not self.config.settings.get("suppress_external_log_output"):
                         func(payload, correlation_id)
                 else:
-                    self.log.info("GΦL queue processing %s", message_type)
+                    self.log.info("GPhL queue processing %s", message_type)
                     response = func(payload, correlation_id)
                     if result_list is not None:
                         result_list.append((response, correlation_id))
@@ -1001,18 +1001,18 @@ class GphlWorkflow(HardwareObject):
     # Message handlers:
 
     def workflow_aborted(self, payload=None, correlation_id=None):
-        logging.getLogger("user_level_log").warning("GΦL Workflow aborted.")
+        logging.getLogger("user_level_log").warning("GPhL Workflow aborted.")
         self.update_specific_state(self.SPECIFIC_STATES.ABORTED)
         if self._workflow_queue:
             self._workflow_queue.put_nowait(StopIteration)
 
     def workflow_completed(self, payload=None, correlation_id=None):
-        logging.getLogger("user_level_log").info("GΦL Workflow completed.")
+        logging.getLogger("user_level_log").info("GPhL Workflow completed.")
         self.update_specific_state(self.SPECIFIC_STATES.COMPLETED)
         self._workflow_queue.put_nowait(StopIteration)
 
     def workflow_failed(self, payload=None, correlation_id=None):
-        logging.getLogger("user_level_log").warning("GΦL Workflow failed.")
+        logging.getLogger("user_level_log").warning("GPhL Workflow failed.")
         self.update_specific_state(self.SPECIFIC_STATES.FAULT)
         self._workflow_queue.put_nowait(StopIteration)
 
@@ -1126,7 +1126,7 @@ class GphlWorkflow(HardwareObject):
         else:
             # Characterisation
             title_string = "Characterisation"
-            info_title = "--- GΦL Characterisation strategy ---"
+            info_title = "--- GPhL Characterisation strategy ---"
             lines = ["Experiment length: %6.1f°" % data_model.strategy_length]
             beam_energies = OrderedDict((("Characterisation", initial_energy),))
             dose_label = "Characterisation dose (MGy)"
@@ -1211,7 +1211,7 @@ class GphlWorkflow(HardwareObject):
             reslimits = (0.5, 5.0)
 
         schema = {
-            "title": "GΦL %s parameters" % title_string,
+            "title": "GPhL %s parameters" % title_string,
             "type": "object",
             "properties": {},
         }
@@ -1681,11 +1681,11 @@ class GphlWorkflow(HardwareObject):
         # Enqueue data collection
         if gphl_workflow_model.characterisation_done:
             # Data collection TODO: Use workflow info to distinguish
-            new_dcg_name = "GΦL Data Collection"
+            new_dcg_name = "GPhL Data Collection"
         elif wftype == "diffractcal":
-            new_dcg_name = "GΦL DiffractCal"
+            new_dcg_name = "GPhL DiffractCal"
         else:
-            new_dcg_name = "GΦL Characterisation"
+            new_dcg_name = "GPhL Characterisation"
         self.log.debug("setup_data_collection %s", new_dcg_name)
         new_dcg_model = queue_model_objects.TaskGroup()
         new_dcg_model.set_enabled(True)
@@ -2467,7 +2467,7 @@ class GphlWorkflow(HardwareObject):
 
         if self._data_collection_group is None:
             gphl_workflow_model = self._queue_entry.get_data_model()
-            new_dcg_name = "GΦL Translational calibration"
+            new_dcg_name = "GPhL Translational calibration"
             new_dcg_model = queue_model_objects.TaskGroup()
             new_dcg_model.set_enabled(True)
             new_dcg_model.set_name(new_dcg_name)
@@ -2932,7 +2932,7 @@ class GphlWorkflow(HardwareObject):
                     update_dict = self.update_reference_files(parameters)
             except:
                 self.log.error(
-                    "Error in GΦL parameter update for %s, Continuing ...",
+                    "Error in GPhL parameter update for %s, Continuing ...",
                     instruction,
                 )
             finally:
@@ -2979,7 +2979,7 @@ class GphlWorkflow(HardwareObject):
                     update_dict = self.adjust_dose(parameters)
             except:
                 self.log.error(
-                    "Error in GΦL parameter update for %s, Continuing ...",
+                    "Error in GPhL parameter update for %s, Continuing ...",
                     instruction,
                 )
             finally:

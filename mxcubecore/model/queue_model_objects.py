@@ -2349,7 +2349,7 @@ class GphlWorkflow(TaskNode):
         )
         if not self.strategy_settings:
             raise ValueError(
-                "No GΦL workflow strategy named %s found" % params["strategy_name"]
+                "No GPhL workflow strategy named %s found" % params["strategy_name"]
             )
 
         self.shape = params.get("shape", "")
@@ -2494,7 +2494,7 @@ class GphlWorkflow(TaskNode):
 
     @property
     def wfname(self):
-        """ "Workflow full name, e.g. "GΦL Diffractometer calibration" """
+        """ "Workflow full name, e.g. "GPhL Diffractometer calibration" """
         return self.strategy_settings["wfname"]
 
     @property
