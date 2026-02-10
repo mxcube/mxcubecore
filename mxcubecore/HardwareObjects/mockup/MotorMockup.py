@@ -33,7 +33,6 @@ Example of xml config file
 """
 
 import time
-from ast import literal_eval
 
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor, MotorStates
 from mxcubecore.HardwareObjects.mockup.ActuatorMockup import ActuatorMockup
@@ -67,10 +66,10 @@ class MotorMockup(ActuatorMockup, AbstractMotor):
         if None in self.get_limits():
             self.update_limits(DEFAULT_LIMITS)
 
-        self._wrap_range = DEFAULT_WRAP_RANGE
-        _wr = self.get_property("wrap_range")
-        if isinstance(_wr, str):
-            self._wrap_range = literal_eval(_wr)
+        try:
+            self._wrap_range = float(self.get_property("wrap_range"))
+        except ValueError:
+            self._wrap_range = DEFAULT_WRAP_RANGE
 
         if self.default_value is None:
             self.default_value = DEFAULT_VALUE
