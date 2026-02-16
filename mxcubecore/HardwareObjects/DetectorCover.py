@@ -40,13 +40,13 @@ Example xml file:
 
 """
 
-from mxcubecore.HardwareObjects.abstract.AbstractActuator import AbstractActuator
+from mxcubecore.BaseHardwareObjects import HardwareObject
 
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
-class DetectorCover(AbstractActuator):
+class DetectorCover(HardwareObject):
     """Detector Cover class"""
 
     def __init__(self, name):
