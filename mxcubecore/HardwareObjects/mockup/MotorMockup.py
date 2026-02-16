@@ -68,7 +68,7 @@ class MotorMockup(ActuatorMockup, AbstractMotor):
 
         try:
             self._wrap_range = float(self.get_property("wrap_range"))
-        except ValueError:
+        except (TypeError, ValueError):
             self._wrap_range = DEFAULT_WRAP_RANGE
 
         if self.default_value is None:
