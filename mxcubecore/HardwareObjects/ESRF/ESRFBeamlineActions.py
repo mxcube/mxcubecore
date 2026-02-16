@@ -35,7 +35,7 @@ Example xml file:
 </object>
 """
 
-import ast
+from ast import literal_eval
 
 from mxcubecore.HardwareObjects.BeamlineActions import (
     BeamlineActions,
@@ -59,34 +59,31 @@ class ESRFBeamlineActions(BeamlineActions):
         """Initialise the controller commands and the actuator object
         to be used.
         """
-        try:
-            ctrl_cmds = self["controller_commands"].get_properties().items()
+        ctrl_cmds = self.get_property("controller_commands")
 
-            if ctrl_cmds:
-                controller = self.get_object_by_role("controller")
-                for key, name in ctrl_cmds:
-                    # name = self.get_property(cmd)
+        if ctrl_cmds:
+            controller = self.get_object_by_role("controller")
+            for key, name in ctrl_cmds.items():
+                try:
                     action = getattr(controller, key)
                     self.ctrl_list.append(ControllerCommand(name, action))
-        except KeyError:
-            self.log.exception("")
+                except AttributeError:
+                    # self.log.exception("")
+                    pass
 
-        try:
-            hwobj_cmd_roles = ast.literal_eval(
-                self.get_property("hwobj_command_roles").strip()
-            )
-
-            if hwobj_cmd_roles:
-                for role in hwobj_cmd_roles:
-                    try:
-                        hwobj_cmd = self.get_object_by_role(role)
-                        self.hwobj_list.append(
-                            HWObjActuatorCommand(hwobj_cmd.username, hwobj_cmd)
-                        )
-                    except:
-                        pass
-        except AttributeError:
-            self.log.exception("")
+        hwobj_cmd_roles = self.get_property("hwobj_command_roles")
+        if hwobj_cmd_roles:
+            if isinstance(hwobj_cmd_roles, str):
+                hwobj_cmd_roles = literal_eval(hwobj_cmd_roles.strip())
+            for role in hwobj_cmd_roles:
+                try:
+                    hwobj_cmd = self.get_object_by_role(role)
+                    self.hwobj_list.append(
+                        HWObjActuatorCommand(hwobj_cmd.username, hwobj_cmd)
+                    )
+                except AttributeError:
+                    # self.log.exception("")
+                    pass
 
     def get_commands(self):
         """Get which objects to be used in the GUI
