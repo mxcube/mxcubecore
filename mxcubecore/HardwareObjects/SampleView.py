@@ -356,31 +356,46 @@ class SampleView(AbstractSampleView):
         self.current_centring_procedure = None
         self.current_centring_method = None
 
+    def run_custom_auto_centring(self):
+        """Run custom script for the automatic centring"""
+        self.log.info("Using custom sample centring")
+        self.current_centring_method = "Automatic"
+        self.emit("centringStarted", ("Automatic"))
+        diffr = HWR.beamline.diffractometer
+        diffr.run_custom_script("sample_centering")
+        diffr.wait_status_ready()
+        self.centring_done()
+        self.accept_centring()
+
     def start_auto_centring(self):
         """Start automatic centring procedure"""
         if self.current_centring_procedure is not None:
             logging.getLogger("HWR").exception("Already centring")
 
-        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
         diffr = HWR.beamline.diffractometer
+        diffr.wait_status_ready(60)
         diffr.set_phase(diffr.get_phase_enum.CENTRE)
 
-        pixels_per_mm_x, pixels_per_mm_y = diffr.get_pixels_per_mm()
-        diffr.wait_status_ready(5)
+        if self.get_property("use_custom_auto_centring"):
+            self.run_custom_auto_centring()
+        else:
+            beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
 
-        self.current_centring_procedure = sample_centring.start_auto(
-            self,
-            self.centring_motors,
-            pixels_per_mm_x,
-            pixels_per_mm_y,
-            beam_pos_x,
-            beam_pos_y,
-            chi_angle=0.0,
-        )
+            pixels_per_mm_x, pixels_per_mm_y = diffr.get_pixels_per_mm()
 
-        self.current_centring_method = "Automatic"
-        self.emit("centringStarted", ("Automatic"))
-        self.current_centring_procedure.link(self.auto_centring_done)
+            self.current_centring_procedure = sample_centring.start_auto(
+                self,
+                self.centring_motors,
+                pixels_per_mm_x,
+                pixels_per_mm_y,
+                beam_pos_x,
+                beam_pos_y,
+                chi_angle=0.0,
+            )
+
+            self.current_centring_method = "Automatic"
+            self.emit("centringStarted", ("Automatic"))
+            self.current_centring_procedure.link(self.auto_centring_done)
 
     def move_to_beam(self, x: float, y: float):
         """Move the sample to the x,y coordinates.

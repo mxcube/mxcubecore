@@ -227,7 +227,20 @@ class MicroDiffractometer(AbstractDiffractometer):
         Args:
             value: requested phase.
         """
-        self._exporter.execute("startSetPhase", (value.value,))
+        _use_custom = self.get_property("use_custom_phase_script") or False
+        current_phase = self.get_phase()
+
+        if value != current_phase:
+            msg = f"Current phase is {current_phase} and moving to {value}"
+            self.log.info(msg)
+
+        if _use_custom and not self.in_plate_mode:
+            script = "ChangePhase_" + value.value.lower()
+            msg = f"Changing phase to {value.value}, using pmac script"
+            self.log.info(msg)
+            self.run_custom_script(script)
+        else:
+            self._exporter.execute("startSetPhase", (value.value,))
         self.wait_status_ready(timeout=200)
 
     def get_phase(self) -> DiffractometerPhase:
@@ -491,3 +504,8 @@ class MicroDiffractometer(AbstractDiffractometer):
             self.beam_position_horizontal.get_value(),
             self.beam_position_vertical.get_value(),
         )
+
+    def run_custom_script(self, script_cmd: str, timeout: float | None = None):
+        """Run custom script."""
+        self.run_script(script_cmd)
+        self.wait_status_ready(timeout)
