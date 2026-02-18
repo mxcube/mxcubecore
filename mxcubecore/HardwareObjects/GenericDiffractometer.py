@@ -304,7 +304,6 @@ class GenericDiffractometer(HardwareObject):
         self.fast_shutter_is_open = None
         self.centring_status = {"valid": False}
         self.centring_time = 0
-        self.user_confirms_centring = None
         self.user_clicked_event = None
         self.automatic_centring_try_count = 1
         self.omega_reference_par = None
@@ -328,7 +327,6 @@ class GenericDiffractometer(HardwareObject):
         # Internal values -----------------------------------------------------
         self.ready_event = gevent.event.Event()
         self.user_clicked_event = gevent.event.AsyncResult()
-        self.user_confirms_centring = True
 
         self.beamstop = self.get_object_by_role("beamstop")
         self.aperture = self.get_object_by_role("aperture")
@@ -683,6 +681,7 @@ class GenericDiffractometer(HardwareObject):
         self.wait_device_ready(timeout)
         self.ready_event.set()
 
+    @property
     def in_plate_mode(self):
         """Returns True if diffractometer in plate mod
 
@@ -1001,7 +1000,7 @@ class GenericDiffractometer(HardwareObject):
                 # if 3 click centring move -180. well. dont, in principle the calculated
                 # centred positions include omega to initial position
                 pass
-                # if not self.in_plate_mode():
+                # if not self.in_plate_mode:
                 #    self.log.debug("Centring finished. Moving omega back to initial position")
                 #    self.motor_hwobj_dict['phi'].set_value_relative(-180, timeout=None)
                 #    self.log.debug("         Moving omega done")

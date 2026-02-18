@@ -350,7 +350,7 @@ class Microdiff(MiniDiff.MiniDiff):
             "sampy": self.sampleYMotor.get_property("actuator_name"),
             "zoom": "Zoom",
         }
-        if self.in_kappa_mode():
+        if self.in_kappa_mode:
             MOTOR_TO_EXPORTER_NAME.update(
                 {"kappa": self.kappaMotor.get_property("actuator_name")}
             )
@@ -484,7 +484,7 @@ class Microdiff(MiniDiff.MiniDiff):
                 self.close_detector_cover()
             self.phase_prepare(phase)
 
-            if _use_custom and not self.in_plate_mode():
+            if _use_custom and not self.in_plate_mode:
                 script = "ChangePhase_" + phase.lower()
                 msg = f"Changing phase to {phase}, using pmac script"
                 logging.getLogger("user_level_log").info(msg)
@@ -503,7 +503,7 @@ class Microdiff(MiniDiff.MiniDiff):
         return list(self.phases.keys())
 
     def move_sync_motors(self, motors_dict, wait=False, timeout=None):
-        in_kappa_mode = self.in_kappa_mode()
+        in_kappa_mode = self.in_kappa_mode
         argin = ""
         # print "start moving motors =============", time.time()
         if wait:
@@ -529,7 +529,7 @@ class Microdiff(MiniDiff.MiniDiff):
         # print "end moving motors =============", time.time()
 
     def oscilScan(self, start, end, exptime, number_of_images, wait=False):
-        if self.in_plate_mode():
+        if self.in_plate_mode:
             scan_speed = math.fabs(end - start) / exptime
             low_lim, hi_lim = map(float, self.scanLimits(scan_speed))
             if start < low_lim:
@@ -564,7 +564,7 @@ class Microdiff(MiniDiff.MiniDiff):
     def oscilScan4d(
         self, start, end, exptime, number_of_images, motors_pos, wait=False
     ):
-        if self.in_plate_mode():
+        if self.in_plate_mode:
             scan_speed = math.fabs(end - start) / exptime
             low_lim, hi_lim = map(float, self.scanLimits(scan_speed))
             if start < low_lim:
@@ -692,7 +692,7 @@ class Microdiff(MiniDiff.MiniDiff):
             wait (bool); Wait (True) or no (False) the end of the command.
         """
 
-        if self.in_plate_mode():
+        if self.in_plate_mode:
             # to see if needed when plates
             return
         scan_params = "%d\t%0.3f\t%0.3f\t" % (nb_frames, start, scan_range)
@@ -714,12 +714,14 @@ class Microdiff(MiniDiff.MiniDiff):
             self._wait_ready(20 * 60)  # timeout of 15 min
             print("finished at ---------->", time.time())
 
+    @property
     def in_plate_mode(self):
         try:
             return self.head_type.get_value() == "Plate"
         except Exception:
             return False
 
+    @property
     def in_kappa_mode(self):
         return (
             self.head_type.get_value() == "MiniKappa" and self.kappa_channel.get_value()
@@ -735,8 +737,8 @@ class Microdiff(MiniDiff.MiniDiff):
             "sampx": self.sampleXMotor,
             "sampy": self.sampleYMotor,
             "zoom": self.zoomMotor,
-            "kappa": self.kappaMotor if self.in_kappa_mode() else None,
-            "kappa_phi": self.kappaPhiMotor if self.in_kappa_mode() else None,
+            "kappa": self.kappaMotor if self.in_kappa_mode else None,
+            "kappa_phi": self.kappaPhiMotor if self.in_kappa_mode else None,
         }
 
     def get_positions(self):
@@ -749,10 +751,10 @@ class Microdiff(MiniDiff.MiniDiff):
             "sampy": float(self.sampleYMotor.get_value()),
             "zoom": self.zoomMotor.get_value().value,
             "kappa": (
-                float(self.kappaMotor.get_value()) if self.in_kappa_mode() else None
+                float(self.kappaMotor.get_value()) if self.in_kappa_mode else None
             ),
             "kappa_phi": (
-                float(self.kappaPhiMotor.get_value()) if self.in_kappa_mode() else None
+                float(self.kappaPhiMotor.get_value()) if self.in_kappa_mode else None
             ),
         }
         return pos
@@ -761,7 +763,7 @@ class Microdiff(MiniDiff.MiniDiff):
         self.move_sync_motors(roles_positions_dict, wait=True)
 
     def move_to_beam(self, x, y):
-        if not self.in_plate_mode():
+        if not self.in_plate_mode:
             MiniDiff.MiniDiff.move_to_beam(self, x, y)
         else:
             try:
@@ -790,7 +792,7 @@ class Microdiff(MiniDiff.MiniDiff):
 
         self.log.info("Starting centring procedure ...")
 
-        if self.in_plate_mode():
+        if self.in_plate_mode:
             plateTranslation = self.get_object_by_role("plateTranslation")
             cmd_set_plate_vertical = self.add_command(
                 {
