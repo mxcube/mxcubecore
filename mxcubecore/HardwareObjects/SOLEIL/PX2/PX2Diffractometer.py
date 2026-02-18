@@ -236,7 +236,7 @@ class PX2Diffractometer(GenericDiffractometer):
         """
         Description:
         """
-        return not self.in_plate_mode()
+        return not self.in_plate_mode
 
     def beam_position_changed(self, value):
         self.beam_position = value
@@ -1069,7 +1069,7 @@ class PX2Diffractometer(GenericDiffractometer):
         """
         Descript. :
         """
-        if self.in_plate_mode():
+        if self.in_plate_mode:
             self.log.info("PX2Diffractometer: Visual align not available in Plate mode")
         else:
             t1 = [point_1.sampx, point_1.sampy, point_1.phiy]

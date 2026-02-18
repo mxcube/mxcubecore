@@ -281,6 +281,7 @@ class ALBAMiniDiff(GenericDiffractometer):
         return True
 
     # TODO:Implement dynamically
+    @property
     def in_plate_mode(self):
         """
         Overrides GenericDiffracometer method.
@@ -349,7 +350,7 @@ class ALBAMiniDiff(GenericDiffractometer):
     #             {"X": (x - self.zoom_centre['x'])/ self.pixels_per_mm_x,
     #              "Y": (y - self.zoom_centre['y'])/ self.pixels_per_mm_y})
 
-    #        if self.in_plate_mode():
+    #        if self.in_plate_mode:
     #            dynamic_limits = self.phi_motor_hwobj.get_dynamic_limits()
     #            if click == 0:
     #                self.phi_motor_hwobj.set_value(dynamic_limits[0])

@@ -161,7 +161,7 @@ class PX1MiniDiff(GenericDiffractometer):
                 # done already by px1_center
                 pass
                 # if 3 click centring move -180
-                # if not self.in_plate_mode():
+                # if not self.in_plate_mode:
                 # self.wait_device_ready()
                 # self.motor_hwobj_dict['phi'].set_value_relative(-180, timeout=None)
 
