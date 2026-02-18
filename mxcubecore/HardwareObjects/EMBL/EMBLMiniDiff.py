@@ -178,7 +178,7 @@ class EMBLMiniDiff(GenericDiffractometer):
 
         :return: bool
         """
-        return not self.in_plate_mode()
+        return not self.in_plate_mode
 
     def beam_position_changed(self, value):
         self.beam_position = value
@@ -301,7 +301,7 @@ class EMBLMiniDiff(GenericDiffractometer):
                 "Diffractometer: Setting %s phase. Please wait..." % phase
             )
 
-        if self.in_plate_mode() and (
+        if self.in_plate_mode and (
             phase
             in (GenericDiffractometer.PHASE_TRANSFER, GenericDiffractometer.PHASE_BEAM)
             or self.current_phase
@@ -391,7 +391,7 @@ class EMBLMiniDiff(GenericDiffractometer):
                     "Y": (y - self.beam_position[1]) / self.pixels_per_mm_y,
                 }
             )
-            if self.in_plate_mode():
+            if self.in_plate_mode:
                 dynamic_limits = self.get_osc_limits()
                 if click == 0:
                     self.motor_hwobj_dict["phi"].set_value(dynamic_limits[0] + 0.5)
@@ -601,7 +601,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         return motors
 
     def visual_align(self, point_1, point_2):
-        if self.in_plate_mode():
+        if self.in_plate_mode:
             self.log.info("EMBLMiniDiff: Visual align not available in Plate mode")
         else:
             t1 = [point_1.sampx, point_1.sampy, point_1.phiy]

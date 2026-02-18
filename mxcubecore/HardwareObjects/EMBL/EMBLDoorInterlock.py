@@ -149,7 +149,7 @@ class EMBLDoorInterlock(HardwareObject):
         """
         if HWR.beamline.diffractometer is not None:
             detector_distance = HWR.beamline.detector.distance
-            if HWR.beamline.diffractometer.in_plate_mode():
+            if HWR.beamline.diffractometer.in_plate_mode:
                 if detector_distance is not None:
                     if detector_distance.get_value() < 780:
                         detector_distance.set_value(800, timeout=None)
