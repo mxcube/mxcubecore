@@ -821,7 +821,7 @@ class AbstractCollect(HardwareObject, object):
                 ] = snapshot_filename
                 self._take_crystal_snapshot(snapshot_filename)
                 if number_of_snapshots > 1:
-                    HWR.beamline.diffractometer.move_omega_relative(90)
+                    HWR.beamline.diffractometer.omega.set_value_relative(90)
 
         if (
             not HWR.beamline.diffractometer.in_plate_mode

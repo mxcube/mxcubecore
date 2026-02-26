@@ -58,7 +58,7 @@ class AdvancedConnectorQueueEntry(BaseQueueEntry):
                 # gevent.sleep(2)
 
                 logging.getLogger("user_level_log").info("Rotating 90 degrees")
-                HWR.beamline.diffractometer.move_omega_relative(90)
+                HWR.beamline.diffractometer.omega.set_value_relative(90)
                 logging.getLogger("user_level_log").info("Creating a helical line")
 
                 gevent.sleep(2)
