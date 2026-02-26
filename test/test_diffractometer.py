@@ -65,10 +65,10 @@ class TestDiffarctometer(TestHardwareObjectBase):
         # subtract one for the UNKNOWN
         assert len(phase_enum) - 1 == len(test_object.get_phase_list())
 
-    def test_get_head_type(self, test_object):
-        head_enum = test_object.get_head_enum
+    def test_head_type(self, test_object):
+        head_enum = test_object.head_enum
         # in the mockup we set the head to be minikappa
-        assert test_object.get_head_type == head_enum.MINI_KAPPA
+        assert test_object.head_type == head_enum.MINI_KAPPA
         assert test_object.in_kappa_mode
         assert not test_object.in_plate_mode
 

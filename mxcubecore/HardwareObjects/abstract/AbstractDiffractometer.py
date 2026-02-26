@@ -379,30 +379,22 @@ class AbstractDiffractometer(HardwareObject):
     # -------- Head Type and Modes --------
 
     @property
-    def get_head_type(self) -> DiffractometerHead:
-        """Get the head type
-        Returns:
-            DiffractometerHead member.
-        """
-        return self.head_type
-
-    @property
     def in_plate_mode(self) -> bool:
         """Check if the head is a plate."""
 
-        return self.get_head_type == DiffractometerHead.PLATE
+        return self.head_type == DiffractometerHead.PLATE
 
     @property
     def in_kappa_mode(self) -> bool:
         """Check if the head is MiniKappa."""
 
-        return self.get_head_type == DiffractometerHead.MINI_KAPPA
+        return self.head_type == DiffractometerHead.MINI_KAPPA
 
     @property
     def in_chip_mode(self) -> bool:
         """Check if there is chip configuration of the head."""
         return (
-            self.get_head_type == DiffractometerHead.SSX
+            self.head_type == DiffractometerHead.SSX
             and self.current_constraint == DiffractometerConstraint.STILL
         )
 
@@ -410,12 +402,12 @@ class AbstractDiffractometer(HardwareObject):
     def in_injector_mode(self) -> bool:
         """Check if there is injector on the head."""
         return (
-            self.get_head_type == DiffractometerHead.SSX
+            self.head_type == DiffractometerHead.SSX
             and self.current_constraint == DiffractometerConstraint.INJECTOR
         )
 
     @property
-    def get_head_enum(self):
+    def head_enum(self):
         """Get the diffractometer head Enum. Used when no import wished."""
         return DiffractometerHead
 
