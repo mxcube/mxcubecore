@@ -689,13 +689,6 @@ class GenericDiffractometer(HardwareObject):
         """
         return self.head_type == GenericDiffractometer.HEAD_TYPE_PLATE
 
-    def get_head_type(self):
-        """Returns head type
-
-        :returns: string
-        """
-        return self.head_type
-
     def use_sample_changer(self):
         """Returns True if sample changer is in use
 
