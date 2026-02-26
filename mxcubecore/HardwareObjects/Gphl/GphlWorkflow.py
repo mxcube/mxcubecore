@@ -2020,7 +2020,7 @@ class GphlWorkflow(HardwareObject):
         last_orientation = ()
         maxdev = -1
         snapshotted_rotation_ids = set()
-        scan_numbers = {}
+        # scan_numbers = {}
         for scan in scans:
             sweep = scan.sweep
             acq = queue_model_objects.Acquisition()
@@ -2100,16 +2100,23 @@ class GphlWorkflow(HardwareObject):
             path_template.run_number = int(ss0) if ss0 else 1
             path_template.start_num = acq_parameters.first_image
             path_template.num_files = acq_parameters.num_images
-            if (
-                path_template.suffix.endswith("h5")
-                and gphl_workflow_model.characterisation_done
-                and len(sweep.scans) > 1
-            ):
-                # Add scan number to prefix for interleaved hdf5 files (only)
-                # NBNB Temporary fix, pending solution to hdf5 interleaving problem
-                scan_numbers[prefix] = scan_no = scan_numbers.get(prefix, 0) + 1
-                prefix += "_s%s" % scan_no
+            # if (
+            #     path_template.suffix.endswith("h5")
+            #     and gphl_workflow_model.characterisation_done
+            #     and len(sweep.scans) > 1
+            # ):
+            #     # Add scan number to prefix for interleaved hdf5 files (only)
+            #     # NBNB Temporary fix, pending solution to hdf5 interleaving problem
+            #     scan_numbers[prefix] = scan_no = scan_numbers.get(prefix, 0) + 1
+            #     prefix += "_s%s" % scan_no
             path_template.base_prefix = prefix
+            logging.getLogger("HWR").info(
+                "Setting up sweep, image file name is %s",
+                path_template.get_image_file_name()
+            )
+            logging.getLogger("HWR").debug(
+               "Path template contents: %s",(path_template.as_dict())
+            )
 
             key = (
                 path_template.base_prefix,
@@ -2227,10 +2234,10 @@ class GphlWorkflow(HardwareObject):
 
         # debug
         fmt = "--> %s: %s"
-        print("GPHL workflow. Collect with parameters:")
+        logging.getLogger("HWR").debug("GPHL workflow. Collect with parameters:")
         for item in gphl_workflow_model.parameter_summary().items():
-            print(fmt % item)
-        print(fmt % ("sweep_count", len(sweeps)))
+            logging.getLogger("HWR").debug(fmt % item)
+        logging.getLogger("HWR").debug(fmt % ("sweep_count", len(sweeps)))
 
         data_collection_entry = queue_manager.get_entry_with_model(
             self._data_collection_group
@@ -2580,7 +2587,7 @@ class GphlWorkflow(HardwareObject):
             summed_angle = 0.0
             for snapshot_index in range(number_of_snapshots):
                 if snapshot_index:
-                    HWR.beamline.diffractometer.move_omega_relative(90)
+                    HWR.beamline.diffractometer.omega.set_value_relative(90)
                     summed_angle += 90
                 snapshot_filename = filename_template % (
                     file_name_prefix,
@@ -2591,7 +2598,7 @@ class GphlWorkflow(HardwareObject):
                 self.log.debug("Centring snapshot stored at %s", snapshot_filename)
                 collect_hwobj._take_crystal_snapshot(snapshot_filename)
             if summed_angle:
-                HWR.beamline.diffractometer.move_omega_relative(-summed_angle)
+                HWR.beamline.diffractometer.omega.set_value_relative(-summed_angle)
 
     def execute_sample_centring(
         self, centring_entry, goniostatRotation, requestedRotationId=None

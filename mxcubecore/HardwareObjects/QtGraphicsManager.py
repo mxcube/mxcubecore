@@ -1097,9 +1097,9 @@ class QtGraphicsManager(AbstractSampleView):
         Rotates omega axis up or down
         """
         if delta > 0:
-            self.diffractometer_hwobj.move_omega_relative(self.omega_move_delta)
+            self.diffractometer_hwobj.omega.set_value_relative(self.omega_move_delta)
         else:
-            self.diffractometer_hwobj.move_omega_relative(-self.omega_move_delta)
+            self.diffractometer_hwobj.omega.set_value_relative(-self.omega_move_delta)
 
     def item_clicked(self, item, state):
         """Item clicked event
@@ -1456,7 +1456,7 @@ class QtGraphicsManager(AbstractSampleView):
         """Save animation task"""
 
         # self.diffractometer_hwobj.set_ready(False)
-        gevent.spawn(self.diffractometer_hwobj.move_omega_relative, 180)
+        gevent.spawn(self.diffractometer_hwobj.omega.set_value_relative, 180)
         gevent.spawn(self.save_scene_animation_task, filename, duration_sec)
 
     def save_scene_animation_task(self, filename, duration_sec):
@@ -1938,7 +1938,7 @@ class QtGraphicsManager(AbstractSampleView):
                     "optical_y": y,
                 }
             )
-            self.diffractometer_hwobj.move_omega_relative(360 / number_of_snapshots)
+            self.diffractometer_hwobj.omega.set_value_relative(360 / number_of_snapshots)
 
         auto_mesh = AutoMesh.getAutoMesh(
             background_image,
