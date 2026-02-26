@@ -49,7 +49,7 @@ class MicroDiffractometer(AbstractDiffractometer):
         exporter_address = self.get_property("exporter_address")
         _host, _port = exporter_address.split(":")
         self._exporter = Exporter(_host, int(_port))
-        self.head_type = self._get_head_type
+        self.head_type = self._head_type
 
         # add the custom commands
         for nam, cmd in self.get_property("commands").items():
@@ -211,7 +211,7 @@ class MicroDiffractometer(AbstractDiffractometer):
         return motors_dict
 
     @property
-    def _get_head_type(self) -> DiffractometerHead:
+    def _head_type(self) -> DiffractometerHead:
         """Get the head type."""
         try:
             self.head_type = DiffractometerHead(
