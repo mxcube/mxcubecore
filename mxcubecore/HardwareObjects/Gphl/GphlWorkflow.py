@@ -27,32 +27,32 @@ from __future__ import (
     unicode_literals,
 )
 
-from collections import OrderedDict
-
 import copy
 import datetime
 import enum
-import f90nml
-import gevent
-import gevent.event
-import gevent.queue
 import logging
 import math
-import numpy
 import os
 import socket
 import subprocess
 import time
 import uuid
+from collections import OrderedDict
 from urllib.parse import urlparse
+
+import f90nml
+import gevent
+import gevent.event
+import gevent.queue
+import numpy
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import (
     ConfiguredObject,
     HardwareObject,
 )
-from mxcubecore.HardwareObjects.Gphl import GphlMessages
 from mxcubecore.dispatcher import dispatcher
+from mxcubecore.HardwareObjects.Gphl import GphlMessages
 from mxcubecore.model import (
     crystal_symmetry,
     queue_model_objects,
