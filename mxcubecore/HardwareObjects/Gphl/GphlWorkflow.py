@@ -2112,10 +2112,10 @@ class GphlWorkflow(HardwareObject):
             path_template.base_prefix = prefix
             logging.getLogger("HWR").info(
                 "Setting up sweep, image file name is %s",
-                path_template.get_image_file_name()
+                path_template.get_image_file_name(),
             )
             logging.getLogger("HWR").debug(
-               "Path template contents: %s",(path_template.as_dict())
+                "Path template contents: %s", (path_template.as_dict())
             )
 
             key = (
@@ -3221,11 +3221,12 @@ class GphlWorkflow(HardwareObject):
                 if kappa_max and kappa_max < 180:
                     kappa_max = math.radians(kappa_max)
                     result = math.acos(
-                        1 + (1 - cos_alpha ** 2) * (math.cos(kappa_max) - 1)
+                        1 + (1 - cos_alpha**2) * (math.cos(kappa_max) - 1)
                     )
             return math.degrees(result) - margin
         else:
             return None
+
 
 def validate_url(value: str) -> bool:
     """Validate url string"""
