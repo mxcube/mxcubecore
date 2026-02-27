@@ -333,7 +333,7 @@ class AbstractDiffractometer(HardwareObject):
                 mot_pos_dict[str(motor)] = float(mot_hwobj_dict[motor].get_value())
             except KeyError:
                 msg = f"Invalid motor name {motor}"
-                self.log.exceptionb(msg)
+                self.log.exception(msg)
             except TypeError:
                 msg = f"No value for {motor}"
                 self.log.warning(msg)
