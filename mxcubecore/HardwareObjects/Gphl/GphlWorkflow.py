@@ -27,9 +27,15 @@ from __future__ import (
     unicode_literals,
 )
 
+from collections import OrderedDict
+
 import copy
 import datetime
 import enum
+import f90nml
+import gevent
+import gevent.event
+import gevent.queue
 import logging
 import math
 import numpy
@@ -38,21 +44,15 @@ import socket
 import subprocess
 import time
 import uuid
-from collections import OrderedDict
 from urllib.parse import urlparse
-
-import f90nml
-import gevent
-import gevent.event
-import gevent.queue
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import (
     ConfiguredObject,
     HardwareObject,
 )
-from mxcubecore.dispatcher import dispatcher
 from mxcubecore.HardwareObjects.Gphl import GphlMessages
+from mxcubecore.dispatcher import dispatcher
 from mxcubecore.model import (
     crystal_symmetry,
     queue_model_objects,
@@ -1058,9 +1058,11 @@ class GphlWorkflow(HardwareObject):
         )
 
         grouped_sweeps = []
+        last = {}
         inverse_beam = False
         for sweep in geometric_strategy.get_ordered_sweeps():
-            last = grouped_sweeps and grouped_sweeps[-1]
+            if grouped_sweeps:
+                last = grouped_sweeps[-1]
             if last:
                 if sweep.sweepGroup == last["group_no"]:
                     inverse_beam = True
@@ -2864,7 +2866,7 @@ class GphlWorkflow(HardwareObject):
                     result.append(data)
         return result
 
-    def get_emulation_sample_dir(self, sample_name=None):
+    def get_emulation_sample_dir(self, sample_name=None) -> str:
         """If sample is a test data set for emulation, get test data directory
         Args:
          sample_name Optional[str]:
@@ -2903,7 +2905,7 @@ class GphlWorkflow(HardwareObject):
                 raise ValueError(
                     "Emulator crystal data file %s does not exist" % crystal_file
                 )
-            # in spite of the simcal_crystal_list name this returns an OrderdDict
+            # in spite of the simcal_crystal_list name this returns an OrderedDict
             crystal_data = f90nml.read(crystal_file)["simcal_crystal_list"]
             if isinstance(crystal_data, list):
                 crystal_data = crystal_data[0]
@@ -3201,7 +3203,7 @@ class GphlWorkflow(HardwareObject):
                     result["dose_budget"] = {"highlight": "OK"}
         return result
 
-    def derive_maximum_chi(self) -> float:
+    def derive_maximum_chi(self) -> float | None:
         """Give maximum chi value (in degrees) derived from kappa motor limits
         and rotation axis directions"""
         margin = 0.1  # safety margin in degrees, to avoid overrunning kappa limit
