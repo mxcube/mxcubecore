@@ -6,6 +6,7 @@ import logging
 import math
 import os
 import time
+from pathlib import Path
 
 import gevent
 
@@ -241,12 +242,30 @@ class LimaEigerDetector(AbstractDetector):
         self.get_channel_object("saving_suffix").set_value(suffix)
         self.get_channel_object("saving_format").set_value("HDF5")
 
+    def get_acquisition_files(self):
+        number_of_images = self.get_channel_object("acq_nb_frames").get_value()
+        images_per_file = self.get_channel_object("saving_frame_per_file").get_value()
+        nfiles = int(math.ceil(number_of_images / images_per_file))
+
+        dirname = self.get_channel_object("saving_directory").get_value()
+        prefix = self.get_channel_object("saving_prefix").get_value()
+
+        return [
+            Path(dirname) / f"{prefix}_data_{i:06d}.h5" for i in range(1, nfiles + 1)
+        ]
+
+    def get_acquisition_poll_interval(self):
+        exptime = self.get_channel_object("acq_expo_time").get_value()
+        images_per_file = self.get_channel_object("saving_frame_per_file").get_value()
+        return exptime * images_per_file
+
     def start_acquisition(self):
         self.wait_ready()
         logging.getLogger("user_level_log").info("Preparing acquisition.")
         self.get_command_object("prepare_acq")()
         logging.getLogger("user_level_log").info("Detector ready, continuing")
         self.get_command_object("start_acq")()
+        self.start_acquisition_monitor()
 
     def stop_acquisition(self):
         self.update_state(self.STATES.BUSY)
@@ -259,6 +278,7 @@ class LimaEigerDetector(AbstractDetector):
         self.get_command_object("reset")()
         self.wait_ready()
         self.update_state(self.STATES.READY)
+        self.stop_acquisition_monitor()
 
     def reset(self):
         self.stop_acquisition()
