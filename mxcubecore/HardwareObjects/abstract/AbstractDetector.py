@@ -35,6 +35,10 @@ Implemented methods:
     get_exposure_time_limits
     get_threshold_energy, set_threshold_energy
     get_binning_mode, set_binning_mode
+    start_acquisition_monitor, stop_acquisition_monitor
+Methods to override for acquisition progress monitoring:
+    get_acquisition_files
+    get_acquisition_poll_interval
 Implemented propertries:
     distance
 Emitted signals:
@@ -45,12 +49,16 @@ Emitted signals:
     frameRateChanged
     stateChanged
     specificStateChanged
+    progress
 Hardware objects used: energy
 """
 
 import abc
 import ast
 import math
+from pathlib import Path
+
+import gevent
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.model.queue_model_objects import PathTemplate
@@ -83,6 +91,7 @@ class AbstractDetector(HardwareObject):
         self._width = None  # [pixel]
         self._height = None  # [pixel]
         self._metadata = {}
+        self._monitor_acquisition_greenlet = None
 
     def init(self):
         """Initialise some common parameters"""
@@ -167,6 +176,59 @@ class AbstractDetector(HardwareObject):
 
     def stop_acquisition(self):
         """Stop the acquisition."""
+
+    def get_acquisition_files(self) -> list:
+        """Get the files the current acquisition is expected to write, in
+        the order they are written. Used to monitor acquisition progress.
+        Override in detectors that support progress monitoring; the default
+        (no files) disables it.
+        Returns:
+            (list): Paths (str or Path) of the expected files.
+        """
+        return []
+
+    def get_acquisition_poll_interval(self) -> float:
+        """Get the time to wait between checks for the next expected file.
+        Returns:
+            (float): Poll interval [s].
+        """
+        return 1.0
+
+    def _monitor_acquisition(self):
+        """Wait for each expected file to be written and emit the fraction
+        of files written so far as progress."""
+        files = [Path(fpath) for fpath in self.get_acquisition_files()]
+
+        if not files:
+            return
+
+        poll_interval = max(self.get_acquisition_poll_interval(), 0.1)
+
+        for i, fpath in enumerate(files, start=1):
+            while not fpath.exists():
+                gevent.sleep(poll_interval)
+
+            self.log.info("File %s written", fpath)
+            self.emit("progress", i / len(files))
+
+        self.emit("progress", 1)
+
+    def start_acquisition_monitor(self):
+        """Start monitoring the progress of the acquisition, emitting the
+        progress signal as the files returned by get_acquisition_files
+        are written to disk"""
+        self.stop_acquisition_monitor()
+        self._monitor_acquisition_greenlet = gevent.spawn(self._monitor_acquisition)
+
+    def stop_acquisition_monitor(self):
+        """Stop monitoring the acquisition progress"""
+        greenlet = self._monitor_acquisition_greenlet
+        self._monitor_acquisition_greenlet = None
+
+        if greenlet is not None and not greenlet.dead:
+            greenlet.kill()
+            self.log.info("Acquisition monitor stopped before completion")
+            self.emit("progress", 1)
 
     def get_roi_mode(self):
         """Get the current ROI mode.
