@@ -54,7 +54,7 @@ class ICATLIMS(AbstractLims):
 
     def get_lims_name(self) -> List[Lims]:
         return [
-            Lims(name="DRAC", description="Data Repository for Advancing open sCience"),
+            Lims(name="Data Portal", description="Data Repository for Advancing open sCience"),
         ]
 
     def _create_icat_session(self, user_name: str, password: str):
