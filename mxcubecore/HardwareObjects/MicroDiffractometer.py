@@ -19,6 +19,8 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """Micro Diffractometer implementation of the AbstractDiffractometer class."""
+import time
+
 
 from gevent import Timeout, sleep
 
@@ -250,7 +252,7 @@ class MicroDiffractometer(AbstractDiffractometer):
             self.run_custom_script(script)
         else:
             self._exporter.execute("startSetPhase", (value.value,))
-        self.wait_status_ready(timeout=200)
+        self.wait_status_ready(timeout=600)
 
     def get_phase(self) -> DiffractometerPhase:
         """Get the current phase."""
@@ -517,4 +519,7 @@ class MicroDiffractometer(AbstractDiffractometer):
     def run_custom_script(self, script_cmd: str, timeout: float | None = None):
         """Run custom script."""
         self.run_script(script_cmd)
+        # Wait for script to start before checking status,
+        # can perhaps be improved to wait for ready-busy-ready ?
+        time.sleep(0.4) 
         self.wait_status_ready(timeout)
