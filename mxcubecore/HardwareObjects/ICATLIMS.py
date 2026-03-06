@@ -868,6 +868,11 @@ class ICATLIMS(AbstractLims):
 
         bsx, bsy, shape, _ = HWR.beamline.beam.get_value()
         flux_end = datacollection_dict.get("flux_end") or HWR.beamline.flux.get_value()
+        xBeam, yBeam = HWR.beamline.detector.get_beam_position(
+            distance=HWR.beamline.detector.distance.get_value()
+        )
+
+        HWR.beamline.detector.distance.get_value()
 
         transmission = (
             datacollection_dict.get("transmission")
@@ -924,8 +929,8 @@ class ICATLIMS(AbstractLims):
             "MX_beamShape": shape.value,
             "MX_beamSizeAtSampleX": bsx,
             "MX_beamSizeAtSampleY": bsy,
-            "MX_xBeam": datacollection_dict.get("xBeam", "N/A"),
-            "MX_yBeam": datacollection_dict.get("yBeam", "N/A"),
+            "MX_xBeam": xBeam,
+            "MX_yBeam": yBeam,
             "MX_flux": datacollection_dict.get("flux"),
             "MX_fluxEnd": flux_end,
             "MX_transmission": transmission,
