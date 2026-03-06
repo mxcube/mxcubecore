@@ -57,10 +57,10 @@ class XrayCentering2QueueEntry(BaseQueueEntry):
         if pos_dict:
             # Some beamlines move centering motors while moving kappa, kappa_phi
             # Hence we need to move kappa, kappa_phi first.
-            HWR.beamline.diffractometer.move_motors(pos_dict)
+            HWR.beamline.diffractometer.set_value_motors(pos_dict)
         if motor_positions:
             # Move the rest of the motors, if needed
-            HWR.beamline.diffractometer.move_motors(motor_positions)
+            HWR.beamline.diffractometer.set_value_motors(motor_positions)
 
         HWR.beamline.xray_centring.pre_execute(self)
 

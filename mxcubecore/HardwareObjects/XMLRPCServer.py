@@ -441,7 +441,7 @@ class XMLRPCServer(HardwareObject):
     def save_twelve_snapshots_script(self, path):
         path = path[14:]  # NBNB: Temporary fix, to be addressed in calling code
         self.log.info("Taking 6 snapshots to be saved in  %s " % str(path))
-        HWR.beamline.diffractometer.run_script("Take6Snapshots, " + path)
+        HWR.beamline.diffractometer.run_custom_script("Take6Snapshots, " + path)
 
     def save_multiple_snapshots(self, path_list, show_scale=False):
         self.log.info("Taking snapshot %s " % str(path_list))

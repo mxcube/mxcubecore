@@ -1135,7 +1135,7 @@ class GphlWorkflow(HardwareObject):
             dose_label = "Characterisation dose (MGy)"
             if not self.config.settings.get("recentre_before_start"):
                 # replace planned orientation with current orientation
-                current_pos_dict = HWR.beamline.diffractometer.get_positions()
+                current_pos_dict = HWR.beamline.sample_view.get_positions()
                 dd0 = grouped_sweeps[0]["axis_settings"]
                 for tag in dd0:
                     pos = current_pos_dict.get(tag)
@@ -1723,7 +1723,7 @@ class GphlWorkflow(HardwareObject):
         sweepSetting = sweepSettings[0]
 
         # Get current position
-        current_pos_dict = HWR.beamline.diffractometer.get_positions()
+        current_pos_dict = HWR.beamline.sample_view.get_positions()
         current_okp = tuple(current_pos_dict[role] for role in self.rotation_axes)
         current_xyz = tuple(current_pos_dict[role] for role in self.translation_axes)
 
