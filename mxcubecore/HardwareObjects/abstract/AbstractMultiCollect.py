@@ -580,6 +580,11 @@ class AbstractMultiCollect(object):
         self.move_motors(motors_to_move_before_collect)
         HWR.beamline.diffractometer.save_centring_positions()
 
+        aperture_ho = HWR.beamline.beam.aperture
+
+        if aperture_ho:
+            aperture = HWR.beamline.beam.aperture.get_value()
+
         if data_collect_parameters.get("take_snapshots", False):
             logging.getLogger("user_level_log").info(
                 f"Taking sample ({self.number_of_snapshots}) snapshosts"
@@ -590,6 +595,10 @@ class AbstractMultiCollect(object):
         logging.getLogger("user_level_log").info(
             "Moving motors to centered position: %r", motors_to_move_before_collect
         )
+
+        if aperture_ho:
+            HWR.beamline.beam.aperture.set_value(aperture)
+
         self.move_motors(motors_to_move_before_collect)
 
         if HWR.beamline.lims:
