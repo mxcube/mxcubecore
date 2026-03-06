@@ -576,9 +576,9 @@ class EMBLFlexHCD(SampleChanger):
                         logging.getLogger("user_level_log").info(
                             "Sample is Loaded from EMBLFlexHCD.py "
                         )
-                        HWR.beamline.diffractometer.wait_ready(100)
-                        HWR.beamline.diffractometer.run_script("ChangePhase_centring")
-                        HWR.beamline.diffractometer.run_script(
+                        HWR.beamline.diffractometer.wait_status_ready(100)
+                        HWR.beamline.diffractometer.run_custom_script("ChangePhase_centring")
+                        HWR.beamline.diffractometer.run_custom_script(
                             "sample_centering", wait=False
                         )
                     break
