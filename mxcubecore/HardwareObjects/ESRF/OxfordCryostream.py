@@ -86,18 +86,14 @@ class OxfordCryostream(AbstractActuator):
             self.ctrl = getattr(controller, cryostat)
             # for some reason the first reading of the cryo is giving timeout
             # just ignore it
-            try:
-                self.ctrl.input.read()
-            except:
-                pass
-            try:
-                self.ctrl.input.read()
-            except:
-                pass
-            try:
-                self.ctrl.input.read()
-            except:
-                pass
+            for ii in range(3):
+                try:
+                    self.ctrl.input.read()
+                    break
+                except Exception as err:
+                    msg = f"Cannot read cryostream: {err}. Retry {ii + 1}"
+                    self.log.warning(msg)
+
             spawn(self._do_polling)
             self._hw_ctrl = self.ctrl.controller._hw_controller
         except AttributeError as err:
