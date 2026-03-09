@@ -84,6 +84,20 @@ class OxfordCryostream(AbstractActuator):
         self.interval = self.get_property("interval", 10)
         try:
             self.ctrl = getattr(controller, cryostat)
+            # for some reason the first reading of the cryo is giving timeout
+            # just ignore it
+            try:
+                self.ctrl.input.read()
+            except:
+                pass
+            try:
+                self.ctrl.input.read()
+            except:
+                pass
+            try:
+                self.ctrl.input.read()
+            except:
+                pass
             spawn(self._do_polling)
             self._hw_ctrl = self.ctrl.controller._hw_controller
         except AttributeError as err:

@@ -110,18 +110,18 @@ class MD2MultiCollect(ESRFMultiCollect):
                 self.mesh_range,
             )
         elif self.fast_characterisation:
-            self.nb_frames = 10
-            self.nb_scan = 4
-            self.angle = 90
+            nb_frames = 10
+            nb_scan = 4
+            angle = 90
             exptime *= 10
-            range = (end - start) * 10
+            scan_range = (end - start) * 10
             diffr.do_characterisation_scan(
                 start,
-                range,
-                self.nb_frames,
+                scan_range,
+                nb_frames,
                 exptime,
-                self.nb_scan,
-                self.angle,
+                nb_scan,
+                angle,
             )
         else:
             diffr.do_oscillation_scan(start, end, exptime, number_of_images)
