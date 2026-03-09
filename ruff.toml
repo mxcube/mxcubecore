@@ -1648,9 +1648,12 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/ESRF/OxfordCryostream.py" = [
     "BLE001",
+    "E722",
     "EM101",
     "FBT002",
+    "S110",
     "SLF001",
+    "SIM105"
 ]
 "mxcubecore/HardwareObjects/ESRF/SSXICATLIMS.py" = [
     "PTH123",
