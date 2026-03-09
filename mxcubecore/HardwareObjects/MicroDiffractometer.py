@@ -234,6 +234,15 @@ class MicroDiffractometer(AbstractDiffractometer):
             msg = f"Current phase is {current_phase} and moving to {value}"
             self.log.info(msg)
 
+        # protect the detector or open the cover if detector cover defined
+        # do not wait it to finish.
+        det_cover = self.get_object_by_role("detector_cover")
+        if det_cover:
+            if value in (DiffractometerPhase.TRANSFER, DiffractometerPhase.SEE_BEAM):
+                det_cover.set_value(det_cover.detector_cover.VALUES.CLOSE, timeout=0)
+            if value == DiffractometerPhase.COLLECT:
+                det_cover.set_value(det_cover.detector_cover.VALUES.OPEN, timeout=0)
+
         if _use_custom and not self.in_plate_mode:
             script = "ChangePhase_" + value.value.lower()
             msg = f"Changing phase to {value.value}, using pmac script"
