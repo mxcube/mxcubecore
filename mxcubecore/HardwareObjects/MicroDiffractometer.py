@@ -34,6 +34,8 @@ from mxcubecore.HardwareObjects.abstract.AbstractDiffractometer import (
     DiffractometerPhase,
 )
 
+import sample_centring
+
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
@@ -80,6 +82,10 @@ class MicroDiffractometer(AbstractDiffractometer):
         except AttributeError:
             self.log.exception("global_state and phase_channel not configured!")
 
+        sample_centring.NUM_CENTRING_ROUNDS = self.get_property(
+            "num_centering_rounds", 1
+        )
+            
     def abort(self):
         """Immediately terminate action."""
         self._exporter.execute("abort")
