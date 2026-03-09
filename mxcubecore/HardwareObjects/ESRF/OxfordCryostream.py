@@ -90,7 +90,8 @@ class OxfordCryostream(AbstractActuator):
                 try:
                     self.ctrl.input.read()
                     break
-                except Exception as err:
+                except BaseException as err:
+                    # BaseException needed because of bliss timeout exception
                     msg = f"Cannot read cryostream: {err}. Retry {ii + 1}"
                     self.log.warning(msg)
 
