@@ -76,9 +76,9 @@ class ID232BeamDefiner(ESRFBeamDefiner):
         self.tf1 = getattr(controller, self.get_property("tf1"))
         self.tf2 = getattr(controller, self.get_property("tf2"))
         for beam_cfg in self.bd_config:
-            name = beam_cfg.get_property("name")
-            tf1 = [int(x) for x in beam_cfg.get_property("tf1").split()]
-            tf2 = [int(x) for x in beam_cfg.get_property("tf2").split()]
+            name = beam_cfg.get("name")
+            tf1 = [int(x) for x in beam_cfg.get("tf1").split()]
+            tf2 = [int(x) for x in beam_cfg.get("tf2").split()]
             self.tf_cfg[name] = {"tf1": tf1, "tf2": tf2}
 
         self.connect(self.tf1, "state", self._tf_update_state)

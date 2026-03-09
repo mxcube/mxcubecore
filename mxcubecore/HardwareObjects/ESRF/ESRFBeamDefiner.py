@@ -74,8 +74,8 @@ class ESRFBeamDefiner(AbstractNState):
             cfg = [cfg]
 
         for beam_cfg in cfg:
-            name = beam_cfg.get_property("name")
-            beam_size = beam_cfg.get_property("beam_size", (0.015, 0.015))
+            name = beam_cfg.get("name")
+            beam_size = beam_cfg.get("beam_size", (0.015, 0.015))
             if isinstance(beam_size, str):
                 beam_size = literal_eval(beam_size)
             self.beam_config.update({name: beam_size})

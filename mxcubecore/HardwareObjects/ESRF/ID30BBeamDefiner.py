@@ -89,10 +89,10 @@ class ID30BBeamDefiner(ESRFBeamDefiner):
         _dict = {}
 
         for beam_cfg in self.bd_config:
-            name = beam_cfg.get_property("name")
-            _ap_size = beam_cfg.get_property("aperture_size")
+            name = beam_cfg.get("name")
+            _ap_size = beam_cfg.get("aperture_size")
             _aperture = self.controller.value_to_enum(_ap_size, idx=1)
-            _defocused_beam = bool(beam_cfg.get_property("defocused_beam"))
+            _defocused_beam = bool(beam_cfg.get("defocused_beam", False))
             _dict[name] = {"aperture": _aperture, "defocus": _defocused_beam}
 
         self.beam_config = _dict

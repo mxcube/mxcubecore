@@ -66,8 +66,8 @@ class ID30A3BeamDefiner(ESRFBeamDefiner):
         self.controller = self.get_object_by_role("controller")
         _dict = {}
         for beam_cfg in self.bd_config:
-            name = beam_cfg.get_property("name")
-            _ap_size = beam_cfg.get_property("aperture_size")
+            name = beam_cfg.get("name")
+            _ap_size = beam_cfg.get("aperture_size")
             _aperture = self.controller.value_to_enum(_ap_size, idx=1)
             _dict[name] = [self.beam_config[name], _aperture]
 
