@@ -105,7 +105,9 @@ class EMBLFlexHarvester(EMBLFlexHCD):
         ha_sample_acronyms = self._harvester_hwo.get_sample_acronyms()
 
         # If no samples reported by Harvester
-        if not ha_sample_lists or (len(ha_sample_lists) == 1 and  ha_sample_lists[0] == "n"):
+        if not ha_sample_lists or (
+            len(ha_sample_lists) == 1 and ha_sample_lists[0] == "n"
+        ):
             self.user_log.warning("No samples reported by Harvester")
             return present_sample_list
 
@@ -150,7 +152,7 @@ class EMBLFlexHarvester(EMBLFlexHCD):
             + ":"
             + "%02d" % loaded_sample[2]
         )
-    
+
     def get_loaded_sample(self):
         """
         Returns:

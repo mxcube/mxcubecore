@@ -610,13 +610,6 @@ class PlateManipulator(SampleChanger):
                 new_sample._set_loaded(loaded, has_been_loaded)
                 self._set_loaded_sample(new_sample)
 
-    def get_loaded_sample(self):
-        sample = None
-        for s in self.get_sample_list():
-            if s.get_address() == self.hw_get_loaded_sample_location():
-                sample = s
-        return sample
-
     def get_sample(self, plate_location):
         row = int(plate_location[0])
         col = int(plate_location[1])
@@ -706,7 +699,8 @@ class PlateManipulator(SampleChanger):
                     ):
                         crystal_uuid = x.crystal_uuid
             else:
-                raise Exception("No processing_plan OR Crystal Found in this well")
+                msg = "No processing_plan OR Crystal Found in this well"
+                logging.getLogger("user_level_log").info(msg)
 
         if self.cmd_move_to_crystal_position and crystal_uuid:
             try:
@@ -717,9 +711,8 @@ class PlateManipulator(SampleChanger):
             except Exception as ex:
                 raise Exception("Could not move to crystal position %s" % str(ex))
         else:
-            raise Exception(
-                "move_to_crystal_position command or crystal UUID not found"
-            )
+            msg = "move_to_crystal_position command or crystal UUID not found"
+            logging.getLogger("user_level_log").info(msg)
 
         return ret
 
