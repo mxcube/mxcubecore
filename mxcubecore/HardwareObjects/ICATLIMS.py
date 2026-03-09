@@ -1245,6 +1245,7 @@ class ICATLIMS(AbstractLims):
                     "Workflow_name": workflow_params.get("workflow_name"),
                     "Workflow_type": workflow_params.get("workflow_type"),
                     "Workflow_id": workflow_params.get("workflow_uid"),
+                    "Workflow_note": workflow_params.get("workflow_note"),
                     "MX_kappa_settings_id": workflow_params.get(
                         "workflow_kappa_settings_id"
                     ),
