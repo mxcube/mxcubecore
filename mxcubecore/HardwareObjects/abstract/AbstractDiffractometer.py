@@ -26,8 +26,10 @@ actuator object. This allows to use them in a standard way by the MXCuBE
 application (web or Qt).
 There is also a convention of the direction of the motors:
 - z axis is in the direction of gravity. Positive direction is downwards.
-- y axis is perpendicular to the z axis and to the nominal beam direction.  Positive direction is so that x,y,z would form a right-handed coordinate system.
-- x axis is orthogonal to the y and z axes (and approximately parallel to the beam). Positive direction is from the sample towards the detector.
+- y axis is perpendicular to the z axis and to the nominal beam direction.
+  Positive direction is so that x,y,z would form a right-handed coordinate system.
+- x axis is orthogonal to the y and z axes (and approximately parallel to the beam).
+  Positive direction is from the sample towards the detector.
 
 
 Here follows the list of the fixed roles and the description of the
