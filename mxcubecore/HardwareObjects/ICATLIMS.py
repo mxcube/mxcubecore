@@ -1240,6 +1240,15 @@ class ICATLIMS(AbstractLims):
             proposal = f"{HWR.beamline.session.proposal_code}"
             proposal += f"{HWR.beamline.session.proposal_number}"
 
+            diffractometer_hwobj = HWR.beamline.diffractometer
+            motor_positions = diffractometer_hwobj.get_positions()
+            if "kappa" in motor_positions:
+                kappa_pos = round(float(motor_positions["kappa"]), 1)
+                kappa_phi_pos = round(float(motor_positions["kappa_phi"]),1)
+                MX_kappa_settings_id = f"Kappa: {kappa_pos}, Phi: {kappa_phi_pos}"
+            else:
+                MX_kappa_settings_id = None
+
             metadata.update(
                 {
                     "MX_dataCollectionId": datacollection_dict.get("collection_id"),
@@ -1263,9 +1272,7 @@ class ICATLIMS(AbstractLims):
                     "Workflow_type": workflow_params.get("workflow_type"),
                     "Workflow_id": workflow_params.get("workflow_uid"),
                     "Workflow_note": workflow_params.get("workflow_note"),
-                    "MX_kappa_settings_id": workflow_params.get(
-                        "workflow_kappa_settings_id"
-                    ),
+                    "MX_kappa_settings_id": MX_kappa_settings_id,
                     "MX_characterisation_id": workflow_params.get(
                         "workflow_characterisation_id"
                     ),
