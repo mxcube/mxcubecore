@@ -1244,7 +1244,7 @@ class ICATLIMS(AbstractLims):
             motor_positions = diffractometer_hwobj.get_positions()
             if "kappa" in motor_positions:
                 kappa_pos = round(float(motor_positions["kappa"]), 1)
-                kappa_phi_pos = round(float(motor_positions["kappa_phi"]),1)
+                kappa_phi_pos = round(float(motor_positions["kappa_phi"]), 1)
                 MX_kappa_settings_id = f"Kappa: {kappa_pos}, Phi: {kappa_phi_pos}"
             else:
                 MX_kappa_settings_id = None
