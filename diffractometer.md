@@ -5,7 +5,7 @@ This allows them to be used in a standard way by the MXCuBE application (web or 
 We also introduce a convention about the direction of the alignment and centring motors:
 
 - z axis is in the direction of gravity. Positive direction is downwards.
-- y axis is perpendicular to the z axis and to the nominal beam direction.  Positive direction is so that x,y,z would form a right-handed coordinate system.
+- y axis is perpendicular to the z axis and to the nominal beam direction. Positive direction is so that x,y,z would form a right-handed coordinate system.
 - x axis is orthogonal to the y and z axes (and approximately parallel to the beam). Positive direction is from the sample towards the detector.
 
 Here follows the list of the fixed roles and the description of the corresponding objects, accessible via beamline.diffractometer hardware object.
