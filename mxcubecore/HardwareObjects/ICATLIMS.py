@@ -1245,9 +1245,9 @@ class ICATLIMS(AbstractLims):
             if "kappa" in motor_positions:
                 kappa_pos = round(float(motor_positions["kappa"]), 1)
                 kappa_phi_pos = round(float(motor_positions["kappa_phi"]), 1)
-                MX_kappa_settings_id = f"Kappa: {kappa_pos}, Phi: {kappa_phi_pos}"
+                mx_kappa_settings_id = f"Kappa: {kappa_pos}, Phi: {kappa_phi_pos}"
             else:
-                MX_kappa_settings_id = None
+                mx_kappa_settings_id = None
 
             metadata.update(
                 {
@@ -1272,7 +1272,7 @@ class ICATLIMS(AbstractLims):
                     "Workflow_type": workflow_params.get("workflow_type"),
                     "Workflow_id": workflow_params.get("workflow_uid"),
                     "Workflow_note": workflow_params.get("workflow_note"),
-                    "MX_kappa_settings_id": MX_kappa_settings_id,
+                    "MX_kappa_settings_id": mx_kappa_settings_id,
                     "MX_characterisation_id": workflow_params.get(
                         "workflow_characterisation_id"
                     ),
