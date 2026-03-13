@@ -720,9 +720,10 @@ class GphlWorkflow(HardwareObject):
             # Acquisition
             fields["relative_rad_sensitivity"]["readOnly"] = True
             fields["indexing_solution"] = {
-                "title": "--- Select indexing solution : ---",
+                "title": "Select indexing solution :",
                 "type": "string",
             }
+            ui_schema["crystal_data"]["sgroup"]["ui:order"].remove("crystal_thickness")
 
             # Color green (figuratively) if matches lattices
             # NBNB TBD Redo once ABI has changed
@@ -1098,7 +1099,7 @@ class GphlWorkflow(HardwareObject):
                 data_model.crystal_classes,
                 phasing=(data_model.strategy_type == "phasing"),
             )
-            info_title = "--- %s ---" % title_string
+            info_title = title_string
             lines = [
                 "Strategy '%s', for symmetry '%s'\n"
                 % (
@@ -1128,7 +1129,7 @@ class GphlWorkflow(HardwareObject):
         else:
             # Characterisation
             title_string = "Characterisation"
-            info_title = "--- GPhL Characterisation strategy ---"
+            info_title = "GPhL Characterisation strategy"
             lines = ["Experiment length: %6.1f°" % data_model.strategy_length]
             beam_energies = OrderedDict((("Characterisation", initial_energy),))
             dose_label = "Characterisation dose (MGy)"
