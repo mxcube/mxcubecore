@@ -2432,6 +2432,11 @@ class GphlWorkflow(TaskNode):
             self.cell_parameters = tpl
         self.protein_acronym = crystal.protein_acronym
         self.space_group = self.input_space_group = crystal.space_group
+        use_cell_for_processing = False
+        if self.input_space_group:
+            # Only set use_cell_for_processing to True if spacegroup is set
+            use_cell_for_processing = params.pop("use_cell_for_processing", False)
+        self.use_cell_for_processing = use_cell_for_processing
 
         # Set to current wavelength for now - nothing else available
         wavelength = HWR.beamline.energy.get_wavelength()
