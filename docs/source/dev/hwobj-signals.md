@@ -63,13 +63,13 @@ From the {py:class}`mxcubecore.BaseHardwareObjects.HardwareObjectMixin` class
 (removing extra lines for brevity):
 
 ```python
-    def emit(self, signal: Union[str, object, Any], *args) -> None:
-        signal = str(signal)
+def emit(self, signal: Union[str, object, Any], *args) -> None:
+    signal = str(signal)
 
-        if len(args) == 1:
-            if isinstance(args[0], tuple):
-                args = args[0]
-        dispatcher.send(signal, self, *args)
+    if len(args) == 1:
+        if isinstance(args[0], tuple):
+            args = args[0]
+    dispatcher.send(signal, self, *args)
 ```
 
 So, in a custom hardware object, since it inherits from
@@ -94,41 +94,41 @@ From the {py:meth}`HardwareObjectMixin.connect` method
 (removing extra lines for brevity):
 
 ```python
-    def connect(
-        self,
-        sender: Union[str, object, Any],
-        signal: Union[str, Any],
-        slot: Optional[Callable] = None,
-    ) -> None:
-        """Connect a signal sent by self to a slot.
+def connect(
+    self,
+    sender: Union[str, object, Any],
+    signal: Union[str, Any],
+    slot: Optional[Callable] = None,
+) -> None:
+    """Connect a signal sent by self to a slot.
 
-        Args:
-            sender (Union[str, object, Any]): If a string, interprted as the signal.
-            signal (Union[str, Any]): In practice a string, or dispatcher.
-            Any if sender is a string interpreted as the slot.
-            slot (Optional[Callable], optional): In practice a function or method.
-            Defaults to None.
+    Args:
+        sender (Union[str, object, Any]): If a string, interprted as the signal.
+        signal (Union[str, Any]): In practice a string, or dispatcher.
+        Any if sender is a string interpreted as the slot.
+        slot (Optional[Callable], optional): In practice a function or method.
+        Defaults to None.
 
-        Raises:
-            ValueError: If slot is None and "sender" parameter is not a string.
-        """
+    Raises:
+        ValueError: If slot is None and "sender" parameter is not a string.
+    """
 
-        if slot is None:
-            if isinstance(sender, str):
-                slot = signal
-                signal = sender
-                sender = self
-            else:
-                raise ValueError("invalid slot (None)")
+    if slot is None:
+        if isinstance(sender, str):
+            slot = signal
+            signal = sender
+            sender = self
+        else:
+            raise ValueError("invalid slot (None)")
 
-        signal = str(signal)
+    signal = str(signal)
 
-        dispatcher.connect(slot, signal, sender)
+    dispatcher.connect(slot, signal, sender)
 
-        self.connect_dict[sender] = {"signal": signal, "slot": slot}
+    self.connect_dict[sender] = {"signal": signal, "slot": slot}
 
-        if hasattr(sender, "connect_notify"):
-            sender.connect_notify(signal)
+    if hasattr(sender, "connect_notify"):
+        sender.connect_notify(signal)
 ```
 
 And an example usage on a custom hardware object would be:
@@ -336,10 +336,10 @@ Useful data types:
 ```python
 centring_status = {
     "valid": bool,
-    "startTime": str, # "%Y-%m-%d %H:%M:%S"
-    "startTime": str, # "%Y-%m-%d %H:%M:%S"
+    "startTime": str,  # "%Y-%m-%d %H:%M:%S"
+    "startTime": str,  # "%Y-%m-%d %H:%M:%S"
     "angleLimit": bool,
-    "motors": MotorsDict, # see below
+    "motors": MotorsDict,  # see below
     "accepted": bool,
 }
 
@@ -352,9 +352,9 @@ motor_positions = {
     "kappa": float,
     "kappa_phi": float,
     "phi": float,
-    "zoom": float?, # optional
+    "zoom": float,  # optional
     "beam_x": float,
-    "beam_y": float
+    "beam_y": float,
 }
 ```
 

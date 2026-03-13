@@ -124,7 +124,7 @@ The `get_object_by_role()` method requires `role` argument.
 For example, if `foo` is an instance of `Foo` class, its `bar` object can be fetched as follows:
 
 ```python
-  bar = foo.get_object_by_role("foo")
+bar = foo.get_object_by_role("bar")
 ```
 
 The `get_object_by_role` function is intended for private child objects; it is scheduled
