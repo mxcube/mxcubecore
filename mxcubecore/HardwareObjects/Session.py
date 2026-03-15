@@ -5,7 +5,9 @@ Contains information regarding the current session and methods to
 access and manipulate this information.
 """
 
+import logging
 import os
+import re
 import time
 from pathlib import Path
 from typing import Tuple
@@ -216,6 +218,20 @@ class Session(HardwareObject):
             self.get_base_data_directory(), self.processed_data_folder_name
         )
 
+    def _sanitize_subdir(self, sub_dir: str) -> str:
+        """
+        Returns a sanitized version of the subdir, removing any characters that
+        are not allowed in the path as well as leading or multiple slashes.
+
+        :param sub_dir: The subdir to sanitize
+
+        :returns: The sanitized subdir.
+        """
+        sub_dir = sub_dir.replace(":", "-")
+        sub_dir = re.sub(r"[^A-Za-z0-9_/-]", "", sub_dir)
+        sub_dir = sub_dir.lstrip("/")
+        return re.sub(r"/+", "/", sub_dir)
+
     def get_image_directory(self, sub_dir: str = "") -> str:
         """
         Returns the full path to images
@@ -225,11 +241,18 @@ class Session(HardwareObject):
 
         :returns: The full path to images.
         """
-        directory = Path(self.get_base_image_directory())
+        base_directory = Path(self.get_base_image_directory()).resolve()
 
         if sub_dir:
-            sub_dir = sub_dir.replace(" ", "").replace(":", "-")
-            directory = Path(directory, sub_dir)
+            sub_dir = self._sanitize_subdir(sub_dir)
+            directory = Path(base_directory, sub_dir)
+
+        directory = directory.resolve()
+
+        if not directory.is_relative_to(base_directory):
+            error_message = "Invalid subdirectory"
+            logging.getLogger("user_level_log").error(error_message)
+            raise PermissionError(error_message)
 
         return f"{directory}/"
 
@@ -242,11 +265,18 @@ class Session(HardwareObject):
 
         :returns: The full path to processed data.
         """
-        directory = Path(self.get_base_process_directory())
+        base_directory = Path(self.get_base_process_directory()).resolve()
 
         if sub_dir:
-            sub_dir = sub_dir.replace(" ", "").replace(":", "-")
-            directory = Path(directory, sub_dir)
+            sub_dir = self._sanitize_subdir(sub_dir)
+            directory = Path(base_directory, sub_dir)
+
+        directory = directory.resolve()
+
+        if not directory.is_relative_to(base_directory):
+            error_message = "Invalid subdirectory"
+            logging.getLogger("user_level_log").error(error_message)
+            raise PermissionError(error_message)
 
         return f"{directory}/"
 
@@ -265,7 +295,6 @@ class Session(HardwareObject):
 
         :returns: Tuple with the full path to image and processed data
         """
-
         return self.get_image_directory(subdir), self.get_process_directory(subdir)
 
     def get_default_prefix(self, sample_data_node=None, generic_name=False):

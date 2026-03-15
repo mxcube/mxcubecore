@@ -1,4 +1,5 @@
 import glob
+import logging
 import os
 import time
 from typing import Tuple
@@ -42,6 +43,13 @@ class ESRFSession(Session.Session):
 
         :returns: Tuple with the full path to image and processed data
         """
+        subdir = self._sanitize_subdir(subdir).resolve()
+
+        if not subdir.is_relative_to(self.get_base_image_directory()):
+            error_message = "Invalid subdirectory"
+            logging.getLogger("user_level_log").error(error_message)
+            raise PermissionError(error_message)
+
         folders = glob.glob(
             os.path.join(self.get_base_image_directory(), subdir) + "/run*"
         )
@@ -70,6 +78,11 @@ class ESRFSession(Session.Session):
         full_path = os.path.join(
             self.get_base_image_directory(), subdir, f"run_{run_num:02d}_{tag}/"
         )
+
+        if not subdir.is_relative_to(self.get_base_process_directory()):
+            error_message = "Invalid subdirectory"
+            logging.getLogger("user_level_log").error(error_message)
+            raise PermissionError(error_message)
 
         process_path = os.path.join(
             self.get_base_process_directory(), subdir, f"run_{run_num:02d}_{tag}/"
