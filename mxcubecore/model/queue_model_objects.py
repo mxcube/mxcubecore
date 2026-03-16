@@ -28,6 +28,9 @@ import ast
 import copy
 import logging
 import os
+from typing import Any, Optional
+
+from pydantic import BaseModel, Field
 
 from mxcubecore.model import queue_model_enumerables
 
@@ -53,6 +56,66 @@ __copyright__ = """ Copyright © 2010 - 2020 by MXCuBE Collaboration """
 __license__ = "LGPLv3+"
 
 
+class TrackingData(BaseModel):
+    """Data to connect different tasks into workflows, LIMS input, MXLIMS, etc.
+
+    NB Should be harmonised and merged with workflow_parameters"""
+
+    uuid: Optional[str] = Field(
+        default=None,
+        description="Unique identifier string for this queue_model_object",
+    )
+    workflow_name: Optional[str] = Field(
+        default=None,
+        description="Name of workflow that this queue_model_object belongs to",
+    )
+    workflow_type: Optional[str] = Field(
+        default=None,
+        description="Type of workflow that this queue_model_object belongs to",
+    )
+    workflow_uid: Optional[str] = Field(
+        default=None,
+        description="Unique identifier string for the workflow this queue_model_object belongs to",
+    )
+    location_id: Optional[str] = Field(
+        default=None,
+        description="Unique identifier string for the location / LogisticalSample "
+        "of this queue_model_object",
+    )
+    orientation_id: Optional[str] = Field(
+        default=None,
+        description="Unique identifier string for the orientation (kappa/phi/chi settings) "
+        "for this queue_model_object",
+    )
+    characterisation_id: Optional[str] = Field(
+        default=None,
+        description="Unique identifier string for characterisation data acquisition "
+        "that is relevant for this queue_model_object",
+    )
+    sweep_id: Optional[str] = Field(
+        default=None,
+        description="Unique identifier string for the sweep that this queue_model_object "
+        "is part of. Used to combine multiple Acquisitions as scans of a single sweep.",
+    )
+    scan_number: Optional[int] = Field(
+        default=None,
+        description="Ordinal number (starting at 0), for this queue_model_object "
+        "in the experiment. Defines the time ordering of acquisitions and scans.",
+    )
+    role: Optional[str] = Field(
+        default=None,
+        description="Role of this Task result within the experiment.",
+        json_schema_extra={
+            "examples": [
+                "Result",
+                "Intermediate",
+                "Characterisation",
+                "Centring",
+            ],
+        },
+    )
+
+
 class TaskNode(object):
     """
     Objects that inherit TaskNode can be added to and handled by
@@ -72,6 +135,8 @@ class TaskNode(object):
         self._requires_centring = True
         self._origin = None
         self._task_data = task_data
+        # tracking data for connecting jobs into workflows, mxlims output, etrc.
+        self.tracking_data: TrackingData = TrackingData()
 
     @property
     def task_data(self):
@@ -1957,6 +2022,10 @@ class Workflow(TaskNode):
 
 
 class GphlWorkflow(TaskNode):
+
+    # Key for gphl workflow extensions used in MXLIMS
+    GPHL_WORKFLOW_EXTENSION = "workflow.gphl.co"
+
     def __init__(self):
         TaskNode.__init__(self)
 
@@ -1971,6 +2040,7 @@ class GphlWorkflow(TaskNode):
         self.maximum_dose_budget = 20.0
         self.decay_limit = 25
         self.characterisation_budget_fraction = 0.05
+        self.enactment_id = None
 
         # string. Only active mode currently is 'MASSIF1'
         self.automation_mode = None
@@ -1989,7 +2059,6 @@ class GphlWorkflow(TaskNode):
         self.aimed_resolution = None  # from 'resolution' parameter or defaults
         self.wavelengths = ()  # from 'energies' parameters
         self.use_cell_for_processing = False
-        self.strategy_variant = None  # from 'strategy' Used for acquisition
         self.strategy_options = {}
         self.relative_rad_sensitivity = 1.0
         # Directory containing SPOT.XDS file
@@ -2026,6 +2095,9 @@ class GphlWorkflow(TaskNode):
         self.strategy_length = 0.0
         # Factor to account for transmission not being uniform
         self.dose_correction_factor = 1.0
+
+        # Scan number for MXLIMS Scan ordering
+        self.next_scan_number = 0
 
         # Workflow attributes - for passing to LIMS (conf Olof Svensson)
         self.workflow_parameters = {}
@@ -2071,15 +2143,11 @@ class GphlWorkflow(TaskNode):
         summary["wavelengths"] = tuple(x.wavelength for x in self.wavelengths)
         summary["resolution"] = self.detector_setting.resolution
         summary["orgxy"] = self.detector_setting.orgxy
-        summary["strategy_variant"] = self.strategy_options.get("variant", "not set")
+        summary["strategy_variant"] = self.strategy_variant
         summary["orientation_count"] = len(self.goniostat_translations)
         summary["characterisation_dose"] = self.characterisation_dose
         summary["dose_per_repetition"] = self.acquisition_dose
-
-        summary["total_radiation_dose"] = (
-            summary["dose_per_repetition"] * summary["repetition_count"]
-            + summary["characterisation_dose"]
-        )
+        summary["total_radiation_dose"] = self.total_radiation_dose
         summary["total_dose_budget"] = self.recommended_dose_budget()
         return summary
 
@@ -2210,11 +2278,15 @@ class GphlWorkflow(TaskNode):
                 resolution, orgxy=orgxy, Distance=distance
             )
 
+        maximum_chi = settings["maximum_chi"]
+        maximum_chi_from_limits = HWR.beamline.gphl_workflow.derive_maximum_chi()
+        if maximum_chi_from_limits:
+            maximum_chi = min(maximum_chi, maximum_chi_from_limits)
         self.strategy_options = {
             "strategy_type": self.strategy_type,
             "angular_tolerance": settings["angular_tolerance"],
             "clip_kappa": settings["angular_tolerance"],
-            "maximum_chi": settings["maximum_chi"],
+            "maximum_chi": maximum_chi,
         }
         for tag in ("allow_duplicate_orientations", "delphi_block", "stratcal_step"):
             if tag in settings:
@@ -2228,15 +2300,17 @@ class GphlWorkflow(TaskNode):
             or self.strategy_settings["variants"][0]
         )
         if self.characterisation_done:
-            self.strategy_options["variant"] = self.strategy_variant = strategy_variant
+            self.strategy_options["variant"] = strategy_variant
         elif self.wftype == "diffractcal":
-            self.strategy_options["variant"] = self.strategy_variant = strategy_variant
+            self.strategy_options["variant"] = strategy_variant
             self.initial_strategy = strategy_variant
         elif self.wftype != "transcal":
             # This must be characterisation - here we do not accept defaults
             self.initial_strategy = (
                 strategy or settings["characterisation_strategies"][0]
             )
+        if not self.tracking_data.workflow_name:
+            self.tracking_data.workflow_name = self.workflow_name
 
         # NB init_spot_dir must be re-set every time, hence no if test
         self.init_spot_dir = init_spot_dir
@@ -2345,8 +2419,9 @@ class GphlWorkflow(TaskNode):
         )
         if not self.strategy_settings:
             raise ValueError(
-                "No GΦL workflow strategy named %s found" % params["strategy_name"]
+                "No GPhL workflow strategy named %s found" % params["strategy_name"]
             )
+        self.tracking_data.workflow_type = self.strategy_type
 
         self.shape = params.get("shape", "")
         for tag in (
@@ -2490,7 +2565,7 @@ class GphlWorkflow(TaskNode):
 
     @property
     def wfname(self):
-        """ "Workflow full name, e.g. "GΦL Diffractometer calibration" """
+        """ "Workflow full name, e.g. "GPhL Diffractometer calibration" """
         return self.strategy_settings["wfname"]
 
     @property
@@ -2502,6 +2577,21 @@ class GphlWorkflow(TaskNode):
     def strategy_name(self):
         """ "Strategy full name, e.g. "Two-wavelength MAD" """
         return self.strategy_settings["title"]
+
+    @property
+    def strategy_short_name(self):
+        """ "Strategy short name, e.g. "2wvlMAD" """
+        return self.strategy_settings.get("short_name") or self.strategy_type
+
+    @property
+    def strategy_variant(self):
+        """Strategy variant"""
+        return self.strategy_options.get("variant") or "no_variant"
+
+    @property
+    def workflow_name(self):
+        """ "Full workflow name, for use e.g. for MXLIMS,experiment_strategy """
+        return ".".join(("gphl", self.strategy_short_name, self.strategy_variant))
 
     # Run name equal to base_prefix
     def get_name(self):
@@ -2534,6 +2624,13 @@ class GphlWorkflow(TaskNode):
         if energy_tags and self.characterisation_done:
             result *= len(energy_tags)
         return result
+
+    @property
+    def total_radiation_dose(self):
+        """Total radiation dose for entire workflow"""
+        return (
+            self.acquisition_dose * self.repetition_count + self.characterisation_dose
+        )
 
     def calc_maximum_dose(self, energy=None, exposure_time=None, image_width=None):
         """Dose at transmission=100 for given energy, exposure time and image width

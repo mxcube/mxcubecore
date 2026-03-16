@@ -272,7 +272,7 @@ a minikappa-correction-xml file
     parser.add_argument(
         "--minikappa_config",
         metavar="minikappa_config",
-        help="minikappa-correction.xmll file\n",
+        help="minikappa-correction.xml file\n",
     )
 
     argsobj = parser.parse_args()

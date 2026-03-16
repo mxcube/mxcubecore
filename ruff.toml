@@ -10,6 +10,7 @@ ignore = [
     "ANN",  # flake8-annotations: ignored, too many hits (21744)
     "COM812",  # Ruff recommends to ignore this linter rule when using its formatter
     "D",  # pydocstyle: ignored, too many hits (16292)
+    "ICN001", # Widely flouted, and anyway of minor importance. Whoever activates it should also fix teh code
     "N818", # error-suffix-on-exception-name: rather pointless outside of Python itself
     "N999",  # invalid-module-name: ignored since we have many modules with `PascalCase`
     "PLR2004",  # magic-value-comparison: ignored, too many hits (249)
@@ -173,7 +174,6 @@ convention = "google"
     "B904",
     "FBT003",
     "FIX002",
-    "ICN001",
     "N806",
     "N813",
     "N815",
@@ -603,9 +603,6 @@ convention = "google"
     "SIM118",
     "TRY002",
 ]
-"mxcubecore/HardwareObjects/Bliss.py" = [
-    "ICN001",
-]
 "mxcubecore/HardwareObjects/BlissActuator.py" = [
     "ARG002",
     "B028",
@@ -712,7 +709,6 @@ convention = "google"
     "E741",
     "FBT002",
     "G002",
-    "ICN001",
     "N802",
     "N803",
     "N806",
@@ -1258,7 +1254,6 @@ convention = "google"
     "FBT002",
     "FBT003",
     "G002",
-    "ICN001",
     "ISC003",
     "PLR0912",
     "PLR0915",
@@ -1854,7 +1849,6 @@ convention = "google"
     "FIX004",
     "G002",
     "G003",
-    "ICN001",
     "ISC003",
     "PLR0911",
     "PLR0912",
@@ -2357,7 +2351,6 @@ convention = "google"
     "ERA001",
     "FBT002",
     "FBT003",
-    "ICN001",
     "N802",
     "N806",
     "PLR0913",
@@ -2519,7 +2512,6 @@ convention = "google"
     "FBT003",
     "FIX002",
     "G002",
-    "ICN001",
     "N802",
     "N803",
     "N806",
@@ -2929,7 +2921,6 @@ convention = "google"
     "FBT003",
     "FLY002",
     "G002",
-    "ICN001",
     "N802",
     "N806",
     "N815",
@@ -3292,7 +3283,6 @@ convention = "google"
     "ERA001",
     "F821",
     "G002",
-    "ICN001",
     "N802",
     "N803",
     "N815",
@@ -4264,7 +4254,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/mockup/OnlineProcessingMockup.py" = [
     "C901",
     "FBT003",
-    "ICN001",
     "NPY002",
     "RET508",
     "SIM113",
@@ -4291,7 +4280,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/mockup/PlottingMockup.py" = [
     "ARG002",
-    "ICN001",
     "NPY002",
 ]
 "mxcubecore/HardwareObjects/mockup/ProcedureMockup.py" = [
@@ -4338,7 +4326,6 @@ convention = "google"
     "BLE001",
     "ERA001",
     "G002",
-    "ICN001",
     "N802",
     "N806",
     "NPY002",
@@ -4363,7 +4350,6 @@ convention = "google"
     "F841",
     "FBT002",
     "G002",
-    "ICN001",
     "N802",
     "N803",
     "N806",
@@ -4418,7 +4404,6 @@ convention = "google"
     "C901",
     "F841",
     "FBT002",
-    "ICN001",
     "N813",
     "PLR0912",
     "PLR0913",
@@ -4664,7 +4649,6 @@ convention = "google"
     "ERA001",
     "F403",
     "F405",
-    "ICN001",
     "N802",
     "N803",
     "N815",

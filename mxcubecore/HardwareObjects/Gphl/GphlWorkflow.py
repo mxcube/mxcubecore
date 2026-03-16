@@ -44,6 +44,7 @@ import f90nml
 import gevent
 import gevent.event
 import gevent.queue
+import numpy
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import (
@@ -268,6 +269,7 @@ class GphlWorkflow(HardwareObject):
             "WorkflowAborted": self.workflow_aborted,
             "WorkflowCompleted": self.workflow_completed,
             "WorkflowFailed": self.workflow_failed,
+            "StartEnactment": self.start_enactment,
         }
 
         # Set standard configurable file paths
@@ -425,7 +427,7 @@ class GphlWorkflow(HardwareObject):
             lattice_tags = [""] + list(lattice2point_group_tags)
             point_groups = [""] + all_point_group_tags
         schema = {
-            "title": "GΦL Pre-strategy parameters",
+            "title": "GPhL Pre-strategy parameters",
             "type": "object",
             "properties": {},
         }
@@ -563,6 +565,8 @@ class GphlWorkflow(HardwareObject):
                 energy_tag = ll0[0]
             else:
                 energy_tag = self.config.settings["default_beam_energy_tag"]
+
+            fields["use_cell_for_processing"]["title"] = "Use for processing"
         else:
             # Characterisation
             strategies = self.config.settings["characterisation_strategies"]
@@ -765,7 +769,6 @@ class GphlWorkflow(HardwareObject):
             dispatcher.connect(
                 self.receive_pre_strategy_data,
                 self.PARAMETER_RETURN_SIGNAL,
-                dispatcher.Any,
             )
             responses = dispatcher.send(
                 self.PARAMETERS_NEEDED,
@@ -788,7 +791,6 @@ class GphlWorkflow(HardwareObject):
             dispatcher.disconnect(
                 self.receive_pre_strategy_data,
                 self.PARAMETER_RETURN_SIGNAL,
-                dispatcher.Any,
             )
             self._return_parameters = None
 
@@ -903,6 +905,32 @@ class GphlWorkflow(HardwareObject):
 
         self._workflow_queue = gevent.queue.Queue()
 
+    def start_enactment(self, enactment_id: str, correlation_id: str):
+        """Set enactment_id and initialise MXLIMS MxExperimentMessage"""
+        data_model = self._queue_entry.get_data_model()
+        tracking_data = data_model.tracking_data
+        workflow_parameters = data_model.workflow_parameters
+        tracking_data.uuid = enactment_id
+        tracking_data.workflow_uid = (
+            workflow_parameters.get("workflow_uid") or enactment_id
+        )
+        # NB if it is not set it will be overwritten later
+        tracking_data.workflow_name = workflow_parameters.get("workflow_name")
+        tracking_data.workflow_type = (
+            workflow_parameters.get("workflow_type") or data_model.strategy_type
+        )
+        tracking_data.location_id = workflow_parameters.get(
+            "workflow_position_id"
+        ) or str(uuid.uuid1())
+        # NB first orientation only:
+        tracking_data.orientation_id = workflow_parameters.get(
+            "workflow_kappa_settings_id"
+        )
+        tracking_data.characterisation_id = workflow_parameters.get(
+            "characterisation_id"
+        )
+        self._queue_entry.init_mxlims()
+
     def execute(self):
         if self._workflow_queue is None:
             return
@@ -938,14 +966,14 @@ class GphlWorkflow(HardwareObject):
 
                 tt0 = self._workflow_queue.get()
                 if tt0 is StopIteration:
-                    self.log.debug("GΦL queue StopIteration")
+                    self.log.debug("GPhL queue StopIteration")
                     break
 
                 message_type, payload, correlation_id, result_list = tt0
                 func = self._processor_functions.get(message_type)
                 if func is None:
                     self.log.error(
-                        "GΦL message %s not recognised by MXCuBE. Terminating...",
+                        "GPhL message %s not recognised by MXCuBE. Terminating...",
                         message_type,
                     )
                     break
@@ -953,7 +981,7 @@ class GphlWorkflow(HardwareObject):
                     if not self.config.settings.get("suppress_external_log_output"):
                         func(payload, correlation_id)
                 else:
-                    self.log.info("GΦL queue processing %s", message_type)
+                    self.log.info("GPhL queue processing %s", message_type)
                     response = func(payload, correlation_id)
                     if result_list is not None:
                         result_list.append((response, correlation_id))
@@ -998,18 +1026,18 @@ class GphlWorkflow(HardwareObject):
     # Message handlers:
 
     def workflow_aborted(self, payload=None, correlation_id=None):
-        logging.getLogger("user_level_log").warning("GΦL Workflow aborted.")
+        logging.getLogger("user_level_log").warning("GPhL Workflow aborted.")
         self.update_specific_state(self.SPECIFIC_STATES.ABORTED)
         if self._workflow_queue:
             self._workflow_queue.put_nowait(StopIteration)
 
     def workflow_completed(self, payload=None, correlation_id=None):
-        logging.getLogger("user_level_log").info("GΦL Workflow completed.")
+        logging.getLogger("user_level_log").info("GPhL Workflow completed.")
         self.update_specific_state(self.SPECIFIC_STATES.COMPLETED)
         self._workflow_queue.put_nowait(StopIteration)
 
     def workflow_failed(self, payload=None, correlation_id=None):
-        logging.getLogger("user_level_log").warning("GΦL Workflow failed.")
+        logging.getLogger("user_level_log").warning("GPhL Workflow failed.")
         self.update_specific_state(self.SPECIFIC_STATES.FAULT)
         self._workflow_queue.put_nowait(StopIteration)
 
@@ -1055,9 +1083,11 @@ class GphlWorkflow(HardwareObject):
         )
 
         grouped_sweeps = []
+        last = {}
         inverse_beam = False
         for sweep in geometric_strategy.get_ordered_sweeps():
-            last = grouped_sweeps and grouped_sweeps[-1]
+            if grouped_sweeps:
+                last = grouped_sweeps[-1]
             if last:
                 if sweep.sweepGroup == last["group_no"]:
                     inverse_beam = True
@@ -1123,7 +1153,7 @@ class GphlWorkflow(HardwareObject):
         else:
             # Characterisation
             title_string = "Characterisation"
-            info_title = "--- GΦL Characterisation strategy ---"
+            info_title = "--- GPhL Characterisation strategy ---"
             lines = ["Experiment length: %6.1f°" % data_model.strategy_length]
             beam_energies = OrderedDict((("Characterisation", initial_energy),))
             dose_label = "Characterisation dose (MGy)"
@@ -1208,7 +1238,7 @@ class GphlWorkflow(HardwareObject):
             reslimits = (0.5, 5.0)
 
         schema = {
-            "title": "GΦL %s parameters" % title_string,
+            "title": "GPhL %s parameters" % title_string,
             "type": "object",
             "properties": {},
         }
@@ -1434,7 +1464,6 @@ class GphlWorkflow(HardwareObject):
             dispatcher.connect(
                 self.receive_pre_collection_data,
                 self.PARAMETER_RETURN_SIGNAL,
-                dispatcher.Any,
             )
             responses = dispatcher.send(
                 self.PARAMETERS_NEEDED,
@@ -1454,7 +1483,6 @@ class GphlWorkflow(HardwareObject):
             dispatcher.disconnect(
                 self.receive_pre_collection_data,
                 self.PARAMETER_RETURN_SIGNAL,
-                dispatcher.Any,
             )
             self._return_parameters = None
 
@@ -1678,11 +1706,11 @@ class GphlWorkflow(HardwareObject):
         # Enqueue data collection
         if gphl_workflow_model.characterisation_done:
             # Data collection TODO: Use workflow info to distinguish
-            new_dcg_name = "GΦL Data Collection"
+            new_dcg_name = "GPhL Data Collection"
         elif wftype == "diffractcal":
-            new_dcg_name = "GΦL DiffractCal"
+            new_dcg_name = "GPhL DiffractCal"
         else:
-            new_dcg_name = "GΦL Characterisation"
+            new_dcg_name = "GPhL Characterisation"
         self.log.debug("setup_data_collection %s", new_dcg_name)
         new_dcg_model = queue_model_objects.TaskGroup()
         new_dcg_model.set_enabled(True)
@@ -2017,7 +2045,8 @@ class GphlWorkflow(HardwareObject):
         last_orientation = ()
         maxdev = -1
         snapshotted_rotation_ids = set()
-        scan_numbers = {}
+        characterisation_id = None
+        # scan_numbers = {}
         for scan in scans:
             sweep = scan.sweep
             acq = queue_model_objects.Acquisition()
@@ -2097,16 +2126,23 @@ class GphlWorkflow(HardwareObject):
             path_template.run_number = int(ss0) if ss0 else 1
             path_template.start_num = acq_parameters.first_image
             path_template.num_files = acq_parameters.num_images
-            if (
-                path_template.suffix.endswith("h5")
-                and gphl_workflow_model.characterisation_done
-                and len(sweep.scans) > 1
-            ):
-                # Add scan number to prefix for interleaved hdf5 files (only)
-                # NBNB Temporary fix, pending solution to hdf5 interleaving problem
-                scan_numbers[prefix] = scan_no = scan_numbers.get(prefix, 0) + 1
-                prefix += "_s%s" % scan_no
+            # if (
+            #     path_template.suffix.endswith("h5")
+            #     and gphl_workflow_model.characterisation_done
+            #     and len(sweep.scans) > 1
+            # ):
+            #     # Add scan number to prefix for interleaved hdf5 files (only)
+            #     # NBNB Temporary fix, pending solution to hdf5 interleaving problem
+            #     scan_numbers[prefix] = scan_no = scan_numbers.get(prefix, 0) + 1
+            #     prefix += "_s%s" % scan_no
             path_template.base_prefix = prefix
+            logging.getLogger("HWR").info(
+                "Setting up sweep, image file name is %s",
+                path_template.get_image_file_name(),
+            )
+            logging.getLogger("HWR").debug(
+                "Path template contents: %s", (path_template.as_dict())
+            )
 
             key = (
                 path_template.base_prefix,
@@ -2117,30 +2153,50 @@ class GphlWorkflow(HardwareObject):
 
             # Handle orientations and (re) centring
             goniostatRotation = sweep.goniostatSweepSetting
-            rotation_id = orientation_id = goniostatRotation.id_
+            rotation_id = goniostatRotation.id_
 
-            model_workflow_parameters = gphl_workflow_model.workflow_parameters
-            if not model_workflow_parameters.get("workflow_name"):
-                model_workflow_parameters["workflow_name"] = gphl_workflow_model.wfname
-            if not model_workflow_parameters.get("workflow_type"):
-                model_workflow_parameters["workflow_type"] = gphl_workflow_model.wftype
-            if not model_workflow_parameters.get("workflow_uid"):
-                model_workflow_parameters["workflow_uid"] = str(
-                    HWR.beamline.gphl_connection._enactment_id
-                )
-            if not model_workflow_parameters.get("workflow_position_id"):
-                # As of 20240911 all workflows use a single position,
-                model_workflow_parameters["workflow_position_id"] = str(uuid.uuid1())
+            # handle mxlims
+            # handle workflow parameters
+            new_workflow_parameters = gphl_workflow_model.workflow_parameters.copy()
+            wf_tracking_data = gphl_workflow_model.tracking_data
+            data_collection = queue_model_objects.DataCollection([acq], crystal)
+            # Workflow parameters for ICAT / external workflow
+            # The 'if' statement is to allow this to work in multiple versions
+            data_collection.workflow_parameters = new_workflow_parameters
+            tracking_data = data_collection.tracking_data
+            tracking_data.uuid = str(scan.id_)
+            tracking_data.workflow_name = wf_tracking_data.workflow_name
+            tracking_data.workflow_type = wf_tracking_data.workflow_type
+            tracking_data.workflow_uid = wf_tracking_data.uuid
+            tracking_data.location_id = wf_tracking_data.location_id
+            tracking_data.orientation_id = rotation_id
             if (
                 gphl_workflow_model.wftype == "acquisition"
                 and not gphl_workflow_model.characterisation_done
-                and not model_workflow_parameters.get("workflow_characterisation_id")
             ):
-                model_workflow_parameters["workflow_characterisation_id"] = str(
-                    sweep.id_
-                )
-            model_workflow_parameters["workflow_kappa_settings_id"] = str(
-                orientation_id
+                if characterisation_id is None:
+                    # NB this is a hack - forces characterisation to be a single sweep
+                    characterisation_id = str(sweep.id_)
+                tracking_data.characterisation_id = characterisation_id
+                wf_tracking_data.characterisation_id = characterisation_id
+                tracking_data.role = "Characterisation"
+                tracking_data.sweep_id = characterisation_id
+            else:
+                tracking_data.characterisation_id = wf_tracking_data.characterisation_id
+                tracking_data.role = "Result"
+                tracking_data.sweep_id = str(sweep.id_)
+            tracking_data.scan_number = gphl_workflow_model.next_scan_number
+            gphl_workflow_model.next_scan_number += 1
+
+            new_workflow_parameters["workflow_name"] = tracking_data.workflow_name
+            new_workflow_parameters["workflow_type"] = tracking_data.workflow_type
+            new_workflow_parameters["workflow_uid"] = tracking_data.workflow_uid
+            new_workflow_parameters["workflow_position_id"] = tracking_data.location_id
+            new_workflow_parameters["characterisation_id"] = (
+                tracking_data.characterisation_id
+            )
+            new_workflow_parameters["workflow_kappa_settings_id"] = (
+                tracking_data.orientation_id
             )
 
             initial_settings = sweep.get_initial_settings()
@@ -2168,6 +2224,8 @@ class GphlWorkflow(HardwareObject):
                     {goniostatRotation.scanAxis: scan.start}
                 )
                 orientation_id = gphl_workflow_model.current_rotation_id
+                new_workflow_parameters["workflow_kappa_settings_id"] = orientation_id
+                tracking_data.orientation_id = orientation_id
             else:
                 # New sweep, or recentring_mode == scan
                 # # We need to recentre
@@ -2207,11 +2265,6 @@ class GphlWorkflow(HardwareObject):
                     acq_parameters.num_images_per_trigger * acq_parameters.osc_range
                     - sweep_offset
                 )
-            data_collection = queue_model_objects.DataCollection([acq], crystal)
-            # Workflow parameters for ICAT / external workflow
-            # The 'if' statement is to allow this to work in multiple versions
-            if hasattr(data_collection, "workflow_parameters"):
-                data_collection.workflow_parameters.update(model_workflow_parameters)
             data_collections.append(data_collection)
             data_collection.set_enabled(True)
             data_collection.ispyb_group_data_collections = True
@@ -2224,10 +2277,10 @@ class GphlWorkflow(HardwareObject):
 
         # debug
         fmt = "--> %s: %s"
-        print("GPHL workflow. Collect with parameters:")
+        logging.getLogger("HWR").debug("GPHL workflow. Collect with parameters:")
         for item in gphl_workflow_model.parameter_summary().items():
-            print(fmt % item)
-        print(fmt % ("sweep_count", len(sweeps)))
+            logging.getLogger("HWR").debug(fmt % item)
+        logging.getLogger("HWR").debug(fmt % ("sweep_count", len(sweeps)))
 
         data_collection_entry = queue_manager.get_entry_with_model(
             self._data_collection_group
@@ -2464,7 +2517,7 @@ class GphlWorkflow(HardwareObject):
 
         if self._data_collection_group is None:
             gphl_workflow_model = self._queue_entry.get_data_model()
-            new_dcg_name = "GΦL Translational calibration"
+            new_dcg_name = "GPhL Translational calibration"
             new_dcg_model = queue_model_objects.TaskGroup()
             new_dcg_model.set_enabled(True)
             new_dcg_model.set_name(new_dcg_name)
@@ -2577,7 +2630,7 @@ class GphlWorkflow(HardwareObject):
             summed_angle = 0.0
             for snapshot_index in range(number_of_snapshots):
                 if snapshot_index:
-                    HWR.beamline.diffractometer.move_omega_relative(90)
+                    HWR.beamline.diffractometer.omega.set_value_relative(90)
                     summed_angle += 90
                 snapshot_filename = filename_template % (
                     file_name_prefix,
@@ -2588,7 +2641,7 @@ class GphlWorkflow(HardwareObject):
                 self.log.debug("Centring snapshot stored at %s", snapshot_filename)
                 collect_hwobj._take_crystal_snapshot(snapshot_filename)
             if summed_angle:
-                HWR.beamline.diffractometer.move_omega_relative(-summed_angle)
+                HWR.beamline.diffractometer.omega.set_value_relative(-summed_angle)
 
     def execute_sample_centring(
         self, centring_entry, goniostatRotation, requestedRotationId=None
@@ -2854,7 +2907,7 @@ class GphlWorkflow(HardwareObject):
                     result.append(data)
         return result
 
-    def get_emulation_sample_dir(self, sample_name=None):
+    def get_emulation_sample_dir(self, sample_name=None) -> str:
         """If sample is a test data set for emulation, get test data directory
         Args:
          sample_name Optional[str]:
@@ -2893,7 +2946,7 @@ class GphlWorkflow(HardwareObject):
                 raise ValueError(
                     "Emulator crystal data file %s does not exist" % crystal_file
                 )
-            # in spite of the simcal_crystal_list name this returns an OrderdDict
+            # in spite of the simcal_crystal_list name this returns an OrderedDict
             crystal_data = f90nml.read(crystal_file)["simcal_crystal_list"]
             if isinstance(crystal_data, list):
                 crystal_data = crystal_data[0]
@@ -2929,7 +2982,7 @@ class GphlWorkflow(HardwareObject):
                     update_dict = self.update_reference_files(parameters)
             except:
                 self.log.error(
-                    "Error in GΦL parameter update for %s, Continuing ...",
+                    "Error in GPhL parameter update for %s, Continuing ...",
                     instruction,
                 )
             finally:
@@ -2976,7 +3029,7 @@ class GphlWorkflow(HardwareObject):
                     update_dict = self.adjust_dose(parameters)
             except:
                 self.log.error(
-                    "Error in GΦL parameter update for %s, Continuing ...",
+                    "Error in GPhL parameter update for %s, Continuing ...",
                     instruction,
                 )
             finally:
@@ -3190,6 +3243,32 @@ class GphlWorkflow(HardwareObject):
                     dd0["highlight"] = "OK"
                     result["dose_budget"] = {"highlight": "OK"}
         return result
+
+    def derive_maximum_chi(self) -> float | None:
+        """Give maximum chi value (in degrees) derived from kappa motor limits
+        and rotation axis directions"""
+        margin = 0.1  # safety margin in degrees, to avoid overrunning kappa limit
+        omega_axis = self.rotation_axes.get("phi")
+        kappa_axis = self.rotation_axes.get("kappa")
+        # First make sure we have a kappa axis, just in case
+        if omega_axis and kappa_axis:
+            omega_axis = numpy.array(omega_axis)
+            omega_axis /= numpy.linalg.norm(omega_axis)
+            kappa_axis = numpy.array(kappa_axis)
+            kappa_axis /= numpy.linalg.norm(kappa_axis)
+            cos_alpha = omega_axis.dot(kappa_axis)
+            result = 2 * math.acos(cos_alpha)
+            kappa_limits = HWR.beamline.diffractometer.kappa.get_limits()
+            if None not in kappa_limits:
+                kappa_max = max(kappa_limits)
+                if kappa_max and kappa_max < 180:
+                    kappa_max = math.radians(kappa_max)
+                    result = math.acos(
+                        1 + (1 - cos_alpha**2) * (math.cos(kappa_max) - 1)
+                    )
+            return math.degrees(result) - margin
+        else:
+            return None
 
 
 def validate_url(value: str) -> bool:

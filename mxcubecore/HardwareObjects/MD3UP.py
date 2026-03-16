@@ -88,7 +88,7 @@ class MD3UP(Microdiff.Microdiff):
         self.scan_nb_frames = number_of_images
 
     def oscilScan(self, start, end, exptime, number_of_images, wait=False):
-        if self.in_plate_mode():
+        if self.in_plate_mode:
             scan_speed = math.fabs(end - start) / exptime
             low_lim, hi_lim = map(float, self.scanLimits(scan_speed))
             if start < low_lim:
@@ -124,7 +124,7 @@ class MD3UP(Microdiff.Microdiff):
     def oscilScan4d(
         self, start, end, exptime, number_of_images, motors_pos, wait=False
     ):
-        if self.in_plate_mode():
+        if self.in_plate_mode:
             scan_speed = math.fabs(end - start) / exptime
             low_lim, hi_lim = map(float, self.scanLimits(scan_speed))
             if start < low_lim:

@@ -209,7 +209,7 @@ configuration:
   #        Set in gph-setup.xml
   # gphl_subdir is not a workflow option. It is set in gphl-setup.xml
   workflows:
-    "GΦL Acquisition Workflow":
+    "GPhL Acquisition Workflow":
       wfpath: Gphl
       wftype: acquisition
       requires:
@@ -239,10 +239,10 @@ configuration:
           wf_selection: mxexpt
           variants:
             - advanced
-            - minimal
+            # - minimal
             - basic
-            - ultralong
-            - twotransmission
+            # - ultralong
+            # - twotransmission
           options:
             # Filename pattern name for normal data collections
             pattern: interleaved
@@ -257,7 +257,7 @@ configuration:
           variants:
             - advanced
             - basic
-            - ultralong
+            # - ultralong
           documentation: |
             Single wavelength SAD data acquisition, advanced strategy.
             Aligned on even symetry axes or inverse beam.
@@ -334,7 +334,7 @@ configuration:
             # File name pattern for characterisation data collection
             charpattern: generic
 
-    "GΦL Diffractometer calibration":
+    "GPhL Diffractometer calibration":
       wfpath: Gphl
       wftype: diffractcal
       requires:
@@ -382,7 +382,7 @@ configuration:
             # # Path of file to dump persisted instrumentation configuration. OPTIONAL
             # instcfgout: gphl_diffractcal_out.nml
 
-    "GΦL Translational Calibration":
+    "GPhL Translational Calibration":
       wfpath: Gphl
       wftype: transcal
       requires:

@@ -22,13 +22,17 @@ inherits QueueEntryContainer. This makes it possible to arrange and
 execute queue entries in a hierarchical manner.
 """
 
+from __future__ import annotations
+
 import copy
 import logging
 import sys
 import time
 import traceback
 from collections import namedtuple
+from datetime import datetime, timezone
 from enum import Enum
+from typing import TYPE_CHECKING, Optional
 
 import gevent
 
@@ -39,11 +43,14 @@ from mxcubecore.model.queue_model_enumerables import (
     CENTRING_METHOD,
     EXPERIMENT_TYPE,
 )
+from mxcubecore.utils import mxutils
+
+if TYPE_CHECKING:
+    from mxlims.mxpydantic.objects.MxExperiment import MxExperiment
 
 __credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3+"
 __category__ = "General"
-
 
 status_list = ["SUCCESS", "WARNING", "FAILED", "SKIPPED", "RUNNING", "NOT_EXECUTED"]
 QueueEntryStatusType = namedtuple("QueueEntryStatusType", status_list)
@@ -178,11 +185,11 @@ class QueueEntryContainer(object):
         Throws a ValueError if one of the entries does not exist in the
         queue.
 
-        :param queue_entry: Queue entry to swap
-        :type queue_entry: QueueEntry
+        :param queue_entry_a: Queue entry to swap
+        :type queue_entry_a: QueueEntry
 
-        :param queue_entry: Queue entry to swap
-        :type queue_entry: QueueEntry
+        :param queue_entry_b: Queue entry to swap
+        :type queue_entry_b: QueueEntry
         """
         index_a = None
         index_b = None
@@ -222,7 +229,6 @@ class QueueEntryContainer(object):
     def get_queue_controller(self):
         """
         :returns: The queue controller
-        :type queue_controller: QueueController
         """
         return self._queue_controller
 
@@ -259,6 +265,9 @@ class BaseQueueEntry(QueueEntryContainer):
         self.status = QUEUE_ENTRY_STATUS.NOT_EXECUTED
         self.type_str = ""
         self._data_model.lims_session_id = HWR.beamline.session.session_id
+
+        # MXLIMS record for currently running experiment
+        self._mxlims_job: Optional[MxExperiment] = None
 
     def is_failed(self):
         """Returns True if failed"""
@@ -332,6 +341,17 @@ class BaseQueueEntry(QueueEntryContainer):
         """
         self._checked_for_exec = state
 
+    def get_mxlims_job(self) -> Optional[MxExperiment]:
+        """Get MxExperiment MXLIMS record if the entry is currently running"""
+        obj = self
+        result = None
+        container = obj.get_container()
+        while result is None and container is not None:
+            result = obj._mxlims_job
+            obj = container
+            container = obj.get_container()
+        return result
+
     def execute(self):
         """
         Execute method, should be overridden my subclasses, defines
@@ -368,6 +388,12 @@ class BaseQueueEntry(QueueEntryContainer):
         self.get_data_model().set_running(False)
         self.get_data_model().set_enabled(False)
         self.set_enabled(False)
+
+        mxlims_job = self._mxlims_job
+        if mxlims_job is not None:
+            self._mxlims_job = None
+            mxlims_job.end_time = datetime.now(timezone.utc)
+            mxutils.export_mxjob(mxlims_job, None)
 
         # self._set_background_color()
 

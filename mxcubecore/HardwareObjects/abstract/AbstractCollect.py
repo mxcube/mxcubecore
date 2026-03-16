@@ -744,7 +744,7 @@ class AbstractCollect(HardwareObject, object):
 
         self.current_dc_parameters["blSampleId"] = sample_id
 
-        if HWR.beamline.diffractometer.in_plate_mode():
+        if HWR.beamline.diffractometer.in_plate_mode:
             # TODO store plate location in lims
             pass
         elif HWR.beamline.sample_changer:
@@ -821,10 +821,10 @@ class AbstractCollect(HardwareObject, object):
                 ] = snapshot_filename
                 self._take_crystal_snapshot(snapshot_filename)
                 if number_of_snapshots > 1:
-                    HWR.beamline.diffractometer.move_omega_relative(90)
+                    HWR.beamline.diffractometer.omega.set_value_relative(90)
 
         if (
-            not HWR.beamline.diffractometer.in_plate_mode()
+            not HWR.beamline.diffractometer.in_plate_mode
             and self.current_dc_parameters.get("take_video")
         ):
             # Add checkbox to allow enable/disable creation of gif
