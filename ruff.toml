@@ -627,7 +627,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/BlissMotor.py" = [
     "PERF203",
-    "PERF401",
     "RUF012",
 ]
 "mxcubecore/HardwareObjects/BlissMotorWPositions.py" = [

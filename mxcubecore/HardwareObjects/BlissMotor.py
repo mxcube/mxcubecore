@@ -138,10 +138,7 @@ class BlissMotor(AbstractMotor):
             (list): Motor states as list of BlissMotorStates enum
         """
         state = self.motor_obj.state.current_states_names
-        state_list = []
-        for _state in state:
-            state_list.append(self._state2enum(_state)[1])
-        return state_list
+        return [self._state2enum(x)[1] for x in state]
 
     def _update_state(self, state=None):
         """Check if the state has changed. Emits signal stateChanged.
@@ -171,13 +168,18 @@ class BlissMotor(AbstractMotor):
         Returns:
             (tuple): two floats tuple (low limit, high limit).
         """
-        # no limit = None, but None is a problematic value
-        # for some GUI components (like MotorSpinBox), so
-        # instead we return very large value.
+        # no limit = None, but None is a problematic value for some
+        # GUI components (like MotorSpinBox), so instead we return
+        # very large value. The same is if limits contain -inf or +inf.
 
         _low, _high = self.motor_obj.limits
-        _low = _low if _low else -1e6
-        _high = _high if _high else 1e6
+        _low = _low or -1e6
+        _high = _high or 1e6
+        if _low in (float("-inf"), float("+inf")):
+            _low = -1e6 if _low < 0 else 1e6
+        if _high in (float("-inf"), float("+inf")):
+            _high = -1e6 if _high < 0 else 1e6
+
         self._nominal_limits = (_low, _high)
         return self._nominal_limits
 
