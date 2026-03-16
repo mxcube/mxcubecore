@@ -27,6 +27,7 @@ from __future__ import (
     unicode_literals,
 )
 
+from datetime import datetime, timezone
 import logging
 import os
 import signal
@@ -640,7 +641,32 @@ class GphlWorkflowConnection(HardwareObject):
         )
 
     def _RequestConfiguration_to_python(self, py4jRequestConfiguration):
-        return GphlMessages.RequestConfiguration()
+        py4jWorkflowVersion = py4jRequestConfiguration.getWorkflowVersion()
+        workflowVersion = self._SimpleVersion_to_string(py4jWorkflowVersion)
+        metadata = py4jWorkflowVersion.getBuildmetadata()
+        if metadata:
+            # NBuildtime is not used nnow, but could be in later versions
+            # NB a himan-readable buildtime is part of the metadata
+            # buildtime = py4jWorkflowVersion.getBuildTime()
+            if not py4jWorkflowVersion.isClean():
+                metadata += "-dirty"
+            workflowVersion = "+".join((workflowVersion, metadata))
+        abiVersion = self._SimpleVersion_to_string(
+            py4jRequestConfiguration.getAbiVersion()
+        )
+        return GphlMessages.RequestConfiguration(workflowVersion, abiVersion)
+
+    def _SimpleVersion_to_string(self, py4jSimpleVersion):
+        parts = [
+            str(py4jSimpleVersion.getMajor()),
+            str(py4jSimpleVersion.getMinor()),
+            str(py4jSimpleVersion.getPatch()),
+        ]
+        xx0 = py4jSimpleVersion.getPrerelease()
+        result = ".".join(parts)
+        if xx0:
+            result += xx0.toString()
+        return result
 
     def _ObtainPriorInformation_to_python(self, py4jObtainPriorInformation):
         return GphlMessages.ObtainPriorInformation()

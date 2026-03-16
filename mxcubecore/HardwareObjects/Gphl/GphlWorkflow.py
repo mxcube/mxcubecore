@@ -38,6 +38,7 @@ import subprocess
 import time
 import uuid
 from collections import OrderedDict
+from packaging.version import Version
 from urllib.parse import urlparse
 
 import f90nml
@@ -62,6 +63,7 @@ from mxcubecore.queue_entry import (
     QueueAbortedException,
 )
 
+gphlVersion = Version("2.2.0+202603110039.0-gf763e76")
 
 @enum.unique
 class GphlWorkflowStates(enum.Enum):
@@ -69,7 +71,7 @@ class GphlWorkflowStates(enum.Enum):
     BUSY = "Workflow is executing"
     READY = "Workflow is idle and ready to start"
     FAULT = "Workflow shutting down from an error"
-    ABORTED = "HWorkflow shutting down after an abort or stop command
+    ABORTED = "Workflow shutting down after an abort or stop command
     COMPLETED = "Workflow has finished successfully"
     UNKNOWN = "Workflow state unknown"
     """
@@ -1039,6 +1041,26 @@ class GphlWorkflow(HardwareObject):
         self.log.info("%s : FINISHED", name)
 
     def get_configuration_data(self, payload, correlation_id):
+        wf_version_str = payload.workflowVersion
+        abi_version_str = payload.abiVersion
+        logging.getLogger("user_level_log").info(
+            "GPhL Workflow %s, beamline interface: %s"
+            % (wf_version_str, abi_version_str)
+        )
+        if wf_version_str and gphlVersion:
+            wf_release = Version(wf_version_str).release
+            gphl_release = gphlVersion.release
+            if wf_release[0] != gphl_release[0]:
+                raise ValueError(
+                    "MXCuBE gphl version %s incompatible with GPhL release version %s"
+                    % (gphlVersion, wf_version_str)
+                )
+
+            elif wf_release < gphl_release:
+                raise ValueError(
+                    "GPhL release version %s older than MXCuBE gphl version %s."
+                    % (wf_version_str, gphlVersion) + "Upgrade to new GPhL release"
+                )
         return GphlMessages.ConfigurationData(self.file_paths["gphl_beamline_config"])
 
     def query_collection_strategy(self, geometric_strategy):

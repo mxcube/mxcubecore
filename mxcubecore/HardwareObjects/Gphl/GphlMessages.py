@@ -252,7 +252,20 @@ class IdentifiedElement(MessageData):
 class RequestConfiguration(Payload):
     """Configuration request message"""
 
+    def __init__(self, workflowVersion: str|None, abiVersion:str|None):
+        super().__init__()
+        self._workflowVersion = workflowVersion
+        self._abiVersion = abiVersion
+
     INTENT = "COMMAND"
+
+    @property
+    def workflowVersion(self):
+        return self._workflowVersion
+
+    @property
+    def abiVersion(self):
+        return self._abiVersion
 
 
 class ObtainPriorInformation(Payload):
