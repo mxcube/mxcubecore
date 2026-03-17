@@ -64,27 +64,6 @@ class NICOSActuator(AbstractActuator.AbstractActuator):
         self.ERROR_READBACK = 0
         return readback_val
 
-    def set_value(self, value, timeout=0):
-        """ Override AbstractActuator method."""
-        self.last_target_value = value
-        if self.read_only:
-            raise ValueError("Attempt to set value for read-only Actuator")
-        if self.validate_value(value):
-            self.update_state(self.STATES.BUSY)
-            if timeout or timeout is None:
-                with gevent.Timeout(
-                    timeout, RuntimeError("Motor %s timed out" % self.username)
-                ):
-                    self._set_value(value)
-                    new_value = self._wait_actuator(value)
-            else:
-                self._set_value(value)
-                self.__wait_actuator_task = gevent.spawn(self._wait_actuator)
-        else:
-            raise ValueError("Invalid value %s; limits are %s"
-                             % (value, self.get_limits())
-                             )
-
     def abort(self):
         """ Imediately halt movement. By default self.stop = self.abort"""
         if self.__wait_actuator_task is not None:
@@ -93,6 +72,11 @@ class NICOSActuator(AbstractActuator.AbstractActuator):
         
     def _set_value(self, value):
         """ Override AbstractActuator method."""
+        self.last_target_value = value
+        self.update_state(self.STATES.BUSY)
+
         line = "move('{}', {})".format(self.device_name, value)
         self.nicos_cli.process_command(line)
+
+        self.__wait_actuator_task = gevent.spawn(self._wait_actuator)
         
