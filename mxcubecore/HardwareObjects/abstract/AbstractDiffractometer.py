@@ -25,7 +25,7 @@ Certain number of roles are fixed and define a corresponding motor or nstate
 actuator object. This allows to use them in a standard way by the MXCuBE
 application (web or Qt).
 There is also a convention of the direction of the motors:
-- z axis is in the direction of gravity. Positive direction is downwards.
+- z axis is in the direction of gravity. Positive direction is upwards.
 - y axis is perpendicular to the z axis and to the nominal beam direction.
   Positive direction is so that x,y,z would form a right-handed coordinate system.
 - x axis is orthogonal to the y and z axes (and approximately parallel to the beam).

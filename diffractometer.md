@@ -4,7 +4,7 @@ This allows them to be used in a standard way by the MXCuBE application (web or 
 
 We also introduce a convention about the direction of the alignment and centring motors:
 
-- z axis is in the direction of gravity. Positive direction is downwards.
+- z axis is in the direction of gravity. Positive direction is upwards.
 - y axis is perpendicular to the z axis and to the nominal beam direction.
   Positive direction is so that x,y,z would form a right-handed coordinate system.
 - x axis is orthogonal to the y and z axes (and approximately parallel to the beam).
