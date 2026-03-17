@@ -3,7 +3,10 @@ import time
 from gevent.event import AsyncResult
 
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.HardwareObjects.GenericDiffractometer import GenericDiffractometer
+from mxcubecore.HardwareObjects.GenericDiffractometer import (
+    GenericDiffractometer,
+    PhaseEnum,
+)
 
 
 class LNLSDiffractometer(GenericDiffractometer):
@@ -16,6 +19,7 @@ class LNLSDiffractometer(GenericDiffractometer):
         self.pixels_per_mm_x = 10**-4
         self.pixels_per_mm_y = 10**-4
         self.beam_position = [318, 238]
+        self.in_plate_mode = False
         self.last_centred_position = self.beam_position
         self.current_motor_positions = {
             "phiy": 0,
@@ -126,3 +130,13 @@ class LNLSDiffractometer(GenericDiffractometer):
 
     def get_value_motors(self):
         return self.current_motor_positions
+
+    def get_phase(self):
+        unknown_phase = PhaseEnum.unknown
+        phase = self.get_current_phase()
+        if not phase:
+            phase = unknown_phase
+        return phase
+
+    def get_chip_configuration(self):
+        return None
