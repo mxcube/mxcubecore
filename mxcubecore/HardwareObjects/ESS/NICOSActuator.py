@@ -12,8 +12,6 @@ Example of config file:
     <user>myuser</user>
     <password>mypassword</password>
     <device_name>my_nicos_device</device_name>
-    <username>Kappa</username>
-    <motor_name>Kappa</motor_name>
 </object>
 """
 
@@ -35,7 +33,7 @@ class NICOSActuator(AbstractActuator.AbstractActuator):
     This class is based on LNLS.EPICSActuator."""
 
     def __init__(self, name):
-        super(NICOSActuator, self).__init__(name)
+        super().__init__(name)
         self.__wait_actuator_task = None
         self._nominal_limits = (-1E4, 1E4)
         self.last_target_value = None

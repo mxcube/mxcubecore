@@ -9,8 +9,6 @@ Example of xml file:
     <user>myuser</user>
     <password>mypassword</password>
     <device_name>virtual_motor_2</device_name>
-    <username>Kappa</username>
-    <motor_name>Kappa</motor_name>
     <default_limits>(-10, 43)</default_limits>
 </object>
 """
@@ -65,7 +63,7 @@ class NICOSMotor(NICOSActuator, AbstractMotor):
         """Reset NICOS device. This can be useful to be sure the device is in 
         a health state."""
         line = "reset('{}')".format(self.device_name)
-        ret = self.nicos_cli.process_command(line)
+        self.nicos_cli.process_command(line)
 
     def abort(self):
         """Override NICOSActuator method."""
