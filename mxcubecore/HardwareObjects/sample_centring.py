@@ -73,7 +73,7 @@ def prepare(centring_motors_dict):
 
     if CURRENT_CENTRING and not CURRENT_CENTRING.ready():
         logging.getLogger("HWR").debug("DEBUG: ENDING CURRENT CENTRING")
-        end()
+        CURRENT_CENTRING.kill()
 
     if USER_CLICKED_EVENT and not USER_CLICKED_EVENT.ready():
         logging.getLogger("HWR").debug("DEBUG: USER_CLICKED_EVENT: false")
@@ -629,6 +629,7 @@ def auto_center(
         i += 1
         if i > 4:
             if callable(msg_cb):
+                logging.getLogger("HWR").info("No loop detected")
                 msg_cb("No loop detected, aborting")
             return
 
