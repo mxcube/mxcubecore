@@ -11,7 +11,7 @@ Example of config file:
     <port>1234</port>
     <user>myuser</user>
     <password>mypassword</password>
-    <device_name>my_nicos_device</device_name>
+    <device_name>my_nicos_moveable_device</device_name>
 </object>
 """
 
@@ -19,7 +19,6 @@ from gevent import monkey
 monkey.patch_all()
 
 import time
-import copy
 import gevent
 
 from mxcubecore.HardwareObjects.abstract import AbstractActuator
@@ -28,9 +27,9 @@ from .nicos_connection import connect_to_nicos
 
 
 class NICOSActuator(AbstractActuator.AbstractActuator):
-    """NICOS actuator class
+    """NICOS Actuator class
     
-    This class is based on LNLS.EPICSActuator."""
+    Controls a NICOS EpicsAnalogMoveable device."""
 
     def __init__(self, name):
         super().__init__(name)
@@ -51,31 +50,31 @@ class NICOSActuator(AbstractActuator.AbstractActuator):
         self.device_name = self.get_property("device_name")
         self.nicos_cli = connect_to_nicos(host, port, user, pw)
 
-        self.moving = 0
+        self.MOVING = 0
         self.__watch_task = gevent.spawn(self._watch)
         self.update_state(self.STATES.READY)
 
     def _watch(self):
-        """ Watch motor current value and update it on the UI."""
+        """ Watch actuator current value and update it on the UI."""
         while True:
             time.sleep(0.3)
             self.update_value()
-            # Manage motor ui state
+            # Manage ui state
             if self.ERROR_READBACK:
                 self.update_state(self.STATES.FAULT)
-            elif self.moving:
+            elif self.MOVING:
                 self.update_state(self.STATES.BUSY)
                 self.update_specific_state(self.SPECIFIC_STATES.MOVING)
             else:
                 self.update_state(self.STATES.READY)
 
     def _wait_actuator(self):
-        """Override NICOSActuator method."""
-        self.moving = 1
+        """Wait actuator to be at target."""
+        self.MOVING = 1
         while (not self.done_movement()):
             time.sleep(0.3)
         self.update_specific_state(None)
-        self.moving = 0
+        self.MOVING = 0
 
     def get_value(self):
         """ Override AbstractActuator method."""
@@ -91,8 +90,8 @@ class NICOSActuator(AbstractActuator.AbstractActuator):
         super().abort()
         line = "stop('{}')".format(self.device_name)
         ret = self.nicos_cli.process_command(line)
-        self.moving = 0
-        self.reset()  # Clean state at NICOS if needed
+        self.MOVING = 0
+        self.reset()  # Clean state on NICOS
 
         if self.__wait_actuator_task is not None:
             self.__wait_actuator_task.kill()
@@ -117,7 +116,6 @@ class NICOSActuator(AbstractActuator.AbstractActuator):
 
     def reset(self):
         """Reset NICOS device. This can be useful to be sure the device is in 
-        a health state."""
+        a health state on the NICOS side."""
         line = "reset('{}')".format(self.device_name)
         self.nicos_cli.process_command(line)
-        
