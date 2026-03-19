@@ -85,6 +85,16 @@ class NICOSActuator(AbstractActuator.AbstractActuator):
         self.ERROR_READBACK = 0
         return readback_val
     
+    def _set_value(self, value):
+        """ Override AbstractActuator method."""
+        self.last_target_value = value
+        self.update_state(self.STATES.BUSY)
+
+        line = "move('{}', {})".format(self.device_name, value)
+        self.nicos_cli.process_command(line)
+
+        self.__wait_actuator_task = gevent.spawn(self._wait_actuator)
+        
     def abort(self):
         """Override HardwareObject method."""
         super().abort()
@@ -96,16 +106,6 @@ class NICOSActuator(AbstractActuator.AbstractActuator):
         if self.__wait_actuator_task is not None:
             self.__wait_actuator_task.kill()
         self.update_state(self.STATES.READY)
-        
-    def _set_value(self, value):
-        """ Override AbstractActuator method."""
-        self.last_target_value = value
-        self.update_state(self.STATES.BUSY)
-
-        line = "move('{}', {})".format(self.device_name, value)
-        self.nicos_cli.process_command(line)
-
-        self.__wait_actuator_task = gevent.spawn(self._wait_actuator)
     
     def done_movement(self):
         """ Return whether actuator is at target position or not."""
