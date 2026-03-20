@@ -67,17 +67,13 @@ class NICOSConnection(NicosClient):
         NicosClient.connect(self, conndata, eventmask)
 
     def start_connection(self, line):
-        """ Try to connect to NICOS."""
+        """Try to connect to NICOS."""
         data = line.split()
         if len(data) < 5:
             print('Not enough data to connect, need host port user password')
             return
         con = ConnectionData(data[1], data[2], data[3], data[4])
         self._do_connect(con, eventmask=EVENTMASK)
-        if self.is_connected():
-            print('Successfully connected to %s' % data[1])
-        else:
-            print('Failed to connect to %s' % data[1])
     
     def is_connected(self):
         return self.isconnected
@@ -147,9 +143,8 @@ class NICOSConnection(NicosClient):
         self.disconnect()
 
 def connect_to_nicos(host, port, user, password):
-    """ Returns a connection to NICOS."""
-    line = "/connect {} {} {} {}".format(
-        host, port, user, password)
+    """Returns a connection to NICOS."""
+    line = "/connect {} {} {} {}".format(host, port, user, password)
     nicos_conn = NICOSConnection()
     nicos_conn.start_connection(line)
     return nicos_conn

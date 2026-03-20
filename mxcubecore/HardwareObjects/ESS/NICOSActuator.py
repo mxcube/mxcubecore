@@ -50,6 +50,15 @@ class NICOSActuator(AbstractActuator.AbstractActuator):
         self.device_name = self.get_property("device_name")
         self.nicos_cli = connect_to_nicos(host, port, user, pw)
 
+        if not self.nicos_cli.is_connected():
+            self.print_log(
+                msg=f"Failed to connect to NICOS server ({host}, {self.device_name})."
+            )
+            return
+        self.print_log(
+            msg=f"Successfully connected to NICOS server ({host}, {self.device_name})."
+        )
+
         self.MOVING = 0
         self.__watch_task = gevent.spawn(self._watch)
         self.update_state(self.STATES.READY)
