@@ -19,7 +19,7 @@ from mxcubecore.HardwareObjects.ESS.NICOSActuator import NICOSActuator
 
 class NICOSMotor(NICOSActuator, AbstractMotor):
     """NICOS Motor class
-    
+
     Behaves just like a NICOS Actuator, but adapted to be a Motor in MXCuBE UI."""
 
     def __init__(self, name):
