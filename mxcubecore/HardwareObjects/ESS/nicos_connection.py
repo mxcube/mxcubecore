@@ -1,6 +1,9 @@
 import copy
 import time
+from dataclasses import dataclass
+from typing import ClassVar
 
+import numpy as np
 from nicos.clients.base import (
     ConnectionData,
     NicosClient,
@@ -17,6 +20,16 @@ from nicos.utils.loggers import (
 EVENTMASK = ("watch", "datapoint", "datacurve", "clientexec")
 
 
+@dataclass
+class _CommandState:
+    testcom: str
+    line: str
+    start_detected: bool = False
+    req_id: str | None = None
+    output_msg: str | None = None
+    done: bool = False
+
+
 class NICOSConnection(NicosClient):
     """NICOSConnection Class
 
@@ -28,8 +41,8 @@ class NICOSConnection(NicosClient):
     (get_dev_param_value(), get_status()).
     """
 
-    livedata = {}
-    status = "idle"
+    livedata: ClassVar[dict] = {}
+    status: str = "idle"
 
     def __init__(self):
         self.message_queue = []
@@ -38,12 +51,6 @@ class NICOSConnection(NicosClient):
     def log(self, name, txt):
         self.message_queue.append((name, txt))
 
-    def print_queue(self):
-        """For debugging."""
-        for msg in self.message_queue:
-            print(msg[1])
-        self.message_queue = []
-
     def signal(self, name, data=None, exc=None):
         """Has to be implemented."""
         accept = ["message", "processing", "done"]
@@ -51,20 +58,19 @@ class NICOSConnection(NicosClient):
             self.log_func(name, data)
         elif name == "livedata":
             converted_data = []
-            for desc, ardata in zip(data["datadescs"], exc):
+            for desc, ardata in zip(data["datadescs"], exc, strict=True):
                 npdata = np.frombuffer(ardata, dtype=desc["dtype"])
                 npdata = npdata.reshape(desc["shape"])
                 converted_data.append(npdata)
             self.livedata[data["det"] + "_live"] = converted_data
         elif name == "status":
             status, _ = data
-            if status == STATUS_IDLE or status == STATUS_IDLEEXC:
+            if status in (STATUS_IDLE, STATUS_IDLEEXC):
                 self.status = "idle"
             else:
                 self.status = "run"
-        else:
-            if name != "cache":
-                pass
+        elif name != "cache":
+            pass
 
     def _do_command(self, line):
         com = "%s" % line.strip()
@@ -80,7 +86,6 @@ class NICOSConnection(NicosClient):
         """Try to connect to NICOS."""
         data = line.split()
         if len(data) < 5:
-            print("Not enough data to connect, need host port user password")
             return
         con = ConnectionData(data[1], data[2], data[3], data[4])
         self._do_connect(con, eventmask=EVENTMASK)
@@ -93,40 +98,48 @@ class NICOSConnection(NicosClient):
 
     def process_command(self, line):
         """Process a NICOS command line and return the result."""
-        start_detected = False
-        ignore = [ACTION, INPUT]
-        reqID = None
         testcom = self._do_command(line)
         if not testcom:
             return "NICOS is busy, cannot send commands"
-        output_msg = None
+
+        state = _CommandState(testcom=testcom, line=line)
         while True:
             time.sleep(1)
             if self.message_queue:
-                # Own copy for thread safety
                 work_queue = copy.deepcopy(self.message_queue)
                 self.message_queue = []
                 for name, message in work_queue:
-                    # print('name, message = {}, {}'.format(name, message)) # debug messages
-                    if name == "processing":
-                        if message["script"] == testcom:
-                            start_detected = True
-                            reqID = message["reqid"]
-                        continue
-                    if name == "done" and message["reqid"] == reqID:
-                        return output_msg
-                    if type(message) == list:
-                        if message[2] in ignore:
-                            continue
-                        if message[0] != "nicos":
-                            messagetxt = message[0] + " " + message[3]
-                        else:
-                            messagetxt = message[3]
-                    if start_detected and reqID == message[-1]:
-                        # Capturing the output message here for the NICOS commands
-                        # we need (e.g., get_status()).
-                        if "status" in line:
-                            output_msg = messagetxt
+                    self._handle_message(state, name, message)
+                    if state.done:
+                        return state.output_msg
+
+    def _handle_message(self, state: _CommandState, name: str, message) -> None:
+        """Handle a single message from the queue, mutating state in place."""
+        ignore = [ACTION, INPUT]
+
+        if name == "processing":
+            if message["script"] == state.testcom:
+                state.start_detected = True
+                state.req_id = message["reqid"]
+            return
+
+        if name == "done" and message["reqid"] == state.req_id:
+            state.done = True
+            return
+
+        if type(message) is list:
+            if message[2] in ignore:
+                return
+            messagetxt = (
+                message[3] if message[0] == "nicos" else message[0] + " " + message[3]
+            )
+
+            if (
+                state.start_detected
+                and state.req_id == message[-1]
+                and "status" in state.line
+            ):
+                state.output_msg = messagetxt
 
     def get_dev_param_value(self, dev_name, param_name="value"):
         """Return the value of a device parameter. The default parameter
@@ -147,8 +160,7 @@ class NICOSConnection(NicosClient):
         if par.find(".") > 0:
             devpar = par.split(".")
             return self.getDeviceParam(devpar[0], devpar[1])
-        else:
-            return self.getDeviceValue(par)
+        return self.getDeviceValue(par)
 
     def end_connection(self):
         self.disconnect()
