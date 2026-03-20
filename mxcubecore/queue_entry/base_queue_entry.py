@@ -79,8 +79,7 @@ class TaskPrerequisite(str, Enum):
                 REQUIRES = [
                     TaskPrerequisite.POINT,
                     TaskPrerequisite.LINE,
-                    TaskPrerequisite.CHIP,
-                    TaskPrerequisite.MESH,
+                    TaskPrerequisite.GRID,
                     TaskPrerequisite.NO_SHAPE_2D,
                 ]
     """
@@ -88,8 +87,8 @@ class TaskPrerequisite(str, Enum):
     POINT = "point"
     LINE = "line"
     NO_SHAPE = "no_shape"
-    CHIP = "chip"
-    MESH = "mesh"
+    GRID = "grid"
+    CHIP = "chip"  # currently unused by the web frontend.
     # This is used for the case when no shape is selected and we want to
     # create a 2D point in the place where context menu was opened.
     NO_SHAPE_2D = "no_shape_2d"
