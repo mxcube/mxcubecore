@@ -99,9 +99,8 @@ class UserTypeISPyBLims(ISPyBAbstractLIMS):
             raise Exception("Authentication server type is not defined")
 
         if not self.login_ok:
-            msg = "%s." % msg.capitalize()
-            # refuse Login
-            self.log.error("ISPyB login not ok")
+            # refuse login
+            self.log.error("ISPyB login not ok. %s", msg.capitalize())
             raise Exception("Error lims authentication")
 
         # login succeed, get proposal and sessions
