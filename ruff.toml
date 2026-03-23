@@ -953,6 +953,10 @@ convention = "google"
     "F841",
     "S110",
 ]
+"mxcubecore/HardwareObjects/abstract/PyISPyBDataAdapter.py" = [
+    "ARG002",
+    "TRY301",
+]
 "mxcubecore/HardwareObjects/abstract/sample_changer/Component.py" = [
     "B016",
     "E712",
