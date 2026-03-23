@@ -1,3 +1,4 @@
+# ruff: noqa: TD003, FIX002, ERA001
 import json
 import logging
 from json.decoder import JSONDecodeError
@@ -9,18 +10,24 @@ from typing import (
 from urllib.parse import urljoin
 
 import requests
+from duo.UO import RestDuo  # part of sdm package
+from sdm.config import DUOPASSWORD, DUOUSER
 from suds import WebFault
 
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.ISPyBDataAdapter import ISPyBDataAdapter
+from mxcubecore.HardwareObjects.abstract.PyISPyBDataAdapter import PyISPyBDataAdapter
+from mxcubecore.HardwareObjects.MAXIV.PyISPyBLims import PyISPyBRestClient
 from mxcubecore.HardwareObjects.UserTypeISPyBLims import UserTypeISPyBLims
 from mxcubecore.model.lims_session import (
     LimsSessionManager,
     Session,
 )
 
-log = logging.getLogger("ispyb_client")
-
+DUO_API_URL = "https://duo-api.maxiv.lu.se"
 LAZY_SESSION_PREFIX = "lazy"
+
+log = logging.getLogger("ispyb_client")
 
 
 def _get_lazy_session_id(proposal: Dict) -> str:
@@ -56,6 +63,8 @@ def _check_ispyb_error_message(response):
 class ISPyBRestClient:
     def __init__(self, rest_root: str):
         self._rest_root = rest_root
+        # EXI uses auth token in the URL path...
+        self._rest_token = None
 
     def authenticate(self, user_name: str, password: str):
         """
@@ -65,8 +74,6 @@ class ISPyBRestClient:
             user_name: Username
             password: Password
         """
-        token = None
-
         auth_url = urljoin(self._rest_root, "authenticate?site=MAXIV")
         response = requests.post(
             auth_url, data={"login": user_name, "password": password}
@@ -75,15 +82,31 @@ class ISPyBRestClient:
         try:
             # if authentication is successful, we will get
             # JSON response containing an auth token
-            token = response.json().get("token", None)
+            self._rest_token = response.json().get("token", None)
         except JSONDecodeError:
             # on invalid credentials, some ISPyB systems will reply with
             # an internal error message, as plain text
             _check_ispyb_error_message(response)
 
-        if token is None:
+        if self._rest_token is None:
             # we failed to obtain the auth token, thus we failed to authenticate
             raise Exception("invalid credentials")
+
+    def get_xrf_graph_url(self, spectrum_id: int) -> str:
+        if self._rest_token is None:
+            raise Exception("not authenticated")
+
+        url = "{rest_root}{token}"
+        # note: this is path for the EXI front-end, Py-ISPyB will have
+        # different URL and will require token to be sent in a header.
+        url += "/proposal/{pcode}{pnumber}/mx/xrfscan/xrfscanId/{spectrum_id}/image/jpegScanFileFullPath/get"
+        return url.format(
+            rest_root=self._rest_root,
+            token=str(self._rest_token),
+            pcode=HWR.beamline.session.proposal_code,
+            pnumber=HWR.beamline.session.proposal_number,
+            spectrum_id=spectrum_id,
+        )
 
 
 def _create_session_object(proposal, session_id: str, beamline_name: str) -> Session:
@@ -103,32 +126,104 @@ def _create_session_object(proposal, session_id: str, beamline_name: str) -> Ses
     )
 
 
-class CustomISPyBDataAdapter(ISPyBDataAdapter):
-    """
-    Extend the standard ISPyB data adapter with MAXIV specific logic of how to
-    deal with proposal sessions.
-    """
+class CustomISPyBDataAdapter(ISPyBDataAdapter, PyISPyBDataAdapter):
+    """Extend the standard ISPyB data adapter with MAXIV specific logic."""
 
-    def _get_proposals(self, username: str):
-        proposals = json.loads(
-            self._shipping.service.findProposalsByLoginName(username)
-        )
+    def _filter_proposals(self, proposals: List[Dict]):
+        """Filter proposals by the beamline, state and type.
 
+        Include proposals: of type ``MX`` or ``MB`` in ``Open`` state and assigned to the current beamline. The last is done via DUO API.
+
+        Args:
+            proposals: list of proposals to filter
+        """
+        duo = RestDuo(DUO_API_URL)
+        duo.login(DUOUSER, DUOPASSWORD)
+        beamline_proposals_ids = set(duo.get_beamline_proposals(self.beamline_name))
         for proposal in proposals:
-            if proposal["type"].upper() not in ["MX", "MB"]:
+            # TODO@dominikatrojanowska: "type" field will be added to PyISPyB in the future
+            if proposal["proposalCode"].upper() not in ["MX", "MB"]:
                 continue
             if proposal.get("state", "Open") != "Open":
                 continue
+            if int(proposal["proposalNumber"]) not in beamline_proposals_ids:
+                continue
+            yield proposal
 
+    def get_proposals(self):
+        """Override the get_proposals method to filter proposals by the beamline, state and type."""
+        return self._filter_proposals(super().get_proposals())
+
+    def create_session(self, proposal: Dict) -> Session:
+        """Create a new Session object for the given proposal and beamline.
+
+        This is a lazy session creation, done automatically on the fly in case
+        no appropriate session is found for the user, proposal and current day.
+        This session is labelled with ``lazy`` prefix and is not posted to
+        Py-ISPYB service until it is selected.
+
+        Args:
+            proposal: Proposal dictionary to create session for
+
+        Returns:
+            Session: Created session object
+        """
+        return Session(
+            code=proposal["proposalCode"],
+            number=proposal["proposalNumber"],
+            proposal_name=proposal.get("proposal"),
+            proposal_id=proposal["proposalId"],
+            session_id=_get_lazy_session_id(proposal),
+            beamline_name=self.beamline_name,
+            title=proposal["title"],
+            # At MAXIV we don't care if a session is scheduled, set True as default
+            is_scheduled_time=True,
+            is_scheduled_beamline=True,
+            # TODO@dominikatrojanowska: check if we should set start and end time for the session created on fly, and if so, what time should be set. For now, we just set empty string, and let ISPyB handle it.
+            # "startDate": start_time.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+            # "endDate": end_time.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+        )
+
+    # TODO@dominikatrojanowska: remove all methods below after dropping an old adapter
+    def __init__(  # noqa: PLR0913
+        self,
+        ws_root,
+        proxy,
+        ws_username,
+        ws_password,
+        beamline_name,
+        rest_client=None,
+    ):
+        ISPyBDataAdapter.__init__(
+            self, ws_root, proxy, ws_username, ws_password, beamline_name
+        )
+        PyISPyBDataAdapter.__init__(self, rest_client, beamline_name)
+
+    def _get_proposals(self, username: str, beamline_name: str):
+        duo = RestDuo(DUO_API_URL)
+        duo.login(DUOUSER, DUOPASSWORD)
+        beamline_proposals_ids = set(duo.get_beamline_proposals(beamline_name))
+        proposals = json.loads(
+            self._shipping.service.findProposalsByLoginName(username)
+        )
+        for proposal in proposals:
+            # only include MX and MB (proprietary) proposals
+            if proposal["type"].upper() not in ["MX", "MB"]:
+                continue
+            # only include 'Open' proposals
+            if proposal.get("state", "Open") != "Open":
+                continue
+            # only include proposals that belong to this beamline
+            if int(proposal["number"]) not in beamline_proposals_ids:
+                continue
             yield proposal
 
     def _get_sessions(self, username: str, beamline_name: str) -> List[Session]:
         def list_sessions():
-            for proposal in self._get_proposals(username):
+            for proposal in self._get_proposals(username, beamline_name):
                 sessions = self._collection.service.findSessionsByProposalAndBeamLine(
                     proposal["code"], proposal["number"], beamline_name
                 )
-
                 for sesssion in sessions:
                     yield _create_session_object(
                         proposal, sesssion["sessionId"], beamline_name
@@ -155,6 +250,7 @@ class CustomISPyBDataAdapter(ISPyBDataAdapter):
     def get_sessions_by_username(
         self, username: str, beamline_name: str
     ) -> LimsSessionManager:
+        PyISPyBDataAdapter.get_sessions_by_username(self)
         try:
             sessions = list(self._get_sessions(username, beamline_name))
             return LimsSessionManager(sessions=sessions)
@@ -164,9 +260,12 @@ class CustomISPyBDataAdapter(ISPyBDataAdapter):
 
 class ISPyBLims(UserTypeISPyBLims):
     def init(self):
+        self._rest_root: str = self.get_property("rest_root")
+        self._rest_client = ISPyBRestClient(self._rest_root)
+        self._py_rest_client = PyISPyBRestClient(
+            "https://py-ispyb-backend.maxiv.lu.se/ispyb/api/v1/"
+        )
         super().init()
-
-        self._rest_client = ISPyBRestClient(self.get_property("rest_root"))
 
     def _create_data_adapter(self) -> ISPyBDataAdapter:
         return CustomISPyBDataAdapter(
@@ -175,10 +274,12 @@ class ISPyBLims(UserTypeISPyBLims):
             self.ws_username,
             self.ws_password,
             self.beamline_name,
+            self._py_rest_client,
         )
 
     def ispyb_login(self, user_name: str, password: str):
         try:
+            self._py_rest_client.authenticate(user_name, password)
             self._rest_client.authenticate(user_name, password)
             return True, None
         except Exception as ex:
@@ -239,3 +340,6 @@ class ISPyBLims(UserTypeISPyBLims):
         family_name = person["familyName"]
 
         return f"{given_name} {family_name}"
+
+    def xrf_spectrum_results_url(self, spectrum_id: int) -> str:
+        return self._rest_client.get_xrf_graph_url(spectrum_id)

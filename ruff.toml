@@ -4006,6 +4006,10 @@ convention = "google"
     "T201",
     "TRY203",
 ]
+"mxcubecore/HardwareObjects/abstract/PyISPyBDataAdapter.py" = [
+    "ARG002",
+    "TRY301",
+]
 "mxcubecore/HardwareObjects/abstract/sample_changer/Component.py" = [
     "A002",
     "B016",
