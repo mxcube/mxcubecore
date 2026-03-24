@@ -154,7 +154,15 @@ def load_from_yaml(
     if not msg0:
         try:
             # instantiate object
-            result = cls(name=role)
+            # Try with name as keyword argument first
+            try:
+                result = cls(name=role)
+            except TypeError as e:
+                # If class doesn't accept name as keyword arg, try positional
+                if "unexpected keyword argument 'name'" in str(e):
+                    result = cls(role)
+                else:
+                    raise
             result._hwobj_container = _container
         except Exception:
             if _container:
