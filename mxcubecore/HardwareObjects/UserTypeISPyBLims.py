@@ -87,10 +87,10 @@ class UserTypeISPyBLims(ISPyBAbstractLIMS):
             login_name = self._translate(proposal_code, "ldap") + str(proposal_number)
 
         # Authentication
+        msg = ""
         if self.authServerType == "ldap":
             self.log.debug("Starting LDAP authentication %s" % login_name)
             self.login_ok = self.ldap_login(login_name, psd, ldap_connection)
-            msg = loginID
             self.log.debug("User %s logged in LDAP" % login_name)
         elif self.authServerType == "ispyb":
             self.log.debug("ISPyB login")
@@ -100,7 +100,11 @@ class UserTypeISPyBLims(ISPyBAbstractLIMS):
 
         if not self.login_ok:
             # refuse login
-            self.log.error("ISPyB login not ok. %s", msg.capitalize())
+            self.log.error(
+                "Authentication with %s failed. %s",
+                self.authServerType,
+                msg.capitalize(),
+            )
             raise Exception("Error lims authentication")
 
         # login succeed, get proposal and sessions

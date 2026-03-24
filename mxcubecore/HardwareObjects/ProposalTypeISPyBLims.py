@@ -42,19 +42,23 @@ class ProposalTypeISPyBLims(ISPyBAbstractLIMS):
         """
         Authentication step based on the authServerType
         """
-
+        msg = ""
         if self.authServerType == "ldap":
             self.log.debug("Starting LDAP authentication %s" % user_name)
             ok = self.ldap_login(user_name, psd)
         elif self.authServerType == "ispyb":
             self.log.debug("ISPyB login")
-            ok, _ = self.ispyb_login(user_name, psd)
+            ok, msg = self.ispyb_login(user_name, psd)
         else:
             raise Exception("Authentication server type is not defined")
 
         if not ok:
             # refuse Login
-            self.log.error("Authentication with %s failed" % self.authServerType)
+            self.log.error(
+                "Authentication with %s failed. %s",
+                self.authServerType,
+                msg.capitalize(),
+            )
             raise Exception("Authentication failed")
 
         self.log.debug("User %s logged in %s" % (user_name, self.authServerType))
