@@ -1,22 +1,22 @@
+import contextlib
 import datetime
-import os
 import json
 import logging
+import os
 import subprocess
 import xmlrpc.client
 
 import gevent
 from devtools import debug
+from ewoksjob.client import submit
 from pydantic import (
     BaseModel,
     Field,
 )
 from typing_extensions import (
     Literal,
-    Optional,
+    Union,
 )
-
-from ewoksjob.client import submit
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.model.common import (
@@ -55,7 +55,7 @@ class SsxBaseQueueTaskParameters(BaseModel):
     common_parameters: CommonCollectionParamters
     collection_parameters: StandardCollectionParameters
     legacy_parameters: LegacyParameters
-    lims_parameters: Optional[ISPYBCollectionParameters]
+    lims_parameters: Union[ISPYBCollectionParameters, None]
 
     def update_dependent_fields(field_data):
         return {}
@@ -128,20 +128,18 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             try:
                 self._take_pedestal_func()
             except Exception as e:
-                logging.getLogger("user_level_log").error(f"Error taking pedestal: {e}")
+                logging.getLogger("user_level_log").exception(
+                    f"Error taking pedestal: {e}"
+                )
                 raise
 
         try:
             HWR.beamline.control.LDetX.wait_move()
         except Exception:
-            print("--------------------> Timeout error from bliss?")
             if HWR.beamline.control.LDetX.position > 0:
-                print(f"{HWR.beamline.control.LDetX.state} - moving to 0 again")
                 HWR.beamline.control.LDetX.move(0)
 
     def _take_pedestal_func(self):
-        params = self._data_model._task_data.user_collection_parameters
-
         exp_time = self._data_model._task_data.user_collection_parameters.exp_time
         freq = self._data_model._task_data.user_collection_parameters.frequency
         sub_sampling = (
@@ -175,14 +173,14 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             disable_saving_list.append("raw")
         disable_saving = ",".join(disable_saving_list)
 
-        saving_compression = dict(
-            raw="zip",
-            average="zip",
-        )
+        saving_compression = {
+            "raw": "zip",
+            "average": "zip",
+        }
 
         logging.getLogger("user_level_log").info(f"Storing pedestal in {pedestal_dir}")
         nb_retries = 2
-        for r in range(nb_retries):
+        for _r in range(nb_retries):
             try:
                 cmd = "mkdir --parents %s && chmod -R 755 %s" % (
                     pedestal_dir,
@@ -242,7 +240,7 @@ class SsxBaseQueueEntry(BaseQueueEntry):
                 gevent.sleep(0.1)
             self.__pedestal_task.get()
         except Exception as e:
-            logging.getLogger("user_level_log").error(f"Error taking pedestal: {e}")
+            logging.getLogger("user_level_log").exception(f"Error taking pedestal: {e}")
         finally:
             self.__pedestal_task = None
 
@@ -315,10 +313,8 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             self.get_data_model().get_path_template().process_directory
         )
 
-        try:
+        with contextlib.suppress(AttributeError):
             HWR.beamline.beam.wait_for_beam()
-        except AttributeError:
-            pass
 
         logging.getLogger("user_level_log").info(f"Moving detector table")
         HWR.beamline.control.LDetX.wait_move()
@@ -349,7 +345,7 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             move_back = HWR.beamline.detector.move_detector.get_value().value
         except ValueError:
             move_back = True
-        # import pdb; pdb.set_trace()
+
         if move_back:
             logging.getLogger("user_level_log").info(f"Moving detector back")
             HWR.beamline.control.LDetX.move(1000, wait=False)
@@ -389,7 +385,7 @@ class SsxBaseQueueEntry(BaseQueueEntry):
 
     #     future = submit(args=args, kwargs=kwargs, queue="slurm")
 
-    #     # fp = HWR.get_hardware_repository().find_in_repository("filename")
+    #     fp = HWR.get_hardware_repository().find_in_repository("filename")
 
     def start_ewoks(self, parameters):
         raw_path = os.path.normpath(parameters["data_path"])
@@ -431,6 +427,20 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             inputs_ssx = dict_ssx["default_inputs"]
 
         inputs_ssx.append({"name": "image_directory", "value": raw_path})
+        metadata_path = os.path.join(raw_path, "metadata.json")
+        if os.path.exists(metadata_path):
+            with open(metadata_path) as f:
+                meta = json.loads(f.read())
+        protein_name = meta["SampleProtein_acronym"]
+        cell_file = protein_name + ".cell"
+        session = HWR.beamline.session.get_base_image_directory().strip("RAW_DATA")
+        logging.getLogger("user_level_log").info(session)
+        scripts_folder = os.path.join(session, "SCRIPTS")
+        cell_file = os.path.join(scripts_folder, cell_file)
+        try:
+            inputs_ssx.append({"name": "unit_cell_file", "value": cell_file})
+        except Exception:
+            logging.getLogger("user_level_log").exception("unit_cell_file: %s" % cell_file)
 
         self._start_ewoks_workflow(
             workflow="ssx_workflow", queue="ssx", inputs=inputs_ssx, flag_icat=False
@@ -439,7 +449,6 @@ class SsxBaseQueueEntry(BaseQueueEntry):
     def _start_ewoks_workflow(
         self, workflow, queue, inputs, flag_icat, upload_parameters=None
     ):
-
         kwargs = {
             "load_options": {"root_module": "ewoksid29.workflows"},
             "inputs": inputs,
@@ -451,7 +460,7 @@ class SsxBaseQueueEntry(BaseQueueEntry):
         logging.getLogger("user_level_log").info("Calling ewoks with:")
         logging.getLogger("user_level_log").info(f"kwargs f{kwargs}")
 
-        future = submit(args=(workflow,), kwargs=kwargs, queue=queue)
+        submit(args=(workflow,), kwargs=kwargs, queue=queue)
 
     # def start_ewoks(self, parameters):
     #     raw_path = os.path.normpath(parameters["data_path"])
@@ -531,6 +540,7 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             logging.getLogger("user_level_log").info("shutter closed")
 
         HWR.beamline.detector.stop_acquisition()
+        self.post_execute()  # launch processing and cleanup even if the scan is aborted
 
     def _start_processing(self, dc_parameters, file_paramters):
         param = {
@@ -624,5 +634,7 @@ class SsxBaseQueueEntry(BaseQueueEntry):
                 "chip_model": "",
                 "polarisation": 0.99,
                 "mono_stripe": "PdB4C",
+                "number_of_rows": 20,
+                "number_of_columns": 20,
             }
         )

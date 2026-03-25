@@ -1,4 +1,8 @@
 target-version = "py310"  # Should be the lowest Python version that we support
+force-exclude = true
+extend-exclude = [
+    ".gitignore",
+]
 
 
 [format]
@@ -1705,14 +1709,33 @@ convention = "google"
     "SLF001",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_base_queue_entry.py" = [
+    "B005",
+    "BLE001",
+    "C901",
     "DTZ005",
+    "E501",
     "ERA001",
     "F541",
     "FBT003",
+    "G002",
     "N805",
+    "PERF203",
     "PIE804",
+    "PLR0915",
+    "PTH110",
+    "PTH118",
+    "PTH123",
     "S602",
     "SIM108",
+    "SLF001",
+    "TRY401",
+]
+"mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_custom_foil_collection.py" = [
+    "E501",
+    "E722",
+    "ERA001",
+    "PLR0915",
+    "RUF012",
     "SLF001",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_big_foil_collection.py" = [
@@ -1742,6 +1765,14 @@ convention = "google"
     "RUF012",
     "SLF001",
     "TRY400",
+]
+"mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_foil_wo_collection.py" = [
+    "B007",
+    "E501",
+    "E722",
+    "PLR0915",
+    "RUF012",
+    "SLF001",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_injector_collection.py" = [
     "F541",
@@ -4445,7 +4476,6 @@ convention = "google"
 "mxcubecore/__init__.py" = [
     "N802",
     "N816",
-    "PERF401",
     "PLW0603",
     "PTH100",
     "PTH118",
