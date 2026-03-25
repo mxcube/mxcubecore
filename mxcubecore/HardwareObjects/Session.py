@@ -35,7 +35,7 @@ class Session(HardwareObject):
         self.base_directory = None
         self.base_process_directory = None
         self.base_archive_directory = None
-        self._endstation_name : str = ""
+        self._endstation_name: str = ""
 
         self.raw_data_folder_name = default_raw_data_folder
         self.processed_data_folder_name = default_processed_data_folder

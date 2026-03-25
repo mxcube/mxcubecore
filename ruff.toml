@@ -1674,6 +1674,17 @@ convention = "google"
     "SIM115",
     "T201",
 ]
+"mxcubecore/HardwareObjects/ESRF/create_mx_master.py" = [
+    "ERA001",
+]
+"mxcubecore/HardwareObjects/ESRF/BlissMultiCollect.py" = [
+    "ERA001",
+    "ARG002",
+    "FBT002",
+    "PTH118",
+    "PLR0913",
+    "PTH110",
+]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/fast_char_collection.py" = [
     "ARG004",
     "F541",

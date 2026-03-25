@@ -23,28 +23,28 @@ class LimaEigerDetector(AbstractDetector):
     def init(self):
         AbstractDetector.init(self)
 
-        self.header = dict()
+        self.header = {}
         self._images_per_file = self.get_property("images_per_file", 100)
 
         lima_device = self.get_property("lima_device")
         eiger_device = self.get_property("eiger_device")
 
         for channel_name in (
-                "acq_status",
-                "acq_trigger_mode",
-                "saving_mode",
-                "acq_nb_frames",
-                "acq_expo_time",
-                "saving_directory",
-                "saving_prefix",
-                "saving_suffix",
-                "saving_next_number",
-                "saving_index_format",
-                "saving_format",
-                "saving_overwrite_policy",
-                "last_image_saved",
-                "saving_frame_per_file",
-                "saving_managed_mode",
+            "acq_status",
+            "acq_trigger_mode",
+            "saving_mode",
+            "acq_nb_frames",
+            "acq_expo_time",
+            "saving_directory",
+            "saving_prefix",
+            "saving_suffix",
+            "saving_next_number",
+            "saving_index_format",
+            "saving_format",
+            "saving_overwrite_policy",
+            "last_image_saved",
+            "saving_frame_per_file",
+            "saving_managed_mode",
         ):
             self.add_channel(
                 {"type": "tango", "name": channel_name, "tangoname": lima_device},
@@ -104,7 +104,6 @@ class LimaEigerDetector(AbstractDetector):
         self.update_state(self.STATES.READY)
 
     def last_image_saved(self):
-        # return 0
         return self.get_channel_object("last_image_saved").get_value() + 1
 
     def get_deadtime(self):
@@ -165,9 +164,6 @@ class LimaEigerDetector(AbstractDetector):
         self.stop()
         self.wait_ready()
 
-        # set the video_live off
-        # AH 2025/07/04 commented this line
-        # self.get_channel_object("saving_managed_mode").set_value("SOFTWARE")
         self.get_channel_object("video_live").set_value(False)
 
         beam_x, beam_y = self.get_beam_position()
@@ -180,10 +176,6 @@ class LimaEigerDetector(AbstractDetector):
             "omega_increment=%0.4f" % osc_range,
             "wavelength=%s" % HWR.beamline.energy.get_wavelength(),
         ]
-        # either we set the wavelength, or we set the energy_threshold
-        # up to now we were doing both (lost of time)
-        # "wavelength=%s" % HWR.beamline.energy.get_wavelength(),
-        # self.set_energy_threshold(HWR.beamline.energy.get_value())
 
         self.get_channel_object("saving_common_header").set_value(header_info)
 
@@ -192,14 +184,16 @@ class LimaEigerDetector(AbstractDetector):
             self.get_channel_object("acq_trigger_mode").set_value("EXTERNAL_TRIGGER_SEQUENCES")
             self.get_channel_object("acq_nb_sequences").set_value(mesh_num_lines)
             """
-            #DN for testing detector
-            logging.getLogger("user_level_log").info("Preparing detector for mesh EXTERNAL_TRIGGER_MULTI")
-            #self.get_channel_object("acq_trigger_mode").set_value("EXTERNAL_GATE")
+            logging.getLogger("user_level_log").info(
+                "Preparing detector for mesh EXTERNAL_TRIGGER_MULTI"
+            )
             self.get_channel_object("acq_trigger_mode").set_value(
                 "EXTERNAL_TRIGGER_MULTI"
             )
         else:
-            logging.getLogger("user_level_log").info("Preparing detector for oscillation EXTERNAL_TRIGGER")
+            logging.getLogger("user_level_log").info(
+                "Preparing detector for oscillation EXTERNAL_TRIGGER"
+            )
             self.set_channel_value("acq_trigger_mode", "EXTERNAL_TRIGGER")
 
         self.get_channel_object("saving_frame_per_file").set_value(
@@ -208,7 +202,9 @@ class LimaEigerDetector(AbstractDetector):
 
         # 'MANUAL', 'AUTO_FRAME', 'AUTO_SEQUENCE
         self.get_channel_object("saving_mode").set_value("AUTO_FRAME")
-        logging.getLogger("user_level_log").info("Acq. nb frames = %d", number_of_images)
+        logging.getLogger("user_level_log").info(
+            "Acq. nb frames = %d", number_of_images
+        )
         self.get_channel_object("acq_nb_frames").set_value(number_of_images)
         self.get_channel_object("acq_expo_time").set_value(exptime)
         # 'ABORT', 'OVERWRITE', 'APPEND'
@@ -243,8 +239,6 @@ class LimaEigerDetector(AbstractDetector):
             prefix + "%01d" % frame_number
         )
         self.get_channel_object("saving_suffix").set_value(suffix)
-        # self.get_channel_object("saving_next_number").set_value(frame_number)
-        # self.get_channel_object("saving_index_format").set_value("%04d")
         self.get_channel_object("saving_format").set_value("HDF5")
 
     def start_acquisition(self):

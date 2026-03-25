@@ -526,10 +526,6 @@ class ICATLIMS(AbstractLims):
             )
         self.session_manager.active_session = session_list[0]
 
-#        HWR.beamline.session.set_endstation_name(
-#            self.session_manager.active_session.beamline_name.lower()
-#        )
-        
         return self.session_manager.active_session
 
     def allow_session(self, session: Session):

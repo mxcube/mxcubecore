@@ -1,10 +1,10 @@
+import contextlib
 from datetime import datetime
+
 from silx.io.dictdump import dicttonx
 
-try:
+with contextlib.suppress(ModuleNotFoundError):
     from HardwareRepository import HardwareRepository as HWR
-except ModuleNotFoundError:
-    pass
 
 
 class CreateH5Master:
@@ -163,10 +163,10 @@ class CreateH5Master:
         self.module = {
             "@NX_class": "NXdetector_module",
             "data_size": [self._metadata["width"], self._metadata["height"]],
-            "fast_pixel_direction@depends_on": "/entry/instrument/detector/transformations/translation",
+            "fast_pixel_direction@depends_on": "/entry/instrument/detector/transformations/translation",  # noqa: E501
             "fast_pixel_direction@units": "m",
             "fast_pixel_direction": self._pixel_size[0] / 10000.0,
-            "slow_pixel_direction@depends_on": "/entry/instrument/detector/transformations/translation",
+            "slow_pixel_direction@depends_on": "/entry/instrument/detector/transformations/translation",  # noqa: E501
             "slow_pixel_direction@units": "m",
             "slow_pixel_direction": self._pixel_size[0] / 10000.0,
         }

@@ -4,6 +4,7 @@ Differs from Eiger only in the energy threshold handling.
 """
 
 import math
+
 import requests
 
 from mxcubecore import HardwareRepository as HWR
@@ -11,7 +12,6 @@ from mxcubecore.HardwareObjects.LimaEigerDetector import LimaEigerDetector
 
 
 class LimaPilatus4Detector(LimaEigerDetector):
-
     def init(self):
         """Initialise the photon_energy and the thresholds"""
         super().init()
@@ -27,9 +27,8 @@ class LimaPilatus4Detector(LimaEigerDetector):
         self.set_energy_threshold(HWR.beamline.energy.get_value())
 
     def set_energy_threshold(self, energy):
-        minE = self.get_property("minE")
-        if energy < minE:
-            energy = minE
+        min_e = self.get_property("minE")
+        energy = max(energy, min_e)
 
         working_energy_chan = self.get_channel_object("photon_energy")
         working_energy = working_energy_chan.get_value() / 1000.0
@@ -39,11 +38,9 @@ class LimaPilatus4Detector(LimaEigerDetector):
 
         threshold = self.get_channel_object("threshold_energy").get_value()
         # set the other thresholds to the same value as 1
-        for chn in range(2,5,1):
+        for chn in range(2, 5, 1):
             url = f"http://lid30a1pilatus4dcu/detector/api/1.8.0/config/threshold/{chn}/energy"
             try:
-                requests.put(url, '{"value": %f}' % threshold)
-            except Exception:
-                # retry
-                requests.put(url, '{"value": %f}' % threshold)
- 
+                requests.put(url, '{"value": %f}' % threshold, timeout=120)
+            except Exception:  # noqa: BLE001
+                requests.put(url, '{"value": %f}' % threshold, timeout=120)
