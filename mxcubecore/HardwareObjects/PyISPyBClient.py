@@ -6,11 +6,6 @@ import datetime
 import json
 import os
 
-from typing_extensions import Literal
-
-from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore import HardwareRepository as HWR
-
 import pyispyb_client
 from pyispyb_client import Configuration
 from pyispyb_client.apis.tags import (
@@ -22,10 +17,6 @@ from typing_extensions import Literal
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore.model.common import (
-    BeamlineParameters,
-    ISPYBCollectionPrameters,
-)
 
 
 class PyISPyBClient(HardwareObject):

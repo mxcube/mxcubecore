@@ -30,11 +30,11 @@ class SSXUserCollectionParameters(BaseUserCollectionParameters):
     horizontal_spacing: float = Field(20, gt=0, lt=1000, unit="um")
     vertical_spacing: float = Field(20, gt=0, lt=1000, unit="um")
 
-#    _chip_name_tuple = tuple(
-#        HWR.beamline.diffractometer.get_head_configuration().available.keys()
-#    )
-#    _current_chip = HWR.beamline.diffractometer.get_head_configuration().current
-#    chip_type: Literal[_chip_name_tuple] = Field(_current_chip)
+    #    _chip_name_tuple = tuple(
+    #        HWR.beamline.diffractometer.get_head_configuration().available.keys()
+    #    )
+    #    _current_chip = HWR.beamline.diffractometer.get_head_configuration().current
+    #    chip_type: Literal[_chip_name_tuple] = Field(_current_chip)
 
     class Config:
         extra = "ignore"
@@ -63,17 +63,16 @@ class SsxCustomFoilCollectionTaskParameters(SsxBaseQueueTaskParameters):
         vertical_spacing = field_data.get("vertical_spacing", 0)
         sub_sampling = field_data["sub_sampling"]
 
-        num_images, _, _ = SsxCustomFoilCollectionTaskParameters.calculate_number_of_images(
-            horizontal_spacing, vertical_spacing, sub_sampling
+        num_images, _, _ = (
+            SsxCustomFoilCollectionTaskParameters.calculate_number_of_images(
+                horizontal_spacing, vertical_spacing, sub_sampling
+            )
         )
 
         return {"num_images": num_images}
 
-
     @staticmethod
-    def calculate_number_of_images(
-        horizontal_spacing, vertical_spacing, sub_sampling
-    ):
+    def calculate_number_of_images(horizontal_spacing, vertical_spacing, sub_sampling):
         chip_data = HWR.beamline.diffractometer.get_head_configuration().available[
             "CUSTOM_FOIL"
         ]
@@ -92,7 +91,11 @@ class SsxCustomFoilCollectionTaskParameters(SsxBaseQueueTaskParameters):
         )
         nb_lines = math.floor(chip_height / (vertical_spacing / 1000))
 
-        num_images = math.floor((nb_samples_per_line * nb_lines) / 2) * 2 * len(chip_data.sections)
+        num_images = (
+            math.floor((nb_samples_per_line * nb_lines) / 2)
+            * 2
+            * len(chip_data.sections)
+        )
 
         return num_images, nb_lines, nb_samples_per_line
 
@@ -100,6 +103,7 @@ class SsxCustomFoilCollectionTaskParameters(SsxBaseQueueTaskParameters):
 class SsxCustomFoilCollectionQueueModel(DataCollection):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
 
 class SsxCustomFoilCollectionQueueEntry(SsxBaseQueueEntry):
     """
@@ -122,9 +126,7 @@ class SsxCustomFoilCollectionQueueEntry(SsxBaseQueueEntry):
             _nb_lines,
             _nb_samples_per_line,
         ) = SsxCustomFoilCollectionTaskParameters.calculate_number_of_images(
-            params.horizontal_spacing,
-            params.vertical_spacing,
-            params.sub_sampling
+            params.horizontal_spacing, params.vertical_spacing, params.sub_sampling
         )
         self._data_model._task_data.collection_parameters.num_images = num_images
         self._data_model._task_data.user_collection_parameters.num_images = num_images
@@ -153,9 +155,7 @@ class SsxCustomFoilCollectionQueueEntry(SsxBaseQueueEntry):
             nb_lines,
             nb_samples_per_line,
         ) = SsxCustomFoilCollectionTaskParameters.calculate_number_of_images(
-            params.horizontal_spacing,
-            params.vertical_spacing,
-            params.sub_sampling
+            params.horizontal_spacing, params.vertical_spacing, params.sub_sampling
         )
 
         HWR.beamline.diffractometer.wait_ready()
@@ -216,7 +216,7 @@ class SsxCustomFoilCollectionQueueEntry(SsxBaseQueueEntry):
                 f"Sub sampling is {params.sub_sampling}"
             )
             logging.getLogger("user_level_log").info(
-                f"Acquiring {num_images/len(chip_data.sections)} images ({nb_lines} lines x {nb_samples_per_line} samples per line)"
+                f"Acquiring {num_images / len(chip_data.sections)} images ({nb_lines} lines x {nb_samples_per_line} samples per line)"
             )
             logging.getLogger("user_level_log").info(
                 f"Data path: {data_root_path}{fname_prefix}*.h5"
@@ -240,8 +240,12 @@ class SsxCustomFoilCollectionQueueEntry(SsxBaseQueueEntry):
         finally:
             HWR.beamline.detector.wait_ready()
             acquired = HWR.beamline.detector.get_acquired_frames()
-            logging.getLogger("user_level_log").info(f"Acquired {len(chip_data.sections)} regions")
-            logging.getLogger("user_level_log").info(f"Acquired total: {acquired} images")
+            logging.getLogger("user_level_log").info(
+                f"Acquired {len(chip_data.sections)} regions"
+            )
+            logging.getLogger("user_level_log").info(
+                f"Acquired total: {acquired} images"
+            )
 
             HWR.beamline.diffractometer.wait_ready()
             HWR.beamline.diffractometer.set_phase("Transfer", wait=True, timeout=120)

@@ -24,7 +24,7 @@ class SSXUserCollectionParameters(BaseUserCollectionParameters):
     num_images: int = Field(0, description="")
     horizontal_spacing: float = Field(20, gt=0, lt=1000, description="um")
     vertical_spacing: float = Field(20, gt=0, lt=1000, description="um")
-    use_current_focus: bool = Field(False, description="")
+    use_current_focus: bool = Field(False, description="")  # noqa: FBT003
 
     _chip_name_tuple = tuple(
         HWR.beamline.diffractometer.get_head_configuration().available.keys()
@@ -194,7 +194,7 @@ class SsxFoilCollectionQueueEntry(SsxBaseQueueEntry):
             region[2] = focus_value
             region[5] = focus_value
             region[8] = focus_value
-            
+
         self.start_processing("FOIL")
 
         logging.getLogger("user_level_log").info(f"Defining region {region}")

@@ -1,5 +1,6 @@
 import json
 import logging
+import math
 import os
 import time
 from contextlib import ExitStack
@@ -14,7 +15,6 @@ from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.CommandContainer import ConnectionError
 from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
-import math
 
 _logger = logging.getLogger("HWR")
 _logger_det = logging.getLogger("lima2.client.detector")
@@ -80,7 +80,7 @@ class Lima2Detector(AbstractDetector):
     def init(self):
         super().init()
 
-        # move the detector 
+        # move the detector
         self.move_detector = self.get_object_by_role("move_detector")
 
         update_lima2_loggers()

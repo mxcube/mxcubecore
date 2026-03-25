@@ -61,7 +61,6 @@ class SsxFoilColletionTaskParameters(SsxBaseQueueTaskParameters):
 
         return {"num_images": num_images}
 
-
     @staticmethod
     def calculate_number_of_images(
         horizontal_spacing, vertical_spacing, sub_sampling, chip_type
@@ -177,15 +176,15 @@ class SsxFoilWoCollectionQueueEntry(SsxBaseQueueEntry):
         fname_prefix += "_foil_"
 
         region = [
-            chip_data.calibration_data.top_left[0],             # x 0
-            chip_data.calibration_data.top_left[1],             # y 1
-            chip_data.calibration_data.top_left[2],             # z 2
-            chip_data.calibration_data.top_right[0],            # x 3
-            chip_data.calibration_data.top_right[1],            # y 4
-            chip_data.calibration_data.top_right[2],            # z 5
-            chip_data.calibration_data.bottom_left[0],          # x 6
-            chip_data.calibration_data.bottom_left[1],          # y 7
-            chip_data.calibration_data.bottom_left[2],          # z 8
+            chip_data.calibration_data.top_left[0],  # x 0
+            chip_data.calibration_data.top_left[1],  # y 1
+            chip_data.calibration_data.top_left[2],  # z 2
+            chip_data.calibration_data.top_right[0],  # x 3
+            chip_data.calibration_data.top_right[1],  # y 4
+            chip_data.calibration_data.top_right[2],  # z 5
+            chip_data.calibration_data.bottom_left[0],  # x 6
+            chip_data.calibration_data.bottom_left[1],  # y 7
+            chip_data.calibration_data.bottom_left[2],  # z 8
         ]
 
         self.start_processing("FOIL")
@@ -194,12 +193,13 @@ class SsxFoilWoCollectionQueueEntry(SsxBaseQueueEntry):
             logging.getLogger("user_level_log").info("Opening OH2 safety shutter")
             HWR.beamline.control.safshut_oh2.open()
 
-
         logging.getLogger("user_level_log").info(
             f"Collecting {chip_data.number_of_runs} times with {chip_data.offset} offset"
         )
 
-        logging.getLogger("user_level_log").info(f"Resulting in {chip_data.number_of_runs} regions:")
+        logging.getLogger("user_level_log").info(
+            f"Resulting in {chip_data.number_of_runs} regions:"
+        )
         debug_region = list(region)
 
         for run in range(chip_data.number_of_runs):
@@ -232,7 +232,7 @@ class SsxFoilWoCollectionQueueEntry(SsxBaseQueueEntry):
                 f"Sub sampling is {params.sub_sampling}"
             )
             logging.getLogger("user_level_log").info(
-                f"Acquiring {num_images/chip_data.number_of_runs} images ({nb_lines} lines x {nb_samples_per_line} samples per line)"
+                f"Acquiring {num_images / chip_data.number_of_runs} images ({nb_lines} lines x {nb_samples_per_line} samples per line)"
             )
             logging.getLogger("user_level_log").info(
                 f"Data path: {data_root_path}{fname_prefix}*.h5"

@@ -169,6 +169,7 @@ class CalibrationData(BaseModel):
         [0, 0, 0], description="Bottom left corner motor position"
     )
 
+
 class SampleHolderSectionModel(BaseModel):
     calibration_data: CalibrationData | None = None
     section_offset: Tuple[int, int] = Field(

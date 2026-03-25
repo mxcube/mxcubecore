@@ -100,7 +100,7 @@ class TangoLimaMpegVideo(TangoLimaVideo):
                     self._format,
                     "-id",
                     self.stream_hash,
-                    "-r"
+                    "-r",
                 ],
                 close_fds=True,
                 stdout=subprocess.DEVNULL,

@@ -440,7 +440,9 @@ class SsxBaseQueueEntry(BaseQueueEntry):
         try:
             inputs_ssx.append({"name": "unit_cell_file", "value": cell_file})
         except Exception:
-            logging.getLogger("user_level_log").exception("unit_cell_file: %s" % cell_file)
+            logging.getLogger("user_level_log").exception(
+                "unit_cell_file: %s" % cell_file
+            )
 
         self._start_ewoks_workflow(
             workflow="ssx_workflow", queue="ssx", inputs=inputs_ssx, flag_icat=False

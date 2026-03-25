@@ -405,7 +405,7 @@ class Microdiff(MiniDiff.MiniDiff):
                 "name": "start_ssx_all_block_calibration",
             },
             "startSSXAllBlockCalibration",
-        )        
+        )
 
         MiniDiff.MiniDiff.init(self)
         self.centringPhiy.direction = -1
