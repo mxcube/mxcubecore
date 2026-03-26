@@ -223,7 +223,7 @@ class SsxCustomFoilCollectionQueueEntry(SsxBaseQueueEntry):
 
             try:
                 HWR.beamline.diffractometer.start_ssx_scan(enforce_centring_phase)
-            except:
+            except Exception:
                 msg = "Diffractometer start failed! Stopping the detector"
                 logging.getLogger("user_level_log").exception(msg)
                 HWR.beamline.detector.stop_acquisition()
