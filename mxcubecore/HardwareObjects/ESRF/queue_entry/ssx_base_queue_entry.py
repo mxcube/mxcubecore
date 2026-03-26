@@ -354,39 +354,6 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             logging.getLogger("user_level_log").info(f"Closing OH2 safety shutter")
             HWR.beamline.control.safshut_oh2.close()
 
-        # if move_back:
-        #    HWR.beamline.control.MDetX.wait_move()
-
-        # self.emit_progress(1)
-
-    # def start_ewoks(self, parameters):
-    #     args = "max_sum_projection_workflow",
-
-    #     raw_path = os.path.normpath(parameters["data_path"])
-
-    #     upload_parameters = {
-    #         "beamline": HWR.beamline.session.beamline_name.lower(),
-    #         "proposal": f"{HWR.beamline.session.proposal_code}{HWR.beamline.session.proposal_number}",
-    #         "dataset": "accumulation",
-    #         "path": os.path.join(parameters['data_process_path'], "accumulation"),
-    #         "raw": [raw_path],
-    #         "metadata": {"Sample_name": parameters["collection_parameters"].path_parameters.prefix},
-    #         }
-
-    #     kwargs = {
-    #         "upload_parameters":upload_parameters,
-    #         "load_options":{"root_module": "ewoksid29.workflows"},
-    #         "inputs":[{"name": "path_scan", "value": raw_path}]
-    #     }
-
-    #     logging.getLogger("user_level_log").info(f"Calling ewoks with:")
-    #     logging.getLogger("user_level_log").info(f"Upload_parameters f{upload_parameters}")
-    #     logging.getLogger("user_level_log").info(f"kwargs f{kwargs}")
-
-    #     future = submit(args=args, kwargs=kwargs, queue="slurm")
-
-    #     fp = HWR.get_hardware_repository().find_in_repository("filename")
-
     def start_ewoks(self, parameters):
         raw_path = os.path.normpath(parameters["data_path"])
 
@@ -463,67 +430,6 @@ class SsxBaseQueueEntry(BaseQueueEntry):
         logging.getLogger("user_level_log").info(f"kwargs f{kwargs}")
 
         submit(args=(workflow,), kwargs=kwargs, queue=queue)
-
-    # def start_ewoks(self, parameters):
-    #     raw_path = os.path.normpath(parameters["data_path"])
-
-    #     inputs_acc = [{"name": "path_scan", "value": raw_path}]
-    #     upload_parameters_acc = {
-    #         "beamline": HWR.beamline.session.beamline_name.lower(),
-    #         "proposal": (
-    #             f"{HWR.beamline.session.proposal_code}{HWR.beamline.session.proposal_number}"
-    #         ),
-    #         "dataset": "accumulation",
-    #         "path": os.path.join(parameters["data_process_path"], "accumulation"),
-    #         "raw": [raw_path],
-    #         "metadata": {
-    #             "Sample_name": (
-    #                 parameters["collection_parameters"].path_parameters.prefix
-    #             )
-    #         },
-    #     }
-
-    #     self._start_ewoks_workflow(
-    #         workflow="max_sum_projection_workflow",
-    #         queue="slurm",
-    #         inputs=inputs_acc,
-    #         flag_icat=True,
-    #         upload_parameters=upload_parameters_acc,
-    #     )
-
-    #     logging.getLogger("user_level_log").info(f"Hardware Repo {HWR.get_hardware_repository()}")
-    #     logging.getLogger("user_level_log").info(f" SSX JSON : {HWR.get_hardware_repository().find_in_repository(
-    #         "ssx_workflow_config.json"
-    #     )}")
-
-    #     config_ssx = HWR.get_hardware_repository().find_in_repository(
-    #         "ssx_workflow_config.json"
-    #     )
-
-    #     with open(config_ssx, "r") as f:
-    #         inputs_ssx = json.load(f)
-
-    #     inputs_ssx.append({"name": "image_directory", "value": raw_path})
-
-    #     self._start_ewoks_workflow(
-    #         workflow="ssx_workflow", queue="ssx", inputs=inputs_ssx, flag_icat=False
-    #     )
-
-    # def _start_ewoks_workflow(
-    #     self, workflow, queue, inputs, flag_icat, upload_parameters=None
-    # ):
-
-    #     kwargs = {
-    #         "load_options": {"root_module": "ewoksid29.workflows"},
-    #         "inputs": inputs,
-    #     }
-
-    #     if flag_icat:
-    #         kwargs["upload_parameters"] = upload_parameters
-
-    #     logging.getLogger("user_level_log").info("Calling ewoks with:")
-    #     logging.getLogger("user_level_log").info(f"kwargs f{kwargs}")
-    #     future = submit(args=(workflow,), kwargs=kwargs, queue=queue)
 
     def emit_progress(self, progress):
         HWR.beamline.collect.emit_progress(progress)
