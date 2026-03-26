@@ -237,7 +237,7 @@ class Session(HardwareObject):
         sub_dir = sub_dir.replace(":", "-")
         sub_dir = re.sub(r"[^A-Za-z0-9_/-]", "", sub_dir)
         sub_dir = sub_dir.lstrip("/")
-        return re.sub(r"/+", "/", sub_dir)
+        return os.path.normpath(re.sub(r"/+", "/", sub_dir))
 
     def get_image_directory(self, sub_dir: str = "") -> str:
         """
@@ -248,20 +248,18 @@ class Session(HardwareObject):
 
         :returns: The full path to images.
         """
-        base_directory = Path(self.get_base_image_directory()).resolve()
+        base_directory = Path(os.path.abspath(self.get_base_image_directory()))
 
         if sub_dir:
             sub_dir = self._sanitize_subdir(sub_dir)
             directory = Path(base_directory, sub_dir)
-
-        directory = directory.resolve()
 
         if not directory.is_relative_to(base_directory):
             error_message = "Invalid subdirectory"
             logging.getLogger("user_level_log").error(error_message)
             raise PermissionError(error_message)
 
-        return f"{directory}/"
+        return os.path.abspath(f"{directory}/")
 
     def get_process_directory(self, sub_dir: str = "") -> str:
         """
@@ -272,20 +270,18 @@ class Session(HardwareObject):
 
         :returns: The full path to processed data.
         """
-        base_directory = Path(self.get_base_process_directory()).resolve()
+        base_directory = Path(os.path.abspath(self.get_base_process_directory()))
 
         if sub_dir:
             sub_dir = self._sanitize_subdir(sub_dir)
             directory = Path(base_directory, sub_dir)
-
-        directory = directory.resolve()
 
         if not directory.is_relative_to(base_directory):
             error_message = "Invalid subdirectory"
             logging.getLogger("user_level_log").error(error_message)
             raise PermissionError(error_message)
 
-        return f"{directory}/"
+        return os.path.abspath(f"{directory}/")
 
     def get_full_paths(self, subdir: str = "", tag: str = "") -> Tuple[str, str]:
         """

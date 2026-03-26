@@ -3371,6 +3371,7 @@ convention = "google"
     "RET505",
     "SIM103",
     "SIM108",
+    "PTH100",
 ]
 "mxcubecore/HardwareObjects/SimpleHTML.py" = [
     "ARG001",

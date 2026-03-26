@@ -2,6 +2,7 @@ import glob
 import logging
 import os
 import time
+from pathlib import Path
 from typing import Tuple
 
 from mxcubecore import HardwareRepository as HWR
@@ -43,7 +44,7 @@ class ESRFSession(Session.Session):
 
         :returns: Tuple with the full path to image and processed data
         """
-        subdir = self._sanitize_subdir(subdir).resolve()
+        subdir = Path(self._sanitize_subdir(subdir))
 
         if not subdir.is_relative_to(self.get_base_image_directory()):
             error_message = "Invalid subdirectory"
