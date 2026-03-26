@@ -240,7 +240,7 @@ class SsxBaseQueueEntry(BaseQueueEntry):
                 gevent.sleep(0.1)
             self.__pedestal_task.get()
         except Exception as e:
-            logging.getLogger("user_level_log").exception(f"Error taking pedestal: {e}")
+            logging.getLogger("HWR").exception(f"Error taking pedestal: {e}")
         finally:
             self.__pedestal_task = None
 
