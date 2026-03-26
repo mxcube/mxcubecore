@@ -113,7 +113,7 @@ class SsxCustomFoilCollectionQueueEntry(SsxBaseQueueEntry):
     QMO = SsxCustomFoilCollectionQueueModel
     DATA_MODEL = SsxCustomFoilCollectionTaskParameters
     NAME = "SSX Foil LLNL Collection"
-    REQUIRES = ["point", "line", "no_shape", "chip", "mesh"]
+    REQUIRES = ["point", "line", "no_shape", "chip", "grid"]
 
     # New style queue entry does not take view argument,
     # adding kwargs for compatability, but they are unsued

@@ -106,7 +106,7 @@ class SsxChipCollectionQueueEntry(SsxBaseQueueEntry):
     QMO = SsxChipCollectionLima2QueueModel
     DATA_MODEL = SsxChipColletionTaskParameters
     NAME = "SSX Chip Collection"
-    REQUIRES = ["point", "line", "no_shape", "chip", "mesh"]
+    REQUIRES = ["point", "line", "no_shape", "chip", "grid"]
 
     def __init__(self, view, data_model: SsxChipCollectionLima2QueueModel):
         super().__init__(view=view, data_model=data_model)

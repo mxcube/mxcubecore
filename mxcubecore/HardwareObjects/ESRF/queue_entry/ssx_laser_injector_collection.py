@@ -44,7 +44,7 @@ class SsxLaserInjectorCollectionQueueEntry(SsxBaseQueueEntry):
     QMO = SsxLaserInjectorCollectionQueueModel
     DATA_MODEL = LaserInjectorColletionTaskParameters
     NAME = "SSX LaserInjector Collection"
-    REQUIRES = ["point", "line", "no_shape", "chip", "mesh"]
+    REQUIRES = ["point", "line", "no_shape", "chip", "grid"]
 
     def __init__(self, view, data_model: SsxLaserInjectorCollectionQueueModel):
         super().__init__(view=view, data_model=data_model)

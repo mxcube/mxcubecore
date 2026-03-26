@@ -55,7 +55,7 @@ class SsxBigFoilCollectionQueueEntry(SsxBaseQueueEntry):
     QMO = SsxFoilCollectionQueueModel
     DATA_MODEL = SsxFoilColletionTaskParameters
     NAME = "SSX Big Foil Collection"
-    REQUIRES = ["point", "line", "no_shape", "chip", "mesh"]
+    REQUIRES = ["point", "line", "no_shape", "chip", "grid"]
 
     def __init__(self, view, data_model: SsxFoilCollectionQueueModel):
         super().__init__(view=view, data_model=data_model)

@@ -41,7 +41,7 @@ class TestCollectionQueueEntry(SsxBaseQueueEntry):
     QMO = TestCollectionQueueModel
     DATA_MODEL = TestCollectionTaskParameters
     NAME = "Test Collection"
-    REQUIRES = ["point", "line", "no_shape", "chip", "mesh"]
+    REQUIRES = ["point", "line", "no_shape", "chip", "grid"]
 
     def __init__(self, view, data_model: TestCollectionQueueModel):
         super().__init__(view=view, data_model=data_model)
