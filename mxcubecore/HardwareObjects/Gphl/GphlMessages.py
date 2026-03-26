@@ -1099,6 +1099,7 @@ class GeometricStrategy(IdentifiedElement, Payload):
         sweepRepeat=None,
         defaultWidthIdx=None,
         sweeps=(),
+        reflectingRangeEsd=None,
         id_=None,
     ):
         super().__init__(id_=id_)
@@ -1109,6 +1110,7 @@ class GeometricStrategy(IdentifiedElement, Payload):
         self._defaultBeamSetting = defaultBeamSetting
         self._defaultWidthIdx = defaultWidthIdx
         self._sweeps = frozenset(sweeps)
+        self._reflectingRangeEsd = reflectingRangeEsd
 
         if len(set(allowedWidths)) != len(allowedWidths):
             raise ValueError(
@@ -1151,6 +1153,10 @@ class GeometricStrategy(IdentifiedElement, Payload):
     @property
     def sweeps(self):
         return self._sweeps
+
+    @property
+    def reflectingRangeEsd(self):
+        return self._reflectingRangeEsd
 
     def get_ordered_sweeps(self):
         """Get sweeps in acquisition order.

@@ -2005,6 +2005,7 @@ class GphlWorkflow(TaskNode):
         self.transmission = 0.0
         self.repetition_count = 1
         self.snapshot_count = 2
+        self.reflecting_range_esd = None
         self.recentring_mode = "sweep"
         self.reference_reflection_files = []
 

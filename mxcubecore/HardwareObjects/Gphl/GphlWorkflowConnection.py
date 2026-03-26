@@ -689,6 +689,10 @@ class GphlWorkflowConnection(HardwareObject):
             detectorSetting = self._DetectorSetting_to_python(detectorSetting)
         else:
             detectorSetting = None
+        if py4jGeometricStrategy.isSetReflectingRangeEsd():
+            reflectingRangeEsd = py4jGeometricStrategy.getReflectingRangeEsd()
+        else:
+            reflectingRangeEsd = None
         return GphlMessages.GeometricStrategy(
             # isInterleaved=py4jGeometricStrategy.isInterleaved(),
             isUserModifiable=py4jGeometricStrategy.isUserModifiable(),
@@ -699,6 +703,7 @@ class GphlWorkflowConnection(HardwareObject):
             defaultBeamSetting=beamSetting,
             defaultDetectorSetting=detectorSetting,
             sweeps=sweeps,
+            reflectingRangeEsd=reflectingRangeEsd,
             id_=uuid.UUID(uuidString),
         )
 

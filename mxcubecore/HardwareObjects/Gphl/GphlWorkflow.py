@@ -63,6 +63,11 @@ from mxcubecore.queue_entry import (
     QueueAbortedException,
 )
 
+
+__copyright__ = """ Copyright © 2016 - 2019 by Global Phasing Ltd. """
+__license__ = "LGPLv3+"
+__author__ = "Rasmus H Fogh"
+
 gphlVersion = Version("2.2.0+202603110039.0-gf763e76")
 
 @enum.unique
@@ -83,10 +88,9 @@ class GphlWorkflowStates(enum.Enum):
     COMPLETED = 4
     UNKNOWN = 5
 
-
-__copyright__ = """ Copyright © 2016 - 2019 by Global Phasing Ltd. """
-__license__ = "LGPLv3+"
-__author__ = "Rasmus H Fogh"
+    # Conversion factor from experimentally determined reflecting_range_esd
+    # To dedfault image width
+    MOSAICITY_TO_IMAGE_WIDTH = 0.33
 
 # Additional sample/diffraction plan data for GPhL emulation samples.
 EMULATION_DATA = {
@@ -161,7 +165,7 @@ for atag in (
 ):
     all_point_group_tags += lattice2point_group_tags[atag]
 
-# Allowed altervative lattices for a given lattice
+# Allowed alternative lattices for a given lattice
 alternative_lattices = {}
 for list0 in (
     ["aP", "Triclinic"],
@@ -1306,6 +1310,15 @@ class GphlWorkflow(HardwareObject):
                 "upperBound": 99,
                 "stepsize": 1,
             }
+            reflecting_range_esd = data_model.reflecting_range_esd
+            if reflecting_range_esd:
+                fields["reflecting_range_esd"] = {
+                    "title": "Mosaicity (°)",
+                    "type": "number",
+                    "default": reflecting_range_esd,
+                    "readOnly": True,
+                }
+
 
         if is_interleaved:
             wedge_widths = self.config.settings.get("wedge_widths") or [48, 24, 72, 360]
@@ -1452,6 +1465,10 @@ class GphlWorkflow(HardwareObject):
                 -1,
                 "repetition_count",
             )
+            if data_model.reflecting_range_esd:
+                ui_schema["parameters"]["column2"]["ui:order"].append(
+                    "reflecting_range_esd"
+                )
 
         ll0 = ui_schema["parameters"]["column2"]["ui:order"]
         ll0.extend(list(beam_energies))
@@ -1555,6 +1572,9 @@ class GphlWorkflow(HardwareObject):
         else:
             gphl_workflow_model.dose_correction_factor = 1.0
         gphl_workflow_model.strategy_length = strategy_length
+
+        reflecting_range_esd = geometric_strategy.reflectingRangeEsd
+        gphl_workflow_model.reflecting_range_esd = reflecting_range_esd
 
         allowed_widths = geometric_strategy.allowedWidths
         if allowed_widths:
