@@ -119,7 +119,6 @@ class SsxCustomFoilCollectionQueueEntry(SsxBaseQueueEntry):
     # adding kwargs for compatability, but they are unsued
     def __init__(self, view, data_model: SsxCustomFoilCollectionQueueModel):
         super().__init__(view=view, data_model=data_model)
-        self.__scanning = False
         params = self._data_model._task_data.user_collection_parameters
         (
             num_images,
