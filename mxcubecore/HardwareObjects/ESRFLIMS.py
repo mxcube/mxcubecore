@@ -71,7 +71,7 @@ class ESRFLIMS(AbstractLims):
             self.ispyb.get_session_manager_by_code_number(
                 session_manager.active_session.code,
                 session_manager.active_session.number,
-                True,
+                True,  # noqa: FBT003
             )
         return self.session_manager
 
@@ -194,7 +194,7 @@ class ESRFLIMS(AbstractLims):
             self.ispyb.get_session_manager_by_code_number(
                 self.drac.session_manager.active_session.code,
                 self.drac.session_manager.active_session.number,
-                True,
+                True,  # noqa: FBT003
             )
 
             if (
