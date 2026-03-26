@@ -436,7 +436,7 @@ class Microdiff(MiniDiff.MiniDiff):
                 logging.getLogger("HWR").info(
                     f"Setting fiducial {_d} to: ({x}, {y}, {z})"
                 )
-                res = self.add_ssx_chip_calibration_fiducial(x, y, z)
+                self.add_ssx_chip_calibration_fiducial(x, y, z)
 
         self.start_ssx_all_block_calibration()
 
