@@ -165,6 +165,9 @@ class CalibrationData(BaseModel):
     bottom_left: Tuple[float, float, float] = Field(
         [0, 0, 0], description="Bottom left corner motor position"
     )
+    bottom_right: Tuple[float, float, float] = Field(
+        [0, 0, 0], description="Bottom left corner motor position"
+    )
 
 
 class SampleHolderSectionModel(BaseModel):
@@ -197,6 +200,8 @@ class ChipLayout(BaseModel):
     )
     sections: List[SampleHolderSectionModel] = []
     calibration_data: CalibrationData | None = None
+    number_of_runs: int = Field(3, description="Number of runs")
+    offset: float = Field(0.10, description="Offset")
 
 
 class GonioHeadConfiguration(BaseModel):

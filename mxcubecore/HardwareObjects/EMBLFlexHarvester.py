@@ -118,7 +118,7 @@ class EMBLFlexHarvester(EMBLFlexHCD):
 
             # Enrich sample object in MXCuBE
             sample.id = x_tal_uuid
-            sample.container_info = {"state": ha_sample_states[index]}
+            sample.state = ha_sample_states[index]
 
             sample._set_image_url(img_url)
             sample._set_image_x(img_target_x)

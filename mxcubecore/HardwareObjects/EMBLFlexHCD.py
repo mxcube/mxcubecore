@@ -221,13 +221,14 @@ class EMBLFlexHCD(SampleChanger):
 
                 sample_addr = f"{cell}:{puck}:{int(well):02d}"
                 if sample.get_address() == sample_addr:
-                    # Add extra info directly into the sample object
-                    sample.container_info = {
-                        "puck_barcode": puck_barcode,
-                        "sample_barcode": sample_barcode,
-                        "state": state,
-                        "puck_type": puck_type,
-                    }
+                    if sample.state != state:
+                        # Add extra info directly into the sample object
+                        sample.state = state
+                        sample.puck_barcode = puck_barcode
+                        sample.sample_barcode = sample_barcode
+                        sample.puck_type = puck_type
+
+                        self._trigger_sample_info_changed_event(sample)
 
                     present_sample_list.append(sample)
                     break  # stop inner loop once matched
@@ -403,17 +404,6 @@ class EMBLFlexHCD(SampleChanger):
             + ":"
             + "%02d" % loaded_sample[2]
         )
-
-    def get_loaded_sample(self):
-        sample = None
-
-        loaded_sample_addr = self._hw_get_mounted_sample()
-
-        for s in self.get_sample_list():
-            if s.get_address() == loaded_sample_addr:
-                sample = s
-
-        return sample
 
     def get_sample_with_address(self, address):
         sample = None
@@ -738,8 +728,7 @@ class EMBLFlexHCD(SampleChanger):
                 self._set_loaded_sample(samp)
                 self._set_selected_sample(samp)
             else:
-                samp._set_loaded(False, False)
-                self._set_selected_sample(None)
+                samp._set_loaded(False)
 
     def prepare_hutch(self, **kwargs):
         return

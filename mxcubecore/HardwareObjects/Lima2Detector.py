@@ -1,5 +1,6 @@
 import json
 import logging
+import math
 import os
 import time
 from contextlib import ExitStack
@@ -15,8 +16,7 @@ from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.CommandContainer import ConnectionError
 from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
 
-_logger = self.log
-
+_logger = logging.getLogger("HWR")
 _logger_det = logging.getLogger("lima2.client.detector")
 _logger_smx = logging.getLogger("lima2.client.smx")
 _logger_smx_aggr = logging.getLogger("lima2.client.smx.aggregation")
@@ -55,12 +55,10 @@ def convert_state(state):
     # FAULT = 4
     # OFF = 5
     if state == Detector.State.IDLE or state == Detector.State.PREPARED:
-        s = HardwareObjectState.READY
-    elif state == Detector.State.RUNNING:
-        s = HardwareObjectState.BUSY
-    else:
-        s = HardwareObjectState.UNKNOWN
-    return s
+        return HardwareObjectState.READY
+    if state == Detector.State.RUNNING:
+        return HardwareObjectState.BUSY
+    return HardwareObjectState.UNKNOWN
 
 
 def create_directory(path, check=True):
@@ -73,13 +71,17 @@ def create_directory(path, check=True):
 
 class Lima2Detector(AbstractDetector):
     def __init__(self, name):
-        AbstractDetector.__init__(self, name)
+        super().__init__(name)
         self.header = {}
         self.start_angles = []
         self.__device = None
+        self.move_detector = None
 
     def init(self):
-        AbstractDetector.init(self)
+        super().init()
+
+        # move the detector
+        self.move_detector = self.get_object_by_role("move_detector")
 
         update_lima2_loggers()
         self.image_rejection_settings_file = self.get_property(
@@ -485,7 +487,7 @@ class Lima2Detector(AbstractDetector):
         sample_distance = calib_params["sample_distance"]
         beam_center = calib_params["beam_center"]
         if config_beam and all(config_beam):
-            if any([fabs(c - b) > 1 for c, b in zip(config_beam, beam_center)]):
+            if any([math.fabs(c - b) > 1 for c, b in zip(config_beam, beam_center)]):
                 _logger.warning(
                     "config beam (%s) differs from beam_center (%s)",
                     config_beam,
@@ -493,7 +495,7 @@ class Lima2Detector(AbstractDetector):
                 )
 
         # Master file header: metadata
-        hc_over_e = 12.398419
+        hc_over_e = 12.398
         wavelength = hc_over_e / energy
         adus_per_photon = dense_out_params["dense_intensity_factor"]
         bias_adus = dense_out_params["dense_intensity_offset"]

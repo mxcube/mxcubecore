@@ -78,6 +78,14 @@ class LimaEigerDetector(AbstractDetector):
         self.get_command_object("prepare_acq").init_device()
         self.get_command_object("prepare_acq").device.set_timeout_millis(5 * 60 * 1000)
         self.get_channel_object("photon_energy").init_device()
+
+        # Be sure that the video_live is off.
+        self.add_channel(
+            {"type": "tango", "name": "video_live", "tangoname": lima_device},
+            "video_live",
+        )
+        self.get_channel_object("video_live").set_value(False)
+
         self.update_state(self.STATES.READY)
 
     def has_shutterless(self):
@@ -156,6 +164,8 @@ class LimaEigerDetector(AbstractDetector):
         self.stop()
         self.wait_ready()
 
+        self.get_channel_object("video_live").set_value(False)
+
         beam_x, beam_y = self.get_beam_position()
         header_info = [
             "beam_center_x=%s" % (beam_x),
@@ -166,10 +176,6 @@ class LimaEigerDetector(AbstractDetector):
             "omega_increment=%0.4f" % osc_range,
             "wavelength=%s" % HWR.beamline.energy.get_wavelength(),
         ]
-        # Either we set the wavelength or we set the energy_threshold.
-        # Up to now both ways are possible:
-        # self.set_energy_threshold(HWR.beamline.energy.get_value())  # noqa: ERA001
-        # "wavelength=%s" % HWR.beamline.energy.get_wavelength()  # noqa: ERA001
 
         self.get_channel_object("saving_common_header").set_value(header_info)
 
@@ -178,10 +184,16 @@ class LimaEigerDetector(AbstractDetector):
             self.get_channel_object("acq_trigger_mode").set_value("EXTERNAL_TRIGGER_SEQUENCES")
             self.get_channel_object("acq_nb_sequences").set_value(mesh_num_lines)
             """
+            logging.getLogger("user_level_log").info(
+                "Preparing detector for mesh EXTERNAL_TRIGGER_MULTI"
+            )
             self.get_channel_object("acq_trigger_mode").set_value(
                 "EXTERNAL_TRIGGER_MULTI"
             )
         else:
+            logging.getLogger("user_level_log").info(
+                "Preparing detector for oscillation EXTERNAL_TRIGGER"
+            )
             self.set_channel_value("acq_trigger_mode", "EXTERNAL_TRIGGER")
 
         self.get_channel_object("saving_frame_per_file").set_value(
@@ -190,7 +202,9 @@ class LimaEigerDetector(AbstractDetector):
 
         # 'MANUAL', 'AUTO_FRAME', 'AUTO_SEQUENCE
         self.get_channel_object("saving_mode").set_value("AUTO_FRAME")
-        logging.info("Acq. nb frames = %d", number_of_images)
+        logging.getLogger("user_level_log").info(
+            "Acq. nb frames = %d", number_of_images
+        )
         self.get_channel_object("acq_nb_frames").set_value(number_of_images)
         self.get_channel_object("acq_expo_time").set_value(exptime)
         # 'ABORT', 'OVERWRITE', 'APPEND'
@@ -229,7 +243,7 @@ class LimaEigerDetector(AbstractDetector):
 
     def start_acquisition(self):
         self.wait_ready()
-        logging.getLogger("user_level_log").info("Preparing acquisition")
+        logging.getLogger("user_level_log").info("Preparing acquisition.")
         self.get_command_object("prepare_acq")()
         logging.getLogger("user_level_log").info("Detector ready, continuing")
         self.get_command_object("start_acq")()

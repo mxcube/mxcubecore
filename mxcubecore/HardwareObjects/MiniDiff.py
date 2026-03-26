@@ -250,7 +250,7 @@ class MiniDiff(HardwareObject):
     def _set_rotation_axis_position(self, value: float, motor_name="phiz"):
         self.log.info(f"Setting rotation axis ({motor_name}) position to {value}")
 
-        fname = self.get_xml_path()
+        fname = self._path
         try:
             self.log.info(f"Updating {fname}")
 
@@ -490,13 +490,23 @@ class MiniDiff(HardwareObject):
         if time.time() - self.centredTime > 1.0:
             self.invalidateCentring()
 
-    # def getBeamPosX(self):
-    #     return self.imgWidth / 2
-    #
-    # def getBeamPosY(self):
-    #     return self.imgHeight / 2
+    def _move_to_beam_chip(self, x, y):
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
+        dx = (x - beam_pos_x) / self.pixelsPerMmY
+        dy = (y - beam_pos_y) / self.pixelsPerMmZ
 
-    def move_to_beam(self, x, y):
+        vertical_motor = self.get_object_by_role("phiy")
+        horizontal_motor = self.get_object_by_role("ssx_translation")
+
+        try:
+            vertical_motor.set_value_relative(dy)
+            horizontal_motor.set_value_relative(dx)
+        except Exception:
+            logging.getLogger("HWR").exception(
+                "MiniDiff: could not center to beam, aborting"
+            )
+
+    def _move_to_beam(self, x, y):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
             self.zoomMotor.get_value()
         )
@@ -547,6 +557,33 @@ class MiniDiff(HardwareObject):
             self.centringPhiy.set_value(-phiy)
         except Exception:
             self.log.exception("MiniDiff: could not center to beam, aborting")
+
+    def _move_to_beam_plate(self, x, y):
+        try:
+            beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
+
+            self.centringVertical.set_value_relative(
+                self.centringPhiz.direction
+                * (y - beam_pos_y)
+                / float(self.pixelsPerMmZ)
+            )
+            self.centringPhiy.set_value_relative(
+                self.centringPhiy.direction
+                * (x - beam_pos_x)
+                / float(self.pixelsPerMmY)
+            )
+        except Exception:
+            logging.getLogger("user_level_log").exception(
+                "Microdiff: could not move to beam, aborting"
+            )
+
+    def move_to_beam(self, x, y):
+        if self.get_head_configuration():
+            self._move_to_beam_chip(x, y)
+        elif self.in_plate_mode():
+            self._move_to_beam_plate(x, y)
+        else:
+            self._move_to_beam(x, y)
 
     def getAvailableCentringMethods(self):
         return self.centringMethods.keys()
@@ -877,7 +914,7 @@ class MiniDiff(HardwareObject):
     def moveToCentredPosition(self, centred_position):
         return self.move_motors(centred_position.as_dict())
 
-    def image_clicked(self, x, y, xi, yi):
+    def image_clicked(self, x, y):
         logging.getLogger("user_level_log").info(
             "Centring click at, x: %s, y: %s" % (int(x), int(y))
         )
@@ -994,11 +1031,10 @@ class MiniDiff(HardwareObject):
             time.sleep(0.1)
 
     def take_snapshot(self, image_path_list: list) -> None:
-        if len(image_path_list) > 0:
-            if self.get_current_phase() != "Centring":
-                use_custom_snapshot_routine = self.get_property(
-                    "custom_snapshot_script_dir", False
-                )
+        if len(image_path_list) > 0 and self.get_current_phase() != "Centring":
+            use_custom_snapshot_routine = self.get_property(
+                "custom_snapshot_script_dir", False
+            )
 
             if not use_custom_snapshot_routine:
                 self.set_phase("Centring", wait=True, timeout=200)

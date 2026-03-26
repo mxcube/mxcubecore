@@ -17,9 +17,9 @@ __category__ = "General"
 
 
 class SsxLineScanCollectionUserParameters(BaseUserCollectionParameters):
-    line_range: float = Field(50, gt=0, description="μm")
-    num_images: int = Field(0, gt=0, description="#")
-    spacing: float = Field(10, gt=0, description="μm")
+    line_range: float = Field(50, gt=0, unit="μm")
+    num_images: int = Field(0, gt=0, unit="#")
+    spacing: float = Field(10, gt=0, unit="μm")
     # exp_time: float = Field(100e-6, gt=0, lt=1, description='s')
 
     class Config:
@@ -48,7 +48,7 @@ class SsxLineScanCollectionQueueEntry(SsxBaseQueueEntry):
     QMO = SsxLineScanCollectionQueueModel
     DATA_MODEL = SsxLineScanCollectionTaskParameters
     NAME = "SSX Line Scan"
-    REQUIRES = ["point", "line", "no_shape", "chip", "mesh"]
+    REQUIRES = ["point", "line", "no_shape", "chip", "grid"]
 
     def __init__(self, view, data_model: SsxLineScanCollectionQueueModel):
         super().__init__(view=view, data_model=data_model)

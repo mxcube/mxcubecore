@@ -106,7 +106,7 @@ sys.path.insert(0, getStdHardwareObjectsPath())
 hwobj_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "HardwareObjects")
 hwobj_dir_list = [hwobj_dir]
 for subdir in ("sample_changer", "mockup"):
-    hwobj_dir_list.append(os.path.join(hwobj_dir, subdir))
+    hwobj_dir_list.append(os.path.join(hwobj_dir, subdir))  # noqa: PERF401
 HWR.add_hardware_objects_dirs(hwobj_dir_list)
 
 #

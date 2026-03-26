@@ -42,7 +42,7 @@ class FastCharCollectionQueueEntry(MXBaseQueueEntry):
     QMO = FastCharCollectionQueueModel
     DATA_MODEL = FastCharCollectionTaskParameters
     NAME = "Fast characterisation"
-    REQUIRES = ["point", "line", "no_shape", "chip", "mesh"]
+    REQUIRES = ["point", "line", "no_shape", "chip", "grid"]
 
     def __init__(self, view, data_model: FastCharCollectionQueueModel):
         super().__init__(view=view, data_model=data_model)

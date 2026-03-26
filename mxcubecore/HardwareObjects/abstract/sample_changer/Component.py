@@ -14,6 +14,10 @@ class Component(object):
         self.dirty = False
         self._leaf = False
         self._name = ""
+        self.state = ""
+        self.puck_barcode = ""
+        self.sample_barcode = ""
+        self.puck_type = ""
 
     #########################           PUBLIC           #########################
 

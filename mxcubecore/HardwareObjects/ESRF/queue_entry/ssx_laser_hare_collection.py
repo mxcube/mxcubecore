@@ -42,7 +42,7 @@ class SsxLaserHareCollectionQueueEntry(SsxBaseQueueEntry):
     QMO = SsxLaserHareCollectionQueueModel
     DATA_MODEL = SsxLaserHareColletionTaskParameters
     NAME = "SSX Laser HARE Collection"
-    REQUIRES = ["point", "line", "no_shape", "chip", "mesh"]
+    REQUIRES = ["point", "line", "no_shape", "chip", "grid"]
 
     def __init__(self, view, data_model: SsxLaserHareCollectionQueueModel):
         super().__init__(view=view, data_model=data_model)

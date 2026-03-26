@@ -157,7 +157,7 @@ class EDNACharacterisation(AbstractCharacterisation):
             min_exp_time = HWR.beamline.detector.get_exposure_time_limits()[0]
             beam.setMinExposureTimePerImage(XSDataTime(min_exp_time))
         except AttributeError:
-            pass
+            logging.getLogger("HWR").exception("")
 
         try:
             beamsize = HWR.beamline.beam.beam_info_hwobj.get_beam_size()

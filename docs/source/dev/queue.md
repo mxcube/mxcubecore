@@ -180,8 +180,7 @@ class TestCollectionQueueEntry(BaseQueueEntry):
     REQUIRES = [
         TaskPrerequisite.POINT,
         TaskPrerequisite.LINE,
-        TaskPrerequisite.CHIP,
-        TaskPrerequisite.MESH,
+        TaskPrerequisite.GRID,
         TaskPrerequisite.NO_SHAPE_2D,
     ]
 

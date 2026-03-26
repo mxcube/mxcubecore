@@ -44,7 +44,7 @@ class SsxInjectorCollectionQueueEntry(SsxBaseQueueEntry):
     QMO = SsxInjectorCollectionQueueModel
     DATA_MODEL = InjectorColletionTaskParameters
     NAME = "SSX Injector Collection"
-    REQUIRES = ["point", "line", "no_shape", "chip", "mesh"]
+    REQUIRES = ["point", "line", "no_shape", "chip", "grid"]
 
     def __init__(self, view, data_model: SsxInjectorCollectionQueueModel):
         super().__init__(view=view, data_model=data_model)

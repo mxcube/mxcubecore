@@ -150,7 +150,7 @@ class AbstractMultiCollect(object):
         pass
 
     @abc.abstractmethod
-    def last_image_saved(self):
+    def last_image_saved(self, total_time, exptime, num_images):
         pass
 
     @abc.abstractmethod

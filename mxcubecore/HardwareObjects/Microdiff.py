@@ -304,13 +304,116 @@ class Microdiff(MiniDiff.MiniDiff):
             "startSSXLineScan",
         )
 
+        self.get_last_task_info = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "get_last_task_info",
+            },
+            "getLastTaskInfo",
+        )
+
+        #
+        # Args: doublex, doubley, doublez
+        # Retruns: 1 if success else other than 1
+        #
+        self.add_ssx_chip_calibration_fiducial = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_ssx_line_scan",
+            },
+            "addSSXChipCalibrationFiducial",
+        )
+
+        self.add_ssx_chip_calibration_point = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_ssx_line_scan",
+            },
+            "addSSXChipCalibrationPoint",
+        )
+
+        self.add_ssx_chip_calibration_point = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_ssx_line_scan",
+            },
+            "addSSXChipCalibrationPoint",
+        )
+
+        self.add_ssx_chip_calibration_point = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_ssx_line_scan",
+            },
+            "resetSSXChipCalibration",
+        )
+
+        self.get_ssx_chip_calibration_state = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_ssx_line_scan",
+            },
+            "getSSXChipCalibrationState",
+        )
+
+        self.get_ssx_block_calibration_state = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_ssx_line_scan",
+            },
+            "getSSXBlockCalibrationState",
+        )
+
+        self.start_ssx_all_block_calibration = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_ssx_line_scan",
+            },
+            "startSSXAllBlockCalibration",
+        )
+
+        self.reset_ssx_all_block_calibration = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_ssx_line_scan",
+            },
+            "resetSSXAllBlockCalibration",
+        )
+
+        self.ir_auto_focus = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_ssx_line_scan",
+            },
+            "doSSXAutoFocus",
+        )
+
+        self.start_ssx_all_block_calibration = self.add_command(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_ssx_all_block_calibration",
+            },
+            "startSSXAllBlockCalibration",
+        )
+
         MiniDiff.MiniDiff.init(self)
         self.centringPhiy.direction = -1
         self.MOTOR_TO_EXPORTER_NAME = self.getMotorToExporterNames()
         self.move_to_coord = self.move_to_beam
 
-        self.centringVertical = self.get_object_by_role("centringVertical")
-        self.centringFocus = self.get_object_by_role("centringFocus")
+        self.centringVertical = self.get_object_by_role("sample_vertical")
+        self.centringFocus = self.get_object_by_role("sample_focus")
 
         self.saved_motor_position = {}
 
@@ -325,6 +428,20 @@ class Microdiff(MiniDiff.MiniDiff):
 
         HardwareObject.init(self)
         self.handle_detector_cover = self.get_object_by_role("handle_detcover")
+
+    def use_position_for_calibration(self, data):
+        for _d in data:
+            if len(data[_d]) > 0:
+                x, y, z = data[_d]
+                logging.getLogger("HWR").info(
+                    f"Setting fiducial {_d} to: ({x}, {y}, {z})"
+                )
+                self.add_ssx_chip_calibration_fiducial(x, y, z)
+
+        self.start_ssx_all_block_calibration()
+
+        res = 1
+        return res == 1
 
     def _update_value(self, value=None):
         if value is None:
@@ -476,6 +593,12 @@ class Microdiff(MiniDiff.MiniDiff):
             return
 
         current_phase = self.get_current_phase()
+
+        if current_phase == phase:
+            msg = f"Already in {current_phase}, not moving"
+            logging.getLogger("user_level_log").info(msg)
+            return
+
         msg = f"Current phase is {current_phase} and moving to {phase}"
         logging.getLogger("user_level_log").info(msg)
 

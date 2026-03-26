@@ -79,8 +79,7 @@ class TaskPrerequisite(str, Enum):
                 REQUIRES = [
                     TaskPrerequisite.POINT,
                     TaskPrerequisite.LINE,
-                    TaskPrerequisite.CHIP,
-                    TaskPrerequisite.MESH,
+                    TaskPrerequisite.GRID,
                     TaskPrerequisite.NO_SHAPE_2D,
                 ]
     """
@@ -88,8 +87,8 @@ class TaskPrerequisite(str, Enum):
     POINT = "point"
     LINE = "line"
     NO_SHAPE = "no_shape"
-    CHIP = "chip"
-    MESH = "mesh"
+    GRID = "grid"
+    CHIP = "chip"  # currently unused by the web frontend.
     # This is used for the case when no shape is selected and we want to
     # create a 2D point in the place where context menu was opened.
     NO_SHAPE_2D = "no_shape_2d"
@@ -870,10 +869,7 @@ def mount_sample(data_model, centring_done_cb, async_result):
                     sview.start_manual_centring()
                 elif centring_method == CENTRING_METHOD.LOOP:
                     sview.start_auto_centring()
-                    log.warning(
-                        "Centring in progress. Please save"
-                        + " the suggested centring or re-center"
-                    )
+                    log.warning("Centring sample, please wait")
                 elif centring_method == CENTRING_METHOD.FULLY_AUTOMATIC:
                     log.info("Centring sample, please wait.")
                     sview.start_auto_centring()
