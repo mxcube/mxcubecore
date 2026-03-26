@@ -78,7 +78,6 @@ class TestCollectionQueueEntry(BaseQueueEntry):
         TaskPrerequisite.POINT,
         TaskPrerequisite.LINE,
         TaskPrerequisite.CHIP,
-        TaskPrerequisite.MESH,
         TaskPrerequisite.NO_SHAPE_2D,
     ]
 
