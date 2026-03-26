@@ -73,5 +73,5 @@ class ISPYBCollectionParameters(BaseModel):
     end_time: datetime
     chip_model: str
     mono_stripe: str
-    number_of_rows: Optional[int]
-    number_of_columns: Optional[int]
+    number_of_rows: Optional[int] = 0
+    number_of_columns: Optional[int] = 0
