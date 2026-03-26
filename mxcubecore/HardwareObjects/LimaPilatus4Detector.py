@@ -39,7 +39,10 @@ class LimaPilatus4Detector(LimaEigerDetector):
         threshold = self.get_channel_object("threshold_energy").get_value()
         # set the other thresholds to the same value as 1
         for chn in range(2, 5, 1):
-            url = f"http://lid30a1pilatus4dcu/detector/api/1.8.0/config/threshold/{chn}/energy"
+            api_url = self.get_property("detector_api_url")
+            if not api_url:
+                raise RuntimeError("Cannot set detector energy threshold")  # noqa: EM101
+            url = f"{api_url}/config/threshold/{chn}/energy"
             try:
                 requests.put(url, '{"value": %f}' % threshold, timeout=120)
             except Exception:  # noqa: BLE001
