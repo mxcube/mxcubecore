@@ -19,9 +19,10 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """Micro Diffractometer implementation of the AbstractDiffractometer class."""
+
 import time
 
-
+import sample_centring
 from gevent import Timeout, sleep
 
 from mxcubecore import HardwareRepository as HWR
@@ -33,8 +34,6 @@ from mxcubecore.HardwareObjects.abstract.AbstractDiffractometer import (
     DiffractometerHead,
     DiffractometerPhase,
 )
-
-import sample_centring
 
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -85,7 +84,7 @@ class MicroDiffractometer(AbstractDiffractometer):
         sample_centring.NUM_CENTRING_ROUNDS = self.get_property(
             "num_centering_rounds", 1
         )
-            
+
     def abort(self):
         """Immediately terminate action."""
         self._exporter.execute("abort")
@@ -527,5 +526,5 @@ class MicroDiffractometer(AbstractDiffractometer):
         self.run_script(script_cmd)
         # Wait for script to start before checking status,
         # can perhaps be improved to wait for ready-busy-ready ?
-        time.sleep(0.4) 
+        time.sleep(0.4)
         self.wait_status_ready(timeout)

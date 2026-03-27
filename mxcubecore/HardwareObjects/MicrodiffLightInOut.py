@@ -1,22 +1,3 @@
-# encoding: utf-8
-#
-#  Project: MXCuBE
-#  https://github.com/mxcube
-#
-#  This file is part of MXCuBE software.
-#
-#  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU Lesser General Public License as published by
-#  the Free Software Foundation, either version 3 of the License, or
-#  (at your option) any later version.
-#
-#  MXCuBE is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU Lesser General Public License for more details.
-#
-#  You should have received a copy of the GNU General Lesser Public License
-#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 """
 Combine setting the back light IN with moving the beamstop out.
 This is used to set the back light in/out faster, than using
@@ -32,10 +13,9 @@ Example xml configuration:
    <state_channel_name>HardwareState</state_channel_name>
  </object>
 """
-import logging
+
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.ExporterNState import ExporterNState
-
 
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -51,8 +31,6 @@ class MicrodiffLightInOut(ExporterNState):
         """
         # first move the beamstop in our out
         beamstop = HWR.beamline.diffractometer.beamstop
-        if value == self.VALUES.IN:
-            # set the beamstop off, if needed
-            if beamstop.get_value() == beamstop.VALUES.IN:
-                beamstop.set_value(beamstop.VALUES.OUT)
+        if value == self.VALUES.IN and beamstop.get_value() == beamstop.VALUES.IN:
+            beamstop.set_value(beamstop.VALUES.OUT)
         super()._set_value(value)
