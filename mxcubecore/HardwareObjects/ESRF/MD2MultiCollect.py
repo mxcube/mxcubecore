@@ -82,7 +82,7 @@ class MD2MultiCollect(ESRFMultiCollect):
     def data_collection_cleanup(self):
         HWR.beamline.diffractometer.wait_status_ready(10)
         self.close_fast_shutter()
-        HWR.beamline.diffractometer.get_object_by_role("BackLightSwitch").enable()
+        HWR.beamline.diffractometer.backlightswitch.enable()
 
     @task
     def oscil(self, start, end, exptime, number_of_images, wait=True):
