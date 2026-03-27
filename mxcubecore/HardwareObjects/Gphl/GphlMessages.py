@@ -233,6 +233,8 @@ class IdentifiedElement(MessageData):
             self._id = value
         else:
             self._id = uuid.uuid1()
+
+
 #            raise TypeError("UUID input must be of type uuid.UUID")
 
 
