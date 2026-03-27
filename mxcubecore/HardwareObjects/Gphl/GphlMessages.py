@@ -232,10 +232,7 @@ class IdentifiedElement(MessageData):
         elif isinstance(value, uuid.UUID):
             self._id = value
         else:
-            self._id = uuid.uuid1()
-
-
-#            raise TypeError("UUID input must be of type uuid.UUID")
+            raise TypeError("UUID input must be of type uuid.UUID")
 
 
 # Sync with Java 4/5/2017
