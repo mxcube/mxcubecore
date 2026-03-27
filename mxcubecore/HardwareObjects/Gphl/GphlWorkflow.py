@@ -68,7 +68,7 @@ __copyright__ = """ Copyright © 2016 - 2019 by Global Phasing Ltd. """
 __license__ = "LGPLv3+"
 __author__ = "Rasmus H Fogh"
 
-gphlVersion = Version("2.2.0+202603110039.0-gf763e76")
+gphl_version_str = "2.2.0+202603110039.0-gf763e76"
 
 @enum.unique
 class GphlWorkflowStates(enum.Enum):
@@ -88,9 +88,10 @@ class GphlWorkflowStates(enum.Enum):
     COMPLETED = 4
     UNKNOWN = 5
 
-    # Conversion factor from experimentally determined reflecting_range_esd
-    # To dedfault image width
-    MOSAICITY_TO_IMAGE_WIDTH = 0.33
+# Conversion factor from experimentally determined reflecting_range_esd
+# to default image width
+# Value taken from Acta Cryst D (2012) D68, 42-56, and GPhL colleagues
+MOSAICITY_TO_IMAGE_WIDTH = 0.33
 
 # Additional sample/diffraction plan data for GPhL emulation samples.
 EMULATION_DATA = {
@@ -1051,19 +1052,20 @@ class GphlWorkflow(HardwareObject):
             "GPhL Workflow %s, beamline interface: %s"
             % (wf_version_str, abi_version_str)
         )
-        if wf_version_str and gphlVersion:
+        if wf_version_str and gphl_version_str:
+            gphl_version = Version(gphl_version_str)
             wf_release = Version(wf_version_str).release
-            gphl_release = gphlVersion.release
+            gphl_release = gphl_version.release
             if wf_release[0] != gphl_release[0]:
                 raise ValueError(
                     "MXCuBE gphl version %s incompatible with GPhL release version %s"
-                    % (gphlVersion, wf_version_str)
+                    % (gphl_version, wf_version_str)
                 )
 
             elif wf_release < gphl_release:
                 raise ValueError(
                     "GPhL release version %s older than MXCuBE gphl version %s."
-                    % (wf_version_str, gphlVersion) + "Upgrade to new GPhL release"
+                    % (wf_version_str, gphl_version_str) + "Upgrade to new GPhL release"
                 )
         return GphlMessages.ConfigurationData(self.file_paths["gphl_beamline_config"])
 
@@ -1578,13 +1580,27 @@ class GphlWorkflow(HardwareObject):
 
         allowed_widths = geometric_strategy.allowedWidths
         if allowed_widths:
-            default_image_width = float(
-                allowed_widths[geometric_strategy.defaultWidthIdx or 0]
-            )
+            default_width_index =  geometric_strategy.defaultWidthIdx or 0
         else:
-            default_image_width = list(
-                self.config.settings.get("default_image_widths")
-            )[0]
+            allowed_widths = list(self.config.settings.get("default_image_widths"))
+            default_width_index =  0
+        if allowed_widths:
+            reflecting_range_esd = gphl_workflow_model.reflecting_range_esd
+            if reflecting_range_esd:
+                # Pick allowed width nearest to target
+                target = MOSAICITY_TO_IMAGE_WIDTH * reflecting_range_esd
+                delta = 999.999
+                for val in allowed_widths:
+                    diff = abs(val - target)
+                    if diff < delta:
+                        delta = diff
+                        default_image_width = val
+            else:
+                # Take configured default
+                default_image_width = allowed_widths[default_width_index]
+        else:
+            # Should not happen, but if no allowed_widths ...
+            default_image_width = 0.1
 
         # get parameters and initial transmission/use_dose
         if gphl_workflow_model.automation_mode:
