@@ -70,8 +70,6 @@ class MD2MultiCollect(ESRFMultiCollect):
         diffr.frontlightswitch.set_value(diffr.frontlightswitch.VALUES.IN)
         # diffr.frontlight.set_value(2)
 
-        back_light_switch = diffr.get_object_by_role("BackLightSwitch")
-        back_light_switch.disable()
         diffr.backlightswitch.disable()
         # move to DataCollection phase
         logging.getLogger("user_level_log").info("Moving MD2 to DataCollection")
