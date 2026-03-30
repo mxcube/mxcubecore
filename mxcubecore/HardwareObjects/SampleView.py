@@ -203,7 +203,6 @@ class SampleView(AbstractSampleView):
         """
         if not positions_dict:
             raise RuntimeError("Unknown position")
-        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
         diffr = HWR.beamline.diffractometer
         pixels_per_mm_x, pixels_per_mm_y = diffr.get_pixels_per_mm()
         if not all([pixels_per_mm_x, pixels_per_mm_y]):
@@ -240,9 +239,10 @@ class SampleView(AbstractSampleView):
         if self.chi_angle:
             sx, sy = np.dot(np.array([0, dsampy]), np.array(chi_rot))
 
-        beam_position = HWR.beamline.beam.get_beam_position_on_screen()
-        x = (sx + new_pos_dict.get("phiy")) * pixels_per_mm_x + beam_position[0]
-        y = (sy + new_pos_dict.get("phiz")) * pixels_per_mm_y + beam_position[1]
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
+
+        x = (sx + new_pos_dict.get("phiy")) * pixels_per_mm_x + beam_pos_x
+        y = (sy + new_pos_dict.get("phiz")) * pixels_per_mm_y + beam_pos_y
         return int(x), int(y)
 
     def start_manual_centring(self, nb_click: int = 3):
