@@ -223,7 +223,7 @@ class SampleView(AbstractSampleView):
             ]
         )
         inv_rot_matrix = np.array(rot_matrix.I)
-        dsampx, dsampy = np.dot(
+        _, dsampy = np.dot(
             np.array([new_pos_dict.get("sampx"), new_pos_dict.get("sampy")]),
             inv_rot_matrix,
         )
@@ -236,8 +236,6 @@ class SampleView(AbstractSampleView):
             ]
         )
         sx, sy = np.dot(np.array([0, dsampy]), np.array(chi_rot))
-        if self.chi_angle:
-            sx, sy = np.dot(np.array([0, dsampy]), np.array(chi_rot))
 
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
 
