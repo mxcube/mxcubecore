@@ -48,7 +48,6 @@ class MicroDiffractometer(AbstractDiffractometer):
 
     def init(self):
         """Initialise the device"""
-        super().init()
         exporter_address = self.get_property("exporter_address")
         _host, _port = exporter_address.split(":")
         self._exporter = Exporter(_host, int(_port))
@@ -71,6 +70,8 @@ class MicroDiffractometer(AbstractDiffractometer):
                 "name": nam,
             }
             setattr(self, nam, self.add_channel(_attr, attr))
+
+        super().init()
 
         self.update_state()
 

@@ -223,6 +223,7 @@ class AbstractDiffractometer(HardwareObject):
         """Initialise username property.
         Initialise the equipment, defined in the configuration file
         """
+        super().init()
         self.username = self.get_property("username") or self.username
 
         # motors
