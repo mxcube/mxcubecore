@@ -83,7 +83,7 @@ class MicroDiffractometer(AbstractDiffractometer):
             self.log.exception("global_state and phase_channel not configured!")
 
         sample_centring.NUM_CENTRING_ROUNDS = self.get_property(
-            "num_centering_rounds", 1
+            "num_centring_rounds", 1
         )
 
     def abort(self):
