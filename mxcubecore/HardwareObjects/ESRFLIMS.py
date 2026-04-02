@@ -45,14 +45,14 @@ class ESRFLIMS(AbstractLims):
 
     def login(self, user_name, token, is_local_host=False) -> LimsSessionManager:
         self.is_local_host = is_local_host
-        session_manager, lims_username, sessions = self.drac.login(
+        session_manager, icat_session, sessions = self.drac.login(
             user_name, token, self.session_manager
         )
         logger.debug("%s sessions found. user=%s" % (len(sessions), user_name))
 
         self.session_manager = self.drac.session_manager
 
-        self.add_user_and_shared_sessions(lims_username, sessions)
+        self.add_user_and_shared_sessions(icat_session, sessions)
 
         # In case there is a single available session then it is selected automatically
         if self.is_single_session_available():
@@ -172,7 +172,9 @@ class ESRFLIMS(AbstractLims):
     def is_session_already_active(self, session_id: str) -> bool:
         return self.drac.is_session_already_active(session_id)
 
-    def set_active_session_by_id(self, session_id: str) -> Session:
+    def set_active_session_by_id(
+        self, session_id: str, username: str | None = None
+    ) -> Session:
         logger.debug("set_active_session_by_id. session_id=%s", str(session_id))
 
         if self.drac.session_manager.active_session is not None:

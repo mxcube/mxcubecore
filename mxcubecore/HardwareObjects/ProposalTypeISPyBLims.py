@@ -75,7 +75,9 @@ class ProposalTypeISPyBLims(ISPyBAbstractLIMS):
                 return True
         return False
 
-    def set_active_session_by_id(self, proposal_name: str) -> Session:
+    def set_active_session_by_id(
+        self, proposal_name: str, username: str | None = None
+    ) -> Session:
         """
         Given a proposal name it will select a session that is scheduled on this beamline in the current timeslot
         """
