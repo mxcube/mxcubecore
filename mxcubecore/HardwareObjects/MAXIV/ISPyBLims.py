@@ -184,7 +184,11 @@ class ISPyBLims(UserTypeISPyBLims):
         except Exception as ex:
             return False, str(ex)
 
-    def set_active_session_by_id(self, session_id: str) -> Session:
+    def set_active_session_by_id(
+        self,
+        session_id: str,
+        username: str | None = None,  # noqa: ARG002
+    ) -> Session:
         """
         Sets session with session_id to active session
 
