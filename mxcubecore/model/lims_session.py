@@ -210,10 +210,12 @@ class LimsUser(BaseModel):
     Parameters:
         user_name: Identifier for the user, typically their login name.
         sessions: List of sessions the user is allowed to collect data from.
+        lims_token: Optional token for authentication with the LIMS, if required.
     """
 
     user_name: str = ""
     sessions: Optional[List[Session]] = []
+    lims_token: str | dict = ""
 
 
 class LimsSessionManager(BaseModel):
