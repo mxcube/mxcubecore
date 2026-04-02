@@ -537,7 +537,9 @@ class SampleView(AbstractSampleView):
                 not HWR.beamline.diffractometer.in_plate_mode
                 and snapshot_index < len(image_path_list) - 1
             ):
-                HWR.beamline.diffractometer.omega.set_value_relative(90, timeout=200)
+                HWR.beamline.diffractometer.omega.set_value_relative(90, timeout=300)
+        # wait a bit longer the motor movement to finish
+        HWR.beamline.diffractometer.wait_status_ready()
 
     def save_snapshot(
         self,
