@@ -3849,7 +3849,6 @@ convention = "google"
     "FBT003",
     "N802",
     "N803",
-    "N806",
     "PERF203",
     "PLR0912",
     "PLR0913",
@@ -3859,10 +3858,9 @@ convention = "google"
     "PTH113",
     "PTH118",
     "PTH122",
-    "PYI024",
     "PTH123",
+    "PYI024",
     "SIM102",
-    "SIM115"
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractOnlineProcessing.py" = [
     "ARG002",

@@ -321,9 +321,8 @@ class AbstractMultiCollect(object):
 
         snapshot_directory = dc_params["fileinfo"]["archive_directory"]
 
-        if HWR.beamline.diffractometer.in_plate_mode:
-            if self.number_of_snapshots > 0:
-                self.number_of_snapshots = 1
+        if HWR.beamline.diffractometer.in_plate_mode and self.number_of_snapshots > 0:
+            self.number_of_snapshots = 1
 
         if not os.path.exists(snapshot_directory):
             self.create_directories(snapshot_directory)
@@ -580,24 +579,22 @@ class AbstractMultiCollect(object):
         self.move_motors(motors_to_move_before_collect)
         HWR.beamline.diffractometer.save_centring_positions()
 
-        aperture_ho = HWR.beamline.beam.aperture
-
-        if aperture_ho:
-            aperture = HWR.beamline.beam.aperture.get_value()
+        beam_size = HWR.beamline.beam.get_value()
 
         if data_collect_parameters.get("take_snapshots", False):
             logging.getLogger("user_level_log").info(
                 f"Taking sample ({self.number_of_snapshots}) snapshosts"
             )
             self.take_snapshots(data_collect_parameters)
-        centring_info = HWR.beamline.sample_view.get_centring_status()
-        # move *again* motors, since taking snapshots may change positions
-        logging.getLogger("user_level_log").info(
-            "Moving motors to centered position: %r", motors_to_move_before_collect
-        )
 
-        if aperture_ho:
-            HWR.beamline.beam.aperture.set_value(aperture)
+        centring_info = HWR.beamline.sample_view.get_centring_status()
+
+        # move *again* motors, since taking snapshots may change positions
+        msg = f"Moving motors to centered position: {motors_to_move_before_collect}"
+        logging.getLogger("user_level_log").info(msg)
+
+        if len(beam_size) == 4:
+            HWR.beamline.beam.set_value(beam_size[3])
 
         self.move_motors(motors_to_move_before_collect)
 
@@ -642,17 +639,12 @@ class AbstractMultiCollect(object):
                     full_snapshot = os.path.join(snapshot_directory, snapshot_filename)
 
                     try:
-                        f = open(full_snapshot, "w")
-                        logging.getLogger("user_level_log").info(
-                            "Saving snapshot %d", snapshot_i
-                        )
-                        f.write(img_data)
+                        with open(full_snapshot, "w") as f:
+                            msg = f"Saving snapshot {snapshot_i}"
+                            logging.getLogger("user_level_log").info(msg)
+                            f.write(img_data)
                     except Exception:
                         logging.getLogger("HWR").exception("Could not save snapshot!")
-                        try:
-                            f.close()
-                        except Exception:
-                            logging.getLogger("HWR").exception("")
 
                     data_collect_parameters["xtalSnapshotFullPath%i" % snapshot_i] = (
                         full_snapshot
@@ -853,10 +845,10 @@ class AbstractMultiCollect(object):
                     data_collect_parameters["resolutionAtCorner"] = (
                         self.get_resolution_at_corner()
                     )
-                    beam_size_x, beam_size_y = self.get_beam_size()
-                    data_collect_parameters["beamSizeAtSampleX"] = beam_size_x
-                    data_collect_parameters["beamSizeAtSampleY"] = beam_size_y
-                    data_collect_parameters["beamShape"] = self.get_beam_shape()
+                    beam_size = HWR.beamline.beam.get_value()
+                    data_collect_parameters["beamSizeAtSampleX"] = beam_size[0]
+                    data_collect_parameters["beamSizeAtSampleY"] = beam_size[1]
+                    data_collect_parameters["beamShape"] = beam_size[2].name
                     hor_gap, vert_gap = self.get_slit_gaps()
                     data_collect_parameters["slitGapHorizontal"] = hor_gap
                     data_collect_parameters["slitGapVertical"] = vert_gap
@@ -1299,32 +1291,32 @@ class AbstractMultiCollect(object):
         # use default of 200
         residues = residues or 200
 
-        processAnalyseParams = {}
-        processAnalyseParams["EDNA_files_dir"] = EDNA_files_dir
+        analyse_params = {}
+        analyse_params["EDNA_files_dir"] = EDNA_files_dir
 
         try:
             if isinstance(xds_dir, list):
-                processAnalyseParams["collections_params"] = xds_dir
+                analyse_params["collections_params"] = xds_dir
             else:
-                processAnalyseParams["datacollect_id"] = self.collection_id
-                processAnalyseParams["xds_dir"] = xds_dir
-            processAnalyseParams["anomalous"] = anomalous
-            processAnalyseParams["residues"] = residues
-            processAnalyseParams["spacegroup"] = spacegroup
-            processAnalyseParams["cell"] = cell
+                analyse_params["datacollect_id"] = self.collection_id
+                analyse_params["xds_dir"] = xds_dir
+            analyse_params["anomalous"] = anomalous
+            analyse_params["residues"] = residues
+            analyse_params["spacegroup"] = spacegroup
+            analyse_params["cell"] = cell
         except Exception as err:
             msg = f"DataCollect:processing: {err}"
             logging.getLogger().exception(msg)
         else:
             programs = self.get_property("auto_processing")
             try:
-                autoprocessing.start(programs, process_event, processAnalyseParams)
+                autoprocessing.start(programs, process_event, analyse_params)
             except Exception:
                 logging.getLogger().exception("Error starting processing")
 
             if process_event == "after" and do_inducedraddam:
                 try:
-                    autoprocessing.startInducedRadDam(processAnalyseParams)
+                    autoprocessing.startInducedRadDam(analyse_params)
                 except Exception:
                     logging.exception("Error starting induced rad.dam")
 
