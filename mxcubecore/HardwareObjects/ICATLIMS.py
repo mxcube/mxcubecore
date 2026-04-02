@@ -114,7 +114,7 @@ class ICATLIMS(AbstractLims):
                 msg += f"not avaialble for user {user_name}"
                 raise RuntimeError(msg)
 
-        return self.session_manager, self.icat_session["name"], sessions
+        return self.session_manager, self.icat_session, sessions
 
     def is_user_login_type(self) -> bool:
         return True
@@ -496,8 +496,13 @@ class ICATLIMS(AbstractLims):
         except (TypeError, ValueError):
             return None
 
-    def set_active_session_by_id(self, session_id: str) -> Session:
+    def set_active_session_by_id(
+        self, session_id: str, username: str | None = None
+    ) -> Session:
         logger.debug(f"set_active_session_by_id: {session_id}")
+
+        if username:
+            self.icat_session = self.session_manager.users[username].icat_session
 
         if self.is_session_already_active(self.session_manager.active_session):
             return self.session_manager.active_session

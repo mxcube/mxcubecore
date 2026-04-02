@@ -463,7 +463,9 @@ class AbstractLims(HardwareObject, abc.ABC):
         """
         return self.session_manager.active_session
 
-    def set_active_session_by_id(self, session_id: str) -> Session:
+    def set_active_session_by_id(
+        self, session_id: str, username: str | None = None
+    ) -> Session:
         """
         Sets session with session_id to active session
 
@@ -506,18 +508,18 @@ class AbstractLims(HardwareObject, abc.ABC):
             self.log.debug("User %s has been removed" % user_name)
             self.__set_sessions(self.get_shared_sessions())
 
-    def add_user_and_shared_sessions(self, user_name: str, sessions: List[Session]):
+    def add_user_and_shared_sessions(self, icat_session: dict, sessions: List[Session]):
         """
         Stores the username and the shared sessions in the session manager object.
         The shared sessions represent the intersection of all sessions
         for each user currently connected.
         """
-        self.session_manager.users[user_name] = LimsUser(
-            user_name=user_name, sessions=sessions
+        self.session_manager.users[icat_session["name"]] = LimsUser(
+            user_name=icat_session["name"], sessions=sessions, icat_session=icat_session
         )
         self.log.debug(
             "User added to session manager, user_name=%s sessions=%s"
-            % (user_name, len(sessions))
+            % (icat_session["name"], len(sessions))
         )
 
         self.__set_sessions(self.get_shared_sessions())
