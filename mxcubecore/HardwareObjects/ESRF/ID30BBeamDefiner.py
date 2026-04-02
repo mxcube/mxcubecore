@@ -64,7 +64,7 @@ Example xml configuration:
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
-
+import logging
 from enum import Enum
 
 from mxcubecore.HardwareObjects.ESRF.ESRFBeamDefiner import ESRFBeamDefiner
@@ -78,14 +78,15 @@ class ID30BBeamDefiner(ESRFBeamDefiner):
         self.controller = None
         self.defocused_beam = None
         self.tf_obj = None
+        self.bliss = None
 
     def init(self):
         """Initialisation"""
         super().init()
 
         self.controller = self.get_object_by_role("controller")
-        bliss = self.get_object_by_role("bliss")
-        self.tf_obj = getattr(bliss, self.get_property("transfocator"))
+        self.bliss = self.get_object_by_role("bliss")
+        self.tf_obj = getattr(self.bliss, self.get_property("transfocator"))
         _dict = {}
 
         for beam_cfg in self.bd_config:
@@ -151,6 +152,16 @@ class ID30BBeamDefiner(ESRFBeamDefiner):
         if isinstance(value, Enum):
             value = value.name
 
+        new_focus = self.beam_config[value]["defocus"]
+        self.tf_obj.change_tf(defocus=new_focus)
+
+        if new_focus != self.defocused_beam:
+            msg = f"Changing to {'de' if new_focus else ''}focused beam"
+            logging.getLogger("user_level_log").warning(msg)
+            logging.getLogger("user_level_log").warning(
+                "Need to centre the beam, please wait"
+            )
+            self.bliss.centrebeam()
         self.controller.set_value(self.beam_config[value]["aperture"], timeout=timeout)
-        self.defocused_beam = self.beam_config[value]["defocus"]
-        self.tf_obj.change_tf(defocus=self.defocused_beam)
+
+        self.defocused_beam = new_focus
