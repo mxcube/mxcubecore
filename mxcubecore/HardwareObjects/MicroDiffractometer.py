@@ -22,12 +22,12 @@
 
 import time
 
-import sample_centring
 from gevent import Timeout, sleep
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.Command.Exporter import Exporter
 from mxcubecore.Command.exporter.ExporterStates import ExporterStates
+from mxcubecore.HardwareObjects import sample_centring
 from mxcubecore.HardwareObjects.abstract.AbstractDiffractometer import (
     AbstractDiffractometer,
     DiffractometerConstraint,
