@@ -665,7 +665,7 @@ class GphlWorkflowConnection(HardwareObject):
         xx0 = py4jSimpleVersion.getPrerelease()
         result = ".".join(parts)
         if xx0:
-            result += xx0.toString()
+            result += xx0
         return result
 
     def _ObtainPriorInformation_to_python(self, py4jObtainPriorInformation):

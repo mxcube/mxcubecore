@@ -1468,8 +1468,8 @@ class GphlWorkflow(HardwareObject):
                 "repetition_count",
             )
             if data_model.reflecting_range_esd:
-                ui_schema["parameters"]["column2"]["ui:order"].append(
-                    "reflecting_range_esd"
+                ui_schema["parameters"]["column2"]["ui:order"].insert(
+                    2, "reflecting_range_esd"
                 )
 
         ll0 = ui_schema["parameters"]["column2"]["ui:order"]
