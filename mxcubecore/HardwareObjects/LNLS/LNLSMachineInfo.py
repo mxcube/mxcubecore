@@ -38,11 +38,6 @@ class LNLSMachineInfo(AbstractMachineInfo):
         parameters: '["current", "message", "lifetime", "fill_mode"]'
     """
 
-    CURRENT_RBV = "current"
-    MESSAGE_RBV = "message"
-    LIFETIME_RBV = "lifetime"
-    FILL_MODE_RBV = "fill_mode"
-
     def init(self):
         super().init()
         gevent.spawn(self._update_me)
@@ -53,10 +48,10 @@ class LNLSMachineInfo(AbstractMachineInfo):
             self.update_value()
 
     def get_current(self) -> float:
-        return self.get_channel_value(self.CURRENT_RBV)
+        return self.get_channel_value("current")
 
     def get_message(self) -> str:
-        mode_ring = self.get_channel_value(self.MESSAGE_RBV)
+        mode_ring = self.get_channel_value("message")
         if 0 <= mode_ring <= 9:
             mode_ring = str(mode_ring)
             values = {
@@ -75,9 +70,9 @@ class LNLSMachineInfo(AbstractMachineInfo):
         return "UNKNOWN"
 
     def get_lifetime(self) -> str:
-        hour = int(self.get_channel_value(self.LIFETIME_RBV) / 3600)
+        hour = int(self.get_channel_value("lifetime") / 3600)
         minute = int(((hour * 60) % 60))
         return f"{hour}:{minute}"
 
     def get_fill_mode(self) -> str:
-        return self.get_channel_value(self.FILL_MODE_RBV)
+        return self.get_channel_value("fill_mode")
