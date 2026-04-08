@@ -143,6 +143,9 @@ class CalibrationData(BaseModel):
     bottom_left: Tuple[float, float, float] = Field(
         [0, 0, 0], description="Bottom left corner motor position"
     )
+    bottom_right: Tuple[float, float, float] = Field(
+        [0, 0, 0], description="Bottom right corner motor position"
+    )
 
 
 class SampleHolderSectionModel(BaseModel):
