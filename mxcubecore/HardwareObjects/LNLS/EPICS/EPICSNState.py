@@ -120,6 +120,7 @@ class EPICSNStateInterval(EPICSNState):
         enum_value = values_list[0] if value > values_list[1].value else values_list[1]
         super().update_value(enum_value)
 
+
 class EPICSToggle(EPICSNState):
     """
     This class is a workaround for devices that exist in a discrete number of states
