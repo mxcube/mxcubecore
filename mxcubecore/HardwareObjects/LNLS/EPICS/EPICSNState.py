@@ -119,3 +119,38 @@ class EPICSNStateInterval(EPICSNState):
             return
         enum_value = values_list[0] if value > values_list[1].value else values_list[1]
         super().update_value(enum_value)
+
+class EPICSToggle(EPICSNState):
+    """
+    This class is a workaround for devices that exist in a discrete number of states
+    but take always the same input when switching between these states.
+    Example: a safety shutter with RBVs 0 for open and 1 for closed, but input value
+    must always be 1 for either opening/closing.
+
+    YAML Example
+    ------------
+
+    %YAML 1.2
+    ---
+    class: LNLS.EPICS.EPICSNState.EPICSToggle
+    epics:
+    "MNC:A:PPS01:":
+        channels:
+            rbv:
+                suffix: 'PG_STATUS'
+                polling_period: 200
+            val:
+                suffix: 'OEAOPENCLOSE'
+    configuration:
+        default_limits: (0, 1)
+        values: {'Open': 0, 'Closed': 1}
+        input_value: 1
+    """
+
+    def init(self):
+        super().init()
+        self.input_value = self.get_property("input_value")
+
+    def _set_value(self, value):
+        value = self.input_value
+        super()._set_value(value)
