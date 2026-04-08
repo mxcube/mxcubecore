@@ -152,6 +152,5 @@ class EPICSToggle(EPICSNState):
         super().init()
         self.input_value = self.get_property("input_value")
 
-    def _set_value(self, value):
-        value = self.input_value
-        super()._set_value(value)
+    def _set_value(self, value): # noqa: ARG002
+        super()._set_value(self.input_value)
