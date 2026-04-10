@@ -1,28 +1,14 @@
 # ruff: noqa: TD003, FIX002, ERA001
-import json
 import logging
-from json.decoder import JSONDecodeError
-from typing import (
-    Dict,
-    List,
-    Optional,
-)
-from urllib.parse import urljoin
 
-import requests
 from duo.UO import RestDuo  # part of sdm package
 from sdm.config import DUOPASSWORD, DUOUSER
-from suds import WebFault
 
-from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.ISPyBDataAdapter import ISPyBDataAdapter
 from mxcubecore.HardwareObjects.abstract.PyISPyBDataAdapter import PyISPyBDataAdapter
-from mxcubecore.HardwareObjects.MAXIV.PyISPyBLims import PyISPyBRestClient
+from mxcubecore.HardwareObjects.MAXIV.PyISPyBRestClient import PyISPyBRestClient
 from mxcubecore.HardwareObjects.UserTypeISPyBLims import UserTypeISPyBLims
-from mxcubecore.model.lims_session import (
-    LimsSessionManager,
-    Session,
-)
+from mxcubecore.model.lims_session import LimsSessionManager, Proposal, Session
 
 DUO_API_URL = "https://duo-api.maxiv.lu.se"
 LAZY_SESSION_PREFIX = "lazy"
@@ -30,131 +16,31 @@ LAZY_SESSION_PREFIX = "lazy"
 log = logging.getLogger("ispyb_client")
 
 
-def _get_lazy_session_id(proposal: Dict) -> str:
-    prop_id = proposal["proposalId"]
-    return f"{LAZY_SESSION_PREFIX}{prop_id}"
+class NoSessionException(Exception):
+    """Exception raised when no expected session found."""
 
 
-def _is_lazy_session_id(session_id: str) -> bool:
-    return session_id.startswith(LAZY_SESSION_PREFIX)
-
-
-def _check_ispyb_error_message(response):
-    def _expected_ispyb_err_msg(error_msg):
-        import re
-
-        match = re.match("^JBAS011843: Failed instantiate.*ldap.*ispyb", error_msg)
-        return match is not None
-
-    #
-    # check that we got the 'expected' error message on invalid credentials,
-    # otherwise log the error message, so we don't swallow new error messages
-    #
-    if _expected_ispyb_err_msg(response.text):
-        # all is fine
-        return
-
-    log.warning(
-        "unexpected response from ISPyB\n"
-        + f"{response.status_code} {response.reason}\n{response.text}"
-    )
-
-
-class ISPyBRestClient:
-    def __init__(self, rest_root: str):
-        self._rest_root = rest_root
-        # EXI uses auth token in the URL path...
-        self._rest_token = None
-
-    def authenticate(self, user_name: str, password: str):
-        """
-        authenticate with REST services
-
-        Args:
-            user_name: Username
-            password: Password
-        """
-        auth_url = urljoin(self._rest_root, "authenticate?site=MAXIV")
-        response = requests.post(
-            auth_url, data={"login": user_name, "password": password}
-        )
-
-        try:
-            # if authentication is successful, we will get
-            # JSON response containing an auth token
-            self._rest_token = response.json().get("token", None)
-        except JSONDecodeError:
-            # on invalid credentials, some ISPyB systems will reply with
-            # an internal error message, as plain text
-            _check_ispyb_error_message(response)
-
-        if self._rest_token is None:
-            # we failed to obtain the auth token, thus we failed to authenticate
-            raise Exception("invalid credentials")
-
-    def get_xrf_graph_url(self, spectrum_id: int) -> str:
-        if self._rest_token is None:
-            raise Exception("not authenticated")
-
-        url = "{rest_root}{token}"
-        # note: this is path for the EXI front-end, Py-ISPyB will have
-        # different URL and will require token to be sent in a header.
-        url += "/proposal/{pcode}{pnumber}/mx/xrfscan/xrfscanId/{spectrum_id}/image/jpegScanFileFullPath/get"
-        return url.format(
-            rest_root=self._rest_root,
-            token=str(self._rest_token),
-            pcode=HWR.beamline.session.proposal_code,
-            pnumber=HWR.beamline.session.proposal_number,
-            spectrum_id=spectrum_id,
-        )
-
-
-def _create_session_object(proposal, session_id: str, beamline_name: str) -> Session:
-    return Session(
-        proposal_id=proposal["proposalId"],
-        code=proposal["code"],
-        number=proposal["number"],
-        session_id=session_id,
-        beamline_name=beamline_name,
-        title=proposal["title"],
-        #
-        # At MAXIV we don't care if a session is scheduled
-        # or not, mark all sessions as scheduled.
-        #
-        is_scheduled_time=True,
-        is_scheduled_beamline=True,
-    )
-
-
-class CustomISPyBDataAdapter(ISPyBDataAdapter, PyISPyBDataAdapter):
+class CustomISPyBDataAdapter(PyISPyBDataAdapter, ISPyBDataAdapter):
     """Extend the standard ISPyB data adapter with MAXIV specific logic."""
 
-    def _filter_proposals(self, proposals: List[Dict]):
-        """Filter proposals by the beamline, state and type.
+    def get_proposals(self):
+        """Override method to filter proposals by the type, state and beamline name.
 
-        Include proposals: of type ``MX`` or ``MB`` in ``Open`` state and assigned to the current beamline. The last is done via DUO API.
-
-        Args:
-            proposals: list of proposals to filter
+        Include proposals: of type ``MX`` or ``MB`` in ``Open`` state and assigned
+        to the current beamline. The last is checked via DUO API.
         """
         duo = RestDuo(DUO_API_URL)
         duo.login(DUOUSER, DUOPASSWORD)
         beamline_proposals_ids = set(duo.get_beamline_proposals(self.beamline_name))
-        for proposal in proposals:
-            # TODO@dominikatrojanowska: "type" field will be added to PyISPyB in the future
-            if proposal["proposalCode"].upper() not in ["MX", "MB"]:
-                continue
-            if proposal.get("state", "Open") != "Open":
-                continue
-            if int(proposal["proposalNumber"]) not in beamline_proposals_ids:
-                continue
-            yield proposal
+        return [
+            proposal
+            for proposal in super().get_proposals()
+            if proposal.code in ["MX", "MB"]
+            and proposal.state == "Open"
+            and int(proposal.number) in beamline_proposals_ids
+        ]
 
-    def get_proposals(self):
-        """Override the get_proposals method to filter proposals by the beamline, state and type."""
-        return self._filter_proposals(super().get_proposals())
-
-    def create_session(self, proposal: Dict) -> Session:
+    def create_session(self, proposal: Proposal) -> Session:
         """Create a new Session object for the given proposal and beamline.
 
         This is a lazy session creation, done automatically on the fly in case
@@ -163,19 +49,19 @@ class CustomISPyBDataAdapter(ISPyBDataAdapter, PyISPyBDataAdapter):
         Py-ISPYB service until it is selected.
 
         Args:
-            proposal: Proposal dictionary to create session for
+            proposal: Proposal object to create session for
 
         Returns:
             Session: Created session object
         """
         return Session(
-            code=proposal["proposalCode"],
-            number=proposal["proposalNumber"],
-            proposal_name=proposal.get("proposal"),
-            proposal_id=proposal["proposalId"],
-            session_id=_get_lazy_session_id(proposal),
+            code=proposal.code,
+            number=proposal.number,
+            proposal_name=proposal.name,
+            proposal_id=proposal.proposal_id,
+            session_id=f"{LAZY_SESSION_PREFIX}{proposal.proposal_id}",
             beamline_name=self.beamline_name,
-            title=proposal["title"],
+            title=proposal.title,
             # At MAXIV we don't care if a session is scheduled, set True as default
             is_scheduled_time=True,
             is_scheduled_beamline=True,
@@ -199,75 +85,21 @@ class CustomISPyBDataAdapter(ISPyBDataAdapter, PyISPyBDataAdapter):
         )
         PyISPyBDataAdapter.__init__(self, rest_client, beamline_name)
 
-    def _get_proposals(self, username: str, beamline_name: str):
-        duo = RestDuo(DUO_API_URL)
-        duo.login(DUOUSER, DUOPASSWORD)
-        beamline_proposals_ids = set(duo.get_beamline_proposals(beamline_name))
-        proposals = json.loads(
-            self._shipping.service.findProposalsByLoginName(username)
-        )
-        for proposal in proposals:
-            # only include MX and MB (proprietary) proposals
-            if proposal["type"].upper() not in ["MX", "MB"]:
-                continue
-            # only include 'Open' proposals
-            if proposal.get("state", "Open") != "Open":
-                continue
-            # only include proposals that belong to this beamline
-            if int(proposal["number"]) not in beamline_proposals_ids:
-                continue
-            yield proposal
-
-    def _get_sessions(self, username: str, beamline_name: str) -> List[Session]:
-        def list_sessions():
-            for proposal in self._get_proposals(username, beamline_name):
-                sessions = self._collection.service.findSessionsByProposalAndBeamLine(
-                    proposal["code"], proposal["number"], beamline_name
-                )
-                for sesssion in sessions:
-                    yield _create_session_object(
-                        proposal, sesssion["sessionId"], beamline_name
-                    )
-
-                #
-                # A hack to lazily create new sessions.
-                #
-                # At MAXIV we don't schedule sessions for proposals ahead of time. Instead, we
-                # lazily create them as needed.
-                #
-                # If a proposal does not contain any active session, create a Session object
-                # with a special session ID.
-                #
-                # If user selects such a session, then we will ask ISPyB to create this session.
-                #
-                if len(sessions) == 0:
-                    yield _create_session_object(
-                        proposal, _get_lazy_session_id(proposal), beamline_name
-                    )
-
-        return sorted(list_sessions(), key=lambda s: f"{s.code}{s.number}")
-
     def get_sessions_by_username(
         self, username: str, beamline_name: str
     ) -> LimsSessionManager:
-        PyISPyBDataAdapter.get_sessions_by_username(self)
-        try:
-            sessions = list(self._get_sessions(username, beamline_name))
-            return LimsSessionManager(sessions=sessions)
-        except WebFault as e:
-            log.exception(e.message)
+        return PyISPyBDataAdapter.get_sessions_by_username(
+            self, username, beamline_name
+        )
 
 
 class ISPyBLims(UserTypeISPyBLims):
     def init(self):
-        self._rest_root: str = self.get_property("rest_root")
-        self._rest_client = ISPyBRestClient(self._rest_root)
-        self._py_rest_client = PyISPyBRestClient(
-            "https://py-ispyb-backend.maxiv.lu.se/ispyb/api/v1/"
-        )
+        pyispyb_rest_root = self.get_property("pyispyb_rest_root")
+        self._py_rest_client = PyISPyBRestClient(pyispyb_rest_root)
         super().init()
 
-    def _create_data_adapter(self) -> ISPyBDataAdapter:
+    def _create_data_adapter(self) -> CustomISPyBDataAdapter:
         return CustomISPyBDataAdapter(
             self.ws_root.strip(),
             self.proxy,
@@ -278,68 +110,66 @@ class ISPyBLims(UserTypeISPyBLims):
         )
 
     def ispyb_login(self, user_name: str, password: str):
+        """Authenticate with ISPyB REST services.
+
+        In fact password is an access token obtained from Keycloak, but we call it
+        password to keep the interface consistent with other LIMS implementations.
+
+        Args:
+            user_name: Username to authenticate with
+            password: Password (access token) to authenticate with
+        Returns:
+            Tuple[bool, Optional[str]]: A tuple containing a boolean indicating
+            success or failure, and an optional error message.
+        """
         try:
             self._py_rest_client.authenticate(user_name, password)
-            self._rest_client.authenticate(user_name, password)
             return True, None
         except Exception as ex:
             return False, str(ex)
 
     def set_active_session_by_id(self, session_id: str) -> Session:
-        """
-        Sets session with session_id to active session
+        """Sets session with session_id to active session.
+
+        It is possible that user picks the session that does not exist in the database yet, so called lazy session created on the fly. In that case the session POST request is sent to the server in order to create the session in the database and get the proper session id.
 
         Args:
             session_id: session id
         """
+        session_to_activate = None
+        for _idx, session in enumerate(self.session_manager.sessions):
+            if session.session_id == session_id:
+                session_to_activate = session
+                break
+        else:
+            err = f"No session with ID {session_id} found."
+            raise NoSessionException(err)
 
-        def find_session() -> Optional[Session]:
-            for session in self.session_manager.sessions:
-                if session.session_id == session_id:
-                    self.session_manager.active_session = session
+        if session_id.startswith(LAZY_SESSION_PREFIX):
+            payload = {
+                "proposalId": session_to_activate.proposal_id,
+                "startDate": session_to_activate.start_datetime.strftime(
+                    "%Y-%m-%dT%H:%M:%S.%fZ"
+                ),
+                "endDate": session_to_activate.end_datetime.strftime(
+                    "%Y-%m-%dT%H:%M:%S.%fZ"
+                ),
+                "beamLineName": session_to_activate.beamline_name,
+                "comments": "Session created by the BCM",
+                # At MAXIV we consider session created on fly as scheduled
+                "scheduled": True,
+            }
+            new_session = self.adapter.client.post("sessions", json=payload)
+            session_to_activate.session_id = new_session.get("sessionId")
+            self.session_manager.sessions[_idx] = session_to_activate
 
-                    return session
+        self.session_manager.active_session = session_to_activate
 
-            # session not found
-            return None
-
-        def replace_lazy(sessions: List[Session], new_session: Session):
-            def gen():
-                for session in sessions:
-                    if session.session_id == session_id:
-                        yield new_session
-                    else:
-                        yield session
-
-            return list(gen())
-
-        session = find_session()
-        if session is None:
-            raise Exception(f"no session with ID {session_id} found")
-
-        #
-        # user selected a session that does not exist yet,
-        # ask ISPyB to create it
-        #
-        if _is_lazy_session_id(session_id):
-            session = self.adapter.create_session(
-                session.proposal_id, session.beamline_name
-            )
-            # replace the old lazy-session object,
-            # with the new proper-session object
-            self.session_manager.sessions = replace_lazy(
-                self.session_manager.sessions, session
-            )
-
-        return session
+        return session_to_activate
 
     def get_full_user_name(self) -> str:
-        person = self.adapter.get_person_by_username(self.user_name)
-
-        given_name = person["givenName"]
-        family_name = person["familyName"]
-
-        return f"{given_name} {family_name}"
+        person = self.adapter.get_current_user_data()
+        return "%s %s" % (person["givenName"], person["familyName"])
 
     def xrf_spectrum_results_url(self, spectrum_id: int) -> str:
         return self._rest_client.get_xrf_graph_url(spectrum_id)

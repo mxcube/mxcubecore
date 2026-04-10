@@ -18,9 +18,10 @@ class PyISPyBRestClient:
     It handles authentication and communication with PyISPyB REST API.
     """
 
-    def __init__(self, rest_root: str):
+    def __init__(self, rest_root: str, timeout: int = 5):
         self._rest_root = rest_root
         self._session = requests.Session()
+        self._timeout = timeout
 
     def _decode_json_response(self, response):
         log.info(  # TODO@dominikatrojanowska: remove
@@ -41,22 +42,22 @@ class PyISPyBRestClient:
             )
             raise
 
-    def post(self, endpoint, timeout=5, **kwargs):
+    def post(self, endpoint, **kwargs):
         url = urljoin(self._rest_root, endpoint)
         log.info(  # TODO@dominikatrojanowska: remove
-            f"POST request to {url} with timeout {timeout} and kwargs {kwargs}"
+            f"POST request to {url} with timeout {self._timeout} and kwargs {kwargs}"
         )
         return self._decode_json_response(
-            self._session.post(url, timeout=timeout, **kwargs)
+            self._session.post(url, timeout=self._timeout, **kwargs)
         )
 
-    def get(self, endpoint, timeout=5, **kwargs):
+    def get(self, endpoint, **kwargs):
         url = urljoin(self._rest_root, endpoint)
         log.info(  # TODO@dominikatrojanowska: remove
-            f"GET request to {url} with timeout {timeout} and kwargs {kwargs}"
+            f"GET request to {url} with timeout {self._timeout} and kwargs {kwargs}"
         )
         return self._decode_json_response(
-            self._session.get(url, timeout=timeout, **kwargs)
+            self._session.get(url, timeout=self._timeout, **kwargs)
         )
 
     def _get_auth_token(self, response) -> str:
@@ -74,12 +75,19 @@ class PyISPyBRestClient:
             raise NoTokenException(err)
         return token
 
-    def authenticate(self, user_name: str, password: str):
+    def authenticate(self, user_name: str, token: str):
         response = self.post(
             "auth/login",
-            json={"plugin": "ad", "login": user_name, "password": password},
+            json={
+                "plugin": "keycloak",
+                "login": user_name,
+                "password": "string",
+                "token": token,
+            },
         )
         token = self._get_auth_token(response)
+        # TODO@dominikatrojanowska: get refresh token and implement token refresh
+        # mechanism when it will be provided by py-ipsyb
         self._session.headers.update({"Authorization": f"Bearer {token}"})
 
     # def refresh_token(self):
