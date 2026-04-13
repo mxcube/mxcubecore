@@ -155,12 +155,9 @@ class CollectEmulator(CollectMockup):
         # get resolution limit and detector distance
         detector_distance = data_collect_parameters.get("detector_distance", 0.0)
         if not detector_distance:
-            dd = data_collect_parameters.get("resolution")
-            # resolution may not be set - if so you should take the current value
-            if dd:
-                resolution = dd.get("upper")
-                if resolution:
-                    self.set_resolution(resolution)
+            resolution = data_collect_parameters.get("resolution")
+            if resolution:
+                self.set_resolution(resolution)
             detector_distance = HWR.beamline.detector.distance.get_value()
         # Add sweeps
         sweeps = []

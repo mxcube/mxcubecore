@@ -764,7 +764,7 @@ class AbstractMultiCollect(object):
                 raise
 
         if "resolution" in data_collect_parameters:
-            resolution = data_collect_parameters["resolution"]["upper"]
+            resolution = data_collect_parameters["resolution"]
             logging.getLogger("user_level_log").info(
                 "Setting resolution to %f", resolution
             )

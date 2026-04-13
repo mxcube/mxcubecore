@@ -248,15 +248,10 @@ class ISPyBValueFactory:
 
         res_at_edge = None
         try:
-            try:
-                res_at_edge = float(mx_collect_dict["resolution"])
-            except Exception:
-                res_at_edge = float(mx_collect_dict["resolution"]["lower"])
+            res_at_edge = float(mx_collect_dict["resolution"])
         except KeyError:
-            try:
-                res_at_edge = float(mx_collect_dict["resolution"]["upper"])
-            except Exception:
-                pass
+            res_at_edge = None
+
         if res_at_edge is not None:
             data_collection.resolution = res_at_edge
 

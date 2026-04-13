@@ -236,7 +236,7 @@ class AbstractCollect(HardwareObject, object):
             energy = self.current_dc_parameters.get("energy")
             detector_distance = self.current_dc_parameters.get("detector_distance")
             try:
-                resolution = self.current_dc_parameters.get("resolution").get("upper")
+                resolution = self.current_dc_parameters.get("resolution")
             except AttributeError:
                 resolution = None
 

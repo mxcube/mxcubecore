@@ -2722,7 +2722,7 @@ def to_collect_dict(data_collection, sample, centred_pos=None):
             "residues": proc_params.num_residues,
             "dark": acq_params.take_dark_current,
             "detector_distance": acq_params.detector_distance,
-            "resolution": {"upper": acq_params.resolution or 0.0},
+            "resolution": acq_params.resolution or None,
             "transmission": acq_params.transmission,
             "energy": acq_params.energy,
             "oscillation_sequence": [
@@ -2768,7 +2768,7 @@ def to_collect_dict(data_collection, sample, centred_pos=None):
         if tag in dd and not dd[tag]:
             del dd[tag]
     resolution = dd.get("resolution")
-    if resolution is not None and not resolution.get("upper"):
+    if resolution is not None:
         del dd["resolution"]
     return result
 
