@@ -1146,9 +1146,7 @@ class ICATLIMS(AbstractLims):
         downloaded_files: List[Download] = []
         for resource in resources:
             resource_folder = Path(output_folder) / sample_name
-            resource_folder = Path(resource_folder) / (
-                resource.groupName if resource.groupName else ""
-            )
+            resource_folder = Path(resource_folder) / (resource.groupName or "")
             resource_folder.mkdir(
                 parents=True,
                 exist_ok=True,
@@ -1323,7 +1321,6 @@ class ICATLIMS(AbstractLims):
                 merged = metadata.copy()
 
                 try:
-
                     if sample is not None:
                         merged["experimentPlan"] = sample.get("experimentPlan")
                         merged["processingPlan"] = sample.get("processingPlan")
