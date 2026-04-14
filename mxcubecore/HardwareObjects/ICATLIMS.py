@@ -828,10 +828,10 @@ class ICATLIMS(AbstractLims):
             location = sample_node.location  # Example: (8,2,5)
 
             if len(location) == 3:
-                (cell, puck, sample_position) = location
+                cell, puck, sample_position = location
             else:
                 cell = 1
-                (puck, sample_position) = location
+                puck, sample_position = location
 
             position = None
             if None not in (cell, puck):
@@ -1270,7 +1270,7 @@ class ICATLIMS(AbstractLims):
 
             metadata["SampleTrackingContainer_type"] = "UNIPUCK"
             metadata["SampleTrackingContainer_capacity"] = "16"
-            (position, sample_position) = self._get_sample_position()
+            position, sample_position = self._get_sample_position()
             metadata["SampleChanger_position"] = position
             metadata["SampleTrackingContainer_position"] = sample_position
             # Find sample by sampleId
@@ -1318,12 +1318,12 @@ class ICATLIMS(AbstractLims):
             icat_metadata_path = Path(directory) / "metadata.json"
             with Path(icat_metadata_path).open("w") as f:
                 # We add the processing, experiment plan and a couple of other
-                # parameters only in the metadata.json - it will not work thought 
+                # parameters only in the metadata.json - it will not work thought
                 # pyicat-plus
                 merged = metadata.copy()
 
                 try:
-                    
+
                     if sample is not None:
                         merged["experimentPlan"] = sample.get("experimentPlan")
                         merged["processingPlan"] = sample.get("processingPlan")
@@ -1340,7 +1340,9 @@ class ICATLIMS(AbstractLims):
                 # Name of the beamline where the experiment was scheduled
                 try:
                     merged["scheduled_beamline_name"] = self._get_scheduled_beamline()
-                    logger.info(f"Scheduled beamline: {merged['scheduled_beamline_name']}")
+                    logger.info(
+                        f"Scheduled beamline: {merged['scheduled_beamline_name']}"
+                    )
                 except RuntimeError as e:
                     logger.warning("Failed to get scheduled beamline name. %s", e)
 
