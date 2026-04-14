@@ -898,18 +898,6 @@ class ICATLIMS(AbstractLims):
 
         machine_info = HWR.beamline.machine_info.get_value()
 
-        # name of the beamline where the experiment is being conducted
-        beamline_name = HWR.beamline.session.beamline_name
-        # name of the beamline where the experiment was scheduled
-        scheduled_beamline_name = HWR.beamline.session.beamline_name
-        try:
-            scheduled_beamline_name = self._get_scheduled_beamline()
-            msg += f"Current Beamline={HWR.beamline.session.beamline_name}"
-            logger.info(msg)
-        except RuntimeError as err:
-            msg = f"Failed to get _get_scheduled_beamline {err}"
-            logger.warning(msg)
-
         investigation_id = None
         investigation_name = None
         if self.session_manager.active_session.session_id:
@@ -929,14 +917,11 @@ class ICATLIMS(AbstractLims):
             logger.warning("Failed to set __actualInstrument. %s", e)
 
         result = {
-            "sampleId": sample_id,
             "Sample_name": sample_name,
             "startDate": start_time,
             "endDate": end_time,
             "investigationId": investigation_id,
-            "beamline_name": beamline_name,
             "proposal": investigation_name,
-            "scheduled_beamline_name": scheduled_beamline_name,
             "MX_beamShape": shape.value,
             "MX_beamSizeAtSampleX": bsx,
             "MX_beamSizeAtSampleY": bsy,
@@ -1294,11 +1279,6 @@ class ICATLIMS(AbstractLims):
             )
 
             try:
-                metadata["lims"] = HWR.beamline.lims.get_active_lims().name
-            except Exception:
-                logger.exception("Failed to read get_active_lims.")
-
-            try:
                 if sample is not None:
                     metadata["SampleProtein_acronym"] = sample.get("proteinAcronym")
                     metadata["SampleTrackingContainer_id"] = sample.get(
@@ -1337,15 +1317,37 @@ class ICATLIMS(AbstractLims):
 
             icat_metadata_path = Path(directory) / "metadata.json"
             with Path(icat_metadata_path).open("w") as f:
-                # We add the processing and experiment plan only in the metadata.json
-                # it will not work thought pyicat-plus
+                # We add the processing, experiment plan and a couple of other
+                # parameters only in the metadata.json - it will not work thought 
+                # pyicat-plus
                 merged = metadata.copy()
+
                 try:
+                    
                     if sample is not None:
                         merged["experimentPlan"] = sample.get("experimentPlan")
                         merged["processingPlan"] = sample.get("processingPlan")
                 except RuntimeError as e:
                     logger.warning("Failed to get merged sample plan. %s", e)
+
+                # ISPyB sample id
+                merged["sample_id"] = datacollection_dict.get("blSampleId")
+
+                # Name of the beamline where the experiment is being conducted
+                merged["beamline_name"] = HWR.beamline.session.beamline_name
+                logger.info(f"Current beamline: {merged['beamline_name']}")
+
+                # Name of the beamline where the experiment was scheduled
+                try:
+                    merged["scheduled_beamline_name"] = self._get_scheduled_beamline()
+                    logger.info(f"Scheduled beamline: {merged['scheduled_beamline_name']}")
+                except RuntimeError as e:
+                    logger.warning("Failed to get scheduled beamline name. %s", e)
+
+                try:
+                    merged["lims"] = HWR.beamline.lims.get_active_lims().name
+                except Exception:
+                    logger.exception("Failed to read get_active_lims.")
 
                 f.write(json.dumps(merged, indent=4))
 
