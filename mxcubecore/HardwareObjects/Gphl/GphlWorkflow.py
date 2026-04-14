@@ -387,7 +387,7 @@ class GphlWorkflow(HardwareObject):
         Returns:
             dict: Parameter value dictionary
         """
-
+        SPECIFY_URL = "Specify Url"
         resolution_decimals = 3
         data_model = self._queue_entry.get_data_model()
         strategy_settings = data_model.strategy_settings
@@ -529,6 +529,20 @@ class GphlWorkflow(HardwareObject):
             "title": "Reference MTZ file Url (multiple Urls not yet supported)",
             "type": "textarea",
             "default": "",
+        }
+        fields["processing_macro_url"] = {
+            "title": "Special processing macro Url",
+            "type": "textarea",
+            "default": "",
+        }
+        macros_list = [""]
+        macros_list.extend(self.config.settings.get("processing_macros", []))
+        macros_list.append(SPECIFY_URL)
+        fields["processing_macro"] = {
+            "title": "Special processing macro",
+            "type": "string",
+            "default": "None",
+            "enum": macros_list
         }
         resolution = data_model.aimed_resolution or HWR.beamline.resolution.get_value()
         resolution = round(resolution, resolution_decimals)
@@ -763,6 +777,13 @@ class GphlWorkflow(HardwareObject):
                 },
             }
             if self.config.settings.get("advanced_mode"):
+                ui_schema["parameters"]["column2"]["ui:order"].append("processing_macro")
+                ui_schema["ui:order"].append("processing_macro_url")
+                ui_schema["processing_macro_url"] = {
+                    "ui:options": {
+                        "update_on_change": True,
+                    },
+                }
                 ui_schema["ui:order"].append("reffiles")
                 ui_schema["reffiles"] = {
                     "ui:options": {
@@ -833,6 +854,18 @@ class GphlWorkflow(HardwareObject):
                         raise ValueError("Invalid url string: %s" % line)
             if reffiles:
                 params["reference_reflection_files"] = reffiles
+
+        # Validate and convert processing_macro_url
+        text = params.pop("processing_macro_url", "")
+        if text:
+                line = text.strip()
+                if line:
+                    if line.startswith("/"):
+                        line = "file:" + line
+                    if validate_url(line):
+                        params["processing_macro_url"] = line
+                    else:
+                        raise ValueError("Invalid url string: %s" % line)
 
         # Convert energy field to a single tuple
         params["energies"] = (params.pop("energy"),)
@@ -3008,6 +3041,10 @@ class GphlWorkflow(HardwareObject):
                     update_dict = self.update_space_group(parameters)
                 elif instruction == "reffiles":
                     update_dict = self.update_reference_files(parameters)
+                elif instruction == "processing_macro":
+                    update_dict = self.update_processing_macro(parameters)
+                elif instruction == "processing_macro_url":
+                    update_dict = self.update_processing_macro_url(parameters)
             except:
                 self.log.error(
                     "Error in GPhL parameter update for %s, Continuing ...",
@@ -3196,6 +3233,32 @@ class GphlWorkflow(HardwareObject):
             }
         }
         return result
+
+    def update_processing_macro_url(self, values):
+        value = values.get("processing_macro_url", "").strip()
+        if value:
+
+            result = {
+                "processing_macro_url": {
+                    "invalidated": not validate_url(value)
+                },
+                "processing_macro": {
+                    "value": ""
+                }
+            }
+            return result
+        return {}
+
+    def update_processing_macro(self, values):
+        value = values.get("processing_macro", "").strip()
+        if value != self.SPECIFY_URL:
+            result = {
+                "processing_macro_url": {
+                    "value": ""
+                }
+            }
+            return result
+        return {}
 
     def adjust_transmission(self, values):
         """When use_dose changes, update transmission and/or exposure_time

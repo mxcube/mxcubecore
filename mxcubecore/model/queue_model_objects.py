@@ -1992,6 +1992,7 @@ class GphlWorkflow(TaskNode):
         self.strategy_variant = None  # from 'strategy' Used for acquisition
         self.strategy_options = {}
         self.relative_rad_sensitivity = 1.0
+        self.processing_macro = None
         # Directory containing SPOT.XDS file
         # For cases where characterisation and XDS processing are done
         # before workflow is started
@@ -2103,6 +2104,8 @@ class GphlWorkflow(TaskNode):
         use_cell_for_processing=None,
         crystal_thickness=None,
         reference_reflection_files=None,
+        processing_macro=None,
+        processing_macro_url=None,
         **unused,
     ):
         """
@@ -2119,6 +2122,8 @@ class GphlWorkflow(TaskNode):
         :param use_cell_for_processing (bool):
         :param crystal_thickness (float):
         :param reference_reflection_files (list(str)):
+        :param processing_macro (str)
+        :param processing_macro_url (str)
         :param unused (dict):
         :return (None):
         """
@@ -2251,6 +2256,13 @@ class GphlWorkflow(TaskNode):
             self.use_cell_for_processing = use_cell_for_processing
         if reference_reflection_files:
             self.reference_reflection_files = list(reference_reflection_files)
+
+        # Processing macro
+        if processing_macro:
+            self.processing_macro = "macro:" + processing_macro
+        elif processing_macro_url:
+            self.processing_macro = processing_macro_url
+
 
     def set_pre_acquisition_params(
         self,
