@@ -11,20 +11,10 @@ docstring-code-format = true
 
 [lint]
 ignore = [
-    "ANN",  # flake8-annotations: ignored, too many hits (21744)
-    "COM812",  # Ruff recommends to ignore this linter rule when using its formatter
-    "D",  # pydocstyle: ignored, too many hits (16292)
-    "ICN001", # Widely flouted, and anyway of minor importance. Whoever activates it should also fix teh code
-    "N818", # error-suffix-on-exception-name: rather pointless outside of Python itself
-    "N999",  # invalid-module-name: ignored since we have many modules with `PascalCase`
-    "PLR2004",  # magic-value-comparison: ignored, too many hits (249)
-    "UP",  # pyupgrade: ignored for now, can be fixed automatically by ruff itself
-    "G004", # Allow uses of f-strings to format logging messages
-    "TRY003", # Allow to add message when instantiating exceptions
     "B028", # Allow to use the Python standard for warnings (oneline) instead of giving explicit stacklevel
 ]
 select = [
-    "ALL",
+    "E", "F", "B", "I", "S"
 ]
 
 
@@ -46,733 +36,189 @@ convention = "google"
     "S101",  # Allow uses of the `assert` keyword
 ]
 "mxcubecore/BaseHardwareObjects.py" = [
-    "A001",
-    "ARG002",
     "B028",
     "B904",
-    "BLE001",
     "E501",
-    "EM101",
-    "FBT001",
-    "FIX002",
     "I001",
-    "N802",
-    "PERF102",
-    "PIE790",
-    "PLR5501",
-    "RET501",
-    "RET503",
-    "RET505",
-    "RUF024",
-    "SIM102",
-    "SIM118",
-    "SLF001",
-    "TD002",
-    "TD003",
-    "TD004",
-    "TRY400",
 ]
 "mxcubecore/Command/Epics.py" = [
-    "ARG002",
-    "BLE001",
-    "C901",
     "E501",
     "E722",
     "F841",
-    "FBT002",
-    "PLR0913",
-    "RET502",
-    "RET503",
-    "RET504",
-    "RET505",
     "S307",
-    "SLF001",
-    "TRY400",
 ]
-"mxcubecore/Command/Exporter.py" = [
-    "ARG001",
-    "ARG002",
-    "BLE001",
-    "PERF203",
-    "PLR0913",
-    "PLR5501",
-    "PLW0602",
-    "RET504",
-    "SIM105",
-]
-"mxcubecore/Command/Mockup.py" = [
-    "ARG002",
-    "EXE002",
-    "FBT002",
-    "FIX001",
-    "TD001",
-    "TD002",
-    "TD003",
-    "TD004",
-]
+"mxcubecore/Command/Exporter.py" = []
+"mxcubecore/Command/Mockup.py" = []
 "mxcubecore/Command/Pool.py" = [
-    "A004",
-    "ARG002",
     "B904",
-    "EXE002",
     "F821",
-    "N813",
-    "N815",
-    "PERF203",
-    "PLR0913",
-    "PLR5501",
-    "RET503",
-    "RET505",
-    "RUF005",
-    "RUF012",
-    "SLF001",
-    "TRY400",
 ]
 "mxcubecore/Command/Sardana.py" = [
-    "A004",
-    "ARG002",
     "B904",
-    "BLE001",
-    "C901",
     "E402",
     "E501",
     "F841",
-    "G002",
-    "N802",
-    "N806",
-    "N813",
-    "N815",
-    "PERF203",
-    "PLR1714",
-    "PTH118",
-    "RET503",
-    "RET504",
-    "RUF012",
-    "SLF001",
-    "TRY400",
 ]
 "mxcubecore/Command/Spec.py" = [
     "I001",
-    "N802",
-    "N803",
 ]
 "mxcubecore/Command/Taco.py" = [
-    "ARG002",
-    "BLE001",
     "E501",
-    "FBT002",
-    "FBT003",
-    "N802",
-    "N803",
-    "PLR0913",
-    "RET502",
-    "RET503",
-    "RET505",
     "S307",
-    "TID252",
-    "TRY400",
 ]
 "mxcubecore/Command/Tango.py" = [
-    "A004",
-    "ARG002",
     "B904",
-    "FBT003",
-    "FIX002",
-    "N806",
-    "N813",
-    "N815",
-    "PERF203",
-    "PLR0913",
-    "PLR5501",
-    "RET503",
-    "RUF012",
-    "SLF001",
-    "TD002",
-    "TD003",
 ]
 "mxcubecore/Command/Tine.py" = [
-    "A002",
-    "ARG002",
-    "BLE001",
     "E501",
-    "EXE002",
     "F841",
-    "FBT002",
-    "G002",
-    "N802",
-    "N803",
-    "N806",
-    "N813",
-    "PERF203",
-    "PLR0913",
-    "RET504",
-    "RET505",
-    "RUF012",
-    "SIM108",
-    "TRY201",
-    "TRY300",
-    "TRY400",
-    "TRY401",
 ]
 "mxcubecore/Command/__init__.py" = [
     "E501",
 ]
-"mxcubecore/Command/exporter/ExporterClient.py" = [
-    "PLW2901",
-    "RUF010",
-    "SIM102",
-    "TRY002",
-]
-"mxcubecore/Command/exporter/ExporterStates.py" = [
-    "PIE796",
-]
-"mxcubecore/Command/exporter/MDEvents.py" = [
-    "A001",
-    "A002",
-    "ARG002",
-    "BLE001",
-    "FIX001",
-    "N802",
-    "RUF012",
-    "T201",
-    "TD001",
-    "TD002",
-    "TD003",
-    "TD004",
-]
+"mxcubecore/Command/exporter/ExporterClient.py" = []
+"mxcubecore/Command/exporter/ExporterStates.py" = []
+"mxcubecore/Command/exporter/MDEvents.py" = []
 "mxcubecore/Command/exporter/StandardClient.py" = [
-    "A001",
     "B904",
-    "BLE001",
-    "C901",
-    "EM101",
     "F841",
-    "N806",
-    "PERF203",
-    "PIE808",
-    "PLR5501",
-    "PYI006",
-    "RET503",
-    "RET504",
-    "SIM102",
-    "TRY300",
 ]
 "mxcubecore/CommandContainer.py" = [
-    "A001",
-    "ARG002",
     "B904",
-    "BLE001",
-    "C901",
     "E501",
     "F841",
-    "FBT001",
-    "FBT002",
-    "N802",
-    "N803",
-    "PLR0912",
-    "PLR0915",
-    "RET502",
-    "RET503",
-    "RET505",
-    "RET507",
     "S110",
-    "SIM102",
-    "SIM105",
-    "SIM910",
-    "SLF001",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjectFileParser.py" = [
-    "ARG002",
-    "BLE001",
-    "C901",
     "E501",
-    "ERA001",
-    "FIX002",
-    "G002",
-    "N802",
-    "PERF203",
-    "PLR0912",
-    "PLR0915",
-    "PLR5501",
-    "PLW0603",
-    "PLW2901",
-    "PTH123",
-    "RET502",
-    "RET503",
-    "RET505",
-    "RUF021",
     "S101",
     "S317",
-    "SIM102",
-    "SIM108",
-    "SIM115",
-    "SIM201",
-    "TD002",
-    "TD003",
-    "TD004",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/ALBA/ALBAAutoProcessing.py" = [
-    "DTZ005",
     "E501",
-    "ERA001",
     "F841",
-    "FIX002",
-    "G002",
-    "PLR0915",
-    "PTH100",
-    "PTH118",
-    "PTH120",
-    "PTH123",
     "S108",
-    "SIM115",
-    "SIM201",
-    "T201",
-    "TD002",
-    "TD003",
-    "TD004",
-    "TD005",
 ]
-"mxcubecore/HardwareObjects/ALBA/ALBABackLight.py" = [
-    "ARG002",
-    "ERA001",
-    "FBT002",
-    "G002",
-    "N802",
-    "RET505",
-    "SIM108",
-    "T201",
-]
-"mxcubecore/HardwareObjects/ALBA/ALBABeamInfo.py" = [
-    "ARG002",
-    "T201",
-]
-"mxcubecore/HardwareObjects/ALBA/ALBACalibration.py" = [
-    "G002",
-    "N802",
-    "T201",
-]
+"mxcubecore/HardwareObjects/ALBA/ALBABackLight.py" = []
+"mxcubecore/HardwareObjects/ALBA/ALBABeamInfo.py" = []
+"mxcubecore/HardwareObjects/ALBA/ALBACalibration.py" = []
 "mxcubecore/HardwareObjects/ALBA/ALBACats.py" = [
-    "BLE001",
-    "C901",
     "E501",
-    "EM101",
-    "ERA001",
     "F821",
     "F841",
-    "FBT002",
-    "FIX002",
-    "G002",
-    "PLR0912",
-    "PLR0915",
-    "PLR1714",
-    "PLR5501",
-    "RET504",
-    "RET505",
-    "RET506",
-    "RET508",
-    "SLF001",
-    "T201",
-    "TD002",
-    "TD003",
-    "TRY002",
 ]
-"mxcubecore/HardwareObjects/ALBA/ALBACatsMaint.py" = [
-    "ARG002",
-    "SLF001",
-    "T201",
-]
+"mxcubecore/HardwareObjects/ALBA/ALBACatsMaint.py" = []
 "mxcubecore/HardwareObjects/ALBA/ALBAClusterJob.py" = [
-    "ARG002",
     "F821",
-    "FBT002",
-    "G002",
-    "PTH110",
-    "PTH118",
-    "PTH119",
-    "PTH120",
-    "PTH123",
-    "RET502",
-    "SIM115",
 ]
 "mxcubecore/HardwareObjects/ALBA/ALBACollect.py" = [
-    "ARG002",
     "B007",
     "E501",
-    "ERA001",
     "F841",
-    "FIX002",
-    "G002",
-    "N802",
-    "PERF402",
-    "PIE790",
-    "PLR0915",
-    "PTH103",
-    "PTH110",
-    "PTH118",
-    "PTH122",
-    "RET503",
-    "RET504",
-    "RET505",
     "S605",
-    "SIM103",
-    "SIM108",
-    "T201",
-    "TD002",
-    "TD003",
-    "TD004",
-    "TD005",
 ]
 "mxcubecore/HardwareObjects/ALBA/ALBADataAnalysis.py" = [
     "E501",
-    "EM101",
-    "ERA001",
-    "G002",
-    "N806",
-    "PTH103",
-    "PTH110",
-    "PTH118",
-    "PTH119",
-    "PTH120",
-    "RET504",
     "S108",
-    "T201",
 ]
 "mxcubecore/HardwareObjects/ALBA/ALBAEnergy.py" = [
     "F821",
-    "G002",
-    "T201",
 ]
-"mxcubecore/HardwareObjects/ALBA/ALBAEpsActuator.py" = [
-    "N802",
-    "RET505",
-    "RUF012",
-    "T201",
-]
+"mxcubecore/HardwareObjects/ALBA/ALBAEpsActuator.py" = []
 "mxcubecore/HardwareObjects/ALBA/ALBAFastShutter.py" = [
-    "ERA001",
     "F821",
-    "N802",
-    "RET505",
-    "RUF012",
-    "SIM103",
-    "SIM108",
-    "T201",
 ]
 "mxcubecore/HardwareObjects/ALBA/ALBAFlux.py" = [
     "F821",
-    "RET504",
-    "T201",
 ]
-"mxcubecore/HardwareObjects/ALBA/ALBAFrontEnd.py" = [
-    "ERA001",
-    "N802",
-    "T201",
-]
-"mxcubecore/HardwareObjects/ALBA/ALBAFrontLight.py" = [
-    "BLE001",
-    "G002",
-    "N802",
-    "SIM102",
-    "T201",
-]
+"mxcubecore/HardwareObjects/ALBA/ALBAFrontEnd.py" = []
+"mxcubecore/HardwareObjects/ALBA/ALBAFrontLight.py" = []
 "mxcubecore/HardwareObjects/ALBA/ALBAISPyBClient.py" = [
     "E501",
-    "ERA001",
-    "G002",
-    "PERF203",
     "S108",
-    "SIM102",
-    "T201",
 ]
 "mxcubecore/HardwareObjects/ALBA/ALBAMachineInfo.py" = [
     "B012",
-    "BLE001",
     "E501",
-    "ERA001",
     "F841",
-    "G002",
-    "T201",
-    "TRY400",
 ]
-"mxcubecore/HardwareObjects/ALBA/ALBAMiniDiff.py" = [
-    "ARG002",
-    "ERA001",
-    "FIX002",
-    "G002",
-    "N802",
-    "PLR0912",
-    "PLR0915",
-    "T201",
-    "TD002",
-    "TD003",
-    "TD007",
-]
+"mxcubecore/HardwareObjects/ALBA/ALBAMiniDiff.py" = []
 "mxcubecore/HardwareObjects/ALBA/ALBAPilatus.py" = [
-    "ARG002",
-    "BLE001",
-    "ERA001",
     "F841",
-    "FIX002",
-    "G002",
-    "N806",
-    "PERF401",
-    "T201",
-    "TD002",
-    "TD003",
-    "TD004",
-    "TD005",
 ]
 "mxcubecore/HardwareObjects/ALBA/ALBASession.py" = [
-    "BLE001",
     "E501",
-    "ERA001",
-    "G002",
-    "PTH118",
     "S108",
-    "SIM108",
-    "T201",
 ]
-"mxcubecore/HardwareObjects/ALBA/ALBASupervisor.py" = [
-    "ARG002",
-    "ERA001",
-    "N802",
-    "T201",
-]
-"mxcubecore/HardwareObjects/ALBA/ALBATransmission.py" = [
-    "N802",
-    "T201",
-]
+"mxcubecore/HardwareObjects/ALBA/ALBASupervisor.py" = []
+"mxcubecore/HardwareObjects/ALBA/ALBATransmission.py" = []
 "mxcubecore/HardwareObjects/ALBA/ALBAZoomMotor.py" = [
-    "ARG002",
-    "BLE001",
-    "ERA001",
-    "EXE002",
     "F821",
     "F841",
-    "G002",
-    "N802",
-    "PLR1714",
-    "RET505",
-    "SIM103",
-    "T201",
-    "TRY300",
 ]
 "mxcubecore/HardwareObjects/ALBA/ALBAZoomMotorAutoBrightness.py" = [
     "E501",
-    "ERA001",
-    "EXE002",
     "F841",
-    "G002",
-    "N802",
-    "T201",
 ]
-"mxcubecore/HardwareObjects/ALBA/XalocCalibration.py" = [
-    "N802",
-    "T201",
-]
+"mxcubecore/HardwareObjects/ALBA/XalocCalibration.py" = []
 "mxcubecore/HardwareObjects/ALBA/XalocMachineInfo.py" = [
     "E501",
-    "ERA001",
 ]
-"mxcubecore/HardwareObjects/ALBA/XalocMiniDiff.py" = [
-    "ARG002",
-    "ERA001",
-    "N802",
-    "PLR0912",
-    "PLR5501",
+"mxcubecore/HardwareObjects/ALBA/XalocMiniDiff.py" = []
+"mxcubecore/HardwareObjects/Argus.py" = [
+    "S603",
+    "S607",
 ]
-"mxcubecore/HardwareObjects/BeamInfo.py" = [
-    "ARG002",
-    "RET505",
-]
-"mxcubecore/HardwareObjects/Beamline.py" = [
-    "BLE001",
-    "C901",
-    "FIX002",
-    "G002",
-    "PLR0912",
-    "PLR0915",
-    "RUF012",
-    "SIM102",
-    "TD002",
-    "TD003",
-    "TD004",
-]
-"mxcubecore/HardwareObjects/BeamlineActions.py" = [
-    "ARG002",
-    "BLE001",
-    "PERF401",
-    "SIM118",
-    "TRY002",
-]
+"mxcubecore/HardwareObjects/Attenuators.py" = []
+"mxcubecore/HardwareObjects/BeamInfo.py" = []
+"mxcubecore/HardwareObjects/Beamline.py" = []
+"mxcubecore/HardwareObjects/BeamlineActions.py" = []
 "mxcubecore/HardwareObjects/BlissActuator.py" = [
-    "ARG002",
     "B028",
-    "FBT002",
-    "G002",
-    "N815",
-    "PLR5501",
 ]
-"mxcubecore/HardwareObjects/BlissEnergy.py" = [
-    "ERA001",
-]
-"mxcubecore/HardwareObjects/BlissHutchTrigger.py" = [
-    "ARG002",
-    "BLE001",
-    "N802",
-    "N806",
-    "RET505",
-    "TRY400",
-]
-"mxcubecore/HardwareObjects/BlissMotor.py" = [
-    "PERF203",
-    "RUF012",
-]
+"mxcubecore/HardwareObjects/BlissEnergy.py" = []
+"mxcubecore/HardwareObjects/BlissHutchTrigger.py" = []
+"mxcubecore/HardwareObjects/BlissMotor.py" = []
 "mxcubecore/HardwareObjects/BlissMotorWPositions.py" = [
     "B028",
-    "BLE001",
-    "N802",
-    "N803",
-    "N806",
-    "TRY400",
 ]
-"mxcubecore/HardwareObjects/BlissNState.py" = [
-    "ARG002",
-    "SIM108",
-]
-"mxcubecore/HardwareObjects/BlissRontecMCA.py" = [
-    "FBT002",
-]
+"mxcubecore/HardwareObjects/BlissNState.py" = []
+"mxcubecore/HardwareObjects/BlissRontecMCA.py" = []
 "mxcubecore/HardwareObjects/Cats90.py" = [
-    "ARG002",
-    "C901",
     "E501",
-    "EM101",
-    "ERA001",
     "F823",
-    "FBT002",
-    "FBT003",
-    "FIX004",
-    "G002",
-    "N806",
-    "PERF401",
-    "PLR0912",
-    "PLR0915",
-    "PLR5501",
-    "RET504",
-    "RET505",
-    "RET506",
-    "SIM108",
-    "SLF001",
-    "T201",
-    "TRY002",
 ]
 "mxcubecore/HardwareObjects/CatsBessy.py" = [
-    "BLE001",
     "E501",
-    "EM101",
-    "ERA001",
     "F841",
-    "FBT003",
-    "N802",
-    "N806",
-    "PERF401",
-    "RET506",
-    "SIM108",
-    "SIM201",
-    "SLF001",
-    "TRY002",
 ]
 "mxcubecore/HardwareObjects/CatsMaint.py" = [
     "B026",
-    "BLE001",
     "E501",
-    "EM101",
     "F821",
     "F841",
-    "FBT002",
-    "FBT003",
-    "N802",
-    "PLR0912",
-    "PLR0915",
-    "RET504",
-    "RET505",
-    "RET506",
-    "SIM108",
-    "SIM910",
-    "T201",
-    "TRY002",
-    "TRY300",
 ]
 "mxcubecore/HardwareObjects/CentringMath.py" = [
-    "A002",
     "E501",
     "E741",
-    "FBT002",
-    "G002",
-    "N802",
-    "N803",
-    "N806",
-    "PERF401",
-    "PIE808",
-    "RET503",
     "S307",
-    "SIM113",
 ]
 "mxcubecore/HardwareObjects/DESY/Centring.py" = [
-    "ARG002",
     "E501",
-    "ERA001",
     "F841",
-    "FBT002",
-    "N802",
-    "T201",
 ]
-"mxcubecore/HardwareObjects/DESY/DigitalZoomMotor.py" = [
-    "ERA001",
-    "SIM108",
-]
+"mxcubecore/HardwareObjects/DESY/DigitalZoomMotor.py" = []
 "mxcubecore/HardwareObjects/DESY/MjpgStreamVideo.py" = [
-    "ARG002",
     "B007",
-    "BLE001",
     "E501",
     "E714",
-    "ERA001",
     "F841",
-    "FBT002",
-    "FIX002",
-    "G001",
-    "G002",
-    "N802",
-    "PLR0915",
-    "PLR1714",
-    "RET501",
-    "RET502",
-    "RET507",
-    "RUF015",
-    "SIM103",
-    "SIM108",
-    "TD002",
-    "TD003",
-    "TD004",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/DESY/P11AlbulaView.py" = [
-    "ARG002",
-    "BLE001",
-    "C901",
     "E722",
     "F821",
     "F841",
-    "FBT002",
-    "PLR0912",
-    "PLR0915",
-    "RUF021",
     "S110",
-    "T201",
 ]
 "mxcubecore/HardwareObjects/DESY/P11BackLight.py" = [
     "F811",
@@ -780,974 +226,293 @@ convention = "google"
 "mxcubecore/HardwareObjects/DESY/P11Beam.py" = [
     "E501",
     "F541",
-    "RET505",
 ]
 "mxcubecore/HardwareObjects/DESY/P11BeamStop.py" = [
     "B904",
     "E501",
-    "EM101",
-    "EM102",
     "F541",
-    "RET503",
-    "SLF001",
-    "TRY004",
-    "TRY301",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/DESY/P11Collect.py" = [
-    "ARG002",
     "B007",
     "E501",
     "E711",
-    "EM101",
-    "ERA001",
     "F841",
-    "FBT002",
-    "G002",
-    "G003",
-    "ISC003",
-    "N806",
-    "PERF203",
-    "PERF401",
-    "PLE1205",
-    "PLR0913",
-    "PLR0915",
-    "PLR1736",
-    "PTH102",
-    "PTH103",
-    "PTH110",
-    "PTH112",
-    "PTH118",
-    "PTH120",
-    "PTH123",
-    "RET505",
     "S603",
     "S605",
-    "SIM108",
-    "SIM110",
-    "SIM115",
 ]
 "mxcubecore/HardwareObjects/DESY/P11Collimator.py" = [
     "B904",
     "E501",
-    "EM101",
-    "EM102",
-    "RET503",
-    "RET505",
-    "SLF001",
-    "TRY004",
-    "TRY301",
-    "TRY400",
 ]
-"mxcubecore/HardwareObjects/DESY/P11DetectorCover.py" = [
-    "G002",
-    "PLR5501",
-    "SIM102",
-]
-"mxcubecore/HardwareObjects/DESY/P11DetectorDistance.py" = [
-    "ERA001",
-    "G002",
-    "N802",
-    "PLR5501",
-    "RET508",
-    "RUF021",
-    "SIM108",
-]
+"mxcubecore/HardwareObjects/DESY/P11DetectorCover.py" = []
+"mxcubecore/HardwareObjects/DESY/P11DetectorDistance.py" = []
 "mxcubecore/HardwareObjects/DESY/P11DoorInterlock.py" = [
-    "BLE001",
     "F841",
-    "N802",
-    "PERF203",
-    "RET503",
     "S310",
-    "TRY300",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/DESY/P11EDNACharacterisation.py" = [
     "B018",
-    "C901",
     "E501",
-    "EM102",
-    "ERA001",
     "F841",
-    "FBT003",
-    "FIX002",
-    "PIE808",
-    "PLR0912",
-    "PLR0915",
-    "PTH103",
-    "PTH110",
-    "PTH112",
-    "PTH118",
-    "PTH123",
     "S605",
-    "TD002",
-    "TD003",
 ]
 "mxcubecore/HardwareObjects/DESY/P11EigerDetector.py" = [
-    "ARG002",
     "E501",
-    "ERA001",
-    "FIX001",
-    "FIX002",
-    "FURB188",
-    "G002",
-    "RET504",
     "S307",
-    "T201",
-    "TD001",
-    "TD002",
-    "TD003",
-    "TD004",
 ]
 "mxcubecore/HardwareObjects/DESY/P11Energy.py" = [
-    "BLE001",
     "E501",
-    "G001",
-    "G002",
-    "RET505",
-    "T201",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/DESY/P11FastShutter.py" = [
     "F811",
-    "SIM108",
 ]
 "mxcubecore/HardwareObjects/DESY/P11Flux.py" = [
     "E501",
-    "EM101",
     "F821",
     "F841",
-    "FIX002",
-    "N806",
-    "PLR0913",
-    "TD002",
-    "TD003",
 ]
 "mxcubecore/HardwareObjects/DESY/P11ISPyBClient.py" = [
     "E501",
     "E722",
-    "EM101",
     "F821",
     "F841",
-    "FBT002",
-    "FIX002",
-    "G002",
-    "PERF203",
-    "SLF001",
-    "TD002",
-    "TD003",
-    "TD004",
-    "TRY301",
 ]
-"mxcubecore/HardwareObjects/DESY/P11MachineInfo.py" = [
-    "BLE001",
-    "N815",
-    "RET504",
-    "TRY300",
-    "TRY400",
-]
+"mxcubecore/HardwareObjects/DESY/P11MachineInfo.py" = []
 "mxcubecore/HardwareObjects/DESY/P11NanoDiff.py" = [
-    "ARG002",
     "B007",
     "B015",
-    "C901",
     "E402",
     "E501",
     "E712",
     "E722",
-    "ERA001",
     "F841",
-    "FBT002",
-    "FIX002",
-    "G002",
-    "G003",
-    "N806",
-    "PERF102",
-    "PLC0206",
-    "PLR0912",
-    "PLR0913",
-    "PLR0915",
-    "PLR5501",
-    "PTH103",
-    "PTH112",
-    "PTH118",
-    "PTH123",
-    "RET505",
-    "RET508",
-    "SIM108",
-    "SIM114",
-    "SIM115",
-    "SIM201",
-    "T201",
-    "TD002",
-    "TD003",
-    "TRY301",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/DESY/P11Pinhole.py" = [
     "B904",
     "E501",
-    "EM101",
-    "EM102",
-    "RET503",
-    "RET505",
-    "SLF001",
-    "TRY004",
-    "TRY301",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/DESY/P11SampleChanger.py" = [
-    "ARG002",
-    "EM101",
-    "ERA001",
     "F841",
-    "FBT002",
-    "FBT003",
-    "FIX002",
-    "G002",
-    "PERF401",
-    "PLR1711",
-    "RET504",
-    "RUF021",
-    "SLF001",
-    "TD002",
-    "TD003",
-    "TRY002",
-    "TRY201",
 ]
 "mxcubecore/HardwareObjects/DESY/P11Session.py" = [
-    "ARG002",
     "B904",
-    "C901",
-    "DTZ011",
     "E501",
     "E722",
-    "EM101",
     "F811",
     "F821",
     "F841",
-    "G003",
-    "PLR0912",
-    "PTH110",
-    "PTH112",
-    "PTH118",
-    "PTH120",
-    "PTH123",
-    "PTH207",
-    "RET503",
-    "RET506",
-    "RET508",
-    "RUF005",
-    "T201",
 ]
 "mxcubecore/HardwareObjects/DESY/P11Shutter.py" = [
-    "ARG002",
-    "ERA001",
     "F841",
-    "G002",
     "S310",
 ]
 "mxcubecore/HardwareObjects/DESY/P11Transmission.py" = [
-    "ARG002",
     "E501",
-    "T201",
 ]
 "mxcubecore/HardwareObjects/DESY/P11YagDiode.py" = [
     "B904",
     "E501",
-    "EM101",
-    "EM102",
-    "RET503",
-    "SLF001",
-    "TRY004",
-    "TRY301",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/DESY/P11Zoom.py" = [
     "E722",
-    "ERA001",
-    "G002",
-    "T201",
 ]
-"mxcubecore/HardwareObjects/DESY/ValueStateChannel.py" = [
-    "C901",
-    "PLR0912",
-    "RUF021",
-]
+"mxcubecore/HardwareObjects/DESY/ValueStateChannel.py" = []
 "mxcubecore/HardwareObjects/DataPublisher.py" = [
     "B006",
     "F821",
-    "FBT002",
-    "PLR0913",
-    "RET504",
-    "SIM118",
-    "SIM212",
 ]
-"mxcubecore/HardwareObjects/DozorOnlineProcessing.py" = [
-    "FBT003",
-]
+"mxcubecore/HardwareObjects/DozorOnlineProcessing.py" = []
 "mxcubecore/HardwareObjects/EDNACharacterisation.py" = [
-    "BLE001",
-    "C901",
     "E501",
-    "EM101",
-    "ERA001",
-    "FBT003",
-    "N806",
-    "PIE808",
-    "PLR0912",
-    "PLR0915",
-    "PTH103",
-    "PTH110",
-    "PTH112",
-    "PTH118",
-    "PTH123",
     "S110",
     "S602",
-    "SIM105",
-    "SIM114",
 ]
-"mxcubecore/HardwareObjects/EMBL/EMBLAperture.py" = [
-    "ARG002",
-    "ERA001",
-]
-"mxcubecore/HardwareObjects/EMBL/EMBLBSD.py" = [
-    "ARG002",
-    "ERA001",
-    "G002",
-    "SIM108",
-]
+"mxcubecore/HardwareObjects/EMBL/EMBLAperture.py" = []
+"mxcubecore/HardwareObjects/EMBL/EMBLBSD.py" = []
 "mxcubecore/HardwareObjects/EMBL/EMBLBeam.py" = [
     "F811",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLBeamCentering.py" = [
     "B007",
     "B012",
-    "BLE001",
-    "C901",
     "E501",
-    "ERA001",
     "F841",
-    "FBT003",
-    "FIX002",
-    "G002",
-    "PLR0912",
-    "PLR0915",
-    "PLR1730",
-    "RET502",
-    "RET505",
-    "TD002",
-    "TD003",
-    "TD004",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLBeamFocusing.py" = [
-    "G002",
-    "PERF401",
-    "PERF402",
-    "RET503",
     "S307",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLBeamlineTest.py" = [
-    "BLE001",
-    "C901",
-    "DTZ005",
     "E712",
-    "ERA001",
     "F841",
-    "FBT002",
-    "G002",
-    "G003",
-    "ISC003",
-    "PERF401",
-    "PTH103",
-    "PTH110",
-    "PTH118",
-    "PTH123",
-    "RET503",
-    "RET505",
-    "RUF005",
     "S307",
-    "SIM115",
-    "T201",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLBeamstop.py" = [
     "F821",
 ]
-"mxcubecore/HardwareObjects/EMBL/EMBLCRL.py" = [
-    "ERA001",
-    "G003",
-    "RET505",
-]
+"mxcubecore/HardwareObjects/EMBL/EMBLCRL.py" = []
 "mxcubecore/HardwareObjects/EMBL/EMBLCollect.py" = [
-    "ARG002",
-    "C901",
     "E712",
-    "ERA001",
-    "FBT003",
-    "PLR0912",
-    "PLR0915",
-    "PTH110",
-    "PTH118",
     "S307",
 ]
-"mxcubecore/HardwareObjects/EMBL/EMBLDetector.py" = [
-    "ARG002",
-    "FBT002",
-]
-"mxcubecore/HardwareObjects/EMBL/EMBLDoorInterlock.py" = [
-    "BLE001",
-    "C901",
-    "FBT003",
-    "G002",
-    "ISC003",
-    "PLR0912",
-    "PLR5501",
-    "RUF012",
-    "SIM102",
-    "TRY400",
-]
+"mxcubecore/HardwareObjects/EMBL/EMBLDetector.py" = []
+"mxcubecore/HardwareObjects/EMBL/EMBLDoorInterlock.py" = []
 "mxcubecore/HardwareObjects/EMBL/EMBLEnergy.py" = [
-    "ARG002",
-    "BLE001",
-    "ERA001",
-    "FBT002",
     "S307",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLEnergyScan.py" = [
-    "ARG002",
     "B905",
-    "C901",
     "E501",
-    "ERA001",
     "F841",
-    "FBT003",
-    "G002",
-    "G003",
-    "ISC003",
-    "N802",
-    "N806",
-    "PERF401",
-    "PIE804",
-    "PLR0913",
-    "PLR0915",
-    "PTH103",
-    "PTH110",
-    "PTH118",
-    "PTH123",
-    "RET502",
-    "RUF021",
     "S307",
     "S603",
-    "SIM102",
-    "SIM115",
-    "TRY400",
 ]
-"mxcubecore/HardwareObjects/EMBL/EMBLExporterClient.py" = [
-    "RET503",
-]
+"mxcubecore/HardwareObjects/EMBL/EMBLExporterClient.py" = []
 "mxcubecore/HardwareObjects/EMBL/EMBLFlux.py" = [
-    "ARG002",
-    "C901",
     "E501",
-    "ERA001",
     "F632",
     "F841",
-    "FBT002",
-    "FBT003",
-    "G002",
-    "ISC003",
-    "PLR0912",
-    "PLR0915",
-    "RET504",
-    "RET505",
-    "SIM102",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLMachineInfo.py" = [
-    "BLE001",
-    "DTZ005",
     "E713",
-    "ERA001",
-    "G002",
-    "ISC003",
-    "PTH110",
-    "RET505",
     "S307",
     "S310",
-    "SIM102",
-    "TRY300",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLMiniDiff.py" = [
-    "ARG002",
     "B007",
     "E501",
-    "ERA001",
     "F841",
-    "FBT002",
-    "G002",
-    "G003",
-    "ISC003",
-    "PLR5501",
-    "RET503",
-    "RET504",
-    "RET505",
     "S307",
-    "SIM108",
-    "SIM118",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLMotorsGroup.py" = [
-    "ARG002",
-    "BLE001",
-    "ERA001",
-    "G002",
     "S307",
-    "SIM102",
-    "SIM118",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLOfflineProcessing.py" = [
-    "ARG002",
-    "FBT002",
-    "G001",
-    "G003",
-    "PTH110",
-    "PTH116",
-    "PTH118",
-    "PTH120",
     "S602",
     "S605",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLOnlineProcessing.py" = [
-    "ARG002",
-    "BLE001",
-    "C901",
     "E501",
-    "ERA001",
     "F821",
     "F841",
-    "FBT003",
-    "G002",
-    "PLR0912",
-    "PLR0915",
-    "PTH113",
-    "PTH118",
-    "PTH119",
-    "PTH120",
-    "PTH123",
     "S602",
-    "SIM108",
-    "SIM115",
-    "SIM118",
 ]
-"mxcubecore/HardwareObjects/EMBL/EMBLPPUControl.py" = [
-    "ERA001",
-    "FBT003",
-]
-"mxcubecore/HardwareObjects/EMBL/EMBLQueueEntry.py" = [
-    "FBT002",
-]
+"mxcubecore/HardwareObjects/EMBL/EMBLPPUControl.py" = []
+"mxcubecore/HardwareObjects/EMBL/EMBLQueueEntry.py" = []
 "mxcubecore/HardwareObjects/EMBL/EMBLSSXChip.py" = [
-    "ARG002",
     "B007",
-    "C901",
     "E501",
     "E712",
-    "ERA001",
     "F821",
-    "G002",
-    "PERF401",
-    "PIE808",
-    "PLR0912",
-    "PLR0915",
-    "PLR1730",
-    "PTH123",
-    "RET504",
     "S307",
-    "SIM102",
-    "SIM108",
-    "SIM115",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLSafetyShutter.py" = [
     "F841",
-    "FBT003",
-    "G002",
-    "PLR5501",
 ]
-"mxcubecore/HardwareObjects/EMBL/EMBLSession.py" = [
-    "PTH118",
-]
-"mxcubecore/HardwareObjects/EMBL/EMBLSlitBox.py" = [
-    "ARG002",
-    "SIM102",
-    "SIM118",
-]
-"mxcubecore/HardwareObjects/EMBL/EMBLTableMotor.py" = [
-    "ARG002",
-    "BLE001",
-    "FBT002",
-    "TRY400",
-]
-"mxcubecore/HardwareObjects/EMBL/EMBLTransfocator.py" = [
-    "ARG002",
-    "ERA001",
-    "G003",
-]
-"mxcubecore/HardwareObjects/EMBL/EMBLXRFSpectrum.py" = [
-    "ARG002",
-    "ERA001",
-    "FBT002",
-    "G002",
-]
+"mxcubecore/HardwareObjects/EMBL/EMBLSession.py" = []
+"mxcubecore/HardwareObjects/EMBL/EMBLSlitBox.py" = []
+"mxcubecore/HardwareObjects/EMBL/EMBLTableMotor.py" = []
+"mxcubecore/HardwareObjects/EMBL/EMBLTransfocator.py" = []
+"mxcubecore/HardwareObjects/EMBL/EMBLXRFSpectrum.py" = []
 "mxcubecore/HardwareObjects/EMBL/EMBLXrayImaging.py" = [
-    "ARG002",
     "B006",
-    "BLE001",
-    "C901",
     "E501",
     "E712",
-    "ERA001",
     "F841",
-    "FBT002",
-    "FBT003",
-    "FIX002",
-    "FURB188",
-    "G002",
-    "G003",
-    "N802",
-    "N815",
-    "PERF401",
-    "PLR0912",
-    "PLR0915",
-    "PTH103",
-    "PTH110",
-    "PTH113",
-    "PTH118",
-    "PTH119",
-    "PTH120",
-    "PTH122",
-    "PTH123",
-    "RET502",
-    "SIM102",
-    "SIM108",
-    "T201",
-    "TD002",
-    "TD003",
-    "TD004",
-    "TRY400",
 ]
-"mxcubecore/HardwareObjects/EMBL/MDFastShutter.py" = [
-    "ARG002",
-    "FBT002",
-    "SIM108",
-    "T201",
-]
+"mxcubecore/HardwareObjects/EMBL/MDFastShutter.py" = []
 "mxcubecore/HardwareObjects/EMBL/TINEMotor.py" = [
-    "ERA001",
-    "FIX002",
-    "RET505",
     "S307",
-    "TD002",
-    "TD003",
-    "TD004",
 ]
 "mxcubecore/HardwareObjects/EMBLFlexHCD.py" = [
-    "ARG002",
     "B006",
-    "BLE001",
-    "C419",
-    "C901",
-    "EM101",
-    "ERA001",
-    "FBT002",
-    "FBT003",
-    "N803",
-    "PERF401",
-    "RET503",
     "S301",
-    "SIM108",
-    "SIM222",
-    "SLF001",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/EMBLFlexHarvester.py" = [
     "B904",
-    "BLE001",
     "E501",
     "E712",
-    "EM101",
-    "N803",
-    "PERF401",
-    "RET503",
-    "RET504",
-    "SIM108",
-    "SLF001",
-    "TRY300",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/ESRF/BlissHutchTrigger.py" = [
-    "ARG002",
     "B904",
 ]
-"mxcubecore/HardwareObjects/ESRF/BlissVolpi.py" = [
-    "ERA001",
-]
-"mxcubecore/HardwareObjects/ESRF/ESRFBeam.py" = [
-    "ARG002",
-    "C901",
-    "EM101",
-]
-"mxcubecore/HardwareObjects/ESRF/ESRFBeamInfo.py" = [
-    "ARG002",
-    "G003",
-]
+"mxcubecore/HardwareObjects/ESRF/BlissVolpi.py" = []
+"mxcubecore/HardwareObjects/ESRF/ESRFBeam.py" = []
+"mxcubecore/HardwareObjects/ESRF/ESRFBeamInfo.py" = []
 "mxcubecore/HardwareObjects/ESRF/ESRFBeamlineActions.py" = [
     "E722",
-    "ERA001",
-    "PERF203",
     "S110",
 ]
 "mxcubecore/HardwareObjects/ESRF/ESRFEnergyScan.py" = [
-    "ARG002",
-    "C901",
-    "N802",
-    "PLR0915",
     "S603",
 ]
-"mxcubecore/HardwareObjects/ESRF/ESRFMD2SC3.py" = [
-    "ERA001",
-    "N802",
-    "PLR0402",
-    "SLF001",
-]
+"mxcubecore/HardwareObjects/ESRF/ESRFMD2SC3.py" = []
 "mxcubecore/HardwareObjects/ESRF/ESRFMetadataManagerClient.py" = [
     "B009",
-    "BLE001",
-    "C901",
     "E501",
-    "EM103",
-    "ERA001",
-    "FIX002",
-    "G001",
-    "N802",
-    "N803",
-    "N806",
-    "N816",
-    "PLR0912",
-    "PLR0913",
-    "PTH118",
-    "SIM102",
-    "T201",
-    "TD002",
-    "TD003",
 ]
 "mxcubecore/HardwareObjects/ESRF/ESRFMultiCollect.py" = [
-    "ARG002",
-    "BLE001",
-    "C419",
     "E501",
-    "ERA001",
     "F403",
     "F405",
-    "FBT002",
-    "FIX002",
-    "N802",
-    "N806",
-    "PLR0913",
-    "PLR5501",
-    "PLW2901",
-    "PTH101",
-    "PTH110",
-    "PTH118",
-    "PTH123",
-    "RET502",
-    "RET503",
-    "RET505",
     "S103",
-    "SIM105",
-    "SIM115",
-    "SIM118",
-    "SLF001",
-    "TD002",
-    "TD003",
-    "TD004",
-    "TD005",
 ]
-"mxcubecore/HardwareObjects/ESRF/ESRFPhotonFlux.py" = [
-    "EM101",
-]
+"mxcubecore/HardwareObjects/ESRF/ESRFPhotonFlux.py" = []
 "mxcubecore/HardwareObjects/ESRF/ESRFSC3.py" = [
     "B018",
-    "BLE001",
     "E501",
-    "ERA001",
-    "FBT002",
-    "G002",
-    "N802",
-    "N803",
-    "N806",
-    "PLR0913",
-    "PLR5501",
-    "SIM117",
-    "SLF001",
 ]
-"mxcubecore/HardwareObjects/ESRF/ESRFSession.py" = [
-    "FBT003",
-    "PERF401",
-    "PTH110",
-    "PTH118",
-    "PTH207",
-]
+"mxcubecore/HardwareObjects/ESRF/ESRFSession.py" = []
 "mxcubecore/HardwareObjects/ESRF/ESRFSmallXrayCentring.py" = [
-    "G001",
-    "G002",
-    "N806",
-    "PTH118",
     "S113",
-    "SLF001",
 ]
 "mxcubecore/HardwareObjects/ESRF/ESRFXRFSpectrum.py" = [
     "B028",
-    "ERA001",
-    "N802",
-    "TRY300",
-    "TRY401",
 ]
-"mxcubecore/HardwareObjects/ESRF/ID232BeamDefiner.py" = [
-    "ARG002",
-    "EM101",
-]
+"mxcubecore/HardwareObjects/ESRF/ID232BeamDefiner.py" = []
 "mxcubecore/HardwareObjects/ESRF/ID29HutchTrigger.py" = [
-    "ARG002",
     "B006",
-    "BLE001",
-    "N802",
-    "N806",
-    "RET505",
-    "TRY400",
 ]
-"mxcubecore/HardwareObjects/ESRF/ID30A3BeamDefiner.py" = [
-    "ARG002",
-]
-"mxcubecore/HardwareObjects/ESRF/ID30BBeamDefiner.py" = [
-    "ARG002",
-]
+"mxcubecore/HardwareObjects/ESRF/ID30A3BeamDefiner.py" = []
+"mxcubecore/HardwareObjects/ESRF/ID30BBeamDefiner.py" = []
 "mxcubecore/HardwareObjects/ESRF/MD2MultiCollect.py" = [
-    "A001",
-    "ARG002",
     "B006",
-    "C419",
-    "ERA001",
-    "FBT002",
-    "PLR0913",
-    "PTH110",
-    "PTH118",
-    "SLF001",
 ]
-"mxcubecore/HardwareObjects/ESRF/OxfordCryostream.py" = [
-    "BLE001",
-    "EM101",
-    "FBT002",
-    "SLF001",
-]
-"mxcubecore/HardwareObjects/ESRF/SSXICATLIMS.py" = [
-    "PTH123",
-    "TRY401",
-]
-"mxcubecore/HardwareObjects/ESRF/TangoKeithleyPhotonFlux.py" = [
-    "BLE001",
-    "ERA001",
-    "FBT002",
-    "N802",
-]
+"mxcubecore/HardwareObjects/ESRF/OxfordCryostream.py" = []
+"mxcubecore/HardwareObjects/ESRF/SSXICATLIMS.py" = []
+"mxcubecore/HardwareObjects/ESRF/TangoKeithleyPhotonFlux.py" = []
 "mxcubecore/HardwareObjects/ESRF/calc_flux.py" = [
-    "ARG002",
     "B007",
     "B905",
-    "BLE001",
-    "ERA001",
-    "PLR5501",
-    "PTH123",
     "S110",
-    "SIM105",
-    "SIM115",
-    "T201",
 ]
-"mxcubecore/HardwareObjects/ESRF/create_mx_master.py" = [
-    "ERA001",
-]
-"mxcubecore/HardwareObjects/ESRF/BlissMultiCollect.py" = [
-    "ERA001",
-    "ARG002",
-    "FBT002",
-    "PTH118",
-    "PLR0913",
-    "PTH110",
-]
+"mxcubecore/HardwareObjects/ESRF/create_mx_master.py" = []
+"mxcubecore/HardwareObjects/ESRF/BlissMultiCollect.py" = []
 "mxcubecore/HardwareObjects/ESRF/queue_entry/fast_char_collection.py" = [
-    "ARG004",
     "F541",
     "F821",
-    "FBT003",
-    "RET504",
-    "RUF012",
-    "SLF001",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/mx_base_queue_entry.py" = [
-    "ARG002",
     "B007",
     "F841",
-    "FBT003",
-    "N805",
-    "PTH103",
-    "PTH113",
-    "SLF001",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_base_queue_entry.py" = [
     "B005",
-    "BLE001",
-    "C901",
-    "DTZ005",
     "E501",
-    "ERA001",
     "F541",
-    "FBT003",
-    "G002",
-    "N805",
-    "PERF203",
-    "PIE804",
-    "PLR0915",
-    "PTH110",
-    "PTH118",
-    "PTH123",
     "S602",
-    "SIM108",
-    "SLF001",
-    "TRY401",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_custom_foil_collection.py" = [
     "E501",
     "E722",
-    "ERA001",
-    "PLR0915",
-    "RUF012",
-    "SLF001",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_big_foil_collection.py" = [
     "F541",
     "F821",
-    "RUF012",
-    "SLF001",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_chip_collection.py" = [
-    "ERA001",
     "F541",
     "F821",
     "F841",
-    "FBT003",
-    "RUF012",
-    "SLF001",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_foil_collection.py" = [
     "E501",
@@ -1755,693 +520,193 @@ convention = "google"
     "F541",
     "F821",
     "F841",
-    "PLR0915",
-    "RET504",
-    "RUF012",
-    "SLF001",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_foil_wo_collection.py" = [
     "B007",
     "E501",
     "E722",
-    "PLR0915",
-    "RUF012",
-    "SLF001",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_injector_collection.py" = [
     "F541",
     "F821",
     "F841",
-    "FBT003",
-    "RUF012",
-    "SLF001",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_laser_hare_collection.py" = [
-    "ERA001",
     "F541",
     "F821",
-    "FBT003",
-    "PLR0915",
-    "RUF012",
-    "SLF001",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_laser_injector_collection.py" = [
     "F541",
     "F821",
     "F841",
-    "FBT003",
-    "RUF012",
-    "SLF001",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_line_scan_collection.py" = [
-    "ARG004",
-    "ERA001",
     "F541",
     "F821",
     "F841",
-    "RUF012",
-    "SLF001",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/test_collection.py" = [
-    "ARG004",
-    "ERA001",
     "F821",
-    "RET504",
-    "RUF012",
-    "SLF001",
 ]
 "mxcubecore/HardwareObjects/ESRFLIMS.py" = [
-    "ARG002",
     "E501",
-    "EM101",
-    "FBT002",
-    "G002",
-    "RET505",
-    "SIM102",
-    "SLF001",
-    "TRY002",
 ]
 "mxcubecore/HardwareObjects/EdnaWorkflow.py" = [
-    "ERA001",
-    "N802",
-    "N806",
-    "PTH119",
-    "RET505",
     "S113",
 ]
 "mxcubecore/HardwareObjects/Energy.py" = [
-    "A001",
-    "ARG002",
-    "ERA001",
     "F841",
-    "FBT002",
-    "N802",
-    "TRY300",
 ]
-"mxcubecore/HardwareObjects/ExporterMotor.py" = [
-    "BLE001",
-    "FBT003",
-    "G002",
-    "SIM103",
-    "TRY300",
-]
-"mxcubecore/HardwareObjects/ExporterNState.py" = [
-    "SIM108",
-    "SIM201",
-]
+"mxcubecore/HardwareObjects/ExporterMotor.py" = []
+"mxcubecore/HardwareObjects/ExporterNState.py" = []
 "mxcubecore/HardwareObjects/FlexHCD.py" = [
-    "ARG002",
     "B006",
-    "BLE001",
-    "C419",
-    "EM101",
-    "ERA001",
-    "FBT002",
-    "FBT003",
-    "N803",
-    "PERF401",
-    "RET503",
-    "RET505",
-    "RET506",
     "S301",
-    "SIM101",
-    "SIM102",
-    "SIM108",
-    "SIM201",
-    "SLF001",
 ]
-"mxcubecore/HardwareObjects/FlexHCDMaintenance.py" = [
-    "PERF401",
-    "SLF001",
-]
+"mxcubecore/HardwareObjects/FlexHCDMaintenance.py" = []
 "mxcubecore/HardwareObjects/GenericDiffractometer.py" = [
-    "ARG002",
-    "BLE001",
-    "C901",
     "E501",
-    "ERA001",
-    "EXE002",
     "F821",
     "F841",
-    "FBT002",
-    "FBT003",
-    "FIX002",
-    "FIX004",
-    "G002",
-    "G003",
-    "ISC003",
-    "PLR0911",
-    "PLR0912",
-    "PLR0915",
-    "PLR1714",
-    "PLR5501",
-    "PLW2901",
-    "PTH113",
-    "PTH123",
-    "RET503",
-    "RET505",
-    "RET506",
-    "RUF012",
     "S307",
-    "SIM118",
-    "TD002",
-    "TD003",
-    "TD004",
-    "TRY301",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/Gphl/CollectEmulator.py" = [
-    "C400",
-    "C901",
-    "EM101",
-    "ERA001",
-    "FIX002",
-    "N806",
-    "PLR0912",
-    "PLR0915",
-    "PLW1509",
-    "PTH103",
-    "PTH110",
-    "PTH113",
-    "PTH118",
-    "PTH123",
     "S603",
-    "SIM108",
-    "SIM115",
-    "SIM118",
-    "SLF001",
-    "TD002",
-    "TD003",
-    "TD004",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/Gphl/GphlMessages.py" = [
-    "C400",
-    "C409",
     "E501",
     "E722",
-    "EM101",
-    "ERA001",
-    "FBT002",
-    "N802",
-    "N803",
-    "N806",
-    "PLR0913",
-    "PYI024",
-    "RET506",
     "S110",
-    "SLF001",
 ]
 "mxcubecore/HardwareObjects/Gphl/GphlWorkflow.py" = [
-    "ARG002",
     "B007",
     "B905",
-    "BLE001",
-    "C400",
-    "C401",
-    "C402",
-    "C901",
-    "DTZ005",
     "E501",
     "E722",
-    "EM101",
-    "ERA001",
-    "FBT002",
-    "FIX002",
-    "G002",
-    "G003",
-    "N803",
-    "N806",
-    "PLR0912",
-    "PLR0913",
-    "PLR0915",
-    "PLR5501",
-    "PLW2901",
-    "PTH103",
-    "PTH112",
-    "PTH113",
-    "PTH118",
-    "PTH119",
-    "RET504",
-    "RET505",
-    "RET506",
-    "RET508",
-    "RUF001",
-    "RUF005",
-    "RUF015",
     "S603",
-    "SIM108",
-    "SLF001",
-    "T201",
-    "TD002",
-    "TD003",
-    "TD004",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/Gphl/GphlWorkflowConnection.py" = [
-    "ARG002",
-    "BLE001",
-    "C400",
-    "C401",
-    "C402",
-    "C901",
     "E402",
     "E722",
-    "EM101",
-    "ERA001",
     "F811",
-    "FBT002",
-    "FIX004",
-    "FURB188",
-    "G002",
-    "N802",
-    "N803",
-    "N806",
-    "PLR0911",
-    "PLR0912",
-    "PLR0915",
-    "PLW2901",
-    "PTH100",
-    "PTH103",
-    "PTH110",
-    "PTH112",
-    "PTH117",
-    "PTH118",
-    "RET504",
-    "RET505",
-    "RUF012",
     "S603",
-    "SIM108",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/Gphl/Transcal2MiniKappa.py" = [
-    "ARG001",
-    "C400",
     "E722",
-    "PERF401",
-    "PLR0913",
-    "PTH113",
-    "PTH123",
     "S314",
-    "SIM115",
-    "T201",
 ]
-"mxcubecore/HardwareObjects/GrobDiff.py" = [
-    "A002",
-]
+"mxcubecore/HardwareObjects/GrobDiff.py" = []
 "mxcubecore/HardwareObjects/GrobMotor.py" = [
     "B006",
     "F821",
-    "N802",
-    "N803",
 ]
 "mxcubecore/HardwareObjects/GrobSampleChanger.py" = [
-    "ARG002",
     "B006",
     "B905",
     "F841",
-    "FBT002",
-    "N802",
-    "N803",
-    "PLR0913",
-    "RET502",
-    "RET503",
-    "RET505",
-    "SIM102",
 ]
 "mxcubecore/HardwareObjects/Harvester.py" = [
-    "BLE001",
-    "C901",
     "E501",
-    "EM101",
-    "ERA001",
-    "FBT001",
-    "FBT002",
-    "FBT003",
-    "N806",
-    "PLR0911",
-    "PLR0912",
-    "PLR0915",
-    "RET503",
-    "RET504",
-    "RET505",
-    "RUF012",
-    "RUF013",
-    "SIM108",
-    "T201",
-    "TRY300",
 ]
 "mxcubecore/HardwareObjects/HarvesterMaintenance.py" = [
     "E501",
-    "ERA001",
-    "N806",
-    "RET504",
-    "SLF001",
-    "T201",
-    "TRY300",
 ]
 "mxcubecore/HardwareObjects/ICATLIMS.py" = [
-    "ARG002",
-    "BLE001",
-    "C901",
-    "DTZ002",
     "E501",
-    "EM101",
-    "PLR0912",
-    "PLR0915",
-    "SIM102",
 ]
 "mxcubecore/HardwareObjects/ISARAMaint.py" = [
     "B904",
-    "C901",
     "E501",
-    "EM102",
-    "FBT001",
-    "FBT003",
-    "TRY002",
-    "TRY201",
 ]
 "mxcubecore/HardwareObjects/LNLS/EPICSActuator.py" = [
     "E501",
-    "EM101",
     "F841",
 ]
 "mxcubecore/HardwareObjects/LNLS/EPICSMotor.py" = [
-    "BLE001",
     "F841",
-    "G002",
 ]
-"mxcubecore/HardwareObjects/LNLS/EPICSNState.py" = [
-    "ARG002",
-    "BLE001",
-    "C402",
-    "ERA001",
-    "FBT002",
-    "N802",
-    "PLE1206",
-    "SLF001",
-    "TRY400",
-]
+"mxcubecore/HardwareObjects/LNLS/EPICSNState.py" = []
 "mxcubecore/HardwareObjects/LNLS/LNLSAperture.py" = [
-    "BLE001",
     "S307",
-    "TRY400",
 ]
-"mxcubecore/HardwareObjects/LNLS/LNLSBeam.py" = [
-    "ARG002",
-    "RET503",
-]
+"mxcubecore/HardwareObjects/LNLS/LNLSBeam.py" = []
 "mxcubecore/HardwareObjects/LNLS/LNLSCamera.py" = [
     "B012",
     "E501",
     "E722",
-    "ERA001",
-    "FBT002",
-    "G002",
-    "N802",
-    "N803",
-    "N806",
-    "PLR0913",
-    "PTH103",
-    "PTH110",
-    "PTH118",
-    "RET502",
     "S110",
-    "SIM105",
-    "T201",
-    "TRY300",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/LNLS/LNLSCollect.py" = [
-    "ARG002",
     "E501",
-    "ERA001",
     "F841",
-    "G001",
-    "G002",
-    "G003",
-    "N802",
-    "PLR0913",
-    "PLR0915",
-    "PLR1711",
-    "PTH103",
-    "PTH110",
-    "PTH112",
-    "PTH118",
-    "RET503",
-    "RET504",
-    "RET505",
     "S602",
-    "T201",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/LNLS/LNLSDetDistMotor.py" = [
     "B007",
-    "G002",
-    "PIE790",
 ]
 "mxcubecore/HardwareObjects/LNLS/LNLSDiffractometer.py" = [
-    "ARG002",
     "B028",
-    "BLE001",
     "E501",
-    "ERA001",
-    "FBT002",
-    "FIX002",
-    "N802",
-    "RET504",
-    "RET505",
     "S311",
-    "SIM108",
-    "SIM118",
-    "T201",
-    "TD002",
-    "TD003",
-    "TD004",
 ]
-"mxcubecore/HardwareObjects/LNLS/LNLSEnergy.py" = [
-    "ERA001",
-    "PIE790",
-]
+"mxcubecore/HardwareObjects/LNLS/LNLSEnergy.py" = []
 "mxcubecore/HardwareObjects/LNLS/LNLSPilatusDet.py" = [
-    "ARG002",
     "B007",
-    "ERA001",
     "F841",
-    "FBT002",
-    "G001",
-    "G002",
-    "RET504",
-    "T201",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/LNLS/LNLSTransmission.py" = [
-    "BLE001",
     "F841",
-    "G002",
-    "RET504",
-    "TRY400",
 ]
-"mxcubecore/HardwareObjects/LNLS/LNLSZoom.py" = [
-    "RET504",
-]
+"mxcubecore/HardwareObjects/LNLS/LNLSZoom.py" = []
 "mxcubecore/HardwareObjects/LNLS/read_transmission_mnc.py" = [
     "E501",
-    "ERA001",
     "F841",
-    "N806",
-    "RET504",
-    "SIM118",
 ]
 "mxcubecore/HardwareObjects/LNLS/set_transmission_mnc.py" = [
     "B905",
-    "C901",
     "E501",
-    "ERA001",
     "F841",
-    "N806",
-    "PERF401",
-    "PLR0912",
-    "PLR5501",
-    "RET504",
 ]
-"mxcubecore/HardwareObjects/LdapAuthenticator.py" = [
-    "BLE001",
-    "C901",
-    "FBT002",
-    "G002",
-    "PLR0911",
-    "PLR0912",
-    "RET505",
-]
+"mxcubecore/HardwareObjects/LdapAuthenticator.py" = []
 "mxcubecore/HardwareObjects/Lima2Detector.py" = [
-    "A004",
-    "ARG002",
     "B006",
     "B905",
-    "BLE001",
-    "C419",
-    "C901",
     "E501",
     "E722",
     "E741",
-    "EM101",
-    "ERA001",
     "F541",
     "F821",
-    "FBT002",
-    "FIX002",
-    "G002",
-    "PLR0915",
-    "PLR1714",
-    "PTH110",
-    "PTH118",
-    "PTH123",
-    "RET504",
     "S604",
-    "SIM102",
-    "TD002",
-    "TD003",
-    "TD004",
-    "TD005",
-    "TRY300",
-    "TRY400",
 ]
-"mxcubecore/HardwareObjects/LimaEigerDetector.py" = [
-    "ARG002",
-    "BLE001",
-    "FURB188",
-    "N806",
-    "PLR0913",
-    "PLR1730",
-    "PTH118",
-    "PTH119",
-    "PTH120",
-    "PTH122",
-    "RET504",
-]
+"mxcubecore/HardwareObjects/LimaEigerDetector.py" = []
 "mxcubecore/HardwareObjects/LimaPilatusDetector.py" = [
-    "A004",
-    "ARG002",
-    "BLE001",
-    "FBT003",
-    "FURB188",
-    "G002",
-    "N806",
-    "PLR0913",
-    "PLR1730",
-    "PTH118",
-    "PTH119",
-    "PTH120",
-    "PTH122",
-    "RET504",
     "S110",
     "S602",
-    "SIM105",
-    "TRY300",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/MAXIV/ISPyBLims.py" = [
-    "BLE001",
     "E501",
-    "EM101",
-    "EM102",
-    "G003",
-    "ISC003",
     "S113",
-    "TRY002",
-    "TRY300",
 ]
 "mxcubecore/HardwareObjects/MAXIV/MAXIVAutoProcessing.py" = [
-    "ARG002",
-    "BLE001",
-    "C901",
     "E501",
-    "EXE002",
     "F841",
-    "G001",
-    "G002",
-    "N806",
-    "PTH110",
-    "PTH116",
-    "PTH118",
-    "PTH120",
     "S605",
-    "SIM102",
-    "T201",
-    "TRY400",
 ]
-"mxcubecore/HardwareObjects/MAXIV/MachInfo.py" = [
-    "EXE002",
-    "RET504",
-]
+"mxcubecore/HardwareObjects/MAXIV/MachInfo.py" = []
 "mxcubecore/HardwareObjects/MD2Motor.py" = [
     "B028",
     "B904",
-    "BLE001",
     "E501",
-    "ERA001",
-    "G001",
-    "N802",
-    "TRY300",
-    "TRY301",
 ]
-"mxcubecore/HardwareObjects/MD3UP.py" = [
-    "ARG002",
-    "ERA001",
-    "FBT002",
-    "FBT003",
-    "N802",
-    "N806",
-    "PLR0913",
-    "RET506",
-    "T201",
-]
+"mxcubecore/HardwareObjects/MD3UP.py" = []
 "mxcubecore/HardwareObjects/MachCurrent.py" = [
     "E501",
-    "TRY401",
 ]
-"mxcubecore/HardwareObjects/Mar225.py" = [
-    "ARG002",
-]
+"mxcubecore/HardwareObjects/Mar225.py" = []
 "mxcubecore/HardwareObjects/Marvin.py" = [
-    "ARG002",
     "B007",
-    "C901",
-    "DTZ005",
     "E501",
-    "EM101",
-    "ERA001",
     "F841",
-    "FBT002",
-    "FBT003",
-    "FIX002",
-    "G002",
-    "G003",
-    "ISC003",
-    "N802",
-    "PERF401",
-    "PERF402",
-    "PLR0912",
-    "PLR0915",
-    "PLR1714",
-    "PLR5501",
-    "PLW2901",
-    "PTH118",
-    "RET503",
-    "RET505",
-    "RET506",
-    "RUF021",
-    "SIM102",
-    "SIM103",
-    "SLF001",
-    "T201",
-    "TD002",
-    "TD003",
-    "TD004",
-    "TD005",
-    "TRY002",
 ]
 "mxcubecore/HardwareObjects/MicroDiffractometer.py" = [
     "FBT001",
@@ -2451,2347 +716,644 @@ convention = "google"
     "PLR0913"
 ]
 "mxcubecore/HardwareObjects/Microdiff.py" = [
-    "ARG002",
-    "BLE001",
-    "FBT002",
-    "FBT003",
-    "G002",
-    "N802",
-    "N806",
-    "PERF203",
-    "PLR0913",
-    "PLR0915",
-    "PLR5501",
-    "PLW0603",
-    "RET504",
-    "RET506",
     "S110",
-    "SIM105",
-    "SIM118",
-    "T201",
 ]
 "mxcubecore/HardwareObjects/MicrodiffActuator.py" = [
-    "BLE001",
-    "C402",
     "F841",
-    "FBT002",
-    "PLR5501",
-    "RET508",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/MicrodiffAperture.py" = [
     "B904",
     "B905",
     "E501",
-    "EM101",
 ]
-"mxcubecore/HardwareObjects/MicrodiffBeamstop.py" = [
-    "ARG002",
-    "FBT002",
-    "N802",
-    "N803",
-]
-"mxcubecore/HardwareObjects/MicrodiffInOut.py" = [
-    "BLE001",
-    "C402",
-    "FBT002",
-    "N802",
-    "PLR5501",
-    "RET508",
-    "TRY400",
-]
+"mxcubecore/HardwareObjects/MicrodiffBeamstop.py" = []
+"mxcubecore/HardwareObjects/MicrodiffInOut.py" = []
 "mxcubecore/HardwareObjects/MicrodiffKappaMotor.py" = [
     "E501",
     "E713",
     "E741",
-    "EM101",
-    "ERA001",
     "F841",
-    "G002",
-    "N802",
-    "N803",
-    "N806",
-    "PLR0913",
-    "RUF012",
 ]
-"mxcubecore/HardwareObjects/MicrodiffLightBeamstop.py" = [
-    "PLR5501",
-]
+"mxcubecore/HardwareObjects/MicrodiffLightBeamstop.py" = []
 "mxcubecore/HardwareObjects/MicrodiffMotor.py" = [
-    "ARG002",
     "B006",
     "B904",
-    "BLE001",
-    "C901",
-    "N802",
-    "PLR5501",
-    "RET505",
-    "RUF012",
-    "SIM102",
-    "TRY300",
-    "TRY301",
 ]
-"mxcubecore/HardwareObjects/MicrodiffSamplePseudo.py" = [
-    "N802",
-    "N803",
-    "RET503",
-]
-"mxcubecore/HardwareObjects/MicrodiffZoom.py" = [
-    "ARG002",
-]
+"mxcubecore/HardwareObjects/MicrodiffSamplePseudo.py" = []
+"mxcubecore/HardwareObjects/MicrodiffZoom.py" = []
 "mxcubecore/HardwareObjects/MiniDiff.py" = [
-    "ARG002",
-    "BLE001",
-    "C419",
-    "C901",
     "E501",
     "E722",
-    "ERA001",
     "F541",
     "F841",
-    "FBT002",
-    "FBT003",
-    "FIX002",
-    "G002",
-    "N802",
-    "N803",
-    "N806",
-    "PLR0912",
-    "PLR0915",
-    "PTH113",
-    "PTH123",
     "S314",
-    "T201",
-    "TD002",
-    "TD003",
-    "TRY301",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/MiniKappaCorrection.py" = [
-    "N802",
-    "N806",
     "S307",
-    "SIM108",
 ]
-"mxcubecore/HardwareObjects/MinidiffAperture.py" = [
-    "N802",
-    "RET504",
-    "RET505",
-]
+"mxcubecore/HardwareObjects/MinidiffAperture.py" = []
 "mxcubecore/HardwareObjects/MotorWPositions.py" = [
-    "BLE001",
-    "ERA001",
     "F821",
-    "N802",
-    "N803",
-    "RUF021",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/MotorsNPosition.py" = [
-    "ARG002",
     "B007",
     "E501",
-    "G002",
-    "RET503",
-    "SIM102",
 ]
 "mxcubecore/HardwareObjects/MultiplePositions.py" = [
-    "ARG002",
     "B018",
-    "BLE001",
     "F841",
-    "FBT002",
-    "N802",
-    "N803",
-    "N806",
-    "RET505",
     "S112",
-    "T201",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/Native/__init__.py" = [
-    "ARG001",
     "E501",
-    "FBT002",
-    "RET504",
-    "RET505",
     "S301",
-    "SLF001",
-    "TRY401",
 ]
-"mxcubecore/HardwareObjects/ObjectsController.py" = [
-    "PTH118",
-]
+"mxcubecore/HardwareObjects/ObjectsController.py" = []
 "mxcubecore/HardwareObjects/PlateManipulator.py" = [
-    "ARG002",
     "B904",
-    "BLE001",
-    "C901",
     "E501",
     "E722",
-    "EM101",
-    "ERA001",
     "F811",
     "F841",
-    "FBT002",
-    "FBT003",
-    "PERF401",
-    "PLR0912",
-    "PLR1714",
-    "PLR1730",
-    "PLR5501",
-    "RET503",
-    "RET505",
-    "RET508",
-    "SIM103",
-    "SLF001",
-    "TRY002",
-    "TRY004",
-    "TRY300",
 ]
-"mxcubecore/HardwareObjects/PlateManipulatorMaintenance.py" = [
-    "ERA001",
-    "RET504",
-    "SLF001",
-]
+"mxcubecore/HardwareObjects/PlateManipulatorMaintenance.py" = []
 "mxcubecore/HardwareObjects/ProposalTypeISPyBLims.py" = [
-    "ARG002",
     "E402",
     "E501",
-    "EM101",
-    "FBT001",
-    "G002",
-    "RUF010",
-    "SIM102",
-    "TRY002",
-    "TRY201",
-    "TRY203",
 ]
 "mxcubecore/HardwareObjects/PyISPyBClient.py" = [
-    "DTZ005",
     "E501",
-    "ERA001",
-    "FBT002",
-    "PIE804",
-    "PTH100",
-    "PTH110",
-    "PTH118",
-    "PTH123",
-    "T201",
-    "T203",
 ]
 "mxcubecore/HardwareObjects/QtAxisCamera.py" = [
-    "EXE002",
     "F821",
-    "PLR5501",
-    "RET505",
 ]
 "mxcubecore/HardwareObjects/QtGraphicsLib.py" = [
-    "ARG002",
     "B007",
-    "C901",
-    "DTZ005",
     "E722",
-    "ERA001",
     "F841",
-    "FBT002",
-    "N802",
-    "N815",
-    "PERF401",
-    "PLR0912",
-    "PLR5501",
-    "RET505",
-    "SIM102",
-    "SIM108",
 ]
 "mxcubecore/HardwareObjects/QtGraphicsManager.py" = [
-    "ARG002",
     "B007",
-    "BLE001",
-    "C901",
-    "DTZ005",
     "E501",
-    "ERA001",
     "F811",
     "F841",
-    "FBT002",
-    "FBT003",
-    "FIX002",
-    "G002",
-    "G003",
-    "ISC003",
-    "N802",
-    "N806",
-    "PERF401",
-    "PLR0912",
-    "PLR0915",
-    "PLR5501",
-    "PTH103",
-    "PTH110",
-    "PTH120",
-    "PTH123",
-    "RET503",
-    "RET505",
     "S108",
     "S307",
-    "SIM102",
-    "SIM115",
-    "T201",
-    "TD002",
-    "TD003",
-    "TD004",
-    "TD005",
-    "TRY002",
-    "TRY301",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/QtInstanceServer.py" = [
-    "ARG002",
     "B904",
-    "BLE001",
-    "C901",
-    "ERA001",
     "F821",
     "F841",
-    "FBT002",
-    "G001",
-    "G002",
-    "N802",
-    "N803",
-    "N806",
-    "PLR0912",
-    "PLR0915",
-    "PLW0603",
     "S102",
     "S110",
     "S301",
-    "TRY203",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/QtLimaVideo.py" = [
-    "BLE001",
     "F841",
-    "FBT003",
-    "G002",
-    "RET504",
-    "RET505",
     "S110",
-    "SIM105",
-    "T201",
 ]
-"mxcubecore/HardwareObjects/QtTangoLimaVideo.py" = [
-    "RET503",
-    "RET504",
-    "RET505",
-    "T201",
-]
+"mxcubecore/HardwareObjects/QtTangoLimaVideo.py" = []
 "mxcubecore/HardwareObjects/QueueManager.py" = [
-    "EM101",
-    "ERA001",
     "F402",
-    "FBT002",
-    "G003",
-    "PERF203",
-    "RET503",
-    "RET505",
-    "RET508",
-    "SIM101",
-    "SLF001",
-    "TRY201",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/QueueModel.py" = [
-    "A002",
-    "ARG002",
     "E501",
-    "ERA001",
-    "FBT002",
-    "G002",
-    "G003",
-    "PERF401",
-    "PIE790",
-    "PLR1704",
-    "PLR5501",
-    "PTH123",
-    "RET503",
-    "RET504",
-    "RET505",
-    "RET506",
     "S301",
     "S307",
-    "SIM102",
-    "SIM115",
-    "SIM118",
-    "SLF001",
 ]
 "mxcubecore/HardwareObjects/RedisClient.py" = [
-    "BLE001",
     "F841",
-    "G002",
-    "G003",
-    "PERF401",
-    "RET503",
     "S301",
     "S307",
-    "SIM102",
 ]
 "mxcubecore/HardwareObjects/SC3.py" = [
-    "ARG002",
-    "BLE001",
-    "EM101",
-    "FBT003",
-    "N802",
-    "PERF203",
-    "PERF401",
-    "RET506",
     "S317",
-    "SLF001",
-    "T201",
-    "TRY002",
-    "TRY203",
 ]
-"mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Attenuator.py" = [
-    "ARG002",
-    "BLE001",
-    "N802",
-    "N803",
-    "N815",
-    "RET502",
-    "RUF012",
-    "TRY400",
-]
-"mxcubecore/HardwareObjects/SOLEIL/PX1/PX1BeamInfo.py" = [
-    "ARG002",
-    "N802",
-    "T201",
-]
-"mxcubecore/HardwareObjects/SOLEIL/PX1/PX1CatsMaint.py" = [
-    "FBT002",
-    "SLF001",
-]
+"mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Attenuator.py" = []
+"mxcubecore/HardwareObjects/SOLEIL/PX1/PX1BeamInfo.py" = []
+"mxcubecore/HardwareObjects/SOLEIL/PX1/PX1CatsMaint.py" = []
 "mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Collect.py" = [
-    "ARG002",
-    "BLE001",
     "E501",
-    "ERA001",
     "F821",
     "F841",
-    "G002",
-    "N802",
-    "PIE790",
-    "PTH101",
-    "PTH103",
-    "PTH107",
-    "PTH110",
-    "PTH118",
-    "PTH122",
-    "PTH123",
-    "RET503",
-    "RET505",
     "S103",
     "S603",
-    "SIM102",
-    "SIM103",
-    "T201",
-    "TRY300",
-    "TRY400",
 ]
-"mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Configuration.py" = [
-    "ERA001",
-    "FBT003",
-    "N802",
-    "T201",
-]
+"mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Configuration.py" = []
 "mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Cryotong.py" = [
-    "ARG002",
     "E501",
-    "EM101",
     "F841",
-    "G002",
-    "N806",
-    "RET505",
-    "SIM103",
-    "SLF001",
-    "T201",
-    "TRY002",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/PX1/PX1DetectorDistance.py" = [
-    "A001",
-    "ARG002",
-    "BLE001",
     "F821",
-    "N815",
-    "PLW0120",
-    "RET503",
-    "RET505",
-    "RUF012",
     "S110",
-    "SIM103",
-    "SIM105",
-    "SIM108",
-    "T201",
-    "TRY300",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Energy.py" = [
-    "ARG002",
-    "BLE001",
     "E501",
     "E712",
-    "ERA001",
     "F811",
     "F821",
-    "FBT002",
-    "G002",
-    "N802",
-    "RET503",
-    "RUF012",
-    "SIM102",
-    "T201",
-    "TRY300",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/PX1/PX1EnergyScan.py" = [
-    "ARG002",
     "B905",
-    "BLE001",
-    "C901",
     "E501",
-    "ERA001",
     "F821",
     "F841",
-    "FBT003",
-    "FLY002",
-    "G002",
-    "N802",
-    "N806",
-    "N815",
-    "PERF401",
-    "PIE804",
-    "PLR0912",
-    "PLR0913",
-    "PLR0915",
-    "PLW2901",
-    "PTH103",
-    "PTH110",
-    "PTH112",
-    "PTH118",
-    "PTH123",
-    "RET502",
-    "RET504",
-    "RET507",
-    "RUF021",
     "S307",
     "S603",
-    "SIM108",
-    "SIM113",
-    "SIM115",
-    "T201",
-    "TRY300",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Environment.py" = [
-    "ARG002",
-    "BLE001",
     "E501",
-    "ERA001",
     "F821",
     "F841",
-    "G002",
-    "N802",
-    "N815",
-    "RET501",
-    "RET503",
-    "RET504",
-    "RET505",
-    "RUF012",
-    "T201",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/PX1/PX1MiniDiff.py" = [
-    "ARG002",
-    "ERA001",
     "F821",
-    "FBT002",
-    "G002",
-    "PLW2901",
-    "RUF012",
-    "SIM118",
-    "TRY301",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Pilatus.py" = [
-    "ARG002",
-    "BLE001",
     "E501",
-    "ERA001",
-    "G002",
-    "N806",
-    "RET503",
-    "T201",
 ]
-"mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Pss.py" = [
-    "G002",
-    "RUF012",
-    "T201",
-]
-"mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Resolution.py" = [
-    "ARG002",
-    "BLE001",
-    "ERA001",
-    "N802",
-    "N815",
-    "RET504",
-    "RUF012",
-    "SIM114",
-    "T201",
-]
-"mxcubecore/HardwareObjects/SOLEIL/PX1/PX1TangoLight.py" = [
-    "ARG002",
-    "BLE001",
-    "G002",
-    "N802",
-    "SIM118",
-]
+"mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Pss.py" = []
+"mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Resolution.py" = []
+"mxcubecore/HardwareObjects/SOLEIL/PX1/PX1TangoLight.py" = []
 "mxcubecore/HardwareObjects/SOLEIL/PX2/PX2Attenuator.py" = [
-    "ARG002",
-    "BLE001",
     "E501",
-    "ERA001",
     "F821",
-    "G002",
-    "N802",
-    "N803",
-    "N806",
-    "N815",
-    "PLE1205",
-    "PLR5501",
-    "RUF012",
-    "T201",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/PX2/PX2BeamInfo.py" = [
     "E501",
-    "ERA001",
-    "FIX002",
-    "G002",
-    "N802",
-    "TD002",
-    "TD003",
-    "TD004",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/PX2/PX2Collect.py" = [
-    "ARG002",
     "E712",
-    "ERA001",
     "F821",
     "F841",
-    "FBT003",
-    "G002",
-    "N802",
-    "PERF401",
-    "PERF402",
-    "PLR0915",
-    "RET504",
-    "RUF012",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/PX2/PX2Diffractometer.py" = [
-    "ARG002",
-    "BLE001",
-    "C404",
-    "C901",
-    "DTZ002",
     "E501",
     "E712",
-    "ERA001",
     "F821",
     "F841",
-    "FBT002",
-    "G002",
-    "G003",
-    "ISC003",
-    "PLR0912",
-    "PLR0913",
-    "PLR0915",
-    "PTH103",
-    "PTH112",
-    "PTH118",
-    "PTH123",
-    "RET503",
-    "RET504",
-    "RET505",
-    "RUF012",
     "S307",
     "S605",
-    "SIM108",
-    "SIM115",
-    "SIM118",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/PX2/PX2Energy.py" = [
-    "BLE001",
-    "ERA001",
     "F841",
-    "G002",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/PX2/PX2Guillotine.py" = [
-    "BLE001",
     "E501",
     "E713",
-    "ERA001",
     "F601",
-    "G002",
-    "N802",
-    "N806",
-    "N815",
-    "RET505",
-    "RUF012",
-    "SIM103",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/PX2/PX2Qt4_LimaVideo.py" = [
-    "ARG002",
-    "BLE001",
     "F403",
     "F405",
     "F406",
     "F821",
-    "N801",
     "S110",
-    "SIM105",
-    "T201",
 ]
-"mxcubecore/HardwareObjects/SOLEIL/PX2/PX2Resolution.py" = [
-    "ARG002",
-]
+"mxcubecore/HardwareObjects/SOLEIL/PX2/PX2Resolution.py" = []
 "mxcubecore/HardwareObjects/SOLEIL/PX2/PX2Video.py" = [
-    "ARG002",
     "E712",
-    "ERA001",
-    "RET503",
-    "T201",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/SOLEILCatsMaint.py" = [
     "B026",
-    "BLE001",
     "E501",
-    "ERA001",
-    "FBT002",
-    "FBT003",
-    "G002",
-    "N802",
-    "RET504",
-    "RET505",
-    "SIM108",
-    "SIM401",
-    "T201",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/SOLEILEnergyScan.py" = [
-    "ARG002",
     "B905",
-    "BLE001",
-    "C901",
     "E501",
-    "ERA001",
     "F821",
     "F841",
-    "FBT002",
-    "FBT003",
-    "G002",
-    "N802",
-    "N803",
-    "N806",
-    "PERF401",
-    "PIE804",
-    "PLR0912",
-    "PLR0913",
-    "PLR0915",
-    "PLR5501",
-    "PTH103",
-    "PTH110",
-    "PTH112",
-    "PTH120",
-    "PTH123",
-    "RUF021",
     "S110",
-    "SIM102",
-    "SIM105",
-    "SIM115",
-    "TRY400",
 ]
-"mxcubecore/HardwareObjects/SOLEIL/SOLEILFlux.py" = [
-    "T201",
-]
+"mxcubecore/HardwareObjects/SOLEIL/SOLEILFlux.py" = []
 "mxcubecore/HardwareObjects/SOLEIL/SOLEILGuillotine.py" = [
-    "BLE001",
     "E501",
     "E713",
-    "ERA001",
     "F601",
-    "G002",
-    "N802",
-    "N806",
-    "N815",
-    "RET505",
-    "RUF012",
-    "SIM103",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/SOLEILISPyBClient.py" = [
-    "ARG002",
-    "C901",
     "E501",
-    "ERA001",
     "F841",
-    "G002",
-    "PERF203",
-    "PLR0912",
-    "PLR0915",
-    "PYI024",
-    "RET504",
-    "T201",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/SOLEILMachineInfo.py" = [
-    "ARG002",
-    "BLE001",
-    "C901",
     "E501",
     "E713",
-    "ERA001",
-    "G002",
-    "G003",
-    "PLR0912",
-    "PLR0915",
-    "PTH110",
-    "RET504",
-    "RET505",
     "S307",
-    "SIM102",
-    "TRY300",
 ]
-"mxcubecore/HardwareObjects/SOLEIL/SOLEILPss.py" = [
-    "BLE001",
-    "N802",
-    "RUF012",
-    "TRY400",
-]
-"mxcubecore/HardwareObjects/SOLEIL/SOLEILRuche.py" = [
-    "BLE001",
-    "ERA001",
-    "G002",
-    "PTH100",
-    "PTH110",
-    "PTH112",
-    "PTH118",
-    "PTH120",
-    "PTH123",
-    "SIM115",
-    "TRY400",
-]
-"mxcubecore/HardwareObjects/SOLEIL/SOLEILSafetyShutter.py" = [
-    "G002",
-    "G003",
-    "N802",
-]
+"mxcubecore/HardwareObjects/SOLEIL/SOLEILPss.py" = []
+"mxcubecore/HardwareObjects/SOLEIL/SOLEILRuche.py" = []
+"mxcubecore/HardwareObjects/SOLEIL/SOLEILSafetyShutter.py" = []
 "mxcubecore/HardwareObjects/SOLEIL/SOLEILSession.py" = [
     "E501",
-    "ERA001",
     "F841",
-    "G002",
-    "PTH118",
-    "PTH120",
-    "RET504",
-    "RET505",
-    "SIM108",
-    "T201",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/SOLEILqueue_entry.py" = [
-    "ARG002",
     "B904",
     "E501",
-    "EM101",
-    "ERA001",
     "F403",
     "F405",
-    "FBT002",
-    "FBT003",
-    "G002",
-    "G003",
-    "ISC003",
-    "N806",
-    "RET501",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/TangoDCMotor.py" = [
-    "ARG002",
-    "BLE001",
     "E501",
-    "ERA001",
     "F821",
-    "G002",
-    "N802",
-    "N803",
-    "N815",
-    "PLR1714",
-    "RUF012",
-    "T201",
-    "TRY400",
 ]
-"mxcubecore/HardwareObjects/SampleStage.py" = [
-    "EXE002",
-    "N802",
-]
-"mxcubecore/HardwareObjects/SampleView.py" = [
-    "ARG002",
-    "EM101",
-    "FBT001",
-    "FBT002",
-    "PERF401",
-    "TRY301",
-]
+"mxcubecore/HardwareObjects/SampleStage.py" = []
+"mxcubecore/HardwareObjects/SampleView.py" = []
 "mxcubecore/HardwareObjects/SardanaMotor.py" = [
-    "BLE001",
     "E501",
-    "EM101",
-    "G001",
-    "PIE796",
-    "RUF013",
-    "TRY300",
 ]
 "mxcubecore/HardwareObjects/SecureXMLRpcRequestHandler.py" = [
-    "BLE001",
     "E501",
     "F821",
-    "N802",
-    "N806",
-    "PYI006",
-    "SLF001",
 ]
-"mxcubecore/HardwareObjects/Session.py" = [
-    "ARG002",
-    "ERA001",
-    "FBT002",
-    "PLR0913",
-    "PTH118",
-    "RET505",
-    "SIM103",
-    "SIM108",
-    "PTH100",
-]
+"mxcubecore/HardwareObjects/Session.py" = []
 "mxcubecore/HardwareObjects/SimpleHTML.py" = [
-    "ARG001",
     "B020",
-    "C901",
-    "FBT002",
-    "PLR0912",
-    "PLR1704",
-    "PTH123",
-    "RET505",
-    "SIM108",
-    "SIM115",
 ]
-"mxcubecore/HardwareObjects/SpecMotor.py" = [
-    "ERA001",
-    "N802",
-    "N803",
-]
-"mxcubecore/HardwareObjects/SpecMotorWPositions.py" = [
-    "BLE001",
-    "N802",
-    "N803",
-    "N806",
-    "TRY400",
-]
+"mxcubecore/HardwareObjects/SpecMotor.py" = []
+"mxcubecore/HardwareObjects/SpecMotorWPositions.py" = []
 "mxcubecore/HardwareObjects/SpecMotorWSpecPositions.py" = [
     "E501",
-    "N802",
-    "N803",
-    "N806",
-    "RET503",
 ]
 "mxcubecore/HardwareObjects/SpecScan.py" = [
     "I001",
-    "N802",
-    "N803",
-    "N806",
 ]
 "mxcubecore/HardwareObjects/SpecShell.py" = [
-    "BLE001",
-    "C901",
     "E501",
-    "ERA001",
     "F841",
-    "N802",
-    "PERF203",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/SpecState.py" = [
-    "BLE001",
     "E501",
-    "ERA001",
     "F841",
-    "N802",
-    "PLR1714",
-    "SIM102",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/StateMachine.py" = [
-    "C901",
-    "DTZ007",
-    "ERA001",
-    "G002",
-    "G003",
-    "PLR0912",
-    "PTH123",
-    "RET503",
     "S506",
 ]
 "mxcubecore/HardwareObjects/TangoLimaMpegVideo.py" = [
-    "FBT003",
-    "RUF005",
     "S603",
     "S607",
-    "SIM108",
 ]
-"mxcubecore/HardwareObjects/TangoLimaVideo.py" = [
-    "EXE002",
-    "FBT003",
-    "N803",
-    "PLR5501",
-    "SIM102",
-    "TRY400",
-]
-"mxcubecore/HardwareObjects/TangoLimaVideoDevice.py" = [
-    "RET503",
-    "RET504",
-    "RET505",
-    "T201",
-]
+"mxcubecore/HardwareObjects/TangoLimaVideo.py" = []
+"mxcubecore/HardwareObjects/TangoLimaVideoDevice.py" = []
 "mxcubecore/HardwareObjects/TangoMachineInfo.py" = [
-    "ARG002",
     "E501",
-    "PERF203",
-    "TRY401",
 ]
 "mxcubecore/HardwareObjects/TangoMotor.py" = [
-    "C901",
-    "FBT003",
-    "G002",
-    "N802",
-    "RET503",
-    "RET504",
     "S307",
 ]
 "mxcubecore/HardwareObjects/TangoShutter.py" = [
     "E501",
 ]
-"mxcubecore/HardwareObjects/Transmission.py" = [
-    "ERA001",
-    "N802",
-]
+"mxcubecore/HardwareObjects/Transmission.py" = []
 "mxcubecore/HardwareObjects/UnitTest.py" = [
     "F841",
-    "PLW0603",
-    "PT009",
 ]
 "mxcubecore/HardwareObjects/UserTypeISPyBLims.py" = [
-    "C901",
     "E501",
-    "EM101",
     "F821",
     "F841",
-    "G002",
-    "G003",
-    "ISC003",
-    "N803",
-    "N806",
-    "PLR0912",
-    "PLW0603",
-    "PYI006",
     "S307",
-    "TRY002",
-    "TRY401",
 ]
-"mxcubecore/HardwareObjects/VimbaVideo.py" = [
-    "FBT003",
-    "SIM105",
-]
+"mxcubecore/HardwareObjects/VimbaVideo.py" = []
 "mxcubecore/HardwareObjects/XMLRPCServer.py" = [
-    "ARG002",
     "E501",
     "E722",
-    "ERA001",
     "F821",
-    "FBT002",
-    "FBT003",
-    "FIX002",
-    "G002",
-    "ISC003",
-    "N803",
-    "PLR0915",
-    "PYI006",
-    "RET504",
-    "SIM108",
-    "TD002",
-    "TD003",
-    "TRY002",
-    "TRY401",
 ]
 "mxcubecore/HardwareObjects/XRFSpectrum.py" = [
-    "ARG002",
-    "BLE001",
     "E501",
-    "ERA001",
     "F841",
-    "FBT002",
-    "G002",
-    "N802",
-    "N806",
-    "PERF401",
-    "PLE1206",
-    "PLR0913",
-    "PLR0915",
-    "PTH103",
-    "PTH110",
-    "PTH112",
-    "PTH113",
-    "PTH118",
     "S110",
-    "SIM105",
-    "T201",
-    "TRY300",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/XSDataAutoprocv1_0.py" = [
-    "ARG002",
     "B007",
     "B904",
-    "C901",
     "E501",
-    "ERA001",
     "F601",
-    "N802",
-    "N803",
-    "N805",
-    "N806",
-    "N815",
-    "N816",
-    "PLC0206",
-    "PLR0912",
-    "PLR0913",
-    "PLR0915",
-    "PLR1714",
-    "PTH100",
-    "PTH118",
-    "PTH120",
-    "PTH123",
-    "RET506",
     "S318",
-    "SIM102",
-    "SIM115",
-    "T201",
-    "TRY002",
-    "TRY201",
 ]
 "mxcubecore/HardwareObjects/XSDataCommon.py" = [
-    "A002",
-    "ARG002",
     "B007",
     "B904",
-    "C901",
     "E501",
-    "ERA001",
-    "N802",
-    "N803",
-    "N805",
-    "N806",
-    "N815",
-    "PLR0912",
-    "PLR0913",
-    "PLR0915",
-    "PLR1714",
-    "PTH123",
     "S318",
-    "SIM102",
-    "SIM115",
-    "T201",
 ]
 "mxcubecore/HardwareObjects/XSDataControlDozorv1_1.py" = [
-    "ARG002",
     "B007",
-    "C901",
     "E501",
-    "ERA001",
     "F601",
-    "N802",
-    "N803",
-    "N805",
-    "N806",
-    "N815",
-    "N816",
-    "PLC0206",
-    "PLR0912",
-    "PLR0913",
-    "PLR0915",
-    "PLR1714",
-    "PTH100",
-    "PTH118",
-    "PTH120",
-    "PTH123",
-    "RET506",
     "S318",
-    "SIM115",
-    "T201",
-    "TRY002",
-    "TRY201",
 ]
 "mxcubecore/HardwareObjects/XSDataMXCuBEv1_3.py" = [
-    "ARG002",
     "B007",
     "B904",
-    "C901",
     "E501",
-    "ERA001",
     "F601",
-    "N802",
-    "N803",
-    "N805",
-    "N806",
-    "N815",
-    "N816",
-    "PLC0206",
-    "PLR0912",
-    "PLR0913",
-    "PLR0915",
-    "PLR1714",
-    "PTH100",
-    "PTH118",
-    "PTH120",
-    "PTH123",
     "S318",
-    "SIM102",
-    "SIM115",
-    "T201",
-    "TRY201",
 ]
 "mxcubecore/HardwareObjects/XSDataMXCuBEv1_4.py" = [
-    "ARG002",
     "B007",
     "B904",
-    "C901",
     "E402",
     "E501",
-    "ERA001",
     "F601",
-    "N802",
-    "N803",
-    "N805",
-    "N806",
-    "N815",
-    "N816",
-    "PIE790",
-    "PLC0206",
-    "PLR0912",
-    "PLR0913",
-    "PLR0915",
-    "PLR1714",
-    "PTH100",
-    "PTH118",
-    "PTH120",
-    "PTH123",
-    "RET506",
     "S318",
-    "SIM102",
-    "SIM115",
-    "T201",
-    "TRY002",
-    "TRY201",
 ]
 "mxcubecore/HardwareObjects/XSDataMXv1.py" = [
-    "A002",
-    "ARG002",
     "B007",
-    "C901",
     "E402",
     "E501",
-    "ERA001",
     "F601",
-    "N802",
-    "N803",
-    "N805",
-    "N806",
-    "N815",
-    "N816",
-    "PIE790",
-    "PLC0206",
-    "PLR0912",
-    "PLR0913",
-    "PLR0915",
-    "PLR1714",
-    "PTH100",
-    "PTH118",
-    "PTH120",
-    "PTH123",
-    "RET506",
     "S318",
-    "SIM115",
-    "T201",
-    "TRY002",
-    "TRY201",
 ]
-"mxcubecore/HardwareObjects/abstract/AbstractActuator.py" = [
-    "EM101",
-    "EM102",
-    "RET501",
-    "SIM102",
-    "T201",
-]
+"mxcubecore/HardwareObjects/abstract/AbstractActuator.py" = []
 "mxcubecore/HardwareObjects/abstract/AbstractAperture.py" = [
     "B028",
-    "BLE001",
     "E501",
-    "G002",
     "S307",
-    "TRY400",
 ]
-"mxcubecore/HardwareObjects/abstract/AbstractAuthenticator.py" = [
-    "N805",
-    "PIE790",
-]
+"mxcubecore/HardwareObjects/abstract/AbstractAuthenticator.py" = []
 "mxcubecore/HardwareObjects/abstract/AbstractBeam.py" = [
     "B028",
 ]
-"mxcubecore/HardwareObjects/abstract/AbstractCollect.py" = [
-    "ARG002",
-    "BLE001",
-    "C901",
-    "ERA001",
-    "FIX002",
-    "G002",
-    "N802",
-    "PERF203",
-    "PERF402",
-    "PIE790",
-    "PLR0915",
-    "PTH103",
-    "PTH110",
-    "PTH118",
-    "PTH122",
-    "PYI024",
-    "RET503",
-    "RET504",
-    "RET505",
-    "SIM102",
-    "SIM118",
-    "TD002",
-    "TD003",
-    "TD004",
-]
-"mxcubecore/HardwareObjects/abstract/AbstractDetector.py" = [
-    "EM101",
-    "RET501",
-    "RET504",
-]
+"mxcubecore/HardwareObjects/abstract/AbstractCollect.py" = []
+"mxcubecore/HardwareObjects/abstract/AbstractDetector.py" = []
 "mxcubecore/HardwareObjects/abstract/AbstractDiffractometer.py" = [
-    "EM102",
-    "FBT001",
-    "FBT002",
-    "N999",
-    "PERF203",
     "I001",
 ]
-"mxcubecore/HardwareObjects/abstract/AbstractEnergy.py" = [
-    "FIX002",
-    "TD002",
-    "TD003",
-    "TD004",
-]
+"mxcubecore/HardwareObjects/abstract/AbstractEnergy.py" = []
 "mxcubecore/HardwareObjects/abstract/AbstractEnergyScan.py" = [
-    "ARG002",
-    "BLE001",
-    "EM101",
-    "PLR0913",
-    "PTH103",
-    "PTH110",
     "S110",
-    "SIM105",
 ]
-"mxcubecore/HardwareObjects/abstract/AbstractFlux.py" = [
-    "ERA001",
-]
+"mxcubecore/HardwareObjects/abstract/AbstractFlux.py" = []
 "mxcubecore/HardwareObjects/abstract/AbstractLims.py" = [
-    "ARG002",
     "B007",
-    "DTZ003",
     "E501",
-    "EM101",
-    "FBT001",
-    "G002",
-    "RET505",
-    "SIM102",
-    "SIM103",
-    "TRY002",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractMCA.py" = [
     "B006",
     "B028",
     "E501",
-    "PIE790",
 ]
-"mxcubecore/HardwareObjects/abstract/AbstractMachineInfo.py" = [
-    "PERF203",
-    "SIM102",
-]
-"mxcubecore/HardwareObjects/abstract/AbstractMotor.py" = [
-    "SIM102",
-]
-"mxcubecore/HardwareObjects/abstract/AbstractMultiCollect.py" = [
-    "ARG002",
-    "BLE001",
-    "C901",
-    "FBT001",
-    "FBT002",
-    "FBT003",
-    "N802",
-    "N803",
-    "PERF203",
-    "PLR0912",
-    "PLR0913",
-    "PLR0915",
-    "PTH103",
-    "PTH110",
-    "PTH113",
-    "PTH118",
-    "PTH122",
-    "PTH123",
-    "PYI024",
-    "SIM102",
-]
+"mxcubecore/HardwareObjects/abstract/AbstractMachineInfo.py" = []
+"mxcubecore/HardwareObjects/abstract/AbstractMotor.py" = []
+"mxcubecore/HardwareObjects/abstract/AbstractMultiCollect.py" = []
 "mxcubecore/HardwareObjects/abstract/AbstractOnlineProcessing.py" = [
-    "ARG002",
-    "BLE001",
-    "C901",
     "E501",
-    "ERA001",
     "F841",
-    "FBT003",
-    "FIX002",
-    "G002",
-    "ISC003",
-    "PERF401",
-    "PLR0912",
-    "PLR0915",
-    "PTH103",
-    "PTH110",
-    "PTH112",
-    "PTH113",
-    "PTH118",
-    "PTH119",
-    "PTH120",
-    "PTH123",
     "S602",
-    "SIM108",
-    "SLF001",
-    "TD002",
-    "TD003",
-    "TD004",
-    "TRY400",
-    "TRY401",
 ]
-"mxcubecore/HardwareObjects/abstract/AbstractProcedure.py" = [
-    "ERA001",
-    "PIE790",
-    "RUF012",
-]
+"mxcubecore/HardwareObjects/abstract/AbstractProcedure.py" = []
 "mxcubecore/HardwareObjects/abstract/AbstractSampleChanger.py" = [
-    "ARG002",
     "B018",
     "B026",
-    "BLE001",
-    "EM101",
-    "EM102",
-    "ERA001",
-    "FBT002",
-    "FBT003",
-    "N806",
-    "PERF401",
-    "PLR5501",
-    "RET502",
-    "RUF012",
     "S110",
-    "SIM102",
-    "SLF001",
-    "TRY002",
-    "TRY400",
 ]
-"mxcubecore/HardwareObjects/abstract/AbstractSampleView.py" = [
-    "ARG002",
-    "FBT001",
-    "FBT002",
-]
+"mxcubecore/HardwareObjects/abstract/AbstractSampleView.py" = []
 "mxcubecore/HardwareObjects/abstract/AbstractSlits.py" = [
     "B028",
-    "PIE790",
 ]
 "mxcubecore/HardwareObjects/abstract/AbstractVideoDevice.py" = [
-    "ARG002",
     "B028",
-    "BLE001",
-    "FBT002",
-    "PTH123",
-    "RET503",
     "S307",
-    "SIM115",
-    "T201",
 ]
-"mxcubecore/HardwareObjects/abstract/AbstractXRFSpectrum.py" = [
-    "PLR0913",
-    "TRY300",
-    "TRY400",
-]
-"mxcubecore/HardwareObjects/abstract/AbstractXrayCentring.py" = [
-    "EM101",
-]
+"mxcubecore/HardwareObjects/abstract/AbstractXRFSpectrum.py" = []
+"mxcubecore/HardwareObjects/abstract/AbstractXrayCentring.py" = []
 "mxcubecore/HardwareObjects/abstract/ISPyBAbstractLims.py" = [
     "B028",
-    "BLE001",
-    "EM101",
-    "G002",
-    "N802",
-    "PERF203",
-    "SIM102",
-    "SLF001",
-    "TRY002",
-    "TRY300",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/abstract/ISPyBDataAdapter.py" = [
-    "A002",
-    "ARG002",
-    "BLE001",
-    "DTZ003",
-    "DTZ005",
-    "DTZ007",
     "F821",
-    "G002",
-    "G003",
-    "ISC003",
-    "N802",
-    "N803",
-    "N806",
-    "PERF401",
-    "PGH003",
-    "PYI006",
-    "RET503",
-    "RET504",
-    "RET505",
-    "SIM103",
-    "T201",
-    "TRY201",
-    "TRY203",
-    "TRY300",
-    "TRY401",
 ]
 "mxcubecore/HardwareObjects/abstract/ISPyBValueFactory.py" = [
-    "ARG004",
     "B904",
-    "BLE001",
-    "C901",
-    "DTZ005",
-    "DTZ007",
     "F821",
     "F841",
-    "ISC003",
-    "PLR0912",
-    "PLR0915",
     "S110",
-    "SIM105",
-    "T201",
-    "TRY203",
 ]
 "mxcubecore/HardwareObjects/abstract/sample_changer/Component.py" = [
-    "A002",
     "B016",
-    "BLE001",
     "E712",
-    "FBT002",
-    "FBT003",
-    "PERF401",
-    "SLF001",
 ]
 "mxcubecore/HardwareObjects/abstract/sample_changer/Container.py" = [
-    "A002",
     "E501",
-    "ERA001",
-    "FBT003",
-    "PERF401",
-    "SIM110",
-    "SLF001",
 ]
 "mxcubecore/HardwareObjects/abstract/sample_changer/Crims.py" = [
-    "ARG002",
-    "PLR0913",
     "S310",
-    "TRY300",
 ]
 "mxcubecore/HardwareObjects/abstract/sample_changer/Sample.py" = [
-    "ARG002",
-    "BLE001",
     "E501",
-    "RET504",
     "S310",
-    "SIM102",
-    "T201",
 ]
 "mxcubecore/HardwareObjects/autoprocessing.py" = [
     "B006",
     "E501",
-    "ERA001",
-    "EXE002",
-    "G002",
-    "N802",
-    "N803",
-    "N806",
-    "PERF203",
-    "PTH112",
-    "PTH113",
-    "PTH118",
     "S602",
     "S605",
-    "SIM108",
-    "SIM201",
 ]
 "mxcubecore/HardwareObjects/mockup/ActuatorMockup.py" = [
-    "EM101",
-    "EM102",
     "S311",
 ]
 "mxcubecore/HardwareObjects/mockup/ApertureMockup.py" = [
     "B905",
     "E501",
-    "EM101",
 ]
 "mxcubecore/HardwareObjects/mockup/BeamDefinerMockup.py" = [
     "E501",
     "S311",
-    "T201",
 ]
-"mxcubecore/HardwareObjects/mockup/BeamMockup.py" = [
-    "ARG002",
-    "ERA001",
-]
-"mxcubecore/HardwareObjects/mockup/BeamlineActionsMockup.py" = [
-    "ARG002",
-    "EM101",
-]
+"mxcubecore/HardwareObjects/mockup/BeamMockup.py" = []
+"mxcubecore/HardwareObjects/mockup/BeamlineActionsMockup.py" = []
 "mxcubecore/HardwareObjects/mockup/BeamlineTestMockup.py" = [
-    "BLE001",
-    "C901",
-    "DTZ005",
-    "ERA001",
     "F841",
-    "FBT002",
-    "G002",
-    "G003",
-    "ISC003",
-    "PERF401",
-    "PTH103",
-    "PTH110",
-    "PTH118",
-    "PTH123",
-    "RET503",
     "S307",
-    "SIM115",
-    "TRY400",
 ]
 "mxcubecore/HardwareObjects/mockup/CatsMaintMockup.py" = [
-    "BLE001",
-    "C901",
     "E501",
-    "EM101",
-    "ERA001",
     "F841",
-    "FBT002",
-    "FBT003",
-    "PIE790",
-    "PLR0912",
-    "RET504",
-    "RET505",
-    "RET506",
-    "T201",
-    "TRY002",
 ]
-"mxcubecore/HardwareObjects/mockup/CollectMockup.py" = [
-    "ARG002",
-    "ERA001",
-    "FBT003",
-    "FIX002",
-    "PTH110",
-    "PTH118",
-    "RET504",
-    "TD002",
-    "TD003",
-    "TD004",
-]
+"mxcubecore/HardwareObjects/mockup/CollectMockup.py" = []
 "mxcubecore/HardwareObjects/mockup/DetectorMockup.py" = [
-    "ARG002",
     "S307",
 ]
 "mxcubecore/HardwareObjects/mockup/DiffractometerMockup.py" = [
-    "ARG002",
     "B028",
-    "ERA001",
-    "FBT002",
-    "N802",
-    "PLR1711",
-    "RET504",
-    "RET505",
     "S311",
-    "T201",
 ]
-"mxcubecore/HardwareObjects/mockup/EDNACharacterisationMockup.py" = [
-    "ARG002",
-]
-"mxcubecore/HardwareObjects/mockup/EnergyMockup.py" = [
-    "RET504",
-]
+"mxcubecore/HardwareObjects/mockup/EDNACharacterisationMockup.py" = []
+"mxcubecore/HardwareObjects/mockup/EnergyMockup.py" = []
 "mxcubecore/HardwareObjects/mockup/EnergyScanMockup.py" = [
-    "ARG002",
     "B905",
-    "C901",
-    "ERA001",
     "F841",
-    "FBT003",
-    "FLY002",
-    "G002",
-    "G003",
-    "N802",
-    "N806",
-    "PERF401",
-    "PIE804",
-    "PLR0915",
-    "PTH103",
-    "PTH110",
-    "PTH118",
-    "PTH123",
-    "RET502",
-    "RUF021",
-    "SIM115",
-    "T201",
 ]
-"mxcubecore/HardwareObjects/mockup/ExporterNStateMockup.py" = [
-    "ARG002",
-    "PIE790",
-    "RET503",
-]
+"mxcubecore/HardwareObjects/mockup/ExporterNStateMockup.py" = []
 "mxcubecore/HardwareObjects/mockup/FluxMockup.py" = [
     "S311",
 ]
 "mxcubecore/HardwareObjects/mockup/HarvesterMockup.py" = [
-    "ARG002",
     "E501",
-    "ERA001",
-    "N806",
-    "RET501",
-    "RET503",
-    "RET505",
-    "SIM108",
-    "T201",
 ]
 "mxcubecore/HardwareObjects/mockup/ISPyBClientMockup.py" = [
-    "ARG002",
     "B028",
-    "EM101",
-    "EM102",
     "F541",
-    "FBT001",
-    "FBT002",
-    "G002",
-    "G003",
-    "N802",
-    "N815",
-    "PIE790",
-    "SIM102",
-    "TRY002",
-    "TRY201",
-    "TRY203",
 ]
-"mxcubecore/HardwareObjects/mockup/ISPyBRestClientMockup.py" = [
-    "ARG002",
-    "DTZ001",
-    "DTZ005",
-    "EM101",
-    "FBT002",
-    "ISC003",
-    "PIE790",
-    "RET504",
-    "T201",
-    "TRY002",
-]
-"mxcubecore/HardwareObjects/mockup/LimaDetectorMockup.py" = [
-    "ARG002",
-    "PLR0913",
-    "PLR1711",
-]
+"mxcubecore/HardwareObjects/mockup/ISPyBRestClientMockup.py" = []
+"mxcubecore/HardwareObjects/mockup/LimaDetectorMockup.py" = []
 "mxcubecore/HardwareObjects/mockup/MDCameraMockup.py" = [
     "E501",
-    "ERA001",
-    "N802",
-    "PTH123",
-    "RUF005",
     "S603",
     "S607",
-    "SIM115",
-    "T201",
 ]
 "mxcubecore/HardwareObjects/mockup/MachineInfoMockup.py" = [
     "E501",
-    "T201",
 ]
 "mxcubecore/HardwareObjects/mockup/MicrodiffApertureMockup.py" = [
-    "ARG002",
     "B006",
-    "BLE001",
-    "ERA001",
-    "N802",
-    "N803",
-    "N806",
-    "RUF021",
-    "TRY300",
 ]
-"mxcubecore/HardwareObjects/mockup/MicrodiffInOutMockup.py" = [
-    "BLE001",
-    "C402",
-    "EXE002",
-    "FBT002",
-    "N802",
-    "PLR5501",
-    "RET508",
-    "TRY400",
-]
-"mxcubecore/HardwareObjects/mockup/MotorMockupBis.py" = [
-    "ERA001",
-]
+"mxcubecore/HardwareObjects/mockup/MicrodiffInOutMockup.py" = []
+"mxcubecore/HardwareObjects/mockup/MotorMockupBis.py" = []
 "mxcubecore/HardwareObjects/mockup/MultiCollectMockup.py" = [
-    "ARG002",
     "F841",
-    "N802",
-    "PLR0913",
-    "PLR1711",
-    "PTH110",
-    "PTH118",
-    "RET503",
-    "RET504",
-    "RET505",
 ]
 "mxcubecore/HardwareObjects/mockup/OfflineProcessingMockup.py" = [
-    "ARG002",
-    "FBT002",
-    "G001",
-    "G003",
-    "PTH110",
-    "PTH116",
-    "PTH118",
-    "PTH120",
     "S602",
     "S605",
 ]
-"mxcubecore/HardwareObjects/mockup/OnlineProcessingMockup.py" = [
-    "C901",
-    "FBT003",
-    "NPY002",
-    "RET508",
-    "SIM113",
-    "SIM118",
-]
+"mxcubecore/HardwareObjects/mockup/OnlineProcessingMockup.py" = []
 "mxcubecore/HardwareObjects/mockup/PlateManipulatorMockup.py" = [
-    "ARG002",
-    "EM101",
-    "ERA001",
     "F841",
-    "FBT002",
-    "FBT003",
-    "G002",
-    "N806",
-    "PERF401",
-    "PLR1714",
-    "PLR1730",
-    "PLR5501",
-    "RET503",
-    "RET505",
-    "SLF001",
-    "TRY002",
-    "TRY004",
 ]
-"mxcubecore/HardwareObjects/mockup/PlottingMockup.py" = [
-    "ARG002",
-    "NPY002",
-]
-"mxcubecore/HardwareObjects/mockup/ProcedureMockup.py" = [
-    "T201",
-]
-"mxcubecore/HardwareObjects/mockup/QtVideoMockup.py" = [
-    "ARG002",
-    "EXE002",
-    "PLR5501",
-    "RET505",
-]
-"mxcubecore/HardwareObjects/mockup/SOLEILCharacterisationMockup.py" = [
-    "ARG002",
-    "RET504",
-]
-"mxcubecore/HardwareObjects/mockup/SampleChangerMockup.py" = [
-    "ARG002",
-    "FBT002",
-    "FBT003",
-    "G002",
-    "PERF401",
-    "SLF001",
-]
+"mxcubecore/HardwareObjects/mockup/PlottingMockup.py" = []
+"mxcubecore/HardwareObjects/mockup/ProcedureMockup.py" = []
+"mxcubecore/HardwareObjects/mockup/QtVideoMockup.py" = []
+"mxcubecore/HardwareObjects/mockup/SOLEILCharacterisationMockup.py" = []
+"mxcubecore/HardwareObjects/mockup/SampleChangerMockup.py" = []
 "mxcubecore/HardwareObjects/mockup/ScanMockup.py" = [
     "S311",
 ]
-"mxcubecore/HardwareObjects/mockup/ShapeHistoryMockup.py" = [
-    "ARG002",
-    "ERA001",
-    "FBT003",
-    "G003",
-    "PERF401",
-    "PIE790",
-    "PTH109",
-    "PTH118",
-    "PTH123",
-    "RET503",
-    "RET504",
-    "SIM115",
-    "SLF001",
-]
-"mxcubecore/HardwareObjects/mockup/XRFMockup.py" = [
-    "ARG002",
-    "BLE001",
-    "ERA001",
-    "G002",
-    "N802",
-    "N806",
-    "NPY002",
-    "PERF203",
-    "PERF401",
-    "PLR0913",
-    "T201",
-]
-"mxcubecore/HardwareObjects/mockup/XRFSpectrumMockup.py" = [
-    "ARG002",
-]
+"mxcubecore/HardwareObjects/mockup/ShapeHistoryMockup.py" = []
+"mxcubecore/HardwareObjects/mockup/XRFMockup.py" = []
+"mxcubecore/HardwareObjects/mockup/XRFSpectrumMockup.py" = []
 "mxcubecore/HardwareObjects/sample_centring.py" = [
-    "ARG001",
     "B007",
     "B904",
-    "BLE001",
-    "C901",
     "E501",
-    "EM101",
-    "ERA001",
     "F541",
     "F841",
-    "FBT002",
-    "G002",
-    "N802",
-    "N803",
-    "N806",
-    "PLR0912",
-    "PLR0913",
-    "PLR1714",
-    "PLW0603",
-    "PTH118",
-    "RET502",
-    "RET506",
-    "RET508",
-    "SIM108",
-    "SLF001",
 ]
 "mxcubecore/HardwareRepository.py" = [
-    "BLE001",
-    "C901",
-    "DTZ005",
     "E501",
-    "EM101",
-    "ERA001",
     "F841",
-    "FIX002",
-    "N802",
-    "N803",
-    "PERF203",
-    "PERF401",
-    "PLR0912",
-    "PLR0915",
-    "PLW0602",
-    "PLW0603",
-    "PTH100",
-    "PTH110",
-    "PTH111",
-    "PTH118",
-    "PTH122",
-    "PTH123",
-    "RET502",
-    "RET505",
-    "RUF021",
     "S110",
     "S112",
-    "SIM105",
-    "SIM115",
-    "SLF001",
-    "T201",
-    "TD002",
-    "TD003",
 ]
 "mxcubecore/Poller.py" = [
-    "BLE001",
-    "C901",
     "F841",
-    "FBT002",
-    "N813",
-    "PLR0912",
-    "PLR0913",
-    "RET503",
 ]
 "mxcubecore/TaskUtils.py" = [
     "B010",
-    "C901",
-    "N801",
-    "RET506",
-    "SLF001",
-    "TRY301",
 ]
-"mxcubecore/__init__.py" = [
-    "N802",
-    "N816",
-    "PLW0603",
-    "PTH100",
-    "PTH118",
-    "PTH120",
-    "RUF012",
-]
-"mxcubecore/__version__.py" = [
-    "PTH123",
-]
+"mxcubecore/__init__.py" = []
+"mxcubecore/__version__.py" = []
 "mxcubecore/configuration/checkxml.py" = [
     "E501",
-    "N806",
-    "PTH100",
-    "PTH113",
-    "PTH118",
-    "PTH120",
-    "PTH123",
-    "RUF010",
-    "RUF015",
-    "T201",
-    "T203",
 ]
 "mxcubecore/configuration/soleil_px2/diffractometer/generate_md2_config_files.py" = [
     "E501",
-    "ERA001",
-    "PTH102",
-    "PTH112",
-    "PTH123",
-    "SIM115",
 ]
 "mxcubecore/dispatcher.py" = [
-    "BLE001",
     "I001",
-    "SLF001",
 ]
-"mxcubecore/model/configmodel.py" = [
-    "FBT003",
-]
-"mxcubecore/model/crystal_symmetry.py" = [
-    "ARG001",
-    "C400",
-    "C401",
-    "C405",
-    "C901",
-    "FBT002",
-    "PLR0912",
-    "PYI024",
-    "RET504",
-    "RUF005",
-    "RUF013",
-]
-"mxcubecore/model/lims_session.py" = [
-    "DTZ005",
-    "N815",
-]
+"mxcubecore/model/configmodel.py" = []
+"mxcubecore/model/crystal_symmetry.py" = []
+"mxcubecore/model/lims_session.py" = []
 "mxcubecore/model/procedure_model.py" = [
     "B904",
-    "BLE001",
 ]
-"mxcubecore/model/queue_model_enumerables.py" = [
-    "PYI024",
-]
+"mxcubecore/model/queue_model_enumerables.py" = []
 "mxcubecore/model/queue_model_objects.py" = [
-    "ARG002",
     "B905",
-    "BLE001",
-    "C901",
     "E501",
-    "EM101",
-    "ERA001",
-    "FBT002",
-    "FIX002",
-    "G002",
-    "N802",
-    "PERF401",
-    "PIE808",
-    "PLR0912",
-    "PLR0913",
-    "PLR0915",
-    "PLR1730",
-    "PLR5501",
-    "PTH100",
-    "PTH113",
-    "PTH118",
-    "PTH122",
-    "PTH123",
-    "RET503",
-    "RET504",
-    "RET506",
-    "RET507",
-    "RUF005",
-    "RUF012",
     "S110",
-    "SIM102",
-    "SIM108",
-    "SLF001",
-    "T201",
-    "TD002",
-    "TD003",
-    "TD004",
 ]
 "mxcubecore/queue_entry/__init__.py" = [
     "F403",
     "F405",
-    "PLW0603",
 ]
 "mxcubecore/queue_entry/advanced_connector.py" = [
-    "ERA001",
     "F841",
-    "FBT002",
 ]
 "mxcubecore/queue_entry/base_queue_entry.py" = [
     "B904",
-    "BLE001",
-    "C901",
-    "EM101",
-    "ERA001",
     "F841",
-    "FBT002",
-    "FBT003",
-    "G002",
-    "G003",
-    "ISC003",
-    "PLR0912",
-    "PLR0915",
-    "PLR1730",
-    "PYI024",
-    "RET505",
-    "RET506",
-    "SIM102",
-    "SLF001",
-    "TRY203",
-    "TRY301",
-    "TRY400",
 ]
 "mxcubecore/queue_entry/characterisation.py" = [
-    "BLE001",
     "E501",
     "F841",
-    "FBT002",
-    "G003",
-    "ISC003",
-    "SLF001",
 ]
 "mxcubecore/queue_entry/data_collection.py" = [
-    "ARG002",
     "B904",
-    "BLE001",
-    "EM101",
-    "ERA001",
-    "FBT002",
-    "FIX002",
-    "G003",
-    "ISC003",
-    "PLR0913",
-    "PLR0915",
-    "RET505",
-    "TD002",
-    "TD003",
-    "TD004",
 ]
-"mxcubecore/queue_entry/energy_scan.py" = [
-    "ARG002",
-    "EM101",
-    "ERA001",
-    "G002",
-    "G003",
-    "N806",
-    "TRY203",
-]
-"mxcubecore/queue_entry/generic_workflow.py" = [
-    "EM101",
-    "ERA001",
-    "SIM108",
-    "SLF001",
-]
-"mxcubecore/queue_entry/import_helper.py" = [
-    "PTH120",
-    "RUF012",
-]
-"mxcubecore/queue_entry/sample_centring.py" = [
-    "FBT003",
-    "SIM102",
-]
+"mxcubecore/queue_entry/energy_scan.py" = []
+"mxcubecore/queue_entry/generic_workflow.py" = []
+"mxcubecore/queue_entry/import_helper.py" = []
+"mxcubecore/queue_entry/sample_centring.py" = []
 "mxcubecore/queue_entry/test_collection.py" = [
-    "ARG004",
     "F821",
-    "RUF012",
 ]
 "mxcubecore/queue_entry/xray_centering.py" = [
-    "ERA001",
     "F821",
-    "FBT002",
-    "SLF001",
 ]
-"mxcubecore/queue_entry/xrf_spectrum.py" = [
-    "EM101",
-    "SLF001",
-]
+"mxcubecore/queue_entry/xrf_spectrum.py" = []
 "mxcubecore/saferef.py" = [
-    "ARG001",
     "F821",
-    "N805",
-    "PERF203",
-    "RET504",
-    "RET505",
     "S101",
-    "SIM102",
-    "SLF001",
 ]
 "mxcubecore/utils/conversion.py" = [
     "B007",
-    "BLE001",
-    "C400",
     "E713",
     "F821",
-    "FBT002",
-    "FLY002",
-    "PERF401",
-    "RET505",
-    "SIM108",
 ]
 "mxcubecore/utils/qt_import.py" = [
     "E501",
-    "EM101",
-    "ERA001",
     "F403",
     "F405",
-    "N802",
-    "N803",
-    "N815",
-    "N816",
-    "PTH100",
-    "PTH118",
-    "PTH120",
-    "PTH206",
 ]
-"mxcubecore/utils/units.py" = [
-    "N802",
-]
-"test/TestAbstractActuatorBase.py" = [
-    "SLF001",
-]
-"test/TestAbstractMotorBase.py" = [
-    "SLF001",
-]
-"test/TestAbstractNStateBase.py" = [
-    "C400",
-]
-"test/TestHardwareObjectBase.py" = [
-    "SLF001",
-]
-"test/conftest.py" = [
-    "PT003",
-    "PTH100",
-    "PTH118",
-    "PTH120",
-    "SLF001",
-    "T201",
-]
-"test/test_aperture.py" = [
-    "SLF001",
-]
+"mxcubecore/utils/units.py" = []
+"test/TestAbstractActuatorBase.py" = []
+"test/TestAbstractMotorBase.py" = []
+"test/TestAbstractNStateBase.py" = []
+"test/TestHardwareObjectBase.py" = []
+"test/conftest.py" = []
+"test/test_aperture.py" = []
 "test/test_base_hardware_objects.py" = [
-    "ARG005",
     "B009",
-    "C419",
     "E501",
     "E713",
-    "PLR0913",
-    "PT003",
-    "PT007",
-    "PT018",
-    "PYI041",
-    "SIM118",
-    "SLF001",
 ]
-"test/test_beam.py" = [
-    "PERF401",
-    "SLF001",
-]
-"test/test_beamline_ho_id.py" = [
-    "SIM300",
-]
+"test/test_beam.py" = []
+"test/test_beamline_ho_id.py" = []
 "test/test_command_container.py" = [
     "B009",
     "E501",
     "E712",
     "E713",
     "F821",
-    "FBT001",
-    "PLR0913",
-    "PLR0915",
-    "PLR5501",
-    "PT003",
-    "PT007",
-    "PT018",
-    "SIM102",
-    "SIM118",
-    "SIM910",
-    "SLF001",
 ]
 "test/test_detector.py" = [
     "F841",
-    "PIE808",
 ]
-"test/test_flux.py" = [
-    "SLF001",
-    "T201",
-]
-"test/test_hwo_isara_maint.py" = [
-    "N802",
-    "SLF001",
-]
+"test/test_flux.py" = []
+"test/test_hwo_isara_maint.py" = []
 "test/test_hwo_maxiv_ispyblims.py" = [
     "E501",
 ]
-"test/test_mach_info.py" = [
-    "SLF001",
-]
-"test/test_procedure.py" = [
-    "PIE804",
-]
-"test/test_resolution.py" = [
-    "SLF001",
-]
-"test/test_shutter.py" = [
-    "T201",
-]
-"test/test_utils_units.py" = [
-    "N802",
-]
+"test/test_mach_info.py" = []
+"test/test_procedure.py" = []
+"test/test_resolution.py" = []
+"test/test_shutter.py" = []
+"test/test_utils_units.py" = []
 "test/test_xrf.py" = [
     "S108",
 ]
