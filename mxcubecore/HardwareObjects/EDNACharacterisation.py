@@ -81,7 +81,12 @@ class EDNACharacterisation(AbstractCharacterisation):
         self.characterisationResult = None
         args = (self.start_edna_command, input_file, results_file, process_directory)
         # subprocess.call("%s %s %s %s" % args, shell=True)
-        p = subprocess.Popen("%s %s %s %s --verbose --debug" % args, shell=True)
+        p = subprocess.Popen(
+            "%s %s %s %s --verbose --debug" % args,
+            shell=True,
+            stdin=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        )
 
         do_continue = True
         self.result = None

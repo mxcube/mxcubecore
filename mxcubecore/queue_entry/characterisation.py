@@ -175,15 +175,18 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                     if collection_plan:
                         if char.auto_add_diff_plan:
                             # default action
-                            self.handle_diffraction_plan(self.edna_result, None)
+                            collections = self.handle_diffraction_plan(
+                                self.edna_result, None
+                            )
                         else:
                             collections = HWR.beamline.characterisation.dc_from_output(
                                 self.edna_result, char.reference_image_collection
                             )
-                            char.diffraction_plan.append(collections)
-                            HWR.beamline.queue_model.emit(
-                                "diff_plan_available", (char, collections)
-                            )
+
+                        char.diffraction_plan.append(collections)
+                        HWR.beamline.queue_model.emit(
+                            "diff_plan_available", (char, collections)
+                        )
 
                         self.get_view().setText(1, "Done")
                     else:
@@ -225,7 +228,6 @@ class CharacterisationQueueEntry(BaseQueueEntry):
             path_template = edna_dc.acquisitions[0].path_template
             run_number = HWR.beamline.queue_model.get_next_run_number(path_template)
             path_template.run_number = run_number
-            path_template.compression = char.diff_plan_compression
 
             edna_dc.set_enabled(char.run_diffraction_plan)
             edna_dc.set_name(path_template.get_prefix())
