@@ -236,6 +236,13 @@ class DataCollectionMetadataGatherer:
         metadata = params.to_icat_dict()
         metadata.update(extra)
 
+        # ontologies
+        try:
+            tech = technique.get_technique_metadata("MX", "SAD")
+            metadata.update(tech.get_dataset_metadata())
+        except (NameError, TypeError):
+            logger.warning("No technique added to the metadata")
+
         # metadata.json is a superset of what's sent to ICAT - it additionally
         # includes the experiment/processing plan and a few identifying
         # fields that pyicat-plus itself doesn't accept.
