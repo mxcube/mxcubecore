@@ -29,5 +29,20 @@ cleaned = re.sub(
     content,
 )
 
+# Remove lines like: "path/to/file.py" = []
+cleaned = re.sub(
+    r'^\s*".+?"\s*=\s*\[\]\s*,?\n',
+    "",
+    cleaned,
+    flags=re.MULTILINE,
+)
+
+# Remove empty sections leftover
+cleaned = re.sub(
+    r"\[tool\.ruff\.lint\.per-file-ignores\]\s*\n(\s*\n)*",
+    "[tool.ruff.lint.per-file-ignores]\n",
+    cleaned,
+)
+
 with open("ruff.cleaned.toml", "w") as f:
     f.write(cleaned)

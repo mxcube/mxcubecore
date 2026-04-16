@@ -47,8 +47,6 @@ convention = "google"
     "F841",
     "S307",
 ]
-"mxcubecore/Command/Exporter.py" = []
-"mxcubecore/Command/Mockup.py" = []
 "mxcubecore/Command/Pool.py" = [
     "B904",
     "F821",
@@ -76,9 +74,6 @@ convention = "google"
 "mxcubecore/Command/__init__.py" = [
     "E501",
 ]
-"mxcubecore/Command/exporter/ExporterClient.py" = []
-"mxcubecore/Command/exporter/ExporterStates.py" = []
-"mxcubecore/Command/exporter/MDEvents.py" = []
 "mxcubecore/Command/exporter/StandardClient.py" = [
     "B904",
     "F841",
@@ -99,15 +94,11 @@ convention = "google"
     "F841",
     "S108",
 ]
-"mxcubecore/HardwareObjects/ALBA/ALBABackLight.py" = []
-"mxcubecore/HardwareObjects/ALBA/ALBABeamInfo.py" = []
-"mxcubecore/HardwareObjects/ALBA/ALBACalibration.py" = []
 "mxcubecore/HardwareObjects/ALBA/ALBACats.py" = [
     "E501",
     "F821",
     "F841",
 ]
-"mxcubecore/HardwareObjects/ALBA/ALBACatsMaint.py" = []
 "mxcubecore/HardwareObjects/ALBA/ALBAClusterJob.py" = [
     "F821",
 ]
@@ -124,15 +115,12 @@ convention = "google"
 "mxcubecore/HardwareObjects/ALBA/ALBAEnergy.py" = [
     "F821",
 ]
-"mxcubecore/HardwareObjects/ALBA/ALBAEpsActuator.py" = []
 "mxcubecore/HardwareObjects/ALBA/ALBAFastShutter.py" = [
     "F821",
 ]
 "mxcubecore/HardwareObjects/ALBA/ALBAFlux.py" = [
     "F821",
 ]
-"mxcubecore/HardwareObjects/ALBA/ALBAFrontEnd.py" = []
-"mxcubecore/HardwareObjects/ALBA/ALBAFrontLight.py" = []
 "mxcubecore/HardwareObjects/ALBA/ALBAISPyBClient.py" = [
     "E501",
     "S108",
@@ -142,7 +130,6 @@ convention = "google"
     "E501",
     "F841",
 ]
-"mxcubecore/HardwareObjects/ALBA/ALBAMiniDiff.py" = []
 "mxcubecore/HardwareObjects/ALBA/ALBAPilatus.py" = [
     "F841",
 ]
@@ -150,8 +137,6 @@ convention = "google"
     "E501",
     "S108",
 ]
-"mxcubecore/HardwareObjects/ALBA/ALBASupervisor.py" = []
-"mxcubecore/HardwareObjects/ALBA/ALBATransmission.py" = []
 "mxcubecore/HardwareObjects/ALBA/ALBAZoomMotor.py" = [
     "F821",
     "F841",
@@ -160,30 +145,19 @@ convention = "google"
     "E501",
     "F841",
 ]
-"mxcubecore/HardwareObjects/ALBA/XalocCalibration.py" = []
 "mxcubecore/HardwareObjects/ALBA/XalocMachineInfo.py" = [
     "E501",
 ]
-"mxcubecore/HardwareObjects/ALBA/XalocMiniDiff.py" = []
 "mxcubecore/HardwareObjects/Argus.py" = [
     "S603",
     "S607",
 ]
-"mxcubecore/HardwareObjects/Attenuators.py" = []
-"mxcubecore/HardwareObjects/BeamInfo.py" = []
-"mxcubecore/HardwareObjects/Beamline.py" = []
-"mxcubecore/HardwareObjects/BeamlineActions.py" = []
 "mxcubecore/HardwareObjects/BlissActuator.py" = [
     "B028",
 ]
-"mxcubecore/HardwareObjects/BlissEnergy.py" = []
-"mxcubecore/HardwareObjects/BlissHutchTrigger.py" = []
-"mxcubecore/HardwareObjects/BlissMotor.py" = []
 "mxcubecore/HardwareObjects/BlissMotorWPositions.py" = [
     "B028",
 ]
-"mxcubecore/HardwareObjects/BlissNState.py" = []
-"mxcubecore/HardwareObjects/BlissRontecMCA.py" = []
 "mxcubecore/HardwareObjects/Cats90.py" = [
     "E501",
     "F823",
@@ -207,7 +181,6 @@ convention = "google"
     "E501",
     "F841",
 ]
-"mxcubecore/HardwareObjects/DESY/DigitalZoomMotor.py" = []
 "mxcubecore/HardwareObjects/DESY/MjpgStreamVideo.py" = [
     "B007",
     "E501",
@@ -244,8 +217,6 @@ convention = "google"
     "B904",
     "E501",
 ]
-"mxcubecore/HardwareObjects/DESY/P11DetectorCover.py" = []
-"mxcubecore/HardwareObjects/DESY/P11DetectorDistance.py" = []
 "mxcubecore/HardwareObjects/DESY/P11DoorInterlock.py" = [
     "F841",
     "S310",
@@ -277,7 +248,6 @@ convention = "google"
     "F821",
     "F841",
 ]
-"mxcubecore/HardwareObjects/DESY/P11MachineInfo.py" = []
 "mxcubecore/HardwareObjects/DESY/P11NanoDiff.py" = [
     "B007",
     "B015",
@@ -316,19 +286,15 @@ convention = "google"
 "mxcubecore/HardwareObjects/DESY/P11Zoom.py" = [
     "E722",
 ]
-"mxcubecore/HardwareObjects/DESY/ValueStateChannel.py" = []
 "mxcubecore/HardwareObjects/DataPublisher.py" = [
     "B006",
     "F821",
 ]
-"mxcubecore/HardwareObjects/DozorOnlineProcessing.py" = []
 "mxcubecore/HardwareObjects/EDNACharacterisation.py" = [
     "E501",
     "S110",
     "S602",
 ]
-"mxcubecore/HardwareObjects/EMBL/EMBLAperture.py" = []
-"mxcubecore/HardwareObjects/EMBL/EMBLBSD.py" = []
 "mxcubecore/HardwareObjects/EMBL/EMBLBeam.py" = [
     "F811",
 ]
@@ -349,13 +315,10 @@ convention = "google"
 "mxcubecore/HardwareObjects/EMBL/EMBLBeamstop.py" = [
     "F821",
 ]
-"mxcubecore/HardwareObjects/EMBL/EMBLCRL.py" = []
 "mxcubecore/HardwareObjects/EMBL/EMBLCollect.py" = [
     "E712",
     "S307",
 ]
-"mxcubecore/HardwareObjects/EMBL/EMBLDetector.py" = []
-"mxcubecore/HardwareObjects/EMBL/EMBLDoorInterlock.py" = []
 "mxcubecore/HardwareObjects/EMBL/EMBLEnergy.py" = [
     "S307",
 ]
@@ -366,7 +329,6 @@ convention = "google"
     "S307",
     "S603",
 ]
-"mxcubecore/HardwareObjects/EMBL/EMBLExporterClient.py" = []
 "mxcubecore/HardwareObjects/EMBL/EMBLFlux.py" = [
     "E501",
     "F632",
@@ -396,8 +358,6 @@ convention = "google"
     "F841",
     "S602",
 ]
-"mxcubecore/HardwareObjects/EMBL/EMBLPPUControl.py" = []
-"mxcubecore/HardwareObjects/EMBL/EMBLQueueEntry.py" = []
 "mxcubecore/HardwareObjects/EMBL/EMBLSSXChip.py" = [
     "B007",
     "E501",
@@ -408,18 +368,12 @@ convention = "google"
 "mxcubecore/HardwareObjects/EMBL/EMBLSafetyShutter.py" = [
     "F841",
 ]
-"mxcubecore/HardwareObjects/EMBL/EMBLSession.py" = []
-"mxcubecore/HardwareObjects/EMBL/EMBLSlitBox.py" = []
-"mxcubecore/HardwareObjects/EMBL/EMBLTableMotor.py" = []
-"mxcubecore/HardwareObjects/EMBL/EMBLTransfocator.py" = []
-"mxcubecore/HardwareObjects/EMBL/EMBLXRFSpectrum.py" = []
 "mxcubecore/HardwareObjects/EMBL/EMBLXrayImaging.py" = [
     "B006",
     "E501",
     "E712",
     "F841",
 ]
-"mxcubecore/HardwareObjects/EMBL/MDFastShutter.py" = []
 "mxcubecore/HardwareObjects/EMBL/TINEMotor.py" = [
     "S307",
 ]
@@ -435,9 +389,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/ESRF/BlissHutchTrigger.py" = [
     "B904",
 ]
-"mxcubecore/HardwareObjects/ESRF/BlissVolpi.py" = []
-"mxcubecore/HardwareObjects/ESRF/ESRFBeam.py" = []
-"mxcubecore/HardwareObjects/ESRF/ESRFBeamInfo.py" = []
 "mxcubecore/HardwareObjects/ESRF/ESRFBeamlineActions.py" = [
     "E722",
     "S110",
@@ -445,7 +396,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/ESRF/ESRFEnergyScan.py" = [
     "S603",
 ]
-"mxcubecore/HardwareObjects/ESRF/ESRFMD2SC3.py" = []
 "mxcubecore/HardwareObjects/ESRF/ESRFMetadataManagerClient.py" = [
     "B009",
     "E501",
@@ -456,37 +406,27 @@ convention = "google"
     "F405",
     "S103",
 ]
-"mxcubecore/HardwareObjects/ESRF/ESRFPhotonFlux.py" = []
 "mxcubecore/HardwareObjects/ESRF/ESRFSC3.py" = [
     "B018",
     "E501",
 ]
-"mxcubecore/HardwareObjects/ESRF/ESRFSession.py" = []
 "mxcubecore/HardwareObjects/ESRF/ESRFSmallXrayCentring.py" = [
     "S113",
 ]
 "mxcubecore/HardwareObjects/ESRF/ESRFXRFSpectrum.py" = [
     "B028",
 ]
-"mxcubecore/HardwareObjects/ESRF/ID232BeamDefiner.py" = []
 "mxcubecore/HardwareObjects/ESRF/ID29HutchTrigger.py" = [
     "B006",
 ]
-"mxcubecore/HardwareObjects/ESRF/ID30A3BeamDefiner.py" = []
-"mxcubecore/HardwareObjects/ESRF/ID30BBeamDefiner.py" = []
 "mxcubecore/HardwareObjects/ESRF/MD2MultiCollect.py" = [
     "B006",
 ]
-"mxcubecore/HardwareObjects/ESRF/OxfordCryostream.py" = []
-"mxcubecore/HardwareObjects/ESRF/SSXICATLIMS.py" = []
-"mxcubecore/HardwareObjects/ESRF/TangoKeithleyPhotonFlux.py" = []
 "mxcubecore/HardwareObjects/ESRF/calc_flux.py" = [
     "B007",
     "B905",
     "S110",
 ]
-"mxcubecore/HardwareObjects/ESRF/create_mx_master.py" = []
-"mxcubecore/HardwareObjects/ESRF/BlissMultiCollect.py" = []
 "mxcubecore/HardwareObjects/ESRF/queue_entry/fast_char_collection.py" = [
     "F541",
     "F821",
@@ -557,13 +497,10 @@ convention = "google"
 "mxcubecore/HardwareObjects/Energy.py" = [
     "F841",
 ]
-"mxcubecore/HardwareObjects/ExporterMotor.py" = []
-"mxcubecore/HardwareObjects/ExporterNState.py" = []
 "mxcubecore/HardwareObjects/FlexHCD.py" = [
     "B006",
     "S301",
 ]
-"mxcubecore/HardwareObjects/FlexHCDMaintenance.py" = []
 "mxcubecore/HardwareObjects/GenericDiffractometer.py" = [
     "E501",
     "F821",
@@ -595,7 +532,6 @@ convention = "google"
     "E722",
     "S314",
 ]
-"mxcubecore/HardwareObjects/GrobDiff.py" = []
 "mxcubecore/HardwareObjects/GrobMotor.py" = [
     "B006",
     "F821",
@@ -625,11 +561,9 @@ convention = "google"
 "mxcubecore/HardwareObjects/LNLS/EPICSMotor.py" = [
     "F841",
 ]
-"mxcubecore/HardwareObjects/LNLS/EPICSNState.py" = []
 "mxcubecore/HardwareObjects/LNLS/LNLSAperture.py" = [
     "S307",
 ]
-"mxcubecore/HardwareObjects/LNLS/LNLSBeam.py" = []
 "mxcubecore/HardwareObjects/LNLS/LNLSCamera.py" = [
     "B012",
     "E501",
@@ -649,7 +583,6 @@ convention = "google"
     "E501",
     "S311",
 ]
-"mxcubecore/HardwareObjects/LNLS/LNLSEnergy.py" = []
 "mxcubecore/HardwareObjects/LNLS/LNLSPilatusDet.py" = [
     "B007",
     "F841",
@@ -657,7 +590,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/LNLS/LNLSTransmission.py" = [
     "F841",
 ]
-"mxcubecore/HardwareObjects/LNLS/LNLSZoom.py" = []
 "mxcubecore/HardwareObjects/LNLS/read_transmission_mnc.py" = [
     "E501",
     "F841",
@@ -667,7 +599,6 @@ convention = "google"
     "E501",
     "F841",
 ]
-"mxcubecore/HardwareObjects/LdapAuthenticator.py" = []
 "mxcubecore/HardwareObjects/Lima2Detector.py" = [
     "B006",
     "B905",
@@ -678,7 +609,6 @@ convention = "google"
     "F821",
     "S604",
 ]
-"mxcubecore/HardwareObjects/LimaEigerDetector.py" = []
 "mxcubecore/HardwareObjects/LimaPilatusDetector.py" = [
     "S110",
     "S602",
@@ -692,17 +622,14 @@ convention = "google"
     "F841",
     "S605",
 ]
-"mxcubecore/HardwareObjects/MAXIV/MachInfo.py" = []
 "mxcubecore/HardwareObjects/MD2Motor.py" = [
     "B028",
     "B904",
     "E501",
 ]
-"mxcubecore/HardwareObjects/MD3UP.py" = []
 "mxcubecore/HardwareObjects/MachCurrent.py" = [
     "E501",
 ]
-"mxcubecore/HardwareObjects/Mar225.py" = []
 "mxcubecore/HardwareObjects/Marvin.py" = [
     "B007",
     "E501",
@@ -726,21 +653,16 @@ convention = "google"
     "B905",
     "E501",
 ]
-"mxcubecore/HardwareObjects/MicrodiffBeamstop.py" = []
-"mxcubecore/HardwareObjects/MicrodiffInOut.py" = []
 "mxcubecore/HardwareObjects/MicrodiffKappaMotor.py" = [
     "E501",
     "E713",
     "E741",
     "F841",
 ]
-"mxcubecore/HardwareObjects/MicrodiffLightBeamstop.py" = []
 "mxcubecore/HardwareObjects/MicrodiffMotor.py" = [
     "B006",
     "B904",
 ]
-"mxcubecore/HardwareObjects/MicrodiffSamplePseudo.py" = []
-"mxcubecore/HardwareObjects/MicrodiffZoom.py" = []
 "mxcubecore/HardwareObjects/MiniDiff.py" = [
     "E501",
     "E722",
@@ -751,7 +673,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/MiniKappaCorrection.py" = [
     "S307",
 ]
-"mxcubecore/HardwareObjects/MinidiffAperture.py" = []
 "mxcubecore/HardwareObjects/MotorWPositions.py" = [
     "F821",
 ]
@@ -768,7 +689,6 @@ convention = "google"
     "E501",
     "S301",
 ]
-"mxcubecore/HardwareObjects/ObjectsController.py" = []
 "mxcubecore/HardwareObjects/PlateManipulator.py" = [
     "B904",
     "E501",
@@ -776,7 +696,6 @@ convention = "google"
     "F811",
     "F841",
 ]
-"mxcubecore/HardwareObjects/PlateManipulatorMaintenance.py" = []
 "mxcubecore/HardwareObjects/ProposalTypeISPyBLims.py" = [
     "E402",
     "E501",
@@ -812,7 +731,6 @@ convention = "google"
     "F841",
     "S110",
 ]
-"mxcubecore/HardwareObjects/QtTangoLimaVideo.py" = []
 "mxcubecore/HardwareObjects/QueueManager.py" = [
     "F402",
 ]
@@ -829,9 +747,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/SC3.py" = [
     "S317",
 ]
-"mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Attenuator.py" = []
-"mxcubecore/HardwareObjects/SOLEIL/PX1/PX1BeamInfo.py" = []
-"mxcubecore/HardwareObjects/SOLEIL/PX1/PX1CatsMaint.py" = []
 "mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Collect.py" = [
     "E501",
     "F821",
@@ -839,7 +754,6 @@ convention = "google"
     "S103",
     "S603",
 ]
-"mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Configuration.py" = []
 "mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Cryotong.py" = [
     "E501",
     "F841",
@@ -873,9 +787,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Pilatus.py" = [
     "E501",
 ]
-"mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Pss.py" = []
-"mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Resolution.py" = []
-"mxcubecore/HardwareObjects/SOLEIL/PX1/PX1TangoLight.py" = []
 "mxcubecore/HardwareObjects/SOLEIL/PX2/PX2Attenuator.py" = [
     "E501",
     "F821",
@@ -911,7 +822,6 @@ convention = "google"
     "F821",
     "S110",
 ]
-"mxcubecore/HardwareObjects/SOLEIL/PX2/PX2Resolution.py" = []
 "mxcubecore/HardwareObjects/SOLEIL/PX2/PX2Video.py" = [
     "E712",
 ]
@@ -926,7 +836,6 @@ convention = "google"
     "F841",
     "S110",
 ]
-"mxcubecore/HardwareObjects/SOLEIL/SOLEILFlux.py" = []
 "mxcubecore/HardwareObjects/SOLEIL/SOLEILGuillotine.py" = [
     "E501",
     "E713",
@@ -941,9 +850,6 @@ convention = "google"
     "E713",
     "S307",
 ]
-"mxcubecore/HardwareObjects/SOLEIL/SOLEILPss.py" = []
-"mxcubecore/HardwareObjects/SOLEIL/SOLEILRuche.py" = []
-"mxcubecore/HardwareObjects/SOLEIL/SOLEILSafetyShutter.py" = []
 "mxcubecore/HardwareObjects/SOLEIL/SOLEILSession.py" = [
     "E501",
     "F841",
@@ -958,8 +864,6 @@ convention = "google"
     "E501",
     "F821",
 ]
-"mxcubecore/HardwareObjects/SampleStage.py" = []
-"mxcubecore/HardwareObjects/SampleView.py" = []
 "mxcubecore/HardwareObjects/SardanaMotor.py" = [
     "E501",
 ]
@@ -967,12 +871,9 @@ convention = "google"
     "E501",
     "F821",
 ]
-"mxcubecore/HardwareObjects/Session.py" = []
 "mxcubecore/HardwareObjects/SimpleHTML.py" = [
     "B020",
 ]
-"mxcubecore/HardwareObjects/SpecMotor.py" = []
-"mxcubecore/HardwareObjects/SpecMotorWPositions.py" = []
 "mxcubecore/HardwareObjects/SpecMotorWSpecPositions.py" = [
     "E501",
 ]
@@ -994,8 +895,6 @@ convention = "google"
     "S603",
     "S607",
 ]
-"mxcubecore/HardwareObjects/TangoLimaVideo.py" = []
-"mxcubecore/HardwareObjects/TangoLimaVideoDevice.py" = []
 "mxcubecore/HardwareObjects/TangoMachineInfo.py" = [
     "E501",
 ]
@@ -1005,7 +904,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/TangoShutter.py" = [
     "E501",
 ]
-"mxcubecore/HardwareObjects/Transmission.py" = []
 "mxcubecore/HardwareObjects/UnitTest.py" = [
     "F841",
 ]
@@ -1015,7 +913,6 @@ convention = "google"
     "F841",
     "S307",
 ]
-"mxcubecore/HardwareObjects/VimbaVideo.py" = []
 "mxcubecore/HardwareObjects/XMLRPCServer.py" = [
     "E501",
     "E722",
@@ -1067,26 +964,20 @@ convention = "google"
     "F601",
     "S318",
 ]
-"mxcubecore/HardwareObjects/abstract/AbstractActuator.py" = []
 "mxcubecore/HardwareObjects/abstract/AbstractAperture.py" = [
     "B028",
     "E501",
     "S307",
 ]
-"mxcubecore/HardwareObjects/abstract/AbstractAuthenticator.py" = []
 "mxcubecore/HardwareObjects/abstract/AbstractBeam.py" = [
     "B028",
 ]
-"mxcubecore/HardwareObjects/abstract/AbstractCollect.py" = []
-"mxcubecore/HardwareObjects/abstract/AbstractDetector.py" = []
 "mxcubecore/HardwareObjects/abstract/AbstractDiffractometer.py" = [
     "I001",
 ]
-"mxcubecore/HardwareObjects/abstract/AbstractEnergy.py" = []
 "mxcubecore/HardwareObjects/abstract/AbstractEnergyScan.py" = [
     "S110",
 ]
-"mxcubecore/HardwareObjects/abstract/AbstractFlux.py" = []
 "mxcubecore/HardwareObjects/abstract/AbstractLims.py" = [
     "B007",
     "E501",
@@ -1096,21 +987,16 @@ convention = "google"
     "B028",
     "E501",
 ]
-"mxcubecore/HardwareObjects/abstract/AbstractMachineInfo.py" = []
-"mxcubecore/HardwareObjects/abstract/AbstractMotor.py" = []
-"mxcubecore/HardwareObjects/abstract/AbstractMultiCollect.py" = []
 "mxcubecore/HardwareObjects/abstract/AbstractOnlineProcessing.py" = [
     "E501",
     "F841",
     "S602",
 ]
-"mxcubecore/HardwareObjects/abstract/AbstractProcedure.py" = []
 "mxcubecore/HardwareObjects/abstract/AbstractSampleChanger.py" = [
     "B018",
     "B026",
     "S110",
 ]
-"mxcubecore/HardwareObjects/abstract/AbstractSampleView.py" = []
 "mxcubecore/HardwareObjects/abstract/AbstractSlits.py" = [
     "B028",
 ]
@@ -1118,8 +1004,6 @@ convention = "google"
     "B028",
     "S307",
 ]
-"mxcubecore/HardwareObjects/abstract/AbstractXRFSpectrum.py" = []
-"mxcubecore/HardwareObjects/abstract/AbstractXrayCentring.py" = []
 "mxcubecore/HardwareObjects/abstract/ISPyBAbstractLims.py" = [
     "B028",
 ]
@@ -1163,8 +1047,6 @@ convention = "google"
     "E501",
     "S311",
 ]
-"mxcubecore/HardwareObjects/mockup/BeamMockup.py" = []
-"mxcubecore/HardwareObjects/mockup/BeamlineActionsMockup.py" = []
 "mxcubecore/HardwareObjects/mockup/BeamlineTestMockup.py" = [
     "F841",
     "S307",
@@ -1173,7 +1055,6 @@ convention = "google"
     "E501",
     "F841",
 ]
-"mxcubecore/HardwareObjects/mockup/CollectMockup.py" = []
 "mxcubecore/HardwareObjects/mockup/DetectorMockup.py" = [
     "S307",
 ]
@@ -1181,13 +1062,10 @@ convention = "google"
     "B028",
     "S311",
 ]
-"mxcubecore/HardwareObjects/mockup/EDNACharacterisationMockup.py" = []
-"mxcubecore/HardwareObjects/mockup/EnergyMockup.py" = []
 "mxcubecore/HardwareObjects/mockup/EnergyScanMockup.py" = [
     "B905",
     "F841",
 ]
-"mxcubecore/HardwareObjects/mockup/ExporterNStateMockup.py" = []
 "mxcubecore/HardwareObjects/mockup/FluxMockup.py" = [
     "S311",
 ]
@@ -1198,8 +1076,6 @@ convention = "google"
     "B028",
     "F541",
 ]
-"mxcubecore/HardwareObjects/mockup/ISPyBRestClientMockup.py" = []
-"mxcubecore/HardwareObjects/mockup/LimaDetectorMockup.py" = []
 "mxcubecore/HardwareObjects/mockup/MDCameraMockup.py" = [
     "E501",
     "S603",
@@ -1211,8 +1087,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/mockup/MicrodiffApertureMockup.py" = [
     "B006",
 ]
-"mxcubecore/HardwareObjects/mockup/MicrodiffInOutMockup.py" = []
-"mxcubecore/HardwareObjects/mockup/MotorMockupBis.py" = []
 "mxcubecore/HardwareObjects/mockup/MultiCollectMockup.py" = [
     "F841",
 ]
@@ -1220,21 +1094,12 @@ convention = "google"
     "S602",
     "S605",
 ]
-"mxcubecore/HardwareObjects/mockup/OnlineProcessingMockup.py" = []
 "mxcubecore/HardwareObjects/mockup/PlateManipulatorMockup.py" = [
     "F841",
 ]
-"mxcubecore/HardwareObjects/mockup/PlottingMockup.py" = []
-"mxcubecore/HardwareObjects/mockup/ProcedureMockup.py" = []
-"mxcubecore/HardwareObjects/mockup/QtVideoMockup.py" = []
-"mxcubecore/HardwareObjects/mockup/SOLEILCharacterisationMockup.py" = []
-"mxcubecore/HardwareObjects/mockup/SampleChangerMockup.py" = []
 "mxcubecore/HardwareObjects/mockup/ScanMockup.py" = [
     "S311",
 ]
-"mxcubecore/HardwareObjects/mockup/ShapeHistoryMockup.py" = []
-"mxcubecore/HardwareObjects/mockup/XRFMockup.py" = []
-"mxcubecore/HardwareObjects/mockup/XRFSpectrumMockup.py" = []
 "mxcubecore/HardwareObjects/sample_centring.py" = [
     "B007",
     "B904",
@@ -1254,8 +1119,6 @@ convention = "google"
 "mxcubecore/TaskUtils.py" = [
     "B010",
 ]
-"mxcubecore/__init__.py" = []
-"mxcubecore/__version__.py" = []
 "mxcubecore/configuration/checkxml.py" = [
     "E501",
 ]
@@ -1265,13 +1128,9 @@ convention = "google"
 "mxcubecore/dispatcher.py" = [
     "I001",
 ]
-"mxcubecore/model/configmodel.py" = []
-"mxcubecore/model/crystal_symmetry.py" = []
-"mxcubecore/model/lims_session.py" = []
 "mxcubecore/model/procedure_model.py" = [
     "B904",
 ]
-"mxcubecore/model/queue_model_enumerables.py" = []
 "mxcubecore/model/queue_model_objects.py" = [
     "B905",
     "E501",
@@ -1295,17 +1154,12 @@ convention = "google"
 "mxcubecore/queue_entry/data_collection.py" = [
     "B904",
 ]
-"mxcubecore/queue_entry/energy_scan.py" = []
-"mxcubecore/queue_entry/generic_workflow.py" = []
-"mxcubecore/queue_entry/import_helper.py" = []
-"mxcubecore/queue_entry/sample_centring.py" = []
 "mxcubecore/queue_entry/test_collection.py" = [
     "F821",
 ]
 "mxcubecore/queue_entry/xray_centering.py" = [
     "F821",
 ]
-"mxcubecore/queue_entry/xrf_spectrum.py" = []
 "mxcubecore/saferef.py" = [
     "F821",
     "S101",
@@ -1320,20 +1174,11 @@ convention = "google"
     "F403",
     "F405",
 ]
-"mxcubecore/utils/units.py" = []
-"test/TestAbstractActuatorBase.py" = []
-"test/TestAbstractMotorBase.py" = []
-"test/TestAbstractNStateBase.py" = []
-"test/TestHardwareObjectBase.py" = []
-"test/conftest.py" = []
-"test/test_aperture.py" = []
 "test/test_base_hardware_objects.py" = [
     "B009",
     "E501",
     "E713",
 ]
-"test/test_beam.py" = []
-"test/test_beamline_ho_id.py" = []
 "test/test_command_container.py" = [
     "B009",
     "E501",
@@ -1344,16 +1189,9 @@ convention = "google"
 "test/test_detector.py" = [
     "F841",
 ]
-"test/test_flux.py" = []
-"test/test_hwo_isara_maint.py" = []
 "test/test_hwo_maxiv_ispyblims.py" = [
     "E501",
 ]
-"test/test_mach_info.py" = []
-"test/test_procedure.py" = []
-"test/test_resolution.py" = []
-"test/test_shutter.py" = []
-"test/test_utils_units.py" = []
 "test/test_xrf.py" = [
     "S108",
 ]
