@@ -93,6 +93,9 @@ class GphlWorkflowStates(enum.Enum):
 # Value taken from Acta Cryst D (2012) D68, 42-56, and GPhL colleagues
 MOSAICITY_TO_IMAGE_WIDTH = 0.33
 
+# Constant - named option for pulldown
+SPECIFY_URL = "Specify Url"
+
 # Additional sample/diffraction plan data for GPhL emulation samples.
 EMULATION_DATA = {
     "3n0s": {"radiationSensitivity": 0.9},
@@ -387,7 +390,6 @@ class GphlWorkflow(HardwareObject):
         Returns:
             dict: Parameter value dictionary
         """
-        SPECIFY_URL = "Specify Url"
         resolution_decimals = 3
         data_model = self._queue_entry.get_data_model()
         strategy_settings = data_model.strategy_settings
@@ -541,7 +543,7 @@ class GphlWorkflow(HardwareObject):
         fields["processing_macro"] = {
             "title": "Special processing macro",
             "type": "string",
-            "default": "None",
+            "default": "",
             "enum": macros_list
         }
         resolution = data_model.aimed_resolution or HWR.beamline.resolution.get_value()
@@ -3251,7 +3253,7 @@ class GphlWorkflow(HardwareObject):
 
     def update_processing_macro(self, values):
         value = values.get("processing_macro", "").strip()
-        if value != self.SPECIFY_URL:
+        if value != SPECIFY_URL:
             result = {
                 "processing_macro_url": {
                     "value": ""
