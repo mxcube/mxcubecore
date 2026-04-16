@@ -739,6 +739,8 @@ class SampleView(AbstractSampleView):
         Line.SHAPE_COUNT = 0
         Point.SHAPE_COUNT = 0
 
+        self.emit("shapesChanged")
+
     def get_shapes(self) -> list:
         """Get all Shapes.
 
