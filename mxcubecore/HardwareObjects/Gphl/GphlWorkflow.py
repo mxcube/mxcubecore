@@ -443,39 +443,39 @@ class GphlWorkflow(HardwareObject):
         fields["cell_a"] = {
             "title": "a",
             "type": "number",
-            "minimum": 0,
+            "minimum": 0.1,
             "readOnly": True,
         }
         fields["cell_b"] = {
             "title": "b",
             "type": "number",
-            "minimum": 0,
+            "minimum": 0.1,
             "readOnly": True,
         }
         fields["cell_c"] = {
             "title": "c",
             "type": "number",
-            "minimum": 0,
+            "minimum": 0.1,
             "readOnly": True,
         }
         fields["cell_alpha"] = {
             "title": "α",
             "type": "number",
-            "minimum": 0,
+            "minimum": 0.1,
             "maximum": 180,
             "readOnly": True,
         }
         fields["cell_beta"] = {
             "title": "β",
             "type": "number",
-            "minimum": 0,
+            "minimum": 0.1,
             "maximum": 180,
             "readOnly": True,
         }
         fields["cell_gamma"] = {
             "title": "γ",
             "type": "number",
-            "minimum": 0,
+            "minimum": 0.1,
             "maximum": 180,
             "readOnly": True,
         }
@@ -513,7 +513,7 @@ class GphlWorkflow(HardwareObject):
             "title": "Radiation sensitivity",
             "default": data_model.relative_rad_sensitivity or 1.0,
             "type": "number",
-            "minimum": 0,
+            "minimum": 0.000001,
         }
         fields["crystal_thickness"] = {
             "title": "Crystal thickness (µ)",
@@ -1306,7 +1306,7 @@ class GphlWorkflow(HardwareObject):
             "title": "Dose budget (MGy)",
             "type": "number",
             "default": dose_budget - data_model.characterisation_dose,
-            "minimum": 0.0,
+            "minimum": 0.000001,
             "readOnly": True,
         }
         fields["use_dose"] = {
@@ -3242,10 +3242,10 @@ class GphlWorkflow(HardwareObject):
 
             result = {
                 "processing_macro_url": {
-                    "invalidated": not validate_url(value)
+                    "invalidated": value and not validate_url(value)
                 },
                 "processing_macro": {
-                    "value": ""
+                    "value": SPECIFY_URL
                 }
             }
             return result
@@ -3256,7 +3256,8 @@ class GphlWorkflow(HardwareObject):
         if value != SPECIFY_URL:
             result = {
                 "processing_macro_url": {
-                    "value": ""
+                    "value": "",
+                    "invalidated": False
                 }
             }
             return result
@@ -3368,7 +3369,7 @@ def validate_url(value: str) -> bool:
     """Validate url string"""
     tpl = urlparse(value)
     scheme = tpl.scheme
-    if not tpl.path.startswith("/"):  # noqa: SIM114
+    if len(tpl.path) < 2 or not tpl.path.startswith("/"):  # noqa: SIM114
         return False
     elif tpl.query or tpl.fragment or tpl.username or tpl.password:
         return False

@@ -591,7 +591,7 @@ class GphlWorkflowConnection(HardwareObject):
                 GphlMessages.BeamlineAbort(), correlation_id
             )
 
-    # Conversion to Python
+# Conversion to Python
 
     def _decode_py4j_message(self, py4j_message):
         """Extract messageType and convert py4J object to python object"""
