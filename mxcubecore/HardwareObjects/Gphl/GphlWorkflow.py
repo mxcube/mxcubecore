@@ -70,6 +70,9 @@ __author__ = "Rasmus H Fogh"
 
 gphl_version_str = "2.2.0+202603110039.0-gf763e76"
 
+# Switch disabling processing macro handling until GPhL workflow is ready
+ACTIVATE_PROCESSING_MACROS = False
+
 @enum.unique
 class GphlWorkflowStates(enum.Enum):
     """
@@ -779,13 +782,14 @@ class GphlWorkflow(HardwareObject):
                 },
             }
             if self.config.settings.get("advanced_mode"):
-                ui_schema["parameters"]["column2"]["ui:order"].append("processing_macro")
-                ui_schema["ui:order"].append("processing_macro_url")
-                ui_schema["processing_macro_url"] = {
-                    "ui:options": {
-                        "update_on_change": True,
-                    },
-                }
+                if ACTIVATE_PROCESSING_MACROS:
+                    ui_schema["parameters"]["column2"]["ui:order"].append("processing_macro")
+                    ui_schema["ui:order"].append("processing_macro_url")
+                    ui_schema["processing_macro_url"] = {
+                        "ui:options": {
+                            "update_on_change": True,
+                        },
+                    }
                 ui_schema["ui:order"].append("reffiles")
                 ui_schema["reffiles"] = {
                     "ui:options": {
