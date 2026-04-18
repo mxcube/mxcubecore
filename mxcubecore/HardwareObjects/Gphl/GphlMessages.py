@@ -252,7 +252,7 @@ class IdentifiedElement(MessageData):
 class RequestConfiguration(Payload):
     """Configuration request message"""
 
-    def __init__(self, workflowVersion: str|None, abiVersion:str|None):
+    def __init__(self, workflowVersion: str | None, abiVersion: str | None):
         super().__init__()
         self._workflowVersion = workflowVersion
         self._abiVersion = abiVersion

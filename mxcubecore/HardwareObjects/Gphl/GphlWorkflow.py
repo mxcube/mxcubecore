@@ -73,6 +73,7 @@ gphl_version_str = "2.2.0+202603110039.0-gf763e76"
 # Switch disabling processing macro handling until GPhL workflow is ready
 ACTIVATE_PROCESSING_MACROS = False
 
+
 @enum.unique
 class GphlWorkflowStates(enum.Enum):
     """
@@ -90,6 +91,7 @@ class GphlWorkflowStates(enum.Enum):
     ABORTED = 3
     COMPLETED = 4
     UNKNOWN = 5
+
 
 # Conversion factor from experimentally determined reflecting_range_esd
 # to default image width
@@ -547,7 +549,7 @@ class GphlWorkflow(HardwareObject):
             "title": "Special processing macro",
             "type": "string",
             "default": "",
-            "enum": macros_list
+            "enum": macros_list,
         }
         resolution = data_model.aimed_resolution or HWR.beamline.resolution.get_value()
         resolution = round(resolution, resolution_decimals)
@@ -783,7 +785,9 @@ class GphlWorkflow(HardwareObject):
             }
             if self.config.settings.get("advanced_mode"):
                 if ACTIVATE_PROCESSING_MACROS:
-                    ui_schema["parameters"]["column2"]["ui:order"].append("processing_macro")
+                    ui_schema["parameters"]["column2"]["ui:order"].append(
+                        "processing_macro"
+                    )
                     ui_schema["ui:order"].append("processing_macro_url")
                     ui_schema["processing_macro_url"] = {
                         "ui:options": {
@@ -864,14 +868,14 @@ class GphlWorkflow(HardwareObject):
         # Validate and convert processing_macro_url
         text = params.pop("processing_macro_url", "")
         if text:
-                line = text.strip()
-                if line:
-                    if line.startswith("/"):
-                        line = "file:" + line
-                    if validate_url(line):
-                        params["processing_macro_url"] = line
-                    else:
-                        raise ValueError("Invalid url string: %s" % line)
+            line = text.strip()
+            if line:
+                if line.startswith("/"):
+                    line = "file:" + line
+                if validate_url(line):
+                    params["processing_macro_url"] = line
+                else:
+                    raise ValueError("Invalid url string: %s" % line)
 
         # Convert energy field to a single tuple
         params["energies"] = (params.pop("energy"),)
@@ -1104,7 +1108,8 @@ class GphlWorkflow(HardwareObject):
             elif wf_release < gphl_release:
                 raise ValueError(
                     "GPhL release version %s older than MXCuBE gphl version %s."
-                    % (wf_version_str, gphl_version_str) + "Upgrade to new GPhL release"
+                    % (wf_version_str, gphl_version_str)
+                    + "Upgrade to new GPhL release"
                 )
         return GphlMessages.ConfigurationData(self.file_paths["gphl_beamline_config"])
 
@@ -1359,7 +1364,6 @@ class GphlWorkflow(HardwareObject):
                     "default": reflecting_range_esd,
                     "readOnly": True,
                 }
-
 
         if is_interleaved:
             wedge_widths = self.config.settings.get("wedge_widths") or [48, 24, 72, 360]
@@ -1619,10 +1623,10 @@ class GphlWorkflow(HardwareObject):
 
         allowed_widths = geometric_strategy.allowedWidths
         if allowed_widths:
-            default_width_index =  geometric_strategy.defaultWidthIdx or 0
+            default_width_index = geometric_strategy.defaultWidthIdx or 0
         else:
             allowed_widths = list(self.config.settings.get("default_image_widths"))
-            default_width_index =  0
+            default_width_index = 0
         if allowed_widths:
             reflecting_range_esd = gphl_workflow_model.reflecting_range_esd
             if reflecting_range_esd:
@@ -3243,14 +3247,11 @@ class GphlWorkflow(HardwareObject):
     def update_processing_macro_url(self, values):
         value = values.get("processing_macro_url", "").strip()
         if value:
-
             result = {
                 "processing_macro_url": {
                     "invalidated": value and not validate_url(value)
                 },
-                "processing_macro": {
-                    "value": SPECIFY_URL
-                }
+                "processing_macro": {"value": SPECIFY_URL},
             }
             return result
         return {}
@@ -3258,12 +3259,7 @@ class GphlWorkflow(HardwareObject):
     def update_processing_macro(self, values):
         value = values.get("processing_macro", "").strip()
         if value != SPECIFY_URL:
-            result = {
-                "processing_macro_url": {
-                    "value": "",
-                    "invalidated": False
-                }
-            }
+            result = {"processing_macro_url": {"value": "", "invalidated": False}}
             return result
         return {}
 

@@ -591,7 +591,7 @@ class GphlWorkflowConnection(HardwareObject):
                 GphlMessages.BeamlineAbort(), correlation_id
             )
 
-# Conversion to Python
+    # Conversion to Python
 
     def _decode_py4j_message(self, py4j_message):
         """Extract messageType and convert py4J object to python object"""
@@ -650,7 +650,7 @@ class GphlWorkflowConnection(HardwareObject):
             # buildtime = py4jWorkflowVersion.getBuildTime()
             if not py4jWorkflowVersion.isClean():
                 metadata += "-dirty"
-            workflowVersion = "+".join((workflowVersion, metadata))
+            workflowVersion = "+".join((workflowVersion, metadata))  # noqa FLY002
         abiVersion = self._SimpleVersion_to_string(
             py4jRequestConfiguration.getAbiVersion()
         )

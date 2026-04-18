@@ -2263,7 +2263,6 @@ class GphlWorkflow(TaskNode):
         elif processing_macro_url:
             self.processing_macro = processing_macro_url
 
-
     def set_pre_acquisition_params(
         self,
         exposure_time=None,
