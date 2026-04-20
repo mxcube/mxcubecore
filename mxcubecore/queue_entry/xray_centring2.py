@@ -26,7 +26,7 @@ __license__ = "LGPLv3+"
 __category__ = "General"
 
 
-class XrayCentering2QueueEntry(BaseQueueEntry):
+class XrayCentring2QueueEntry(BaseQueueEntry):
     """
     Entry for X-ray centring (2022 version)
     """
@@ -70,7 +70,7 @@ class XrayCentering2QueueEntry(BaseQueueEntry):
 
         # Create a centred position object of the current position
         # and put it in the data model for future access.
-        pos_dict = HWR.beamline.diffractometer.get_positions()
+        pos_dict = HWR.beamline.diffractometer.get_value_motors()
         cpos = queue_model_objects.CentredPosition(pos_dict)
         self._data_model.set_centring_result(cpos)
 

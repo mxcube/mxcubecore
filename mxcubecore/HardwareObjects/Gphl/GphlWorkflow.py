@@ -2662,10 +2662,16 @@ class GphlWorkflow(HardwareObject):
         )
         scan = self._key_to_scan.pop(key, None)
         if scan is None:
-            raise RuntimeError(
-                "No scan matching prefix: %s, run_number: %s, start_image_number: %s at end"
-                % key
-            )
+            experiment_type = collect_dict.get("experiment_type")
+            print("@~@~ handle_collection_end(). experiment_type: %s" % experiment_type)
+            if experiment_type in ["Mesh", "Still", "Helical"]:
+                # This must be a centring event. Ignore
+                return
+            else:
+                raise RuntimeError(
+                    "No scan matching prefix: %s, run_number: %s, start_image_number: %s at start"
+                    % key
+                )
 
     def handle_collection_start(
         self, owner, blsampleid, barcode, location, collect_dict, osc_id
@@ -2681,10 +2687,18 @@ class GphlWorkflow(HardwareObject):
         )
         scan = self._key_to_scan.get(key)
         if scan is None:
-            raise RuntimeError(
-                "No scan matching prefix: %s, run_number: %s, start_image_number: %s at start"
-                % key
+            experiment_type = collect_dict.get("experiment_type")
+            print(
+                "@~@~ handle_collection_start(). experiment_type: %s" % experiment_type
             )
+            if experiment_type in ["Mesh", "Still", "Helical"]:
+                # This must be a centring event. Ignore
+                return
+            else:
+                raise RuntimeError(
+                    "No scan matching prefix: %s, run_number: %s, start_image_number: %s at start"
+                    % key
+                )
 
         translation_settings = dict(
             (role, collect_dict["motors"].get(role)) for role in self.translation_axes
@@ -2702,7 +2716,7 @@ class GphlWorkflow(HardwareObject):
             # First scan in sweep (not first sweep)
             # We have recentred. Make new translation object
             translation_settings = dict(
-                (role, HWR.beamline.diffractometer.get_motor_positions().get(role))
+                (role, HWR.beamline.diffractometer.get_value_motors().get(role))
                 for role in self.translation_axes
             )
             translation = GphlMessages.GoniostatTranslation(

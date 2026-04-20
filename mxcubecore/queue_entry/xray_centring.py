@@ -25,7 +25,7 @@ __license__ = "LGPLv3+"
 __category__ = "General"
 
 
-class XrayCenteringQueueEntry(BaseQueueEntry):
+class XrayCentringQueueEntry(BaseQueueEntry):
     """
     Defines the behaviour of an Advanced scan
     """
@@ -41,8 +41,8 @@ class XrayCenteringQueueEntry(BaseQueueEntry):
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
-        xray_centering = self.get_data_model()
-        reference_image_collection = xray_centering.reference_image_collection
+        xray_centring = self.get_data_model()
+        reference_image_collection = xray_centring.reference_image_collection
         reference_image_collection.grid = HWR.beamline.sample_view.create_auto_grid()
         reference_image_collection.acquisitions[
             0
@@ -51,8 +51,8 @@ class XrayCenteringQueueEntry(BaseQueueEntry):
         )
 
         # Trick to make sure that the reference collection has a sample.
-        reference_image_collection._parent = xray_centering.get_parent()
-        xray_centering.line_collection._parent = xray_centering.get_parent()
+        reference_image_collection._parent = xray_centring.get_parent()
+        xray_centring.line_collection._parent = xray_centring.get_parent()
 
         gid = self.get_data_model().get_parent().lims_group_id
         reference_image_collection.lims_group_id = gid

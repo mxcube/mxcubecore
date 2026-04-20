@@ -89,8 +89,8 @@ def import_queue_entries(site_name_list=()):
         queue_model_objects.Basket: BasketQueueEntry,
         queue_model_objects.TaskGroup: TaskGroupQueueEntry,
         queue_model_objects.Workflow: _modules["GenericWorkflowQueueEntry"],
-        queue_model_objects.XrayCentering: _modules["XrayCenteringQueueEntry"],
-        queue_model_objects.XrayCentring2: _modules["XrayCentering2QueueEntry"],
+        queue_model_objects.XrayCentring: _modules["XrayCentringQueueEntry"],
+        queue_model_objects.XrayCentring2: _modules["XrayCentring2QueueEntry"],
         queue_model_objects.GphlWorkflow: GphlQueueEntry.GphlWorkflowQueueEntry,
         queue_model_objects.XrayImaging: EMBLQueueEntry.XrayImagingQueueEntry,
     }
