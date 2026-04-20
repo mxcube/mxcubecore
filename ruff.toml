@@ -11,6 +11,7 @@ docstring-code-format = true
 
 [lint]
 ignore = [
+    "S4", # Ingore all suspicious import errors
     "B028", # Allow to use the Python standard for warnings (oneline) instead of giving explicit stacklevel
 ]
 select = [
