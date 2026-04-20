@@ -2663,7 +2663,6 @@ class GphlWorkflow(HardwareObject):
         scan = self._key_to_scan.pop(key, None)
         if scan is None:
             experiment_type = collect_dict.get("experiment_type")
-            print("@~@~ handle_collection_end(). experiment_type: %s" % experiment_type)
             if experiment_type in ["Mesh", "Still", "Helical"]:
                 # This must be a centring event. Ignore
                 return
@@ -2688,9 +2687,6 @@ class GphlWorkflow(HardwareObject):
         scan = self._key_to_scan.get(key)
         if scan is None:
             experiment_type = collect_dict.get("experiment_type")
-            print(
-                "@~@~ handle_collection_start(). experiment_type: %s" % experiment_type
-            )
             if experiment_type in ["Mesh", "Still", "Helical"]:
                 # This must be a centring event. Ignore
                 return
