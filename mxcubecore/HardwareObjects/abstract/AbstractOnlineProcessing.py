@@ -135,8 +135,8 @@ class AbstractOnlineProcessing(HardwareObject):
         workflow_step_directory = None
         self.params_dict = {}
 
-        if self.data_collection.run_online_processing == "XrayCentering":
-            prefix = "xray_centering_%s" % prefix
+        if self.data_collection.run_online_processing == "XrayCentring":
+            prefix = "xray_centring_%s" % prefix
             if self.grid:
                 workflow_step_directory = "/mesh"
             else:
@@ -385,7 +385,7 @@ class AbstractOnlineProcessing(HardwareObject):
             copy(self.results_raw), copy(self.results_aligned)
         )
 
-        if self.params_dict["workflow_type"] == "XrayCentering":
+        if self.params_dict["workflow_type"] == "XrayCentring":
             if self.results_aligned["best_positions"]:
                 logging.getLogger("GUI").info(
                     "Xray centering: Moving to the best position"
@@ -419,7 +419,7 @@ class AbstractOnlineProcessing(HardwareObject):
             self.store_processing_results(status)
 
     def store_processing_results(self, status):
-        """Stores result plots. In the case of MeshScan and XrayCentering
+        """Stores result plots. In the case of MeshScan and XrayCentring
            html is created and results saved in ISPyB
 
         :param status: status type
@@ -442,7 +442,7 @@ class AbstractOnlineProcessing(HardwareObject):
         # If MeshScan and XrayCentring then info is stored in ISPyB
         if self.params_dict["workflow_type"] in (
             "MeshScan",
-            "XrayCentering",
+            "XrayCentring",
             "LineScan",
         ):
             if self.workflow_info is not None:
@@ -458,7 +458,7 @@ class AbstractOnlineProcessing(HardwareObject):
             self.params_dict["workflow_mesh_id"] = workflow_mesh_id
             self.params_dict["grid_info_id"] = grid_info_id
 
-            if self.params_dict["workflow_type"] == "XrayCentering" and self.grid:
+            if self.params_dict["workflow_type"] == "XrayCentring" and self.grid:
                 self.workflow_info = {
                     "workflow_id": self.params_dict["workflow_id"],
                     "process_root_directory": self.params_dict[

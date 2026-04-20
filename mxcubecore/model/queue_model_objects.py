@@ -1197,7 +1197,7 @@ class XRFSpectrumResult(object):
         self.mca_config = None
 
 
-class XrayCentering(TaskNode):
+class XrayCentring(TaskNode):
     def __init__(self, ref_data_collection=None, crystal=None):
         TaskNode.__init__(self)
 
@@ -1214,7 +1214,7 @@ class XrayCentering(TaskNode):
         self.line_collection.set_experiment_type(
             queue_model_enumerables.EXPERIMENT_TYPE.HELICAL
         )
-        self.line_collection.run_online_processing = "XrayCentering"
+        self.line_collection.run_online_processing = "XrayCentring"
         self.line_collection.grid = None
 
         acq_two = Acquisition()

@@ -43,7 +43,7 @@ class AdvancedConnectorQueueEntry(BaseQueueEntry):
         BaseQueueEntry.execute(self)
         first_qe_data_model = self.first_qe.get_data_model()
 
-        if first_qe_data_model.run_online_processing == "XrayCentering":
+        if first_qe_data_model.run_online_processing == "XrayCentring":
             best_positions = first_qe_data_model.online_processing_results[
                 "aligned"
             ].get("best_positions", [])

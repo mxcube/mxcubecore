@@ -4649,7 +4649,7 @@ convention = "google"
     "F821",
     "RUF012",
 ]
-"mxcubecore/queue_entry/xray_centering.py" = [
+"mxcubecore/queue_entry/xray_centring.py" = [
     "ERA001",
     "F821",
     "FBT002",
