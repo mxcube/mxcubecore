@@ -172,9 +172,8 @@ class MicroDiffractometer(AbstractDiffractometer):
             # prepare the command
             cmd = ""
             for role, pos in motors_positions_dict.items():
-                if pos is not None:
-                    name = self.motors_hwobj_dict[role].actuator_name
-                    cmd += f"{name}={pos:0.3f};"
+                name = self.motors_hwobj_dict[role].actuator_name
+                cmd += f"{name}={pos:0.3f};"
             self._exporter.execute("startSimultaneousMoveMotors", (cmd,))
             if timeout != 0:
                 self.wait_status_ready(timeout)
