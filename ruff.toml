@@ -1159,7 +1159,6 @@ convention = "google"
     "F821",
 ]
 "mxcubecore/queue_entry/xray_centring.py" = [
-    "ERA001",
     "F821",
 ]
 "mxcubecore/saferef.py" = [
