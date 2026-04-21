@@ -2759,17 +2759,6 @@ def to_collect_dict(data_collection, sample, centred_pos=None):
         }
     ]
 
-    # NBNB HACK. These start life as default values, and you do NOT want to keep
-    # resetting the beamline to the current value,
-    # as this causes unnecessary hardware activities
-    # So remove them altogether if the value is (was explicitly set to)  None or 0
-    dd = result[0]
-    for tag in ("detector_distance", "energy", "transmission"):
-        if tag in dd and not dd[tag]:
-            del dd[tag]
-    resolution = dd.get("resolution")
-    if resolution is not None:
-        del dd["resolution"]
     return result
 
 
