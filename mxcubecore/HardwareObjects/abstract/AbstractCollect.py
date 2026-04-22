@@ -225,33 +225,25 @@ class AbstractCollect(HardwareObject, object):
             # ----------------------------------------------------------------
             # Set data collection parameters
 
-            if "transmission" in self.current_dc_parameters:
-                log.info(
-                    "Collection: Setting transmission to %.2f",
-                    self.current_dc_parameters["transmission"],
-                )
-                self.set_transmission(self.current_dc_parameters["transmission"])
-
+            transmission = self.current_dc_parameters.get("transmission")
             wavelength = self.current_dc_parameters.get("wavelength")
             energy = self.current_dc_parameters.get("energy")
             detector_distance = self.current_dc_parameters.get("detector_distance")
-            try:
-                resolution = self.current_dc_parameters.get("resolution")
-            except AttributeError:
-                resolution = None
+            resolution = self.current_dc_parameters.get("resolution")
+
+            if transmission:
+                log.info(
+                    "Collection: Setting transmission to %.2f",
+                    transmission,
+                )
+                self.set_transmission(transmission)
 
             if wavelength:
                 # Wavelength (not having a default) overrides energy
-                log.info(
-                    "Collection: Setting wavelength to %.4f",
-                    self.current_dc_parameters["wavelength"],
-                )
+                log.info("Collection: Setting wavelength to %.4f", wavelength)
                 energy = HWR.beamline.energy.calculate_energy(wavelength)
             elif energy:
-                log.info(
-                    "Collection: Setting energy to %.4f",
-                    self.current_dc_parameters["energy"],
-                )
+                log.info("Collection: Setting energy to %.4f", energy)
                 wavelength = HWR.beamline.energy.calculate_wavelength(energy)
             if energy:
                 self.set_energy(energy)
@@ -267,10 +259,7 @@ class AbstractCollect(HardwareObject, object):
                 )
                 self.set_resolution(resolution)
             elif resolution:
-                log.info(
-                    "Collection: Setting resolution to %.2f",
-                    resolution,
-                )
+                log.info("Collection: Setting resolution to %.2f", resolution)
                 self.set_resolution(resolution)
 
             # ----------------------------------------------------------------
