@@ -341,7 +341,8 @@ class MicroDiffractometer(AbstractDiffractometer):
         self._exporter.write_property("ScanNumberOfFrames", number_of_images)
         scan_params = f"1\t{start:0.3f}\t{(end - start):0.3f}\t{exptime:0.3f}\t1"
         self._exporter.execute("startScanEx", (scan_params,))
-        self.wait_status_ready(timeout)
+        if timeout != 0:
+            self.wait_status_ready(timeout)
 
     def do_line_scan(
         self,
@@ -381,7 +382,8 @@ class MicroDiffractometer(AbstractDiffractometer):
             scan_params += f"{motors_pos['2'][name]:0.3f}\t"
 
         self._exporter.execute("startScan4DEx", (scan_params,))
-        self.wait_status_ready(timeout)
+        if timeout != 0:
+            self.wait_status_ready(timeout)
 
     def do_mesh_scan(
         self,
@@ -438,7 +440,8 @@ class MicroDiffractometer(AbstractDiffractometer):
         scan_params += f"{exptime / nb_lines}\t"
         scan_params += "True\tTrue\tTrue\t"
         self._exporter.execute("startRasterScanEx", (scan_params,))
-        self.wait_status_ready(timeout)
+        if timeout != 0:
+            self.wait_status_ready(timeout)
 
     def do_still_scan(
         self,
@@ -462,7 +465,8 @@ class MicroDiffractometer(AbstractDiffractometer):
         """
         scan_params = f"{pulse_duration:0.6f}\t{pulse_period:0.6f}\t{nb_pulse}"
         self._exporter.execute("startStillScan", (scan_params,))
-        self.wait_status_ready(timeout)
+        if timeout != 0:
+            self.wait_status_ready(timeout)
 
     def do_characterisation_scan(
         self,
@@ -503,7 +507,8 @@ class MicroDiffractometer(AbstractDiffractometer):
             # min timeout is 20 min
             timeout = max(timeout, 20 * 60)
 
-        self.wait_status_ready(timeout)
+        if timeout != 0:
+            self.wait_status_ready(timeout)
 
     def get_pixels_per_mm(self) -> tuple[int, int]:
         """Get the pixel/mm values.
@@ -525,7 +530,8 @@ class MicroDiffractometer(AbstractDiffractometer):
     def run_custom_script(self, script_cmd: str, timeout: float | None = None):
         """Run custom script."""
         self.run_script(script_cmd)
-        # Wait for script to start before checking status,
-        # can perhaps be improved to wait for ready-busy-ready ?
-        time.sleep(0.4)
-        self.wait_status_ready(timeout)
+        if timeout != 0:
+            # Wait for script to start before checking status,
+            # can perhaps be improved to wait for ready-busy-ready ?
+            time.sleep(0.4)
+            self.wait_status_ready(timeout)
