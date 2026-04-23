@@ -300,7 +300,7 @@ class AbstractLims(HardwareObject, abc.ABC):
             "oscillation_sequence":[{}
                 "start": float,
                 "range": float,
-                "overlap": float,
+                "offset": float,
                 "number_of_images": float,
                 "start_image_number": float
                 "exposure_time", float,

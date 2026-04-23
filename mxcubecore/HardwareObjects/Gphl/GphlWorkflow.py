@@ -2327,9 +2327,9 @@ class GphlWorkflow(HardwareObject):
                 acq_parameters.num_images_per_trigger = acq_parameters.num_images
                 acq_parameters.num_images *= scan_count
                 # NB this assumes sweepOffset is the offset between starting points
-                acq_parameters.overlap = (
-                    acq_parameters.num_images_per_trigger * acq_parameters.osc_range
-                    - sweep_offset
+                acq_parameters.offset = (
+                    sweep_offset
+                    - acq_parameters.num_images_per_trigger * acq_parameters.osc_range
                 )
             data_collection = queue_model_objects.DataCollection([acq], crystal)
             # Workflow parameters for ICAT / external workflow

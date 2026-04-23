@@ -27,7 +27,6 @@ class LegacyParameters(BaseModel):
     take_dark_current: int
     inverse_beam: bool
     num_passes: int
-    overlap: float
 
     class Config:
         extra = "ignore"

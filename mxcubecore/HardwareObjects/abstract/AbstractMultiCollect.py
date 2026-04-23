@@ -356,9 +356,9 @@ class AbstractMultiCollect(object):
         pass
 
     def prepare_wedges_to_collect(
-        self, start, nframes, osc_range, subwedge_size=1, overlap=0
+        self, start, nframes, osc_range, subwedge_size=1, offset=0
     ):
-        if overlap == 0:
+        if offset == 0:
             wedge_sizes_list = [nframes // subwedge_size] * subwedge_size
         else:
             wedge_sizes_list = [subwedge_size] * (nframes // subwedge_size)
@@ -370,7 +370,7 @@ class AbstractMultiCollect(object):
 
         for wedge_size in wedge_sizes_list:
             wedges_to_collect.append((start, wedge_size))
-            start += wedge_size * osc_range - overlap
+            start += wedge_size * osc_range + offset
 
         return wedges_to_collect
 
@@ -685,7 +685,7 @@ class AbstractMultiCollect(object):
             oscillation_parameters["number_of_images"],
             oscillation_parameters["range"],
             subwedge_size,
-            oscillation_parameters["overlap"],
+            oscillation_parameters["offset"],
         )
         nframes = sum([wedge_size for _, wedge_size in wedges_to_collect])
 

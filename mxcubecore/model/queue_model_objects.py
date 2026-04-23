@@ -1686,7 +1686,7 @@ class AcquisitionParameters(object):
         self.osc_start = float()
         self.osc_range = float()
         self.osc_total_range = float()
-        self.overlap = float()
+        self.offset = float()
         self.kappa = float()
         self.kappa_phi = float()
         self.exp_time = float()
@@ -1737,7 +1737,7 @@ class AcquisitionParameters(object):
             "osc_start": self.osc_start,
             "osc_range": self.osc_range,
             "osc_total_range": self.osc_total_range,
-            "overlap": self.overlap,
+            "offset": self.offset,
             "kappa": self.kappa,
             "kappa_phi": self.kappa_phi,
             "exp_time": self.exp_time,
@@ -2684,7 +2684,7 @@ def to_collect_dict(data_collection, sample, centred_pos=None):
                                     'phiStart': 0.0,
                                     'start_image_number': 1,
                                     'number_of_images': 1,
-                                    'overlap': 0.0,
+                                    'offset': 0.0,
                                     'start': 0.0,
                                     'range': 1.0,
                                     'number_of_passes': 1}],
@@ -2744,7 +2744,7 @@ def to_collect_dict(data_collection, sample, centred_pos=None):
                     "phiStart": acq_params.kappa_phi,
                     "start_image_number": acq_params.first_image,
                     "number_of_images": acq_params.num_images,
-                    "overlap": acq_params.overlap,
+                    "offset": acq_params.offset,
                     "start": acq_params.osc_start,
                     "range": acq_params.osc_range,
                     "number_of_passes": acq_params.num_passes,

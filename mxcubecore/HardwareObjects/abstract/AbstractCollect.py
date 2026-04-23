@@ -351,7 +351,7 @@ class AbstractCollect(HardwareObject, object):
                 self.store_image_in_lims_by_frame_num(last_frame)
             if (
                 self.current_dc_parameters["experiment_type"] in ("OSC", "Helical")
-                and self.current_dc_parameters["oscillation_sequence"][0]["overlap"]
+                and self.current_dc_parameters["oscillation_sequence"][0]["offset"]
                 == 0
                 and last_frame > 19
             ):
