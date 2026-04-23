@@ -720,7 +720,7 @@ class AbstractMultiCollect(object):
         self.first_image_timeout = 30 + oscillation_parameters["exposure_time"]
         self.data_collection_hook(data_collect_parameters)
 
-        if "transmission" in data_collect_parameters:
+        if data_collect_parameters["transmission"]:
             logging.getLogger("user_level_log").info(
                 "Setting transmission to %f", data_collect_parameters["transmission"]
             )
@@ -735,7 +735,7 @@ class AbstractMultiCollect(object):
                 )
                 raise
 
-        if "wavelength" in data_collect_parameters:
+        if data_collect_parameters["wavelength"]:
             logging.getLogger("user_level_log").info(
                 "Setting wavelength to %f", data_collect_parameters["wavelength"]
             )
@@ -749,7 +749,7 @@ class AbstractMultiCollect(object):
                     data_collect_parameters["wavelength"],
                 )
                 raise
-        elif "energy" in data_collect_parameters:
+        elif data_collect_parameters["energy"]:
             logging.getLogger("user_level_log").info(
                 "Setting energy to %f", data_collect_parameters["energy"]
             )
@@ -763,7 +763,7 @@ class AbstractMultiCollect(object):
                 )
                 raise
 
-        if "resolution" in data_collect_parameters:
+        if data_collect_parameters["resolution"]:
             resolution = data_collect_parameters["resolution"]
             logging.getLogger("user_level_log").info(
                 "Setting resolution to %f", resolution
@@ -776,7 +776,7 @@ class AbstractMultiCollect(object):
                     "Failed to set resolution to %f", resolution
                 )
                 raise
-        elif "detector_distance" in oscillation_parameters:
+        elif oscillation_parameters["detector_distance"]:
             logging.getLogger("user_level_log").info(
                 "Moving detector to %f", data_collect_parameters["detector_distance"]
             )
