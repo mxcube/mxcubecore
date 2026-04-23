@@ -1110,9 +1110,7 @@ def crystal_classes_from_params(
     """
     Get tuple of crystal class names compatible with input parameters,
     in crystal class number order
-    Raises error for incompatible data.
-    NB If lattices or point_groups are set will return relevant tuple
-    even if space_group is also set
+    Returns empty tuple for incompatible data.
 
     Args:
         lattices: list of lattice strings (Bravais Lattice or 'Monoclinic' etc.
