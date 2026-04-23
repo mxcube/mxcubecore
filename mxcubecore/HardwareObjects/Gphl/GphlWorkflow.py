@@ -2501,14 +2501,14 @@ class GphlWorkflow(HardwareObject):
                 ll0 = zoom_motor.get_predefined_positions_list()
                 if ll0:
                     logging.getLogger("user_level_log").info(
-                        "Sample re-centering now active - Zooming in."
+                        "Sample re-centring now active - Zooming in."
                     )
                     zoom_motor.moveToPosition(ll0[-1])
                 else:
                     self.log.warning("No predefined positions for zoom motor.")
             else:
                 logging.getLogger("user_level_log").info(
-                    "Sample re-centering now active - Zoom in before continuing."
+                    "Sample re-centring now active - Zoom in before continuing."
                 )
 
         settings = goniostatRotation.axisSettings.copy()

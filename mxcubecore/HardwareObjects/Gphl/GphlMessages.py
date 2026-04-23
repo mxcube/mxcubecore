@@ -1236,7 +1236,7 @@ class PriorInformation(Payload):
 
 
 class RequestCentring(Payload):
-    """Request for centering"""
+    """Request for centring"""
 
     INTENT = "COMMAND"
 
@@ -1260,7 +1260,7 @@ class RequestCentring(Payload):
 
 
 class CentringDone(Payload):
-    """Centering-done message"""
+    """Centring-done message"""
 
     INTENT = "DOCUMENT"
 

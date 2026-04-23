@@ -1,4 +1,4 @@
-<object class="EMBLBeamCentering">
+<object class="EMBLBeamCentring">
     <object hwrid="/oh1/motor-pitch-hfm" role="horizontal_motor"/>
     <object hwrid="/oh1/motor-pitch-vfm" role="vertical_motor"/>
 

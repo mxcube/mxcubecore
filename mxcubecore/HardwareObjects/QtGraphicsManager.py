@@ -94,7 +94,7 @@ class QtGraphicsManager(AbstractSampleView):
         self.in_select_items_state = None
         self.in_beam_define_state = None
         self.in_magnification_mode = None
-        self.in_one_click_centering = None
+        self.in_one_click_centring = None
         self.wait_grid_drawing_click = None
         self.wait_measure_distance_click = None
         self.wait_measure_angle_click = None
@@ -900,7 +900,7 @@ class QtGraphicsManager(AbstractSampleView):
         elif self.in_beam_define_state:
             self.stop_beam_define()
             # self.graphics_beam_define_item.store_coord(pos_x, pos_y)
-        elif self.in_one_click_centering:
+        elif self.in_one_click_centring:
             self.diffractometer_hwobj.start_move_to_beam(pos_x, pos_y)
         else:
             self.emit("pointSelected", None)
@@ -998,7 +998,7 @@ class QtGraphicsManager(AbstractSampleView):
         self.emit("mouseMoved", scene_point.x(), scene_point.y())
         self.mouse_position[0] = scene_point.x()
         self.mouse_position[1] = scene_point.y()
-        if self.in_centring_state or self.in_one_click_centering:
+        if self.in_centring_state or self.in_one_click_centring:
             self.graphics_centring_lines_item.set_start_position(
                 scene_point.x(), scene_point.y()
             )
@@ -1772,13 +1772,13 @@ class QtGraphicsManager(AbstractSampleView):
     def start_one_click_centring(self):
         self.set_cursor_busy(True)
         self.emit("infoMsg", "Click on the screen to create centring points")
-        self.in_one_click_centering = True
+        self.in_one_click_centring = True
         self.graphics_centring_lines_item.setVisible(True)
 
     def stop_one_click_centring(self):
         self.set_cursor_busy(False)
         self.emit("infoMsg", "")
-        self.in_one_click_centering = False
+        self.in_one_click_centring = False
         self.graphics_centring_lines_item.setVisible(False)
 
     def start_visual_align(self):

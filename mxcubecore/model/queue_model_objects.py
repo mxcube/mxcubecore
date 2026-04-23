@@ -1197,7 +1197,7 @@ class XRFSpectrumResult(object):
         self.mca_config = None
 
 
-class XrayCentering(TaskNode):
+class XrayCentring(TaskNode):
     def __init__(self, ref_data_collection=None, crystal=None):
         TaskNode.__init__(self)
 
@@ -1214,7 +1214,7 @@ class XrayCentering(TaskNode):
         self.line_collection.set_experiment_type(
             queue_model_enumerables.EXPERIMENT_TYPE.HELICAL
         )
-        self.line_collection.run_online_processing = "XrayCentering"
+        self.line_collection.run_online_processing = "XrayCentring"
         self.line_collection.grid = None
 
         acq_two = Acquisition()
@@ -1340,7 +1340,7 @@ class XrayCentring2(TaskNode):
 
 
 class SampleCentring(TaskNode):
-    """Manual 3 click centering
+    """Manual 3 click centring
 
     kappa and kappa_phi settings are applied first, and assume that the
     beamline does have axes with exactly these names
@@ -1404,7 +1404,7 @@ class SampleCentring(TaskNode):
 
 
 class OpticalCentring(TaskNode):
-    """Optical automatic centering with lucid"""
+    """Optical automatic centring with lucid"""
 
     def __init__(self, user_confirms=False):
         TaskNode.__init__(self)

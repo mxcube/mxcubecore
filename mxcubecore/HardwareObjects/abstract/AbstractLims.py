@@ -341,8 +341,8 @@ class AbstractLims(HardwareObject, abc.ABC):
             "xtalSnapshotFullPath2": str,
             "xtalSnapshotFullPath3": str,
             "xtalSnapshotFullPath4": str,
-            "centeringMethod": str,
-            "actualCenteringPosition" str
+            "centringMethod": str,
+            "actualCentringPosition" str
             "group_id: int,
             "detector_id": int,
             "screening_sub_wedge_id": int,

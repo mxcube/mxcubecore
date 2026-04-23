@@ -74,7 +74,7 @@ badBeam/max_y = +10.0
 CRYSTFEL_CELL_FILE_TEMPLATE = """CrystFEL unit cell file version 1.0
 
 lattice_type = {:s}
-centering = {:s}
+centring = {:s}
 {:s}
 
 a = {:.2f} A
@@ -289,119 +289,119 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
             spacegroup_dict["lattice_type"] = "orthorhombic"
             spacegroup_dict["point_group"] = "mmm"
             spacegroup_dict["space_group"] = "P212121"
-            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["centring"] = "P"
             spacegroup_dict["unique_axis"] = ""
             spacegroup_dict["space_group_number"] = 19
         elif "P21212" in proc_params.space_group:
             spacegroup_dict["lattice_type"] = "orthorhombic"
             spacegroup_dict["point_group"] = "mmm"
             spacegroup_dict["space_group"] = "P21212"
-            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["centring"] = "P"
             spacegroup_dict["unique_axis"] = ""
             spacegroup_dict["space_group_number"] = 18
         elif "P213" in proc_params.space_group:
             spacegroup_dict["lattice_type"] = "cubic"
             spacegroup_dict["point_group"] = "m-3"
             spacegroup_dict["space_group"] = "P213"
-            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["centring"] = "P"
             spacegroup_dict["unique_axis"] = ""
             spacegroup_dict["space_group_number"] = 198
         elif "P21" in proc_params.space_group:
             spacegroup_dict["lattice_type"] = "monoclinic"
             spacegroup_dict["point_group"] = "2/m"
             spacegroup_dict["space_group"] = "P21"
-            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["centring"] = "P"
             spacegroup_dict["unique_axis"] = ""
             spacegroup_dict["space_group_number"] = 4
         elif "P3112" in proc_params.space_group:
             spacegroup_dict["lattice_type"] = "hexagonal"
             spacegroup_dict["point_group"] = "-31m_H"
             spacegroup_dict["space_group"] = "P3112"
-            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["centring"] = "P"
             spacegroup_dict["unique_axis"] = "unique_axis = c"
             spacegroup_dict["space_group_number"] = 151
         elif "P3121" in proc_params.space_group:
             spacegroup_dict["lattice_type"] = "hexagonal"
             spacegroup_dict["point_group"] = "-3m1_H"
             spacegroup_dict["space_group"] = "P3121"
-            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["centring"] = "P"
             spacegroup_dict["unique_axis"] = "unique_axis = c"
             spacegroup_dict["space_group_number"] = 152
         elif "P3212" in proc_params.space_group:
             spacegroup_dict["lattice_type"] = "hexagonal"
             spacegroup_dict["point_group"] = "-31m_H"
             spacegroup_dict["space_group"] = "P3212"
-            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["centring"] = "P"
             spacegroup_dict["unique_axis"] = "unique_axis = c"
             spacegroup_dict["space_group_number"] = 153
         elif "P3221" in proc_params.space_group:
             spacegroup_dict["lattice_type"] = "hexagonal"
             spacegroup_dict["point_group"] = "-3m1_H"
             spacegroup_dict["space_group"] = "P3221"
-            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["centring"] = "P"
             spacegroup_dict["unique_axis"] = "unique_axis = c"
             spacegroup_dict["space_group_number"] = 154
         elif "P321" in proc_params.space_group:
             spacegroup_dict["lattice_type"] = "hexagonal"
             spacegroup_dict["point_group"] = "-3m1_H"
             spacegroup_dict["space_group"] = "P321"
-            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["centring"] = "P"
             spacegroup_dict["unique_axis"] = "unique_axis = c"
             spacegroup_dict["space_group_number"] = 150
         elif "P32" in proc_params.space_group:
             spacegroup_dict["lattice_type"] = "hexagonal"
             spacegroup_dict["point_group"] = "-3_H"
             spacegroup_dict["space_group"] = "P32"
-            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["centring"] = "P"
             spacegroup_dict["unique_axis"] = "unique_axis = c"
             spacegroup_dict["space_group_number"] = 145
         elif "P41212" in proc_params.space_group:
             spacegroup_dict["lattice_type"] = "tetragonal"
             spacegroup_dict["point_group"] = "4/mmm"
             spacegroup_dict["space_group"] = "P41212"
-            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["centring"] = "P"
             spacegroup_dict["unique_axis"] = "unique_axis = c"
             spacegroup_dict["space_group_number"] = 92
         elif "P42212" in proc_params.space_group:
             spacegroup_dict["lattice_type"] = "tetragonal"
             spacegroup_dict["point_group"] = "4/mmm"
             spacegroup_dict["space_group"] = "P42212"
-            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["centring"] = "P"
             spacegroup_dict["unique_axis"] = "unique_axis = c"
             spacegroup_dict["space_group_number"] = 94
         elif "P43212" in proc_params.space_group:
             spacegroup_dict["lattice_type"] = "tetragonal"
             spacegroup_dict["point_group"] = "4/mmm"
             spacegroup_dict["space_group"] = "P43212"
-            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["centring"] = "P"
             spacegroup_dict["unique_axis"] = "unique_axis = c"
             spacegroup_dict["space_group_number"] = 96
         elif "P6522" in proc_params.space_group:
             spacegroup_dict["lattice_type"] = "hexagonal"
             spacegroup_dict["point_group"] = "6/mmm"
             spacegroup_dict["space_group"] = "P6522"
-            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["centring"] = "P"
             spacegroup_dict["unique_axis"] = "unique_axis = c"
             spacegroup_dict["space_group_number"] = 179
         elif "C2221" in proc_params.space_group:
             spacegroup_dict["lattice_type"] = "orthorhombic"
             spacegroup_dict["point_group"] = "mmm"
             spacegroup_dict["space_group"] = "C2221"
-            spacegroup_dict["centering"] = "C"
+            spacegroup_dict["centring"] = "C"
             spacegroup_dict["unique_axis"] = ""
             spacegroup_dict["space_group_number"] = 20
         elif "C222" in proc_params.space_group:
             spacegroup_dict["lattice_type"] = "orthorhombic"
             spacegroup_dict["point_group"] = "mmm"
             spacegroup_dict["space_group"] = "C222"
-            spacegroup_dict["centering"] = "C"
+            spacegroup_dict["centring"] = "C"
             spacegroup_dict["unique_axis"] = ""
             spacegroup_dict["space_group_number"] = 21
         elif "C2" in proc_params.space_group:
             spacegroup_dict["lattice_type"] = "monoclinic"
             spacegroup_dict["point_group"] = "2/m_uab"
             spacegroup_dict["space_group"] = "C2"
-            spacegroup_dict["centering"] = "C"
+            spacegroup_dict["centring"] = "C"
             ## spacegroup_dict["unique_axis"]     = ""
             spacegroup_dict["unique_axis"] = "unique_axis = b"
             spacegroup_dict["space_group_number"] = 5
@@ -409,14 +409,14 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
             spacegroup_dict["lattice_type"] = "orthorhombic"
             spacegroup_dict["point_group"] = "mmm"
             spacegroup_dict["space_group"] = "I222"
-            spacegroup_dict["centering"] = "I"
+            spacegroup_dict["centring"] = "I"
             spacegroup_dict["unique_axis"] = ""
             spacegroup_dict["space_group_number"] = 23
         else:
             spacegroup_dict["lattice_type"] = "triclinic"
             spacegroup_dict["point_group"] = "1"
             spacegroup_dict["space_group"] = "P1"
-            spacegroup_dict["centering"] = "P"
+            spacegroup_dict["centring"] = "P"
             spacegroup_dict["unique_axis"] = ""
             spacegroup_dict["space_group_number"] = 1
 
@@ -830,7 +830,7 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
         lattice_type = spacegroup_dict["lattice_type"]
         point_group = spacegroup_dict["point_group"]
         space_group = spacegroup_dict["space_group"]
-        centering = spacegroup_dict["centering"]
+        centring = spacegroup_dict["centring"]
         unique_axis = spacegroup_dict["unique_axis"]
         space_group_number = spacegroup_dict["space_group_number"]
 
@@ -843,7 +843,7 @@ class EMBLOnlineProcessing(AbstractOnlineProcessing):
 
         cell_file = CRYSTFEL_CELL_FILE_TEMPLATE.format(
             lattice_type,
-            centering,
+            centring,
             unique_axis,
             cell_a,
             cell_b,

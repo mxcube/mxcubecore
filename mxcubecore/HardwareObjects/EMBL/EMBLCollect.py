@@ -191,7 +191,7 @@ class EMBLCollect(AbstractCollect):
                 self.cmd_collect_processing(True)
                 # GB 2019030: no idea why this could be unset.....
                 #    self.current_dc_parameters["processing_parallel"]
-                #    in (True, "MeshScan", "XrayCentering")
+                #    in (True, "MeshScan", "XrayCentring")
                 #
 
             # if self.current_dc_parameters["processing_online"] is False:

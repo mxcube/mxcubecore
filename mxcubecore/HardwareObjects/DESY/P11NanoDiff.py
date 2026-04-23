@@ -373,7 +373,7 @@ class P11NanoDiff(GenericDiffractometer):
         centringy_direction=1.0,
     ):
         """Automatic centring procedure"""
-        self.log.debug("** Autocentering with murko is started **")
+        self.log.debug("** Autocentring with murko is started **")
 
         self.current_centring_method == GenericDiffractometer.CENTRING_METHOD_AUTO
         logging.getLogger("user_level_log").info("Starting AI centring")

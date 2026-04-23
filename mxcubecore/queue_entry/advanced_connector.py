@@ -43,7 +43,7 @@ class AdvancedConnectorQueueEntry(BaseQueueEntry):
         BaseQueueEntry.execute(self)
         first_qe_data_model = self.first_qe.get_data_model()
 
-        if first_qe_data_model.run_online_processing == "XrayCentering":
+        if first_qe_data_model.run_online_processing == "XrayCentring":
             best_positions = first_qe_data_model.online_processing_results[
                 "aligned"
             ].get("best_positions", [])
@@ -80,6 +80,6 @@ class AdvancedConnectorQueueEntry(BaseQueueEntry):
                 self.second_qe.set_enabled(True)
             else:
                 logging.getLogger("user_level_log").warning(
-                    "No diffraction found. Cancelling Xray centering"
+                    "No diffraction found. Cancelling Xray centring"
                 )
                 self.second_qe.set_enabled(False)

@@ -299,7 +299,7 @@ convention = "google"
 "mxcubecore/HardwareObjects/EMBL/EMBLBeam.py" = [
     "F811",
 ]
-"mxcubecore/HardwareObjects/EMBL/EMBLBeamCentering.py" = [
+"mxcubecore/HardwareObjects/EMBL/EMBLBeamCentring.py" = [
     "B007",
     "B012",
     "E501",

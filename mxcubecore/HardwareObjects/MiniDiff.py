@@ -87,7 +87,7 @@ class MiniDiff(HardwareObject):
         )
 
         sample_centring.NUM_CENTRING_ROUNDS = self.get_property(
-            "num_centering_rounds", 1
+            "num_centring_rounds", 1
         )
 
         self.cancel_centring_methods = {}
@@ -597,25 +597,25 @@ class MiniDiff(HardwareObject):
                 time.sleep(0.5)
                 self.wait_ready(60)
                 self.log.info("Using MD script for sample centring")
-                self.run_script("sample_centering")
+                self.run_script("sample_centring")
                 time.sleep(0.5)
                 self.wait_ready(120)
 
-                # if the centering fails move to the next sample
+                # if the centring fails move to the next sample
                 try:
-                    res_centering = self.get_last_task_info()
+                    res_centring = self.get_last_task_info()
                     if (
-                        res_centering[0].endswith("sample_centering.java")
-                        and res_centering[6] == "-1"
+                        res_centring[0].endswith("sample_centring.java")
+                        and res_centring[6] == "-1"
                     ):
                         self.log.exception("MiniDiff: problem while centring")
                         self.emitCentringFailed()
                     else:
                         self.log.info(
-                            "MiniDiff: centring went fine with %s" % str(res_centering)
+                            "MiniDiff: centring went fine with %s" % str(res_centring)
                         )
                 except:
-                    self.log.exception("MD script for sample centering had a problem")
+                    self.log.exception("MD script for sample centring had a problem")
 
         except KeyError as diag:
             self.log.error("MiniDiff: unknown centring method (%s)" % str(diag))

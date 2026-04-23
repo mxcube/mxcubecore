@@ -51,4 +51,4 @@ class OpticalCentringQueueEntry(BaseQueueEntry):
         BaseQueueEntry.post_execute(self)
 
     def get_type_str(self):
-        return "Optical automatic centering"
+        return "Optical automatic centring"
