@@ -38,7 +38,6 @@ import subprocess
 import time
 import uuid
 from collections import OrderedDict
-from packaging.version import Version
 from urllib.parse import urlparse
 
 import f90nml
@@ -46,6 +45,7 @@ import gevent
 import gevent.event
 import gevent.queue
 import numpy
+from packaging.version import Version
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import (
@@ -62,7 +62,6 @@ from mxcubecore.queue_entry import (
     QUEUE_ENTRY_STATUS,
     QueueAbortedException,
 )
-
 
 __copyright__ = """ Copyright © 2016 - 2019 by Global Phasing Ltd. """
 __license__ = "LGPLv3+"
@@ -368,7 +367,7 @@ class GphlWorkflow(HardwareObject):
         ll0 = instrument_data.get("beamstop_param_names")
         ll1 = instrument_data.get("beamstop_param_vals")
         if ll0 and ll1:
-            for tag, val in zip(ll0, ll1):
+            for tag, val in zip(ll0, ll1, strict=True):
                 instrument_data[tag.lower()] = val
 
         self.detector_segments = instrument_input.get("segment_list")
@@ -624,6 +623,7 @@ class GphlWorkflow(HardwareObject):
             for tag, val in zip(
                 ("cell_a", "cell_b", "cell_c", "cell_alpha", "cell_beta", "cell_gamma"),
                 data_model.cell_parameters,
+                strict=True,
             ):
                 fields[tag]["default"] = val
         else:
@@ -1665,7 +1665,8 @@ class GphlWorkflow(HardwareObject):
                     parameters.get("exposure_time") and parameters.get("image_width")
                 ):
                     raise ValueError(
-                        "exposure_time and image_width must be set when init_spot_dir is set"
+                        "exposure_time and image_width must be set "
+                        "when init_spot_dir is set"
                     )
                 new_dose = self.adjust_dose(parameters)["use_dose"]["value"]
             else:
@@ -2507,10 +2508,9 @@ class GphlWorkflow(HardwareObject):
         solutions = choose_lattice.indexingSolutions
         indexing_format = choose_lattice.indexingFormat
         solutions_dict = OrderedDict()
-
         if indexing_format == "IDXREF":
             header = """  LATTICE-  BRAVAIS-   QUALITY  UNIT CELL CONSTANTS (ANGSTROEM & DEGREES)
- CHARACTER  LATTICE     OF FIT      a      b      c   alpha  beta gamma"""
+ CHARACTER  LATTICE     OF FIT      a      b      c   alpha  beta gamma"""  # noqa E501
 
             line_format = (
                 " %s  %2i        %s %12.1f    %6.1f %6.1f %6.1f %5.1f %5.1f %5.1f"
@@ -2769,8 +2769,8 @@ class GphlWorkflow(HardwareObject):
                 return
             else:
                 raise RuntimeError(
-                    "No scan matching prefix: %s, run_number: %s, start_image_number: %s at start"
-                    % key
+                    "No scan matching prefix: "
+                    "%s, run_number: %s, start_image_number: %s at start" % key
                 )
 
     def handle_collection_start(
@@ -2793,8 +2793,8 @@ class GphlWorkflow(HardwareObject):
                 return
             else:
                 raise RuntimeError(
-                    "No scan matching prefix: %s, run_number: %s, start_image_number: %s at start"
-                    % key
+                    "No scan matching prefix: "
+                    "%s, run_number: %s, start_image_number: %s at start" % key
                 )
 
         translation_settings = dict(
@@ -2807,7 +2807,8 @@ class GphlWorkflow(HardwareObject):
                 self._scan_id_to_translation_id[scan.id_] = self._latest_translation_id
             else:
                 # NBNB RECHECK!!!
-                # We must be in centring mode None: No real centring known, use calculated
+                # We must be in centring mode None:
+                # No real centring known, use calculated
                 self._scan_id_to_translation_id[scan.id_] = None
         else:
             # First scan in sweep (not first sweep)
@@ -2863,22 +2864,21 @@ class GphlWorkflow(HardwareObject):
         using averaging to calculate dose rates are felt to be ungeneric
 
         Args:
-            energy (Optional[float]): Beam energy in keV. Defaults to current beamline value
+            energy (Optional[float]): Beam energy in keV. Defaults to current value
 
         Returns:
             float: Maximum dose rate in MGy/s
         """
         energy = energy or HWR.beamline.energy.get_value()
         flux = HWR.beamline.flux
+        wfl = HWR.beamline.gphl_workflow
         if flux:
             flux_density = flux.get_average_flux_density(transmission=100.0)
             if flux_density:
-                crystal_thickness = HWR.beamline.gphl_workflow._queue_entry.get_data_model().crystal_thickness
+                crystal_thickness = wfl._queue_entry.get_data_model().crystal_thickness
                 if crystal_thickness:
                     beam_dim = (
-                        HWR.beamline.beam.get_beam_size()[
-                            HWR.beamline.gphl_workflow.rotation_axis_index()
-                        ]
+                        HWR.beamline.beam.get_beam_size()[wfl.rotation_axis_index()]
                         * 1000.0
                     )
                     # NBNB TODO beam sizes seem to come in mm. Units nowhere defined.
@@ -2917,7 +2917,7 @@ class GphlWorkflow(HardwareObject):
         )
         serial = 0
         if sample_dir and os.path.isdir(sample_dir):
-            for path, dirnames, filenames in sorted(os.walk(sample_dir)):
+            for path, dirnames, filenames in sorted(os.walk(sample_dir)):  # noqa B007
                 if crystal_file_name in filenames:
                     data = {}
                     sample_name = os.path.basename(path)
@@ -3055,7 +3055,7 @@ class GphlWorkflow(HardwareObject):
                     update_dict = self.update_processing_macro(parameters)
                 elif instruction == "processing_macro_url":
                     update_dict = self.update_processing_macro_url(parameters)
-            except:
+            except Exception:
                 self.log.error(
                     "Error in GPhL parameter update for %s, Continuing ...",
                     instruction,
@@ -3102,7 +3102,7 @@ class GphlWorkflow(HardwareObject):
                     "transmission",
                 ):
                     update_dict = self.adjust_dose(parameters)
-            except:
+            except Exception:
                 self.log.error(
                     "Error in GPhL parameter update for %s, Continuing ...",
                     instruction,

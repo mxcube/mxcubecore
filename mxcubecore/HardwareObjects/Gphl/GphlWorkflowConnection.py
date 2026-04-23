@@ -27,7 +27,6 @@ from __future__ import (
     unicode_literals,
 )
 
-from datetime import datetime, timezone
 import logging
 import os
 import signal
@@ -56,10 +55,9 @@ from mxcubecore.utils import conversion
 # It depends on knowing where in py4j socket is imported
 # Hacky, but the best solution to making py4j and gevent compatible
 
-
 origsocket = sys.modules.pop("socket")
 _origsocket = sys.modules.pop("_socket")
-import socket
+import socket  # noqa E402, F811 Needed as part of workaround for socket/oy4j connection
 
 java_gateway.socket = socket
 clientserver.socket = socket
@@ -323,7 +321,7 @@ class GphlWorkflowConnection(HardwareObject):
         if not os.path.isdir(wdir):
             try:
                 os.makedirs(wdir)
-            except:
+            except Exception:
                 # No need to raise error - program will fail downstream
                 self.log.error("Could not create GPhL working directory: %s", wdir)
 
@@ -406,7 +404,7 @@ class GphlWorkflowConnection(HardwareObject):
                         time.sleep(9)
                         if xx0.poll() is None:
                             xx0.kill()
-            except:
+            except Exception:
                 self.log.info(
                     "Exception while terminating external workflow process %s", xx0
                 )
@@ -950,7 +948,7 @@ class GphlWorkflowConnection(HardwareObject):
 
         try:
             response = self._gateway.jvm.Py4jMessage(py4j_payload, correlation_id)
-        except:
+        except Exception:
             self.abort_workflow(
                 message="Error creating Java message (%s) to send to workflow"
                 % py4j_payload.getClass().getSimpleName()

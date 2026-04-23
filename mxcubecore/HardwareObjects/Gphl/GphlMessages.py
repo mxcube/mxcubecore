@@ -1035,7 +1035,7 @@ class Sweep(IdentifiedElement):
         self._scans.add(scan)
 
     def get_initial_settings(self):
-        """Get dictionary of rotation and translation motor settings for start of sweep"""
+        """Get dict of rotation and translation motor settings for start of sweep"""
         result = self.goniostatSweepSetting.get_motor_settings()
         result[self.goniostatSweepSetting.scanAxis] = self.start
         return result
@@ -1213,9 +1213,9 @@ class PriorInformation(Payload):
             if text:
                 try:
                     sampleId = uuid.UUID(text)
-                except:
+                except Exception:  # noqa S110
                     # The error expected if this goes wrong is ValueError.
-                    # But whatever the error we want to continue
+                    # But whatever the error we just want to continue
                     pass
                 else:
                     # Text was a valid uuid string. Use the uuid.

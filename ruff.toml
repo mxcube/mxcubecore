@@ -13,6 +13,7 @@ docstring-code-format = true
 ignore = [
     "S4", # Ingore all suspicious import errors
     "B028", # Allow to use the Python standard for warnings (oneline) instead of giving explicit stacklevel
+    "S603", # Allow use of subprocess module. If undesirable pls suggest what should be used instead.
 ]
 select = [
     "E", "F", "B", "I", "S"
@@ -150,7 +151,6 @@ convention = "google"
     "E501",
 ]
 "mxcubecore/HardwareObjects/Argus.py" = [
-    "S603",
     "S607",
 ]
 "mxcubecore/HardwareObjects/BlissActuator.py" = [
@@ -211,7 +211,6 @@ convention = "google"
     "E501",
     "E711",
     "F841",
-    "S603",
     "S605",
 ]
 "mxcubecore/HardwareObjects/DESY/P11Collimator.py" = [
@@ -328,7 +327,6 @@ convention = "google"
     "E501",
     "F841",
     "S307",
-    "S603",
 ]
 "mxcubecore/HardwareObjects/EMBL/EMBLFlux.py" = [
     "E501",
@@ -393,9 +391,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/ESRF/ESRFBeamlineActions.py" = [
     "E722",
     "S110",
-]
-"mxcubecore/HardwareObjects/ESRF/ESRFEnergyScan.py" = [
-    "S603",
 ]
 "mxcubecore/HardwareObjects/ESRF/ESRFMetadataManagerClient.py" = [
     "B009",
@@ -507,31 +502,6 @@ convention = "google"
     "F821",
     "F841",
     "S307",
-]
-"mxcubecore/HardwareObjects/Gphl/CollectEmulator.py" = [
-    "S603",
-]
-"mxcubecore/HardwareObjects/Gphl/GphlMessages.py" = [
-    "E501",
-    "E722",
-    "S110",
-]
-"mxcubecore/HardwareObjects/Gphl/GphlWorkflow.py" = [
-    "B007",
-    "B905",
-    "E501",
-    "E722",
-    "S603",
-]
-"mxcubecore/HardwareObjects/Gphl/GphlWorkflowConnection.py" = [
-    "E402",
-    "E722",
-    "F811",
-    "S603",
-]
-"mxcubecore/HardwareObjects/Gphl/Transcal2MiniKappa.py" = [
-    "E722",
-    "S314",
 ]
 "mxcubecore/HardwareObjects/GrobMotor.py" = [
     "B006",
@@ -753,7 +723,6 @@ convention = "google"
     "F821",
     "F841",
     "S103",
-    "S603",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Cryotong.py" = [
     "E501",
@@ -775,7 +744,6 @@ convention = "google"
     "F821",
     "F841",
     "S307",
-    "S603",
 ]
 "mxcubecore/HardwareObjects/SOLEIL/PX1/PX1Environment.py" = [
     "E501",
@@ -893,7 +861,6 @@ convention = "google"
     "S506",
 ]
 "mxcubecore/HardwareObjects/TangoLimaMpegVideo.py" = [
-    "S603",
     "S607",
 ]
 "mxcubecore/HardwareObjects/TangoMachineInfo.py" = [
@@ -1079,7 +1046,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/mockup/MDCameraMockup.py" = [
     "E501",
-    "S603",
     "S607",
 ]
 "mxcubecore/HardwareObjects/mockup/MachineInfoMockup.py" = [
