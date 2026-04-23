@@ -1126,21 +1126,23 @@ def crystal_classes_from_params(
         space_groups = space_groups_from_params(
             lattices=lattices, point_groups=point_groups
         )
-        if not space_groups or (space_group and space_group not in space_groups):
-            result = ()
-        else:
-            infos = frozenset(
-                CRYSTAL_CLASS_MAP[SPACEGROUP_MAP[space_group].crystal_class]
-                for space_group in space_groups
-            )
-            result = tuple(
-                info.name for info in sorted(infos, key=operator.attrgetter("number"))
-            )
-    elif space_group:
-        result = (SPACEGROUP_MAP[space_group].crystal_class,)
     else:
-        # Return empty list (nothing is set)
-        result = ()
+        space_groups = ()
+
+    result = ()
+    if space_group:
+        if space_group in space_groups or not space_groups:
+            # space_group takes precedence if consistent; empty result if not
+            result = (SPACEGROUP_MAP[space_group].crystal_class,)
+    elif space_groups:
+        # Get all crystal classes from lattices and point groups
+        infos = frozenset(
+            CRYSTAL_CLASS_MAP[SPACEGROUP_MAP[space_group].crystal_class]
+            for space_group in space_groups
+        )
+        result = tuple(
+            info.name for info in sorted(infos, key=operator.attrgetter("number"))
+        )
     return result
 
 
