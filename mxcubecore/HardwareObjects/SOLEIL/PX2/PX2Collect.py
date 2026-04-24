@@ -188,9 +188,7 @@ class PX2Collect(AbstractCollect, HardwareObject):
             scan_range = angle_per_frame * wedge_size
 
             for k in range(number_of_wedges):
-                scan_start_angles.append(
-                    scan_start_angle + k * offset + k * scan_range
-                )
+                scan_start_angles.append(scan_start_angle + k * offset + k * scan_range)
 
             experiment = reference_images(
                 name_pattern,
