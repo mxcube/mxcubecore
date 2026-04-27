@@ -67,7 +67,7 @@ __copyright__ = """ Copyright © 2016 - 2019 by Global Phasing Ltd. """
 __license__ = "LGPLv3+"
 __author__ = "Rasmus H Fogh"
 
-gphl_version_str = "2.2.0+202603110039.0-gf763e76"
+gphl_version_str = "2.1.0+202604292339.0-xf763e76"
 
 # Switch disabling processing macro handling until GPhL workflow is ready
 ACTIVATE_PROCESSING_MACROS = False
@@ -1093,7 +1093,7 @@ class GphlWorkflow(HardwareObject):
         abi_version_str = payload.abiVersion
         logging.getLogger("user_level_log").info(
             "GPhL Workflow %s, beamline interface: %s"
-            % (wf_version_str, abi_version_str)
+            % (wf_version_str.split("+")[0], abi_version_str.split("+")[0])
         )
         if wf_version_str and gphl_version_str:
             gphl_version = Version(gphl_version_str)
