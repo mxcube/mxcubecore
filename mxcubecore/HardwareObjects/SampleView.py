@@ -314,6 +314,7 @@ class SampleView(AbstractSampleView):
                     "Automatic loop centring failed"
                 )
                 self.centring_failed()
+                self.reject_centring()
             else:
                 self.centring_done()
                 self.accept_centring()
