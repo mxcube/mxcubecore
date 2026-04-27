@@ -888,14 +888,12 @@ def mount_sample(data_model, centring_done_cb, async_result):
                     HWR.beamline.sample_changer.trigger_progress_message(
                         "Centring failed !"
                     )
-                    if centring_method == CENTRING_METHOD.FULLY_AUTOMATIC:
-                        raise QueueSkipEntryException(
-                            "Could not center sample, skipping", ""
-                        )
-                    else:
-                        raise RuntimeError("Could not center sample")
+
+                    raise QueueSkipEntryException(
+                        "Could not center sample, skipping", ""
+                    )
             except Exception:
-                logging.getLogger("HWR").exception("")
+                raise
             finally:
                 sview.disconnect("centringAccepted", centring_done_cb)
 
