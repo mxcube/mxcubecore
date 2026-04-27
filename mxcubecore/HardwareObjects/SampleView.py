@@ -123,9 +123,12 @@ class SampleView(AbstractSampleView):
         )
 
     def _update_shape_positions(self, *args, **kwargs):
-        for shape in self.get_shapes():
+        _shapes = self._shapes.copy()
+
+        for _key, shape in _shapes.items():
             shape.update_position(self.motor_positions_to_screen)
 
+        self._shapes = _shapes
         self.emit("shapesChanged")
 
     def get_positions(self) -> dict[str, float]:
