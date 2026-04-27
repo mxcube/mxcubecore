@@ -4,7 +4,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict, List
 
-from mxcubecore.HardwareObjects.MAXIV import PyISPyBRestClient
+from mxcubecore.HardwareObjects.abstract import PyISPyBRestClient
 from mxcubecore.model.lims_session import LimsSessionManager, Proposal, Session
 
 

@@ -6,7 +6,7 @@ from sdm.config import DUOPASSWORD, DUOUSER
 
 from mxcubecore.HardwareObjects.abstract.ISPyBDataAdapter import ISPyBDataAdapter
 from mxcubecore.HardwareObjects.abstract.PyISPyBDataAdapter import PyISPyBDataAdapter
-from mxcubecore.HardwareObjects.MAXIV.PyISPyBRestClient import PyISPyBRestClient
+from mxcubecore.HardwareObjects.abstract.PyISPyBRestClient import PyISPyBRestClient
 from mxcubecore.HardwareObjects.UserTypeISPyBLims import UserTypeISPyBLims
 from mxcubecore.model.lims_session import LimsSessionManager, Proposal, Session
 
