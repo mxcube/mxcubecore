@@ -33,8 +33,8 @@ Example yml configuration:
    username: Safety shutter
 """
 
-import threading
 import time
+import gevent
 from enum import (
     Enum,
     unique,
@@ -75,7 +75,19 @@ class BlissShutter(AbstractShutter):
     def init(self):
         """Initialise the predefined values"""
         super().init()
-        self._bliss_obj = HWR.beamline.bliss_proxy.get_object(self.actuator_name)
+        try:
+            self._bliss_obj = HWR.beamline.bliss_proxy.get_object(self.actuator_name)
+        except Exception as exc:
+            import logging
+
+            logging.getLogger("MX3.HWR").warning(
+                "BlissShutter '%s': BLISS object '%s' not available (%s)",
+                self.actuator_name,
+                self.actuator_name,
+                exc,
+            )
+            self._bliss_obj = None
+            return
         # for now we only treat tango type shutter
         self.shutter_type = self.get_property("type", "tango")
         try:
@@ -168,9 +180,7 @@ class BlissShutter(AbstractShutter):
                     pass
             self._update_state()
 
-        threading.Thread(
-            target=_poll_completion, daemon=True, name="bliss-shutter-poll"
-        ).start()
+        gevent.spawn(_poll_completion)
 
     def set_mode(self, value):
         """Set automatic or manual mode for a Frontend shutter
