@@ -102,20 +102,10 @@ class AbstractNState(AbstractActuator):
             (Enum): Enum member, corresponding to the value or UNKNOWN.
         """
         for enum_var in self.VALUES:
-            ev = enum_var.value
-            # Handle tuple/list stored enum values
-            if isinstance(ev, (tuple, list)):
-                candidate = ev[idx]
-            else:
-                candidate = ev
-
-            # If both are strings, compare case-insensitively
-            if isinstance(candidate, str) and isinstance(value, str):
-                if value.upper() == candidate.upper():
-                    return enum_var
-            else:
-                if value == candidate:
-                    return enum_var
+            if value == enum_var.value:
+                return enum_var
+            if isinstance(enum_var.value, tuple) and value == enum_var.value[idx]:
+                return enum_var
 
         return self.VALUES.UNKNOWN
 

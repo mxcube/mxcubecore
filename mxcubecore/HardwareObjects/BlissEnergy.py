@@ -66,9 +66,17 @@ class BlissEnergy(AbstractEnergy):
         self.update_state(HardwareObjectState.READY)
 
         if self.energy_motor:
-            self.update_state(self.energy_motor.get_state())
-            self.energy_motor.connect("valueChanged", self.update_value)
-            self.energy_motor.connect("stateChanged", self.update_state)
+            try:
+                self.update_state(self.energy_motor.get_state())
+                self.energy_motor.connect("valueChanged", self.update_value)
+                self.energy_motor.connect("stateChanged", self.update_state)
+            except Exception as exc:
+                logging.getLogger("MX3.HWR").warning(
+                    "BlissEnergy: energy_motor present but unusable (%s): %s",
+                    getattr(self.energy_motor, 'name', '<unknown>'),
+                    exc,
+                )
+                self.energy_motor = None
 
         if self.read_only and not self.energy_motor:
             # self._nominal_value = float(self.get_property("energy", 0))

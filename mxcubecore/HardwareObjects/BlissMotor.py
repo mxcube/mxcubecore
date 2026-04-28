@@ -91,7 +91,17 @@ class BlissMotor(AbstractMotor):
     def init(self):
         """Initialise the motor"""
         super().init()
-        self.motor_obj = HWR.beamline.bliss_proxy.get_object(self.actuator_name)
+        try:
+            self.motor_obj = HWR.beamline.bliss_proxy.get_object(self.actuator_name)
+        except Exception as exc:
+            log.warning(
+                "BlissMotor '%s': BLISS object '%s' not available (%s). Running in offline mode.",
+                self.actuator_name,
+                self.actuator_name,
+                exc,
+            )
+            self.motor_obj = None
+            return
 
         # init state to match motor's one
         self.update_state(self.get_state())

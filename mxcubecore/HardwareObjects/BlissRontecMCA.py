@@ -11,7 +11,19 @@ class BlissRontecMCA(HardwareObject):
 
     def init(self):
         actuator_name = self.get_property("actuator_name")
-        self.mca = HWR.beamline.bliss_proxy.get_object(actuator_name)
+        try:
+            self.mca = HWR.beamline.bliss_proxy.get_object(actuator_name)
+        except Exception as exc:
+            # BLISS object missing — run in offline/no-hardware mode
+            import logging
+
+            logging.getLogger("MX3.HWR").warning(
+                "BlissRontecMCA '%s': BLISS object '%s' not available (%s)",
+                self.name if hasattr(self, "name") else actuator_name,
+                actuator_name,
+                exc,
+            )
+            self.mca = None
 
     @task
     def read_raw_data(self, chmin=0, chmax=4095, save_data=False):
