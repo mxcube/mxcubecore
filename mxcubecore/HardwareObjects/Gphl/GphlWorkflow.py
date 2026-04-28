@@ -38,6 +38,7 @@ import subprocess
 import time
 import uuid
 from collections import OrderedDict
+from typing import ClassVar
 from urllib.parse import urlparse
 
 import f90nml
@@ -207,8 +208,8 @@ class GphlWorkflow(HardwareObject):
         Required during transition, as long as we do not have the fields defined"""
 
         # Defaults - should be replaced by proper Pydantic
-        workflows = {}  # noqa: RUF012
-        settings = {}  # noqa: RUF012
+        workflows: ClassVar[dict] = {}
+        settings: ClassVar[dict] = {}
 
     def __init__(self, name):
         super().__init__(name)

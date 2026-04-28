@@ -643,12 +643,12 @@ class GphlWorkflowConnection(HardwareObject):
         workflowVersion = self._SimpleVersion_to_string(py4jWorkflowVersion)
         metadata = py4jWorkflowVersion.getBuildmetadata()
         if metadata:
-            # NBuildtime is not used nnow, but could be in later versions
-            # NB a himan-readable buildtime is part of the metadata
+            # NB buildtime is not used now, but could be in later versions
+            # NB a human-readable buildtime is part of the metadata
             # buildtime = py4jWorkflowVersion.getBuildTime()
             if not py4jWorkflowVersion.isClean():
                 metadata += "-dirty"
-            workflowVersion = "+".join((workflowVersion, metadata))  # noqa FLY002
+            workflowVersion = f"{workflowVersion}+{metadata}"
         abiVersion = self._SimpleVersion_to_string(
             py4jRequestConfiguration.getAbiVersion()
         )
@@ -691,7 +691,7 @@ class GphlWorkflowConnection(HardwareObject):
         try:
             if py4jGeometricStrategy.isSetReflectingRangeEsd():
                 reflectingRangeEsd = py4jGeometricStrategy.getReflectingRangeEsd()
-        except Exception:
+        except Exception:  # noqa S110
             # Temporary fix, pending upgrading of the GPhL workflow
             # NB the error raised is likely Py4JError - but we do not care
             pass
