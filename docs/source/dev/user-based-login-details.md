@@ -34,8 +34,6 @@ It should be clear who is **in control** (hostname of the machine should be incl
 
 Users can ”ask for control” or "take control". The **user in control** can accept or deny the request.
 
-There is a parameter named: TIMEOUT_GIVES_CONTROL which, if enabled, triggers a timeout (30 seconds) after the control request and. If there has been no deny signal in the meantime, the request is accepted automatically. In the current version of MXCuBE, this feature is disabled by default.
-
 The **user in control** is able to "give control" to any other user.
 
 If the **user in control** logs out this role is not passed to any other (logged-in) user. Once logged out the "user in control" is unassigned and the next user that logs in becomes the "user in control". If no new user appears upon re-logging of the former **user in control**, he/she is still in control.
