@@ -25,7 +25,6 @@ Example yaml file:
  configuration:
    username: Energy
  objects:
-   controller: bliss.yml
    energy_motor: energy_motor.yml
 
 - for fixed wavelength beamline:
@@ -44,7 +43,6 @@ import math
 
 from gevent import spawn
 
-from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
 
@@ -58,14 +56,12 @@ class BlissEnergy(AbstractEnergy):
     def __init__(self, name):
         super().__init__(name)
         self.energy_motor = None
-        self.controller = None
         self._cmd_execution = None
 
     def init(self):
         """Initialisation"""
         super().init()
 
-        self.controller = self.get_object_by_role("controller")
         self.energy_motor = self.get_object_by_role("energy_motor")
         self.update_state(HardwareObjectState.READY)
 
@@ -105,22 +101,11 @@ class BlissEnergy(AbstractEnergy):
         self.energy_motor.stop()
 
     def _set_value(self, value):
-        """Execute the sequence to move to an energy
+        """Move the energy motor to the target value.
         Args:
-            value (float): target energy
+            value (float): target energy [keV]
         """
-        try:
-            defocus = HWR.beamline.beam.definer.defocused_beam
-        except AttributeError:
-            defocus = False
-
-        self.update_state(HardwareObjectState.BUSY)
-        try:
-            self.controller.change_energy(value, defocus=defocus)
-        except (AttributeError, RuntimeError):
-            self.energy_motor.set_value(value)
-        finally:
-            self.update_state(HardwareObjectState.READY)
+        self.energy_motor.set_value(value)
 
     def set_value(self, value, timeout=0):
         """Move energy to absolute position. Wait the move to finish.

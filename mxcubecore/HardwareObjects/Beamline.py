@@ -267,6 +267,12 @@ class Beamline(HardwareObject):
     def data_publisher(self) -> HardwareObject | None:
         return self.get_object_by_role("data_publisher")
 
+    @property
+    def bliss_proxy(self) -> HardwareObject | None:
+        return self.get_object_by_role("bliss_proxy")
+
+
+
     def _init(self) -> None:
         """Object initialisation - executed *before* loading contents"""
 

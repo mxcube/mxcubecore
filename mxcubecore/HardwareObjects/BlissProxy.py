@@ -73,15 +73,30 @@ class BlissProxy(MXHardwareObject):
             "BLISSAPI_URL", "http://localhost:5000"
         )
 
-        self._client = BlissClient(url)
+        try:
+            self._client = BlissClient(url)
+            log.info("BlissProxy: BlissClient created for %s", url)
+        except Exception:
+            log.error("BlissProxy: failed to create BlissClient for %s", url, exc_info=True)
+            raise
+
         self._client.register_callback("connect", self._on_connect)
         self._client.register_callback("disconnect", self._on_disconnect)
 
-        self._load_known_objects()
+        try:
+            self._load_known_objects()
+            log.info("BlissProxy: loaded %d objects from BLISS session", len(self._objects))
+        except Exception:
+            log.error(
+                "BlissProxy: _load_known_objects() failed — object pre-cache is empty, "
+                "falling back to on-demand fetch via get_object()",
+                exc_info=True,
+            )
+
         self._connect_events()
 
         log.info(
-            "BlissProxy ready %d known object(s) loaded",
+            "BlissProxy ready — %d known object(s) loaded",
             len(self._objects),
         )
 
@@ -92,13 +107,21 @@ class BlissProxy(MXHardwareObject):
         changes, online/offline) to be delivered to subscribers registered
         via ``hardware_object.subscribe(...)``.
         """
-        connect_fn = self._client.create_connect()
+        try:
+            connect_fn = self._client.create_connect()
+        except Exception:
+            log.warning(
+                "BlissProxy: could not create socket.io connect function — "
+                "real-time events disabled, REST polling still functional.",
+                exc_info=True,
+            )
+            return
 
         # gevent.monkey.patch_all() replaces threading.Thread with a greenlet
         # wrapper.  We need the real OS thread to keep socket.io's internal
         # threads isolated from gevent's hub.
         try:
-            _RealThread = gevent.monkey.get_original("threading", "Thread") # Use it because threads wraps in greenlets can have deadlock issues
+            _RealThread = gevent.monkey.get_original("threading", "Thread")
         except Exception:
             _RealThread = threading.Thread
 
@@ -172,23 +195,40 @@ class BlissProxy(MXHardwareObject):
         return self._client.hardware
 
     def get_object(self, name: str) -> HardwareObject:
-        """Return a cached hardware object by its BLISS name.
+        """Return a hardware object by its BLISS name.
+
+        First looks in the pre-cached known-type objects.  If not found there,
+        falls back to a direct fetch from the hardware client so that objects
+        with unregistered types (e.g. MCA devices) can still be used.  A
+        warning is emitted in that case since attribute availability depends on
+        the server's type definition.
 
         Args:
             name: Beacon address / BLISS object name.
 
         Raises:
-            KeyError: If *name* is not in the cache (unknown type or not
-                registered in the session).  Call :meth:`refresh` first if
-                the session has changed since startup.
+            KeyError: If *name* is not registered in the session at all.
         """
-        try:
+        if name in self._objects:
             return self._objects[name]
-        except KeyError:
+
+        # Fallback: fetch directly, bypassing the type registry check.
+        # Useful for devices whose type is not yet registered in blissclient
+        # (e.g. BlissRontecMCA).
+        try:
+            obj = self._client.hardware.get(name)
+            log.warning(
+                "Object '%s' was not pre-cached (unknown type). "
+                "Fetching directly — attribute availability depends on the "
+                "server type definition.",
+                name,
+            )
+            return obj
+        except Exception:
             available = ", ".join(self.list_objects()) or "<none>"
             raise KeyError(
-                f"Object '{name}' not found or has an unknown type. "
-                f"Available objects: {available}"
+                f"Object '{name}' not found in the BLISS session. "
+                f"Available pre-cached objects: {available}"
             ) from None
 
     def list_objects(self) -> list[str]:

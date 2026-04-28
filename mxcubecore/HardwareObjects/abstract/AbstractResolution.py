@@ -84,8 +84,9 @@ class AbstractResolution(AbstractMotor):
             (float): value.
         """
         _distance = self._hwr_detector.distance.get_value()
-        self._nominal_value = self.distance_to_resolution(_distance)
-
+        _res = self.distance_to_resolution(_distance)
+        if _res is not None:
+            self._nominal_value = _res
         return self._nominal_value
 
     def get_limits(self):
@@ -99,11 +100,11 @@ class AbstractResolution(AbstractMotor):
             (tuple): two floats tuple (low limit, high limit).
         """
         _low, _high = self._hwr_detector.distance.get_limits()
-
-        return (
-            self.distance_to_resolution(_low),
-            self.distance_to_resolution(_high),
-        )
+        _res_low = self.distance_to_resolution(_low)
+        _res_high = self.distance_to_resolution(_high)
+        if _res_low is not None and _res_high is not None:
+            self._nominal_limits = (_res_low, _res_high)
+        return self._nominal_limits
 
     def get_limits_for_wavelength(self, wavelength: float):
         """Return resolution low and high limits.
@@ -150,8 +151,8 @@ class AbstractResolution(AbstractMotor):
         Returns:
             (float): Resolution [Å]
         """
-        wavelength = wavelength or HWR.beamline.energy.get_wavelength()
         try:
+            wavelength = wavelength or HWR.beamline.energy.get_wavelength()
             ttheta = atan(radius / distance)
             if ttheta:
                 return wavelength / (2 * sin(ttheta / 2))
@@ -211,7 +212,9 @@ class AbstractResolution(AbstractMotor):
             value (float): Detector distance [mm].
         """
         value = value or self._hwr_detector.distance.get_value()
-        self._nominal_value = self.distance_to_resolution(value)
+        _res = self.distance_to_resolution(value)
+        if _res is not None:
+            self._nominal_value = _res
         self.emit("valueChanged", (self._nominal_value,))
 
     def update_energy(self, value):
