@@ -100,6 +100,9 @@ class AbstractEnergy(AbstractActuator):
         """
         energy = energy or self.get_value()
 
+        if energy is None:
+            return None
+
         # TODO NBNB This is naughty. Could  we not put the heuristic switch
         #  in the calling functions, to avoid surprises?
         #  rhfogh 20210826

@@ -29,16 +29,18 @@ Example yml configuration:
 """
 
 import enum
-import threading
+import logging
 import time
+import gevent
 
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
-from mxcubecore.HardwareObjects.BlissProxy import BlissProxy
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
+log = logging.getLogger(__name__)
 
 @enum.unique
 class BlissMotorStates(enum.Enum):
@@ -64,7 +66,7 @@ class BlissMotorStates(enum.Enum):
     UNKNOWN = 8
 
 
-class BlissMotor(AbstractMotor, BlissProxy):
+class BlissMotor(AbstractMotor):
     """Bliss Motor implementation"""
 
     SPECIFIC_STATES = BlissMotorStates
@@ -89,8 +91,7 @@ class BlissMotor(AbstractMotor, BlissProxy):
     def init(self):
         """Initialise the motor"""
         super().init()
-        BlissProxy.init(self)
-        self.motor_obj = self.get_object(self.actuator_name)
+        self.motor_obj = HWR.beamline.bliss_proxy.get_object(self.actuator_name)
 
         # init state to match motor's one
         self.update_state(self.get_state())
@@ -109,6 +110,7 @@ class BlissMotor(AbstractMotor, BlissProxy):
 
     def _on_property_changed(self, data: dict) -> None:
         """Callback for property changes received via blissclient."""
+        log.info("BlissMotor property event: %r", data)
         if "position" in data:
             self.update_value(data["position"])
         if "state" in data:
@@ -116,7 +118,7 @@ class BlissMotor(AbstractMotor, BlissProxy):
 
     def _state2enum(self, state):
         """Translate the state to HardwareObjectState and BlissMotorStates
-        Args:
+        Args:s
            state (string): state
         Returns:
            (tuple): (HardwareObjectState, BlissMotorStates)
@@ -135,8 +137,14 @@ class BlissMotor(AbstractMotor, BlissProxy):
             (enum HardwareObjectState): Motor state.
         """
         # Via BlissProxy the REST API returns state as a list of strings.
+        # Wrap in try/except: motor_obj.state makes a REST call that can fail
+        # transiently while the BLISS session is loading at startup.
+        try:
+            bliss_states = self.motor_obj.state or []
+        except Exception:
+            return HardwareObjectState.UNKNOWN
         state = HardwareObjectState.UNKNOWN
-        for stat in self.motor_obj.state or []:
+        for stat in bliss_states:
             try:
                 return HardwareObjectState[stat]
             except KeyError:
@@ -168,7 +176,10 @@ class BlissMotor(AbstractMotor, BlissProxy):
         Returns:
             float: Motor position.
         """
-        pos = self.motor_obj.position
+        try:
+            pos = self.motor_obj.position
+        except Exception:
+            return self._nominal_value if self._nominal_value is not None else None
         if pos is None:
             # motor_obj.position can be None during init or if REST call returns null
             return self._nominal_value if self._nominal_value is not None else 0.0
@@ -179,14 +190,16 @@ class BlissMotor(AbstractMotor, BlissProxy):
         Returns:
             (tuple): two floats tuple (low limit, high limit).
         """
-        # no limit = None, but None is a problematic value
-        # for some GUI components (like MotorSpinBox), so
-        # instead we return very large value.
 
-        _low, _high = self.motor_obj.limits
-        _low = _low if _low else -1e6
-        _high = _high if _high else 1e6
-        self._nominal_limits = (_low, _high)
+        _yaml_low = self.get_property("low_limit")
+        _yaml_high = self.get_property("high_limit")
+        if _yaml_low is not None and _yaml_high is not None:
+            self._nominal_limits = (float(_yaml_low), float(_yaml_high))
+        else:
+            _low, _high = self.motor_obj.limits
+            _low = _low if _low else -1e6
+            _high = _high if _high else 1e6
+            self._nominal_limits = (_low, _high)
         return self._nominal_limits
 
     def get_velocity(self):
@@ -201,31 +214,39 @@ class BlissMotor(AbstractMotor, BlissProxy):
         """Move motor to absolute value.
         Args:
             value (float): target value
-        Note: move() is non-blocking — it fires the REST request and returns a
-              future.  The state is optimistically set to BUSY immediately so
-              that wait_ready() (called by set_value when timeout > 0) does not
-              return before the first MOVING event arrives via socket.io.
         """
+
+        if self.motor_obj is None:
+            log.error(
+                "BlissMotor._set_value: no motor_obj for actuator '%s'", self.actuator_name
+            )
+            raise RuntimeError(
+                "Motor object not found for actuator '%s'" % (self.actuator_name,)
+            )
+
         self.update_state(HardwareObjectState.BUSY)
-        self.motor_obj.move(value)
+        try:
+            self.motor_obj.move(value)
+        except Exception:
+            log.exception("Error while calling move() on motor_obj (actuator=%s)", self.actuator_name)
+            raise
 
         def _poll_completion():
-            deadline = time.time() + 300  # 5-minute safety timeout
+            deadline = time.time() + 300  # 5-minute safety limit
             while time.time() < deadline:
                 time.sleep(0.5)
                 try:
-                    states = self.motor_obj.state or []
-                    if "MOVING" not in states:
+                    if self.get_state() != HardwareObjectState.BUSY:
                         self._update_state()
                         self.update_value(self.get_value())
                         return
                 except Exception:
                     pass
+            # Deadline reached — force a state refresh anyway
             self._update_state()
 
-        threading.Thread(
-            target=_poll_completion, daemon=True, name="bliss-motor-poll"
-        ).start()
+        gevent.spawn(_poll_completion)
+
 
     def abort(self):
         """Stop the motor movement"""

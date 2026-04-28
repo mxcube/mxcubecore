@@ -1,19 +1,17 @@
 from mxcubecore.BaseHardwareObjects import HardwareObject
-from mxcubecore.HardwareObjects.abstract.AbstractMCA import AbstractMCA
 from mxcubecore.TaskUtils import task
+from mxcubecore import HardwareRepository as HWR
 
 
-class BlissRontecMCA(AbstractMCA, HardwareObject):
+class BlissRontecMCA(HardwareObject):
+
     def __init__(self, name):
-        AbstractMCA.__init__(self)
-        HardwareObject.__init__(self, name)
+        super().__init__(name)
         self.mca = None
-        self.calib_cf = []
 
     def init(self):
-        session = self.get_object_by_role("bliss_session")
-        obj_name = self.get_property("object_name")
-        self.mca = getattr(session, obj_name)
+        actuator_name = self.get_property("actuator_name")
+        self.mca = HWR.beamline.bliss_proxy.get_object(actuator_name)
 
     @task
     def read_raw_data(self, chmin=0, chmax=4095, save_data=False):
