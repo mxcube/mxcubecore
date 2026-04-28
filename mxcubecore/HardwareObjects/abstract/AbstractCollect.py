@@ -27,6 +27,7 @@ import collections
 import errno
 import logging
 import os
+import socket
 import time
 
 import gevent
@@ -911,3 +912,27 @@ class AbstractCollect(HardwareObject, object):
         # self.mesh_total_nb_frames = total_nb_frames
         # self.mesh_range = mesh_range_param
         # self.mesh_center = mesh_center_param
+
+    def adxv_notify(self, image_filename: str, image_num: int = 1):
+        """
+        Notify ADXV of new image
+
+        Args:
+           image_filename: full path to image file
+           image_num: image number within image file to open (if it contains
+                      multiple images i.e HDF5)
+        """
+        self.log.info("ADXV notify '%s'", image_filename)
+        adxv_host = self.get_property("adxv_host", "localhost")
+        adxv_port = int(self.get_property("adxv_port", "8100"))
+        message = f"load_image {image_filename}\n slab {image_num}\n"
+
+        try:
+            with socket.create_connection((adxv_host, adxv_port)) as sock:
+                sock.sendall(message.encode("utf-8"))
+        except socket.timeout:
+            self.log.warning(
+                "ADXV: Timeout while connecting/sending for image '%s'", image_filename
+            )
+        except OSError:
+            self.log.exception("ADXV: Failed to load image '%s'", image_filename)
