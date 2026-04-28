@@ -307,6 +307,7 @@ class SampleView(AbstractSampleView):
             logging.exception("Could not complete automatic centring")
             logging.getLogger("user_level_log").info("Automatic loop centring failed")
             self.centring_failed()
+            self.reject_centring()
         else:
             if res is None:
                 logging.error("Could not complete automatic centring")
