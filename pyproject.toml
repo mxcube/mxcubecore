@@ -48,7 +48,7 @@ jsonschema = "^4.17.1"
 lxml = "^6.1.0"
 matplotlib = "^3.6.2"
 numpy = "^1.23.5"
-Pillow = "^10.4.0"
+Pillow = "^12.2.0"
 pydantic = ">=2.8.2,<2.9.0"
 PyDispatcher = "^2.0.6"
 "ruamel.yaml" = "^0.17.21"
@@ -63,7 +63,7 @@ python-ldap = "^3.4.5"
 requests = "^2.33.0"
 colorama = "^0.4.6"
 pyicat-plus = {version = "^1.0.0", optional = true}
-mxcube-video-streamer = ">=1.8.4"
+mxcube-video-streamer = "^1.8.5"
 defusedxml = "0.7.1"
 
 [tool.poetry.group.dev.dependencies]
