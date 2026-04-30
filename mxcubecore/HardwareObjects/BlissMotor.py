@@ -241,23 +241,6 @@ class BlissMotor(AbstractMotor):
             log.exception("Error while calling move() on motor_obj (actuator=%s)", self.actuator_name)
             raise
 
-        def _poll_completion():
-            deadline = time.time() + 300  # 5-minute safety limit
-            while time.time() < deadline:
-                time.sleep(0.5)
-                try:
-                    if self.get_state() != HardwareObjectState.BUSY:
-                        self._update_state()
-                        self.update_value(self.get_value())
-                        return
-                except Exception:
-                    pass
-            # Deadline reached — force a state refresh anyway
-            self._update_state()
-
-        gevent.spawn(_poll_completion)
-
-
     def abort(self):
         """Stop the motor movement"""
         try:

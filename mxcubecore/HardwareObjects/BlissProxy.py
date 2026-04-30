@@ -35,10 +35,10 @@ Typical YAML configuration::
       blissapi_url: http://mxcube-test-1:5000
 """
 
+import asyncio
 import os
 import logging
-import threading
-import gevent.monkey
+import gevent
 
 try:
     from blissclient import BlissClient, Hardware, HardwareObject, Session
@@ -51,9 +51,6 @@ from mxcubecore.BaseHardwareObjects import HardwareObject as MXHardwareObject
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
-log = logging.getLogger(__name__)
-
-
 class BlissProxy(MXHardwareObject):
     """Client for the BLISS REST API. """
 
@@ -61,7 +58,6 @@ class BlissProxy(MXHardwareObject):
         super().__init__(name)
         self._client: BlissClient | None = None
         self._objects: dict[str, HardwareObject] = {}
-        self._events_thread: threading.Thread | None = None
 
     def init(self):
         """Initialise the BLISS API client and populate the object cache."""
@@ -75,9 +71,9 @@ class BlissProxy(MXHardwareObject):
 
         try:
             self._client = BlissClient(url)
-            log.info("BlissProxy: BlissClient created for %s", url)
+            self.log.info("BlissProxy: BlissClient created for %s", url)
         except Exception:
-            log.error("BlissProxy: failed to create BlissClient for %s", url, exc_info=True)
+            self.log.error("BlissProxy: failed to create BlissClient for %s", url, exc_info=True)
             raise
 
         self._client.register_callback("connect", self._on_connect)
@@ -85,53 +81,28 @@ class BlissProxy(MXHardwareObject):
 
         try:
             self._load_known_objects()
-            log.info("BlissProxy: loaded %d objects from BLISS session", len(self._objects))
+            self.log.info("BlissProxy: loaded %d objects from BLISS session", len(self._objects))
         except Exception:
-            log.error(
+            self.log.error(
                 "BlissProxy: _load_known_objects() failed — object pre-cache is empty, "
                 "falling back to on-demand fetch via get_object()",
                 exc_info=True,
             )
 
-        self._connect_events()
+        connect = self._client.create_connect(async_client=True)
+        self.run_asyncio(connect())
 
-        log.info(
+        self.log.info(
             "BlissProxy ready — %d known object(s) loaded",
             len(self._objects),
         )
 
-    def _connect_events(self) -> None:
-        """Start the socket.io event loop in a background daemon thread.
+    def run_asyncio(self, future: asyncio.Future):
+        def _await_future():
+            asyncio.run(future)
+            return future.get()
 
-        This is required for server-pushed events (position updates, state
-        changes, online/offline) to be delivered to subscribers registered
-        via ``hardware_object.subscribe(...)``.
-        """
-        try:
-            connect_fn = self._client.create_connect()
-        except Exception:
-            log.warning(
-                "BlissProxy: could not create socket.io connect function — "
-                "real-time events disabled, REST polling still functional.",
-                exc_info=True,
-            )
-            return
-
-        # gevent.monkey.patch_all() replaces threading.Thread with a greenlet
-        # wrapper.  We need the real OS thread to keep socket.io's internal
-        # threads isolated from gevent's hub.
-        try:
-            _RealThread = gevent.monkey.get_original("threading", "Thread")
-        except Exception:
-            _RealThread = threading.Thread
-
-        self._events_thread = _RealThread(
-            target=connect_fn,
-            daemon=True,
-            name="bliss-events",
-        )
-        self._events_thread.start()
-        log.info("BLISS socket.io event thread started")
+        return gevent.spawn(_await_future)
 
     def _load_known_objects(self) -> None:
         """Fetch available hardware objects and cache those with a known type.
@@ -151,28 +122,28 @@ class BlissProxy(MXHardwareObject):
 
         for name, initial_state in hw._cached_initial_statuses.items():
             if initial_state.type not in known_types:
-                log.debug("Skipping '%s' unknown type '%s'", name, initial_state.type)
+                self.log.debug("Skipping '%s' unknown type '%s'", name, initial_state.type)
                 skipped += 1
                 continue
             try:
                 self._objects[name] = hw.get(name) # build python object
                 loaded += 1
-                log.debug("Loaded '%s' [%s]", name, initial_state.type)
+                self.log.debug("Loaded '%s' [%s]", name, initial_state.type)
             except Exception:
-                log.warning("Could not instantiate object '%s'", name, exc_info=True)
+                self.log.warning("Could not instantiate object '%s'", name, exc_info=True)
                 skipped += 1
 
-        log.info(
+        self.log.info(
             "Object discovery: %d loaded, %d skipped (unknown type) out of %d total",
             loaded, skipped, total,
         )
 
     def _on_connect(self) -> None:
-        log.info("Connected to BLISS API")
+        self.log.info("Connected to BLISS API")
         self.emit("connected")
 
     def _on_disconnect(self) -> None:
-        log.warning("Disconnected from BLISS API")
+        self.log.warning("Disconnected from BLISS API")
         self.emit("disconnected")
 
     def refresh(self) -> None:
@@ -181,7 +152,7 @@ class BlissProxy(MXHardwareObject):
         Useful after a reconnect or when new objects have been registered in
         the BLISS session at runtime.
         """
-        log.info("Refreshing BlissProxy object cache")
+        self.log.info("Refreshing BlissProxy object cache")
         self._load_known_objects()
 
     @property
@@ -212,12 +183,21 @@ class BlissProxy(MXHardwareObject):
         if name in self._objects:
             return self._objects[name]
 
+        if not self._objects:
+            try:
+                self.log.info("BlissProxy: cache is empty, retrying _load_known_objects() for '%s'", name)
+                self._load_known_objects()
+            except Exception:
+                self.log.warning("BlissProxy: _load_known_objects() retry failed", exc_info=True)
+            if name in self._objects:
+                return self._objects[name]
+
         # Fallback: fetch directly, bypassing the type registry check.
         # Useful for devices whose type is not yet registered in blissclient
         # (e.g. BlissRontecMCA).
         try:
             obj = self._client.hardware.get(name)
-            log.warning(
+            self.log.warning(
                 "Object '%s' was not pre-cached (unknown type). "
                 "Fetching directly — attribute availability depends on the "
                 "server type definition.",
