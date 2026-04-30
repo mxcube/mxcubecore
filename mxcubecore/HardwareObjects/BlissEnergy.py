@@ -157,3 +157,10 @@ class BlissEnergy(AbstractEnergy):
         """Abort the procedure"""
         if self._cmd_execution and not self._cmd_execution.ready():
             self._cmd_execution.kill()
+        if self.energy_motor is not None:
+            try:
+                self.energy_motor.abort()
+            except Exception:
+                logging.getLogger("MX3.HWR").debug(
+                    "BlissEnergy.abort: error aborting energy_motor", exc_info=True
+                )

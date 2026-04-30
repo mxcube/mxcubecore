@@ -65,6 +65,9 @@ class BlissShutter(AbstractShutter):
     """BLISS implementation of AbstractShutter"""
 
     SPECIFIC_STATES = BlissShutterStates
+    # Only OPEN and CLOSED are user-commandable; the other values in VALUES
+    # (MOVING, DISABLE, STANDBY, FAULT) are read-only status indicators.
+    COMMANDABLE_VALUES = ("OPEN", "CLOSED")
 
     def __init__(self, name):
         super().__init__(name)
@@ -164,23 +167,6 @@ class BlissShutter(AbstractShutter):
             self._bliss_obj.open()
         elif value.name == "CLOSED":
             self._bliss_obj.close()
-
-        # socket.io events are often unavailable (REST-only mode), so poll
-        # the shutter state until it leaves MOVING, then emit the update.
-        def _poll_completion():
-            deadline = time.time() + 30  # 30-second safety limit for a shutter
-            while time.time() < deadline:
-                time.sleep(0.2)
-                try:
-                    state = self.get_state()
-                    if state != HardwareObjectState.BUSY:
-                        self._update_state()
-                        return
-                except Exception:
-                    pass
-            self._update_state()
-
-        gevent.spawn(_poll_completion)
 
     def set_mode(self, value):
         """Set automatic or manual mode for a Frontend shutter
