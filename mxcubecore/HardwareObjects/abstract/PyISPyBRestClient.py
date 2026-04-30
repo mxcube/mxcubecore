@@ -12,6 +12,10 @@ class NoTokenException(Exception):
     """Exception raised when no token is returned from authentication."""
 
 
+class PyISPyBUnsuccessfulResponse(Exception):
+    """Exception raised when a response from the server is unsuccessful (not 200)."""
+
+
 class PyISPyBRestClient:
     """REST client for PyISPyB.
 
@@ -24,14 +28,20 @@ class PyISPyBRestClient:
         self._timeout = timeout
 
     def _decode_json_response(self, response):
-        log.info(  # TODO@dominikatrojanowska: remove
+        log.info(  # TODO@dominikatrojanowska: change to debug
             "Received response from %s. Status code: %s, Response text: %s",
             response.url,
             response.status_code,
             response.text,
         )
+        if response.status_code not in (200, 201):
+            msg = (
+                f"Request to {response.url} failed with code: {response.status_code} "
+                f"Response: {response.text}"
+            )
+            raise PyISPyBUnsuccessfulResponse(msg)
         try:
-            return response.json()
+            response_json = response.json()
         except JSONDecodeError:
             log.exception(
                 "Failed to decode JSON response from %s. "
@@ -41,10 +51,13 @@ class PyISPyBRestClient:
                 response.text,
             )
             raise
+        if "results" in response_json:
+            return response_json["results"]
+        return response_json
 
     def post(self, endpoint, **kwargs):
         url = urljoin(self._rest_root, endpoint)
-        log.info(  # TODO@dominikatrojanowska: remove
+        log.info(  # TODO@dominikatrojanowska: chnage to debug
             f"POST request to {url} with timeout {self._timeout} and kwargs {kwargs}"
         )
         return self._decode_json_response(
@@ -53,7 +66,7 @@ class PyISPyBRestClient:
 
     def get(self, endpoint, **kwargs):
         url = urljoin(self._rest_root, endpoint)
-        log.info(  # TODO@dominikatrojanowska: remove
+        log.info(  # TODO@dominikatrojanowska: change to debug
             f"GET request to {url} with timeout {self._timeout} and kwargs {kwargs}"
         )
         return self._decode_json_response(
@@ -101,7 +114,7 @@ class PyISPyBRestClient:
     # def store_ssx_collection_parameters(self, ssx_data: dict):
     #     response = self.post("ssx/datacollection/", json=ssx_data)
     #     if response.status_code != 200:
-    #         raise Exception(
+    #         raise PyISPyBUnsuccessfulResponse(
     #             "Failed to store SSX collection parameters in PY-ISPyB. "
     #             f"Status code: {response.status_code}, Response: {response.text}"
     #         )

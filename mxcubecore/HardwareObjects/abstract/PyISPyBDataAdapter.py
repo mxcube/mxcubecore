@@ -1,10 +1,14 @@
 # ruff: noqa: TD003, FIX002, ERA001
 
 import logging
+from dataclasses import asdict
 from datetime import datetime, timedelta
 from typing import Dict, List
 
-from mxcubecore.HardwareObjects.abstract import PyISPyBRestClient
+from mxcubecore.HardwareObjects.abstract.PyISPyBRestClient import (
+    PyISPyBRestClient,
+    PyISPyBUnsuccessfulResponse,
+)
 from mxcubecore.model.lims_session import LimsSessionManager, Proposal, Session
 
 
@@ -37,8 +41,7 @@ class PyISPyBDataAdapter:
     def get_proposals(self) -> List[Proposal]:
         """Returns proposals to which authenticated user has access."""
         return [
-            self.__to_proposal(proposal)
-            for proposal in self.client.get("proposals").get("results", [])
+            self.__to_proposal(proposal) for proposal in self.client.get("proposals")
         ]
 
     def find_proposal(self, code: str, number: str) -> Proposal:
@@ -60,7 +63,7 @@ class PyISPyBDataAdapter:
                 self.__to_session(session)
                 for session in self.client.get(
                     "sessions?proposal=%s%s&beamLineName=%s" % (code, number, beamline)
-                ).get("results", [])
+                )
             ]
         )
 
@@ -68,7 +71,7 @@ class PyISPyBDataAdapter:
         self, code: str, number: str, beamline: str
     ) -> List[Session]:
         """Finds todays sessions by proposal code, number and beamline name."""
-        # TODO@dominikatrojanowska: add ``day`` to the url when implemented in py-ispyb,
+        # TODO@dominikatrojanowska: add ``day`` to the url when implemented in PyISPyB,
         # Until then fetch all sessions for month and year, next filter by day in mxcube
         today = datetime.today()  # noqa: DTZ002
         month, year = today.month, today.year
@@ -77,7 +80,7 @@ class PyISPyBDataAdapter:
             for session in self.client.get(
                 "sessions?proposal=%s%s&beamLineName=%s&year=%s&month=%s"
                 % (code, number, beamline, year, month)
-            ).get("results", [])
+            )
             if self.__is_time_between(
                 datetime.fromisoformat(session.get("startDate")),
                 datetime.fromisoformat(session.get("endDate")),
@@ -91,7 +94,7 @@ class PyISPyBDataAdapter:
     ) -> LimsSessionManager:
         """Get the list of sessions for the authenticated user and current beamline.
 
-        Py-ISPyB returns only proposals accessible to the authenticated user.
+        PyISPyB returns only proposals accessible to the authenticated user.
         For each proposal, the method fetches sessions for the current month and
         picks one overlapping with the current time. If no such session exists,
         a new one is created.
@@ -119,8 +122,8 @@ class PyISPyBDataAdapter:
 
     def create_session(self, proposal: Proposal) -> Session:
         """Creates new session via PyISPyB REST API for the given proposal."""
-        # TODO@SOLEIL: This is the closest implementation to current IPSYBAdapter.
-        # Ensure session creation is correct (session data, posting to PY-ISPYB).
+        # TODO@SOLEIL: This is the closest implementation to current PyISPyBAdapter.
+        # Ensure session creation is correct (session data, posting to PyISPyB).
         # Which part can be common for SOLEIL and MAX IV?
         # TODO@dominikatrojanowska: check if response is ok and handle errors
         #  NOT TESTED
@@ -208,3 +211,247 @@ class PyISPyBDataAdapter:
                 today,
             )
             return False
+
+    # =========================
+    #  LEGACY METHODS
+    # =========================
+
+    def _store_data_collection_group(self, group_data: dict) -> dict:
+        """Stores data collection group in PyISPyB and returns the group id.
+
+        Args:
+            group_data: A dictionary containing data collection group information.
+
+        Returns:
+            Response from PyISPyB: {
+                "dataCollectionGroupId": 0,
+                "experimentType": "string",
+                "blSampleId": 0,
+                "sessionId": 0,
+                "workflowId": 0
+            }
+        """
+        return self.client.post("datacollections/group", json=group_data)
+
+    def _update_data_collection(self, mx_collection: dict) -> tuple[int, int]:
+        """Updates data collection in PyISPyB.
+
+        Args:
+            mx_collection: A dictionary containing data collection information.
+                Expected to contain "collection_id" key.
+
+        Returns:
+            Tuple containing data collection id and data collection group id.
+        """
+        dc_id, dc_g_id = 0, 0
+        if "collection_id" in mx_collection:
+            mx_collection["group_id"] = self._store_data_collection_group(
+                mx_collection
+            )["dataCollectionGroupId"]
+            try:
+                dc_id, dc_g_id, *_ = self.client.post(
+                    "datacollections/datacollection", json=mx_collection
+                )
+            except PyISPyBUnsuccessfulResponse:
+                self.logger.exception("Error in _update_data_collection")
+        else:
+            self.logger.error(
+                "Error in _update_data_collection: collection-id missing, "
+                "the PyISPyB data-collection is not updated."
+            )
+        return dc_id, dc_g_id
+
+    def store_image(self, image_dict: dict) -> int:
+        """Stores a data collection image in PyISPyB.
+
+        Args:
+            image_dict: A dictionary containing image information (paths and properties
+                of data collection). Expected to contain "dataCollectionId" key.
+
+        Returns:
+            The id of the stored image. 0 if failed or dataCollectionId is missing.
+        """
+        self.logger.info("Storing image in LIMS")
+        image_id = 0
+        if "dataCollectionId" in image_dict:
+            try:
+                image_id = self.client.post("images/image", json=image_dict)
+            except PyISPyBUnsuccessfulResponse:
+                self.logger.exception("Exception in store_image")
+            else:
+                self.logger.info("Storing image in LIMS completed, id : %s", image_id)
+        else:
+            self.logger.error(
+                "Error in store_image: data_collection_id missing, "
+                "could not store image in LIMS"
+            )
+        return image_id
+
+    def get_samples(self, proposal_id: int) -> List[Dict]:
+        """Fetches samples for the given proposal id from PyISPyB."""
+        try:
+            samples = self.client.get(
+                "samples?proposal=%s&beamLineName=%s"
+                # TODO@dominikatrojanowska: when available at PyISPyB API change to:
+                #  "samples?proposalId=%s&beamLineName=%s"
+                % (proposal_id, self.beamline_name)
+            )
+        except PyISPyBUnsuccessfulResponse:
+            self.logger.exception("Error in get_samples")
+        return samples
+
+    def store_robot_action(self, robot_action: dict) -> int:
+        """Stores robot action.
+
+        Args:
+            robot_action: A dictionary containing robot action information.
+                Expected to contain "sampleId" key.
+
+        Returns:
+            The id of the robot action. 0 if failed or required keys are missing.
+        """
+        # TODO@dominikatrojanowska: ensure correct data type, maybe: datetime.strptime(
+        #  endTime, "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        self.logger.info("Storing robot actions in LIMS")
+        robot_action_id = 0
+        try:
+            robot_action["blSampleId"] = robot_action.pop("sampleId")
+        except KeyError:
+            self.logger.exception(
+                "Error in store_robot_action: missing required keys in robot_action"
+                "dictionary, could not store robot action in LIMS"
+            )
+        else:
+            robot_action["startTimestamp"] = robot_action.pop("startTime", "")
+            robot_action["endTimestamp"] = robot_action.pop("endTime", "")
+            try:
+                robot_action_id = self.client.post(
+                    "events/robot-action", json=robot_action
+                )
+            except PyISPyBUnsuccessfulResponse:
+                self.logger.exception("Exception in store_robot_action")
+        return robot_action_id
+
+    def associate_bl_sample_and_energy_scan(self, entry_dict: dict) -> int:
+        """Associates bl sample and energy scan in PyISPyB.
+
+        Args:
+            entry_dict: A dictionary containing energy scan and bl sample information.
+
+        Returns:
+            The id of the association. -1 if association failed.
+        """
+        payload = {
+            "energyScanId": entry_dict["energyScanId"],
+            "blSampleId": entry_dict["blSampleId"],
+        }
+        try:
+            # TODO@dominikatrojanowska: endpoint will be created
+            assoc_id = self.client.post(
+                "events/energyscan/scanId/BlSample/blSampleId", json=payload
+            )
+        except Exception:
+            self.logger.exception(
+                "Failed to associate bl sample and energy scan in PyISPyB"
+            )
+            assoc_id = -1
+        return assoc_id
+
+    def get_data_collection(self, data_collection_id: int) -> dict:
+        """Fetches data collection details from PyISPyB.
+
+        Args:
+            data_collection_id: The id of the data collection to fetch.
+
+        Returns:
+            Dictionary containing data collection details or empty if fetching failed.
+        """
+        try:
+            response = self.client.get("events/datacollection/%s" % data_collection_id)
+        except Exception:
+            self.logger.exception("Failed to get data collection from PyISPyB")
+            return {}
+        dc = asdict(response)
+        dc["startTime"] = datetime.strftime(dc["startTime"], "%Y-%m-%d %H:%M:%S")
+        dc["endTime"] = datetime.strftime(dc["endTime"], "%Y-%m-%d %H:%M:%S")
+        return dc
+
+    def find_detector(
+        self,
+        manufacturer,
+        model,
+        mode,
+        type="",  # noqa: A002
+    ) -> Dict | None:
+        """Finds detector by its type, manufacturer, model and mode.
+
+        Gives the first matching detector or None if no match is found.
+        Args:
+            manufacturer: The manufacturer of the detector.
+            model: The model of the detector.
+            mode: The mode of the detector.
+            type: The type of the detector (optional).
+
+        Returns:
+            A dictionary containing detector details.
+        """
+        try:
+            return self.client.get(
+                "detectors?manufacturer=%s&model=%s&mode=%s&type=%s"
+                % (
+                    manufacturer,
+                    model,
+                    mode,
+                    type if type else "",
+                )
+            )
+        except PyISPyBUnsuccessfulResponse:
+            self.logger.exception("`Exception in find_detector")
+            return None
+
+    def update_session(self, session: dict) -> dict:
+        """Updates Beamline Setup of existing session.
+
+        Returns dictionary containing updated session details from PyISPyB.
+        If updating failed, returns empty dictionary.
+        """
+        # TODO@mohsendahesh: beamlineSetupId parameter should be added to API
+        response = {}
+        try:
+            response = self.client.post(
+                "sessions/%s?beamlineSetupId=%s"
+                % (
+                    session["sessionId"],
+                    session.get("BeamLineSetup").get("beamLineSetupId"),
+                ),
+            )
+
+        except (PyISPyBUnsuccessfulResponse, KeyError):
+            self.logger.exception("Failed to store or update session")
+        return response
+
+    def get_session(self, session_id: int) -> dict:
+        """Fetches session details from PyISPyB by session id."""
+        try:
+            session = self.client.get("sessions/%s" % session_id)
+        except PyISPyBUnsuccessfulResponse:
+            self.logger.exception("Failed to get session from PyISPyB")
+            session = {}
+        return session
+
+    def store_beamline_setup(self, session_id: int, bl_config: dict) -> int | None:
+        beamline_setup_id = None
+        session = self.get_session(session_id)
+        if session:
+            try:
+                beamline_setup_id = self.client.post(
+                    "beamline-setups/beamline-setup", json=bl_config
+                )
+            except PyISPyBUnsuccessfulResponse:
+                self.logger.exception(
+                    "Failed to store or update beamline setup in PyISPyB"
+                )
+            bl_config["beamlineSetupId"] = beamline_setup_id
+            session["BeamLineSetup"] = bl_config
+            self.update_session(session)
+        return beamline_setup_id
