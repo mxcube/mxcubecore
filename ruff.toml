@@ -593,14 +593,6 @@ convention = "google"
     "F841",
     "S605",
 ]
-"mxcubecore/HardwareObjects/MD2Motor.py" = [
-    "B028",
-    "B904",
-    "E501",
-]
-"mxcubecore/HardwareObjects/MachCurrent.py" = [
-    "E501",
-]
 "mxcubecore/HardwareObjects/Marvin.py" = [
     "B007",
     "E501",
@@ -616,9 +608,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/Microdiff.py" = [
     "S110",
 ]
-"mxcubecore/HardwareObjects/MicrodiffActuator.py" = [
-    "F841",
-]
 "mxcubecore/HardwareObjects/MicrodiffAperture.py" = [
     "B904",
     "B905",
@@ -629,10 +618,6 @@ convention = "google"
     "E713",
     "E741",
     "F841",
-]
-"mxcubecore/HardwareObjects/MicrodiffMotor.py" = [
-    "B006",
-    "B904",
 ]
 "mxcubecore/HardwareObjects/MiniDiff.py" = [
     "E501",
@@ -886,11 +871,6 @@ convention = "google"
     "E722",
     "F821",
 ]
-"mxcubecore/HardwareObjects/XRFSpectrum.py" = [
-    "E501",
-    "F841",
-    "S110",
-]
 "mxcubecore/HardwareObjects/XSDataAutoprocv1_0.py" = [
     "B007",
     "B904",
@@ -1050,9 +1030,6 @@ convention = "google"
 ]
 "mxcubecore/HardwareObjects/mockup/MachineInfoMockup.py" = [
     "E501",
-]
-"mxcubecore/HardwareObjects/mockup/MicrodiffApertureMockup.py" = [
-    "B006",
 ]
 "mxcubecore/HardwareObjects/mockup/MultiCollectMockup.py" = [
     "F841",
