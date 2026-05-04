@@ -159,7 +159,7 @@ class PyISPyBDataAdapter:
             state=proposal.get("state", "").capitalize(),
         )
 
-    def __to_session(self, session: Dict, proposal: Proposal = None) -> Session:
+    def __to_session(self, session: Dict, proposal: Proposal | None) -> Session:
         """Converts session data received from PyISPyB REST API to a Session object."""
         if proposal:
             proposal_name = proposal.name
@@ -243,13 +243,13 @@ class PyISPyBDataAdapter:
         Returns:
             Tuple containing data collection id and data collection group id.
         """
-        dc_id, dc_g_id = 0, 0
+        dc_id, dc_group_id = 0, 0
         if "collection_id" in mx_collection:
             mx_collection["group_id"] = self._store_data_collection_group(
                 mx_collection
             )["dataCollectionGroupId"]
             try:
-                dc_id, dc_g_id, *_ = self.client.post(
+                dc_id, dc_group_id, *_ = self.client.post(
                     "datacollections/datacollection", json=mx_collection
                 )
             except PyISPyBUnsuccessfulResponse:
@@ -259,7 +259,7 @@ class PyISPyBDataAdapter:
                 "Error in _update_data_collection: collection-id missing, "
                 "the PyISPyB data-collection is not updated."
             )
-        return dc_id, dc_g_id
+        return dc_id, dc_group_id
 
     def store_image(self, image_dict: dict) -> int:
         """Stores a data collection image in PyISPyB.
@@ -440,6 +440,14 @@ class PyISPyBDataAdapter:
         return session
 
     def store_beamline_setup(self, session_id: int, bl_config: dict) -> int | None:
+        """
+        Stores beamline setup in PyISPyB and associates it with the session.
+
+        Args:
+            session_id: The id of the session to associate the beamline setup with.
+            bl_config: A dictionary containing beamline setup information.
+        Returns:
+            The id of the stored beamline setup. None if failed."""
         beamline_setup_id = None
         session = self.get_session(session_id)
         if session:
@@ -455,3 +463,118 @@ class PyISPyBDataAdapter:
             session["BeamLineSetup"] = bl_config
             self.update_session(session)
         return beamline_setup_id
+
+    def store_data_collection(self, mx_collection, bl_config=None):
+        self.logger.info("Storing datacollection in PyISPyB")
+        return self._store_data_collection(mx_collection, bl_config)
+
+    def update_data_collection(self, mx_collection):
+        self.logger.info("Updating datacollection in PyISPyB")
+        return self._update_data_collection(mx_collection)
+
+    def finalize_data_collection(self, mx_collection):
+        self.logger.info("Updating datacollection in PyISPyB")
+        return self._update_data_collection(mx_collection)
+
+    def _store_data_collection(self, mx_collection: dict, bl_config: dict | None):
+        """Stores data collection group in PyISPyB and returns the group id.
+
+        Args:
+            mx_collection: A dictionary containing data collection information.
+            bl_config: A dictionary containing beamline setup information (optional).
+
+        Returns:
+            Store data collection id and detector id if found, otherwise 0.
+        """
+        if bl_config:
+            bl_config["synchrotronMode"] = bl_config.get(
+                "synchrotronMode", mx_collection.get("synchrotronMode", "")
+            )
+            self.store_beamline_setup(mx_collection["sessionId"], bl_config)
+            detector = self.find_detector(
+                bl_config.get("detector_manufacturer", ""),
+                bl_config.get("detector_model", ""),
+                bl_config.get("detector_binning_mode", ""),
+                bl_config.get("detector_type", ""),
+            )
+            if detector:
+                mx_collection["detectorId"] = detector.get("detectorId", 0)
+
+        dc_id, *_ = self.client.post(
+            "datacollections/datacollection", json=mx_collection
+        )
+        return dc_id, mx_collection.get("detectorId", 0)
+
+    def store_energy_scan(self, energyscan: dict) -> dict[str, int]:
+        """Stores energy scan in PyISPyB
+
+        Args:
+            energyscan: A dictionary containing energy scan information.
+
+        Returns:
+            Dictionary {"energyScanId": number}, where number is the id of the stored
+            energy scan.
+        """
+        # TODO@dominikatrojanowska: check the date format
+        # energyscan["startTime"] = datetime.strptime(
+        #     energyscan["startTime"], "%Y-%m-%d %H:%M:%S"
+        # )
+        # energyscan["endTime"] = datetime.strptime(
+        #     energyscan["endTime"], "%Y-%m-%d %H:%M:%S"
+        # )
+        try:
+            return {
+                "energyScanId": self.client.post("events/energyscan", json=energyscan)
+            }
+
+        except PyISPyBUnsuccessfulResponse:
+            self.logger.exception("Failed to store energy scan in PyISPyB")
+            return {"energyScanId": -1}
+
+    def store_xfe_spectrum(self, xfe_spectrum: dict) -> dict[str, int]:
+        """Stores XFE fluorescence spectrum in PyISPyB
+
+        Args:
+            xfe_spectrum: A dictionary containing XFE fluorescence spectrum information.
+
+        Returns:
+            Dictionary {"xfeFluorescenceSpectrumId": number}, where number is the id
+            of the stored XFE fluorescence spectrum.
+        """
+        # TODO@dominikatrojanowska: check the date format
+        # if isinstance(xfe_spectrum["startTime"], str):
+        #     xfe_spectrum["startTime"] = datetime.strptime(
+        #         xfe_spectrum["startTime"], "%Y-%m-%d %H:%M:%S"
+        #     )
+        #     xfe_spectrum["endTime"] = datetime.strptime(
+        #         xfe_spectrum["endTime"], "%Y-%m-%d %H:%M:%S"
+        #     )
+        try:
+            return {
+                "xfeFluorescenceSpectrumId": self.client.post(
+                    "xfespectrum", json=xfe_spectrum
+                )
+            }
+        except PyISPyBUnsuccessfulResponse:
+            self.logger.exception(
+                "Failed to store XFE fluorescence spectrum in PyISPyB"
+            )
+            return {"xfeFluorescenceSpectrumId": -1}
+
+    def update_bl_sample(self, bl_sample: dict) -> dict:
+        """Updates beamline sample in PyISPyB.
+
+        Args:
+            bl_sample: A dictionary containing beamline sample information.
+                Expected to contain "blSampleId" key.
+        Returns:
+            Response from PyISPyB - a dictionary containing updated beamline sample
+            details or empty if updating failed.
+        """
+        try:
+            return self.client.post(
+                "samples/%s" % bl_sample.get("blSampleId"), json=bl_sample
+            )
+        except PyISPyBUnsuccessfulResponse:
+            self.logger.exception("Failed to update beamline sample in PyISPyB")
+        return {}
