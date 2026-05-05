@@ -6,10 +6,9 @@ import logging
 import math
 import os
 import time
+from pathlib import Path
 
 import gevent
-
-from pathlib import Path
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractDetector import AbstractDetector
@@ -253,9 +252,7 @@ class LimaEigerDetector(AbstractDetector):
         dirname = self.get_channel_object("saving_directory").get_value()
         prefix = self.get_channel_object("saving_prefix").get_value()
 
-        saved = []
-
-        for i in range(1, nfiles+1):
+        for i in range(1, nfiles + 1):
             fpath = Path(dirname) / f"{prefix}_data_{i:06d}.h5"
 
             while not fpath.exists():
@@ -277,9 +274,7 @@ class LimaEigerDetector(AbstractDetector):
         if self._monitor_acquisition_greenlet:
             self._monitor_acquisition_greenlet.kill()
 
-        self._monitor_acquisition_greenlet = gevent.spawn(
-            self._monitor_acquisition
-        )
+        self._monitor_acquisition_greenlet = gevent.spawn(self._monitor_acquisition)
 
     def stop_acquisition(self):
         self.update_state(self.STATES.BUSY)
@@ -295,9 +290,7 @@ class LimaEigerDetector(AbstractDetector):
 
         if self._monitor_acquisition_greenlet:
             self._monitor_acquisition_greenlet.kill()
-            self.log.info(
-                "Monitor acqusition greenlet killed before completion"
-            )
+            self.log.info("Monitor acqusition greenlet killed before completion")
             self.emit("progress", 1)
 
     def reset(self):

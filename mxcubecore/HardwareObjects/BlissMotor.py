@@ -163,7 +163,11 @@ class BlissMotor(AbstractMotor):
         Returns:
             float: Motor position.
         """
-        return self.motor_obj.velocity if self.actuator_name == "tape" else self.motor_obj.position
+        return (
+            self.motor_obj.velocity
+            if self.actuator_name == "tape"
+            else self.motor_obj.position
+        )
 
     def get_limits(self):
         """Returns motor low and high limits.
@@ -199,7 +203,7 @@ class BlissMotor(AbstractMotor):
             value (float): target value
         """
         if self.actuator_name == "tape":
-            self.motor_obj.velocity = value if value >0 else -value
+            self.motor_obj.velocity = value if value > 0 else -value
             self.motor_obj.jog(value)
         else:
             self.motor_obj.move(value, wait=False)

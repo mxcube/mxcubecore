@@ -256,11 +256,7 @@ class Beamline(HardwareObject):
         return self.get_object_by_role("procedure")
 
     @property
-    def argus(self)-> HardwareObject | None:
-        return self.get_object_by_role("argus")
-
-    @property
-    def tape(self)-> HardwareObject | None:
+    def tape(self) -> HardwareObject | None:
         return self.get_object_by_role("tape")
 
     @property
