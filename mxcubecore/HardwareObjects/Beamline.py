@@ -252,6 +252,10 @@ class Beamline(HardwareObject):
         return self.get_object_by_role("image_tracking")
 
     @property
+    def argus(self) -> HardwareObject | None:
+        return self.get_object_by_role("argus")
+
+    @property
     def procedure(self) -> HardwareObject | None:
         return self.get_object_by_role("procedure")
 

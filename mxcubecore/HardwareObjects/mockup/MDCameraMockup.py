@@ -130,7 +130,7 @@ class MDCameraMockup(BaseHardwareObjects.HardwareObject):
                 [
                     "video-streamer",
                     "-uri",
-                    "test",
+                    "videotest",
                     "-hs",
                     "localhost",
                     "-p",
@@ -143,6 +143,7 @@ class MDCameraMockup(BaseHardwareObjects.HardwareObject):
                     ", ".join(map(str, self._current_stream_size)),
                     "-id",
                     self.stream_hash,
+                    "-r",
                 ],
                 close_fds=True,
                 stdout=subprocess.DEVNULL,
