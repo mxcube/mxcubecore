@@ -139,7 +139,7 @@ class PyISPyBDataAdapter:
             "comments": "Session created by the BCM",
             "scheduled": False,
         }
-        return self.__to_session(self.client.post("sessions", json=payload), proposal)
+        return self.__to_session(self.client.post("sessions", json=payload))
 
     # =========================
     #  HELPER METHODS
@@ -159,18 +159,12 @@ class PyISPyBDataAdapter:
             state=proposal.get("state", "").capitalize(),
         )
 
-    def __to_session(self, session: Dict, proposal: Proposal | None) -> Session:
+    def __to_session(self, session: Dict) -> Session:
         """Converts session data received from PyISPyB REST API to a Session object."""
-        if proposal:
-            proposal_name = proposal.name
-            proposal_code = proposal.code
-            proposal_number = proposal.number
-            title = proposal.title
-        else:
-            proposal_name = session.get("proposal")
-            proposal_code = "".join([c for c in proposal_name if not c.isdigit()])
-            proposal_number = proposal_name[len(proposal_code) :]
-            title = session.get("title", "")
+        proposal_name = session.get("proposal")
+        proposal_code = "".join([c for c in proposal_name if not c.isdigit()])
+        proposal_number = proposal_name[len(proposal_code) :]
+        title = session.get("title", "")
         start_datetime = datetime.fromisoformat(session.get("startDate"))
         end_datetime = datetime.fromisoformat(session.get("endDate"))
         return Session(
