@@ -288,7 +288,8 @@ class PyISPyBDataAdapter:
                 "samples?proposal=%s&beamLineName=%s"
                 # TODO@dominikatrojanowska: when available at PyISPyB API change to:
                 #  "samples?proposalId=%s&beamLineName=%s"
-                % (proposal_id, self.beamline_name)
+                % (proposal_id, self.beamline_name),
+                timeout=10,
             )
         except PyISPyBUnsuccessfulResponse:
             self.logger.exception("Error in get_samples")

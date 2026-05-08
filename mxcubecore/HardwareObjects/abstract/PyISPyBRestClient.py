@@ -56,21 +56,23 @@ class PyISPyBRestClient:
         return response_json
 
     def post(self, endpoint, **kwargs):
+        timeout = kwargs.pop("timeout", self._timeout)
         url = urljoin(self._rest_root, endpoint)
         log.info(  # TODO@dominikatrojanowska: chnage to debug
-            f"POST request to {url} with timeout {self._timeout} and kwargs {kwargs}"
+            f"POST request to {url} with timeout {timeout} and kwargs {kwargs}"
         )
         return self._decode_json_response(
-            self._session.post(url, timeout=self._timeout, **kwargs)
+            self._session.post(url, timeout=timeout, **kwargs)
         )
 
     def get(self, endpoint, **kwargs):
+        timeout = kwargs.pop("timeout", self._timeout)
         url = urljoin(self._rest_root, endpoint)
         log.info(  # TODO@dominikatrojanowska: change to debug
-            f"GET request to {url} with timeout {self._timeout} and kwargs {kwargs}"
+            f"GET request to {url} with timeout {timeout} and kwargs {kwargs}"
         )
         return self._decode_json_response(
-            self._session.get(url, timeout=self._timeout, **kwargs)
+            self._session.get(url, timeout=timeout, **kwargs)
         )
 
     def _get_auth_token(self, response) -> str:
