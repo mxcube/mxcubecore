@@ -735,7 +735,7 @@ class AbstractMultiCollect(object):
                 )
                 raise
 
-        if data_collect_parameters["wavelength"]:
+        if data_collect_parameters.get("wavelength"):
             logging.getLogger("user_level_log").info(
                 "Setting wavelength to %f", data_collect_parameters["wavelength"]
             )
