@@ -138,12 +138,14 @@ class PX2Collect(AbstractCollect, HardwareObject):
 
         osc_seq = parameters["oscillation_sequence"][0]
         fileinfo = parameters["fileinfo"]
+        sample_reference = parameters["sample_reference"]
         experiment_type = parameters["experiment_type"]
         energy = parameters["energy"]
         transmission = parameters["transmission"]
         resolution = parameters["resolution"]
 
         exposure_time = osc_seq["exposure_time"]
+        in_queue = parameters["in_queue"] != False
 
         angle_per_frame = osc_seq["range"]
         scan_start_angle = osc_seq["start"]
@@ -151,7 +153,13 @@ class PX2Collect(AbstractCollect, HardwareObject):
         image_nr_start = osc_seq["start_image_number"]
 
         directory = fileinfo["directory"]
+        prefix = fileinfo["prefix"]
         template = fileinfo["template"]
+        run_number = fileinfo["run_number"]
+        process_directory = fileinfo["process_directory"]
+
+        # space_group = str(sample_reference['space_group'])
+        # unit_cell = list(eval(sample_reference['cell']))
 
         self.emit("collectStarted", (self.owner, 1))
         self.emit("progressInit", ("Data collection", 100))

@@ -27,6 +27,7 @@ class LegacyParameters(BaseModel):
     take_dark_current: int
     inverse_beam: bool
     num_passes: int
+    offset: float
 
     class Config:
         extra = "ignore"

@@ -209,7 +209,7 @@ class ISPyBValueFactory:
             ) * float(osc_seq["number_of_images"])
 
             data_collection.axisRange = osc_seq["range"]
-            data_collection.offset = osc_seq["offset"]
+            data_collection.overlap = -osc_seq["offset"]
             data_collection.numberOfImages = osc_seq["number_of_images"]
             data_collection.startImageNumber = osc_seq["start_image_number"]
             data_collection.numberOfPasses = osc_seq["number_of_passes"]
