@@ -422,23 +422,30 @@ class GphlWorkflow(HardwareObject):
                         space_group = ""
                 else:
                     space_group = ""
-        elif space_group:
-            crystal_class = crystal_symmetry.SPACEGROUP_MAP[space_group].crystal_class
-            info = crystal_symmetry.CRYSTAL_CLASS_MAP[crystal_class]
-            lattice = info.bravais_lattice
-            point_group = info.point_group
-            point_groups = lattice2point_group_tags[lattice]
-            if point_group not in point_groups:
-                point_group = point_groups[-1]
-            lattice_tags = [""] + list(lattice2point_group_tags)
-            if space_group not in crystal_symmetry.XTAL_SPACEGROUPS:
-                # Non-enantiomeric space groups not supported in user interface
-                space_group = ""
         else:
-            lattice = ""
-            point_group = ""
-            lattice_tags = [""] + list(lattice2point_group_tags)
-            point_groups = [""] + all_point_group_tags
+
+            flux = HWR.beamline.flux
+            if not (flux and flux.get_average_flux_density()):
+                logging.getLogger("user_level_log").warning(
+                    "Cannot measure flux density. Transmission estimation is disabled."
+                )
+            if space_group:
+                crystal_class = crystal_symmetry.SPACEGROUP_MAP[space_group].crystal_class
+                info = crystal_symmetry.CRYSTAL_CLASS_MAP[crystal_class]
+                lattice = info.bravais_lattice
+                point_group = info.point_group
+                point_groups = lattice2point_group_tags[lattice]
+                if point_group not in point_groups:
+                    point_group = point_groups[-1]
+                lattice_tags = [""] + list(lattice2point_group_tags)
+                if space_group not in crystal_symmetry.XTAL_SPACEGROUPS:
+                    # Non-enantiomeric space groups not supported in user interface
+                    space_group = ""
+            else:
+                lattice = ""
+                point_group = ""
+                lattice_tags = [""] + list(lattice2point_group_tags)
+                point_groups = [""] + all_point_group_tags
         schema = {
             "title": "GPhL Pre-strategy parameters",
             "type": "object",
