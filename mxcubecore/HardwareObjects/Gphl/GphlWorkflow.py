@@ -423,7 +423,6 @@ class GphlWorkflow(HardwareObject):
                 else:
                     space_group = ""
         else:
-
             flux = HWR.beamline.flux
             if not (flux and flux.get_average_flux_density()):
                 logging.getLogger("user_level_log").warning(
