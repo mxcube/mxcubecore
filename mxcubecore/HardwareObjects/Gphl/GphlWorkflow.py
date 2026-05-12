@@ -430,7 +430,9 @@ class GphlWorkflow(HardwareObject):
                     "Cannot measure flux density. Transmission estimation is disabled."
                 )
             if space_group:
-                crystal_class = crystal_symmetry.SPACEGROUP_MAP[space_group].crystal_class
+                crystal_class = crystal_symmetry.SPACEGROUP_MAP[
+                    space_group
+                ].crystal_class
                 info = crystal_symmetry.CRYSTAL_CLASS_MAP[crystal_class]
                 lattice = info.bravais_lattice
                 point_group = info.point_group
