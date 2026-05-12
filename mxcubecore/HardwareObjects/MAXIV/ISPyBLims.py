@@ -4,11 +4,10 @@ import logging
 from duo.UO import RestDuo  # part of sdm package
 from sdm.config import DUOPASSWORD, DUOUSER
 
-from mxcubecore.HardwareObjects.abstract.ISPyBDataAdapter import ISPyBDataAdapter
 from mxcubecore.HardwareObjects.abstract.PyISPyBDataAdapter import PyISPyBDataAdapter
 from mxcubecore.HardwareObjects.abstract.PyISPyBRestClient import PyISPyBRestClient
 from mxcubecore.HardwareObjects.UserTypeISPyBLims import UserTypeISPyBLims
-from mxcubecore.model.lims_session import LimsSessionManager, Proposal, Session
+from mxcubecore.model.lims_session import Proposal, Session
 
 DUO_API_URL = "https://duo-api.maxiv.lu.se"
 LAZY_SESSION_PREFIX = "lazy"
@@ -20,7 +19,7 @@ class NoSessionException(Exception):
     """Exception raised when no expected session found."""
 
 
-class CustomISPyBDataAdapter(PyISPyBDataAdapter, ISPyBDataAdapter):
+class CustomISPyBDataAdapter(PyISPyBDataAdapter):
     """Extend the standard ISPyB data adapter with MAXIV specific logic."""
 
     def get_proposals(self):
@@ -70,43 +69,17 @@ class CustomISPyBDataAdapter(PyISPyBDataAdapter, ISPyBDataAdapter):
             # "endDate": end_time.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
         )
 
-    # TODO@dominikatrojanowska: remove all methods below after dropping an old adapter
-    def __init__(  # noqa: PLR0913
-        self,
-        ws_root,
-        proxy,
-        ws_username,
-        ws_password,
-        beamline_name,
-        rest_client=None,
-    ):
-        ISPyBDataAdapter.__init__(
-            self, ws_root, proxy, ws_username, ws_password, beamline_name
-        )
-        PyISPyBDataAdapter.__init__(self, rest_client, beamline_name)
-
-    def get_sessions_by_username(
-        self, username: str, beamline_name: str
-    ) -> LimsSessionManager:
-        return PyISPyBDataAdapter.get_sessions_by_username(
-            self, username, beamline_name
-        )
-
 
 class ISPyBLims(UserTypeISPyBLims):
     def init(self):
         pyispyb_rest_root = self.get_property("pyispyb_rest_root")
-        self._py_rest_client = PyISPyBRestClient(pyispyb_rest_root)
+        self._rest_client = PyISPyBRestClient(pyispyb_rest_root)
         super().init()
 
     def _create_data_adapter(self) -> CustomISPyBDataAdapter:
         return CustomISPyBDataAdapter(
-            self.ws_root.strip(),
-            self.proxy,
-            self.ws_username,
-            self.ws_password,
+            self._rest_client,
             self.beamline_name,
-            self._py_rest_client,
         )
 
     def ispyb_login(self, user_name: str, password: str):
@@ -123,10 +96,10 @@ class ISPyBLims(UserTypeISPyBLims):
             success or failure, and an optional error message.
         """
         try:
-            self._py_rest_client.authenticate(user_name, password)
-            return True, None
+            self._rest_client.authenticate(user_name, password)
         except Exception as ex:
             return False, str(ex)
+        return True, None
 
     def set_active_session_by_id(self, session_id: str) -> Session:
         """Sets session with session_id to active session.

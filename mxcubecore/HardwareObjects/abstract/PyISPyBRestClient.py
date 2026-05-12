@@ -112,11 +112,3 @@ class PyISPyBRestClient:
 
     def update_proxies(self, proxy: dict):
         self._session.proxies.update(proxy)
-
-    # def store_ssx_collection_parameters(self, ssx_data: dict):
-    #     response = self.post("ssx/datacollection/", json=ssx_data)
-    #     if response.status_code != 200:
-    #         raise PyISPyBUnsuccessfulResponse(
-    #             "Failed to store SSX collection parameters in PY-ISPyB. "
-    #             f"Status code: {response.status_code}, Response: {response.text}"
-    #         )
