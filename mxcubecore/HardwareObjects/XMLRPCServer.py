@@ -112,11 +112,7 @@ class XMLRPCServer(HardwareObject):
         msg = "XML-RPC server listening on: %s:%s" % (self.host, self.port)
         self.log.info(msg)
 
-        self.connect(
-            HWR.beamline.gphl_workflow,
-            "gphl_workflow_finished",
-            self._async_job_completed,
-        )
+        self._connect_gphl_workflow_finished()
 
         self._server.register_introspection_functions()
         self._server.register_function(self.start_queue)
@@ -683,7 +679,21 @@ class XMLRPCServer(HardwareObject):
         gphl_model.init_from_task_data(sample_model, task_dict)
         child_id = HWR.beamline.queue_model.add_child_at_id(parent_node_id, gphl_model)
         self.gphl_workflow_status = "RUNNING"
+        self._connect_gphl_workflow_finished()
         return child_id
+
+    def _connect_gphl_workflow_finished(self):
+        gphl_workflow = HWR.beamline.gphl_workflow
+        self.disconnect(
+            gphl_workflow,
+            "gphl_workflow_finished",
+            self._async_job_completed,
+        )
+        self.connect(
+            gphl_workflow,
+            "gphl_workflow_finished",
+            self._async_job_completed,
+        )
 
     def _async_job_completed(self, job_status):
         self.gphl_workflow_status = job_status
