@@ -96,7 +96,7 @@ class ISPyBLims(UserTypeISPyBLims):
             success or failure, and an optional error message.
         """
         try:
-            self._rest_client.authenticate(user_name, password)
+            self._rest_client.authenticate(user_name, token=password)
         except Exception as ex:
             return False, str(ex)
         return True, None

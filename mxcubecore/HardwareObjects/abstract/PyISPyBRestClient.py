@@ -3,7 +3,7 @@ import logging
 from json.decoder import JSONDecodeError
 from urllib.parse import urljoin
 
-import requests
+from requests import Session
 
 log = logging.getLogger("py-ispyb_client")
 
@@ -24,7 +24,7 @@ class PyISPyBRestClient:
 
     def __init__(self, rest_root: str, timeout: int = 5):
         self._rest_root = rest_root
-        self._session = requests.Session()
+        self._session = Session()
         self._timeout = timeout
 
     def _decode_json_response(self, response):
