@@ -227,12 +227,12 @@ class IdentifiedElement(MessageData):
 
     def __set_id(self, value):
         """Setter for uuid - accessible only within this class"""
-        if isinstance(value, uuid.UUID):
-            self._id = value
-        elif value is None:
+        if value is None:
             self._id = uuid.uuid1()
+        elif isinstance(value, uuid.UUID):
+            self._id = value
         else:
-            self._id = uuid.UUID(value)
+            raise TypeError("UUID input must be of type uuid.UUID")
 
 
 # Sync with Java 4/5/2017
