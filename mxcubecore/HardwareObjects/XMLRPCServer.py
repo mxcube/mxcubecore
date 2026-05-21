@@ -16,6 +16,7 @@ import time
 import types
 import xml
 from functools import reduce
+from pydispatch.errors import DispatcherKeyError
 
 import gevent
 import jsonpickle
@@ -684,11 +685,14 @@ class XMLRPCServer(HardwareObject):
 
     def _connect_gphl_workflow_finished(self):
         gphl_workflow = HWR.beamline.gphl_workflow
-        self.disconnect(
-            gphl_workflow,
-            "gphl_workflow_finished",
-            self._async_job_completed,
-        )
+        try:
+            self.disconnect(
+                gphl_workflow,
+                "gphl_workflow_finished",
+                self._async_job_completed,
+            )
+        except DispatcherKeyError:
+            pass
         self.connect(
             gphl_workflow,
             "gphl_workflow_finished",
