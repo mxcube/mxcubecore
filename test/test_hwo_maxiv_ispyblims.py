@@ -68,7 +68,6 @@ def test_login_ok(ispyb_lims):
         json={
             "plugin": "keycloak",
             "login": USER,
-            "password": "string",
             "token": TOKEN,
         },
         timeout=5,
@@ -102,7 +101,6 @@ def test_login_invalid_credentials(ispyb_lims, json_decode_error):
         json={
             "plugin": "keycloak",
             "login": USER,
-            "password": "string",
             "token": TOKEN,
         },
         timeout=5,

@@ -1,8 +1,14 @@
 # ruff: noqa: TD003, FIX002, ERA001
 import logging
 
-from duo.UO import RestDuo  # part of sdm package
-from sdm.config import DUOPASSWORD, DUOUSER
+try:
+    # duo is a part of sdm package that lives at MaxIV private repository
+    from duo.UO import RestDuo
+    from sdm.config import DUOPASSWORD, DUOUSER
+except ImportError:
+    RestDuo = None
+    DUOPASSWORD = None
+    DUOUSER = None
 
 from mxcubecore.HardwareObjects.abstract.PyISPyBDataAdapter import PyISPyBDataAdapter
 from mxcubecore.HardwareObjects.abstract.PyISPyBRestClient import PyISPyBRestClient

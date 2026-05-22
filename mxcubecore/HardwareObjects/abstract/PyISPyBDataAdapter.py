@@ -468,8 +468,7 @@ class PyISPyBDataAdapter:
         return self._update_data_collection(mx_collection)
 
     def finalize_data_collection(self, mx_collection):
-        self.logger.info("Updating datacollection in PyISPyB")
-        return self._update_data_collection(mx_collection)
+        return self.update_data_collection(mx_collection)
 
     def _store_data_collection(self, mx_collection: dict, bl_config: dict | None):
         """Stores data collection group in PyISPyB and returns the group id.

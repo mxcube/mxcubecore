@@ -96,19 +96,13 @@ class PyISPyBRestClient:
             json={
                 "plugin": "keycloak",
                 "login": user_name,
-                "password": "string",
                 "token": token,
             },
         )
         token = self._get_auth_token(response)
-        # TODO@dominikatrojanowska: get refresh token and implement token refresh
-        # mechanism when it will be provided by py-ipsyb
         self._session.headers.update({"Authorization": f"Bearer {token}"})
-
-    # def refresh_token(self):
-    #     response = self.post("auth/refresh")
-    #     token = self._get_auth_token(response)
-    #     self._session.headers.update({"Authorization": f"Bearer {token}"})
+        # TODO@dominikatrojanowska: get refresh token and implement
+        # token refresh mechanism when it will be provided by py-ipsyb
 
     def update_proxies(self, proxy: dict):
         self._session.proxies.update(proxy)
