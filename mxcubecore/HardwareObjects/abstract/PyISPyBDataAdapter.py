@@ -3,7 +3,6 @@
 import logging
 from dataclasses import asdict
 from datetime import datetime, timedelta
-from typing import Dict, List
 
 from mxcubecore.HardwareObjects.abstract.PyISPyBRestClient import (
     PyISPyBRestClient,
@@ -26,19 +25,66 @@ class PyISPyBDataAdapter:
         self.new_session_duration_days = new_session_duration_days
         self.logger = logging.getLogger("pyispyb_adapter")
 
-    # =========================
-    #  USER DATA
-    # =========================
+    def __is_time_between(
+        self, start_datetime: datetime, end_datetime: datetime
+    ) -> bool:
+        """Checks if the current time is between start and end."""
+        today = datetime.today()  # noqa: DTZ002
+        try:
+            return start_datetime <= today <= end_datetime
+        except TypeError:
+            self.logger.exception(
+                "Invalid date format. start: %s, end: %s, now: %s",
+                start_datetime,
+                end_datetime,
+                today,
+            )
+            return False
 
-    def get_current_user_data(self) -> Dict:
+    def __to_proposal(self, proposal: dict[str, str]) -> Proposal:
+        """
+        Converts proposal data received from PyISPyB REST API to a Proposal object.
+        """
+        return Proposal(
+            code=proposal.get("proposalCode").upper(),
+            number=proposal.get("proposalNumber"),
+            proposal_id=proposal.get("proposalId"),
+            title=proposal.get("title"),
+            type=proposal.get("type", ""),
+            name=proposal.get("proposal"),
+            state=proposal.get("state", "").capitalize(),
+        )
+
+    def __to_session(self, session: dict) -> Session:
+        """Converts session data received from PyISPyB REST API to a Session object."""
+        proposal_name = session.get("proposal")
+        proposal_code = "".join([c for c in proposal_name if not c.isdigit()])
+        proposal_number = proposal_name[len(proposal_code) :]
+        title = session.get("title", "")
+        start_datetime = datetime.fromisoformat(session.get("startDate"))
+        end_datetime = datetime.fromisoformat(session.get("endDate"))
+        return Session(
+            code=proposal_code,
+            number=proposal_number,
+            proposal_name=proposal_name,
+            proposal_id=session.get("proposalId"),
+            session_id=session.get("sessionId"),
+            beamline_name=session.get("beamLineName", self.beamline_name),
+            title=title,
+            comments=session.get("comments"),
+            start_datetime=start_datetime,
+            end_datetime=end_datetime,
+            nb_shifts=session.get("nbShifts", "") or "",
+            scheduled=session.get("scheduled", "False"),
+            is_scheduled_time=self.__is_time_between(start_datetime, end_datetime),
+            is_scheduled_beamline=True,  # MAX IV does not care about this value
+        )
+
+    def get_current_user_data(self) -> dict:
         """Fetches current user details."""
         return self.client.get("user/current")
 
-    # =========================
-    #  PROPOSALS
-    # =========================
-
-    def get_proposals(self) -> List[Proposal]:
+    def get_proposals(self) -> list[Proposal]:
         """Returns proposals to which authenticated user has access."""
         return [
             self.__to_proposal(proposal) for proposal in self.client.get("proposals")
@@ -49,10 +95,6 @@ class PyISPyBDataAdapter:
         return self.__to_proposal(
             self.client.get("proposals?proposal=%s%s" % (code, number))
         )
-
-    # =========================
-    #  SESSIONS
-    # =========================
 
     def get_sessions_by_code_and_number(
         self, code: str, number: str, beamline: str
@@ -69,7 +111,7 @@ class PyISPyBDataAdapter:
 
     def find_sessions_by_proposal_and_beamline_for_today(
         self, code: str, number: str, beamline: str
-    ) -> List[Session]:
+    ) -> list[Session]:
         """Finds todays sessions by proposal code, number and beamline name."""
         # TODO@dominikatrojanowska: add ``day`` to the url when implemented in PyISPyB,
         # Until then fetch all sessions for month and year, next filter by day in mxcube
@@ -105,7 +147,7 @@ class PyISPyBDataAdapter:
         Returns:
             LimsSessionManager: A manager containing the list of sessions
         """
-        sessions: List[Session] = []
+        sessions: list[Session] = []
         for proposal in self.get_proposals():
             try:
                 session = self.find_sessions_by_proposal_and_beamline_for_today(
@@ -113,8 +155,9 @@ class PyISPyBDataAdapter:
                 )[0]
             except IndexError:
                 self.logger.info(
-                    "No sessions planned for proposal %s. Creating new session.",
-                    proposal.name,
+                    "No sessions planned for proposal %s%s. Creating new session.",
+                    proposal.code,
+                    proposal.number,
                 )
                 session = self.create_session(proposal)
             sessions.append(session)
@@ -140,75 +183,6 @@ class PyISPyBDataAdapter:
             "scheduled": False,
         }
         return self.__to_session(self.client.post("sessions", json=payload))
-
-    # =========================
-    #  HELPER METHODS
-    # =========================
-
-    def __to_proposal(self, proposal: Dict[str, str]) -> Proposal:
-        """
-        Converts proposal data received from PyISPyB REST API to a Proposal object.
-        """
-        return Proposal(
-            code=proposal.get("proposalCode").upper(),
-            number=proposal.get("proposalNumber"),
-            proposal_id=proposal.get("proposalId"),
-            title=proposal.get("title"),
-            type=proposal.get("type", ""),
-            name=proposal.get("proposal"),
-            state=proposal.get("state", "").capitalize(),
-        )
-
-    def __to_session(self, session: Dict) -> Session:
-        """Converts session data received from PyISPyB REST API to a Session object."""
-        proposal_name = session.get("proposal")
-        proposal_code = "".join([c for c in proposal_name if not c.isdigit()])
-        proposal_number = proposal_name[len(proposal_code) :]
-        title = session.get("title", "")
-        start_datetime = datetime.fromisoformat(session.get("startDate"))
-        end_datetime = datetime.fromisoformat(session.get("endDate"))
-        return Session(
-            code=proposal_code,
-            number=proposal_number,
-            proposal_name=proposal_name,
-            proposal_id=session.get("proposalId"),
-            session_id=session.get("sessionId"),
-            beamline_name=session.get("beamLineName", self.beamline_name),
-            title=title,
-            comments=session.get("comments"),
-            start_datetime=start_datetime,
-            end_datetime=end_datetime,
-            # TODO@dominikatrojanowska: check if needed
-            # start_date=datetime.strftime(start_datetime, "%Y%m%d"),
-            # end_date=datetime.strftime(end_datetime, "%Y%m%d"),
-            # start_time=start_datetime,
-            # end_time=end_datetime,
-            # nbShifts can be None, convert to empty string for consistency
-            nb_shifts=session.get("nbShifts", "") or "",
-            scheduled=session.get("scheduled", "False"),
-            is_scheduled_time=self.__is_time_between(start_datetime, end_datetime),
-            is_scheduled_beamline=True,  # MAX IV does not care about this value
-        )
-
-    def __is_time_between(
-        self, start_datetime: datetime, end_datetime: datetime
-    ) -> bool:
-        """Checks if the current time is between start and end."""
-        today = datetime.today()  # noqa: DTZ002
-        try:
-            return start_datetime <= today <= end_datetime
-        except TypeError:
-            self.logger.exception(
-                "Invalid date format. start: %s, end: %s, now: %s",
-                start_datetime,
-                end_datetime,
-                today,
-            )
-            return False
-
-    # =========================
-    #  LEGACY METHODS
-    # =========================
 
     def _store_data_collection_group(self, group_data: dict) -> dict:
         """Stores data collection group in PyISPyB and returns the group id.
@@ -281,7 +255,7 @@ class PyISPyBDataAdapter:
             )
         return image_id
 
-    def get_samples(self, proposal_id: int) -> List[Dict]:
+    def get_samples(self, proposal_id: int) -> list[dict]:
         """Fetches samples for the given proposal id from PyISPyB."""
         try:
             samples = self.client.get(
@@ -377,7 +351,7 @@ class PyISPyBDataAdapter:
         model,
         mode,
         type="",  # noqa: A002
-    ) -> Dict | None:
+    ) -> dict | None:
         """Finds detector by its type, manufacturer, model and mode.
 
         Gives the first matching detector or None if no match is found.
