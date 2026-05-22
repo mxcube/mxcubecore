@@ -19,7 +19,6 @@ from functools import reduce
 
 import gevent
 import jsonpickle
-from pydispatch.errors import DispatcherKeyError
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
@@ -691,7 +690,7 @@ class XMLRPCServer(HardwareObject):
                 "gphl_workflow_finished",
                 self._async_job_completed,
             )
-        except DispatcherKeyError:
+        except KeyError:
             pass
         self.connect(
             gphl_workflow,
