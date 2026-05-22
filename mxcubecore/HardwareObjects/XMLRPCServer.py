@@ -19,7 +19,6 @@ from functools import reduce
 
 import gevent
 import jsonpickle
-from pydispatch.errors import DispatcherKeyError
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
