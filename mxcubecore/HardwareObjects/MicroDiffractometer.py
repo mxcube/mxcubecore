@@ -369,15 +369,21 @@ class MicroDiffractometer(AbstractDiffractometer):
         """
         # check the scan limits
         self.check_scan_limits(start, end, exptime)
+
         if not self.get_property("md_set_number_of_frames"):
             number_of_images = 1
-
         self._exporter.write_property("ScanNumberOfFrames", number_of_images)
 
         scan_params = f"{start:0.3f}\t{(end - start):0.3f}\t{exptime:0.3f}\t"
-        for name in ["phiy", "phiz", "sampx", "sampy"]:
+
+        if self.head_otientation == "vertical":
+            _order = ["phiz", "phiy", "sampx", "sampy"]
+        if self.head_otientation == "horizontal":
+            _order = ["phiy", "phiz", "sampx", "sampy"]
+
+        for name in _order:
             scan_params += f"{motors_pos['1'][name]:0.3f}\t"
-        for name in ["phiy", "phiz", "sampx", "sampy"]:
+        for name in _order:
             scan_params += f"{motors_pos['2'][name]:0.3f}\t"
 
         self._exporter.execute("startScan4DEx", (scan_params,))
@@ -426,10 +432,16 @@ class MicroDiffractometer(AbstractDiffractometer):
         self.set_value_motors(grid_centre, simultaneous=True, timeout=timeout)
 
         scan_params = f"{(end - start):0.3f}\t"
-        scan_params += f"{-mesh_range['horizontal_range']:0.3f}\t"
-        scan_params += f"{mesh_range['vertical_range']:0.3f}\t"
+        if self.head_otientation == "vertical":
+            scan_params += f"{mesh_range['vertical_range']:0.3f}\t"
+            scan_params += f"{-mesh_range['horizontal_range']:0.3f}\t"
+            _order = ["phiz", "phiy", "sampx", "sampy"]
+        if self.head_otientation == "horizontal":
+            scan_params += f"{-mesh_range['horizontal_range']:0.3f}\t"
+            scan_params += f"{mesh_range['vertical_range']:0.3f}\t"
+            _order = ["phiy", "phiz", "sampx", "sampy"]
         scan_params += f"{start:0.3f}\t"
-        for name in ["phiy", "phiz", "sampx", "sampy"]:
+        for name in _order:
             for key, val in grid_centre.items():
                 if name == key:
                     scan_params += f"{float(val):0.3f}\t"

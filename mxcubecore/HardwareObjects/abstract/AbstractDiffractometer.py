@@ -64,6 +64,10 @@ capillary - if present, a tube to reduce the scattering background.
 backlightswitch - move the backlight on the level of the on-axis viewer
 frontlightswitch - switch on/off the front light
 fluo_detector - if present, actuator to move a fluorescence detector close to the sample
+
+3. Goniometer head orientation - horizontal or vertical
+ horizontal - the sample holder is parallel to the ground
+ vertical - the sample holder is perpendicular to the ground
 """
 
 import abc
@@ -218,6 +222,7 @@ class AbstractDiffractometer(HardwareObject):
         self.current_constraint = None
         self.timeout = 3  # default timeout 3 s
         self.chip_definition_file = ""
+        self.head_orientation = ""
 
     def init(self):
         """Initialise username property.
@@ -225,6 +230,7 @@ class AbstractDiffractometer(HardwareObject):
         """
         super().init()
         self.username = self.get_property("username") or self.username
+        self.head_orientation = self.get_property("head_orientation")
 
         # motors
         for role in self.config.motors:
