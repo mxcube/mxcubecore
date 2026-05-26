@@ -336,6 +336,18 @@ class Beamline(HardwareObject):
             else:
                 params.update(dd0)
 
+        if "overlap" in params:
+            self.log.warning(
+                "The 'overlap' parameter is deprecated. Please use 'offset' instead."
+            )
+
+            overlap = params.pop("overlap")
+
+            if overlap:
+                overlap = -overlap
+
+            params["offset"] = overlap
+
         for tag, val in params.items():
             setattr(acq_parameters, tag, val)
 

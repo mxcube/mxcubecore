@@ -55,10 +55,9 @@ from mxcubecore.utils import conversion
 # It depends on knowing where in py4j socket is imported
 # Hacky, but the best solution to making py4j and gevent compatible
 
-
 origsocket = sys.modules.pop("socket")
 _origsocket = sys.modules.pop("_socket")
-import socket
+import socket  # noqa E402, F811 Needed as part of workaround for socket/oy4j connection
 
 java_gateway.socket = socket
 clientserver.socket = socket
@@ -322,7 +321,7 @@ class GphlWorkflowConnection(HardwareObject):
         if not os.path.isdir(wdir):
             try:
                 os.makedirs(wdir)
-            except:
+            except Exception:
                 # No need to raise error - program will fail downstream
                 self.log.error("Could not create GPhL working directory: %s", wdir)
 
@@ -405,7 +404,7 @@ class GphlWorkflowConnection(HardwareObject):
                         time.sleep(9)
                         if xx0.poll() is None:
                             xx0.kill()
-            except:
+            except Exception:
                 self.log.info(
                     "Exception while terminating external workflow process %s", xx0
                 )
@@ -640,7 +639,32 @@ class GphlWorkflowConnection(HardwareObject):
         )
 
     def _RequestConfiguration_to_python(self, py4jRequestConfiguration):
-        return GphlMessages.RequestConfiguration()
+        py4jWorkflowVersion = py4jRequestConfiguration.getWorkflowVersion()
+        workflowVersion = self._SimpleVersion_to_string(py4jWorkflowVersion)
+        metadata = py4jWorkflowVersion.getBuildmetadata()
+        if metadata:
+            # NB buildtime is not used now, but could be in later versions
+            # NB a human-readable buildtime is part of the metadata
+            # buildtime = py4jWorkflowVersion.getBuildTime()
+            if not py4jWorkflowVersion.isClean():
+                metadata += "-dirty"
+            workflowVersion = f"{workflowVersion}+{metadata}"
+        abiVersion = self._SimpleVersion_to_string(
+            py4jRequestConfiguration.getAbiVersion()
+        )
+        return GphlMessages.RequestConfiguration(workflowVersion, abiVersion)
+
+    def _SimpleVersion_to_string(self, py4jSimpleVersion):
+        parts = [
+            str(py4jSimpleVersion.getMajor()),
+            str(py4jSimpleVersion.getMinor()),
+            str(py4jSimpleVersion.getPatch()),
+        ]
+        xx0 = py4jSimpleVersion.getPrerelease()
+        result = ".".join(parts)
+        if xx0:
+            result += xx0
+        return result
 
     def _ObtainPriorInformation_to_python(self, py4jObtainPriorInformation):
         return GphlMessages.ObtainPriorInformation()
@@ -663,6 +687,14 @@ class GphlWorkflowConnection(HardwareObject):
             detectorSetting = self._DetectorSetting_to_python(detectorSetting)
         else:
             detectorSetting = None
+        reflectingRangeEsd = None
+        try:
+            if py4jGeometricStrategy.isSetReflectingRangeEsd():
+                reflectingRangeEsd = py4jGeometricStrategy.getReflectingRangeEsd()
+        except Exception:  # noqa S110
+            # Temporary fix, pending upgrading of the GPhL workflow
+            # NB the error raised is likely Py4JError - but we do not care
+            pass
         return GphlMessages.GeometricStrategy(
             # isInterleaved=py4jGeometricStrategy.isInterleaved(),
             isUserModifiable=py4jGeometricStrategy.isUserModifiable(),
@@ -673,6 +705,7 @@ class GphlWorkflowConnection(HardwareObject):
             defaultBeamSetting=beamSetting,
             defaultDetectorSetting=detectorSetting,
             sweeps=sweeps,
+            reflectingRangeEsd=reflectingRangeEsd,
             id_=uuid.UUID(uuidString),
         )
 
@@ -919,7 +952,7 @@ class GphlWorkflowConnection(HardwareObject):
 
         try:
             response = self._gateway.jvm.Py4jMessage(py4j_payload, correlation_id)
-        except:
+        except Exception:
             self.abort_workflow(
                 message="Error creating Java message (%s) to send to workflow"
                 % py4j_payload.getClass().getSimpleName()

@@ -1879,7 +1879,7 @@ class GraphicsSelectTool(GraphicsItem):
 
 
 class GraphicsItemCentringLines(GraphicsItem):
-    """Centring lines are displayed during the 3-click centering"""
+    """Centring lines are displayed during the 3-click centring"""
 
     def __init__(self, parent):
         """
@@ -1893,7 +1893,7 @@ class GraphicsItemCentringLines(GraphicsItem):
 
     def paint(self, painter, option, widget):
         """
-        Draws two perpendicular centering lines
+        Draws two perpendicular centring lines
         :param painter:
         :param option:
         :param widget:
@@ -1932,7 +1932,7 @@ class GraphicsItemCentringLines(GraphicsItem):
 
     def add_position(self, pos_x, pos_y):
         """
-        Adds centering position
+        Adds centring position
         :param pos_x:
         :param pos_y:
         :return:
@@ -1941,7 +1941,7 @@ class GraphicsItemCentringLines(GraphicsItem):
 
 
 class GraphicsItemHistogram(GraphicsItem):
-    """Centring lines are displayed during the 3-click centering"""
+    """Centring lines are displayed during the 3-click centring"""
 
     def __init__(self, parent):
         """

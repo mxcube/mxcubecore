@@ -137,3 +137,22 @@ class EPICSMotorDetachable(EPICSMotor):
         if current_value == value:
             self.update_state(self.STATES.OFF)
         return super().get_value()
+
+
+class ResolutionVirtualMotor(EPICSMotor):
+    """
+    A specific class for LNLS resolution object, such that the
+    get_resolution_limits_for_energy function from EnergyAdapter
+    works properly.
+
+    %YAML 1.2
+    ---
+    class: LNLS.EPICS.EPICSMotor.ResolutionVirtualMotor
+    epics:
+        "MNC:B:SoftIOC:Resolution":
+            channels:
+                '':
+    """
+
+    def get_limits_for_wavelength(self, wavelength):
+        return self.get_limits()

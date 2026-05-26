@@ -5,7 +5,7 @@
        <display>Center beam</display>
        <method>center_beam_report</method>
        <icon>QuickRealign</icon>
-       <confirmation>This will start automatic beam centering. Continue?</confirmation>
+       <confirmation>This will start automatic beam centring. Continue?</confirmation>
      </tool>
      <tool>
        <hwobj>flux</hwobj>

@@ -1197,6 +1197,11 @@ class ICATLIMS(AbstractLims):
                 # The "complete" entry in metadata must be set to False in order to
                 # group multi-wedge reference image data collection for characterisation
                 metadata["complete"] = False
+            elif scan_type == "OSC":
+                # In case the experiment_type is "OSC" and doesn't have
+                # "datacollection" in the dataset name, we set it to "datacollection".
+                # This happens for data collected by GPhL workflows.
+                scan_type = "datacollection"
 
             workflow_params = datacollection_dict.get("workflow_parameters", {})
             workflow_type = workflow_params.get("workflow_type")

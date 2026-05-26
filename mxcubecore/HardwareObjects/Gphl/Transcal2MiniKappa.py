@@ -21,10 +21,10 @@ along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
 
 import ast
 import os
-from xml.etree import ElementTree as ET
 
 import f90nml
 import numpy as np
+from defusedxml import ElementTree as ET
 
 __copyright__ = """ Copyright © 2016 -  2023 MXCuBE Collaboration."""
 __license__ = "LGPLv3+"
@@ -78,7 +78,7 @@ def get_recen_data(transcal_file, instrumentation_file, diffractcal_file=None, *
 
     try:
         diffractcal_data = f90nml.read(diffractcal_file)["sdcp_instrument_list"]
-    except:
+    except Exception:
         diffractcal_data = instrumentation_data
 
     ll0 = diffractcal_data["gonio_axis_dirs"]

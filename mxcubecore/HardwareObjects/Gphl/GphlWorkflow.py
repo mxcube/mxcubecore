@@ -38,6 +38,7 @@ import subprocess
 import time
 import uuid
 from collections import OrderedDict
+from typing import ClassVar
 from urllib.parse import urlparse
 
 import f90nml
@@ -45,6 +46,7 @@ import gevent
 import gevent.event
 import gevent.queue
 import numpy
+from packaging.version import Version
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import (
@@ -62,6 +64,15 @@ from mxcubecore.queue_entry import (
     QueueAbortedException,
 )
 
+__copyright__ = """ Copyright © 2016 - 2019 by Global Phasing Ltd. """
+__license__ = "LGPLv3+"
+__author__ = "Rasmus H Fogh"
+
+gphl_version_str = "2.1.0+202604292339.0-xf763e76"
+
+# Switch disabling processing macro handling until GPhL workflow is ready
+ACTIVATE_PROCESSING_MACROS = False
+
 
 @enum.unique
 class GphlWorkflowStates(enum.Enum):
@@ -69,7 +80,7 @@ class GphlWorkflowStates(enum.Enum):
     BUSY = "Workflow is executing"
     READY = "Workflow is idle and ready to start"
     FAULT = "Workflow shutting down from an error"
-    ABORTED = "HWorkflow shutting down after an abort or stop command
+    ABORTED = "Workflow shutting down after an abort or stop command
     COMPLETED = "Workflow has finished successfully"
     UNKNOWN = "Workflow state unknown"
     """
@@ -82,9 +93,13 @@ class GphlWorkflowStates(enum.Enum):
     UNKNOWN = 5
 
 
-__copyright__ = """ Copyright © 2016 - 2019 by Global Phasing Ltd. """
-__license__ = "LGPLv3+"
-__author__ = "Rasmus H Fogh"
+# Conversion factor from experimentally determined reflecting_range_esd
+# to default image width
+# Value taken from Acta Cryst D (2012) D68, 42-56, and GPhL colleagues
+MOSAICITY_TO_IMAGE_WIDTH = 0.33
+
+# Constant - named option for pulldown
+SPECIFY_URL = "Specify Url"
 
 # Additional sample/diffraction plan data for GPhL emulation samples.
 EMULATION_DATA = {
@@ -159,7 +174,7 @@ for atag in (
 ):
     all_point_group_tags += lattice2point_group_tags[atag]
 
-# Allowed altervative lattices for a given lattice
+# Allowed alternative lattices for a given lattice
 alternative_lattices = {}
 for list0 in (
     ["aP", "Triclinic"],
@@ -193,8 +208,8 @@ class GphlWorkflow(HardwareObject):
         Required during transition, as long as we do not have the fields defined"""
 
         # Defaults - should be replaced by proper Pydantic
-        workflows = {}  # noqa: RUF012
-        settings = {}  # noqa: RUF012
+        workflows: ClassVar[dict] = {}
+        settings: ClassVar[dict] = {}
 
     def __init__(self, name):
         super().__init__(name)
@@ -353,7 +368,7 @@ class GphlWorkflow(HardwareObject):
         ll0 = instrument_data.get("beamstop_param_names")
         ll1 = instrument_data.get("beamstop_param_vals")
         if ll0 and ll1:
-            for tag, val in zip(ll0, ll1):
+            for tag, val in zip(ll0, ll1, strict=True):
                 instrument_data[tag.lower()] = val
 
         self.detector_segments = instrument_input.get("segment_list")
@@ -380,7 +395,6 @@ class GphlWorkflow(HardwareObject):
         Returns:
             dict: Parameter value dictionary
         """
-
         resolution_decimals = 3
         data_model = self._queue_entry.get_data_model()
         strategy_settings = data_model.strategy_settings
@@ -408,23 +422,31 @@ class GphlWorkflow(HardwareObject):
                         space_group = ""
                 else:
                     space_group = ""
-        elif space_group:
-            crystal_class = crystal_symmetry.SPACEGROUP_MAP[space_group].crystal_class
-            info = crystal_symmetry.CRYSTAL_CLASS_MAP[crystal_class]
-            lattice = info.bravais_lattice
-            point_group = info.point_group
-            point_groups = lattice2point_group_tags[lattice]
-            if point_group not in point_groups:
-                point_group = point_groups[-1]
-            lattice_tags = [""] + list(lattice2point_group_tags)
-            if space_group not in crystal_symmetry.XTAL_SPACEGROUPS:
-                # Non-enantiomeric space groups not supported in user interface
-                space_group = ""
         else:
-            lattice = ""
-            point_group = ""
-            lattice_tags = [""] + list(lattice2point_group_tags)
-            point_groups = [""] + all_point_group_tags
+            flux = HWR.beamline.flux
+            if not (flux and flux.get_average_flux_density()):
+                logging.getLogger("user_level_log").warning(
+                    "Cannot measure flux density. Transmission estimation is disabled."
+                )
+            if space_group:
+                crystal_class = crystal_symmetry.SPACEGROUP_MAP[
+                    space_group
+                ].crystal_class
+                info = crystal_symmetry.CRYSTAL_CLASS_MAP[crystal_class]
+                lattice = info.bravais_lattice
+                point_group = info.point_group
+                point_groups = lattice2point_group_tags[lattice]
+                if point_group not in point_groups:
+                    point_group = point_groups[-1]
+                lattice_tags = [""] + list(lattice2point_group_tags)
+                if space_group not in crystal_symmetry.XTAL_SPACEGROUPS:
+                    # Non-enantiomeric space groups not supported in user interface
+                    space_group = ""
+            else:
+                lattice = ""
+                point_group = ""
+                lattice_tags = [""] + list(lattice2point_group_tags)
+                point_groups = [""] + all_point_group_tags
         schema = {
             "title": "GPhL Pre-strategy parameters",
             "type": "object",
@@ -434,39 +456,39 @@ class GphlWorkflow(HardwareObject):
         fields["cell_a"] = {
             "title": "a",
             "type": "number",
-            "minimum": 0,
+            "minimum": 0.1,
             "readOnly": True,
         }
         fields["cell_b"] = {
             "title": "b",
             "type": "number",
-            "minimum": 0,
+            "minimum": 0.1,
             "readOnly": True,
         }
         fields["cell_c"] = {
             "title": "c",
             "type": "number",
-            "minimum": 0,
+            "minimum": 0.1,
             "readOnly": True,
         }
         fields["cell_alpha"] = {
             "title": "α",
             "type": "number",
-            "minimum": 0,
+            "minimum": 0.1,
             "maximum": 180,
             "readOnly": True,
         }
         fields["cell_beta"] = {
             "title": "β",
             "type": "number",
-            "minimum": 0,
+            "minimum": 0.1,
             "maximum": 180,
             "readOnly": True,
         }
         fields["cell_gamma"] = {
             "title": "γ",
             "type": "number",
-            "minimum": 0,
+            "minimum": 0.1,
             "maximum": 180,
             "readOnly": True,
         }
@@ -504,7 +526,7 @@ class GphlWorkflow(HardwareObject):
             "title": "Radiation sensitivity",
             "default": data_model.relative_rad_sensitivity or 1.0,
             "type": "number",
-            "minimum": 0,
+            "minimum": 0.000001,
         }
         fields["crystal_thickness"] = {
             "title": "Crystal thickness (µ)",
@@ -522,6 +544,20 @@ class GphlWorkflow(HardwareObject):
             "title": "Reference MTZ file Url (multiple Urls not yet supported)",
             "type": "textarea",
             "default": "",
+        }
+        fields["processing_macro_url"] = {
+            "title": "Special processing macro Url",
+            "type": "textarea",
+            "default": "",
+        }
+        macros_list = [""]
+        macros_list.extend(self.config.settings.get("processing_macros", []))
+        macros_list.append(SPECIFY_URL)
+        fields["processing_macro"] = {
+            "title": "Special processing macro",
+            "type": "string",
+            "default": "",
+            "enum": macros_list,
         }
         resolution = data_model.aimed_resolution or HWR.beamline.resolution.get_value()
         resolution = round(resolution, resolution_decimals)
@@ -596,6 +632,7 @@ class GphlWorkflow(HardwareObject):
             for tag, val in zip(
                 ("cell_a", "cell_b", "cell_c", "cell_alpha", "cell_beta", "cell_gamma"),
                 data_model.cell_parameters,
+                strict=True,
             ):
                 fields[tag]["default"] = val
         else:
@@ -756,6 +793,16 @@ class GphlWorkflow(HardwareObject):
                 },
             }
             if self.config.settings.get("advanced_mode"):
+                if ACTIVATE_PROCESSING_MACROS:
+                    ui_schema["parameters"]["column2"]["ui:order"].append(
+                        "processing_macro"
+                    )
+                    ui_schema["ui:order"].append("processing_macro_url")
+                    ui_schema["processing_macro_url"] = {
+                        "ui:options": {
+                            "update_on_change": True,
+                        },
+                    }
                 ui_schema["ui:order"].append("reffiles")
                 ui_schema["reffiles"] = {
                     "ui:options": {
@@ -826,6 +873,18 @@ class GphlWorkflow(HardwareObject):
                         raise ValueError("Invalid url string: %s" % line)
             if reffiles:
                 params["reference_reflection_files"] = reffiles
+
+        # Validate and convert processing_macro_url
+        text = params.pop("processing_macro_url", "")
+        if text:
+            line = text.strip()
+            if line:
+                if line.startswith("/"):
+                    line = "file:" + line
+                if validate_url(line):
+                    params["processing_macro_url"] = line
+                else:
+                    raise ValueError("Invalid url string: %s" % line)
 
         # Convert energy field to a single tuple
         params["energies"] = (params.pop("energy"),)
@@ -1039,6 +1098,28 @@ class GphlWorkflow(HardwareObject):
         self.log.info("%s : FINISHED", name)
 
     def get_configuration_data(self, payload, correlation_id):
+        wf_version_str = payload.workflowVersion
+        abi_version_str = payload.abiVersion
+        logging.getLogger("user_level_log").info(
+            "GPhL Workflow %s, beamline interface: %s"
+            % (wf_version_str.split("+")[0], abi_version_str.split("+")[0])
+        )
+        if wf_version_str and gphl_version_str:
+            gphl_version = Version(gphl_version_str)
+            wf_release = Version(wf_version_str).release
+            gphl_release = gphl_version.release
+            if wf_release[0] != gphl_release[0]:
+                raise ValueError(
+                    "MXCuBE gphl version %s incompatible with GPhL release version %s"
+                    % (gphl_version, wf_version_str)
+                )
+
+            elif wf_release < gphl_release:
+                raise ValueError(
+                    "GPhL release version %s older than MXCuBE gphl version %s."
+                    % (wf_version_str, gphl_version_str)
+                    + "Upgrade to new GPhL release"
+                )
         return GphlMessages.ConfigurationData(self.file_paths["gphl_beamline_config"])
 
     def query_collection_strategy(self, geometric_strategy):
@@ -1243,7 +1324,7 @@ class GphlWorkflow(HardwareObject):
             "title": "Dose budget (MGy)",
             "type": "number",
             "default": dose_budget - data_model.characterisation_dose,
-            "minimum": 0.0,
+            "minimum": 0.000001,
             "readOnly": True,
         }
         fields["use_dose"] = {
@@ -1284,6 +1365,14 @@ class GphlWorkflow(HardwareObject):
                 "upperBound": 99,
                 "stepsize": 1,
             }
+            reflecting_range_esd = data_model.reflecting_range_esd
+            if reflecting_range_esd:
+                fields["reflecting_range_esd"] = {
+                    "title": "Mosaicity (°)",
+                    "type": "number",
+                    "default": reflecting_range_esd,
+                    "readOnly": True,
+                }
 
         if is_interleaved:
             wedge_widths = self.config.settings.get("wedge_widths") or [48, 24, 72, 360]
@@ -1430,6 +1519,10 @@ class GphlWorkflow(HardwareObject):
                 -1,
                 "repetition_count",
             )
+            if data_model.reflecting_range_esd:
+                ui_schema["parameters"]["column2"]["ui:order"].insert(
+                    2, "reflecting_range_esd"
+                )
 
         ll0 = ui_schema["parameters"]["column2"]["ui:order"]
         ll0.extend(list(beam_energies))
@@ -1534,15 +1627,32 @@ class GphlWorkflow(HardwareObject):
             gphl_workflow_model.dose_correction_factor = 1.0
         gphl_workflow_model.strategy_length = strategy_length
 
+        reflecting_range_esd = geometric_strategy.reflectingRangeEsd
+        gphl_workflow_model.reflecting_range_esd = reflecting_range_esd
+
         allowed_widths = geometric_strategy.allowedWidths
         if allowed_widths:
-            default_image_width = float(
-                allowed_widths[geometric_strategy.defaultWidthIdx or 0]
-            )
+            default_width_index = geometric_strategy.defaultWidthIdx or 0
         else:
-            default_image_width = list(
-                self.config.settings.get("default_image_widths")
-            )[0]
+            allowed_widths = list(self.config.settings.get("default_image_widths"))
+            default_width_index = 0
+        if allowed_widths:
+            reflecting_range_esd = gphl_workflow_model.reflecting_range_esd
+            if reflecting_range_esd:
+                # Pick allowed width nearest to target
+                target = MOSAICITY_TO_IMAGE_WIDTH * reflecting_range_esd
+                delta = 999.999
+                for val in allowed_widths:
+                    diff = abs(val - target)
+                    if diff < delta:
+                        delta = diff
+                        default_image_width = val
+            else:
+                # Take configured default
+                default_image_width = allowed_widths[default_width_index]
+        else:
+            # Should not happen, but if no allowed_widths ...
+            default_image_width = 0.1
 
         # get parameters and initial transmission/use_dose
         if gphl_workflow_model.automation_mode:
@@ -1564,7 +1674,8 @@ class GphlWorkflow(HardwareObject):
                     parameters.get("exposure_time") and parameters.get("image_width")
                 ):
                     raise ValueError(
-                        "exposure_time and image_width must be set when init_spot_dir is set"
+                        "exposure_time and image_width must be set "
+                        "when init_spot_dir is set"
                     )
                 new_dose = self.adjust_dose(parameters)["use_dose"]["value"]
             else:
@@ -2216,9 +2327,9 @@ class GphlWorkflow(HardwareObject):
                 acq_parameters.num_images_per_trigger = acq_parameters.num_images
                 acq_parameters.num_images *= scan_count
                 # NB this assumes sweepOffset is the offset between starting points
-                acq_parameters.overlap = (
-                    acq_parameters.num_images_per_trigger * acq_parameters.osc_range
-                    - sweep_offset
+                acq_parameters.offset = (
+                    sweep_offset
+                    - acq_parameters.num_images_per_trigger * acq_parameters.osc_range
                 )
             data_collection = queue_model_objects.DataCollection([acq], crystal)
             # Workflow parameters for ICAT / external workflow
@@ -2406,10 +2517,9 @@ class GphlWorkflow(HardwareObject):
         solutions = choose_lattice.indexingSolutions
         indexing_format = choose_lattice.indexingFormat
         solutions_dict = OrderedDict()
-
         if indexing_format == "IDXREF":
             header = """  LATTICE-  BRAVAIS-   QUALITY  UNIT CELL CONSTANTS (ANGSTROEM & DEGREES)
- CHARACTER  LATTICE     OF FIT      a      b      c   alpha  beta gamma"""
+ CHARACTER  LATTICE     OF FIT      a      b      c   alpha  beta gamma"""  # noqa E501
 
             line_format = (
                 " %s  %2i        %s %12.1f    %6.1f %6.1f %6.1f %5.1f %5.1f %5.1f"
@@ -2501,14 +2611,14 @@ class GphlWorkflow(HardwareObject):
                 ll0 = zoom_motor.get_predefined_positions_list()
                 if ll0:
                     logging.getLogger("user_level_log").info(
-                        "Sample re-centering now active - Zooming in."
+                        "Sample re-centring now active - Zooming in."
                     )
                     zoom_motor.moveToPosition(ll0[-1])
                 else:
                     self.log.warning("No predefined positions for zoom motor.")
             else:
                 logging.getLogger("user_level_log").info(
-                    "Sample re-centering now active - Zoom in before continuing."
+                    "Sample re-centring now active - Zoom in before continuing."
                 )
 
         settings = goniostatRotation.axisSettings.copy()
@@ -2668,8 +2778,8 @@ class GphlWorkflow(HardwareObject):
                 return
             else:
                 raise RuntimeError(
-                    "No scan matching prefix: %s, run_number: %s, start_image_number: %s at start"
-                    % key
+                    "No scan matching prefix: "
+                    "%s, run_number: %s, start_image_number: %s at start" % key
                 )
 
     def handle_collection_start(
@@ -2692,8 +2802,8 @@ class GphlWorkflow(HardwareObject):
                 return
             else:
                 raise RuntimeError(
-                    "No scan matching prefix: %s, run_number: %s, start_image_number: %s at start"
-                    % key
+                    "No scan matching prefix: "
+                    "%s, run_number: %s, start_image_number: %s at start" % key
                 )
 
         translation_settings = dict(
@@ -2706,7 +2816,8 @@ class GphlWorkflow(HardwareObject):
                 self._scan_id_to_translation_id[scan.id_] = self._latest_translation_id
             else:
                 # NBNB RECHECK!!!
-                # We must be in centring mode None: No real centring known, use calculated
+                # We must be in centring mode None:
+                # No real centring known, use calculated
                 self._scan_id_to_translation_id[scan.id_] = None
         else:
             # First scan in sweep (not first sweep)
@@ -2762,22 +2873,21 @@ class GphlWorkflow(HardwareObject):
         using averaging to calculate dose rates are felt to be ungeneric
 
         Args:
-            energy (Optional[float]): Beam energy in keV. Defaults to current beamline value
+            energy (Optional[float]): Beam energy in keV. Defaults to current value
 
         Returns:
             float: Maximum dose rate in MGy/s
         """
         energy = energy or HWR.beamline.energy.get_value()
         flux = HWR.beamline.flux
+        wfl = HWR.beamline.gphl_workflow
         if flux:
             flux_density = flux.get_average_flux_density(transmission=100.0)
             if flux_density:
-                crystal_thickness = HWR.beamline.gphl_workflow._queue_entry.get_data_model().crystal_thickness
+                crystal_thickness = wfl._queue_entry.get_data_model().crystal_thickness
                 if crystal_thickness:
                     beam_dim = (
-                        HWR.beamline.beam.get_beam_size()[
-                            HWR.beamline.gphl_workflow.rotation_axis_index()
-                        ]
+                        HWR.beamline.beam.get_beam_size()[wfl.rotation_axis_index()]
                         * 1000.0
                     )
                     # NBNB TODO beam sizes seem to come in mm. Units nowhere defined.
@@ -2816,7 +2926,7 @@ class GphlWorkflow(HardwareObject):
         )
         serial = 0
         if sample_dir and os.path.isdir(sample_dir):
-            for path, dirnames, filenames in sorted(os.walk(sample_dir)):
+            for path, dirnames, filenames in sorted(os.walk(sample_dir)):  # noqa B007
                 if crystal_file_name in filenames:
                     data = {}
                     sample_name = os.path.basename(path)
@@ -2950,7 +3060,11 @@ class GphlWorkflow(HardwareObject):
                     update_dict = self.update_space_group(parameters)
                 elif instruction == "reffiles":
                     update_dict = self.update_reference_files(parameters)
-            except:
+                elif instruction == "processing_macro":
+                    update_dict = self.update_processing_macro(parameters)
+                elif instruction == "processing_macro_url":
+                    update_dict = self.update_processing_macro_url(parameters)
+            except Exception:
                 self.log.error(
                     "Error in GPhL parameter update for %s, Continuing ...",
                     instruction,
@@ -2997,7 +3111,7 @@ class GphlWorkflow(HardwareObject):
                     "transmission",
                 ):
                     update_dict = self.adjust_dose(parameters)
-            except:
+            except Exception:
                 self.log.error(
                     "Error in GPhL parameter update for %s, Continuing ...",
                     instruction,
@@ -3139,6 +3253,25 @@ class GphlWorkflow(HardwareObject):
         }
         return result
 
+    def update_processing_macro_url(self, values):
+        value = values.get("processing_macro_url", "").strip()
+        if value:
+            result = {
+                "processing_macro_url": {
+                    "invalidated": value and not validate_url(value)
+                },
+                "processing_macro": {"value": SPECIFY_URL},
+            }
+            return result
+        return {}
+
+    def update_processing_macro(self, values):
+        value = values.get("processing_macro", "").strip()
+        if value != SPECIFY_URL:
+            result = {"processing_macro_url": {"value": "", "invalidated": False}}
+            return result
+        return {}
+
     def adjust_transmission(self, values):
         """When use_dose changes, update transmission and/or exposure_time
         In parameter popup"""
@@ -3245,7 +3378,7 @@ def validate_url(value: str) -> bool:
     """Validate url string"""
     tpl = urlparse(value)
     scheme = tpl.scheme
-    if not tpl.path.startswith("/"):  # noqa: SIM114
+    if len(tpl.path) < 2 or not tpl.path.startswith("/"):  # noqa: SIM114
         return False
     elif tpl.query or tpl.fragment or tpl.username or tpl.password:
         return False

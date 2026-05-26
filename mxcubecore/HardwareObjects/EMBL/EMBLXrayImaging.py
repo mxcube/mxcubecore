@@ -93,7 +93,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         self.current_image_index = None
         self.mouse_hold = False
         self.mouse_coord = [0, 0]
-        self.centering_started = 0
+        self.centring_started = 0
 
         self._previous_collect_status = None
         self._actual_collect_status = None
@@ -273,12 +273,12 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
 
     def mouse_clicked(self, pos_x, pos_y, left_click):
         QtGraphicsManager.mouse_clicked(self, pos_x, pos_y, left_click)
-        if self.centering_started:
+        if self.centring_started:
             self.motor_positions["phi"] = self.omega_angle
             HWR.beamline.diffractometer.set_static_positions(self.motor_positions)
             HWR.beamline.diffractometer.image_clicked(pos_x, pos_y)
-            self.centering_started -= 1
-        if not self.centering_started:
+            self.centring_started -= 1
+        if not self.centring_started:
             self.set_centring_state(False)
 
     def mouse_released(self, pos_x, pos_y):
@@ -938,8 +938,8 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
                 self.current_image_index = 0
         self.display_image(self.current_image_index)
 
-    def start_centering(self):
-        self.centering_started = 3
+    def start_centring(self):
+        self.centring_started = 3
         self.set_centring_state(True)
 
         # osc_seq = self.config_dict["collect"]["oscillation_sequence"][0]
@@ -951,8 +951,8 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
             HWR.beamline.diffractometer.CENTRING_METHOD_IMAGING
         )
 
-    def start_n_centering(self):
-        self.centering_started = 100
+    def start_n_centring(self):
+        self.centring_started = 100
         self.set_centring_state(True)
         HWR.beamline.diffractometer.start_centring_method(
             HWR.beamline.diffractometer.CENTRING_METHOD_IMAGING_N

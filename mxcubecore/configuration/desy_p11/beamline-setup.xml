@@ -38,7 +38,7 @@
        and used as a queue_entry. If queue entry is missing
        then queue skip exception will be raised.
   -->
-  <advancedMethods>["MeshScan", "XrayCentering"]</advancedMethods>
+  <advancedMethods>["MeshScan", "XrayCentring"]</advancedMethods>
 
   <!-- Is it possible to change the beam wavelentgh.
        Should perhaps be associated with the diffractometer -->

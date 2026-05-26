@@ -82,7 +82,7 @@ class BlissMultiCollect(ESRFMultiCollect):
             oscillation_parameters["number_of_images"],
             oscillation_parameters["range"],
             subwedge_size,
-            oscillation_parameters["overlap"],
+            oscillation_parameters["offset"],
         )
 
         run_number = data_collect_parameters["fileinfo"]["run_number"]

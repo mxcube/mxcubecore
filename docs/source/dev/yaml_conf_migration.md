@@ -28,7 +28,7 @@ _objects:
 # Non-object attributes:
 advanced_methods:
   - MeshScan
-  - XrayCentering
+  - XrayCentring
 tunable_wavelength: true
 ```
 
@@ -45,7 +45,7 @@ objects:
 configuration:
   advanced_methods:
     - MeshScan
-    - XrayCentering
+    - XrayCentring
   tunable_wavelength: true
 ```
 

@@ -205,11 +205,11 @@ class ISPyBValueFactory:
             data_collection.axisStart = osc_seq["start"]
 
             data_collection.axisEnd = float(osc_seq["start"]) + (
-                float(osc_seq["range"]) - float(osc_seq["overlap"])
+                float(osc_seq["range"]) + float(osc_seq["offset"])
             ) * float(osc_seq["number_of_images"])
 
             data_collection.axisRange = osc_seq["range"]
-            data_collection.overlap = osc_seq["overlap"]
+            data_collection.overlap = -osc_seq["offset"]
             data_collection.numberOfImages = osc_seq["number_of_images"]
             data_collection.startImageNumber = osc_seq["start_image_number"]
             data_collection.numberOfPasses = osc_seq["number_of_passes"]
@@ -361,13 +361,13 @@ class ISPyBValueFactory:
             pass
 
         try:
-            data_collection.centeringMethod = mx_collect_dict["centeringMethod"]
+            data_collection.centringMethod = mx_collect_dict["centringMethod"]
         except KeyError:
             pass
 
         try:
-            data_collection.actualCenteringPosition = mx_collect_dict[
-                "actualCenteringPosition"
+            data_collection.actualCentringPosition = mx_collect_dict[
+                "actualCentringPosition"
             ]
         except KeyError:
             pass

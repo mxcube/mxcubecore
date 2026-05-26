@@ -35,7 +35,7 @@ class HarvesterMaintenance(HardwareObject):
 
     """
     Actual implementation of the Harvester MAINTENANCE,
-    COMMANDS, Actions and Calibration procedure, and Centering.
+    COMMANDS, Actions and Calibration procedure, and Centring.
     """
 
     def __init__(self, *args, **kwargs):
@@ -235,7 +235,7 @@ class HarvesterMaintenance(HardwareObject):
     def validate_calibration(self) -> bool:
         """
         finish Calibration Procedure step 2
-        after user ran a 3 click centering
+        after user ran a 3 click centring
         Return (bool): whether the step 2 of calibration procedure
         goes to end (True) or had and exception (False)
         """
@@ -273,7 +273,7 @@ class HarvesterMaintenance(HardwareObject):
                 ),
             }
 
-            # we store the motor offset in the Harvester, to be used for sample centering
+            # we store the motor offset in the Harvester, to be used for sample centring
             self._harvester.store_calibrated_pin(
                 calibrated_motor_offset["focus"],
                 calibrated_motor_offset["phiy"],

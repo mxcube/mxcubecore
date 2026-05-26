@@ -1190,7 +1190,7 @@ class GenericDiffractometer(HardwareObject):
         if "motors" not in centring_status:
             centring_status["motors"] = self.get_positions()
         self.emit("centringAccepted", (True, centring_status))
-        self.emit("fsmConditionChanged", "centering_position_accepted", True)
+        self.emit("fsmConditionChanged", "centring_position_accepted", True)
 
     def reject_centring(self):
         if self.current_centring_procedure:
@@ -1198,7 +1198,7 @@ class GenericDiffractometer(HardwareObject):
         self.centring_status = {"valid": False}
         self.emit_progress_message("")
         self.emit("centringAccepted", (False, self.get_centring_status()))
-        self.emit("fsmConditionChanged", "centering_position_accepted", False)
+        self.emit("fsmConditionChanged", "centring_position_accepted", False)
 
     def emit_centring_started(self, method):
         self.current_centring_method = method

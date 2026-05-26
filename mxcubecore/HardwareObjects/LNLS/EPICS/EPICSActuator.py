@@ -6,6 +6,7 @@ import numpy as np
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractActuator import AbstractActuator
+from mxcubecore.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
 
 
 class EPICSActuator(AbstractActuator):
@@ -124,3 +125,34 @@ class EPICSActuatorBluesky(EPICSActuator):
                 self.plan_parameter: value,
             },
         )
+
+
+class LNLSEnergy(AbstractEnergy, EPICSActuatorBluesky):
+    """
+    This class is a specific workaround for LNLS energy
+    component. It inherits from AbstractEnergy so that
+    EnergyAdapter gets created, which is essential for
+    the application to function properly.
+
+    YAML Example
+    ------------
+
+    %YAML 1.2
+    ---
+    class: LNLS.EPICS.EPICSActuator.EPICSActuatorBluesky
+    epics:
+    "MNC:A:DCM01:":
+        channels:
+        rbv:
+            suffix: "GonRx_Energy_RBV"
+            polling_period: 200
+        val:
+            suffix: "Energy_SP"
+    configuration:
+    tolerance: 0.01
+    plan_name: "move_energy_and_phase"
+    plan_parameter: "energy"
+    default_lim
+    """
+
+    pass

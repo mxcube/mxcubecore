@@ -453,7 +453,7 @@ class HarvesterMockup(HardwareObject):
         # return self._execute_cmd_exporter("getNbRemainingPins", command=True)
         return 1
 
-    def get_offsets_for_sample_centering(self):
+    def get_offsets_for_sample_centring(self):
         pin_to_beam = tuple(self.get_calibrated_pin_offset())
 
         sample_drift_x = float(self.get_last_sample_drift_offset_x())

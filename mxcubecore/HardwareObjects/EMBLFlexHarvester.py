@@ -206,7 +206,7 @@ class EMBLFlexHarvester(EMBLFlexHCD):
 
             logging.getLogger("user_level_log").info("Start Auto Harvesting Centring")
 
-            computed_offset = HWR.beamline.harvester.get_offsets_for_sample_centering()
+            computed_offset = HWR.beamline.harvester.get_offsets_for_sample_centring()
             dm.start_harvester_centring(computed_offset)
 
         except Exception as exc:
@@ -232,7 +232,7 @@ class EMBLFlexHarvester(EMBLFlexHCD):
                 self.queue_harvest_next_sample(loaded_sample.get_address())
 
             # we expect CENTRING_METHOD to be None
-            # NB: move this call to base_queue_entry mount_sample and add Harvester Centering METHOD
+            # NB: move this call to base_queue_entry mount_sample and add Harvester Centring METHOD
             HWR.beamline.queue_manager.centring_method = CENTRING_METHOD.NONE
             self.start_harvester_centring()
 

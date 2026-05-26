@@ -115,4 +115,4 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         BaseQueueEntry.post_execute(self)
 
     def get_type_str(self):
-        return "Sample centering"
+        return "Sample centring"

@@ -253,6 +253,8 @@ class Session(HardwareObject):
         if sub_dir:
             sub_dir = self._sanitize_subdir(sub_dir)
             directory = Path(base_directory, sub_dir)
+        else:
+            directory = base_directory
 
         if not directory.is_relative_to(base_directory):
             error_message = "Invalid subdirectory"
@@ -275,6 +277,8 @@ class Session(HardwareObject):
         if sub_dir:
             sub_dir = self._sanitize_subdir(sub_dir)
             directory = Path(base_directory, sub_dir)
+        else:
+            directory = base_directory
 
         if not directory.is_relative_to(base_directory):
             error_message = "Invalid subdirectory"

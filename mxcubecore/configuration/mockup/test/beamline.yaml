@@ -48,7 +48,7 @@ objects:
 # Non-object attributes:
 advanced_methods:
   - MeshScan
-  - XrayCentering
+  - XrayCentring
 
 tunable_wavelength: true
 disable_num_passes: false

@@ -356,9 +356,9 @@ class AbstractMultiCollect(object):
         pass
 
     def prepare_wedges_to_collect(
-        self, start, nframes, osc_range, subwedge_size=1, overlap=0
+        self, start, nframes, osc_range, subwedge_size=1, offset=0
     ):
-        if overlap == 0:
+        if offset == 0:
             wedge_sizes_list = [nframes // subwedge_size] * subwedge_size
         else:
             wedge_sizes_list = [subwedge_size] * (nframes // subwedge_size)
@@ -370,7 +370,7 @@ class AbstractMultiCollect(object):
 
         for wedge_size in wedge_sizes_list:
             wedges_to_collect.append((start, wedge_size))
-            start += wedge_size * osc_range - overlap
+            start += wedge_size * osc_range + offset
 
         return wedges_to_collect
 
@@ -574,7 +574,7 @@ class AbstractMultiCollect(object):
             if pos is not None and motor is not None:
                 positions_str += motor + ("=%f" % pos) + " "
 
-        data_collect_parameters["actualCenteringPosition"] = positions_str.strip()
+        data_collect_parameters["actualCentringPosition"] = positions_str.strip()
 
         self.move_motors(motors_to_move_before_collect)
         HWR.beamline.diffractometer.save_centring_positions()
@@ -654,16 +654,16 @@ class AbstractMultiCollect(object):
                     snapshot_i += 1
 
             try:
-                data_collect_parameters["centeringMethod"] = centring_info["method"]
+                data_collect_parameters["centringMethod"] = centring_info["method"]
             except Exception:
-                data_collect_parameters["centeringMethod"] = None
+                data_collect_parameters["centringMethod"] = None
 
         if HWR.beamline.lims:
             try:
                 logging.getLogger("user_level_log").info(
                     "Updating data collection in LIMS"
                 )
-                if "kappa" in data_collect_parameters["actualCenteringPosition"]:
+                if "kappa" in data_collect_parameters["actualCentringPosition"]:
                     data_collect_parameters["oscillation_sequence"][0]["kappaStart"] = (
                         current_diffractometer_position["kappa"]
                     )
@@ -685,7 +685,7 @@ class AbstractMultiCollect(object):
             oscillation_parameters["number_of_images"],
             oscillation_parameters["range"],
             subwedge_size,
-            oscillation_parameters["overlap"],
+            oscillation_parameters["offset"],
         )
         nframes = sum([wedge_size for _, wedge_size in wedges_to_collect])
 

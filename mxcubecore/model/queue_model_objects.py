@@ -1197,7 +1197,7 @@ class XRFSpectrumResult(object):
         self.mca_config = None
 
 
-class XrayCentering(TaskNode):
+class XrayCentring(TaskNode):
     def __init__(self, ref_data_collection=None, crystal=None):
         TaskNode.__init__(self)
 
@@ -1214,7 +1214,7 @@ class XrayCentering(TaskNode):
         self.line_collection.set_experiment_type(
             queue_model_enumerables.EXPERIMENT_TYPE.HELICAL
         )
-        self.line_collection.run_online_processing = "XrayCentering"
+        self.line_collection.run_online_processing = "XrayCentring"
         self.line_collection.grid = None
 
         acq_two = Acquisition()
@@ -1340,7 +1340,7 @@ class XrayCentring2(TaskNode):
 
 
 class SampleCentring(TaskNode):
-    """Manual 3 click centering
+    """Manual 3 click centring
 
     kappa and kappa_phi settings are applied first, and assume that the
     beamline does have axes with exactly these names
@@ -1404,7 +1404,7 @@ class SampleCentring(TaskNode):
 
 
 class OpticalCentring(TaskNode):
-    """Optical automatic centering with lucid"""
+    """Optical automatic centring with lucid"""
 
     def __init__(self, user_confirms=False):
         TaskNode.__init__(self)
@@ -1686,7 +1686,7 @@ class AcquisitionParameters(object):
         self.osc_start = float()
         self.osc_range = float()
         self.osc_total_range = float()
-        self.overlap = float()
+        self.offset = float()
         self.kappa = float()
         self.kappa_phi = float()
         self.exp_time = float()
@@ -1737,7 +1737,7 @@ class AcquisitionParameters(object):
             "osc_start": self.osc_start,
             "osc_range": self.osc_range,
             "osc_total_range": self.osc_total_range,
-            "overlap": self.overlap,
+            "offset": self.offset,
             "kappa": self.kappa,
             "kappa_phi": self.kappa_phi,
             "exp_time": self.exp_time,
@@ -1992,6 +1992,7 @@ class GphlWorkflow(TaskNode):
         self.strategy_variant = None  # from 'strategy' Used for acquisition
         self.strategy_options = {}
         self.relative_rad_sensitivity = 1.0
+        self.processing_macro = None
         # Directory containing SPOT.XDS file
         # For cases where characterisation and XDS processing are done
         # before workflow is started
@@ -2005,6 +2006,7 @@ class GphlWorkflow(TaskNode):
         self.transmission = 0.0
         self.repetition_count = 1
         self.snapshot_count = 2
+        self.reflecting_range_esd = None
         self.recentring_mode = "sweep"
         self.reference_reflection_files = []
 
@@ -2102,6 +2104,8 @@ class GphlWorkflow(TaskNode):
         use_cell_for_processing=None,
         crystal_thickness=None,
         reference_reflection_files=None,
+        processing_macro=None,
+        processing_macro_url=None,
         **unused,
     ):
         """
@@ -2118,6 +2122,8 @@ class GphlWorkflow(TaskNode):
         :param use_cell_for_processing (bool):
         :param crystal_thickness (float):
         :param reference_reflection_files (list(str)):
+        :param processing_macro (str)
+        :param processing_macro_url (str)
         :param unused (dict):
         :return (None):
         """
@@ -2250,6 +2256,12 @@ class GphlWorkflow(TaskNode):
             self.use_cell_for_processing = use_cell_for_processing
         if reference_reflection_files:
             self.reference_reflection_files = list(reference_reflection_files)
+
+        # Processing macro
+        if processing_macro:
+            self.processing_macro = "macro:" + processing_macro
+        elif processing_macro_url:
+            self.processing_macro = processing_macro_url
 
     def set_pre_acquisition_params(
         self,
@@ -2672,7 +2684,7 @@ def to_collect_dict(data_collection, sample, centred_pos=None):
                                     'phiStart': 0.0,
                                     'start_image_number': 1,
                                     'number_of_images': 1,
-                                    'overlap': 0.0,
+                                    'offset': 0.0,
                                     'start': 0.0,
                                     'range': 1.0,
                                     'number_of_passes': 1}],
@@ -2732,7 +2744,7 @@ def to_collect_dict(data_collection, sample, centred_pos=None):
                     "phiStart": acq_params.kappa_phi,
                     "start_image_number": acq_params.first_image,
                     "number_of_images": acq_params.num_images,
-                    "overlap": acq_params.overlap,
+                    "offset": acq_params.offset,
                     "start": acq_params.osc_start,
                     "range": acq_params.osc_range,
                     "number_of_passes": acq_params.num_passes,

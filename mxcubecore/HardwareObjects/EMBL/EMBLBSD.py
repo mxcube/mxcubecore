@@ -35,7 +35,7 @@ class EMBLBSD(GenericDiffractometer):
     """EMBLBSD represents a diffractometer without a gonio"""
 
     def __init__(self, *args):
-        """Based on the GenericDiffractometer without centering motors"""
+        """Based on the GenericDiffractometer without centring motors"""
 
         GenericDiffractometer.__init__(self, *args)
 

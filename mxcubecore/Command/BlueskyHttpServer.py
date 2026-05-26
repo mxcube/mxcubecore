@@ -39,6 +39,9 @@ class BlueskyHttpServerCommand(CommandObject):
     _default_timeout = 5
     _status_path = "api/status"
     _execute_path = "api/queue/item/execute"
+    _pause_path = "api/re/pause"
+    _resume_path = "api/re/resume"
+    _abort_path = "api/re/abort"
     _console_uid_path = "api/console_output/uid"
     _console_path = "api/console_output_update"
 
@@ -93,6 +96,30 @@ class BlueskyHttpServerCommand(CommandObject):
                 "user": self.username,
                 "item": {"name": plan_name, "item_type": "plan", "kwargs": kwargs},
             },
+            timeout=self._default_timeout,
+        )
+
+    def pause_plan(self, option="deferred"):
+        return requests.post(
+            self._url + self._pause_path,
+            headers=self._headers,
+            json={
+                "option": option,
+            },
+            timeout=self._default_timeout,
+        )
+
+    def resume_plan(self):
+        return requests.post(
+            self._url + self._resume_path,
+            headers=self._headers,
+            timeout=self._default_timeout,
+        )
+
+    def abort_plan(self):
+        return requests.post(
+            self._url + self._abort_path,
+            headers=self._headers,
             timeout=self._default_timeout,
         )
 

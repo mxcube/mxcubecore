@@ -55,7 +55,7 @@ class PX2Collect(AbstractCollect, HardwareObject):
         "nested_helical_acquisition",
         "tomography",
         "film",
-        "optical_centering",
+        "optical_centring",
     ]
 
     # experiment_types = ['OSC',
@@ -147,7 +147,6 @@ class PX2Collect(AbstractCollect, HardwareObject):
         exposure_time = osc_seq["exposure_time"]
         in_queue = parameters["in_queue"] != False
 
-        overlap = osc_seq["overlap"]
         angle_per_frame = osc_seq["range"]
         scan_start_angle = osc_seq["start"]
         number_of_images = osc_seq["number_of_images"]
@@ -191,15 +190,13 @@ class PX2Collect(AbstractCollect, HardwareObject):
         elif experiment_type == "Characterization":
             number_of_wedges = osc_seq["number_of_images"]
             wedge_size = osc_seq["wedge_size"]
-            overlap = osc_seq["overlap"]
+            offset = osc_seq["offset"]
             scan_start_angles = []
             scan_exposure_time = exposure_time * wedge_size
             scan_range = angle_per_frame * wedge_size
 
             for k in range(number_of_wedges):
-                scan_start_angles.append(
-                    scan_start_angle + k * -overlap + k * scan_range
-                )
+                scan_start_angles.append(scan_start_angle + k * offset + k * scan_range)
 
             experiment = reference_images(
                 name_pattern,
@@ -267,22 +264,6 @@ class PX2Collect(AbstractCollect, HardwareObject):
             )
             experiment.execute()
 
-        # for image in range(number_of_images):
-        # if self.aborted_by_user:
-        # self.ready_event.set()
-        # return
-
-        # Uncomment to test collection failed
-        # if image == 5:
-        # self.emit("collectOscillationFailed", (self.owner, False,
-        # "Failed on 5", parameters.get("collection_id")))
-        # self.ready_event.set()
-        # return
-
-        # gevent.sleep(exposure_time)
-        # self.emit("collectImageTaken", image)
-        # self.emit("progressStep", (int(float(image) / number_of_images * 100)))
-
         self.emit_collection_finished()
 
     def translate_position(self, position):
@@ -343,8 +324,7 @@ class PX2Collect(AbstractCollect, HardwareObject):
                 self.store_image_in_lims_by_frame_num(last_frame)
             if (
                 self.current_dc_parameters["experiment_type"] in ("OSC", "Helical")
-                and self.current_dc_parameters["oscillation_sequence"][0]["overlap"]
-                == 0
+                and self.current_dc_parameters["oscillation_sequence"][0]["offset"] == 0
                 and last_frame > 19
             ):
                 self.trigger_auto_processing("after", self.current_dc_parameters, 0)

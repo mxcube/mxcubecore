@@ -74,7 +74,7 @@ class AbstractCharacterisation(HardwareObject):
                 'num_images',
                 'osc_start',
                 'osc_range',
-                'overlap',
+                'offset',
                 'exp_time',
                 'num_passes',
                 'comments',

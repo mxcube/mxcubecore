@@ -252,7 +252,20 @@ class IdentifiedElement(MessageData):
 class RequestConfiguration(Payload):
     """Configuration request message"""
 
+    def __init__(self, workflowVersion: str | None, abiVersion: str | None):
+        super().__init__()
+        self._workflowVersion = workflowVersion
+        self._abiVersion = abiVersion
+
     INTENT = "COMMAND"
+
+    @property
+    def workflowVersion(self):
+        return self._workflowVersion
+
+    @property
+    def abiVersion(self):
+        return self._abiVersion
 
 
 class ObtainPriorInformation(Payload):
@@ -1022,7 +1035,7 @@ class Sweep(IdentifiedElement):
         self._scans.add(scan)
 
     def get_initial_settings(self):
-        """Get dictionary of rotation and translation motor settings for start of sweep"""
+        """Get dict of rotation and translation motor settings for start of sweep"""
         result = self.goniostatSweepSetting.get_motor_settings()
         result[self.goniostatSweepSetting.scanAxis] = self.start
         return result
@@ -1086,6 +1099,7 @@ class GeometricStrategy(IdentifiedElement, Payload):
         sweepRepeat=None,
         defaultWidthIdx=None,
         sweeps=(),
+        reflectingRangeEsd=None,
         id_=None,
     ):
         super().__init__(id_=id_)
@@ -1096,6 +1110,7 @@ class GeometricStrategy(IdentifiedElement, Payload):
         self._defaultBeamSetting = defaultBeamSetting
         self._defaultWidthIdx = defaultWidthIdx
         self._sweeps = frozenset(sweeps)
+        self._reflectingRangeEsd = reflectingRangeEsd
 
         if len(set(allowedWidths)) != len(allowedWidths):
             raise ValueError(
@@ -1138,6 +1153,10 @@ class GeometricStrategy(IdentifiedElement, Payload):
     @property
     def sweeps(self):
         return self._sweeps
+
+    @property
+    def reflectingRangeEsd(self):
+        return self._reflectingRangeEsd
 
     def get_ordered_sweeps(self):
         """Get sweeps in acquisition order.
@@ -1194,9 +1213,9 @@ class PriorInformation(Payload):
             if text:
                 try:
                     sampleId = uuid.UUID(text)
-                except:
+                except Exception:  # noqa S110
                     # The error expected if this goes wrong is ValueError.
-                    # But whatever the error we want to continue
+                    # But whatever the error we just want to continue
                     pass
                 else:
                     # Text was a valid uuid string. Use the uuid.
@@ -1236,7 +1255,7 @@ class PriorInformation(Payload):
 
 
 class RequestCentring(Payload):
-    """Request for centering"""
+    """Request for centring"""
 
     INTENT = "COMMAND"
 
@@ -1260,7 +1279,7 @@ class RequestCentring(Payload):
 
 
 class CentringDone(Payload):
-    """Centering-done message"""
+    """Centring-done message"""
 
     INTENT = "DOCUMENT"
 

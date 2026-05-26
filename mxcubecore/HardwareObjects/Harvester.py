@@ -718,8 +718,8 @@ class Harvester(HardwareObject):
             # Try an abort and move to next sample
             return False
 
-    def get_offsets_for_sample_centering(self) -> tuple[float]:
-        """Calculate sample centering offsets
+    def get_offsets_for_sample_centring(self) -> tuple[float]:
+        """Calculate sample centring offsets
         based on Harvested pin shape pre-calculated offsets
 
         Return (tuple(float)): (phiy_offset, centringFocus, centringTableVertical)
