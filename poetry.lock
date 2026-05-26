@@ -66,6 +66,7 @@ description = "An addition to MXCuBEWeb enabling simultaneous video streaming an
 optional = true
 python-versions = "<3.12,>=3.10"
 groups = ["main"]
+markers = "extra == \"argus\""
 files = [
     {file = "argussight-0.2.1-py3-none-any.whl", hash = "sha256:c66b8b1f00941d76d5da6f1f48cd791e1ed655d9046793309a16b721bfd04205"},
     {file = "argussight-0.2.1.tar.gz", hash = "sha256:1377643c0fa27989cb1fd473724cf2465d028b7048a8937f45843d810d4af9be"},
@@ -108,6 +109,7 @@ description = "Deprecated backport of asyncio; use the stdlib package instead"
 optional = true
 python-versions = ">=3.4"
 groups = ["main"]
+markers = "extra == \"argus\""
 files = [
     {file = "asyncio-4.0.0-py3-none-any.whl", hash = "sha256:c1eddb0659231837046809e68103969b2bef8b0400d59cfa6363f6b5ed8cc88b"},
     {file = "asyncio-4.0.0.tar.gz", hash = "sha256:570cd9e50db83bc1629152d4d0b7558d6451bb1bfd5dfc2e935d96fc2f40329b"},
@@ -170,6 +172,7 @@ description = "Fast, simple object-to-object and broadcast signaling"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
+markers = "extra == \"argus\""
 files = [
     {file = "blinker-1.9.0-py3-none-any.whl", hash = "sha256:ba0efaa9080b619ff2f3459d1d500c57bddea4a6b424b60a91141db6fd2f08bc"},
     {file = "blinker-1.9.0.tar.gz", hash = "sha256:b4ce2265a7abece45e7cc896e98dbebe6cead56bcf805a3d23136d145f5445bf"},
@@ -396,6 +399,7 @@ description = "Add colours to the output of Python's logging module."
 optional = true
 python-versions = ">=3.6"
 groups = ["main"]
+markers = "extra == \"argus\""
 files = [
     {file = "colorlog-6.10.1-py3-none-any.whl", hash = "sha256:2d7e8348291948af66122cff006c9f8da6255d224e7cf8e37d8de2df3bad8c9c"},
     {file = "colorlog-6.10.1.tar.gz", hash = "sha256:eb4ae5cb65fe7fec7773c2306061a8e63e02efc2c72eba9d27b0fa23c94f1321"},
@@ -779,6 +783,7 @@ description = "A simple framework for building complex web applications."
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
+markers = "extra == \"argus\""
 files = [
     {file = "flask-3.1.3-py3-none-any.whl", hash = "sha256:f4bcbefc124291925f1a26446da31a5178f9483862233b23c0c96a20701f670c"},
     {file = "flask-3.1.3.tar.gz", hash = "sha256:0ef0e52b8a9cd932855379197dd8f94047b359ca0a78695144304cb45f87c9eb"},
@@ -1032,6 +1037,7 @@ description = "HTTP/2-based RPC framework"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
+markers = "extra == \"argus\""
 files = [
     {file = "grpcio-1.70.0-cp310-cp310-linux_armv7l.whl", hash = "sha256:95469d1977429f45fe7df441f586521361e235982a0b39e33841549143ae2851"},
     {file = "grpcio-1.70.0-cp310-cp310-macosx_12_0_universal2.whl", hash = "sha256:ed9718f17fbdb472e33b869c77a16d0b55e166b100ec57b016dc7de9c8d236bf"},
@@ -1100,6 +1106,7 @@ description = "Protobuf code generator for gRPC"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
+markers = "extra == \"argus\""
 files = [
     {file = "grpcio_tools-1.70.0-cp310-cp310-linux_armv7l.whl", hash = "sha256:4d456521290e25b1091975af71604facc5c7db162abdca67e12a0207b8bbacbe"},
     {file = "grpcio_tools-1.70.0-cp310-cp310-macosx_12_0_universal2.whl", hash = "sha256:d50080bca84f53f3a05452e06e6251cbb4887f5a1d1321d1989e26d6e0dc398d"},
@@ -1417,6 +1424,7 @@ description = "Safely pass data to untrusted environments and back."
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
+markers = "extra == \"argus\""
 files = [
     {file = "itsdangerous-2.2.0-py3-none-any.whl", hash = "sha256:c6242fc49e35958c8b15141343aa660db5fc54d4f13a1db01a3f5891b98700ef"},
     {file = "itsdangerous-2.2.0.tar.gz", hash = "sha256:e0050c0b7da1eea53ffaf149c0cfbb5c6e2e2b69c4bef22c81fa6eb73e5f6173"},
@@ -1562,6 +1570,7 @@ description = "Python extension for computing string edit distances and similari
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
+markers = "extra == \"argus\""
 files = [
     {file = "Levenshtein-0.25.1-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:eb4d1ec9f2dcbde1757c4b7fb65b8682bc2de45b9552e201988f287548b7abdf"},
     {file = "Levenshtein-0.25.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:b4d9fa3affef48a7e727cdbd0d9502cd060da86f34d8b3627edd769d347570e2"},
@@ -2159,14 +2168,14 @@ numpy = [
 
 [[package]]
 name = "packaging"
-version = "23.1"
+version = "26.2"
 description = "Core utilities for Python packages"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 groups = ["main", "dev", "docs"]
 files = [
-    {file = "packaging-23.1-py3-none-any.whl", hash = "sha256:994793af429502c4ea2ebf6bf664629d07c1a9fe974af92966e4b8d2df7edc61"},
-    {file = "packaging-23.1.tar.gz", hash = "sha256:a392980d2b6cffa644431898be54b0045151319d1e7ec34f0cfed48767dd334f"},
+    {file = "packaging-26.2-py3-none-any.whl", hash = "sha256:5fc45236b9446107ff2415ce77c807cee2862cb6fac22b8a73826d0693b0980e"},
+    {file = "packaging-26.2.tar.gz", hash = "sha256:ff452ff5a3e828ce110190feff1178bb1f2ea2281fa2075aadb987c2fb221661"},
 ]
 
 [[package]]
@@ -2337,6 +2346,7 @@ description = ""
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
+markers = "extra == \"argus\""
 files = [
     {file = "protobuf-5.29.6-cp310-abi3-win32.whl", hash = "sha256:62e8a3114992c7c647bce37dcc93647575fc52d50e48de30c6fcb28a6a291eb1"},
     {file = "protobuf-5.29.6-cp310-abi3-win_amd64.whl", hash = "sha256:7e6ad413275be172f67fdee0f43484b6de5a904cc1c3ea9804cb6fe2ff366eda"},
@@ -2853,6 +2863,7 @@ description = "Python extension for computing string edit distances and similari
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
+markers = "extra == \"argus\""
 files = [
     {file = "python-Levenshtein-0.25.1.tar.gz", hash = "sha256:b21e7efe83c8e8dc8260f2143b2393c6c77cb2956f0c53de6c4731c4d8006acc"},
     {file = "python_Levenshtein-0.25.1-py3-none-any.whl", hash = "sha256:654446d1ea4acbcc573d44c43775854834a7547e4cb2f79f638f738134d72037"},
@@ -2979,6 +2990,7 @@ description = "rapid fuzzy string matching"
 optional = true
 python-versions = ">=3.10"
 groups = ["main"]
+markers = "extra == \"argus\""
 files = [
     {file = "rapidfuzz-3.14.5-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:071d96b957a33b9296b9284b6350a0fb6d030b154a04efd7c15e56b98b79a517"},
     {file = "rapidfuzz-3.14.5-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:667f40fe9c81ad129b198d236881b00dd9e8314d9cc72d03c3e16bdfe5879051"},
@@ -3907,6 +3919,7 @@ description = "WebSocket client for Python with low level API options"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
+markers = "extra == \"argus\""
 files = [
     {file = "websocket_client-1.9.0-py3-none-any.whl", hash = "sha256:af248a825037ef591efbf6ed20cc5faa03d3b47b9e5a2230a529eeee1c1fc3ef"},
     {file = "websocket_client-1.9.0.tar.gz", hash = "sha256:9e813624b6eb619999a97dc7958469217c3176312b3a16a4bd1bc7e08a46ec98"},
@@ -4003,6 +4016,7 @@ description = "The comprehensive WSGI web application library."
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
+markers = "extra == \"argus\""
 files = [
     {file = "werkzeug-3.1.8-py3-none-any.whl", hash = "sha256:63a77fb8892bf28ebc3178683445222aa500e48ebad5ec77b0ad80f8726b1f50"},
     {file = "werkzeug-3.1.8.tar.gz", hash = "sha256:9bad61a4268dac112f1c5cd4630a56ede601b6ed420300677a869083d70a4c44"},
@@ -4081,7 +4095,10 @@ docs = ["Sphinx", "repoze.sphinx.autointerface"]
 test = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 
+[extras]
+argus = ["argussight"]
+
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.12"
-content-hash = "c1cd391edd6032515e45da52d1d4ff8040767cd7bbbe8321e1d9c1c9cd2cd0ba"
+content-hash = "716d332ad89923d6245c00b4041163eb2e45f6b7bb8e5c607334e35393ef3901"
