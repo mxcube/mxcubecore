@@ -1121,7 +1121,7 @@ class ICATLIMS(AbstractLims):
     def _get_oscillation_end(self, oscillation_sequence):
         return float(oscillation_sequence["start"]) + (
             float(oscillation_sequence["range"])
-            - float(oscillation_sequence["overlap"])
+            - float(oscillation_sequence["offset"])
         ) * float(oscillation_sequence["number_of_images"])
 
     def _get_rotation_axis(self, oscillation_sequence):
@@ -1279,7 +1279,7 @@ class ICATLIMS(AbstractLims):
                     "MX_numberOfImages": oscillation_sequence["number_of_images"],
                     "MX_oscillationRange": oscillation_sequence["range"],
                     "MX_axis_start": oscillation_sequence["start"],
-                    "MX_oscillationOverlap": oscillation_sequence["overlap"],
+                    "MX_oscillationOverlap": oscillation_sequence["offset"],
                     "MX_resolution": datacollection_dict.get("resolution"),
                     "MX_resolution_at_corner": datacollection_dict.get(
                         "resolutionAtCorner"
