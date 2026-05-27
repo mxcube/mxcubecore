@@ -86,12 +86,12 @@ def prepare(centring_motors_dict):
 
     motors_to_move = {}
     for m in centring_motors_dict.values():
-        if m.reference_position is not None:
-            motors_to_move[m.motor] = m.reference_position
+        if hasattr(m, "reference_position") and m.reference_position is not None:
+            motors_to_move[m] = m.reference_position
     move_motors(motors_to_move)
 
     SAVED_INITIAL_POSITIONS = {
-        m.motor: m.motor.get_value() for m in centring_motors_dict.values()
+        m: m.get_value() for m in centring_motors_dict.values()
     }
 
     omega = centring_motors_dict["omega"]
@@ -281,7 +281,7 @@ def centre_plate1Click(
     centred_pos = SAVED_INITIAL_POSITIONS.copy()
 
     centred_pos.update(
-        {sampx.motor: float(sampx.get_value()), sampy.motor: float(sampy.get_value())}
+        {sampx: float(sampx.get_value()), sampy: float(sampy.get_value())}
     )
 
     return centred_pos
@@ -352,14 +352,14 @@ def centre_plate(
     centred_pos = SAVED_INITIAL_POSITIONS.copy()
     centred_pos.update(
         {
-            sampx.motor: float(sampx.get_value() + sampx.direction * dx),
-            sampy.motor: float(sampy.get_value() + sampy.direction * dy),
-            phiz.motor: (
+            sampx: float(sampx.get_value() + sampx.direction * dx),
+            sampy: float(sampy.get_value() + sampy.direction * dy),
+            phiz: (
                 float(phiz.get_value() + phiz.direction * d_vertical[0, 0])
                 if phiz.__dict__.get("reference_position") is None
                 else phiz.reference_position
             ),
-            phiy.motor: (
+            phiy: (
                 float(phiy.get_value() + phiy.direction * d_horizontal[0, 0])
                 if phiy.__dict__.get("reference_position") is None
                 else phiy.reference_position
@@ -383,13 +383,14 @@ def centre_plate(
 
 
 def ready(motor_list):
-    logging.getLogger("HWR").info([m.actuator_name for m in motor_list])
+    logging.getLogger("HWR").info([m.name for m in motor_list])
     rstate = [m.is_ready() for m in motor_list]
     logging.getLogger("HWR").info(rstate)
     return all(rstate)
 
 
 def wait_ready(motor_positions_dict, timeout=None):
+    print("motor_positions_dict", motor_positions_dict)
     with gevent.Timeout(timeout):
         while not ready(motor_positions_dict.keys()):
             time.sleep(0.1)
@@ -443,8 +444,8 @@ def center(
     pixelsPerMm_Ver,
     beam_xc,
     beam_yc,
-    chi_angle,
-    n_points,
+    chi_angle=0.,
+    n_points=3,
     omega_range=180,
 ):
     global USER_CLICKED_EVENT
@@ -478,7 +479,7 @@ def center(
         raise RuntimeError("Exception while centring")
 
     logging.getLogger("HWR").debug("X=%s,Y=%s", X, Y)
-    chi_angle = math.radians(chi_angle)
+    chi_angle = math.radians(chi_angle) if chi_angle else 0.
     chiRotMatrix = numpy.matrix(
         [
             [math.cos(chi_angle), -math.sin(chi_angle)],
@@ -503,14 +504,14 @@ def center(
     centred_pos = SAVED_INITIAL_POSITIONS.copy()
     centred_pos.update(
         {
-            sampx.motor: float(sampx.get_value() + sampx.direction * dx),
-            sampy.motor: float(sampy.get_value() + sampy.direction * dy),
-            phiz.motor: (
+            sampx: float(sampx.get_value() + sampx.direction * dx),
+            sampy: float(sampy.get_value() + sampy.direction * dy),
+            phiz: (
                 float(phiz.get_value() + phiz.direction * d_vertical[0, 0])
                 if phiz.__dict__.get("reference_position") is None
                 else phiz.reference_position
             ),
-            phiy.motor: (
+            phiy: (
                 float(phiy.get_value() + phiy.direction * d_horizontal[0, 0])
                 if phiy.__dict__.get("reference_position") is None
                 else phiy.reference_position
