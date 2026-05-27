@@ -149,7 +149,7 @@ class SampleView(AbstractSampleView):
         """
         motors_dict = {}
         for key, val in self.centring_motors.items():
-            motors_dict.update({key: val.motor.get_value()})
+            motors_dict.update({key: val.get_value()})
         return motors_dict
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
@@ -246,7 +246,7 @@ class SampleView(AbstractSampleView):
             inv_rot_matrix,
         )
 
-        chi_angle = math.radians(self.chi_angle)
+        chi_angle = math.radians(self.chi_angle) if self.chi_angle else 0.
         chi_rot = np.matrix(
             [
                 [math.cos(chi_angle), -math.sin(chi_angle)],
@@ -276,7 +276,7 @@ class SampleView(AbstractSampleView):
         diffr = HWR.beamline.diffractometer
         pixels_per_mm = diffr.get_pixels_per_mm()
         diffr.wait_status_ready(5)
-
+        print(f"self.centring_motors {self.centring_motors}")
         self.current_centring_procedure = sample_centring.start(
             self.centring_motors,
             pixels_per_mm[0],
@@ -354,7 +354,9 @@ class SampleView(AbstractSampleView):
         """Accept the current centred position."""
         self.centring_status["valid"] = True
         self.centring_status["accepted"] = True
-        self.emit("centringAccepted", (True, self.get_centring_status()))
+        args = (True, self.get_centring_status())
+        self.emit("centringAccepted", args)
+        self.create_centring_point(*args)
         logging.getLogger("user_level_log").info("Centring successful")
 
     def reject_centring(self):
@@ -362,7 +364,8 @@ class SampleView(AbstractSampleView):
         if self.current_centring_procedure:
             self.current_centring_procedure.kill(block=True)
         self.centring_status["valid"] = False
-        self.emit("centringAccepted", (False, self.get_centring_status()))
+        args = (False, self.get_centring_status())
+        self.emit("centringAccepted", args)
         logging.getLogger("user_level_log").info("Centring cancelled")
 
     def cancel_centring(self):
