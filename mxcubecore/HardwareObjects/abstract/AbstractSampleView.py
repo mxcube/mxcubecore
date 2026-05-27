@@ -293,3 +293,6 @@ class AbstractSampleView(HardwareObject):
         """Get the motor positions according to the calibration"""
 
         return ()
+
+    def get_image_scale_list(self):
+        return [1]
