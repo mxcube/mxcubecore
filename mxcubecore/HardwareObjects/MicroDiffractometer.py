@@ -141,8 +141,12 @@ class MicroDiffractometer(AbstractDiffractometer):
         """Wait timeout seconds until status is ready.
 
         Args:
-            Timeout [s]. None means infinite timeout.
+            timeout: optional - timeout [s],
+                     if timeout = 0: return at once and do not wait,
+                     if timeout is None: wait forever (default).
         """
+        if timeout == 0:
+            return
         with Timeout(timeout, RuntimeError("Timeout waiting for status ready")):
             while not self._ready:
                 sleep(0.5)
@@ -175,8 +179,7 @@ class MicroDiffractometer(AbstractDiffractometer):
                 name = self.motors_hwobj_dict[role].actuator_name
                 cmd += f"{name}={pos:0.3f};"
             self._exporter.execute("startSimultaneousMoveMotors", (cmd,))
-            if timeout != 0:
-                self.wait_status_ready(timeout)
+            self.wait_status_ready(timeout)
             self.update_state()
 
     def get_value_motors(self, motors_list: [list | None] = None) -> dict[str, float]:
@@ -341,8 +344,7 @@ class MicroDiffractometer(AbstractDiffractometer):
         self._exporter.write_property("ScanNumberOfFrames", number_of_images)
         scan_params = f"1\t{start:0.3f}\t{(end - start):0.3f}\t{exptime:0.3f}\t1"
         self._exporter.execute("startScanEx", (scan_params,))
-        if timeout != 0:
-            self.wait_status_ready(timeout)
+        self.wait_status_ready(timeout)
 
     def do_line_scan(
         self,
@@ -388,8 +390,7 @@ class MicroDiffractometer(AbstractDiffractometer):
             scan_params += f"{motors_pos['2'][name]:0.3f}\t"
 
         self._exporter.execute("startScan4DEx", (scan_params,))
-        if timeout != 0:
-            self.wait_status_ready(timeout)
+        self.wait_status_ready(timeout)
 
     def do_mesh_scan(
         self,
@@ -452,8 +453,7 @@ class MicroDiffractometer(AbstractDiffractometer):
         scan_params += f"{exptime / nb_lines}\t"
         scan_params += "True\tTrue\tTrue\t"
         self._exporter.execute("startRasterScanEx", (scan_params,))
-        if timeout != 0:
-            self.wait_status_ready(timeout)
+        self.wait_status_ready(timeout)
 
     def do_still_scan(
         self,
@@ -477,8 +477,7 @@ class MicroDiffractometer(AbstractDiffractometer):
         """
         scan_params = f"{pulse_duration:0.6f}\t{pulse_period:0.6f}\t{nb_pulse}"
         self._exporter.execute("startStillScan", (scan_params,))
-        if timeout != 0:
-            self.wait_status_ready(timeout)
+        self.wait_status_ready(timeout)
 
     def do_characterisation_scan(
         self,
@@ -518,9 +517,7 @@ class MicroDiffractometer(AbstractDiffractometer):
         if timeout:
             # min timeout is 20 min
             timeout = max(timeout, 20 * 60)
-
-        if timeout != 0:
-            self.wait_status_ready(timeout)
+        self.wait_status_ready(timeout)
 
     def get_pixels_per_mm(self) -> tuple[int, int]:
         """Get the pixel/mm values.
