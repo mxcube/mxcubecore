@@ -35,6 +35,10 @@ task:
     # dose_budget = 2 * resolution**2 * log(100. / decay_limit) / relative_sensitivity
     maximum_dose_budget: 20  # (MGy). Maximum when calculating budget from resolution
     characterisation_budget_fraction: 0.05  # dose fraction used for characterisation
+#    crystal_thickness: 0  # Minimum crystal thickness (in µ), used for dose calculation with beams narrower than crystal
+    # Use known cell parameters as forced starting point for processing
+    # Should only be set to true with reliable cells and spacegroups
+    use_cell_for_processing: false
 
     # Strategy name, matching strategylib.nml.
     auto_acq_parameters:  # (list of dict) automation parameters for acquisitions.
@@ -57,13 +61,13 @@ task:
         image_width: 0.1    # (°) Optional, default configured.
         # Mandatory if init_spot_dir is set
         # use_dose: 20.0 # (MGy) Total dose. Optional. Overrides dose budget
-        # transmission: 100.0 # (%) Nptional  Overrides use_dose.
-        # Defaults to current valuee if init_spot_dir is set
+        # transmission: 100.0 # (%) Optional  Overrides use_dose.
+        # Defaults to current value if init_spot_dir is set
         init_spot_dir: "/where/ever/dict"   # Directory containing SPOTS.XDS file
         # from preliminary XDS calculation
         # When init_spot_dir is set, strategy must be the name of the strategy
-        # (specified in stragegylib.nml) that was actually used for characterisation.
-        strategy: “Char_6_5_multitrigger”
+        # (specified in strategylib.nml) that was actually used for characterisation.
+        strategy: "Char_6_5_multitrigger"
         # Optional: Arithmetic crystal classes expected for the symmetry.
         # Will be used to select a matching indexing solution,
         # and to determine acquisition strategy.
@@ -82,7 +86,7 @@ task:
       # be left empty so the default is used.
       - resolution: 1.7  # (Å) Optional. Defaults to current value,
         # or to diffraction plan aimed_resolution
-        energies: (12.4,)  # tuple(keV) List of energies to use in experiment.
+        energies: [12.4]  # list(keV) List of energies to use in experiment.
         # two or three for MAD (only).
         # First wavelength will be used for calculating strategies, dose budget, etc.
         # Optional, except for MAD - will default to current beamline energy.
@@ -100,8 +104,8 @@ task:
         # Otherwise is set from dose budget and resolution.
         # If set this value will reset the dose budget
         # Strategy variant
-        # Default is “quick” for MAD, “full” for native or SAD
-        strategy: full
+        # Default is “basic” for MAD, “advanced” for native or SAD
+        strategy: advanced
         # Number of repetitions of entire strategy
         repetition_count: 1
         # Pass input cell and symmetry to XDS and processing and force their use as
@@ -113,7 +117,7 @@ task:
           # maximum_chi is automatically reduced to match kappa motor limits.
           maximum_chi: 48.0  # (°) Optional. Maximum chi value allowed for strategies.
           # Default 48
-          angular tolerance: 1.0  # (°) Optional.
+          angular_tolerance: 1.0  # (°) Optional.
           # Tolerance to distinguish strategy orientations
 
 # Other parameters are set (ultimately) from ISPyB. These are all optional:
