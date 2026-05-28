@@ -935,3 +935,14 @@ class AbstractCollect(HardwareObject, object):
             )
         except OSError:
             self.log.exception("ADXV: Failed to load image '%s'", image_filename)
+
+    def display_image(self, image_filename: str, image_num: int = 1):
+        """
+        Site specific call to a diffraction viewer, defaults to adxv notify
+
+        Args:
+           image_filename: full path to image file
+           image_num: image number within image file to open (if it contains
+                      multiple images i.e HDF5)
+        """
+        self.adxv_notify(image_filename=image_filename, image_num=image_num)
