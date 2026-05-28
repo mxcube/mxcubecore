@@ -19,6 +19,7 @@ configuration:
       - 0.1
       - 0.05
       - 0.2
+
     # Supported wedge widths for interleaving - set to match DELPHI block setting
     # Values are sorted before use
     wedge_widths:
@@ -33,6 +34,7 @@ configuration:
     # Characterisation strategies popup.
     # names refer to strategies in  strategylib.nml
     characterisation_strategies:
+      - Char_72_6_multitrigger
       - Char_6_5_multitrigger
       - Char_4_by_10
     #   - Characterisation_6_5
@@ -99,7 +101,8 @@ configuration:
       # exposure time (s). NB automatically reset to be within limits for detector
       exposure_time: 0.01
       # Default use known cell parameters as forced starting point for processing
-      use_cell_for_processing: true
+      # It is recommended to keep setting to false, as it should only eb used with reliable cells
+      use_cell_for_processing: false
       # Maximum dose budget to propose when converting from resolution, in MGy
       maximum_dose_budget: 20
       # Percentage of dose budget to propose for use in characterisation.
@@ -141,7 +144,7 @@ configuration:
         resolution: 1.5
         snapshot_count: 2
         wedge_width: 24.0
-        strategy: advanced
+#        strategy: advanced  # default is 'advanced'. normally set explicitly
         repetition_count: 1
         # energies:
         #   - 12.111
@@ -195,6 +198,17 @@ configuration:
       #        # Testing ONLY:
       #        co.gphl.wf.run_number: 7
 
+      # Enable mosaicity estimation (default: false). Activates XDS integration of characterisation data.
+      co.gphl.wf.estMosaicity: true
+      # Fork XDS in separate process (default: false)
+      # only works when XDS is invoked directly, rather than through a wrapper
+      co.gphl.wf.forkxds: true
+
+      # To enable the dumping of messages and payloads by the workflow.
+      # The messages/payloads will be written into a numbered subdirectory
+      # of the directory specified here.
+      #co.gphl.wf.msgDir: /mnt/scratch_fs1/pkeller/wf_msgs/wf
+
   #    Workflows, The options in the top elements are updated with the options
   #    in the individual type, and passed as options to the workflow application
   # The following options are set elsewhere and can *not* be set here
@@ -239,10 +253,10 @@ configuration:
           wf_selection: mxexpt
           variants:
             - advanced
-            # - minimal
+            - minimal
             - basic
-            # - ultralong
-            # - twotransmission
+#            - ultralong
+#            - twotransmission
           options:
             # Filename pattern name for normal data collections
             pattern: interleaved
@@ -253,11 +267,12 @@ configuration:
 
         - title: SAD Phasing
           strategy_type: phasing
+          short_name: sad
           wf_selection: mxexpt
           variants:
             - advanced
             - basic
-            # - ultralong
+#            - ultralong
           documentation: |
             Single wavelength SAD data acquisition, advanced strategy.
             Aligned on even symetry axes or inverse beam.
@@ -276,6 +291,7 @@ configuration:
         - title: Two-wavelength MAD
           strategy_type: phasing
           wf_selection: mxexpt
+          short_name: mad2wvl
           variants:
             - basic
             - advanced
@@ -306,6 +322,7 @@ configuration:
         - title: Three-wavelength MAD
           strategy_type: phasing
           wf_selection: mxexpt
+          short_name: mad3wvl
           variants:
             - basic
             - advanced
@@ -356,8 +373,9 @@ configuration:
           strategy_type: diffractcal
           wf_selection: diffractcal
           variants:
-            - advanced
+            - full
             - short
+            - kappa_only
           documentation: |
             Diffractometer calibration.
             Designed for use by beamline personnel.
