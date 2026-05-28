@@ -92,7 +92,7 @@ def test_login_invalid_credentials(ispyb_lims, json_decode_error):
     # check that we got 'login failed' result
     assert not is_ok
     assert (
-        err == f"Request to {REST_ROOT}auth/login failed with code: 401 "
+        err == f"Request to {REST_ROOT}auth/login failed with code: 401. "
         f"Response: {PYISPYB_AUTH_ERROR_MESSSAGE}"
     )
 
