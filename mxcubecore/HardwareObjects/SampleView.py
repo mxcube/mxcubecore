@@ -147,9 +147,9 @@ class SampleView(AbstractSampleView):
         Returns:
             Centring motor positions as {role: position}
         """
-        motors_dict = {}
-        for key, val in self.centring_motors.items():
-            motors_dict.update({key: val.get_value()})
+        motors_dict = dict(
+            (key, val.get_value()) for key, val in self.centring_motors.items()
+        )
         return motors_dict
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
