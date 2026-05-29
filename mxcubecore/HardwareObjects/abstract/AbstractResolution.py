@@ -151,6 +151,9 @@ class AbstractResolution(AbstractMotor):
             (float): Resolution [Å]
         """
         wavelength = wavelength or HWR.beamline.energy.get_wavelength()
+
+        if not distance:
+            return None
         try:
             ttheta = atan(radius / distance)
             if ttheta:

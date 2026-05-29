@@ -30,8 +30,6 @@ Example yml configuration:
 
 import enum
 import logging
-import time
-import gevent
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
@@ -120,7 +118,7 @@ class BlissMotor(AbstractMotor):
 
     def _on_property_changed(self, data: dict) -> None:
         """Callback for property changes received via blissclient."""
-        log.info("BlissMotor property event: %r", data)
+        log.debug("BlissMotor property event: %r", data)
         if "position" in data:
             self.update_value(data["position"])
         if "state" in data:
@@ -128,7 +126,7 @@ class BlissMotor(AbstractMotor):
 
     def _state2enum(self, state):
         """Translate the state to HardwareObjectState and BlissMotorStates
-        Args:s
+        Args:
            state (string): state
         Returns:
            (tuple): (HardwareObjectState, BlissMotorStates)

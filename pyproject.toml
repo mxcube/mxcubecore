@@ -67,6 +67,7 @@ mxcube-video-streamer = "^1.8.5"
 blissclient = ">=0.1.0"
 defusedxml = "0.7.1"
 argussight = {version = "^0.2.1", optional = true}
+aiohttp = "3.13.5"
 
 [tool.poetry.extras]
 lims = ["pyicat-plus"]

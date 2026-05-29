@@ -36,20 +36,29 @@ Typical YAML configuration::
 """
 
 import asyncio
+import json
 import os
 import logging
+import time
+import urllib.error
+import urllib.request
 import gevent
 
 try:
     from blissclient import BlissClient, Hardware, HardwareObject, Session
     HAS_BLISSCLIENT = True
-except ImportError:
+except (ImportError, ModuleNotFoundError):
+    BlissClient = None  # type: ignore[assignment,misc]
+    Hardware = None  # type: ignore[assignment,misc]
+    HardwareObject = None  # type: ignore[assignment,misc]
+    Session = None  # type: ignore[assignment,misc]
     HAS_BLISSCLIENT = False
 
 from mxcubecore.BaseHardwareObjects import HardwareObject as MXHardwareObject
 
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
+
 
 class BlissProxy(MXHardwareObject):
     """Client for the BLISS REST API. """
@@ -58,9 +67,20 @@ class BlissProxy(MXHardwareObject):
         super().__init__(name)
         self._client: BlissClient | None = None
         self._objects: dict[str, HardwareObject] = {}
+        # Set once init() finishes (success OR failure).  Used by get_object()
+        # to block callers that arrive before init() completes.
+        self._init_event = gevent.event.Event()
 
     def init(self):
         """Initialise the BLISS API client and populate the object cache."""
+        try:
+            self._do_init()
+        finally:
+            # Always unblock waiting get_object() calls, even if init failed.
+            self._init_event.set()
+
+    def _do_init(self):
+        """Internal init logic — called by init() under a try/finally."""
         if not HAS_BLISSCLIENT:
             raise ImportError(
                 "blissclient is not installed. "
@@ -68,6 +88,12 @@ class BlissProxy(MXHardwareObject):
         url = self.get_property("blissapi_url") or os.environ.get(
             "BLISSAPI_URL", "http://localhost:5000"
         )
+
+        # Wait for the BLISS REST API and session to be fully ready BEFORE
+        # creating the BlissClient.  If BlissClient() is called before the API
+        # is reachable it raises a connection error, self._client stays None,
+        # and every subsequent get_object() call fails with AttributeError.
+        self._wait_for_session_ready(url)
 
         try:
             self._client = BlissClient(url)
@@ -97,6 +123,73 @@ class BlissProxy(MXHardwareObject):
             len(self._objects),
         )
 
+    def _wait_for_session_ready(self, base_url: str, timeout: int = 300, poll_interval: int = 2) -> None:
+        """Block until the BLISS session is ready AND has objects registered.
+
+        Three conditions must be met before this returns:
+        1. GET /api/object returns HTTP 200 (set_ready_to_serve() has been called).
+        2. The response body has ``total > 0`` — at least one object is in the
+           object_store.  This guards against the race where the REST service
+           marks itself ready before the deferred _auto_register_session_objects
+           greenlet has had a chance to run.
+
+        Args:
+            base_url: The BLISS REST base URL (e.g. ``http://localhost:5000``).
+            timeout: Maximum seconds to wait before giving up.
+            poll_interval: Seconds between polls.
+        """
+        STABLE_POLLS_REQUIRED = 2  # same count must be seen this many times in a row
+        endpoint = f"{base_url.rstrip('/')}/api/object"
+        deadline = time.monotonic() + timeout
+        self.log.info("BlissProxy: waiting for BLISS session ready (%s) ...", endpoint)
+        prev_total = -1
+        stable_count = 0
+        while time.monotonic() < deadline:
+            try:
+                with urllib.request.urlopen(endpoint, timeout=5) as resp:
+                    if resp.status == 200:
+                        try:
+                            body = json.loads(resp.read())
+                            total = body.get("total", 0)
+                        except Exception:
+                            total = 0
+                        if total > 2:
+                            # Track whether the count has stabilised (registration done).
+                            if total == prev_total:
+                                stable_count += 1
+                            else:
+                                stable_count = 0
+                            prev_total = total
+                            if stable_count >= STABLE_POLLS_REQUIRED:
+                                self.log.info(
+                                    "BlissProxy: BLISS session is ready (%d objects registered, stable)",
+                                    total,
+                                )
+                                return
+                            self.log.debug(
+                                "BlissProxy: %d objects registered (stable %d/%d), waiting...",
+                                total, stable_count, STABLE_POLLS_REQUIRED,
+                            )
+                        else:
+                            # Only SCAN_SAVING + ACTIVE_MG so far — keep waiting.
+                            stable_count = 0
+                            prev_total = -1
+                            self.log.debug(
+                                "BlissProxy: %d object(s) so far (waiting for session objects)...",
+                                total,
+                            )
+            except urllib.error.HTTPError as exc:
+                if exc.code == 503:
+                    pass  # Not yet ready — keep polling
+                else:
+                    self.log.debug("BlissProxy: unexpected HTTP %s from %s", exc.code, endpoint)
+            except Exception as exc:
+                self.log.debug("BlissProxy: waiting for BLISS (%s)", exc)
+            time.sleep(poll_interval)
+        self.log.warning(
+            "BlissProxy: BLISS session not ready after %ds — proceeding anyway", timeout
+        )
+
     def run_asyncio(self, future: asyncio.Future):
         def _await_future():
             asyncio.run(future)
@@ -111,6 +204,11 @@ class BlissProxy(MXHardwareObject):
         registry, then instantiates every object whose type is known.  Objects
         with an unresolved type are skipped with a DEBUG-level log entry.
         """
+        if self._client is None:
+            raise RuntimeError(
+                "BlissProxy._client is not initialised — "
+                "init() has not completed or BlissClient creation failed."
+            )
         hw = self._client.hardware
         hw._get_initial_status()
         hw.refresh_object_types() # list of properties and methods
@@ -183,6 +281,20 @@ class BlissProxy(MXHardwareObject):
         if name in self._objects:
             return self._objects[name]
 
+        # If init() has not yet finished (BlissProxy still waiting for BLISS to
+        # be ready), block here until it completes rather than failing
+        # immediately with _client=None.  Timeout matches _wait_for_session_ready.
+        if not self._init_event.is_set():
+            self.log.info(
+                "BlissProxy: get_object('%s') waiting for init() to complete ...", name
+            )
+            self._init_event.wait(timeout=310)
+            if not self._init_event.is_set():
+                raise KeyError(
+                    f"BlissProxy: init() did not complete within timeout — "
+                    f"cannot retrieve object '{name}'"
+                )
+
         if not self._objects:
             try:
                 self.log.info("BlissProxy: cache is empty, retrying _load_known_objects() for '%s'", name)
@@ -195,6 +307,12 @@ class BlissProxy(MXHardwareObject):
         # Fallback: fetch directly, bypassing the type registry check.
         # Useful for devices whose type is not yet registered in blissclient
         # (e.g. BlissRontecMCA).
+        if self._client is None:
+            available = ", ".join(self.list_objects()) or "<none>"
+            raise KeyError(
+                f"Object '{name}' not found in the BLISS session. "
+                f"Available pre-cached objects: {available}"
+            )
         try:
             obj = self._client.hardware.get(name)
             self.log.warning(

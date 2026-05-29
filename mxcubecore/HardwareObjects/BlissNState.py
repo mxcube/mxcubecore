@@ -35,7 +35,6 @@ Example yaml file:
 """
 
 from enum import Enum
-import time
 import logging
 
 from mxcubecore import HardwareRepository as HWR
@@ -69,20 +68,9 @@ class BlissNState(AbstractNState):
         """Initialise the device"""
 
         super().init()
-        # Try briefly to get the BLISS object — on full deploy the BLISS
-        # session may not be ready yet. Retry a few times before falling back
-        # to offline mode.
         self._bliss_obj = None
         try:
-            for i in range(6):
-                try:
-                    self._bliss_obj = HWR.beamline.bliss_proxy.get_object(self.actuator_name)
-                    break
-                except KeyError:
-                    if i < 5:
-                        time.sleep(0.25)
-                    else:
-                        raise
+            self._bliss_obj = HWR.beamline.bliss_proxy.get_object(self.actuator_name)
         except Exception as exc:
             _log.warning(
                 "[BlissNState] %s: BLISS object not available (%s). Running in offline mode.",
@@ -219,6 +207,10 @@ class BlissNState(AbstractNState):
         Args:
             value (str or enum): target value
         """
+        if self._bliss_obj is None:
+            raise RuntimeError(
+                f"BlissNState '{self.actuator_name}' is offline — BLISS object not available"
+            )
         self.update_state(self.STATES.BUSY)
         if isinstance(value, Enum):
             self.__saved_state = value.name

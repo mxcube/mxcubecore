@@ -99,6 +99,8 @@ class AbstractEnergy(AbstractActuator):
             (float): wavelength [Å]
         """
         energy = energy or self.get_value()
+        if not energy:
+            return None
 
         # TODO NBNB This is naughty. Could  we not put the heuristic switch
         #  in the calling functions, to avoid surprises?
@@ -116,6 +118,8 @@ class AbstractEnergy(AbstractActuator):
             (float): Energy [keV]
         """
         wavelength = wavelength or self.get_wavelength()
+        if not wavelength:
+            return None
         return HC_OVER_E / wavelength
 
     def update_value(self, value=None):

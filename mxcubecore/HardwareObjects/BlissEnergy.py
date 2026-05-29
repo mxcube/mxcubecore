@@ -79,7 +79,6 @@ class BlissEnergy(AbstractEnergy):
                 self.energy_motor = None
 
         if self.read_only and not self.energy_motor:
-            # self._nominal_value = float(self.get_property("energy", 0))
             try:
                 self._nominal_value = float(self.default_value)
             except TypeError as err:
@@ -93,7 +92,7 @@ class BlissEnergy(AbstractEnergy):
         """
         if self.energy_motor:
             self._nominal_value = self.energy_motor.get_value()
-        return self._nominal_value
+        return self._nominal_value if self._nominal_value is not None else 0.0
 
     def get_limits(self):
         """Return energy low and high limits.

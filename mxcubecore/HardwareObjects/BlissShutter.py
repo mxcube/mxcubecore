@@ -33,8 +33,7 @@ Example yml configuration:
    username: Safety shutter
 """
 
-import time
-import gevent
+import logging
 from enum import (
     Enum,
     unique,
@@ -81,8 +80,6 @@ class BlissShutter(AbstractShutter):
         try:
             self._bliss_obj = HWR.beamline.bliss_proxy.get_object(self.actuator_name)
         except Exception as exc:
-            import logging
-
             logging.getLogger("MX3.HWR").warning(
                 "BlissShutter '%s': BLISS object '%s' not available (%s)",
                 self.actuator_name,
@@ -163,6 +160,10 @@ class BlissShutter(AbstractShutter):
         return self.value_to_enum(_val)
 
     def _set_value(self, value):
+        if self._bliss_obj is None:
+            raise RuntimeError(
+                f"BlissShutter '{self.actuator_name}' is offline — BLISS object not available"
+            )
         if value.name == "OPEN":
             self._bliss_obj.open()
         elif value.name == "CLOSED":
