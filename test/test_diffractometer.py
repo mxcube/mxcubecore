@@ -78,3 +78,8 @@ class TestDiffarctometer(TestHardwareObjectBase):
         assert test_object.get_constraint() == constraint_enum.RELEASE
         test_object.set_constraint(constraint_enum.STILL)
         assert test_object.get_constraint() == constraint_enum.STILL
+
+    def test_set_value_motors(self, test_object):
+        motors_positions_dict = {"omega": 220, "phiy": 1.5, "sampx": 0.5}
+        test_object.set_value_motors(motors_positions_dict, True)
+        assert test_object.get_state() == test_object.STATES.READY

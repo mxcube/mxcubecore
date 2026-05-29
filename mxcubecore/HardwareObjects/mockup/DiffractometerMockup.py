@@ -123,3 +123,12 @@ class DiffractometerMockup(AbstractDiffractometer):
 
     def _set_constraint(self, value: DiffractometerConstraint):
         self.current_constraint = value
+
+    def set_value_motors(self,
+                         motors_positions_dict: dict,
+                         simultaneous: bool = True,
+                         timeout: float | None = None,
+                         ):
+        """Move specified motors to the requested positions."""
+        super().set_value_motors(motors_positions_dict, simultaneous, timeout)
+        self.update_state(HardwareObjectState.READY)
