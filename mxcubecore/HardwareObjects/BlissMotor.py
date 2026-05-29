@@ -29,10 +29,11 @@ Example yml configuration:
 """
 
 import enum
-
-from bliss.config import static
+import threading
+import time
 
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
+from mxcubecore.HardwareObjects.BlissProxy import BlissProxy
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
@@ -63,7 +64,7 @@ class BlissMotorStates(enum.Enum):
     UNKNOWN = 8
 
 
-class BlissMotor(AbstractMotor):
+class BlissMotor(AbstractMotor, BlissProxy):
     """Bliss Motor implementation"""
 
     SPECIFIC_STATES = BlissMotorStates
@@ -73,6 +74,8 @@ class BlissMotor(AbstractMotor):
         "FAULT": HardwareObjectState.FAULT,
         "LIMPOS": HardwareObjectState.READY,
         "LIMNEG": HardwareObjectState.READY,
+        "HIGHLIMIT": HardwareObjectState.READY,
+        "LOWLIMIT": HardwareObjectState.READY,
         "HOME": HardwareObjectState.READY,
         "OFF": HardwareObjectState.OFF,
         "DISABLED": HardwareObjectState.OFF,
@@ -86,17 +89,30 @@ class BlissMotor(AbstractMotor):
     def init(self):
         """Initialise the motor"""
         super().init()
-        cfg = static.get_config()
-        self.motor_obj = cfg.get(self.actuator_name)
+        BlissProxy.init(self)
+        self.motor_obj = self.get_object(self.actuator_name)
 
         # init state to match motor's one
         self.update_state(self.get_state())
-        if self.actuator_name == "tape":
-            self.connect(self.motor_obj, "velocity", self.update_value)
+        self.update_limits(self.get_limits())
+        self.update_value(self.get_value())
+
+        self.motor_obj.subscribe("property", self._on_property_changed)
+        self.motor_obj.subscribe("online", self._on_online_changed)
+
+    def _on_online_changed(self, online: bool) -> None:
+        """Callback for motor online/offline events received via blissclient."""
+        if not online:
+            self.update_state(HardwareObjectState.UNKNOWN)
         else:
-            self.connect(self.motor_obj, "position", self.update_value)
-        self.connect(self.motor_obj, "state", self._update_state)
-        self.connect(self.motor_obj, "move_done", self._update_state)
+            self._update_state()
+
+    def _on_property_changed(self, data: dict) -> None:
+        """Callback for property changes received via blissclient."""
+        if "position" in data:
+            self.update_value(data["position"])
+        if "state" in data:
+            self._update_state()
 
     def _state2enum(self, state):
         """Translate the state to HardwareObjectState and BlissMotorStates
@@ -118,19 +134,16 @@ class BlissMotor(AbstractMotor):
         Returns:
             (enum HardwareObjectState): Motor state.
         """
+        # Via BlissProxy the REST API returns state as a list of strings.
         state = HardwareObjectState.UNKNOWN
-        for stat in self.motor_obj.state.current_states_names:
+        for stat in self.motor_obj.state or []:
             try:
                 return HardwareObjectState[stat]
             except KeyError:
-                if stat == "DISABLED":
-                    # we need to treat DISABLED before any other auxiliary state
+                if stat in ("DISABLED", "OFF"):
                     return HardwareObjectState.OFF
                 if stat == "MOVING":
-                    # MOVING has higher priority than other auxiliary states
                     return HardwareObjectState.BUSY
-                # finally the state will corresponf to the last in the list
-                # of the auxiliary states.
                 state = self._state2enum(stat)[0]
         return state
 
@@ -139,23 +152,15 @@ class BlissMotor(AbstractMotor):
         Returns:
             (list): Motor states as list of BlissMotorStates enum
         """
-        state = self.motor_obj.state.current_states_names
-        return [self._state2enum(x)[1] for x in state]
+        state_list = []
+        for _state in self.motor_obj.state or []:
+            state_list.append(self._state2enum(_state)[1])
+        return state_list
 
-    def _update_state(self, state=None):
-        """Check if the state has changed. Emits signal stateChanged.
-        Args:
-            state (enum AxisState): state from a BLISS motor
-        """
-        if isinstance(state, bool):
-            # It seems like the current version of BLISS gives us a boolean
-            # at first and last event, True for ready and False for moving
-            _state = HardwareObjectState.READY if state else HardwareObjectState.BUSY
-        else:
-            _state = self.get_state()
-        # actualise the  self._specific_state every time
+    def _update_state(self):
+        """Refresh state from the motor object and emit stateChanged if it changed."""
+        _state = self.get_state()
         self._specific_state = self.get_specific_state()
-        # this will emit stateChanged if _state different from the previous one
         self.update_state(_state)
 
     def get_value(self):
@@ -163,11 +168,11 @@ class BlissMotor(AbstractMotor):
         Returns:
             float: Motor position.
         """
-        return (
-            self.motor_obj.velocity
-            if self.actuator_name == "tape"
-            else self.motor_obj.position
-        )
+        pos = self.motor_obj.position
+        if pos is None:
+            # motor_obj.position can be None during init or if REST call returns null
+            return self._nominal_value if self._nominal_value is not None else 0.0
+        return pos
 
     def get_limits(self):
         """Returns motor low and high limits.
@@ -201,13 +206,37 @@ class BlissMotor(AbstractMotor):
         """Move motor to absolute value.
         Args:
             value (float): target value
+        Note: move() is non-blocking — it fires the REST request and returns a
+              future.  The state is optimistically set to BUSY immediately so
+              that wait_ready() (called by set_value when timeout > 0) does not
+              return before the first MOVING event arrives via socket.io.
         """
-        if self.actuator_name == "tape":
-            self.motor_obj.velocity = value if value > 0 else -value
-            self.motor_obj.jog(value)
-        else:
-            self.motor_obj.move(value, wait=False)
+        self.update_state(HardwareObjectState.BUSY)
+        self.motor_obj.move(value)
+
+        def _poll_completion():
+            deadline = time.time() + 300  # 5-minute safety timeout
+            while time.time() < deadline:
+                time.sleep(0.5)
+                try:
+                    states = self.motor_obj.state or []
+                    if "MOVING" not in states:
+                        self._update_state()
+                        self.update_value(self.get_value())
+                        return
+                except Exception:
+                    pass
+            self._update_state()
+
+        threading.Thread(
+            target=_poll_completion, daemon=True, name="bliss-motor-poll"
+        ).start()
 
     def abort(self):
         """Stop the motor movement"""
-        self.motor_obj.stop(wait=False)
+        try:
+            self.motor_obj.stop()
+        except Exception:
+            pass
+        self._update_state()
+        self.update_value(self.get_value())

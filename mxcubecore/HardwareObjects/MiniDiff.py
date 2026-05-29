@@ -988,6 +988,11 @@ class MiniDiff(HardwareObject):
         return copy.deepcopy(self.centringStatus)
 
     def get_positions(self):
+        zoom_value = self.zoomMotor.get_value()
+        # zoom can be an enum (NState) or a number, handle both
+        if hasattr(zoom_value, 'value'):
+            zoom_value = zoom_value.value
+
         return {
             "phi": float(self.phiMotor.get_value()),
             "focus": float(self.focusMotor.get_value()),
@@ -999,8 +1004,10 @@ class MiniDiff(HardwareObject):
             "kappa_phi": (
                 float(self.kappaPhiMotor.get_value()) if self.kappaPhiMotor else None
             ),
-            "zoom": float(self.zoomMotor.get_value()),
+            "zoom": zoom_value,
         }
+
+    get_value_motors = get_positions
 
     def move_motors(self, roles_positions_dict):
         motor = {
