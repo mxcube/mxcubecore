@@ -71,7 +71,9 @@ class DiffractometerMockup(AbstractDiffractometer):
     def abort(self):
         self.update_state(HardwareObjectState.READY)
 
-    def wait_status_ready(self, timeout=None):
+    def wait_status_ready(self, timeout: float | None = None) -> bool:
+        """Always finish wait as READY."""
+        self.update_state(HardwareObjectState.READY)
         return True
 
     def save_centring_positions(self):
@@ -119,5 +121,5 @@ class DiffractometerMockup(AbstractDiffractometer):
         self.current_phase = value
         self.update_state(self.STATES.READY)
 
-    def _set_constraint(self, value):
+    def _set_constraint(self, value: DiffractometerConstraint):
         self.current_constraint = value

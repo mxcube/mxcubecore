@@ -315,7 +315,7 @@ class AbstractDiffractometer(HardwareObject):
         if simultaneous:
             for key in motors_positions_dict:
                 mot_hwobj_dict[key].wait_ready(timeout)
-        self.update_state(HardwareObjectState.READY)
+        self.update_state()
 
     def get_value_motors(self, motors_list: list | None = None) -> dict:
         """Get the positions of diffractometer motors. If the motors_list is
