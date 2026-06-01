@@ -617,8 +617,17 @@ class Microdiff(MiniDiff.MiniDiff):
     def get_current_phase(self):
         return self.readPhase.get_value()
 
+    def get_phase(self):
+        """Return current phase as object with .name attribute (adapter compatibility)."""
+        _name = self.get_current_phase()
+        return type("_Phase", (), {"name": _name})()
+
     def get_phase_list(self):
         return list(self.phases.keys())
+
+    def get_chip_configuration(self):
+        """Return chip configuration. Not implemented for this diffractometer."""
+        return None
 
     def move_sync_motors(self, motors_dict, wait=False, timeout=None):
         in_kappa_mode = self.in_kappa_mode
