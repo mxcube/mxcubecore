@@ -40,6 +40,7 @@ from gevent import (
 )
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.model.nstate import NStateOption
 
 
 @unique
@@ -150,6 +151,23 @@ class AbstractBeam(HardwareObject):
             NotImplementedError
         """
         raise NotImplementedError
+
+    def get_available_size_options(self) -> list[NStateOption]:
+        """Get the available beam definers as option records.
+
+        Default implementation wraps ``get_available_size()["values"]``
+        NStateOption.
+        Used to e.g. store additional information why user can be advised
+        against choosing a particular value.
+
+        Returns:
+            One option per available beam size definition, in list
+            order.
+        """
+        return [
+            NStateOption(value=str(value))
+            for value in self.get_available_size()["values"]
+        ]
 
     def get_defined_beam_size(self) -> dict:
         """Get the predefined beam labels and size.
