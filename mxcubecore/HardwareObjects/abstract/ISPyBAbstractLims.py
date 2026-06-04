@@ -5,14 +5,17 @@ from typing import List
 import gevent
 
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.HardwareObjects.abstract import ISPyBDataAdapter
 from mxcubecore.HardwareObjects.abstract.AbstractLims import AbstractLims
-from mxcubecore.HardwareObjects.abstract.ISPyBDataAdapter import ISPyBDataAdapter
+from mxcubecore.HardwareObjects.abstract.MockupISPyBAbstractLims import (
+    MockupISPyBAbstractLims,
+)
 from mxcubecore.model.lims_session import (
     Lims,
 )
 
 
-class ISPyBAbstractLIMS(AbstractLims):
+class ISPyBAbstractLIMS(MockupISPyBAbstractLims):
     """
     Web-service client for ISPyB.
     """

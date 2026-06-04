@@ -3,7 +3,6 @@ import logging
 import shutil
 from collections import defaultdict
 from datetime import datetime, timedelta
-from importlib.util import find_spec
 from pathlib import Path
 from typing import Any, List, Optional
 from zoneinfo import ZoneInfo
@@ -24,10 +23,6 @@ from mxcubecore.model.lims_session import (
     Session,
 )
 
-if find_spec("esrf_ontologies"):
-    from esrf_ontologies import technique
-
-
 logger = logging.getLogger("HWR")
 
 
@@ -40,9 +35,7 @@ class ICATLIMS(AbstractLims):
         super().__init__(name)
         HardwareObject.__init__(self, name)
         self.investigations = None
-        self._icat_client_dict = {}
-        self._active_user = None
-        self._icat_session_dict = {}
+        self.icatClient = None
         self.lims_rest = None
         self.ingesters = None
 
@@ -52,14 +45,12 @@ class ICATLIMS(AbstractLims):
         self.investigations = []
         self.samples = []
 
-
-    @property
-    def _icat_client(self):
-        return self._icat_client_dict[self._active_user]
-
-    @property
-    def icat_session(self):
-        return self._icat_session_dict[self._active_user]
+        # Initialize ICAT client
+        self.icatClient = IcatClient(
+            icatplus_restricted_url=self.url,
+            metadata_urls=["bcu-mq-01:61613"],
+            reschedule_investigation_urls=["bcu-mq-01:61613"],
+        )
 
     def get_lims_name(self) -> List[Lims]:
         return [
@@ -69,52 +60,37 @@ class ICATLIMS(AbstractLims):
             ),
         ]
 
-    def _create_icat_client(self):
-        return IcatClient(
-            icatplus_restricted_url=self.url,
-            metadata_urls=["bcu-mq-01:61613"],
-            reschedule_investigation_urls=["bcu-mq-01:61613"],
-        )
+    def _create_icat_session(self, user_name: str, password: str):
+        print(password)
+        self.icat_session: dict = self.icatClient.do_log_in(password)
 
-    def _create_icat_session(self, password: str):
-        icat_client = self._create_icat_client()
+    def login(
+        self,
+        user_name: str,
+        password: str,
+        session_manager: Optional[LimsSessionManager],
+    ) -> LimsSessionManager:
+        msg = f"authenticate {user_name}"
+        logger.debug(msg)
 
-        if icat_client is None:
+        self._create_icat_session(user_name=user_name, password=password)
+
+        if self.icatClient is None or self.icatClient is None:
             msg = "Error initializing icatClient: "
             msg += f"icatClient={self.url}"
             logger.error(msg)
             raise RuntimeError("Could not initialize icatClient")
 
-        icat_session = icat_client.do_log_in(password)
-        username = icat_session["username"]
-        self._icat_session_dict[username] = icat_session
-        self._icat_client_dict[username] = icat_client
-
-        return icat_session, icat_client
-
-    def login(
-        self,
-        username: str,
-        password: str,
-        session_manager: Optional[LimsSessionManager],
-    ) -> LimsSessionManager:
-        logger.debug(f"ICAT authenticate {username}")
-
-        icat_session, icat_client = self._create_icat_session(password)
-       
         # Connected to metadata icatClient
         msg = "Connected succesfully to icatClient: "
-        msg += f"fullName={icat_session['fullName']}, url={self.url}"
+        msg += f"fullName={self.icat_session['fullName']}, url={self.url}"
         logger.debug(msg)
 
-        if not self._active_user:
-            self._active_user = icat_session['username']
-
         # Retrieving user's investigations
-        sessions = self.to_sessions(self.__get_all_investigations(icat_client, icat_session))
+        sessions = self.to_sessions(self.__get_all_investigations())
 
         if len(sessions) == 0:
-            msg = f"No sessions available for user {username}"
+            msg = f"No sessions available for user {user_name}"
             raise RuntimeError(msg)
 
         msg = f"Successfully retrieved {len(sessions)} sessions"
@@ -136,10 +112,10 @@ class ICATLIMS(AbstractLims):
 
             if not session_found:
                 msg = f"Current session in-use (with id {session_id}) "
-                msg += f"not avaialble for user {username}"
+                msg += f"not avaialble for user {user_name}"
                 raise RuntimeError(msg)
 
-        return self.session_manager, icat_session, sessions
+        return self.session_manager, self.icat_session["name"], sessions
 
     def is_user_login_type(self) -> bool:
         return True
@@ -275,14 +251,8 @@ class ICATLIMS(AbstractLims):
                 item["value"] = {"filepath": file_path_lookup[value]}
             if key == "search_models":
                 models = value
-                if isinstance(models, str) and len(models) > 0:
-                    try:
-                        models = json.loads(models)
-                    except json.JSONDecodeError:
-                        logger.exception(
-                            "[ICATClient] Error converting models to JSON. Input: %s",
-                            models,
-                        )
+                if isinstance(models, str):
+                    models = json.loads(models)
                 for model in models:
                     group = model.get("pdb_group")
                     if group in group_paths:
@@ -421,41 +391,44 @@ class ICATLIMS(AbstractLims):
         return downloads
 
     def __to_sample(
-        self, tracking_sample: dict, puck: dict, sample_sheets: List[SampleSheet]
-    ) -> dict[str, Any]:
-        """
-        Convert a tracking sample and associated metadata into the internal
-        sample data structure.
-        - Extracts relevant sample metadata.
-        - Resolves protein acronym from the sample sheet if available.
-        - Maps experiment plan details into a diffraction plan dictionary.
-        - Assembles all relevant fields into a structured sample dictionary.
+        self, tracking_sample: dict, puck: dict, sample_sheets: list
+    ) -> dict:
+        import time
 
-        Args:
-            tracking_sample (dict): The raw sample data from tracking.
-            puck (dict): The puck (container) metadata associated with the sample.
-            sample_sheets (List[SampleSheet]): List of sample sheets used for lookup.
+        t0 = time.perf_counter()
 
-        Returns:
-            dict: A dictionary representing the standardized internal sample format.
-        """
+        t = time.perf_counter()
         sample_id_info = self.__extract_sample_identifiers(tracking_sample, puck)
+        print(f"extract_sample_identifiers: {time.perf_counter() - t:.6f}s")
+
+        t = time.perf_counter()
         experiment_plan = self.__parse_experiment_plan(tracking_sample)
+        print(f"parse_experiment_plan: {time.perf_counter() - t:.6f}s")
+
+        t = time.perf_counter()
         processing_plan = self.__prepare_processing_plan(
             tracking_sample,
             sample_id_info["sample_sheet_id"],
             sample_id_info["proteinAcronym"],
         )
+        print(f"prepare_processing_plan: {time.perf_counter() - t:.6f}s")
 
-        return {
+        t = time.perf_counter()
+        diffraction_plan = self.__build_diffraction_plan(experiment_plan)
+        print(f"build_diffraction_plan: {time.perf_counter() - t:.6f}s")
+
+        result = {
             **sample_id_info,
             "experimentType": experiment_plan.get("workflowType"),
             "crystalSpaceGroup": experiment_plan.get("forceSpaceGroup"),
-            "diffractionPlan": self.__build_diffraction_plan(experiment_plan),
+            "diffractionPlan": diffraction_plan,
             "experimentPlan": experiment_plan,
             "processingPlan": processing_plan,
             "comments": tracking_sample.get("comments"),
         }
+
+        print(f"TOTAL __to_sample: {time.perf_counter() - t0:.6f}s")
+        return result
 
     def create_session(self, session_dict):
         pass
@@ -527,9 +500,7 @@ class ICATLIMS(AbstractLims):
         except (TypeError, ValueError):
             return None
 
-    def set_active_session_by_id(
-        self, session_id: str, username: str
-    ) -> Session:
+    def set_active_session_by_id(self, session_id: str) -> Session:
         logger.debug(f"set_active_session_by_id: {session_id}")
 
         if self.is_session_already_active(self.session_manager.active_session):
@@ -575,7 +546,7 @@ class ICATLIMS(AbstractLims):
     def allow_session(self, session: Session):
         self.active_session = session
         logger.debug("allow_session investigationId=%s", session.session_id)
-        self._icat_client.reschedule_investigation(session.session_id)
+        self.icatClient.reschedule_investigation(session.session_id)
 
     def get_session_by_id(self, sid: str):
         msg = f"get_session_by_id investigationId={sid} "
@@ -590,7 +561,7 @@ class ICATLIMS(AbstractLims):
         logger.warning("No investigation found")
         return None
 
-    def __get_all_investigations(self, icat_client, icat_session):
+    def __get_all_investigations(self):
         """Returns all investigations by user. An investigation corresponds to
         one experimental session. It returns an empty array in case of error"""
         self.investigations = []
@@ -599,18 +570,18 @@ class ICATLIMS(AbstractLims):
             msg += f"after={self.after_offset_days} "
             msg += f"beamline={self.override_beamline_name} "
             msg += (
-                f"isInstrumentScientist={icat_session['isInstrumentScientist']} "
+                f"isInstrumentScientist={self.icat_session['isInstrumentScientist']} "
             )
-            msg += f"isAdministrator={icat_session['isAdministrator']} "
+            msg += f"isAdministrator={self.icat_session['isAdministrator']} "
             msg += f"compatible_beamlines={self.compatible_beamlines}"
             logger.debug(msg)
 
-            if icat_session is not None and (
-                icat_session["isAdministrator"]
-                or icat_session["isInstrumentScientist"]
+            if self.icat_session is not None and (
+                self.icat_session["isAdministrator"]
+                or self.icat_session["isInstrumentScientist"]
             ):
                 # Setting up of the session done by admin or staff
-                self.investigations = icat_client.get_investigations_by(
+                self.investigations = self.icatClient.get_investigations_by(
                     start_date=datetime.today()
                     - timedelta(days=float(self.before_offset_days)),
                     end_date=datetime.today()
@@ -626,11 +597,11 @@ class ICATLIMS(AbstractLims):
                     )
                     return []
 
-                self.investigations = icat_client.get_investigations_by(
+                self.investigations = self.icatClient.get_investigations_by(
                     ids=[self.session_manager.active_session.session_id]
                 )
             else:
-                self.investigations = icat_client.get_investigations_by(
+                self.investigations = self.icatClient.get_investigations_by(
                     filter=self.filter,
                     instrument_name=self.compatible_beamlines,
                     start_date=datetime.today()
@@ -779,7 +750,7 @@ class ICATLIMS(AbstractLims):
             session_id = self.session_manager.active_session.session_id
             msg = f"Retrieving parcels by investigation_id {session_id}"
             logger.debug(msg)
-            parcels = self._icat_client.get_parcels_by(session_id)
+            parcels = self.icatClient.get_parcels_by(session_id)
         except Exception:
             logger.exception("Failed on get_parcels_by_investigation_id")
         else:
@@ -795,7 +766,7 @@ class ICATLIMS(AbstractLims):
             msg = "Retrieving samples by investigation_id "
             msg += f"{self.session_manager.active_session.session_id}"
             logger.debug(msg)
-            samples = self._icat_client.get_samples_by(
+            samples = self.icatClient.get_samples_by(
                 self.session_manager.active_session.session_id
             )
         except Exception:
@@ -1038,14 +1009,7 @@ class ICATLIMS(AbstractLims):
                 }
             )
 
-            # ontologies
-            try:
-                tech = technique.get_technique_metadata("MX", "MAD")
-                metadata.update(tech.get_dataset_metadata())
-            except (NameError, TypeError):
-                self.log.warning("No technique added to the metadata")
-
-            self._icat_client.store_dataset(
+            self.icatClient.store_dataset(
                 beamline=beamline,
                 proposal=proposal,
                 dataset=str(directory.name),
@@ -1104,14 +1068,7 @@ class ICATLIMS(AbstractLims):
                 }
             )
 
-            # ontologies
-            try:
-                tech = technique.get_technique_metadata("MX", "XRF")
-                metadata.update(tech.get_dataset_metadata())
-            except (NameError, TypeError):
-                self.log.warning("No technique added to the metadata")
-
-            self._icat_client.store_dataset(
+            self.icatClient.store_dataset(
                 beamline=beamline,
                 proposal=proposal,
                 dataset=str(directory.name),
@@ -1138,7 +1095,7 @@ class ICATLIMS(AbstractLims):
     def _get_oscillation_end(self, oscillation_sequence):
         return float(oscillation_sequence["start"]) + (
             float(oscillation_sequence["range"])
-            - float(oscillation_sequence["offset"])
+            - float(oscillation_sequence["overlap"])
         ) * float(oscillation_sequence["number_of_images"])
 
     def _get_rotation_axis(self, oscillation_sequence):
@@ -1163,7 +1120,10 @@ class ICATLIMS(AbstractLims):
             Optional[SampleInformation]: Returns a SampleInformation object or None.
         """
         try:
-            result = self._icat_client.get_sample_files_information_by(sample_id)
+            import pdb
+
+            pdb.set_trace()
+            result = self.icatClient.get_sample_files_information_by(sample_id)
             return SampleInformation.parse_obj(result)
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 404:
@@ -1200,7 +1160,7 @@ class ICATLIMS(AbstractLims):
             )  # Make sure the folder exists
 
             try:
-                result = self._icat_client.download_file_by(
+                result = self.icatClient.download_file_by(
                     sample_id=sample_id,
                     resource_id=resource.id,
                     use_chunks=True,
@@ -1244,11 +1204,6 @@ class ICATLIMS(AbstractLims):
                 # The "complete" entry in metadata must be set to False in order to
                 # group multi-wedge reference image data collection for characterisation
                 metadata["complete"] = False
-            elif scan_type == "OSC":
-                # In case the experiment_type is "OSC" and doesn't have
-                # "datacollection" in the dataset name, we set it to "datacollection".
-                # This happens for data collected by GPhL workflows.
-                scan_type = "datacollection"
 
             workflow_params = datacollection_dict.get("workflow_parameters", {})
             workflow_type = workflow_params.get("workflow_type")
@@ -1296,7 +1251,7 @@ class ICATLIMS(AbstractLims):
                     "MX_numberOfImages": oscillation_sequence["number_of_images"],
                     "MX_oscillationRange": oscillation_sequence["range"],
                     "MX_axis_start": oscillation_sequence["start"],
-                    "MX_oscillationOverlap": oscillation_sequence["offset"],
+                    "MX_oscillationOverlap": oscillation_sequence["overlap"],
                     "MX_resolution": datacollection_dict.get("resolution"),
                     "MX_resolution_at_corner": datacollection_dict.get(
                         "resolutionAtCorner"
@@ -1365,13 +1320,6 @@ class ICATLIMS(AbstractLims):
             except RuntimeError:
                 logger.warning("Failed to get MX_axis_end")
 
-            # ontologies
-            try:
-                tech = technique.get_technique_metadata("MX", "SAD")
-                metadata.update(tech.get_dataset_metadata())
-            except (NameError, TypeError):
-                self.log.warning("No technique added to the metadata")
-
             icat_metadata_path = Path(directory) / "metadata.json"
             with Path(icat_metadata_path).open("w") as f:
                 # We add the processing, experiment plan and a couple of other
@@ -1424,7 +1372,7 @@ class ICATLIMS(AbstractLims):
             except RuntimeError as e:
                 logger.warning("Failed to create gallery. %s", e)
 
-            self._icat_client.store_dataset(
+            self.icatClient.store_dataset(
                 beamline=beamline,
                 proposal=proposal,
                 dataset=dataset_name,
@@ -1433,7 +1381,7 @@ class ICATLIMS(AbstractLims):
             )
             logger.debug("Done uploading to ICAT")
         except Exception as e:
-            logger.exception("Failed uploading to ICAT. %s", e)
+            logger.warning("Failed uploading to ICAT. %s", e)
 
     def _get_scheduled_beamline(self) -> str:
         """Return the name of the beamline as set in the properties or the
