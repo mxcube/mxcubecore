@@ -1,12 +1,15 @@
 import json
 import logging
 from atexit import register
+from enum import Enum
 from os import kill
 from signal import SIGTERM
 from subprocess import Popen
-from threading import Thread
+from threading import Event, Thread
 from time import sleep
 from uuid import uuid1
+
+from pydantic import ValidationError
 
 try:
     import argussight.grpc.argus_service_pb2 as pb2
@@ -18,12 +21,18 @@ try:
     )
 except ImportError:
     logging.getLogger("HWR").warning(
-        "Argussight package is not installed.",
+        "Please install mxcube with the Argus extra to use the Argus hardware object",
     )
     pass
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.model.argus_model import (
+    ArgusTrigger,
+    HiddenInitially,
+    HideAction,
+    InitialVisibilityCondition,
+)
 
 
 # This function is needed o ensure that multi_views is correctly loaded
@@ -35,6 +44,9 @@ def ensure_list(value):
         return json.loads(value)
     except (json.JSONDecodeError, TypeError):
         return [value]
+
+
+stop_event = Event()
 
 
 class Argus(HardwareObject):
@@ -131,16 +143,67 @@ class Argus(HardwareObject):
         }
 
         register(self.cleanup)
+        self._init_triggers()
 
         super().init()
 
+    def _make_trigger_callback(self, trigger: ArgusTrigger):
+        def callback(value):
+            for case in trigger.cases:
+                if (
+                    case.value == value.value
+                    if isinstance(value, Enum)
+                    else case.value == value
+                ):
+                    for action in case.actions:
+                        for stream in trigger.streams:
+                            action.make_request(self.stub, stream)
+
+        return callback
+
+    def _init_triggers(self):
+        self._trigger_callbacks = []
+        triggers = []
+
+        for trigger in self.get_property("triggers", {}).get("trigger", []):
+            try:
+                triggers.append(ArgusTrigger.parse_obj(trigger))
+            except ValidationError as val_error:
+                logging.getLogger("HWR").warning(
+                    "Error parsing Argus trigger, %s will not be initialized\n%s",
+                    trigger.get("name", "unnamed trigger"),
+                    val_error,
+                )
+
+        for trigger in triggers:
+            callback = self._make_trigger_callback(trigger)
+
+            # we need to keep a reference to the callback
+            # to avoid it being garbage collected
+            self._trigger_callbacks.append(callback)
+
+            for event in trigger.on:
+                ho = HWR.beamline.get_object_by_role(event.hwobj_role)
+                if ho is None:
+                    logging.getLogger("HWR").warning(
+                        "Cannot find hardware object with role %s for Argus trigger %s",
+                        event.hwobj_role,
+                        trigger.name,
+                    )
+                    continue
+
+                ho.connect(event.event, callback)
+
     def cleanup(self):
-        logging.getLogger("HWR").info("Shutting down streams connected to Argus...")
-        for streaming_process in self._video_stream_processes:
-            if not streaming_process.poll():
-                kill(streaming_process.pid, SIGTERM)
+        stop_event.set()
         logging.getLogger("HWR").info("Shutting down Argus server...")
         kill(self._argus_pid.pid, SIGTERM)
+
+        sleep(1)  # give the server some time to shutdown before killing the streams
+        logging.getLogger("HWR").info("Shutting down streams connected to Argus...")
+        for streaming_process in self._video_stream_processes:
+            if streaming_process.poll() is None:
+                kill(streaming_process.pid, SIGTERM)
 
     def get_main_camera_stream(self):
         return self._main_stream
@@ -185,7 +248,7 @@ class Argus(HardwareObject):
             return {"Error": {"state": "UNKNOWN", "type": "Server-Connection"}}, {}, []
 
     def emit_process_change(self):
-        while True:
+        while not stop_event.is_set():
             current_running, classes, streams = self.get_processes_from_server()
             if (
                 current_running != self.running_processes
@@ -208,7 +271,14 @@ class Argus(HardwareObject):
             for stream in self._streams_to_run:
                 if stream["name"] not in self.streams:
                     logging.getLogger("HWR").info("Trying to add %s", stream["name"])
-                    self._add_stream(stream["name"], stream["port"], stream["id"])
+                    hidden_initially = (
+                        HiddenInitially.parse_obj(stream["hidden_initially"])
+                        if stream.get("hidden_initially", None)
+                        else None
+                    )
+                    self._add_stream(
+                        stream["name"], stream["port"], stream["id"], hidden_initially
+                    )
 
             sleep(self.retry_delay)
 
@@ -270,7 +340,27 @@ class Argus(HardwareObject):
         response = self.stub.ChangeSettings(request)
         self.emit_last_response_change(response.status, response.error_message)
 
-    def _add_stream(self, name, port, stream_id):
+    def _check_hidden_condition(
+        self, condition: InitialVisibilityCondition, stream_name: str
+    ):
+        ho = HWR.beamline.get_object_by_role(condition.hwobj_role)
+        if not ho:
+            logging.getLogger("HWR").warning(
+                "Hardware object with role %s not found, hidding %s provisionally",
+                condition.hwobj_role,
+                stream_name,
+            )
+            return True
+        attribute = getattr(ho, condition.attribute)
+        return (
+            attribute.value == condition.equals
+            if isinstance(attribute, Enum)
+            else attribute == condition.equals
+        )
+
+    def _add_stream(self, name, port, stream_id, hidden_initially: HiddenInitially):
+        if stop_event.is_set():
+            return
         try:
             self.stub.AddStream(
                 pb2.AddStreamRequest(
@@ -279,6 +369,12 @@ class Argus(HardwareObject):
                     stream_id=stream_id,
                 ),
             )
+            if hidden_initially:
+                if hidden_initially.always or self._check_hidden_condition(
+                    hidden_initially.when, name
+                ):
+                    action = HideAction(type="Hide", reason=hidden_initially.reason)
+                    action.make_request(self.stub, name)
         except Exception:
             logging.getLogger("HWR").exception(
                 "Couldn't add camera stream to argussight server",

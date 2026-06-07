@@ -54,7 +54,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-pyicat-plus = ["pyicat-plus==3.0.2"]
+pyicat-plus = ["pyicat-plus==3.0.1"]
+argus = ["argussight", "grpcio"]
 
 [tool.poetry]
 requires-poetry = ">=2.4.2,<3.0.0"  # Keep in sync with `.pre-commit-config.yaml`
