@@ -120,16 +120,20 @@ def sample_response():
 
 
 def default_data_collection():
-    return [
-        {
-            "dataCollectionId": 1,
-            "dataCollectionGroupId": 99,
-            "type": "dc",
-            "startTime": "2015-01-20T16:17:13",
-            "endTime": "2015-01-20T16:17:13",
-            "sessionId": 123,
-        }
-    ]
+    return {
+    "dataCollectionId": 1,
+    "dataCollectionGroupId": 99,
+    "strategySubWedgeOrigId": None,
+    "detectorId": None,
+    "blSubSampleId": None,
+    "startPositionId": 9,
+    "endPositionId": None,
+    "dataCollectionNumber": 1,
+    "startTime": "2015-01-20T16:17:13",
+    "endTime": "2015-01-20T16:17:13",
+    "runStatus": "failed",
+     "sessionId": 123,
+    }
 
 
 def default_detector():

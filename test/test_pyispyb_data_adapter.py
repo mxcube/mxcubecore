@@ -531,17 +531,22 @@ def test_get_data_collection(
 
     # then assert
 
-    client.get.assert_called_once_with("events?dataCollectionId=1")
+    client.get.assert_called_once_with("datacollections/1")
 
     assert result == {
-        "dataCollectionId": 1,
-        "dataCollectionGroupId": 99,
-        "type": "dc",
-        "startTime": "2015-01-20 16:17:13",
-        "endTime": "2015-01-20 16:17:13",
-        "sessionId": 123,
+    "dataCollectionId": 1,
+    "dataCollectionGroupId": 99,
+    "strategySubWedgeOrigId": None,
+    "detectorId": None,
+    "blSubSampleId": None,
+    "startPositionId": 9,
+    "endPositionId": None,
+    "dataCollectionNumber": 1,
+    "startTime": "2015-01-20 16:17:13",
+    "endTime": "2015-01-20 16:17:13",
+    "runStatus": "failed",
+     "sessionId": 123,
     }
-
 
 def test_get_data_collection_exception(
     adapter,
@@ -553,7 +558,7 @@ def test_get_data_collection_exception(
 
     assert result == {}
 
-    client.get.assert_called_once_with("events?dataCollectionId=1")
+    client.get.assert_called_once_with("datacollections/1")
 
     adapter.logger.exception.assert_called_once_with(
         "Failed to get data collection from PyISPyB"
@@ -570,19 +575,18 @@ def test_get_data_collection_empty_response(
 
     assert result == {}
 
-    client.get.assert_called_once_with("events?dataCollectionId=999999")
+    client.get.assert_called_once_with("datacollections/999999")
 
 
 def test_get_data_collection_with_string_dates(
     adapter,
     client,
 ):
-    client.get.return_value = [
-        {
+    client.get.return_value = {
             "startTime": "2015-01-20T16:17:13",
             "endTime": "2015-01-20T16:17:13",
         }
-    ]
+    
 
     result = adapter.get_data_collection(1)
 
@@ -731,12 +735,12 @@ def test_store_beamline_setup_success(
 
 
 def test_store_data_collection_without_bl_config(adapter, client):
-    mx_collection = {
-        "sessionId": 123,
-        "dataCollectionGroupId": 102,
-    }
+    mx_collection = default_data_collection()
 
-    client.post.return_value = (10,)
+    client.post.return_value = {
+           "dataCollectionId": 10,
+           "dataCollectionGroupId": 99
+           }
 
     result = adapter.store_data_collection(mx_collection)
 
@@ -749,18 +753,21 @@ def test_store_data_collection_without_bl_config(adapter, client):
 
 
 def test_store_data_collection_with_detector(adapter, client):
-    mx_collection = default_data_collection()[0]
+    mx_collection = default_data_collection()
 
     bl_config = default_bl_config()
 
-    client.post.return_value = (99,)
+    client.post.return_value = {
+           "dataCollectionId": 10,
+           "dataCollectionGroupId": 99
+           }
 
     adapter.store_beamline_setup = Mock()
     adapter.find_detector = Mock(return_value={"detectorId": 42})
 
     result = adapter.store_data_collection(mx_collection, bl_config)
 
-    assert result == (99, 42)
+    assert result == (10, 42)
 
     adapter.store_beamline_setup.assert_called_once_with(
         123,
@@ -779,20 +786,23 @@ def test_store_data_collection_with_detector(adapter, client):
 
 def test_store_data_collection_without_detector(adapter, client):
 
-    mx_collection = default_data_collection()[0]
+    mx_collection = default_data_collection()
 
     bl_config = default_bl_config()
 
-    client.post.return_value = (77,)
+    client.post.return_value = {
+           "dataCollectionId": 10,
+           "dataCollectionGroupId": 99
+           }
 
     adapter.store_beamline_setup = Mock()
     adapter.find_detector = Mock(return_value=None)
 
     result = adapter.store_data_collection(mx_collection, bl_config)
 
-    assert result == (77, 0)
+    assert result == (10, 0)
 
-    assert "detectorId" not in mx_collection
+    assert mx_collection["detectorId"] is None
 
 
 def test_update_data_collection_missing_collection_id(adapter, client):

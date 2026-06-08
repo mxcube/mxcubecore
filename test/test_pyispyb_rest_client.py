@@ -145,7 +145,7 @@ def test_get_success(client):
 def test_get_refreshes_expired_token(client):
     client._token_expiry = datetime.now(timezone.utc) - timedelta(seconds=1)
 
-    client.refresh_access_token = MagicMock()
+    client._refresh_access_token = MagicMock()
 
     response = build_response(json_data={"ok": True})
 
@@ -153,7 +153,7 @@ def test_get_refreshes_expired_token(client):
 
     client.get("users")
 
-    client.refresh_access_token.assert_called_once()
+    client._refresh_access_token.assert_called_once()
 
 
 def test_get_retries_after_401(client):
@@ -168,13 +168,13 @@ def test_get_retries_after_401(client):
 
     client._session.get = MagicMock(side_effect=[unauthorized, success])
 
-    client.refresh_access_token = MagicMock()
+    client._refresh_access_token = MagicMock()
 
     result = client.get("users")
 
     assert result == {"ok": True}
 
-    client.refresh_access_token.assert_called_once()
+    client._refresh_access_token.assert_called_once()
 
     assert client._session.get.call_count == 2
 

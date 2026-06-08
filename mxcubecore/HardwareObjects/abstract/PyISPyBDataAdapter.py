@@ -331,15 +331,14 @@ class PyISPyBDataAdapter:
             Dictionary containing data collection details or empty if fetching failed.
         """
         try:
-            response = self.client.get("events?dataCollectionId=%s" % data_collection_id)
+            dc = self.client.get(f"datacollections/{data_collection_id}")
         except Exception:
             self.logger.exception("Failed to get data collection from PyISPyB")
             return {}
-        if not response:
+        if not dc:
             return {}
-        dc = response[0]
-        dc["startTime"] = datetime.strftime(dc["startTime"], "%Y-%m-%d %H:%M:%S")
-        dc["endTime"] = datetime.strftime(dc["endTime"], "%Y-%m-%d %H:%M:%S")
+        dc["startTime"] = datetime.fromisoformat(dc["startTime"]).strftime("%Y-%m-%d %H:%M:%S")
+        dc["endTime"] = datetime.fromisoformat(dc["endTime"]).strftime("%Y-%m-%d %H:%M:%S")
         return dc
 
     def find_detector(
@@ -454,6 +453,7 @@ class PyISPyBDataAdapter:
         Returns:
             Store data collection id and detector id if found, otherwise 0.
         """
+        detector_id = 0
         if bl_config:
             bl_config["synchrotronMode"] = bl_config.get(
                 "synchrotronMode", mx_collection.get("synchrotronMode", "")
@@ -466,12 +466,14 @@ class PyISPyBDataAdapter:
                 bl_config.get("detector_type", ""),
             )
             if detector:
-                mx_collection["detectorId"] = detector.get("detectorId", 0)
+                detector_id = detector.get("detectorId", 0)
+                mx_collection["detectorId"] = detector_id
 
-        dc_id, *_ = self.client.post(
+        response = self.client.post(
             "datacollections/datacollection", json=mx_collection
         )
-        return dc_id, mx_collection.get("detectorId", 0)
+        collection_id = response["dataCollectionId"]
+        return collection_id, detector_id
 
     def store_energy_scan(self, energyscan: dict) -> dict[str, int]:
         """Stores energy scan in PyISPyB
