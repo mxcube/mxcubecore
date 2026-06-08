@@ -48,7 +48,7 @@ class PyISPyBDataAdapter:
         return Proposal(
             code=proposal.get("proposalCode").upper(),
             number=proposal.get("proposalNumber"),
-            proposal_id=proposal.get("proposalId"),
+            proposal_id=str(proposal.get("proposalId")),
             title=proposal.get("title"),
             type=proposal.get("type", ""),
             name=proposal.get("proposal"),
@@ -59,7 +59,7 @@ class PyISPyBDataAdapter:
         """Converts session data received from PyISPyB REST API to a Session object."""
         proposal_name = session.get("proposal")
         proposal_code = "".join([c for c in proposal_name if not c.isdigit()])
-        proposal_number = proposal_name[len(proposal_code) :]
+        proposal_number = proposal_name[len(proposal_code):]
         title = session.get("title", "")
         start_datetime = datetime.fromisoformat(session.get("startDate"))
         end_datetime = datetime.fromisoformat(session.get("endDate"))
@@ -67,18 +67,21 @@ class PyISPyBDataAdapter:
             code=proposal_code,
             number=proposal_number,
             proposal_name=proposal_name,
-            proposal_id=session.get("proposalId"),
-            session_id=session.get("sessionId"),
+            proposal_id=str(session.get("proposalId")),
+            session_id=str(session.get("sessionId")),
             beamline_name=session.get("beamLineName", self.beamline_name),
             title=title,
             comments=session.get("comments"),
             start_datetime=start_datetime,
             end_datetime=end_datetime,
-            nb_shifts=session.get("nbShifts", "") or "",
-            scheduled=session.get("scheduled", "False"),
+            nb_shifts=str(session.get("nbShifts", "")),
+            scheduled=str(session.get("scheduled", "False")),
             is_scheduled_time=self.__is_time_between(start_datetime, end_datetime),
             is_scheduled_beamline=True,  # MAX IV does not care about this value
         )
+
+    def __find_proposal_by_id(self, proposal_id: int) -> Proposal:
+        return self.__to_proposal(self.client.get("proposals?proposalId=%s" % (proposal_id))[0])
 
     def get_current_user_data(self) -> dict:
         """Fetches current user details."""
@@ -93,7 +96,7 @@ class PyISPyBDataAdapter:
     def find_proposal(self, code: str, number: str) -> Proposal:
         """Finds a proposal by its code and number."""
         return self.__to_proposal(
-            self.client.get("proposals?proposal=%s%s" % (code, number))
+            self.client.get("proposals?search=%s%s" % (code, number))[0]
         )
 
     def get_sessions_by_code_and_number(
@@ -113,15 +116,13 @@ class PyISPyBDataAdapter:
         self, code: str, number: str, beamline: str
     ) -> list[Session]:
         """Finds todays sessions by proposal code, number and beamline name."""
-        # TODO@dominikatrojanowska: add ``day`` to the url when implemented in PyISPyB,
-        # Until then fetch all sessions for month and year, next filter by day in mxcube
         today = datetime.today()  # noqa: DTZ002
-        month, year = today.month, today.year
+        day, month, year = today.day, today.month, today.year
         return [
             self.__to_session(session)
             for session in self.client.get(
-                "sessions?proposal=%s%s&beamLineName=%s&year=%s&month=%s"
-                % (code, number, beamline, year, month)
+                "sessions?proposal=%s%s&beamLineName=%s&year=%s&month=%s&day=%s"
+                % (code, number, beamline, year, month, day)
             )
             if self.__is_time_between(
                 datetime.fromisoformat(session.get("startDate")),
@@ -165,12 +166,7 @@ class PyISPyBDataAdapter:
 
     def create_session(self, proposal: Proposal) -> Session:
         """Creates new session via PyISPyB REST API for the given proposal."""
-        # TODO@SOLEIL: This is the closest implementation to current PyISPyBAdapter.
-        # Ensure session creation is correct (session data, posting to PyISPyB).
-        # Which part can be common for SOLEIL and MAX IV?
-        # TODO@dominikatrojanowska: check if response is ok and handle errors
-        #  NOT TESTED
-        start_time = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)  # noqa: DTZ002
+        start_time = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
         end_time = start_time + timedelta(
             days=self.new_session_duration_days, hours=7, minutes=59, seconds=59
         )
@@ -243,7 +239,9 @@ class PyISPyBDataAdapter:
         image_id = 0
         if "dataCollectionId" in image_dict:
             try:
-                image_id = self.client.post("images/image", json=image_dict)
+                response = self.client.post("images/image", json=image_dict)
+                self.logger.debug("PyISPYB store image response: %s", response)
+                image_id = response["imageId"]
             except PyISPyBUnsuccessfulResponse:
                 self.logger.exception("Exception in store_image")
             else:
@@ -258,16 +256,16 @@ class PyISPyBDataAdapter:
     def get_samples(self, proposal_id: int) -> list[dict]:
         """Fetches samples for the given proposal id from PyISPyB."""
         try:
-            samples = self.client.get(
-                "samples?proposal=%s&beamLineName=%s"
-                # TODO@dominikatrojanowska: when available at PyISPyB API change to:
-                #  "samples?proposalId=%s&beamLineName=%s"
-                % (proposal_id, self.beamline_name),
+            proposal = self.__find_proposal_by_id(proposal_id)
+
+            return self.client.get(
+                "samples?proposal=%s%s&beamLineName=%s"
+                % (proposal.code, proposal.number, self.beamline_name),
                 timeout=10,
             )
         except PyISPyBUnsuccessfulResponse:
             self.logger.exception("Error in get_samples")
-        return samples
+            return []
 
     def store_robot_action(self, robot_action: dict) -> int:
         """Stores robot action.
@@ -279,8 +277,6 @@ class PyISPyBDataAdapter:
         Returns:
             The id of the robot action. 0 if failed or required keys are missing.
         """
-        # TODO@dominikatrojanowska: ensure correct data type, maybe: datetime.strptime(
-        #  endTime, "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         self.logger.info("Storing robot actions in LIMS")
         robot_action_id = 0
         try:
@@ -315,9 +311,8 @@ class PyISPyBDataAdapter:
             "blSampleId": entry_dict["blSampleId"],
         }
         try:
-            # TODO@dominikatrojanowska: endpoint will be created
-            assoc_id = self.client.post(
-                "events/energyscan/scanId/BlSample/blSampleId", json=payload
+            assoc_id = self.client.patch(
+                "events/energyscan/associate-bl-sample", json=payload
             )
         except Exception:
             self.logger.exception(
@@ -336,11 +331,13 @@ class PyISPyBDataAdapter:
             Dictionary containing data collection details or empty if fetching failed.
         """
         try:
-            response = self.client.get("events/datacollection/%s" % data_collection_id)
+            response = self.client.get("events?dataCollectionId=%s" % data_collection_id)
         except Exception:
             self.logger.exception("Failed to get data collection from PyISPyB")
             return {}
-        dc = asdict(response)
+        if not response:
+            return {}
+        dc = response[0]
         dc["startTime"] = datetime.strftime(dc["startTime"], "%Y-%m-%d %H:%M:%S")
         dc["endTime"] = datetime.strftime(dc["endTime"], "%Y-%m-%d %H:%M:%S")
         return dc
@@ -384,20 +381,23 @@ class PyISPyBDataAdapter:
         Returns dictionary containing updated session details from PyISPyB.
         If updating failed, returns empty dictionary.
         """
-        # TODO@mohsendahesh: beamlineSetupId parameter should be added to API
-        response = {}
         try:
-            response = self.client.post(
-                "sessions/%s?beamlineSetupId=%s"
+            session_id = session["sessionId"]
+            beamline_setup = session.get("BeamLineSetup") or {}
+            beamline_setup_id = beamline_setup.get("beamLineSetupId")
+            if not beamline_setup_id:
+                raise KeyError("Missing beamLineSetupId")
+            response = self.client.patch(
+                "sessions/%s/associate-beamline-setup?beamLineSetupId=%s"
                 % (
-                    session["sessionId"],
-                    session.get("BeamLineSetup").get("beamLineSetupId"),
+                    session_id,
+                    beamline_setup_id,
                 ),
             )
-
+            return response
         except (PyISPyBUnsuccessfulResponse, KeyError):
             self.logger.exception("Failed to store or update session")
-        return response
+            return {}
 
     def get_session(self, session_id: int) -> dict:
         """Fetches session details from PyISPyB by session id."""
@@ -483,13 +483,6 @@ class PyISPyBDataAdapter:
             Dictionary {"energyScanId": number}, where number is the id of the stored
             energy scan.
         """
-        # TODO@dominikatrojanowska: check the date format
-        # energyscan["startTime"] = datetime.strptime(
-        #     energyscan["startTime"], "%Y-%m-%d %H:%M:%S"
-        # )
-        # energyscan["endTime"] = datetime.strptime(
-        #     energyscan["endTime"], "%Y-%m-%d %H:%M:%S"
-        # )
         try:
             return {
                 "energyScanId": self.client.post("events/energyscan", json=energyscan)
@@ -509,18 +502,10 @@ class PyISPyBDataAdapter:
             Dictionary {"xfeFluorescenceSpectrumId": number}, where number is the id
             of the stored XFE fluorescence spectrum.
         """
-        # TODO@dominikatrojanowska: check the date format
-        # if isinstance(xfe_spectrum["startTime"], str):
-        #     xfe_spectrum["startTime"] = datetime.strptime(
-        #         xfe_spectrum["startTime"], "%Y-%m-%d %H:%M:%S"
-        #     )
-        #     xfe_spectrum["endTime"] = datetime.strptime(
-        #         xfe_spectrum["endTime"], "%Y-%m-%d %H:%M:%S"
-        #     )
         try:
             return {
                 "xfeFluorescenceSpectrumId": self.client.post(
-                    "xfespectrum", json=xfe_spectrum
+                    "events/xfe-fluorescence-spectrum", json=xfe_spectrum
                 )
             }
         except PyISPyBUnsuccessfulResponse:
@@ -540,8 +525,12 @@ class PyISPyBDataAdapter:
             details or empty if updating failed.
         """
         try:
-            return self.client.post(
-                "samples/%s" % bl_sample.get("blSampleId"), json=bl_sample
+            bl_sample_id = bl_sample.get("blSampleId")
+            if bl_sample_id is None:
+                self.logger.error("Missing blSampleId")
+                return {}
+            return self.client.patch(
+                "samples/%s" % bl_sample_id, json=bl_sample
             )
         except PyISPyBUnsuccessfulResponse:
             self.logger.exception("Failed to update beamline sample in PyISPyB")
