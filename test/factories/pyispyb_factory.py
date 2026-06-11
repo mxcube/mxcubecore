@@ -21,29 +21,30 @@ def current_user_response():
 
 
 def proposal_response(
-    proposal_id: str = "10",
+    proposal_id: 10,
     proposal_code: str = "MX",
     proposal_number: str = "20090662",
 ):
     return {
         "proposalCode": proposal_code,
         "proposalNumber": proposal_number,
-        "proposalId": proposal_id,
-        "title": "Test Proposal",
         "proposal": f"{proposal_code.lower()}{proposal_number}",
+        "title": "Test Proposal",
         "state": "open",
+        "proposalType": "MX",
+        "proposalId": proposal_id 
     }
 
 
 def proposals_response():
     return [
         proposal_response(
-            proposal_id="10",
+            proposal_id=10,
             proposal_code="mx",
             proposal_number="20090662",
         ),
         proposal_response(
-            proposal_id="11",
+            proposal_id=11,
             proposal_code="mx",
             proposal_number="20210662",
         ),

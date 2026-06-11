@@ -1,6 +1,6 @@
 # ruff: noqa: TD003, FIX002, ERA001
-from datetime import datetime, timedelta, timezone
 import logging
+from datetime import datetime, timedelta, timezone
 from json.decoder import JSONDecodeError
 from urllib.parse import urljoin
 
@@ -40,7 +40,6 @@ class PyISPyBRestClient:
 
     def authenticate(self, user_name: str, token: str):
         self._username = user_name
-
         response = self.post(
             "auth/login",
             json={
@@ -50,9 +49,7 @@ class PyISPyBRestClient:
             },
             skip_refresh=True,
         )
-
         self._store_tokens(response)
-
 
     def post(self, endpoint, **kwargs):
         return self._request(self._session.post, endpoint, **kwargs)
@@ -69,39 +66,27 @@ class PyISPyBRestClient:
     def _request(self, method, endpoint, skip_refresh=False, **kwargs):
         if not skip_refresh and self._is_token_expired():
             self._refresh_access_token()
-
         timeout = kwargs.pop("timeout", self._timeout)
-
         url = urljoin(self._rest_root, endpoint)
-
         response = method(url, timeout=timeout, **kwargs)
-
         if response.status_code == 401 and not skip_refresh:
             log.warning("Received 401. Attempting token refresh.")
-
             self._refresh_access_token()
-
             response = method(url, timeout=timeout, **kwargs)
-
         return self.decode_json_response(response)
 
     def _refresh_access_token(self):
         if not self._refresh_token:
             raise AuthenticationExpired("No refresh token available")
-
         log.info("Refreshing keycloak access token")
-
         url = urljoin(self._rest_root, "auth/refresh")
-
         response = self._session.post(
             url,
             timeout=self._timeout,
             json={"refreshToken": self._refresh_token},
         )
-
         if response.status_code != 200:
             raise AuthenticationExpired("Failed to refresh token")
-
         self._store_tokens(response.json())
 
     @staticmethod
@@ -131,7 +116,6 @@ class PyISPyBRestClient:
             raise
         if "results" in response_json:
             return response_json["results"]
-
         return response_json
 
     def _store_tokens(self, response: dict):
@@ -146,17 +130,11 @@ class PyISPyBRestClient:
             )
             msg = "Authentication response malformed."
             raise NoTokenException(msg) from ex
-
         if not access_token:
-            raise NoTokenException(
-                "Authentication failed. No access token received."
-            )
-
+            raise NoTokenException("Authentication failed. No access token received.")
         self._access_token = access_token
         self._refresh_token = refresh_token
-
         self._token_expiry = datetime.now(timezone.utc) + timedelta(seconds=expires_in)
-
         self._set_authorization_header(access_token)
 
     def _is_token_expired(self) -> bool:
