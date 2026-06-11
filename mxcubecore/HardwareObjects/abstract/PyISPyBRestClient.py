@@ -114,9 +114,7 @@ class PyISPyBRestClient:
         )
         if response.status_code not in (200, 201):
             msg = (
-                f"Request to {response.url} "
-                f"failed with code: "
-                f"{response.status_code}. "
+                f"Request to {response.url} failed with code: {response.status_code}. "
                 f"Response: {response.text}"
             )
             raise PyISPyBUnsuccessfulResponse(msg)
