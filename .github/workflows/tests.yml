@@ -34,6 +34,7 @@ jobs:
           create-args: >-
             python=${{ matrix.python-version }}
           environment-file: conda-environment-dev.yml
+          micromamba-version: 1.5.10-0
           post-cleanup: all
 
       - name: Install dependencies
