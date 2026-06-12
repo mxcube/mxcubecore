@@ -29,7 +29,7 @@ graph TB
     
     subgraph "Application Layer - mxcubeweb"
         UI[React Frontend]
-        API[FastAPI Backend]
+        API[Flask Backend]
         WS[WebSocket Server]
     end
     
@@ -88,7 +88,7 @@ graph LR
     end
     
     subgraph "Application Tier"
-        B[Flask/FastAPI Server<br/>WebSocket Server<br/>Business Logic<br/>Queue Manager]
+        B[Flask Server<br/>WebSocket Server<br/>Business Logic<br/>Queue Manager]
     end
     
     subgraph "Hardware Tier"
