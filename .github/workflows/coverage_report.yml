@@ -29,6 +29,7 @@ jobs:
           cache-environment: true
           create-args: >-
             python=3.10
+          micromamba-version: 1.5.10-0
           environment-file: conda-environment-dev.yml
           post-cleanup: all
 
