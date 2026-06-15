@@ -110,6 +110,9 @@ class SampleView(AbstractSampleView):
                 self.centring_motors[role].motor.connect(
                     "stateChanged", self._update_shape_positions
                 )
+
+        diffr.zoom.connect("valueChanged", self._update_shape_positions)
+
         self._camera = self.get_object_by_role("camera")
         self._last_oav_image = None
 
@@ -189,7 +192,7 @@ class SampleView(AbstractSampleView):
             phiz = motors_dict.get("phiz") + dy
 
         return {
-            "omega": motors_dict.get("omega"),
+            "omega": -motors_dict.get("omega"),
             "phiy": float(-phiy),
             "phiz": phiz,
             "sampx": float(-sampx),
@@ -215,10 +218,12 @@ class SampleView(AbstractSampleView):
         diffr.wait_status_ready(50)
         motors_dict = self.get_positions()
         for key, val in positions_dict.items():
+            if val is None:
+                continue
             new_pos_dict[key] = self.centring_motors[key].direction * (
                 val - motors_dict.get(key)
             )
-        omega_angle = math.radians(motors_dict.get("omega", 0))
+        omega_angle = math.radians(motors_dict.get("omega", 0)) * self.centring_motors["omega"].direction
         rot_matrix = np.matrix(
             [
                 [math.cos(omega_angle), -math.sin(omega_angle)],
