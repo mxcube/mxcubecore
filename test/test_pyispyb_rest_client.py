@@ -2,9 +2,7 @@ from datetime import datetime, timedelta, timezone
 from json.decoder import JSONDecodeError
 from unittest.mock import MagicMock
 
-
 import pytest
-
 
 from mxcubecore.HardwareObjects.abstract.PyISPyBRestClient import (
     AuthenticationExpired,
@@ -52,7 +50,7 @@ def test_authenticate_success(client):
 
     client.post = MagicMock(return_value=login_response)
 
-    client.authenticate(user_name="testusr", token="testtkn")
+    client.authenticate(user_name="testusr", token="testtkn")  # noqa: S106
 
     client.post.assert_called_once_with(
         "auth/login",
@@ -60,11 +58,9 @@ def test_authenticate_success(client):
         skip_refresh=True,
     )
 
-    assert client._access_token == "access-token"
-    assert client._refresh_token == "refresh-token"
-
+    assert client._access_token == "access-token"  # noqa: S105
+    assert client._refresh_token == "refresh-token"  # noqa: S105
     assert client._session.headers["Authorization"] == "Bearer access-token"
-
     assert client._token_expiry is not None
 
 
@@ -72,7 +68,7 @@ def test_authenticate_without_token_raises(client):
     client.post = MagicMock(return_value={})
 
     with pytest.raises(NoTokenException):
-        client.authenticate(user_name="pyispyb_admin", token="kc-token")
+        client.authenticate(user_name="pyispyb_admin", token="kc-token")  # noqa: S106
 
 
 # =========================================================
@@ -81,8 +77,7 @@ def test_authenticate_without_token_raises(client):
 
 
 def test_refresh_access_token_success(client):
-    client._refresh_token = "refresh-token"
-
+    client._refresh_token = "refresh-token"  # noqa: S105
     response = build_response(
         json_data={
             "token": "new-access-token",
@@ -95,10 +90,8 @@ def test_refresh_access_token_success(client):
 
     client._refresh_access_token()
 
-    assert client._access_token == "new-access-token"
-
-    assert client._refresh_token == "new-refresh-token"
-
+    assert client._access_token == "new-access-token"  # noqa: S105
+    assert client._refresh_token == "new-refresh-token"  # noqa: S105
     assert client._session.headers["Authorization"] == "Bearer new-access-token"
 
 
@@ -110,7 +103,7 @@ def test_refresh_access_token_without_refresh_token_raises(client):
 
 
 def test_refresh_access_token_failure_raises(client):
-    client._refresh_token = "invalid-token"
+    client._refresh_token = "invalid-token"  # noqa: S105
 
     response = build_response(
         status_code=401,

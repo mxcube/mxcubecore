@@ -1,7 +1,4 @@
-# ruff: noqa: TD003, FIX002, ERA001
-
 import logging
-from dataclasses import asdict
 from datetime import datetime, timedelta
 
 from mxcubecore.HardwareObjects.abstract.PyISPyBRestClient import (
@@ -59,7 +56,7 @@ class PyISPyBDataAdapter:
         """Converts session data received from PyISPyB REST API to a Session object."""
         proposal_name = session.get("proposal")
         proposal_code = "".join([c for c in proposal_name if not c.isdigit()])
-        proposal_number = proposal_name[len(proposal_code):]
+        proposal_number = proposal_name[len(proposal_code) :]
         title = session.get("title", "")
         start_datetime = datetime.fromisoformat(session.get("startDate"))
         end_datetime = datetime.fromisoformat(session.get("endDate"))
@@ -81,7 +78,9 @@ class PyISPyBDataAdapter:
         )
 
     def __find_proposal_by_id(self, proposal_id: int) -> Proposal:
-        return self.__to_proposal(self.client.get("proposals?proposalId=%s" % (proposal_id))[0])
+        return self.__to_proposal(
+            self.client.get("proposals?proposalId=%s" % (proposal_id))[0]
+        )
 
     def get_current_user_data(self) -> dict:
         """Fetches current user details."""
@@ -166,7 +165,7 @@ class PyISPyBDataAdapter:
 
     def create_session(self, proposal: Proposal) -> Session:
         """Creates new session via PyISPyB REST API for the given proposal."""
-        start_time = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
+        start_time = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)  # noqa: DTZ002
         end_time = start_time + timedelta(
             days=self.new_session_duration_days, hours=7, minutes=59, seconds=59
         )
@@ -337,8 +336,12 @@ class PyISPyBDataAdapter:
             return {}
         if not dc:
             return {}
-        dc["startTime"] = datetime.fromisoformat(dc["startTime"]).strftime("%Y-%m-%d %H:%M:%S")
-        dc["endTime"] = datetime.fromisoformat(dc["endTime"]).strftime("%Y-%m-%d %H:%M:%S")
+        dc["startTime"] = datetime.fromisoformat(dc["startTime"]).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
+        dc["endTime"] = datetime.fromisoformat(dc["endTime"]).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
         return dc
 
     def find_detector(
@@ -385,15 +388,15 @@ class PyISPyBDataAdapter:
             beamline_setup = session.get("BeamLineSetup") or {}
             beamline_setup_id = beamline_setup.get("beamLineSetupId")
             if not beamline_setup_id:
-                raise KeyError("Missing beamLineSetupId")
-            response = self.client.patch(
+                msg = "Missing beamLineSetupId"
+                raise KeyError(msg)
+            return self.client.patch(
                 "sessions/%s/associate-beamline-setup?beamLineSetupId=%s"
                 % (
                     session_id,
                     beamline_setup_id,
                 ),
             )
-            return response
         except (PyISPyBUnsuccessfulResponse, KeyError):
             self.logger.exception("Failed to store or update session")
             return {}
@@ -531,9 +534,7 @@ class PyISPyBDataAdapter:
             if bl_sample_id is None:
                 self.logger.error("Missing blSampleId")
                 return {}
-            return self.client.patch(
-                "samples/%s" % bl_sample_id, json=bl_sample
-            )
+            return self.client.patch("samples/%s" % bl_sample_id, json=bl_sample)
         except PyISPyBUnsuccessfulResponse:
             self.logger.exception("Failed to update beamline sample in PyISPyB")
         return {}

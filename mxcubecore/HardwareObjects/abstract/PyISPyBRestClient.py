@@ -1,4 +1,3 @@
-# ruff: noqa: TD003, FIX002, ERA001
 import logging
 from datetime import datetime, timedelta, timezone
 from json.decoder import JSONDecodeError
@@ -63,7 +62,7 @@ class PyISPyBRestClient:
     def update_proxies(self, proxy: dict):
         self._session.proxies.update(proxy)
 
-    def _request(self, method, endpoint, skip_refresh=False, **kwargs):
+    def _request(self, method, endpoint, skip_refresh=False, **kwargs):  # noqa: FBT002
         if not skip_refresh and self._is_token_expired():
             self._refresh_access_token()
         timeout = kwargs.pop("timeout", self._timeout)
@@ -77,7 +76,8 @@ class PyISPyBRestClient:
 
     def _refresh_access_token(self):
         if not self._refresh_token:
-            raise AuthenticationExpired("No refresh token available")
+            msg = "No refresh token available"
+            raise AuthenticationExpired(msg)
         log.info("Refreshing keycloak access token")
         url = urljoin(self._rest_root, "auth/refresh")
         response = self._session.post(
@@ -86,7 +86,8 @@ class PyISPyBRestClient:
             json={"refreshToken": self._refresh_token},
         )
         if response.status_code != 200:
-            raise AuthenticationExpired("Failed to refresh token")
+            msg = "Failed to refresh token"
+            raise AuthenticationExpired(msg)
         self._store_tokens(response.json())
 
     @staticmethod
@@ -126,12 +127,12 @@ class PyISPyBRestClient:
         except Exception as ex:
             log.exception(
                 "Authentication response malformed: %s",
-                ex,
             )
             msg = "Authentication response malformed."
             raise NoTokenException(msg) from ex
         if not access_token:
-            raise NoTokenException("Authentication failed. No access token received.")
+            msg = "Authentication failed. No access token received."
+            raise NoTokenException(msg)
         self._access_token = access_token
         self._refresh_token = refresh_token
         self._token_expiry = datetime.now(timezone.utc) + timedelta(seconds=expires_in)

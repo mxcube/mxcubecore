@@ -32,7 +32,7 @@ def proposal_response(
         "title": "Test Proposal",
         "state": "open",
         "proposalType": "MX",
-        "proposalId": proposal_id 
+        "proposalId": proposal_id,
     }
 
 
@@ -56,12 +56,12 @@ def session_response(
     proposal="mx20090662",
     proposal_id=10,
 ):
-    startDate = datetime.today()
-    endDate = startDate + timedelta(1)
+    start_date = datetime.today()
+    end_date = start_date + timedelta(1)
     return {
         "proposalId": proposal_id,
-        "startDate": startDate.isoformat(),
-        "endDate": endDate.isoformat(),
+        "startDate": start_date.isoformat(),
+        "endDate": end_date.isoformat(),
         "beamLineName": "PROXIMA1",
         "sessionId": session_id,
         "proposal": proposal,
@@ -122,18 +122,18 @@ def sample_response():
 
 def default_data_collection():
     return {
-    "dataCollectionId": 1,
-    "dataCollectionGroupId": 99,
-    "strategySubWedgeOrigId": None,
-    "detectorId": None,
-    "blSubSampleId": None,
-    "startPositionId": 9,
-    "endPositionId": None,
-    "dataCollectionNumber": 1,
-    "startTime": "2015-01-20T16:17:13",
-    "endTime": "2015-01-20T16:17:13",
-    "runStatus": "failed",
-     "sessionId": 123,
+        "dataCollectionId": 1,
+        "dataCollectionGroupId": 99,
+        "strategySubWedgeOrigId": None,
+        "detectorId": None,
+        "blSubSampleId": None,
+        "startPositionId": 9,
+        "endPositionId": None,
+        "dataCollectionNumber": 1,
+        "startTime": "2015-01-20T16:17:13",
+        "endTime": "2015-01-20T16:17:13",
+        "runStatus": "failed",
+        "sessionId": 123,
     }
 
 

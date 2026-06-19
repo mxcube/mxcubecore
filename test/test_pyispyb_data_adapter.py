@@ -10,15 +10,15 @@ from mxcubecore.HardwareObjects.abstract.PyISPyBRestClient import (
 )
 from mxcubecore.model.lims_session import Session
 from test.factories.pyispyb_factory import (
+    current_user_response,
     default_bl_config,
     default_bl_sample,
     default_data_collection,
     default_detector,
     default_energy_scan,
     default_image_dict,
-    default_session,
-    current_user_response,
     default_proposal,
+    default_session,
     default_xfe_spectrum,
     proposals_response,
     sample_response,
@@ -39,47 +39,33 @@ def adapter(client):
 
 
 def test_get_current_user_data(adapter, client):
-    # given
     client.get.return_value = current_user_response()
 
-    # when
     currrent_user = adapter.get_current_user_data()
 
-    # then
     client.get.assert_called_once_with("user/current")
-
     assert currrent_user["login"] == "testusr"
     assert currrent_user["givenName"] == "Admin"
     assert currrent_user["personId"] == 123456
 
 
 def test_get_proposals(adapter, client):
-    # given
     client.get.return_value = proposals_response()
 
-    # when
     proposals = adapter.get_proposals()
 
-    # then
     client.get.assert_called_once_with("proposals")
-
     assert len(proposals) == 2
     assert proposals[0].proposal_id == "10"
     assert proposals[1].proposal_id == "11"
 
 
 def test_find_proposal(adapter, client):
-    # given
     client.get.return_value = proposals_response()
 
-    # when
     proposal = adapter.find_proposal("mx", "20090662")
 
-    # then
-    client.get.assert_called_once_with(
-         "proposals?search=mx20090662"
-    )
-
+    client.get.assert_called_once_with("proposals?search=mx20090662")
     assert proposal.proposal_id == "10"
     assert proposal.code == "MX"
     assert proposal.number == "20090662"
@@ -89,7 +75,6 @@ def test_get_sessions_by_code_and_number(
     adapter,
     client,
 ):
-    # given
     client.get.return_value = [
         session_response(
             session_id=1,
@@ -103,25 +88,20 @@ def test_get_sessions_by_code_and_number(
         ),
     ]
 
-    # when
     result = adapter.get_sessions_by_code_and_number(
         code="mx",
         number="20090662",
         beamline="PROXIMA1",
     )
 
-    # then
     client.get.assert_called_once_with(
         "sessions?proposal=mx20090662&beamLineName=PROXIMA1"
     )
-
     assert len(result.sessions) == 2
-
     session_1 = result.sessions[0]
     assert session_1.session_id == "1"
     assert session_1.proposal_id == "10"
     assert session_1.proposal_name == "mx20090662"
-
     session_2 = result.sessions[1]
     assert session_2.session_id == "2"
     assert session_2.proposal_name == "mx20090662"
@@ -131,13 +111,10 @@ def test_find_sessions_by_proposal_and_beamline_for_today(
     adapter,
     client,
 ):
-
-    # given
     client.get.return_value = [
         session_response(session_id=1),
         session_response(session_id=2),
     ]
-
     frozen_now = datetime(2026, 6, 2, 14, 30, 45)
 
     with (
@@ -150,17 +127,14 @@ def test_find_sessions_by_proposal_and_beamline_for_today(
             side_effect=[True, True, False],
         ),
     ):
-
         mock_datetime.today.return_value = frozen_now
 
-        # when
         result = adapter.find_sessions_by_proposal_and_beamline_for_today(
             code="mx",
             number="20090662",
             beamline="PROXIMA1",
         )
 
-    # then
     client.get.assert_called_once_with(
         f"sessions?proposal=mx20090662"
         f"&beamLineName=PROXIMA1"
@@ -168,9 +142,7 @@ def test_find_sessions_by_proposal_and_beamline_for_today(
         f"&month={frozen_now.month}"
         f"&day={frozen_now.day}"
     )
-
     assert len(result) == 1
-
     session = result[0]
     assert session.session_id == "1"
     assert session.proposal_id == "10"
@@ -182,10 +154,7 @@ def test_find_sessions_by_proposal_and_beamline_for_today(
 def test_get_sessions_by_username_when_sessions_exist(
     adapter,
 ):
-
-    # given
     proposal = MagicMock(code="mx", number="20090662")
-
     session = MagicMock(spec=Session)
 
     with (
@@ -200,28 +169,22 @@ def test_get_sessions_by_username_when_sessions_exist(
             "create_session",
         ) as create_session_mock,
     ):
-        # when
         result = adapter.get_sessions_by_username()
 
-    # then
     assert len(result.sessions) == 1
     assert result.sessions[0] is session
-
     find_sessions_mock.assert_called_once_with(
         "mx",
         "20090662",
         adapter.beamline_name,
     )
-
     create_session_mock.assert_not_called()
 
 
 def test_get_sessions_by_username_creates_session_when_none_exists(
     adapter,
 ):
-    # given
     proposal = default_proposal()
-
     session = default_session()
 
     with (
@@ -233,13 +196,9 @@ def test_get_sessions_by_username_creates_session_when_none_exists(
             adapter, "create_session", return_value=session
         ) as create_session_mock,
     ):
-
-        # when
         result = adapter.get_sessions_by_username()
 
-    # then
     create_session_mock.assert_called_once_with(proposal)
-
     assert len(result.sessions) == 1
     assert result.sessions[0] is session
 
@@ -248,32 +207,23 @@ def test_creat_session(
     adapter,
     client,
 ):
-
-    # given
     proposal = default_proposal()
-
     frozen_now = datetime(2026, 6, 2, 14, 30, 45)
 
     with patch(
         "mxcubecore.HardwareObjects.abstract.PyISPyBDataAdapter.datetime"
     ) as mock_datetime:
-
         mock_datetime.today.return_value = frozen_now
-
         client.post.return_value = session_response()
 
-        # when
         adapter.create_session(proposal)
 
-    start_time = frozen_now.replace(hour=0, minute=0, second=0, microsecond=0)
+    client.post.assert_called_once()
 
+    start_time = frozen_now.replace(hour=0, minute=0, second=0, microsecond=0)
     end_time = start_time + timedelta(
         days=adapter.new_session_duration_days, hours=7, minutes=59, seconds=59
     )
-
-    # then verify url
-    client.post.assert_called_once()
-
     (endpoint,) = client.post.call_args.args
     payload = client.post.call_args.kwargs["json"]
 
@@ -289,24 +239,18 @@ def test_store_image_success(
     adapter,
     client,
 ):
-
-    # given
     image_dict = default_image_dict()
-
     client.post.return_value = {
         "imageId": 123,
         "dataCollectionId": 2,
     }
 
-    # when
     response = adapter.store_image(image_dict=image_dict)
 
-    # then
     client.post.assert_called_once_with(
         "images/image",
         json=image_dict,
     )
-
     assert response == 123
 
 
@@ -314,21 +258,16 @@ def test_store_image_returns_zero_when_post_fails(
     adapter,
     client,
 ):
-    # given
     image_dict = default_image_dict()
-
     client.post.side_effect = PyISPyBUnsuccessfulResponse("""Exception raised when a
     response from the server is unsuccessful (not 200).""")
 
-    # when
     image_id = adapter.store_image(image_dict)
 
-    # then
     client.post.assert_called_once_with(
         "images/image",
         json=image_dict,
     )
-
     assert image_id == 0
 
 
@@ -336,18 +275,14 @@ def test_store_image_returns_zero_when_data_collection_id_missing(
     adapter,
     client,
 ):
-    # given
     image_dict = {
         "imageNumber": 0,
         "fileName": "test.cbf",
     }
 
-    # when
     image_id = adapter.store_image(image_dict)
 
-    # then
     client.post.assert_not_called()
-
     assert image_id == 0
 
 
@@ -355,9 +290,7 @@ def test_get_samples(
     adapter,
     client,
 ):
-    # given
     proposal = default_proposal()
-
     samples = sample_response()
 
     with (
@@ -372,33 +305,26 @@ def test_get_samples(
             return_value=samples,
         ) as get_mock,
     ):
-        # when
         result = adapter.get_samples(proposal.proposal_id)
 
-    # then
     find_proposal_mock.assert_called_once_with(proposal.proposal_id)
-
     get_mock.assert_called_once_with(
         "samples?proposal=mx20090662&beamLineName=PROXIMA1",
         timeout=10,
     )
-
     assert result == samples
 
 
 def test_get_samples_returns_empty_list_on_error(
     adapter,
 ):
-    # given
     with patch.object(
         adapter,
         "_PyISPyBDataAdapter__find_proposal_by_id",
         side_effect=PyISPyBUnsuccessfulResponse("boom"),
     ):
-        # when
         result = adapter.get_samples(10)
 
-    # then
     assert result == []
 
 
@@ -411,23 +337,19 @@ def test_store_robot_action_missing_sample_id(adapter, client):
     robot_action_id = adapter.store_robot_action(robot_action)
 
     assert robot_action_id == 0
-
     client.post.assert_not_called()
 
 
 def test_store_robot_action_post_failure(adapter, client):
-    # given
     client.post.side_effect = PyISPyBUnsuccessfulResponse(
         "Failed to store robot action"
     )
-
     adapter.logger.exception = Mock()
     robot_action = {
         "sampleId": 12,
         "startTime": "2026-03-16T12:59:07.737Z",
         "endTime": "2026-04-16T14:00:07.737Z",
     }
-    # when
     robot_action_id = adapter.store_robot_action(robot_action)
 
     assert robot_action_id == 0
@@ -440,7 +362,6 @@ def test_store_robot_action_post_failure(adapter, client):
             "endTimestamp": "2026-04-16T14:00:07.737Z",
         },
     )
-    # then
     adapter.logger.exception.assert_called_once_with("Exception in store_robot_action")
 
 
@@ -448,19 +369,16 @@ def test_store_robot_action_sucess(
     adapter,
     client,
 ):
-    # given
     client.post.return_value = 77
-
     robot_action = {
         "sampleId": 12,
         "startTime": "2025-01-01",
         "endTime": "2025-01-02",
     }
-    # when
-    robot_action_id = adapter.store_robot_action(robot_action)
-    # then
-    assert robot_action_id == 77
 
+    robot_action_id = adapter.store_robot_action(robot_action)
+
+    assert robot_action_id == 77
     client.post.assert_called_once_with(
         "events/robot-action",
         json={
@@ -475,16 +393,12 @@ def test_associate_bl_sample_and_energy_scan(
     adapter,
     client,
 ):
-
     entry_dict = {"energyScanId": 125, "blSampleId": 1}
     client.patch.return_value = entry_dict
 
-    # when
     result = adapter.associate_bl_sample_and_energy_scan(entry_dict)
 
-    # then
     assert result["energyScanId"] == 125
-
     client.patch.assert_called_once_with(
         "events/energyscan/associate-bl-sample",
         json={
@@ -499,13 +413,11 @@ def test_associate_bl_sample_and_energy_scan_failure(
     client,
 ):
     client.patch.side_effect = Exception("Patch failed")
-
     entry_dict = {"energyScanId": 125, "blSampleId": 1}
 
     result = adapter.associate_bl_sample_and_energy_scan(entry_dict)
 
     assert result == -1
-
     client.patch.assert_called_once_with(
         "events/energyscan/associate-bl-sample",
         json={
@@ -513,7 +425,6 @@ def test_associate_bl_sample_and_energy_scan_failure(
             "blSampleId": 1,
         },
     )
-
     adapter.logger.exception.assert_called_once_with(
         "Failed to associate bl sample and energy scan in PyISPyB"
     )
@@ -523,30 +434,26 @@ def test_get_data_collection(
     adapter,
     client,
 ):
-    # given
     client.get.return_value = default_data_collection()
 
-    # when
     result = adapter.get_data_collection(1)
 
-    # then assert
-
     client.get.assert_called_once_with("datacollections/1")
-
     assert result == {
-    "dataCollectionId": 1,
-    "dataCollectionGroupId": 99,
-    "strategySubWedgeOrigId": None,
-    "detectorId": None,
-    "blSubSampleId": None,
-    "startPositionId": 9,
-    "endPositionId": None,
-    "dataCollectionNumber": 1,
-    "startTime": "2015-01-20 16:17:13",
-    "endTime": "2015-01-20 16:17:13",
-    "runStatus": "failed",
-     "sessionId": 123,
+        "dataCollectionId": 1,
+        "dataCollectionGroupId": 99,
+        "strategySubWedgeOrigId": None,
+        "detectorId": None,
+        "blSubSampleId": None,
+        "startPositionId": 9,
+        "endPositionId": None,
+        "dataCollectionNumber": 1,
+        "startTime": "2015-01-20 16:17:13",
+        "endTime": "2015-01-20 16:17:13",
+        "runStatus": "failed",
+        "sessionId": 123,
     }
+
 
 def test_get_data_collection_exception(
     adapter,
@@ -557,9 +464,7 @@ def test_get_data_collection_exception(
     result = adapter.get_data_collection(1)
 
     assert result == {}
-
     client.get.assert_called_once_with("datacollections/1")
-
     adapter.logger.exception.assert_called_once_with(
         "Failed to get data collection from PyISPyB"
     )
@@ -574,7 +479,6 @@ def test_get_data_collection_empty_response(
     result = adapter.get_data_collection(999999)
 
     assert result == {}
-
     client.get.assert_called_once_with("datacollections/999999")
 
 
@@ -583,10 +487,9 @@ def test_get_data_collection_with_string_dates(
     client,
 ):
     client.get.return_value = {
-            "startTime": "2015-01-20T16:17:13",
-            "endTime": "2015-01-20T16:17:13",
-        }
-    
+        "startTime": "2015-01-20T16:17:13",
+        "endTime": "2015-01-20T16:17:13",
+    }
 
     result = adapter.get_data_collection(1)
 
@@ -602,14 +505,12 @@ def test_find_detector(
 ):
     client.get.return_value = default_detector()
 
-    # when
     result = adapter.find_detector(
         manufacturer="ExampleManufacturer",
         model="ExampleModel",
         mode="Standard",
         type="PixelDetector",
     )
-    # then
 
     client.get.assert_called_once_with(
         "detectors?manufacturer=ExampleManufacturer"
@@ -617,7 +518,6 @@ def test_find_detector(
         "&mode=Standard"
         "&type=PixelDetector"
     )
-
     assert result["detectorId"] == 1
 
 
@@ -626,7 +526,6 @@ def test_find_detector_without_type(
     client,
 ):
     detector = {"detectorId": 1}
-
     client.get.return_value = detector
 
     result = adapter.find_detector(
@@ -641,7 +540,6 @@ def test_find_detector_without_type(
         "&mode=Standard"
         "&type="
     )
-
     assert result == detector
 
 
@@ -649,20 +547,17 @@ def test_update_session_success(
     adapter,
     client,
 ):
-
     session = {
         "sessionId": 46369,
         "BeamLineSetup": {
             "beamLineSetupId": 2,
         },
     }
-
     client.patch.return_value = {"sessionId": 46369, "beamLineSetupId": 2}
 
     result = adapter.update_session(session)
 
     assert result["sessionId"] == 46369
-
     client.patch.assert_called_once_with(
         "sessions/46369/associate-beamline-setup?beamLineSetupId=2",
     )
@@ -672,7 +567,6 @@ def test_update_session_null_beamline_setup(
     adapter,
     client,
 ):
-
     session = {
         "sessionId": 46369,
         "BeamLineSetup": None,
@@ -681,9 +575,7 @@ def test_update_session_null_beamline_setup(
     result = adapter.update_session(session)
 
     assert result == {}
-
     client.post.assert_not_called()
-
     adapter.logger.exception.assert_called_once_with(
         "Failed to store or update session"
     )
@@ -693,13 +585,11 @@ def test_get_sesssion(
     adapter,
     client,
 ):
-
     client.get.return_value = session_response()
 
     result = adapter.get_session(1)
 
     assert result["sessionId"] == 1
-
     client.get.assert_called_once_with("sessions/1")
 
 
@@ -708,16 +598,13 @@ def test_store_beamline_setup_success(
     client,
 ):
     session_id = 1
-
     session = {
         "sessionId": 1,
         "BeamLineSetup": {
             "beamLineSetupId": 2,
         },
     }
-
     client.get.return_value = session
-
     bl_config = default_bl_config()
     client.post.return_value = 101
     adapter.update_session = Mock()
@@ -725,27 +612,20 @@ def test_store_beamline_setup_success(
     result = adapter.store_beamline_setup(session_id, bl_config)
 
     assert result == 101
-
     client.post.assert_called_once_with(
         "beamline-setups/beamline-setup",
         json=bl_config,
     )
-
     adapter.update_session.assert_called_once_with(session)
 
 
 def test_store_data_collection_without_bl_config(adapter, client):
     mx_collection = default_data_collection()
-
-    client.post.return_value = {
-           "dataCollectionId": 10,
-           "dataCollectionGroupId": 99
-           }
+    client.post.return_value = {"dataCollectionId": 10, "dataCollectionGroupId": 99}
 
     result = adapter.store_data_collection(mx_collection)
 
     assert result == (10, 0)
-
     client.post.assert_called_once_with(
         "datacollections/datacollection",
         json=mx_collection,
@@ -754,54 +634,37 @@ def test_store_data_collection_without_bl_config(adapter, client):
 
 def test_store_data_collection_with_detector(adapter, client):
     mx_collection = default_data_collection()
-
     bl_config = default_bl_config()
-
-    client.post.return_value = {
-           "dataCollectionId": 10,
-           "dataCollectionGroupId": 99
-           }
-
+    client.post.return_value = {"dataCollectionId": 10, "dataCollectionGroupId": 99}
     adapter.store_beamline_setup = Mock()
     adapter.find_detector = Mock(return_value={"detectorId": 42})
 
     result = adapter.store_data_collection(mx_collection, bl_config)
 
     assert result == (10, 42)
-
     adapter.store_beamline_setup.assert_called_once_with(
         123,
         bl_config,
     )
-
     adapter.find_detector.assert_called_once_with(
         "ExampleManufacturer",
         "ExampleModel",
         "1x1",
         "PixelDetector",
     )
-
     assert mx_collection["detectorId"] == 42
 
 
 def test_store_data_collection_without_detector(adapter, client):
-
     mx_collection = default_data_collection()
-
     bl_config = default_bl_config()
-
-    client.post.return_value = {
-           "dataCollectionId": 10,
-           "dataCollectionGroupId": 99
-           }
-
+    client.post.return_value = {"dataCollectionId": 10, "dataCollectionGroupId": 99}
     adapter.store_beamline_setup = Mock()
     adapter.find_detector = Mock(return_value=None)
 
     result = adapter.store_data_collection(mx_collection, bl_config)
 
     assert result == (10, 0)
-
     assert mx_collection["detectorId"] is None
 
 
@@ -813,7 +676,6 @@ def test_update_data_collection_missing_collection_id(adapter, client):
     result = adapter._update_data_collection(mx_collection)
 
     assert result == (0, 0)
-
     client.post.assert_not_called()
 
 
@@ -821,9 +683,7 @@ def test_update_data_collection_sets_group_id(adapter, client):
     mx_collection = {
         "collection_id": 123,
     }
-
     client.post.return_value = (1, 2)
-
     adapter._store_data_collection_group = Mock(
         return_value={"dataCollectionGroupId": 777}
     )
@@ -837,25 +697,19 @@ def test_update_data_collection_success(
     adapter,
     client,
 ):
-    # given
     mx_collection = {
         "collection_id": 1,
     }
 
     client.post.return_value = (1, 99)
-
     adapter._store_data_collection_group = Mock(
         return_value={"dataCollectionGroupId": 99}
     )
 
-    # when
     result = adapter._update_data_collection(mx_collection)
 
-    # then
     assert result == (1, 99)
-
     adapter._store_data_collection_group.assert_called_once_with(mx_collection)
-
     client.post.assert_called_once_with(
         "datacollections/datacollection",
         json=mx_collection,
@@ -866,27 +720,22 @@ def test_store_energy_scan_success(
     adapter,
     client,
 ):
-
     energyscan = default_energy_scan()
-
     client.post.return_value = 123
 
     result = adapter.store_energy_scan(energyscan)
 
     assert result == {"energyScanId": 123}
-
     client.post.assert_called_once_with("events/energyscan", json=energyscan)
 
 
 def test_store_energy_scan_failure(adapter, client):
     energyscan = default_energy_scan()
-
     client.post.side_effect = PyISPyBUnsuccessfulResponse("error")
 
     result = adapter.store_energy_scan(energyscan)
 
     assert result == {"energyScanId": -1}
-
     adapter.logger.exception.assert_called_once_with(
         "Failed to store energy scan in PyISPyB"
     )
@@ -896,15 +745,12 @@ def test_store_xfe_spectrum_success(
     adapter,
     client,
 ):
-
     xfe_spectrum = default_xfe_spectrum()
-
     client.post.return_value = 123
 
     result = adapter.store_xfe_spectrum(xfe_spectrum)
 
     assert result == {"xfeFluorescenceSpectrumId": 123}
-
     client.post.assert_called_once_with(
         "events/xfe-fluorescence-spectrum", json=xfe_spectrum
     )
@@ -914,15 +760,12 @@ def test_store_xfe_spectrum_failure(
     adapter,
     client,
 ):
-
     xfe_spectrum = default_xfe_spectrum()
-
     client.post.side_effect = PyISPyBUnsuccessfulResponse("error")
 
     result = adapter.store_xfe_spectrum(xfe_spectrum)
 
     assert result == {"xfeFluorescenceSpectrumId": -1}
-
     adapter.logger.exception.assert_called_once_with(
         "Failed to store XFE fluorescence spectrum in PyISPyB"
     )
@@ -930,15 +773,12 @@ def test_store_xfe_spectrum_failure(
 
 def test_update_bl_sample_success(adapter, client):
     bl_sample = default_bl_sample()
-
     expected_response = default_bl_sample()
-
     client.patch.return_value = expected_response
 
     result = adapter.update_bl_sample(bl_sample)
 
     assert result == expected_response
-
     client.patch.assert_called_once_with(
         "samples/1115",
         json=bl_sample,
@@ -946,33 +786,28 @@ def test_update_bl_sample_success(adapter, client):
 
 
 def test_update_bl_sample_missing_bl_sample_id(adapter, client):
-    bl_sample = bl_sample = {
+    bl_sample = {
         "name": "sample1",
     }
 
     result = adapter.update_bl_sample(bl_sample)
 
     assert result == {}
-
     client.patch.assert_not_called()
-
     adapter.logger.error.assert_called_once_with("Missing blSampleId")
 
 
 def test_update_bl_sample_patch_failure(adapter, client):
     bl_sample = default_bl_sample()
-
     client.patch.side_effect = PyISPyBUnsuccessfulResponse("Update failed")
 
     result = adapter.update_bl_sample(bl_sample)
 
     assert result == {}
-
     client.patch.assert_called_once_with(
         "samples/1115",
         json=bl_sample,
     )
-
     adapter.logger.exception.assert_called_once_with(
         "Failed to update beamline sample in PyISPyB"
     )
