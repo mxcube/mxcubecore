@@ -47,7 +47,6 @@ def test_authenticate_success(client):
         "refreshToken": "refresh-token",
         "expiresIn": 300,
     }
-
     client.post = MagicMock(return_value=login_response)
 
     client.authenticate(user_name="testusr", token="testtkn")  # noqa: S106
@@ -57,7 +56,6 @@ def test_authenticate_success(client):
         json={"plugin": "keycloak", "login": "testusr", "token": "testtkn"},
         skip_refresh=True,
     )
-
     assert client._access_token == "access-token"  # noqa: S105
     assert client._refresh_token == "refresh-token"  # noqa: S105
     assert client._session.headers["Authorization"] == "Bearer access-token"
@@ -85,7 +83,6 @@ def test_refresh_access_token_success(client):
             "expiresIn": 300,
         }
     )
-
     client._session.post = MagicMock(return_value=response)
 
     client._refresh_access_token()
@@ -104,7 +101,6 @@ def test_refresh_access_token_without_refresh_token_raises(client):
 
 def test_refresh_access_token_failure_raises(client):
     client._refresh_token = "invalid-token"  # noqa: S105
-
     response = build_response(
         status_code=401,
         text="Unauthorized",
@@ -137,25 +133,19 @@ def test_refresh_access_token_malformed_response(client):
 
 def test_get_success(client):
     client._token_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
-
     response = build_response(json_data={"ok": True})
-
     client._session.get = MagicMock(return_value=response)
 
     result = client.get("users")
 
     assert result == {"ok": True}
-
     client._session.get.assert_called_once()
 
 
 def test_get_refreshes_expired_token(client):
     client._token_expiry = datetime.now(timezone.utc) - timedelta(seconds=1)
-
     client._refresh_access_token = MagicMock()
-
     response = build_response(json_data={"ok": True})
-
     client._session.get = MagicMock(return_value=response)
 
     client.get("users")
@@ -165,24 +155,18 @@ def test_get_refreshes_expired_token(client):
 
 def test_get_retries_after_401(client):
     client._token_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
-
     unauthorized = build_response(
         status_code=401,
         text="Unauthorized",
     )
-
     success = build_response(json_data={"ok": True})
-
     client._session.get = MagicMock(side_effect=[unauthorized, success])
-
     client._refresh_access_token = MagicMock()
 
     result = client.get("users")
 
     assert result == {"ok": True}
-
     client._refresh_access_token.assert_called_once()
-
     assert client._session.get.call_count == 2
 
 
@@ -193,9 +177,7 @@ def test_get_retries_after_401(client):
 
 def test_post_success(client):
     client._token_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
-
     response = build_response(json_data={"created": True})
-
     client._session.post = MagicMock(return_value=response)
 
     result = client.post(
@@ -298,5 +280,4 @@ def test_update_proxies(client):
     client.update_proxies(proxies)
 
     assert client._session.proxies["http"] == "http://proxy"
-
     assert client._session.proxies["https"] == "https://proxy"
