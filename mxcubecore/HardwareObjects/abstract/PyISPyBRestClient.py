@@ -88,7 +88,12 @@ class PyISPyBRestClient:
         if response.status_code != 200:
             msg = "Failed to refresh token"
             raise AuthenticationExpired(msg)
-        self._store_tokens(response.json())
+        try:
+            self._store_tokens(response.json())
+        except JSONDecodeError as ex:
+            msg = "Authentication response malformed."
+            log.exception(msg)
+            raise AuthenticationExpired(msg) from ex
 
     @staticmethod
     def decode_json_response(response):
@@ -120,16 +125,15 @@ class PyISPyBRestClient:
         return response_json
 
     def _store_tokens(self, response: dict):
-        try:
-            access_token = response.get("token")
-            refresh_token = response.get("refreshToken")
-            expires_in = response.get("expiresIn", 300)
-        except Exception as ex:
-            log.exception(
-                "Authentication response malformed: %s",
+        if not isinstance(response, dict):
+            msg = (
+                f"Authentication response malformed: expected dict,got {type(response)}"
             )
-            msg = "Authentication response malformed."
-            raise NoTokenException(msg) from ex
+            log.error(msg)
+            raise NoTokenException(msg)
+        access_token = response.get("token")
+        refresh_token = response.get("refreshToken")
+        expires_in = response.get("expiresIn", 300)
         if not access_token:
             msg = "Authentication failed. No access token received."
             raise NoTokenException(msg)

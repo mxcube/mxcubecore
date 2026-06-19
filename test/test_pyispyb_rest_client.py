@@ -109,7 +109,21 @@ def test_refresh_access_token_failure_raises(client):
         status_code=401,
         text="Unauthorized",
     )
+    client._session.post = MagicMock(return_value=response)
 
+    with pytest.raises(AuthenticationExpired):
+        client._refresh_access_token()
+
+
+def test_refresh_access_token_malformed_response(client):
+    client._refresh_token = "refresh-token"  # noqa: S105
+    response = build_response(
+        json_data=JSONDecodeError(
+            "invalid json",
+            "doc",
+            0,
+        )
+    )
     client._session.post = MagicMock(return_value=response)
 
     with pytest.raises(AuthenticationExpired):
@@ -234,6 +248,40 @@ def test_decode_json_response_raises_on_invalid_json(client):
 
     with pytest.raises(JSONDecodeError):
         client.decode_json_response(response)
+
+
+# =========================================================
+# STORE TOKENS
+# =========================================================
+
+
+def test_store_tokens_success(client):
+    tokens = {
+        "token": "new-access-token",
+        "refreshToken": "new-refresh-token",
+        "expiresIn": 300,
+    }
+
+    client._store_tokens(tokens)
+
+    assert client._access_token == "new-access-token"  # noqa: S105
+    assert client._refresh_token == "new-refresh-token"  # noqa: S105
+    assert client._session.headers["Authorization"] == "Bearer new-access-token"
+
+
+@pytest.mark.parametrize("tokens", [None, [], 0])
+def test_store_tokens_wrong_response_type(tokens, client):
+    with pytest.raises(NoTokenException):
+        client._store_tokens(tokens)
+
+
+def test_store_tokens_missing_access_token(client):
+    tokens = {
+        "refreshToken": "new-refresh-token",
+        "expiresIn": 300,
+    }
+    with pytest.raises(NoTokenException):
+        client._store_tokens(tokens)
 
 
 # =========================================================
