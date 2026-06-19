@@ -1234,7 +1234,7 @@ class ICATLIMS(AbstractLims):
             kappa_phi_pos = (
                 diffr.kappa_phi.get_value() if hasattr(diffr, "kappa_phi") else None
             )
-            if kappa_pos and kappa_phi_pos:
+            if None not in (kappa_pos, kappa_phi_pos):
                 mx_kappa_settings_id = (
                     f"Kappa: {kappa_pos:0.1f}, Phi: {kappa_phi_pos:0.1f}"
                 )
