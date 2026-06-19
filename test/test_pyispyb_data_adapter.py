@@ -688,20 +688,6 @@ def test_update_data_collection_missing_collection_id(adapter, client):
     client.post.assert_not_called()
 
 
-def test_update_data_collection_sets_group_id(adapter, client):
-    mx_collection = {
-        "collection_id": 123,
-    }
-    client.post.return_value = (1, 2)
-    adapter._store_data_collection_group = Mock(
-        return_value={"dataCollectionGroupId": 777}
-    )
-
-    adapter._update_data_collection(mx_collection)
-
-    assert mx_collection["group_id"] == 777
-
-
 def test_update_data_collection_success(
     adapter,
     client,
@@ -721,8 +707,11 @@ def test_update_data_collection_success(
     adapter._store_data_collection_group.assert_called_once_with(mx_collection)
     client.post.assert_called_once_with(
         "datacollections/datacollection",
-        json=mx_collection,
+        json={**mx_collection, "group_id": 99},
     )
+    assert (
+        mx_collection.get("group_id") is None
+    )  # ensures input data was not modified within _update_data_collection method
 
 
 def test_store_energy_scan_success(

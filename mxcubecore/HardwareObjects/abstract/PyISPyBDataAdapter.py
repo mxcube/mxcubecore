@@ -208,12 +208,13 @@ class PyISPyBDataAdapter:
         """
         dc_id, dc_group_id = 0, 0
         if "collection_id" in mx_collection:
-            mx_collection["group_id"] = self._store_data_collection_group(
-                mx_collection
-            )["dataCollectionGroupId"]
+            group_id = self._store_data_collection_group(mx_collection)[
+                "dataCollectionGroupId"
+            ]
             try:
                 dc_id, dc_group_id, *_ = self.client.post(
-                    "datacollections/datacollection", json=mx_collection
+                    "datacollections/datacollection",
+                    json={**mx_collection, "group_id": group_id},
                 )
             except PyISPyBUnsuccessfulResponse:
                 self.logger.exception("Error in _update_data_collection")
