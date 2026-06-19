@@ -652,7 +652,13 @@ def test_store_data_collection_with_detector(adapter, client):
         "1x1",
         "PixelDetector",
     )
-    assert mx_collection["detectorId"] == 42
+    client.post.assert_called_once_with(
+        "datacollections/datacollection",
+        json={**mx_collection, "detectorId": 42},
+    )
+    assert (
+        mx_collection["detectorId"] is None
+    )  # ensures input data was not modified within store_data_collection method
 
 
 def test_store_data_collection_without_detector(adapter, client):
@@ -665,6 +671,9 @@ def test_store_data_collection_without_detector(adapter, client):
     result = adapter.store_data_collection(mx_collection, bl_config)
 
     assert result == (10, 0)
+    client.post.assert_called_once_with(
+        "datacollections/datacollection", json=mx_collection
+    )
     assert mx_collection["detectorId"] is None
 
 

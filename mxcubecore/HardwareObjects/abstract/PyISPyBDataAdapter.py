@@ -470,10 +470,12 @@ class PyISPyBDataAdapter:
             )
             if detector:
                 detector_id = detector.get("detectorId", 0)
-                mx_collection["detectorId"] = detector_id
 
         response = self.client.post(
-            "datacollections/datacollection", json=mx_collection
+            "datacollections/datacollection",
+            json={**mx_collection, "detectorId": detector_id}
+            if detector_id
+            else mx_collection,
         )
         collection_id = response["dataCollectionId"]
         return collection_id, detector_id
