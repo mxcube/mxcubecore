@@ -7,6 +7,7 @@ import numpy as np
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractActuator import AbstractActuator
 from mxcubecore.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
+from mxcubecore.HardwareObjects.abstract.AbstractSampleChanger import SampleChangerState
 
 
 class EPICSActuator(AbstractActuator):
@@ -155,4 +156,24 @@ class LNLSEnergy(AbstractEnergy, EPICSActuatorBluesky):
     default_lim
     """
 
+    pass
+
+
+class EPICSRestrictedMovement:
+    """
+    This class is meant for devices that should not move while
+    the LNLSStaubli is moving.
+    """
+
+    def init(self):
+        super().init()
+        self.sc = HWR.beamline.get_object_by_role("sample_changer")
+
+    def set_value(self, value, timeout: float = 0):
+        if self.sc.get_state() != SampleChangerState.Ready:
+            return
+        super().set_value(value, timeout)
+
+
+class LNLSRestrictedActuator(EPICSRestrictedMovement, EPICSActuator):
     pass
