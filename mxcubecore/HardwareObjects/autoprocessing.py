@@ -86,7 +86,7 @@ def start(programs, processEvent, paramsDict):
                     lineToExecute = (
                         executable + endOfLineToExecute + " 2>&1 > /dev/null &"
                     )
-                    logging.info(
+                    logging.getLogger("HWR").info(
                         "Process event %s, executing %s"
                         % (processEvent, str(lineToExecute))
                     )
@@ -100,7 +100,7 @@ def start(programs, processEvent, paramsDict):
                         close_fds=True,
                     )
                 else:
-                    logging.getLogger().error(
+                    logging.getLogger("HWR").error(
                         "No program to execute found (%s)", executable
                     )
         except KeyError:
