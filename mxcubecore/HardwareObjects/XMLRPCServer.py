@@ -129,8 +129,10 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.get_diffractometer_positions)
         self._server.register_function(self.get_resolution_limits)
         self._server.register_function(self.move_diffractometer)
+        
         self._server.register_function(self.save_snapshot)
         self._server.register_function(self.save_multiple_snapshots)
+        self._server.register_function(self.sample_centring)
         self._server.register_function(self.save_twelve_snapshots_script)
         self._server.register_function(self.cryo_temperature)
         self._server.register_function(self.flux)
@@ -434,6 +436,12 @@ class XMLRPCServer(HardwareObject):
         HWR.beamline.diffractometer.set_value_motors(roles_positions_dict)
         return True
 
+    def sample_centring(self):
+        self.log.info("WF centring the crystal")
+        HWR.beamline.diffractometer.run_custom_script("ChangePhase_centring")
+        HWR.beamline.diffractometer.run_custom_script("sample_centring")
+        HWR.beamline.diffractometer.run_custom_script("ChangePhase_datacollection")
+    
     def save_twelve_snapshots_script(self, path):
         path = path[14:]  # NBNB: Temporary fix, to be addressed in calling code
         self.log.info("Taking 6 snapshots to be saved in  %s " % str(path))
