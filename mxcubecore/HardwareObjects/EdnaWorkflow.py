@@ -80,6 +80,7 @@ class EdnaWorkflow(HardwareObject):
         self.gevent_event = gevent.event.Event()
         self.bes_host = self.get_property("bes_host")
         self.bes_port = int(self.get_property("bes_port"))
+        self.beamline_name = self.get_property("beamline_name")
         self._state.value = "ON"
 
     def getState(self):
@@ -231,6 +232,10 @@ class EdnaWorkflow(HardwareObject):
         self.dict_parameters["initiator"] = HWR.beamline.session.endstation_name
         self.dict_parameters["sessionId"] = HWR.beamline.session.session_id
         self.dict_parameters["externalRef"] = HWR.beamline.session.get_proposal()
+        # Checks if self.beamline_name is not None or empty string
+        if self.beamline_name:
+            self.dict_parameters["beamline"] = self.beamline_name
+            self.dict_parameters["initiator"] = self.beamline_name
         try:
             self.dict_parameters["sample"] = HWR.beamline.lims.find_sample_by_sample_id(
                 self.dict_parameters.get("sample_lims_id")
