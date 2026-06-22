@@ -580,7 +580,7 @@ class EMBLFlexHCD(SampleChanger):
                             "ChangePhase_centring"
                         )
                         HWR.beamline.diffractometer.run_custom_script(
-                            "sample_centring", wait=False
+                            "sample_centring"
                         )
                     break
 
