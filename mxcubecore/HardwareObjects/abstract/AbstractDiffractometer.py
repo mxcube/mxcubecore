@@ -230,7 +230,7 @@ class AbstractDiffractometer(HardwareObject):
         """
         super().init()
         self.username = self.get_property("username") or self.username
-        self.head_orientation = self.get_property("head_orientation", "vertical")
+        self.head_orientation = self.get_property("head_orientation", "horizontal")
 
         # motors
         for role in self.config.motors:
