@@ -34,7 +34,6 @@ class Proposal(BaseModel):
     code: str = ""
     number: str = ""
     title: str = ""
-    state: str = ""
 
 
 class Lims(BaseModel):

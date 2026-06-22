@@ -127,9 +127,9 @@ class PyISPyBRestClient:
     def _store_tokens(self, response: dict):
         if not isinstance(response, dict):
             msg = (
-                f"Authentication response malformed: expected dict,got {type(response)}"
+                "Authentication response malformed: expected dict, "
+                f"got {type(response)}"
             )
-            log.error(msg)
             raise NoTokenException(msg)
         access_token = response.get("token")
         refresh_token = response.get("refreshToken")

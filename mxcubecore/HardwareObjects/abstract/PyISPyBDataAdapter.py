@@ -49,7 +49,6 @@ class PyISPyBDataAdapter:
             title=proposal.get("title"),
             type=proposal.get("type", ""),
             name=proposal.get("proposal"),
-            state=proposal.get("state", "").capitalize(),
         )
 
     def __to_session(self, session: dict) -> Session:
