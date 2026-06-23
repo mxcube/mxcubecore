@@ -18,13 +18,17 @@ LAZY_SESSION_PREFIX = "lazy"
 class MAXIVPyISPyBDataAdapter(PyISPyBDataAdapter):
     """Extend the standard ISPyB data adapter with MAXIV specific logic."""
 
+    def __init__(self, duo_api_url: str, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.duo_api_url = duo_api_url
+
     def get_proposals(self):
         """Override method to filter proposals by the type, state and beamline name.
 
         Include proposals: of type ``MX`` or ``MB`` in ``Open`` state and assigned
         to the current beamline. The last is checked via DUO API.
         """
-        duo = RestDuo(DUO_API_URL)
+        duo = RestDuo(self.duo_api_url)
         duo.login(DUOUSER, DUOPASSWORD)
         beamline_proposals_ids = set(duo.get_beamline_proposals(self.beamline_name))
         return [

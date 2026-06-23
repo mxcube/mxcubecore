@@ -13,13 +13,19 @@ class NoSessionException(Exception):
 
 
 class ISPyBLims(UserTypeISPyBLims):
+    def __init__(self, name: str):
+        super().__init__(name)
+        self._duo_api_url = ""
+
     def init(self):
+        self._duo_api_url: str = self.get_property("duo_api_url")
         pyispyb_rest_root = self.get_property("pyispyb_rest_root")
         self._rest_client = PyISPyBRestClient(pyispyb_rest_root)
         super().init()
 
     def _create_data_adapter(self) -> MAXIVPyISPyBDataAdapter:
         return MAXIVPyISPyBDataAdapter(
+            self._duo_api_url,
             self._rest_client,
             self.beamline_name,
         )

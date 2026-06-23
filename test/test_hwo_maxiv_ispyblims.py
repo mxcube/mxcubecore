@@ -27,7 +27,7 @@ def ispyb_lims(_suds_mock, session_mock, _hwr_mock, hwr_mock):
 
     lims = ISPyBLims(name="dummy")
     lims._config = lims.HOConfig(  # noqa: SLF001
-        pyispyb_rest_root=REST_ROOT
+        duo_api_url="http://example.com/rest/", pyispyb_rest_root=REST_ROOT
     )
     lims.init()
 
