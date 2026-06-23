@@ -28,7 +28,7 @@ class MAXIVPyISPyBDataAdapter(PyISPyBDataAdapter):
         duo.login(DUOUSER, DUOPASSWORD)
         beamline_proposals_ids = set(duo.get_beamline_proposals(self.beamline_name))
         return [
-            self.__to_proposal(proposal)
+            self._PyISPyBDataAdapter__to_proposal(proposal)
             for proposal in self.client.get("proposals")
             if proposal.get("proposalCode").upper() in ["MX", "MB"]
             and proposal.get("state", "").capitalize() == "Open"
