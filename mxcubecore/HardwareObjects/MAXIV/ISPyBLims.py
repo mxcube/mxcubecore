@@ -75,7 +75,7 @@ class ISPyBLims(UserTypeISPyBLims):
                 "scheduled": True,
             }
             new_session = self.adapter.client.post("sessions", json=payload)
-            session_to_activate.session_id = new_session.get("sessionId")
+            session_to_activate.session_id = str(new_session.get("sessionId"))
             self.session_manager.sessions[_idx] = session_to_activate
 
         self.session_manager.active_session = session_to_activate
