@@ -76,6 +76,40 @@ class PyISPyBDataAdapter:
             is_scheduled_beamline=True,  # MAX IV does not care about this value
         )
 
+    @staticmethod
+    def __to_sample(sample_data: dict) -> dict:
+        """
+        Convert sample data get from PyISPyB to internal
+        sample data structure.
+
+        Args:
+            sample_data (dict): The raw sample data from PyISPyB.
+
+        Returns:
+            dict: A dictionary conteining keys required by internal sample structure.
+        """
+        container = sample_data["Container"]
+        crystal = sample_data["Crystal"]
+        return {
+            # experimentType
+            "sampleId": sample_data["blSampleId"],
+            "code": sample_data["code"],
+            "sampleName": sample_data["name"],
+            "sampleLocation": sample_data["location"],
+            "containerSampleChangerLocation": container["sampleChangerLocation"],
+            "containerCode": container["code"],
+            "proteinAcronym": crystal["Protein"]["acronym"],
+            "crystalId": crystal["crystalId"],
+            "crystalSpaceGroup": crystal["space_group"],
+            "cellA": crystal["cell_a"],
+            "cellAlpha": crystal["cell_alpha"],
+            "cellB": crystal["cell_b"],
+            "cellBeta": crystal["cell_beta"],
+            "cellC": crystal["cell_c"],
+            "cellGamma": crystal["cell_gamma"],
+            "diffractionPlan": sample_data["DiffractionPlan"]["diffractionPlanId"],
+        }
+
     def __find_proposal_by_id(self, proposal_id: int) -> Proposal:
         return self.__to_proposal(
             self.client.get("proposals?proposalId=%s" % (proposal_id))[0]
@@ -256,8 +290,7 @@ class PyISPyBDataAdapter:
         """Fetches samples for the given proposal id from PyISPyB."""
         try:
             proposal = self.__find_proposal_by_id(proposal_id)
-
-            return self.client.get(
+            samples = self.client.get(
                 "samples?proposal=%s%s&beamLineName=%s"
                 % (proposal.code, proposal.number, self.beamline_name),
                 timeout=10,
@@ -265,6 +298,7 @@ class PyISPyBDataAdapter:
         except PyISPyBUnsuccessfulResponse:
             self.logger.exception("Error in get_samples")
             return []
+        return [self.__to_sample(sample) for sample in samples]
 
     def store_robot_action(self, robot_action: dict) -> int:
         """Stores robot action.

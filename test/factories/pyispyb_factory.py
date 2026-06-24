@@ -105,6 +105,7 @@ def sample_response():
     return [
         {
             "name": "sample-01",
+            "code": "smpl-01",
             "blSampleId": 1,
             "location": 1,
             "Container": {
@@ -114,7 +115,18 @@ def sample_response():
             "Crystal": {
                 "Protein": {
                     "acronym": "TEST",
-                }
+                },
+                "crystalId": 12345,
+                "space_group": None,
+                "cell_a": 0.0,
+                "cell_alpha": 0.0,
+                "cell_b": 0.0,
+                "cell_beta": 0.0,
+                "cell_c": 0.0,
+                "cell_gamma": 0.0,
+            },
+            "DiffractionPlan": {
+                "diffractionPlanId": 23456,
             },
         }
     ]

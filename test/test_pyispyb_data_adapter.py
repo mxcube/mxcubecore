@@ -305,14 +305,19 @@ def test_get_samples(
             return_value=samples,
         ) as get_mock,
     ):
-        result = adapter.get_samples(proposal.proposal_id)
+        result_0 = adapter.get_samples(proposal.proposal_id)[0]
 
     find_proposal_mock.assert_called_once_with(proposal.proposal_id)
     get_mock.assert_called_once_with(
         "samples?proposal=mx20090662&beamLineName=PROXIMA1",
         timeout=10,
     )
-    assert result == samples
+    sample_0 = samples[0]
+    assert result_0["sampleId"] == sample_0["blSampleId"]
+    assert result_0["cellA"] == sample_0["Crystal"]["cell_a"]
+    assert (
+        result_0["diffractionPlan"] == sample_0["DiffractionPlan"]["diffractionPlanId"]
+    )
 
 
 def test_get_samples_returns_empty_list_on_error(
