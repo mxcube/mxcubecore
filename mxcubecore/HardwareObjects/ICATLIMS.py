@@ -76,7 +76,7 @@ class ICATLIMS(AbstractLims):
             reschedule_investigation_urls=["bcu-mq-01:61613"],
         )
 
-    def _create_icat_session(self, password: str):
+    def _create_icat_session(self, password: str, username: str):
         icat_client = self._create_icat_client()
 
         if icat_client is None:
@@ -86,9 +86,14 @@ class ICATLIMS(AbstractLims):
             raise RuntimeError("Could not initialize icatClient")
 
         icat_session = icat_client.do_log_in(password)
-        username = icat_session["username"]
         self._icat_session_dict[username] = icat_session
         self._icat_client_dict[username] = icat_client
+        self.log.info(
+            "Successfully created icat session and logged in: "
+            f"fullName={icat_session['fullName']}, url={self.url}"
+        )
+
+        self.log.info("ICAT sessions are: %s", str(list(self._icat_session_dict.values())))
 
         return icat_session, icat_client
 
@@ -100,7 +105,7 @@ class ICATLIMS(AbstractLims):
     ) -> LimsSessionManager:
         logger.debug(f"ICAT authenticate {username}")
 
-        icat_session, icat_client = self._create_icat_session(password)
+        icat_session, icat_client = self._create_icat_session(password, username)
        
         # Connected to metadata icatClient
         msg = "Connected succesfully to icatClient: "
@@ -108,7 +113,9 @@ class ICATLIMS(AbstractLims):
         logger.debug(msg)
 
         if not self._active_user:
-            self._active_user = icat_session['username']
+            self._active_user = username
+
+        self.log.info("Active ICAT user set to: %s", self._active_user)
 
         # Retrieving user's investigations
         sessions = self.to_sessions(self.__get_all_investigations(icat_client, icat_session))
