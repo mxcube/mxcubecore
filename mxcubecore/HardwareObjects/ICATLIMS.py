@@ -113,6 +113,10 @@ class ICATLIMS(AbstractLims):
         except icat_errors.ApiException as e:
             logger.error(f"Error occurred while authenticating {user_name}: {e}")
             raise
+        self.log.info(
+            "Successfully created icat session and logged in: "
+            f"fullName={icat_session.full_name}, url={self.url}"
+        )
         return icat_session, icat_client
 
     def login(
@@ -126,6 +130,9 @@ class ICATLIMS(AbstractLims):
         icat_session, icat_client = self._create_icat_session(username, password)
         self._icat_client_dict[username] = icat_client
         self._icat_session_dict[username] = icat_session
+        self.log.info(
+            "ICAT sessions are: %s", str(list(self._icat_session_dict.values()))
+        )
 
         # Connected to metadata icatClient
         msg = "Connected succesfully to ICAT: "
@@ -134,6 +141,8 @@ class ICATLIMS(AbstractLims):
 
         if not self._active_user:
             self._active_user = username
+
+        self.log.info("Active ICAT user set to: %s", self._active_user)
 
         # Retrieving user's investigations
         sessions = self.to_sessions(self.__get_all_investigations())
