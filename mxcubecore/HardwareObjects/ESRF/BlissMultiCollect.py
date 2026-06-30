@@ -122,10 +122,8 @@ class BlissMultiCollect(ESRFMultiCollect):
             data_collect_parameters["comment"] = comment
 
     def last_image_saved(self, total_time, exptime, num_images):
-        if self._scan._lima_object.tango_ctrl_dev.acq_state == "running":  # noqa: SLF001
-            # if HWR.beamline.detector.status["acq_satus"] == "RUNNING":
+        if self._scan._lima_object.state == "RUNNING":
             return int(total_time / exptime)
-        # return HWR.beamline.detector.last_image_saved()
         return num_images
 
     def get_beam_size(self):
