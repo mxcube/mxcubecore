@@ -18,27 +18,17 @@
 
 """BLISS API Client - Access BLISS session and devices via BlissClient
 
-This module provides the **client-side** interface to a running BLISS REST API.
-The server side (``bliss.rest_service``) is responsible for registering objects
-into the REST API; this module queries that API via the ``blissclient`` library
-and keeps a local cache of every object whose type is fully known.
-
-Only objects that have a type listed in the server's type registry are kept.
-Objects with an unresolved / *unknown* type are silently discarded so that
-callers always receive fully-typed, usable :class:`~blissclient.HardwareObject`
-instances.
-
 Typical YAML configuration::
 
     class: BlissProxy.BlissProxy
     configuration:
       blissapi_url: http://mxcube-test-1:5000
+      min_objects: 3   # minimum registered objects before proxy considers BLISS ready (default: 1)
 """
 
 import asyncio
 import json
 import os
-import logging
 import time
 import urllib.error
 import urllib.request
@@ -61,180 +51,119 @@ __license__ = "LGPLv3+"
 
 
 class BlissProxy(MXHardwareObject):
-    """Client for the BLISS REST API. """
+    """Client for the BLISS REST API."""
+
+    _SESSION_READY_TIMEOUT = 300
+    _INIT_EVENT_TIMEOUT = _SESSION_READY_TIMEOUT + 10  # get_object() waits slightly longer than init()
 
     def __init__(self, name):
         super().__init__(name)
         self._client: BlissClient | None = None
         self._objects: dict[str, HardwareObject] = {}
-        # Set once init() finishes (success OR failure).  Used by get_object()
-        # to block callers that arrive before init() completes.
-        self._init_event = gevent.event.Event()
+        self._init_event = gevent.event.Event()  # unblocks get_object() callers waiting on init()
 
     def init(self):
-        """Initialise the BLISS API client and populate the object cache."""
         try:
-            self._do_init()
+            if not HAS_BLISSCLIENT:
+                raise ImportError("blissclient is not installed.")
+
+            url = self.get_property("blissapi_url") or os.environ.get("BLISSAPI_URL", "http://localhost:5000")
+
+            # BlissClient() raises if the API is not reachable — wait first.
+            self._wait_for_session_ready(url)
+
+            try:
+                self._client = BlissClient(url)
+                self.log.info("BlissProxy: BlissClient created for %s", url)
+            except Exception:
+                self.log.error("BlissProxy: failed to create BlissClient for %s", url, exc_info=True)
+                raise
+
+            self._client.register_callback("connect", self._on_connect)
+            self._client.register_callback("disconnect", self._on_disconnect)
+
+            try:
+                self._load_known_objects()
+            except Exception:
+                self.log.error("BlissProxy: _load_known_objects() failed — falling back to on-demand fetch", exc_info=True)
+
+            self.run_asyncio(self._client.create_connect(async_client=True)())
+            self.log.info("BlissProxy ready — %d known object(s) loaded", len(self._objects))
         finally:
-            # Always unblock waiting get_object() calls, even if init failed.
             self._init_event.set()
 
-    def _do_init(self):
-        """Internal init logic — called by init() under a try/finally."""
-        if not HAS_BLISSCLIENT:
-            raise ImportError(
-                "blissclient is not installed. "
-            )
-        url = self.get_property("blissapi_url") or os.environ.get(
-            "BLISSAPI_URL", "http://localhost:5000"
-        )
-
-        # Wait for the BLISS REST API and session to be fully ready BEFORE
-        # creating the BlissClient.  If BlissClient() is called before the API
-        # is reachable it raises a connection error, self._client stays None,
-        # and every subsequent get_object() call fails with AttributeError.
-        self._wait_for_session_ready(url)
-
-        try:
-            self._client = BlissClient(url)
-            self.log.info("BlissProxy: BlissClient created for %s", url)
-        except Exception:
-            self.log.error("BlissProxy: failed to create BlissClient for %s", url, exc_info=True)
-            raise
-
-        self._client.register_callback("connect", self._on_connect)
-        self._client.register_callback("disconnect", self._on_disconnect)
-
-        try:
-            self._load_known_objects()
-            self.log.info("BlissProxy: loaded %d objects from BLISS session", len(self._objects))
-        except Exception:
-            self.log.error(
-                "BlissProxy: _load_known_objects() failed — object pre-cache is empty, "
-                "falling back to on-demand fetch via get_object()",
-                exc_info=True,
-            )
-
-        connect = self._client.create_connect(async_client=True)
-        self.run_asyncio(connect())
-
-        self.log.info(
-            "BlissProxy ready — %d known object(s) loaded",
-            len(self._objects),
-        )
-
-    def _wait_for_session_ready(self, base_url: str, timeout: int = 300, poll_interval: int = 2) -> None:
-        """Block until the BLISS session is ready AND has objects registered.
-
-        Three conditions must be met before this returns:
-        1. GET /api/object returns HTTP 200 (set_ready_to_serve() has been called).
-        2. The response body has ``total > 0`` — at least one object is in the
-           object_store.  This guards against the race where the REST service
-           marks itself ready before the deferred _auto_register_session_objects
-           greenlet has had a chance to run.
-
-        Args:
-            base_url: The BLISS REST base URL (e.g. ``http://localhost:5000``).
-            timeout: Maximum seconds to wait before giving up.
-            poll_interval: Seconds between polls.
+    def _wait_for_session_ready(self, base_url: str, timeout: int = _SESSION_READY_TIMEOUT, poll_interval: int = 2) -> None:
+        """Poll GET /api/object until the object count reaches ``min_objects`` and
+        is stable for two consecutive polls (guards against the race where the REST
+        service marks itself ready before session objects are fully registered).
         """
-        STABLE_POLLS_REQUIRED = 2  # same count must be seen this many times in a row
+        STABLE_POLLS_REQUIRED = 2
+        min_objects = int(self.get_property("min_objects") or 1)
         endpoint = f"{base_url.rstrip('/')}/api/object"
+        if not endpoint.startswith(("http://", "https://")):
+            raise ValueError(f"BlissProxy: unsupported URL scheme in '{endpoint}' — only http/https allowed")
         deadline = time.monotonic() + timeout
-        self.log.info("BlissProxy: waiting for BLISS session ready (%s) ...", endpoint)
+        self.log.info("BlissProxy: waiting for BLISS session ready (%s, min_objects=%d) ...", endpoint, min_objects)
         prev_total = -1
         stable_count = 0
         while time.monotonic() < deadline:
             try:
-                with urllib.request.urlopen(endpoint, timeout=5) as resp:
+                with urllib.request.urlopen(endpoint, timeout=5) as resp:  # nosec B310 — scheme validated above
                     if resp.status == 200:
                         try:
-                            body = json.loads(resp.read())
-                            total = body.get("total", 0)
+                            total = json.loads(resp.read()).get("total", 0)
                         except Exception:
                             total = 0
-                        if total > 2:
-                            # Track whether the count has stabilised (registration done).
-                            if total == prev_total:
-                                stable_count += 1
-                            else:
-                                stable_count = 0
+                        if total >= min_objects:
+                            stable_count = stable_count + 1 if total == prev_total else 0
                             prev_total = total
                             if stable_count >= STABLE_POLLS_REQUIRED:
-                                self.log.info(
-                                    "BlissProxy: BLISS session is ready (%d objects registered, stable)",
-                                    total,
-                                )
+                                self.log.info("BlissProxy: BLISS session ready (%d objects, stable)", total)
                                 return
-                            self.log.debug(
-                                "BlissProxy: %d objects registered (stable %d/%d), waiting...",
-                                total, stable_count, STABLE_POLLS_REQUIRED,
-                            )
+                            self.log.debug("BlissProxy: %d objects (stable %d/%d), waiting...", total, stable_count, STABLE_POLLS_REQUIRED)
                         else:
-                            # Only SCAN_SAVING + ACTIVE_MG so far — keep waiting.
                             stable_count = 0
                             prev_total = -1
-                            self.log.debug(
-                                "BlissProxy: %d object(s) so far (waiting for session objects)...",
-                                total,
-                            )
+                            self.log.debug("BlissProxy: %d/%d object(s) registered, waiting...", total, min_objects)
             except urllib.error.HTTPError as exc:
-                if exc.code == 503:
-                    pass  # Not yet ready — keep polling
-                else:
+                if exc.code != 503:
                     self.log.debug("BlissProxy: unexpected HTTP %s from %s", exc.code, endpoint)
             except Exception as exc:
                 self.log.debug("BlissProxy: waiting for BLISS (%s)", exc)
             time.sleep(poll_interval)
-        self.log.warning(
-            "BlissProxy: BLISS session not ready after %ds — proceeding anyway", timeout
-        )
+        self.log.warning("BlissProxy: BLISS session not ready after %ds — proceeding anyway", timeout)
 
     def run_asyncio(self, future: asyncio.Future):
         def _await_future():
-            asyncio.run(future)
-            return future.get()
+            return asyncio.run(future)
 
         return gevent.spawn(_await_future)
 
     def _load_known_objects(self) -> None:
-        """Fetch available hardware objects and cache those with a known type.
-
-        Calls the REST API to refresh both the object list and the type
-        registry, then instantiates every object whose type is known.  Objects
-        with an unresolved type are skipped with a DEBUG-level log entry.
-        """
         if self._client is None:
-            raise RuntimeError(
-                "BlissProxy._client is not initialised — "
-                "init() has not completed or BlissClient creation failed."
-            )
+            raise RuntimeError("BlissProxy._client is not initialised.")
         hw = self._client.hardware
+        # _get_initial_status and _cached_initial_statuses are private blissclient internals —
+        # no public API exposes (name, type) pairs before instantiation.
         hw._get_initial_status()
-        hw.refresh_object_types() # list of properties and methods
-
-        known_types = hw.types  # dict[str, ObjectTypeSchema]
-        total = len(hw._cached_initial_statuses)
+        hw.refresh_object_types()
+        known_types = hw.types
+        total = len(hw.available)
         loaded = skipped = 0
         self._objects = {}
-
         for name, initial_state in hw._cached_initial_statuses.items():
             if initial_state.type not in known_types:
-                self.log.debug("Skipping '%s' unknown type '%s'", name, initial_state.type)
+                self.log.debug("Skipping '%s' — unknown type '%s'", name, initial_state.type)
                 skipped += 1
                 continue
             try:
-                self._objects[name] = hw.get(name) # build python object
+                self._objects[name] = hw.get(name)
                 loaded += 1
                 self.log.debug("Loaded '%s' [%s]", name, initial_state.type)
             except Exception:
                 self.log.warning("Could not instantiate object '%s'", name, exc_info=True)
                 skipped += 1
-
-        self.log.info(
-            "Object discovery: %d loaded, %d skipped (unknown type) out of %d total",
-            loaded, skipped, total,
-        )
+        self.log.info("Object discovery: %d loaded, %d skipped out of %d total", loaded, skipped, total)
 
     def _on_connect(self) -> None:
         self.log.info("Connected to BLISS API")
@@ -245,32 +174,19 @@ class BlissProxy(MXHardwareObject):
         self.emit("disconnected")
 
     def refresh(self) -> None:
-        """Re-fetch all hardware objects from the server and rebuild the cache.
-
-        Useful after a reconnect or when new objects have been registered in
-        the BLISS session at runtime.
-        """
         self.log.info("Refreshing BlissProxy object cache")
         self._load_known_objects()
 
     @property
     def session(self) -> Session:
-        """The BLISS :class:`~blissclient.Session` accessor."""
         return self._client.session
 
     @property
     def hardware(self) -> Hardware:
-        """The BLISS :class:`~blissclient.Hardware` accessor."""
         return self._client.hardware
 
     def get_object(self, name: str) -> HardwareObject:
         """Return a hardware object by its BLISS name.
-
-        First looks in the pre-cached known-type objects.  If not found there,
-        falls back to a direct fetch from the hardware client so that objects
-        with unregistered types (e.g. MCA devices) can still be used.  A
-        warning is emitted in that case since attribute availability depends on
-        the server's type definition.
 
         Args:
             name: Beacon address / BLISS object name.
@@ -281,81 +197,44 @@ class BlissProxy(MXHardwareObject):
         if name in self._objects:
             return self._objects[name]
 
-        # If init() has not yet finished (BlissProxy still waiting for BLISS to
-        # be ready), block here until it completes rather than failing
-        # immediately with _client=None.  Timeout matches _wait_for_session_ready.
         if not self._init_event.is_set():
-            self.log.info(
-                "BlissProxy: get_object('%s') waiting for init() to complete ...", name
-            )
-            self._init_event.wait(timeout=310)
+            self.log.info("BlissProxy: get_object('%s') waiting for init() ...", name)
+            self._init_event.wait(timeout=self._INIT_EVENT_TIMEOUT)
             if not self._init_event.is_set():
-                raise KeyError(
-                    f"BlissProxy: init() did not complete within timeout — "
-                    f"cannot retrieve object '{name}'"
-                )
+                raise KeyError(f"BlissProxy: init() timed out — cannot retrieve object '{name}'")
 
         if not self._objects:
             try:
-                self.log.info("BlissProxy: cache is empty, retrying _load_known_objects() for '%s'", name)
+                self.log.info("BlissProxy: cache empty, retrying _load_known_objects() for '%s'", name)
                 self._load_known_objects()
             except Exception:
                 self.log.warning("BlissProxy: _load_known_objects() retry failed", exc_info=True)
             if name in self._objects:
                 return self._objects[name]
 
-        # Fallback: fetch directly, bypassing the type registry check.
-        # Useful for devices whose type is not yet registered in blissclient
-        # (e.g. BlissRontecMCA).
         if self._client is None:
-            available = ", ".join(self.list_objects()) or "<none>"
-            raise KeyError(
-                f"Object '{name}' not found in the BLISS session. "
-                f"Available pre-cached objects: {available}"
-            )
+            raise KeyError(f"Object '{name}' not found. Available: {', '.join(self.list_objects()) or '<none>'}")
+
+        # Fallback: fetch directly, bypassing the type registry — useful for devices
+        # whose type is not yet registered in blissclient (e.g. BlissRontecMCA).
         try:
             obj = self._client.hardware.get(name)
-            self.log.warning(
-                "Object '%s' was not pre-cached (unknown type). "
-                "Fetching directly — attribute availability depends on the "
-                "server type definition.",
-                name,
-            )
+            self.log.warning("Object '%s' not pre-cached (unknown type).", name)
             return obj
         except Exception:
-            available = ", ".join(self.list_objects()) or "<none>"
-            raise KeyError(
-                f"Object '{name}' not found in the BLISS session. "
-                f"Available pre-cached objects: {available}"
-            ) from None
+            raise KeyError(f"Object '{name}' not found. Available: {', '.join(self.list_objects()) or '<none>'}") from None
 
     def list_objects(self) -> list[str]:
-        """Return a sorted list of all cached hardware object names."""
         return sorted(self._objects)
 
     def objects_by_type(self) -> dict[str, list[str]]:
-        """Return objects grouped by their BLISS type.
-
-        Returns:
-            A dict mapping each type name to the sorted list of object names
-            that share that type.  The dict is sorted by type name.
+        """Return objects grouped by BLISS type.
 
         Example::
 
-            {
-                "Axis": ["dtox", "omega", "phi"],
-                "SoftAxis": ["energy"],
-            }
+            {"Axis": ["dtox", "omega"], "SoftAxis": ["energy"]}
         """
         groups: dict[str, list[str]] = {}
         for name, obj in self._objects.items():
             groups.setdefault(obj.type, []).append(name)
         return {t: sorted(names) for t, names in sorted(groups.items())}
-
-    def get_scan_saving(self):
-        """Convenience accessor for the ``SCAN_SAVING`` session object."""
-        return self._client.session.scan_saving
-
-    def session_name(self) -> str:
-        """Return the BLISS session name."""
-        return self._client.session.name
