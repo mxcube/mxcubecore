@@ -119,6 +119,15 @@ class ICATLIMS(AbstractLims):
         )
         return icat_session, icat_client
 
+    def set_active_user(self, username: str):
+        if username not in self._icat_client_dict:
+            msg = f"User {username} has no active ICAT session"
+            logger.error(msg)
+            raise RuntimeError(msg)
+
+        self._active_user = username
+        self.log.info("Active ICAT user set to: %s", self._active_user)
+
     def login(
         self,
         username: str,
@@ -140,9 +149,7 @@ class ICATLIMS(AbstractLims):
         logger.debug(msg)
 
         if not self._active_user:
-            self._active_user = username
-
-        self.log.info("Active ICAT user set to: %s", self._active_user)
+            self.set_active_user(username)
 
         # Retrieving user's investigations
         sessions = self.to_sessions(self.__get_all_investigations())

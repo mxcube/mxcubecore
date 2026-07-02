@@ -511,6 +511,18 @@ class AbstractLims(HardwareObject, abc.ABC):
                 break
 
         if user_found:
+            active_session = self.session_manager.active_session
+            user = self.session_manager.users[key]
+            if active_session and any(
+                session.session_id == active_session.session_id
+                for session in user.sessions
+            ):
+                self.log.debug(
+                    "User %s was not removed because session %s is active"
+                    % (key, active_session.session_id)
+                )
+                return
+
             del self.session_manager.users[key]
             self.log.debug("User %s has been removed" % key)
             self.__set_sessions(self.get_shared_sessions())
