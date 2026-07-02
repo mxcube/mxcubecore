@@ -167,6 +167,9 @@ class ArgusConfig(BaseModel):
     grpc_url: str = Field(
         description="gRPC URL for the Argus server",
     )
+    config_path: str = Field(
+        description="path to argus configuration files",
+    )
     exports: list[str] = Field(
         default_factory=list,
         description="List of exports to be configured",

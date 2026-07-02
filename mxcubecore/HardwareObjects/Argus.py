@@ -75,7 +75,11 @@ class Argus(HardwareObject):
 
     def init(self):
         # start the argus server
-        self._argus_pid = Popen(["argussight"], close_fds=True, shell=False)
+        self._argus_pid = Popen(
+            ["argussight", "--config", self.get_property("config_path")],
+            close_fds=True,
+            shell=False,
+        )
 
         streams_to_run = []
         streams_to_run = self.get_property("streams", [])
