@@ -2,6 +2,8 @@
 
 **MXCuBE** (Macromolecular Xtallography Customized Beamline Environment) is a modular framework for controlling synchrotron beamlines for macromolecular crystallography experiments.
 
+This documentation was partly generated automatically and is meant to provide an architectural overview of the concepts involved. It may miss implementation details.
+
 ## Table of Contents
 
 - [System Overview](#system-overview)
@@ -12,7 +14,7 @@
 - [Data Collection Workflow](#data-collection-workflow)
 - [Key Components](#key-components)
 
----
+______________________________________________________________________
 
 ## System Overview
 
@@ -26,37 +28,34 @@ graph TB
     subgraph "User Layer"
         Browser[Web Browser]
     end
-    
+
     subgraph "Application Layer - mxcubeweb"
         UI[React Frontend]
-        API[Flask Backend]
-        WS[WebSocket Server]
+        API[Flask Backend<br/>WebSocket Server]
     end
-    
+
     subgraph "Hardware Abstraction Layer - mxcubecore"
         HWR[Hardware Repository]
         HWO[Hardware Objects]
         QM[Queue Manager]
     end
-    
+
     subgraph "Control Systems"
         TANGO[TANGO]
         EPICS[EPICS]
         SPEC[SPEC]
     end
-    
+
     subgraph "Physical Hardware"
         Motors[Motors/Stages]
         Detectors[Detectors]
         Cameras[Cameras]
         SC[Sample Changer]
     end
-    
+
     Browser <-->|HTTP/WS| UI
     UI <-->|REST/Socket.IO| API
     API <-->|Python API| HWR
-    API <-->|Events| WS
-    WS <-->|Socket.IO| UI
     HWR --> HWO
     HWO -->|Commands/Channels| TANGO
     HWO -->|Commands/Channels| EPICS
@@ -75,7 +74,7 @@ graph TB
     style Motors fill:#f48fb1
 ```
 
----
+______________________________________________________________________
 
 ## High-Level Architecture
 
@@ -86,24 +85,24 @@ graph LR
     subgraph "Presentation Tier"
         A[React UI<br/>Redux Store<br/>Socket.IO Client]
     end
-    
+
     subgraph "Application Tier"
         B[Flask Server<br/>WebSocket Server<br/>Business Logic<br/>Queue Manager]
     end
-    
+
     subgraph "Hardware Tier"
         C[Hardware Repository<br/>Hardware Objects<br/>Control Protocols<br/>Device Drivers]
     end
-    
+
     A <-->|REST API<br/>WebSocket| B
     B <-->|Python API<br/>Events| C
-    
+
     style A fill:#bbdefb
     style B fill:#ffccbc
     style C fill:#c5e1a5
 ```
 
----
+______________________________________________________________________
 
 ## MXCubeCore Architecture
 
@@ -113,33 +112,33 @@ graph LR
 graph TD
     subgraph "mxcubecore/"
         HWR[HardwareRepository<br/>Singleton Registry]
-        
+
         subgraph "Hardware Objects"
             BL[Beamline<br/>Container Object]
             HWO[Hardware Objects]
             Abstract[Abstract Base Classes]
             Concrete[Concrete Implementations]
         end
-        
+
         subgraph "Queue System"
             QM[QueueManager]
             QModel[QueueModel<br/>Tree Structure]
             QEntry[QueueEntry<br/>Executors]
         end
-        
+
         subgraph "Data Models"
             DMO[Queue Model Objects]
             Config[Configuration Models]
             Lims[LIMS Session Models]
         end
-        
+
         subgraph "Communication"
             Dispatcher[Event Dispatcher]
             Commands[Command Objects]
             Channels[Channel Objects]
         end
     end
-    
+
     HWR -->|manages| HWO
     HWR -->|provides| BL
     BL -->|contains| HWO
@@ -151,7 +150,7 @@ graph TD
     QModel -->|contains| QEntry
     QEntry -->|executes| HWO
     QEntry -->|uses| DMO
-    
+
     style HWR fill:#ff9800
     style BL fill:#ffc107
     style QM fill:#8bc34a
@@ -173,7 +172,7 @@ classDiagram
         +emit(signal, args)
         +connect(sender, signal, slot)
     }
-    
+
     class AbstractActuator {
         +get_value()
         +set_value(value)
@@ -181,27 +180,27 @@ classDiagram
         +validate_value(value)
         +update_value()
     }
-    
+
     class AbstractMotor {
         +get_position()
         +set_position(position)
         +get_velocity()
         +home()
     }
-    
+
     class AbstractSampleChanger {
         +load_sample(sample)
         +unload_sample()
         +get_loaded_sample()
         +get_sample_list()
     }
-    
+
     class AbstractCollect {
         +collect(params)
         +prepare_collection()
         +data_collection_hook()
     }
-    
+
     class Beamline {
         +diffractometer
         +sample_changer
@@ -209,7 +208,7 @@ classDiagram
         +energy
         +collect
     }
-    
+
     HardwareObject <|-- AbstractActuator
     AbstractActuator <|-- AbstractMotor
     HardwareObject <|-- AbstractSampleChanger
@@ -226,10 +225,10 @@ sequenceDiagram
     participant Parser as XMLParser
     participant HWO as HardwareObject
     participant Device as Control System
-    
+
     App->>HWR: init_hardware_repository(path)
     HWR->>HWR: scan XML/YAML files
-    
+
     App->>HWR: get_hardware_object("motor")
     HWR->>Parser: parse config file
     Parser->>HWR: return class & properties
@@ -237,7 +236,7 @@ sequenceDiagram
     HWO->>Device: connect to control system
     HWO-->>HWR: return initialized object
     HWR-->>App: return HardwareObject
-    
+
     App->>HWO: set_value(10.5)
     HWO->>Device: write command
     Device-->>HWO: value changed
@@ -258,20 +257,20 @@ graph TD
         DC2[DataCollection]
         Char[Characterisation]
     end
-    
+
     subgraph "Queue Entries"
         SEntry[SampleQueueEntry]
         GEntry[TaskGroupQueueEntry]
         DCEntry[DataCollectionQueueEntry]
         CharEntry[CharacterisationQueueEntry]
     end
-    
+
     subgraph "Execution"
         QM[QueueManager]
         Executor[Entry Executor]
         Collect[Beamline.collect]
     end
-    
+
     Root --> S1
     Root --> S2
     S1 --> G1
@@ -279,16 +278,16 @@ graph TD
     G1 --> DC1
     G1 --> Char
     G2 --> DC2
-    
+
     S1 -.->|model| SEntry
     G1 -.->|model| GEntry
     DC1 -.->|model| DCEntry
-    
+
     QM -->|traverse tree| SEntry
     SEntry -->|execute children| GEntry
     GEntry -->|execute children| DCEntry
     DCEntry -->|collect data| Collect
-    
+
     style Root fill:#ffeb3b
     style S1 fill:#4caf50
     style G1 fill:#03a9f4
@@ -296,7 +295,7 @@ graph TD
     style QM fill:#9c27b0
 ```
 
----
+______________________________________________________________________
 
 ## MXCubeWeb Architecture
 
@@ -305,19 +304,19 @@ graph TD
 ```mermaid
 graph TB
     Entry[mxcubeweb-server<br/>Entry Point]
-    
+
     Flask[Flask Application]
     SocketIO[Flask-SocketIO]
     Auth[Flask-Security]
     Limiter[Rate Limiter]
-    
+
     MainRoute[Main API Route<br/>/mxcube/api/v0.1]
     QueueRoute[Queue Routes]
     LoginRoute[Login Routes]
     RARoute[Remote Access]
     WorkflowRoute[Workflow Routes]
     HarvesterRoute[Harvester Routes]
-    
+
     MXApp[MXCUBEApplication]
     Queue[Queue Component]
     Lims[LIMS Component]
@@ -325,32 +324,32 @@ graph TB
     Chat[Chat Component]
     Workflow[Workflow Component]
     Harvester[Harvester Component]
-    
+
     AdapterMgr[HardwareObjectAdapterManager]
     HWR[mxcubecore.HWR]
-    
+
     StateStorage[UI State Storage]
     UserDB[User Database]
-    
+
     Entry --> Flask
     Flask --> SocketIO
     Flask --> Auth
     Flask --> Limiter
     Flask --> MainRoute
-    
+
     MainRoute --> QueueRoute
     MainRoute --> LoginRoute
     MainRoute --> RARoute
     MainRoute --> WorkflowRoute
     MainRoute --> HarvesterRoute
-    
+
     QueueRoute --> Queue
     LoginRoute --> UserMgr
     RARoute --> UserMgr
     RARoute --> Chat
     WorkflowRoute --> Workflow
     HarvesterRoute --> Harvester
-    
+
     MXApp --> Queue
     MXApp --> Lims
     MXApp --> UserMgr
@@ -358,11 +357,11 @@ graph TB
     MXApp --> Workflow
     MXApp --> Harvester
     MXApp --> AdapterMgr
-    
+
     AdapterMgr --> HWR
     Auth --> UserDB
     SocketIO --> StateStorage
-    
+
     style Entry fill:#ff9800
     style Flask fill:#2196f3
     style MXApp fill:#4caf50
@@ -375,13 +374,13 @@ graph TB
 ```mermaid
 flowchart TB
     Index[index.jsx Entry Point]
-    
+
     subgraph State["State Management"]
         Store[Redux Store]
         Reducers[Reducers]
         Actions[Action Creators]
     end
-    
+
     subgraph Components["Components"]
         Login[Login]
         SampleGrid[Sample Grid]
@@ -392,46 +391,46 @@ flowchart TB
         Logger[Logger]
         RemoteAccess[Remote Access]
     end
-    
+
     subgraph Containers["Containers"]
         SGContainer[SampleListViewContainer]
         SQContainer[SampleQueueContainer]
         SVContainer[SampleViewContainer]
     end
-    
+
     subgraph Communication["Communication"]
         API[REST API Client wretch]
         ServerIO[Socket.IO Client]
     end
-    
+
     Backend[Flask/SocketIO Server]
-    
+
     Index --> Store
     Store --> Reducers
     Actions --> Reducers
-    
+
     Index --> SGContainer
     Index --> SQContainer
     Index --> SVContainer
-    
+
     SGContainer --> SampleGrid
     SQContainer --> SampleQueue
     SVContainer --> SampleView
-    
+
     SampleGrid --> Actions
     SampleQueue --> Actions
     TaskForms --> Actions
-    
+
     Actions --> API
     Actions --> ServerIO
-    
+
     API -->|REST| Backend
     ServerIO -->|WebSocket| Backend
     Backend -->|Events| ServerIO
-    
+
     ServerIO --> Actions
     Actions --> Store
-    
+
     style Index fill:#ff9800
     style Store fill:#4caf50
     style API fill:#2196f3
@@ -450,7 +449,7 @@ sequenceDiagram
     participant Queue as Queue Component
     participant HWR as Hardware Repository
     participant HWO as Hardware Object
-    
+
     UI->>Action: User clicks "Start Queue"
     Action->>API: sendStartQueue()
     API->>Server: PUT /queue/start
@@ -466,7 +465,7 @@ sequenceDiagram
     Action->>UI: update Redux store
 ```
 
----
+______________________________________________________________________
 
 ## Communication Flow
 
@@ -480,7 +479,7 @@ sequenceDiagram
     participant Flask
     participant Component
     participant MXCubeCore
-    
+
     Browser->>Redux: User Action
     Redux->>APIClient: api.get('/queue')
     APIClient->>Flask: HTTP GET /mxcube/api/v0.1/queue
@@ -503,14 +502,14 @@ sequenceDiagram
     participant SocketIO as Flask-SocketIO
     participant Client as Browser Client
     participant Redux as Redux Store
-    
+
     HWO->>HWO: state changes
     HWO->>Signal: emit('stateChanged', state)
     Signal->>SocketIO: server.emit('hwobj_state', data)
     SocketIO->>Client: WebSocket message
     Client->>Redux: dispatch(updateHWObjState)
     Redux->>Client: re-render UI
-    
+
     Note over HWO,Redux: Real-time updates without polling
 ```
 
@@ -522,27 +521,27 @@ graph LR
         Det[Detector]
         Motor[Goniometer]
     end
-    
+
     subgraph "Control Layer"
         Collect[CollectHWObj]
         DC[DataCollectionEntry]
     end
-    
+
     subgraph "Queue Layer"
         QM[QueueManager]
         QE[QueueEntry]
     end
-    
+
     subgraph "Application Layer"
         QComp[Queue Component]
         Signal[Signal Handler]
     end
-    
+
     subgraph "Frontend"
         Socket[Socket.IO]
         UI[React UI]
     end
-    
+
     Det -->|frames collected| Collect
     Motor -->|position reached| Collect
     Collect -->|progress| DC
@@ -552,7 +551,7 @@ graph LR
     QComp -->|format message| Signal
     Signal -->|emit event| Socket
     Socket -->|WebSocket| UI
-    
+
     style Det fill:#c5e1a5
     style Collect fill:#ffcc80
     style QM fill:#81d4fa
@@ -560,7 +559,7 @@ graph LR
     style UI fill:#90caf9
 ```
 
----
+______________________________________________________________________
 
 ## Data Collection Workflow
 
@@ -577,38 +576,38 @@ sequenceDiagram
     participant Collect as Collect HWObj
     participant Det as Detector
     participant LIMS
-    
+
     User->>UI: Add sample + tasks
     UI->>Queue: addTask()
     Queue->>QM: add to queue model
-    
+
     User->>UI: Click "Start Queue"
     UI->>Queue: startQueue()
     Queue->>QM: execute()
-    
+
     QM->>SC: load_sample(location)
     SC-->>QM: sample mounted
-    
+
     QM->>Diff: center_sample()
     Diff-->>QM: centred position
-    
+
     QM->>Collect: collect(parameters)
     Collect->>Diff: move to start position
     Collect->>Det: prepare acquisition
     Collect->>Det: start_acquisition()
-    
+
     loop For each image
         Det->>Det: collect frame
         Det->>Collect: emit('imageCollected')
         Collect->>QM: progress update
         QM->>UI: WebSocket update
     end
-    
+
     Det-->>Collect: acquisition complete
     Collect->>LIMS: store metadata
     Collect-->>QM: collection finished
     QM->>UI: emit('queue_entry_finished')
-    
+
     QM->>SC: unload_sample()
     SC-->>QM: sample unmounted
 ```
@@ -619,24 +618,24 @@ sequenceDiagram
 stateDiagram-v2
     [*] --> QueueIdle
     QueueIdle --> Executing: start_queue()
-    
+
     state Executing {
         [*] --> MountSample
         MountSample --> CenterSample
         CenterSample --> TaskGroup
-        
+
         state TaskGroup {
             [*] --> DataCollection
             DataCollection --> Characterisation
             Characterisation --> [*]
         }
-        
+
         TaskGroup --> UnmountSample
         UnmountSample --> NextSample
         NextSample --> MountSample: more samples
         NextSample --> [*]: done
     }
-    
+
     Executing --> QueueIdle: finished
     Executing --> Paused: pause()
     Paused --> Executing: resume()
@@ -644,7 +643,7 @@ stateDiagram-v2
     Stopped --> QueueIdle
 ```
 
----
+______________________________________________________________________
 
 ## Key Components
 
@@ -653,17 +652,19 @@ stateDiagram-v2
 **Purpose**: Central registry and factory for hardware objects
 
 **Key Features**:
+
 - Singleton pattern for global access (`HWR.beamline.*`)
 - Dynamic loading from XML/YAML configurations
 - Lazy initialization of hardware objects
 - Event-driven communication via dispatcher
 
 **Example**:
+
 ```python
 from mxcubecore import HardwareRepository as HWR
 
 # Access hardware objects
-HWR.beamline.diffractometer.move_motors({'omega': 90})
+HWR.beamline.diffractometer.move_motors({"omega": 90})
 HWR.beamline.detector.prepare_acquisition()
 ```
 
@@ -672,12 +673,14 @@ HWR.beamline.detector.prepare_acquisition()
 **Purpose**: Abstract hardware control behind unified interfaces
 
 **Key Base Classes**:
+
 - `HardwareObject`: Base class with state management
 - `AbstractActuator`: Values and limits (motors, energy, etc.)
 - `AbstractSampleChanger`: Sample loading/unloading
 - `AbstractCollect`: Data collection orchestration
 
 **Control System Adapters**:
+
 - TANGO (Tango Controls)
 - EPICS (Experimental Physics and Industrial Control System)
 - SPEC (Python wrapper for Spec diffractometer control)
@@ -687,11 +690,13 @@ HWR.beamline.detector.prepare_acquisition()
 **Purpose**: Manage and execute data collection workflows
 
 **Components**:
+
 - `QueueModel`: Tree structure of samples and tasks
 - `QueueEntry`: Executable nodes with `execute()` method
 - `QueueManager`: Traversal and execution engine
 
 **Queue Entry Types**:
+
 - `SampleQueueEntry`: Mount/unmount operations
 - `DataCollectionQueueEntry`: Standard data collection
 - `CharacterisationQueueEntry`: Crystal characterisation
@@ -703,6 +708,7 @@ HWR.beamline.detector.prepare_acquisition()
 **Purpose**: Application-level business logic and state
 
 **Components**:
+
 - `Queue`: Queue management API
 - `Lims`: LIMS integration (ISPyB, etc.)
 - `UserManager`: Authentication and authorization
@@ -715,12 +721,13 @@ HWR.beamline.detector.prepare_acquisition()
 **Purpose**: Decouple components via event-driven architecture
 
 **Pattern**:
+
 ```python
 # Hardware object emits signal
-self.emit('valueChanged', new_value)
+self.emit("valueChanged", new_value)
 
 # Application listens
-HWR.beamline.motor.connect('valueChanged', callback)
+HWR.beamline.motor.connect("valueChanged", callback)
 ```
 
 **Signal Flow**:
@@ -731,15 +738,17 @@ Hardware Object → Dispatcher → Signal Handler → Flask-SocketIO → Browser
 **Purpose**: Modern web UI with real-time updates
 
 **Stack**:
+
 - React 18 + Redux for state management
 - Socket.IO for real-time communication
 - Vite for fast builds
 - Bootstrap for styling
 
 **Key Containers**:
+
 - `SampleListViewContainer`: Sample management and LIMS
 - `SampleQueueContainer`: Queue visualization and control
 - `SampleViewContainer`: Video stream and sample centering
 - `TaskParametersContainer`: Data collection forms
 
----
+______________________________________________________________________
