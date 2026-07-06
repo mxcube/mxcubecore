@@ -4,7 +4,7 @@ from atexit import register
 from enum import Enum
 from os import kill
 from signal import SIGTERM
-from subprocess import Popen
+from subprocess import DEVNULL, Popen
 from threading import Event, Thread
 from time import sleep
 from uuid import uuid1
@@ -77,6 +77,8 @@ class Argus(HardwareObject):
         # start the argus server
         self._argus_pid = Popen(
             ["argussight", "--config", self.get_property("config_path")],
+            stdout=DEVNULL,
+            stderr=DEVNULL,
             close_fds=True,
             shell=False,
         )
