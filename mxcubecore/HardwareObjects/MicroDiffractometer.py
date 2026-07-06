@@ -301,10 +301,15 @@ class MicroDiffractometer(AbstractDiffractometer):
         """
         if self.in_plate_mode:
             scan_speed = abs(end - start) / exptime
-            llim, hlim = map(
-                float,
-                self._exporter.execute("getOmegaMotorDynamicScanLimits", (scan_speed,)),
-            )
+            try:
+                ret = self._exporter.execute("getOmegaMotorDynamicScanLimits",
+                                             (scan_speed,))
+            except Exception as err:
+                msg = f"Cannor check the scan limits: {err}"
+                self.log.error(msg)
+                raise ValueError(msg)
+
+            llim, hlim = map(float, ret)
             if start < llim:
                 msg = f"Scan start below the allowed value {llim}"
                 raise ValueError(msg)
