@@ -118,11 +118,9 @@ class BlissMultiCollect(ESRFMultiCollect):
         self.metadata.diffractometer_static_data()
         self.metadata.detector_static_data()
 
-        try:
+        if hasattr(HWR.beamline.sample_changer, "get_crystal_id"):
             comment = HWR.beamline.sample_changer.get_crystal_id()
             data_collect_parameters["comment"] = comment
-        except AttributeError:
-            self.log.exception()
 
     def last_image_saved(self, total_time, exptime, num_images):
         if self._scan._lima_object.tango_ctrl_dev.acq_state == "running":  # noqa: SLF001
@@ -155,20 +153,22 @@ class BlissMultiCollect(ESRFMultiCollect):
             if tag in motor_positions_copy:
                 del motor_positions_copy[tag]
 
-        diffr.move_sync_motors(motor_positions_copy, wait=True, timeout=200)
+        diffr.set_value_motors(motor_positions_copy)
 
     def take_crystal_snapshots(self, number_of_snapshots, image_path_list=None):
         if image_path_list is None:
             image_path_list = []
-        HWR.beamline.diffractometer.take_snapshot(image_path_list)
+        HWR.beamline.sample_view.take_snapshot(image_path_list)
 
     def do_prepare_oscillation(self, *args, **kwargs):
         diffr = HWR.beamline.diffractometer
+        """
         # set the detector cover out
         try:
             diffr.open_detector_cover()
         except Exception:
             logging.getLogger("HWR").exception("Could not open detector cover")
+        """
 
         # send again the command as MD2 software only handles one
         # centered position!!
@@ -176,14 +176,12 @@ class BlissMultiCollect(ESRFMultiCollect):
         # diffr.get_command_object("save_centring_positions")()
 
         # switch on the front light
-        front_light_switch = diffr.get_object_by_role("FrontLightSwitch")
-        front_light_switch.set_value(front_light_switch.VALUES.IN)
-        # diffr.get_object_by_role("FrontLight").set_value(2)
+        diffr.frontlightswitch.set_value(diffr.frontlightswitch.VALUES.IN)
 
         # move to DataCollection phase
         logging.getLogger("user_level_log").info("Moving MD2 to DataCollection")
         # AB next line to speed up the data collection
-        diffr.set_phase("DataCollection", wait=False, timeout=0)
+        diffr.set_phase(diffr.get_phase_enum.COLLECT, timeout=0)
 
     def data_collection_cleanup(self):
         self.close_fast_shutter()
@@ -305,7 +303,7 @@ class BlissMultiCollect(ESRFMultiCollect):
         elif self.mesh:
             # ??? nb_images = self.mesh_total_nb_frames
             # move the motorts to the centre of the mesh first
-            HWR.beamline.diffractometer.move_motors(self.mesh_center.as_dict())
+            HWR.beamline.diffractometer.set_value_motors(self.mesh_center.as_dict())
             self.last_bliss_scan = self._scan.mesh_scan(
                 start,
                 end,
