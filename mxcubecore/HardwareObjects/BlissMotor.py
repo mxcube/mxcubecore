@@ -119,7 +119,10 @@ class BlissMotor(AbstractMotor):
     def _on_property_changed(self, data: dict) -> None:
         """Callback for property changes received via blissclient."""
         log.debug("BlissMotor property event: %r", data)
-        if "position" in data:
+        if self.actuator_name == "tape":
+            if "velocity" in data:
+                self.update_value(data["velocity"])
+        elif "position" in data:
             self.update_value(data["position"])
         if "state" in data:
             self._update_state()
@@ -185,7 +188,11 @@ class BlissMotor(AbstractMotor):
             float: Motor position.
         """
         try:
-            pos = self.motor_obj.position
+            pos = (
+                self.motor_obj.velocity
+                if self.actuator_name == "tape"
+                else self.motor_obj.position
+            )
         except Exception:
             return self._nominal_value if self._nominal_value is not None else None
         if pos is None:
@@ -234,7 +241,11 @@ class BlissMotor(AbstractMotor):
 
         self.update_state(HardwareObjectState.BUSY)
         try:
-            self.motor_obj.move(value)
+            if self.actuator_name == "tape":
+                self.motor_obj.velocity = value if value > 0 else -value
+                self.motor_obj.jog(value)
+            else:
+                self.motor_obj.move(value)
         except Exception:
             log.exception("Error while calling move() on motor_obj (actuator=%s)", self.actuator_name)
             raise

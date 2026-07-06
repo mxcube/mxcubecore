@@ -4,7 +4,10 @@ from typing import Optional
 import gevent
 
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
-from mxcubecore.HardwareObjects.LNLS.EPICS.EPICSActuator import EPICSActuator
+from mxcubecore.HardwareObjects.LNLS.EPICS.EPICSActuator import (
+    EPICSActuator,
+    EPICSRestrictedMovement,
+)
 
 
 class EPICSMotor(EPICSActuator, AbstractMotor):
@@ -131,10 +134,13 @@ class EPICSMotorDetachable(EPICSMotor):
         super().init()
         self.get_value()
 
-    def get_value(self):
+    def check_is_absent(self):
         value = self.get_property("is_absent_value")
         current_value = int(self.get_channel_value(self.MOTOR_PRESENCE_RBV))
-        if current_value == value:
+        return current_value == value
+
+    def get_value(self):
+        if self.check_is_absent():
             self.update_state(self.STATES.OFF)
         return super().get_value()
 
@@ -156,3 +162,11 @@ class ResolutionVirtualMotor(EPICSMotor):
 
     def get_limits_for_wavelength(self, wavelength):
         return self.get_limits()
+
+
+class LNLSRestrictedMotor(EPICSRestrictedMovement, EPICSMotor):
+    pass
+
+
+class LNLSRestrictedMotorDetachable(EPICSRestrictedMovement, EPICSMotorDetachable):
+    pass

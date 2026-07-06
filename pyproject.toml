@@ -1,6 +1,6 @@
 [project]
 name = "mxcubecore"
-version = "2.82.0"
+version = "2.90.0"
 license = "LGPL-3.0-or-later"
 description = "Core libraries for the MXCuBE application"
 authors = [
@@ -69,10 +69,6 @@ defusedxml = "0.7.1"
 argussight = {version = "^0.2.1", optional = true}
 aiohttp = "3.13.5"
 
-[tool.poetry.extras]
-lims = ["pyicat-plus"]
-argus = ["argussight"]
-
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^4.1.0"
 pytest = "^9.0.3"
@@ -86,6 +82,10 @@ myst-parser = "^2.0.0"
 sphinx = "<7.2"
 sphinx-last-updated-by-git = "^0.3.7"
 sphinxcontrib-mermaid = "^0.9.2"
+
+[tool.poetry.extras]
+lims = ["pyicat-plus"]
+argus = ["argussight"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

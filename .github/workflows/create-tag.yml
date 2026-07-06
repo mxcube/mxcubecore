@@ -24,6 +24,7 @@ jobs:
           create-args: >-
             python=3.10
           environment-file: conda-environment-dev.yml
+          micromamba-version: 1.5.10-0
           post-cleanup: all
 
       - name: Update version
