@@ -46,7 +46,7 @@ from __future__ import annotations
 import logging
 from typing import List, Optional, Union
 
-import gevent
+from gevent import Timeout, sleep
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
@@ -98,7 +98,6 @@ class Harvester(HardwareObject):
         super().__init__(name)
         self.timeout = 600  # default timeout
 
-        # Internal variables -----------
         self.calibration_state = False
 
     def init(self):
@@ -111,49 +110,48 @@ class Harvester(HardwareObject):
         """Set Calibration state
 
         Args:
-        state (bool) : Whether a calibration procedure is on going
+            state: True if a calibration procedure is on going.
         """
 
         self.calibration_state = state
 
     def _wait_ready(self, timeout: Union[float, None] = None):
-        """Wait Harvester to be ready
+        """Wait timeout seconds until status is ready.
 
         Args:
-        (timeout) : Whether to wait for a amount of time
-        timeout is None wait forever, timeout <=0 use default timeout
+            timeout: optional - timeout [s],
+                     if timeout = 0: return at once and do not wait,
+                     if timeout is None: wait forever (default).
         """
-        if timeout is not None and timeout <= 0:
-            timeout = self.timeout
+        if timeout == 0:
+            return
 
         err_msg = "Timeout waiting for Harvester to be ready"
 
-        with gevent.Timeout(timeout, RuntimeError(err_msg)):
-            while not self._ready():
+        with Timeout(timeout, RuntimeError(err_msg)):
+            while not self._ready:
                 logging.getLogger("user_level_log").info(
                     "Waiting Harvester to be Ready"
                 )
-                gevent.sleep(3)
+                sleep(3)
 
     def _wait_sample_transfer_ready(self, timeout: Union[float, None] = None):
-        """Wait Harvester to be ready to transfer a sample
+        """Wait timeout seconds until ready to transfer a sample.
 
         Args:
-        timeout (second) : Whether to wait for a amount of time
-        timeout is None wait forever, timeout <=0 use default timeout
+            timeout: optional - timeout [s],
+                     if timeout = 0: return at once and do not wait,
+                     if timeout is None: wait forever (default).
         """
-        if timeout is not None and timeout <= 0:
-            timeout = self.timeout
+        if timeout == 0:
+            return
 
         err_msg = "Timeout waiting for Harvester to be ready to transfer"
 
         try:
-            with gevent.Timeout(timeout, RuntimeError(err_msg)):
-                while not self._ready_to_transfer():
-                    logging.getLogger("user_level_log").info(
-                        "Waiting Harvester to be ready to transfer for 10 minutes"
-                    )
-                    gevent.sleep(3)
+            with Timeout(timeout, RuntimeError(err_msg)):
+                while not self._ready_to_transfer:
+                    sleep(3)
         except RuntimeError as exc:
             # In case of timeout we as abort, park and trash
             self.abort()
@@ -220,6 +218,7 @@ class Harvester(HardwareObject):
         """
         return self._execute_cmd_exporter("getStatus", attribute=True)
 
+    @property
     def _ready(self) -> str:
         """check whether the Harvester is READY
 
@@ -227,17 +226,12 @@ class Harvester(HardwareObject):
         """
         return self._execute_cmd_exporter("getState", attribute=True) == "Ready"
 
-    def _busy(self) -> bool:
-        """check whether the Harvester is BUSY
-
-        Return (bool):  True if Harvester is not Ready otherwise False
-        """
-        return self._execute_cmd_exporter("getState", attribute=True) != "Ready"
-
+    @property
     def _ready_to_transfer(self) -> bool:
-        """check whether the Harvester is Waiting Sample Transfer
+        """check if the Harvester is Waiting Sample Transfer
 
-        Return (bool):  True if Harvester is Waiting Sample Transfer otherwise False
+        Returns:
+            True if Harvester is Waiting Sample Transfer otherwise False
         """
         return (
             self._execute_cmd_exporter("getStatus", attribute=True)
@@ -247,31 +241,31 @@ class Harvester(HardwareObject):
     def get_samples_state(self) -> List[str]:
         """Get the Harvester Samples State
 
-        Return (List):  list of crystal state "waiting_for_transfer, Running etc.."
+        Return:
+            List of states "Waiting Sample Transfer", "Running"...
         """
         return self._execute_cmd_exporter("getSampleStates", attribute=True)
 
     def get_current_crystal(self) -> str:
-        """Get the Harvester current harvested crystal
+        """Get the current harvested crystal
 
         Return (str): the crystal uuid
         """
         return self._execute_cmd_exporter("getCurrentSampleID", attribute=True)
 
-    def is_crystal_harvested(self, crystal_uuid: str) -> str:
+    def is_crystal_harvested(self, crystal_uuid: str) -> bool:
         """Check Whether if the current crystal is harvested
 
-        args: the crystal uuid
-
-        Return (bool):  True if the crystal is the current harvested crystal
+        Args:
+            crystal_uuid: the crystal uuid
+        Returns:
+            True if the crystal is the current harvested crystal.
         """
-        res = False
-        in_list = crystal_uuid in self.get_crystal_uuids()
-        if in_list:
-            Current_SampleID = self.get_current_crystal()
-            if crystal_uuid == Current_SampleID:
-                res = True
-        return res
+        if crystal_uuid in self.get_crystal_uuids():
+            current_sample_id = self.get_current_crystal()
+            if crystal_uuid == current_sample_id:
+                return True
+        return False
 
     def current_crystal_state(self, crystal_uuid: str) -> str:
         """get current crystal state
@@ -542,7 +536,7 @@ class Harvester(HardwareObject):
         wait_before_load = not self.get_room_temperature_mode()
 
         if self.get_number_of_available_pin() > 0:
-            gevent.sleep(2)
+            sleep(2)
 
             if current_queue_index == 0:
                 logging.getLogger("user_level_log").info("Harvesting First Sample")
@@ -553,7 +547,7 @@ class Harvester(HardwareObject):
                 if harvest_res is False:
                     # if sample could not be Harvest, but no exception is raised, let's skip the sample
                     logging.getLogger("user_level_log").error(
-                        "Harvester could not Harvest sample, Stopping queue"
+                        "Harvester could not harvest sample, Stopping queue"
                     )
             else:
                 logging.getLogger("user_level_log").info("checking last Harvesting")
@@ -565,19 +559,16 @@ class Harvester(HardwareObject):
                     logging.getLogger("user_level_log").error(
                         "There is no more Pins in the Harvester, Stopping queue"
                     )
-        elif self.get_number_of_available_pin() == 0 and self._ready_to_transfer():
+        elif self.get_number_of_available_pin() == 0 and self._ready_to_transfer:
             logging.getLogger("user_level_log").warning(
-                "Warning: Harvester pins is approaching to ZERO"
-            )
-            logging.getLogger("user_level_log").warning(
-                "Warning: Mounting last Sample, Queue will stop on next one"
+                "Mounting the last Sample, Queue will stop on next one"
             )
             # in this case we just load the sample that is ready in the Harester
             harvest_res = True
         else:
             # raise Not enough pins available in the pin provider
             logging.getLogger("user_level_log").error(
-                "There is no more Pins in the Harvester, Stopping queue"
+                "No more Pins left in the Harvester, Stopping queue"
             )
 
         return harvest_res
@@ -651,7 +642,7 @@ class Harvester(HardwareObject):
                 except RuntimeError:
                     return False
 
-            elif self._ready_to_transfer():
+            elif self._ready_to_transfer:
                 try:
                     if (
                         self.current_crystal_state(sample_uuid)

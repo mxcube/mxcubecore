@@ -35,7 +35,7 @@ from typing import (
     List,
 )
 
-import gevent
+from gevent import spawn, Timeout, sleep
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.EMBLFlexHCD import EMBLFlexHCD
@@ -48,11 +48,10 @@ from mxcubecore.TaskUtils import task
 
 
 class EMBLFlexHarvester(EMBLFlexHCD):
-    """EMBLFlexHarvester is the Hardware Object interface for the EMBL Flex Sample Changer
-    It inherits from EMBLFlexHCD and implements the Harvester interface.
+    """ Implement the MBL Harvester interface as Flex sample changer"
     """
 
-    __TYPE__ = "Flex Sample Changer"
+    __TYPE__ = "EMBL Harvester Sample Changer"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -66,7 +65,7 @@ class EMBLFlexHarvester(EMBLFlexHCD):
         self._loaded_sample = (-1, -1, -1)
         self._harvester_hwo = self.get_object_by_role("harvester")
 
-        EMBLFlexHCD.init(self)
+        super().init()
 
     def get_room_temperature_mode(self) -> bool:
         """Get the Harvester Room Temperature Mode"""
@@ -96,9 +95,9 @@ class EMBLFlexHarvester(EMBLFlexHCD):
             ha_sample_lists = self._harvester_hwo.get_crystal_uuids()
             ha_sample_names = self._harvester_hwo.get_sample_names()
             ha_sample_states = self._harvester_hwo.get_samples_state()
-        except Exception as e:
+        except Exception as err:
             self.user_log.error(
-                "Failed retrieving sample metadata from Harvester: %s", e
+                f"Failed retrieving sample metadata from Harvester: {err}"
             )
             return present_sample_list
 
@@ -173,7 +172,7 @@ class EMBLFlexHarvester(EMBLFlexHCD):
             self.prepare_load()
             self.enable_power()
 
-            load_task = gevent.spawn(
+            load_task = spawn(
                 self._execute_cmd_exporter,
                 "loadSampleFromHarvester",
                 self.pin_cleaning,
@@ -182,12 +181,12 @@ class EMBLFlexHarvester(EMBLFlexHCD):
 
             self._wait_busy(30)
             err_msg = "Timeout while waiting to sample to be loaded"
-            with gevent.Timeout(600, RuntimeError(err_msg)):
+            with Timeout(600, RuntimeError(err_msg)):
                 while not load_task.ready():
                     logging.getLogger("user_level_log").info("wait loading task")
-                    gevent.sleep(2)
+                    sleep(2)
 
-            with gevent.Timeout(600, RuntimeError(err_msg)):
+            with Timeout(600, RuntimeError(err_msg)):
                 while True:
                     logging.getLogger("user_level_log").info("Wait Robot Safe position")
                     is_safe = self._execute_cmd_exporter(
@@ -195,27 +194,22 @@ class EMBLFlexHarvester(EMBLFlexHCD):
                     )
                     if is_safe:
                         break
-                    gevent.sleep(2)
+                    sleep(2)
             return True
         except RuntimeError:
             return False
 
     def start_harvester_centring(self):
+        logging.getLogger("user_level_log").info("Start Auto Harvesting Centring")
         try:
-            dm = HWR.beamline.diffractometer
-
-            logging.getLogger("user_level_log").info("Start Auto Harvesting Centring")
 
             computed_offset = HWR.beamline.harvester.get_offsets_for_sample_centring()
-            dm.start_harvester_centring(computed_offset)
+            HWR.beamline.sample_view.start_harvester_centring(computed_offset)
 
         except Exception as exc:
-            logging.getLogger("user_level_log").exception(
-                "Could not center sample, skipping"
-            )
-            raise QueueExecutionException(
-                "Could not center sample, skipping", self
-            ) from exc
+            msg = "Could not center sample, skipping"
+            logging.getLogger("user_level_log").exception(msg)
+            raise QueueExecutionException(msg, self) from exc
 
     def _set_loaded_sample_and_prepare(self, loaded_sample_tup, previous_sample_tup):
         res = False
@@ -272,7 +266,7 @@ class EMBLFlexHarvester(EMBLFlexHCD):
         logging.getLogger("user_level_log").info(
             "Start loading from harvester SAMPLE_UUID %s", sample_uuid
         )
-        load_task = gevent.spawn(
+        load_task = spawn(
             self._execute_cmd_exporter,
             "loadSampleFromHarvester",
             sample_uuid,
@@ -296,13 +290,13 @@ class EMBLFlexHarvester(EMBLFlexHCD):
         #  Wait for sample to be loaded
         err_msg = "Timeout while waiting to sample to be loaded"
         try:
-            with gevent.Timeout(600, RuntimeError(err_msg)):
+            with Timeout(600, RuntimeError(err_msg)):
                 while not load_task.ready():
                     logging.getLogger("user_level_log").info("Wait loading task")
                     loaded_sample = self._hw_get_mounted_crystal_id()
                     if loaded_sample == sample_uuid:
                         break
-                    gevent.sleep(2)
+                    sleep(2)
         except RuntimeError:
             logging.getLogger("user_level_log").error(err_msg)
             return False
@@ -314,14 +308,14 @@ class EMBLFlexHarvester(EMBLFlexHCD):
         #  Wait for robot to be in safe state
         err_msg = "Timeout while waiting for robot to be in safe state"
         try:
-            with gevent.Timeout(600, RuntimeError(err_msg)):
+            with Timeout(600, RuntimeError(err_msg)):
                 while True:
                     is_safe = self._execute_cmd_exporter(
                         "getRobotIsSafe", attribute=True
                     )
                     if is_safe:
                         break
-                    gevent.sleep(2)
+                    sleep(2)
         except RuntimeError:
             logging.getLogger("user_level_log").error(err_msg)
             return False
