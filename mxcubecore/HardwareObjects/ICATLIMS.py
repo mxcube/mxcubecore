@@ -592,9 +592,7 @@ class ICATLIMS(AbstractLims):
         except (TypeError, ValueError):
             return None
 
-    def set_active_session_by_id(
-        self, session_id: str, username: str
-    ) -> Session:
+    def set_active_session_by_id(self, session_id: str) -> Session:
         logger.debug(f"set_active_session_by_id: {session_id}")
 
         if self.is_session_already_active(self.session_manager.active_session):
