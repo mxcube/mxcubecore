@@ -49,11 +49,7 @@ class ISPyBLims(UserTypeISPyBLims):
             return False, str(ex)
         return True, None
 
-    def set_active_session_by_id(
-        self,
-        session_id: str,
-        username: str | None = None,  # noqa: ARG002
-    ) -> Session:
+    def set_active_session_by_id(self, session_id: str) -> Session:
         """
         Sets session with session_id to active session
 

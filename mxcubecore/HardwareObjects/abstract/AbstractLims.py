@@ -463,9 +463,7 @@ class AbstractLims(HardwareObject, abc.ABC):
         """
         return self.session_manager.active_session
 
-    def set_active_session_by_id(
-        self, session_id: str, username: str | None = None
-    ) -> Session:
+    def set_active_session_by_id(self, session_id: str) -> Session:
         """
         Sets session with session_id to active session
 

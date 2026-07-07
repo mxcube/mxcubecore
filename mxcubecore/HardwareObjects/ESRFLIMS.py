@@ -61,7 +61,7 @@ class ESRFLIMS(AbstractLims):
                 "Single session available which will be selected automatically. session_id=%s"
                 % (single_session.session_id)
             )
-            self.set_active_session_by_id(single_session.session_id, user_name)
+            self.set_active_session_by_id(single_session.session_id)
 
         if session_manager.active_session is None:
             logger.debug(
@@ -171,10 +171,11 @@ class ESRFLIMS(AbstractLims):
 
     def is_session_already_active(self, session_id: str) -> bool:
         return self.drac.is_session_already_active(session_id)
+    
+    def set_active_user(self, username: str):
+        self.drac.set_active_user(username)
 
-    def set_active_session_by_id(
-        self, session_id: str, username: str
-    ) -> Session:
+    def set_active_session_by_id(self, session_id: str) -> Session:
         logger.debug("set_active_session_by_id. session_id=%s", str(session_id))
 
         if self.drac.session_manager.active_session is not None:
@@ -182,7 +183,7 @@ class ESRFLIMS(AbstractLims):
                 if self.drac.session_manager.active_session.session_id == session_id:
                     return self.drac.session_manager.active_session
 
-        session = self.drac.set_active_session_by_id(session_id, username)
+        session = self.drac.set_active_session_by_id(session_id)
 
         # Check that session is not active already
 
