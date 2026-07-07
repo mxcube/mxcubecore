@@ -89,6 +89,8 @@ class SSXICATLIMS(ICATLIMS):
                 "detector_id": HWR.beamline.detector.get_property("detector_id"),
                 "experimentType": collection_parameters.common_parameters.type,
                 "Experiment_name": collection_parameters.path_parameters.experiment_name,  # noqa: E501
+                "SSX_experiment_type": collection_parameters.common_parameters.type,
+                "SSX_experiment_name": collection_parameters.path_parameters.experiment_name,  # noqa: E501
             }
 
             data.update(collection_parameters.user_collection_parameters.dict())
