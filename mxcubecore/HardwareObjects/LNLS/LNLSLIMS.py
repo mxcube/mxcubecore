@@ -1,7 +1,3 @@
-"""
-A client for ISPyB Webservices.
-"""
-
 from pyicat_plus.client.main import IcatClient
 
 from mxcubecore.HardwareObjects.ICATLIMS import ICATLIMS
@@ -15,7 +11,7 @@ class LNLSLIMS(ICATLIMS):
         self.samples = []
 
         self.icatClient = IcatClient(
-            icatplus_restricted_url="https://icat-plus.cnpem.br"
+            icatplus_restricted_url="https://icat-plus2.cnpem.br"
         )
 
     def is_single_session_available(self):
@@ -35,6 +31,7 @@ class LNLSLIMS(ICATLIMS):
 
     def login(self, user_name, token, is_local_host):
         self.is_local_host = is_local_host
+        self.session_manager.active_session = None
         session_manager, lims_username, sessions = super().login(
             user_name, token, self.session_manager
         )
@@ -44,4 +41,11 @@ class LNLSLIMS(ICATLIMS):
             single_session = self.session_manager.sessions[0]
             self.set_active_session_by_id(single_session.session_id)
 
+        self.session_manager.active_session = None
         return session_manager
+
+    def get_active_lims(self):
+        return self.get_lims_name()[0]
+
+    def finalize_data_collection(self, data_collect_parameters):
+        return
