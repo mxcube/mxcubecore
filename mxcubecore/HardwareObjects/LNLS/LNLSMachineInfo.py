@@ -51,28 +51,34 @@ class LNLSMachineInfo(AbstractMachineInfo):
         return self.get_channel_value("current")
 
     def get_message(self) -> str:
-        mode_ring = self.get_channel_value("message")
-        if 0 <= mode_ring <= 9:
-            mode_ring = str(mode_ring)
-            values = {
-                "0": "Users",
-                "1": "Commissioning",
-                "2": "Conditioning",
-                "3": "Injection",
-                "4": "Machine Study",
-                "5": "Maintenance",
-                "6": "Standby",
-                "7": "Shutdown",
-                "8": "MachineStartup",
-                "9": "BLComissioning",
-            }
-            return values[mode_ring]
+        try:
+            mode_ring = self.get_channel_value("message")
+            if 0 <= mode_ring <= 9:
+                mode_ring = str(mode_ring)
+                values = {
+                    "0": "Users",
+                    "1": "Commissioning",
+                    "2": "Conditioning",
+                    "3": "Injection",
+                    "4": "Machine Study",
+                    "5": "Maintenance",
+                    "6": "Standby",
+                    "7": "Shutdown",
+                    "8": "MachineStartup",
+                    "9": "BLComissioning",
+                }
+                return values[mode_ring]
+        except TypeError:
+            pass
         return "UNKNOWN"
 
     def get_lifetime(self) -> str:
-        hour = int(self.get_channel_value("lifetime") / 3600)
-        minute = int(((hour * 60) % 60))
-        return f"{hour}:{minute}"
+        try:
+            hour = int(self.get_channel_value("lifetime") / 3600)
+            minute = int(((hour * 60) % 60))
+            return f"{hour}:{minute}"
+        except TypeError:
+            return "00:00"
 
     def get_fill_mode(self) -> str:
         return self.get_channel_value("fill_mode")
