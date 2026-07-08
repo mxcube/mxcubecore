@@ -102,6 +102,8 @@ class OxfordCryostream(AbstractActuator):
 
         self._monitor_obj = self.get_object_by_role("monitor_temperature")
         self.temp_threshold = self.get_property("temperature_threshold", 0.0)
+        if None not in self.get_limits():
+            self.temp_threshold = max(self.get_limits())
 
     def force_emit_signals(self):
         """Forces to emit all signals."""

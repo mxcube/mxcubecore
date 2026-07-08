@@ -848,7 +848,7 @@ class ICATLIMS(AbstractLims):
 
     def store_common_data(self, datacollection_dict: dict) -> dict:
         """Fill in a dictionary with the common for all the
-           data collection tecjniques meta data.
+           data collection techniques meta data.
         Args:
             datacollection_dict(dict): dictionarry from the data collection.
         """
@@ -916,6 +916,17 @@ class ICATLIMS(AbstractLims):
         except RuntimeError as e:
             logger.warning("Failed to set __actualInstrument. %s", e)
 
+        cryo_temperature = None
+        if hasattr(HWR.beamline, "cryo"):
+            try:
+                cryo = HWR.beamline.cryo
+                cryo_temperature = cryo.get_value()
+                limits = cryo.get_limits()
+                if None not in limits and cryo_temperature > max(limits):
+                    cryo_temperature = "room temperature"
+            except RuntimeError:
+                cryo_temperature = None
+
         result = {
             "Sample_name": sample_name,
             "startDate": start_time,
@@ -934,6 +945,7 @@ class ICATLIMS(AbstractLims):
             "InstrumentMonochromator_energy": energy,
             "InstrumentSource_current": machine_info.get("current"),
             "InstrumentSource_mode": machine_info.get("fill_mode"),
+            "InstrumentCryostat01_value": cryo_temperature,
         }
         if actual_instrument is not None:
             result["__actualInstrument"] = actual_instrument
