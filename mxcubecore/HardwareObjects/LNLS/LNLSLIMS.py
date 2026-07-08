@@ -11,7 +11,7 @@ class LNLSLIMS(ICATLIMS):
         self.samples = []
 
         self.icatClient = IcatClient(
-            icatplus_restricted_url="https://icat-plus2.cnpem.br"
+            icatplus_restricted_url=self.get_property("icatplus_restricted_url")
         )
 
     def is_single_session_available(self):
