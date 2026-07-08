@@ -17,6 +17,7 @@ Developer documentation
     configuration_files
     commands_channels
     queue
+    architecture
     abstract_classes
     api
     json-schema-generated-user-interface

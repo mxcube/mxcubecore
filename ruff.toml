@@ -380,11 +380,6 @@ convention = "google"
     "B006",
     "S301",
 ]
-"mxcubecore/HardwareObjects/EMBLFlexHarvester.py" = [
-    "B904",
-    "E501",
-    "E712",
-]
 "mxcubecore/HardwareObjects/ESRF/BlissHutchTrigger.py" = [
     "B904",
 ]
@@ -511,12 +506,6 @@ convention = "google"
     "B006",
     "B905",
     "F841",
-]
-"mxcubecore/HardwareObjects/Harvester.py" = [
-    "E501",
-]
-"mxcubecore/HardwareObjects/HarvesterMaintenance.py" = [
-    "E501",
 ]
 "mxcubecore/HardwareObjects/ICATLIMS.py" = [
     "E501",
