@@ -10,6 +10,7 @@ class LNLSDiffractometer(AbstractDiffractometer):
         AbstractDiffractometer.init(self)
         self._bluesky_api = HWR.beamline.get_object_by_role("bluesky")
         self.current_phase = DiffractometerPhase.UNKNOWN
+        self.set_is_ready(True)
 
     def get_pixels_per_mm(self):
         return (1, 1)

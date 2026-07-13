@@ -11,7 +11,6 @@ class LNLSSampleView(SampleView):
         SampleView.init(self)
         self.user_level_log = logging.getLogger("user_level_log")
         self._bluesky_api = HWR.beamline.get_object_by_role("bluesky")
-        self.update_state(self.STATES.READY)
 
     def move_to_beam(self, x, y, omega=None):
         self.user_level_log.info("Moving to beam...")
@@ -31,7 +30,6 @@ class LNLSSampleView(SampleView):
         for step in range(nb_click):
             self.user_level_log.info(f"Step {step + 1} of 3...")
             self.user_clicked_event = AsyncResult()
-            self.waiting_for_click = True
             x, y = self.user_clicked_event.get()
             self._bluesky_api.execute_plan(
                 plan_name="manual_alignment",
