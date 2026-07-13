@@ -9,30 +9,8 @@ class LNLSDiffractometer(AbstractDiffractometer):
     def init(self):
         AbstractDiffractometer.init(self)
         self._bluesky_api = HWR.beamline.get_object_by_role("bluesky")
-        self.pixels_per_mm_x = 10**-4
-        self.pixels_per_mm_y = 10**-4
-        self.beam_position = [318, 238]
-        self.in_plate_mode = False
-        self.last_centred_position = self.beam_position
-        self.current_motor_positions = {
-            "phiy": 0,
-            "sampx": 0,
-            "sampy": 0,
-            "zoom": 0,
-            "focus": 0,
-            "phiz": 0,
-            "omega": 0,
-            "kappa": 0,
-            "kappa_phi": 0,
-        }
-
-        self.centring_time = 0
-        self.mount_mode = self.get_property("sample_mount_mode")
-        if self.mount_mode is None:
-            self.mount_mode = "manual"
-
-    def is_ready(self) -> bool:
-        return True
+        self.current_motor_positions = {}
+        self.current_phase = DiffractometerPhase.UNKNOWN
 
     def manual_centring(self):
         self.log.info("Initializing manual sample alignment...")
@@ -65,19 +43,6 @@ class LNLSDiffractometer(AbstractDiffractometer):
             },
         )
         self.log.info("Move to beam has finished...")
-
-    def motor_positions_to_screen(self, motor_positions):
-        return self.beam_position
-
-    def get_value_motors(self):
-        return self.current_motor_positions
-
-    def get_phase(self):
-        unknown_phase = DiffractometerPhase.UNKNOWN
-        phase = self.get_current_phase()
-        if not phase:
-            phase = unknown_phase
-        return phase
-
-    def get_chip_configuration(self):
-        return None
+    
+    def get_pixels_per_mm(self):
+        return (1, 1)
