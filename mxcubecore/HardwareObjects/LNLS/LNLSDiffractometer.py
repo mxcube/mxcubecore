@@ -1,20 +1,13 @@
-import time
-
 from gevent.event import AsyncResult
 
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.HardwareObjects.GenericDiffractometer import (
-    GenericDiffractometer,
-    PhaseEnum,
-)
+from mxcubecore.HardwareObjects.abstract.AbstractDiffractometer import AbstractDiffractometer, DiffractometerPhase
 
 
-class LNLSDiffractometer(GenericDiffractometer):
-    def __init__(self, name):
-        GenericDiffractometer.__init__(self, name)
+class LNLSDiffractometer(AbstractDiffractometer):
 
     def init(self):
-        GenericDiffractometer.init(self)
+        AbstractDiffractometer.init(self)
         self._bluesky_api = HWR.beamline.get_object_by_role("bluesky")
         self.pixels_per_mm_x = 10**-4
         self.pixels_per_mm_y = 10**-4
@@ -80,7 +73,7 @@ class LNLSDiffractometer(GenericDiffractometer):
         return self.current_motor_positions
 
     def get_phase(self):
-        unknown_phase = PhaseEnum.unknown
+        unknown_phase = DiffractometerPhase.UNKNOWN
         phase = self.get_current_phase()
         if not phase:
             phase = unknown_phase
