@@ -11,6 +11,8 @@ class LNLSDiffractometer(AbstractDiffractometer):
         self._bluesky_api = HWR.beamline.get_object_by_role("bluesky")
         self.current_phase = DiffractometerPhase.UNKNOWN
         self.update_state(self.STATES.READY)
+        self.connect(self.sampx, "valueChanged", self.sampx.update_grid_value)
+        self.connect(self.sampy, "valueChanged", self.sampy.update_grid_value)
 
     def get_pixels_per_mm(self):
         zoom_enum = self.zoom.get_value()
@@ -22,7 +24,7 @@ class LNLSDiffractometer(AbstractDiffractometer):
         return (pixel_per_mm_x, pixel_per_mm_y)
 
     def save_centring_positions(self):
-        return
+        self.update_state(self.STATES.READY)
 
     def wait_status_ready(self, timeout=None):
         return True
