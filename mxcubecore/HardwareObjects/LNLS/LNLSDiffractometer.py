@@ -28,7 +28,7 @@ class LNLSDiffractometer(GenericDiffractometer):
             "zoom": 0,
             "focus": 0,
             "phiz": 0,
-            "phi": 0,
+            "omega": 0,
             "kappa": 0,
             "kappa_phi": 0,
         }
@@ -38,60 +38,8 @@ class LNLSDiffractometer(GenericDiffractometer):
         if self.mount_mode is None:
             self.mount_mode = "manual"
 
-        self.connect(self.motor_hwobj_dict["phi"], "valueChanged", self.phi_motor_moved)
-        self.connect(
-            self.motor_hwobj_dict["phiy"], "valueChanged", self.phiy_motor_moved
-        )
-        self.connect(
-            self.motor_hwobj_dict["phiz"], "valueChanged", self.phiz_motor_moved
-        )
-        self.connect(
-            self.motor_hwobj_dict["kappa"], "valueChanged", self.kappa_motor_moved
-        )
-        self.connect(
-            self.motor_hwobj_dict["kappa_phi"],
-            "valueChanged",
-            self.kappa_phi_motor_moved,
-        )
-        self.connect(
-            self.motor_hwobj_dict["sampx"], "valueChanged", self.sampx_motor_moved
-        )
-        self.connect(
-            self.motor_hwobj_dict["sampy"], "valueChanged", self.sampy_motor_moved
-        )
-
     def is_ready(self) -> bool:
         return True
-
-    def phi_motor_moved(self, pos):
-        self.current_motor_positions["phi"] = pos
-        self.emit("phiMotorMoved", pos)
-
-    def phiy_motor_moved(self, pos):
-        self.current_motor_positions["phiy"] = pos
-
-    def phiz_motor_moved(self, pos):
-        self.current_motor_positions["phiz"] = pos
-
-    def sampx_motor_moved(self, pos):
-        self.current_motor_positions["sampx"] = pos
-
-    def sampy_motor_moved(self, pos):
-        self.current_motor_positions["sampy"] = pos
-
-    def kappa_motor_moved(self, pos):
-        self.current_motor_positions["kappa"] = pos
-        if time.time() - self.centring_time > 1.0:
-            self.invalidate_centring()
-        self.emit_diffractometer_moved()
-        self.emit("kappaMotorMoved", pos)
-
-    def kappa_phi_motor_moved(self, pos):
-        self.current_motor_positions["kappa_phi"] = pos
-        if time.time() - self.centring_time > 1.0:
-            self.invalidate_centring()
-        self.emit_diffractometer_moved()
-        self.emit("kappaPhiMotorMoved", pos)
 
     def manual_centring(self):
         self.log.info("Initializing manual sample alignment...")
