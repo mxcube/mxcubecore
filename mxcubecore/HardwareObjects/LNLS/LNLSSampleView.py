@@ -1,4 +1,5 @@
 import logging
+
 from gevent.event import AsyncResult
 
 from mxcubecore import HardwareRepository as HWR
@@ -6,13 +7,12 @@ from mxcubecore.HardwareObjects.SampleView import SampleView
 
 
 class LNLSSampleView(SampleView):
-
     def init(self):
         SampleView.init(self)
         self.user_level_log = logging.getLogger("user_level_log")
         self._bluesky_api = HWR.beamline.get_object_by_role("bluesky")
 
-    def move_to_beam(self, x, y, omega=None):
+    def move_to_beam(self, x, y):
         self.user_level_log.info("Moving to beam...")
 
         beam_pos = HWR.beamline.beam.get_beam_position_on_screen()
