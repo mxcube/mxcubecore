@@ -166,8 +166,10 @@ class NICOSConnection(NicosClient):
         self.disconnect()
 
 
-def connect_to_nicos(host, port, user, password):
+def connect_to_nicos(host, port, user, password="any"):
     """Returns a connection to NICOS."""
+    if password is None or len(password) == 0:
+        raise Exception("Error: a password should be set.")
     line = "/connect {} {} {} {}".format(host, port, user, password)
     nicos_conn = NICOSConnection()
     nicos_conn.start_connection(line)
