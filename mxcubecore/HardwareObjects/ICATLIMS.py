@@ -75,6 +75,8 @@ class ICATLIMS(AbstractLims):
 
     @property
     def _icat_client(self):
+        self.log.info("Using ICAT client for user: %s", self._active_user)
+        self.log.info("ICAT clients are: %s", str(self._icat_client_dict.values()))
         return self._icat_client_dict[self._active_user]
 
     @property
