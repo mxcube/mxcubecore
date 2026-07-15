@@ -210,7 +210,7 @@ physical hardware.
 
 ## Configuration
 
-### Beamline objects
+### Beamline object
 
 Enable the integration by declaring three hardware objects in the beamline
 configuration:
