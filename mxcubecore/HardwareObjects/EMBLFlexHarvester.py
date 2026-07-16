@@ -114,7 +114,7 @@ class EMBLFlexHarvester(EMBLFlexHCD):
             img_target_y = self._harvester_hwo.get_image_target_y(x_tal_uuid)
 
             # Enrich sample object in MXCuBE
-            sample.id = x_tal_uuid
+            sample.set_id(x_tal_uuid)
             sample.state = ha_sample_states[index]
 
             sample._set_image_url(img_url)
@@ -369,9 +369,8 @@ class EMBLFlexHarvester(EMBLFlexHCD):
         samples_list = self.get_sample_list()
         sample_uuid = None
         for s in samples_list:
-            # it seems get_id() was broken
-            if s.get_address() == sample_loc_str or s.id == sample_loc_str:
-                sample_uuid = s.id
+            if s.get_address() == sample_loc_str or s.get_id() == sample_loc_str:
+                sample_uuid = s.get_id()
 
                 return sample_uuid
         return sample_uuid
