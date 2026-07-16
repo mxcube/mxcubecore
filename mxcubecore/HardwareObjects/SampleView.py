@@ -463,7 +463,9 @@ class SampleView(AbstractSampleView):
 
         # next two motors are not part of the centring motors
         # we move them separately
-        diffr.motors_hwobj_dict["sample_focus"].set_value_relative(_offsets[1])
+        diffr.motors_hwobj_dict["sample_focus"].set_value_relative(
+            _offsets[1], timeout=60
+        )
         diffr.motors_hwobj_dict["sample_vertical"].set_value_relative(_offsets[2])
 
         diffr.wait_status_ready(10)
