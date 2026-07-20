@@ -12,8 +12,10 @@ import logging
 
 import gevent
 
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore import queue_entry
 from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.model import queue_model_objects
 from mxcubecore.model.queue_model_enumerables import CENTRING_METHOD
 from mxcubecore.queue_entry import base_queue_entry
 from mxcubecore.queue_entry.base_queue_entry import QUEUE_ENTRY_STATUS
@@ -406,6 +408,181 @@ class QueueManager(HardwareObject, QueueEntryContainer):
 
                 if result:
                     return result
+
+    def get_entry(self, node_id):
+        """
+        Retrieve the model and the queue entry for the model node with id
+        <node_id>.
+
+        :param int node_id: Node id of node to retrieve
+        :returns: The tuple (model, entry)
+        :rtype: Tuple
+        """
+        if node_id is None:
+            dummy_variable = "Cannot retrieve entry without a node id"
+            raise ValueError(dummy_variable)
+
+        model = HWR.beamline.queue_model.get_node(int(node_id))
+        entry = self.get_entry_with_model(model)
+        return model, entry
+
+    def get_entry_status(self, node_id):
+        """
+        Get the current execution status for the queue entry associated
+        with the model node <node_id>.
+
+        :param int node_id: Node id of the model node, or None.
+        :returns: (enabled, is_executed, is_running, status), where status
+                  is one of the QUEUE_ENTRY_STATUS values.
+        :rtype: Tuple
+        """
+        if node_id is None:
+            return True, False, False, None
+
+        model, entry = self.get_entry(node_id)
+
+        enabled = model.is_enabled()
+        curr_entry = self.get_current_entry()
+        running = self.is_executing() and (
+            curr_entry == entry or curr_entry == entry._parent_container
+        )
+
+        return enabled, model.is_executed(), running, entry.status
+
+    def enable_entry(self, id_or_qentry, flag):
+        """
+        Helper function that sets the enabled flag for one or more entries
+        and their models.
+
+        Accepts a single item, or a list of items, where each item is
+        either a model node id or a QueueEntry object.
+
+        :param object id_or_qentry: Node id, QueueEntry object, or a list
+                                     of either.
+        :param bool flag: True for enabled False for disabled
+        """
+        items = id_or_qentry if isinstance(id_or_qentry, list) else [id_or_qentry]
+
+        for item in items:
+            if isinstance(item, base_queue_entry.BaseQueueEntry):
+                entry, model = item, item.get_data_model()
+            else:
+                model, entry = self.get_entry(item)
+
+            entry.set_enabled(flag)
+            model.set_enabled(flag)
+
+    def _delete_entry(self, entry):
+        """Helper function that deletes an entry and its model from the queue."""
+        parent_entry = entry.get_container()
+        parent_entry.dequeue(entry)
+        model = entry.get_data_model()
+        HWR.beamline.queue_model.del_child(model.get_parent(), model)
+        logging.getLogger("HWR").info(
+            "[DELETE QUEUE] FROM:\n%s " % model.get_parent().get_name()
+        )
+
+    def delete_entry_at(self, item_pos_list):
+        """
+        Deletes the queue entries at the given (sample_id, task_index)
+        positions.
+
+        :param list item_pos_list: List of [sample_id, task_index] pairs.
+                                    task_index may be None/"undefined" to
+                                    refer to the sample entry itself.
+        """
+        for sid, tindex in item_pos_list:
+            if tindex in ("undefined", None):
+                model = HWR.beamline.queue_model.get_sample_by_loc_str(sid)
+            else:
+                model = HWR.beamline.queue_model.get_node_at_task_index(
+                    sid, int(tindex)
+                )
+
+            entry = self.get_entry_with_model(model)
+
+            if tindex not in ("undefined", None) and not isinstance(
+                entry, queue_entry.TaskGroupQueueEntry
+            ):
+                # Get the TaskGroup of the item, there is currently only one
+                # task per TaskGroup so we have to remove the entire
+                # TaskGroup with its task.
+                entry = entry.get_container()
+
+            self._delete_entry(entry)
+
+    def swap_task_entry(self, sid, ti1, ti2):
+        """
+        Swap order of two queue entries in the queue, with the same sample
+        <sid> as parent.
+
+        :param str sid: Sample id
+        :param int ti1: Position of task1 (old position)
+        :param int ti2: Position of task2 (new position)
+        """
+        sample_model = HWR.beamline.queue_model.get_sample_by_loc_str(sid)
+        sentry = self.get_entry_with_model(sample_model)
+
+        # Swap the order in the queue model
+        ti2_temp_model = sample_model.get_children()[ti2]
+        sample_model._children[ti2] = sample_model._children[ti1]
+        sample_model._children[ti1] = ti2_temp_model
+
+        # Swap queue entry order
+        ti2_temp_entry = sentry._queue_entry_list[ti2]
+        sentry._queue_entry_list[ti2] = sentry._queue_entry_list[ti1]
+        sentry._queue_entry_list[ti1] = ti2_temp_entry
+
+    def enable_sample_entries(self, sample_id_list, flag):
+        """
+        Sets the enabled flag for the entries of the samples in
+        <sample_id_list>.
+
+        :param list sample_id_list: List of sample location strings.
+        :param bool flag: True for enabled, False for disabled.
+        """
+        node_ids = [
+            HWR.beamline.queue_model.get_sample_by_loc_str(sample_id)._node_id
+            for sample_id in sample_id_list
+        ]
+        self.enable_entry(node_ids, flag)
+
+    def set_auto_add_diff_plan_for_characterisations(self, autoadd):
+        """
+        Propagates the auto add diffraction plan flag to the queue entries
+        of all Characterisation nodes currently in the queue.
+
+        :param bool autoadd: True autoadd, False wait for user
+        """
+        for node in HWR.beamline.queue_model.get_nodes():
+            if isinstance(node, queue_model_objects.Characterisation):
+                entry = self.get_entry_with_model(node)
+
+                if entry is not None:
+                    entry.auto_add_diff_plan = autoadd
+
+    def last_queue_node(self):
+        """
+        Gets the node index information for the node currently being
+        executed.
+
+        :returns: dict as returned by QueueModel.node_index, plus "node".
+        :rtype: dict
+        """
+        node = self._current_queue_entries[-1].get_data_model()
+
+        # Reference collections (created for a Characterisation) are
+        # orphans in the flattened task list - the node of interest there is
+        # the Characterisation itself, not the reference collection.
+
+        if "ref" in node.get_name():
+            parent = node.get_parent()
+            node = parent._children[0]
+
+        res = HWR.beamline.queue_model.node_index(node)
+        res["node"] = node
+
+        return res
 
     def execute_entry(self, entry, use_async=False):
         """

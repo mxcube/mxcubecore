@@ -26,8 +26,10 @@ retrieving nodes are all done via this object. It is possible to
 handle several models by using register_model and select_model.
 """
 
+import contextlib
 import json
 import logging
+from unittest.mock import Mock
 
 import jsonpickle
 
@@ -166,6 +168,16 @@ class QueueModel(HardwareObject):
             parent._children.append(child)
             child._set_name(child._name)
             self.emit("child_added", (parent, child))
+
+            # A more specific signal than child_added, for listeners that
+            # only care about samples entering the queue (e.g. mxcubeweb
+            # registering a manually-added sample in the web UI's sample
+            # list) regardless of which code path added it. Fired after
+            # child_added, so any child_added listener that creates this
+            # sample's QueueEntry (see queue_model_child_added) has already
+            # run by the time sample_added listeners see it.
+            if isinstance(child, queue_model_objects.Sample):
+                self.emit("sample_added", (child,))
         else:
             raise TypeError("Expected type TaskNode, got %s " % str(type(child)))
 
@@ -210,6 +222,93 @@ class QueueModel(HardwareObject):
 
                 if result:
                     return result
+
+    def get_sample_by_loc_str(self, loc_str):
+        """
+        Finds the Sample node with location string <loc_str>, directly
+        under the selected model's root.
+
+        :param loc_str: The sample's location string (Sample.loc_str).
+        :type loc_str: str
+
+        :returns: The Sample node, or None if not found.
+        :rtype: Sample
+        """
+        for child in self.get_model_root().get_children():
+            if (
+                isinstance(child, queue_model_objects.Sample)
+                and child.loc_str == loc_str
+            ):
+                return child
+
+        return None
+
+    def _get_flattened_task_list(self, sample_model):
+        """
+        Builds the "flattened" task list for <sample_model> used by
+        node_index and get_node_at_task_index
+        """
+        tlist = []
+
+        for group in sample_model.get_children():
+            # interleaved TaskGroups count as a single task,
+            if group.interleave_num_images:
+                tlist.append(group)
+            else:
+                tlist.extend(group.get_children())
+
+        return tlist
+
+    def get_node_at_task_index(self, loc_str, tindex):
+        """
+        Finds the node at position <tindex> in the task list of
+        the sample with location string <loc_str>
+
+        :param loc_str: The sample's location string.
+        :type loc_str: str
+
+        :param tindex: Index into the sample's task list.
+        :type tindex: int
+
+        :returns: The node at position tindex.
+        :rtype: TaskNode
+        """
+        sample_model = self.get_sample_by_loc_str(loc_str)
+        return self._get_flattened_task_list(sample_model)[tindex]
+
+    def node_index(self, node):
+        """
+        Get the position (index) in the queue, sample and node id of node
+        <node>.
+
+        :returns: dictionary on the form:
+                {'sample': sample, 'idx': index, 'queue_id': node_id}
+        """
+        sample, index, sample_model = None, None, None
+
+        # RootNode nothing to return
+        if isinstance(node, queue_model_objects.RootNode):
+            sample = None
+        # For samples simply return the sampleID
+        elif isinstance(node, queue_model_objects.Sample):
+            sample = node.loc_str
+        # TaskGroup just return the sampleID
+        elif node.get_parent():
+            # NB under GPhL workflow, nodes do not have predictable distance
+            # to their sample node
+            sample_model = node.get_sample_node()
+            sample = sample_model.loc_str
+            tlist = self._get_flattened_task_list(sample_model)
+
+            with contextlib.suppress(Exception):
+                index = tlist.index(node)
+
+        return {
+            "sample": sample,
+            "idx": index,
+            "queue_id": node._node_id,
+            "sample_node": sample_model,
+        }
 
     def del_child(self, parent, child):
         """
@@ -287,6 +386,61 @@ class QueueModel(HardwareObject):
             # else:
             view_item.parent().get_queue_entry().enqueue(qe)
         view_item.update_tool_tip()
+
+    def clear_queue(self):
+        """
+        Clears all models (ispyb, free-pin, plate) and resets the selected
+        model to 'ispyb'.
+        """
+        self.diffraction_plan = {}
+        self.clear_model("ispyb")
+        self.clear_model("free-pin")
+        self.clear_model("plate")
+        self.select_model("ispyb")
+
+    def _get_parent_entry_for_child_added(self, parent):
+        if parent is self.get_model_root():
+            return HWR.beamline.queue_manager
+
+        node_id = parent._node_id
+
+        if node_id is None:
+            dummy_variable = "Trying to add child to unenqueued parent %s" % parent
+            raise ValueError(dummy_variable)
+
+        _, parent_entry = HWR.beamline.queue_manager.get_entry(node_id)
+        return parent_entry
+
+    def queue_model_child_added(self, parent, child):
+        """
+        Listen to the addition of models to the queue model
+        via the 'child_added' event.
+
+        This is the single place a QueueEntry is created for a model
+        node:
+
+        Callers only ever call add_child() to place a model in the
+        tree. Its not necassary to construct or enqueue an entry themselves.
+
+        This method handles the creation of a queue entry for every model
+        type registred in mxcubecore.queue_entry.MODEL_QUEUE_ENTRY_MAPPINGS
+        """
+        entry_cls = queue_entry.MODEL_QUEUE_ENTRY_MAPPINGS.get(type(child))
+
+        if entry_cls is None:
+            return
+
+        parent_entry = self._get_parent_entry_for_child_added(parent)
+        entry = entry_cls(Mock(), child)
+        HWR.beamline.queue_manager.enable_entry(entry, True)
+
+        # DataCollection children (e.g. diffraction-plan collections) can
+        # be added to a TaskGroup that was just created for them and is
+        # not yet enabled - enable the parent entry too in that case.
+        if isinstance(child, queue_model_objects.DataCollection):
+            HWR.beamline.queue_manager.enable_entry(parent_entry, True)
+
+        parent_entry.enqueue(entry)
 
     def get_next_run_number(self, new_path_template, exclude_current=True):
         """
@@ -419,6 +573,18 @@ class QueueModel(HardwareObject):
                 result.append(item)
 
         return result
+
+    def update_dependent_field(self, task_name, data):
+        try:
+            qentry_cls = queue_entry.get_queue_entry_from_task_name(task_name)
+            data_model = getattr(qentry_cls, "DATA_MODEL", None)
+            new_data = json.dumps(data_model.update_dependent_fields(data))
+        except Exception:
+            logging.getLogger("MX3.HWR").exception(
+                f"Could not update depedant fields for {task_name}"
+            )
+
+        return new_data
 
     def save_queue(self, filename=None):
         """Saves queue in the file. Current selected model is saved as a list
