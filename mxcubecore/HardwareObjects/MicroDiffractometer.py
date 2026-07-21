@@ -301,10 +301,14 @@ class MicroDiffractometer(AbstractDiffractometer):
         """
         if self.in_plate_mode:
             scan_speed = abs(end - start) / exptime
-            llim, hlim = map(
-                float,
-                self._exporter.execute("getOmegaMotorDynamicScanLimits", (scan_speed,)),
-            )
+            try:
+                ret = self.scan_limits(scan_speed)
+            except Exception as err:
+                msg = f"Cannor check the scan limits: {err}"
+                self.log.error(msg)
+                raise ValueError(msg) from err
+
+            llim, hlim = map(float, ret)
             if start < llim:
                 msg = f"Scan start below the allowed value {llim}"
                 raise ValueError(msg)
@@ -379,9 +383,9 @@ class MicroDiffractometer(AbstractDiffractometer):
 
         scan_params = f"{start:0.3f}\t{(end - start):0.3f}\t{exptime:0.3f}\t"
 
-        if self.head_otientation == "vertical":
+        if self.head_orientation == "vertical":
             _order = ["phiz", "phiy", "sampx", "sampy"]
-        if self.head_otientation == "horizontal":
+        if self.head_orientation == "horizontal":
             _order = ["phiy", "phiz", "sampx", "sampy"]
 
         for name in _order:
@@ -435,11 +439,11 @@ class MicroDiffractometer(AbstractDiffractometer):
         self.set_value_motors(grid_centre, simultaneous=True, timeout=timeout)
 
         scan_params = f"{(end - start):0.3f}\t"
-        if self.head_otientation == "vertical":
+        if self.head_orientation == "vertical":
             scan_params += f"{mesh_range['vertical_range']:0.3f}\t"
             scan_params += f"{-mesh_range['horizontal_range']:0.3f}\t"
             _order = ["phiz", "phiy", "sampx", "sampy"]
-        if self.head_otientation == "horizontal":
+        if self.head_orientation == "horizontal":
             scan_params += f"{-mesh_range['horizontal_range']:0.3f}\t"
             scan_params += f"{mesh_range['vertical_range']:0.3f}\t"
             _order = ["phiy", "phiz", "sampx", "sampy"]
