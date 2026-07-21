@@ -28,6 +28,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         HardwareObject.__init__(self, name)
         QueueEntryContainer.__init__(self)
         self.centring_method = CENTRING_METHOD.NONE
+        self.auto_add_diff_plan = False
         self._root_task = None
         self._paused_event = gevent.event.Event()
         self._paused_event.set()
@@ -43,6 +44,8 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             queue_entry.import_queue_entries(site_entry_path.split(","))
         else:
             queue_entry.import_queue_entries()
+
+        self.auto_add_diff_plan = self.get_property("auto_add_diff_plan", False)
 
     def __getstate__(self):
         d = dict(self.__dict__)
@@ -547,13 +550,15 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         ]
         self.enable_entry(node_ids, flag)
 
-    def set_auto_add_diff_plan_for_characterisations(self, autoadd):
+    def set_auto_add_diff_plan(self, autoadd):
         """
-        Propagates the auto add diffraction plan flag to the queue entries
-        of all Characterisation nodes currently in the queue.
+        Sets the auto add diffraction plan flag, and propagates it to the
+        queue entries of all Characterisation nodes currently in the queue.
 
         :param bool autoadd: True autoadd, False wait for user
         """
+        self.auto_add_diff_plan = autoadd
+
         for node in HWR.beamline.queue_model.get_nodes():
             if isinstance(node, queue_model_objects.Characterisation):
                 entry = self.get_entry_with_model(node)
