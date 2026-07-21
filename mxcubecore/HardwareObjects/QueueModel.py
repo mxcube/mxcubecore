@@ -29,7 +29,6 @@ handle several models by using register_model and select_model.
 import contextlib
 import json
 import logging
-from unittest.mock import Mock
 
 import jsonpickle
 
@@ -37,6 +36,7 @@ from mxcubecore import HardwareRepository as HWR
 from mxcubecore import queue_entry
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.model import queue_model_objects
+from mxcubecore.utils.view_delegate import ViewDelegate
 
 
 class Serializer(object):
@@ -431,7 +431,7 @@ class QueueModel(HardwareObject):
             return
 
         parent_entry = self._get_parent_entry_for_child_added(parent)
-        entry = entry_cls(Mock(), child)
+        entry = entry_cls(ViewDelegate(self, child._node_id), child)
         HWR.beamline.queue_manager.enable_entry(entry, True)
 
         # DataCollection children (e.g. diffraction-plan collections) can
