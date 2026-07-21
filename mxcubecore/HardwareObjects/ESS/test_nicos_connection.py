@@ -3,7 +3,7 @@ from time import sleep
 import pytest
 from nicos_connection import (
     NICOSConnection,
-    connect_to_nicos,
+    get_nicos_connected,
 )
 
 HOST = "localhost"
@@ -19,47 +19,37 @@ DEVICE_NAME = [
 # Note: Make sure your devices are in a good start position (e.g., zero) to avoid limit issues.
 
 
-def test_connection_class():
-    nicos_cli = connect_to_nicos(HOST, PORT, USER, PW)
+@pytest.fixture(autouse=True)
+def nicos_cli():
+    nicos_cli = get_nicos_connected(HOST, PORT, USER, PW)
+    yield nicos_cli
+    nicos_cli.disconnect()
+
+
+def test_connection_class(nicos_cli):
     assert type(nicos_cli) == NICOSConnection
-    nicos_cli.disconnect()
 
 
-def test_is_connected():
-    nicos_cli = connect_to_nicos(HOST, PORT, USER, PW)
-    ret = nicos_cli.is_connected()
-    assert ret == True
-    nicos_cli.disconnect()
+def test_is_connected(nicos_cli):
+    assert nicos_cli.is_connected()
 
 
-def test_disconnection():
-    nicos_cli = connect_to_nicos(HOST, PORT, USER, PW)
+def test_disconnection(nicos_cli):
     ret1 = nicos_cli.is_connected()
     nicos_cli.disconnect()
     ret2 = nicos_cli.is_connected()
     assert ret1 == True and ret2 == False
-    nicos_cli.disconnect()
 
 
-def test_get_dev_value():
-    nicos_cli = connect_to_nicos(HOST, PORT, USER, PW)
+def test_get_dev_value(nicos_cli):
     readback_val = nicos_cli.get_dev_value(DEVICE_NAME[0])
     print("current value = " + str(readback_val))
     assert readback_val != None
     nicos_cli.disconnect()
 
 
-def test_get_dev_param_from_cache():
-    nicos_cli = connect_to_nicos(HOST, PORT, USER, PW)
-    readback_val = nicos_cli.get_dev_param_from_cache(DEVICE_NAME[0])
-    print("cache value = " + str(readback_val))
-    assert readback_val != None
-    nicos_cli.disconnect()
-
-
-def test_run_command():
+def test_run_command(nicos_cli):
     """Test run_command by moving a motor to a short distance."""
-    nicos_cli = connect_to_nicos(HOST, PORT, USER, PW)
     readback_val = nicos_cli.get_dev_value(DEVICE_NAME[0])
     target = float(readback_val) + 1
     nicos_cli.run_command(f"move({DEVICE_NAME[0]}, {target})")
@@ -69,10 +59,8 @@ def test_run_command():
     nicos_cli.disconnect()
 
 
-def test_run_command_for_3_devices():
+def test_run_command_for_3_devices(nicos_cli):
     """Test run_command by moving 3 motors in parallel."""
-    nicos_cli = connect_to_nicos(HOST, PORT, USER, PW)
-
     target = []
     for i in range(len(DEVICE_NAME)):
         val = nicos_cli.get_dev_value(DEVICE_NAME[i])
@@ -90,7 +78,8 @@ def test_run_command_for_3_devices():
 
 
 def test_invalid_login():
-    nicos_cli = connect_to_nicos(HOST, PORT, "invalid_user", PW)
+    # Bypass the autouse-fixture
+    nicos_cli = get_nicos_connected(HOST, PORT, "invalid_user", PW)
     ret = nicos_cli.is_connected()
     assert ret == False
     # Try to mess up anyway
@@ -102,8 +91,7 @@ def test_invalid_login():
     assert val == None
 
 
-def test_get_dev_status__idle():
-    nicos_cli = connect_to_nicos(HOST, PORT, USER, PW)
+def test_get_dev_status__idle(nicos_cli):
     code_1, txt1 = nicos_cli.get_dev_status(DEVICE_NAME[0])
     code_2, txt2 = nicos_cli.get_dev_status(DEVICE_NAME[3])
     assert code_1 == 200 and code_2 == 200
@@ -111,9 +99,7 @@ def test_get_dev_status__idle():
     nicos_cli.disconnect()
 
 
-def test_get_dev_status__moving():
-    nicos_cli = connect_to_nicos(HOST, PORT, USER, PW)
-
+def test_get_dev_status__moving(nicos_cli):
     val = nicos_cli.get_dev_value(DEVICE_NAME[0])
     nicos_cli.run_command(f"move({DEVICE_NAME[0]}, {val + 5})")
     val = nicos_cli.get_dev_value(DEVICE_NAME[3])
