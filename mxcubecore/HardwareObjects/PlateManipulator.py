@@ -10,16 +10,7 @@ Plate is organized in rows and columns. Each cell (Cell) contains drop (Drop).
 Each drop could contain several crystals (Xtal). If CRIMS is available then
 each drop could have several crystals.
 
-[Channels]
-
- - self.chan_current_phase   : diffractometer phase
- - self.chan_plate_location  : plate location (col, row)
- - self.chan_drop_location   : plate location (col, row, drop)
- - self.chan_state           : diffractometer state
-
-[Commands]
-
- - self.cmd_move_to_location : move to plate location
+Commands and channels defined in the diffractometer
 
 [Emitted signals]
 
@@ -33,10 +24,10 @@ each drop could have several crystals.
 """
 
 import logging
-import time
 
-import gevent
+from gevent import Timeout, sleep
 
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractSampleChanger import (
     SampleChanger,
     SampleChangerMode,
@@ -55,7 +46,7 @@ class Xtal(Sample):
     __LOGIN_PROPERTY__ = "Login"
 
     def __init__(self, drop, index):
-        super(Xtal, self).__init__(drop, Xtal._get_xtal_address(drop, index), False)
+        super().__init__(drop, Xtal._get_xtal_address(drop, index), False)
         self._drop = drop
         self._index = index
         self._set_image_x(None)
@@ -71,9 +62,6 @@ class Xtal(Sample):
 
     def _set_name(self, value):
         self._set_property(self.__NAME_PROPERTY__, value)
-
-    def get_name(self):
-        return self.get_property(self.__NAME_PROPERTY__)
 
     def _set_login(self, value):
         self._set_property(self.__LOGIN_PROPERTY__, value)
@@ -165,8 +153,8 @@ class Cell(Container):
     __TYPE__ = "Cell"
 
     def __init__(self, row, row_chr, col_index, drops_num):
-        Container.__init__(
-            self, self.__TYPE__, row, Cell._get_cell_address(row_chr, col_index), False
+        super().__init__(
+            self.__TYPE__, row, self._get_cell_address(row_chr, col_index), False
         )
         self._row = row
         self._row_chr = row_chr
@@ -205,92 +193,61 @@ class PlateManipulator(SampleChanger):
     __TYPE__ = "PlateManipulator"
 
     def __init__(self, *args, **kwargs):
-        super(PlateManipulator, self).__init__(self.__TYPE__, False, *args, **kwargs)
+        super().__init__(self.__TYPE__, False, *args, **kwargs)
 
         self.plate_label = None
         self.num_cols = None
         self.num_rows = None
         self.num_drops = None
-        self.current_phase = None
         self.reference_pos_x = None
-        self.timeout = 3  # default timeout
-        self.plate_location = None
+        self.stored_pos_x = None
+        self.stored_pos_y = None
         self.crims_url = None
         self.crims_user_agent = None
         self.plate_barcode = None
         self.harvester_key = None
         self.processing_plan = None
+        self.plate_locatiom = None
 
-        self.stored_pos_x = None
-        self.stored_pos_y = None
-
-        self.cmd_move_to_drop = None
-        self.cmd_move_to_location = None
-
-        self.chan_state = None
+        self.diffr = None
 
     def init(self):
-        """
-        Descript. :
-        """
-        cmd_get_config = self.get_channel_object("GetPlateConfig", optional=True)
-        if cmd_get_config:
-            try:
-                (
-                    self.num_rows,
-                    self.num_cols,
-                    self.num_drops,
-                ) = cmd_get_config.get_value()
-            except Exception:
-                self.log.exception("")
-        else:
-            self.num_cols = self.get_property("numCols")
+        """Initialise the properties"""
+        self.diffr = HWR.beamline.diffractometer
+        try:
+            (
+                self.num_rows,
+                self.num_cols,
+                self.num_drops,
+            ) = self.diffr.plate_topology.get_value()
+        except ValueError:
+            self.log.exception("")
+        except AttributeError:
             self.num_rows = self.get_property("numRows")
+            self.num_cols = self.get_property("numCols")
             self.num_drops = self.get_property("numDrops")
 
-        self.reference_pos_x = self.get_property("referencePosX")
-        if not self.reference_pos_x:
-            self.reference_pos_x = 0.5
+        self.reference_pos_x = self.get_property("referencePosX", 0.5)
 
         self.stored_pos_x = self.reference_pos_x
         self.stored_pos_y = 0.5
-        self.plate_label = self.get_property("plateLabel")
+        self.plate_label = self.get_property("plate_label", "")
         self.crims_url = self.get_property("crimsWsRoot")
         self.crims_user_agent = self.get_property("crimsUserAgent")
         self.plate_barcode = self.get_property("PlateBarcode")
         self.harvester_key = self.get_property("harvesterKey")
 
-        self.cmd_move_to_drop = self.get_command_object("MoveToDrop")
-        if not self.cmd_move_to_drop:
-            self.cmd_move_to_location = self.get_command_object(
-                "startMovePlateToLocation"
-            )
-
-        self.cmd_move_to_crystal_position = self.get_command_object(
-            "MoveToXtalPointing"
-        )
-        self.cmd_get_omega_scan_limits = self.get_command_object(
-            "getOmegaMotorDynamicScanLimits"
-        )
-
-        self.cmd_do_abort = self.get_command_object("AbortCurrentAction")
-
         self._init_sc_contents()
 
-        self.chan_current_phase = self.get_channel_object("CurrentPhase")
-        self.chan_drop_location = self.get_channel_object("DropLocation")
-        self.chan_plate_location = self.get_channel_object("PlateLocation")
-        if self.chan_plate_location is not None:
-            self.chan_plate_location.connect_signal(
+        try:
+            self.diffr.plate_location.connect_signal(
                 "update", self.plate_location_changed
             )
-            self.plate_location_changed(self.chan_plate_location.get_value())
+        except AttributeError:
+            self.log.exception("plate_location is not configured")
 
-        self.chan_state = self.get_channel_object("State")
-        if self.chan_state is not None:
-            self.chan_state.connect_signal("update", self.state_changed)
-
-        SampleChanger.init(self)
+        self.plate_location_changed()
+        super().init()
 
     def change_plate_barcode(self, barcode):
         if self._load_data(barcode):
@@ -301,9 +258,8 @@ class PlateManipulator(SampleChanger):
 
     def hw_get_loaded_sample_location(self):
         loaded_sample = None
-        if self.chan_drop_location:
-            loaded_sample = self.chan_drop_location.get_value()
-
+        if hasattr(self.diffr, "drop_location"):
+            loaded_sample = self.diffr.drop_location.get_value()
             return (
                 chr(65 + loaded_sample[0])
                 + str(loaded_sample[1] + 1)
@@ -313,14 +269,14 @@ class PlateManipulator(SampleChanger):
             )
         return loaded_sample
 
-    def plate_location_changed(self, plate_location):
-        self.plate_location = plate_location
+    def plate_location_changed(self, plate_location=None):
+        self.plate_location = plate_location or self.diffr.plate_location.get_value()
         self._update_loaded_sample()
         self.update_info()
 
     def state_changed(self, state):
         try:
-            self.plate_location_changed(self.chan_plate_location.get_value())
+            self.plate_location_changed()
             self._on_state_changed(state)
         except AttributeError:
             self.log.exception("")
@@ -340,9 +296,9 @@ class PlateManipulator(SampleChanger):
             elif state == "Moving" or state == "Running":
                 self._set_state(SampleChangerState.Moving)
             elif state == "Ready":
-                if self.current_phase == "Transfer":
+                if self.diffr.get_phase() == self.diffr.get_phase_enum.TRANSFER:
                     self._set_state(SampleChangerState.Charging)
-                elif self.current_phase == "Centring":
+                elif self.diffr.get_phase() == self.diffr.get_phase_enum.CENTRE:
                     self._set_state(SampleChangerState.Ready)
                 else:
                     self._set_state(SampleChangerState.StandBy)
@@ -371,23 +327,23 @@ class PlateManipulator(SampleChanger):
                 basket._add_component(cell)
 
     def _do_abort(self):
-        """
-        Descript. :
-        """
-        self.cmd_do_abort()
+        """Local abort command"""
+        self.diffr.abort()
 
-    def _do_change_mode(self, mode):
-        """
-        Descript. :
+    def _do_change_mode(self, mode: SampleChangerMode):
+        """Change the diffractometer phase as function of sample changer mode.
+        Args:
+            mode: Sample changer mode
         """
         if mode == SampleChangerMode.Charging:
-            self._set_phase("Transfer")
+            self.diffr.set_phase(self.diffr.get_phase_enum.TRANSFER)
         elif mode == SampleChangerMode.Normal:
-            self._set_phase("Centring")
+            self.diffr.set_phase(self.diffr.get_phase_enum.CENTRE)
 
     def _do_load(self, sample=None):
-        """
-        Descript. :
+        """Actual load action.
+        Args:
+            sample: If None, use the selected sample.
         """
         selected = self.get_selected_sample()
         if sample is None:
@@ -397,13 +353,20 @@ class PlateManipulator(SampleChanger):
                 self._do_select(sample)
             self._set_loaded_sample(sample)
 
-    def load(self, sample=None, wait=True):
+    def load(self, sample: tuple | None = None, wait: bool = True):
+        """Load sample.
+        Args:
+            sample: sample address on the form
+                    (component1, ... ,component_N-1, component_N
+            wait: True - wait for the load to finish.
+        """
         comp = self._resolve_component(sample)
         coords = comp.get_coords()
         res = self._load_sample(coords)
         if res:
             self._set_loaded_sample(comp)
             comp._set_loaded(True, True)
+            self.plate_location_changed()
         return res
 
     def _load_sample(self, sample_location=None, pos_x=None, pos_y=None, wait=True):
@@ -415,27 +378,25 @@ class PlateManipulator(SampleChanger):
             col = int((sample_location[1] - 1) / self.num_drops)
             drop = sample_location[1] - self.num_drops * col
 
-            if not pos_x:
+            if pos_x is None:
                 pos_x = self.stored_pos_x
             else:
                 self.stored_pos_x = pos_x
-            if not pos_y:
+
+            if pos_y is None:
                 pos_y = self.stored_pos_y
             else:
                 self.stored_pos_y = pos_y
-                # pos_y = float(drop) / (self.num_drops + 1)
 
-            if self.cmd_move_to_location:
-                self.cmd_move_to_location(row, col, pos_x, pos_y)
-                if wait:
-                    self._wait_ready(60)
-            elif self.cmd_move_to_drop:
-                self.cmd_move_to_drop(row, col, drop - 1)
-                if wait:
-                    self._wait_ready(60)
+            if hasattr(self.diffr, "move_to_drop"):
+                self.diffr.move_to_drop(row, col, drop - 1)
+                self._wait_ready(60)
+            elif hasattr(self.diffr, "move_to_location"):
+                self.diffr.move_to_location(row, col, pos_x, pos_y)
+                self._wait_ready(60)
             else:
                 # No actual move cmd defined. Act like a mockup
-                self.plate_location = [row, col, self.stored_pos_x, pos_y]
+                self.plate_location = [row, col, pos_x, pos_y]
                 col += 1
                 cell = self.get_component_by_address("%s%d" % (chr(65 + row), col))
                 drop = cell.get_component_by_address(
@@ -449,9 +410,8 @@ class PlateManipulator(SampleChanger):
                         old_sample._set_loaded(False, True)
                     if new_sample is not None:
                         new_sample._set_loaded(True, True)
-
             return True
-        except:
+        except Exception:
             return False
 
     def _do_unload(self, sample_slot=None):
@@ -491,9 +451,6 @@ class PlateManipulator(SampleChanger):
         """
         Descript. :
         """
-        pos_x = self.stored_pos_x
-        pos_y = 0.5
-
         if isinstance(component, Xtal):
             self._select_sample(
                 component.get_cell().get_row_index(),
@@ -506,8 +463,6 @@ class PlateManipulator(SampleChanger):
         elif isinstance(component, Crims.CrimsXtal):
             col = component.Column - 1
             row = ord(component.Row.upper()) - ord("A")
-            pos_x = component.offsetX
-            pos_y = component.offsetY
             cell = self.get_component_by_address(
                 Cell._get_cell_address(component.Row, component.Column)
             )
@@ -530,9 +485,6 @@ class PlateManipulator(SampleChanger):
         elif isinstance(component, list):
             row = component[0]
             col = component[1]
-            if len(component > 2):
-                pos_x = component[2]
-                pos_y = component[3]
             cell = self.get_component_by_address(Cell._get_cell_address(row, col))
             cell._set_selected(True)
         else:
@@ -583,24 +535,22 @@ class PlateManipulator(SampleChanger):
         """
         self._update_state()
 
+    def update_info(self):
+        self._do_update_info()
+        self._trigger_loaded_sample_changed_event(self.get_loaded_sample())
+        self._reset_dirty()
+
     def _read_state(self):
-        return self.chan_state.get_value()
+        return self.diffr.global_state.get_value()
 
     def _update_state(self):
-        """
-        Descript. :
-        """
-        state = None
-        if self.chan_state is not None:
-            state = self.chan_state.get_value()
-            if (state == "Ready") or (self.current_phase is None):
-                self.current_phase = self.chan_current_phase.get_value()
-            self._on_state_changed(state)
+        """Update the state"""
+        state = self.diffr._get_swstate
+        self._on_state_changed(state)
         return state
 
     def _update_loaded_sample(self):
         """Updates plate location"""
-
         if self.plate_location is not None:
             new_sample = self.get_loaded_sample()
             if new_sample is not None:
@@ -609,6 +559,13 @@ class PlateManipulator(SampleChanger):
                 has_been_loaded = True
                 new_sample._set_loaded(loaded, has_been_loaded)
                 self._set_loaded_sample(new_sample)
+
+    def get_loaded_sample(self):
+        sample = None
+        for _s in self.get_sample_list():
+            if _s.get_address() == self.hw_get_loaded_sample_location():
+                sample = _s
+        return sample
 
     def get_sample(self, plate_location):
         row = int(plate_location[0])
@@ -646,20 +603,23 @@ class PlateManipulator(SampleChanger):
         sample = self.get_sample((row, col, drop, pos_y))
         return sample.loaded
 
+    @property
     def _ready(self):
-        if self._update_state() == "Ready":
-            return True
-        return False
+        return self._update_state() == "Ready"
 
-    def _wait_ready(self, timeout=None):
-        if timeout <= 0:
-            timeout = self.timeout
-        tt1 = time.time()
-        while time.time() - tt1 < timeout:
-            if self._ready():
-                break
-            else:
-                gevent.sleep(0.5)
+    def _wait_ready(self, timeout: float | None = None):
+        """Wait timeout seconds until status is ready.
+
+        Args:
+            timeout: optional - timeout [s],
+                     if timeout = 0: return at once and do not wait,
+                     if timeout is None: wait forever (default).
+        """
+        if timeout == 0:
+            return
+        with Timeout(timeout, RuntimeError("Timeout waiting for status ready")):
+            while not self._ready:
+                sleep(0.5)
 
     def get_plate_info(self):
         """
@@ -673,11 +633,6 @@ class PlateManipulator(SampleChanger):
         plate_info_dict["num_drops"] = self.num_drops
         return plate_info_dict
 
-    def get_plate_location(self):
-        if self.chan_plate_location is not None:
-            self.plate_location = self.chan_plate_location.get_value()
-        return self.plate_location
-
     def move_to_crystal_position(self, crystal_uuid):
         """
         Descript. : Move Diff to crystal position
@@ -685,7 +640,7 @@ class PlateManipulator(SampleChanger):
         """
         ret = None
         if crystal_uuid in ["undefined", None]:
-            loaded_sample = self.chan_drop_location.get_value()
+            loaded_sample = self.diffr.drop_location.get_value()
             row = int(loaded_sample[0])
             col = int(loaded_sample[1])
             drop = int(loaded_sample[2])
@@ -699,34 +654,16 @@ class PlateManipulator(SampleChanger):
                     ):
                         crystal_uuid = x.crystal_uuid
             else:
-                msg = "No processing_plan OR Crystal Found in this well"
+                msg = "No processing_plan OR Crystal Found in this well."
                 logging.getLogger("user_level_log").info(msg)
 
-        if self.cmd_move_to_crystal_position and crystal_uuid:
+        if hasattr(self.diffr, "move_to_xtal_position") and crystal_uuid:
             try:
-                # ret = self.cmd_move_to_crystal_position(row, col, drop, x.image_url, x.offset_x, x.offset_y, 0.0, 0.0, False)
-                ret = self.cmd_move_to_crystal_position(
-                    self.plate_barcode, crystal_uuid
-                )
+                ret = self.diffr.move_to_xtal_position(self.plate_barcode, crystal_uuid)
             except Exception as ex:
-                raise Exception("Could not move to crystal position %s" % str(ex))
+                raise RuntimeError("Could not move to crystal position") from ex
         else:
             msg = "move_to_crystal_position command or crystal UUID not found"
             logging.getLogger("user_level_log").info(msg)
-
-        return ret
-
-    def get_scan_limits(self, args):
-        """
-        get Omega Motor Dynamic Scan Limits
-        """
-        ret = ""
-        if self.cmd_get_omega_scan_limits:
-            try:
-                ret = self.cmd_get_omega_scan_limits(args)
-            except Exception:
-                raise Exception("Could not get Omega Motor Dynamic Scan Limits")
-        else:
-            raise Exception("command not found")
 
         return ret

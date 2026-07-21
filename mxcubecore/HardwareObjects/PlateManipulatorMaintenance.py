@@ -16,6 +16,7 @@ class PlateManipulatorMaintenance(HardwareObject):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._sc = None
 
     def init(self):
         self._sc = HWR.beamline.sample_changer
@@ -53,24 +54,14 @@ class PlateManipulatorMaintenance(HardwareObject):
         if ret:
             self._update_global_state()
 
-    def _get_scan_limits(self, args):
-        """
-        Omega Dynamic scan limit current command
-        :returns: None
-        :rtype: None
-        """
-        self._scan_limits = self._sc.get_scan_limits(args)
-        self._update_global_state()
-
     def _update_global_state(self):
         state_dict, cmd_state, message = self.get_global_state()
         self.emit("globalStateChanged", (state_dict, cmd_state, message))
 
     def get_global_state(self):
         """ """
-        state = self._sc._read_state()
+        state = self._sc._read_state().upper()
         scan_limits = self._scan_limits
-        # ready = self._sc._ready()
         running = state in ("RUNNING",)
         plate_info_dict = self._sc.get_plate_info()
         state_dict = {
@@ -84,17 +75,13 @@ class PlateManipulatorMaintenance(HardwareObject):
             "abort": True,
         }
 
-        message = ""
-
-        return state_dict, cmd_state, message
+        return state_dict, cmd_state, ""
 
     def get_cmd_info(self):
         """return information about existing commands for this object
         the information is organized as a list
         with each element contains
-        [ cmd_name,  display_name, category ]
-        """
-        """ [cmd_id, cmd_display_name, nb_args, cmd_category, description ] """
+        [cmd_id, cmd_display_name, nb_args, cmd_category, description ]"""
 
         cmd_list = [
             [
@@ -116,6 +103,4 @@ class PlateManipulatorMaintenance(HardwareObject):
             self._do_abort()
         if cmdname == "setPlateBarcode":
             self.set_plate_barcode(args)
-        # if cmdname == "change_mode":
-        #     self._do_change_mode(args)
         return True

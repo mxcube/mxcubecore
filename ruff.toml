@@ -634,13 +634,6 @@ convention = "google"
     "E501",
     "S301",
 ]
-"mxcubecore/HardwareObjects/PlateManipulator.py" = [
-    "B904",
-    "E501",
-    "E722",
-    "F811",
-    "F841",
-]
 "mxcubecore/HardwareObjects/ProposalTypeISPyBLims.py" = [
     "E402",
     "E501",
@@ -1026,9 +1019,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/mockup/OfflineProcessingMockup.py" = [
     "S602",
     "S605",
-]
-"mxcubecore/HardwareObjects/mockup/PlateManipulatorMockup.py" = [
-    "F841",
 ]
 "mxcubecore/HardwareObjects/mockup/ScanMockup.py" = [
     "S311",

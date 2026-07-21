@@ -400,9 +400,6 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         """
         Descript. :
         """
-        pos_x = self.reference_pos_x
-        pos_y = 0.5
-
         if isinstance(component, Xtal):
             self._select_sample(
                 component.get_cell().get_row_index(),
@@ -415,8 +412,6 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         elif isinstance(component, Crims.CrimsXtal):
             col = component.Column - 1
             row = ord(component.Row.upper()) - ord("A")
-            pos_x = component.offsetX
-            pos_y = component.offsetY
             cell = self.get_component_by_address(
                 Cell._get_cell_address(component.Row, component.Column)
             )
@@ -439,9 +434,6 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         elif isinstance(component, list):
             row = component[0]
             col = component[1]
-            if len(component > 2):
-                pos_x = component[2]
-                pos_y = component[3]
             cell = self.get_component_by_address(Cell._get_cell_address(row, col))
             cell._set_selected(True)
         else:
