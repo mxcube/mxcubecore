@@ -24,7 +24,7 @@ from mxcubecore.HardwareObjects.abstract import AbstractActuator
 
 from .nicos_connection import get_nicos_connected
 
-monkey.patch_all()
+CONN_CHECK_INTERVAL = 30
 
 
 class NICOSActuator(AbstractActuator.AbstractActuator):
@@ -42,26 +42,67 @@ class NICOSActuator(AbstractActuator.AbstractActuator):
     def init(self):
         """Initialization method"""
         super(NICOSActuator, self).init()
-
-        host = self.get_property("host")  # Create NICOS connection using the config
-        port = self.get_property("port")
-        user = self.get_property("user")
-        pw = self.get_property("password")  # Improve this to be safer.
         self.device_name = self.get_property("device_name")
-        self.nicos_cli = get_nicos_connected(host, port, user, pw)
+        self._last_check = 0
+        self.nicos_cli = None
 
-        if not self.nicos_cli.is_connected():
-            self.print_log(
-                msg=f"Failed to connect to NICOS server ({host}, {self.device_name})."
-            )
+        self.connect_to_nicos()
+        if not self.check_nicos_connection():
             return
-        self.print_log(
-            msg=f"Successfully connected to NICOS server ({host}, {self.device_name})."
-        )
 
         self.MOVING = 0
         self.__watch_task = gevent.spawn(self._watch)
         self.update_state(self.STATES.READY)
+
+    def connect_to_nicos(self):
+        """Connect to NICOS server."""
+        self.host = self.get_property("host")
+        port = self.get_property("port")
+        user = self.get_property("user")
+        pw = self.get_property("password")  # TODO: Improve this to be safer.
+        self.nicos_cli = get_nicos_connected(self.host, port, user, pw)
+
+    def check_nicos_connection(self):
+        """Check whether connection to NICOS server is successful or not, and
+        print the result."""
+        if not self.nicos_cli.is_connected():
+            self.print_log(
+                msg=f"Failed to connect to NICOS server ({self.host}, {self.device_name})."
+            )
+            return False
+        self.print_log(
+            msg=f"Successfully connected to NICOS server ({self.host}, {self.device_name})!"
+        )
+        return True
+
+    def timer_expired(self):
+        """Check whether timer expired or not."""
+        return (gevent.time.monotonic() - self._last_check) >= CONN_CHECK_INTERVAL
+
+    def timer_reset(self):
+        """Reset timer."""
+        self._last_check = gevent.time.monotonic()
+
+    def retry_nicos_connection(self):
+        """Retry connection to NICOS if needed."""
+        if not self.timer_expired():
+            return
+        self.timer_reset()
+
+        if self.nicos_cli.is_connected():
+            self.print_log(
+                msg=f"NICOS server connection still OK ({self.host}, {self.device_name})."
+            )
+            return
+
+        self.print_log(
+            msg=f"Retrying connection to NICOS server ({self.host}, {self.device_name})..."
+        )
+        self.connect_to_nicos()
+        if not self.check_nicos_connection():
+            self.print_log(
+                msg=f"Retrying NICOS connection in {CONN_CHECK_INTERVAL}s ({self.host}, {self.device_name})."
+            )
 
     def _watch(self):
         """Watch actuator current value and update it on the UI."""
@@ -71,6 +112,7 @@ class NICOSActuator(AbstractActuator.AbstractActuator):
             # Manage ui state
             if self.ERROR_READBACK:
                 self.update_state(self.STATES.FAULT)
+                self.retry_nicos_connection()
             elif self.MOVING:
                 self.update_state(self.STATES.BUSY)
                 self.update_specific_state(self.SPECIFIC_STATES.MOVING)
