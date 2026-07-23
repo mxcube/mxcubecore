@@ -82,36 +82,31 @@ class QueueModel(HardwareObject):
         """
         pass
 
-    def select_model(self, name):
+    def select_model(self, name: str) -> None:
         """
         Selects the model with the name <name>
 
         :param name: The name of the model to select.
-        :type name: str
 
         :returns: None
-        :rtype: NoneType
         """
         self._selected_model = self._models[name]
         HWR.beamline.queue_manager.clear()
         self._re_emit(self._selected_model)
 
-    def get_model_root(self):
+    def get_model_root(self) -> queue_model_objects.TaskNode:
         """
         :returns: The selected model root.
-        :rtype: TaskNode
         """
         return self._selected_model
 
-    def clear_model(self, name=None):
+    def clear_model(self, name: str | None = None) -> None:
         """
         Clears the model with name <name>, clears all if name is None
 
         :param name: The name of the model to clear.
-        :type name: str
 
         :returns: None
-        :rtype: NoneType
         """
         self._models[name] = queue_model_objects.RootNode()
 
@@ -121,18 +116,17 @@ class QueueModel(HardwareObject):
 
         HWR.beamline.queue_manager.clear()
 
-    def register_model(self, name, root_node):
+    def register_model(
+        self, name: str, root_node: queue_model_objects.RootNode
+    ) -> None:
         """
         Register a new model with name <name> and root node <root_node>.
 
         :param name: The name of the 'new' model.
-        :type name: str
 
         :param root_node: The root of the model.
-        :type root_node: RootNode
 
         :returns: None
-        :rtype: NoneType
         """
         if name in self._models:
             raise KeyError("The key %s is already registered" % name)
@@ -147,7 +141,7 @@ class QueueModel(HardwareObject):
             self.emit("child_added", (parent_node, child_node))
             self._re_emit(child_node)
 
-    def add_child(self, parent, child):
+    def add_child(self, parent, child: queue_model_objects.TaskNode) -> None:
         """
         Adds the child node <child>. Raises the exception TypeError
         if child is not of type TaskNode.
@@ -155,10 +149,8 @@ class QueueModel(HardwareObject):
         Moves the child (re-parents it) if it already has a parent.
 
         :param child: TaskNode to add
-        :type child: TaskNode
 
         :returns: None
-        :rtype: None
         """
         if True:
             # if isinstance(child, queue_model_objects.TaskNode):
@@ -181,35 +173,31 @@ class QueueModel(HardwareObject):
         else:
             raise TypeError("Expected type TaskNode, got %s " % str(type(child)))
 
-    def add_child_at_id(self, _id, child):
+    def add_child_at_id(self, _id: int, child: queue_model_objects.TaskNode) -> int:
         """
         Adds a child <child> at the node with the node id <_id>
 
         :param _id: The id of the parent node.
-        :type _id: int
 
         :param child: The child node to add.
-        :type child: TaskNode
 
         :returns: The id of the child.
-        :rtype: int
         """
         parent = self.get_node(_id)
         self.add_child(parent, child)
         return child._node_id
 
-    def get_node(self, _id, parent=None):
+    def get_node(
+        self, _id: int, parent: queue_model_objects.TaskNode | None = None
+    ) -> queue_model_objects.TaskNode | None:
         """
         Retrieves the node with the node id <_id>
 
         :param _id: The id of the node to retrieve.
-        :type _id: int
 
         :param parent: parent node to search in.
-        :type parent: TaskNode
 
         :returns: The node with the id <_id>
-        :rtype: TaskNode
         """
         if parent is None:
             parent = self._selected_model
@@ -223,16 +211,13 @@ class QueueModel(HardwareObject):
                 if result:
                     return result
 
-    def get_sample_by_loc_str(self, loc_str):
+    def get_sample_by_loc_str(self, loc_str: str) -> queue_model_objects.Sample | None:
         """
         Finds the Sample node with location string <loc_str>, directly
         under the selected model's root.
 
         :param loc_str: The sample's location string (Sample.loc_str).
-        :type loc_str: str
-
         :returns: The Sample node, or None if not found.
-        :rtype: Sample
         """
         for child in self.get_model_root().get_children():
             if (
@@ -259,19 +244,16 @@ class QueueModel(HardwareObject):
 
         return tlist
 
-    def get_node_at_task_index(self, loc_str, tindex):
+    def get_node_at_task_index(
+        self, loc_str: str, tindex: int
+    ) -> queue_model_objects.TaskNode:
         """
         Finds the node at position <tindex> in the task list of
         the sample with location string <loc_str>
 
         :param loc_str: The sample's location string.
-        :type loc_str: str
-
         :param tindex: Index into the sample's task list.
-        :type tindex: int
-
         :returns: The node at position tindex.
-        :rtype: TaskNode
         """
         sample_model = self.get_sample_by_loc_str(loc_str)
         return self._get_flattened_task_list(sample_model)[tindex]
@@ -310,42 +292,42 @@ class QueueModel(HardwareObject):
             "sample_node": sample_model,
         }
 
-    def del_child(self, parent, child):
+    def del_child(self, parent, child: queue_model_objects.TaskNode) -> None:
         """
         Removes <child>
 
         :param child: Child to remove.
-        :type child: TaskNode
 
         :returns: None
-        :rtype: None
         """
         if child in parent._children:
             parent._children.remove(child)
             self.emit("child_removed", (parent, child))
 
-    def _detach_child(self, parent, child):
+    def _detach_child(
+        self, parent, child: queue_model_objects.TaskNode
+    ) -> queue_model_objects.TaskNode:
         """
         Detaches the child <child>
 
         :param child: Child to detach.
-        :type child: TaskNode
 
-        :returns: None
-        :rtype: None
+        :returns: The detached child.
         """
         child = parent._children.pop(child)
         return child
 
-    def set_parent(self, parent, child):
+    def set_parent(
+        self,
+        parent: queue_model_objects.TaskNode,
+        child: queue_model_objects.TaskNode,
+    ):
         """
         Sets the parent of the child <child> to <parent>
 
         :param parent: The parent.
-        :type parent: TaskNode Object
 
         :param child: The child
-        :type child: TaskNode Object
         """
         if child._parent:
             self._detach_child(parent, child)
@@ -353,19 +335,16 @@ class QueueModel(HardwareObject):
         else:
             child._parent = parent
 
-    def view_created(self, view_item, task_model):
+    def view_created(self, view_item, task_model: queue_model_objects.TaskNode) -> None:
         """
         Method that should be called by the routine that adds
         the view <view_item> for the model <task_model>
 
         :param view_item: The view item that was added.
-        :type view_item: ViewItem
 
         :param task_model: The associated task model.
-        :type task_model: TaskModel
 
         :returns: None
-        :rtype: None
         """
         view_item._data_model = task_model
         cls = queue_entry.MODEL_QUEUE_ENTRY_MAPPINGS[task_model.__class__]
@@ -442,20 +421,21 @@ class QueueModel(HardwareObject):
 
         parent_entry.enqueue(entry)
 
-    def get_next_run_number(self, new_path_template, exclude_current=True):
+    def get_next_run_number(
+        self,
+        new_path_template: queue_model_objects.PathTemplate,
+        exclude_current: bool = True,
+    ) -> int:
         """
         Iterates through all the path templates of the tasks
         in the model and returns the next available run number
         for the path template <new_path_template>.
 
         :param new_path_template: PathTempalte to match with.
-        :type new_path_template: PathTemplate
         :param exclude_current: Skips it self when iterating through
                                 the model, default Tree.
-        :type exlcude_current: bool
 
         :returns: The next available run number for the given path_template.
-        :rtype: int
         """
         all_path_templates = self.get_path_templates()
         conflicting_path_templates = [0]
@@ -513,15 +493,15 @@ class QueueModel(HardwareObject):
 
         return result
 
-    def copy_node(self, node):
+    def copy_node(
+        self, node: queue_model_objects.TaskNode
+    ) -> queue_model_objects.TaskNode:
         """
         Copies the node <node> and returns it.
 
         :param node: The node to copy.
-        :type node: TaskModel
 
         :returns: A copy of the node.
-        :rtype: TaskModel
         """
         new_node = node.copy()
 
