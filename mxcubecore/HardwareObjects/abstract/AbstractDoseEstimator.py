@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import Annotated, Literal, Union
 
-from pydantic.v1 import BaseModel, Field
+from pydantic import BaseModel, Field
 
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
@@ -9,7 +9,7 @@ from mxcubecore.BaseHardwareObjects import HardwareObject
 class DoseEstimationOk(BaseModel):
     status: Literal["ok"] = "ok"
     dose_mgy: float
-    max_images: int | None
+    max_images: int | None = None
 
 
 class DoseEstimationError(BaseModel):
@@ -17,11 +17,10 @@ class DoseEstimationError(BaseModel):
     msg: str
 
 
-class DoseEstimation(BaseModel):
-    __root__: Annotated[
-        Union[DoseEstimationOk, DoseEstimationError],
-        Field(discriminator="status"),
-    ]
+DoseEstimation = Annotated[
+    Union[DoseEstimationOk, DoseEstimationError],
+    Field(discriminator="status"),
+]
 
 
 class StaticGoal(BaseModel):
