@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from pydantic.v1 import BaseModel
+from pydantic import BaseModel
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractDoseEstimator import (
@@ -158,7 +158,7 @@ class DoseEstimator(AbstractDoseEstimator):
         dose_rate = user_flux_density / (2000 / wavelength / wavelength)
         estimated_dose_gy = dose_rate * params.exp_time_s * params.num_images
         max_images = (
-            (params.dose_limit_mgy * 1_000_000) / dose_rate / params.exp_time_s
+            int((params.dose_limit_mgy * 1_000_000) / dose_rate / params.exp_time_s)
             if params.dose_limit_mgy
             else None
         )
