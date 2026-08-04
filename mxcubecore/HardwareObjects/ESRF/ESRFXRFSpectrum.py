@@ -79,12 +79,14 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
         )
         self.config_fit = ConfigDict.ConfigDict()
         self.mcafit = ClassMcaTheory.McaTheory(self.cfgfile)
-        self.default_erange = literal_eval(
-            self.get_property("default_energy_range", "[2.0, 15.0]"),
-        )
-        self.cfg_energies = literal_eval(
-            self.get_property("cfg_energies", "[7, 9, 12, 15]"),
-        )
+
+        self.default_erange = self.get_property("default_energy_range", [2.0, 15.0])
+        if isinstance(self.default_erange, str):
+            self.default_erange = literal_eval(self.default_erange)
+
+        self.cfg_energies = self.get_property("cfg_energies", [7, 9, 12, 15])
+        if isinstance(self.cfg_energies, str):
+            self.cfg_energies = literal_eval(self.cfg_energies)
 
     def _doSpectrum(self, ctime, filename):
         """Deprecated method."""

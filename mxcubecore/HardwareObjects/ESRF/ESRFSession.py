@@ -17,16 +17,17 @@ class ESRFSession(Session.Session):
         Session.Session.init(self)
         self._use_acronym = self.get_property("use_acronym", True)
 
-        archive_base_directory = self["file_info"].get_property(
-            "archive_base_directory"
-        )
-        if archive_base_directory:
-            archive_folder = os.path.join(
-                self["file_info"].get_property("archive_folder"), time.strftime("%Y")
-            )
-            queue_model_objects.PathTemplate.set_archive_path(
-                archive_base_directory, archive_folder
-            )
+        try:
+            archive_base_directory = self.config.file_info.get("archive_base_directory")
+            if archive_base_directory:
+                archive_folder = os.path.join(
+                    self.config.file_info.get("archive_folder"), time.strftime("%Y")
+                )
+                queue_model_objects.PathTemplate.set_archive_path(
+                    archive_base_directory, archive_folder
+                )
+        except AttributeError:
+            self.log.error("file_info not configured")
 
     def set_endstation_name(self, name: str) -> None:
         name = name.lower().replace("-", "")

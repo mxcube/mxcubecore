@@ -404,9 +404,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/ESRF/ESRFSmallXrayCentring.py" = [
     "S113",
 ]
-"mxcubecore/HardwareObjects/ESRF/ESRFXRFSpectrum.py" = [
-    "B028",
-]
 "mxcubecore/HardwareObjects/ESRF/ID29HutchTrigger.py" = [
     "B006",
 ]
@@ -603,9 +600,8 @@ convention = "google"
     "E501",
 ]
 "mxcubecore/HardwareObjects/MicrodiffKappaMotor.py" = [
-    "E501",
-    "E713",
     "E741",
+    "F401",
     "F841",
 ]
 "mxcubecore/HardwareObjects/MiniDiff.py" = [

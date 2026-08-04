@@ -29,15 +29,12 @@ Example xml file:
 </object>
 """
 
-import ast
 import base64
 import logging
 import pickle
 import time
-from typing import (
-    Any,
-    List,
-)
+from ast import literal_eval
+from typing import Any, List
 
 import gevent
 from PyTango.gevent import DeviceProxy
@@ -149,8 +146,10 @@ class EMBLFlexHCD(SampleChanger):
         super(EMBLFlexHCD, self).__init__(self.__TYPE__, True, *args, **kwargs)
 
     def init(self):
-        _pucks = '["UNI", "UNI", "UNI", "UNI", "UNI", "UNI", "UNI", "UNI"]'
-        pucks = ast.literal_eval(self.get_property("puck_configuration", _pucks))
+        _pucks = ["UNI", "UNI", "UNI", "UNI", "UNI", "UNI", "UNI", "UNI"]
+        pucks = self.get_property("puck_configuration", _pucks)
+        if isinstance(pucks, str):
+            pucks = literal_eval(pucks)
 
         for i in range(8):
             cell = Cell(self, i + 1, pucks[i])
