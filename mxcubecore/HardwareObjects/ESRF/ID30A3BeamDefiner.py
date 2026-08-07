@@ -55,8 +55,8 @@ from mxcubecore.HardwareObjects.ESRF.ESRFBeamDefiner import ESRFBeamDefiner
 class ID30A3BeamDefiner(ESRFBeamDefiner):
     """ID30-A3 beam definer implementation"""
 
-    def __init__(self, *args):
-        super().__init__(*args)
+    def __init__(self, name):
+        super().__init__(name)
         self.controller = None
 
     def init(self):
