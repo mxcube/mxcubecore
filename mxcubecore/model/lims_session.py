@@ -9,7 +9,6 @@ from typing import (
     Optional,
 )
 
-from icat_plus_client.models.item import Item
 from pydantic import (
     BaseModel,
     Field,
@@ -47,12 +46,6 @@ class Lims(BaseModel):
 
     name: str = ""
     description: str = ""
-
-
-class LoadedPuck(Item):
-    puck_name: Optional[str] = None
-    parcel_name: Optional[str] = None
-    parcel_id: Optional[str] = None
 
 
 class Session(BaseModel):
