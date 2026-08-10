@@ -7,7 +7,16 @@ from pathlib import Path
 from typing import Any, List, Optional
 from zoneinfo import ZoneInfo
 
+import icat_plus_client
 import requests
+from icat_plus_client.models.item import Item
+from icat_plus_client.models.parcel import Parcel
+from icat_plus_client.models.sample import Sample
+from icat_plus_client.models.item_experiment_plan_inner import ItemExperimentPlanInner
+from icat_plus_client.models.sampleinformation import Sampleinformation
+from icat_plus_client.models.resourceinformation import Resourceinformation
+
+
 from pydantic import ValidationError
 from pyicat_plus.client.main import IcatClient
 
@@ -44,13 +53,20 @@ class ICATLIMS(AbstractLims):
         self.ingesters = self.get_property("queue_urls")
         self.investigations = []
         self.samples = []
-
+        self._downloads_cache = {}
+        
         # Initialize ICAT client
         self.icatClient = IcatClient(
             icatplus_restricted_url=self.url,
             metadata_urls=["bcu-mq-01:61613"],
             reschedule_investigation_urls=["bcu-mq-01:61613"],
         )
+
+        api_client = icat_plus_client.ApiClient(
+            icat_plus_client.Configuration(host=self.url)
+        )
+        self.tracking_api_instance = icat_plus_client.TrackingApi(api_client)
+        self.catalogue_api_instance = icat_plus_client.CatalogueApi(api_client)
 
     def get_lims_name(self) -> List[Lims]:
         return [
@@ -126,28 +142,17 @@ class ICATLIMS(AbstractLims):
 
         return self.lims_rest.to_sessions(self.lims_rest.investigations)
 
-    def _get_loaded_pucks(self, parcels) -> list:
-        """Retrieve all pucks from the parcels that have a defined
-            'sampleChangerLocation'.
-            A puck is considered "loaded" if it contains the key
-            'sampleChangerLocation'.
-            Iterates through all parcels and collects such pucks.
-        Returns:
-            A list of pucks (dicts) that have 'sampleChangerLocation' defined.
-        """
-        loaded_pucks = []
-
-        if parcels:
-            for parcel in parcels:
-                pucks = parcel.get("content", [])
-                for puck in pucks:
-                    if "sampleChangerLocation" in puck:
-                        # Add information about the parcel
-                        puck["parcelName"] = parcel.get("name")
-                        puck["parcelId"] = parcel.get("id")
-                        loaded_pucks.append(puck)
-
-        return loaded_pucks
+    def _get_loaded_pucks(self, parcels: List[Parcel]) -> List[Item]:
+        """Return pucks with a defined sample changer location."""
+        # TODO: Manage this
+        # puck["parcelName"] = parcel.name
+        # puck["parcelId"] = parcel.id
+        return [
+            puck
+            for parcel in parcels
+            for puck in parcel.content
+            if puck.sample_changer_location is not None
+        ]
 
     def get_samples(self, lims_name: str) -> list:
         """Retrieve and process sample information from LIMS based on the
@@ -155,9 +160,9 @@ class ICATLIMS(AbstractLims):
             - Retrieves parcel data (containers like UniPucks or SpinePucks).
             - Retrieves sample sheet data.
             - Identifies and processes only loaded pucks
-              (those with a 'sampleChangerLocation').
+            (those with a 'sampleChangerLocation').
             - Converts each sample in the pucks into internal queue samples
-              using `__to_sample`.
+            using `__to_sample`.
         Args:
             The LIMS name or identifier used to fetch sample-related data.
 
@@ -175,11 +180,16 @@ class ICATLIMS(AbstractLims):
                 session.proposal_name,
             )
 
-            # Load parcels (pucks)
-            self.parcels = self.get_parcels()
+            investigation_id = session.session_id
+            icat_token = self.icat_session["sessionId"]
 
-            # Load sample sheets
-            self.sample_sheets = self.get_samples_sheets()
+            self.parcels = self.get_parcels_by_investigation(
+                icat_token, investigation_id
+            )
+
+            self.sample_sheets = self.get_samples_by_investigation(
+                icat_token, investigation_id
+            )
             logger.debug(
                 "[ICATClient] %d sample sheets retrieved", len(self.sample_sheets)
             )
@@ -191,20 +201,20 @@ class ICATLIMS(AbstractLims):
 
             # Extract and process samples from loaded pucks
             for puck in self.loaded_pucks:
-                tracking_samples = puck.get("content", [])
-                puck_name = puck.get("name", "Unnamed")
-                location = puck.get("sampleChangerLocation", "Unknown")
-                msg = f"[ICATClient] Found puck {puck_name} at position "
-                msg += f"{location}, containing {len(tracking_samples)} samples"
+                tracking_samples = puck.content
+                msg = f"[ICATClient] Found puck {puck.name} at position "
+                msg += f"{puck.sample_changer_location}, containing {len(puck.content)} samples"
                 logger.debug(msg)
                 for tracking_sample in tracking_samples:
-                    sample = self.__to_sample(tracking_sample, puck, self.sample_sheets)
+                    sample = self.__to_sample(tracking_sample, puck, icat_token)
                     self.samples.append(sample)
+        
         except RuntimeError:
             logger.exception("[ICATClient] Error retrieving samples: %s")
         else:
             msg = f"[ICATClient] Total {len(self.samples)} samples read"
             logger.debug(msg)
+            import pdb; pdb.set_trace()
             return self.samples
         return []
 
@@ -230,18 +240,24 @@ class ICATLIMS(AbstractLims):
         return hex(i)[2:].zfill(24)
 
     def __add_download_path_to_processing_plan(
-        self, processing_plan, downloads: List[Download]
+        self, processing_plan : List[ItemExperimentPlanInner], downloads: List[Download]
     ):
-        file_path_lookup = {d.filename: d.path for d in downloads}
+        
+        file_path_lookup = {}
         group_paths = defaultdict(list)
-        for d in downloads:
-            if d.groupName is not None:
-                group_paths[d.groupName].append(d.path)
+
+        for download in downloads:
+            file_path_lookup[download.filename] = download.path
+            if download.groupName is not None:
+                group_paths[download.groupName].append(download.path)
+                
+        #convert to json for legacy
+        processing_plan_json = [item.to_dict() for item in processing_plan]
 
         # Enrich the processing_plan
-        for item in processing_plan:
+        for item in processing_plan_json:              
             key = item.get("key")
-            value = item.get("value")
+            value = item.get("value", {})
             if (
                 key == "reference"
                 and isinstance(value, str)
@@ -250,13 +266,18 @@ class ICATLIMS(AbstractLims):
                 item["value"] = {"filepath": file_path_lookup[value]}
             if key == "search_models":
                 models = value
-                if isinstance(models, str):
-                    models = json.loads(models)
+                if isinstance(models, str):                    
+                    try:
+                        models = json.loads(models)
+                    except json.JSONDecodeError:
+                        models = []
                 for model in models:
                     group = model.get("pdb_group")
                     if group in group_paths:
                         model["file_paths"] = group_paths[group]
                 item["value"] = models
+        
+        return processing_plan_json
 
     def _safe_json_loads(self, json_str):
         try:
@@ -264,28 +285,30 @@ class ICATLIMS(AbstractLims):
         except Exception:
             return str(json_str)
 
-    def __extract_sample_identifiers(self, tracking_sample: dict, puck: dict) -> dict:
+    def __extract_sample_identifiers(self, tracking_sample: Sample, puck: dict) -> dict:
         # Basic identifiers
-        sample_name = str(tracking_sample.get("name"))
+        sample_name = tracking_sample.name
 
         # MXCuBE needs to be an integer while in DRAC is a ObjectId
         # Mongo @BES needs to be smaller then 8 bytes
-        sample_id = int(str(self.objectid_to_int(tracking_sample.get("id")))[-6:])
+        sample_id = int(str(self.objectid_to_int(tracking_sample.id))[-6:])
         # id to the sample sheet declared in the user portal
-        sample_sheet_id = tracking_sample.get("sampleId")
+
+        sample_sheet_id = tracking_sample.sample_id
         # identifier that points to the sample tracking
-        tracking_sample_id = tracking_sample.get("_id")
+        tracking_sample_id = tracking_sample.id
 
         msg = f"[ICATClient] Sample ids sample_id={sample_id} "
         msg += f"sample_sheet_id={sample_sheet_id} "
         msg += f"tracking_sample_id={tracking_sample_id}"
         logger.debug(msg)
 
-        sample_location = tracking_sample.get("sampleContainerPosition")
-        puck_location = str(puck.get("sampleChangerLocation", "Unknown"))
-        puck_name = puck.get("name", "UnknownPuck")
-        parcel_name = puck.get("parcelName")
-        parcel_id = puck.get("parcelId")
+        sample_location = tracking_sample.sample_container_position
+        puck_location = puck.sample_changer_location
+        puck_name = puck.name
+
+        parcel_name = "To be done"  # puck.get("parcelName")
+        parcel_id = "To be done"  # puck.get("parcelId")
 
         protein_acronym = self.__resolve_protein_acronym(sample_name, sample_sheet_id)
 
@@ -308,10 +331,10 @@ class ICATLIMS(AbstractLims):
         sample_sheet = self.get_sample_sheet_by_id(self.sample_sheets, sample_sheet_id)
         return sample_sheet.name if sample_sheet else sample_name
 
-    def __parse_experiment_plan(self, tracking_sample: dict) -> dict[str, Any]:
+    def __parse_experiment_plan(self, tracking_sample: Item) -> dict[str, Any]:
         return {
-            item["key"]: item["value"]
-            for item in tracking_sample.get("experimentPlan", {})
+            item.key: item.value.actual_instance
+            for item in tracking_sample.experiment_plan or []
         }
 
     def __build_diffraction_plan(self, experiment_plan: dict) -> dict[str, Any]:
@@ -328,35 +351,37 @@ class ICATLIMS(AbstractLims):
         }
 
     def __prepare_processing_plan(
-        self, tracking_sample: dict, sample_sheet_id: str, protein_acronym: str
+        self, icat_token: str, tracking_sample: Item, protein_acronym: str
     ) -> dict[str, Any]:
-        processing_plan = tracking_sample.get("processingPlan", [])
-        if not processing_plan:
+       
+                
+        if not tracking_sample.processing_plan or tracking_sample.processing_plan == []:
             return {}
 
         # Convert string values to JSON if possible
-        for item in processing_plan:
-            item["value"] = self._safe_json_loads(item.get("value"))
+        #for item in tracking_sample.processing_plan:            
+        #    item["value"] = self._safe_json_loads(item.value.actual_instance)
 
         downloads = self.__get_or_download_plan_resources(
-            sample_sheet_id, protein_acronym
+            icat_token, tracking_sample.sample_id, protein_acronym
         )
 
         if downloads:
             try:
-                self.__add_download_path_to_processing_plan(processing_plan, downloads)
+                return self.__add_download_path_to_processing_plan(tracking_sample.processing_plan, downloads)
             except RuntimeError:
                 logger.exception("Failed __add_download_path_to_processing_plan")
-        return {item["key"]: item["value"] for item in processing_plan}
+        return {item["key"]: item["value"] for item in tracking_sample.processing_plan}
 
     def __get_or_download_plan_resources(
-        self, sample_sheet_id: str, protein_acronym: str
+        self, icat_token: str, sample_sheet_id: str, protein_acronym: str
     ) -> List[Download]:
-        if not hasattr(self, "_downloads_cache"):
-            self._downloads_cache = {}
+        
 
         cache_key = (sample_sheet_id, protein_acronym)
-        sample_information = self.__get_sample_information_by(sample_sheet_id)
+        logger.debug(f"Getting sample information for {protein_acronym}")
+        sample_information = self.__get_sample_information_by(icat_token, sample_sheet_id)
+        
         if not sample_information:
             return []
 
@@ -382,16 +407,14 @@ class ICATLIMS(AbstractLims):
         )
 
         downloads = self._download_resources(
-            sample_sheet_id, sample_information.resources, destination_folder, ""
+            icat_token, sample_sheet_id, sample_information.resources, destination_folder, ""
         )
 
         logger.debug(f"Downloaded {len(downloads)} resources")
         self._downloads_cache[cache_key] = downloads
         return downloads
 
-    def __to_sample(
-        self, tracking_sample: dict, puck: dict, sample_sheets: List[SampleSheet]
-    ) -> dict[str, Any]:
+    def __to_sample(self, tracking_sample: Sample, puck: dict, icat_token: str) -> dict[str, Any]:
         """
         Convert a tracking sample and associated metadata into the internal
         sample data structure.
@@ -403,19 +426,21 @@ class ICATLIMS(AbstractLims):
         Args:
             tracking_sample (dict): The raw sample data from tracking.
             puck (dict): The puck (container) metadata associated with the sample.
-            sample_sheets (List[SampleSheet]): List of sample sheets used for lookup.
 
         Returns:
             dict: A dictionary representing the standardized internal sample format.
         """
         sample_id_info = self.__extract_sample_identifiers(tracking_sample, puck)
+        
+        protein_acronym = sample_id_info["proteinAcronym"]
+
         experiment_plan = self.__parse_experiment_plan(tracking_sample)
         processing_plan = self.__prepare_processing_plan(
-            tracking_sample,
-            sample_id_info["sample_sheet_id"],
-            sample_id_info["proteinAcronym"],
+            icat_token,
+            tracking_sample,            
+            protein_acronym,
         )
-
+        
         return {
             **sample_id_info,
             "experimentType": experiment_plan.get("workflowType"),
@@ -423,7 +448,7 @@ class ICATLIMS(AbstractLims):
             "diffractionPlan": self.__build_diffraction_plan(experiment_plan),
             "experimentPlan": experiment_plan,
             "processingPlan": processing_plan,
-            "comments": tracking_sample.get("comments"),
+            "comments": tracking_sample.comments,
         }
 
     def create_session(self, session_dict):
@@ -740,39 +765,44 @@ class ICATLIMS(AbstractLims):
     def to_sessions(self, investigations):
         return [self.__to_session(investigation) for investigation in investigations]
 
-    def get_parcels(self):
-        """Returns the parcels associated to an investigation"""
+    def get_parcels_by_investigation(
+        self, icat_token: str, investigation_id: str
+    ) -> List[Parcel]:
+        """Return the parcels associated with an investigation."""
+        parcels: List[Parcel] = []
         try:
-            session_id = self.session_manager.active_session.session_id
-            msg = f"Retrieving parcels by investigation_id {session_id}"
-            logger.debug(msg)
-            parcels = self.icatClient.get_parcels_by(session_id)
-        except Exception:
-            logger.exception("Failed on get_parcels_by_investigation_id")
-        else:
-            msg = f"Successfully retrieved {len(parcels)} parcels"
-            logger.debug(msg)
-            return parcels
-
-        return []
-
-    def get_samples_sheets(self) -> List[SampleSheet]:
-        """Returns the samples sheets associated to an investigation"""
-        try:
-            msg = "Retrieving samples by investigation_id "
-            msg += f"{self.session_manager.active_session.session_id}"
-            logger.debug(msg)
-            samples = self.icatClient.get_samples_by(
-                self.session_manager.active_session.session_id
+            parcels = self.tracking_api_instance.tracking_session_id_parcel_get(
+                icat_token, investigation_id=investigation_id
+            )
+            logger.debug(
+                "Successfully retrieved %d parcels for investigation %s",
+                len(parcels),
+                investigation_id,
             )
         except Exception:
-            logger.exception("Failed on get_samples_by_investigation_id")
-        else:
-            msg = f"Successfully retrieved {len(samples)} samples"
+            logger.exception(
+                "Failed to retrieve parcels for investigation %s", investigation_id
+            )
+
+        return parcels
+
+    def get_samples_by_investigation(
+        self, icat_token: str, investigation_id: str
+    ) -> List[Sample]:
+        """Return the sample records associated with an investigation."""
+        samples_List = []
+        try:
+            samples_List: List[Sample] = (
+                self.catalogue_api_instance.catalogue_session_id_samples_get(
+                    icat_token, investigation_id=investigation_id
+                )
+            )
+            msg = f"Successfully retrieved {len(samples_List)} samples"
             logger.debug(msg)
-            # Convert to object
-            return [SampleSheet.parse_obj(sample) for sample in samples]
-        return []
+        except Exception:
+            logger.exception("Failed on get_samples_by_investigation")
+
+        return samples_List
 
     def echo(self):
         """Mockup for the echo method."""
@@ -1116,8 +1146,8 @@ class ICATLIMS(AbstractLims):
         return "Phi"
 
     def __get_sample_information_by(
-        self, sample_id: str
-    ) -> Optional[SampleInformation]:
+        self, icat_token: str, sample_id: str
+    ) -> Optional[Sampleinformation]:
         """
         Fetches sample metadata and associated resources based on the sample ID.
 
@@ -1127,9 +1157,12 @@ class ICATLIMS(AbstractLims):
         Returns:
             Optional[SampleInformation]: Returns a SampleInformation object or None.
         """
-        try:
-            result = self.icatClient.get_sample_files_information_by(sample_id)
-            return SampleInformation.parse_obj(result)
+        try:                        
+            sampleInformationList : List[Sampleinformation] = self.catalogue_api_instance.catalogue_session_id_files_get(icat_token, sample_id=str(sample_id))
+            if(sampleInformationList is not None and len(sampleInformationList) > 0):
+                return sampleInformationList[0]
+            return None
+            
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 404:
                 logger.info("Sample %s not found (404)", sample_id)
@@ -1142,7 +1175,7 @@ class ICATLIMS(AbstractLims):
         return None
 
     def _download_resources(
-        self, sample_id, resources, output_folder: str, sample_name: str
+        self, icat_token: str, sample_id: str, resources: List[Resourceinformation] | None, output_folder: str, sample_name: str
     ) -> List[Download]:
         """
         Download resources related to a given sample and save them to the
@@ -1158,28 +1191,23 @@ class ICATLIMS(AbstractLims):
         downloaded_files: List[Download] = []
         for resource in resources:
             resource_folder = Path(output_folder) / sample_name
-            resource_folder = Path(resource_folder) / (resource.groupName or "")
+            resource_folder = Path(resource_folder) / (resource.group_name or "")
             resource_folder.mkdir(
                 parents=True,
                 exist_ok=True,
             )  # Make sure the folder exists
 
-            try:
-                result = self.icatClient.download_file_by(
-                    sample_id=sample_id,
-                    resource_id=resource.id,
-                    use_chunks=True,
-                    chunk_size=8192,
-                )
-                output_path = Path(resource_folder / resource.filename)
+            try:               
+                result =  self.catalogue_api_instance.catalogue_session_id_files_download_get(icat_token, str(sample_id), resource.id)               
+                output_path = Path(resource_folder / resource.filename)               
                 with output_path.open("wb") as f:
-                    f.write(result)
+                    f.write(result)               
 
                 # Create a new Download instance with updated path
                 downloaded = Download(
                     path=str(output_path),
                     filename=resource.filename,
-                    groupName=resource.groupName,
+                    groupName=resource.group_name,
                 )
                 downloaded_files.append(downloaded)
                 logger.info("Downloaded %s to %s", resource.filename, downloaded.path)

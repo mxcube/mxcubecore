@@ -63,6 +63,7 @@ python-ldap = "^3.4.5"
 requests = "^2.33.0"
 colorama = "^0.4.6"
 pyicat-plus = {version = "^1.0.0", optional = true}
+icat-plus-client = {version = "4.93.3", optional = true}
 mxcube-video-streamer = "^1.8.5"
 defusedxml = "0.7.1"
 
