@@ -9,6 +9,7 @@ from typing import (
     Optional,
 )
 
+from icat_plus_client.models.item import Item
 from pydantic import (
     BaseModel,
     Field,
@@ -46,6 +47,11 @@ class Lims(BaseModel):
 
     name: str = ""
     description: str = ""
+
+class LoadedPuck(Item):
+    puck_name: Optional[str] = None
+    parcel_name: Optional[str] = None
+    parcel_id: Optional[str] = None
 
 
 class Session(BaseModel):
@@ -279,33 +285,6 @@ class Resource(BaseModel):
     createdAt: datetime
     updatedAt: datetime
     groupName: Optional[str] = None
-
-
-class SampleInformation(BaseModel):
-    """
-    Parameters metadata related to a sample, including a list of associated resources.
-
-    Parameters:
-        id (str): The unique identifier for the sample. The key "_id" is used
-            in JSON and mapped to "id" in the class.
-        investigationId (int): The unique identifier of the investigation this
-            sample is associated with.
-        sampleId (int): The unique identifier for the sample in ICAT. Most of the cases
-            this represents the protein itself
-        createdAt (datetime): The timestamp representing when the sample
-            information was created.
-        updatedAt (datetime): The timestamp representing when the sample
-            information was last updated.
-        resources (List[Resource]): A list of Resource objects associated
-            with this sample information.
-    """
-
-    id: str = Field(..., alias="_id")  # Use alias to map _id from JSON to id
-    investigationId: int
-    sampleId: int
-    createdAt: datetime
-    updatedAt: datetime
-    resources: List[Resource]  # List of associated resources
 
 
 class Download(BaseModel):
