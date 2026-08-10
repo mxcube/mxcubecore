@@ -37,7 +37,7 @@ class ICATLIMS(AbstractLims):
         super().__init__(name)
         HardwareObject.__init__(self, name)
         self.investigations = None
-        self.icatClient = None        
+        self.icatClient = None
         self.activemq_url = None
 
     def init(self):
@@ -317,38 +317,27 @@ class ICATLIMS(AbstractLims):
         # Mongo @BES needs to be smaller then 8 bytes
         sample_id = int(str(self.objectid_to_int(tracking_sample.id))[-6:])
         # id to the sample sheet declared in the user portal
-
         sample_sheet_id = tracking_sample.sample_id
-        # identifier that points to the sample tracking
-        tracking_sample_id = tracking_sample.id
-
         msg = f"[ICATClient] Sample ids sample_id={sample_id} "
         msg += f"sample_sheet_id={sample_sheet_id} "
-        msg += f"tracking_sample_id={tracking_sample_id}"
+        msg += f"tracking_sample_id={tracking_sample.id}"
         logger.debug(msg)
 
-        sample_location = tracking_sample.sample_container_position
-        puck_location = puck.sample_changer_location
-        puck_name = puck.name
-
-        parcel_name = puck.parcel_name
-        parcel_id = puck.parcel_id
-
         protein_acronym = self.__resolve_protein_acronym(sample_name, sample_sheet_id)
-        import pdb; pdb.set_trace()
+
         return {
             "sampleName": sample_name,
             "sampleId": sample_id,
             "sample_sheet_id": sample_sheet_id,
-            "trackingSampleId": tracking_sample_id,
+            "trackingSampleId": tracking_sample.id,
             "proteinAcronym": protein_acronym,
-            "sampleLocation": sample_location,
-            "containerCode": puck_name,
-            "containerSampleChangerLocation": puck_location,
-            "SampleTrackingParcel_name": parcel_name,
-            "SampleTrackingParcel_id": parcel_id,
-            "SampleTrackingContainer_id": puck_name,
-            "SampleTrackingContainer_name": parcel_id,
+            "sampleLocation": tracking_sample.sample_container_position,
+            "containerCode": puck.name,
+            "containerSampleChangerLocation": puck.sample_changer_location,
+            "SampleTrackingParcel_name": puck.parcel_name,
+            "SampleTrackingParcel_id": puck.parcel_id,
+            "SampleTrackingContainer_id": puck.name,
+            "SampleTrackingContainer_name": puck.id,
         }
 
     def __resolve_protein_acronym(self, sample_name: str, sample_sheet_id: str) -> str:
@@ -713,6 +702,20 @@ class ICATLIMS(AbstractLims):
         """
         return investigation.get("parameters", {}).get(parameter_name, None)
 
+    def __get_proposal_number_by_investigation(self, investigation):
+        """
+        Given an investigation it returns the proposal number.
+        Example: investigation["name"] = "MX-1234"
+        returns: 1234
+
+        TODO: this might not work for all type of proposals (example: TEST proposals)
+        """
+        return (
+            investigation["name"]
+            .replace(investigation["type"]["name"], "")
+            .replace("-", "")
+        )
+
     def __to_session(self, investigation) -> Session:
         """This methods converts a ICAT investigation into a session"""
 
@@ -779,7 +782,7 @@ class ICATLIMS(AbstractLims):
         return self.icat_session["username"]
 
     def to_sessions(self, investigations):
-        return [self.__to_session(investigation) for investigation in investigations]   
+        return [self.__to_session(investigation) for investigation in investigations]
 
     def get_samples_by_investigation(
         self, icat_token: str, investigation_id: str
