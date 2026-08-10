@@ -48,6 +48,7 @@ class Lims(BaseModel):
     name: str = ""
     description: str = ""
 
+
 class LoadedPuck(Item):
     puck_name: Optional[str] = None
     parcel_name: Optional[str] = None
