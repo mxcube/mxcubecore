@@ -230,28 +230,6 @@ class LimsSessionManager(BaseModel):
     users: Optional[Dict[str, LimsUser]] = {}
 
 
-class SampleSheet(BaseModel):
-    """Represents a description of a sample sheet as defined in user portals.
-
-    Parameters:
-        id: Unique identifier for the sample sheet.
-        name: Name of the sample sheet, often corresponding to the protein's name.
-        investigation: Investigation associated with the sample sheet.
-        modTime: Last modification time of the sample sheet.
-        parameters: Generic list of parameters, dependent on the user portal.
-        datasets: List of datasets collected for this sample.
-        meta: Pagination metadata.
-    """
-
-    id: int
-    name: str
-    investigation: Investigation
-    modTime: datetime
-    parameters: List[Parameter]
-    datasets: List[Any]
-    meta: Meta
-
-
 class Resource(BaseModel):
     """
     Represents a resource, usually a file associated with a sample or
