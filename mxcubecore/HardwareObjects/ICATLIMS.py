@@ -9,11 +9,16 @@ from zoneinfo import ZoneInfo
 
 import icat_plus_client
 import requests
+from icat_plus_client.exceptions import ForbiddenException
+from icat_plus_client.models.credentials import Credentials
+from icat_plus_client.models.investigation import Investigation
 from icat_plus_client.models.item import Item
 from icat_plus_client.models.item_experiment_plan_inner import ItemExperimentPlanInner
 from icat_plus_client.models.resourceinformation import Resourceinformation
 from icat_plus_client.models.sample import Sample
 from icat_plus_client.models.sampleinformation import Sampleinformation
+from icat_plus_client.models.session import Session as IcatSession
+from icat_plus_client.rest import ApiException
 from pydantic import ValidationError
 from pyicat_plus.client.main import IcatClient
 
@@ -31,6 +36,98 @@ from mxcubecore.model.tracking_model_objects import LoadedPuck
 
 logger = logging.getLogger("HWR")
 
+PROTEIN_ACRONYM_KEY = "proteinAcronym"
+DETECTOR_PX_KEY = "detector_px"
+DETECTOR_PY_KEY = "detector_py"
+BEAM_DIVERGENCE_VERTICAL_KEY = "beam_divergence_vertical"
+BEAM_DIVERGENCE_HORIZONTAL_KEY = "beam_divergence_horizontal"
+POLARISATION_KEY = "polarisation"
+DETECTOR_MODEL_KEY = "detector_model"
+DETECTOR_MANUFACTURER_KEY = "detector_manufacturer"
+SYNCHROTRON_NAME_KEY = "synchrotron_name"
+MONOCHROMATOR_TYPE_KEY = "monochromator_type"
+DETECTOR_TYPE_KEY = "detector_type"
+
+INSTRUMENT_DETECTOR_BEAM_CENTER_X_KEY = "InstrumentDetector01_beam_center_x"
+INSTRUMENT_DETECTOR_BEAM_CENTER_Y_KEY = "InstrumentDetector01_beam_center_y"
+INSTRUMENT_BEAM_VERTICAL_DIVERGENCE_KEY = (
+    "InstrumentBeam_vertical_incident_beam_divergence"
+)
+INSTRUMENT_BEAM_HORIZONTAL_DIVERGENCE_KEY = (
+    "InstrumentBeam_horizontal_incident_beam_divergence"
+)
+INSTRUMENT_BEAM_FINAL_POLARIZATION_KEY = "InstrumentBeam_final_polarization"
+INSTRUMENT_DETECTOR_MODEL_KEY = "InstrumentDetector01_model"
+INSTRUMENT_DETECTOR_MANUFACTURER_KEY = "InstrumentDetector01_manufacturer"
+INSTRUMENT_SOURCE_NAME_KEY = "InstrumentSource_name"
+INSTRUMENT_MONOCHROMATOR_CRYSTAL_TYPE_KEY = "InstrumentMonochromatorCrystal_type"
+INSTRUMENT_DETECTOR_TYPE_KEY = "InstrumentDetector01_type"
+
+SCAN_TYPE_KEY = "scanType"
+MX_DIRECTORY_KEY = "MX_directory"
+MX_EXPOSURE_TIME_KEY = "MX_exposureTime"
+INSTRUMENT_DETECTOR_MODEL_KEY = "InstrumentDetector01_model"
+MX_ELEMENT_KEY = "MX_element"
+MX_EDGE_ENERGY_KEY = "MX_edgeEnergy"
+MX_START_ENERGY_KEY = "MX_startEnergy"
+MX_END_ENERGY_KEY = "MX_endEnergy"
+MX_PEAK_ENERGY_KEY = "MX_peakEnergy"
+MX_INFLECTION_ENERGY_KEY = "MX_inflectioEnergy"
+MX_REMOTE_ENERGY_KEY = "MX_remoteEnergy"
+MX_PEAK_F_PRIME_KEY = "MX_peakFPrime"
+MX_PEAK_F_DOUBLE_PRIME_KEY = "MX_peakFDoublePrime"
+MX_INFLECTION_F_PRIME_KEY = "MX_inflectionFPrime"
+MX_INFLECTION_F_DOUBLE_PRIME_KEY = "MX_inflectionFDoublePrime"
+MX_COMMENTS_KEY = "MX_comments"
+MX_DATA_COLLECTION_ID_KEY = "MX_dataCollectionId"
+MX_DETECTOR_DISTANCE_KEY = "MX_detectorDistance"
+MX_DIRECTORY_KEY = "MX_directory"
+MX_EXPOSURE_TIME_KEY = "MX_exposureTime"
+MX_POSITION_NAME_KEY = "MX_positionName"
+MX_NUMBER_OF_IMAGES_KEY = "MX_numberOfImages"
+MX_OSCILLATION_RANGE_KEY = "MX_oscillationRange"
+MX_AXIS_START_KEY = "MX_axis_start"
+MX_OSCILLATION_OVERLAP_KEY = "MX_oscillationOverlap"
+MX_RESOLUTION_KEY = "MX_resolution"
+MX_RESOLUTION_AT_CORNER_KEY = "MX_resolution_at_corner"
+MX_START_IMAGE_NUMBER_KEY = "MX_startImageNumber"
+MX_TEMPLATE_KEY = "MX_template"
+SAMPLE_NAME_KEY = "Sample_name"
+WORKFLOW_NAME_KEY = "Workflow_name"
+WORKFLOW_TYPE_KEY = "Workflow_type"
+WORKFLOW_ID_KEY = "Workflow_id"
+WORKFLOW_NOTE_KEY = "Workflow_note"
+MX_KAPPA_SETTINGS_ID_KEY = "MX_kappa_settings_id"
+MX_CHARACTERISATION_ID_KEY = "MX_characterisation_id"
+MX_POSITION_ID_KEY = "MX_position_id"
+GROUP_BY_KEY = "group_by"
+SAMPLE_TRACKING_CONTAINER_TYPE_KEY = "SampleTrackingContainer_type"
+SAMPLE_TRACKING_CONTAINER_CAPACITY_KEY = "SampleTrackingContainer_capacity"
+SAMPLE_CHANGER_POSITION_KEY = "SampleChanger_position"
+SAMPLE_TRACKING_CONTAINER_POSITION_KEY = "SampleTrackingContainer_position"
+SAMPLE_TRACKING_CONTAINER_ID_KEY = "SampleTrackingContainer_id"
+SAMPLE_TRACKING_PARCEL_ID_KEY = "SampleTrackingParcel_id"
+SAMPLE_TRACKING_PARCEL_NAME_KEY = "SampleTrackingParcel_name"
+START_DATE_KEY = "startDate"
+END_DATE_KEY = "endDate"
+INVESTIGATION_ID_KEY = "investigationId"
+PROPOSAL_KEY = "proposal"
+MX_BEAM_SHAPE_KEY = "MX_beamShape"
+MX_BEAM_SIZE_AT_SAMPLE_X_KEY = "MX_beamSizeAtSampleX"
+MX_BEAM_SIZE_AT_SAMPLE_Y_KEY = "MX_beamSizeAtSampleY"
+MX_X_BEAM_KEY = "MX_xBeam"
+MX_Y_BEAM_KEY = "MX_yBeam"
+MX_FLUX_KEY = "MX_flux"
+MX_FLUX_END_KEY = "MX_fluxEnd"
+MX_TRANSMISSION_KEY = "MX_transmission"
+INSTRUMENT_MONOCHROMATOR_WAVELENGTH_KEY = (
+    "InstrumentMonochromator_wavelength"
+)
+INSTRUMENT_MONOCHROMATOR_ENERGY_KEY = "InstrumentMonochromator_energy"
+INSTRUMENT_SOURCE_CURRENT_KEY = "InstrumentSource_current"
+INSTRUMENT_SOURCE_MODE_KEY = "InstrumentSource_mode"
+INSTRUMENT_CRYOSTAT_VALUE_KEY = "InstrumentCryostat01_value"
+ACTUAL_INSTRUMENT_KEY = "__actualInstrument"
 
 class ICATLIMS(AbstractLims):
     def __init__(self, name):
@@ -43,6 +140,7 @@ class ICATLIMS(AbstractLims):
     def init(self):
         self.url = self.get_property("ws_root")
         self.activemq_url = self.get_property("queue_urls")
+        self.authentication_icat_plugin = self.get_property("authentication_icat_plugin")
         self.investigations = []
         self.samples = []
         self._downloads_cache = {}
@@ -59,6 +157,7 @@ class ICATLIMS(AbstractLims):
         )
         self.tracking_api_instance = icat_plus_client.TrackingApi(api_client)
         self.catalogue_api_instance = icat_plus_client.CatalogueApi(api_client)
+        self.session_api_instance = icat_plus_client.SessionApi(api_client)
 
     def get_lims_name(self) -> List[Lims]:
         return [
@@ -68,8 +167,18 @@ class ICATLIMS(AbstractLims):
             ),
         ]
 
-    def _create_icat_session(self, user_name: str, password: str):
-        self.icat_session: dict = self.icatClient.do_log_in(password)
+    def _create_icat_session(self, user_name: str, password: str) -> IcatSession:
+        try:
+            logger.debug(f"Authenticating {user_name}")
+            credentials = Credentials(plugin=self.authentication_icat_plugin, password=password)
+            icat_session = self.session_api_instance.session_post(credentials)
+        except ForbiddenException as e:
+            logger.error(f" Error occurred while authenticating. Access forbidden {e}")
+            raise
+        except ApiException as e:
+            logger.error(f"Error occurred while authenticating {user_name}: {e}")
+            raise
+        return icat_session #response.model_dump(by_alias=True)
 
     def login(
         self,
@@ -77,25 +186,25 @@ class ICATLIMS(AbstractLims):
         password: str,
         session_manager: Optional[LimsSessionManager],
     ) -> LimsSessionManager:
-        msg = f"authenticate {user_name}"
-        logger.debug(msg)
+        
+        self.icat_session: IcatSession = self._create_icat_session(
+            user_name=user_name, password=password
+        )
 
-        self._create_icat_session(user_name=user_name, password=password)
-
-        if self.icatClient is None or self.icatClient is None:
+        if self.icatClient is None:
             msg = "Error initializing icatClient: "
             msg += f"icatClient={self.url}"
             logger.error(msg)
             raise RuntimeError("Could not initialize icatClient")
 
         # Connected to metadata icatClient
-        msg = "Connected succesfully to icatClient: "
-        msg += f"fullName={self.icat_session['fullName']}, url={self.url}"
+        msg = "Connected succesfully to ICAT: "
+        msg += f"fullName={self.icat_session.full_name}, url={self.url}"
         logger.debug(msg)
 
         # Retrieving user's investigations
         sessions = self.to_sessions(self.__get_all_investigations())
-
+        
         if len(sessions) == 0:
             msg = f"No sessions available for user {user_name}"
             raise RuntimeError(msg)
@@ -122,7 +231,7 @@ class ICATLIMS(AbstractLims):
                 msg += f"not avaialble for user {user_name}"
                 raise RuntimeError(msg)
 
-        return self.session_manager, self.icat_session["name"], sessions
+        return self.session_manager, self.icat_session.name, sessions
 
     def is_user_login_type(self) -> bool:
         return True
@@ -186,22 +295,19 @@ class ICATLIMS(AbstractLims):
         try:
             session = self.session_manager.active_session
             investigation_id = session.session_id
-            icat_token = self.icat_session["sessionId"]
+            icat_token = self.icat_session.session_id
 
             logger.debug(
                 "[ICATClient] get_samples: investigation_id=%s, proposal_name=%s",
                 investigation_id,
                 session.proposal_name,
             )
-
-            logger.debug(
-                "[ICATClient] Retrieving sample sheets for investigation_id=%s",
-                investigation_id,
-            )
+            
             self.sample_sheets = self.get_samples_by_investigation(
                 icat_token,
                 investigation_id,
             )
+            
             logger.debug(
                 "[ICATClient] Retrieved %d sample sheets",
                 len(self.sample_sheets),
@@ -217,6 +323,18 @@ class ICATLIMS(AbstractLims):
                 len(self.loaded_pucks),
             )
 
+            sampleInformationList: List[Sampleinformation] = []
+            # Download all sampleInformation for the investigation
+            # This makes to perform a single call to the server instead of one per sample
+            try:
+                sampleInformationList = (
+                    self.catalogue_api_instance.catalogue_session_id_files_get(
+                        icat_token, investigation_id=str(investigation_id)
+                    )
+                )                            
+            except Exception as e:                
+                logger.exception("Error retrieving sample information for investigation %s", e)
+                
             # Extract and process samples from loaded pucks
             for puck in self.loaded_pucks:
                 tracking_samples = puck.content
@@ -224,7 +342,7 @@ class ICATLIMS(AbstractLims):
                 msg += f"{puck.sample_changer_location}, containing {len(puck.content)} samples"
                 logger.debug(msg)
                 for tracking_sample in tracking_samples:
-                    sample = self.__to_sample(tracking_sample, puck, icat_token)
+                    sample = self.__to_sample(tracking_sample, puck, icat_token, sampleInformationList)
                     self.samples.append(sample)
 
         except RuntimeError:
@@ -240,21 +358,6 @@ class ICATLIMS(AbstractLims):
                 )
             return self.samples
         return []
-
-    def get_sample_sheet_by_id(
-        self, samples: List[SampleSheet], sample_id: int
-    ) -> Optional[SampleSheet]:
-        """
-        Retrieve a sample sheet by its unique ID.
-
-        Args:
-            samples (List[SampleSheet]): A list of Sample objects.
-            sample_id (int): The unique identifier of the sample sheet to retrieve.
-
-        Returns:
-            Optional[Sample]: The Sample object if found, otherwise None.
-        """
-        return next((sample for sample in samples if sample.id == sample_id), None)
 
     def objectid_to_int(self, oid_str):
         return int(oid_str, 16)
@@ -341,44 +444,30 @@ class ICATLIMS(AbstractLims):
         }
 
     def __resolve_protein_acronym(self, sample_name: str, sample_sheet_id: str) -> str:
-        sample_sheet = self.get_sample_sheet_by_id(self.sample_sheets, sample_sheet_id)
+        """Return the sample sheet name when the ID matches; otherwise, use the sample name."""
+        sample_sheet = next((sample for sample in self.sample_sheets if sample.id == sample_sheet_id), None)        
         return sample_sheet.name if sample_sheet else sample_name
 
-    def __parse_experiment_plan(self, tracking_sample: Item) -> dict[str, Any]:
+    def __experiment_plan_to_dict(self, experiment_plan: List[ItemExperimentPlanInner] | None) -> dict[str, Any]:
+        """Extract experiment plan values into a dictionary, using each item's key."""
         return {
             item.key: item.value.actual_instance
-            for item in tracking_sample.experiment_plan or []
-        }
-
-    def __build_diffraction_plan(self, experiment_plan: dict) -> dict[str, Any]:
-        return {
-            # "diffractionPlanId": 457980, TODO: do we need this?
-            "experimentKind": experiment_plan.get("experimentKind"),
-            "numberOfPositions": experiment_plan.get("numberOfPositions"),
-            "observedResolution": experiment_plan.get("observedResolution"),
-            "preferredBeamDiameter": experiment_plan.get("preferredBeamDiameter"),
-            "radiationSensitivity": experiment_plan.get("radiationSensitivity"),
-            "requiredCompleteness": experiment_plan.get("requiredCompleteness"),
-            "requiredMultiplicity": experiment_plan.get("requiredMultiplicity"),
-            "requiredResolution": experiment_plan.get("requiredResolution"),
+            for item in experiment_plan or []
         }
 
     def __prepare_processing_plan(
-        self, icat_token: str, tracking_sample: Item, protein_acronym: str
+        self, icat_token: str, tracking_sample: Item, protein_acronym: str, sample_information: Sampleinformation | None
     ) -> dict[str, Any]:
+        
         if not tracking_sample.processing_plan or tracking_sample.processing_plan == []:
             return {}
 
-        # Convert string values to JSON if possible
-        # for item in tracking_sample.processing_plan:
-        #    item["value"] = self._safe_json_loads(item.value.actual_instance)
-
-        downloads = self.__get_or_download_plan_resources(
-            icat_token, tracking_sample.sample_id, protein_acronym
+        downloads : List[Download]= self.__download_resource(
+            icat_token, tracking_sample.sample_id, protein_acronym, sample_information
         )
 
         if downloads:
-            try:
+            try:              
                 return self.__add_download_path_to_processing_plan(
                     tracking_sample.processing_plan, downloads
                 )
@@ -386,15 +475,11 @@ class ICATLIMS(AbstractLims):
                 logger.exception("Failed __add_download_path_to_processing_plan")
         return {item["key"]: item["value"] for item in tracking_sample.processing_plan}
 
-    def __get_or_download_plan_resources(
-        self, icat_token: str, sample_sheet_id: str, protein_acronym: str
+    def __download_resource(
+        self, icat_token: str, sample_sheet_id: str, protein_acronym: str, sample_information: Sampleinformation | None
     ) -> List[Download]:
-        cache_key = (sample_sheet_id, protein_acronym)
-        logger.debug(f"Getting sample information for {protein_acronym}")
-        sample_information = self.__get_sample_information_by(
-            icat_token, sample_sheet_id
-        )
-
+        cache_key = (sample_sheet_id, protein_acronym)        
+        logger.debug(f"Getting sample information for {protein_acronym}")       
         if not sample_information:
             return []
 
@@ -432,7 +517,7 @@ class ICATLIMS(AbstractLims):
         return downloads
 
     def __to_sample(
-        self, tracking_sample: Sample, puck: LoadedPuck, icat_token: str
+        self, tracking_sample: Item, puck: LoadedPuck, icat_token: str, sample_information_list: List[Sampleinformation]
     ) -> dict[str, Any]:
         """
         Convert a tracking sample and associated metadata into the internal
@@ -450,22 +535,24 @@ class ICATLIMS(AbstractLims):
             dict: A dictionary representing the standardized internal sample format.
         """
         sample_id_info = self.__extract_sample_identifiers(tracking_sample, puck)
-
-        protein_acronym = sample_id_info["proteinAcronym"]
-
-        experiment_plan = self.__parse_experiment_plan(tracking_sample)
+                
+        # converts experiment plan from list of ItemExperimentPlanInner to a dictionary
+        experiment_plan = self.__experiment_plan_to_dict(tracking_sample.experiment_plan)
+        
+        sample_information = next((sample for sample in sample_information_list if sample.sample_id == tracking_sample.sample_id),None,)
         processing_plan = self.__prepare_processing_plan(
             icat_token,
             tracking_sample,
-            protein_acronym,
+            sample_id_info[PROTEIN_ACRONYM_KEY],
+            sample_information
         )
-
+        # This still keeps compatible with ISPyB legacy code
         return {
             **sample_id_info,
             "experimentType": experiment_plan.get("workflowType"),
             "crystalSpaceGroup": experiment_plan.get("forceSpaceGroup"),
-            "diffractionPlan": self.__build_diffraction_plan(experiment_plan),
-            "experimentPlan": experiment_plan,
+            "diffractionPlan": {},
+            "experimentPlan": self.__experiment_plan_to_dict(tracking_sample.experiment_plan),
             "processingPlan": processing_plan,
             "comments": tracking_sample.comments,
         }
@@ -601,7 +688,7 @@ class ICATLIMS(AbstractLims):
         logger.warning("No investigation found")
         return None
 
-    def __get_all_investigations(self):
+    def __get_all_investigations(self) -> List[Investigation]:
         """Returns all investigations by user. An investigation corresponds to
         one experimental session. It returns an empty array in case of error"""
         self.investigations = []
@@ -610,24 +697,32 @@ class ICATLIMS(AbstractLims):
             msg += f"after={self.after_offset_days} "
             msg += f"beamline={self.override_beamline_name} "
             msg += (
-                f"isInstrumentScientist={self.icat_session['isInstrumentScientist']} "
+                f"isInstrumentScientist={self.icat_session.is_instrument_scientist} "
             )
-            msg += f"isAdministrator={self.icat_session['isAdministrator']} "
+            msg += f"isAdministrator={self.icat_session.is_administrator} "
             msg += f"compatible_beamlines={self.compatible_beamlines}"
             logger.debug(msg)
 
             if self.icat_session is not None and (
-                self.icat_session["isAdministrator"]
-                or self.icat_session["isInstrumentScientist"]
+                self.icat_session.is_administrator
+                or self.icat_session.is_instrument_scientist
             ):
                 # Setting up of the session done by admin or staff
-                self.investigations = self.icatClient.get_investigations_by(
-                    start_date=datetime.today()
-                    - timedelta(days=float(self.before_offset_days)),
-                    end_date=datetime.today()
-                    + timedelta(days=float(self.after_offset_days)),
-                    instrument_name=self.compatible_beamlines,
+                self.investigations = (
+                    self.catalogue_api_instance.catalogue_session_id_investigation_get(
+                        self.icat_session.session_id,
+                        start_date=(
+                            datetime.today()
+                            - timedelta(days=float(self.before_offset_days))
+                        ).strftime("%Y-%m-%d"),
+                        end_date=(
+                            datetime.today()
+                            + timedelta(days=float(self.after_offset_days))
+                        ).strftime("%Y-%m-%d"),
+                        instrument_name=self.compatible_beamlines,
+                    )
                 )
+
             elif self.only_staff_session_selection:
                 if self.session_manager.active_session is None:
                     # print warning an return no investigations
@@ -637,17 +732,27 @@ class ICATLIMS(AbstractLims):
                     )
                     return []
 
-                self.investigations = self.icatClient.get_investigations_by(
-                    ids=[self.session_manager.active_session.session_id]
+                self.investigations = (
+                    self.catalogue_api_instance.catalogue_session_id_investigation_get(
+                        self.icat_session.session_id,
+                        ids=[self.session_manager.active_session.session_id],
+                    )
                 )
             else:
-                self.investigations = self.icatClient.get_investigations_by(
-                    filter=self.filter,
-                    instrument_name=self.compatible_beamlines,
-                    start_date=datetime.today()
-                    - timedelta(days=float(self.before_offset_days)),
-                    end_date=datetime.today()
-                    + timedelta(days=float(self.after_offset_days)),
+                self.investigations = (
+                    self.catalogue_api_instance.catalogue_session_id_investigation_get(
+                        self.icat_session.session_id,
+                        filter=self.filter,
+                        instrument_name=self.compatible_beamlines,
+                        start_date=(
+                            datetime.today()
+                            - timedelta(days=float(self.before_offset_days))
+                        ).strftime("%Y-%m-%d"),
+                        end_date=(
+                            datetime.today()
+                            + timedelta(days=float(self.after_offset_days))
+                        ).strftime("%Y-%m-%d"),
+                    )
                 )
         except Exception:
             self.investigations = []
@@ -659,50 +764,40 @@ class ICATLIMS(AbstractLims):
 
         return self.investigations
 
-    def _get_data_portal_url(self, investigation):
+    def _get_data_portal_url(self, investigation : Investigation)->str:
         try:
             return (
-                self.data_portal_url.replace("{id}", str(investigation["id"]))
+                self.data_portal_url.replace("{id}", str(investigation.id))
                 if self.data_portal_url is not None
                 else ""
             )
         except Exception:
             return ""
 
-    def _get_logbook_url(self, investigation):
+    def _get_logbook_url(self   , investigation : Investigation)->str:
         try:
             return (
-                self.logbook_url.replace("{id}", str(investigation["id"]))
+                self.logbook_url.replace("{id}", str(investigation.id))
                 if self.logbook_url is not None
                 else ""
             )
         except Exception:
             return ""
 
-    def _get_user_portal_url(self, investigation):
+    def _get_user_portal_url(self, investigation : Investigation)->str:
         try:
             return (
                 self.user_portal_url.replace(
-                    "{id}", str(investigation["parameters"]["Id"])
+                    "{id}", str(investigation.parameters["Id"])
                 )
                 if self.user_portal_url is not None
-                and investigation["parameters"]["Id"] is not None
+                and investigation.parameters["Id"] is not None
                 else ""
             )
         except Exception:
             return ""
 
-    def __get_investigation_parameter_by_name(
-        self, investigation: dict, parameter_name: str
-    ) -> str:
-        """
-        Gets the metadata of the parameters in an investigation
-        Returns the value of the specified parameter if it exists,
-        otherwise returns an empty string.
-        """
-        return investigation.get("parameters", {}).get(parameter_name, None)
-
-    def __get_proposal_number_by_investigation(self, investigation):
+    def __get_proposal_number_by_investigation(self, investigation : Investigation) -> str:
         """
         Given an investigation it returns the proposal number.
         Example: investigation["name"] = "MX-1234"
@@ -711,14 +806,13 @@ class ICATLIMS(AbstractLims):
         TODO: this might not work for all type of proposals (example: TEST proposals)
         """
         return (
-            investigation["name"]
-            .replace(investigation["type"]["name"], "")
+            investigation.name
+            .replace(investigation.type.name, "")
             .replace("-", "")
         )
 
-    def __to_session(self, investigation) -> Session:
-        """This methods converts a ICAT investigation into a session"""
-
+    def __to_session(self, investigation : Investigation) -> Session:
+        """This methods converts a ICAT investigation into a session"""        
         actual_start_date = (
             investigation["parameters"]["actualStartDate"]
             if "actualStartDate" in investigation["parameters"]
@@ -734,24 +828,20 @@ class ICATLIMS(AbstractLims):
 
         # If session has been rescheduled new date is overwritten
         return Session(
-            code=investigation["type"]["name"],
+            code=investigation.type.name,
             number=self.__get_proposal_number_by_investigation(investigation),
-            title=f"{investigation['title']}",
-            session_id=str(investigation["id"]),
-            proposal_id=str(investigation["id"]),
-            proposal_name=investigation["name"],
+            title=investigation.title,
+            session_id=str(investigation.id),
+            proposal_id=str(investigation.id),
+            proposal_name=investigation.name,
             beamline_name=instrument_name,
             comments="",
-            start_datetime=investigation.get(
-                "startDate", None
-            ),  # self._string_to_date(investigation.get("startDate", None)),
-            start_date=self._string_to_date(investigation.get("startDate", None)),
-            start_time=self._string_to_time(investigation.get("startDate", None)),
-            end_datetime=investigation.get("endDate", None),
-            end_date=self._string_to_date(
-                investigation.get("endDate", None)
-            ),  # self._string_to_time(investigation.get("endDate", None)),
-            end_time=self._string_to_time(investigation.get("endDate", None)),
+            start_datetime=investigation.start_date,  
+            start_date=self._string_to_date(investigation.start_date),
+            start_time=self._string_to_time(investigation.start_date),
+            end_datetime=investigation.end_date,
+            end_date=self._string_to_date(investigation.end_date),
+            end_time=self._string_to_time(investigation.end_date),
             actual_start_date=self._string_to_date(actual_start_date),
             actual_start_time=self._string_to_time(actual_start_date),
             actual_end_date=self._string_to_date(actual_end_date),
@@ -776,12 +866,12 @@ class ICATLIMS(AbstractLims):
         )
 
     def get_full_user_name(self):
-        return self.icat_session["fullName"]
+        return self.icat_session.full_name
 
     def get_user_name(self):
-        return self.icat_session["username"]
+        return self.icat_session.username
 
-    def to_sessions(self, investigations):
+    def to_sessions(self, investigations : List[Investigation]) -> List[Session]:
         return [self.__to_session(investigation) for investigation in investigations]
 
     def get_samples_by_investigation(
@@ -816,20 +906,16 @@ class ICATLIMS(AbstractLims):
         """
         if beamline_config is not None:
             key_mapping = {
-                "detector_px": "InstrumentDetector01_beam_center_x",
-                "detector_py": "InstrumentDetector01_beam_center_y",
-                "beam_divergence_vertical": (
-                    "InstrumentBeam_vertical_incident_beam_divergence"
-                ),
-                "beam_divergence_horizontal": (
-                    "InstrumentBeam_horizontal_incident_beam_divergence"
-                ),
-                "polarisation": "InstrumentBeam_final_polarization",
-                "detector_model": "InstrumentDetector01_model",
-                "detector_manufacturer": "InstrumentDetector01_manufacturer",
-                "synchrotron_name": "InstrumentSource_name",
-                "monochromator_type": "InstrumentMonochromatorCrystal_type",
-                "InstrumentDetector01_type": "detector_type",
+                DETECTOR_PX_KEY: INSTRUMENT_DETECTOR_BEAM_CENTER_X_KEY,
+                DETECTOR_PY_KEY: INSTRUMENT_DETECTOR_BEAM_CENTER_Y_KEY,
+                BEAM_DIVERGENCE_VERTICAL_KEY: INSTRUMENT_BEAM_VERTICAL_DIVERGENCE_KEY,
+                BEAM_DIVERGENCE_HORIZONTAL_KEY: INSTRUMENT_BEAM_HORIZONTAL_DIVERGENCE_KEY,
+                POLARISATION_KEY: INSTRUMENT_BEAM_FINAL_POLARIZATION_KEY,
+                DETECTOR_MODEL_KEY: INSTRUMENT_DETECTOR_MODEL_KEY,
+                DETECTOR_MANUFACTURER_KEY: INSTRUMENT_DETECTOR_MANUFACTURER_KEY,
+                SYNCHROTRON_NAME_KEY: INSTRUMENT_SOURCE_NAME_KEY,
+                MONOCHROMATOR_TYPE_KEY: INSTRUMENT_MONOCHROMATOR_CRYSTAL_TYPE_KEY,
+                DETECTOR_TYPE_KEY: INSTRUMENT_DETECTOR_TYPE_KEY,
             }
 
             for config_key, metadata_key in key_mapping.items():
@@ -876,7 +962,7 @@ class ICATLIMS(AbstractLims):
 
     def store_common_data(self, datacollection_dict: dict) -> dict:
         """Fill in a dictionary with the common for all the
-           data collection techniques meta data.
+        data collection techniques meta data.
         Args:
             datacollection_dict(dict): dictionarry from the data collection.
         """
@@ -956,30 +1042,41 @@ class ICATLIMS(AbstractLims):
                 cryo_temperature = None
 
         result = {
-            "Sample_name": sample_name,
-            "startDate": start_time,
-            "endDate": end_time,
-            "investigationId": investigation_id,
-            "proposal": investigation_name,
-            "MX_beamShape": shape.value,
-            "MX_beamSizeAtSampleX": bsx,
-            "MX_beamSizeAtSampleY": bsy,
-            "MX_xBeam": xbeam,
-            "MX_yBeam": ybeam,
-            "MX_flux": datacollection_dict.get("flux"),
-            "MX_fluxEnd": flux_end,
-            "MX_transmission": transmission,
-            "InstrumentMonochromator_wavelength": wavelength,
-            "InstrumentMonochromator_energy": energy,
-            "InstrumentSource_current": machine_info.get("current"),
-            "InstrumentSource_mode": machine_info.get("fill_mode"),
-            "InstrumentCryostat01_value": cryo_temperature,
+            SAMPLE_NAME_KEY: sample_name,
+            START_DATE_KEY: start_time,
+            END_DATE_KEY: end_time,
+            INVESTIGATION_ID_KEY: investigation_id,
+            PROPOSAL_KEY: investigation_name,
+            MX_BEAM_SHAPE_KEY: shape.value,
+            MX_BEAM_SIZE_AT_SAMPLE_X_KEY: bsx,
+            MX_BEAM_SIZE_AT_SAMPLE_Y_KEY: bsy,
+            MX_X_BEAM_KEY: xbeam,
+            MX_Y_BEAM_KEY: ybeam,
+            MX_FLUX_KEY: datacollection_dict.get("flux"),
+            MX_FLUX_END_KEY: flux_end,
+            MX_TRANSMISSION_KEY: transmission,
+            INSTRUMENT_MONOCHROMATOR_WAVELENGTH_KEY: wavelength,
+            INSTRUMENT_MONOCHROMATOR_ENERGY_KEY: energy,
+            INSTRUMENT_SOURCE_CURRENT_KEY: machine_info.get("current"),
+            INSTRUMENT_SOURCE_MODE_KEY: machine_info.get("fill_mode"),
+            INSTRUMENT_CRYOSTAT_VALUE_KEY: cryo_temperature,
         }
         if actual_instrument is not None:
             result["actualInstrument"] = actual_instrument
 
         return result
 
+    def __format_datetime(self, value: str) -> str:
+        try:
+            return (
+                datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+                .replace(tzinfo=ZoneInfo("Europe/Paris"))
+                .isoformat(timespec="microseconds")
+            )
+        except (ValueError, TypeError):
+            self.log.exception("Cannot parse datetime: %s", value)
+            return value
+    
     def store_energy_scan(self, energyscan_dict: dict):
         try:
             metadata = self.store_common_data(energyscan_dict)
@@ -1001,6 +1098,12 @@ class ICATLIMS(AbstractLims):
             end_time = energyscan_dict.get("endTime", "")
 
             if start_time:
+                metadata["startDate"] = self.__format_datetime(start_time)
+
+            if end_time:
+                metadata["endDate"] = self.__format_datetime(end_time)
+    
+            if start_time:
                 try:
                     dt_aware = datetime.strptime(
                         start_time, "%Y-%m-%d %H:%M:%S"
@@ -1018,30 +1121,30 @@ class ICATLIMS(AbstractLims):
                     end_time = dt_aware.isoformat(timespec="microseconds")
                     metadata.update({"endDate": end_time})
                 except (ValueError, TypeError):
-                    self.log.exception("Cannot parse start time")
+                    self.log.exception("Cannot parse end time")
 
             metadata.update(
                 {
-                    "scanType": "energy_scan",
-                    "MX_directory": str(directory),
-                    "MX_exposureTime": energyscan_dict.get("exposureTime"),
-                    "InstrumentDetector01_model": energyscan_dict.get(
+                    SCAN_TYPE_KEY: "energy_scan",
+                    MX_DIRECTORY_KEY: str(directory),
+                    MX_EXPOSURE_TIME_KEY: energyscan_dict.get("exposureTime"),
+                    INSTRUMENT_DETECTOR_MODEL_KEY: energyscan_dict.get(
                         "fluorescenceDetector"
                     ),
-                    "MX_element": energyscan_dict.get("element"),
-                    "MX_edgeEnergy": energyscan_dict.get("edgeEnergy"),
-                    "MX_startEnergy": energyscan_dict.get("startEnergy"),
-                    "MX_endEnergy": energyscan_dict.get("endEnergy"),
-                    "MX_peakEnergy": energyscan_dict.get("endEnergy"),
-                    "MX_inflectioEnergy": energyscan_dict.get("inflectioEnergy"),
-                    "MX_remoteEnergy": energyscan_dict.get("remoteEnergy"),
-                    "MX_peakFPrime": energyscan_dict.get("peakFPrime"),
-                    "MX_peakFDoublePrime": energyscan_dict.get("peakFDoublePrime"),
-                    "MX_inflectionFPrime": energyscan_dict.get("inflectionFPrime"),
-                    "MX_inflectionFDoublePrime": energyscan_dict.get(
+                    MX_ELEMENT_KEY: energyscan_dict.get("element"),
+                    MX_EDGE_ENERGY_KEY: energyscan_dict.get("edgeEnergy"),
+                    MX_START_ENERGY_KEY: energyscan_dict.get("startEnergy"),
+                    MX_END_ENERGY_KEY: energyscan_dict.get("endEnergy"),
+                    MX_PEAK_ENERGY_KEY: energyscan_dict.get("endEnergy"),
+                    MX_INFLECTION_ENERGY_KEY: energyscan_dict.get("inflectioEnergy"),
+                    MX_REMOTE_ENERGY_KEY: energyscan_dict.get("remoteEnergy"),
+                    MX_PEAK_F_PRIME_KEY: energyscan_dict.get("peakFPrime"),
+                    MX_PEAK_F_DOUBLE_PRIME_KEY: energyscan_dict.get("peakFDoublePrime"),
+                    MX_INFLECTION_F_PRIME_KEY: energyscan_dict.get("inflectionFPrime"),
+                    MX_INFLECTION_F_DOUBLE_PRIME_KEY: energyscan_dict.get(
                         "inflectionFDoublePrime"
                     ),
-                    "MX_comments": energyscan_dict.get("comments"),
+                    MX_COMMENTS_KEY: energyscan_dict.get("comments"),
                 }
             )
 
@@ -1075,32 +1178,12 @@ class ICATLIMS(AbstractLims):
 
             start_time = xfespectrum_dict.get("startTime", "")
             end_time = xfespectrum_dict.get("endTime", "")
-
-            if start_time:
-                try:
-                    dt_aware = datetime.strptime(
-                        start_time, "%Y-%m-%d %H:%M:%S"
-                    ).replace(tzinfo=ZoneInfo("Europe/Paris"))
-                    start_time = dt_aware.isoformat(timespec="microseconds")
-                    metadata.update({"startDate": start_time})
-                except (ValueError, TypeError):
-                    self.log.exception("Cannot parse start time")
-
-            if end_time:
-                try:
-                    dt_aware = datetime.strptime(end_time, "%Y-%m-%d %H:%M:%S").replace(
-                        tzinfo=ZoneInfo("Europe/Paris")
-                    )
-                    end_time = dt_aware.isoformat(timespec="microseconds")
-                    metadata.update({"endDate": end_time})
-                except (ValueError, TypeError):
-                    self.log.exception("Cannot parse end time")
-
+            
             metadata.update(
                 {
-                    "scanType": "xrf",
-                    "MX_directory": str(directory),
-                    "MX_exposureTime": xfespectrum_dict.get("exposureTime"),
+                    SCAN_TYPE_KEY: "xrf",
+                    MX_DIRECTORY_KEY: str(directory),
+                    MX_EXPOSURE_TIME_KEY: xfespectrum_dict.get("exposureTime"),
                 }
             )
 
@@ -1160,7 +1243,7 @@ class ICATLIMS(AbstractLims):
                 self.catalogue_api_instance.catalogue_session_id_files_get(
                     icat_token, sample_id=str(sample_id)
                 )
-            )
+            )                        
             if sampleInformationList is not None and len(sampleInformationList) > 0:
                 return sampleInformationList[0]
             return None
@@ -1292,41 +1375,40 @@ class ICATLIMS(AbstractLims):
 
             metadata.update(
                 {
-                    "MX_dataCollectionId": datacollection_dict.get("collection_id"),
-                    "MX_detectorDistance": distance,
-                    "MX_directory": str(directory),
-                    "MX_exposureTime": oscillation_sequence["exposure_time"],
-                    "MX_positionName": datacollection_dict.get("position_name"),
-                    "MX_numberOfImages": oscillation_sequence["number_of_images"],
-                    "MX_oscillationRange": oscillation_sequence["range"],
-                    "MX_axis_start": oscillation_sequence["start"],
-                    "MX_oscillationOverlap": oscillation_sequence["overlap"],
-                    "MX_resolution": datacollection_dict.get("resolution"),
-                    "MX_resolution_at_corner": datacollection_dict.get(
-                        "resolutionAtCorner"
-                    ),
-                    "scanType": scan_type,
-                    "MX_startImageNumber": oscillation_sequence["start_image_number"],
-                    "MX_template": fileinfo["template"],
-                    "Sample_name": sample_name,
-                    "Workflow_name": workflow_params.get("workflow_name"),
-                    "Workflow_type": workflow_params.get("workflow_type"),
-                    "Workflow_id": workflow_params.get("workflow_uid"),
-                    "Workflow_note": workflow_params.get("workflow_note"),
-                    "MX_kappa_settings_id": mx_kappa_settings_id,
-                    "MX_characterisation_id": workflow_params.get(
+                    MX_DATA_COLLECTION_ID_KEY: datacollection_dict.get("collection_id"),
+                    MX_DETECTOR_DISTANCE_KEY: distance,
+                    MX_DIRECTORY_KEY: str(directory),
+                    MX_EXPOSURE_TIME_KEY: oscillation_sequence["exposure_time"],
+                    MX_POSITION_NAME_KEY: datacollection_dict.get("position_name"),
+                    MX_NUMBER_OF_IMAGES_KEY: oscillation_sequence["number_of_images"],
+                    MX_OSCILLATION_RANGE_KEY: oscillation_sequence["range"],
+                    MX_AXIS_START_KEY: oscillation_sequence["start"],
+                    MX_OSCILLATION_OVERLAP_KEY: oscillation_sequence["overlap"],
+                    MX_RESOLUTION_KEY: datacollection_dict.get("resolution"),
+                    MX_RESOLUTION_AT_CORNER_KEY: datacollection_dict.get("resolutionAtCorner"),
+                    SCAN_TYPE_KEY: scan_type,
+                    MX_START_IMAGE_NUMBER_KEY: oscillation_sequence["start_image_number"],
+                    MX_TEMPLATE_KEY: fileinfo["template"],
+                    SAMPLE_NAME_KEY: sample_name,
+                    WORKFLOW_NAME_KEY: workflow_params.get("workflow_name"),
+                    WORKFLOW_TYPE_KEY: workflow_params.get("workflow_type"),
+                    WORKFLOW_ID_KEY: workflow_params.get("workflow_uid"),
+                    WORKFLOW_NOTE_KEY: workflow_params.get("workflow_note"),
+                    MX_KAPPA_SETTINGS_ID_KEY: mx_kappa_settings_id,
+                    MX_CHARACTERISATION_ID_KEY: workflow_params.get(
                         "workflow_characterisation_id"
                     ),
-                    "MX_position_id": workflow_params.get("workflow_position_id"),
-                    "group_by": workflow_params.get("workflow_group_by"),
+                    MX_POSITION_ID_KEY: workflow_params.get("workflow_position_id"),
+                    GROUP_BY_KEY: workflow_params.get("workflow_group_by"),
                 }
             )
 
-            metadata["SampleTrackingContainer_type"] = "UNIPUCK"
-            metadata["SampleTrackingContainer_capacity"] = "16"
+            metadata[SAMPLE_TRACKING_CONTAINER_TYPE_KEY] = "UNIPUCK"
+            metadata[SAMPLE_TRACKING_CONTAINER_CAPACITY_KEY] = "16"
             position, sample_position = self._get_sample_position()
-            metadata["SampleChanger_position"] = position
-            metadata["SampleTrackingContainer_position"] = sample_position
+            metadata[SAMPLE_CHANGER_POSITION_KEY] = position
+            metadata[SAMPLE_TRACKING_CONTAINER_POSITION_KEY] = sample_position
+            
             # Find sample by sampleId
             sample = HWR.beamline.lims.find_sample_by_sample_id(
                 datacollection_dict.get("blSampleId")
@@ -1334,16 +1416,15 @@ class ICATLIMS(AbstractLims):
 
             try:
                 if sample is not None:
-                    metadata["SampleProtein_acronym"] = sample.get("proteinAcronym")
-                    metadata["SampleTrackingContainer_id"] = sample.get(
+                    metadata["SampleProtein_acronym"] = sample.get(PROTEIN_ACRONYM_KEY)
+                    metadata[SAMPLE_TRACKING_CONTAINER_ID_KEY] = sample.get(
                         "containerCode"
-                    )  # containerCode instead of sampletrackingcontainer_id
-                    # for ISPyB's compatiblity
-                    metadata["SampleTrackingParcel_id"] = sample.get(
-                        "SampleTrackingParcel_id"
+                    )  # containerCode instead of sampletrackingcontainer_id for ISPyB compatibility
+                    metadata[SAMPLE_TRACKING_PARCEL_ID_KEY] = sample.get(
+                        SAMPLE_TRACKING_PARCEL_ID_KEY
                     )
-                    metadata["SampleTrackingParcel_name"] = sample.get(
-                        "SampleTrackingParcel_name"
+                    metadata[SAMPLE_TRACKING_PARCEL_NAME_KEY] = sample.get(
+                        SAMPLE_TRACKING_PARCEL_NAME_KEY
                     )
             except RuntimeError as e:
                 logger.warning("Failed to add sample metadata.%s", e)
@@ -1448,9 +1529,4 @@ class ICATLIMS(AbstractLims):
         return beamline
 
     def update_bl_sample(self, bl_sample: str):
-        """
-        Creates or stos a BLSample entry.
-        # NBNB update doc string
-        :param sample_dict: A dictionary with the properties for the entry.
-        :type sample_dict: dict
-        """
+        pass
