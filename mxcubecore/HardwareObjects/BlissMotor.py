@@ -30,6 +30,7 @@ Example yml configuration:
 
 import enum
 import logging
+from gevent import Timeout
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
@@ -85,12 +86,16 @@ class BlissMotor(AbstractMotor):
     def __init__(self, name):
         super().__init__(name)
         self.motor_obj = None
+        self._motor_callback = None
 
     def init(self):
         """Initialise the motor"""
         super().init()
         try:
-            self.motor_obj = HWR.beamline.bliss_proxy.get_object(self.actuator_name)
+            bliss_proxy = HWR.beamline.bliss_proxy
+            # need to register the motor first
+            bliss_proxy.hardware.register(self.actuator_name)
+            self.motor_obj = bliss_proxy.get_object(self.actuator_name)
         except Exception as exc:
             log.warning(
                 "BlissMotor '%s': BLISS object '%s' not available (%s). Running in offline mode.",
@@ -118,11 +123,7 @@ class BlissMotor(AbstractMotor):
 
     def _on_property_changed(self, data: dict) -> None:
         """Callback for property changes received via blissclient."""
-        log.debug("BlissMotor property event: %r", data)
-        if self.actuator_name == "tape":
-            if "velocity" in data:
-                self.update_value(data["velocity"])
-        elif "position" in data:
+        if "position" in data:
             self.update_value(data["position"])
         if "state" in data:
             self._update_state()
@@ -188,11 +189,7 @@ class BlissMotor(AbstractMotor):
             float: Motor position.
         """
         try:
-            pos = (
-                self.motor_obj.velocity
-                if self.actuator_name == "tape"
-                else self.motor_obj.position
-            )
+            pos = self.motor_obj.position
         except Exception:
             return self._nominal_value if self._nominal_value is not None else None
         if pos is None:
@@ -230,7 +227,6 @@ class BlissMotor(AbstractMotor):
         Args:
             value (float): target value
         """
-
         if self.motor_obj is None:
             log.error(
                 "BlissMotor._set_value: no motor_obj for actuator '%s'", self.actuator_name
@@ -241,20 +237,25 @@ class BlissMotor(AbstractMotor):
 
         self.update_state(HardwareObjectState.BUSY)
         try:
-            if self.actuator_name == "tape":
-                self.motor_obj.velocity = value if value > 0 else -value
-                self.motor_obj.jog(value)
-            else:
-                self.motor_obj.move(value)
+            self._motor_callback = self.motor_obj.move(value)
         except Exception:
             log.exception("Error while calling move() on motor_obj (actuator=%s)", self.actuator_name)
             raise
 
     def abort(self):
         """Stop the motor movement"""
+        # self._motor_callback.kill()
         try:
             self.motor_obj.stop()
         except Exception:
             pass
         self._update_state()
         self.update_value(self.get_value())
+
+    def wait_ready(self, timeout: float | None = None):
+        if self._motor_callback is None:
+            return
+        with Timeout(timeout, RuntimeError("Timeout waiting for motor to be ready")):
+            self._motor_callback.get(monitor_interval=0.2)
+        self.update_state()
+        self.update_value()

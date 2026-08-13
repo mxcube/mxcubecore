@@ -12,7 +12,9 @@ class BlissRontecMCA(HardwareObject):
     def init(self):
         actuator_name = self.get_property("actuator_name")
         try:
-            self.mca = HWR.beamline.bliss_proxy.get_object(actuator_name)
+            bliss_proxy = HWR.beamline.bliss_proxy
+            bliss_proxy.hardware.register(actuator_name)
+            self.mca = bliss_proxy.get_object(actuator_name)
         except Exception as exc:
             # BLISS object missing — run in offline/no-hardware mode
             import logging

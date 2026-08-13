@@ -78,7 +78,9 @@ class BlissShutter(AbstractShutter):
         """Initialise the predefined values"""
         super().init()
         try:
-            self._bliss_obj = HWR.beamline.bliss_proxy.get_object(self.actuator_name)
+            bliss_proxy = HWR.beamline.bliss_proxy
+            bliss_proxy.hardware.register(self.actuator_name)
+            self._bliss_obj = bliss_proxy.get_object(self.actuator_name)
         except Exception as exc:
             logging.getLogger("MX3.HWR").warning(
                 "BlissShutter '%s': BLISS object '%s' not available (%s)",

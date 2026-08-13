@@ -23,14 +23,11 @@ Typical YAML configuration::
     class: BlissProxy.BlissProxy
     configuration:
       blissapi_url: http://mxcube-test-1:5000
-      min_objects: 3   # minimum registered objects before proxy considers BLISS ready (default: 1)
 """
 
 import asyncio
-import json
 import os
 import time
-import urllib.error
 import urllib.request
 import gevent
 
@@ -93,41 +90,21 @@ class BlissProxy(MXHardwareObject):
             self._init_event.set()
 
     def _wait_for_session_ready(self, base_url: str, timeout: int = _SESSION_READY_TIMEOUT, poll_interval: int = 2) -> None:
-        """Poll GET /api/object until the object count reaches ``min_objects`` and
-        is stable for two consecutive polls (guards against the race where the REST
-        service marks itself ready before session objects are fully registered).
+        """Poll GET /api/object until the BLISS REST service reports ready.
+
+        The service only flips to ready once its session objects are fully registered.
         """
-        STABLE_POLLS_REQUIRED = 2
-        min_objects = int(self.get_property("min_objects") or 1)
         endpoint = f"{base_url.rstrip('/')}/api/object"
         if not endpoint.startswith(("http://", "https://")):
             raise ValueError(f"BlissProxy: unsupported URL scheme in '{endpoint}' — only http/https allowed")
         deadline = time.monotonic() + timeout
-        self.log.info("BlissProxy: waiting for BLISS session ready (%s, min_objects=%d) ...", endpoint, min_objects)
-        prev_total = -1
-        stable_count = 0
+        self.log.info("BlissProxy: waiting for BLISS session ready (%s) ...", endpoint)
         while time.monotonic() < deadline:
             try:
                 with urllib.request.urlopen(endpoint, timeout=5) as resp:  # nosec B310 — scheme validated above
                     if resp.status == 200:
-                        try:
-                            total = json.loads(resp.read()).get("total", 0)
-                        except Exception:
-                            total = 0
-                        if total >= min_objects:
-                            stable_count = stable_count + 1 if total == prev_total else 0
-                            prev_total = total
-                            if stable_count >= STABLE_POLLS_REQUIRED:
-                                self.log.info("BlissProxy: BLISS session ready (%d objects, stable)", total)
-                                return
-                            self.log.debug("BlissProxy: %d objects (stable %d/%d), waiting...", total, stable_count, STABLE_POLLS_REQUIRED)
-                        else:
-                            stable_count = 0
-                            prev_total = -1
-                            self.log.debug("BlissProxy: %d/%d object(s) registered, waiting...", total, min_objects)
-            except urllib.error.HTTPError as exc:
-                if exc.code != 503:
-                    self.log.debug("BlissProxy: unexpected HTTP %s from %s", exc.code, endpoint)
+                        self.log.info("BlissProxy: BLISS session ready")
+                        return
             except Exception as exc:
                 self.log.debug("BlissProxy: waiting for BLISS (%s)", exc)
             time.sleep(poll_interval)
@@ -143,8 +120,6 @@ class BlissProxy(MXHardwareObject):
         if self._client is None:
             raise RuntimeError("BlissProxy._client is not initialised.")
         hw = self._client.hardware
-        # _get_initial_status and _cached_initial_statuses are private blissclient internals —
-        # no public API exposes (name, type) pairs before instantiation.
         hw._get_initial_status()
         hw.refresh_object_types()
         known_types = hw.types
