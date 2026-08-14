@@ -676,13 +676,13 @@ class ICATLIMS(AbstractLims):
         """This methods converts a ICAT investigation into a session"""
 
         actual_start_date = (
-            investigation["parameters"]["__actualStartDate"]
-            if "__actualStartDate" in investigation["parameters"]
+            investigation["parameters"]["actualStartDate"]
+            if "actualStartDate" in investigation["parameters"]
             else investigation["startDate"]
         )
         actual_end_date = (
-            investigation["parameters"]["__actualEndDate"]
-            if "__actualEndDate" in investigation["parameters"]
+            investigation["parameters"]["actualEndDate"]
+            if "actualEndDate" in investigation["parameters"]
             else investigation.get("endDate", None)
         )
 
@@ -719,7 +719,7 @@ class ICATLIMS(AbstractLims):
             data_portal_URL=self._get_data_portal_url(investigation),
             user_portal_URL=self._get_user_portal_url(investigation),
             logbook_URL=self._get_logbook_url(investigation),
-            is_rescheduled=bool("__actualEndDate" in investigation["parameters"]),
+            is_rescheduled=bool("actualEndDate" in investigation["parameters"]),
             volume=self.__get_investigation_parameter_by_name(
                 investigation, "__volume"
             ),
@@ -914,7 +914,7 @@ class ICATLIMS(AbstractLims):
             ):
                 actual_instrument = HWR.beamline.session.beamline_name
         except RuntimeError as e:
-            logger.warning("Failed to set __actualInstrument. %s", e)
+            logger.warning("Failed to set actualInstrument. %s", e)
 
         cryo_temperature = None
         if hasattr(HWR.beamline, "cryo"):
@@ -948,7 +948,7 @@ class ICATLIMS(AbstractLims):
             "InstrumentCryostat01_value": cryo_temperature,
         }
         if actual_instrument is not None:
-            result["__actualInstrument"] = actual_instrument
+            result["actualInstrument"] = actual_instrument
 
         return result
 
