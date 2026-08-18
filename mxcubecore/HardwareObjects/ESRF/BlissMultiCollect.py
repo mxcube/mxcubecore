@@ -103,8 +103,11 @@ class BlissMultiCollect(ESRFMultiCollect):
         proposal = f"{_as.code}{_as.number}"
         self._scan.set_session(proposal)
 
+        wf_wedge_id = data_collect_parameters["workflow_parameters"].get("wedge_id", None)
+        
         sample_name = data_collect_parameters["sample_reference"]["sample_name"]
         meta_data = {
+            "wf_wedge_id": wf_wedge_id,
             "sample_name": sample_name.replace(":", "-"),
             "acronym": data_collect_parameters["sample_reference"]["acronym"],
             "subdir": data_collect_parameters["fileinfo"]["directory"].split(
@@ -385,7 +388,7 @@ class BlissMultiCollect(ESRFMultiCollect):
         bcx, bcy = HWR.beamline.detector.get_beam_position()
         return [bcx * pixel_x, bcy * pixel_y]
 
-    def write_input_files(self, datacollection_id):
+    def write_input_files(self, datacollection_id, wait=False):
         # copy *geo_corr.cbf* files to process directory
         try:
             process_dir = os.path.join(self.xds_directory, "..")
