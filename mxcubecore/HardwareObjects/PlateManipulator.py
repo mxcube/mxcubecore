@@ -492,7 +492,7 @@ class PlateManipulator(SampleChanger):
         self._reset_loaded_sample()
         self._wait_device_ready()
 
-    def _load_data(self, plate_barcode):
+    def _load_data(self, plate_barcode):        
         processing_plan = Crims.get_processing_plan(
             plate_barcode, self.crims_url, self.crims_user_agent, self.harvester_key
         )
