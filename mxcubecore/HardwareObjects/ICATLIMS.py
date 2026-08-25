@@ -7,16 +7,9 @@ from pathlib import Path
 from typing import Any, List, Optional
 from zoneinfo import ZoneInfo
 
-from icat_esrf_definitions.models import IcatDatasetParameters
-from icat_plus_client.exceptions import ApiException, ForbiddenException
-from icat_plus_client.models.investigation import Investigation
-from icat_plus_client.models.item import Item
-from icat_plus_client.models.item_experiment_plan_inner import ItemExperimentPlanInner
-from icat_plus_client.models.resourceinformation import Resourceinformation
-from icat_plus_client.models.sample import Sample
-from icat_plus_client.models.sampleinformation import Sampleinformation
-from icat_plus_client.models.session import Session as IcatSession
 from pydantic import ValidationError
+from pyicat_plus import errors as icat_errors
+from pyicat_plus.client import models as icat_models
 from pyicat_plus.client.main import IcatClient
 
 from mxcubecore import HardwareRepository as HWR
@@ -94,7 +87,9 @@ class ICATLIMS(AbstractLims):
             ),
         ]
 
-    def _create_icat_session(self, user_name: str, password: str) -> IcatSession:
+    def _create_icat_session(
+        self, user_name: str, password: str
+    ) -> icat_models.AuthSession:
         try:
             logger.debug(f"Authenticating {user_name}")
             icat_session = self.icatClient.do_log_in(
@@ -102,10 +97,10 @@ class ICATLIMS(AbstractLims):
                 username=user_name,
                 plugin=self.authentication_icat_plugin,
             )
-        except ForbiddenException as e:
+        except icat_errors.ForbiddenException as e:
             logger.error(f" Error occurred while authenticating. Access forbidden {e}")
             raise
-        except ApiException as e:
+        except icat_errors.ApiException as e:
             logger.error(f"Error occurred while authenticating {user_name}: {e}")
             raise
         return icat_session
@@ -116,7 +111,7 @@ class ICATLIMS(AbstractLims):
         password: str,
         session_manager: Optional[LimsSessionManager],
     ) -> LimsSessionManager:
-        self.icat_session: IcatSession = self._create_icat_session(
+        self.icat_session: icat_models.AuthSession = self._create_icat_session(
             user_name=user_name, password=password
         )
 
@@ -247,7 +242,7 @@ class ICATLIMS(AbstractLims):
                 len(self.loaded_pucks),
             )
 
-            sampleInformationList: List[Sampleinformation] = []
+            sampleInformationList: List[icat_models.SampleInformation] = []
             # Download all sampleInformation for the investigation
             # This makes to perform a single call to the server instead of one per sample
             try:
@@ -292,7 +287,9 @@ class ICATLIMS(AbstractLims):
         return hex(i)[2:].zfill(24)
 
     def __add_download_path_to_processing_plan(
-        self, processing_plan: List[ItemExperimentPlanInner], downloads: List[Download]
+        self,
+        processing_plan: List[icat_models.ExperimentPlanEntry],
+        downloads: List[Download],
     ):
         file_path_lookup = {}
         group_paths = defaultdict(list)
@@ -337,7 +334,7 @@ class ICATLIMS(AbstractLims):
             return str(json_str)
 
     def __extract_sample_identifiers(
-        self, tracking_sample: Sample, puck: LoadedPuck
+        self, tracking_sample: icat_models.Sample, puck: LoadedPuck
     ) -> dict:
         # Basic identifiers
         sample_name = tracking_sample.name
@@ -378,16 +375,16 @@ class ICATLIMS(AbstractLims):
         return sample_sheet.name if sample_sheet else sample_name
 
     def __experiment_plan_to_dict(
-        self, experiment_plan: List[ItemExperimentPlanInner] | None
+        self, experiment_plan: List[icat_models.ExperimentPlanEntry] | None
     ) -> dict[str, Any]:
         """Extract experiment plan values into a dictionary, using each item's key."""
         return {item.key: item.value.actual_instance for item in experiment_plan or []}
 
     def __prepare_processing_plan(
         self,
-        tracking_sample: Item,
+        tracking_sample: icat_models.ParcelItem,
         protein_acronym: str,
-        sample_information: Sampleinformation | None,
+        sample_information: icat_models.SampleInformation | None,
     ) -> dict[str, Any]:
         if not tracking_sample.processing_plan or tracking_sample.processing_plan == []:
             return {}
@@ -409,7 +406,7 @@ class ICATLIMS(AbstractLims):
         self,
         sample_sheet_id: str,
         protein_acronym: str,
-        sample_information: Sampleinformation | None,
+        sample_information: icat_models.SampleInformation | None,
     ) -> List[Download]:
         cache_key = (sample_sheet_id, protein_acronym)
         logger.debug(f"Getting sample information for {protein_acronym}")
@@ -450,9 +447,9 @@ class ICATLIMS(AbstractLims):
 
     def __to_sample(
         self,
-        tracking_sample: Item,
+        tracking_sample: icat_models.ParcelItem,
         puck: LoadedPuck,
-        sample_information_list: List[Sampleinformation],
+        sample_information_list: List[icat_models.SampleInformation],
     ) -> dict[str, Any]:
         """
         Convert a tracking sample and associated metadata into the internal
@@ -471,7 +468,7 @@ class ICATLIMS(AbstractLims):
         """
         sample_id_info = self.__extract_sample_identifiers(tracking_sample, puck)
 
-        # converts experiment plan from list of ItemExperimentPlanInner to a dictionary
+        # converts experiment plan from list of icat_models.ExperimentPlanEntry to a dictionary
         experiment_plan = self.__experiment_plan_to_dict(
             tracking_sample.experiment_plan
         )
@@ -633,7 +630,7 @@ class ICATLIMS(AbstractLims):
         logger.warning("No investigation found")
         return None
 
-    def __get_all_investigations(self) -> List[Investigation]:
+    def __get_all_investigations(self) -> List[icat_models.InvestigationDetails]:
         """Returns all investigations by user. An investigation corresponds to
         one experimental session. It returns an empty array in case of error"""
         self.investigations = []
@@ -690,7 +687,9 @@ class ICATLIMS(AbstractLims):
 
         return self.investigations
 
-    def _get_data_portal_url(self, investigation: Investigation) -> str:
+    def _get_data_portal_url(
+        self, investigation: icat_models.InvestigationDetails
+    ) -> str:
         try:
             return (
                 self.data_portal_url.replace("{id}", str(investigation.id))
@@ -700,7 +699,7 @@ class ICATLIMS(AbstractLims):
         except Exception:
             return ""
 
-    def _get_logbook_url(self, investigation: Investigation) -> str:
+    def _get_logbook_url(self, investigation: icat_models.InvestigationDetails) -> str:
         try:
             return (
                 self.logbook_url.replace("{id}", str(investigation.id))
@@ -710,7 +709,9 @@ class ICATLIMS(AbstractLims):
         except Exception:
             return ""
 
-    def _get_user_portal_url(self, investigation: Investigation) -> str:
+    def _get_user_portal_url(
+        self, investigation: icat_models.InvestigationDetails
+    ) -> str:
         try:
             return (
                 self.user_portal_url.replace(
@@ -724,7 +725,7 @@ class ICATLIMS(AbstractLims):
             return ""
 
     def __get_proposal_number_by_investigation(
-        self, investigation: Investigation
+        self, investigation: icat_models.InvestigationDetails
     ) -> str:
         """
         Given an investigation it returns the proposal number.
@@ -735,7 +736,7 @@ class ICATLIMS(AbstractLims):
         """
         return investigation.name.replace(investigation.type.name, "").replace("-", "")
 
-    def __to_session(self, investigation: Investigation) -> Session:
+    def __to_session(self, investigation: icat_models.InvestigationDetails) -> Session:
         """This methods converts a ICAT investigation into a session"""
         actual_start_date = (
             investigation["parameters"]["actualStartDate"]
@@ -795,14 +796,18 @@ class ICATLIMS(AbstractLims):
     def get_user_name(self):
         return self.icat_session.username
 
-    def to_sessions(self, investigations: List[Investigation]) -> List[Session]:
+    def to_sessions(
+        self, investigations: List[icat_models.InvestigationDetails]
+    ) -> List[Session]:
         return [self.__to_session(investigation) for investigation in investigations]
 
-    def get_samples_by_investigation(self, investigation_id: str) -> List[Sample]:
+    def get_samples_by_investigation(
+        self, investigation_id: str
+    ) -> List[icat_models.Sample]:
         """Return the sample records associated with an investigation."""
         samples_List = []
         try:
-            samples_List: List[Sample] = self.icatClient.get_samples_by(
+            samples_List: List[icat_models.Sample] = self.icatClient.get_samples_by(
                 investigation_id=investigation_id
             )
             msg = f"Successfully retrieved {len(samples_List)} samples"
@@ -897,7 +902,7 @@ class ICATLIMS(AbstractLims):
 
     def store_common_data(
         self, datacollection_dict: dict
-    ) -> tuple[IcatDatasetParameters, dict]:
+    ) -> tuple[icat_models.IcatDatasetParameters, dict]:
         """Fill in the pydantic model fields common to all the data
         collection techniques.
         Args:
@@ -905,7 +910,7 @@ class ICATLIMS(AbstractLims):
 
         Returns:
             A tuple ``(params, extra)``.
-            ``params`` is a partially-filled ``IcatDatasetParameters.blank()`` instance.
+            ``params`` is a partially-filled ``icat_models.IcatDatasetParameters.blank()`` instance.
             ``extra`` holds flat ICAT keys with no corresponding model field.
         """
         sample_id = datacollection_dict.get("blSampleId")
@@ -992,7 +997,7 @@ class ICATLIMS(AbstractLims):
         if cryo_temperature == "room temperature":
             extra["InstrumentCryostat01_value"] = cryo_temperature
 
-        params = IcatDatasetParameters.blank()
+        params = icat_models.IcatDatasetParameters.blank()
         params.sample.name = sample_name
         params.start_time = start_time
         params.end_time = end_time
@@ -1177,7 +1182,7 @@ class ICATLIMS(AbstractLims):
 
     def __get_sample_information_by(
         self, sample_id: str
-    ) -> Optional[Sampleinformation]:
+    ) -> Optional[icat_models.SampleInformation]:
         """
         Fetches sample metadata and associated resources based on the sample ID.
 
@@ -1188,14 +1193,14 @@ class ICATLIMS(AbstractLims):
             Optional[SampleInformation]: Returns a SampleInformation object or None.
         """
         try:
-            sampleInformationList: List[Sampleinformation] = (
+            sampleInformationList: List[icat_models.SampleInformation] = (
                 self.icatClient.get_sample_information_list_by(sample_id=str(sample_id))
             )
             if sampleInformationList is not None and len(sampleInformationList) > 0:
                 return sampleInformationList[0]
             return None
 
-        except ApiException as e:
+        except icat_errors.ApiException as e:
             if e.status == 404:
                 logger.info("Sample %s not found (404)", sample_id)
             else:
@@ -1207,7 +1212,7 @@ class ICATLIMS(AbstractLims):
     def _download_resources(
         self,
         sample_id: str,
-        resources: List[Resourceinformation] | None,
+        resources: List[icat_models.FileResource] | None,
         output_folder: str,
         sample_name: str,
     ) -> List[Download]:
@@ -1246,7 +1251,7 @@ class ICATLIMS(AbstractLims):
                 downloaded_files.append(downloaded)
                 logger.info("Downloaded %s to %s", resource.filename, downloaded.path)
 
-            except ApiException:
+            except icat_errors.ApiException:
                 logger.exception("Failed to download %s", resource.filename)
 
         return downloaded_files

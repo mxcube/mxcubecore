@@ -1,9 +1,9 @@
 from typing import Optional
 
-from icat_plus_client.models.item import Item
+from pyicat_plus.client.models import ParcelItem
 
 
-class LoadedPuck(Item):
+class LoadedPuck(ParcelItem):
     puck_name: Optional[str] = None
     parcel_name: Optional[str] = None
     parcel_id: Optional[str] = None
