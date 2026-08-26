@@ -21,7 +21,7 @@ task:
 
     # Strategy control
     strategy_name: "Native data collection"  # (str) Mandatory.
-    # Options are: ‘Native data collection’, ‘Phasing (SAD)’
+    # Options are: ‘Native data collection’, ‘SAD Phasing’
     # ‘Two-wavelength MAD’, ‘Three-wavelength MAD’, ‘Diffractometer calibration’
 
     # directory and file names. All optional, default to session default

@@ -251,7 +251,7 @@ configuration:
             # File name pattern for characterisation data collection
             charpattern: generic
 
-        - title: Phasing (SAD)
+        - title: SAD Phasing
           strategy_type: phasing
           wf_selection: mxexpt
           variants:
