@@ -98,6 +98,9 @@ class AbstractCollect(HardwareObject, object):
         self.run_offline_processing = None
         self.run_online_processing = None
         self.ready_event = None
+        # Added rhfogh 20260824, to fix breakage frin rfecent mxcubeweb changes
+        # NBNB TODO handling of defaults (and this in particular) to be raised as an issue
+        self.number_of_snapshots = 4
 
     def init(self):
         self.ready_event = gevent.event.Event()
@@ -780,22 +783,22 @@ class AbstractCollect(HardwareObject, object):
 
     def take_crystal_snapshots(self) -> None:
         """Take crystal snapshots of the currently loaded sample."""
-        number_of_snapshots = self.current_dc_parameters["take_snapshots"]
+        self.number_of_snapshots = self.current_dc_parameters["take_snapshots"]
         if self.current_dc_parameters["experiment_type"] == "Mesh":
-            number_of_snapshots = 1
+            self.number_of_snapshots = 1
 
         snapshot_directory = self.current_dc_parameters["fileinfo"]["archive_directory"]
-        if number_of_snapshots > 0 or self.current_dc_parameters.get("take_video"):
+        if self.number_of_snapshots > 0 or self.current_dc_parameters.get("take_video"):
             if not os.path.exists(snapshot_directory):
                 try:
                     self.create_directories(snapshot_directory)
                 except BaseException:
                     self.log.exception("Collection: Error creating snapshot directory")
-        if number_of_snapshots > 0 and not self.current_dc_parameters["in_interleave"]:
+        if self.number_of_snapshots > 0 and not self.current_dc_parameters["in_interleave"]:
             logging.getLogger("user_level_log").info(
-                "Collection: Taking %d sample snapshot(s)" % number_of_snapshots
+                "Collection: Taking %d sample snapshot(s)" % self.number_of_snapshots
             )
-            for snapshot_index in range(number_of_snapshots):
+            for snapshot_index in range(self.number_of_snapshots):
                 snapshot_filename = os.path.join(
                     snapshot_directory,
                     "%s_%s_%s.snapshot.jpeg"
@@ -809,7 +812,7 @@ class AbstractCollect(HardwareObject, object):
                     "xtalSnapshotFullPath%i" % (snapshot_index + 1)
                 ] = snapshot_filename
                 self._take_crystal_snapshot(snapshot_filename)
-                if number_of_snapshots > 1:
+                if self.number_of_snapshots > 1:
                     HWR.beamline.diffractometer.omega.set_value_relative(90)
 
         if (
