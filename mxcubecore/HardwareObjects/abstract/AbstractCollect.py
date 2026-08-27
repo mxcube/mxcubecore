@@ -98,7 +98,7 @@ class AbstractCollect(HardwareObject, object):
         self.run_offline_processing = None
         self.run_online_processing = None
         self.ready_event = None
-        # Added rhfogh 20260824, to fix breakage frin rfecent mxcubeweb changes
+        # Added rhfogh 20260824, to fix breakage in recent mxcubeweb changes
         # TODO handling of defaults (and this in particular) to be raised as an issue
         self.number_of_snapshots = 4
 
