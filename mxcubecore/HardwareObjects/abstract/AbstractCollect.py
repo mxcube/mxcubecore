@@ -99,7 +99,7 @@ class AbstractCollect(HardwareObject, object):
         self.run_online_processing = None
         self.ready_event = None
         # Added rhfogh 20260824, to fix breakage frin rfecent mxcubeweb changes
-        # NBNB TODO handling of defaults (and this in particular) to be raised as an issue
+        # TODO handling of defaults (and this in particular) to be raised as an issue
         self.number_of_snapshots = 4
 
     def init(self):
@@ -794,7 +794,10 @@ class AbstractCollect(HardwareObject, object):
                     self.create_directories(snapshot_directory)
                 except BaseException:
                     self.log.exception("Collection: Error creating snapshot directory")
-        if self.number_of_snapshots > 0 and not self.current_dc_parameters["in_interleave"]:
+        if (
+            self.number_of_snapshots > 0
+            and not self.current_dc_parameters["in_interleave"]
+        ):
             logging.getLogger("user_level_log").info(
                 "Collection: Taking %d sample snapshot(s)" % self.number_of_snapshots
             )
