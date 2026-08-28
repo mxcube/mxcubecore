@@ -101,7 +101,8 @@ configuration:
       # exposure time (s). NB automatically reset to be within limits for detector
       exposure_time: 0.01
       # Default use known cell parameters as forced starting point for processing
-      # It is recommended to keep setting to false, as it should only eb used with reliable cells
+      # It is recommended to keep setting to false,
+      # as it should only be used with reliable cells
       use_cell_for_processing: false
       # Maximum dose budget to propose when converting from resolution, in MGy
       maximum_dose_budget: 20
@@ -144,7 +145,7 @@ configuration:
         resolution: 1.5
         snapshot_count: 2
         wedge_width: 24.0
-#        strategy: advanced  # default is 'advanced'. normally set explicitly
+        # strategy: advanced  # default is 'advanced'. normally set explicitly
         repetition_count: 1
         # energies:
         #   - 12.111
@@ -198,7 +199,8 @@ configuration:
       #        # Testing ONLY:
       #        co.gphl.wf.run_number: 7
 
-      # Enable mosaicity estimation (default: false). Activates XDS integration of characterisation data.
+      # Enable mosaicity estimation (default: false).
+      # Activates XDS integration of characterisation data.
       co.gphl.wf.estMosaicity: true
       # Fork XDS in separate process (default: false)
       # only works when XDS is invoked directly, rather than through a wrapper
@@ -207,7 +209,7 @@ configuration:
       # To enable the dumping of messages and payloads by the workflow.
       # The messages/payloads will be written into a numbered subdirectory
       # of the directory specified here.
-      #co.gphl.wf.msgDir: /mnt/scratch_fs1/pkeller/wf_msgs/wf
+      # co.gphl.wf.msgDir: /mnt/scratch_fs1/pkeller/wf_msgs/wf
 
   #    Workflows, The options in the top elements are updated with the options
   #    in the individual type, and passed as options to the workflow application
@@ -255,8 +257,8 @@ configuration:
             - advanced
             - minimal
             - basic
-#            - ultralong
-#            - twotransmission
+            # - ultralong
+            # - twotransmission
           options:
             # Filename pattern name for normal data collections
             pattern: interleaved
@@ -272,7 +274,7 @@ configuration:
           variants:
             - advanced
             - basic
-#            - ultralong
+            # - ultralong
           documentation: |
             Single wavelength SAD data acquisition, advanced strategy.
             Aligned on even symetry axes or inverse beam.
