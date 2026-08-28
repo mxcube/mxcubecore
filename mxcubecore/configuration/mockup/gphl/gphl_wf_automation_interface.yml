@@ -35,7 +35,8 @@ task:
     # dose_budget = 2 * resolution**2 * log(100. / decay_limit) / relative_sensitivity
     maximum_dose_budget: 20  # (MGy). Maximum when calculating budget from resolution
     characterisation_budget_fraction: 0.05  # dose fraction used for characterisation
-#    crystal_thickness: 0  # Minimum crystal thickness (in µ), used for dose calculation with beams narrower than crystal
+    # crystal_thickness: 0  # Minimum crystal thickness (in µ), used for dose calculation
+    # with beams narrower than crystal
     # Use known cell parameters as forced starting point for processing
     # Should only be set to true with reliable cells and spacegroups
     use_cell_for_processing: false
