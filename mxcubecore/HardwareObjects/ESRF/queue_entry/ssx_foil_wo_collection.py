@@ -26,9 +26,9 @@ class SSXUserCollectionParameters(BaseUserCollectionParameters):
     vertical_spacing: float = Field(20, gt=0, lt=1000, unit="um")
 
     _chip_name_tuple = tuple(
-        HWR.beamline.diffractometer.get_head_configuration().available.keys()
+        HWR.beamline.diffractometer.get_chip_configuration().available.keys()
     )
-    _current_chip = HWR.beamline.diffractometer.get_head_configuration().current
+    _current_chip = HWR.beamline.diffractometer.get_chip_configuration().current
     chip_type: Literal[_chip_name_tuple] = Field(_current_chip)
 
     class Config:
@@ -65,7 +65,7 @@ class SsxFoilColletionTaskParameters(SsxBaseQueueTaskParameters):
     def calculate_number_of_images(
         horizontal_spacing, vertical_spacing, sub_sampling, chip_type
     ):
-        chip_data = HWR.beamline.diffractometer.get_head_configuration().available[
+        chip_data = HWR.beamline.diffractometer.get_chip_configuration().available[
             chip_type
         ]
 
@@ -142,7 +142,7 @@ class SsxFoilWoCollectionQueueEntry(SsxBaseQueueEntry):
         )
 
         exp_time = self._data_model._task_data.user_collection_parameters.exp_time
-        chip_data = HWR.beamline.diffractometer.get_head_configuration().available[
+        chip_data = HWR.beamline.diffractometer.get_chip_configuration().available[
             params.chip_type
         ]
 

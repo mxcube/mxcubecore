@@ -127,6 +127,10 @@ class SsxChipCollectionQueueEntry(SsxBaseQueueEntry):
             self._data_model._task_data.user_collection_parameters.reject_empty_frames
         )
 
+        self._data_model._task_data.lims_parameters.experiment_type = (
+            "ssx_chip_collection"
+        )
+
         self.take_pedestal()
         self.start_processing("CHIP")
 
@@ -135,7 +139,8 @@ class SsxChipCollectionQueueEntry(SsxBaseQueueEntry):
         self._data_model._task_data.collection_parameters.selection = selected_regions
 
         logging.getLogger("user_level_log").info(f"Preparing data collection")
-        HWR.beamline.diffractometer.set_phase("DataCollection")
+        diffr = HWR.beamline.diffractometer
+        diffr.set_phase(diffr.get_phase_enum.COLLECT)
 
         if HWR.beamline.control.safshut_oh2.state.name != "OPEN":
             logging.getLogger("user_level_log").info(f"Opening OH2 safety shutter")
@@ -171,27 +176,26 @@ class SsxChipCollectionQueueEntry(SsxBaseQueueEntry):
             logging.getLogger("user_level_log").info(f"Acquiring {region} ...")
 
             logging.getLogger("user_level_log").info(f"Aligning block {region}")
-            HWR.beamline.diffractometer.prepare_ssx_grid_scan(
-                region[0], region[1], False
-            )
+            diffr.prepare_ssx_grid_scan(region[0], region[1], False)
             logging.getLogger("user_level_log").info(f"Aligned block {region}")
-
-            HWR.beamline.diffractometer.wait_ready()
+            gevent.sleep(0.5)
+            diffr.wait_status_ready()
 
             try:
                 logging.getLogger("user_level_log").info(f"Scanning {region} ...")
-                HWR.beamline.diffractometer.start_ssx_scan(False)
+                diffr.start_ssx_scan(False)
             except:
                 err_msg = "Diffractometer scan failed ..."
                 logging.getLogger("user_level_log").exception(err_msg)
                 HWR.beamline.detector.stop_acquisition()
                 raise
 
-            HWR.beamline.diffractometer.wait_ready()
+            diffr.wait_status_ready()
             logging.getLogger("user_level_log").info(f"Acquired {region}")
 
         HWR.beamline.detector.wait_ready()
-        HWR.beamline.diffractometer.set_phase("Transfer", wait=True, timeout=120)
+        diffr.set_phase(diffr.get_phase_enum.TRANSFER)
+
         logging.getLogger("user_level_log").info(f"set to transfer phase")
 
     def pre_execute(self):

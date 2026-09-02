@@ -62,13 +62,13 @@ class SsxLaserInjectorCollectionQueueEntry(SsxBaseQueueEntry):
         reject_empty_frames = (
             self._data_model._task_data.user_collection_parameters.reject_empty_frames
         )
-
-        delay = HWR.beamline.diffractometer.get_ssx_delay()
-        ssx_laser_scan_method = HWR.beamline.diffractometer.get_ssx_scan_method()
+        diffr = HWR.beamline.diffractometer
+        delay = diffr.get_ssx_delay()
+        ssx_laser_scan_method = diffr.get_ssx_scan_method()
 
         data_root_path = self.get_data_path()
 
-        HWR.beamline.diffractometer.set_phase("DataCollection")
+        diffr.set_phase(diffr.get_phase_enum.COLLECT)
 
         self.take_pedestal()
 
@@ -86,7 +86,7 @@ class SsxLaserInjectorCollectionQueueEntry(SsxBaseQueueEntry):
             logging.getLogger("user_level_log").info(f"Opening OH2 safety shutter")
             HWR.beamline.control.safshut_oh2.open()
 
-        HWR.beamline.diffractometer.wait_ready()
+        diffr.wait_status_ready()
         HWR.beamline.detector.wait_ready()
 
         logging.getLogger("user_level_log").info(
@@ -97,7 +97,7 @@ class SsxLaserInjectorCollectionQueueEntry(SsxBaseQueueEntry):
         HWR.beamline.detector.start_acquisition()
 
         try:
-            HWR.beamline.diffractometer.start_still_ssx_scan(num_images)
+            diffr.start_still_ssx_scan(num_images)
         except:
             err_msg = "Diffractometer scan failed ..."
             logging.getLogger("user_level_log").exception(err_msg)
@@ -109,7 +109,7 @@ class SsxLaserInjectorCollectionQueueEntry(SsxBaseQueueEntry):
         logging.getLogger("user_level_log").info("Waiting for scan to finish ...")
 
         try:
-            HWR.beamline.diffractometer.wait_ready()
+            diffr.wait_status_ready()
             logging.getLogger("user_level_log").info("Scan finished ...")
         finally:
             self.__scanning = False
@@ -127,8 +127,8 @@ class SsxLaserInjectorCollectionQueueEntry(SsxBaseQueueEntry):
     def stop(self):
         if self.__scanning:
             logging.getLogger("user_level_log").info("Stopping diffractometer ...")
-            HWR.beamline.diffractometer.abort_cmd()
+            HWR.beamline.diffractometer.abort()
             gevent.sleep(5)
-            HWR.beamline.diffractometer.wait_ready()
+            HWR.beamline.diffractometer.wait_status_ready()
 
         super().stop()

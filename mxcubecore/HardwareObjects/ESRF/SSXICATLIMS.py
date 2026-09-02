@@ -24,6 +24,7 @@ class SSXICATLIMS(ICATLIMS):
         extra_lims_values = parameters["extra_lims_values"]
         sample = parameters["sample"]
 
+        path_parameters = collection_parameters.path_parameters
         horizontal_spacing = 0
         vertical_spacing = 0
 
@@ -79,18 +80,17 @@ class SSXICATLIMS(ICATLIMS):
                 "MX_transmission": beamline_parameters.transmission,
                 "MX_xBeam": beamline_parameters.beam_x,
                 "MX_yBeam": beamline_parameters.beam_y,
-                "Project_name": collection_parameters.path_parameters.prefix,
-                "Sample_name": collection_parameters.path_parameters.prefix,
+                "Project_name": path_parameters.prefix,
+                "Sample_name": path_parameters.prefix,
                 "scanNumber": 0,
                 "InstrumentMonochromator_wavelength": beamline_parameters.wavelength,
                 "chipModel": extra_lims_values.chip_model,
                 "monoStripe": extra_lims_values.mono_stripe,
                 "energyBandwidth": beamline_parameters.energy_bandwidth,
                 "detector_id": HWR.beamline.detector.get_property("detector_id"),
-                "experimentType": collection_parameters.common_parameters.type,
-                "Experiment_name": collection_parameters.path_parameters.experiment_name,  # noqa: E501
-                "SSX_experiment_type": collection_parameters.common_parameters.type,
-                "SSX_experiment_name": collection_parameters.path_parameters.experiment_name,  # noqa: E501
+                "experimentType": extra_lims_values.experiment_type,
+                "scanType": extra_lims_values.experiment_type,
+                "Experiment_name": path_parameters.experiment_name,
             }
 
             data.update(collection_parameters.user_collection_parameters.dict())
@@ -102,16 +102,18 @@ class SSXICATLIMS(ICATLIMS):
                 for key, value in data.items()
             }
 
-            self.icatClient.store_dataset(
+            self._icat_client.store_dataset(
                 beamline=HWR.beamline.session.beamline_name.lower(),
                 proposal=f"{HWR.beamline.session.proposal_code}{HWR.beamline.session.proposal_number}",
                 dataset=collection_parameters.path_parameters.prefix,
                 path=data_path,
                 metadata=rounded_data,
             )
-
-            rounded_data.pop("endDate")
-            rounded_data.pop("startDate")
+            try:
+                rounded_data.pop("endDate")
+                rounded_data.pop("startDate")
+            except KeyError:
+                pass
 
             icat_metadata_path = pathlib.Path(data_path) / "metadata.json"
             with open(icat_metadata_path, "w") as f:

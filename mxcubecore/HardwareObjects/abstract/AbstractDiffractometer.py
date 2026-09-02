@@ -86,7 +86,7 @@ __license__ = "LGPLv3+"
 
 
 @unique
-class DiffractometerHead(Enum):
+class DiffractometerHead(str, Enum):
     """Enumeration diffractometer head types."""
 
     UNKNOWN = "Unknown"
@@ -118,14 +118,14 @@ class DiffractometerConstraint(Enum):
     STILL = "LockRotation"
 
 
-class HolderTypeEnum(Enum):
+class HolderTypeEnum(str, Enum):
     """Enumeration of chip holder geometry."""
 
-    KNOWN_GEOMETRY = "known_geometry"
-    FREE_GEOMETRY = "free_geometry"
+    KNOWN_GEOMETRY = "KNOWN_GEOMETRY"
+    FREE_GEOMETRY = "FREE_GEOMETRY"
 
 
-class ChipShapeEnum(Enum):
+class ChipShapeEnum(str, Enum):
     """Enumeration of chip holder shape."""
 
     RECTANGULAR = "RECTANGULAR"
@@ -146,6 +146,9 @@ class CalibrationData(BaseModel):
     )
     bottom_left: Tuple[float, float, float] = Field(
         [0, 0, 0], description="Bottom left corner motor position"
+    )
+    bottom_right: Tuple[float, float, float] = Field(
+        [0, 0, 0], description="Bottom right corner motor position"
     )
 
 
@@ -230,7 +233,7 @@ class AbstractDiffractometer(HardwareObject):
         """
         super().init()
         self.username = self.get_property("username") or self.username
-        self.head_orientation = self.get_property("head_orientation")
+        self.head_orientation = self.get_property("head_orientation", "horizontal")
 
         # motors
         for role in self.config.motors:
@@ -439,7 +442,7 @@ class AbstractDiffractometer(HardwareObject):
                     self.log.exception(msg)
         return data
 
-    def set_head_configuration(self, str_data: str) -> None:
+    def set_chip_configuration(self, str_data: str) -> None:
         """Write the chip configuration in the chip configuration json file.
         Args:
             String containing the configuration.
@@ -461,9 +464,9 @@ class AbstractDiffractometer(HardwareObject):
         Args:
             The layout name.
         """
-        data = self.get_head_configuration().dict()
+        data = self.get_chip_configuration().dict()
         data["current"] = layout_name
-        self.set_head_configuration(json.dumps(data))
+        self.set_chip_configuration(json.dumps(data))
         return True
 
     # -------- Phases --------
