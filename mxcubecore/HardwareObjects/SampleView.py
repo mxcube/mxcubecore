@@ -246,7 +246,7 @@ class SampleView(AbstractSampleView):
             inv_rot_matrix,
         )
 
-        chi_angle = math.radians(self.chi_angle) if self.chi_angle else 0.
+        chi_angle = math.radians(self.chi_angle) if self.chi_angle else 0.0
         chi_rot = np.matrix(
             [
                 [math.cos(chi_angle), -math.sin(chi_angle)],
