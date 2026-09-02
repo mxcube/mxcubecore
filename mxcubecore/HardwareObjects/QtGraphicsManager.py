@@ -722,7 +722,9 @@ class QtGraphicsManager(SampleView):
         :type centring_status: dict
         :emits: centringInProgress
         """
-        print(f"create_centring_point, state: {centring_state}, status: {centring_status}")
+        print(
+            f"create_centring_point, state: {centring_state}, status: {centring_status}"
+        )
         p_dict = {}
 
         if "motors" in centring_status and "extraMotors" in centring_status:
@@ -742,7 +744,6 @@ class QtGraphicsManager(SampleView):
             self.add_shape(point, emit)
             cpos.set_index(point.index)
             return point
-
 
     def centring_done(self):
         """Last stage in centring procedure"""
