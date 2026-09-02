@@ -90,7 +90,7 @@ class SsxBigFoilCollectionQueueEntry(SsxBaseQueueEntry):
         HWR.beamline.detector.wait_ready()
 
         fname_prefix = self._data_model._task_data.path_parameters.prefix
-        fname_prefix += f"_foil_"
+        fname_prefix += "_foil_"
 
         region = (
             params.motor_top_left_x,
@@ -113,7 +113,7 @@ class SsxBigFoilCollectionQueueEntry(SsxBaseQueueEntry):
         )
 
         if HWR.beamline.control.safshut_oh2.state.name != "OPEN":
-            logging.getLogger("user_level_log").info(f"Opening OH2 safety shutter")
+            logging.getLogger("user_level_log").info("Opening OH2 safety shutter")
             HWR.beamline.control.safshut_oh2.open()
 
         HWR.beamline.detector.start_acquisition()

@@ -129,8 +129,7 @@ class SsxFoilCollectionQueueEntry(SsxBaseQueueEntry):
         debug(self._data_model._task_data)
         params = self._data_model._task_data.user_collection_parameters
         enforce_centring_phase = False
-        # not used: to be deleted
-        packet_fifo_depth = 20000
+
         focus_value = HWR.beamline.diffractometer.focus.get_value()
 
         (
@@ -177,7 +176,7 @@ class SsxFoilCollectionQueueEntry(SsxBaseQueueEntry):
         )
 
         fname_prefix = self._data_model._task_data.path_parameters.prefix
-        fname_prefix += f"_foil_"
+        fname_prefix += "_foil_"
 
         region = [
             chip_data.calibration_data.top_left[0],
@@ -203,7 +202,7 @@ class SsxFoilCollectionQueueEntry(SsxBaseQueueEntry):
         diffr.prepare_ssx_grid_scan(*region, nb_samples_per_line, nb_lines)
 
         if HWR.beamline.control.safshut_oh2.state.name != "OPEN":
-            logging.getLogger("user_level_log").info(f"Opening OH2 safety shutter")
+            logging.getLogger("user_level_log").info("Opening OH2 safety shutter")
             HWR.beamline.control.safshut_oh2.open()
 
         diffr.wait_status_ready()
@@ -251,7 +250,7 @@ class SsxFoilCollectionQueueEntry(SsxBaseQueueEntry):
             diffr.wait_status_ready()
             diffr.set_phase(diffr.get_phase_enum.TRANSFER)
 
-            logging.getLogger("user_level_log").info(f"set to Transfer phase")
+            logging.getLogger("user_level_log").info("set to Transfer phase")
 
     def pre_execute(self):
         super().pre_execute()

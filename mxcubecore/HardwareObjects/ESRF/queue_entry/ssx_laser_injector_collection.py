@@ -56,9 +56,6 @@ class SsxLaserInjectorCollectionQueueEntry(SsxBaseQueueEntry):
         exp_time = self._data_model._task_data.user_collection_parameters.exp_time
         fname_prefix = self._data_model._task_data.path_parameters.prefix
         num_images = self._data_model._task_data.user_collection_parameters.num_images
-        sub_sampling = (
-            self._data_model._task_data.user_collection_parameters.sub_sampling
-        )
         reject_empty_frames = (
             self._data_model._task_data.user_collection_parameters.reject_empty_frames
         )
@@ -83,7 +80,7 @@ class SsxLaserInjectorCollectionQueueEntry(SsxBaseQueueEntry):
         self.start_processing("INJECTOR")
 
         if HWR.beamline.control.safshut_oh2.state.name != "OPEN":
-            logging.getLogger("user_level_log").info(f"Opening OH2 safety shutter")
+            logging.getLogger("user_level_log").info("Opening OH2 safety shutter")
             HWR.beamline.control.safshut_oh2.open()
 
         diffr.wait_status_ready()
@@ -93,7 +90,7 @@ class SsxLaserInjectorCollectionQueueEntry(SsxBaseQueueEntry):
             f"Laser scan method {ssx_laser_scan_method}"
         )
         logging.getLogger("user_level_log").info(f"Laser delay {delay}")
-        logging.getLogger("user_level_log").info(f"Acquiring ...")
+        logging.getLogger("user_level_log").info("Acquiring ...")
         HWR.beamline.detector.start_acquisition()
 
         try:

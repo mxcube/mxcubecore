@@ -18,7 +18,7 @@ __license__ = "LGPLv3+"
 __category__ = "General"
 
 
-class InjectorUserCollectionParameters(BaseUserCollectionParameters):
+class TapeUserCollectionParameters(BaseUserCollectionParameters):
     num_images: int = Field(1000, gt=0, lt=10000000)
     take_pedestal: bool = Field(True)
 
@@ -27,44 +27,40 @@ class InjectorUserCollectionParameters(BaseUserCollectionParameters):
         use_enum_values: True
 
 
-class InjectorColletionTaskParameters(SsxBaseQueueTaskParameters):
-    user_collection_parameters: InjectorUserCollectionParameters
+class TapeCollectionTaskParameters(SsxBaseQueueTaskParameters):
+    user_collection_parameters: TapeUserCollectionParameters
 
 
-class SsxInjectorCollectionQueueModel(DataCollection):
+class SsxTapeCollectionQueueModel(DataCollection):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
 
-class SsxInjectorCollectionQueueEntry(SsxBaseQueueEntry):
+class SsxTapeCollectionQueueEntry(SsxBaseQueueEntry):
     """
     Defines the behaviour of a data collection.
     """
 
-    QMO = SsxInjectorCollectionQueueModel
-    DATA_MODEL = InjectorColletionTaskParameters
-    NAME = "SSX Injector Collection"
-    REQUIRES = ["point", "line", "no_shape", "chip", "grid"]
+    QMO = SsxTapeCollectionQueueModel
+    DATA_MODEL = TapeCollectionTaskParameters
+    NAME = "SSX Tape Collection"
+    REQUIRES = ["point", "line", "no_shape", "chip", "mesh"]
 
-    def __init__(self, view, data_model: SsxInjectorCollectionQueueModel):
+    def __init__(self, view, data_model: SsxTapeCollectionQueueModel):
         super().__init__(view=view, data_model=data_model)
         self.__scanning = False
 
     def execute(self):
         super().execute()
 
-        exp_time = self._data_model._task_data.user_collection_parameters.exp_time
-        fname_prefix = self._data_model._task_data.path_parameters.prefix
-        num_images = self._data_model._task_data.user_collection_parameters.num_images
-        reject_empty_frames = (
-            self._data_model._task_data.user_collection_parameters.reject_empty_frames
-        )
-
-        self._data_model._task_data.lims_parameters.experiment_type = (
-            "ssx_injector_collection"
-        )
-
+        _task_data = self._data_model._task_data
+        exp_time = _task_data.user_collection_parameters.exp_time
+        fname_prefix = _task_data.path_parameters.prefix
+        num_images = _task_data.user_collection_parameters.num_images
+        reject_empty_frames = _task_data.user_collection_parameters.reject_empty_frames
+        _task_data.lims_parameters.experiment_type = "ssx_tape_collection"
         data_root_path = self.get_data_path()
+
         diffr = HWR.beamline.diffractometer
         diffr.set_phase(diffr.get_phase_enum.COLLECT)
 

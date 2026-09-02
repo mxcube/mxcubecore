@@ -116,11 +116,11 @@ class SsxLaserHareCollectionQueueEntry(SsxBaseQueueEntry):
 
             HWR.beamline.diffractometer.wait_ready()
 
-            logging.getLogger("user_level_log").info(f"Preparing data collection")
+            logging.getLogger("user_level_log").info("Preparing data collection")
             HWR.beamline.diffractometer.set_phase("DataCollection")
 
             if HWR.beamline.control.safshut_oh2.state.name != "OPEN":
-                logging.getLogger("user_level_log").info(f"Opening OH2 safety shutter")
+                logging.getLogger("user_level_log").info("Opening OH2 safety shutter")
                 HWR.beamline.control.safshut_oh2.open()
 
             HWR.beamline.diffractometer.wait_ready()

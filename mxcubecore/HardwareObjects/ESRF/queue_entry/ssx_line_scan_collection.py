@@ -67,9 +67,6 @@ class SsxLineScanCollectionQueueEntry(SsxBaseQueueEntry):
         num_images = self._data_model._task_data.user_collection_parameters.num_images
         line_range = self._data_model._task_data.user_collection_parameters.line_range
         spacing = self._data_model._task_data.user_collection_parameters.spacing
-        sub_sampling = (
-            self._data_model._task_data.user_collection_parameters.sub_sampling
-        )
         reject_empty_frames = (
             self._data_model._task_data.user_collection_parameters.reject_empty_frames
         )
@@ -96,7 +93,7 @@ class SsxLineScanCollectionQueueEntry(SsxBaseQueueEntry):
 
         self.start_processing("LINE-SCAN")
 
-        logging.getLogger("user_level_log").info(f"Preparing scan")
+        logging.getLogger("user_level_log").info("Preparing scan")
 
         diff.prepare_ssx_line_scan(
             motor_x.get_value() - delta_range,
@@ -129,16 +126,14 @@ class SsxLineScanCollectionQueueEntry(SsxBaseQueueEntry):
         diffr.wait_status_ready()
 
         if HWR.beamline.control.safshut_oh2.state.name != "OPEN":
-            logging.getLogger("user_level_log").info(f"Opening OH2 safety shutter")
+            logging.getLogger("user_level_log").info("Opening OH2 safety shutter")
             HWR.beamline.control.safshut_oh2.open()
 
-        logging.getLogger("user_level_log").info(f"Acquiring ...")
+        logging.getLogger("user_level_log").info("Acquiring ...")
         HWR.beamline.detector.start_acquisition()
         diffr.start_ssx_line_scan(enforce_centring_phase)
 
-        logging.getLogger("user_level_log").info(
-            f"Waiting for acqusition to finish ..."
-        )
+        logging.getLogger("user_level_log").info("Waiting for acqusition to finish ...")
 
         diffr.wait_status_ready()
         HWR.beamline.detector.wait_ready()

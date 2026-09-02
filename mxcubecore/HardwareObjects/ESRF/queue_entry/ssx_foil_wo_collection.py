@@ -215,7 +215,7 @@ class SsxFoilWoCollectionQueueEntry(SsxBaseQueueEntry):
             "Detector ready, waiting for trigger ..."
         )
 
-        for run in range(chip_data.number_of_runs):
+        for _run in range(chip_data.number_of_runs):
             region[0] += chip_data.offset
             region[3] += chip_data.offset
             region[6] += chip_data.offset

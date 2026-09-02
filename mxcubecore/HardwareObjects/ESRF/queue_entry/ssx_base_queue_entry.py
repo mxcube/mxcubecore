@@ -240,7 +240,7 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             while not self.__pedestal_task.ready():
                 if self.__stop_req:
                     logging.getLogger("user_level_log").info(
-                        f"Stop requested. Killing pedestal task"
+                        "Stop requested. Killing pedestal task"
                     )
                     self.__pedestal_task.kill()
                     return
@@ -261,7 +261,7 @@ class SsxBaseQueueEntry(BaseQueueEntry):
         data_root_path = self.get_data_path()
 
         if self._use_nicoproc:
-            logging.getLogger("user_level_log").info(f"Starting NICOPROC")
+            logging.getLogger("user_level_log").info("Starting NICOPROC")
             self._start_nico_processing(
                 self._beamline_values,
                 self._data_model._task_data,
@@ -269,15 +269,15 @@ class SsxBaseQueueEntry(BaseQueueEntry):
                 experiment_type=exp_type,
             )
         else:
-            logging.getLogger("user_level_log").info(f"Not using NICOPROC")
+            logging.getLogger("user_level_log").info("Not using NICOPROC")
 
         if self._use_besproc:
-            logging.getLogger("user_level_log").info(f"Using BES PROC")
+            logging.getLogger("user_level_log").info("Using BES PROC")
             HWR.beamline.workflow.start(
                 ["modelpath", "SSX", "data_path", data_root_path]
             )
         else:
-            logging.getLogger("user_level_log").info(f"BES PROC False")
+            logging.getLogger("user_level_log").info("BES PROC False")
 
     def prepare_acquisition(self):
         exp_time = self._data_model._task_data.user_collection_parameters.exp_time
@@ -289,7 +289,7 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             self._data_model._task_data.user_collection_parameters.reject_empty_frames
         )
 
-        logging.getLogger("user_level_log").info(f"Preparing detector")
+        logging.getLogger("user_level_log").info("Preparing detector")
         HWR.beamline.detector.wait_ready()
         HWR.beamline.detector.stop_acquisition()
         HWR.beamline.detector.prepare_acquisition(
@@ -300,7 +300,7 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             dense_skip_nohits=reject_empty_frames,
         )
         HWR.beamline.detector.wait_ready()
-        logging.getLogger("user_level_log").info(f"Detector prepared, continuing !")
+        logging.getLogger("user_level_log").info("Detector prepared, continuing !")
 
     def _monitor_collect(self):
         for i in range(1, 99):
@@ -324,7 +324,7 @@ class SsxBaseQueueEntry(BaseQueueEntry):
 
         HWR.beamline.beam.wait_for_beam()
 
-        logging.getLogger("user_level_log").info(f"Moving detector table")
+        logging.getLogger("user_level_log").info("Moving detector table")
         HWR.beamline.control.LDetX.wait_move()
         HWR.beamline.control.LDetX.move(0, wait=False)
         self._beamline_values = self.get_current_beamline_values()
@@ -358,11 +358,11 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             move_back = True
 
         if move_back:
-            logging.getLogger("user_level_log").info(f"Moving detector back")
+            logging.getLogger("user_level_log").info("Moving detector back")
             HWR.beamline.control.LDetX.move(1000, wait=False)
 
         if HWR.beamline.control.safshut_oh2.state.name == "OPEN":
-            logging.getLogger("user_level_log").info(f"Closing OH2 safety shutter")
+            logging.getLogger("user_level_log").info("Closing OH2 safety shutter")
             HWR.beamline.control.safshut_oh2.close()
 
     def start_ewoks(self, parameters):
@@ -471,9 +471,8 @@ class SsxBaseQueueEntry(BaseQueueEntry):
         submit_key = (workflow, inputs_key)
 
         if submit_key in self.__submitted_ewoks_workflows:
-            logging.getLogger("user_level_log").warning(
-                f"Skipping duplicate Ewoks submission for {workflow} with identical inputs"
-            )
+            msg = f"Skipping duplicate Ewoks submission for {workflow} with identical inputs"
+            logging.getLogger("user_level_log").warning(msg)
             return
 
         self.__submitted_ewoks_workflows.add(submit_key)
@@ -499,7 +498,7 @@ class SsxBaseQueueEntry(BaseQueueEntry):
         HWR.beamline.collect.emit_progress(progress)
 
     def stop(self):
-        logging.getLogger("user_level_log").info(f"Stop requested")
+        logging.getLogger("user_level_log").info("Stop requested")
         self.__stop_req = True
 
         super().stop()

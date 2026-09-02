@@ -426,52 +426,39 @@ convention = "google"
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_base_queue_entry.py" = [
     "B005",
     "E501",
-    "F541",
     "S602",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_custom_foil_collection.py" = [
     "E501",
-    "E722",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_big_foil_collection.py" = [
-    "F541",
     "F821",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_chip_collection.py" = [
-    "F541",
     "F821",
-    "F841",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_foil_collection.py" = [
     "E501",
     "E722",
-    "F541",
     "F821",
-    "F841",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_foil_wo_collection.py" = [
-    "B007",
     "E501",
-    "E722",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_injector_collection.py" = [
-    "F541",
     "F821",
-    "F841",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_laser_hare_collection.py" = [
-    "F541",
     "F821",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_laser_injector_collection.py" = [
-    "F541",
     "F821",
-    "F841",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_line_scan_collection.py" = [
-    "F541",
     "F821",
-    "F841",
+]
+"mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_tape_collection.py" = [
+    "F821",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/test_collection.py" = [
     "F821",
