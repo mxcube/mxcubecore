@@ -131,7 +131,6 @@ class QtGraphicsManager(SampleView):
         self.graphics_move_left_item = None
         self.graphics_magnification_item = None
 
-
     def init(self):
         """Main init function. Initiates all graphics items, hwobjs and
         connects all qt signals to slots.
@@ -219,26 +218,26 @@ class QtGraphicsManager(SampleView):
                 "minidiffStateChanged",
                 self.diffractometer_state_changed,
             )
-            #self.connect(
-                #self.diffractometer_hwobj,
-                #"centringStarted",
-                #self.diffractometer_centring_started,
-            #)
-            #self.connect(
-                #self.diffractometer_hwobj,
-                #"centringAccepted",
-                #self.create_centring_point,
-            #)
-            #self.connect(
-                #self.diffractometer_hwobj,
-                #"centringSuccessful",
-                #self.diffractometer_centring_successful,
-            #)
-            #self.connect(
-                #self.diffractometer_hwobj,
-                #"centringFailed",
-                #self.diffractometer_centring_failed,
-            #)
+            # self.connect(
+            #     self.diffractometer_hwobj,
+            #     "centringStarted",
+            #     self.diffractometer_centring_started,
+            # )
+            # self.connect(
+            #     self.diffractometer_hwobj,
+            #     "centringAccepted",
+            #     self.create_centring_point,
+            # )
+            # self.connect(
+            #     self.diffractometer_hwobj,
+            #     "centringSuccessful",
+            #     self.diffractometer_centring_successful,
+            # )
+            # self.connect(
+            #     self.diffractometer_hwobj,
+            #     "centringFailed",
+            #     self.diffractometer_centring_failed,
+            # )
             self.connect(
                 self.diffractometer_hwobj,
                 "pixelsPerMmChanged",
@@ -639,9 +638,7 @@ class QtGraphicsManager(SampleView):
             for shape in self.get_shapes():
                 if isinstance(shape, GraphicsLib.GraphicsItemPoint):
                     cpos = shape.get_centred_position()
-                    new_x, new_y = self.motor_positions_to_screen(
-                        cpos.as_dict()
-                    )
+                    new_x, new_y = self.motor_positions_to_screen(cpos.as_dict())
                     shape.set_start_position(new_x, new_y)
                 elif isinstance(shape, GraphicsLib.GraphicsItemGrid):
                     grid_cpos = shape.get_centred_position()
@@ -656,10 +653,8 @@ class QtGraphicsManager(SampleView):
                         if hasattr(grid_cpos, "zoom"):
                             current_cpos.zoom = grid_cpos.zoom
 
-                        center_coord = (
-                            self.motor_positions_to_screen(
-                                grid_cpos.as_dict()
-                            )
+                        center_coord = self.motor_positions_to_screen(
+                            grid_cpos.as_dict()
                         )
                         if center_coord:
                             shape.set_center_coord(center_coord)
@@ -667,11 +662,7 @@ class QtGraphicsManager(SampleView):
                             corner_coord = []
                             for motor_pos in shape.get_motor_pos_corner():
                                 corner_coord.append(
-                                    (
-                                        self.motor_positions_to_screen(
-                                            motor_pos
-                                        )
-                                    )
+                                    self.motor_positions_to_screen(motor_pos)
                                 )
                             shape.set_corner_coord(corner_coord)
 
@@ -739,15 +730,12 @@ class QtGraphicsManager(SampleView):
         elif "motors" in centring_status:
             p_dict = dict(centring_status["motors"])
 
-        print(f"p_dict {p_dict}")
         self.emit("centringInProgress", False)
 
         if p_dict:
             cpos = queue_model_objects.CentredPosition(p_dict)
             print(f"cpos {cpos.as_dict()}")
-            screen_pos = self.motor_positions_to_screen(
-                cpos.as_dict()
-            )
+            screen_pos = self.motor_positions_to_screen(cpos.as_dict())
             point = GraphicsLib.GraphicsItemPoint(
                 cpos, True, screen_pos[0], screen_pos[1]
             )
@@ -757,9 +745,7 @@ class QtGraphicsManager(SampleView):
 
 
     def centring_done(self):
-        """Last stage in centring procedure
-
-        """
+        """Last stage in centring procedure"""
 
         self.set_cursor_busy(False)
         self.set_centring_state(False)
@@ -1120,9 +1106,7 @@ class QtGraphicsManager(SampleView):
         :type item: QGraphicsLib.GraphicsItem
         """
         if isinstance(item, GraphicsLib.GraphicsItemPoint):
-            self.diffractometer_hwobj.set_value_motors(
-                item.get_centred_position()
-            )
+            self.diffractometer_hwobj.set_value_motors(item.get_centred_position())
 
     def move_item_clicked(self, direction):
         """Moves sample"""
@@ -1730,9 +1714,7 @@ class QtGraphicsManager(SampleView):
             self.emit("infoMsg", "n-click centring")
         else:
             # self.accept_centring()
-            self.move_to_beam(
-                self.beam_position[0], self.beam_position[1]
-            )
+            self.move_to_beam(self.beam_position[0], self.beam_position[1])
 
     def accept_centring(self):
         """Accepts centring"""
@@ -2025,7 +2007,7 @@ class QtGraphicsManager(SampleView):
         if isinstance(view_scale, float):
             self.graphics_view.scale(view_scale, view_scale)
 
-    def set_image_scale(self, image_scale=1., use_scale=False):
+    def set_image_scale(self, image_scale=1.0, use_scale=False):
         """Scales the incoming frame
 
         :param image_scale: image scale
