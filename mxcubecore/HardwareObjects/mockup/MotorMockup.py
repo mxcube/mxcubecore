@@ -54,7 +54,7 @@ class MotorMockup(ActuatorMockup, AbstractMotor):
     def __init__(self, name):
         AbstractMotor.__init__(self, name)
         self._wrap_range = None
-        self.direction = 1.
+        self.direction = 1.0
 
     def init(self):
         """Initialisation method"""
