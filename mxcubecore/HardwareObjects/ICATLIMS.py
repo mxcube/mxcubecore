@@ -19,7 +19,6 @@ from mxcubecore.model.lims_session import (
     Download,
     Lims,
     LimsSessionManager,
-    SampleSheet,
     Session,
 )
 from mxcubecore.model.tracking_model_objects import LoadedPuck
