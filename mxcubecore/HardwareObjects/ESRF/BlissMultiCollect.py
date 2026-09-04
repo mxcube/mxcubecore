@@ -87,15 +87,23 @@ class BlissMultiCollect(ESRFMultiCollect):
         run_number = data_collect_parameters["fileinfo"]["run_number"]
 
         for wedge_number in range(1, len(wedges_to_collect) + 1):
-            convert_lima2_to_h5mx(
-                Path(self.last_bliss_scan.scan_saving.data_fullpath),
-                Path(
-                    self.last_bliss_scan.scan_saving.get_path(),
-                    data_collect_parameters["fileinfo"]["prefix"]
-                    + "_%s_%s_master.h5" % (run_number, wedge_number),
-                ),
-                "%s.1" % wedge_number,
-            )
+            for retry in range(3):
+                try:
+                    convert_lima2_to_h5mx(
+                        Path(self.last_bliss_scan.scan_saving.data_fullpath),
+                        Path(
+                            self.last_bliss_scan.scan_saving.get_path(),
+                            data_collect_parameters["fileinfo"]["prefix"]
+                            + "_%s_%s_master.h5" % (run_number, wedge_number),
+                        ),
+                        "%s.1" % wedge_number,
+                    )
+                    break
+                except BlockingIOError:
+                    if retry == 2:
+                        raise
+                    gevent.sleep(1)
+
 
     def _bliss_data_collection_hook(self, data_collect_parameters):
         # first set the proposal name for bliss
