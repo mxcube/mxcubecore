@@ -29,6 +29,7 @@ one set from the beamline configuration is used.
 
 import abc
 import logging
+import time
 from math import (
     asin,
     atan,
@@ -138,6 +139,17 @@ class AbstractResolution(AbstractMotor):
         distance = self.resolution_to_distance(value)
         msg = f"Move resolution to {value} ({distance} mm)"
         logging.getLogger().info(msg)
+
+        while True:
+            try:
+                if self._hwr_detector.distance.is_ready():
+                    break
+            except:
+                self.log.exception("ICEPAP COM ERROR")
+                time.sleep(10)
+
+            time.sleep(10)
+        
         self._hwr_detector.distance.set_value(distance)
 
     def _calculate_resolution(self, radius, distance, wavelength=None):
