@@ -13,7 +13,7 @@ logger = logging.getLogger("HWR")
 
 class ESRFLIMS(AbstractLims):
     """
-    ESRF client (ICAT+ and IPyB).
+    ESRF client (ICAT+/DRAC).
     """
 
     def __init__(self, name):
@@ -21,13 +21,12 @@ class ESRFLIMS(AbstractLims):
 
     def init(self):
         self.drac = self.get_object_by_role("drac")
-        self.ispyb = self.get_object_by_role("ispyb")
 
         self.is_local_host = False
         self.active_lims = self.drac.get_lims_name()[0]
 
     def get_lims_name(self) -> List[Lims]:
-        return self.drac.get_lims_name() + self.ispyb.get_lims_name()
+        return self.drac.get_lims_name()
 
     def get_session_id(self) -> str:
         logger.debug("Setting up drac session_id=%s" % (self.drac.get_session_id()))
@@ -45,7 +44,7 @@ class ESRFLIMS(AbstractLims):
 
     def login(self, user_name, token, is_local_host=False) -> LimsSessionManager:
         self.is_local_host = is_local_host
-        session_manager, lims_username, sessions = self.drac.login(
+        _, lims_username, sessions = self.drac.login(
             user_name, token, self.session_manager
         )
         logger.debug("%s sessions found. user=%s" % (len(sessions), user_name))
@@ -63,16 +62,6 @@ class ESRFLIMS(AbstractLims):
             )
             self.set_active_session_by_id(single_session.session_id)
 
-        if session_manager.active_session is None:
-            logger.debug(
-                "DRAC no session selected then no activation of session in ISPyB"
-            )
-        else:
-            self.ispyb.get_session_manager_by_code_number(
-                session_manager.active_session.code,
-                session_manager.active_session.number,
-                True,  # noqa: FBT003
-            )
         return self.session_manager
 
     def is_user_login_type(self) -> bool:
@@ -92,7 +81,7 @@ class ESRFLIMS(AbstractLims):
 
     def get_samples(self, lims_id):
         """
-        lims_id is the identifier of the lims to be used: ISPyB | DRAC
+        lims_id is the identifier of the lims to be used: DRAC
         """
         logger.debug("[ESRFLIMS] get_samples by lims %s" % lims_id)
 
@@ -104,10 +93,7 @@ class ESRFLIMS(AbstractLims):
 
         logger.debug("[ESRFLIMS] get_samples %s" % self.get_active_lims().name)
 
-        if self.is_drac():
-            return self.drac.get_samples(lims_id)
-        else:
-            return self.ispyb.get_samples(lims_id)
+        return self.drac.get_samples(lims_id)
 
     def get_proposals_by_user(self, login_id: str):
         raise Exception("Not implemented")
@@ -116,58 +102,35 @@ class ESRFLIMS(AbstractLims):
         pass
 
     def _store_data_collection_group(self, group_data):
-        group_data["sessionId"] = self.ispyb.get_session_id()
-        return self.ispyb._store_data_collection_group(
-            self._clean_sample_id(group_data)
-        )
+        group_data["sessionId"] = self.drac.get_session_id()
+        return self.drac._store_data_collection_group(group_data)
 
     def store_data_collection(self, mx_collection, bl_config=None):
         logger.info("Storing datacollection")
-        mx_collection["sessionId"] = self.ispyb.get_session_id()
+        mx_collection["sessionId"] = self.drac.get_session_id()
 
-        self.drac.store_data_collection(mx_collection, bl_config)
-        return self.ispyb.store_data_collection(
-            self._clean_sample_id(mx_collection), bl_config
-        )
+        return self.drac.store_data_collection(mx_collection, bl_config)
 
     def update_data_collection(self, mx_collection):
         logger.info("Updating datacollection")
-        mx_collection["sessionId"] = self.ispyb.get_session_id()
-        self.drac.update_data_collection(mx_collection)
+        mx_collection["sessionId"] = self.drac.get_session_id()
 
-        return self.ispyb.update_data_collection(self._clean_sample_id(mx_collection))
-
-    def _clean_sample_id(self, mx_collection):
-        """
-        The sample_id corresponds to the ID in DRAC so when pushing the data
-        to ISPyB when DRAC was used we need to remove the id
-        """
-        mx_collection_copy = mx_collection.copy()
-        if self.is_drac():
-            if "blSampleId" in mx_collection_copy:
-                mx_collection_copy["blSampleId"] = None
-                if "sample_reference" in mx_collection_copy:
-                    mx_collection_copy["sample_reference"]["blSampleId"] = None
-        return mx_collection_copy
+        return self.drac.update_data_collection(mx_collection)
 
     def finalize_data_collection(self, mx_collection):
         logger.info("Storing datacollection")
 
-        mx_collection["sessionId"] = self.ispyb.get_session_id()
-        self.drac.finalize_data_collection(mx_collection)
-        return self.ispyb.finalize_data_collection(self._clean_sample_id(mx_collection))
+        mx_collection["sessionId"] = self.drac.get_session_id()
+        return self.drac.finalize_data_collection(mx_collection)
 
     def store_image(self, image_dict):
-        self.ispyb.store_image(image_dict)
+        self.drac.store_image(image_dict)
 
     def find_sample_by_sample_id(self, sample_id):
-        if self.is_drac():
-            return self.drac.find_sample_by_sample_id(sample_id)
-        return self.ispyb.find_sample_by_sample_id(sample_id)
+        return self.drac.find_sample_by_sample_id(sample_id)
 
     def store_robot_action(self, robot_action_dict):
-        robot_action_dict["sessionId"] = self.ispyb.get_session_id()
-        return self.ispyb.store_robot_action(robot_action_dict)
+        return self.drac.store_robot_action(robot_action_dict)
 
     def is_session_already_active(self, session_id: str) -> bool:
         return self.drac.is_session_already_active(session_id)
@@ -176,48 +139,19 @@ class ESRFLIMS(AbstractLims):
         logger.debug("set_active_session_by_id. session_id=%s", str(session_id))
 
         if self.drac.session_manager.active_session is not None:
-            if self.ispyb.session_manager.active_session is not None:
-                if self.drac.session_manager.active_session.session_id == session_id:
-                    return self.drac.session_manager.active_session
+            if self.drac.session_manager.active_session.session_id == session_id:
+                return self.drac.session_manager.active_session
 
         session = self.drac.set_active_session_by_id(session_id)
 
-        # Check that session is not active already
-
-        if self.ispyb.is_session_already_active_by_code(
-            self.drac.session_manager.active_session.code,
-            self.drac.session_manager.active_session.number,
-        ):
-            return self.drac.session_manager.active_session
-
         if session is not None:
-            self.ispyb.get_session_manager_by_code_number(
-                self.drac.session_manager.active_session.code,
-                self.drac.session_manager.active_session.number,
-                True,  # noqa: FBT003
+            logger.info(
+                "[ESRFLIMS] MXCuBE succesfully connected to DRAC:(%s, %s)"
+                % (
+                    self.drac.session_manager.active_session.proposal_name,
+                    self.drac.session_manager.active_session.session_id,
+                )
             )
-
-            if (
-                self.drac.session_manager.active_session is not None
-                and self.ispyb.session_manager.active_session is not None
-            ):
-                logger.info(
-                    "[ESRFLIMS] MXCuBE succesfully connected to DRAC:(%s, %s) ISPYB:(%s,%s)"
-                    % (
-                        self.drac.session_manager.active_session.proposal_name,
-                        self.drac.session_manager.active_session.session_id,
-                        self.ispyb.session_manager.active_session.proposal_name,
-                        self.ispyb.session_manager.active_session.session_id,
-                    )
-                )
-            else:
-                logger.exception(
-                    "[ESRFLIMS] Problem when set_active_session_by_id. DRAC:(%s) ISPYB:(%s)"
-                    % (
-                        self.drac.session_manager.active_session.proposal_name,
-                        self.ispyb.session_manager.active_session,
-                    )
-                )
             return self.drac.session_manager.active_session
         else:
             raise Exception("Any candidate session was found")
@@ -245,20 +179,18 @@ class ESRFLIMS(AbstractLims):
         return True
 
     def update_bl_sample(self, bl_sample):
-        self.ispyb.update_bl_sample(bl_sample)
+        self.drac.update_bl_sample(bl_sample)
 
     def store_beamline_setup(self, session_id, bl_config):
-        self.ispyb.store_beamline_setup(session_id, bl_config)
+        self.drac.store_beamline_setup(session_id, bl_config)
 
     def store_energy_scan(self, energyscan_dict):
-        energyscan_dict["sessionId"] = self.ispyb.get_session_id()
-        self.drac.store_energy_scan(energyscan_dict)
-        return self.ispyb.store_energy_scan(self._clean_sample_id(energyscan_dict))
+        energyscan_dict["sessionId"] = self.drac.get_session_id()
+        return self.drac.store_energy_scan(energyscan_dict)
 
     def store_xfe_spectrum(self, xfespectrum_dict):
-        xfespectrum_dict["sessionId"] = self.ispyb.get_session_id()
-        self.drac.store_xfe_spectrum(xfespectrum_dict)
-        return self.ispyb.store_xfe_spectrum(self._clean_sample_id(xfespectrum_dict))
+        xfespectrum_dict["sessionId"] = self.drac.get_session_id()
+        return self.drac.store_xfe_spectrum(xfespectrum_dict)
 
     def store_workflow(self, *args, **kwargs):
         pass

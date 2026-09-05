@@ -439,7 +439,10 @@ class ICATLIMS(AbstractLims):
         )
 
     def store_robot_action(self, proposal_id: str):
-        raise NotImplementedError
+        logging.getLogger("HWR").warning(
+            "store_robot_action is not implemented in ICATLIMS"
+        )
+        pass
 
     @property
     def filter(self):
