@@ -1875,7 +1875,6 @@ class CentredPosition(object):
         if motor_dict is not None:
             for motor_name, position in motor_dict.items():
                 setattr(self, motor_name, position)
-            self.set_diffractometer_motor_names(list(motor_dict.keys()))
 
     def as_dict(self):
         return dict(
