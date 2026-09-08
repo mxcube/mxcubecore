@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Any, List, Optional
 from zoneinfo import ZoneInfo
 
-from pydantic import ValidationError
 from pyicat_plus import errors as icat_errors
 from pyicat_plus.client import models as icat_models
 from pyicat_plus.client.main import IcatClient
@@ -241,11 +240,11 @@ class ICATLIMS(AbstractLims):
                 len(self.loaded_pucks),
             )
 
-            sampleInformationList: List[icat_models.SampleInformation] = []
+            sample_file_list: List[icat_models.SampleFile] = []
             # Download all sampleInformation for the investigation
             # This makes to perform a single call to the server instead of one per sample
             try:
-                sampleInformationList = self.icatClient.get_sample_information_list_by(
+                sample_file_list = self.icatClient.get_sample_files_by(
                     investigation_id=str(investigation_id)
                 )
             except Exception as e:
@@ -260,9 +259,7 @@ class ICATLIMS(AbstractLims):
                 msg += f"{puck.sample_changer_location}, containing {len(puck.content)} samples"
                 logger.debug(msg)
                 for tracking_sample in tracking_samples:
-                    sample = self.__to_sample(
-                        tracking_sample, puck, sampleInformationList
-                    )
+                    sample = self.__to_sample(tracking_sample, puck, sample_file_list)
                     self.samples.append(sample)
 
         except RuntimeError:
@@ -383,7 +380,7 @@ class ICATLIMS(AbstractLims):
         self,
         tracking_sample: icat_models.ParcelItem,
         protein_acronym: str,
-        sample_information: icat_models.SampleInformation | None,
+        sample_information: icat_models.SampleFile | None,
     ) -> dict[str, Any]:
         if not tracking_sample.processing_plan or tracking_sample.processing_plan == []:
             return {}
@@ -405,7 +402,7 @@ class ICATLIMS(AbstractLims):
         self,
         sample_sheet_id: str,
         protein_acronym: str,
-        sample_information: icat_models.SampleInformation | None,
+        sample_information: icat_models.SampleFile | None,
     ) -> List[Download]:
         cache_key = (sample_sheet_id, protein_acronym)
         logger.debug(f"Getting sample information for {protein_acronym}")
@@ -448,7 +445,7 @@ class ICATLIMS(AbstractLims):
         self,
         tracking_sample: icat_models.ParcelItem,
         puck: LoadedPuck,
-        sample_information_list: List[icat_models.SampleInformation],
+        sample_information_list: List[icat_models.SampleFile],
     ) -> dict[str, Any]:
         """
         Convert a tracking sample and associated metadata into the internal
@@ -1178,35 +1175,6 @@ class ICATLIMS(AbstractLims):
             ):
                 return "Omega"
         return "Phi"
-
-    def __get_sample_information_by(
-        self, sample_id: str
-    ) -> Optional[icat_models.SampleInformation]:
-        """
-        Fetches sample metadata and associated resources based on the sample ID.
-
-        Parameters:
-            sample_id (str): The unique identifier for the sample.
-
-        Returns:
-            Optional[SampleInformation]: Returns a SampleInformation object or None.
-        """
-        try:
-            sampleInformationList: List[icat_models.SampleInformation] = (
-                self.icatClient.get_sample_information_list_by(sample_id=str(sample_id))
-            )
-            if sampleInformationList is not None and len(sampleInformationList) > 0:
-                return sampleInformationList[0]
-            return None
-
-        except icat_errors.ApiException as e:
-            if e.status == 404:
-                logger.info("Sample %s not found (404)", sample_id)
-            else:
-                logger.exception("HTTP error for sample %s", sample_id)
-        except ValidationError:
-            logger.exception("Invalid response format for sample %s", sample_id)
-        return None
 
     def _download_resources(
         self,
