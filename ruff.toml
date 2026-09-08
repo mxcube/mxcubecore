@@ -646,11 +646,7 @@ convention = "google"
     "S301",
 ]
 "mxcubecore/HardwareObjects/PlateManipulator.py" = [
-    "B904",
     "E501",
-    "E722",
-    "F811",
-    "F841",
 ]
 "mxcubecore/HardwareObjects/ProposalTypeISPyBLims.py" = [
     "E402",

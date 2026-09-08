@@ -369,6 +369,7 @@ class PlateManipulator(SampleChanger):
         if res:
             self._set_loaded_sample(comp)
             comp._set_loaded(True, True)
+            self.plate_location_changed()
         return res
 
     def _load_sample(self, sample_location=None, pos_x=None, pos_y=None):
@@ -525,6 +526,11 @@ class PlateManipulator(SampleChanger):
         """
         self._update_state()
 
+    def update_info(self):
+        self._do_update_info()
+        self._trigger_loaded_sample_changed_event(self.get_loaded_sample())
+        self._reset_dirty()
+
     def _read_state(self):
         return self.diffr.global_state.get_value()
 
@@ -548,9 +554,9 @@ class PlateManipulator(SampleChanger):
 
     def get_loaded_sample(self):
         sample = None
-        for s in self.get_sample_list():
-            if s.get_address() == self.hw_get_loaded_sample_location():
-                sample = s
+        for _s in self.get_sample_list():
+            if _s.get_address() == self.hw_get_loaded_sample_location():
+                sample = _s
         return sample
 
     def get_sample(self, plate_location):
