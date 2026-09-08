@@ -108,12 +108,8 @@ class BlissShutter(AbstractShutter):
     def _on_property_changed(self, data: dict) -> None:
         """Callback for property changes received via blissclient."""
         if "state" in data:
-            self._update_state()
-
-    def _update_state(self):
-        """Refresh state and value from the shutter object."""
-        self.update_value(self.get_value())
-        self.update_state(self.get_state())
+            self.update_state()
+            self.update_value()
 
     def _initialise_values(self):
         """Add the tango states to VALUES"""
