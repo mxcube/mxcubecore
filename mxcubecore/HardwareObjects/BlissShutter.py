@@ -98,8 +98,8 @@ class BlissShutter(AbstractShutter):
         self._bliss_obj.subscribe("property", self._on_property_changed)
         self._bliss_obj.subscribe("online", self._on_online_changed)
 
-        self.update_state(self.get_state())
-        self.update_value(self.get_value())
+        self.update_state()
+        self.update_value()
 
     def _on_online_changed(self, online: bool) -> None:
         """Callback for shutter online/offline events received via blissclient."""
