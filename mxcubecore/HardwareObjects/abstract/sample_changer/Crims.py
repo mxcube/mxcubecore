@@ -159,27 +159,51 @@ def get_processing_plan(
 def send_data_collection_info_to_crims(
     crims_url: str,
     crystaluuid: str,
-    datacollectiongroupid: str,
-    dcid: str,
-    proposal: str,
-    rest_token: str,
+    sample_name: str,
+    instrument_name: str,
+    facility_name: str,
+    investigation_id: str,
     crims_key: str,
 ) -> bool:
-    """Send Data collected to CRIMS
+    """Send data collection info to CRIMS.
+
     Return (bool): Whether the request failed (false) or proceed (true)
     """
-    url = (
-        f"{crims_url}{crystaluuid}/dcgroupid/{datacollectiongroupid}/dcid/"
-        f"{dcid}/mx/{proposal}/token/{rest_token}?janitor_key={crims_key}"
-    )
+    if not crims_url:
+        return False
+    headers = {
+        "Content-Type": "application/json",
+        "harvester-key": crims_key,
+    }
+    body = {
+        "sampleName": sample_name,
+        "crystalUuid": crystaluuid,
+        "instrumentName": instrument_name,
+        "facilityName": facility_name,
+        "investigationID": str(investigation_id),
+    }
     try:
-        response = requests.get(url, timeout=900)
+        response = requests.post(crims_url, json=body, headers=headers, timeout=30)
+        response.raise_for_status()
+        try:
+            record_uuid = response.json().get("uuid")
+
+        except Exception:
+            record_uuid = None
         logging.getLogger("user_level_log").info(
-            "Request to %s Proceed: %s", url, response.text
+            "Data collection sent to CRIMS: crystal=%s record=%s",
+            crystaluuid,
+            record_uuid,
+        )
+        logging.getLogger("HWR").debug(
+            "[Crims.send_data_collection_info_to_crims] url=%s response=%s",
+            crims_url,
+            response.text,
         )
         return True
-    except requests.RequestException as e:
-        logging.getLogger("user_level_log").warning("Request to %s failed: %s", url, e)
-
+    except requests.RequestException:
+        logging.getLogger("user_level_log").warning(
+            "Failed to send data collection to CRIMS"
+        )
         logging.getLogger("HWR").exception("")
         return False

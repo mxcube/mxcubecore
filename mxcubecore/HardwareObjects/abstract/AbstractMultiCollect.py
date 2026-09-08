@@ -471,7 +471,7 @@ class AbstractMultiCollect(object):
             data_collect_parameters["status"] = "failed"
 
             logging.getLogger("user_level_log").info("Storing data collection in LIMS")
-            (self.collection_id, detector_id) = HWR.beamline.lims.store_data_collection(
+            self.collection_id, detector_id = HWR.beamline.lims.store_data_collection(
                 data_collect_parameters, self.bl_config
             )
 
@@ -1342,3 +1342,14 @@ class AbstractMultiCollect(object):
         self.mesh_total_nb_frames = total_nb_frames
         self.mesh_range = mesh_range_param
         self.mesh_center = mesh_center_param
+
+    def display_image(self, image_filename: str, image_num: int = 1):
+        """
+        Site specific call to a diffraction viewer, defaults to adxv notify
+
+        Args:
+           image_filename: full path to image file
+           image_num: image number within image file to open (if it contains
+                      multiple images i.e HDF5)
+        """
+        self.adxv_notify(image_filename=image_filename, image_num=image_num)

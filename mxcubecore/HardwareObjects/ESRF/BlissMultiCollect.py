@@ -62,10 +62,9 @@ class BlissMultiCollect(ESRFMultiCollect):
         _name = self.get_property("scan_object")
 
         # this is the geometry of the diffractometer
-        try:
-            self.geometry = literal_eval(self.get_property("geometry"))
-        except ValueError:
-            self.geometry = [-1, 0, 0, 0, -1, 0]
+        self.geometry = self.get_property("geometry", [-1, 0, 0, 0, -1, 0])
+        if isinstance(self.geometry, str):
+            self.geometry = literal_eval(self.geometry)
         self._scan = getattr(_bliss, _name)
         self.metadata = FillMetaData()
 

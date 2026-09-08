@@ -131,7 +131,7 @@ RECENTRING_MODES = OrderedDict(
 # The list of keys, plus "", defines the GPhL lattices pulldown.
 lattice2point_group_tags = OrderedDict(
     aP=("1",),
-    Triclinic=("2",),
+    Triclinic=("1",),
     mP=("2",),
     mC=("2",),
     mI=("2",),
@@ -2855,14 +2855,16 @@ class GphlWorkflow(HardwareObject):
 
         Get resolution-dependent dose budget that gives intensity decay_limit%
         at the end of acquisition for reflections at resolution
-        assuming an increase in B factor of 1A^2/MGy
+        assuming an increase in B factor of 1A^2/MGy.
+        I/I0 = exp(-0.5 * 2 * 1.0A^2/MGy * dose / (resolution**2))
+        The factor of 2 comes because the intensity goes as the square of the amplitude
 
         """
         max_budget = maximum_dose_budget or self.config.settings.get(
             "maximum_dose_budget", 20
         )
         decay_limit = decay_limit or self.config.settings.get("decay_limit", 25)
-        result = 2 * resolution * resolution * math.log(100.0 / decay_limit)
+        result = resolution * resolution * math.log(100.0 / decay_limit)
         return min(result, max_budget) / relative_rad_sensitivity
 
     @staticmethod

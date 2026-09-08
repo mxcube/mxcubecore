@@ -380,11 +380,6 @@ convention = "google"
     "B006",
     "S301",
 ]
-"mxcubecore/HardwareObjects/EMBLFlexHarvester.py" = [
-    "B904",
-    "E501",
-    "E712",
-]
 "mxcubecore/HardwareObjects/ESRF/BlissHutchTrigger.py" = [
     "B904",
 ]
@@ -409,9 +404,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/ESRF/ESRFSmallXrayCentring.py" = [
     "S113",
 ]
-"mxcubecore/HardwareObjects/ESRF/ESRFXRFSpectrum.py" = [
-    "B028",
-]
 "mxcubecore/HardwareObjects/ESRF/ID29HutchTrigger.py" = [
     "B006",
 ]
@@ -434,52 +426,39 @@ convention = "google"
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_base_queue_entry.py" = [
     "B005",
     "E501",
-    "F541",
     "S602",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_custom_foil_collection.py" = [
     "E501",
-    "E722",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_big_foil_collection.py" = [
-    "F541",
     "F821",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_chip_collection.py" = [
-    "F541",
     "F821",
-    "F841",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_foil_collection.py" = [
     "E501",
     "E722",
-    "F541",
     "F821",
-    "F841",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_foil_wo_collection.py" = [
-    "B007",
     "E501",
-    "E722",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_injector_collection.py" = [
-    "F541",
     "F821",
-    "F841",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_laser_hare_collection.py" = [
-    "F541",
     "F821",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_laser_injector_collection.py" = [
-    "F541",
     "F821",
-    "F841",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_line_scan_collection.py" = [
-    "F541",
     "F821",
-    "F841",
+]
+"mxcubecore/HardwareObjects/ESRF/queue_entry/ssx_tape_collection.py" = [
+    "F821",
 ]
 "mxcubecore/HardwareObjects/ESRF/queue_entry/test_collection.py" = [
     "F821",
@@ -511,12 +490,6 @@ convention = "google"
     "B006",
     "B905",
     "F841",
-]
-"mxcubecore/HardwareObjects/Harvester.py" = [
-    "E501",
-]
-"mxcubecore/HardwareObjects/HarvesterMaintenance.py" = [
-    "E501",
 ]
 "mxcubecore/HardwareObjects/ICATLIMS.py" = [
     "E501",
@@ -614,9 +587,8 @@ convention = "google"
     "E501",
 ]
 "mxcubecore/HardwareObjects/MicrodiffKappaMotor.py" = [
-    "E501",
-    "E713",
     "E741",
+    "F401",
     "F841",
 ]
 "mxcubecore/HardwareObjects/MiniDiff.py" = [
@@ -1033,9 +1005,6 @@ convention = "google"
 "mxcubecore/HardwareObjects/mockup/OfflineProcessingMockup.py" = [
     "S602",
     "S605",
-]
-"mxcubecore/HardwareObjects/mockup/PlateManipulatorMockup.py" = [
-    "F841",
 ]
 "mxcubecore/HardwareObjects/mockup/ScanMockup.py" = [
     "S311",

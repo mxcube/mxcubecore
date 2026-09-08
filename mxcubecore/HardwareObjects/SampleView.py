@@ -43,6 +43,7 @@ __license__ = "LGPLv3+"
 
 
 def combine_images(img1, img2):
+    """Combune two images in one."""
     if img1.size != img2.size:
         raise ValueError("Images must be the same size")
 
@@ -77,6 +78,10 @@ class SampleView(AbstractSampleView):
         self.centring_status = {}
         self.rotation_reference = {}
         self.chi_angle = None
+        self.harvester_reference = {}
+        self.hide_grid_threshold = None
+        self._last_oav_image = None
+        self._camera = None
 
     def init(self):
         super().init()
@@ -110,8 +115,10 @@ class SampleView(AbstractSampleView):
                 self.centring_motors[role].motor.connect(
                     "stateChanged", self._update_shape_positions
                 )
+
+        diffr.zoom.connect("valueChanged", self._update_shape_positions)
+
         self._camera = self.get_object_by_role("camera")
-        self._last_oav_image = None
 
         self.hide_grid_threshold = self.get_property("hide_grid_threshold", 5)
         self.centring_status = {"valid": False}
@@ -121,11 +128,17 @@ class SampleView(AbstractSampleView):
         self.rotation_reference.update(
             {"motor": self.centring_motors.get(self.rotation_reference.get("name"))}
         )
+        harvester_reference = self.get_property("harvester_reference_position", {})
+        if isinstance(harvester_reference, str):
+            self.harvester_reference = literal_eval(harvester_reference)
 
     def _update_shape_positions(self, *args, **kwargs):
-        for shape in self.get_shapes():
+        _shapes = self._shapes.copy()
+
+        for _key, shape in _shapes.items():
             shape.update_position(self.motor_positions_to_screen)
 
+        self._shapes = _shapes
         self.emit("shapesChanged")
 
     def get_positions(self) -> dict[str, float]:
@@ -186,7 +199,7 @@ class SampleView(AbstractSampleView):
             phiz = motors_dict.get("phiz") + dy
 
         return {
-            "omega": motors_dict.get("omega"),
+            "omega": -motors_dict.get("omega"),
             "phiy": float(-phiy),
             "phiz": phiz,
             "sampx": float(-sampx),
@@ -212,10 +225,15 @@ class SampleView(AbstractSampleView):
         diffr.wait_status_ready(50)
         motors_dict = self.get_positions()
         for key, val in positions_dict.items():
+            if val is None:
+                continue
             new_pos_dict[key] = self.centring_motors[key].direction * (
                 val - motors_dict.get(key)
             )
-        omega_angle = math.radians(motors_dict.get("omega", 0))
+        omega_angle = (
+            math.radians(motors_dict.get("omega", 0))
+            * self.centring_motors["omega"].direction
+        )
         rot_matrix = np.matrix(
             [
                 [math.cos(omega_angle), -math.sin(omega_angle)],
@@ -250,7 +268,7 @@ class SampleView(AbstractSampleView):
            nb_click: Number of clicks.
         """
         if self.current_centring_procedure is not None:
-            logging.getLogger("HWR").exception("Already centring")
+            self.log.exception("Already centring")
 
         self.current_centring_method = "Manual"
         self.emit("centringStarted", ("Manual"))
@@ -304,6 +322,7 @@ class SampleView(AbstractSampleView):
             logging.exception("Could not complete automatic centring")
             logging.getLogger("user_level_log").info("Automatic loop centring failed")
             self.centring_failed()
+            self.reject_centring()
         else:
             if res is None:
                 logging.error("Could not complete automatic centring")
@@ -311,6 +330,7 @@ class SampleView(AbstractSampleView):
                     "Automatic loop centring failed"
                 )
                 self.centring_failed()
+                self.reject_centring()
             else:
                 self.centring_done()
                 self.accept_centring()
@@ -351,11 +371,8 @@ class SampleView(AbstractSampleView):
             try:
                 self.current_centring_procedure.kill(block=True)
             except Exception:
-                logging.getLogger("HWR").exception(
-                    "Problem aborting the centring method"
-                )
-
-            logging.getLogger("HWR").exception("Centring canceled")
+                self.log.exception("Problem aborting the centring method")
+            self.log.exception("Centring canceled")
         self.centring_failed()
 
     def centring_failed(self):
@@ -373,7 +390,7 @@ class SampleView(AbstractSampleView):
         self.current_centring_method = "Automatic"
         self.emit("centringStarted", ("Automatic"))
         diffr = HWR.beamline.diffractometer
-        self.wait_status_ready(60)
+        diffr.wait_status_ready(60)
         diffr.run_custom_script("sample_centering")
         diffr.wait_status_ready()
 
@@ -397,7 +414,7 @@ class SampleView(AbstractSampleView):
     def start_auto_centring(self):
         """Start automatic centring procedure"""
         if self.current_centring_procedure is not None:
-            logging.getLogger("HWR").exception("Already centring")
+            self.log.exception("Already centring")
 
         diffr = HWR.beamline.diffractometer
         diffr.wait_status_ready(60)
@@ -424,17 +441,82 @@ class SampleView(AbstractSampleView):
             self.emit("centringStarted", ("Automatic"))
             self.current_centring_procedure.link(self.auto_centring_done)
 
-    def move_to_beam(self, x: float, y: float):
+    def start_harvester_centring(self):
+        """Start harvester automatic centring procedure"""
+
+        if self.current_centring_procedure is not None:
+            self.log.exception("Already centring")
+
+        self.log.info("Harvester sample centring")
+        self.current_centring_method = "Automatic"
+        self.emit("centringStarted", ("Automatic"))
+        diffr = HWR.beamline.diffractometer
+        diffr.wait_status_ready(60)
+        # diffr.set_phase(diffr.get_phase_enum.CENTRE)
+
+        motors_dict = self.get_positions()
+        for key, val in self.harvester_reference.items():
+            motors_dict.update({key: val})
+        _offsets = HWR.beamline.harvester.get_offsets_for_sample_centering()
+        motors_dict["phiy"] += _offsets[0]
+        diffr.set_value_motors(motors_dict)
+
+        # next two motors are not part of the centring motors
+        # we move them separately
+        diffr.motors_hwobj_dict["sample_focus"].set_value_relative(
+            _offsets[1], timeout=60
+        )
+        diffr.motors_hwobj_dict["sample_vertical"].set_value_relative(_offsets[2])
+
+        diffr.wait_status_ready(10)
+
+        self.centring_done()
+        self.accept_centring()
+
+    def move_to_beam(self, x, y):
         """Move the sample to the x,y coordinates.
         Args:
-            x: Pixels on x axis
-            y: Pixels on y axis
+            x: X axis coordinates [pixel]
+            y: Y axis coordinates [pixel]
+        """
+        if HWR.beamline.diffractometer.get_chip_configuration():
+            self._move_to_beam_chip(x, y)
+        else:
+            self._move_to_beam(x, y)
+
+    def _move_to_beam_chip(self, x, y):
+        """Move the SSX chip to the x,y coordinates.
+        Args:
+            x: X axis coordinates [pixel]
+            y: Y axis coordinates [pixel]
+        """
+        beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
+        pixels_per_mm_x, pixels_per_mm_y = (
+            HWR.beamline.diffractometer.get_pixels_per_mm()
+        )
+        dx = (x - beam_pos_x) / pixels_per_mm_x
+        dy = (y - beam_pos_y) / pixels_per_mm_y
+
+        vertical_motor = HWR.beamline.diffractometer.phiy
+        horizontal_motor = HWR.beamline.diffractometer.ssx_translation
+
+        try:
+            vertical_motor.set_value_relative(dy)
+            horizontal_motor.set_value_relative(dx)
+        except Exception:
+            self.log.exception("Could not center to beam, aborting")
+
+    def _move_to_beam(self, x: float, y: float):
+        """Move the sample to the x,y coordinates.
+        Args:
+            x: X axis coordinates [pixel]
+            y: Y axis coordinates [pixel]
         """
         beam_pos_x, beam_pos_y = HWR.beamline.beam.get_beam_position_on_screen()
         diffr = HWR.beamline.diffractometer
         pixels_per_mm_x, pixels_per_mm_y = diffr.get_pixels_per_mm()
         if not all([pixels_per_mm_x, pixels_per_mm_y]):
-            logging.getLogger("HWR").exception("Cannot move to beam")
+            self.log.exception("Cannot move to beam")
 
         # here added the calculation for moving to the beam position
         dx = (x - beam_pos_x) / pixels_per_mm_x
@@ -588,6 +670,7 @@ class SampleView(AbstractSampleView):
         return img
 
     def get_last_image_path(self):
+        """Get the path of the last OAV image."""
         return self._last_oav_image
 
     def add_shape(self, shape):

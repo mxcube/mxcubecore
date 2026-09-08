@@ -90,6 +90,22 @@ class MicroDiffractometer(AbstractDiffractometer):
         """Immediately terminate action."""
         self._exporter.execute("abort")
 
+    def use_position_for_calibration(self, data: dict) -> bool:
+        """Use fiducial positions to callibrate the chip.
+        Args:
+            data: fiducial positions {p1: [x1, y1, z1], p2: [x2, y2, z2], ...}
+        """
+        for _d in data:
+            if len(data[_d]) > 0:
+                x, y, z = data[_d]
+                self.log.info(f"Setting fiducial {_d} to: ({x}, {y}, {z})")
+                res = self.add_ssx_chip_calibration_fiducial(x, y, z)
+
+        self.start_ssx_all_block_calibration()
+
+        res = 1
+        return res == 1
+
     @property
     def _get_hwstate(self) -> str:
         """Get the hardware state, reported by the MD2 application.
@@ -301,10 +317,14 @@ class MicroDiffractometer(AbstractDiffractometer):
         """
         if self.in_plate_mode:
             scan_speed = abs(end - start) / exptime
-            llim, hlim = map(
-                float,
-                self._exporter.execute("getOmegaMotorDynamicScanLimits", (scan_speed,)),
-            )
+            try:
+                ret = self.scan_limits(scan_speed)
+            except Exception as err:
+                msg = f"Cannor check the scan limits: {err}"
+                self.log.error(msg)
+                raise ValueError(msg) from err
+
+            llim, hlim = map(float, ret)
             if start < llim:
                 msg = f"Scan start below the allowed value {llim}"
                 raise ValueError(msg)
@@ -379,9 +399,9 @@ class MicroDiffractometer(AbstractDiffractometer):
 
         scan_params = f"{start:0.3f}\t{(end - start):0.3f}\t{exptime:0.3f}\t"
 
-        if self.head_otientation == "vertical":
+        if self.head_orientation == "vertical":
             _order = ["phiz", "phiy", "sampx", "sampy"]
-        if self.head_otientation == "horizontal":
+        if self.head_orientation == "horizontal":
             _order = ["phiy", "phiz", "sampx", "sampy"]
 
         for name in _order:
@@ -435,11 +455,11 @@ class MicroDiffractometer(AbstractDiffractometer):
         self.set_value_motors(grid_centre, simultaneous=True, timeout=timeout)
 
         scan_params = f"{(end - start):0.3f}\t"
-        if self.head_otientation == "vertical":
+        if self.head_orientation == "vertical":
             scan_params += f"{mesh_range['vertical_range']:0.3f}\t"
             scan_params += f"{-mesh_range['horizontal_range']:0.3f}\t"
             _order = ["phiz", "phiy", "sampx", "sampy"]
-        if self.head_otientation == "horizontal":
+        if self.head_orientation == "horizontal":
             scan_params += f"{-mesh_range['horizontal_range']:0.3f}\t"
             scan_params += f"{mesh_range['vertical_range']:0.3f}\t"
             _order = ["phiy", "phiz", "sampx", "sampy"]

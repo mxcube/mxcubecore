@@ -31,9 +31,9 @@ class SSXUserCollectionParameters(BaseUserCollectionParameters):
     vertical_spacing: float = Field(20, gt=0, lt=1000, unit="um")
 
     #    _chip_name_tuple = tuple(
-    #        HWR.beamline.diffractometer.get_head_configuration().available.keys()
+    #        HWR.beamline.diffractometer.get_chip_configuration().available.keys()
     #    )
-    #    _current_chip = HWR.beamline.diffractometer.get_head_configuration().current
+    #    _current_chip = HWR.beamline.diffractometer.get_chip_configuration().current
     #    chip_type: Literal[_chip_name_tuple] = Field(_current_chip)
 
     class Config:
@@ -73,7 +73,7 @@ class SsxCustomFoilCollectionTaskParameters(SsxBaseQueueTaskParameters):
 
     @staticmethod
     def calculate_number_of_images(horizontal_spacing, vertical_spacing, sub_sampling):
-        chip_data = HWR.beamline.diffractometer.get_head_configuration().available[
+        chip_data = HWR.beamline.diffractometer.get_chip_configuration().available[
             "CUSTOM_FOIL"
         ]
 
@@ -139,9 +139,8 @@ class SsxCustomFoilCollectionQueueEntry(SsxBaseQueueEntry):
 
         params = self._data_model._task_data.user_collection_parameters
         exp_time = params.exp_time
-        chip_data = HWR.beamline.diffractometer.get_head_configuration().available[
-            "CUSTOM_FOIL"
-        ]
+        diffr = HWR.beamline.diffractometer
+        chip_data = diffr.get_chip_configuration().available["CUSTOM_FOIL"]
 
         fname_prefix = self._data_model._task_data.path_parameters.prefix
         data_root_path = self.get_data_path()
@@ -156,9 +155,8 @@ class SsxCustomFoilCollectionQueueEntry(SsxBaseQueueEntry):
         ) = SsxCustomFoilCollectionTaskParameters.calculate_number_of_images(
             params.horizontal_spacing, params.vertical_spacing, params.sub_sampling
         )
-
-        HWR.beamline.diffractometer.wait_ready()
-        HWR.beamline.diffractometer.set_phase("DataCollection")
+        diffr.wait_status_ready()
+        diffr.set_phase(diffr.get_phase_enum.COLLECT)
 
         self.take_pedestal()
 
@@ -204,11 +202,9 @@ class SsxCustomFoilCollectionQueueEntry(SsxBaseQueueEntry):
 
             logging.getLogger("user_level_log").info(f"Defining region {region}")
 
-            HWR.beamline.diffractometer.prepare_ssx_grid_scan(
-                *region, nb_samples_per_line, nb_lines
-            )
+            diffr.prepare_ssx_grid_scan(*region, nb_samples_per_line, nb_lines)
 
-            HWR.beamline.diffractometer.wait_ready()
+            diffr.wait_status_ready()
 
             logging.getLogger("user_level_log").info(f"Acquiring region {region}")
             logging.getLogger("user_level_log").info(
@@ -222,7 +218,7 @@ class SsxCustomFoilCollectionQueueEntry(SsxBaseQueueEntry):
             )
 
             try:
-                HWR.beamline.diffractometer.start_ssx_scan(enforce_centring_phase)
+                diffr.start_ssx_scan(enforce_centring_phase)
             except Exception:
                 msg = "Diffractometer start failed! Stopping the detector"
                 logging.getLogger("user_level_log").exception(msg)
@@ -230,12 +226,12 @@ class SsxCustomFoilCollectionQueueEntry(SsxBaseQueueEntry):
                 return
 
             logging.getLogger("user_level_log").info("Waiting for scan to finish ...")
-            HWR.beamline.diffractometer.wait_ready()
+            diffr.wait_status_ready()
             logging.getLogger("user_level_log").info("Scan finished ...")
             logging.getLogger("user_level_log").info(f"Acquired {region}")
 
         try:
-            HWR.beamline.diffractometer.wait_ready()
+            diffr.wait_status_ready()
         finally:
             HWR.beamline.detector.wait_ready()
             acquired = HWR.beamline.detector.get_acquired_frames()
@@ -246,8 +242,8 @@ class SsxCustomFoilCollectionQueueEntry(SsxBaseQueueEntry):
                 f"Acquired total: {acquired} images"
             )
 
-            HWR.beamline.diffractometer.wait_ready()
-            HWR.beamline.diffractometer.set_phase("Transfer", wait=True, timeout=120)
+            diffr.wait_status_ready()
+            diffr.set_phase(diffr.get_phase_enum.TRANSFER)
             logging.getLogger("user_level_log").info("set to Transfer phase")
 
     def pre_execute(self):
@@ -258,8 +254,8 @@ class SsxCustomFoilCollectionQueueEntry(SsxBaseQueueEntry):
 
     def stop(self):
         logging.getLogger("user_level_log").info("Stopping diffractometer ...")
-        HWR.beamline.diffractometer.abort_cmd()
+        HWR.beamline.diffractometer.abort()
         gevent.sleep(5)
-        HWR.beamline.diffractometer.wait_ready()
+        HWR.beamline.diffractometer.wait_status_ready()
 
         super().stop()

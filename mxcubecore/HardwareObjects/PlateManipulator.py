@@ -204,6 +204,7 @@ class PlateManipulator(SampleChanger):
         self.plate_barcode = None
         self.harvester_key = None
         self.processing_plan = None
+        self.plate_locatiom = None
 
         self.diffr = None
 
@@ -412,7 +413,6 @@ class PlateManipulator(SampleChanger):
                         old_sample._set_loaded(False, True)
                     if new_sample is not None:
                         new_sample._set_loaded(True, True)
-
             return True
         except Exception:
             return False
@@ -542,7 +542,6 @@ class PlateManipulator(SampleChanger):
 
     def _update_loaded_sample(self):
         """Updates plate location"""
-
         if self.plate_location is not None:
             new_sample = self.get_loaded_sample()
             if new_sample is not None:

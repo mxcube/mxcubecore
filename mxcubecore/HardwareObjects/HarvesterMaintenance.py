@@ -24,7 +24,7 @@ Harvester Maintenance.
 
 import logging
 
-import gevent
+from gevent import sleep
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObject
@@ -40,6 +40,7 @@ class HarvesterMaintenance(HardwareObject):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.saved_motor_positions = {}
 
     def init(self):
         self._harvester = self.get_object_by_role("harvester")
@@ -150,7 +151,7 @@ class HarvesterMaintenance(HardwareObject):
         return cmd_list
 
     def send_command(self, cmd_name, args=None):
-        if cmd_name in ["park"]:
+        if "park" in cmd_name:
             self._do_park()
         if cmd_name == "trash":
             self._do_trash()
@@ -176,17 +177,19 @@ class HarvesterMaintenance(HardwareObject):
 
         self._harvester.load_calibrated_pin()
         self._harvester._wait_sample_transfer_ready(None)
-        print("waiting 40 seconds before mount")
-        # For some reason the Harvester return READY too soon
+
+        # For some reason the Harvester returns READY too soon
         # approximately 40 Second sooner
-        gevent.sleep(40)
+        print("waiting 40 seconds before mount")
+        sleep(40)
+
         sample_mount_device = HWR.beamline.sample_changer
         mount_current_sample = sample_mount_device.load_a_pin_for_calibration()
 
         if mount_current_sample:
             try:
-                md = HWR.beamline.diffractometer
-                md._wait_ready()
+                diffr = HWR.beamline.diffractometer
+                diffr.wait_status_ready()
 
                 sample_drift_x = float(self._harvester.get_last_sample_drift_offset_x())
                 sample_drift_y = float(self._harvester.get_last_sample_drift_offset_y())
@@ -194,25 +197,16 @@ class HarvesterMaintenance(HardwareObject):
                     -self._harvester.get_last_sample_drift_offset_z()
                 )
 
-                motor_pos_dict = {
-                    "kappa": float(
-                        md["HacentringReferencePosition"].get_property("kappa_ref")
-                    ),
-                    "kappa_phi": float(
-                        md["HacentringReferencePosition"].get_property("phi_ref")
-                    ),
-                    "phi": float(
-                        md["HacentringReferencePosition"].get_property("omega_ref")
-                    ),
-                    "phiy": md.phiyMotor.get_value() + sample_drift_x,
-                }
+                motor_pos_dict = HWR.beamline.sample_view.harvester_reference.copy()
+                motor_pos_dict["phiy"] = diffr.phiy.get_value() + sample_drift_x
 
-                md.move_motors(motor_pos_dict)
-                md._wait_ready()
-                md.centringFocus.set_value_relative(sample_drift_z, None)
-                md.centringVertical.set_value_relative(sample_drift_y, None)
+                diffr.set_value_motors(motor_pos_dict)
+                diffr.wait_status_ready()
+                diffr.sample_focus.set_value_relative(sample_drift_z, None)
+                diffr.sample_vertical.set_value_relative(sample_drift_y, None)
 
-                md.save_current_motor_position()
+                self.saved_motor_positions = diffr.get_value_motors()
+
                 self._harvester.set_calibration_state(True)
 
                 logging.getLogger("user_level_log").info(
@@ -240,40 +234,25 @@ class HarvesterMaintenance(HardwareObject):
         goes to end (True) or had and exception (False)
         """
         try:
-            md = HWR.beamline.diffractometer
+            diffr = HWR.beamline.diffractometer
 
-            motor_pos_dict = {
-                "focus": md.focusMotor.get_value(),
-                "phiy": md.phiyMotor.get_value(),
-                "phiz": md.phizMotor.get_value(),
-                "centring_focus": md.centringFocus.get_value(),
-                "centring_vertical": md.centringVertical.get_value(),
-            }
+            motor_pos_dict = diffr.get_value_motors()
+            new_motor_offset = {}
+            saved_position = self.saved_motor_positions
 
-            saved_position = md.saved_motor_position
             # find offset position based on old and new motor position
-            new_motor_offset = {
-                "focus": motor_pos_dict["focus"] - saved_position["focus"],
-                "phiy": motor_pos_dict["phiy"] - saved_position["phiy"],
-                "phiz": motor_pos_dict["phiz"] - saved_position["phiz"],
-                "centring_focus": (
-                    motor_pos_dict["centring_focus"] - saved_position["centring_focus"]
-                ),
-                "centring_vertical": (
-                    motor_pos_dict["centring_vertical"]
-                    - saved_position["centring_vertical"]
-                ),
-            }
+            for nam in ("focus", "phiy", "phiz", "sample_focus", "sample_vertical"):
+                new_motor_offset[nam] = motor_pos_dict[nam] - saved_position[nam]
 
             calibrated_motor_offset = {
-                "focus": new_motor_offset["focus"] + new_motor_offset["centring_focus"],
+                "focus": new_motor_offset["focus"] + new_motor_offset["sample_focus"],
                 "phiy": new_motor_offset["phiy"],
                 "phiz": (
-                    new_motor_offset["phiz"] + new_motor_offset["centring_vertical"]
+                    new_motor_offset["phiz"] + new_motor_offset["sample_vertical"]
                 ),
             }
 
-            # we store the motor offset in the Harvester, to be used for sample centring
+            # store the offset in the Harvester, to be used for sample centring
             self._harvester.store_calibrated_pin(
                 calibrated_motor_offset["focus"],
                 calibrated_motor_offset["phiy"],

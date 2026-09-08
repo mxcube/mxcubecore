@@ -2355,14 +2355,16 @@ class GphlWorkflow(TaskNode):
             else:
                 print("WARNING no GPHL_TEST_INPUT found. test using default values")
 
+        #  strategy_name may be passed in either as such (Qt branch, unattended mode)
+        # Or as the label (web mode). The latter may have the prefix "GPhL "
+        strategy_name = params.get("strategy_name") or params["label"]
+        strategy_name = strategy_name.replace("GPhL ", "")
         # Set attributes directly from params
         self.strategy_settings = HWR.beamline.gphl_workflow.workflow_strategies.get(
-            params["strategy_name"]
+            strategy_name
         )
         if not self.strategy_settings:
-            raise ValueError(
-                "No GPhL workflow strategy named %s found" % params["strategy_name"]
-            )
+            raise ValueError("No GPhL workflow strategy named %s found" % strategy_name)
 
         self.shape = params.get("shape", "")
         for tag in (

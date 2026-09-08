@@ -12,8 +12,10 @@ import logging
 
 import gevent
 
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore import queue_entry
 from mxcubecore.BaseHardwareObjects import HardwareObject
+from mxcubecore.model import queue_model_objects
 from mxcubecore.model.queue_model_enumerables import CENTRING_METHOD
 from mxcubecore.queue_entry import base_queue_entry
 from mxcubecore.queue_entry.base_queue_entry import QUEUE_ENTRY_STATUS
@@ -26,6 +28,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         HardwareObject.__init__(self, name)
         QueueEntryContainer.__init__(self)
         self.centring_method = CENTRING_METHOD.NONE
+        self.auto_add_diff_plan = False
         self._root_task = None
         self._paused_event = gevent.event.Event()
         self._paused_event.set()
@@ -42,6 +45,8 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         else:
             queue_entry.import_queue_entries()
 
+        self.auto_add_diff_plan = self.get_property("auto_add_diff_plan", False)
+
     def __getstate__(self):
         d = dict(self.__dict__)
         d["_root_task"] = None
@@ -56,22 +61,18 @@ class QueueManager(HardwareObject, QueueEntryContainer):
     def current_queue_entries(self):
         return self._current_queue_entries
 
-    def enqueue(self, queue_entry):
+    def enqueue(self, queue_entry: base_queue_entry.BaseQueueEntry) -> None:
         """
         Method inherited from QueueEntryContainer, enqueues the QueueEntry
         object <queue_entry>.
 
         :param queue_entry: QueueEntry to add
-        :type queue_entry: QueueEntry
-
-        :returns: None
-        :rtype: NoneType
         """
 
         queue_entry.set_queue_controller(self)
         super(QueueManager, self).enqueue(queue_entry)
 
-    def execute(self, entry=None):
+    def execute(self, entry: base_queue_entry.BaseQueueEntry | None = None):
         """
         Starts execution of the queue.
 
@@ -80,7 +81,6 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         and "stopped".
 
         :param entry: Optional, queue_entry to run
-        :type entry: QueueEntry
         :raises: RuntimeError, if the queue is already running when called
         """
         if self._running:
@@ -135,10 +135,9 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         #    msg += str(entry) + " (in_queue=%s) " % entry.in_queue
         # logging.getLogger('queue_exec').info(msg)
 
-    def is_executing(self, node_id=None):
+    def is_executing(self, node_id=None) -> bool:
         """
         :returns: True if the queue is executing otherwise False
-        :rtype: bool
         """
         status = self._running
 
@@ -258,12 +257,11 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             self.set_current_entry(None)
             self._current_queue_entries.pop(self._current_queue_entries.index(entry))
 
-    def stop(self):
+    def stop(self) -> None:
         """
         Stops the queue execution.
 
         :returns: None
-        :rtype: NoneType
         """
         if self._queue_entry_list:
             for qe in self._current_queue_entries:
@@ -290,16 +288,14 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         self.emit("statusMessage", ("status", "", "Queue stopped"))
         self.emit("queue_stopped", (None,))
 
-    def set_pause(self, state):
+    def set_pause(self, state: bool) -> None:
         """
         Sets the queue in paused state <state>. Emits the signal queue_paused
         with the current state as parameter.
 
         :param state: Paused if True running if False
-        :type state: bool
 
         :returns: None
-        :rtype: NoneType
         """
         self.emit("queue_paused", (state,))
         self.emit("statusMessage", ("status", "Queue paused", "action_req"))
@@ -309,91 +305,78 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         else:
             self._paused_event.set()
 
-    def is_paused(self):
+    def is_paused(self) -> bool:
         """
         Returns the pause state, see the method set_pause().
-
-        :returns: None
-        :rtype: NoneType
         """
         return not self._paused_event.is_set()
 
-    def pause(self, state):
+    def pause(self, state: bool) -> None:
         """
         Sets the queue in paused state <state> (and waits), paused if True
         running if False.
 
         :param state: Paused if True running if False
-        :type state: bool
 
         :returns: None
-        :rtype: NoneType
         """
         self.set_pause(state)
         self._paused_event.wait()
 
-    def wait_for_pause_event(self):
+    def wait_for_pause_event(self) -> None:
         """
         Wait for the queue to be set to running set_pause(False) or continue if
         it already was running.
 
         :returns: None
-        :rtype: NoneType
         """
         self._paused_event.wait()
 
-    def disable(self, state):
+    def disable(self, state: bool) -> None:
         """
         Sets the disable state to <state>, disables the possibility
         to call execute if True enables if False.
 
         :param state: The disabled state, True, False.
-        :type state: bool
 
         :returns: None
-        :rtype: NoneType
-
         """
         self._disable_collect = state
 
-    def is_disabled(self):
+    def is_disabled(self) -> bool:
         """
         :returns: True if the queue is disabled, (calling execute
                   will do nothing).
-        :rtype: bool
         """
         return self._disable_collect
 
-    def set_current_entry(self, entry):
+    def set_current_entry(self, entry: base_queue_entry.BaseQueueEntry | None) -> None:
         """
         Sets the currently executing QueueEntry to <entry>.
 
         :param entry: The entry.
-        :type entry: QeueuEntry
 
         :returns: None
-        :rtype: NoneType
         """
         self._current_queue_entry = entry
 
-    def get_current_entry(self):
+    def get_current_entry(self) -> base_queue_entry.BaseQueueEntry | None:
         """
         Gets the currently executing QueueEntry.
 
         :returns: The currently executing QueueEntry:
-        :rtype: QueueEntry
         """
         return self._current_queue_entry
 
-    def get_entry_with_model(self, model, root_queue_entry=None):
+    def get_entry_with_model(
+        self, model: queue_model_objects.TaskNode, root_queue_entry=None
+    ) -> base_queue_entry.BaseQueueEntry | None:
         """
         Find the entry with the data model model.
 
         :param model: The model to look for.
-        :type model: TaskNode
 
         :returns: The QueueEntry with the model <model>
-        :rtype: QueueEntry
         """
         if not root_queue_entry:
             root_queue_entry = self
@@ -407,16 +390,190 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                 if result:
                     return result
 
-    def execute_entry(self, entry, use_async=False):
+    def get_entry(self, node_id: int) -> tuple:
+        """
+        Retrieve the model and the queue entry for the model node with id
+        <node_id>.
+
+        :param node_id: Node id of node to retrieve
+        :returns: The tuple (model, entry)
+        """
+        if node_id is None:
+            dummy_variable = "Cannot retrieve entry without a node id"
+            raise ValueError(dummy_variable)
+
+        model = HWR.beamline.queue_model.get_node(int(node_id))
+        entry = self.get_entry_with_model(model)
+        return model, entry
+
+    def get_entry_status(self, node_id: int) -> tuple:
+        """
+        Get the current execution status for the queue entry associated
+        with the model node <node_id>.
+
+        :param node_id: Node id of the model node, or None.
+        :returns: (enabled, is_executed, is_running, status), where status
+                  is one of the QUEUE_ENTRY_STATUS values.
+        """
+        if node_id is None:
+            return True, False, False, None
+
+        model, entry = self.get_entry(node_id)
+
+        enabled = model.is_enabled()
+        curr_entry = self.get_current_entry()
+        running = self.is_executing() and (
+            curr_entry == entry or curr_entry == entry._parent_container
+        )
+
+        return enabled, model.is_executed(), running, entry.status
+
+    def enable_entry(
+        self, id_or_qentry: int | base_queue_entry.BaseQueueEntry | list, flag: bool
+    ):
+        """
+        Helper function that sets the enabled flag for one or more entries
+        and their models.
+
+        Accepts a single item, or a list of items, where each item is
+        either a model node id or a QueueEntry object.
+
+        :param id_or_qentry: Node id, QueueEntry object, or a list of
+                              either.
+        :param flag: True for enabled False for disabled
+        """
+        items = id_or_qentry if isinstance(id_or_qentry, list) else [id_or_qentry]
+
+        for item in items:
+            if isinstance(item, base_queue_entry.BaseQueueEntry):
+                entry, model = item, item.get_data_model()
+            else:
+                model, entry = self.get_entry(item)
+
+            entry.set_enabled(flag)
+            model.set_enabled(flag)
+
+    def _delete_entry(self, entry):
+        """Helper function that deletes an entry and its model from the queue."""
+        parent_entry = entry.get_container()
+        parent_entry.dequeue(entry)
+        model = entry.get_data_model()
+        HWR.beamline.queue_model.del_child(model.get_parent(), model)
+        logging.getLogger("HWR").info(
+            "[DELETE QUEUE] FROM:\n%s " % model.get_parent().get_name()
+        )
+
+    def delete_entry_at(self, item_pos_list: list):
+        """
+        Deletes the queue entries at the given (sample_id, task_index)
+        positions.
+
+        :param item_pos_list: List of [sample_id, task_index] pairs.
+                               task_index may be None/"undefined" to
+                               refer to the sample entry itself.
+        """
+        for sid, tindex in item_pos_list:
+            if tindex in ("undefined", None):
+                model = HWR.beamline.queue_model.get_sample_by_loc_str(sid)
+            else:
+                model = HWR.beamline.queue_model.get_node_at_task_index(
+                    sid, int(tindex)
+                )
+
+            entry = self.get_entry_with_model(model)
+
+            if tindex not in ("undefined", None) and not isinstance(
+                entry, queue_entry.TaskGroupQueueEntry
+            ):
+                # Get the TaskGroup of the item, there is currently only one
+                # task per TaskGroup so we have to remove the entire
+                # TaskGroup with its task.
+                entry = entry.get_container()
+
+            self._delete_entry(entry)
+
+    def swap_task_entry(self, sid: str, ti1: int, ti2: int):
+        """
+        Swap order of two queue entries in the queue, with the same sample
+        <sid> as parent.
+
+        :param sid: Sample id
+        :param ti1: Position of task1 (old position)
+        :param ti2: Position of task2 (new position)
+        """
+        sample_model = HWR.beamline.queue_model.get_sample_by_loc_str(sid)
+        sentry = self.get_entry_with_model(sample_model)
+
+        # Swap the order in the queue model
+        ti2_temp_model = sample_model.get_children()[ti2]
+        sample_model._children[ti2] = sample_model._children[ti1]
+        sample_model._children[ti1] = ti2_temp_model
+
+        # Swap queue entry order
+        ti2_temp_entry = sentry._queue_entry_list[ti2]
+        sentry._queue_entry_list[ti2] = sentry._queue_entry_list[ti1]
+        sentry._queue_entry_list[ti1] = ti2_temp_entry
+
+    def enable_sample_entries(self, sample_id_list: list, flag: bool):
+        """
+        Sets the enabled flag for the entries of the samples in
+        <sample_id_list>.
+
+        :param sample_id_list: List of sample location strings.
+        :param flag: True for enabled, False for disabled.
+        """
+        node_ids = [
+            HWR.beamline.queue_model.get_sample_by_loc_str(sample_id)._node_id
+            for sample_id in sample_id_list
+        ]
+        self.enable_entry(node_ids, flag)
+
+    def set_auto_add_diff_plan(self, autoadd: bool):
+        """
+        Sets the auto add diffraction plan flag, and propagates it to the
+        queue entries of all Characterisation nodes currently in the queue.
+
+        :param autoadd: True autoadd, False wait for user
+        """
+        self.auto_add_diff_plan = autoadd
+
+        for node in HWR.beamline.queue_model.get_nodes():
+            if isinstance(node, queue_model_objects.Characterisation):
+                entry = self.get_entry_with_model(node)
+
+                if entry is not None:
+                    entry.auto_add_diff_plan = autoadd
+
+    def last_queue_node(self) -> dict:
+        """
+        Gets the node index information for the node currently being
+        executed.
+
+        :returns: dict as returned by QueueModel.node_index, plus "node".
+        """
+        node = self._current_queue_entries[-1].get_data_model()
+
+        # Reference collections (created for a Characterisation) are
+        # orphans in the flattened task list - the node of interest there is
+        # the Characterisation itself, not the reference collection.
+
+        if "ref" in node.get_name():
+            parent = node.get_parent()
+            node = parent._children[0]
+
+        res = HWR.beamline.queue_model.node_index(node)
+        res["node"] = node
+
+        return res
+
+    def execute_entry(self, entry: base_queue_entry.BaseQueueEntry, use_async=False):
         """
         Executes the queue entry once the queue has been started <entry>.
 
         :param entry: The entry to execute.
-        :type entry: QueueEntry
 
         :raises: RuntimeError if the queue is not already running when called
         :returns: None
-        :rtype: NoneType
         """
         if not self._running:
             raise RuntimeError(
@@ -428,12 +585,11 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         else:
             self.__execute_entry(entry)
 
-    def clear(self):
+    def clear(self) -> None:
         """
         Clears the queue (removes all entries).
 
         :returns: None
-        :rtype: NoneType
         """
         self._queue_entry_list = []
 

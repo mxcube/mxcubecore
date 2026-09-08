@@ -32,6 +32,10 @@ class Component(object):
         """
         return self._id
 
+    def set_id(self, id):
+        """Sets the ID of the component"""
+        self._id = id
+
     def get_address(self):
         """
         Returns a unique identifier of the slot of the element ()

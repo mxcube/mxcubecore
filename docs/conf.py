@@ -109,6 +109,12 @@ myst_enable_extensions = (
     "fieldlist",
 )
 
+# Allow GitHub-style fenced blocks like ```mermaid to be parsed as
+# ``{mermaid}`` directives so diagrams render in Sphinx/RTD.
+myst_fence_as_directive = [
+    "mermaid",
+]
+
 
 # -- Options for sphinxcontrib.mermaid
 # https://pypi.org/project/sphinxcontrib-mermaid/

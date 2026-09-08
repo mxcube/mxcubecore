@@ -1,22 +1,16 @@
-import contextlib
 import datetime
 import json
 import logging
 import os
 import subprocess
 import xmlrpc.client
+from pathlib import Path
 
 import gevent
 from devtools import debug
 from ewoksjob.client import submit
-from pydantic import (
-    BaseModel,
-    Field,
-)
-from typing_extensions import (
-    Literal,
-    Union,
-)
+from pydantic import BaseModel, Field
+from typing_extensions import Literal, Union
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.model.common import (
@@ -27,7 +21,7 @@ from mxcubecore.model.common import (
     PathParameters,
     StandardCollectionParameters,
 )
-from mxcubecore.queue_entry.base_queue_entry import BaseQueueEntry
+from mxcubecore.queue_entry.base_queue_entry import BaseMXModel, BaseQueueEntry
 
 DEFAULT_MAX_FREQ = 925
 
@@ -38,7 +32,7 @@ class SSXPathParameters(PathParameters):
     )
 
 
-class BaseUserCollectionParameters(BaseModel):
+class BaseUserCollectionParameters(BaseMXModel):
     exp_time: float = Field(75e-6, gt=0, lt=1, unit="s")
     sub_sampling: Literal[1, 2, 4, 6, 8] = Field(1)
     take_pedestal: bool = Field(True)
@@ -115,6 +109,7 @@ class SsxBaseQueueEntry(BaseQueueEntry):
 
         self.__pedestal_task = None
         self.__stop_req = False
+        self.__submitted_ewoks_workflows = set()
 
     def get_data_path(self):
         return self._current_data_path
@@ -128,23 +123,23 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             try:
                 self._take_pedestal_func()
             except Exception as e:
-                logging.getLogger("user_level_log").exception(
-                    f"Error taking pedestal: {e}"
-                )
+                logging.getLogger("user_level_log").error(f"Error taking pedestal: {e}")
                 raise
 
         try:
             HWR.beamline.control.LDetX.wait_move()
         except Exception:
+            print("--------------------> Timeout error from bliss?")
             if HWR.beamline.control.LDetX.position > 0:
+                print(f"{HWR.beamline.control.LDetX.state} - moving to 0 again")
                 HWR.beamline.control.LDetX.move(0)
 
     def _take_pedestal_func(self):
-        exp_time = self._data_model._task_data.user_collection_parameters.exp_time
-        freq = self._data_model._task_data.user_collection_parameters.frequency
-        sub_sampling = (
-            self._data_model._task_data.user_collection_parameters.sub_sampling
-        )
+        params = self._data_model._task_data.user_collection_parameters
+
+        exp_time = params.exp_time
+        freq = params.frequency
+        sub_sampling = params.sub_sampling
 
         effect_freq = freq / sub_sampling
         logging.getLogger("user_level_log").info(
@@ -153,7 +148,15 @@ class SsxBaseQueueEntry(BaseQueueEntry):
 
         data_root_path = self.get_data_path()
 
-        packet_fifo_depth = 20000
+        ctrl_dev = HWR.beamline.detector.lima2_device.ctrl
+        lima2_host = ctrl_dev.info().server_host
+
+        if "id29p9jfrau" in lima2_host:
+            packet_fifo_depth = 20000
+        elif "id29jfraulima" in lima2_host:
+            packet_fifo_depth = 7500
+        else:
+            packet_fifo_depth = 2500
 
         save_raw = False
 
@@ -173,10 +176,14 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             disable_saving_list.append("raw")
         disable_saving = ",".join(disable_saving_list)
 
-        saving_compression = {
-            "raw": "zip",
-            "average": "zip",
-        }
+        cpu_type = "power9" if "id29p9jfrau" in lima2_host else "intel"
+        save_comp_with_hw_nx = cpu_type == "power9"
+        save_comp = "zip" if save_comp_with_hw_nx else "bshuf_lz4"
+
+        saving_compression = dict(
+            raw=save_comp,
+            average=save_comp,
+        )
 
         logging.getLogger("user_level_log").info(f"Storing pedestal in {pedestal_dir}")
         nb_retries = 2
@@ -233,14 +240,14 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             while not self.__pedestal_task.ready():
                 if self.__stop_req:
                     logging.getLogger("user_level_log").info(
-                        f"Stop requested. Killing pedestal task"
+                        "Stop requested. Killing pedestal task"
                     )
                     self.__pedestal_task.kill()
                     return
                 gevent.sleep(0.1)
             self.__pedestal_task.get()
         except Exception as e:
-            logging.getLogger("HWR").exception(f"Error taking pedestal: {e}")
+            logging.getLogger("user_level_log").error(f"Error taking pedestal: {e}")
         finally:
             self.__pedestal_task = None
 
@@ -254,7 +261,7 @@ class SsxBaseQueueEntry(BaseQueueEntry):
         data_root_path = self.get_data_path()
 
         if self._use_nicoproc:
-            logging.getLogger("user_level_log").info(f"Starting NICOPROC")
+            logging.getLogger("user_level_log").info("Starting NICOPROC")
             self._start_nico_processing(
                 self._beamline_values,
                 self._data_model._task_data,
@@ -262,15 +269,15 @@ class SsxBaseQueueEntry(BaseQueueEntry):
                 experiment_type=exp_type,
             )
         else:
-            logging.getLogger("user_level_log").info(f"Not using NICOPROC")
+            logging.getLogger("user_level_log").info("Not using NICOPROC")
 
         if self._use_besproc:
-            logging.getLogger("user_level_log").info(f"Using BES PROC")
+            logging.getLogger("user_level_log").info("Using BES PROC")
             HWR.beamline.workflow.start(
                 ["modelpath", "SSX", "data_path", data_root_path]
             )
         else:
-            logging.getLogger("user_level_log").info(f"BES PROC False")
+            logging.getLogger("user_level_log").info("BES PROC False")
 
     def prepare_acquisition(self):
         exp_time = self._data_model._task_data.user_collection_parameters.exp_time
@@ -282,7 +289,7 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             self._data_model._task_data.user_collection_parameters.reject_empty_frames
         )
 
-        logging.getLogger("user_level_log").info(f"Preparing detector")
+        logging.getLogger("user_level_log").info("Preparing detector")
         HWR.beamline.detector.wait_ready()
         HWR.beamline.detector.stop_acquisition()
         HWR.beamline.detector.prepare_acquisition(
@@ -293,7 +300,7 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             dense_skip_nohits=reject_empty_frames,
         )
         HWR.beamline.detector.wait_ready()
-        logging.getLogger("user_level_log").info(f"Detector prepared, continuing !")
+        logging.getLogger("user_level_log").info("Detector prepared, continuing !")
 
     def _monitor_collect(self):
         for i in range(1, 99):
@@ -308,15 +315,16 @@ class SsxBaseQueueEntry(BaseQueueEntry):
 
     def pre_execute(self):
         super().pre_execute()
+        self.__submitted_ewoks_workflows = set()
+
         self._current_data_path = self.get_data_model().get_path_template().directory
         self._current_process_path = (
             self.get_data_model().get_path_template().process_directory
         )
 
-        with contextlib.suppress(AttributeError):
-            HWR.beamline.beam.wait_for_beam()
+        HWR.beamline.beam.wait_for_beam()
 
-        logging.getLogger("user_level_log").info(f"Moving detector table")
+        logging.getLogger("user_level_log").info("Moving detector table")
         HWR.beamline.control.LDetX.wait_move()
         HWR.beamline.control.LDetX.move(0, wait=False)
         self._beamline_values = self.get_current_beamline_values()
@@ -336,6 +344,9 @@ class SsxBaseQueueEntry(BaseQueueEntry):
         parameters["beamline_parameters"] = self._beamline_values
         parameters["extra_lims_values"] = self._data_model._task_data.lims_parameters
         parameters["sample"] = self._data_model.get_parent().get_parent().crystals[0]
+        parameters["experiment_type"] = (
+            self._data_model._task_data.lims_parameters.experiment_type
+        )
 
         HWR.beamline.lims.finalize_data_collection(parameters)
 
@@ -347,11 +358,11 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             move_back = True
 
         if move_back:
-            logging.getLogger("user_level_log").info(f"Moving detector back")
+            logging.getLogger("user_level_log").info("Moving detector back")
             HWR.beamline.control.LDetX.move(1000, wait=False)
 
         if HWR.beamline.control.safshut_oh2.state.name == "OPEN":
-            logging.getLogger("user_level_log").info(f"Closing OH2 safety shutter")
+            logging.getLogger("user_level_log").info("Closing OH2 safety shutter")
             HWR.beamline.control.safshut_oh2.close()
 
     def start_ewoks(self, parameters):
@@ -381,43 +392,91 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             upload_parameters=upload_parameters_acc,
         )
 
+        inputs_npeaks = [{"name": "data_path", "value": raw_path, "all": True}]
+        upload_parameters_npeaks = {
+            "beamline": HWR.beamline.session.beamline_name.lower(),
+            "proposal": (
+                f"{HWR.beamline.session.proposal_code}{HWR.beamline.session.proposal_number}"
+            ),
+            "dataset": "npeaks_mapping",
+            "path": os.path.join(parameters["data_process_path"], "npeaks_mapping"),
+            "raw": [raw_path],
+            "metadata": {
+                "Sample_name": (
+                    parameters["collection_parameters"].path_parameters.prefix
+                )
+            },
+        }
+
+        self._start_ewoks_workflow(
+            workflow="npeaks_mapping",
+            queue="slurm",
+            inputs=inputs_npeaks,
+            flag_icat=True,
+            upload_parameters=upload_parameters_npeaks,
+            engine="ppf",
+        )
+
         config_ssx = HWR.get_hardware_repository().find_in_repository(
             "ssx_mxcube_config.json"
         )
+        inputs_ssx = dict()
 
-        logging.getLogger("user_level_log").info("Config Json Ewoks:")
-        logging.getLogger("user_level_log").info(config_ssx)
-        logging.getLogger("user_level_log").info("$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#")
+        logging.getLogger("user_level_log").info("Calling Ewoks ssx_proc")
 
         with open(config_ssx, "r") as f:
             dict_ssx = json.load(f)
             inputs_ssx = dict_ssx["default_inputs"]
 
-        inputs_ssx.append({"name": "image_directory", "value": raw_path})
+        inputs_ssx.append({"name": "image_directory", "value": raw_path, "all": True})
         metadata_path = os.path.join(raw_path, "metadata.json")
-        if os.path.exists(metadata_path):
-            with open(metadata_path) as f:
-                meta = json.loads(f.read())
-        protein_name = meta["SampleProtein_acronym"]
-        cell_file = protein_name + ".cell"
-        session = HWR.beamline.session.get_base_image_directory().strip("RAW_DATA")
-        logging.getLogger("user_level_log").info(session)
-        scripts_folder = os.path.join(session, "SCRIPTS")
-        cell_file = os.path.join(scripts_folder, cell_file)
+        meta = dict()
         try:
-            inputs_ssx.append({"name": "unit_cell_file", "value": cell_file})
-        except Exception:
-            logging.getLogger("user_level_log").exception(
-                "unit_cell_file: %s" % cell_file
-            )
+            with open(metadata_path, "r") as f:
+                meta = json.loads(f.read())
+
+            protein_name = meta["SampleProtein_acronym"].lower()
+
+            session = HWR.beamline.session.get_base_image_directory().strip("RAW_DATA")
+            logging.getLogger("user_level_log").info(session)
+            scripts_folder = Path(os.path.join(session, "SCRIPTS"))
+
+            cell_list = list(scripts_folder.glob("*.cell"))
+            pdb_list = list(scripts_folder.glob("*.pdb"))
+
+            search_cell = scripts_folder / (protein_name + ".cell")
+            search_pdb = scripts_folder / (protein_name + ".pdb")
+            if search_cell in cell_list:
+                inputs_ssx.append({"name": "unit_cell_file", "value": str(search_cell)})
+            elif search_pdb in pdb_list:
+                inputs_ssx.append({"name": "unit_cell_file", "value": str(search_pdb)})
+            else:
+                logging.getLogger("user_level_log").info(
+                    "cell/pdb file match not found in %s folder" % str(scripts_folder)
+                )
+                logging.getLogger("user_level_log").info(
+                    "Launching ssx_proc without unit cell"
+                )
+        except Exception as err:
+            logging.getLogger("user_level_log").error(err)
 
         self._start_ewoks_workflow(
             workflow="ssx_workflow", queue="ssx", inputs=inputs_ssx, flag_icat=False
         )
 
     def _start_ewoks_workflow(
-        self, workflow, queue, inputs, flag_icat, upload_parameters=None
+        self, workflow, queue, inputs, flag_icat, upload_parameters=None, engine=None
     ):
+        inputs_key = json.dumps(inputs, sort_keys=True, default=str)
+        submit_key = (workflow, inputs_key)
+
+        if submit_key in self.__submitted_ewoks_workflows:
+            msg = f"Skipping duplicate Ewoks submission for {workflow} with identical inputs"
+            logging.getLogger("user_level_log").warning(msg)
+            return
+
+        self.__submitted_ewoks_workflows.add(submit_key)
+
         kwargs = {
             "load_options": {"root_module": "ewoksid29.workflows"},
             "inputs": inputs,
@@ -426,7 +485,11 @@ class SsxBaseQueueEntry(BaseQueueEntry):
         if flag_icat:
             kwargs["upload_parameters"] = upload_parameters
 
-        logging.getLogger("user_level_log").info("Calling ewoks with:")
+        if engine:
+            kwargs["engine"] = engine
+            kwargs["pool_type"] = "thread"
+
+        logging.getLogger("user_level_log").info(f"Calling ewoks f{workflow} with:")
         logging.getLogger("user_level_log").info(f"kwargs f{kwargs}")
 
         submit(args=(workflow,), kwargs=kwargs, queue=queue)
@@ -435,7 +498,7 @@ class SsxBaseQueueEntry(BaseQueueEntry):
         HWR.beamline.collect.emit_progress(progress)
 
     def stop(self):
-        logging.getLogger("user_level_log").info(f"Stop requested")
+        logging.getLogger("user_level_log").info("Stop requested")
         self.__stop_req = True
 
         super().stop()
@@ -448,7 +511,6 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             logging.getLogger("user_level_log").info("shutter closed")
 
         HWR.beamline.detector.stop_acquisition()
-        self.post_execute()  # launch processing and cleanup even if the scan is aborted
 
     def _start_processing(self, dc_parameters, file_paramters):
         param = {
@@ -510,10 +572,10 @@ class SsxBaseQueueEntry(BaseQueueEntry):
                 "wavelength": HWR.beamline.energy.get_wavelength(),
                 "resolution": HWR.beamline.resolution.get_value(),
                 "transmission": HWR.beamline.transmission.get_value(),
-                "detector_distance": 103.0,
+                "detector_distance": HWR.beamline.detector.distance.get_value(),
                 "beam_x": HWR.beamline.detector.get_beam_position()[0],
                 "beam_y": HWR.beamline.detector.get_beam_position()[1],
-                "beam_size_x": 4,
+                "beam_size_x": 2,
                 "beam_size_y": 2,
                 "beam_shape": "gaussian",
                 "energy_bandwidth": 1,

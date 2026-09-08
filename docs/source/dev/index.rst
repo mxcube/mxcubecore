@@ -16,7 +16,9 @@ Developer documentation
     docs
     configuration_files
     commands_channels
+    harvester
     queue
+    architecture
     abstract_classes
     api
     json-schema-generated-user-interface
