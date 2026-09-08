@@ -90,6 +90,22 @@ class MicroDiffractometer(AbstractDiffractometer):
         """Immediately terminate action."""
         self._exporter.execute("abort")
 
+    def use_position_for_calibration(self, data: dict) -> bool:
+        """Use fiducial positions to callibrate the chip.
+        Args:
+            data: fiducial positions {p1: [x1, y1, z1], p2: [x2, y2, z2], ...}
+        """
+        for _d in data:
+            if len(data[_d]) > 0:
+                x, y, z = data[_d]
+                self.log.info(f"Setting fiducial {_d} to: ({x}, {y}, {z})")
+                res = self.add_ssx_chip_calibration_fiducial(x, y, z)
+
+        self.start_ssx_all_block_calibration()
+
+        res = 1
+        return res == 1
+
     @property
     def _get_hwstate(self) -> str:
         """Get the hardware state, reported by the MD2 application.

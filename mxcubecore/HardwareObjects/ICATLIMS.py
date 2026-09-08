@@ -7,8 +7,9 @@ from pathlib import Path
 from typing import Any, List, Optional
 from zoneinfo import ZoneInfo
 
-import requests
 from pydantic import ValidationError
+from pyicat_plus import errors as icat_errors
+from pyicat_plus.client import models as icat_models
 from pyicat_plus.client.main import IcatClient
 
 from mxcubecore import HardwareRepository as HWR
@@ -18,38 +19,63 @@ from mxcubecore.model.lims_session import (
     Download,
     Lims,
     LimsSessionManager,
-    SampleInformation,
-    SampleSheet,
     Session,
 )
+from mxcubecore.model.tracking_model_objects import LoadedPuck
 
 logger = logging.getLogger("HWR")
 
+# Attribute names read off the beamline_config object in
+# add_beamline_configuration_metadata(). Not ICAT schema keys.
+PROTEIN_ACRONYM_KEY = "proteinAcronym"
+DETECTOR_PX_KEY = "detector_px"
+DETECTOR_PY_KEY = "detector_py"
+BEAM_DIVERGENCE_VERTICAL_KEY = "beam_divergence_vertical"
+BEAM_DIVERGENCE_HORIZONTAL_KEY = "beam_divergence_horizontal"
+POLARISATION_KEY = "polarisation"
+DETECTOR_MODEL_KEY = "detector_model"
+DETECTOR_MANUFACTURER_KEY = "detector_manufacturer"
+SYNCHROTRON_NAME_KEY = "synchrotron_name"
+MONOCHROMATOR_TYPE_KEY = "monochromator_type"
+DETECTOR_TYPE_KEY = "detector_type"
+
+# No icat_esrf_definitions field exists for these yet.
+ACTUAL_INSTRUMENT_KEY = "actualInstrument"
+
+
+def _optional_str(value: Any) -> Optional[str]:
+    """Coerce a value for an ICAT model field typed as plain ``str``.
+
+    Unlike its quantity-typed fields, icat_esrf_definitions' plain ``str``
+    fields don't coerce numbers, so numeric values (e.g. a detector position
+    or a database id) must be stringified explicitly before assignment.
+    """
+    return None if value is None else str(value)
+
 
 class ICATLIMS(AbstractLims):
-    """
-    ICAT+ client.
-    """
-
     def __init__(self, name):
         super().__init__(name)
         HardwareObject.__init__(self, name)
         self.investigations = None
         self.icatClient = None
-        self.lims_rest = None
-        self.ingesters = None
+        self.activemq_url = None
 
     def init(self):
         self.url = self.get_property("ws_root")
-        self.ingesters = self.get_property("queue_urls")
+        self.activemq_url = self.get_property("queue_urls")
+        self.authentication_icat_plugin = self.get_property(
+            "authentication_icat_plugin"
+        )
         self.investigations = []
         self.samples = []
+        self._downloads_cache = {}
 
         # Initialize ICAT client
         self.icatClient = IcatClient(
             icatplus_restricted_url=self.url,
-            metadata_urls=["bcu-mq-01:61613"],
-            reschedule_investigation_urls=["bcu-mq-01:61613"],
+            metadata_urls=[self.activemq_url],
+            reschedule_investigation_urls=[self.activemq_url],
         )
 
     def get_lims_name(self) -> List[Lims]:
@@ -60,8 +86,23 @@ class ICATLIMS(AbstractLims):
             ),
         ]
 
-    def _create_icat_session(self, user_name: str, password: str):
-        self.icat_session: dict = self.icatClient.do_log_in(password)
+    def _create_icat_session(
+        self, user_name: str, password: str
+    ) -> icat_models.AuthSession:
+        try:
+            logger.debug(f"Authenticating {user_name}")
+            icat_session = self.icatClient.do_log_in(
+                password=password,
+                username=user_name,
+                plugin=self.authentication_icat_plugin,
+            )
+        except icat_errors.ForbiddenException as e:
+            logger.error(f" Error occurred while authenticating. Access forbidden {e}")
+            raise
+        except icat_errors.ApiException as e:
+            logger.error(f"Error occurred while authenticating {user_name}: {e}")
+            raise
+        return icat_session
 
     def login(
         self,
@@ -69,20 +110,19 @@ class ICATLIMS(AbstractLims):
         password: str,
         session_manager: Optional[LimsSessionManager],
     ) -> LimsSessionManager:
-        msg = f"authenticate {user_name}"
-        logger.debug(msg)
+        self.icat_session: icat_models.AuthSession = self._create_icat_session(
+            user_name=user_name, password=password
+        )
 
-        self._create_icat_session(user_name=user_name, password=password)
-
-        if self.icatClient is None or self.icatClient is None:
+        if self.icatClient is None:
             msg = "Error initializing icatClient: "
             msg += f"icatClient={self.url}"
             logger.error(msg)
             raise RuntimeError("Could not initialize icatClient")
 
         # Connected to metadata icatClient
-        msg = "Connected succesfully to icatClient: "
-        msg += f"fullName={self.icat_session['fullName']}, url={self.url}"
+        msg = "Connected succesfully to ICAT: "
+        msg += f"fullName={self.icat_session.full_name}, url={self.url}"
         logger.debug(msg)
 
         # Retrieving user's investigations
@@ -114,7 +154,7 @@ class ICATLIMS(AbstractLims):
                 msg += f"not avaialble for user {user_name}"
                 raise RuntimeError(msg)
 
-        return self.session_manager, self.icat_session["name"], sessions
+        return self.session_manager, self.icat_session.name, sessions
 
     def is_user_login_type(self) -> bool:
         return True
@@ -126,28 +166,34 @@ class ICATLIMS(AbstractLims):
 
         return self.lims_rest.to_sessions(self.lims_rest.investigations)
 
-    def _get_loaded_pucks(self, parcels) -> list:
-        """Retrieve all pucks from the parcels that have a defined
-            'sampleChangerLocation'.
-            A puck is considered "loaded" if it contains the key
-            'sampleChangerLocation'.
-            Iterates through all parcels and collects such pucks.
-        Returns:
-            A list of pucks (dicts) that have 'sampleChangerLocation' defined.
-        """
-        loaded_pucks = []
+    def _get_loaded_pucks(self, investigation_id: str) -> List[LoadedPuck]:
+        """Return pucks with a defined sample changer location."""
+        self.parcels = []
+        try:
+            self.parcels = self.icatClient.get_parcels_by(
+                investigation_id=investigation_id
+            )
+            logger.debug(
+                "Successfully retrieved %d parcels for investigation %s",
+                len(self.parcels),
+                investigation_id,
+            )
+        except Exception:
+            logger.exception(
+                "Failed to retrieve parcels for investigation %s", investigation_id
+            )
 
-        if parcels:
-            for parcel in parcels:
-                pucks = parcel.get("content", [])
-                for puck in pucks:
-                    if "sampleChangerLocation" in puck:
-                        # Add information about the parcel
-                        puck["parcelName"] = parcel.get("name")
-                        puck["parcelId"] = parcel.get("id")
-                        loaded_pucks.append(puck)
-
-        return loaded_pucks
+        return [
+            LoadedPuck(
+                **puck.model_dump(),
+                puck_name=puck.name,
+                parcel_name=parcel.name,
+                parcel_id=parcel.id,
+            )
+            for parcel in self.parcels
+            for puck in parcel.content
+            if puck.sample_changer_location is not None
+        ]
 
     def get_samples(self, lims_name: str) -> list:
         """Retrieve and process sample information from LIMS based on the
@@ -155,9 +201,9 @@ class ICATLIMS(AbstractLims):
             - Retrieves parcel data (containers like UniPucks or SpinePucks).
             - Retrieves sample sheet data.
             - Identifies and processes only loaded pucks
-              (those with a 'sampleChangerLocation').
+            (those with a 'sampleChangerLocation').
             - Converts each sample in the pucks into internal queue samples
-              using `__to_sample`.
+            using `__to_sample`.
         Args:
             The LIMS name or identifier used to fetch sample-related data.
 
@@ -169,59 +215,69 @@ class ICATLIMS(AbstractLims):
 
         try:
             session = self.session_manager.active_session
+            investigation_id = session.session_id
+
             logger.debug(
-                "[ICATClient] get_samples: session_id=%s, proposal_name=%s",
-                session.session_id,
+                "[ICATClient] get_samples: investigation_id=%s, proposal_name=%s",
+                investigation_id,
                 session.proposal_name,
             )
 
-            # Load parcels (pucks)
-            self.parcels = self.get_parcels()
+            self.sample_sheets = self.get_samples_by_investigation(
+                investigation_id,
+            )
 
-            # Load sample sheets
-            self.sample_sheets = self.get_samples_sheets()
             logger.debug(
-                "[ICATClient] %d sample sheets retrieved", len(self.sample_sheets)
+                "[ICATClient] Retrieved %d sample sheets",
+                len(self.sample_sheets),
             )
 
             # Filter for loaded pucks
-            self.loaded_pucks = self._get_loaded_pucks(self.parcels)
-            msg = f"[ICATClient] {len(self.loaded_pucks)} loaded pucks found"
-            logger.debug(msg)
+            self.loaded_pucks = self._get_loaded_pucks(
+                investigation_id,
+            )
+            logger.debug(
+                "[ICATClient] Found %d loaded pucks",
+                len(self.loaded_pucks),
+            )
+
+            sampleInformationList: List[icat_models.SampleInformation] = []
+            # Download all sampleInformation for the investigation
+            # This makes to perform a single call to the server instead of one per sample
+            try:
+                sampleInformationList = self.icatClient.get_sample_information_list_by(
+                    investigation_id=str(investigation_id)
+                )
+            except Exception as e:
+                logger.exception(
+                    "Error retrieving sample information for investigation %s", e
+                )
 
             # Extract and process samples from loaded pucks
             for puck in self.loaded_pucks:
-                tracking_samples = puck.get("content", [])
-                puck_name = puck.get("name", "Unnamed")
-                location = puck.get("sampleChangerLocation", "Unknown")
-                msg = f"[ICATClient] Found puck {puck_name} at position "
-                msg += f"{location}, containing {len(tracking_samples)} samples"
+                tracking_samples = puck.content
+                msg = f"[ICATClient] Found puck {puck.name} at position "
+                msg += f"{puck.sample_changer_location}, containing {len(puck.content)} samples"
                 logger.debug(msg)
                 for tracking_sample in tracking_samples:
-                    sample = self.__to_sample(tracking_sample, puck, self.sample_sheets)
+                    sample = self.__to_sample(
+                        tracking_sample, puck, sampleInformationList
+                    )
                     self.samples.append(sample)
+
         except RuntimeError:
             logger.exception("[ICATClient] Error retrieving samples: %s")
         else:
             msg = f"[ICATClient] Total {len(self.samples)} samples read"
             logger.debug(msg)
+
+            # MXCuBE Web expects containerSampleChangerLocation to be string
+            for sample in self.samples:
+                sample["containerSampleChangerLocation"] = str(
+                    sample["containerSampleChangerLocation"]
+                )
             return self.samples
         return []
-
-    def get_sample_sheet_by_id(
-        self, samples: List[SampleSheet], sample_id: int
-    ) -> Optional[SampleSheet]:
-        """
-        Retrieve a sample sheet by its unique ID.
-
-        Args:
-            samples (List[SampleSheet]): A list of Sample objects.
-            sample_id (int): The unique identifier of the sample sheet to retrieve.
-
-        Returns:
-            Optional[Sample]: The Sample object if found, otherwise None.
-        """
-        return next((sample for sample in samples if sample.id == sample_id), None)
 
     def objectid_to_int(self, oid_str):
         return int(oid_str, 16)
@@ -230,18 +286,25 @@ class ICATLIMS(AbstractLims):
         return hex(i)[2:].zfill(24)
 
     def __add_download_path_to_processing_plan(
-        self, processing_plan, downloads: List[Download]
+        self,
+        processing_plan: List[icat_models.ExperimentPlanEntry],
+        downloads: List[Download],
     ):
-        file_path_lookup = {d.filename: d.path for d in downloads}
+        file_path_lookup = {}
         group_paths = defaultdict(list)
-        for d in downloads:
-            if d.groupName is not None:
-                group_paths[d.groupName].append(d.path)
+
+        for download in downloads:
+            file_path_lookup[download.filename] = download.path
+            if download.groupName is not None:
+                group_paths[download.groupName].append(download.path)
+
+        # convert to json for legacy
+        processing_plan_json = [item.to_dict() for item in processing_plan]
 
         # Enrich the processing_plan
-        for item in processing_plan:
+        for item in processing_plan_json:
             key = item.get("key")
-            value = item.get("value")
+            value = item.get("value", {})
             if (
                 key == "reference"
                 and isinstance(value, str)
@@ -251,12 +314,17 @@ class ICATLIMS(AbstractLims):
             if key == "search_models":
                 models = value
                 if isinstance(models, str):
-                    models = json.loads(models)
+                    try:
+                        models = json.loads(models)
+                    except json.JSONDecodeError:
+                        models = []
                 for model in models:
                     group = model.get("pdb_group")
                     if group in group_paths:
                         model["file_paths"] = group_paths[group]
                 item["value"] = models
+
+        return processing_plan_json
 
     def _safe_json_loads(self, json_str):
         try:
@@ -264,28 +332,21 @@ class ICATLIMS(AbstractLims):
         except Exception:
             return str(json_str)
 
-    def __extract_sample_identifiers(self, tracking_sample: dict, puck: dict) -> dict:
+    def __extract_sample_identifiers(
+        self, tracking_sample: icat_models.Sample, puck: LoadedPuck
+    ) -> dict:
         # Basic identifiers
-        sample_name = str(tracking_sample.get("name"))
+        sample_name = tracking_sample.name
 
         # MXCuBE needs to be an integer while in DRAC is a ObjectId
         # Mongo @BES needs to be smaller then 8 bytes
-        sample_id = int(str(self.objectid_to_int(tracking_sample.get("id")))[-6:])
+        sample_id = int(str(self.objectid_to_int(tracking_sample.id))[-6:])
         # id to the sample sheet declared in the user portal
-        sample_sheet_id = tracking_sample.get("sampleId")
-        # identifier that points to the sample tracking
-        tracking_sample_id = tracking_sample.get("_id")
-
+        sample_sheet_id = tracking_sample.sample_id
         msg = f"[ICATClient] Sample ids sample_id={sample_id} "
         msg += f"sample_sheet_id={sample_sheet_id} "
-        msg += f"tracking_sample_id={tracking_sample_id}"
+        msg += f"tracking_sample_id={tracking_sample.id}"
         logger.debug(msg)
-
-        sample_location = tracking_sample.get("sampleContainerPosition")
-        puck_location = str(puck.get("sampleChangerLocation", "Unknown"))
-        puck_name = puck.get("name", "UnknownPuck")
-        parcel_name = puck.get("parcelName")
-        parcel_id = puck.get("parcelId")
 
         protein_acronym = self.__resolve_protein_acronym(sample_name, sample_sheet_id)
 
@@ -293,70 +354,61 @@ class ICATLIMS(AbstractLims):
             "sampleName": sample_name,
             "sampleId": sample_id,
             "sample_sheet_id": sample_sheet_id,
-            "trackingSampleId": tracking_sample_id,
+            "trackingSampleId": tracking_sample.id,
             "proteinAcronym": protein_acronym,
-            "sampleLocation": sample_location,
-            "containerCode": puck_name,
-            "containerSampleChangerLocation": puck_location,
-            "SampleTrackingParcel_name": parcel_name,
-            "SampleTrackingParcel_id": parcel_id,
-            "SampleTrackingContainer_id": puck_name,
-            "SampleTrackingContainer_name": parcel_id,
+            "sampleLocation": tracking_sample.sample_container_position,
+            "containerCode": puck.name,
+            "containerSampleChangerLocation": puck.sample_changer_location,
+            "SampleTrackingParcel_name": puck.parcel_name,
+            "SampleTrackingParcel_id": puck.parcel_id,
+            "SampleTrackingContainer_id": puck.name,
+            "SampleTrackingContainer_name": puck.id,
         }
 
     def __resolve_protein_acronym(self, sample_name: str, sample_sheet_id: str) -> str:
-        sample_sheet = self.get_sample_sheet_by_id(self.sample_sheets, sample_sheet_id)
+        """Return the sample sheet name when the ID matches; otherwise, use the sample name."""
+        sample_sheet = next(
+            (sample for sample in self.sample_sheets if sample.id == sample_sheet_id),
+            None,
+        )
         return sample_sheet.name if sample_sheet else sample_name
 
-    def __parse_experiment_plan(self, tracking_sample: dict) -> dict[str, Any]:
-        return {
-            item["key"]: item["value"]
-            for item in tracking_sample.get("experimentPlan", {})
-        }
-
-    def __build_diffraction_plan(self, experiment_plan: dict) -> dict[str, Any]:
-        return {
-            # "diffractionPlanId": 457980, TODO: do we need this?
-            "experimentKind": experiment_plan.get("experimentKind"),
-            "numberOfPositions": experiment_plan.get("numberOfPositions"),
-            "observedResolution": experiment_plan.get("observedResolution"),
-            "preferredBeamDiameter": experiment_plan.get("preferredBeamDiameter"),
-            "radiationSensitivity": experiment_plan.get("radiationSensitivity"),
-            "requiredCompleteness": experiment_plan.get("requiredCompleteness"),
-            "requiredMultiplicity": experiment_plan.get("requiredMultiplicity"),
-            "requiredResolution": experiment_plan.get("requiredResolution"),
-        }
+    def __experiment_plan_to_dict(
+        self, experiment_plan: List[icat_models.ExperimentPlanEntry] | None
+    ) -> dict[str, Any]:
+        """Extract experiment plan values into a dictionary, using each item's key."""
+        return {item.key: item.value.actual_instance for item in experiment_plan or []}
 
     def __prepare_processing_plan(
-        self, tracking_sample: dict, sample_sheet_id: str, protein_acronym: str
+        self,
+        tracking_sample: icat_models.ParcelItem,
+        protein_acronym: str,
+        sample_information: icat_models.SampleInformation | None,
     ) -> dict[str, Any]:
-        processing_plan = tracking_sample.get("processingPlan", [])
-        if not processing_plan:
+        if not tracking_sample.processing_plan or tracking_sample.processing_plan == []:
             return {}
 
-        # Convert string values to JSON if possible
-        for item in processing_plan:
-            item["value"] = self._safe_json_loads(item.get("value"))
-
-        downloads = self.__get_or_download_plan_resources(
-            sample_sheet_id, protein_acronym
+        downloads: List[Download] = self.__download_resource(
+            tracking_sample.sample_id, protein_acronym, sample_information
         )
 
         if downloads:
             try:
-                self.__add_download_path_to_processing_plan(processing_plan, downloads)
+                return self.__add_download_path_to_processing_plan(
+                    tracking_sample.processing_plan, downloads
+                )
             except RuntimeError:
                 logger.exception("Failed __add_download_path_to_processing_plan")
-        return {item["key"]: item["value"] for item in processing_plan}
+        return {item["key"]: item["value"] for item in tracking_sample.processing_plan}
 
-    def __get_or_download_plan_resources(
-        self, sample_sheet_id: str, protein_acronym: str
+    def __download_resource(
+        self,
+        sample_sheet_id: str,
+        protein_acronym: str,
+        sample_information: icat_models.SampleInformation | None,
     ) -> List[Download]:
-        if not hasattr(self, "_downloads_cache"):
-            self._downloads_cache = {}
-
         cache_key = (sample_sheet_id, protein_acronym)
-        sample_information = self.__get_sample_information_by(sample_sheet_id)
+        logger.debug(f"Getting sample information for {protein_acronym}")
         if not sample_information:
             return []
 
@@ -382,7 +434,10 @@ class ICATLIMS(AbstractLims):
         )
 
         downloads = self._download_resources(
-            sample_sheet_id, sample_information.resources, destination_folder, ""
+            sample_sheet_id,
+            sample_information.resources,
+            destination_folder,
+            "",
         )
 
         logger.debug(f"Downloaded {len(downloads)} resources")
@@ -390,7 +445,10 @@ class ICATLIMS(AbstractLims):
         return downloads
 
     def __to_sample(
-        self, tracking_sample: dict, puck: dict, sample_sheets: List[SampleSheet]
+        self,
+        tracking_sample: icat_models.ParcelItem,
+        puck: LoadedPuck,
+        sample_information_list: List[icat_models.SampleInformation],
     ) -> dict[str, Any]:
         """
         Convert a tracking sample and associated metadata into the internal
@@ -403,27 +461,41 @@ class ICATLIMS(AbstractLims):
         Args:
             tracking_sample (dict): The raw sample data from tracking.
             puck (dict): The puck (container) metadata associated with the sample.
-            sample_sheets (List[SampleSheet]): List of sample sheets used for lookup.
 
         Returns:
             dict: A dictionary representing the standardized internal sample format.
         """
         sample_id_info = self.__extract_sample_identifiers(tracking_sample, puck)
-        experiment_plan = self.__parse_experiment_plan(tracking_sample)
-        processing_plan = self.__prepare_processing_plan(
-            tracking_sample,
-            sample_id_info["sample_sheet_id"],
-            sample_id_info["proteinAcronym"],
+
+        # converts experiment plan from list of icat_models.ExperimentPlanEntry to a dictionary
+        experiment_plan = self.__experiment_plan_to_dict(
+            tracking_sample.experiment_plan
         )
 
+        sample_information = next(
+            (
+                sample
+                for sample in sample_information_list
+                if sample.sample_id == tracking_sample.sample_id
+            ),
+            None,
+        )
+        processing_plan = self.__prepare_processing_plan(
+            tracking_sample,
+            sample_id_info[PROTEIN_ACRONYM_KEY],
+            sample_information,
+        )
+        # This still keeps compatible with ISPyB legacy code
         return {
             **sample_id_info,
             "experimentType": experiment_plan.get("workflowType"),
             "crystalSpaceGroup": experiment_plan.get("forceSpaceGroup"),
-            "diffractionPlan": self.__build_diffraction_plan(experiment_plan),
-            "experimentPlan": experiment_plan,
+            "diffractionPlan": {},
+            "experimentPlan": self.__experiment_plan_to_dict(
+                tracking_sample.experiment_plan
+            ),
             "processingPlan": processing_plan,
-            "comments": tracking_sample.get("comments"),
+            "comments": tracking_sample.comments,
         }
 
     def create_session(self, session_dict):
@@ -557,7 +629,7 @@ class ICATLIMS(AbstractLims):
         logger.warning("No investigation found")
         return None
 
-    def __get_all_investigations(self):
+    def __get_all_investigations(self) -> List[icat_models.InvestigationDetails]:
         """Returns all investigations by user. An investigation corresponds to
         one experimental session. It returns an empty array in case of error"""
         self.investigations = []
@@ -565,16 +637,14 @@ class ICATLIMS(AbstractLims):
             msg = f"__get_all_investigations before={self.before_offset_days} "
             msg += f"after={self.after_offset_days} "
             msg += f"beamline={self.override_beamline_name} "
-            msg += (
-                f"isInstrumentScientist={self.icat_session['isInstrumentScientist']} "
-            )
-            msg += f"isAdministrator={self.icat_session['isAdministrator']} "
+            msg += f"isInstrumentScientist={self.icat_session.is_instrument_scientist} "
+            msg += f"isAdministrator={self.icat_session.is_administrator} "
             msg += f"compatible_beamlines={self.compatible_beamlines}"
             logger.debug(msg)
 
             if self.icat_session is not None and (
-                self.icat_session["isAdministrator"]
-                or self.icat_session["isInstrumentScientist"]
+                self.icat_session.is_administrator
+                or self.icat_session.is_instrument_scientist
             ):
                 # Setting up of the session done by admin or staff
                 self.investigations = self.icatClient.get_investigations_by(
@@ -584,6 +654,7 @@ class ICATLIMS(AbstractLims):
                     + timedelta(days=float(self.after_offset_days)),
                     instrument_name=self.compatible_beamlines,
                 )
+
             elif self.only_staff_session_selection:
                 if self.session_manager.active_session is None:
                     # print warning an return no investigations
@@ -594,7 +665,7 @@ class ICATLIMS(AbstractLims):
                     return []
 
                 self.investigations = self.icatClient.get_investigations_by(
-                    ids=[self.session_manager.active_session.session_id]
+                    ids=[self.session_manager.active_session.session_id],
                 )
             else:
                 self.investigations = self.icatClient.get_investigations_by(
@@ -615,7 +686,46 @@ class ICATLIMS(AbstractLims):
 
         return self.investigations
 
-    def __get_proposal_number_by_investigation(self, investigation):
+    def _get_data_portal_url(
+        self, investigation: icat_models.InvestigationDetails
+    ) -> str:
+        try:
+            return (
+                self.data_portal_url.replace("{id}", str(investigation.id))
+                if self.data_portal_url is not None
+                else ""
+            )
+        except Exception:
+            return ""
+
+    def _get_logbook_url(self, investigation: icat_models.InvestigationDetails) -> str:
+        try:
+            return (
+                self.logbook_url.replace("{id}", str(investigation.id))
+                if self.logbook_url is not None
+                else ""
+            )
+        except Exception:
+            return ""
+
+    def _get_user_portal_url(
+        self, investigation: icat_models.InvestigationDetails
+    ) -> str:
+        try:
+            return (
+                self.user_portal_url.replace(
+                    "{id}", str(investigation.parameters["Id"])
+                )
+                if self.user_portal_url is not None
+                and investigation.parameters["Id"] is not None
+                else ""
+            )
+        except Exception:
+            return ""
+
+    def __get_proposal_number_by_investigation(
+        self, investigation: icat_models.InvestigationDetails
+    ) -> str:
         """
         Given an investigation it returns the proposal number.
         Example: investigation["name"] = "MX-1234"
@@ -623,58 +733,10 @@ class ICATLIMS(AbstractLims):
 
         TODO: this might not work for all type of proposals (example: TEST proposals)
         """
-        return (
-            investigation["name"]
-            .replace(investigation["type"]["name"], "")
-            .replace("-", "")
-        )
+        return investigation.name.replace(investigation.type.name, "").replace("-", "")
 
-    def _get_data_portal_url(self, investigation):
-        try:
-            return (
-                self.data_portal_url.replace("{id}", str(investigation["id"]))
-                if self.data_portal_url is not None
-                else ""
-            )
-        except Exception:
-            return ""
-
-    def _get_logbook_url(self, investigation):
-        try:
-            return (
-                self.logbook_url.replace("{id}", str(investigation["id"]))
-                if self.logbook_url is not None
-                else ""
-            )
-        except Exception:
-            return ""
-
-    def _get_user_portal_url(self, investigation):
-        try:
-            return (
-                self.user_portal_url.replace(
-                    "{id}", str(investigation["parameters"]["Id"])
-                )
-                if self.user_portal_url is not None
-                and investigation["parameters"]["Id"] is not None
-                else ""
-            )
-        except Exception:
-            return ""
-
-    def __get_investigation_parameter_by_name(
-        self, investigation: dict, parameter_name: str
-    ) -> str:
-        """
-        Gets the metadata of the parameters in an investigation
-        Returns the value of the specified parameter if it exists,
-        otherwise returns an empty string.
-        """
-        return investigation.get("parameters", {}).get(parameter_name, None)
-
-    def __to_session(self, investigation) -> Session:
+    def __to_session(self, investigation: icat_models.InvestigationDetails) -> Session:
         """This methods converts a ICAT investigation into a session"""
-
         actual_start_date = (
             investigation["parameters"]["actualStartDate"]
             if "actualStartDate" in investigation["parameters"]
@@ -690,24 +752,20 @@ class ICATLIMS(AbstractLims):
 
         # If session has been rescheduled new date is overwritten
         return Session(
-            code=investigation["type"]["name"],
+            code=investigation.type.name,
             number=self.__get_proposal_number_by_investigation(investigation),
-            title=f"{investigation['title']}",
-            session_id=str(investigation["id"]),
-            proposal_id=str(investigation["id"]),
-            proposal_name=investigation["name"],
+            title=investigation.title,
+            session_id=str(investigation.id),
+            proposal_id=str(investigation.id),
+            proposal_name=investigation.name,
             beamline_name=instrument_name,
             comments="",
-            start_datetime=investigation.get(
-                "startDate", None
-            ),  # self._string_to_date(investigation.get("startDate", None)),
-            start_date=self._string_to_date(investigation.get("startDate", None)),
-            start_time=self._string_to_time(investigation.get("startDate", None)),
-            end_datetime=investigation.get("endDate", None),
-            end_date=self._string_to_date(
-                investigation.get("endDate", None)
-            ),  # self._string_to_time(investigation.get("endDate", None)),
-            end_time=self._string_to_time(investigation.get("endDate", None)),
+            start_datetime=investigation.start_date,
+            start_date=self._string_to_date(investigation.start_date),
+            start_time=self._string_to_time(investigation.start_date),
+            end_datetime=investigation.end_date,
+            end_date=self._string_to_date(investigation.end_date),
+            end_time=self._string_to_time(investigation.end_date),
             actual_start_date=self._string_to_date(actual_start_date),
             actual_start_time=self._string_to_time(actual_start_date),
             actual_end_date=self._string_to_date(actual_end_date),
@@ -732,47 +790,31 @@ class ICATLIMS(AbstractLims):
         )
 
     def get_full_user_name(self):
-        return self.icat_session["fullName"]
+        return self.icat_session.full_name
 
     def get_user_name(self):
-        return self.icat_session["username"]
+        return self.icat_session.username
 
-    def to_sessions(self, investigations):
+    def to_sessions(
+        self, investigations: List[icat_models.InvestigationDetails]
+    ) -> List[Session]:
         return [self.__to_session(investigation) for investigation in investigations]
 
-    def get_parcels(self):
-        """Returns the parcels associated to an investigation"""
+    def get_samples_by_investigation(
+        self, investigation_id: str
+    ) -> List[icat_models.Sample]:
+        """Return the sample records associated with an investigation."""
+        samples_List = []
         try:
-            session_id = self.session_manager.active_session.session_id
-            msg = f"Retrieving parcels by investigation_id {session_id}"
-            logger.debug(msg)
-            parcels = self.icatClient.get_parcels_by(session_id)
-        except Exception:
-            logger.exception("Failed on get_parcels_by_investigation_id")
-        else:
-            msg = f"Successfully retrieved {len(parcels)} parcels"
-            logger.debug(msg)
-            return parcels
-
-        return []
-
-    def get_samples_sheets(self) -> List[SampleSheet]:
-        """Returns the samples sheets associated to an investigation"""
-        try:
-            msg = "Retrieving samples by investigation_id "
-            msg += f"{self.session_manager.active_session.session_id}"
-            logger.debug(msg)
-            samples = self.icatClient.get_samples_by(
-                self.session_manager.active_session.session_id
+            samples_List: List[icat_models.Sample] = self.icatClient.get_samples_by(
+                investigation_id=investigation_id
             )
-        except Exception:
-            logger.exception("Failed on get_samples_by_investigation_id")
-        else:
-            msg = f"Successfully retrieved {len(samples)} samples"
+            msg = f"Successfully retrieved {len(samples_List)} samples"
             logger.debug(msg)
-            # Convert to object
-            return [SampleSheet.parse_obj(sample) for sample in samples]
-        return []
+        except Exception:
+            logger.exception("Failed on get_samples_by_investigation")
+
+        return samples_List
 
     def echo(self):
         """Mockup for the echo method."""
@@ -781,32 +823,43 @@ class ICATLIMS(AbstractLims):
     def is_connected(self):
         return self.login_ok
 
-    def add_beamline_configuration_metadata(self, metadata, beamline_config):
+    def add_beamline_configuration_metadata(self, instrument, beamline_config):
         """
-        This is the mapping betweeh the beamline_config dict and the ICAt keys
-        in case they exist then they will be added to the metadata of the dataset
+        This is the mapping between the beamline_config dict and the ICAT
+        instrument model fields. Fields that exist on beamline_config are
+        added to the dataset's instrument metadata.
         """
-        if beamline_config is not None:
-            key_mapping = {
-                "detector_px": "InstrumentDetector01_beam_center_x",
-                "detector_py": "InstrumentDetector01_beam_center_y",
-                "beam_divergence_vertical": (
-                    "InstrumentBeam_vertical_incident_beam_divergence"
-                ),
-                "beam_divergence_horizontal": (
-                    "InstrumentBeam_horizontal_incident_beam_divergence"
-                ),
-                "polarisation": "InstrumentBeam_final_polarization",
-                "detector_model": "InstrumentDetector01_model",
-                "detector_manufacturer": "InstrumentDetector01_manufacturer",
-                "synchrotron_name": "InstrumentSource_name",
-                "monochromator_type": "InstrumentMonochromatorCrystal_type",
-                "InstrumentDetector01_type": "detector_type",
-            }
+        if beamline_config is None:
+            return
 
-            for config_key, metadata_key in key_mapping.items():
-                if hasattr(beamline_config, config_key):
-                    metadata[metadata_key] = getattr(beamline_config, config_key)
+        key_mapping = {
+            DETECTOR_PX_KEY: (instrument.detector01, "beam_center_x"),
+            DETECTOR_PY_KEY: (instrument.detector01, "beam_center_y"),
+            BEAM_DIVERGENCE_VERTICAL_KEY: (
+                instrument.beam,
+                "vertical_incident_beam_divergence",
+            ),
+            BEAM_DIVERGENCE_HORIZONTAL_KEY: (
+                instrument.beam,
+                "horizontal_incident_beam_divergence",
+            ),
+            POLARISATION_KEY: (instrument.beam, "final_polarization"),
+            DETECTOR_MODEL_KEY: (instrument.detector01, "model"),
+            DETECTOR_MANUFACTURER_KEY: (instrument.detector01, "manufacturer"),
+            SYNCHROTRON_NAME_KEY: (instrument.source, "name"),
+            MONOCHROMATOR_TYPE_KEY: (instrument.monochromator.crystal, "type"),
+            DETECTOR_TYPE_KEY: (instrument.detector01, "type"),
+        }
+
+        # beam_center_x/y are plain str fields (not quantities): stringify
+        # explicitly since the config value is typically numeric.
+        str_only_attrs = {"beam_center_x", "beam_center_y"}
+        for config_key, (target, attr_name) in key_mapping.items():
+            if hasattr(beamline_config, config_key):
+                value = getattr(beamline_config, config_key)
+                if attr_name in str_only_attrs:
+                    value = _optional_str(value)
+                setattr(target, attr_name, value)
 
     def find_sample_by_sample_id(self, sample_id):
         return next(
@@ -846,11 +899,18 @@ class ICATLIMS(AbstractLims):
     def store_image(self, image_dict: dict):
         pass
 
-    def store_common_data(self, datacollection_dict: dict) -> dict:
-        """Fill in a dictionary with the common for all the
-           data collection techniques meta data.
+    def store_common_data(
+        self, datacollection_dict: dict
+    ) -> tuple[icat_models.IcatDatasetParameters, dict]:
+        """Fill in the pydantic model fields common to all the data
+        collection techniques.
         Args:
             datacollection_dict(dict): dictionarry from the data collection.
+
+        Returns:
+            A tuple ``(params, extra)``.
+            ``params`` is a partially-filled ``icat_models.IcatDatasetParameters.blank()`` instance.
+            ``extra`` holds flat ICAT keys with no corresponding model field.
         """
         sample_id = datacollection_dict.get("blSampleId")
         msg = f"SampleId is: {sample_id}"
@@ -927,34 +987,52 @@ class ICATLIMS(AbstractLims):
             except RuntimeError:
                 cryo_temperature = None
 
-        result = {
-            "Sample_name": sample_name,
-            "startDate": start_time,
-            "endDate": end_time,
-            "investigationId": investigation_id,
-            "proposal": investigation_name,
-            "MX_beamShape": shape.value,
-            "MX_beamSizeAtSampleX": bsx,
-            "MX_beamSizeAtSampleY": bsy,
-            "MX_xBeam": xbeam,
-            "MX_yBeam": ybeam,
-            "MX_flux": datacollection_dict.get("flux"),
-            "MX_fluxEnd": flux_end,
-            "MX_transmission": transmission,
-            "InstrumentMonochromator_wavelength": wavelength,
-            "InstrumentMonochromator_energy": energy,
-            "InstrumentSource_current": machine_info.get("current"),
-            "InstrumentSource_mode": machine_info.get("fill_mode"),
-            "InstrumentCryostat01_value": cryo_temperature,
-        }
+        extra = {}
         if actual_instrument is not None:
-            result["actualInstrument"] = actual_instrument
+            extra[ACTUAL_INSTRUMENT_KEY] = actual_instrument
 
-        return result
+        # IcatCryostat.value is a numeric quantity: the "room temperature"
+        # sentinel string can't go through it, so it's sent as a plain key.
+        if cryo_temperature == "room temperature":
+            extra["InstrumentCryostat01_value"] = cryo_temperature
+
+        params = icat_models.IcatDatasetParameters.blank()
+        params.sample.name = sample_name
+        params.start_time = start_time
+        params.end_time = end_time
+        params.investigationId = investigation_id
+        params.proposal = investigation_name
+        params.instrument.monochromator.wavelength = wavelength
+        params.instrument.monochromator.energy = energy
+        params.instrument.source.current = machine_info.get("current")
+        params.instrument.source.mode = machine_info.get("fill_mode")
+        if cryo_temperature is not None and cryo_temperature != "room temperature":
+            params.instrument.cryostat01.value = cryo_temperature
+        params.MX.beamShape = shape.value
+        params.MX.beamSizeAtSampleX = bsx
+        params.MX.beamSizeAtSampleY = bsy
+        params.MX.xBeam = xbeam
+        params.MX.yBeam = ybeam
+        params.MX.flux = datacollection_dict.get("flux")
+        params.MX.fluxEnd = flux_end
+        params.MX.transmission = transmission
+
+        return params, extra
+
+    def __format_datetime(self, value: str) -> str:
+        try:
+            return (
+                datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+                .replace(tzinfo=ZoneInfo("Europe/Paris"))
+                .isoformat(timespec="microseconds")
+            )
+        except (ValueError, TypeError):
+            self.log.exception("Cannot parse datetime: %s", value)
+            return value
 
     def store_energy_scan(self, energyscan_dict: dict):
         try:
-            metadata = self.store_common_data(energyscan_dict)
+            params, extra = self.store_common_data(energyscan_dict)
             try:
                 beamline = self._get_scheduled_beamline()
                 msg = f"Dataset Beamline={beamline} "
@@ -973,33 +1051,30 @@ class ICATLIMS(AbstractLims):
             end_time = energyscan_dict.get("endTime", "")
 
             if start_time:
-                try:
-                    dt_aware = datetime.strptime(
-                        start_time, "%Y-%m-%d %H:%M:%S"
-                    ).replace(tzinfo=ZoneInfo("Europe/Paris"))
-                    start_time = dt_aware.isoformat(timespec="microseconds")
-                    metadata.update({"startDate": start_time})
-                except (ValueError, TypeError):
-                    self.log.exception("Cannot parse start time")
+                params.start_time = self.__format_datetime(start_time)
 
             if end_time:
-                try:
-                    dt_aware = datetime.strptime(end_time, "%Y-%m-%d %H:%M:%S").replace(
-                        tzinfo=ZoneInfo("Europe/Paris")
-                    )
-                    end_time = dt_aware.isoformat(timespec="microseconds")
-                    metadata.update({"endDate": end_time})
-                except (ValueError, TypeError):
-                    self.log.exception("Cannot parse start time")
+                params.end_time = self.__format_datetime(end_time)
 
+            params.title = str(directory.name)
+            params.folder_path = str(directory)
+
+            mx = params.MX
+            mx.directory = str(directory)
+            mx.exposureTime = energyscan_dict.get("exposureTime")
+            mx.scanType = "energy_scan"
+
+            params.instrument.detector01.model = energyscan_dict.get(
+                "fluorescenceDetector"
+            )
+
+            params = params.finalize()
+            metadata = params.to_icat_dict()
+            metadata.update(extra)
+            # No icat_esrf_definitions model field exists yet for these
+            # energy-scan-specific values, so they stay as plain flat keys.
             metadata.update(
                 {
-                    "scanType": "energy_scan",
-                    "MX_directory": str(directory),
-                    "MX_exposureTime": energyscan_dict.get("exposureTime"),
-                    "InstrumentDetector01_model": energyscan_dict.get(
-                        "fluorescenceDetector"
-                    ),
                     "MX_element": energyscan_dict.get("element"),
                     "MX_edgeEnergy": energyscan_dict.get("edgeEnergy"),
                     "MX_startEnergy": energyscan_dict.get("startEnergy"),
@@ -1030,7 +1105,7 @@ class ICATLIMS(AbstractLims):
     def store_xfe_spectrum(self, xfespectrum_dict: dict):
         status = {"xfeFluorescenceSpectrumId": -1}
         try:
-            metadata = self.store_common_data(xfespectrum_dict)
+            params, extra = self.store_common_data(xfespectrum_dict)
             try:
                 beamline = self._get_scheduled_beamline()
                 msg = f"Dataset Beamline={beamline} "
@@ -1049,32 +1124,21 @@ class ICATLIMS(AbstractLims):
             end_time = xfespectrum_dict.get("endTime", "")
 
             if start_time:
-                try:
-                    dt_aware = datetime.strptime(
-                        start_time, "%Y-%m-%d %H:%M:%S"
-                    ).replace(tzinfo=ZoneInfo("Europe/Paris"))
-                    start_time = dt_aware.isoformat(timespec="microseconds")
-                    metadata.update({"startDate": start_time})
-                except (ValueError, TypeError):
-                    self.log.exception("Cannot parse start time")
-
+                params.start_time = start_time
             if end_time:
-                try:
-                    dt_aware = datetime.strptime(end_time, "%Y-%m-%d %H:%M:%S").replace(
-                        tzinfo=ZoneInfo("Europe/Paris")
-                    )
-                    end_time = dt_aware.isoformat(timespec="microseconds")
-                    metadata.update({"endDate": end_time})
-                except (ValueError, TypeError):
-                    self.log.exception("Cannot parse end time")
+                params.end_time = end_time
 
-            metadata.update(
-                {
-                    "scanType": "xrf",
-                    "MX_directory": str(directory),
-                    "MX_exposureTime": xfespectrum_dict.get("exposureTime"),
-                }
-            )
+            params.title = str(directory.name)
+            params.folder_path = str(directory)
+
+            mx = params.MX
+            mx.directory = str(directory)
+            mx.exposureTime = xfespectrum_dict.get("exposureTime")
+            mx.scanType = "xrf"
+
+            params = params.finalize()
+            metadata = params.to_icat_dict()
+            metadata.update(extra)
 
             self.icatClient.store_dataset(
                 beamline=beamline,
@@ -1117,7 +1181,7 @@ class ICATLIMS(AbstractLims):
 
     def __get_sample_information_by(
         self, sample_id: str
-    ) -> Optional[SampleInformation]:
+    ) -> Optional[icat_models.SampleInformation]:
         """
         Fetches sample metadata and associated resources based on the sample ID.
 
@@ -1128,21 +1192,28 @@ class ICATLIMS(AbstractLims):
             Optional[SampleInformation]: Returns a SampleInformation object or None.
         """
         try:
-            result = self.icatClient.get_sample_files_information_by(sample_id)
-            return SampleInformation.parse_obj(result)
-        except requests.exceptions.HTTPError as e:
-            if e.response.status_code == 404:
+            sampleInformationList: List[icat_models.SampleInformation] = (
+                self.icatClient.get_sample_information_list_by(sample_id=str(sample_id))
+            )
+            if sampleInformationList is not None and len(sampleInformationList) > 0:
+                return sampleInformationList[0]
+            return None
+
+        except icat_errors.ApiException as e:
+            if e.status == 404:
                 logger.info("Sample %s not found (404)", sample_id)
             else:
                 logger.exception("HTTP error for sample %s", sample_id)
-        except requests.exceptions.RequestException:
-            logger.exception("Request error for sample %s", sample_id)
         except ValidationError:
             logger.exception("Invalid response format for sample %s", sample_id)
         return None
 
     def _download_resources(
-        self, sample_id, resources, output_folder: str, sample_name: str
+        self,
+        sample_id: str,
+        resources: List[icat_models.FileResource] | None,
+        output_folder: str,
+        sample_name: str,
     ) -> List[Download]:
         """
         Download resources related to a given sample and save them to the
@@ -1158,19 +1229,14 @@ class ICATLIMS(AbstractLims):
         downloaded_files: List[Download] = []
         for resource in resources:
             resource_folder = Path(output_folder) / sample_name
-            resource_folder = Path(resource_folder) / (resource.groupName or "")
+            resource_folder = Path(resource_folder) / (resource.group_name or "")
             resource_folder.mkdir(
                 parents=True,
                 exist_ok=True,
             )  # Make sure the folder exists
 
             try:
-                result = self.icatClient.download_file_by(
-                    sample_id=sample_id,
-                    resource_id=resource.id,
-                    use_chunks=True,
-                    chunk_size=8192,
-                )
+                result = self.icatClient.download_file_by(str(sample_id), resource.id)
                 output_path = Path(resource_folder / resource.filename)
                 with output_path.open("wb") as f:
                     f.write(result)
@@ -1179,12 +1245,12 @@ class ICATLIMS(AbstractLims):
                 downloaded = Download(
                     path=str(output_path),
                     filename=resource.filename,
-                    groupName=resource.groupName,
+                    groupName=resource.group_name,
                 )
                 downloaded_files.append(downloaded)
                 logger.info("Downloaded %s to %s", resource.filename, downloaded.path)
 
-            except requests.exceptions.RequestException:
+            except icat_errors.ApiException:
                 logger.exception("Failed to download %s", resource.filename)
 
         return downloaded_files
@@ -1192,7 +1258,7 @@ class ICATLIMS(AbstractLims):
     def finalize_data_collection(self, datacollection_dict):
         logger.info("Storing datacollection in ICAT")
 
-        metadata = self.store_common_data(datacollection_dict)
+        params, extra = self.store_common_data(datacollection_dict)
 
         try:
             fileinfo = datacollection_dict["fileinfo"]
@@ -1208,7 +1274,7 @@ class ICATLIMS(AbstractLims):
             if scan_type == "characterisation":
                 # The "complete" entry in metadata must be set to False in order to
                 # group multi-wedge reference image data collection for characterisation
-                metadata["complete"] = False
+                params.complete = False
             elif scan_type == "OSC":
                 # In case the experiment_type is "OSC" and doesn't have
                 # "datacollection" in the dataset name, we set it to "datacollection".
@@ -1251,43 +1317,48 @@ class ICATLIMS(AbstractLims):
                     f"Kappa: {kappa_pos:0.1f}, Phi: {kappa_phi_pos:0.1f}"
                 )
 
-            metadata.update(
-                {
-                    "MX_dataCollectionId": datacollection_dict.get("collection_id"),
-                    "MX_detectorDistance": distance,
-                    "MX_directory": str(directory),
-                    "MX_exposureTime": oscillation_sequence["exposure_time"],
-                    "MX_positionName": datacollection_dict.get("position_name"),
-                    "MX_numberOfImages": oscillation_sequence["number_of_images"],
-                    "MX_oscillationRange": oscillation_sequence["range"],
-                    "MX_axis_start": oscillation_sequence["start"],
-                    "MX_oscillationOverlap": oscillation_sequence["overlap"],
-                    "MX_resolution": datacollection_dict.get("resolution"),
-                    "MX_resolution_at_corner": datacollection_dict.get(
-                        "resolutionAtCorner"
-                    ),
-                    "scanType": scan_type,
-                    "MX_startImageNumber": oscillation_sequence["start_image_number"],
-                    "MX_template": fileinfo["template"],
-                    "Sample_name": sample_name,
-                    "Workflow_name": workflow_params.get("workflow_name"),
-                    "Workflow_type": workflow_params.get("workflow_type"),
-                    "Workflow_id": workflow_params.get("workflow_uid"),
-                    "Workflow_note": workflow_params.get("workflow_note"),
-                    "MX_kappa_settings_id": mx_kappa_settings_id,
-                    "MX_characterisation_id": workflow_params.get(
-                        "workflow_characterisation_id"
-                    ),
-                    "MX_position_id": workflow_params.get("workflow_position_id"),
-                    "group_by": workflow_params.get("workflow_group_by"),
-                }
+            params.title = dataset_name
+            params.folder_path = str(directory)
+            mx = params.MX
+            mx.dataCollectionId = _optional_str(
+                datacollection_dict.get("collection_id")
+            )
+            mx.detectorDistance = distance
+            mx.directory = str(directory)
+            mx.exposureTime = oscillation_sequence["exposure_time"]
+            mx.positionName = _optional_str(datacollection_dict.get("position_name"))
+            mx.numberOfImages = oscillation_sequence["number_of_images"]
+            mx.oscillationRange = oscillation_sequence["range"]
+            mx.axis_start = oscillation_sequence["start"]
+            mx.oscillationOverlap = oscillation_sequence["overlap"]
+            mx.resolution = datacollection_dict.get("resolution")
+            mx.resolution_at_corner = datacollection_dict.get("resolutionAtCorner")
+            mx.scanType = scan_type
+            mx.startImageNumber = oscillation_sequence["start_image_number"]
+            mx.template = fileinfo["template"]
+            mx.kappa_settings_id = mx_kappa_settings_id
+            mx.characterisation_id = _optional_str(
+                workflow_params.get("workflow_characterisation_id")
+            )
+            mx.position_id = _optional_str(workflow_params.get("workflow_position_id"))
+
+            params.sample.name = sample_name
+            params.workflow.name = _optional_str(workflow_params.get("workflow_name"))
+            params.workflow.type = _optional_str(workflow_params.get("workflow_type"))
+            params.workflow.id = _optional_str(workflow_params.get("workflow_uid"))
+            params.workflow.note = _optional_str(workflow_params.get("workflow_note"))
+            params.group_by = workflow_params.get("workflow_group_by")
+
+            position, sample_position = self._get_sample_position()
+            params.sample.changer.position = (
+                str(position) if position is not None else None
+            )
+            params.sample.tracking.container.type = "UNIPUCK"
+            params.sample.tracking.container.capacity = "16"
+            params.sample.tracking.container.position = (
+                str(sample_position) if sample_position is not None else None
             )
 
-            metadata["SampleTrackingContainer_type"] = "UNIPUCK"
-            metadata["SampleTrackingContainer_capacity"] = "16"
-            position, sample_position = self._get_sample_position()
-            metadata["SampleChanger_position"] = position
-            metadata["SampleTrackingContainer_position"] = sample_position
             # Find sample by sampleId
             sample = HWR.beamline.lims.find_sample_by_sample_id(
                 datacollection_dict.get("blSampleId")
@@ -1295,40 +1366,44 @@ class ICATLIMS(AbstractLims):
 
             try:
                 if sample is not None:
-                    metadata["SampleProtein_acronym"] = sample.get("proteinAcronym")
-                    metadata["SampleTrackingContainer_id"] = sample.get(
-                        "containerCode"
-                    )  # containerCode instead of sampletrackingcontainer_id
-                    # for ISPyB's compatiblity
-                    metadata["SampleTrackingParcel_id"] = sample.get(
-                        "SampleTrackingParcel_id"
+                    params.sample.protein.acronym = _optional_str(
+                        sample.get(PROTEIN_ACRONYM_KEY)
                     )
-                    metadata["SampleTrackingParcel_name"] = sample.get(
-                        "SampleTrackingParcel_name"
+                    # containerCode instead of sampletrackingcontainer_id for ISPyB compatibility
+                    params.sample.tracking.container.id = _optional_str(
+                        sample.get("containerCode")
+                    )
+                    params.sample.tracking.parcel.id = _optional_str(
+                        sample.get("SampleTrackingParcel_id")
+                    )
+                    params.sample.tracking.parcel.name = _optional_str(
+                        sample.get("SampleTrackingParcel_name")
                     )
             except RuntimeError as e:
                 logger.warning("Failed to add sample metadata.%s", e)
 
             try:
-                self.add_beamline_configuration_metadata(metadata, self.beamline_config)
+                self.add_beamline_configuration_metadata(
+                    params.instrument, self.beamline_config
+                )
             except RuntimeError as e:
                 logger.warning("Failed to add_beamline_configuration_metadata.%s", e)
 
-            # MX_axis_end
             try:
-                metadata["MX_axis_end"] = self._get_oscillation_end(
-                    oscillation_sequence
-                )
+                mx.axis_end = self._get_oscillation_end(oscillation_sequence)
             except RuntimeError:
                 logger.warning("Failed to get MX_axis_end")
 
-            # MX_axis_end
+            # Name of the rotation axis (e.g. "Omega"/"Phi"); axis_range is a
+            # numeric field and can't hold this string, unlike rotation_axis.
             try:
-                metadata["MX_axis_range"] = self._get_rotation_axis(
-                    oscillation_sequence
-                )
+                mx.rotation_axis = self._get_rotation_axis(oscillation_sequence)
             except RuntimeError:
                 logger.warning("Failed to get MX_axis_end")
+
+            params = params.finalize()
+            metadata = params.to_icat_dict()
+            metadata.update(extra)
 
             icat_metadata_path = Path(directory) / "metadata.json"
             with Path(icat_metadata_path).open("w") as f:
@@ -1409,9 +1484,4 @@ class ICATLIMS(AbstractLims):
         return beamline
 
     def update_bl_sample(self, bl_sample: str):
-        """
-        Creates or stos a BLSample entry.
-        # NBNB update doc string
-        :param sample_dict: A dictionary with the properties for the entry.
-        :type sample_dict: dict
-        """
+        pass

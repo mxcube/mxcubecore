@@ -230,28 +230,6 @@ class LimsSessionManager(BaseModel):
     users: Optional[Dict[str, LimsUser]] = {}
 
 
-class SampleSheet(BaseModel):
-    """Represents a description of a sample sheet as defined in user portals.
-
-    Parameters:
-        id: Unique identifier for the sample sheet.
-        name: Name of the sample sheet, often corresponding to the protein's name.
-        investigation: Investigation associated with the sample sheet.
-        modTime: Last modification time of the sample sheet.
-        parameters: Generic list of parameters, dependent on the user portal.
-        datasets: List of datasets collected for this sample.
-        meta: Pagination metadata.
-    """
-
-    id: int
-    name: str
-    investigation: Investigation
-    modTime: datetime
-    parameters: List[Parameter]
-    datasets: List[Any]
-    meta: Meta
-
-
 class Resource(BaseModel):
     """
     Represents a resource, usually a file associated with a sample or
@@ -279,33 +257,6 @@ class Resource(BaseModel):
     createdAt: datetime
     updatedAt: datetime
     groupName: Optional[str] = None
-
-
-class SampleInformation(BaseModel):
-    """
-    Parameters metadata related to a sample, including a list of associated resources.
-
-    Parameters:
-        id (str): The unique identifier for the sample. The key "_id" is used
-            in JSON and mapped to "id" in the class.
-        investigationId (int): The unique identifier of the investigation this
-            sample is associated with.
-        sampleId (int): The unique identifier for the sample in ICAT. Most of the cases
-            this represents the protein itself
-        createdAt (datetime): The timestamp representing when the sample
-            information was created.
-        updatedAt (datetime): The timestamp representing when the sample
-            information was last updated.
-        resources (List[Resource]): A list of Resource objects associated
-            with this sample information.
-    """
-
-    id: str = Field(..., alias="_id")  # Use alias to map _id from JSON to id
-    investigationId: int
-    sampleId: int
-    createdAt: datetime
-    updatedAt: datetime
-    resources: List[Resource]  # List of associated resources
 
 
 class Download(BaseModel):
