@@ -184,9 +184,7 @@ class DataCollectionMetadataGatherer:
         params.group_by = workflow_params.get("workflow_group_by")
 
         position, sample_position = self._get_sample_position()
-        params.sample.changer.position = (
-            str(position) if position is not None else None
-        )
+        params.sample.changer.position = str(position) if position is not None else None
         params.sample.tracking.container.type = "UNIPUCK"
         params.sample.tracking.container.capacity = "16"
         params.sample.tracking.container.position = (
@@ -429,8 +427,7 @@ class DataCollectionMetadataGatherer:
     @staticmethod
     def _get_oscillation_end(oscillation_sequence):
         return float(oscillation_sequence["start"]) + (
-            float(oscillation_sequence["range"])
-            - float(oscillation_sequence["offset"])
+            float(oscillation_sequence["range"]) - float(oscillation_sequence["offset"])
         ) * float(oscillation_sequence["number_of_images"])
 
     @staticmethod
@@ -711,13 +708,13 @@ class ICATLIMS(AbstractLims):
             # Download all sampleInformation for the investigation
             # This makes to perform a single call to the server instead of one per sample
             try:
-                sampleInformationList = self._icat_client.get_sample_information_list_by(
-                    investigation_id=str(investigation_id)
+                sampleInformationList = (
+                    self._icat_client.get_sample_information_list_by(
+                        investigation_id=str(investigation_id)
+                    )
                 )
             except Exception as e:
-                logger.debug(
-                    "No sample information found for investigation %s", e
-                )
+                logger.debug("No sample information found for investigation %s", e)
 
             # Extract and process samples from loaded pucks
             for puck in self.loaded_pucks:
@@ -741,9 +738,8 @@ class ICATLIMS(AbstractLims):
             for sample in self.samples:
                 sample["containerSampleChangerLocation"] = str(
                     sample["containerSampleChangerLocation"]
-                )        
+                )
         return self.samples
-        
 
     def objectid_to_int(self, oid_str):
         return int(oid_str, 16)
@@ -1106,7 +1102,7 @@ class ICATLIMS(AbstractLims):
         """Returns all investigations by user. An investigation corresponds to
         one experimental session. It returns an empty array in case of error"""
         self.investigations = []
-        
+
         try:
             msg = f"__get_all_investigations before={self.before_offset_days} "
             msg += f"after={self.after_offset_days} "
@@ -1210,7 +1206,7 @@ class ICATLIMS(AbstractLims):
         return investigation.name.replace(investigation.type.name, "").replace("-", "")
 
     def __to_session(self, investigation: icat_models.InvestigationDetails) -> Session:
-        """This methods converts a ICAT investigation into a session"""        
+        """This methods converts a ICAT investigation into a session"""
         actual_start_date = (
             investigation.parameters["actualStartDate"]
             if "actualStartDate" in investigation.parameters
@@ -1253,7 +1249,7 @@ class ICATLIMS(AbstractLims):
             is_rescheduled=bool("actualEndDate" in investigation.parameters),
             volume=investigation.parameters.get("__volume", "0"),
             sample_count=investigation.parameters.get("__sampleCount", "0"),
-            dataset_count= investigation.parameters.get("__datasetCount", "0"),
+            dataset_count=investigation.parameters.get("__datasetCount", "0"),
         )
 
     def get_full_user_name(self):
@@ -1265,7 +1261,9 @@ class ICATLIMS(AbstractLims):
     def to_sessions(
         self, investigations: List[icat_models.InvestigationDetails]
     ) -> List[Session]:
-        sessions =  [self.__to_session(investigation) for investigation in investigations]
+        sessions = [
+            self.__to_session(investigation) for investigation in investigations
+        ]
         return sessions
 
     def get_samples_by_investigation(
@@ -1529,7 +1527,9 @@ class ICATLIMS(AbstractLims):
         """
         try:
             sampleInformationList: List[icat_models.SampleInformation] = (
-                self._icat_client.get_sample_information_list_by(sample_id=str(sample_id))
+                self._icat_client.get_sample_information_list_by(
+                    sample_id=str(sample_id)
+                )
             )
             if sampleInformationList is not None and len(sampleInformationList) > 0:
                 return sampleInformationList[0]
