@@ -64,9 +64,6 @@ class BlissShutter(AbstractShutter):
     """BLISS implementation of AbstractShutter"""
 
     SPECIFIC_STATES = BlissShutterStates
-    # Only OPEN and CLOSED are user-commandable; the other values in VALUES
-    # (MOVING, DISABLE, STANDBY, FAULT) are read-only status indicators.
-    COMMANDABLE_VALUES = ("OPEN", "CLOSED")
 
     def __init__(self, name):
         super().__init__(name)
