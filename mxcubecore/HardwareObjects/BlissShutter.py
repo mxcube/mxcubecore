@@ -82,14 +82,8 @@ class BlissShutter(AbstractShutter):
             bliss_proxy.hardware.register(self.actuator_name)
             self._bliss_obj = bliss_proxy.get_object(self.actuator_name)
         except Exception as exc:
-            logging.getLogger("MX3.HWR").warning(
-                "BlissShutter '%s': BLISS object '%s' not available (%s)",
-                self.actuator_name,
-                self.actuator_name,
-                exc,
-            )
-            self._bliss_obj = None
-            return
+            msg = f"BlissShutter: BLISS object {self.actuator_name} not available {exc}"
+            logging.getLogger("MX3.HWR").warning(msg)
         # for now we only treat tango type shutter
         self.shutter_type = self.get_property("type", "tango")
         try:
