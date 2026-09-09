@@ -100,6 +100,28 @@ class DiffractometerMockup(AbstractDiffractometer):
         )
         self.set_value_motors(motors_positions_dict)
 
+    def set_value_motors(
+        self,
+        motors_positions_dict: dict,
+        simultaneous: bool = True,
+        timeout: float | None = None,
+    ):
+        """ Wrap function to ensure diffractometer always ends up ready
+        NB the signals from the motors signalling 'ready' are absent in mock mode
+
+        Args:
+            motors_positions_dict:
+            simultaneous:
+            timeout:
+
+        Returns:
+
+        """
+        super().set_value_motors(
+            motors_positions_dict, simultaneous=simultaneous, timeout=timeout
+        )
+        self.update_state(HardwareObjectState.READY)
+
     def get_positions(self):
         warn(
             "get_positions is deprecated, please use get_value_motors instead",
@@ -116,7 +138,7 @@ class DiffractometerMockup(AbstractDiffractometer):
 
     def _set_phase(self, value: DiffractometerPhase):
         """Set a phase."""
-        self.current_phase = value
+        self.update_phase(value)
         self.update_state(self.STATES.READY)
 
     def _set_constraint(self, value):

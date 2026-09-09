@@ -51,6 +51,9 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
         self.emit("collectReady", (False,))
         self.emit("collectStarted", (owner, 1))
 
+        diffr = HWR.beamline.diffractometer
+        diffr.set_phase(diffr.get_phase_enum.COLLECT)
+
         for data_collect_parameters in data_collect_parameters_list:
             logging.debug("collect parameters = %r", data_collect_parameters)
             failed = False

@@ -108,6 +108,8 @@ class SampleCentringQueueEntry(BaseQueueEntry):
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
+        diffr = HWR.beamline.diffractometer
+        diffr.set_phase(diffr.get_phase_enum.CENTRE)
 
     def post_execute(self):
         # If centring is executed once, don't do it again
