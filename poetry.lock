@@ -2366,14 +2366,14 @@ windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "pyicat-plus"
-version = "3.0.0rc3"
+version = "3.0.0rc5"
 description = "Python client to ICAT+"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "pyicat_plus-3.0.0rc3-py3-none-any.whl", hash = "sha256:9fefbc0de421c71224151ee3dacb35645d4442a5947bb3afa6f7114c955ca1af"},
-    {file = "pyicat_plus-3.0.0rc3.tar.gz", hash = "sha256:afe464172fc7ea9edd00fb1a4084a3344969d65787d6ca7c3c613558eaae1568"},
+    {file = "pyicat_plus-3.0.0rc5-py3-none-any.whl", hash = "sha256:137db31c9140a411844781c531613657da25b2343180df7c88970cc3f65a29e3"},
+    {file = "pyicat_plus-3.0.0rc5.tar.gz", hash = "sha256:a960fdcf281f89659c3d27c6c05543e19a850553b1faf9643b5c9bea1d911bb6"},
 ]
 
 [package.dependencies]
@@ -2384,6 +2384,7 @@ icat-esrf-definitions = ">=3.5"
 icat-plus-client = ">=4.95.5"
 numpy = "*"
 pillow = "*"
+pint = "<=0.25.3"
 querypool = "*"
 requests = "*"
 stompest = "*"
@@ -2391,7 +2392,7 @@ xsdata = {version = "*", markers = "python_version >= \"3.9\""}
 
 [package.extras]
 dev = ["pre-commit", "pyicat-plus[test]", "ruff", "xsdata[cli]"]
-doc = ["pydata-sphinx-theme", "pyicat-plus[test]", "sphinx (>=4.5)", "sphinx-autodoc-typehints (>=1.16)", "sphinx-copybutton", "sphinx-design"]
+doc = ["pydata-sphinx-theme", "pyicat-plus[test]", "sphinx (>=4.5)", "sphinx-argparse", "sphinx-autodoc-typehints (>=1.16)", "sphinx-copybutton", "sphinx-design"]
 test = ["coilmq", "h5py (>=3.5)", "numpy (>=1.15)", "psutil", "pytest (>=7)", "pytest-timeout (>=2.1)", "stomp.py (>=7)"]
 
 [[package]]
@@ -3667,4 +3668,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.12"
-content-hash = "caa55899de0d6e8873508d14f9b4d460bfc33e7f16c97d5fcf7399b10ad30fbe"
+content-hash = "f3f4f8fa22110f8b87bca7b4df5a5149f745d15fe363cf8bff1117f9daf2f5a4"
