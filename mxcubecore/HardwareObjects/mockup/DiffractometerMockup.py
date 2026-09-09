@@ -116,7 +116,7 @@ class DiffractometerMockup(AbstractDiffractometer):
 
     def _set_phase(self, value: DiffractometerPhase):
         """Set a phase."""
-        self.current_phase = value
+        self.update_phase(value)
         self.update_state(self.STATES.READY)
 
     def _set_constraint(self, value):
