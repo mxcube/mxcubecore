@@ -106,7 +106,7 @@ class DiffractometerMockup(AbstractDiffractometer):
         simultaneous: bool = True,
         timeout: float | None = None,
     ):
-        """ Wrap function to ensure diffractometer always ends up ready
+        """Wrap function to ensure diffractometer always ends up ready
         NB the signals from the motors signalling 'ready' are absent in mock mode
 
         Args:
