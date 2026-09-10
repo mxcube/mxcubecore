@@ -79,6 +79,7 @@ from pydantic.v1 import BaseModel, Field, ValidationError
 
 from mxcubecore.BaseHardwareObjects import HardwareObject, HardwareObjectState
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.model import queue_model_objects
 
 
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
@@ -244,6 +245,9 @@ class AbstractDiffractometer(HardwareObject):
                 self.connect(_hobj, "valueChanged", _hobj.update_value)
             except KeyError:
                 self.log.warning("Diffractometer: No motors configured")
+        queue_model_objects.CentredPosition.set_diffractometer_motor_names(
+            list(self.motors_hwobj_dict)
+        )
 
         # nstate (discrete positions) equipment
         for role in self.config.nstate_equipment:
