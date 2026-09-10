@@ -134,8 +134,6 @@ class BlissShutter(AbstractShutter):
             return self.SPECIFIC_STATES[_state].value[0]
         except (AttributeError, KeyError):
             return self.STATES.UNKNOWN
-        except Exception:
-            return self.STATES.UNKNOWN
 
     def get_value(self):
         """Get the device value
