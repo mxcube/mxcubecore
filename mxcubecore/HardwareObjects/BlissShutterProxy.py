@@ -18,7 +18,7 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-"""BlissShutter class - interface for shutter controlled by BLISS
+"""BlissShutterProxy class - interface for shutter controlled by BLISS
 Implements _set_value, get_value methods
 Bliss states are: UNKNOWN, OPEN, CLOSED, FAULT
 "MOVING", "DISABLE", "STANDBY", "RUNNING"
@@ -26,22 +26,20 @@ Example yml configuration:
 
 .. code-block:: yaml
 
- class: BlissShutter.BlissShutter
+ class: BlissShutterProxy.BlissShutterProxy
  configuration:
    actuator_name: safshut
    type: tango
    username: Safety shutter
- objects:
-   controller: bliss.yaml
 """
 
+import logging
 from enum import (
     Enum,
     unique,
 )
 
-import gevent
-
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.HardwareObjects.abstract.AbstractShutter import AbstractShutter
 
@@ -62,8 +60,8 @@ class BlissShutterStates(Enum):
     FAULT = HardwareObjectState.WARNING, "FAULT"
 
 
-class BlissShutter(AbstractShutter):
-    """BLISS implementation of AbstractShutter"""
+class BlissShutterProxy(AbstractShutter):
+    """BLISS implementation of AbstractShutter, using BlissProxy/blissclient."""
 
     SPECIFIC_STATES = BlissShutterStates
 
@@ -75,9 +73,17 @@ class BlissShutter(AbstractShutter):
 
     def init(self):
         """Initialise the predefined values"""
-        self.controller = self.get_object_by_role("controller")
         super().init()
-        self._bliss_obj = getattr(self.controller, self.actuator_name)
+        try:
+            bliss_proxy = HWR.beamline.bliss_proxy
+            bliss_proxy.hardware.register(self.actuator_name)
+            self._bliss_obj = bliss_proxy.get_object(self.actuator_name)
+        except Exception as exc:
+            msg = (
+                f"BlissShutterProxy: BLISS object {self.actuator_name} "
+                f"not available {exc}"
+            )
+            logging.getLogger("MX3.HWR").warning(msg)
         # for now we only treat tango type shutter
         self.shutter_type = self.get_property("type", "tango")
         try:
@@ -88,14 +94,25 @@ class BlissShutter(AbstractShutter):
             pass
         if self.shutter_type == "tango":
             self._initialise_values()
-        self._poll_task = gevent.spawn(self._poll_state)
+
+        self._bliss_obj.subscribe("property", self._on_property_changed)
+        self._bliss_obj.subscribe("online", self._on_online_changed)
 
         self.update_state()
+        self.update_value()
 
-    def _poll_state(self):
-        while True:
-            self.update_value(self.get_value())
-            gevent.sleep(0.5)
+    def _on_online_changed(self, online: bool) -> None:
+        """Callback for shutter online/offline events received via blissclient."""
+        if not online:
+            self.update_state(HardwareObjectState.UNKNOWN)
+        else:
+            self._update_state()
+
+    def _on_property_changed(self, data: dict) -> None:
+        """Callback for property changes received via blissclient."""
+        if "state" in data:
+            self.update_state()
+            self.update_value()
 
     def _initialise_values(self):
         """Add the tango states to VALUES"""
@@ -116,21 +133,28 @@ class BlissShutter(AbstractShutter):
             (enum 'HardwareObjectState'): Device state.
         """
         try:
-            _state = self._bliss_obj.state.name
+            _state = self._bliss_obj.state or "UNKNOWN"
+            return self.SPECIFIC_STATES[_state].value[0]
         except (AttributeError, KeyError):
             return self.STATES.UNKNOWN
-        return self.SPECIFIC_STATES[_state].value[0]
 
     def get_value(self):
         """Get the device value
         Returns:
             (Enum): Enum member, corresponding to the value or UNKNOWN.
         """
-        # the return from BLISS value is an Enum
-        _val = self._bliss_obj.state.name
+        try:
+            _val = self._bliss_obj.state or "UNKNOWN"
+        except Exception:
+            _val = "UNKNOWN"
         return self.value_to_enum(_val)
 
     def _set_value(self, value):
+        if self._bliss_obj is None:
+            raise RuntimeError(
+                f"BlissShutterProxy '{self.actuator_name}' is offline — "
+                "BLISS object not available"
+            )
         if value.name == "OPEN":
             self._bliss_obj.open()
         elif value.name == "CLOSED":
