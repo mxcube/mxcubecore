@@ -202,9 +202,8 @@ class BlissNState(AbstractNState):
         Returns:
             (Enum): "ValueEnum" with predefined values.
         """
-        # Always load values from config first so VALUES is never empty
-        # (this is also called from AbstractNState.init before device_type is set)
-        super().initialise_values()
+        if self.device_type == "actuator":
+            super().initialise_values()
         if self.device_type == "motor":
             try:
                 positions = self._bliss_obj.properties.get("positions", [])
