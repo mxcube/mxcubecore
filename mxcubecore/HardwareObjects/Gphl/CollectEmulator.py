@@ -309,8 +309,13 @@ class CollectEmulator(CollectMockup):
                 resource.RLIMIT_STACK, (resource.RLIM_INFINITY, resource.RLIM_INFINITY)
             )
 
+        diffr = HWR.beamline.diffractometer
         try:
             self.emit("collectStarted", (None, 1))
+
+            diffr.set_phase(diffr.get_phase_enum.COLLECT)
+            diffr.update_state(diffr.STATES.BUSY)
+
             running_process = subprocess.Popen(
                 command_list, stdout=fp1, stderr=fp2, env=envs, preexec_fn=set_ulimit
             )
@@ -326,6 +331,7 @@ class CollectEmulator(CollectMockup):
             self.log.error("Error in GPhL collection emulation")
             raise
         finally:
+            diffr.update_state(diffr.STATES.READY)
             fp1.close()
         process = gphl_connection.collect_emulator_process
         gphl_connection.collect_emulator_process = None

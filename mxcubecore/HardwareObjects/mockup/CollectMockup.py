@@ -55,6 +55,10 @@ class CollectMockup(AbstractCollect):
         """Main collection hook"""
         self.emit("collectStarted", (None, 1))
         self.emit("fsmConditionChanged", "data_collection_started", True)
+
+        diffr = HWR.beamline.diffractometer
+        diffr.set_phase(diffr.get_phase_enum.COLLECT)
+
         self.store_image_in_lims_by_frame_num(1)
         number_of_images = self.current_dc_parameters["oscillation_sequence"][0][
             "number_of_images"
