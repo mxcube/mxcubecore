@@ -124,6 +124,10 @@ class Beamline(HardwareObject):
         return self.get_object_by_role("flux")
 
     @property
+    def dose_rate(self) -> HardwareObject | None:
+        return self.get_object_by_role("dose_rate")
+
+    @property
     def beam(self) -> HardwareObject | None:
         return self.get_object_by_role("beam")
 
