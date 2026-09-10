@@ -28,25 +28,21 @@ Example yaml file:
  class: BlissNState.BlissNState
  configuration:
     actuator_name: detcover
+    prefix: detcov   # optional
     type: actuator   # actuaror or motor, default value actuator
     username: Detector Cover
     values: {"IN": "IN", "OUT": "OUT"}  # optional
+  objects:
+    controller: bliss.yml
 """
 
-import logging
 from enum import Enum
 
-from gevent import Timeout
-
-from mxcubecore import HardwareRepository as HWR
-from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.HardwareObjects.abstract.AbstractNState import (
     AbstractNState,
     BaseValueEnum,
 )
 from mxcubecore.HardwareObjects.BlissMotor import BlissMotor
-
-_log = logging.getLogger("MX3.HWR")
 
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
@@ -60,82 +56,70 @@ class BlissNState(AbstractNState):
         self._bliss_obj = None
         self.device_type = None
         self.__saved_state = None
-        self._motor_callback = None
+        self._prefix = None
 
     def init(self):
         """Initialise the device"""
 
         super().init()
-        self._bliss_obj = None
-        try:
-            bliss_proxy = HWR.beamline.bliss_proxy
-            bliss_proxy.hardware.register(self.actuator_name)
-            self._bliss_obj = bliss_proxy.get_object(self.actuator_name)
-        except Exception as exc:
-            msg = f"BlissNState: {self.actuator_name} not available {exc}"
-            _log.warning(msg)
+        self._prefix = self.get_property("prefix")
+        self._bliss_obj = getattr(
+            self.get_object_by_role("controller"), self.actuator_name
+        )
 
         self.device_type = self.get_property("type", "actuator")
-        try:
-            if "multiposition" in self._bliss_obj.type:
-                self.device_type = "motor"
-        except AttributeError:
-            pass
+        if "MultiplePositions" in self._bliss_obj.__class__.__name__:
+            self.device_type = "motor"
 
         self.initialise_values()
-
         self.__saved_state = self.get_value().value
-
-        if self._bliss_obj is not None:
-            self._bliss_obj.subscribe("property", self._on_property_changed)
-            self._bliss_obj.subscribe("online", self._on_online_changed)
+        if self.device_type == "actuator":
+            self.connect(self._bliss_obj, "state", self._update_value)
+            self.connect(self._bliss_obj, "state", self._update_state)
+        elif self.device_type == "motor":
+            self.connect(self._bliss_obj, "position", self._update_value)
+            self.connect(self._bliss_obj, "state", self._update_state_motor)
 
         self.update_value()
         self.update_state()
 
-    def _on_online_changed(self, online: bool) -> None:
-        """Callback for online/offline events received via blissclient."""
-        if not online:
-            self.update_state(HardwareObjectState.UNKNOWN)
+    # NB: Bliss calls the update handler with the state so its needed in the
+    # method definition
+    def _update_state(self, state=None):
+        self.update_state(self.STATES.READY)
+
+    def _update_value(self, value=None):
+        if value:
+            self.update_value(self.value_to_enum(value))
         else:
             self.update_value()
-            self.update_state()
-
-    def _on_property_changed(self, data: dict) -> None:
-        """Callback for property changes received via blissclient."""
-        if "position" in data or "state" in data:
-            self.update_value(self.get_value())
-            self.update_state(self.get_state())
 
     def get_value(self):
         """Get the device value
         Returns:
             (Enum): Enum member, corresponding to the value or UNKNOWN.
         """
-        if self._bliss_obj is None or self.device_type is None:
-            return self.VALUES.UNKNOWN
         if self.device_type == "motor":
             return self.value_to_enum(self._bliss_obj.position)
-        if self.device_type == "actuator":
-            state_val = self._bliss_obj.state
-            if isinstance(state_val, list):
-                _val = state_val[0] if state_val else "UNKNOWN"
-            else:
-                _val = state_val or "UNKNOWN"
 
-            return self.value_to_enum(_val)
-        return self.VALUES.UNKNOWN
+        if self.device_type == "actuator":
+            if self._prefix:
+                _attr = self._prefix + "_is_in"
+                _cmd = getattr(self._bliss_obj, _attr)
+                if isinstance(_cmd, bool):
+                    _val = _cmd
+                else:
+                    _val = _cmd()
+            else:
+                _val = self._bliss_obj.state
+
+        return self.value_to_enum(_val)
 
     def _set_value(self, value):
         """Set device to value.
         Args:
             value (str or enum): target value
         """
-        if self._bliss_obj is None:
-            raise RuntimeError(
-                f"BlissNState '{self.actuator_name}' is offline — "
-                "BLISS object not available"
-            )
         self.update_state(self.STATES.BUSY)
         if isinstance(value, Enum):
             self.__saved_state = value.name
@@ -145,57 +129,46 @@ class BlissNState(AbstractNState):
                 svalue = value.value
         else:
             self.__saved_state = value.upper()
-
+        # are we sure we never get to need svalue below without setting it first?
         if self.device_type == "motor":
-            # with blissclient this is a non blocking move
-            self._motor_callback = self._bliss_obj.move(svalue)
+            self._bliss_obj.move(svalue, wait=False)
         elif self.device_type == "actuator":
-            if value.name == "IN":  # tried value but only name working
-                self._motor_callback = self._bliss_obj.move_in()
-            if value.name == "OUT":
-                self._motor_callback = self._bliss_obj.move_out()
-
-    def _get_state_str(self) -> str:
-        """Return the current state as an uppercase string.
-        Handles both list (actuator/motor axis) and plain string (multiposition).
-        """
-        try:
-            state_val = self._bliss_obj.state
-            if state_val is None:
-                # multiposition may not expose state at top level; use properties
-                state_val = self._bliss_obj.properties.get("state")
-            if isinstance(state_val, list):
-                return state_val[0].upper() if state_val else "UNKNOWN"
-            return str(state_val).upper() if state_val else "UNKNOWN"
-        except (AttributeError, IndexError):
-            return "UNKNOWN"
+            if self._prefix:
+                _attr = self._prefix + "_" + value.name.lower()
+            else:
+                _attr = "set_" + svalue.lower()
+            _cmd = getattr(self._bliss_obj, _attr)
+            _cmd()
 
     def get_state(self):
+        """Get the device state.
+        Returns:
+            (enum 'HardwareObjectState'): Device state.
+        """
         try:
-            _state = self._bliss_obj.state
-        except AttributeError:
+            _state = self._bliss_obj.state.upper()
+        except (AttributeError, KeyError):
             return self.STATES.UNKNOWN
 
-        if _state == "ERROR":
-            return self.STATES.FAULT
-
         if self.device_type == "motor":
-            return BlissMotor.SPECIFIC_TO_HWR_STATE[_state]
+            try:
+                return BlissMotor.SPECIFIC_TO_HWR_STATE[_state]
+            except KeyError:
+                return self.STATES.UNKNOWN
 
-        if self.device_type == "actuator":
-            if _state in ("IN", "OUT"):
-                if self.__saved_state == _state:
-                    return self.STATES.READY
-                return self.STATES.BUSY
+        if _state in ("IN", "OUT"):
+            if self.__saved_state == _state:
+                return self.STATES.READY
+            return self.STATES.BUSY
         return self.STATES.UNKNOWN
 
-    def wait_ready(self, timeout: float | None = None):
-        if self._motor_callback is None:
-            return
-        with Timeout(timeout, RuntimeError("Timeout waiting for device to be ready")):
-            self._motor_callback.get(monitor_interval=0.2)
-        self.update_state()
-        self.update_value()
+    def _update_state_motor(self, state):
+        """Update the state for the motor type."""
+        try:
+            state = BlissMotor.SPECIFIC_TO_HWR_STATE[state.upper()]
+        except KeyError:
+            state = self.STATES.UNKNOWN
+        return self.update_state(state)
 
     def initialise_values(self):
         """Get the predefined values. Create the VALUES Enum
@@ -206,15 +179,13 @@ class BlissNState(AbstractNState):
             super().initialise_values()
         if self.device_type == "motor":
             try:
-                positions = self._bliss_obj.properties.get("positions", [])
                 values = {
-                    pos["position"].upper(): pos["position"]
-                    for pos in positions
-                    if "position" in pos
+                    val["label"].upper(): val["label"]
+                    for val in self._bliss_obj.positions_list
                 }
                 self.VALUES = Enum(
                     "ValueEnum",
                     dict(values, **{item.name: item.value for item in BaseValueEnum}),
                 )
-            except (AttributeError, KeyError, TypeError):
+            except AttributeError:
                 super().initialise_values()
