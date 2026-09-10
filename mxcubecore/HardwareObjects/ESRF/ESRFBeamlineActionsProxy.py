@@ -17,7 +17,7 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 """Execute commands and toggle two state actions
 Example xml file:
-<object class = "ESRF.ESRFBeamlineActions">
+<object class = "ESRF.ESRFBeamlineActionsProxy">
   <object role="controller" href="/bliss"/>
   <object role="hutchtrigger"  href="/hutchtrigger"/>
   <object role="scintillator" href="/udiff_scint"/>
@@ -37,6 +37,7 @@ Example xml file:
 
 from ast import literal_eval
 
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.BeamlineActions import (
     BeamlineActions,
     ControllerCommand,
@@ -47,13 +48,23 @@ __copyright__ = """ Copyright © 2010-2023 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
 
-class ESRFBeamlineActions(BeamlineActions):
-    """Beam action commands"""
+class ESRFBeamlineActionsProxy(BeamlineActions):
+    """Beam action commands, running controller commands in the BLISS
+    session via BlissProxy when available."""
 
     def __init__(self, *args):
         super().__init__(*args)
         self.ctrl_list = []
         self.hwobj_list = []
+
+    @staticmethod
+    def _bliss_session_call(function_name):
+        """Build a callable that runs 'function_name' in the BLISS session
+        via the BlissProxy REST client and blocks for the result.
+        """
+        return lambda *args, **kwargs: HWR.beamline.bliss_proxy.session.call(
+            function_name, *args, **kwargs
+        ).get()
 
     def init(self):
         """Initialise the controller commands and the actuator object
@@ -63,13 +74,23 @@ class ESRFBeamlineActions(BeamlineActions):
 
         if ctrl_cmds:
             controller = self.get_object_by_role("controller")
+            bliss_proxy = getattr(HWR.beamline, "bliss_proxy", None)
             for key, name in ctrl_cmds.items():
-                try:
-                    action = getattr(controller, key)
+                if bliss_proxy is not None:
+                    # Prefer running the command in the BLISS session;
+                    action = self._bliss_session_call(key)
+                elif controller is not None:
+                    try:
+                        action = getattr(controller, key)
+                    except AttributeError:
+                        action = None
+                else:
+                    action = None
+
+                if action is not None:
                     self.ctrl_list.append(ControllerCommand(name, action))
-                except AttributeError:
-                    # self.log.exception("")
-                    pass
+                else:
+                    self.log.warning(f"Could not resolve controller command '{key}'")
 
         hwobj_cmd_roles = self.get_property("hwobj_command_roles")
         if hwobj_cmd_roles:
