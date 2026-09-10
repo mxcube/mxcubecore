@@ -29,18 +29,14 @@ Example yml configuration:
 """
 
 import enum
-import logging
 
-from gevent import Timeout
+from bliss.config import static
 
-from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import HardwareObjectState
 from mxcubecore.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
-
-log = logging.getLogger(__name__)
 
 
 @enum.unique
@@ -77,8 +73,6 @@ class BlissMotor(AbstractMotor):
         "FAULT": HardwareObjectState.FAULT,
         "LIMPOS": HardwareObjectState.READY,
         "LIMNEG": HardwareObjectState.READY,
-        "HIGHLIMIT": HardwareObjectState.READY,
-        "LOWLIMIT": HardwareObjectState.READY,
         "HOME": HardwareObjectState.READY,
         "OFF": HardwareObjectState.OFF,
         "DISABLED": HardwareObjectState.OFF,
@@ -88,46 +82,19 @@ class BlissMotor(AbstractMotor):
     def __init__(self, name):
         super().__init__(name)
         self.motor_obj = None
-        self._motor_callback = None
 
     def init(self):
         """Initialise the motor"""
         super().init()
-        try:
-            bliss_proxy = HWR.beamline.bliss_proxy
-            # need to register the motor first
-            bliss_proxy.hardware.register(self.actuator_name)
-            self.motor_obj = bliss_proxy.get_object(self.actuator_name)
-        except Exception as exc:
-            log.warning(
-                "BlissMotor '%s': BLISS object not available (%s). Offline mode.",
-                self.actuator_name,
-                exc,
-            )
-            self.motor_obj = None
-            return
+        cfg = static.get_config()
+        self.motor_obj = cfg.get(self.actuator_name)
 
         # init state to match motor's one
         self.update_state(self.get_state())
-        self.update_limits(self.get_limits())
-        self.update_value(self.get_value())
 
-        self.motor_obj.subscribe("property", self._on_property_changed)
-        self.motor_obj.subscribe("online", self._on_online_changed)
-
-    def _on_online_changed(self, online: bool) -> None:
-        """Callback for motor online/offline events received via blissclient."""
-        if not online:
-            self.update_state(HardwareObjectState.UNKNOWN)
-        else:
-            self._update_state()
-
-    def _on_property_changed(self, data: dict) -> None:
-        """Callback for property changes received via blissclient."""
-        if "position" in data:
-            self.update_value(data["position"])
-        if "state" in data:
-            self._update_state()
+        self.connect(self.motor_obj, "position", self.update_value)
+        self.connect(self.motor_obj, "state", self._update_state)
+        self.connect(self.motor_obj, "move_done", self._update_state)
 
     def _state2enum(self, state):
         """Translate the state to HardwareObjectState and BlissMotorStates
@@ -149,22 +116,19 @@ class BlissMotor(AbstractMotor):
         Returns:
             (enum HardwareObjectState): Motor state.
         """
-        # Via BlissProxy the REST API returns state as a list of strings.
-        # Wrap in try/except: motor_obj.state makes a REST call that can fail
-        # transiently while the BLISS session is loading at startup.
-        try:
-            bliss_states = self.motor_obj.state or []
-        except Exception:
-            return HardwareObjectState.UNKNOWN
         state = HardwareObjectState.UNKNOWN
-        for stat in bliss_states:
+        for stat in self.motor_obj.state.current_states_names:
             try:
                 return HardwareObjectState[stat]
             except KeyError:
-                if stat in ("DISABLED", "OFF"):
+                if stat == "DISABLED":
+                    # we need to treat DISABLED before any other auxiliary state
                     return HardwareObjectState.OFF
                 if stat == "MOVING":
+                    # MOVING has higher priority than other auxiliary states
                     return HardwareObjectState.BUSY
+                # finally the state will corresponf to the last in the list
+                # of the auxiliary states.
                 state = self._state2enum(stat)[0]
         return state
 
@@ -173,15 +137,23 @@ class BlissMotor(AbstractMotor):
         Returns:
             (list): Motor states as list of BlissMotorStates enum
         """
-        state_list = []
-        for _state in self.motor_obj.state or []:
-            state_list.append(self._state2enum(_state)[1])
-        return state_list
+        state = self.motor_obj.state.current_states_names
+        return [self._state2enum(x)[1] for x in state]
 
-    def _update_state(self):
-        """Refresh state from the motor object and emit stateChanged if it changed."""
-        _state = self.get_state()
+    def _update_state(self, state=None):
+        """Check if the state has changed. Emits signal stateChanged.
+        Args:
+            state (enum AxisState): state from a BLISS motor
+        """
+        if isinstance(state, bool):
+            # It seems like the current version of BLISS gives us a boolean
+            # at first and last event, True for ready and False for moving
+            _state = HardwareObjectState.READY if state else HardwareObjectState.BUSY
+        else:
+            _state = self.get_state()
+        # actualise the  self._specific_state every time
         self._specific_state = self.get_specific_state()
+        # this will emit stateChanged if _state different from the previous one
         self.update_state(_state)
 
     def get_value(self):
@@ -189,30 +161,26 @@ class BlissMotor(AbstractMotor):
         Returns:
             float: Motor position.
         """
-        try:
-            pos = self.motor_obj.position
-        except Exception:
-            return self._nominal_value if self._nominal_value is not None else None
-        if pos is None:
-            # motor_obj.position can be None during init or if REST call returns null
-            return self._nominal_value if self._nominal_value is not None else 0.0
-        return pos
+        return self.motor_obj.position
 
     def get_limits(self):
         """Returns motor low and high limits.
         Returns:
             (tuple): two floats tuple (low limit, high limit).
         """
+        # no limit = None, but None is a problematic value for some
+        # GUI components (like MotorSpinBox), so instead we return
+        # very large value. The same is if limits contain -inf or +inf.
 
-        _yaml_low = self.get_property("low_limit")
-        _yaml_high = self.get_property("high_limit")
-        if _yaml_low is not None and _yaml_high is not None:
-            self._nominal_limits = (float(_yaml_low), float(_yaml_high))
-        else:
-            _low, _high = self.motor_obj.limits
-            _low = _low if _low else -1e6
-            _high = _high if _high else 1e6
-            self._nominal_limits = (_low, _high)
+        _low, _high = self.motor_obj.limits
+        _low = _low or -1e6
+        _high = _high or 1e6
+        if _low in (float("-inf"), float("+inf")):
+            _low = -1e6 if _low < 0 else 1e6
+        if _high in (float("-inf"), float("+inf")):
+            _high = -1e6 if _high < 0 else 1e6
+
+        self._nominal_limits = (_low, _high)
         return self._nominal_limits
 
     def get_velocity(self):
@@ -228,42 +196,8 @@ class BlissMotor(AbstractMotor):
         Args:
             value (float): target value
         """
-        if self.motor_obj is None:
-            log.error(
-                "BlissMotor._set_value: no motor_obj for actuator '%s'",
-                self.actuator_name,
-            )
-            raise RuntimeError(
-                "Motor object not found for actuator '%s'" % (self.actuator_name,)
-            )
-
-        self.update_state(HardwareObjectState.BUSY)
-        try:
-            self._motor_callback = self.motor_obj.move(value)
-        except Exception:
-            log.exception(
-                "Error while calling move() on motor_obj (actuator=%s)",
-                self.actuator_name,
-            )
-            raise
+        self.motor_obj.move(value, wait=False)
 
     def abort(self):
         """Stop the motor movement"""
-        # self._motor_callback.kill()
-        try:
-            self.motor_obj.stop()
-        except Exception:
-            log.exception(
-                "Error while calling stop() on motor_obj (actuator=%s)",
-                self.actuator_name,
-            )
-        self._update_state()
-        self.update_value(self.get_value())
-
-    def wait_ready(self, timeout: float | None = None):
-        if self._motor_callback is None:
-            return
-        with Timeout(timeout, RuntimeError("Timeout waiting for motor to be ready")):
-            self._motor_callback.get(monitor_interval=0.2)
-        self.update_state()
-        self.update_value()
+        self.motor_obj.stop(wait=False)
