@@ -1,0 +1,114 @@
+#  Project name: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU General Lesser Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+"""Execute commands and toggle two state actions
+Example xml file:
+<object class = "ESRF.ESRFBeamlineActionsProxy">
+  <object role="controller" href="/bliss"/>
+  <object role="hutchtrigger"  href="/hutchtrigger"/>
+  <object role="scintillator" href="/udiff_scint"/>
+  <object role="detector_cover" href="/detcover"/>
+  <object role="aperture" href="/udiff_apertureinout"/>
+  <object role="cryostream" href="/udiff_cryo"/>
+  <controller_commands>
+    <centrebeam>Centre beam</centrebeam>
+    <quick_realign>Quick realign</quick_realign>
+    <anneal_procedure>Anneal</anneal_procedure>
+  </controller_commands>
+  <hwobj_commands>
+    ["hutchtrigger", "scintillator", "detector_cover", "aperture", "cryostream"]
+  </hwobj_commands>
+</object>
+"""
+
+from ast import literal_eval
+
+from mxcubecore import HardwareRepository as HWR
+from mxcubecore.HardwareObjects.BeamlineActions import (
+    BeamlineActions,
+    ControllerCommand,
+    HWObjActuatorCommand,
+)
+
+__copyright__ = """ Copyright © 2010-2023 by the MXCuBE collaboration """
+__license__ = "LGPLv3+"
+
+
+class ESRFBeamlineActionsProxy(BeamlineActions):
+    """Beam action commands, running controller commands in the BLISS
+    session via BlissProxy when available."""
+
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.ctrl_list = []
+        self.hwobj_list = []
+
+    @staticmethod
+    def _bliss_session_call(function_name):
+        """Build a callable that runs 'function_name' in the BLISS session
+        via the BlissProxy REST client and blocks for the result.
+        """
+        return lambda *args, **kwargs: HWR.beamline.bliss_proxy.session.call(
+            function_name, *args, **kwargs
+        ).get()
+
+    def init(self):
+        """Initialise the controller commands and the actuator object
+        to be used.
+        """
+        ctrl_cmds = self.get_property("controller_commands")
+
+        if ctrl_cmds:
+            controller = self.get_object_by_role("controller")
+            bliss_proxy = getattr(HWR.beamline, "bliss_proxy", None)
+            for key, name in ctrl_cmds.items():
+                if bliss_proxy is not None:
+                    # Prefer running the command in the BLISS session;
+                    action = self._bliss_session_call(key)
+                elif controller is not None:
+                    try:
+                        action = getattr(controller, key)
+                    except AttributeError:
+                        action = None
+                else:
+                    action = None
+
+                if action is not None:
+                    self.ctrl_list.append(ControllerCommand(name, action))
+                else:
+                    self.log.warning(f"Could not resolve controller command '{key}'")
+
+        hwobj_cmd_roles = self.get_property("hwobj_command_roles")
+        if hwobj_cmd_roles:
+            if isinstance(hwobj_cmd_roles, str):
+                hwobj_cmd_roles = literal_eval(hwobj_cmd_roles.strip())
+            for role in hwobj_cmd_roles:
+                try:
+                    hwobj_cmd = self.get_object_by_role(role)
+                    self.hwobj_list.append(
+                        HWObjActuatorCommand(hwobj_cmd.username, hwobj_cmd)
+                    )
+                except AttributeError:
+                    # self.log.exception("")
+                    pass
+
+    def get_commands(self):
+        """Get which objects to be used in the GUI
+        Returns:
+            (list): List of object
+        """
+        return self.ctrl_list + self.hwobj_list
