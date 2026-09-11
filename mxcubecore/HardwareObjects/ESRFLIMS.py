@@ -27,7 +27,7 @@ class ESRFLIMS(AbstractLims):
         self.active_lims = self.drac.get_lims_name()[0]
 
     def get_lims_name(self) -> List[Lims]:
-        return self.drac.get_lims_name() + self.ispyb.get_lims_name()
+        return self.drac.get_lims_name()
 
     def get_session_id(self) -> str:
         logger.debug("Setting up drac session_id=%s" % (self.drac.get_session_id()))

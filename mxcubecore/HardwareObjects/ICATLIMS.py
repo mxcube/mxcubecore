@@ -310,10 +310,14 @@ class ICATLIMS(AbstractLims):
                 item["value"] = {"filepath": file_path_lookup[value]}
             if key == "search_models":
                 models = value
-                if isinstance(models, str):
+                if isinstance(models, str) and len(models) > 0:
                     try:
                         models = json.loads(models)
                     except json.JSONDecodeError:
+                        logger.exception(
+                            "[ICATClient] Error converting models to JSON. Input: %s",
+                            models,
+                        )
                         models = []
                 for model in models:
                     group = model.get("pdb_group")
