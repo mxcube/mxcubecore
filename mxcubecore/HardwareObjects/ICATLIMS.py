@@ -1102,7 +1102,9 @@ class ICATLIMS(AbstractLims):
         msg += f"investigations={len(self.investigations)}"
         logger.debug(msg)
 
-        investigation_list = list(filter(lambda p: p["id"] == sid, self.investigations))
+        investigation_list = list(
+            filter(lambda p: str(p.id) == sid, self.investigations)
+        )
         if len(investigation_list) == 1:
             self.investigation = investigation_list[0]
             return self.__to_session(investigation_list[0])
@@ -1338,14 +1340,25 @@ class ICATLIMS(AbstractLims):
 
     def _get_investigation_info(self) -> Tuple[Optional[str], Optional[str]]:
         """Return the (id, proposal name) of the currently active ICAT
-        investigation/session, or (None, None) if there is none."""
+        investigation/session, or (None, None) if there is none.
+
+        The proposal name is built the same way (proposal_code +
+        proposal_number, no separator) as the "proposal" argument passed
+        to IcatClient.store_dataset() elsewhere in this class. Using
+        session.proposal_name here instead (e.g. "blc-17317" vs
+        "blc17317") makes pyicat-plus warn that the metadata's embedded
+        proposal doesn't match the serialization argument.
+        """
         investigation_id = None
         investigation_name = None
         if self.session_manager.active_session.session_id:
             investigation_id = self.session_manager.active_session.session_id
             session = self.get_session_by_id(investigation_id)
             if session is not None:
-                investigation_name = session.proposal_name
+                investigation_name = (
+                    f"{HWR.beamline.session.proposal_code}"
+                    f"{HWR.beamline.session.proposal_number}"
+                )
         return investigation_id, investigation_name
 
     def _get_actual_instrument(self) -> Optional[str]:
@@ -1450,6 +1463,13 @@ class ICATLIMS(AbstractLims):
                 path=str(directory),
                 metadata=metadata,
             )
+            logger.info(
+                "Uploaded dataset %s to ICAT (beamline=%s, proposal=%s, path=%s)",
+                directory.name,
+                beamline,
+                proposal,
+                directory,
+            )
         except Exception:
             logging.getLogger("ispyb_client").exception()
 
@@ -1504,6 +1524,13 @@ class ICATLIMS(AbstractLims):
                 dataset=str(directory.name),
                 path=str(directory),
                 metadata=metadata,
+            )
+            logger.info(
+                "Uploaded dataset %s to ICAT (beamline=%s, proposal=%s, path=%s)",
+                directory.name,
+                beamline,
+                proposal,
+                directory,
             )
         except Exception:
             logging.getLogger("ispyb_client").exception()
@@ -1597,8 +1624,6 @@ class ICATLIMS(AbstractLims):
             self._upload_metadata(gathered)
         except LimsMetadataUploadError as e:
             logger.warning("Failed uploading to ICAT. %s", e)
-        else:
-            logger.debug("Done uploading to ICAT")
 
     def _gather_metadata(self, datacollection_dict: dict) -> dict:
         """Assemble the ICAT metadata for a finished data collection.
@@ -1644,6 +1669,7 @@ class ICATLIMS(AbstractLims):
             icat_metadata_path = Path(directory) / "metadata.json"
             with Path(icat_metadata_path).open("w") as f:
                 f.write(json.dumps(gathered["file_metadata"], indent=4))
+            logger.info("Wrote ICAT metadata to %s", icat_metadata_path)
 
             # Create ICAT gallery
             try:
@@ -1666,6 +1692,13 @@ class ICATLIMS(AbstractLims):
                 dataset=gathered["dataset_name"],
                 path=str(gathered["directory"]),
                 metadata=gathered["metadata"],
+            )
+            logger.info(
+                "Uploaded dataset %s to ICAT (beamline=%s, proposal=%s, path=%s)",
+                gathered["dataset_name"],
+                gathered["beamline"],
+                gathered["proposal"],
+                gathered["directory"],
             )
         except Exception as e:
             raise LimsMetadataUploadError(str(e)) from e
