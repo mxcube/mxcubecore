@@ -43,6 +43,20 @@ __credits__ = ["MXCuBE collaboration"]
 StoreEvent = Literal["CREATE", "UPDATE", "END"]
 
 
+class LimsMetadataGatherError(Exception):
+    """Raised when assembling the metadata for finalize_data_collection fails."""
+
+
+class LimsMetadataWriteError(Exception):
+    """Raised when writing finalize_data_collection metadata to the local
+    file system fails."""
+
+
+class LimsMetadataUploadError(Exception):
+    """Raised when uploading finalize_data_collection metadata to a remote
+    LIMS backend (ICAT or ISPyB) fails."""
+
+
 class AbstractLims(HardwareObject, abc.ABC):
     """Interface for LIMS integration"""
 
@@ -529,18 +543,18 @@ class AbstractLims(HardwareObject, abc.ABC):
                 self.session_manager = LimsSessionManager()
 
 
-    def add_user_and_shared_sessions(self, icat_session: dict, sessions: List[Session]):
+    def add_user_and_shared_sessions(self, icat_session, sessions: List[Session]):
         """
         Stores the username and the shared sessions in the session manager object.
         The shared sessions represent the intersection of all sessions
         for each user currently connected.
         """
-        self.session_manager.users[icat_session["name"]] = LimsUser(
-            user_name=icat_session["name"], sessions=sessions, icat_session=icat_session
+        self.session_manager.users[icat_session.name] = LimsUser(
+            user_name=icat_session.name, sessions=sessions
         )
         self.log.debug(
             "User added to session manager, user_name=%s sessions=%s"
-            % (icat_session["name"], len(sessions))
+            % (icat_session.name, len(sessions))
         )
 
         self.__set_sessions(self.get_shared_sessions())
