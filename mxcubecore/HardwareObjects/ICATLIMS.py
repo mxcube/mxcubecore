@@ -64,7 +64,7 @@ class ICATLIMS(AbstractLims):
         self.url = self.get_property("ws_root")
         self.activemq_url = self.get_property("queue_urls")
         self.authentication_icat_plugin = self.get_property(
-            "authentication_icat_plugin"
+            "authentication_icat_plugin", "esrf"
         )
         self.investigations = []
         self.samples = []
@@ -396,7 +396,10 @@ class ICATLIMS(AbstractLims):
                 )
             except RuntimeError:
                 logger.exception("Failed __add_download_path_to_processing_plan")
-        return {item["key"]: item["value"] for item in tracking_sample.processing_plan}
+        return {
+            item.key: (item.value.actual_instance if item.value is not None else None)
+            for item in tracking_sample.processing_plan
+        }
 
     def __download_resource(
         self,
@@ -735,17 +738,17 @@ class ICATLIMS(AbstractLims):
     def __to_session(self, investigation: icat_models.InvestigationDetails) -> Session:
         """This methods converts a ICAT investigation into a session"""
         actual_start_date = (
-            investigation["parameters"]["actualStartDate"]
-            if "actualStartDate" in investigation["parameters"]
-            else investigation["startDate"]
+            investigation.parameters["actualStartDate"]
+            if "actualStartDate" in investigation.parameters
+            else investigation.start_date
         )
         actual_end_date = (
-            investigation["parameters"]["actualEndDate"]
-            if "actualEndDate" in investigation["parameters"]
-            else investigation.get("endDate", None)
+            investigation.parameters["actualEndDate"]
+            if "actualEndDate" in investigation.parameters
+            else investigation.end_date
         )
 
-        instrument_name = investigation["instrument"]["name"]
+        instrument_name = investigation.instrument.name
 
         # If session has been rescheduled new date is overwritten
         return Session(
@@ -774,16 +777,10 @@ class ICATLIMS(AbstractLims):
             data_portal_URL=self._get_data_portal_url(investigation),
             user_portal_URL=self._get_user_portal_url(investigation),
             logbook_URL=self._get_logbook_url(investigation),
-            is_rescheduled=bool("actualEndDate" in investigation["parameters"]),
-            volume=self.__get_investigation_parameter_by_name(
-                investigation, "__volume"
-            ),
-            sample_count=self.__get_investigation_parameter_by_name(
-                investigation, "__sampleCount"
-            ),
-            dataset_count=self.__get_investigation_parameter_by_name(
-                investigation, "__datasetCount"
-            ),
+            is_rescheduled=bool("actualEndDate" in investigation.parameters),
+            volume=investigation.parameters.get("__volume", "0"),
+            sample_count=investigation.parameters.get("__sampleCount", "0"),
+            dataset_count=investigation.parameters.get("__datasetCount", "0"),
         )
 
     def get_full_user_name(self):
