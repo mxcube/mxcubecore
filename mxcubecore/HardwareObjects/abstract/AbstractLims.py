@@ -528,7 +528,6 @@ class AbstractLims(HardwareObject, abc.ABC):
             if len(self.session_manager.users) == 0:
                 self.session_manager = LimsSessionManager()
 
-
     def add_user_and_shared_sessions(self, icat_session: dict, sessions: List[Session]):
         """
         Stores the username and the shared sessions in the session manager object.
