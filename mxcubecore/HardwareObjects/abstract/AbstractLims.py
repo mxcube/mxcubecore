@@ -501,23 +501,45 @@ class AbstractLims(HardwareObject, abc.ABC):
         return list(shared_sessions.values())
 
     def remove_user(self, user_name: str):
-        if user_name in self.session_manager.users:
-            del self.session_manager.users[user_name]
-            self.log.debug("User %s has been removed" % user_name)
+        user_found = ""
+
+        for key, _ in self.session_manager.users.items():
+            if user_name == key.split("/")[0]:
+                user_found = key
+                break
+
+        if user_found:
+            active_session = self.session_manager.active_session
+            user = self.session_manager.users[key]
+            if active_session and any(
+                session.session_id == active_session.session_id
+                for session in user.sessions
+            ):
+                self.log.debug(
+                    "User %s was not removed because session %s is active"
+                    % (key, active_session.session_id)
+                )
+                return
+
+            del self.session_manager.users[key]
+            self.log.debug("User %s has been removed" % key)
             self.__set_sessions(self.get_shared_sessions())
 
-    def add_user_and_shared_sessions(self, user_name: str, sessions: List[Session]):
+            if len(self.session_manager.users) == 0:
+                self.session_manager = LimsSessionManager()
+
+    def add_user_and_shared_sessions(self, icat_session: dict, sessions: List[Session]):
         """
         Stores the username and the shared sessions in the session manager object.
         The shared sessions represent the intersection of all sessions
         for each user currently connected.
         """
-        self.session_manager.users[user_name] = LimsUser(
-            user_name=user_name, sessions=sessions
+        self.session_manager.users[icat_session["name"]] = LimsUser(
+            user_name=icat_session["name"], sessions=sessions, icat_session=icat_session
         )
         self.log.debug(
             "User added to session manager, user_name=%s sessions=%s"
-            % (user_name, len(sessions))
+            % (icat_session["name"], len(sessions))
         )
 
         self.__set_sessions(self.get_shared_sessions())

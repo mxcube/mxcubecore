@@ -50,9 +50,8 @@ class ISPyBLims(UserTypeISPyBLims):
         return True, None
 
     def set_active_session_by_id(self, session_id: str) -> Session:
-        """Sets session with session_id to active session.
-
-        It is possible that user picks the session that does not exist in the database yet, so called lazy session created on the fly. In that case the session POST request is sent to the server in order to create the session in the database and get the proper session id.
+        """
+        Sets session with session_id to active session
 
         Args:
             session_id: session id

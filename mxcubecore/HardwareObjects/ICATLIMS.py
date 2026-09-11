@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, List, Optional
 from zoneinfo import ZoneInfo
 
+from gevent.lock import RLock
 from pyicat_plus import errors as icat_errors
 from pyicat_plus.client import models as icat_models
 from pyicat_plus.client.main import IcatClient
@@ -57,7 +58,11 @@ class ICATLIMS(AbstractLims):
         super().__init__(name)
         HardwareObject.__init__(self, name)
         self.investigations = None
-        self.icatClient = None
+        self._icat_client_dict = {}
+        self._active_user = None
+        self._icat_session_dict = {}
+        self._active_user_lock = RLock()
+        self.lims_rest = None
         self.activemq_url = None
 
     def init(self):
@@ -70,12 +75,26 @@ class ICATLIMS(AbstractLims):
         self.samples = []
         self._downloads_cache = {}
 
-        # Initialize ICAT client
-        self.icatClient = IcatClient(
-            icatplus_restricted_url=self.url,
-            metadata_urls=[self.activemq_url],
-            reschedule_investigation_urls=[self.activemq_url],
-        )
+    @property
+    def _icat_client(self):
+        with self._active_user_lock:
+            active_user = self._active_user
+        self.log.debug("Using ICAT client for user: %s", active_user)
+        try:
+            return self._icat_client_dict[active_user]
+        except KeyError:
+            msg = f"No active ICAT client for user {active_user!r}"
+            raise RuntimeError(msg) from None
+
+    @property
+    def icat_session(self):
+        with self._active_user_lock:
+            active_user = self._active_user
+        try:
+            return self._icat_session_dict[active_user]
+        except KeyError:
+            msg = f"No active ICAT session for user {active_user!r}"
+            raise RuntimeError(msg) from None
 
     def get_lims_name(self) -> List[Lims]:
         return [
@@ -85,14 +104,21 @@ class ICATLIMS(AbstractLims):
             ),
         ]
 
+    def _create_icat_client(self):
+        return IcatClient(
+            icatplus_restricted_url=self.url,
+            metadata_urls=[self.activemq_url],
+            reschedule_investigation_urls=[self.activemq_url],
+        )
+
     def _create_icat_session(
         self, user_name: str, password: str
-    ) -> icat_models.AuthSession:
+    ) -> tuple[icat_models.AuthSession, IcatClient]:
+        icat_client = self._create_icat_client()
         try:
             logger.debug(f"Authenticating {user_name}")
-            icat_session = self.icatClient.do_log_in(
+            icat_session = icat_client.do_log_in(
                 password=password,
-                username=user_name,
                 plugin=self.authentication_icat_plugin,
             )
         except icat_errors.ForbiddenException as e:
@@ -101,34 +127,51 @@ class ICATLIMS(AbstractLims):
         except icat_errors.ApiException as e:
             logger.error(f"Error occurred while authenticating {user_name}: {e}")
             raise
-        return icat_session
+        self.log.info(
+            "Successfully created icat session and logged in: "
+            f"fullName={icat_session.full_name}, url={self.url}"
+        )
+        return icat_session, icat_client
+
+    def set_active_user(self, username: str):
+        with self._active_user_lock:
+            if username not in self._icat_client_dict:
+                msg = f"User {username} has no active ICAT session"
+                logger.error(msg)
+                raise RuntimeError(msg)
+
+            self._active_user = username
+        self.log.info("Active ICAT user set to: %s", username)
 
     def login(
         self,
-        user_name: str,
+        username: str,
         password: str,
         session_manager: Optional[LimsSessionManager],
     ) -> LimsSessionManager:
-        self.icat_session: icat_models.AuthSession = self._create_icat_session(
-            user_name=user_name, password=password
-        )
+        logger.debug(f"ICAT authenticate {username}")
 
-        if self.icatClient is None:
-            msg = "Error initializing icatClient: "
-            msg += f"icatClient={self.url}"
-            logger.error(msg)
-            raise RuntimeError("Could not initialize icatClient")
+        icat_session, icat_client = self._create_icat_session(username, password)
+        with self._active_user_lock:
+            self._icat_client_dict[username] = icat_client
+            self._icat_session_dict[username] = icat_session
+        self.log.info(
+            "ICAT sessions are: %s", str(list(self._icat_session_dict.values()))
+        )
 
         # Connected to metadata icatClient
         msg = "Connected succesfully to ICAT: "
-        msg += f"fullName={self.icat_session.full_name}, url={self.url}"
+        msg += f"fullName={icat_session.full_name}, url={self.url}"
         logger.debug(msg)
+
+        if not self._active_user:
+            self.set_active_user(username)
 
         # Retrieving user's investigations
         sessions = self.to_sessions(self.__get_all_investigations())
 
         if len(sessions) == 0:
-            msg = f"No sessions available for user {user_name}"
+            msg = f"No sessions available for user {username}"
             raise RuntimeError(msg)
 
         msg = f"Successfully retrieved {len(sessions)} sessions"
@@ -150,10 +193,27 @@ class ICATLIMS(AbstractLims):
 
             if not session_found:
                 msg = f"Current session in-use (with id {session_id}) "
-                msg += f"not avaialble for user {user_name}"
+                msg += f"not avaialble for user {username}"
                 raise RuntimeError(msg)
 
-        return self.session_manager, self.icat_session.name, sessions
+        return self.session_manager, icat_session, sessions
+
+    def remove_user(self, user_name: str):
+        """Drop a signed-out user's ICAT client/session along with the
+        base-class session-manager bookkeeping. Never evicts the user
+        currently active (matches AbstractLims.remove_user, which refuses
+        to remove a user whose session is the active one)."""
+        with self._active_user_lock:
+            if user_name == self._active_user:
+                self.log.debug(
+                    "User %s was not removed because it is the active ICAT user",
+                    user_name,
+                )
+                return
+            self._icat_client_dict.pop(user_name, None)
+            self._icat_session_dict.pop(user_name, None)
+
+        super().remove_user(user_name)
 
     def is_user_login_type(self) -> bool:
         return True
@@ -169,7 +229,7 @@ class ICATLIMS(AbstractLims):
         """Return pucks with a defined sample changer location."""
         self.parcels = []
         try:
-            self.parcels = self.icatClient.get_parcels_by(
+            self.parcels = self._icat_client.get_parcels_by(
                 investigation_id=investigation_id
             )
             logger.debug(
@@ -244,7 +304,7 @@ class ICATLIMS(AbstractLims):
             # Download all sampleInformation for the investigation
             # This makes to perform a single call to the server instead of one per sample
             try:
-                sample_file_list = self.icatClient.get_sample_files_by(
+                sample_file_list = self._icat_client.get_sample_files_by(
                     investigation_id=str(investigation_id)
                 )
             except Exception as e:
@@ -611,7 +671,7 @@ class ICATLIMS(AbstractLims):
     def allow_session(self, session: Session):
         self.active_session = session
         logger.debug("allow_session investigationId=%s", session.session_id)
-        self.icatClient.reschedule_investigation(session.session_id)
+        self._icat_client.reschedule_investigation(session.session_id)
 
     def get_session_by_id(self, sid: str):
         msg = f"get_session_by_id investigationId={sid} "
@@ -644,7 +704,7 @@ class ICATLIMS(AbstractLims):
                 or self.icat_session.is_instrument_scientist
             ):
                 # Setting up of the session done by admin or staff
-                self.investigations = self.icatClient.get_investigations_by(
+                self.investigations = self._icat_client.get_investigations_by(
                     start_date=datetime.today()
                     - timedelta(days=float(self.before_offset_days)),
                     end_date=datetime.today()
@@ -661,11 +721,11 @@ class ICATLIMS(AbstractLims):
                     )
                     return []
 
-                self.investigations = self.icatClient.get_investigations_by(
+                self.investigations = self._icat_client.get_investigations_by(
                     ids=[self.session_manager.active_session.session_id],
                 )
             else:
-                self.investigations = self.icatClient.get_investigations_by(
+                self.investigations = self._icat_client.get_investigations_by(
                     filter=self.filter,
                     instrument_name=self.compatible_beamlines,
                     start_date=datetime.today()
@@ -803,7 +863,7 @@ class ICATLIMS(AbstractLims):
         """Return the sample records associated with an investigation."""
         samples_List = []
         try:
-            samples_List: List[icat_models.Sample] = self.icatClient.get_samples_by(
+            samples_List: List[icat_models.Sample] = self._icat_client.get_samples_by(
                 investigation_id=investigation_id
             )
             msg = f"Successfully retrieved {len(samples_List)} samples"
@@ -1089,7 +1149,7 @@ class ICATLIMS(AbstractLims):
                 }
             )
 
-            self.icatClient.store_dataset(
+            self._icat_client.store_dataset(
                 beamline=beamline,
                 proposal=proposal,
                 dataset=str(directory.name),
@@ -1137,7 +1197,7 @@ class ICATLIMS(AbstractLims):
             metadata = params.to_icat_dict()
             metadata.update(extra)
 
-            self.icatClient.store_dataset(
+            self._icat_client.store_dataset(
                 beamline=beamline,
                 proposal=proposal,
                 dataset=str(directory.name),
@@ -1194,6 +1254,11 @@ class ICATLIMS(AbstractLims):
         Returns:
             List containing the paths of the downloaded files.
         """
+        # Snapshot once: self._icat_client resolves through the shared
+        # "active user" and each download below yields to other greenlets,
+        # so re-reading the property mid-loop could switch identity if
+        # another user takes control while this loop is still running.
+        icat_client = self._icat_client
         downloaded_files: List[Download] = []
         for resource in resources:
             resource_folder = Path(output_folder) / sample_name
@@ -1204,7 +1269,12 @@ class ICATLIMS(AbstractLims):
             )  # Make sure the folder exists
 
             try:
-                result = self.icatClient.download_file_by(str(sample_id), resource.id)
+                result = icat_client.download_file_by(
+                    sample_id=sample_id,
+                    resource_id=resource.id,
+                    use_chunks=True,
+                    chunk_size=8192,
+                )
                 output_path = Path(resource_folder / resource.filename)
                 with output_path.open("wb") as f:
                     f.write(result)
@@ -1425,7 +1495,7 @@ class ICATLIMS(AbstractLims):
             except RuntimeError as e:
                 logger.warning("Failed to create gallery. %s", e)
 
-            self.icatClient.store_dataset(
+            self._icat_client.store_dataset(
                 beamline=beamline,
                 proposal=proposal,
                 dataset=dataset_name,
@@ -1434,7 +1504,7 @@ class ICATLIMS(AbstractLims):
             )
             logger.debug("Done uploading to ICAT")
         except Exception as e:
-            logger.warning("Failed uploading to ICAT. %s", e)
+            logger.exception("Failed uploading to ICAT. %s", e)
 
     def _get_scheduled_beamline(self) -> str:
         """Return the name of the beamline as set in the properties or the
