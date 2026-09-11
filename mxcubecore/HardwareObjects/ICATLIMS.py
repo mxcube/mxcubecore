@@ -119,7 +119,6 @@ class ICATLIMS(AbstractLims):
             logger.debug(f"Authenticating {user_name}")
             icat_session = icat_client.do_log_in(
                 password=password,
-                username=user_name,
                 plugin=self.authentication_icat_plugin,
             )
         except icat_errors.ForbiddenException as e:
