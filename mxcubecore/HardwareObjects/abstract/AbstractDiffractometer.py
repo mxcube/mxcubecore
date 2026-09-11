@@ -504,9 +504,8 @@ class AbstractDiffractometer(HardwareObject):
         """Return a list of all the defined phases."""
         phase_list = []
         for member in DiffractometerPhase:
-            _nam = member.name
-            if _nam not in ["IN", "OUT", "UNKNOWN"]:
-                phase_list.append(_nam)
+            if member.name not in ["IN", "OUT", "UNKNOWN"]:
+                phase_list.append(member.value)
         return phase_list
 
     @property
@@ -526,7 +525,7 @@ class AbstractDiffractometer(HardwareObject):
             value = DiffractometerPhase(value)
         if self.current_phase != value:
             self.current_phase = value
-            self.emit("phaseChanged", (value.name,))
+            self.emit("phaseChanged", (value.value,))
 
     # -------- Constraints --------
 
@@ -616,10 +615,15 @@ class AbstractDiffractometer(HardwareObject):
         Returns:
             (Enum): Enum member, corresponding to the value or UNKNOWN.
         """
+        self.log.info(f"\n\n\n in value_to_enum: {value=} {which_enum=} \n\n\n")
         try:
             return which_enum[value]
-        except ValueError:
+        except KeyError:
             for evar in which_enum:
                 if isinstance(evar.value, (tuple, list)) and (value in evar.value):
                     return evar
+        try:
+            return which_enum(value)
+        except ValueError:
+            pass
         return which_enum.UNKNOWN
