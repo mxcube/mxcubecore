@@ -3,6 +3,7 @@ import logging
 import shutil
 from collections import defaultdict
 from datetime import datetime, timedelta
+from importlib.util import find_spec
 from pathlib import Path
 from typing import Any, List, Optional
 from zoneinfo import ZoneInfo
@@ -22,6 +23,10 @@ from mxcubecore.model.lims_session import (
     Session,
 )
 from mxcubecore.model.tracking_model_objects import LoadedPuck
+
+if find_spec("esrf_ontologies"):
+    from esrf_ontologies import technique
+
 
 logger = logging.getLogger("HWR")
 
@@ -1153,6 +1158,13 @@ class ICATLIMS(AbstractLims):
                 }
             )
 
+            # ontologies
+            try:
+                tech = technique.get_technique_metadata("MX", "MAD")
+                metadata.update(tech.get_dataset_metadata())
+            except (NameError, TypeError):
+                self.log.warning("No technique added to the metadata")
+
             self._icat_client.store_dataset(
                 beamline=beamline,
                 proposal=proposal,
@@ -1200,6 +1212,13 @@ class ICATLIMS(AbstractLims):
             params = params.finalize()
             metadata = params.to_icat_dict()
             metadata.update(extra)
+
+            # ontologies
+            try:
+                tech = technique.get_technique_metadata("MX", "XRF")
+                metadata.update(tech.get_dataset_metadata())
+            except (NameError, TypeError):
+                self.log.warning("No technique added to the metadata")
 
             self._icat_client.store_dataset(
                 beamline=beamline,
