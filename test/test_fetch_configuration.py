@@ -53,29 +53,49 @@ def test_default_dest_falls_back_to_home_cache(monkeypatch, tmp_path):
 
 
 @pytest.mark.parametrize(
-    ("target", "gphl", "expected_parts"),
+    ("paths", "expected_parts"),
     [
-        ("core", False, ["demo.yaml"]),
-        # "web" needs no dedicated entry: HardwareRepository.find_in_repository
-        # locates demo.yaml/mxcube-web on its own, and none of its files
-        # (server.yaml, ui.yaml) override anything at the top level.
-        ("web", False, ["demo.yaml"]),
-        ("qt", False, ["demo.yaml/mxcube-qt", "demo.yaml"]),
-        ("web", True, ["demo.yaml/gphl", "demo.yaml"]),
+        (["demo.yaml"], ["demo.yaml"]),
+        # A beamline's own directory (mxcubecore issue #1226) instead of
+        # the demo/mockup one - no "mxcube-web" needed either:
+        # HardwareRepository.find_in_repository locates it under whatever
+        # directory is already in the path on its own.
+        (["id30a1"], ["id30a1"]),
+        # Chaining a subdirectory (e.g. the GPhL workflow overrides) onto
+        # a root directory, in the given order.
+        (["id30a1", "id30a1/gphl"], ["id30a1", "id30a1/gphl"]),
+        (["demo.yaml/mxcube-qt", "demo.yaml"], ["demo.yaml/mxcube-qt", "demo.yaml"]),
     ],
 )
-def test_build_lookup_path(tmp_path, target, gphl, expected_parts):
-    path = build_lookup_path(tmp_path, target, gphl=gphl)
-    expected = os.pathsep.join(str(tmp_path / part) for part in expected_parts)
+def test_build_lookup_path(tmp_path, paths, expected_parts):
+    path = build_lookup_path(tmp_path, paths)
+    expected = os.pathsep.join(
+        str(tmp_path.joinpath(*part.split("/"))) for part in expected_parts
+    )
     assert path == expected
 
 
-def test_build_lookup_path_rejects_unknown_target(tmp_path):
+@pytest.mark.parametrize(
+    "bad_path", ["", ".", "..", "id30a1/..", "/etc", "id30a1//gphl"]
+)
+def test_build_lookup_path_rejects_invalid_entries(tmp_path, bad_path):
     with pytest.raises(ValueError):
-        build_lookup_path(tmp_path, "not-a-real-target")
+        build_lookup_path(tmp_path, [bad_path])
 
 
-def test_ensure_checkout_clones_when_missing(mocker, tmp_path):
+@pytest.fixture
+def fake_git(mocker):
+    """Fix the resolved `git` executable path so assertions don't depend
+    on where git happens to live on the machine running the tests.
+    """
+    git_path = "/usr/bin/git"
+    mocker.patch(
+        "mxcubecore.utils.fetch_configuration._git_executable", return_value=git_path
+    )
+    return git_path
+
+
+def test_ensure_checkout_clones_when_missing(mocker, tmp_path, fake_git):
     dest = tmp_path / "mxcube_configuration"
     run = mocker.patch("subprocess.run")
 
@@ -84,7 +104,7 @@ def test_ensure_checkout_clones_when_missing(mocker, tmp_path):
     assert result == dest
     run.assert_called_once_with(
         [
-            "git",
+            fake_git,
             "clone",
             "--depth",
             "1",
@@ -97,7 +117,7 @@ def test_ensure_checkout_clones_when_missing(mocker, tmp_path):
     )
 
 
-def test_ensure_checkout_updates_existing_clone(mocker, tmp_path):
+def test_ensure_checkout_updates_existing_clone(mocker, tmp_path, fake_git):
     dest = tmp_path / "mxcube_configuration"
     (dest / ".git").mkdir(parents=True)
     run = mocker.patch("subprocess.run")
@@ -107,7 +127,7 @@ def test_ensure_checkout_updates_existing_clone(mocker, tmp_path):
     assert run.call_count == 2
     fetch_call, checkout_call = run.call_args_list
     assert fetch_call.args[0] == [
-        "git",
+        fake_git,
         "-C",
         str(dest),
         "fetch",
@@ -116,10 +136,16 @@ def test_ensure_checkout_updates_existing_clone(mocker, tmp_path):
         "origin",
         "v2",
     ]
-    assert checkout_call.args[0] == ["git", "-C", str(dest), "checkout", "FETCH_HEAD"]
+    assert checkout_call.args[0] == [
+        fake_git,
+        "-C",
+        str(dest),
+        "checkout",
+        "FETCH_HEAD",
+    ]
 
 
-def test_ensure_checkout_reclones_on_unreachable_ref(mocker, tmp_path):
+def test_ensure_checkout_reclones_on_unreachable_ref(mocker, tmp_path, fake_git):
     dest = tmp_path / "mxcube_configuration"
     (dest / ".git").mkdir(parents=True)
     (dest / "stale-file").touch()
@@ -140,22 +166,25 @@ def test_ensure_checkout_reclones_on_unreachable_ref(mocker, tmp_path):
     assert not (dest / "stale-file").exists()
 
 
-def test_main_prints_lookup_path_without_network(mocker, tmp_path, capsys):
+def test_main_prints_lookup_path_default(mocker, tmp_path, capsys):
     dest = tmp_path / "mxcube_configuration"
     (dest / "demo.yaml" / "mxcube-web").mkdir(parents=True)
 
-    exit_code = main(["--for", "web", "--dest", str(dest), "--no-fetch"])
+    # No --for given: defaults to ["demo.yaml"].
+    exit_code = main(["--dest", str(dest), "--no-fetch"])
 
     assert exit_code == 0
     out = capsys.readouterr().out.strip()
     assert out == str(dest / "demo.yaml")
 
 
-def test_main_prints_lookup_path_for_qt(mocker, tmp_path, capsys):
+def test_main_prints_lookup_path_for_chained_dirs(mocker, tmp_path, capsys):
     dest = tmp_path / "mxcube_configuration"
     (dest / "demo.yaml" / "mxcube-qt").mkdir(parents=True)
 
-    exit_code = main(["--for", "qt", "--dest", str(dest), "--no-fetch"])
+    exit_code = main(
+        ["--for", "demo.yaml/mxcube-qt", "demo.yaml", "--dest", str(dest), "--no-fetch"]
+    )
 
     assert exit_code == 0
     out = capsys.readouterr().out.strip()
@@ -164,10 +193,44 @@ def test_main_prints_lookup_path_for_qt(mocker, tmp_path, capsys):
     )
 
 
+def test_main_prints_lookup_path_for_beamline_dir(mocker, tmp_path, capsys):
+    dest = tmp_path / "mxcube_configuration"
+    (dest / "id30a1" / "gphl").mkdir(parents=True)
+
+    exit_code = main(
+        ["--for", "id30a1", "id30a1/gphl", "--dest", str(dest), "--no-fetch"]
+    )
+
+    assert exit_code == 0
+    out = capsys.readouterr().out.strip()
+    assert out == os.pathsep.join([str(dest / "id30a1"), str(dest / "id30a1" / "gphl")])
+
+
+def test_main_honours_mxcube_config_for_env_var(monkeypatch, tmp_path, capsys):
+    dest = tmp_path / "mxcube_configuration"
+    (dest / "id30b" / "gphl").mkdir(parents=True)
+    monkeypatch.setenv("MXCUBE_CONFIG_FOR", f"id30b{os.pathsep}id30b/gphl")
+
+    exit_code = main(["--dest", str(dest), "--no-fetch"])
+
+    assert exit_code == 0
+    out = capsys.readouterr().out.strip()
+    assert out == os.pathsep.join([str(dest / "id30b"), str(dest / "id30b" / "gphl")])
+
+
 def test_main_no_fetch_requires_existing_dest(tmp_path, capsys):
     dest = tmp_path / "does-not-exist"
 
-    exit_code = main(["--for", "core", "--dest", str(dest), "--no-fetch"])
+    exit_code = main(["--dest", str(dest), "--no-fetch"])
 
     assert exit_code == 1
     assert "does not exist" in capsys.readouterr().err
+
+
+def test_main_reports_invalid_for_path_cleanly(tmp_path, capsys):
+    exit_code = main(
+        ["--for", "id30a1/../../etc", "--dest", str(tmp_path), "--no-fetch"]
+    )
+
+    assert exit_code == 1
+    assert "id30a1/../../etc" in capsys.readouterr().err

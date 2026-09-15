@@ -17,21 +17,30 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with MXCuBE. If not, see <https://www.gnu.org/licenses/>.
 
-"""Bootstrap a local checkout of the shared mxcube_configuration repository
-(https://github.com/mxcube/mxcube_configuration) and print the
+"""Bootstrap a local checkout of a shared mxcube configuration repository
+for instance: (https://github.com/mxcube/mxcube_configuration) and print the
 HardwareRepository lookup path (the value expected by ``-r`` in mxcubeweb
 and mxcubeqt, or by the ``MXCUBE_CORE_CONFIG_PATH`` environment variable in
-mxcubeqt) for a given consumer.
+mxcubeqt.
 
-This is installed as the ``mxcube-fetch-config`` console script. Typical use::
+Installed as the ``mxcube-fetch-config`` console script. Example::
 
-    mxcubeweb-server -r "$(mxcube-fetch-config --for web)" --static-folder ui/build
+    mxcubeweb-server -r "$(mxcube-fetch-config)" --static-folder ui/build
 
-See mxcubecore issue #944 for the motivation: the mockup/demo configuration
-used to be duplicated (and drift out of sync) between mxcubecore, mxcubeweb
-and mxcubeqt. mxcube_configuration is the single shared copy; this script is
-the convenience layer for using it, so nobody has to hand-clone the repo and
-hand-build the ":"-joined lookup path described in its README.
+mxcube_configuration holds one directory per "root" configuration - either
+"demo.yaml" (the mockup/demo configuration) or a beamline's own directory,
+e.g. "[beamlinename]". Each root directory can have optional subdirectories
+holding additional/override configuration, e.g. "gphl" for the GPhL
+workflow, or "mxcube-qt" for mxcubeqt-specific overrides - and possibly
+others not yet in the repository, such as "plate" or "harvester".
+
+--for takes one or more of these directories, each given relative to the
+mxcube_configuration checkout, and joins them into the lookup path in the
+order given, e.g.::
+
+    mxcube-fetch-config --for demo.yaml
+    mxcube-fetch-config --for [beamlinename]
+    mxcube-fetch-config --for [beamlinename] [beamlinename]/gphl
 """
 
 import argparse
@@ -44,7 +53,20 @@ from typing import Optional
 
 DEFAULT_REPO_URL = "https://github.com/mxcube/mxcube_configuration.git"
 DEFAULT_REF = "main"
-TARGETS = ("core", "web", "qt")
+DEFAULT_ROOT = "demo.yaml"
+
+
+def _git_executable() -> str:
+    """Resolve an absolute path to the `git` executable.
+
+    subprocess calls are run with the full path (rather than the bare
+    string "git") so that the executable actually invoked isn't affected
+    by PATH lookup at call time.
+    """
+    git = shutil.which("git")
+    if git is None:
+        raise RuntimeError("git executable not found on PATH")
+    return git
 
 
 def default_dest() -> Path:
@@ -68,22 +90,22 @@ def ensure_checkout(
     """Make sure `dest` holds a checkout of `url` at `ref`, cloning or
     updating it as needed. Returns `dest`.
     """
+    git = _git_executable()
+
     if not (dest / ".git").is_dir():
         dest.parent.mkdir(parents=True, exist_ok=True)
         subprocess.run(
-            ["git", "clone", "--depth", "1", "--branch", ref, url, str(dest)],
+            [git, "clone", "--depth", "1", "--branch", ref, url, str(dest)],
             check=True,
         )
         return dest
 
     try:
         subprocess.run(
-            ["git", "-C", str(dest), "fetch", "--depth", "1", "origin", ref],
+            [git, "-C", str(dest), "fetch", "--depth", "1", "origin", ref],
             check=True,
         )
-        subprocess.run(
-            ["git", "-C", str(dest), "checkout", "FETCH_HEAD"], check=True
-        )
+        subprocess.run([git, "-C", str(dest), "checkout", "FETCH_HEAD"], check=True)
     except subprocess.CalledProcessError:
         # The existing shallow clone can't reach `ref` (e.g. it was cloned
         # at a different tag/branch) - start over instead of trying to
@@ -94,36 +116,54 @@ def ensure_checkout(
     return dest
 
 
-def build_lookup_path(dest: Path, target: str, gphl: bool = False) -> str:
-    """Build the `-r` / MXCUBE_CORE_CONFIG_PATH value for `target`
-    ("core", "web" or "qt"), pointing at the shared checkout in `dest`.
-
-    "web" does not need its own `mxcube-web` entry in the path:
-    `HardwareRepository.find_in_repository("mxcube-web")` finds that
-    subdirectory under the shared root directly (mxcubeweb/__init__.py),
-    and the two files in it (server.yaml, ui.yaml) are then read straight
-    from that discovered directory, not through another lookup-path
-    search - and neither name collides with a top-level file in demo.yaml,
-    so there is nothing for it to override anyway.
-
-    "qt" does need its `mxcube-qt` entry listed ahead of the shared root:
-    mxcubeqt loads individual hardware object files (e.g. sample_view.yaml)
-    through the generic lookup-path search, and `mxcube-qt/sample_view.yaml`
-    is a genuine override of the shared demo.yaml/sample_view.yaml - it only
-    takes effect if `mxcube-qt` is searched before the shared root.
+def _validate_relative_path(rel: str) -> None:
+    """Reject anything that isn't a plain, relative, "/"-separated path
+    inside the mxcube_configuration checkout - used for each `--for`
+    entry, so a stray absolute path or ".." can't escape the checkout.
     """
-    if target not in TARGETS:
-        raise ValueError(f"Unknown target {target!r}, expected one of {TARGETS}")
+    if not rel:
+        raise ValueError("--for path must not be empty")
+    if rel.startswith("/") or (os.altsep and rel.startswith(os.altsep)):
+        raise ValueError(f"--for path must be relative, got {rel!r}")
+    segments = rel.split("/")
+    if any(segment in ("", ".", "..") for segment in segments):
+        raise ValueError(
+            f"--for path must not contain '.', '..' or empty segments: {rel!r}"
+        )
 
-    shared = dest / "demo.yaml"
-    parts = []
-    if gphl:
-        parts.append(shared / "gphl")
-    if target == "qt":
-        parts.append(shared / "mxcube-qt")
-    parts.append(shared)
 
-    return os.pathsep.join(str(part) for part in parts)
+def build_lookup_path(dest: Path, paths: list) -> str:
+    """Build the `-r` / MXCUBE_CORE_CONFIG_PATH value by joining one or
+    more directories from `paths`, each given relative to the shared
+    mxcube_configuration checkout in `dest`, in the given search order.
+
+    Directories are typically:
+      - a root directory holding the main configuration files: either
+        "demo.yaml" (the mockup/demo configuration) or a beamline's own
+        directory (e.g. "[beamlinename]").
+      - optional subdirectories of that root holding additional/override
+        configuration, e.g. "<root>/gphl" for the GPhL workflow, or
+        "<root>/mxcube-qt" for mxcubeqt-specific overrides.
+
+    mxcubeweb does not need its own "<root>/mxcube-web" listed explicitly:
+    `HardwareRepository.find_in_repository("mxcube-web")` finds it under
+    any directory already in the path (mxcubeweb/__init__.py), and the two
+    files in it (server.yaml, ui.yaml) are then read straight from that
+    discovered directory, not through another lookup-path search.
+
+    List an override directory before the directory whose files it
+    overrides, if the two can contain identically-named files (e.g.
+    "<root>/mxcube-qt" before "<root>", since mxcubeqt loads individual
+    hardware object files - such as sample_view.yaml - through the
+    generic lookup-path search, and `find_in_repository` returns the
+    first match) - `paths` is used exactly in the order given.
+    """
+    resolved = []
+    for rel in paths:
+        _validate_relative_path(rel)
+        resolved.append(dest.joinpath(*rel.split("/")))
+
+    return os.pathsep.join(str(part) for part in resolved)
 
 
 def parse_args(argv: Optional[list] = None) -> argparse.Namespace:
@@ -133,12 +173,23 @@ def parse_args(argv: Optional[list] = None) -> argparse.Namespace:
             "print the HardwareRepository lookup path for it."
         )
     )
+    env_for = os.environ.get("MXCUBE_CONFIG_FOR")
+    default_for = env_for.split(os.pathsep) if env_for else [DEFAULT_ROOT]
     parser.add_argument(
         "--for",
-        dest="target",
-        choices=TARGETS,
-        default="core",
-        help="Consumer to build the lookup path for (default: %(default)s).",
+        dest="paths",
+        nargs="+",
+        metavar="DIR",
+        default=default_for,
+        help=(
+            "One or more directories, relative to the mxcube_configuration "
+            "checkout, to join into the lookup path, in search order "
+            "(default: %(default)s, or $MXCUBE_CONFIG_FOR). E.g. "
+            "'demo.yaml' for the mockup/demo configuration, '[beamlinename]' "
+            "for a beamline's own directory, or "
+            "'[beamlinename] [beamlinename]/gphl' to also include its GPhL "
+            "workflow overrides."
+        ),
     )
     parser.add_argument(
         "--ref",
@@ -165,11 +216,6 @@ def parse_args(argv: Optional[list] = None) -> argparse.Namespace:
         help="URL of the mxcube_configuration repository.",
     )
     parser.add_argument(
-        "--gphl",
-        action="store_true",
-        help="Prepend the GPhL workflow configuration overrides to the path.",
-    )
-    parser.add_argument(
         "--no-fetch",
         action="store_true",
         help="Do not touch the network; use --dest as-is (it must already exist).",
@@ -190,7 +236,13 @@ def main(argv: Optional[list] = None) -> int:
     else:
         ensure_checkout(args.dest, args.ref, args.url)
 
-    print(build_lookup_path(args.dest, args.target, args.gphl))
+    try:
+        lookup_path = build_lookup_path(args.dest, args.paths)
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+
+    print(lookup_path)
     return 0
 
 
