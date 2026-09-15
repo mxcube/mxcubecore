@@ -169,7 +169,7 @@ class SampleHolderSectionModel(BaseModel):
     number_of_rows: int = Field(6, description="Numer of rows")
     number_of_collumns: int = Field(6, description="Numer of collumns")
     row_labels: List[str] = Field([], description="Row lables")
-    column_lables: List[str] = Field([], description="Collumn lables")
+    column_labels: List[str] = Field([], description="Column labels")
     targets_per_block: Tuple[int, int] = Field(
         [20, 20], description="Targets per block dim1 and dim2"
     )
