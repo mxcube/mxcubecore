@@ -1115,14 +1115,14 @@ zstd = ["zstandard (>=0.18.0)"]
 
 [[package]]
 name = "icat-esrf-definitions"
-version = "3.5.0"
+version = "3.6.0"
 description = "ESRF ICAT definitions"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "icat_esrf_definitions-3.5.0-py3-none-any.whl", hash = "sha256:3fa8e814e4f16f2e3b21bb4f426c6291fcd0beb4694fe5415e4a2bcd36da228a"},
-    {file = "icat_esrf_definitions-3.5.0.tar.gz", hash = "sha256:c002b236f4497e33fa48d57bce82f1ab1d3f7a752cd39941106f9ddf68e9bcfd"},
+    {file = "icat_esrf_definitions-3.6.0-py3-none-any.whl", hash = "sha256:d9ccfc4ba3480d8314e8a57a33cafdee4f60bab4bd51dde4eb58974b6be87ef5"},
+    {file = "icat_esrf_definitions-3.6.0.tar.gz", hash = "sha256:ff2d193711286eea4fa357c6d5444fa88380239d4bee04085b05488fbb5a659a"},
 ]
 
 [package.dependencies]
@@ -1133,7 +1133,7 @@ typing_extensions = {version = "*", markers = "python_version < \"3.11\""}
 
 [package.extras]
 dev = ["datamodel-code-generator", "icat-esrf-definitions[test]", "pre-commit", "ruff", "tabulate"]
-doc = ["icat-esrf-definitions[test]", "pydata-sphinx-theme", "sphinx (>=4.5)", "sphinx-autodoc-typehints (>=1.16)", "sphinx-copybutton"]
+doc = ["icat-esrf-definitions[test]", "pydata-sphinx-theme", "sphinx (>=9)", "sphinx-autodoc-typehints (>=1.16)", "sphinx-copybutton"]
 test = ["icat-esrf-definitions[xml]", "pytest", "silx"]
 xml = ["xmltodict"]
 
@@ -2366,25 +2366,25 @@ windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "pyicat-plus"
-version = "3.0.0"
+version = "3.0.1"
 description = "Python client to ICAT+"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "pyicat_plus-3.0.0-py3-none-any.whl", hash = "sha256:72d19c8d8d93cabb65b8c01607c5e187f622602eee450df7a6c30ef7d6025e63"},
-    {file = "pyicat_plus-3.0.0.tar.gz", hash = "sha256:ea79084fa1ac422ade50735185c39a82c3cbfe60b3c652c134ad4ddffb95f455"},
+    {file = "pyicat_plus-3.0.1-py3-none-any.whl", hash = "sha256:8f3227e292f57f2336c1be9a11e0054beb11f8ec5deb8a8e8f0f94ebc72310e6"},
+    {file = "pyicat_plus-3.0.1.tar.gz", hash = "sha256:5062a87055e2b47a43845c0948e126ab771fe916669822260ad28168ce643312"},
 ]
 
 [package.dependencies]
 esrf-ontologies = ">=2.1"
 esrf-pathlib = ">=1.0.0"
 h5py = "*"
-icat-esrf-definitions = ">=3.5"
+icat-esrf-definitions = ">=3.6"
 icat-plus-client = ">=4.95.5"
 numpy = "*"
 pillow = "*"
-pint = "<=0.25.3"
+pint = "*"
 querypool = "*"
 requests = "*"
 stompest = "*"
@@ -3701,4 +3701,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.12"
-content-hash = "f6cf1a97e8507bfc3625d0a1c179e6eba84d21b464f4b3466157be49979ceca7"
+content-hash = "435525abd4a34b8803bc4d9fbb4233218b3f293fa2136ef9b7879fcfd27bce2c"
