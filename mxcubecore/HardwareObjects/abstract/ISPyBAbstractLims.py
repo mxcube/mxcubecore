@@ -5,7 +5,10 @@ from typing import List
 import gevent
 
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.HardwareObjects.abstract.AbstractLims import AbstractLims
+from mxcubecore.HardwareObjects.abstract.AbstractLims import (
+    AbstractLims,
+    LimsMetadataUploadError,
+)
 from mxcubecore.HardwareObjects.abstract.ISPyBDataAdapter import ISPyBDataAdapter
 from mxcubecore.model.lims_session import (
     Lims,
@@ -155,11 +158,14 @@ class ISPyBAbstractLIMS(AbstractLims):
         return self._update_data_collection(mx_collection)
 
     def finalize_data_collection(self, mx_collection):
-        # Also upload the same data to icat if icat_client is available
-        if self.icat_client:
-            self.icat_client.store_data_collection(mx_collection)
+        try:
+            # Also upload the same data to icat if icat_client is available
+            if self.icat_client:
+                self.icat_client.store_data_collection(mx_collection)
 
-        return self._update_data_collection(mx_collection)
+            return self._update_data_collection(mx_collection)
+        except Exception as e:
+            raise LimsMetadataUploadError(str(e)) from e
 
     def _store_data_collection(self, mx_collection, bl_config=None):
         return self.adapter.store_data_collection(mx_collection, bl_config)
