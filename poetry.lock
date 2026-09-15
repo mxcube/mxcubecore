@@ -2366,14 +2366,14 @@ windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "pyicat-plus"
-version = "3.0.0rc5"
+version = "3.0.0"
 description = "Python client to ICAT+"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "pyicat_plus-3.0.0rc5-py3-none-any.whl", hash = "sha256:137db31c9140a411844781c531613657da25b2343180df7c88970cc3f65a29e3"},
-    {file = "pyicat_plus-3.0.0rc5.tar.gz", hash = "sha256:a960fdcf281f89659c3d27c6c05543e19a850553b1faf9643b5c9bea1d911bb6"},
+    {file = "pyicat_plus-3.0.0-py3-none-any.whl", hash = "sha256:72d19c8d8d93cabb65b8c01607c5e187f622602eee450df7a6c30ef7d6025e63"},
+    {file = "pyicat_plus-3.0.0.tar.gz", hash = "sha256:ea79084fa1ac422ade50735185c39a82c3cbfe60b3c652c134ad4ddffb95f455"},
 ]
 
 [package.dependencies]
@@ -3701,4 +3701,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.12"
-content-hash = "f3f4f8fa22110f8b87bca7b4df5a5149f745d15fe363cf8bff1117f9daf2f5a4"
+content-hash = "f6cf1a97e8507bfc3625d0a1c179e6eba84d21b464f4b3466157be49979ceca7"
