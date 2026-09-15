@@ -9,8 +9,8 @@
     <object href="/diff-phiz-mockup" role="phiz"/>
     <object href="/diff-sampx-mockup" role="sampx"/>
     <object href="/diff-sampy-mockup" role="sampy"/>
-    <object href="/udiff_backlight" role="backlight"/>
-    <object href="/udiff_frontlight" role="frontlight"/>
+    <!--object href="/backlightswitch" role="backlight"/-->
+    <!--object href="/frontlightswitch" role="frontlight"/-->
   </motors>
   <nstate_equipment>
     <object href="/fast-shutter-mockup" role="fshutter"/>

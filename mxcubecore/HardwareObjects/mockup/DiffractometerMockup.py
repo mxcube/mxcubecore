@@ -66,7 +66,7 @@ class DiffractometerMockup(AbstractDiffractometer):
         self.update_state(HardwareObjectState.READY)
         for mot in self.motors_hwobj_dict.values():
             mot.set_value(random.uniform(0.0, 8.8))
-        self.omega.set_value(random.uniform(0, 359.9))
+        self.omega.set_value(random.uniform(0, 360))
 
     def abort(self):
         self.update_state(HardwareObjectState.READY)
@@ -143,3 +143,12 @@ class DiffractometerMockup(AbstractDiffractometer):
 
     def _set_constraint(self, value):
         self.current_constraint = value
+
+    def use_sample_changer(self):
+        return True
+
+    def accept_centring(self):
+        return True
+
+    def user_confirms_centring(self):
+        return False
