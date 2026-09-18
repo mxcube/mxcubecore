@@ -2145,7 +2145,7 @@
   "additionalProperties": {
     "$ref": "#/$defs/SampleNode"
   },
-  "description": "The whole queue: a dict keyed by sample ID, each value a SampleNode, plus the synthetic 'sample_order' and 'format_version' keys sharing that same top-level namespace. See JSON_FORMAT.md's 'Known issues' #2 for why this differs from the shape returned when queue_to_dict() is called on a specific node.",
+  "description": "The whole queue: a dict keyed by sample ID, each value a SampleNode, plus the synthetic 'sample_order' and 'format_version' keys sharing that same top-level namespace. See JSON_FORMAT.md's 'Known issues' #2 for why this differs from the shape returned by node_to_dict() for a specific node.",
   "formatVersion": "1.0.0",
   "properties": {
     "format_version": {

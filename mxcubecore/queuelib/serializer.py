@@ -59,24 +59,27 @@ class QueueSerializer:
     def __init__(self, builder):
         self.builder = builder
 
-    def queue_to_dict(self, node=None) -> list[dict]:
-        if node is None:
-            node = HWR.beamline.queue_model.get_model_root()
-            queue_dict = {
-                _n.sampleID: _n.model_dump() for _n in self._queue_to_dict_rec(node)
-            }
+    def queue_to_dict(self) -> dict:
+        """Return the whole queue: a dict keyed by sample ID, plus
+        "sample_order" and "format_version" - see JSON_FORMAT.md.
+        """
+        node = HWR.beamline.queue_model.get_model_root()
+        queue_dict = {
+            _n.sampleID: _n.model_dump() for _n in self._queue_to_dict_rec(node)
+        }
 
-            if queue_dict:
-                queue_dict["sample_order"] = list(queue_dict.keys())
+        if queue_dict:
+            queue_dict["sample_order"] = list(queue_dict.keys())
 
-            # Always present, even for an empty queue - see JSON_FORMAT.md
-            # and queuelib/json_schema.py.
-            queue_dict["format_version"] = QUEUE_FORMAT_VERSION
-
-        else:
-            queue_dict = self._queue_to_dict_rec(node)[0].model_dump()
+        # Always present, even for an empty queue - see JSON_FORMAT.md
+        # and queuelib/json_schema.py.
+        queue_dict["format_version"] = QUEUE_FORMAT_VERSION
 
         return queue_dict
+
+    def node_to_dict(self, node) -> dict:
+        """Return a dict representing <node> itself"""
+        return self._queue_to_dict_rec([node])[0].model_dump()
 
     def _build_sample_node(self, n) -> SampleNode:
         """Builds the SampleNode representation of the Sample model <n>."""
