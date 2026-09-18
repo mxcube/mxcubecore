@@ -37,6 +37,8 @@ from mxcubecore.queuelib.constants import (
 )
 from mxcubecore.queuelib.json_schema import get_json_schema
 from mxcubecore.queuelib.models import (
+    VALID_PREFIX_TEMPLATE_FIELDS,
+    VALID_SUBDIR_TEMPLATE_FIELDS,
     CharacterisationNodeModel,
     CharacterisationParameters,
     DataCollectionNodeModel,
@@ -65,6 +67,8 @@ __all__ = [
     "RUNNING",
     "SAMPLE_MOUNTED",
     "UNCOLLECTED",
+    "VALID_PREFIX_TEMPLATE_FIELDS",
+    "VALID_SUBDIR_TEMPLATE_FIELDS",
     "WARNING",
     "CharacterisationNodeModel",
     "CharacterisationParameters",

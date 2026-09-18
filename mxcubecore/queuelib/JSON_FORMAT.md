@@ -187,4 +187,4 @@ client/frontend convention, not an mxcubecore concept.
   },
   "ui_schema": "{...}"
 }
-```
+
