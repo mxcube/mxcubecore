@@ -316,7 +316,12 @@ class QueueSerializer:
         parameters["fullPath"] = os.path.join(
             parameters["directory"], parameters["fileName"]
         )
-        return DataCollectionNodeModel(
+        # A GphlWorkflow node has wfpath=="Gphl" - see
+        # add_workflow, the only place that defines this. 
+        # 
+        # NBNB: Handling of type needs to be improved
+        parameters["wfpath"] = "Gphl"
+        return WorkflowNodeModel(
             label=parameters["label"],
             type="GphlWorkflow",
             parameters=parameters,
@@ -564,6 +569,19 @@ class QueueSerializer:
         }
 
         Each item (dictionary) describes either a sample or a task.
+
+        Validation (malformed input) is all-or-nothing: if any item fails
+        schema validation, nothing is mutated and ValidationError propagates
+        - the request never touched the queue. Once past validation, adding
+        is best-effort per top-level item (see JSON_FORMAT.md known issue
+        #8): items can depend on an earlier one in the same call (e.g. a
+        task nested under a sample added earlier in the same list), so a
+        failed item can't simply roll back everything after it without
+        also undoing work later items may already depend on. The returned
+        dict's "add_results" key reports which top-level items (by
+        sampleID) succeeded or failed, so a client doesn't have to guess
+        from an all-or-nothing HTTP status and risk re-submitting
+        (duplicating) items that already succeeded.
         """
         try:
             parsed_items = [SampleNode.model_validate(i) for i in item_list]
@@ -572,13 +590,47 @@ class QueueSerializer:
                 "Failed to validate queue item(s): %s" % item_list
             )
             raise
-        for item in parsed_items:
-            self._queue_add_item_rec(None, item)
+
+        results = []
+        failed_sample_ids = set()
+
+        for index, item in enumerate(parsed_items):
+            try:
+                self._queue_add_item_rec(None, item)
+            except Exception as ex:
+                logging.getLogger("MX3.QUEUE").exception(
+                    "Failed to add queue item with sampleID %s", item.sampleID
+                )
+                failed_sample_ids.add(item.sampleID)
+                results.append(
+                    {
+                        "index": index,
+                        "sampleID": item.sampleID,
+                        "success": False,
+                        "error": str(ex),
+                    }
+                )
+            else:
+                results.append(
+                    {
+                        "index": index,
+                        "sampleID": item.sampleID,
+                        "success": True,
+                        "error": None,
+                    }
+                )
 
         # Handling interleaved data collections, swap interleave task with
         # the first of the data collections that are used as wedges, and then
-        # remove all collections that were used as wedges
-        first_tasks = parsed_items[0].tasks or []
+        # remove all collections that were used as wedges. Only for the
+        # first item, and only if it didn't fail above - its own tasks
+        # were never added if it did.
+        first_item = parsed_items[0] if parsed_items else None
+        first_tasks = (
+            first_item.tasks or []
+            if first_item and first_item.sampleID not in failed_sample_ids
+            else []
+        )
         for task in first_tasks:
             if (
                 task.type == "Interleaved"
@@ -608,4 +660,6 @@ class QueueSerializer:
                 for ti in reversed(tindex_list):
                     HWR.beamline.queue_manager.delete_entry_at([[sid, int(ti)]])
 
-        return self.queue_to_dict()
+        queue_dict = self.queue_to_dict()
+        queue_dict["add_results"] = results
+        return queue_dict
