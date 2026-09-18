@@ -70,9 +70,12 @@ class QueueBuilder:
         # Apply subdir template if used:
         if "{" in params.get("subdir", ""):
             if sample_model.crystals[0].protein_acronym:
+                # POSITION is accepted (see VALID_SUBDIR_TEMPLATE_FIELDS in
+                # models.py) but unused.
                 params["subdir"] = params["subdir"].format(
                     NAME=sample_model.get_name(),
                     ACRONYM=sample_model.crystals[0].protein_acronym,
+                    POSITION=params.get("shape") or "",
                 )
             else:
                 stripped = params["subdir"][0 : params["subdir"].find("{")]

@@ -37,6 +37,7 @@ from mxcubecore.queuelib.constants import (
     QUEUE_FORMAT_VERSION,
     RUNNING,
     UNCOLLECTED,
+    WARNING,
 )
 from mxcubecore.queuelib.models import (
     CharacterisationNodeModel,
@@ -176,6 +177,12 @@ class QueueSerializer:
 
         if entry.status == QUEUE_ENTRY_STATUS.FAILED:
             state = FAILED
+        elif entry.status == QUEUE_ENTRY_STATUS.WARNING:
+            # e.g. a Characterisation that ran to completion but produced no
+            # collection plan (see queue_entry/characterisation.py) - checked
+            # before is_executed()/SUCCESS below, since such an entry is also
+            # is_executed() but should be reported as WARNING, not COLLECTED.
+            state = WARNING
         elif node.is_executed() or entry.status == QUEUE_ENTRY_STATUS.SUCCESS:
             state = COLLECTED
         elif running or entry.status == QUEUE_ENTRY_STATUS.RUNNING:
