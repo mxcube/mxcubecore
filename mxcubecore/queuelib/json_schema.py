@@ -53,8 +53,7 @@ def get_json_schema() -> dict:
             "SampleNode, plus the synthetic 'sample_order' and "
             "'format_version' keys sharing that same top-level namespace. "
             "See JSON_FORMAT.md's 'Known issues' #2 for why this differs "
-            "from the shape returned when queue_to_dict() is called on a "
-            "specific node."
+            "from the shape returned by node_to_dict() for a specific node."
         ),
         "type": "object",
         "properties": {
