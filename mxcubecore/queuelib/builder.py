@@ -301,8 +301,8 @@ class QueueBuilder:
             acq.acquisition_parameters.centred_position = cpos
 
         # Only get a run number for new tasks, keep the already existing
-        # run number for existing items.
-        if not task_data.get("queueID", ""):
+        # run number for existing items. -1
+        if task_data.get("queueID", -1) == -1:
             acq.path_template.run_number = self.get_run_number(acq.path_template)
 
         model.set_enabled(task_data["checked"])
@@ -462,8 +462,8 @@ class QueueBuilder:
         model.path_template.process_directory = process_path
 
         # Only get a run number for new tasks, keep the already existing
-        # run number for existing items.
-        if not params.get("queueID", ""):
+        # run number for existing items
+        if params.get("queueID", -1) == -1:
             model.path_template.run_number = self.get_run_number(model.path_template)
 
         # Set count time, and if any, other paramters
@@ -504,8 +504,10 @@ class QueueBuilder:
         model.path_template.process_directory = process_path
 
         # Only get a run number for new tasks, keep the already existing
-        # run number for existing items.
-        if not params.get("queueID", ""):
+        # run number for existing items - see the same fix's comment in
+        # set_dc_params above for why this must compare to -1, not check
+        # falsiness.
+        if params.get("queueID", -1) == -1:
             model.path_template.run_number = self.get_run_number(model.path_template)
 
         # Set element, and if any, other parameters
