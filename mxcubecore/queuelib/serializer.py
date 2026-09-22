@@ -317,8 +317,8 @@ class QueueSerializer:
             parameters["directory"], parameters["fileName"]
         )
         # A GphlWorkflow node has wfpath=="Gphl" - see
-        # add_workflow, the only place that defines this. 
-        # 
+        # add_workflow, the only place that defines this.
+        #
         # NBNB: Handling of type needs to be improved
         parameters["wfpath"] = "Gphl"
         return WorkflowNodeModel(
