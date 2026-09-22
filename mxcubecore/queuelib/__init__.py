@@ -19,7 +19,7 @@
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 """queuelib: the queue client library.
 
-Builds and serializes the queue tree into format documented in JSON_FORMAT.md 
+Builds and serializes the queue tree into format documented in JSON_FORMAT.md
 (in this package).
 """
 

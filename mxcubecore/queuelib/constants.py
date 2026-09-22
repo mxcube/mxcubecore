@@ -26,7 +26,7 @@ See JSON_FORMAT.md in this package for the full JSON format these belong to
 ORIGIN_MX3 = "MX3"
 
 # Version of the queue JSON format (see JSON_FORMAT.md), reported
-# under "format_version" in queue_to_dict()'s root response. 
+# under "format_version" in queue_to_dict()'s root response.
 QUEUE_FORMAT_VERSION = "0.0.1"
 
 # Queue node/task state, encoded as bit flags.

@@ -1,15 +1,14 @@
 # Queue client JSON format
 
-This documents the MXCuBE JSON Queue format used to read and mutate the queue. 
-Extracted from `mxcubeweb `QueueSerializer`/`QueueBuilder` in 
-`mxcubeweb/mxcubeweb/core/components/queue.py` into (`mxcubecore.queuelib`). So 
-the format can be expressed in a more well defined way. 
+This documents the MXCuBE JSON Queue format used to read and mutate the queue.
+Extracted from `mxcubeweb `QueueSerializer`/`QueueBuilder`in`mxcubeweb/mxcubeweb/core/components/queue.py` into (`mxcubecore.queuelib\`). So
+the format can be expressed in a more well defined way.
 
 For the underlying queue architecture this format sits on top of (`QueueManager`,
 `QueueModel`, `QueueEntry`, `TaskNode`, dynamic queue entries) see
 `docs/source/dev/queue.md`.
 
-Status: this describes the format **as it/is exists/used today**, version 0.0.1. 
+Status: this describes the format **as it/is exists/used today**, version 0.0.1.
 
 ## 1. The queue tree
 
@@ -24,7 +23,7 @@ The whole queue is a dict keyed by sample ID:
 }
 ```
 
-- `sample_order` is a list of sample IDs in queue order 
+- `sample_order` is a list of sample IDs in queue order
 - `format_version` identifies the version of this document/schema the
   response conforms to `mxcubecore.queuelib.QUEUE_FORMAT_VERSION`.
   `queuelib/json_schema.py`/`queuelib/queue.schema.json` for the generated,
@@ -81,20 +80,20 @@ Every task (`DataCollection`, `Characterisation`, `Workflow`, `GphlWorkflow`,
 }
 ```
 
-- `queueID`: the node's `_node_id`. 
-- `queueID: -1` is the "not yet queued" 
-- `taskIndex`: position within the flattened per-sample task list 
+- `queueID`: the node's `_node_id`.
+- `queueID: -1` is the "not yet queued"
+- `taskIndex`: position within the flattened per-sample task list
 
 ### Type-specific `parameters`
 
-| `type` | `parameters` schema | Notes |
-|---|---|---|
-| `DataCollection` | `DataCollectionParameters` | Also used, unmodified, for `Interleaved` wedges. |
-| `Characterisation` | `CharacterisationParameters` (extends `DataCollectionParameters`) | |
-| `xrf_spectrum` | `XRFParameters` | |
-| `energy_scan` | `EnergyScanParameters` | |
-| `Workflow` / `GphlWorkflow` | `WorkflowParameters` | |
-| `Interleaved` | `DataCollectionParameters` + `wedges: [DataCollectionNodeModel, ...]` + `swNumImages: int` | Its own top-level fields (`wedges`, `swNumImages`) live inside `parameters`, not beside it. |
+| `type`                      | `parameters` schema                                                                        | Notes                                                                                       |
+| --------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| `DataCollection`            | `DataCollectionParameters`                                                                 | Also used, unmodified, for `Interleaved` wedges.                                            |
+| `Characterisation`          | `CharacterisationParameters` (extends `DataCollectionParameters`)                          |                                                                                             |
+| `xrf_spectrum`              | `XRFParameters`                                                                            |                                                                                             |
+| `energy_scan`               | `EnergyScanParameters`                                                                     |                                                                                             |
+| `Workflow` / `GphlWorkflow` | `WorkflowParameters`                                                                       |                                                                                             |
+| `Interleaved`               | `DataCollectionParameters` + `wedges: [DataCollectionNodeModel, ...]` + `swNumImages: int` | Its own top-level fields (`wedges`, `swNumImages`) live inside `parameters`, not beside it. |
 
 `shape` (present on every parameter set) is either `-1` (no associated shape),
 a 2D-plane reference (`"2DP"` + optional digits), or a point/line/grid reference
@@ -128,8 +127,7 @@ nesting under a `SampleNode`'s `tasks` client-side):
   collection, `"xrf_spectrum"` -> XRF scan, `"energy_scan"` -> energy scan.
   Anything else falls through to the **dynamic queue entry** path (see
   `docs/source/dev/queue.md`): the class looked up is
-  `<type>.title().replace("_", "") + "QueueEntry"` (e.g. `type:
-  "test_collection"` -> `TestCollectionQueueEntry`), and the **entire flat
+  `<type>.title().replace("_", "") + "QueueEntry"` (e.g. `type: "test_collection"` -> `TestCollectionQueueEntry`), and the **entire flat
   `parameters` dict is passed as-is to all five** of the entry's `DATA_MODEL`
   sub-models (`path_parameters`, `common_parameters`, `collection_parameters`,
   `user_collection_parameters`, `legacy_parameters`)
@@ -147,12 +145,12 @@ nesting under a `SampleNode`'s `tasks` client-side):
 
 `state` is a bit-flag integer, matching the reference frontend's `constants.js`:
 
-| Value | Meaning |
-|---|---|
+| Value | Meaning     |
+| ----- | ----------- |
 | `0x0` | Uncollected |
-| `0x1` | Running |
-| `0x2` | Failed |
-| `0x4` | Collected |
+| `0x1` | Running     |
+| `0x2` | Failed      |
+| `0x4` | Collected   |
 
 Two more values are defined at the module level in mxcubeweb:
 `WARNING = 0x10` and `SAMPLE_MOUNTED = 0x8`. `WARNING` **is** used, but not
@@ -187,4 +185,4 @@ client/frontend convention, not an mxcubecore concept.
   },
   "ui_schema": "{...}"
 }
-
+```
