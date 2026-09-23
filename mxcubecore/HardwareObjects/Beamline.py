@@ -216,6 +216,14 @@ class Beamline(HardwareObject):
         return self.get_object_by_role("xml_rpc_server")
 
     @property
+    def ipc_server(self) -> HardwareObject | None:
+        return self.get_object_by_role("ipc_server")
+
+    @property
+    def ipc_gateway(self) -> HardwareObject | None:
+        return self.get_object_by_role("ipc_gateway")
+
+    @property
     def workflow(self) -> HardwareObject | None:
         return self.get_object_by_role("workflow")
 
