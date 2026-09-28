@@ -235,6 +235,7 @@ class DataCollectionMetadataGatherer:
         params = params.finalize()
         metadata = params.to_icat_dict()
         metadata.update(extra)
+        metadata["scanType"] = mx.scanType # Quick fix !
 
         # ontologies
         try:
