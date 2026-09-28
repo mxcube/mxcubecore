@@ -49,6 +49,7 @@ from mxcubecore.queuelib.models import (
     WorkflowNodeModel,
     XRFNodeModel,
     build_task_node_model,
+    validate_model_tolerant,
 )
 
 
@@ -85,6 +86,7 @@ class QueueSerializer:
         """Builds the SampleNode representation of the Sample model <n>."""
         return SampleNode(
             sampleID=n.loc_str,
+            limsID=n.lims_id if n.lims_id != -1 else None,
             queueID=n._node_id,
             code=n.code,
             type="Sample",
@@ -584,7 +586,7 @@ class QueueSerializer:
         (duplicating) items that already succeeded.
         """
         try:
-            parsed_items = [SampleNode.model_validate(i) for i in item_list]
+            parsed_items = [validate_model_tolerant(SampleNode, i) for i in item_list]
         except ValidationError:
             logging.getLogger("MX3.QUEUE").exception(
                 "Failed to validate queue item(s): %s" % item_list

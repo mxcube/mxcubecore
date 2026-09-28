@@ -22,9 +22,11 @@
 See JSON_FORMAT.md in this package for the full JSON format documentation
 """
 
+import copy
+import logging
 import re
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator
 
 from mxcubecore.queuelib.constants import UNCOLLECTED
 
@@ -165,6 +167,9 @@ class TaskDataPathModel(BaseModel):
 
     model_config = {
         "validate_assignment": True,
+        # Internal serialization (_handle_dc_node, _handle_char_node, ...)
+        # feeds the full mxcubecore object dict into this model's subclasses,
+        # which only model a subset of it - "ignore" lets that pass through.
         "extra": "ignore",
         "str_strip_whitespace": True,
         "use_enum_values": True,
@@ -282,7 +287,7 @@ class DataCollectionParameters(TaskDataPathModel):
     osc_start: float = Field(0, description="Starting oscillation angle")
     osc_range: float = Field(0, description="Oscillation range per image")
     osc_total_range: float = 0
-    overlap: float = 0
+    offset: float = 0
     kappa: float | None = 0
     kappa_phi: float | None = 0
     exp_time: float = Field(0, description="Exposure time in seconds")
@@ -397,6 +402,8 @@ class CharacterisationParameters(DataCollectionParameters):
 
 
 class QueueNodeModel(BaseModel):
+    model_config = {"extra": "forbid"}
+
     type: str = ""
     queueID: int = -1  # noqa: N815
     checked: bool = False
@@ -460,23 +467,56 @@ def build_task_node_model(value: object):
         # original type afterwards so downstream routing (add_interleaved,
         # the interleave swap logic) still recognizes it as "Interleaved".
         normalized["type"] = "DataCollection"
-        model = DataCollectionNodeModel.model_validate(normalized)
+        model = validate_model_tolerant(DataCollectionNodeModel, normalized)
         model.type = "Interleaved"
         return model
 
     if task_type == "Characterisation":
-        return CharacterisationNodeModel.model_validate(normalized)
+        return validate_model_tolerant(CharacterisationNodeModel, normalized)
 
     if task_type == "xrf_spectrum":
-        return XRFNodeModel.model_validate(normalized)
+        return validate_model_tolerant(XRFNodeModel, normalized)
 
     if task_type == "energy_scan":
-        return EnergyScanNodeModel.model_validate(normalized)
+        return validate_model_tolerant(EnergyScanNodeModel, normalized)
 
     if task_type in {"Workflow", "GphlWorkflow"}:
-        return WorkflowNodeModel.model_validate(normalized)
+        return validate_model_tolerant(WorkflowNodeModel, normalized)
 
-    return DataCollectionNodeModel.model_validate(normalized)
+    return validate_model_tolerant(DataCollectionNodeModel, normalized)
+
+
+def validate_model_tolerant(model_cls, data):
+    """Validate <data> against <model_cls>, tolerating unknown fields.
+
+    Unknown/extra fields (model_config extra="forbid") are logged as a
+    warning and dropped rather than failing the request; any other
+    validation error (missing or invalid field) is re-raised as-is.
+    """
+    try:
+        return model_cls.model_validate(data)
+    except ValidationError as exc:
+        errors = exc.errors()
+        extra_errors = [e for e in errors if e["type"] == "extra_forbidden"]
+
+        if len(extra_errors) != len(errors):
+            raise
+
+        cleaned = copy.deepcopy(data)
+        for error in extra_errors:
+            *path, key = error["loc"]
+            target = cleaned
+            for part in path:
+                target = target[part]
+            target.pop(key, None)
+            logging.getLogger("MX3.QUEUE").warning(
+                "Ignoring unexpected field %r not defined on %s (path: %s)",
+                key,
+                model_cls.__name__,
+                ".".join(str(p) for p in error["loc"]),
+            )
+
+        return model_cls.model_validate(cleaned)
 
 
 TaskNodeUnion = (
@@ -490,6 +530,7 @@ TaskNodeUnion = (
 
 class SampleNode(QueueNodeModel):
     sampleID: str  # noqa: N815
+    limsID: int | None = None  # noqa: N815
     code: str | None = None
     location: str
     cell_no: int = 0
@@ -499,6 +540,16 @@ class SampleNode(QueueNodeModel):
     defaultPrefix: str | None = ""  # noqa: N815
     defaultSubDir: str | None = ""  # noqa: N815
     tasks: list[TaskNodeUnion]
+    crystalUUID: str | None = None  # noqa: N815
+    image_url: str = ""
+    image_x: str | None = None
+    image_y: str | None = None
+    loadable: bool = True
+    puck_barcode: str | None = None
+    puck_type: str | None = None
+    sample_barcode: str = ""
+    sc_state: str = ""
+    state: int | None = None
 
     @model_validator(mode="before")
     @classmethod
