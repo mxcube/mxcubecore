@@ -77,18 +77,13 @@ class GphlWorkflowConnection(HardwareObject):
     """
 
     class HOConfig(ConfiguredObject.HOConfig):
-        """Temporary replacement for Pydantic class
-
-        Required during transition, as long as we do not have the fields defined"""
-
-        # Defaults - should be replaced by proper Pydantic
-        software_paths = {}
-        software_properties = {}
-        directory_locations = {}
-        gphl_subdir = "GPHL"
-        gphl_persistname = "persistence"
-        ssh_options = {}
-        connection_parameters = {}
+        software_paths: dict = {}
+        software_properties: dict = {}
+        directory_locations: dict = {}
+        gphl_subdir: str = "GPHL"
+        gphl_persistname: str = "persistence"
+        ssh_options: dict = {}
+        connection_parameters: dict = {}
 
     def __init__(self, name):
         super().__init__(name)
