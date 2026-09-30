@@ -21,7 +21,6 @@
 from __future__ import absolute_import
 
 import ast
-import copy
 import enum
 import itertools
 import logging
@@ -31,6 +30,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
+    ClassVar,
     Dict,
     Generator,
     Iterator,
@@ -46,8 +46,11 @@ from gevent import (
     event,
 )
 from pydantic import (
+    BaseModel,
+    ConfigDict,
     Field,
     create_model,
+    model_validator,
 )
 from typing_extensions import (
     Literal,
@@ -60,8 +63,6 @@ from mxcubecore.log import hwr_log, user_log
 
 if TYPE_CHECKING:
     from logging import Logger
-
-    from pydantic import BaseModel
 
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
@@ -89,16 +90,52 @@ class DefaultSpecificState(enum.Enum):
 class ConfiguredObject:
     """Superclass for classes that take configuration from YAML files"""
 
-    class HOConfig:
-        """Temporary replacement for Pydantic class
+    class HOConfig(BaseModel):
+        """Configuration model, holding the configured properties
 
-        Required during transition, as long as we don't have the fields defined"""
+        Subclasses declare the supported properties as typed fields. Properties
+        that are not declared are accepted and stored as extra fields, so that
+        objects without a declared model keep working during the transition.
 
-        def __init__(self, **kwargs):
-            self.__dict__.update(kwargs)
+        There are two modes for handling undeclared properties: "lax" 
+        (the default) and "strict".
 
-        def model_dump(self):
-            return copy.deepcopy(self.__dict__)
+        For subclasses that declare at least one field, undeclared properties
+        are an error in "strict" validation mode. In "lax" mode (the default)
+        they are accepted, and reported with a warning.
+        """
+
+        model_config = ConfigDict(extra="allow", arbitrary_types_allowed=True)
+
+        # Handling of undeclared properties: "lax" (warn) or "strict" (error)
+        validation_mode: ClassVar[Literal["lax", "strict"]] = "lax"
+
+        @classmethod
+        def set_validation_mode(cls, mode: Literal["lax", "strict"]) -> None:
+            """Set handling of undeclared properties, for all HOConfig classes"""
+            if mode not in ("lax", "strict"):
+                raise ValueError(
+                    f"Invalid configuration validation mode {mode!r},"
+                    " expected 'lax' or 'strict'"
+                )
+            ConfiguredObject.HOConfig.validation_mode = mode
+
+        def undeclared_properties(self) -> List[str]:
+            """Configured properties not declared as fields
+
+            Always empty for models that declare no fields (not yet modelled)."""
+            if not type(self).model_fields or not self.model_extra:
+                return []
+            return sorted(self.model_extra)
+
+        @model_validator(mode="after")
+        def _check_undeclared_properties(self) -> Self:
+            undeclared = self.undeclared_properties()
+            if undeclared and ConfiguredObject.HOConfig.validation_mode == "strict":
+                raise ValueError(
+                    f"undeclared configuration properties: {', '.join(undeclared)}"
+                )
+            return self
 
     def __init__(
         self, name: str, hwobj_container: Optional["ConfiguredObject"] = None
