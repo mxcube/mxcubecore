@@ -97,7 +97,7 @@ class ConfiguredObject:
         that are not declared are accepted and stored as extra fields, so that
         objects without a declared model keep working during the transition.
 
-        There are two modes for handling undeclared properties: "lax" 
+        There are two modes for handling undeclared properties: "lax"
         (the default) and "strict".
 
         For subclasses that declare at least one field, undeclared properties

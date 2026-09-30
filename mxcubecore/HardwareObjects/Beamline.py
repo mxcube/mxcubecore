@@ -32,6 +32,8 @@ from __future__ import (
 
 from typing import (
     Any,
+    Dict,
+    List,
     Union,
 )
 from warnings import warn
@@ -61,45 +63,45 @@ class Beamline(HardwareObject):
         # Properties - definition and default values
 
         # List[str] of advanced method names
-        advanced_methods = []
+        advanced_methods: List[str] = []
 
         # List[str] of available methods
-        available_methods = []
+        available_methods: Dict[str, bool] = []
 
         # int number of clicks used for click centring
-        click_centring_num_clicks = 3
+        click_centring_num_clicks: int = 3
 
         # bool Is wavelength tunable
-        tunable_wavelength = False
+        tunable_wavelength: bool = False
 
         # bool Disable number-of-passes widget NBNB TODO Move elsewhere??
-        disable_num_passes = False
+        disable_num_passes: bool = False
 
         # bool By default run online processing (characterization/mesh?)
-        run_online_processing = False
+        run_online_processing: bool = False
 
-        offline_processing_methods = []
+        offline_processing_methods: List[Any] = []
 
-        online_processing_methods = []
+        online_processing_methods: List[Any] = []
 
         # Dictionary-of-dictionaries of default acquisition parameters
-        default_acquisition_parameters = {}
+        default_acquisition_parameters: Dict[str, Any] = {}
 
         # int Starting run number for path_template
-        run_number = 1
+        run_number: int = 1
 
         # List of undulators
-        undulators = []
+        undulators: List[Any] = []
 
         # Format of mesh result for display
-        mesh_result_format = "PNG"
+        mesh_result_format: str = "PNG"
 
         # bool Use the native mesh feature available, true by default
-        use_native_mesh = True
+        use_native_mesh: bool = True
 
         # bool Enable features to work with points in the plane, called
         # 2D-points, (none centred positions)
-        enable_2d_points = True
+        enable_2d_points: bool = True
 
         # Contained hardware objects
 

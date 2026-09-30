@@ -194,8 +194,7 @@ def load_from_yaml(
             undeclared = result._config.undeclared_properties()
             if undeclared:
                 logging.getLogger("HWR").warning(
-                    "Undeclared configuration properties for role '%s' (%s)"
-                    " in %s: %s",
+                    "Undeclared configuration properties for role '%s' (%s) in %s: %s",
                     role,
                     class_name,
                     configuration_path,
@@ -374,6 +373,7 @@ def _create_config_for_xml_hwobj(hwobj: BaseHardwareObjects.HardwareObjectNode):
             ", ".join(undeclared),
         )
 
+
 def add_hardware_objects_dirs(ho_dirs):
     """Adds directories with xml/yaml config files
 
@@ -439,9 +439,7 @@ def init_hardware_repository(
         configuration_path = lookup_path
 
     logging.getLogger("HWR").info("Hardware repository: %s", configuration_path)
-    BaseHardwareObjects.ConfiguredObject.HOConfig.set_validation_mode(
-        config_validation
-    )
+    BaseHardwareObjects.ConfiguredObject.HOConfig.set_validation_mode(config_validation)
     _instance = __HardwareRepositoryClient(configuration_path)
     _instance.connect()
 
