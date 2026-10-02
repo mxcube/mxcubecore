@@ -1429,6 +1429,7 @@ class ICATLIMS(AbstractLims):
             params = params.finalize()
             metadata = params.to_icat_dict()
             metadata.update(extra)
+            metadata["scanType"] = mx.scanType
             # No icat_esrf_definitions model field exists yet for these
             # energy-scan-specific values, so they stay as plain flat keys.
             metadata.update(
@@ -1511,6 +1512,7 @@ class ICATLIMS(AbstractLims):
             params = params.finalize()
             metadata = params.to_icat_dict()
             metadata.update(extra)
+            metadata["scanType"] = mx.scanType
 
             # ontologies
             try:
