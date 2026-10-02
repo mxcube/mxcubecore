@@ -30,6 +30,17 @@ from mxcubecore import queue_entry as qe
 from mxcubecore.model import queue_model_enumerables as qme
 from mxcubecore.model import queue_model_objects as qmo
 from mxcubecore.queuelib.constants import ORIGIN_MX3
+from mxcubecore.queuelib.models import UnattendedCollectNodeModel
+
+# Unattended collect parameters taken from the beamline defaults when not given
+UNATTENDED_DEFAULTS = (
+    "first_image",
+    "num_images",
+    "osc_range",
+    "exp_time",
+    "energy",
+    "resolution",
+)
 
 
 class QueueBuilder:
@@ -855,6 +866,70 @@ class QueueBuilder:
 
         return escan_model._node_id
 
+    def add_unattended_collect(self, node_id: int, task: dict) -> int:
+        """Add an unattended collect to the sample with id: <id>.
+
+        One task group with one task node per task, executed in order.
+
+        :param node_id: id of the sample to which the task belongs
+        :param task: task data
+
+        :returns: The queue id of the task group
+        """
+        if HWR.beamline.unattended_collect is None:
+            msg = "Unattended collect is not configured on this beamline"
+            raise RuntimeError(msg)
+
+        sample_model, _sample_entry = HWR.beamline.queue_manager.get_entry(node_id)
+        group_model = qmo.UnattendedCollect()
+        _, group_entry = self._create_and_enqueue_task_group(sample_model, group_model)
+
+        try:
+            for label, method, kwargs, needs_spots in qmo.UNATTENDED_TASKS:
+                if method == qmo.UnattendedDataCollection.method:
+                    self._add_unattended_dc(group_model, task, sample_model)
+                    continue
+
+                task_model = qmo.UnattendedTask(label, method, kwargs, needs_spots)
+                task_model.set_origin(ORIGIN_MX3)
+                self._attach_model_to_group(group_model, task_model)
+        except Exception:
+            # Do not leave half a group in the queue
+            HWR.beamline.queue_manager._delete_entry(group_entry)
+            raise
+
+        return group_model._node_id
+
+    def _add_unattended_dc(self, group_model, task: dict, sample_model):
+        """Add the data collection of an unattended collect to its group."""
+        dc_model = qmo.UnattendedDataCollection()
+        dc_model.set_origin(ORIGIN_MX3)
+        dc_model.take_snapshots = HWR.beamline.collect.get_property(
+            "num_snapshots", HWR.beamline.collect.number_of_snapshots
+        )
+        dc_entry = self._attach_model_to_group(group_model, dc_model)
+        # Enabled like the other tasks of the group
+        self._set_unattended_dc_params(
+            dc_model, dc_entry, {**task, "checked": True}, sample_model
+        )
+
+    def _set_unattended_dc_params(self, dc_model, dc_entry, task, sample_model):
+        """Set the parameters of the data collection of an unattended collect.
+
+        The collection is done where the centring tasks end, on no shape, and
+        the values not given fall back on the beamline defaults.
+        """
+        params = task["parameters"]
+        defaults = HWR.beamline.get_default_acquisition_parameters().as_dict()
+
+        for key in UNATTENDED_DEFAULTS:
+            if not params.get(key):
+                params[key] = defaults[key]
+
+        params["subdir"] = params.get("subdir") or sample_model.get_name()
+        params.update({"shape": -1, "helical": False, "mesh": False})
+        self.set_dc_params(dc_model, dc_entry, task, sample_model)
+
     def queue_update_item(self, sqid, tqid, data):
         model, entry = HWR.beamline.queue_manager.get_entry(tqid)
         sample_model, _ = HWR.beamline.queue_manager.get_entry(sqid)
@@ -863,5 +938,22 @@ class QueueBuilder:
             self.set_dc_params(model, entry, data, sample_model)
         elif data["type"] == "Characterisation":
             self.set_char_params(model, entry, data, sample_model)
+        elif data["type"] == "UnattendedCollect":
+            # The parameters are those of the data collection of the group,
+            # the group is returned as it is what the client shows
+            model = model.get_parent()
+            dc_model = model.get_data_collection()
+            dc_entry = HWR.beamline.queue_manager.get_entry_with_model(dc_model)
+            # The client sends back the row, its interleave fields do not apply
+            parameters = {
+                key: value
+                for key, value in data["parameters"].items()
+                if key not in ("wedges", "taskIndexList", "swNumImages")
+            }
+            task = UnattendedCollectNodeModel.model_validate(
+                {**data, "parameters": parameters}
+            ).model_dump()
+            task["checked"] = dc_model.is_enabled()
+            self._set_unattended_dc_params(dc_model, dc_entry, task, sample_model)
 
         return model

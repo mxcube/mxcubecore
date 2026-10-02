@@ -9,6 +9,7 @@ documentation for the queue_entry module for more information.
 """
 
 import logging
+import time
 
 import gevent
 
@@ -30,6 +31,8 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         self.centring_method = CENTRING_METHOD.NONE
         self.auto_add_diff_plan = False
         self._root_task = None
+        # The entry of a single entry run, None when the whole queue runs
+        self.run_root_entry = None
         self._paused_event = gevent.event.Event()
         self._paused_event.set()
         self._current_queue_entry = None
@@ -50,6 +53,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
     def __getstate__(self):
         d = dict(self.__dict__)
         d["_root_task"] = None
+        d["run_root_entry"] = None
         d["_paused_event"] = None
         return d
 
@@ -92,6 +96,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             self.emit("statusMessage", ("status", "Queue running", "running"))
             self._is_stopped = False
             self._running = True
+            self.run_root_entry = entry
 
             if not entry:
                 self._current_queue_entries = []
@@ -186,9 +191,12 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         if not entry.is_enabled() or self._is_stopped:
             return
 
-        self.emit("queue_entry_execute_started", (entry,))
+        # Listeners read the state of the entry back, so set it before emitting
         self.set_current_entry(entry)
         self._current_queue_entries.append(entry)
+        entry.status = QUEUE_ENTRY_STATUS.RUNNING
+        entry.started_at, entry.ended_at = time.time(), None
+        self.emit("queue_entry_execute_started", (entry,))
 
         logging.getLogger("queue_exec").info("Executing: " + str(entry))
 
@@ -201,7 +209,6 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         try:
             # Procedure to be done before main implementation
             # of task.
-            entry.status = QUEUE_ENTRY_STATUS.RUNNING
             entry.pre_execute()
             entry.execute()
 
@@ -210,12 +217,14 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             # This part should not be here
             # But somehow exception from collect_failed is not caught here
             if entry.is_failed():
+                entry.ended_at = time.time()
                 entry.status = QUEUE_ENTRY_STATUS.FAILED
                 self.emit("queue_entry_execute_finished", (entry, "Failed"))
                 self.emit(
                     "statusMessage", ("status", "Queue execution failed", "error")
                 )
             else:
+                entry.ended_at = time.time()
                 entry.status = QUEUE_ENTRY_STATUS.SUCCESS
                 self.emit("queue_entry_execute_finished", (entry, "Successful"))
                 self.emit("statusMessage", ("status", "", "ready"))
@@ -224,6 +233,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                 "encountered Exception (continuing):\n%s" % ex.stack_trace or ex.message
             )
             # Queue entry, failed, skip.
+            entry.ended_at = time.time()
             entry.status = QUEUE_ENTRY_STATUS.SKIPPED
             self.emit("queue_entry_execute_finished", (entry, "Skipped"))
         except base_queue_entry.QueueAbortedException as ex:
@@ -235,6 +245,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             self.log.warning(
                 "encountered Exception (continuing):\n%s" % ex.stack_trace or ex.message
             )
+            entry.ended_at = time.time()
             entry.status = QUEUE_ENTRY_STATUS.FAILED
             self.emit("queue_entry_execute_finished", (entry, "Aborted"))
             entry.post_execute()
@@ -244,6 +255,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             self.log.warning(
                 "encountered Exception (continuing):\n%s" % ex.stack_trace or ex.message
             )
+            entry.ended_at = time.time()
             entry.status = QUEUE_ENTRY_STATUS.FAILED
             self.emit("queue_entry_execute_finished", (entry, "Failed"))
             self.emit("statusMessage", ("status", "Queue execution failed", "error"))
@@ -267,6 +279,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             for qe in self._current_queue_entries:
                 try:
                     qe.status = QUEUE_ENTRY_STATUS.FAILED
+                    qe.ended_at = time.time()
                     self.emit("queue_entry_execute_finished", (qe, "Aborted"))
                     qe.stop()
                     qe.post_execute()

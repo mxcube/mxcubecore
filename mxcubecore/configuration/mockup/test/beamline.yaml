@@ -41,7 +41,11 @@ objects:
   - sample_view: sample-view-mockup.xml
   - lims: lims-client-mockup.xml
   # Procedures:
+  - queue_manager: queue.xml
+  - queue_model: queue-model.xml
   - xrf_spectrum: xrf-spectrum-mockup.xml
+  - collect: collect-mockup.xml
+  - unattended_collect: unattended_collect.yml
   # Analysis:
   - procedure: procedure-mockup.yml
 

@@ -236,6 +236,10 @@ class Beamline(HardwareObject):
         return self.get_object_by_role("xray_centring")
 
     @property
+    def unattended_collect(self) -> HardwareObject | None:
+        return self.get_object_by_role("unattended_collect")
+
+    @property
     def online_processing(self) -> HardwareObject | None:
         return self.get_object_by_role("online_processing")
 

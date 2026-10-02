@@ -401,6 +401,9 @@ class QueueNodeModel(BaseModel):
     queueID: int = -1  # noqa: N815
     checked: bool = False
     state: int = UNCOLLECTED
+    # time.time() at the start and end of the last run
+    startedAt: float | None = None  # noqa: N815
+    endedAt: float | None = None  # noqa: N815
 
     @field_validator("type", mode="before")
     @classmethod
@@ -447,6 +450,21 @@ class WorkflowNodeModel(TaskNodeModel):
     parameters: WorkflowParameters
 
 
+class UnattendedCollectParameters(DataCollectionParameters):
+    """The parameters of the data collection of an unattended collect."""
+
+    # Set on the rows of a queued pipeline, one row per task
+    method: str | None = None
+    groupIndex: int | None = None  # noqa: N815
+
+
+class UnattendedCollectNodeModel(TaskNodeModel):
+    """One task of an unattended collect, groupID is shared by its group."""
+
+    parameters: UnattendedCollectParameters
+    groupID: int | None = None  # noqa: N815
+
+
 def build_task_node_model(value: object):
     if not isinstance(value, dict):
         return value
@@ -476,6 +494,9 @@ def build_task_node_model(value: object):
     if task_type in {"Workflow", "GphlWorkflow"}:
         return WorkflowNodeModel.model_validate(normalized)
 
+    if task_type == "UnattendedCollect":
+        return UnattendedCollectNodeModel.model_validate(normalized)
+
     return DataCollectionNodeModel.model_validate(normalized)
 
 
@@ -485,6 +506,7 @@ TaskNodeUnion = (
     | XRFNodeModel
     | EnergyScanNodeModel
     | WorkflowNodeModel
+    | UnattendedCollectNodeModel
 )
 
 

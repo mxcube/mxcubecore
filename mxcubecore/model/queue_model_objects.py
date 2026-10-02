@@ -1339,6 +1339,72 @@ class XrayCentring2(TaskNode):
             self.set_grid_size(params["grid_size"])
 
 
+#: The unattended collect pipeline: (label, method, kwargs, needs_spots).
+#: "collect" is not a method of the unattended_collect object, it stands for
+#: the UnattendedDataCollection of the group.
+UNATTENDED_TASKS = (
+    ("Centring (zoom 1)", "optical_centring", {"zoom": 1}, False),
+    ("Centring (zoom 2)", "optical_centring", {"zoom": 2}, False),
+    ("Grid scan", "grid_scan", {}, False),
+    ("Line scan 1", "line_scan", {"index": 0}, True),
+    ("Line scan 2", "line_scan", {"index": 1}, True),
+    ("Finalize centring", "finalize_centring", {}, True),
+    ("Data collection", "collect", {}, True),
+    ("Unmount", "unmount", {}, False),
+)
+
+
+class UnattendedCollect(TaskGroup):
+    """Task group of an unattended collect.
+
+    One UnattendedTask per step and an UnattendedDataCollection, executed in
+    order. The tasks share their state through `context`.
+    """
+
+    def __init__(self):
+        TaskGroup.__init__(self)
+        self.set_name("Unattended collect")
+        self.context = {}
+        self.reset_context()
+
+    def reset_context(self):
+        self.context = {"found_spots": False}
+
+    def get_data_collection(self):
+        """The data collection of the group."""
+        for child in self.get_children():
+            if isinstance(child, UnattendedDataCollection):
+                return child
+        return None
+
+
+class UnattendedDataCollection(DataCollection):
+    """The data collection of an unattended collect, see UNATTENDED_TASKS."""
+
+    label = "Data collection"
+    method = "collect"
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.set_requires_centring(False)
+
+
+class UnattendedTask(TaskNode):
+    """One step of an unattended collect, run by the unattended_collect object."""
+
+    def __init__(self, name, method, kwargs=None, needs_spots=False):
+        TaskNode.__init__(self)
+        self.set_name(name)
+        self.set_requires_centring(False)
+        self.label = name
+        self.method = method
+        self.kwargs = dict(kwargs or {})
+        self.needs_spots = needs_spots
+
+    def get_display_name(self):
+        return self.label
+
+
 class SampleCentring(TaskNode):
     """Manual 3 click centring
 

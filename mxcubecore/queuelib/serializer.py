@@ -46,6 +46,7 @@ from mxcubecore.queuelib.models import (
     QueueNodeModel,
     SampleNode,
     TaskNodeModel,
+    UnattendedCollectNodeModel,
     WorkflowNodeModel,
     XRFNodeModel,
     build_task_node_model,
@@ -133,11 +134,20 @@ class QueueSerializer:
             ):
                 result.append(self._handle_interleaved_node(sample_node, n))
 
+            elif isinstance(n, qmo.UnattendedCollect):
+                result.extend(self._handle_unattended_nodes(sample_node, n))
+
             elif isinstance(n, qmo.TaskNode) and getattr(n, "task_data", None):
                 result.append(self._handle_task_node(sample_node, n))
 
             else:
                 result.extend(self._queue_to_dict_rec(n))
+
+        for item in result:
+            if item.queueID != -1:
+                _, entry = HWR.beamline.queue_manager.get_entry(item.queueID)
+                item.startedAt = getattr(entry, "started_at", None)
+                item.endedAt = getattr(entry, "ended_at", None)
 
         return result
 
@@ -180,7 +190,7 @@ class QueueSerializer:
 
         if entry.status == QUEUE_ENTRY_STATUS.FAILED:
             state = FAILED
-        elif entry.status == QUEUE_ENTRY_STATUS.WARNING:
+        elif entry.status in (QUEUE_ENTRY_STATUS.WARNING, QUEUE_ENTRY_STATUS.SKIPPED):
             # e.g. a Characterisation that ran to completion but produced no
             # collection plan (see queue_entry/characterisation.py) - checked
             # before is_executed()/SUCCESS below, since such an entry is also
@@ -410,6 +420,36 @@ class QueueSerializer:
             state=state,
         )
 
+    def _handle_unattended_nodes(self, sample_node, group) -> list[TaskNodeModel]:
+        """One row per task, tied together by the node id of their task group.
+
+        The parameters are those of the data collection of the group.
+        """
+        dc_node = group.get_data_collection()
+        parameters = dc_node.as_dict()
+        parameters["shape"] = getattr(dc_node, "shape", "")
+        parameters["subdir"] = self._subdir_from_path(parameters["path"])
+
+        return [
+            UnattendedCollectNodeModel(
+                label=task.label,
+                type="UnattendedCollect",
+                parameters={
+                    **parameters,
+                    "method": task.method,
+                    "groupIndex": index,
+                },
+                checked=task.is_enabled(),
+                sampleID=sample_node.loc_str,
+                sampleQueueID=sample_node._node_id,
+                taskIndex=HWR.beamline.queue_model.node_index(task)["idx"],
+                queueID=task._node_id,
+                state=self.get_node_state(task._node_id)[1],
+                groupID=group._node_id,
+            )
+            for index, task in enumerate(group.get_children())
+        ]
+
     def _handle_task_node(self, sample_node, node) -> TaskNodeModel:
         parameters = {
             **node.task_data.collection_parameters.dict(),
@@ -465,6 +505,12 @@ class QueueSerializer:
         """
         if item.type == "DataCollection":
             return self.builder.add_data_collection(node_id, item.dict())
+
+        elif item.type == "UnattendedCollect":
+            # A queued pipeline is one row per task, the first one rebuilds it
+            if item.parameters.groupIndex:
+                return None
+            return self.builder.add_unattended_collect(node_id, item.dict())
 
         elif item.type == "Characterisation":
             return self.builder.add_characterisation(node_id, item.dict())

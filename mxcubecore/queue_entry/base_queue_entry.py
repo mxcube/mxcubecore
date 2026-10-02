@@ -256,6 +256,9 @@ class BaseQueueEntry(QueueEntryContainer):
         self.set_view(view, view_set_queue_entry)
         self._checked_for_exec = False
         self.status = QUEUE_ENTRY_STATUS.NOT_EXECUTED
+        # time.time() at the start and end of the last run, set by QueueManager
+        self.started_at = None
+        self.ended_at = None
         self.type_str = ""
         self._data_model.lims_session_id = HWR.beamline.session.session_id
 
@@ -857,6 +860,14 @@ def mount_sample(data_model, centring_done_cb, async_result):
         HWR.beamline.sample_changer.trigger_progress_message("Sample loaded")
         sview = HWR.beamline.sample_view
         centring_method = HWR.beamline.queue_manager.centring_method
+
+        # An unattended collect centres the sample in its own tasks
+        if any(
+            isinstance(group, queue_model_objects.UnattendedCollect)
+            and group.is_enabled()
+            for group in data_model.get_children()
+        ):
+            centring_method = CENTRING_METHOD.NONE
 
         if centring_method != CENTRING_METHOD.NONE:
             try:

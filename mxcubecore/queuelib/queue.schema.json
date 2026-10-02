@@ -34,6 +34,18 @@
           "default": null,
           "title": "Diffractionplanid"
         },
+        "endedAt": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Endedat"
+        },
         "label": {
           "default": "",
           "title": "Label",
@@ -74,6 +86,18 @@
           ],
           "default": null,
           "title": "Samplequeueid"
+        },
+        "startedAt": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Startedat"
         },
         "state": {
           "default": 0,
@@ -681,6 +705,18 @@
           "default": null,
           "title": "Diffractionplanid"
         },
+        "endedAt": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Endedat"
+        },
         "label": {
           "default": "",
           "title": "Label",
@@ -721,6 +757,18 @@
           ],
           "default": null,
           "title": "Samplequeueid"
+        },
+        "startedAt": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Startedat"
         },
         "state": {
           "default": 0,
@@ -1168,6 +1216,18 @@
           "default": null,
           "title": "Diffractionplanid"
         },
+        "endedAt": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Endedat"
+        },
         "label": {
           "default": "",
           "title": "Label",
@@ -1208,6 +1268,18 @@
           ],
           "default": null,
           "title": "Samplequeueid"
+        },
+        "startedAt": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Startedat"
         },
         "state": {
           "default": 0,
@@ -1419,6 +1491,18 @@
           "default": "",
           "title": "Defaultsubdir"
         },
+        "endedAt": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Endedat"
+        },
         "location": {
           "title": "Location",
           "type": "string"
@@ -1453,6 +1537,18 @@
           "title": "Samplename",
           "type": "string"
         },
+        "startedAt": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Startedat"
+        },
         "state": {
           "default": 0,
           "title": "State",
@@ -1475,6 +1571,9 @@
               },
               {
                 "$ref": "#/$defs/WorkflowNodeModel"
+              },
+              {
+                "$ref": "#/$defs/UnattendedCollectNodeModel"
               }
             ]
           },
@@ -1530,6 +1629,18 @@
           "default": null,
           "title": "Diffractionplanid"
         },
+        "endedAt": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Endedat"
+        },
         "label": {
           "default": "",
           "title": "Label",
@@ -1568,6 +1679,18 @@
           "default": null,
           "title": "Samplequeueid"
         },
+        "startedAt": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Startedat"
+        },
         "state": {
           "default": 0,
           "title": "State",
@@ -1595,6 +1718,555 @@
         "sampleID"
       ],
       "title": "TaskNodeModel",
+      "type": "object"
+    },
+    "UnattendedCollectNodeModel": {
+      "description": "One task of an unattended collect, groupID is shared by its group.",
+      "properties": {
+        "checked": {
+          "default": false,
+          "title": "Checked",
+          "type": "boolean"
+        },
+        "diffractionPlan": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TaskNodeModel"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Diffractionplan"
+        },
+        "diffractionPlanID": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Diffractionplanid"
+        },
+        "endedAt": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Endedat"
+        },
+        "groupID": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Groupid"
+        },
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        },
+        "parameters": {
+          "$ref": "#/$defs/UnattendedCollectParameters"
+        },
+        "queueID": {
+          "default": -1,
+          "title": "Queueid",
+          "type": "integer"
+        },
+        "sampleID": {
+          "title": "Sampleid",
+          "type": "string"
+        },
+        "sampleQueueID": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Samplequeueid"
+        },
+        "startedAt": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Startedat"
+        },
+        "state": {
+          "default": 0,
+          "title": "State",
+          "type": "integer"
+        },
+        "taskIndex": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Taskindex"
+        },
+        "type": {
+          "default": "",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "sampleID",
+        "parameters"
+      ],
+      "title": "UnattendedCollectNodeModel",
+      "type": "object"
+    },
+    "UnattendedCollectParameters": {
+      "description": "The parameters of the data collection of an unattended collect.",
+      "properties": {
+        "base_prefix": {
+          "default": "",
+          "title": "Base Prefix",
+          "type": "string"
+        },
+        "cellA": {
+          "default": 0,
+          "title": "Cella",
+          "type": "number"
+        },
+        "cellAlpha": {
+          "default": 0,
+          "title": "Cellalpha",
+          "type": "number"
+        },
+        "cellB": {
+          "default": 0,
+          "title": "Cellb",
+          "type": "number"
+        },
+        "cellBeta": {
+          "default": 0,
+          "title": "Cellbeta",
+          "type": "number"
+        },
+        "cellC": {
+          "default": 0,
+          "title": "Cellc",
+          "type": "number"
+        },
+        "cellGamma": {
+          "default": 0,
+          "title": "Cellgamma",
+          "type": "number"
+        },
+        "cell_counting": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cell Counting"
+        },
+        "cell_spacing": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cell Spacing"
+        },
+        "compression": {
+          "default": false,
+          "title": "Compression",
+          "type": "boolean"
+        },
+        "detector_binning_mode": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detector Binning Mode"
+        },
+        "detector_distance": {
+          "default": 0,
+          "title": "Detector Distance",
+          "type": "number"
+        },
+        "detector_roi_mode": {
+          "default": 0,
+          "title": "Detector Roi Mode",
+          "type": "integer"
+        },
+        "directory": {
+          "default": "",
+          "title": "Directory",
+          "type": "string"
+        },
+        "disable_processing": {
+          "default": false,
+          "title": "Disable Processing",
+          "type": "boolean"
+        },
+        "energy": {
+          "default": 0,
+          "description": "Energy in keV",
+          "title": "Energy",
+          "type": "number"
+        },
+        "exp_time": {
+          "default": 0,
+          "description": "Exposure time in seconds",
+          "title": "Exp Time",
+          "type": "number"
+        },
+        "fileName": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "",
+          "title": "Filename"
+        },
+        "first_image": {
+          "default": 0,
+          "description": "First image number",
+          "title": "First Image",
+          "type": "integer"
+        },
+        "fullPath": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "",
+          "title": "Fullpath"
+        },
+        "groupIndex": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Groupindex"
+        },
+        "helical": {
+          "default": false,
+          "title": "Helical",
+          "type": "boolean"
+        },
+        "kappa": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": 0,
+          "title": "Kappa"
+        },
+        "kappa_phi": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": 0,
+          "title": "Kappa Phi"
+        },
+        "mad_prefix": {
+          "default": "",
+          "title": "Mad Prefix",
+          "type": "string"
+        },
+        "mesh": {
+          "default": false,
+          "title": "Mesh",
+          "type": "boolean"
+        },
+        "mesh_center": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mesh Center"
+        },
+        "mesh_range": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "default": {},
+          "title": "Mesh Range",
+          "type": "object"
+        },
+        "method": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Method"
+        },
+        "num_files": {
+          "default": 0,
+          "title": "Num Files",
+          "type": "integer"
+        },
+        "num_images": {
+          "default": 0,
+          "description": "Total number of images",
+          "title": "Num Images",
+          "type": "integer"
+        },
+        "num_images_per_trigger": {
+          "default": 0,
+          "title": "Num Images Per Trigger",
+          "type": "integer"
+        },
+        "num_lines": {
+          "default": 1,
+          "title": "Num Lines",
+          "type": "integer"
+        },
+        "num_triggers": {
+          "default": 0,
+          "title": "Num Triggers",
+          "type": "integer"
+        },
+        "osc_range": {
+          "default": 0,
+          "description": "Oscillation range per image",
+          "title": "Osc Range",
+          "type": "number"
+        },
+        "osc_start": {
+          "default": 0,
+          "description": "Starting oscillation angle",
+          "title": "Osc Start",
+          "type": "number"
+        },
+        "osc_total_range": {
+          "default": 0,
+          "title": "Osc Total Range",
+          "type": "number"
+        },
+        "overlap": {
+          "default": 0,
+          "title": "Overlap",
+          "type": "number"
+        },
+        "path": {
+          "default": "",
+          "title": "Path",
+          "type": "string"
+        },
+        "precision": {
+          "default": 0,
+          "title": "Precision",
+          "type": "integer"
+        },
+        "prefix": {
+          "default": "",
+          "title": "Prefix",
+          "type": "string"
+        },
+        "process_directory": {
+          "default": "",
+          "title": "Process Directory",
+          "type": "string"
+        },
+        "reference_image_prefix": {
+          "default": "",
+          "title": "Reference Image Prefix",
+          "type": "string"
+        },
+        "resolution": {
+          "default": 0,
+          "description": "Resolution in Angstrom",
+          "title": "Resolution",
+          "type": "number"
+        },
+        "run_number": {
+          "default": 0,
+          "title": "Run Number",
+          "type": "integer"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": "",
+          "title": "Shape"
+        },
+        "shutterless": {
+          "default": true,
+          "title": "Shutterless",
+          "type": "boolean"
+        },
+        "start_num": {
+          "default": 0,
+          "title": "Start Num",
+          "type": "integer"
+        },
+        "sub_wedge_size": {
+          "default": 10,
+          "title": "Sub Wedge Size",
+          "type": "integer"
+        },
+        "subdir": {
+          "default": "",
+          "title": "Subdir",
+          "type": "string"
+        },
+        "suffix": {
+          "default": "",
+          "title": "Suffix",
+          "type": "string"
+        },
+        "swNumImages": {
+          "default": 0,
+          "title": "Swnumimages",
+          "type": "integer"
+        },
+        "take_snapshots": {
+          "default": 0,
+          "title": "Take Snapshots",
+          "type": "integer"
+        },
+        "taskIndexList": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Taskindexlist"
+        },
+        "transmission": {
+          "default": 100,
+          "title": "Transmission",
+          "type": "number"
+        },
+        "wedge_prefix": {
+          "default": "",
+          "title": "Wedge Prefix",
+          "type": "string"
+        },
+        "wedges": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/DataCollectionNodeModel"
+          },
+          "title": "Wedges",
+          "type": "array"
+        },
+        "xds_dir": {
+          "default": "",
+          "title": "Xds Dir",
+          "type": "string"
+        }
+      },
+      "title": "UnattendedCollectParameters",
       "type": "object"
     },
     "WorkflowNodeModel": {
@@ -1630,6 +2302,18 @@
           ],
           "default": null,
           "title": "Diffractionplanid"
+        },
+        "endedAt": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Endedat"
         },
         "label": {
           "default": "",
@@ -1671,6 +2355,18 @@
           ],
           "default": null,
           "title": "Samplequeueid"
+        },
+        "startedAt": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Startedat"
         },
         "state": {
           "default": 0,
@@ -1941,6 +2637,18 @@
           "default": null,
           "title": "Diffractionplanid"
         },
+        "endedAt": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Endedat"
+        },
         "label": {
           "default": "",
           "title": "Label",
@@ -1981,6 +2689,18 @@
           ],
           "default": null,
           "title": "Samplequeueid"
+        },
+        "startedAt": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Startedat"
         },
         "state": {
           "default": 0,

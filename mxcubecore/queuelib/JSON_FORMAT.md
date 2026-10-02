@@ -83,17 +83,20 @@ Every task (`DataCollection`, `Characterisation`, `Workflow`, `GphlWorkflow`,
 - `queueID`: the node's `_node_id`.
 - `queueID: -1` is the "not yet queued"
 - `taskIndex`: position within the flattened per-sample task list
+- `startedAt` / `endedAt`: UNIX time of the start and end of the node's last run,
+  `null` until then. Also present on a `SampleNode`.
 
 ### Type-specific `parameters`
 
-| `type`                      | `parameters` schema                                                                        | Notes                                                                                       |
-| --------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
-| `DataCollection`            | `DataCollectionParameters`                                                                 | Also used, unmodified, for `Interleaved` wedges.                                            |
-| `Characterisation`          | `CharacterisationParameters` (extends `DataCollectionParameters`)                          |                                                                                             |
-| `xrf_spectrum`              | `XRFParameters`                                                                            |                                                                                             |
-| `energy_scan`               | `EnergyScanParameters`                                                                     |                                                                                             |
-| `Workflow` / `GphlWorkflow` | `WorkflowParameters`                                                                       |                                                                                             |
-| `Interleaved`               | `DataCollectionParameters` + `wedges: [DataCollectionNodeModel, ...]` + `swNumImages: int` | Its own top-level fields (`wedges`, `swNumImages`) live inside `parameters`, not beside it. |
+| `type`                      | `parameters` schema                                                                        | Notes                                                                                                                                                                    |
+| --------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `DataCollection`            | `DataCollectionParameters`                                                                 | Also used, unmodified, for `Interleaved` wedges.                                                                                                                         |
+| `Characterisation`          | `CharacterisationParameters` (extends `DataCollectionParameters`)                          |                                                                                                                                                                          |
+| `xrf_spectrum`              | `XRFParameters`                                                                            |                                                                                                                                                                          |
+| `energy_scan`               | `EnergyScanParameters`                                                                     |                                                                                                                                                                          |
+| `Workflow` / `GphlWorkflow` | `WorkflowParameters`                                                                       |                                                                                                                                                                          |
+| `UnattendedCollect`         | `UnattendedCollectParameters`                                                              | Added as one item, queued as one row per task: the rows share `groupID` and carry `method` / `groupIndex`. The parameters are those of the data collection of the group. |
+| `Interleaved`               | `DataCollectionParameters` + `wedges: [DataCollectionNodeModel, ...]` + `swNumImages: int` | Its own top-level fields (`wedges`, `swNumImages`) live inside `parameters`, not beside it.                                                                              |
 
 `shape` (present on every parameter set) is either `-1` (no associated shape),
 a 2D-plane reference (`"2DP"` + optional digits), or a point/line/grid reference
