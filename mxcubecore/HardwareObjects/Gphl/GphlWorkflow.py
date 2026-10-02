@@ -38,7 +38,6 @@ import subprocess
 import time
 import uuid
 from collections import OrderedDict
-from typing import ClassVar
 from urllib.parse import urlparse
 
 import f90nml
@@ -203,13 +202,8 @@ class GphlWorkflow(HardwareObject):
     PARAMETERS_CANCELLED = "PARAMETERS_CANCELLED"
 
     class HOConfig(ConfiguredObject.HOConfig):
-        """Temporary replacement for Pydantic class
-
-        Required during transition, as long as we do not have the fields defined"""
-
-        # Defaults - should be replaced by proper Pydantic
-        workflows: ClassVar[dict] = {}
-        settings: ClassVar[dict] = {}
+        workflows: dict = {}
+        settings: dict = {}
 
     def __init__(self, name):
         super().__init__(name)

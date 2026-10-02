@@ -42,6 +42,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
+    Literal,
     Optional,
     Union,
 )
@@ -171,12 +172,38 @@ def load_from_yaml(
         # and want the link to be set before _init or content loading
         beamline = result
 
+    note = ""
     if not msg0:
         try:
             config = configuration.pop("configuration", {})
             # Set configuration with non-object properties.
             result._config = result.HOConfig(**config)
+        except Exception:
+            logging.getLogger("HWR").exception(
+                "Invalid configuration for role '%s' (%s) in %s",
+                role,
+                class_name,
+                configuration_path,
+            )
+            if _container:
+                msg0 = "Invalid configuration (see log)"
+            else:
+                # at top level we want to get the actual error
+                raise
+        else:
+            undeclared = result._config.undeclared_properties()
+            if undeclared:
+                logging.getLogger("HWR").warning(
+                    "Undeclared configuration properties for role '%s' (%s) in %s: %s",
+                    role,
+                    class_name,
+                    configuration_path,
+                    ", ".join(undeclared),
+                )
+                note = "Undeclared properties: %s" % ", ".join(undeclared)
 
+    if not msg0:
+        try:
             # Initialise object
             result._init()
         except Exception:
@@ -252,7 +279,8 @@ def load_from_yaml(
                 raise
 
     load_time = 1000 * (time.time() - start_time)
-    _table.append((role, class_name, configuration_file, "%.1d" % load_time, msg0))
+    comment = "; ".join(msg for msg in (msg0, note) if msg)
+    _table.append((role, class_name, configuration_file, "%.1d" % load_time, comment))
 
     if _container is None:
         print(make_table(column_names, _table))
@@ -322,7 +350,7 @@ def _create_config_for_xml_hwobj(hwobj: BaseHardwareObjects.HardwareObjectNode):
     This allows to access HWOBJ configuration uniformly for both YAML and XML
     configured objects, using its 'config' attribute.
     """
-    hwobj._config = hwobj.HOConfig(**hwobj.get_properties())
+    properties = hwobj.get_properties()
 
     objects_by_role = hwobj._objects_by_role
     for tag in hwobj._objects_names():
@@ -330,9 +358,20 @@ def _create_config_for_xml_hwobj(hwobj: BaseHardwareObjects.HardwareObjectNode):
             # Complex object, not contained hwobj
             objs = [_convert_xml_property(obj) for obj in hwobj._get_objects(tag)]
             if len(objs) == 1:
-                setattr(hwobj.config, tag, objs[0])
+                properties[tag] = objs[0]
             else:
-                setattr(hwobj.config, tag, objs)
+                properties[tag] = objs
+
+    hwobj._config = hwobj.HOConfig(**properties)
+
+    undeclared = hwobj._config.undeclared_properties()
+    if undeclared:
+        logging.getLogger("HWR").warning(
+            "Undeclared configuration properties for %s (%s): %s",
+            hwobj.load_name,
+            hwobj.__class__.__name__,
+            ", ".join(undeclared),
+        )
 
 
 def add_hardware_objects_dirs(ho_dirs):
@@ -361,6 +400,7 @@ def set_user_file_directory(user_file_directory):
 def init_hardware_repository(
     configuration_path: str,
     yaml_export_directory: Optional[Path] = None,
+    config_validation: Literal["lax", "strict"] = "lax",
 ):
     """Initialise hardware repository - must be run at program start
 
@@ -369,6 +409,9 @@ def init_hardware_repository(
         giving configuration file lookup path
         yaml_export_directory: if specified, loaded hardware objects configuration
         will be written to this directory, as YAML files
+        config_validation: handling of undeclared properties in the configuration
+        of objects with a declared HOConfig model. "strict" gives an error,
+        "lax" (the default) gives a warning
 
     Returns:
 
@@ -396,6 +439,7 @@ def init_hardware_repository(
         configuration_path = lookup_path
 
     logging.getLogger("HWR").info("Hardware repository: %s", configuration_path)
+    BaseHardwareObjects.ConfiguredObject.HOConfig.set_validation_mode(config_validation)
     _instance = __HardwareRepositoryClient(configuration_path)
     _instance.connect()
 
