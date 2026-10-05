@@ -478,6 +478,9 @@ class __HardwareRepositoryClient:
         for file_name in BEAMLINE_CONFIG_FILES:
             file = self.find_in_repository(file_name)
             if file is not None:
+                logging.getLogger("HWR").info(
+                    "Reading beamline configuration from %s", file
+                )
                 return Path(file).name
 
         return None
