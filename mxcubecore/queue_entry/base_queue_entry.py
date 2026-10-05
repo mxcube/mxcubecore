@@ -272,6 +272,10 @@ class BaseQueueEntry(QueueEntryContainer):
     interface and behaviour for a queue entry.
     """
 
+    # Pause the queue after this entry when the queue manager is set to
+    # pause_after_each_entry
+    PAUSE_AFTER_ENTRY = False
+
     def __init__(self, view=None, data_model=None, view_set_queue_entry=True):
         QueueEntryContainer.__init__(self)
         self._data_model = None
@@ -391,6 +395,9 @@ class BaseQueueEntry(QueueEntryContainer):
         self.get_data_model().set_running(False)
         self.get_data_model().set_enabled(False)
         self.set_enabled(False)
+
+        if HWR.beamline.queue_manager.pause_after_each_entry and self.PAUSE_AFTER_ENTRY:
+            HWR.beamline.queue_manager.pause(True)
 
         # self._set_background_color()
 

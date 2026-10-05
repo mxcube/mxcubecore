@@ -37,6 +37,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         self._running = False
         self._disable_collect = False
         self._is_stopped = False
+        self.pause_after_each_entry = False
 
     def init(self):
         site_entry_path = self.get_property("site_entry_path")
