@@ -29,8 +29,10 @@ import time
 import traceback
 from collections import namedtuple
 from enum import Enum
+from typing import Any, ClassVar
 
 import gevent
+from pydantic import BaseModel
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects import autoprocessing
@@ -92,6 +94,28 @@ class TaskPrerequisite(str, Enum):
     # This is used for the case when no shape is selected and we want to
     # create a 2D point in the place where context menu was opened.
     NO_SHAPE_2D = "no_shape_2d"
+
+
+class BaseMXModel(BaseModel):
+    """Base model for task parameters, all fields are marked as required in
+    the generated JSON schema, except those listed in exclude_from_required.
+    """
+
+    # Fields that should NOT be required in the generated schema
+    exclude_from_required: ClassVar[set[str]] = set()
+
+    @classmethod
+    def __get_pydantic_json_schema__(cls, core_schema: Any, handler):
+        schema = handler(core_schema)
+
+        if schema.get("type") == "object" and "properties" in schema:
+            schema["required"] = [
+                name
+                for name in schema["properties"]
+                if name not in cls.exclude_from_required
+            ]
+
+        return schema
 
 
 class QueueExecutionException(Exception):
