@@ -208,7 +208,14 @@ class SOLEILEnergyScan(HardwareObject):
     #     return self.do_energy_scan is not None
 
     def start_energy_scan(
-        self, element, edge, directory, prefix, session_id=None, blsample_id=None
+        self,
+        element,
+        edge,
+        directory,
+        prefix,
+        session_id=None,
+        blsample_id=None,
+        sample_reference=None,
     ):
         self._element = element
         self._edge = edge
