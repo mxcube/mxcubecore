@@ -489,7 +489,8 @@ class QueueBuilder:
             model.path_template.run_number = self.get_run_number(model.path_template)
 
         # Set count time, and if any, other paramters
-        model.count_time = params.get("exp_time", 0)
+        # The task form sends exp_time, the queue JSON countTime
+        model.count_time = params.get("exp_time") or params.get("countTime", 0)
 
         # MXCuBE Web specific shape attribute
         model.shape = params["shape"]

@@ -211,6 +211,8 @@ class TaskDataPathModel(BaseModel):
 class XRFParameters(TaskDataPathModel):
     # From mxcbecore xrf:
     countTime: float = 0  # noqa: N815
+    # Count time as sent by the task form
+    exp_time: float = 0
 
 
 class EnergyScanParameters(TaskDataPathModel):
@@ -308,6 +310,8 @@ class DataCollectionParameters(TaskDataPathModel):
     cell_spacing: tuple[float, float] | None = None
     sub_wedge_size: int = 10
     disable_processing: bool = False
+    inverse_beam: bool = False
+    space_group: str = ""
 
     # Unit cell parameters, sent by the frontend as cellA/cellB/cellC/
     # cellAlpha/cellBeta/cellGamma
@@ -336,6 +340,7 @@ class DataCollectionParameters(TaskDataPathModel):
         "detector_binning_mode",
         "cell_counting",
         "mesh_center",
+        "space_group",
         mode="before",
     )
     @classmethod
@@ -362,7 +367,6 @@ class CharacterisationParameters(DataCollectionParameters):
     min_crystal_vdim: float = 0
     max_crystal_vphi: float = 0
     min_crystal_vphi: float = 0
-    space_group: str = ""
     use_min_dose: float = 0
     use_min_time: float = 0
     min_dose: float = 0
@@ -378,9 +382,7 @@ class CharacterisationParameters(DataCollectionParameters):
     beta: float = 0
     gamma: float = 0
 
-    @field_validator(
-        "experiment_type", "strategy_program", "space_group", mode="before"
-    )
+    @field_validator("experiment_type", "strategy_program", mode="before")
     @classmethod
     def validate_characterisation_strings(cls, value: str, info) -> str:
         return validate_safe_string(value, info.field_name)
