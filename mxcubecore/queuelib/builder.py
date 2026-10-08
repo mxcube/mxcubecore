@@ -171,7 +171,14 @@ class QueueBuilder:
 
         return sample_model._node_id
 
-    def get_folder_tag(self, params):
+    def get_folder_tag(self, params, task_type=""):
+        """Return the tag used in the run directory name, run_XX_<tag>
+
+        Args:
+            params: task parameters
+            task_type: type of the task, e.g. "Characterisation". Not part of
+                the validated task parameters, so it's passed separately.
+        """
         tag = "datacollection"
 
         if params["helical"] and params["osc_range"] == 0:
@@ -180,7 +187,7 @@ class QueueBuilder:
             tag = "helical"
         elif params.get("mesh"):
             tag = "mesh"
-        elif params.get("type") == "Characterisation":
+        elif task_type == "Characterisation":
             tag = "characterisation"
 
         return tag
@@ -219,6 +226,7 @@ class QueueBuilder:
 
         self._set_default_prefix(acq.path_template, params, sample_model)
 
+        folder_tag = self.get_folder_tag(params, task_data.get("type", ""))
         run_number_dir_parts = (
             params.get("subdir", "").strip("/").split("/")[-1].split("_")
         )
@@ -237,14 +245,14 @@ class QueueBuilder:
             len(run_number_dir_parts) == 3
             and run_number_dir_parts[0] == "run"
             and run_number_dir_parts[1].isnumeric()
-            and run_number_dir_parts[2] == self.get_folder_tag(params)
+            and run_number_dir_parts[2] == folder_tag
         ):
             params["subdir"] = "/".join(
                 params.get("subdir", "").strip("/").split("/")[0:-1]
             )
 
         full_path, process_path = HWR.beamline.session.get_full_paths(
-            params.get("subdir", ""), self.get_folder_tag(params)
+            params.get("subdir", ""), folder_tag
         )
 
         acq.path_template.directory = full_path
@@ -416,13 +424,27 @@ class QueueBuilder:
         :param entry: The queue entry of the model
         :param task_data: Dictionary with new parameters
         """
-        params = task_data["parameters"]
+        # The reference images are always prefixed with "ref". Set it in the
+        # parameters, as they otherwise overwrite it with an empty value.
+        params = {**task_data["parameters"], "reference_image_prefix": "ref"}
+        task_data = {**task_data, "parameters": params}
         self.set_dc_params(
             model.reference_image_collection,
             entry,
             task_data,
             sample_model,
         )
+
+        # The task parameters use the name ("SINGLE", "FEW" or "MANY") while
+        # the characterisation model expects the index into
+        # qme.STRATEGY_COMPLEXITY
+        complexity = params.get("strategy_complexity")
+        if not isinstance(complexity, int):
+            try:
+                complexity = ["SINGLE", "FEW", "MANY"].index(complexity)
+            except ValueError:
+                complexity = 0
+        params["strategy_complexity"] = complexity
 
         model.characterisation_parameters.set_from_dict(params)
 
