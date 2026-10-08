@@ -63,6 +63,34 @@ def _optional_str(value: Any) -> Optional[str]:
     return None if value is None else str(value)
 
 
+def _icat_dict_to_typed(icat_dict: dict, icat_fields: dict) -> dict:
+    """Convert the values of an ICAT dict back to their schema types.
+
+    to_icat_dict() stringifies all values but we need to keep the types
+    for later.
+    """
+    typed = dict(icat_dict)
+    for key, value in icat_dict.items():
+        field = icat_fields.get(key)
+        if field is None or not isinstance(value, str):
+            continue
+        try:
+            if field.nexus_type == "NX_INT":
+                typed[key] = int(value)
+            elif field.nexus_type == "NX_FLOAT":
+                typed[key] = float(value)
+            elif field.nexus_type == "NX_NUMBER":
+                try:
+                    typed[key] = int(value)
+                except ValueError:
+                    typed[key] = float(value)
+            elif field.nexus_type == "NX_BOOLEAN":
+                typed[key] = value.lower() == "true"
+        except ValueError:
+            pass
+    return typed
+
+
 class DataCollectionMetadataGatherer:
     """Assembles the metadata for a finished standard MX data collection, in
     the format expected by ICAT (via pyicat-plus) and metadata.json.
@@ -234,6 +262,7 @@ class DataCollectionMetadataGatherer:
 
         params = params.finalize()
         metadata = params.to_icat_dict()
+        
         metadata.update(extra)
         metadata["scanType"] = mx.scanType # Quick fix !
 
@@ -247,7 +276,7 @@ class DataCollectionMetadataGatherer:
         # metadata.json is a superset of what's sent to ICAT - it additionally
         # includes the experiment/processing plan and a few identifying
         # fields that pyicat-plus itself doesn't accept.
-        file_metadata = metadata.copy()
+        file_metadata = _icat_dict_to_typed(metadata, type(params).icat_fields())
 
         try:
             if sample is not None:
