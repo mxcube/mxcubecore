@@ -177,9 +177,11 @@ class SampleView(AbstractSampleView):
             ]
         )
         inv_rot_matrix = np.array(rot_matrix.I)
+        # Only the displacement perpendicular to the rotation axis is done
+        # with the sample motors (same calculation as in _move_to_beam)
         dsampx, dsampy = np.dot(np.array([0, dy]), inv_rot_matrix)
         if self.chi_angle:
-            dsampx, dsampy = np.dot(np.array([dx, dy]), inv_rot_matrix)
+            dsampx, dsampy = np.dot(np.array([dx, 0]), inv_rot_matrix)
 
         chi_angle = math.radians(-self.chi_angle)
         chi_rot = np.matrix(
@@ -190,7 +192,7 @@ class SampleView(AbstractSampleView):
         )
         sx, sy = np.dot(np.array([dsampx, dsampy]), np.array(chi_rot))
 
-        sampx = -motors_dict.get("sampx") + sx
+        sampx = motors_dict.get("sampx") - sx
         sampy = motors_dict.get("sampy") + sy
         phiy = motors_dict.get("phiy") + dx
         phiz = motors_dict.get("phiz")
@@ -198,12 +200,13 @@ class SampleView(AbstractSampleView):
             phiy = motors_dict.get("phiy")
             phiz = motors_dict.get("phiz") + dy
 
+        # convert back to motor positions
         return {
-            "omega": -motors_dict.get("omega"),
-            "phiy": float(-phiy),
-            "phiz": phiz,
-            "sampx": float(-sampx),
-            "sampy": float(sampy),
+            "omega": self.centring_motors["omega"].motor.get_value(),
+            "phiy": float(phiy * self.centring_motors["phiy"].direction),
+            "phiz": float(phiz * self.centring_motors["phiz"].direction),
+            "sampx": float(sampx * self.centring_motors["sampx"].direction),
+            "sampy": float(sampy * self.centring_motors["sampy"].direction),
         }
 
     def motor_positions_to_screen(
@@ -552,9 +555,9 @@ class SampleView(AbstractSampleView):
         sampx = motors_dict.get("sampx") - sx
         sampy = motors_dict.get("sampy") + sy
         phiy = motors_dict.get("phiy") + dx
-        phiz = self.centring_motors.get("phiz").get_value()
+        phiz = motors_dict.get("phiz")
         if self.chi_angle:
-            phiy = self.centring_motors.get("phiy").get_value()
+            phiy = motors_dict.get("phiy")
             phiz = motors_dict.get("phiz") + dy
 
         sampx *= self.centring_motors.get("sampx").direction
