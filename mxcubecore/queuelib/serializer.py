@@ -43,6 +43,7 @@ from mxcubecore.queuelib.models import (
     CharacterisationNodeModel,
     DataCollectionNodeModel,
     EnergyScanNodeModel,
+    GenericTaskNodeModel,
     QueueNodeModel,
     SampleNode,
     TaskNodeModel,
@@ -432,7 +433,7 @@ class QueueSerializer:
             parameters["path"], parameters["fileName"]
         )
         _, state = self.get_node_state(node._node_id)
-        return DataCollectionNodeModel(
+        return GenericTaskNodeModel(
             label=parameters.get("label", "TaskNode"),
             type=parameters.get("type", "TaskNode"),
             parameters=parameters,
@@ -484,7 +485,11 @@ class QueueSerializer:
             return self.builder.add_energy_scan(node_id, item.dict())
 
         else:
-            return self.builder.add_queue_entry(node_id, item.dict(), item.type)
+            # Only pass on the parameters that were sent, so that the defaults
+            # of the queue entry DATA_MODEL apply to the others
+            task = item.dict()
+            task["parameters"] = item.parameters.model_dump(exclude_unset=True)
+            return self.builder.add_queue_entry(node_id, task, item.type)
 
     def _resolve_sample_node_id(self, parent: int | str) -> int:
         """Resolve a sample locator (queueID or loc_str) to its node id."""
