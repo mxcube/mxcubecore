@@ -76,6 +76,10 @@ class EnergyScanQueueEntry(BaseQueueEntry):
                 HWR.beamline.session.session_id,
                 sample_lims_id,
                 cpos=energy_scan.centred_position,
+                sample_reference={
+                    "sample_name": sample_model.name,
+                    "acronym": sample_model.crystals[0].protein_acronym,
+                },
             )
 
         HWR.beamline.energy_scan.ready_event.wait()

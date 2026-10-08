@@ -134,6 +134,7 @@ class AbstractEnergyScan(HardwareObject):
         session_id=None,
         blsample_id=None,
         cpos=None,
+        sample_reference=None,
     ):
         """Do the scan"""
         if self._egyscan_task and not self._egyscan_task.ready():
@@ -150,6 +151,8 @@ class AbstractEnergyScan(HardwareObject):
         self.energy_scan_parameters["element"] = element
         self.energy_scan_parameters["edge"] = edge
         self.energy_scan_parameters["directory"] = directory
+        if sample_reference:
+            self.energy_scan_parameters["sample_reference"] = sample_reference
 
         # Calculate the MCA ROI (if needed)
         try:
