@@ -82,7 +82,7 @@
           "anyOf": [
             {
               "items": {
-                "$ref": "#/$defs/TaskNodeModel"
+                "$ref": "#/$defs/DataCollectionNodeModel"
               },
               "type": "array"
             },
@@ -104,6 +104,11 @@
           ],
           "default": null,
           "title": "Diffractionplanid"
+        },
+        "isDiffractionPlan": {
+          "default": false,
+          "title": "Isdiffractionplan",
+          "type": "boolean"
         },
         "name": {
           "anyOf": [
@@ -517,9 +522,16 @@
           "type": "integer"
         },
         "experiment_type": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "string"
+            }
+          ],
           "default": "",
-          "title": "Experiment Type",
-          "type": "string"
+          "title": "Experiment Type"
         },
         "use_aimed_resolution": {
           "default": 0,
@@ -735,7 +747,7 @@
           "anyOf": [
             {
               "items": {
-                "$ref": "#/$defs/TaskNodeModel"
+                "$ref": "#/$defs/DataCollectionNodeModel"
               },
               "type": "array"
             },
@@ -757,6 +769,11 @@
           ],
           "default": null,
           "title": "Diffractionplanid"
+        },
+        "isDiffractionPlan": {
+          "default": false,
+          "title": "Isdiffractionplan",
+          "type": "boolean"
         },
         "name": {
           "anyOf": [
@@ -1233,7 +1250,7 @@
           "anyOf": [
             {
               "items": {
-                "$ref": "#/$defs/TaskNodeModel"
+                "$ref": "#/$defs/DataCollectionNodeModel"
               },
               "type": "array"
             },
@@ -1255,6 +1272,11 @@
           ],
           "default": null,
           "title": "Diffractionplanid"
+        },
+        "isDiffractionPlan": {
+          "default": false,
+          "title": "Isdiffractionplan",
+          "type": "boolean"
         },
         "name": {
           "anyOf": [
@@ -1471,7 +1493,7 @@
           "anyOf": [
             {
               "items": {
-                "$ref": "#/$defs/TaskNodeModel"
+                "$ref": "#/$defs/DataCollectionNodeModel"
               },
               "type": "array"
             },
@@ -1493,6 +1515,11 @@
           ],
           "default": null,
           "title": "Diffractionplanid"
+        },
+        "isDiffractionPlan": {
+          "default": false,
+          "title": "Isdiffractionplan",
+          "type": "boolean"
         },
         "name": {
           "anyOf": [
@@ -1911,108 +1938,6 @@
       "title": "GenericTaskParameters",
       "type": "object"
     },
-    "TaskNodeModel": {
-      "additionalProperties": false,
-      "properties": {
-        "type": {
-          "default": "",
-          "title": "Type",
-          "type": "string"
-        },
-        "queueID": {
-          "default": -1,
-          "title": "Queueid",
-          "type": "integer"
-        },
-        "checked": {
-          "default": false,
-          "title": "Checked",
-          "type": "boolean"
-        },
-        "state": {
-          "default": 0,
-          "title": "State",
-          "type": "integer"
-        },
-        "label": {
-          "default": "",
-          "title": "Label",
-          "type": "string"
-        },
-        "sampleID": {
-          "title": "Sampleid",
-          "type": "string"
-        },
-        "sampleQueueID": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Samplequeueid"
-        },
-        "taskIndex": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Taskindex"
-        },
-        "diffractionPlan": {
-          "anyOf": [
-            {
-              "items": {
-                "$ref": "#/$defs/TaskNodeModel"
-              },
-              "type": "array"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Diffractionplan"
-        },
-        "diffractionPlanID": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Diffractionplanid"
-        },
-        "name": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Name"
-        }
-      },
-      "required": [
-        "sampleID"
-      ],
-      "title": "TaskNodeModel",
-      "type": "object"
-    },
     "WorkflowNodeModel": {
       "additionalProperties": false,
       "properties": {
@@ -2073,7 +1998,7 @@
           "anyOf": [
             {
               "items": {
-                "$ref": "#/$defs/TaskNodeModel"
+                "$ref": "#/$defs/DataCollectionNodeModel"
               },
               "type": "array"
             },
@@ -2095,6 +2020,11 @@
           ],
           "default": null,
           "title": "Diffractionplanid"
+        },
+        "isDiffractionPlan": {
+          "default": false,
+          "title": "Isdiffractionplan",
+          "type": "boolean"
         },
         "name": {
           "anyOf": [
@@ -2384,7 +2314,7 @@
           "anyOf": [
             {
               "items": {
-                "$ref": "#/$defs/TaskNodeModel"
+                "$ref": "#/$defs/DataCollectionNodeModel"
               },
               "type": "array"
             },
@@ -2406,6 +2336,11 @@
           ],
           "default": null,
           "title": "Diffractionplanid"
+        },
+        "isDiffractionPlan": {
+          "default": false,
+          "title": "Isdiffractionplan",
+          "type": "boolean"
         },
         "name": {
           "anyOf": [

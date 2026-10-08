@@ -446,17 +446,18 @@ class QueueSerializer:
         )
 
     def _handle_diffraction_plan(self, node, sample_node):
+        """Return the queueID of the diffraction plan collections, as the UI
+        sets it when a diffraction plan becomes available, and the
+        collections themselves"""
         model, _ = HWR.beamline.queue_manager.get_entry(node._node_id)
-        originID = model.get_origin()
         tasks = []
         if len(model.diffraction_plan) > 0:
             collections = model.diffraction_plan[0]
             for col in collections:
                 t = self._handle_dc_node(sample_node, col)
-                t_dict = t.dict()
-                t_dict["isDiffractionPlan"] = True
-                tasks.append(t_dict)
-            return originID, tasks
+                t.isDiffractionPlan = True
+                tasks.append(t)
+            return tasks[-1].queueID if tasks else -1, tasks
         return -1, []
 
     def _add_task(self, node_id: int, item) -> int:

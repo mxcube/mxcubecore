@@ -350,7 +350,8 @@ class DataCollectionParameters(TaskDataPathModel):
 
 class CharacterisationParameters(DataCollectionParameters):
     # From mxcubecore Characterisation
-    experiment_type: str = ""
+    # Index into qme.EXPERIMENT_TYPE when set by mxcubecore
+    experiment_type: int | str = ""
     use_aimed_resolution: float = 0
     use_aimed_multiplicity: float = 0
     aimed_multiplicity: float = 0
@@ -384,7 +385,10 @@ class CharacterisationParameters(DataCollectionParameters):
 
     @field_validator("experiment_type", "strategy_program", mode="before")
     @classmethod
-    def validate_characterisation_strings(cls, value: str, info) -> str:
+    def validate_characterisation_strings(cls, value: int | str, info) -> int | str:
+        if info.field_name == "experiment_type" and isinstance(value, int):
+            return value
+
         return validate_safe_string(value, info.field_name)
 
     @field_validator("strategy_complexity", mode="before")
@@ -426,8 +430,12 @@ class TaskNodeModel(QueueNodeModel):
     taskIndex: int | None = None  # noqa: N815
 
     # Optional fields
-    diffractionPlan: list["TaskNodeModel"] | None = None  # noqa: N815
+    # The data collections of a characterisation's diffraction plan
+    diffractionPlan: list["DataCollectionNodeModel"] | None = None  # noqa: N815
+    # queueID of the diffraction plan collections
     diffractionPlanID: int | None = None  # noqa: N815
+    # True for the data collections of a diffraction plan
+    isDiffractionPlan: bool = False  # noqa: N815
     name: str | None = None
 
     @field_validator("sampleID", "name", mode="before")
