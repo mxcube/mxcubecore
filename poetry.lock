@@ -583,6 +583,7 @@ description = "ESRF Ontologies"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
+markers = "extra == \"pyicat-plus\""
 files = [
     {file = "esrf_ontologies-2.1.0-py3-none-any.whl", hash = "sha256:79938adb51a82709d3743253c7fb5b544f82fc585d0d511b5f7d537053ee4789"},
     {file = "esrf_ontologies-2.1.0.tar.gz", hash = "sha256:17e56ee21d3fdb63d16873e65db55c5753fdf01549f9cfb9158ffecc6ea15ff6"},
@@ -600,6 +601,7 @@ description = "A drop-in pathlib clone with ESRF-specific path utilities"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
+markers = "extra == \"pyicat-plus\""
 files = [
     {file = "esrf_pathlib-1.1.0-py3-none-any.whl", hash = "sha256:983027f6cf07c1309c8f960c8600447d7b3573baf102ccc6d340c82af1087e65"},
     {file = "esrf_pathlib-1.1.0.tar.gz", hash = "sha256:a66a7c11791361811a99c85805c4834cc1782afc58750e8baa88d8c8c1d7c9d7"},
@@ -710,6 +712,7 @@ description = "Saves and loads to the cache a transformed versions of a source o
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
+markers = "extra == \"pyicat-plus\""
 files = [
     {file = "flexcache-0.3-py3-none-any.whl", hash = "sha256:d43c9fea82336af6e0115e308d9d33a185390b8346a017564611f1466dcd2e32"},
     {file = "flexcache-0.3.tar.gz", hash = "sha256:18743bd5a0621bfe2cf8d519e4c3bfdf57a269c15d1ced3fb4b64e0ff4600656"},
@@ -728,6 +731,7 @@ description = "Parsing made fun ... using typing."
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
+markers = "extra == \"pyicat-plus\""
 files = [
     {file = "flexparser-0.4-py3-none-any.whl", hash = "sha256:3738b456192dcb3e15620f324c447721023c0293f6af9955b481e91d00179846"},
     {file = "flexparser-0.4.tar.gz", hash = "sha256:266d98905595be2ccc5da964fe0a2c3526fbbffdc45b65b3146d75db992ef6b2"},
@@ -987,6 +991,7 @@ description = "Read and write HDF5 files from Python"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
+markers = "extra == \"pyicat-plus\""
 files = [
     {file = "h5py-3.11.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:1625fd24ad6cfc9c1ccd44a66dac2396e7ee74940776792772819fc69f3a3731"},
     {file = "h5py-3.11.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:c072655ad1d5fe9ef462445d3e77a8166cbfa5e599045f8aa3c19b75315f10e5"},
@@ -1121,6 +1126,7 @@ description = "ESRF ICAT definitions"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
+markers = "extra == \"pyicat-plus\""
 files = [
     {file = "icat_esrf_definitions-3.6.0-py3-none-any.whl", hash = "sha256:d9ccfc4ba3480d8314e8a57a33cafdee4f60bab4bd51dde4eb58974b6be87ef5"},
     {file = "icat_esrf_definitions-3.6.0.tar.gz", hash = "sha256:ff2d193711286eea4fa357c6d5444fa88380239d4bee04085b05488fbb5a659a"},
@@ -1145,6 +1151,7 @@ description = "ICAT+ API"
 optional = true
 python-versions = "*"
 groups = ["main"]
+markers = "extra == \"pyicat-plus\""
 files = [
     {file = "icat_plus_client-4.96.1-py3-none-any.whl", hash = "sha256:22ec9791cdf0dd6a0823e229dee74b34d6f1bbf9ec9cc5f1771e6c072ea478fb"},
     {file = "icat_plus_client-4.96.1.tar.gz", hash = "sha256:d8278734dd0bea4888c864c8dccf384860063cd16ba67b237015c2865bec74ee"},
@@ -2002,7 +2009,7 @@ description = "Physical quantities module"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "python_version == \"3.10\""
+markers = "python_version == \"3.10\" and extra == \"pyicat-plus\""
 files = [
     {file = "Pint-0.24.4-py3-none-any.whl", hash = "sha256:aa54926c8772159fcf65f82cc0d34de6768c151b32ad1deb0331291c38fe7659"},
     {file = "pint-0.24.4.tar.gz", hash = "sha256:35275439b574837a6cd3020a5a4a73645eb125ce4152a73a2f126bf164b91b80"},
@@ -2033,7 +2040,7 @@ description = "Physical quantities module"
 optional = true
 python-versions = ">=3.11"
 groups = ["main"]
-markers = "python_version == \"3.11\""
+markers = "python_version == \"3.11\" and extra == \"pyicat-plus\""
 files = [
     {file = "pint-0.25.3-py3-none-any.whl", hash = "sha256:27eb25143bd5de9fcc4d5a4b484f16faf6b4615aa93ece6b3373a8c1a3c1b97d"},
     {file = "pint-0.25.3.tar.gz", hash = "sha256:f8f5df6cf65314d74da1ade1bf96f8e3e4d0c41b51577ac53c49e7d44ca5acee"},
@@ -2072,6 +2079,7 @@ files = [
     {file = "platformdirs-4.3.6-py3-none-any.whl", hash = "sha256:73e575e1408ab8103900836b97580d5307456908a03e92031bab39e4554cc3fb"},
     {file = "platformdirs-4.3.6.tar.gz", hash = "sha256:357fb2acbc885b0419afd3ce3ed34564c13c9b95c89360cd9563f73aa5e2b907"},
 ]
+markers = {main = "extra == \"pyicat-plus\""}
 
 [package.extras]
 docs = ["furo (>=2024.8.6)", "proselint (>=0.14)", "sphinx (>=8.0.2)", "sphinx-autodoc-typehints (>=2.4)"]
@@ -2372,6 +2380,7 @@ description = "Python client to ICAT+"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
+markers = "extra == \"pyicat-plus\""
 files = [
     {file = "pyicat_plus-3.0.1-py3-none-any.whl", hash = "sha256:8f3227e292f57f2336c1be9a11e0054beb11f8ec5deb8a8e8f0f94ebc72310e6"},
     {file = "pyicat_plus-3.0.1.tar.gz", hash = "sha256:5062a87055e2b47a43845c0948e126ab771fe916669822260ad28168ce643312"},
@@ -2727,6 +2736,7 @@ description = "Execution pool with caching and early return"
 optional = true
 python-versions = ">=3.7"
 groups = ["main"]
+markers = "extra == \"pyicat-plus\""
 files = [
     {file = "querypool-1.0.0.tar.gz", hash = "sha256:2b3172bb4cf938f3e67b1e2d3d9c2468ca63bcee7875b5f8ef85a2d2e0e7154b"},
 ]
@@ -3229,6 +3239,7 @@ description = "STOMP library for Python including a synchronous client."
 optional = true
 python-versions = "*"
 groups = ["main"]
+markers = "extra == \"pyicat-plus\""
 files = [
     {file = "stompest-2.3.0.tar.gz", hash = "sha256:83a4d9d9627028953e7bec71a958a60488243f7ea6f41c2a428ad95f533cedce"},
 ]
@@ -3630,6 +3641,7 @@ description = "Python XML Binding"
 optional = true
 python-versions = ">=3.10"
 groups = ["main"]
+markers = "extra == \"pyicat-plus\""
 files = [
     {file = "xsdata-26.2-py3-none-any.whl", hash = "sha256:85a591a4405d903416afbd4a917e8dda8ea44641a3e66d72134bc2a31b3c16b0"},
     {file = "xsdata-26.2.tar.gz", hash = "sha256:c631af71aaa75734f8ce92a08fcf8389d905dee2aab0b5032c9032e9071009a6"},
@@ -3712,7 +3724,10 @@ docs = ["Sphinx", "repoze.sphinx.autointerface"]
 test = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 
+[extras]
+pyicat-plus = ["pyicat-plus"]
+
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.12"
-content-hash = "bbcefaf74eb116da4508c0085454cb38ee41bdbde36caeda1407455ba48caa40"
+content-hash = "00bfeaf1ac35387ae092f49c869d48c048d0781325c8145c3319a760a14ee7d7"

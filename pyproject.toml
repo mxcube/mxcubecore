@@ -25,11 +25,36 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 requires-python = ">=3.10,<3.12"
-dynamic = [
-    # For the time being: keep using Poetry-specific notation for this field,
-    # but there does not seem to be anything blocking migration to standard notation.
-    "dependencies",
+dependencies = [
+    "typing-extensions>=4.3.0,<5.0.0",
+    "tomli>=2.0.1,<3.0.0; python_version <= '3.10'",
+    "gevent>=23.9.1,<24.0.0",
+    "greenlet>=3.0.3,<4.0.0",
+    "jsonpickle>=2.2.0,<3.0.0",
+    "jsonschema>=4.17.1,<5.0.0",
+    "lxml>=6.1.0,<7.0.0",
+    "matplotlib>=3.6.2,<4.0.0",
+    "numpy>=1.23.5,<2.0.0",
+    "Pillow>=12.2.0,<13.0.0",
+    "pydantic>=2.8.2,<2.9.0",
+    "PyDispatcher>=2.0.6,<3.0.0",
+    "ruamel.yaml>=0.17.21,<0.18.0",
+    "scipy>=1.9.3,<2.0.0",
+    "suds-py3==1.4.5.0",
+    "psutil>=5.9.4,<6.0.0",
+    "py4j==0.10.9.9",
+    "f90nml==1.3.1",
+    "lucid3>=3.0.0,<4.0.0",
+    "PyTango>=9.3.6,<10.0.0",
+    "python-ldap>=3.4.5,<4.0.0",
+    "requests>=2.33.0,<3.0.0",
+    "colorama>=0.4.6,<0.5.0",
+    "mxcube-video-streamer>=1.8.5,<2.0.0",
+    "defusedxml==0.7.1",
 ]
+
+[project.optional-dependencies]
+pyicat-plus = ["pyicat-plus==3.0.1"]
 
 [tool.poetry]
 requires-poetry = ">=2.4.2,<3.0.0"  # Keep in sync with `.pre-commit-config.yaml`
@@ -37,34 +62,6 @@ requires-poetry = ">=2.4.2,<3.0.0"  # Keep in sync with `.pre-commit-config.yaml
 exclude = [
     "mxcubecore/configuration",
 ]
-
-[tool.poetry.dependencies]
-typing-extensions = "^4.3.0"
-tomli = { version = "^2.0.1", python = "<=3.10" }
-gevent = "^23.9.1"
-greenlet = "^3.0.3"
-jsonpickle = "^2.2.0"
-jsonschema = "^4.17.1"
-lxml = "^6.1.0"
-matplotlib = "^3.6.2"
-numpy = "^1.23.5"
-Pillow = "^12.2.0"
-pydantic = ">=2.8.2,<2.9.0"
-PyDispatcher = "^2.0.6"
-"ruamel.yaml" = "^0.17.21"
-scipy = "^1.9.3"
-suds-py3 = "1.4.5.0"
-psutil = "^5.9.4"
-py4j = "0.10.9.9"
-f90nml = "1.3.1"
-lucid3 = "^3.0.0"
-PyTango = "^9.3.6"
-python-ldap = "^3.4.5"
-requests = "^2.33.0"
-colorama = "^0.4.6"
-pyicat-plus = {version = "==3.0.1", optional = true}
-mxcube-video-streamer = "^1.8.5"
-defusedxml = "0.7.1"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^4.1.0"
