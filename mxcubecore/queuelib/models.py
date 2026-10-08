@@ -234,7 +234,8 @@ class WorkflowParameters(TaskDataPathModel):
     name: str | None = None
     numCols: int = 0  # noqa: N815
     numRows: int = 0  # noqa: N815
-    requires: str | None = None
+    # Shapes the workflow needs, e.g. ["point"]
+    requires: list[str] = []
     type: str = ""
     wfname: str = ""
     wfpath: str = ""
@@ -243,7 +244,6 @@ class WorkflowParameters(TaskDataPathModel):
         "wfname",
         "wfpath",
         "type",
-        "requires",
         "name",
         "label",
         "doc",
@@ -253,6 +253,22 @@ class WorkflowParameters(TaskDataPathModel):
     @classmethod
     def validate_energy_scan_strings(cls, value: str, info) -> str:
         return validate_safe_string(value, info.field_name)
+
+    @field_validator("requires", mode="before")
+    @classmethod
+    def validate_requires(cls, value: list[str] | str | None) -> list[str]:
+        # As in the workflow configuration, a comma separated string
+        if value is None:
+            return []
+
+        if isinstance(value, str):
+            value = [item.strip() for item in value.split(",") if item.strip()]
+
+        if not isinstance(value, (list, tuple)):
+            msg = "requires must be a list of strings"
+            raise ValueError(msg)
+
+        return [validate_safe_string(item, "requires") for item in value]
 
 
 def normalize_mesh_range(value):
@@ -335,6 +351,12 @@ class DataCollectionParameters(TaskDataPathModel):
     @classmethod
     def validate_mesh_range(cls, value):
         return normalize_mesh_range(value)
+
+    @field_validator("detector_roi_mode", mode="before")
+    @classmethod
+    def validate_detector_roi_mode(cls, value):
+        # Empty when the ROI mode could not be read from the detector
+        return 0 if value in (None, "") else value
 
     @field_validator(
         "detector_binning_mode",

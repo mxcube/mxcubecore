@@ -2224,16 +2224,12 @@
           "type": "integer"
         },
         "requires": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Requires"
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Requires",
+          "type": "array"
         },
         "type": {
           "default": "",
