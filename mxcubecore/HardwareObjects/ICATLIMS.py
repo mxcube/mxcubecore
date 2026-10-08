@@ -63,6 +63,18 @@ def _optional_str(value: Any) -> Optional[str]:
     return None if value is None else str(value)
 
 
+def _icat_sample_name(sample_name: str, acronym: Optional[str]) -> str:
+    """Return the sample name as stored in ICAT, "<acronym>-<sample name>"
+    when the sample has a protein acronym.
+
+    Used for all dataset types (data collections, energy scans, XRF
+    spectra) so that they end up under the same ICAT sample.
+    """
+    if acronym:
+        return f"{acronym}-{sample_name}"
+    return sample_name.replace(":", "-")
+
+
 def _icat_dict_to_typed(icat_dict: dict, icat_fields: dict) -> dict:
     """Convert the values of an ICAT dict back to their schema types.
 
@@ -151,16 +163,10 @@ class DataCollectionMetadataGatherer:
         if workflow_type is None and not directory.name.startswith("run"):
             dataset_name = fileinfo["prefix"]
 
-        if datacollection_dict["sample_reference"]["acronym"]:
-            sample_name = (
-                datacollection_dict["sample_reference"]["acronym"]
-                + "-"
-                + datacollection_dict["sample_reference"]["sample_name"]
-            )
-        else:
-            sample_name = datacollection_dict["sample_reference"][
-                "sample_name"
-            ].replace(":", "-")
+        sample_name = _icat_sample_name(
+            datacollection_dict["sample_reference"]["sample_name"],
+            datacollection_dict["sample_reference"]["acronym"],
+        )
 
         logger.info(f"LIMS sample name {sample_name}")
         oscillation_sequence = datacollection_dict["oscillation_sequence"][0]
@@ -262,9 +268,9 @@ class DataCollectionMetadataGatherer:
 
         params = params.finalize()
         metadata = params.to_icat_dict()
-        
+
         metadata.update(extra)
-        metadata["scanType"] = mx.scanType # Quick fix !
+        metadata["scanType"] = mx.scanType  # Quick fix !
 
         # ontologies
         try:
@@ -339,12 +345,22 @@ class DataCollectionMetadataGatherer:
         """
         sample_id = datacollection_dict.get("blSampleId")
         logger.debug(f"SampleId is: {sample_id}")
-        try:
-            sample = HWR.beamline.lims.find_sample_by_sample_id(sample_id)
-            sample_name = sample.get("sampleName")
-        except (AttributeError, TypeError):
-            sample_name = "unknown"
-            logger.debug(f"Sample {sample_id} not found")
+        # Taken from the queue model when available, so that samples that
+        # are not in LIMS (e.g. manually added) also get their name
+        sample_reference = datacollection_dict.get("sample_reference") or {}
+        if sample_reference.get("sample_name"):
+            sample_name = _icat_sample_name(
+                sample_reference["sample_name"], sample_reference.get("acronym")
+            )
+        else:
+            try:
+                sample = HWR.beamline.lims.find_sample_by_sample_id(sample_id)
+                sample_name = _icat_sample_name(
+                    sample.get("sampleName"), sample.get("proteinAcronym")
+                )
+            except (AttributeError, TypeError):
+                sample_name = "unknown"
+                logger.debug(f"Sample {sample_id} not found")
 
         start_time = datacollection_dict.get("collection_start_time", "")
         end_time = datetime.now(ZoneInfo("Europe/Paris")).isoformat()

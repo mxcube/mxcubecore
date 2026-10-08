@@ -46,6 +46,7 @@ class LNLSEnergyScan(AbstractEnergyScan):
         session_id=None,
         blsample_id=None,
         cpos=None,
+        sample_reference=None,
     ):
         if self._bluesky_api.api.status()["manager_state"] == "executing_queue":
             raise RuntimeError("Another Bluesky plan is still running")
