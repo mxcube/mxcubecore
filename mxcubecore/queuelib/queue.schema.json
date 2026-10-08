@@ -1411,6 +1411,506 @@
       "title": "EnergyScanParameters",
       "type": "object"
     },
+    "GenericTaskNodeModel": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "default": "",
+          "title": "Type",
+          "type": "string"
+        },
+        "queueID": {
+          "default": -1,
+          "title": "Queueid",
+          "type": "integer"
+        },
+        "checked": {
+          "default": false,
+          "title": "Checked",
+          "type": "boolean"
+        },
+        "state": {
+          "default": 0,
+          "title": "State",
+          "type": "integer"
+        },
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        },
+        "sampleID": {
+          "title": "Sampleid",
+          "type": "string"
+        },
+        "sampleQueueID": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Samplequeueid"
+        },
+        "taskIndex": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Taskindex"
+        },
+        "diffractionPlan": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TaskNodeModel"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Diffractionplan"
+        },
+        "diffractionPlanID": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Diffractionplanid"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        },
+        "parameters": {
+          "$ref": "#/$defs/GenericTaskParameters"
+        }
+      },
+      "required": [
+        "sampleID",
+        "parameters"
+      ],
+      "title": "GenericTaskNodeModel",
+      "type": "object"
+    },
+    "GenericTaskParameters": {
+      "additionalProperties": true,
+      "description": "Parameters of tasks defined by a queue entry DATA_MODEL, for instance\nthe SSX collections. The fields that are not defined here are kept, they\nare validated by the DATA_MODEL of the queue entry.",
+      "properties": {
+        "shape": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": "",
+          "title": "Shape"
+        },
+        "directory": {
+          "default": "",
+          "title": "Directory",
+          "type": "string"
+        },
+        "process_directory": {
+          "default": "",
+          "title": "Process Directory",
+          "type": "string"
+        },
+        "xds_dir": {
+          "default": "",
+          "title": "Xds Dir",
+          "type": "string"
+        },
+        "base_prefix": {
+          "default": "",
+          "title": "Base Prefix",
+          "type": "string"
+        },
+        "mad_prefix": {
+          "default": "",
+          "title": "Mad Prefix",
+          "type": "string"
+        },
+        "reference_image_prefix": {
+          "default": "",
+          "title": "Reference Image Prefix",
+          "type": "string"
+        },
+        "wedge_prefix": {
+          "default": "",
+          "title": "Wedge Prefix",
+          "type": "string"
+        },
+        "run_number": {
+          "default": 0,
+          "title": "Run Number",
+          "type": "integer"
+        },
+        "suffix": {
+          "default": "",
+          "title": "Suffix",
+          "type": "string"
+        },
+        "precision": {
+          "default": 0,
+          "title": "Precision",
+          "type": "integer"
+        },
+        "start_num": {
+          "default": 0,
+          "title": "Start Num",
+          "type": "integer"
+        },
+        "num_files": {
+          "default": 0,
+          "title": "Num Files",
+          "type": "integer"
+        },
+        "compression": {
+          "default": false,
+          "title": "Compression",
+          "type": "boolean"
+        },
+        "path": {
+          "default": "",
+          "title": "Path",
+          "type": "string"
+        },
+        "prefix": {
+          "default": "",
+          "title": "Prefix",
+          "type": "string"
+        },
+        "fileName": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "",
+          "title": "Filename"
+        },
+        "fullPath": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "",
+          "title": "Fullpath"
+        },
+        "subdir": {
+          "default": "",
+          "title": "Subdir",
+          "type": "string"
+        },
+        "first_image": {
+          "default": 0,
+          "description": "First image number",
+          "title": "First Image",
+          "type": "integer"
+        },
+        "num_images": {
+          "default": 0,
+          "description": "Total number of images",
+          "title": "Num Images",
+          "type": "integer"
+        },
+        "osc_start": {
+          "default": 0,
+          "description": "Starting oscillation angle",
+          "title": "Osc Start",
+          "type": "number"
+        },
+        "osc_range": {
+          "default": 0,
+          "description": "Oscillation range per image",
+          "title": "Osc Range",
+          "type": "number"
+        },
+        "osc_total_range": {
+          "default": 0,
+          "title": "Osc Total Range",
+          "type": "number"
+        },
+        "offset": {
+          "default": 0,
+          "title": "Offset",
+          "type": "number"
+        },
+        "kappa": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": 0,
+          "title": "Kappa"
+        },
+        "kappa_phi": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": 0,
+          "title": "Kappa Phi"
+        },
+        "exp_time": {
+          "default": 0,
+          "description": "Exposure time in seconds",
+          "title": "Exp Time",
+          "type": "number"
+        },
+        "num_lines": {
+          "default": 1,
+          "title": "Num Lines",
+          "type": "integer"
+        },
+        "energy": {
+          "default": 0,
+          "description": "Energy in keV",
+          "title": "Energy",
+          "type": "number"
+        },
+        "resolution": {
+          "default": 0,
+          "description": "Resolution in Angstrom",
+          "title": "Resolution",
+          "type": "number"
+        },
+        "detector_distance": {
+          "default": 0,
+          "title": "Detector Distance",
+          "type": "number"
+        },
+        "transmission": {
+          "default": 100,
+          "title": "Transmission",
+          "type": "number"
+        },
+        "shutterless": {
+          "default": true,
+          "title": "Shutterless",
+          "type": "boolean"
+        },
+        "take_snapshots": {
+          "default": 0,
+          "title": "Take Snapshots",
+          "type": "integer"
+        },
+        "detector_binning_mode": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detector Binning Mode"
+        },
+        "detector_roi_mode": {
+          "default": 0,
+          "title": "Detector Roi Mode",
+          "type": "integer"
+        },
+        "mesh_range": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "default": {},
+          "title": "Mesh Range",
+          "type": "object"
+        },
+        "num_triggers": {
+          "default": 0,
+          "title": "Num Triggers",
+          "type": "integer"
+        },
+        "num_images_per_trigger": {
+          "default": 0,
+          "title": "Num Images Per Trigger",
+          "type": "integer"
+        },
+        "cell_counting": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cell Counting"
+        },
+        "mesh_center": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mesh Center"
+        },
+        "cell_spacing": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cell Spacing"
+        },
+        "sub_wedge_size": {
+          "default": 10,
+          "title": "Sub Wedge Size",
+          "type": "integer"
+        },
+        "disable_processing": {
+          "default": false,
+          "title": "Disable Processing",
+          "type": "boolean"
+        },
+        "inverse_beam": {
+          "default": false,
+          "title": "Inverse Beam",
+          "type": "boolean"
+        },
+        "space_group": {
+          "default": "",
+          "title": "Space Group",
+          "type": "string"
+        },
+        "cellA": {
+          "default": 0,
+          "title": "Cella",
+          "type": "number"
+        },
+        "cellB": {
+          "default": 0,
+          "title": "Cellb",
+          "type": "number"
+        },
+        "cellC": {
+          "default": 0,
+          "title": "Cellc",
+          "type": "number"
+        },
+        "cellAlpha": {
+          "default": 0,
+          "title": "Cellalpha",
+          "type": "number"
+        },
+        "cellBeta": {
+          "default": 0,
+          "title": "Cellbeta",
+          "type": "number"
+        },
+        "cellGamma": {
+          "default": 0,
+          "title": "Cellgamma",
+          "type": "number"
+        },
+        "helical": {
+          "default": false,
+          "title": "Helical",
+          "type": "boolean"
+        },
+        "mesh": {
+          "default": false,
+          "title": "Mesh",
+          "type": "boolean"
+        },
+        "taskIndexList": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Taskindexlist"
+        },
+        "wedges": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/DataCollectionNodeModel"
+          },
+          "title": "Wedges",
+          "type": "array"
+        },
+        "swNumImages": {
+          "default": 0,
+          "title": "Swnumimages",
+          "type": "integer"
+        }
+      },
+      "title": "GenericTaskParameters",
+      "type": "object"
+    },
     "TaskNodeModel": {
       "additionalProperties": false,
       "properties": {
@@ -2052,6 +2552,11 @@
           "default": 0,
           "title": "Counttime",
           "type": "number"
+        },
+        "exp_time": {
+          "default": 0,
+          "title": "Exp Time",
+          "type": "number"
         }
       },
       "title": "XRFParameters",
@@ -2186,6 +2691,9 @@
               },
               {
                 "$ref": "#/$defs/WorkflowNodeModel"
+              },
+              {
+                "$ref": "#/$defs/GenericTaskNodeModel"
               }
             ]
           },

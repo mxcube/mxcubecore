@@ -456,6 +456,19 @@ class WorkflowNodeModel(TaskNodeModel):
     parameters: WorkflowParameters
 
 
+class GenericTaskParameters(DataCollectionParameters):
+    """Parameters of tasks defined by a queue entry DATA_MODEL, for instance
+    the SSX collections. The fields that are not defined here are kept, they
+    are validated by the DATA_MODEL of the queue entry.
+    """
+
+    model_config = {**DataCollectionParameters.model_config, "extra": "allow"}
+
+
+class GenericTaskNodeModel(TaskNodeModel):
+    parameters: GenericTaskParameters
+
+
 def build_task_node_model(value: object):
     if not isinstance(value, dict):
         return value
@@ -485,7 +498,10 @@ def build_task_node_model(value: object):
     if task_type in {"Workflow", "GphlWorkflow"}:
         return validate_model_tolerant(WorkflowNodeModel, normalized)
 
-    return validate_model_tolerant(DataCollectionNodeModel, normalized)
+    if task_type == "DataCollection":
+        return validate_model_tolerant(DataCollectionNodeModel, normalized)
+
+    return validate_model_tolerant(GenericTaskNodeModel, normalized)
 
 
 def validate_model_tolerant(model_cls, data):
@@ -527,6 +543,7 @@ TaskNodeUnion = (
     | XRFNodeModel
     | EnergyScanNodeModel
     | WorkflowNodeModel
+    | GenericTaskNodeModel
 )
 
 
