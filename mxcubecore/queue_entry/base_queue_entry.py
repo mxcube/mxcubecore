@@ -955,7 +955,7 @@ def center_before_collect(view, dm, queue, sample_view):
         pos = sample_view.get_positions()
         shape = sample_view.add_shape_from_mpos([pos], (0, 0), "P")
 
-    view(1, "Centring completed")
+    view.setText(1, "Centring completed")
     log.info("Centring completed")
 
     return queue_model_objects.CentredPosition(pos), shape
