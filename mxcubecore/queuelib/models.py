@@ -254,6 +254,12 @@ class WorkflowParameters(TaskDataPathModel):
     def validate_energy_scan_strings(cls, value: str, info) -> str:
         return validate_safe_string(value, info.field_name)
 
+    @field_validator("cell_count", mode="before")
+    @classmethod
+    def validate_cell_count(cls, value):
+        # "none" when the workflow is not run on a grid
+        return None if value in ("none", "") else value
+
     @field_validator("requires", mode="before")
     @classmethod
     def validate_requires(cls, value: list[str] | str | None) -> list[str]:
@@ -557,7 +563,7 @@ def validate_model_tolerant(model_cls, data):
             for part in path:
                 target = target[part]
             target.pop(key, None)
-            logging.getLogger("MX3.QUEUE").warning(
+            logging.getLogger("HWR").warning(
                 "Ignoring unexpected field %r not defined on %s (path: %s)",
                 key,
                 model_cls.__name__,
