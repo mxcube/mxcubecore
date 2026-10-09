@@ -521,9 +521,7 @@ class QueueSerializer:
         try:
             task = build_task_node_model(item)
         except ValidationError:
-            logging.getLogger("MX3.QUEUE").exception(
-                "Failed to validate task: %s" % item
-            )
+            logging.getLogger("HWR").exception("Failed to validate task: %s" % item)
             raise
 
         task_id = self._add_task(node_id, task)
@@ -532,7 +530,7 @@ class QueueSerializer:
             try:
                 self.pretty_print_queue(f"Added task type={task.type} parent={parent}")
             except Exception:
-                logging.getLogger("MX3.HWR").exception(
+                logging.getLogger("HWR").exception(
                     "Failed to pretty print queue after adding task"
                 )
 
@@ -556,7 +554,7 @@ class QueueSerializer:
                     f"Added item type={item.type} parent={parent_node_id}"
                 )
             except Exception:
-                logging.getLogger("MX3.HWR").exception(
+                logging.getLogger("HWR").exception(
                     "Failed to pretty print queue after adding item"
                 )
 
@@ -594,7 +592,7 @@ class QueueSerializer:
         try:
             parsed_items = [validate_model_tolerant(SampleNode, i) for i in item_list]
         except ValidationError:
-            logging.getLogger("MX3.QUEUE").exception(
+            logging.getLogger("HWR").exception(
                 "Failed to validate queue item(s): %s" % item_list
             )
             raise

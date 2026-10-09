@@ -83,7 +83,7 @@ class BlissShutterProxy(AbstractShutter):
                 f"BlissShutterProxy: BLISS object {self.actuator_name} "
                 f"not available {exc}"
             )
-            logging.getLogger("MX3.HWR").warning(msg)
+            logging.getLogger("HWR").warning(msg)
         # for now we only treat tango type shutter
         self.shutter_type = self.get_property("type", "tango")
         try:

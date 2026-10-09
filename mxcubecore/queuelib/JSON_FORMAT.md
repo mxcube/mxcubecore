@@ -86,15 +86,15 @@ Every task (`DataCollection`, `Characterisation`, `Workflow`, `GphlWorkflow`,
 
 ### Type-specific `parameters`
 
-| `type`                      | `parameters` schema                                                                        | Notes                                                                                       |
-| --------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
-| `DataCollection`            | `DataCollectionParameters`                                                                 | Also used, unmodified, for `Interleaved` wedges.                                            |
-| `Characterisation`          | `CharacterisationParameters` (extends `DataCollectionParameters`)                          |                                                                                             |
-| `xrf_spectrum`              | `XRFParameters`                                                                            | The task form sends the count time as `exp_time`, the queue JSON returns it as `countTime`. |
-| `energy_scan`               | `EnergyScanParameters`                                                                     |                                                                                             |
-| `Workflow` / `GphlWorkflow` | `WorkflowParameters`                                                                       |                                                                                             |
-| `Interleaved`               | `DataCollectionParameters` + `wedges: [DataCollectionNodeModel, ...]` + `swNumImages: int` | Its own top-level fields (`wedges`, `swNumImages`) live inside `parameters`, not beside it. |
-| any other type             | `GenericTaskParameters` (extends `DataCollectionParameters`)                               | Tasks defined by a queue entry `DATA_MODEL` (e.g. SSX). Other fields are kept, and validated by the `DATA_MODEL`. |
+| `type`                      | `parameters` schema                                                                        | Notes                                                                                                             |
+| --------------------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| `DataCollection`            | `DataCollectionParameters`                                                                 | Also used, unmodified, for `Interleaved` wedges.                                                                  |
+| `Characterisation`          | `CharacterisationParameters` (extends `DataCollectionParameters`)                          |                                                                                                                   |
+| `xrf_spectrum`              | `XRFParameters`                                                                            | The task form sends the count time as `exp_time`, the queue JSON returns it as `countTime`.                       |
+| `energy_scan`               | `EnergyScanParameters`                                                                     |                                                                                                                   |
+| `Workflow` / `GphlWorkflow` | `WorkflowParameters`                                                                       |                                                                                                                   |
+| `Interleaved`               | `DataCollectionParameters` + `wedges: [DataCollectionNodeModel, ...]` + `swNumImages: int` | Its own top-level fields (`wedges`, `swNumImages`) live inside `parameters`, not beside it.                       |
+| any other type              | `GenericTaskParameters` (extends `DataCollectionParameters`)                               | Tasks defined by a queue entry `DATA_MODEL` (e.g. SSX). Other fields are kept, and validated by the `DATA_MODEL`. |
 
 `shape` (present on every parameter set) is either `-1` (no associated shape),
 a 2D-plane reference (`"2DP"` + optional digits), or a point/line/grid reference

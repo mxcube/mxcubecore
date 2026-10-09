@@ -46,7 +46,7 @@ from mxcubecore.HardwareObjects.abstract.AbstractNState import (
 )
 from mxcubecore.HardwareObjects.BlissMotor import BlissMotor
 
-_log = logging.getLogger("MX3.HWR")
+_log = logging.getLogger("HWR")
 
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
