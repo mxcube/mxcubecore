@@ -198,7 +198,7 @@ class ESRFBeam(AbstractBeam):
             ``{"type": ["aperture"], "values": [labels]}`` or
             ``{"type": ["definer"], "values": [labels]}`` or
             ``{"type": ["width", "height"], "values":
-                     [low_lim_w, high_lim_w, low_lim_h, high_lim_h]}``
+                     [(low_lim_w, high_lim_w), (low_lim_h, high_lim_h)]}``
         """
         if self._definer_type == "aperture":
             return {
@@ -218,7 +218,7 @@ class ESRFBeam(AbstractBeam):
             _low_h, _high_h = self.slits["height"].get_limits()
             return {
                 "type": ["width", "height"],
-                "values": [_low_w, _high_w, _low_h, _high_h],
+                "values": [(_low_w, _high_w), (_low_h, _high_h)],
             }
 
         return {}

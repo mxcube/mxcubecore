@@ -272,7 +272,7 @@ class BeamMockup(AbstractBeam):
             ``{"type": ["aperture"], "values": [labels]}`` or
             ``{"type": ["definer"], "values": [labels]}`` or
             ``{"type": ["width", "height"], "values":
-                       [low_lim_w, high_lim_w, low_lim_h, high_lim_h]}``
+                       [(low_lim_w, high_lim_w), (low_lim_h, high_lim_h)]}``
         """
         if self._definer_type == "aperture":
             # get list of the available apertures
@@ -294,7 +294,7 @@ class BeamMockup(AbstractBeam):
             _high_w, _high_h = self.slits.get_max_limits()
             return {
                 "type": ["width", "height"],
-                "values": [_low_w, _high_w, _low_h, _high_h],
+                "values": [(_low_w, _high_w), (_low_h, _high_h)],
             }
 
         return {}
