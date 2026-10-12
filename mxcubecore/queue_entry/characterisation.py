@@ -140,7 +140,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         char = self.get_data_model()
         characterisation_parameters = char.characterisation_parameters
 
-        if characterisation_parameters.strategy_program != "None":
+        if characterisation_parameters.strategy_program != "No strategy":
             log = logging.getLogger("user_level_log")
             self.get_view().setText(1, "Characterising")
             log.info("Characterising, please wait ...")
