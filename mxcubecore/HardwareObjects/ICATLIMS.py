@@ -1,13 +1,18 @@
 import json
 import logging
 import shutil
+import smtplib
+import socket
+import traceback
 from collections import defaultdict
 from datetime import datetime, timedelta
+from email.mime.text import MIMEText
 from importlib.util import find_spec
 from pathlib import Path
 from typing import Any, List, Optional, Tuple
 from zoneinfo import ZoneInfo
 
+import gevent
 from gevent.lock import RLock
 from pyicat_plus import errors as icat_errors
 from pyicat_plus.client import models as icat_models
@@ -513,6 +518,25 @@ class ICATLIMS(AbstractLims):
         self.investigations = []
         self.samples = []
         self._downloads_cache = {}
+
+        self.pause_queue_on_upload_failure = str(
+            self.get_property("pause_queue_on_upload_failure", False)
+        ).strip().lower() in ("true", "1", "yes")
+        self.upload_failure_email_recipients = self._parse_email_list(
+            self.get_property("upload_failure_email_recipients", [])
+        )
+        self.smtp_server = self.get_property("smtp_server", "localhost")
+        self._pending_uploads = []
+        self._queue_resume_connected = False
+
+    @staticmethod
+    def _parse_email_list(value) -> List[str]:
+        """Accept a list of addresses or a comma/space separated string"""
+        if not value:
+            return []
+        if isinstance(value, str):
+            value = value.replace(",", " ").split()
+        return [str(address).strip() for address in value if str(address).strip()]
 
     @property
     def _icat_client(self):
@@ -1644,6 +1668,133 @@ class ICATLIMS(AbstractLims):
             self._upload_metadata(gathered)
         except LimsMetadataUploadError as e:
             logger.warning("Failed uploading to ICAT. %s", e)
+            self._handle_upload_failure(gathered, e)
+
+    def _handle_upload_failure(self, gathered: dict, error: Exception) -> None:
+        """Keep a failed upload for retry when the queue is resumed, pause the
+        queue and notify by email, if pause_queue_on_upload_failure is enabled.
+        """
+        if not self.pause_queue_on_upload_failure:
+            return
+
+        self._pending_uploads.append(gathered)
+
+        self._connect_queue_resume()
+        self._pause_queue_and_notify(gathered, error)
+
+    def _pause_queue_and_notify(self, gathered: dict, error: Exception) -> None:
+        queue_manager = HWR.beamline.queue_manager
+        if queue_manager is None or not queue_manager.is_executing():
+            return
+
+        queue_manager.set_pause(True)
+        logger.error(
+            "Queue paused because dataset %s could not be uploaded to ICAT",
+            gathered.get("dataset_name"),
+        )
+
+        if self.upload_failure_email_recipients:
+            pending = list(self._pending_uploads)
+            # Send in the background so that a slow SMTP server does not
+            # block the data collection
+            gevent.spawn(
+                self._send_upload_failure_email,
+                self._format_upload_failure_message(gathered, error, pending),
+                gathered,
+            )
+
+    def _connect_queue_resume(self) -> None:
+        """Connect to the queue manager to retry failed uploads on resume.
+        Done lazily as the queue manager may not exist yet when init is called.
+        """
+        if self._queue_resume_connected:
+            return
+
+        queue_manager = HWR.beamline.queue_manager
+        if queue_manager is not None:
+            self.connect(queue_manager, "queue_paused", self._on_queue_paused)
+            self._queue_resume_connected = True
+
+    def _on_queue_paused(self, state: bool) -> None:
+        if state:
+            return
+
+        if self._pending_uploads:
+            # Retry in the background, pausing the queue again from within
+            # the queue_paused handler would be undone by set_pause(False)
+            gevent.spawn(self._retry_pending_uploads)
+
+    def _retry_pending_uploads(self) -> None:
+        """Retry the ICAT uploads that failed, pause the queue again if any
+        of them still fails.
+        """
+        pending = self._pending_uploads
+        self._pending_uploads = []
+
+        last_failure = None
+        for gathered in pending:
+            logger.info("Retrying ICAT upload of %s", gathered.get("dataset_name"))
+            try:
+                self._upload_metadata(gathered)
+            except LimsMetadataUploadError as e:
+                logger.warning("Retry of ICAT upload failed. %s", e)
+                self._pending_uploads.append(gathered)
+                last_failure = (gathered, e)
+
+        if last_failure:
+            self._pause_queue_and_notify(*last_failure)
+
+    @staticmethod
+    def _format_upload_failure_message(
+        gathered: dict, error: Exception, pending: List[dict]
+    ) -> str:
+        cause = error.__cause__ or error
+        trace = "".join(
+            traceback.format_exception(type(cause), cause, cause.__traceback__)
+        )
+        pending_paths = "".join(f"  {g.get('directory')}\n" for g in pending)
+        return (
+            "Hi,\n\n"
+            "The MXCuBE queue has been paused because a dataset could not be "
+            "uploaded to ICAT. The data collection itself has finished and the "
+            "data is on disk, but it is not yet registered in the data portal.\n\n"
+            "Please check the ICAT connection and resume the queue from MXCuBE "
+            "when the problem has been resolved. The upload of the datasets "
+            "waiting for ICAT will be retried when the queue is resumed.\n\n"
+            f"Beamline: {gathered.get('beamline')}\n"
+            f"Proposal: {gathered.get('proposal')}\n"
+            f"Dataset:  {gathered.get('dataset_name')}\n"
+            f"Path:     {gathered.get('directory')}\n"
+            f"Time:     {datetime.now().isoformat(timespec='seconds')}\n\n"
+            f"Datasets waiting for ICAT upload ({len(pending)}):\n"
+            f"{pending_paths}\n"
+            f"Error: {error}\n\n"
+            "Details:\n"
+            f"{trace}\n"
+            "This is an automatic message sent by MXCuBE.\n"
+        )
+
+    def _send_upload_failure_email(self, body: str, gathered: dict) -> None:
+        recipients = self.upload_failure_email_recipients
+        sender = f"mxcube@{socket.getfqdn()}"
+        message = MIMEText(body)
+        message["Subject"] = (
+            f"MXCuBE queue paused on {gathered.get('beamline')}: "
+            f"ICAT upload failed for proposal {gathered.get('proposal')}"
+        )
+        message["From"] = sender
+        message["To"] = ", ".join(recipients)
+
+        try:
+            with smtplib.SMTP(self.smtp_server, timeout=30) as smtp:
+                smtp.sendmail(
+                    sender,
+                    recipients,
+                    message.as_string(),
+                )
+            logger.info("Sent ICAT upload failure email to %s", recipients)
+        except Exception:
+            logger.exception("Failed to send ICAT upload failure email")
 
     def _gather_metadata(self, datacollection_dict: dict) -> dict:
         """Assemble the ICAT metadata for a finished data collection.
