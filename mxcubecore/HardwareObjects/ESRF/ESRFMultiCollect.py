@@ -103,13 +103,14 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         self._detector._emit_status()
 
         try:
-            from lima2mxh5master.api import upgrade_h5mx_hibou
             from pathlib import Path
 
+            from lima2mxh5master.api import upgrade_h5mx_hibou
+
             file_parameters = data_collect_parameters["fileinfo"]
-            start_image_number = data_collect_parameters[
-                "oscillation_sequence"
-            ][0]["start_image_number"]
+            start_image_number = data_collect_parameters["oscillation_sequence"][0][
+                "start_image_number"
+            ]
             path_master_file = os.path.join(
                 file_parameters["directory"],
                 "%s_%s_%s_master.h5"
@@ -119,9 +120,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                     start_image_number,
                 ),
             )
-            logging.getLogger("HWR").info(
-                "Updating master file %s", path_master_file
-            )
+            logging.getLogger("HWR").info("Updating master file %s", path_master_file)
             upgrade_h5mx_hibou(Path(path_master_file))
         except Exception:
             logging.getLogger("HWR").exception("Could not update master file")
