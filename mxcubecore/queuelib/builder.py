@@ -434,6 +434,10 @@ class QueueBuilder:
             task_data,
             sample_model,
         )
+        # the above setter resets path_template.reference_image_prefix to ''
+        model.reference_image_collection.acquisitions[
+            0
+        ].path_template.reference_image_prefix = "ref"
 
         # The task parameters use the name ("SINGLE", "FEW" or "MANY") while
         # the characterisation model expects the index into
