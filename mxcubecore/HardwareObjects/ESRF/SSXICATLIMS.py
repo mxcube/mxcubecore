@@ -90,13 +90,13 @@ class SsxDataCollectionMetadataGatherer:
             "Sample_name": path_parameters.prefix,
             "scanNumber": 0,
             "InstrumentMonochromator_wavelength": beamline_parameters.wavelength,
-            "chipModel": extra_lims_values.chip_model,
+            "SSXChip_model": extra_lims_values.chip_model,
             "monoStripe": extra_lims_values.mono_stripe,
             "energyBandwidth": beamline_parameters.energy_bandwidth,
             "detector_id": HWR.beamline.detector.get_property("detector_id"),
-            "experimentType": extra_lims_values.experiment_type,
+            "SSX_experiment_type": extra_lims_values.experiment_type,
             "scanType": extra_lims_values.experiment_type,
-            "Experiment_name": path_parameters.experiment_name,
+            "SSX_experiment_name": path_parameters.experiment_name,
         }
 
         data.update(collection_parameters.user_collection_parameters.dict())
