@@ -61,7 +61,6 @@ class SsxDataCollectionMetadataGatherer:
             "SSXChip_vertical_spacing": vertical_spacing,
             "SSXChip_row_number": extra_lims_values.number_of_rows,
             "SSXChip_column_number": extra_lims_values.number_of_columns,
-            "SSXChip_model": 0,
             "InstrumentLaser01_energy": 0,
             "InstrumentLaser01_wavelength": 0,
             "InstrumentLaser01_repetition_rate": 0,
