@@ -1095,7 +1095,7 @@ class ICATLIMS(AbstractLims):
         msg += f"investigations={len(self.investigations)}"
         logger.debug(msg)
 
-        investigation_list = list(filter(lambda p: p["id"] == sid, self.investigations))
+        investigation_list = [p for p in self.investigations if str(p.id) == str(sid)]
         if len(investigation_list) == 1:
             self.investigation = investigation_list[0]
             return self.__to_session(investigation_list[0])
