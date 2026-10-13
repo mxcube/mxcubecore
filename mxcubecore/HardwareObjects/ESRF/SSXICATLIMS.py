@@ -1,5 +1,7 @@
 import json
+import logging
 import pathlib
+from importlib.util import find_spec
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractLims import (
@@ -8,6 +10,9 @@ from mxcubecore.HardwareObjects.abstract.AbstractLims import (
     LimsMetadataWriteError,
 )
 from mxcubecore.HardwareObjects.ICATLIMS import ICATLIMS
+
+if find_spec("esrf_ontologies"):
+    from esrf_ontologies import technique
 
 
 class SsxDataCollectionMetadataGatherer:
@@ -101,6 +106,13 @@ class SsxDataCollectionMetadataGatherer:
 
         data.update(collection_parameters.user_collection_parameters.dict())
         data.update(collection_parameters.collection_parameters.dict())
+
+        # ontologies
+        try:
+            tech = technique.get_technique_metadata("MX", "SSX")
+            data.update(tech.get_dataset_metadata())
+        except (NameError, TypeError):
+            logging.getLogger("HWR").warning("No technique added to the metadata")
 
         # Round float values to 3 decimal places
         rounded_data = {
