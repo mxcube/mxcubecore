@@ -29,6 +29,8 @@ Example xml file:
 
 """
 
+from math import isclose
+
 from mxcubecore.HardwareObjects.abstract.AbstractResolution import AbstractResolution
 
 __copyright__ = """ Copyright © 2010-2020 by the MXCuBE collaboration """
@@ -50,4 +52,5 @@ class Resolution(AbstractResolution):
         # the better the precision.
         # We move twice to get the closet possible to the requested resolution.
         super().set_value(value, timeout)
-        super().set_value(value, timeout)
+        if not isclose(self.get_value(), value, abs_tol=self._tolerance):
+            super().set_value(value, timeout)
