@@ -45,6 +45,8 @@ from mxcubecore.queuelib.models import (
     DataCollectionParameters,
     EnergyScanNodeModel,
     EnergyScanParameters,
+    GenericTaskNodeModel,
+    GenericTaskParameters,
     QueueNodeModel,
     SampleNode,
     TaskDataPathModel,
@@ -55,6 +57,7 @@ from mxcubecore.queuelib.models import (
     XRFNodeModel,
     XRFParameters,
     build_task_node_model,
+    validate_model_tolerant,
 )
 from mxcubecore.queuelib.serializer import QueueSerializer
 
@@ -76,6 +79,8 @@ __all__ = [
     "DataCollectionParameters",
     "EnergyScanNodeModel",
     "EnergyScanParameters",
+    "GenericTaskNodeModel",
+    "GenericTaskParameters",
     "QueueBuilder",
     "QueueNodeModel",
     "QueueSerializer",
@@ -89,4 +94,5 @@ __all__ = [
     "XRFParameters",
     "build_task_node_model",
     "get_json_schema",
+    "validate_model_tolerant",
 ]

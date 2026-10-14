@@ -22,9 +22,11 @@
 See JSON_FORMAT.md in this package for the full JSON format documentation
 """
 
+import copy
+import logging
 import re
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator
 
 from mxcubecore.queuelib.constants import UNCOLLECTED
 
@@ -165,6 +167,9 @@ class TaskDataPathModel(BaseModel):
 
     model_config = {
         "validate_assignment": True,
+        # Internal serialization (_handle_dc_node, _handle_char_node, ...)
+        # feeds the full mxcubecore object dict into this model's subclasses,
+        # which only model a subset of it - "ignore" lets that pass through.
         "extra": "ignore",
         "str_strip_whitespace": True,
         "use_enum_values": True,
@@ -206,6 +211,8 @@ class TaskDataPathModel(BaseModel):
 class XRFParameters(TaskDataPathModel):
     # From mxcbecore xrf:
     countTime: float = 0  # noqa: N815
+    # Count time as sent by the task form
+    exp_time: float = 0
 
 
 class EnergyScanParameters(TaskDataPathModel):
@@ -227,7 +234,8 @@ class WorkflowParameters(TaskDataPathModel):
     name: str | None = None
     numCols: int = 0  # noqa: N815
     numRows: int = 0  # noqa: N815
-    requires: str | None = None
+    # Shapes the workflow needs, e.g. ["point"]
+    requires: list[str] = []
     type: str = ""
     wfname: str = ""
     wfpath: str = ""
@@ -236,7 +244,6 @@ class WorkflowParameters(TaskDataPathModel):
         "wfname",
         "wfpath",
         "type",
-        "requires",
         "name",
         "label",
         "doc",
@@ -246,6 +253,28 @@ class WorkflowParameters(TaskDataPathModel):
     @classmethod
     def validate_energy_scan_strings(cls, value: str, info) -> str:
         return validate_safe_string(value, info.field_name)
+
+    @field_validator("cell_count", mode="before")
+    @classmethod
+    def validate_cell_count(cls, value):
+        # "none" when the workflow is not run on a grid
+        return None if value in ("none", "") else value
+
+    @field_validator("requires", mode="before")
+    @classmethod
+    def validate_requires(cls, value: list[str] | str | None) -> list[str]:
+        # As in the workflow configuration, a comma separated string
+        if value is None:
+            return []
+
+        if isinstance(value, str):
+            value = [item.strip() for item in value.split(",") if item.strip()]
+
+        if not isinstance(value, (list, tuple)):
+            msg = "requires must be a list of strings"
+            raise ValueError(msg)
+
+        return [validate_safe_string(item, "requires") for item in value]
 
 
 def normalize_mesh_range(value):
@@ -282,7 +311,7 @@ class DataCollectionParameters(TaskDataPathModel):
     osc_start: float = Field(0, description="Starting oscillation angle")
     osc_range: float = Field(0, description="Oscillation range per image")
     osc_total_range: float = 0
-    overlap: float = 0
+    offset: float = 0
     kappa: float | None = 0
     kappa_phi: float | None = 0
     exp_time: float = Field(0, description="Exposure time in seconds")
@@ -303,6 +332,8 @@ class DataCollectionParameters(TaskDataPathModel):
     cell_spacing: tuple[float, float] | None = None
     sub_wedge_size: int = 10
     disable_processing: bool = False
+    inverse_beam: bool = False
+    space_group: str = ""
 
     # Unit cell parameters, sent by the frontend as cellA/cellB/cellC/
     # cellAlpha/cellBeta/cellGamma
@@ -327,10 +358,17 @@ class DataCollectionParameters(TaskDataPathModel):
     def validate_mesh_range(cls, value):
         return normalize_mesh_range(value)
 
+    @field_validator("detector_roi_mode", mode="before")
+    @classmethod
+    def validate_detector_roi_mode(cls, value):
+        # Empty when the ROI mode could not be read from the detector
+        return 0 if value in (None, "") else value
+
     @field_validator(
         "detector_binning_mode",
         "cell_counting",
         "mesh_center",
+        "space_group",
         mode="before",
     )
     @classmethod
@@ -340,7 +378,8 @@ class DataCollectionParameters(TaskDataPathModel):
 
 class CharacterisationParameters(DataCollectionParameters):
     # From mxcubecore Characterisation
-    experiment_type: str = ""
+    # Index into qme.EXPERIMENT_TYPE when set by mxcubecore
+    experiment_type: int | str = ""
     use_aimed_resolution: float = 0
     use_aimed_multiplicity: float = 0
     aimed_multiplicity: float = 0
@@ -357,7 +396,6 @@ class CharacterisationParameters(DataCollectionParameters):
     min_crystal_vdim: float = 0
     max_crystal_vphi: float = 0
     min_crystal_vphi: float = 0
-    space_group: str = ""
     use_min_dose: float = 0
     use_min_time: float = 0
     min_dose: float = 0
@@ -373,11 +411,12 @@ class CharacterisationParameters(DataCollectionParameters):
     beta: float = 0
     gamma: float = 0
 
-    @field_validator(
-        "experiment_type", "strategy_program", "space_group", mode="before"
-    )
+    @field_validator("experiment_type", "strategy_program", mode="before")
     @classmethod
-    def validate_characterisation_strings(cls, value: str, info) -> str:
+    def validate_characterisation_strings(cls, value: int | str, info) -> int | str:
+        if info.field_name == "experiment_type" and isinstance(value, int):
+            return value
+
         return validate_safe_string(value, info.field_name)
 
     @field_validator("strategy_complexity", mode="before")
@@ -397,6 +436,8 @@ class CharacterisationParameters(DataCollectionParameters):
 
 
 class QueueNodeModel(BaseModel):
+    model_config = {"extra": "forbid"}
+
     type: str = ""
     queueID: int = -1  # noqa: N815
     checked: bool = False
@@ -417,8 +458,12 @@ class TaskNodeModel(QueueNodeModel):
     taskIndex: int | None = None  # noqa: N815
 
     # Optional fields
-    diffractionPlan: list["TaskNodeModel"] | None = None  # noqa: N815
+    # The data collections of a characterisation's diffraction plan
+    diffractionPlan: list["DataCollectionNodeModel"] | None = None  # noqa: N815
+    # queueID of the diffraction plan collections
     diffractionPlanID: int | None = None  # noqa: N815
+    # True for the data collections of a diffraction plan
+    isDiffractionPlan: bool = False  # noqa: N815
     name: str | None = None
 
     @field_validator("sampleID", "name", mode="before")
@@ -447,6 +492,19 @@ class WorkflowNodeModel(TaskNodeModel):
     parameters: WorkflowParameters
 
 
+class GenericTaskParameters(DataCollectionParameters):
+    """Parameters of tasks defined by a queue entry DATA_MODEL, for instance
+    the SSX collections. The fields that are not defined here are kept, they
+    are validated by the DATA_MODEL of the queue entry.
+    """
+
+    model_config = {**DataCollectionParameters.model_config, "extra": "allow"}
+
+
+class GenericTaskNodeModel(TaskNodeModel):
+    parameters: GenericTaskParameters
+
+
 def build_task_node_model(value: object):
     if not isinstance(value, dict):
         return value
@@ -460,23 +518,59 @@ def build_task_node_model(value: object):
         # original type afterwards so downstream routing (add_interleaved,
         # the interleave swap logic) still recognizes it as "Interleaved".
         normalized["type"] = "DataCollection"
-        model = DataCollectionNodeModel.model_validate(normalized)
+        model = validate_model_tolerant(DataCollectionNodeModel, normalized)
         model.type = "Interleaved"
         return model
 
     if task_type == "Characterisation":
-        return CharacterisationNodeModel.model_validate(normalized)
+        return validate_model_tolerant(CharacterisationNodeModel, normalized)
 
     if task_type == "xrf_spectrum":
-        return XRFNodeModel.model_validate(normalized)
+        return validate_model_tolerant(XRFNodeModel, normalized)
 
     if task_type == "energy_scan":
-        return EnergyScanNodeModel.model_validate(normalized)
+        return validate_model_tolerant(EnergyScanNodeModel, normalized)
 
     if task_type in {"Workflow", "GphlWorkflow"}:
-        return WorkflowNodeModel.model_validate(normalized)
+        return validate_model_tolerant(WorkflowNodeModel, normalized)
 
-    return DataCollectionNodeModel.model_validate(normalized)
+    if task_type == "DataCollection":
+        return validate_model_tolerant(DataCollectionNodeModel, normalized)
+
+    return validate_model_tolerant(GenericTaskNodeModel, normalized)
+
+
+def validate_model_tolerant(model_cls, data):
+    """Validate <data> against <model_cls>, tolerating unknown fields.
+
+    Unknown/extra fields (model_config extra="forbid") are logged as a
+    warning and dropped rather than failing the request; any other
+    validation error (missing or invalid field) is re-raised as-is.
+    """
+    try:
+        return model_cls.model_validate(data)
+    except ValidationError as exc:
+        errors = exc.errors()
+        extra_errors = [e for e in errors if e["type"] == "extra_forbidden"]
+
+        if len(extra_errors) != len(errors):
+            raise
+
+        cleaned = copy.deepcopy(data)
+        for error in extra_errors:
+            *path, key = error["loc"]
+            target = cleaned
+            for part in path:
+                target = target[part]
+            target.pop(key, None)
+            logging.getLogger("HWR").warning(
+                "Ignoring unexpected field %r not defined on %s (path: %s)",
+                key,
+                model_cls.__name__,
+                ".".join(str(p) for p in error["loc"]),
+            )
+
+        return model_cls.model_validate(cleaned)
 
 
 TaskNodeUnion = (
@@ -485,11 +579,13 @@ TaskNodeUnion = (
     | XRFNodeModel
     | EnergyScanNodeModel
     | WorkflowNodeModel
+    | GenericTaskNodeModel
 )
 
 
 class SampleNode(QueueNodeModel):
     sampleID: str  # noqa: N815
+    limsID: int | None = None  # noqa: N815
     code: str | None = None
     location: str
     cell_no: int = 0
@@ -499,6 +595,16 @@ class SampleNode(QueueNodeModel):
     defaultPrefix: str | None = ""  # noqa: N815
     defaultSubDir: str | None = ""  # noqa: N815
     tasks: list[TaskNodeUnion]
+    crystalUUID: str | None = None  # noqa: N815
+    image_url: str = ""
+    image_x: str | None = None
+    image_y: str | None = None
+    loadable: bool = True
+    puck_barcode: str | None = None
+    puck_type: str | None = None
+    sample_barcode: str = ""
+    sc_state: str = ""
+    state: int | None = None
 
     @model_validator(mode="before")
     @classmethod

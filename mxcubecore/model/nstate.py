@@ -14,7 +14,7 @@ class NStateOption(BaseModel):
     to make a better informed choice.
     """
 
-    value: str
+    value: str | tuple[float, float]
     label: str | None = None
     description: str | None = None
     severity: Severity | None = None
