@@ -212,6 +212,10 @@ class Beamline(HardwareObject):
         return self.get_object_by_role("beamline_actions")
 
     @property
+    def control_proxy(self) -> HardwareObject | None:
+        return self.get_object_by_role("control_proxy")
+
+    @property
     def xml_rpc_server(self) -> HardwareObject | None:
         return self.get_object_by_role("xml_rpc_server")
 
