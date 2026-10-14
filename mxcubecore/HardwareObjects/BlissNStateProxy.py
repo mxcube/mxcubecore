@@ -68,7 +68,7 @@ class BlissNStateProxy(AbstractNState):
         super().init()
         self._bliss_obj = None
         try:
-            bliss_proxy = HWR.beamline.bliss_proxy
+            bliss_proxy = HWR.beamline.control_proxy
             bliss_proxy.hardware.register(self.actuator_name)
             self._bliss_obj = bliss_proxy.get_object(self.actuator_name)
         except Exception as exc:
@@ -150,9 +150,9 @@ class BlissNStateProxy(AbstractNState):
             # with blissclient this is a non blocking move
             self._motor_callback = self._bliss_obj.move(svalue)
         elif self.device_type == "actuator":
-            if value.name == "IN":  # tried value but only name working
+            if value.value == "IN":
                 self._motor_callback = self._bliss_obj.move_in()
-            if value.name == "OUT":
+            if value.value == "OUT":
                 self._motor_callback = self._bliss_obj.move_out()
 
     def _get_state_str(self) -> str:

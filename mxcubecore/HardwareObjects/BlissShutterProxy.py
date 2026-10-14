@@ -54,7 +54,7 @@ class BlissShutterStates(Enum):
     OPEN = HardwareObjectState.READY, "OPEN"
     CLOSED = HardwareObjectState.READY, "CLOSED"
     MOVING = HardwareObjectState.BUSY, "MOVING"
-    DISABLE = HardwareObjectState.WARNING, "DISABLE"
+    DISABLED = HardwareObjectState.WARNING, "DISABLE"
     AUTOMATIC = HardwareObjectState.READY, "RUNNING"
     UNKNOWN = HardwareObjectState.UNKNOWN, "RUNNING"
     FAULT = HardwareObjectState.WARNING, "FAULT"
@@ -75,7 +75,7 @@ class BlissShutterProxy(AbstractShutter):
         """Initialise the predefined values"""
         super().init()
         try:
-            bliss_proxy = HWR.beamline.bliss_proxy
+            bliss_proxy = HWR.beamline.control_proxy
             bliss_proxy.hardware.register(self.actuator_name)
             self._bliss_obj = bliss_proxy.get_object(self.actuator_name)
         except Exception as exc:
@@ -120,7 +120,7 @@ class BlissShutterProxy(AbstractShutter):
         values_dict.update(
             {
                 "MOVING": "MOVING",
-                "DISABLE": "DISABLE",
+                "DISABLE": "DISABLED",
                 "STANDBY": "STANDBY",
                 "FAULT": "FAULT",
             }

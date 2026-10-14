@@ -62,7 +62,7 @@ class ESRFBeamlineActionsProxy(BeamlineActions):
         """Build a callable that runs 'function_name' in the BLISS session
         via the BlissProxy REST client and blocks for the result.
         """
-        return lambda *args, **kwargs: HWR.beamline.bliss_proxy.session.call(
+        return lambda *args, **kwargs: HWR.beamline.control_proxy.session.call(
             function_name, *args, **kwargs
         ).get()
 
@@ -74,7 +74,7 @@ class ESRFBeamlineActionsProxy(BeamlineActions):
 
         if ctrl_cmds:
             controller = self.get_object_by_role("controller")
-            bliss_proxy = getattr(HWR.beamline, "bliss_proxy", None)
+            bliss_proxy = getattr(HWR.beamline, "control_proxy", None)
             for key, name in ctrl_cmds.items():
                 if bliss_proxy is not None:
                     # Prefer running the command in the BLISS session;

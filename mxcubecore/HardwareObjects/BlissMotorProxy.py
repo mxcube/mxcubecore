@@ -94,7 +94,7 @@ class BlissMotorProxy(AbstractMotor):
         """Initialise the motor"""
         super().init()
         try:
-            bliss_proxy = HWR.beamline.bliss_proxy
+            bliss_proxy = HWR.beamline.control_proxy
             # need to register the motor first
             bliss_proxy.hardware.register(self.actuator_name)
             self.motor_obj = bliss_proxy.get_object(self.actuator_name)
@@ -181,7 +181,9 @@ class BlissMotorProxy(AbstractMotor):
     def _update_state(self):
         """Refresh state from the motor object and emit stateChanged if it changed."""
         _state = self.get_state()
+        # actualise the  self._specific_state every time
         self._specific_state = self.get_specific_state()
+        # this will emit stateChanged if _state different from the previous one
         self.update_state(_state)
 
     def get_value(self):
