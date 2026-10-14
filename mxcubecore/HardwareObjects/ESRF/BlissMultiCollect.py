@@ -38,6 +38,7 @@ import shutil
 from ast import literal_eval
 from pathlib import Path
 
+import gevent
 from lima2mxh5master.api import convert_lima2_to_h5mx
 
 from mxcubecore import HardwareRepository as HWR
@@ -104,15 +105,16 @@ class BlissMultiCollect(ESRFMultiCollect):
                         raise
                     gevent.sleep(1)
 
-
     def _bliss_data_collection_hook(self, data_collect_parameters):
         # first set the proposal name for bliss
         _as = HWR.beamline.lims.get_active_session()
         proposal = f"{_as.code}{_as.number}"
         self._scan.set_session(proposal, HWR.beamline.session.get_session_start_date())
 
-        wf_wedge_id = data_collect_parameters["workflow_parameters"].get("wedge_id", None)
-        
+        wf_wedge_id = data_collect_parameters["workflow_parameters"].get(
+            "wedge_id", None
+        )
+
         sample_name = data_collect_parameters["sample_reference"]["sample_name"]
         meta_data = {
             "wf_wedge_id": wf_wedge_id,
