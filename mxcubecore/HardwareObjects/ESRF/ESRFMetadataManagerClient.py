@@ -374,7 +374,7 @@ class MXCuBEMetadataClient(object):
                 ]:
                     number_of_images = oscillation_parameters["number_of_images"]
                     start_image_number = oscillation_parameters["start_image_number"]
-                    overlap = oscillation_parameters["overlap"]
+                    overlap = oscillation_parameters["offset"]
                     self.upload_images_to_icat(
                         template,
                         prefix,
@@ -446,7 +446,7 @@ class MXCuBEMetadataClient(object):
             ["MX_numberOfImages", "oscillation_sequence.number_of_images"],
             ["MX_oscillationRange", "oscillation_sequence.range"],
             ["MX_oscillationStart", "oscillation_sequence.start"],
-            ["MX_oscillationOverlap", "oscillation_sequence.overlap"],
+            ["MX_oscillationOverlap", "oscillation_sequence.offset"],
             ["MX_resolution", "resolution"],
             ["MX_startImageNumber", "oscillation_sequence.start_image_number"],
             ["MX_scanType", "experiment_type"],
