@@ -210,12 +210,7 @@ class AbstractCollect(HardwareObject, object):
             ):
                 # No centring point defined
                 # create point based on the current position
-                if hasattr(HWR.beamline.sample_view, "get_positions"):
-                    current_positions = HWR.beamline.sample_view.get_positions()
-                else:
-                    # Fallback to diffractometer positions if a sample view does not
-                    # provide get_positions (prior to AbstractDiffractometer)
-                    current_positions = HWR.beamline.diffractometer.get_positions()
+                current_positions = HWR.beamline.sample_view.get_positions()
 
                 for motor in self.current_dc_parameters["motors"].keys():
                     self.current_dc_parameters["motors"][motor] = current_positions.get(
