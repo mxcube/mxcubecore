@@ -85,6 +85,9 @@ class Beamline(HardwareObject):
         # Dictionary-of-dictionaries of default acquisition parameters
         default_acquisition_parameters: dict[str, Any] = {}
 
+        # Dictionary-of-dictionaries of acquisition parameter limits
+        acquisition_limit_values: dict[str, Any] = {}
+
         # int Starting run number for path_template
         run_number: int = 1
 
