@@ -156,6 +156,7 @@ class SSXICATLIMS(ICATLIMS):
             self._upload_ssx_metadata(gathered)
         except LimsMetadataUploadError as e:
             self.log.warning("Failed uploading to ICAT. %s", e)
+            self._handle_upload_failure(gathered, e)
 
         try:
             self._write_ssx_metadata(gathered)
@@ -171,13 +172,17 @@ class SSXICATLIMS(ICATLIMS):
         callers expect.
 
         Returns a dict with keys "data", "rounded_data", "data_path",
-        "beamline", "proposal" and "dataset_name", consumed by
+        "directory", "beamline", "proposal" and "dataset_name", consumed by
         _upload_ssx_metadata and _write_ssx_metadata.
         """
         try:
-            return SsxDataCollectionMetadataGatherer().gather(parameters)
+            gathered = SsxDataCollectionMetadataGatherer().gather(parameters)
         except Exception as e:
             raise LimsMetadataGatherError(str(e)) from e
+
+        # "directory" is the key used by ICATLIMS for the upload failure email
+        gathered["directory"] = gathered["data_path"]
+        return gathered
 
     def _upload_ssx_metadata(self, gathered: dict) -> None:
         """Upload the gathered ICAT metadata for a finished SSX data
@@ -192,6 +197,10 @@ class SSXICATLIMS(ICATLIMS):
             )
         except Exception as e:
             raise LimsMetadataUploadError(str(e)) from e
+
+    def _upload_metadata(self, gathered: dict) -> None:
+        """Used by ICATLIMS to retry failed uploads when the queue is resumed."""
+        self._upload_ssx_metadata(gathered)
 
     def _write_ssx_metadata(self, gathered: dict) -> None:
         """Write metadata.json to disk for a finished SSX data collection."""
