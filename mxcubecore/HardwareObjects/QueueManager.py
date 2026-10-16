@@ -46,7 +46,9 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             queue_entry.import_queue_entries()
 
         self.auto_add_diff_plan = self.get_property("auto_add_diff_plan", False)
-        available_centring_options_str = self.get_property("available_centring_options", "MANUAL,LOOP,NONE")
+        available_centring_options_str = self.get_property(
+            "available_centring_options", "MANUAL,LOOP,NONE"
+        )
         self.available_centring_options = available_centring_options_str.split(",")
         mandatory_options = ["MANUAL", "LOOP", "NONE"]
         for item in mandatory_options:
