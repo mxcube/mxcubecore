@@ -84,24 +84,18 @@ class ISPyBAbstractLIMS(AbstractLims):
         self.adapter = self._create_data_adapter()
         self.log.debug("[ISPYB] Proxy address: %s" % self.proxy)
 
-        # Add the proposal codes defined in the configuration xml file
-        # to a directory. Used by translate()
-        if hasattr(HWR.beamline.session, "proposals"):
-            for proposal in HWR.beamline.session["proposals"]:
-                code = proposal.code
-                self._translations[code] = {}
-                try:
-                    self._translations[code]["ldap"] = proposal.ldap
-                except AttributeError:
-                    self.log.exception("")
-                try:
-                    self._translations[code]["ispyb"] = proposal.ispyb
-                except AttributeError:
-                    self.log.exception("")
-                try:
-                    self._translations[code]["gui"] = proposal.gui
-                except AttributeError:
-                    self.log.exception("")
+        # Add the proposal code translations defined in the session
+        # configuration to a directory. Used by translate()
+        proposals = HWR.beamline.session.get_property("proposals") or {}
+        proposals = proposals.get("proposal", [])
+        if isinstance(proposals, dict):  # a single proposal
+            proposals = [proposals]
+        for proposal in proposals:
+            self._translations[proposal["code"]] = {
+                key: proposal[key]
+                for key in ("ldap", "ispyb", "gui")
+                if key in proposal
+            }
 
     def _create_data_adapter(self) -> ISPyBDataAdapter:
         return ISPyBDataAdapter(

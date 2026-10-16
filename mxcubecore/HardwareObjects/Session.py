@@ -26,9 +26,14 @@ class Session(HardwareObject):
         beamline_name: str | None = None
         endstation_name: str | None = None
         email_extension: str | None = None
+        # address for the user feedback (mxcubeweb)
+        feedback_email: str | None = None
         # {'proposal': [{'code': .., 'number': ..}, ...]}
         inhouse_users: dict | None = None
         file_info: dict | None = None
+        # proposal code translations
+        # {'proposal': [{'code': .., 'ispyb': .., 'gui': .., 'ldap': ..}, ...]}
+        proposals: dict | None = None
 
     def __init__(self, name):
         HardwareObject.__init__(self, name)

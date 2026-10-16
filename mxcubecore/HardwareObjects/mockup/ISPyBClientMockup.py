@@ -26,6 +26,9 @@ class ISPyBClientMockup(ProposalTypeISPyBLims):
     Web-service client for ISPyB.
     """
 
+    class HOConfig(ProposalTypeISPyBLims.HOConfig):
+        loginType: str = LOGIN_TYPE_FALLBACK
+
     def __init__(self, name):
         super().__init__(name)
 

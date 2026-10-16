@@ -49,6 +49,10 @@ DEFAULT_WRAP_RANGE = None
 class MotorMockup(ActuatorMockup, AbstractMotor):
     """Mock Motor implementation"""
 
+    class HOConfig(AbstractMotor.HOConfig):
+        # range for wrapping the value around (e.g. 360 for a rotation axis)
+        wrap_range: float | None = None
+
     SPECIFIC_STATES = MotorStates
 
     def __init__(self, name):

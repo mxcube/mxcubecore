@@ -187,7 +187,7 @@ def load_from_yaml(
     note = ""
     if not msg0:
         try:
-            config = configuration.pop("configuration", {})
+            config = configuration.pop("configuration", None) or {}
             # Set configuration with non-object properties.
             result._config = result.HOConfig(**config)
         except Exception:
@@ -221,6 +221,12 @@ def load_from_yaml(
         except Exception:
             if _container:
                 msg0 = "Error in %s._init()" % cls.__name__
+                logging.getLogger("HWR").exception(
+                    "Error in %s._init() for role '%s' (%s)",
+                    cls.__name__,
+                    role,
+                    configuration_path,
+                )
             else:
                 # at top level we want to get the actual error
                 raise
@@ -286,6 +292,12 @@ def load_from_yaml(
         except Exception:
             if _container:
                 msg0 = "Error in %s.init()" % cls.__name__
+                logging.getLogger("HWR").exception(
+                    "Error in %s.init() for role '%s' (%s)",
+                    cls.__name__,
+                    role,
+                    configuration_path,
+                )
             else:
                 # at top level we want to get the actual error
                 raise

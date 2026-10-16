@@ -12,6 +12,13 @@ class DetectorMockup(AbstractDetector):
                 the physical property is RH for pilatus, P for rayonix
     """
 
+    class HOConfig(AbstractDetector.HOConfig):
+        # file suffix (also used by the queue and the UI)
+        fileSuffix: str | None = None
+        # python literal strings
+        roi_mode_list: str = '["0", "C2", "C16"]'
+        exposure_time_limits: str = "[0.02, 60000]"
+
     def __init__(self, name):
         """
         Descript. :
