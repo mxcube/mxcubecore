@@ -498,6 +498,26 @@ class DataCollectionMetadataGatherer:
 
 
 class ICATLIMS(AbstractLims):
+    class HOConfig(AbstractLims.HOConfig):
+        ws_root: str | None = None
+        queue_urls: str | None = None
+        authentication_icat_plugin: str = "esrf"
+        before_offset_days: int | str = "1"
+        after_offset_days: int | str = "1"
+        # comma separated beamline names
+        compatible_beamlines: str | None = None
+        override_beamline_name: str | None = None
+        only_staff_session_selection: bool = False
+        filter: str | None = None
+        data_portal_url: str | None = None
+        logbook_url: str | None = None
+        user_portal_url: str | None = None
+        use_set_endstation_name: bool = False
+        pause_queue_on_upload_failure: bool = False
+        # list, or comma/space separated string
+        upload_failure_email_recipients: list | str = []
+        smtp_server: str = "localhost"
+
     def __init__(self, name):
         super().__init__(name)
         HardwareObject.__init__(self, name)

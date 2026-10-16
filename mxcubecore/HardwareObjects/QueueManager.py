@@ -24,6 +24,11 @@ QueueEntryContainer = base_queue_entry.QueueEntryContainer
 
 
 class QueueManager(HardwareObject, QueueEntryContainer):
+    class HOConfig(HardwareObject.HOConfig):
+        # comma separated site queue entry module paths
+        site_entry_path: str | None = None
+        auto_add_diff_plan: bool = False
+
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         QueueEntryContainer.__init__(self)

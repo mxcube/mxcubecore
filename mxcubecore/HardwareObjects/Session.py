@@ -21,6 +21,15 @@ default_archive_folder = "ARCHIVE"
 
 
 class Session(HardwareObject):
+    class HOConfig(HardwareObject.HOConfig):
+        synchrotron_name: str | None = None
+        beamline_name: str | None = None
+        endstation_name: str | None = None
+        email_extension: str | None = None
+        # {'proposal': [{'code': .., 'number': ..}, ...]}
+        inhouse_users: dict | None = None
+        file_info: dict | None = None
+
     def __init__(self, name):
         HardwareObject.__init__(self, name)
 

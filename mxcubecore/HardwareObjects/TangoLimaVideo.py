@@ -48,6 +48,14 @@ def poll_image(lima_tango_device, video_mode, FORMATS):
 
 
 class TangoLimaVideo(BaseHardwareObjects.HardwareObject):
+    class HOConfig(BaseHardwareObjects.HardwareObject.HOConfig):
+        tangoname: str | None = None
+        video_mode: str = "RGB24"
+        exposure_time: float | None = None
+        control_video: bool | str = "True"
+        # polling interval [ms]
+        interval: int | float | None = None
+
     def __init__(self, name):
         super().__init__(name)
         self.__polling = None

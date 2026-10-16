@@ -110,6 +110,12 @@ class ConfiguredObject:
         # Handling of undeclared properties: "lax" (warn) or "strict" (error)
         validation_mode: ClassVar[Literal["lax", "strict"]] = "lax"
 
+        # Properties read by the HardwareObject base classes for any object,
+        # never reported as undeclared
+        generic_properties: ClassVar[frozenset[str]] = frozenset(
+            ("username", "exports")
+        )
+
         @classmethod
         def set_validation_mode(cls, mode: Literal["lax", "strict"]) -> None:
             """Set handling of undeclared properties, for all HOConfig classes"""
@@ -126,7 +132,26 @@ class ConfiguredObject:
             Always empty for models that declare no fields (not yet modelled)."""
             if not type(self).model_fields or not self.model_extra:
                 return []
-            return sorted(self.model_extra)
+            return sorted(set(self.model_extra) - self.generic_properties)
+
+        @model_validator(mode="before")
+        @classmethod
+        def _strip_whitespace(cls, data: Any) -> Any:
+            """Strip the surrounding whitespace of declared string properties.
+
+            XML values keep the whitespace of the file (e.g. a value on a line
+            of its own), which would not validate as bool, list...
+            """
+            if isinstance(data, dict):
+                data = {
+                    key: (
+                        value.strip()
+                        if isinstance(value, str) and key in cls.model_fields
+                        else value
+                    )
+                    for key, value in data.items()
+                }
+            return data
 
         @model_validator(mode="after")
         def _check_undeclared_properties(self) -> Self:
@@ -222,13 +247,14 @@ class ConfiguredObject:
             default_value (Optional[Any], optional): Default value. Defaults to None.
 
         Returns:
-            Any: Property value.
+            Any: Property value, default_value if the property is not configured
+                 (also when the HOConfig model declares a default for it).
         """
         if self._config is not None:
-            if hasattr(self._config, name):
-                return getattr(self._config, name)
-            else:
-                return default_value
+            configured = name in self._config.model_fields_set or name in (
+                self._config.model_extra or {}
+            )
+            return getattr(self._config, name) if configured else default_value
         elif isinstance(self, HardwareObjectNode):
             # NBNB TEMPORARY for transition to yaml configuration only
             return HardwareObjectNode.get_property(self, name, default_value)
@@ -701,9 +727,10 @@ class HardwareObjectMixin(CommandContainer):
 
         For ConfiguredObjects called after loading contained objects.
         """
-        self._exports_config_list.extend(
-            ast.literal_eval(self.get_property("exports", "[]").strip())
-        )
+        exports = self.get_property("exports", [])
+        if isinstance(exports, str):
+            exports = ast.literal_eval(exports.strip())
+        self._exports_config_list.extend(exports)
         self._exports = dict.fromkeys(self._exports_config_list, {})
 
         # Add methods that are exported programmatically

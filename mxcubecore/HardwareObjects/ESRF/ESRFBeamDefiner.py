@@ -50,6 +50,11 @@ from mxcubecore.HardwareObjects.abstract.AbstractNState import AbstractNState
 class ESRFBeamDefiner(AbstractNState):
     """Generic ESRF beam definer implementation"""
 
+    class HOConfig(AbstractNState.HOConfig):
+        # [{'name': .., 'beam_size': .., ...}, ...] (xml: dict if only one)
+        beam_config: list | dict | None = None
+        default_size_name: str | None = None
+
     def __init__(self, name):
         super().__init__(name)
         self.beam_config = {}

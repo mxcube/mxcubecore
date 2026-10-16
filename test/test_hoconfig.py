@@ -50,3 +50,35 @@ def test_strict_mode_rejects_undeclared(validation_mode):
 def test_invalid_validation_mode():
     with pytest.raises(ValueError, match="validation mode"):
         ConfiguredObject.HOConfig.set_validation_mode("medium")
+
+
+class _Configured(ConfiguredObject):
+    class HOConfig(ConfiguredObject.HOConfig):
+        tolerance: float | None = None
+
+
+def _configured(**config):
+    obj = _Configured("test")
+    obj._config = obj.HOConfig(**config)
+    return obj
+
+
+def test_get_property_default_when_not_configured():
+    """A declared field that is not configured gives the call-site default"""
+    obj = _configured()
+    assert obj.get_property("tolerance", 1e-3) == 1e-3
+    assert obj.get_property("tolerance") is None
+    assert obj.config.tolerance is None
+
+
+def test_get_property_configured_value():
+    obj = _configured(tolerance=0.01, other="x")
+    assert obj.get_property("tolerance", 1e-3) == 0.01
+    assert obj.get_property("other", "y") == "x"
+    assert obj.get_property("missing", "y") == "y"
+
+
+def test_generic_properties_are_not_undeclared(validation_mode):
+    validation_mode("strict")
+    config = DeclaredConfig(username="Omega", exports=["reset"])
+    assert config.undeclared_properties() == []

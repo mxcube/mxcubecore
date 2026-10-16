@@ -73,6 +73,9 @@ from mxcubecore.HardwareObjects.ESRF.ESRFBeamDefiner import ESRFBeamDefiner
 class ID30BBeamDefiner(ESRFBeamDefiner):
     """ID30B beam definer implementation"""
 
+    class HOConfig(ESRFBeamDefiner.HOConfig):
+        transfocator: str | None = None
+
     def __init__(self, *args):
         super().__init__(*args)
         self.controller = None

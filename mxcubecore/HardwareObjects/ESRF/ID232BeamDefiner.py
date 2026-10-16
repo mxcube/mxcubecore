@@ -63,6 +63,11 @@ from mxcubecore.HardwareObjects.ESRF.ESRFBeamDefiner import ESRFBeamDefiner
 class ID232BeamDefiner(ESRFBeamDefiner):
     """ID23-2 beam definer implementation"""
 
+    class HOConfig(ESRFBeamDefiner.HOConfig):
+        # transfocator names
+        tf1: str | None = None
+        tf2: str | None = None
+
     def __init__(self, *args):
         super().__init__(*args)
         self.tf_cfg = {}

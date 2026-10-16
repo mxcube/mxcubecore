@@ -25,6 +25,11 @@ otherwise it is uid=xxx,ou=xxx,dc=xx,dc=xx
 
 
 class LdapAuthenticator(AbstractAuthenticator):
+    class HOConfig(AbstractAuthenticator.HOConfig):
+        ldaphost: str | None = None
+        ldapport: int | None = None
+        ldapdomain: str | None = None
+
     def __init__(self, name):
         super().__init__(name)
         self._ldapConnection = None

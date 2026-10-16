@@ -54,6 +54,12 @@ __license__ = "LGPLv3+"
 class ExporterMotor(AbstractMotor):
     """Motor using the Exporter protocol, based on AbstractMotor"""
 
+    class HOConfig(AbstractMotor.HOConfig):
+        exporter_address: str | None = None
+        position_suffix: str = "Position"
+        state_suffix: str = "State"
+        use_global_state: bool = False
+
     def __init__(self, name):
         super().__init__(name)
         self._motor_pos_suffix = None

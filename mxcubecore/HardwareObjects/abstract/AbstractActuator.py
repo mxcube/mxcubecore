@@ -25,6 +25,7 @@ from __future__ import annotations
 import abc
 import math
 from ast import literal_eval
+from typing import Any
 
 from gevent.lock import RLock
 
@@ -66,6 +67,13 @@ class AbstractActuator(HardwareObject):
             Tuple whose first and only item is the new state.
             Emitted by ``force_emit_signals``
     """
+
+    class HOConfig(HardwareObject.HOConfig):
+        actuator_name: str | None = None
+        read_only: bool | None = None
+        # type depends on the actuator (float, bool, enum name...)
+        default_value: Any = None
+        default_limits: tuple | list | str | None = (None, None)
 
     __metaclass__ = abc.ABCMeta
 

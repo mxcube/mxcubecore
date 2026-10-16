@@ -124,6 +124,18 @@ def load_from_yaml(
     if configuration_path is None:
         msg0 = "File not found"
 
+    if _container is not None and configuration_path in _instance.yaml_objects:
+        # The file is already loaded: share the object instead of instanciating 
+        # a new one, as for xml configured objects.        
+        result = _instance.yaml_objects[configuration_path]
+        result._name = role
+        result._hwobj_container = _container
+        _container._hwobj_by_role[role] = result
+        _table.append(
+            (role, result.__class__.__name__, configuration_file, "0", "Shared")
+        )
+        return result
+
     if not msg0:
         # Load the configuration file
         with open(configuration_path, "r") as fp0:
@@ -277,6 +289,9 @@ def load_from_yaml(
             else:
                 # at top level we want to get the actual error
                 raise
+        else:
+            if _container is not None:
+                _instance.yaml_objects[configuration_path] = result
 
     load_time = 1000 * (time.time() - start_time)
     comment = "; ".join(msg for msg in (msg0, note) if msg)
@@ -499,6 +514,9 @@ class __HardwareRepositoryClient:
         self.hwobj_info_list = []
         self.invalid_hardware_objects = None
         self.hardware_objects = None
+        # yaml configured objects by configuration file path, to share an object
+        # referred to by several 'objects' entries
+        self.yaml_objects = {}
 
     def connect(self):
         if self.__connected:

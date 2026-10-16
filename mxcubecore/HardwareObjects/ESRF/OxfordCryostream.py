@@ -57,6 +57,12 @@ PHASE_ACTION = {
 class OxfordCryostream(AbstractActuator):
     """Control of the Oxford Cryostream model 700, 800 and 1000"""
 
+    class HOConfig(AbstractActuator.HOConfig):
+        cryostat: str | None = None
+        # polling interval [s]
+        interval: int | float = 10
+        temperature_threshold: float = 0.0
+
     def __init__(self, name):
         super().__init__(name)
 

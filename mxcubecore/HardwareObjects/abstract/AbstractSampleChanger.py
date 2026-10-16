@@ -202,6 +202,9 @@ class SampleChanger(Container, HardwareObject):
     Abstract base class for sample changers
     """
 
+    class HOConfig(HardwareObject.HOConfig):
+        useUpdateTimer: bool = True
+
     __metaclass__ = abc.ABCMeta
 
     # ########################    EVENTS    #########################

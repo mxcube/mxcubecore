@@ -50,6 +50,10 @@ __license__ = "LGPLv3+"
 class MicrodiffAperture(ExporterNState):
     """MicrodiffAperture class"""
 
+    class HOConfig(ExporterNState.HOConfig):
+        # beam size factor for each aperture
+        factor: tuple | list | str | None = None
+
     unit = "um"
 
     def __init__(self, name):
@@ -103,7 +107,9 @@ class MicrodiffAperture(ExporterNState):
         values = {}
         try:
             # get the factors
-            factor = literal_eval(self.get_property("factor"))
+            factor = self.get_property("factor")
+            if isinstance(factor, str):
+                factor = literal_eval(factor)
             if len(predefined_postions) == len(factor):
                 for _pos, _fac in zip(predefined_postions, factor):
                     values["A{0}".format(_pos)] = (

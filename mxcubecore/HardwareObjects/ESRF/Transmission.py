@@ -30,6 +30,9 @@ __license__ = "LGPLv3+"
 class Transmission(AbstractTransmission):
     """Transmission class"""
 
+    class HOConfig(AbstractTransmission.HOConfig):
+        module_name: str | None = None
+
     unit = "%"
 
     def __init__(self, name):

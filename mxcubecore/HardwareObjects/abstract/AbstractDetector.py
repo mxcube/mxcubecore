@@ -70,6 +70,25 @@ __license__ = "LGPLv3+"
 class AbstractDetector(HardwareObject):
     """Common base class for detectors"""
 
+    class HOConfig(HardwareObject.HOConfig):
+        manufacturer: str | None = None
+        model: str | None = None
+        type: str | None = None
+        file_suffix: str | None = None
+        # pixel size [mm]
+        px: float | None = None
+        py: float | None = None
+        # size [pixels]
+        width: int | float | None = None
+        height: int | float | None = None
+        # beam position calibration (ax, ay, bx, by)
+        beam: dict = {}
+        default_exposure_time: float | None = None
+        minimum_exposure_time: float | None = None
+        maximum_exposure_time: float | None = None
+        images_per_file: int = 100
+        roiModes: tuple | list | str = ()
+
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, name):
@@ -103,7 +122,9 @@ class AbstractDetector(HardwareObject):
 
         self._distance_motor_hwobj = self.get_object_by_role("detector_distance")
 
-        self._roi_modes_list = ast.literal_eval(self.get_property("roiModes", "()"))
+        self._roi_modes_list = self.get_property("roiModes", ())
+        if isinstance(self._roi_modes_list, str):
+            self._roi_modes_list = ast.literal_eval(self._roi_modes_list)
 
         self._pixel_size = (self.get_property("px"), self.get_property("py"))
         self._width = self.get_property("width")

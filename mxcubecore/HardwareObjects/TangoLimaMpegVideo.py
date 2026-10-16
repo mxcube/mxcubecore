@@ -29,6 +29,11 @@ from mxcubecore.HardwareObjects.TangoLimaVideo import TangoLimaVideo
 
 
 class TangoLimaMpegVideo(TangoLimaVideo):
+    class HOConfig(TangoLimaVideo.HOConfig):
+        compression: int = 10
+        mpeg_scale: int | float = 1
+        debug: bool = False
+
     def __init__(self, name):
         super(TangoLimaMpegVideo, self).__init__(name)
         self._format = "MPEG1"

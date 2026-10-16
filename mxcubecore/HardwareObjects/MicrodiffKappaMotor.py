@@ -35,6 +35,11 @@ from mxcubecore.HardwareObjects.ExporterMotor import ExporterMotor
 
 
 class MicrodiffKappaMotor(ExporterMotor):
+    class HOConfig(ExporterMotor.HOConfig):
+        # kappa geometry: translation and direction vectors
+        Trans: list | str | None = None
+        TransD: list | str | None = None
+
     lock = lock.Semaphore()
     motors = {}
     conf = {}

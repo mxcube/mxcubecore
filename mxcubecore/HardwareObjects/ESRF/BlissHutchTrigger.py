@@ -54,6 +54,12 @@ __license__ = "LGPLv3+"
 class BlissHutchTrigger(AbstractNState):
     """Read the state of the hutch from the PSS and take actions."""
 
+    class HOConfig(AbstractNState.HOConfig):
+        pss_tango_device: str | None = None
+        # PSS card/channel, e.g. 9/4
+        pss_card_ch: str | None = None
+        polling_interval: int | float = 5
+
     def __init__(self, name):
         super().__init__(name)
         self._bliss_obj = None

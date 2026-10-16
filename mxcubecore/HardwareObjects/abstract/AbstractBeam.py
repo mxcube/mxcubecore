@@ -78,6 +78,11 @@ class AbstractBeam(HardwareObject):
         _beam_info_dict (dict): dictionary containing size_x, size_y, shape, label
     """
 
+    class HOConfig(HardwareObject.HOConfig):
+        beam_divergence_horizontal: float | None = None
+        beam_divergence_vertical: float | None = None
+        definer_type: str | None = None
+
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, name) -> None:

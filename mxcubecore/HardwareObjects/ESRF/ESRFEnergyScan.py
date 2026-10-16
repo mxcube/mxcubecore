@@ -97,6 +97,10 @@ class GetStaticParameters:
 
 
 class ESRFEnergyScan(AbstractEnergyScan):
+    class HOConfig(AbstractEnergyScan.HOConfig):
+        offset_keV: float | None = None
+        theoritical_edge_threshold: float = 0.03
+
     def __init__(self, name):
         super().__init__(name)
         self.ctrl = None

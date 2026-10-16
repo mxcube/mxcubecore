@@ -70,6 +70,16 @@ def combine_images(img1, img2):
 class SampleView(AbstractSampleView):
     """SampleView class"""
 
+    class HOConfig(AbstractSampleView.HOConfig):
+        hide_grid_threshold: int | float = 5
+        centring_motors: list | str = []
+        centring_reference_position: dict | str = {}
+        motor_directions: dict | str = {}
+        rotation_reference: dict | str = {}
+        harvester_reference_position: dict | str = {}
+        chi_angle: int | float | None = None
+        use_custom_auto_centring: bool | None = None
+
     def __init__(self, name):
         super().__init__(name)
         self.centring_motors = {}

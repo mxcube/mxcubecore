@@ -11,6 +11,7 @@ import autoprocessing
 import gevent
 
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.BaseHardwareObjects import ConfiguredObject
 from mxcubecore.TaskUtils import cleanup, error_cleanup, task
 
 BeamlineControl = collections.namedtuple(
@@ -62,6 +63,13 @@ BeamlineConfig = collections.namedtuple(
 
 class AbstractMultiCollect(object):
     __metaclass__ = abc.ABCMeta
+
+    class HOConfig(ConfiguredObject.HOConfig):
+        adxv_host: str = "localhost"
+        adxv_port: int | str = "8100"
+        close_safety_shutter_if_idle: bool = False
+        # {'program': [{'executable': .., 'event': 'before'|'after'}, ...]}
+        auto_processing: dict | None = None
 
     def __init__(self):
         self.bl_control = BeamlineControl(*[None] * 14)

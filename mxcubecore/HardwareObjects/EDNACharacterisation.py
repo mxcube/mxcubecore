@@ -39,6 +39,10 @@ from mxcubecore.model import queue_model_objects as qmo
 
 
 class EDNACharacterisation(AbstractCharacterisation):
+    class HOConfig(AbstractCharacterisation.HOConfig):
+        edna_command: str | None = None
+        edna_default_file: str | None = None
+
     def __init__(self, name) -> None:
         super(EDNACharacterisation, self).__init__(name)
 

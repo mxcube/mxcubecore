@@ -42,6 +42,17 @@ __license__ = "LGPLv3+"
 class MicroDiffractometer(AbstractDiffractometer):
     """Microdiff with Exporter implementation of AbstractDiffractometer"""
 
+    class HOConfig(AbstractDiffractometer.HOConfig):
+        exporter_address: str | None = None
+        num_centring_rounds: int = 1
+        # {name: exporter command / channel}
+        commands: dict = {}
+        channels: dict = {}
+        md_set_number_of_frames: bool | None = None
+        use_custom_phase_script: bool | None = None
+        # maximum SSX trigger frequency
+        max_freq: float | None = None
+
     def __init__(self, name):
         super().__init__(name)
         self._exporter = None

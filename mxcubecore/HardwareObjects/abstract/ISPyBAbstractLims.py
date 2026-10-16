@@ -27,6 +27,15 @@ class ISPyBAbstractLIMS(AbstractLims):
     Web-service client for ISPyB.
     """
 
+    class HOConfig(AbstractLims.HOConfig):
+        ws_root: str | None = None
+        ws_username: str | None = None
+        ws_password: str | int | None = None
+        authServerType: str | None = None
+        loginTranslate: bool = True
+        proxy_address: str | None = None
+        base_result_url: str | None = None
+
     def __init__(self, name):
         super().__init__(name)
         self.ldapConnection = None

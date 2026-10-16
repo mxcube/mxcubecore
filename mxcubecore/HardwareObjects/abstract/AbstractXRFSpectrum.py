@@ -54,6 +54,10 @@ class AbstractXRFSpectrum(HardwareObject):
         for specific implementation.
     """
 
+    class HOConfig(HardwareObject.HOConfig):
+        default_integration_time: int | float = 3
+        file_suffix: str = "dat"
+
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, name):

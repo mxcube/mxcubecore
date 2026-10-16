@@ -17,6 +17,13 @@ from mxcubecore.TaskUtils import task
 
 
 class LimaEigerDetector(AbstractDetector):
+    class HOConfig(AbstractDetector.HOConfig):
+        lima_device: str | None = None
+        eiger_device: str | None = None
+        buffer: str | None = None
+        deadtime: float | None = None
+        minE: float | None = None
+
     def __init__(self, name):
         AbstractDetector.__init__(self, name)
         self.binning_mode = 1

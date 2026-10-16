@@ -43,6 +43,13 @@ __status__ = "Draft"
 
 
 class XMLRPCServer(HardwareObject):
+    class HOConfig(HardwareObject.HOConfig):
+        port: int | None = None
+        all_interfaces: bool = False
+        use_token: bool = True
+        # {'api': [{'module': .., 'recurse': ..}, ...]}
+        apis: dict = {}
+
     def __init__(self, name):
         HardwareObject.__init__(self, name)
 
@@ -129,7 +136,7 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.get_diffractometer_positions)
         self._server.register_function(self.get_resolution_limits)
         self._server.register_function(self.move_diffractometer)
-        
+
         self._server.register_function(self.save_snapshot)
         self._server.register_function(self.save_multiple_snapshots)
         self._server.register_function(self.sample_centring)
@@ -441,7 +448,7 @@ class XMLRPCServer(HardwareObject):
         HWR.beamline.diffractometer.run_custom_script("ChangePhase_centring")
         HWR.beamline.diffractometer.run_custom_script("sample_centring")
         HWR.beamline.diffractometer.run_custom_script("ChangePhase_datacollection")
-    
+
     def save_twelve_snapshots_script(self, path):
         path = path[14:]  # NBNB: Temporary fix, to be addressed in calling code
         self.log.info("Taking 6 snapshots to be saved in  %s " % str(path))

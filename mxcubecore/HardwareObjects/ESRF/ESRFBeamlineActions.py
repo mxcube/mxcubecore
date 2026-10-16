@@ -50,6 +50,11 @@ __license__ = "LGPLv3+"
 class ESRFBeamlineActions(BeamlineActions):
     """Beam action commands"""
 
+    class HOConfig(BeamlineActions.HOConfig):
+        # {controller method name: label}
+        controller_commands: dict | None = None
+        hwobj_command_roles: list | str | None = None
+
     def __init__(self, *args):
         super().__init__(*args)
         self.ctrl_list = []

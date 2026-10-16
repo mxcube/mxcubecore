@@ -9,6 +9,9 @@ from .ESRFMultiCollect import ESRFMultiCollect
 
 
 class MD2MultiCollect(ESRFMultiCollect):
+    class HOConfig(ESRFMultiCollect.HOConfig):
+        lima_sequnce_trigger_mode: bool | None = None
+
     def __init__(self, name):
         ESRFMultiCollect.__init__(self, name)
         self.fast_characterisation = None

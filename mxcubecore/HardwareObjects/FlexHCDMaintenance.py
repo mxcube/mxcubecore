@@ -27,6 +27,9 @@ TOOL_TO_STR = {
 
 
 class FlexHCDMaintenance(HardwareObject):
+    class HOConfig(HardwareObject.HOConfig):
+        exclude_commands: list | str = "[]"
+
     __TYPE__ = "FLEX_HCD"
     NO_OF_LIDS = 3
 
@@ -146,9 +149,9 @@ class FlexHCDMaintenance(HardwareObject):
             ],
         ]
 
-        exclude_command_list = ast.literal_eval(
-            self.get_property("exclude_commands", "[]")
-        )
+        exclude_command_list = self.get_property("exclude_commands", [])
+        if isinstance(exclude_command_list, str):
+            exclude_command_list = ast.literal_eval(exclude_command_list)
         new_command_list = []
 
         for command in cmd_list[0][1]:

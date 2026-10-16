@@ -10,6 +10,9 @@ from mxcubecore.model import queue_model_objects
 
 
 class ESRFSession(Session.Session):
+    class HOConfig(Session.Session.HOConfig):
+        use_acronym: bool = True
+
     def __init__(self, name):
         Session.Session.__init__(self, name)
 

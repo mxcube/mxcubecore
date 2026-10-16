@@ -50,6 +50,9 @@ class MotorStates(Enum):
 class AbstractMotor(AbstractActuator):
     """Abstract motor class"""
 
+    class HOConfig(AbstractActuator.HOConfig):
+        tolerance: float | None = None
+
     __metaclass__ = abc.ABCMeta
     unit = None
 

@@ -3,6 +3,7 @@ import math
 import os
 import time
 from http.client import HTTPConnection
+from types import SimpleNamespace
 from urllib.parse import urlencode
 
 from mxcubecore import HardwareRepository as HWR
@@ -13,6 +14,20 @@ from mxcubecore.utils.conversion import string_types
 
 
 class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
+    class HOConfig(AbstractMultiCollect.HOConfig):
+        num_snapshots: int = 4
+        directory_prefix: str | None = None
+        template_file_directory: str | None = None
+        bes_jpeg_hostport: str | None = None
+        input_files_server: str | None = None
+        monochromator: str | None = None
+        focusing_optic: str | None = None
+        polarisation: float | None = None
+        maximum_phi_speed: float | None = None
+        minimum_phi_oscillation: float | None = None
+        # {'type': .., 'device_uri': ..}, or a list of them
+        undulator: dict | list | None = None
+
     def __init__(self, name):
         AbstractMultiCollect.__init__(self)
         HardwareObject.__init__(self, name)
@@ -57,10 +72,11 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             beam_info=self.get_object_by_role("beam_info"),
         )
 
-        try:
-            undulators = self["undulator"]
-        except KeyError:
-            undulators = []
+        # One <undulator> gives a dict, several a list (same for xml and yaml)
+        undulators = self.get_property("undulator") or []
+        if isinstance(undulators, dict):
+            undulators = [undulators]
+        undulators = [SimpleNamespace(**und) for und in undulators]
 
         beam_div_hor, beam_div_ver = HWR.beamline.beam.get_beam_divergence()
 

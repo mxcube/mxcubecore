@@ -45,6 +45,10 @@ class BaseValueEnum(Enum):
 class AbstractNState(AbstractActuator):
     """Abstract base class for N state objects."""
 
+    class HOConfig(AbstractActuator.HOConfig):
+        # {name: value} mapping, list of names, or python literal string
+        values: dict | list | str = []
+
     __metaclass__ = abc.ABCMeta
     VALUES = BaseValueEnum
 

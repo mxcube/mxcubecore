@@ -44,6 +44,9 @@ class AbstractMachineInfo(HardwareObject):
         get_ (e.g. get_current for reading the current)
     """
 
+    class HOConfig(HardwareObject.HOConfig):
+        parameters: list | str = ["current"]
+
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, name):

@@ -13,6 +13,11 @@ from mxcubecore.TaskUtils import error_cleanup
 class AbstractEnergyScan(HardwareObject):
     """Energy Scan abstract class"""
 
+    class HOConfig(HardwareObject.HOConfig):
+        config_file: str | None = None
+        # {'element': [{'symbol': .., 'energy': ..}, ...]}
+        elements: dict | None = None
+
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, name):

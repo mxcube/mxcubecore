@@ -213,6 +213,14 @@ class AbstractDiffractometer(HardwareObject):
         HardwareObjectStates: READY, BUSY, FAULT
     """
 
+    class HOConfig(HardwareObject.HOConfig):
+        head_orientation: str = "horizontal"
+        # roles of the motors and of the discrete position equipment
+        # (xml: dict with the roles as keys)
+        motors: list | dict = []
+        nstate_equipment: list | dict = []
+        chip_definition_file: str = ""
+
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, name):

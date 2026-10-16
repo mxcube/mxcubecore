@@ -6,6 +6,13 @@ from mxcubecore.HardwareObjects.abstract.sample_changer import Container
 
 
 class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
+    class HOConfig(AbstractSampleChanger.SampleChanger.HOConfig):
+        no_of_baskets: int | None = None
+        no_of_samples_in_basket: int | None = None
+        log_filename: str | None = None
+        # {sample name: location}
+        test_sample_names: dict | None = None
+
     __TYPE__ = "Mockup"
     NO_OF_BASKETS = 5
     NO_OF_SAMPLES_IN_BASKET = 10

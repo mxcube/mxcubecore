@@ -45,6 +45,9 @@ def all_equal(iterable):
 class Bliss(HardwareObject):
     """Bliss class"""
 
+    class HOConfig(HardwareObject.HOConfig):
+        session: str | None = None
+
     def __init__(self, name):
         super().__init__(name)
         self.__scan_data = {}

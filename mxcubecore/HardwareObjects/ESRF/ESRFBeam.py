@@ -47,6 +47,12 @@ from mxcubecore.HardwareObjects.abstract.AbstractBeam import AbstractBeam, BeamS
 class ESRFBeam(AbstractBeam):
     """Beam ESRF implementation"""
 
+    class HOConfig(AbstractBeam.HOConfig):
+        # space separated slit names
+        slits: str | None = None
+        # space separated x y
+        beam_position: str | None = None
+
     unit = "mm"
 
     def __init__(self, name) -> None:

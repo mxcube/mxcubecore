@@ -52,6 +52,9 @@ __license__ = "LGPLv3+"
 class BlissProxy(MXHardwareObject):
     """Client for the BLISS REST API."""
 
+    class HOConfig(MXHardwareObject.HOConfig):
+        blissapi_url: str | None = None
+
     _SESSION_READY_TIMEOUT = 300
     _INIT_EVENT_TIMEOUT = (
         _SESSION_READY_TIMEOUT + 10

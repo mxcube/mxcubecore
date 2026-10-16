@@ -65,6 +65,9 @@ class BlissShutterStates(Enum):
 class BlissShutter(AbstractShutter):
     """BLISS implementation of AbstractShutter"""
 
+    class HOConfig(AbstractShutter.HOConfig):
+        type: str = "tango"
+
     SPECIFIC_STATES = BlissShutterStates
 
     def __init__(self, name):

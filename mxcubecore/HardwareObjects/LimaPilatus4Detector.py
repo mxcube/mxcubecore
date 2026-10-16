@@ -12,6 +12,9 @@ from mxcubecore.HardwareObjects.LimaEigerDetector import LimaEigerDetector
 
 
 class LimaPilatus4Detector(LimaEigerDetector):
+    class HOConfig(LimaEigerDetector.HOConfig):
+        detector_api_url: str | None = None
+
     def init(self):
         """Initialise the photon_energy and the thresholds"""
         super().init()

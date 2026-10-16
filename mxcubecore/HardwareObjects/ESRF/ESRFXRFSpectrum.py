@@ -60,6 +60,11 @@ QtMcaAdvancedFitReport.qt = MagicMock()
 class ESRFXRFSpectrum(AbstractXRFSpectrum):
     """ESRF implementation of the XRF spectrum procedure"""
 
+    class HOConfig(AbstractXRFSpectrum.HOConfig):
+        cfgfile: str = "/users/blissadm/local/beamline_configuration/misc/15keV.cfg"
+        default_energy_range: list | str = [2.0, 15.0]
+        cfg_energies: list | str = [7, 9, 12, 15]
+
     def __init__(self, name):
         super().__init__(name)
         self.cfgfile = None

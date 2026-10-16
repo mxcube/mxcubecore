@@ -63,6 +63,13 @@ class EdnaWorkflow(HardwareObject):
     </workflow>
     """
 
+    class HOConfig(HardwareObject.HOConfig):
+        bes_host: str | None = None
+        bes_port: int | None = None
+        beamline_name: str | None = None
+        # [{'name': .., 'path': .., 'requires': ..}, ...] (xml: dict if only one)
+        workflow: list | dict = []
+
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         self._state = State(self)

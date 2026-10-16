@@ -140,6 +140,12 @@ class Cell(Container):
 
 
 class EMBLFlexHCD(SampleChanger):
+    class HOConfig(SampleChanger.HOConfig):
+        exporter_address: str | None = None
+        tango_device: str | None = None
+        # puck type (SC3, UNI) for each cell
+        puck_configuration: list | str = ["UNI"] * 8
+
     __TYPE__ = "Flex Sample Changer"
 
     def __init__(self, *args, **kwargs):
@@ -579,9 +585,7 @@ class EMBLFlexHCD(SampleChanger):
                         HWR.beamline.diffractometer.run_custom_script(
                             "ChangePhase_centring"
                         )
-                        HWR.beamline.diffractometer.run_custom_script(
-                            "sample_centring"
-                        )
+                        HWR.beamline.diffractometer.run_custom_script("sample_centring")
                     break
 
                 gevent.sleep(1)

@@ -49,6 +49,12 @@ __license__ = "LGPLv3+"
 class ExporterNState(AbstractNState):
     """Microdiff with Exporter implementation of AbstartNState"""
 
+    class HOConfig(AbstractNState.HOConfig):
+        exporter_address: str | None = None
+        value_channel_name: str | None = None
+        state_channel_name: str = "State"
+        value_state: bool | None = None
+
     SPECIFIC_STATES = ExporterStates
 
     def __init__(self, name):

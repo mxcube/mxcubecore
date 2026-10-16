@@ -33,6 +33,9 @@ __license__ = "LGPLv3+"
 class AbstractFlux(AbstractActuator):
     """Class for Flux abstraction"""
 
+    class HOConfig(AbstractActuator.HOConfig):
+        read_only: bool | None = None
+
     def __init__(self, name):
         super().__init__(name)
         # flux by default is read only

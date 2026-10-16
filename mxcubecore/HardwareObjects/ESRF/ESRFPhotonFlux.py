@@ -42,6 +42,9 @@ from mxcubecore.HardwareObjects.abstract.AbstractFlux import AbstractFlux
 class ESRFPhotonFlux(AbstractFlux):
     """Photon flux calculation"""
 
+    class HOConfig(AbstractFlux.HOConfig):
+        counter_name: str | None = None
+
     def __init__(self, name):
         super().__init__(name)
         self._counter = None

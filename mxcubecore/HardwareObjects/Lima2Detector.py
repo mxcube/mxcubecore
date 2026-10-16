@@ -70,6 +70,15 @@ def create_directory(path, check=True):
 
 
 class Lima2Detector(AbstractDetector):
+    class HOConfig(AbstractDetector.HOConfig):
+        lima_ctrl_device: str = ""
+        # comma separated device names
+        lima_recv_devices: str = ""
+        deadtime: float | None = None
+        fai_kernels_base: str = "."
+        params_base: str = "."
+        image_rejection_settings_file: str | None = None
+
     def __init__(self, name):
         super().__init__(name)
         self.header = {}

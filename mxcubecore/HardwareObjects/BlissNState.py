@@ -51,6 +51,10 @@ __license__ = "LGPLv3+"
 class BlissNState(AbstractNState):
     """bliss implementation of AbstartNState"""
 
+    class HOConfig(AbstractNState.HOConfig):
+        type: str = "actuator"
+        prefix: str | None = None
+
     def __init__(self, name):
         super().__init__(name)
         self._bliss_obj = None
