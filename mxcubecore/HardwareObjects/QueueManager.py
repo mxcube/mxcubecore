@@ -46,6 +46,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             queue_entry.import_queue_entries()
 
         self.auto_add_diff_plan = self.get_property("auto_add_diff_plan", False)
+        self.pause_before_centring = self.get_property("pause_before_centring", True)
 
     def __getstate__(self):
         d = dict(self.__dict__)
