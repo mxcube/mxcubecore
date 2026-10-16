@@ -936,12 +936,13 @@ class DelayQueueEntry(BaseQueueEntry):
 
 
 def center_before_collect(view, dm, queue, sample_view):
-    view.setText(1, "Waiting for input")
     log = logging.getLogger("user_level_log")
 
-    log.info("Please select, or center on a new position and press resume.")
+    if HWR.beamline.queue_manager.pause_before_centring:
+        view.setText(1, "Waiting for input")
+        log.info("Please select, or center on a new position and press resume.")
+        queue.pause(True)
 
-    queue.pause(True)
     pos, shape = None, None
     dm = dm or None
     if len(sample_view.get_selected_shapes()):
