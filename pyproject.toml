@@ -53,6 +53,9 @@ dependencies = [
     "defusedxml==0.7.1",
 ]
 
+[project.scripts]
+mxcubecore-check-config = "mxcubecore.config_check:main"
+
 [project.optional-dependencies]
 pyicat-plus = ["pyicat-plus==3.0.1"]
 argus = ["argussight", "grpcio"]
