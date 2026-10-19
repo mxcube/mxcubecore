@@ -54,6 +54,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         for item in mandatory_options:
             if item not in self.available_centring_options:
                 self.available_centring_options.append(item)
+        self.pause_before_centring = self.get_property("pause_before_centring", True)
 
     def __getstate__(self):
         d = dict(self.__dict__)
