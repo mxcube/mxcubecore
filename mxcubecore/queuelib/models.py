@@ -606,6 +606,16 @@ class SampleNode(QueueNodeModel):
     sc_state: str = ""
     state: int | None = None
 
+    # Information from LIMS displayed and used by the UI
+    containerCode: str | None = None  # noqa: N815
+    crystalSpaceGroup: str | None = None  # noqa: N815
+    cellA: float | None = None  # noqa: N815
+    cellB: float | None = None  # noqa: N815
+    cellC: float | None = None  # noqa: N815
+    cellAlpha: float | None = None  # noqa: N815
+    cellBeta: float | None = None  # noqa: N815
+    cellGamma: float | None = None  # noqa: N815
+
     @model_validator(mode="before")
     @classmethod
     def validate_tasks(cls, value):
