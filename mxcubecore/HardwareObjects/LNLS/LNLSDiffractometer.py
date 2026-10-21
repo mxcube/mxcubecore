@@ -1,142 +1,30 @@
-import time
-
-from gevent.event import AsyncResult
-
 from mxcubecore import HardwareRepository as HWR
-from mxcubecore.HardwareObjects.GenericDiffractometer import (
-    GenericDiffractometer,
-    PhaseEnum,
+from mxcubecore.HardwareObjects.abstract.AbstractDiffractometer import (
+    AbstractDiffractometer,
+    DiffractometerPhase,
 )
 
 
-class LNLSDiffractometer(GenericDiffractometer):
-    def __init__(self, name):
-        GenericDiffractometer.__init__(self, name)
-
+class LNLSDiffractometer(AbstractDiffractometer):
     def init(self):
-        GenericDiffractometer.init(self)
+        AbstractDiffractometer.init(self)
         self._bluesky_api = HWR.beamline.get_object_by_role("bluesky")
-        self.pixels_per_mm_x = 10**-4
-        self.pixels_per_mm_y = 10**-4
-        self.beam_position = [318, 238]
-        self.in_plate_mode = False
-        self.last_centred_position = self.beam_position
-        self.current_motor_positions = {
-            "phiy": 0,
-            "sampx": 0,
-            "sampy": 0,
-            "zoom": 0,
-            "focus": 0,
-            "phiz": 0,
-            "phi": 0,
-            "kappa": 0,
-            "kappa_phi": 0,
-        }
+        self.current_phase = DiffractometerPhase.UNKNOWN
+        self.update_state(self.STATES.READY)
+        self.connect(self.sampx, "valueChanged", self.sampx.update_grid_value)
+        self.connect(self.sampy, "valueChanged", self.sampy.update_grid_value)
 
-        self.centring_time = 0
-        self.mount_mode = self.get_property("sample_mount_mode")
-        if self.mount_mode is None:
-            self.mount_mode = "manual"
+    def get_pixels_per_mm(self):
+        zoom_enum = self.zoom.get_value()
+        current_zoom = zoom_enum.name
+        mm_per_pixel_x = self.zoom.get_property("mm_per_pixel_x")[current_zoom]
+        mm_per_pixel_y = self.zoom.get_property("mm_per_pixel_y")[current_zoom]
+        pixel_per_mm_x = round(1 / mm_per_pixel_x, 6)
+        pixel_per_mm_y = round(1 / mm_per_pixel_y, 6)
+        return (pixel_per_mm_x, pixel_per_mm_y)
 
-        self.connect(self.motor_hwobj_dict["phi"], "valueChanged", self.phi_motor_moved)
-        self.connect(
-            self.motor_hwobj_dict["phiy"], "valueChanged", self.phiy_motor_moved
-        )
-        self.connect(
-            self.motor_hwobj_dict["phiz"], "valueChanged", self.phiz_motor_moved
-        )
-        self.connect(
-            self.motor_hwobj_dict["kappa"], "valueChanged", self.kappa_motor_moved
-        )
-        self.connect(
-            self.motor_hwobj_dict["kappa_phi"],
-            "valueChanged",
-            self.kappa_phi_motor_moved,
-        )
-        self.connect(
-            self.motor_hwobj_dict["sampx"], "valueChanged", self.sampx_motor_moved
-        )
-        self.connect(
-            self.motor_hwobj_dict["sampy"], "valueChanged", self.sampy_motor_moved
-        )
+    def save_centring_positions(self):
+        self.update_state(self.STATES.READY)
 
-    def is_ready(self) -> bool:
+    def wait_status_ready(self, timeout=None):
         return True
-
-    def phi_motor_moved(self, pos):
-        self.current_motor_positions["phi"] = pos
-        self.emit("phiMotorMoved", pos)
-
-    def phiy_motor_moved(self, pos):
-        self.current_motor_positions["phiy"] = pos
-
-    def phiz_motor_moved(self, pos):
-        self.current_motor_positions["phiz"] = pos
-
-    def sampx_motor_moved(self, pos):
-        self.current_motor_positions["sampx"] = pos
-
-    def sampy_motor_moved(self, pos):
-        self.current_motor_positions["sampy"] = pos
-
-    def kappa_motor_moved(self, pos):
-        self.current_motor_positions["kappa"] = pos
-        if time.time() - self.centring_time > 1.0:
-            self.invalidate_centring()
-        self.emit_diffractometer_moved()
-        self.emit("kappaMotorMoved", pos)
-
-    def kappa_phi_motor_moved(self, pos):
-        self.current_motor_positions["kappa_phi"] = pos
-        if time.time() - self.centring_time > 1.0:
-            self.invalidate_centring()
-        self.emit_diffractometer_moved()
-        self.emit("kappaPhiMotorMoved", pos)
-
-    def manual_centring(self):
-        self.log.info("Initializing manual sample alignment...")
-        for step in range(3):
-            self.log.info(f"Step {step + 1} of 3...")
-            self.user_clicked_event = AsyncResult()
-            self.waiting_for_click = True
-            x, y = self.user_clicked_event.get()
-            self.log.info(f"{x}, {y}")
-            self._bluesky_api.execute_plan(
-                plan_name="manual_alignment",
-                kwargs={"x_px": x, "y_px": y, "step": step},
-            )
-        self.log.info("Manual sample alignment has finished...")
-        return {}
-
-    def automatic_centring(self):
-        self.log.info("Initializing automatic sample alignment...")
-        self._bluesky_api.execute_plan(plan_name="automatic_alignment")
-        self.log.info("Automatic sample alignment has finished...")
-
-    def move_to_beam(self, x, y, omega=None):
-        self.log.info("Moving to beam...")
-
-        self._bluesky_api.execute_plan(
-            plan_name="move_to_beam",
-            kwargs={
-                "x_px": x - self.beam_position[0],
-                "y_px": y - self.beam_position[1],
-            },
-        )
-        self.log.info("Move to beam has finished...")
-
-    def motor_positions_to_screen(self, motor_positions):
-        return self.beam_position
-
-    def get_value_motors(self):
-        return self.current_motor_positions
-
-    def get_phase(self):
-        unknown_phase = PhaseEnum.unknown
-        phase = self.get_current_phase()
-        if not phase:
-            phase = unknown_phase
-        return phase
-
-    def get_chip_configuration(self):
-        return None
