@@ -365,10 +365,23 @@ class DataCollectionParameters(TaskDataPathModel):
         return 0 if value in (None, "") else value
 
     @field_validator(
+        "cellA", "cellB", "cellC", "cellAlpha", "cellBeta", "cellGamma", mode="before"
+    )
+    @classmethod
+    def validate_cell_parameters(cls, value):
+        # None (or empty) when the sample has no crystal information from LIMS
+        return 0 if value in (None, "") else value
+
+    @field_validator("space_group", mode="before")
+    @classmethod
+    def validate_space_group(cls, value: str | None, info) -> str:
+        # None when the sample has no crystal information from LIMS
+        return validate_safe_string("" if value is None else value, info.field_name)
+
+    @field_validator(
         "detector_binning_mode",
         "cell_counting",
         "mesh_center",
-        "space_group",
         mode="before",
     )
     @classmethod
