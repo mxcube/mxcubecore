@@ -87,3 +87,9 @@ class DetectorCover(HardwareObject):
         if self.handle_detector_cover:
             return self.handle_detector_cover.get_value()
         return True
+
+    def open(self, timeout: float | None = None):
+        self.set_value(self.detector_cover.VALUES.OPEN, timeout=timeout)
+
+    def close(self, timeout: float | None = None):
+        self.set_value(self.detector_cover.VALUES.CLOSE, timeout=timeout)
