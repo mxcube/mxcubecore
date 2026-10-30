@@ -87,6 +87,11 @@ class SampleView(AbstractSampleView):
         super().init()
 
         centring_motor_roles = self.get_property("centring_motors", [])
+        # remove the minikappa motors if hardware no present.
+        if not HWR.beamline.diffractometer.in_kappa_mode:
+            for nam in ("kappa", "kappa_phi"):
+                if nam in centring_motor_roles:
+                    centring_motor_roles.pop(centring_motor_roles.index(nam))
         if isinstance(centring_motor_roles, str):
             centring_motor_roles = literal_eval(centring_motor_roles)
         # need to set the motor names for the centring points
