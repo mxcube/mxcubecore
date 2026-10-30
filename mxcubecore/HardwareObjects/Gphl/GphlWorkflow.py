@@ -194,6 +194,9 @@ class GphlWorkflow(HardwareObject):
 
     TEST_SAMPLE_PREFIX = "emulate"
 
+    # Cutoff for setting calculated transmission to 100%
+    TRANSMISSION_CUTOFF = 99.0
+
     # Signals
     PARAMETERS_NEEDED = "GphlJsonParametersNeeded"
     PARAMETER_RETURN_SIGNAL = "GphlParameterReturn"
@@ -1273,7 +1276,7 @@ class GphlWorkflow(HardwareObject):
             use_dose_start = proposed_dose
             use_dose_frozen = False
             transmission = 100 * proposed_dose / maximum_dose
-            if transmission > 100:
+            if transmission > self.TRANSMISSION_CUTOFF:
                 use_dose_start = proposed_dose * 100.0 / transmission
                 transmission = 100.0
         else:
@@ -1692,7 +1695,7 @@ class GphlWorkflow(HardwareObject):
                     elif wftype != "diffractcal":
                         # This is characterisation
                         new_dose *= gphl_workflow_model.characterisation_budget_fraction
-                    if new_dose > maximum_dose:
+                    if new_dose > self.TRANSMISSION_CUTOFF * maximum_dose / 100:
                         transmission = 100
                         new_dose = maximum_dose
                     else:
@@ -1718,7 +1721,7 @@ class GphlWorkflow(HardwareObject):
                 transmission = 100 * use_dose / maximum_dose
             else:
                 transmission = HWR.beamline.transmission.get_value()
-            if transmission > 100:
+            if transmission > self.TRANSMISSION_CUTOFF:
                 if gphl_workflow_model.characterisation_done or wftype == "diffractcal":
                     # We are not in characterisation.
                     # Try to reset exposure_time to get desired dose
@@ -1728,6 +1731,8 @@ class GphlWorkflow(HardwareObject):
                     exposure_limits = HWR.beamline.detector.get_exposure_time_limits()
                     if exposure_limits[1]:
                         exposure_time = min(exposure_limits[1], exposure_time)
+                    if exposure_limits[0]:
+                        exposure_time = max(exposure_limits[0], exposure_time)
                     gphl_workflow_model.exposure_time = exposure_time
                 transmission = 100
             gphl_workflow_model.transmission = transmission
@@ -3291,7 +3296,7 @@ class GphlWorkflow(HardwareObject):
             if maximum_dose and use_dose:
                 new_transmission = 100 * use_dose / maximum_dose
 
-                if new_transmission > 100.0:
+                if new_transmission > self.TRANSMISSION_CUTOFF:
                     # Transmission too high. Try max transmission, longer exposure_time
                     new_exposure_time = exposure_time * new_transmission / 100
                     new_transmission = 100.0
@@ -3299,6 +3304,8 @@ class GphlWorkflow(HardwareObject):
                     if max_exposure and new_exposure_time > max_exposure:
                         # exposure_time over max; set dose to highest achievable dose
                         new_exposure_time = max_exposure * 0.99999
+                    if exposure_limits[0]:
+                        new_exposure_time = max(exposure_limits[0], new_exposure_time)
                     new_experiment_time = (
                         experiment_time * new_exposure_time / exposure_time
                     )
