@@ -22,7 +22,7 @@ except PackageNotFoundError:
     try:
         with open(Path(__file__).resolve().parents[1] / "pyproject.toml", "rb") as f:
             pyproject = load_toml(f)
-            __version__ = pyproject["tool"]["poetry"]["version"]
+            __version__ = pyproject["project"]["version"]
     except OSError:
         # File IO error
         __version__ = "local"

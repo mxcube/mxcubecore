@@ -63,6 +63,25 @@ def _optional_str(value: Any) -> Optional[str]:
     return None if value is None else str(value)
 
 
+def _icat_sample_name(sample_name: str, acronym: Optional[str]) -> str:
+    """Return the sample name as stored in ICAT, "<acronym>-<sample name>"
+    when the sample has a protein acronym.
+
+    Used for all dataset types (data collections, energy scans, XRF
+    spectra) so that they end up under the same ICAT sample.
+    """
+    if acronym:
+        return f"{acronym}-{sample_name}"
+    return sample_name.replace(":", "-")
+
+
+def _to_metadata_dict(params: icat_models.IcatDatasetParameters, extra: dict) -> dict:
+    """Finalize ``params`` and flatten it, together with ``extra``, into a flat ICAT-keyed dict."""
+    metadata = params.finalize().to_icat_dict(stringify=False)
+    metadata.update(extra)
+    return metadata
+
+
 class DataCollectionMetadataGatherer:
     """Assembles the metadata for a finished standard MX data collection, in
     the format expected by ICAT (via pyicat-plus) and metadata.json.
@@ -123,16 +142,10 @@ class DataCollectionMetadataGatherer:
         if workflow_type is None and not directory.name.startswith("run"):
             dataset_name = fileinfo["prefix"]
 
-        if datacollection_dict["sample_reference"]["acronym"]:
-            sample_name = (
-                datacollection_dict["sample_reference"]["acronym"]
-                + "-"
-                + datacollection_dict["sample_reference"]["sample_name"]
-            )
-        else:
-            sample_name = datacollection_dict["sample_reference"][
-                "sample_name"
-            ].replace(":", "-")
+        sample_name = _icat_sample_name(
+            datacollection_dict["sample_reference"]["sample_name"],
+            datacollection_dict["sample_reference"]["acronym"],
+        )
 
         logger.info(f"LIMS sample name {sample_name}")
         oscillation_sequence = datacollection_dict["oscillation_sequence"][0]
@@ -232,9 +245,15 @@ class DataCollectionMetadataGatherer:
         except RuntimeError:
             logger.warning("Failed to get MX_axis_end")
 
-        params = params.finalize()
-        metadata = params.to_icat_dict()
-        metadata.update(extra)
+        metadata = _to_metadata_dict(params, extra)
+        metadata["scanType"] = mx.scanType  # Quick fix !
+
+        # ontologies
+        try:
+            tech = technique.get_technique_metadata("MX", "SAD")
+            metadata.update(tech.get_dataset_metadata())
+        except (NameError, TypeError):
+            logger.warning("No technique added to the metadata")
 
         # metadata.json is a superset of what's sent to ICAT - it additionally
         # includes the experiment/processing plan and a few identifying
@@ -302,12 +321,22 @@ class DataCollectionMetadataGatherer:
         """
         sample_id = datacollection_dict.get("blSampleId")
         logger.debug(f"SampleId is: {sample_id}")
-        try:
-            sample = HWR.beamline.lims.find_sample_by_sample_id(sample_id)
-            sample_name = sample.get("sampleName")
-        except (AttributeError, TypeError):
-            sample_name = "unknown"
-            logger.debug(f"Sample {sample_id} not found")
+        # Taken from the queue model when available, so that samples that
+        # are not in LIMS (e.g. manually added) also get their name
+        sample_reference = datacollection_dict.get("sample_reference") or {}
+        if sample_reference.get("sample_name"):
+            sample_name = _icat_sample_name(
+                sample_reference["sample_name"], sample_reference.get("acronym")
+            )
+        else:
+            try:
+                sample = HWR.beamline.lims.find_sample_by_sample_id(sample_id)
+                sample_name = _icat_sample_name(
+                    sample.get("sampleName"), sample.get("proteinAcronym")
+                )
+            except (AttributeError, TypeError):
+                sample_name = "unknown"
+                logger.debug(f"Sample {sample_id} not found")
 
         start_time = datacollection_dict.get("collection_start_time", "")
         end_time = datetime.now(ZoneInfo("Europe/Paris")).isoformat()
@@ -1095,7 +1124,9 @@ class ICATLIMS(AbstractLims):
         msg += f"investigations={len(self.investigations)}"
         logger.debug(msg)
 
-        investigation_list = list(filter(lambda p: p["id"] == sid, self.investigations))
+        investigation_list = list(
+            filter(lambda p: str(p.id) == sid, self.investigations)
+        )
         if len(investigation_list) == 1:
             self.investigation = investigation_list[0]
             return self.__to_session(investigation_list[0])
@@ -1331,14 +1362,25 @@ class ICATLIMS(AbstractLims):
 
     def _get_investigation_info(self) -> Tuple[Optional[str], Optional[str]]:
         """Return the (id, proposal name) of the currently active ICAT
-        investigation/session, or (None, None) if there is none."""
+        investigation/session, or (None, None) if there is none.
+
+        The proposal name is built the same way (proposal_code +
+        proposal_number, no separator) as the "proposal" argument passed
+        to IcatClient.store_dataset() elsewhere in this class. Using
+        session.proposal_name here instead (e.g. "blc-17317" vs
+        "blc17317") makes pyicat-plus warn that the metadata's embedded
+        proposal doesn't match the serialization argument.
+        """
         investigation_id = None
         investigation_name = None
         if self.session_manager.active_session.session_id:
             investigation_id = self.session_manager.active_session.session_id
             session = self.get_session_by_id(investigation_id)
             if session is not None:
-                investigation_name = session.proposal_name
+                investigation_name = (
+                    f"{HWR.beamline.session.proposal_code}"
+                    f"{HWR.beamline.session.proposal_number}"
+                )
         return investigation_id, investigation_name
 
     def _get_actual_instrument(self) -> Optional[str]:
@@ -1405,9 +1447,8 @@ class ICATLIMS(AbstractLims):
                 "fluorescenceDetector"
             )
 
-            params = params.finalize()
-            metadata = params.to_icat_dict()
-            metadata.update(extra)
+            metadata = _to_metadata_dict(params, extra)
+            metadata["scanType"] = mx.scanType
             # No icat_esrf_definitions model field exists yet for these
             # energy-scan-specific values, so they stay as plain flat keys.
             metadata.update(
@@ -1442,6 +1483,13 @@ class ICATLIMS(AbstractLims):
                 dataset=str(directory.name),
                 path=str(directory),
                 metadata=metadata,
+            )
+            logger.info(
+                "Uploaded dataset %s to ICAT (beamline=%s, proposal=%s, path=%s)",
+                directory.name,
+                beamline,
+                proposal,
+                directory,
             )
         except Exception:
             logging.getLogger("ispyb_client").exception()
@@ -1480,9 +1528,8 @@ class ICATLIMS(AbstractLims):
             mx.exposureTime = xfespectrum_dict.get("exposureTime")
             mx.scanType = "xrf"
 
-            params = params.finalize()
-            metadata = params.to_icat_dict()
-            metadata.update(extra)
+            metadata = _to_metadata_dict(params, extra)
+            metadata["scanType"] = mx.scanType
 
             # ontologies
             try:
@@ -1497,6 +1544,13 @@ class ICATLIMS(AbstractLims):
                 dataset=str(directory.name),
                 path=str(directory),
                 metadata=metadata,
+            )
+            logger.info(
+                "Uploaded dataset %s to ICAT (beamline=%s, proposal=%s, path=%s)",
+                directory.name,
+                beamline,
+                proposal,
+                directory,
             )
         except Exception:
             logging.getLogger("ispyb_client").exception()
@@ -1590,8 +1644,6 @@ class ICATLIMS(AbstractLims):
             self._upload_metadata(gathered)
         except LimsMetadataUploadError as e:
             logger.warning("Failed uploading to ICAT. %s", e)
-        else:
-            logger.debug("Done uploading to ICAT")
 
     def _gather_metadata(self, datacollection_dict: dict) -> dict:
         """Assemble the ICAT metadata for a finished data collection.
@@ -1637,6 +1689,7 @@ class ICATLIMS(AbstractLims):
             icat_metadata_path = Path(directory) / "metadata.json"
             with Path(icat_metadata_path).open("w") as f:
                 f.write(json.dumps(gathered["file_metadata"], indent=4))
+            logger.info("Wrote ICAT metadata to %s", icat_metadata_path)
 
             # Create ICAT gallery
             try:
@@ -1659,6 +1712,13 @@ class ICATLIMS(AbstractLims):
                 dataset=gathered["dataset_name"],
                 path=str(gathered["directory"]),
                 metadata=gathered["metadata"],
+            )
+            logger.info(
+                "Uploaded dataset %s to ICAT (beamline=%s, proposal=%s, path=%s)",
+                gathered["dataset_name"],
+                gathered["beamline"],
+                gathered["proposal"],
+                gathered["directory"],
             )
         except Exception as e:
             raise LimsMetadataUploadError(str(e)) from e

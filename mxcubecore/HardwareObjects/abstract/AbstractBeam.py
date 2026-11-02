@@ -165,8 +165,7 @@ class AbstractBeam(HardwareObject):
             order.
         """
         return [
-            NStateOption(value=str(value))
-            for value in self.get_available_size()["values"]
+            NStateOption(value=value) for value in self.get_available_size()["values"]
         ]
 
     def get_defined_beam_size(self) -> dict:

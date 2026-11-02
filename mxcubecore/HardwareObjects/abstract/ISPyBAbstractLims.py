@@ -14,6 +14,13 @@ from mxcubecore.model.lims_session import (
     Lims,
 )
 
+# Keys only used by ICATLIMS, not accepted by ISPyB
+ICAT_ONLY_KEYS = ("sample_reference",)
+
+
+def _without_icat_keys(params: dict) -> dict:
+    return {key: val for key, val in params.items() if key not in ICAT_ONLY_KEYS}
+
 
 class ISPyBAbstractLIMS(AbstractLims):
     """
@@ -212,7 +219,7 @@ class ISPyBAbstractLIMS(AbstractLims):
         return session_manager
 
     def store_energy_scan(self, energyscan_dict):
-        return self.adapter.store_energy_scan(energyscan_dict)
+        return self.adapter.store_energy_scan(_without_icat_keys(energyscan_dict))
 
     def associate_bl_sample_and_energy_scan(self, entry_dict):
         return self.adapter.associate_bl_sample_and_energy_scan(entry_dict)
@@ -224,7 +231,7 @@ class ISPyBAbstractLIMS(AbstractLims):
         return self.adapter.get_session(session_id)
 
     def store_xfe_spectrum(self, xfespectrum_dict):
-        return self.adapter.store_xfe_spectrum(xfespectrum_dict)
+        return self.adapter.store_xfe_spectrum(_without_icat_keys(xfespectrum_dict))
 
     def is_connected(self):
         return self.login_ok

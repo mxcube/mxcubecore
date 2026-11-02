@@ -29,8 +29,10 @@ import time
 import traceback
 from collections import namedtuple
 from enum import Enum
+from typing import Any, ClassVar
 
 import gevent
+from pydantic import BaseModel
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects import autoprocessing
@@ -92,6 +94,28 @@ class TaskPrerequisite(str, Enum):
     # This is used for the case when no shape is selected and we want to
     # create a 2D point in the place where context menu was opened.
     NO_SHAPE_2D = "no_shape_2d"
+
+
+class BaseMXModel(BaseModel):
+    """Base model for task parameters, all fields are marked as required in
+    the generated JSON schema, except those listed in exclude_from_required.
+    """
+
+    # Fields that should NOT be required in the generated schema
+    exclude_from_required: ClassVar[set[str]] = set()
+
+    @classmethod
+    def __get_pydantic_json_schema__(cls, core_schema: Any, handler):
+        schema = handler(core_schema)
+
+        if schema.get("type") == "object" and "properties" in schema:
+            schema["required"] = [
+                name
+                for name in schema["properties"]
+                if name not in cls.exclude_from_required
+            ]
+
+        return schema
 
 
 class QueueExecutionException(Exception):
@@ -912,12 +936,13 @@ class DelayQueueEntry(BaseQueueEntry):
 
 
 def center_before_collect(view, dm, queue, sample_view):
-    view.setText(1, "Waiting for input")
     log = logging.getLogger("user_level_log")
 
-    log.info("Please select, or center on a new position and press resume.")
+    if HWR.beamline.queue_manager.pause_before_centring:
+        view.setText(1, "Waiting for input")
+        log.info("Please select, or center on a new position and press resume.")
+        queue.pause(True)
 
-    queue.pause(True)
     pos, shape = None, None
     dm = dm or None
     if len(sample_view.get_selected_shapes()):
@@ -931,7 +956,7 @@ def center_before_collect(view, dm, queue, sample_view):
         pos = sample_view.get_positions()
         shape = sample_view.add_shape_from_mpos([pos], (0, 0), "P")
 
-    view(1, "Centring completed")
+    view.setText(1, "Centring completed")
     log.info("Centring completed")
 
     return queue_model_objects.CentredPosition(pos), shape

@@ -15,12 +15,7 @@ from mxcubecore.queuelib.json_schema import get_json_schema
 
 def main() -> None:
     schema = get_json_schema()
-    schema_path = (
-        Path(__file__).resolve().parent
-        / "mxcubecore"
-        / "queuelib"
-        / "queue.schema.json"
-    )
+    schema_path = Path(__file__).resolve().parent / "queue.schema.json"
     schema_path.write_text(json.dumps(schema, indent=2) + "\n", encoding="utf-8")
     print(f"Updated {schema_path}")
 
