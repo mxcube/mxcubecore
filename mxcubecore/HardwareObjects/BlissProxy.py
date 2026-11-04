@@ -262,3 +262,8 @@ class BlissProxy(MXHardwareObject):
         for name, obj in self._objects.items():
             groups.setdefault(obj.type, []).append(name)
         return {t: sorted(names) for t, names in sorted(groups.items())}
+
+    def log_func(self, msg: str | None = None):
+        """Callback to get messages from bliss script and print it to log"""
+        if msg and len(msg) > 1:
+            self.log.info(msg)
