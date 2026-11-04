@@ -785,6 +785,8 @@ class QueueBuilder:
 
         model.shape = params["shape"]
 
+        acq.path_template.run_number = self.get_run_number(acq.path_template)
+
         group_model, _group_entry = self._create_and_enqueue_task_group(sample_model)
         self._attach_model_to_group(group_model, model)
 
