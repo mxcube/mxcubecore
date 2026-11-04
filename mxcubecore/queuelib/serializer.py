@@ -242,6 +242,9 @@ class QueueSerializer:
     def _handle_dc_node(self, sample_node, node) -> TaskNodeModel:
         enabled, state = self.get_node_state(node._node_id)
         parameters = node.as_dict()
+
+        parameters["mesh"] = node.experiment_type == qme.EXPERIMENT_TYPE.MESH
+        parameters["helical"] = node.experiment_type == qme.EXPERIMENT_TYPE.HELICAL
         parameters["shape"] = getattr(node, "shape", "")
         parameters["subdir"] = self._subdir_from_path(parameters["path"])
 
