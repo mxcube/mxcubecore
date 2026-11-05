@@ -676,7 +676,7 @@ class XMLRPCServer(HardwareObject):
         gphl_model = qmo.GphlWorkflow()
         parent_model = HWR.beamline.queue_model.get_node(int(parent_node_id))
         sample_model = parent_model.get_sample_node()
-        gphl_model.init_from_task_data(sample_model, task_dict)
+        gphl_model.init_from_task_data(task_dict, sample_model)
         child_id = HWR.beamline.queue_model.add_child_at_id(parent_node_id, gphl_model)
         self.gphl_workflow_status = "RUNNING"
         self._connect_gphl_workflow_finished()

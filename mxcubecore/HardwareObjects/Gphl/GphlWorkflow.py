@@ -883,9 +883,6 @@ class GphlWorkflow(HardwareObject):
                     params["processing_macro_url"] = line
                 else:
                     raise ValueError("Invalid url string: %s" % line)
-
-        # Convert energy field to a single tuple
-        params["energies"] = (params.pop("energy"),)
         return params
 
     def pre_execute(self, queue_entry):
@@ -1581,9 +1578,7 @@ class GphlWorkflow(HardwareObject):
         if value:
             result[tag] = int(value)
 
-        energies = list(result.pop(tag) for tag in beam_energies)
-        del energies[0]
-        result["energies"] = energies
+        result["energies"] = list(result.pop(tag) for tag in beam_energies)
 
         tag = "recentring_mode"
         result[tag] = RECENTRING_MODES.get(result.get(tag)) or default_recentring_mode
@@ -1664,7 +1659,10 @@ class GphlWorkflow(HardwareObject):
                     "'dose_budget' parameter no longer supported. "
                     "Use 'use_dose' or 'transmission' instead"
                 )
-            if parameters.get("init_spot_dir"):
+            if (
+                parameters.get("init_spot_dir")
+                and not gphl_workflow_model.characterisation_done
+            ):
                 transmission = HWR.beamline.transmission.get_value()
                 if not parameters.get("transmission"):
                     parameters["transmission"] = transmission

@@ -1306,38 +1306,6 @@ class XrayCentring2(TaskNode):
     def get_workflow_parameters(self):
         return self._workflow_parameters
 
-    def init_from_task_data(self, sample_model, params):
-        """Set parameters from task input dictionary.
-
-        sample_model is required as this may be called before the object is enqueued
-        params is a dictionary with structure determined by mxcubeweb usage
-        """
-
-        # Set path template
-        self.path_template.set_from_dict(params)
-        if params["prefix"]:
-            self.path_template.base_prefix = params["prefix"]
-        else:
-            self.path_template.base_prefix = HWR.beamline.session.get_default_prefix(
-                sample_model
-            )
-        self.path_template.num_files = 0
-        self.path_template.directory = os.path.join(
-            HWR.beamline.session.get_base_image_directory(), params.get("subdir", "")
-        )
-        self.path_template.process_directory = os.path.join(
-            HWR.beamline.session.get_base_process_directory(),
-            params.get("subdir", ""),
-        )
-
-        # Set parameters from params dict
-        if "name" in params:
-            self.set_name(params["name"])
-        if "motor_positions" in params:
-            self.set_motor_positions(params["motor_positions"])
-        if "grid_size" in params:
-            self.set_grid_size(params["grid_size"])
-
 
 class SampleCentring(TaskNode):
     """Manual 3 click centring
@@ -2096,7 +2064,7 @@ class GphlWorkflow(TaskNode):
         crystal_classes=(),
         cell_parameters=(),
         resolution=None,
-        energies=(),
+        energy:float=None,
         strategy="",
         strategy_options=None,
         init_spot_dir=None,
@@ -2114,7 +2082,7 @@ class GphlWorkflow(TaskNode):
         :param crystal_classes (tuple(str)):
         :param cell_parameters tuple(float):
         :param resolution (Optional[float]):
-        :param energies tuple(float):
+        :param energy float:
         :param strategy (str):
         :param strategy_options (dict):
         :param init_spot_dir (str):
@@ -2165,31 +2133,21 @@ class GphlWorkflow(TaskNode):
         # NB this is an internal dictionary. DO NOT MODIFY
         settings = HWR.beamline.gphl_workflow.config.settings
 
-        if energies:
-            # Energies *reset* existing list, and there must be at least one
+        if energy:
             if self.characterisation_done:
-                energy_tags = self.strategy_settings.get(
+                role = self.strategy_settings.get(
                     "beam_energy_tags", (settings["default_beam_energy_tag"],)
-                )
+                )[0]
             elif self.wftype == "diffractcal":
-                energy_tags = ("Main",)
+                role = "Main"
             else:
-                energy_tags = ("Characterisation",)
-            if len(energies) not in (len(energy_tags), 1):
-                raise ValueError(
-                    "Number of energies %s do not match available slots %s"
-                    % (energies, energy_tags)
-                )
-            wavelengths = []
-            for iii, energy in enumerate(energies):
-                role = energy_tags[iii]
-                wavelengths.append(
-                    GphlMessages.PhasingWavelength(
-                        wavelength=HWR.beamline.energy.calculate_wavelength(energy),
-                        role=role,
-                    )
-                )
-            self.wavelengths = tuple(wavelengths)
+                role = "Characterisation"
+            self.wavelengths = (
+                GphlMessages.PhasingWavelength(
+                    wavelength=HWR.beamline.energy.calculate_wavelength(energy),
+                    role=role,
+                ),
+            )
         if not self.wavelengths:
             raise ValueError("Value for energy missing. Coding error?")
 
@@ -2248,8 +2206,8 @@ class GphlWorkflow(TaskNode):
                 strategy or settings["characterisation_strategies"][0]
             )
 
-        # NB init_spot_dir must be re-set every time, hence no if test
-        self.init_spot_dir = init_spot_dir
+        if init_spot_dir:
+            self.init_spot_dir = init_spot_dir
         if relative_rad_sensitivity:
             self.relative_rad_sensitivity = relative_rad_sensitivity
         if use_cell_for_processing is not None:
@@ -2316,35 +2274,36 @@ class GphlWorkflow(TaskNode):
         if self.characterisation_done:
             energy_tags = self.strategy_settings.get("beam_energy_tags", energy_tags)
         if energies:
-            # Energies are *added* to existing list
-            wavelengths = list(self.wavelengths)
-            offset = len(wavelengths)
-            if len(energies) == len(energy_tags) - offset:
-                for iii, energy in enumerate(energies):
-                    role = energy_tags[iii + offset]
-                    wavelengths.append(
-                        GphlMessages.PhasingWavelength(
-                            wavelength=HWR.beamline.energy.calculate_wavelength(energy),
-                            role=role,
-                        )
+            if len(energies) == len(energy_tags):
+                self.wavelengths = list(
+                    GphlMessages.PhasingWavelength(
+                        wavelength=HWR.beamline.energy.calculate_wavelength(energy),
+                        role=role,
                     )
-                self.wavelengths = tuple(wavelengths)
-        if len(self.wavelengths) != len(energy_tags):
-            raise ValueError(
-                "Number of energies: %s do not match slots %s"
-                % (len(self.wavelengths), energy_tags)
-            )
+                    for role, energy in zip(energy_tags, energies)
+                )
+            else:
+                raise ValueError(
+                    "Number of energies: %s do not match slots %s"
+                    % (len(self.wavelengths), energy_tags)
+                )
         if skip_collection:
             self.skip_collection = True
 
-    def init_from_task_data(self, sample_model, params):
-        """
-        sample_model is required as this may be called before the object is enqueued
-        params is a dictionary with structure determined by mxcubeweb usage
+    def init_from_task_data(self, params: dict, sample_model: Sample|None = None):
+        """ Initialise model contents using a task paramete dictionary
+
+        Args:
+            params: Parameter dictionary, values overeride SAmple parameters
+            sample_model: Sample, alternative source for prefix, crystal and diffraction plan
+
+        Returns:
+
         """
 
         from mxcubecore.HardwareObjects.Gphl import GphlMessages
 
+        # handle test-from-file
         if self.automation_mode == "TEST_FROM_FILE":
             fname = os.getenv("GPHL_TEST_INPUT")
             if os.path.isfile(fname):
@@ -2355,28 +2314,6 @@ class GphlWorkflow(TaskNode):
             else:
                 print("WARNING no GPHL_TEST_INPUT found. test using default values")
 
-        #  strategy_name may be passed in either as such (Qt branch, unattended mode)
-        # Or as the label (web mode). The latter may have the prefix "GPhL "
-        strategy_name = params.get("strategy_name") or params["label"]
-        strategy_name = strategy_name.replace("GPhL ", "")
-        # Set attributes directly from params
-        self.strategy_settings = HWR.beamline.gphl_workflow.workflow_strategies.get(
-            strategy_name
-        )
-        if not self.strategy_settings:
-            raise ValueError("No GPhL workflow strategy named %s found" % strategy_name)
-
-        self.shape = params.get("shape", "")
-        for tag in (
-            "decay_limit",
-            "maximum_dose_budget",
-            "characterisation_budget_fraction",
-            "crystal_thickness",
-        ):
-            value = params.get(tag)
-            if value:
-                setattr(self, tag, value)
-
         # For external workflow parameters (conf. Olof Svensson)
         dd1 = params.get("workflow_parameters")
         if dd1:
@@ -2384,7 +2321,6 @@ class GphlWorkflow(TaskNode):
 
         settings = HWR.beamline.gphl_workflow.config.settings
         # NB settings is an internal attribute DO NOT MODIFY
-
         # Auto acquisition parameters
         acq_param_settings = settings.get("auto_acq_parameters") or [{}]
         self.auto_acq_parameters = ll1 = [copy.deepcopy(acq_param_settings[0])]
@@ -2395,6 +2331,124 @@ class GphlWorkflow(TaskNode):
         new_acq_params = params.pop("auto_acq_parameters", [{}])
         ll1[0].update(new_acq_params[0])
         ll1[-1].update(new_acq_params[-1])
+
+        strategy_variant = params.get("strategy_variant")
+        if strategy_variant:
+            ll1[-1]["strategy"] = strategy_variant
+
+        aimed_resolution = None
+        energy = None
+        # Set parameters from sample model, if passed
+        if sample_model is not None:
+            # Set crystal parameters from sample node
+            crystal = sample_model.crystals[0]
+            tpl = (
+                crystal.cell_a,
+                crystal.cell_b,
+                crystal.cell_c,
+                crystal.cell_alpha,
+                crystal.cell_beta,
+                crystal.cell_gamma,
+            )
+            if all(tpl):
+                self.cell_parameters = tpl
+            self.protein_acronym = crystal.protein_acronym
+            space_group = crystal.space_group
+
+            # Set to current wavelength for now - nothing else available
+            wavelength = HWR.beamline.energy.get_wavelength()
+
+            # Set parameters from diffraction plan
+            plan = sample_model.diffraction_plan
+            if plan:
+                # It is not clear if diffraction_plan is a dict or an object,
+                # and if so which kind
+                # NB if 'val' is ever not None but zero we still want to skip it
+                tag = "radiationSensitivity"
+                val = getattr(plan, tag, plan.get(tag))
+                if val:
+                    self.relative_rad_sensitivity = val
+                tag = "aimedResolution"
+                aimed_resolution = getattr(plan, tag, plan.get(tag))
+                if val:
+                    self.aimed_resolution = val
+                if self.automation_mode:
+                    tag = "exposureTime"
+                    val = getattr(plan, tag, plan.get(tag))
+                    if val:
+                        self.auto_acq_parameters[-1]["exposure_time"] = val
+                    tag = "oscillationRange"
+                    val = getattr(plan, tag, plan.get(tag))
+                    if val:
+                        self.auto_acq_parameters[-1]["image_width"] = val
+                    energy = getattr(plan, "energy", plan.get("energy"))
+                    if val:
+                        energy_limits = HWR.beamline.energy.get_limits()
+                        val = max(val, energy_limits[0])
+                        val = min(val, energy_limits[1])
+                        nrg1 = self.auto_acq_parameters[-1].get("energy")
+                        if not nrg1:
+                            self.auto_acq_parameters[-1]["energy"] = val
+                        nrg0 = self.auto_acq_parameters[0].get("energy")
+                        if nrg0:
+                            val = nrg0
+                        else:
+                            self.auto_acq_parameters[0]["energy"] = val
+                        wavelength = HWR.beamline.energy.calculate_wavelength(val)
+            base_prefix = HWR.beamline.session.get_default_prefix(sample_model)
+
+        # Set sample-related parameters from task dictionary
+        unit_cell = params.get("unit_cell")
+        if unit_cell:
+            tpl = (
+                unit_cell.get("cell_a"),
+                unit_cell.get("cell_b"),
+                unit_cell.get("cell_c"),
+                unit_cell.get("cell_alpha"),
+                unit_cell.get("cell_beta"),
+                unit_cell.get("cell_gamma"),
+            )
+            if all(tpl):
+                self.cell_parameters = tpl
+
+        if self.protein_acronym is None:
+            raise ValueError("protein_acronym must be set for GPhL workflow")
+        space_group = params.get("space_group", space_group)
+        if space_group:
+            self.space_group = crystal_symmetry.SPACEGROUP_MAP.get(space_group)
+            self.input_space_group = self.space_group
+
+        # Set use_cell_for_processing default
+        self.use_cell_for_processing = False
+        if self.input_space_group:
+            # Only set use_cell_for_processing to True if spacegroup is set
+            self.use_cell_for_processing = params.pop("use_cell_for_processing", False)
+
+        self.aimed_resolution = params.pop("aimed_resolution", aimed_resolution)
+        energy = params.pop("energy", energy)
+
+        # Set attributes directly from params
+        self.strategy_settings = HWR.beamline.gphl_workflow.workflow_strategies.get(
+            params["strategy_name"]
+        )
+        if not self.strategy_settings:
+            raise ValueError(
+                "No GPhL workflow strategy named %s found" % params["strategy_name"]
+            )
+
+        self.shape = params.get("shape", "")
+        for tag in (
+            "decay_limit",
+            "maximum_dose_budget",
+            "characterisation_budget_fraction",
+            "protein_acronym",
+            "crystal_thickness",
+            "relative_rad_sensitivity",
+            "init_spot_dir",
+        ):
+            value = params.get(tag)
+            if value:
+                setattr(self, tag, value)
 
         if "automation_mode" in params:
             self.automation_mode = params["automation_mode"]
@@ -2416,8 +2470,10 @@ class GphlWorkflow(TaskNode):
 
         # Path template and prefixes
         base_prefix = self.path_template.base_prefix = params.get(
-            "prefix"
-        ) or HWR.beamline.session.get_default_prefix(sample_model)
+            "prefix", base_prefix
+        )
+        if base_prefix is None:
+            raise ValueError("File prefix must be set for GPhL workflow")
         self.set_name(base_prefix)
         self.path_template.suffix = (
             params.get("suffix") or HWR.beamline.detector.config.fileSuffix
@@ -2432,67 +2488,6 @@ class GphlWorkflow(TaskNode):
             params.get("subdir", ""),
         )
 
-        # Set crystal parameters from sample node
-        crystal = sample_model.crystals[0]
-        tpl = (
-            crystal.cell_a,
-            crystal.cell_b,
-            crystal.cell_c,
-            crystal.cell_alpha,
-            crystal.cell_beta,
-            crystal.cell_gamma,
-        )
-        if all(tpl):
-            self.cell_parameters = tpl
-        self.protein_acronym = crystal.protein_acronym
-        self.space_group = self.input_space_group = crystal.space_group
-        use_cell_for_processing = False
-        if self.input_space_group:
-            # Only set use_cell_for_processing to True if spacegroup is set
-            use_cell_for_processing = params.pop("use_cell_for_processing", False)
-        self.use_cell_for_processing = use_cell_for_processing
-
-        # Set to current wavelength for now - nothing else available
-        wavelength = HWR.beamline.energy.get_wavelength()
-
-        # Set parameters from diffraction plan
-        plan = sample_model.diffraction_plan
-        if plan:
-            # It is not clear if diffraction_plan is a dict or an object,
-            # and if so which kind
-            # NB if 'val' is ever not None but zero we still want to skip it
-            tag = "radiationSensitivity"
-            val = getattr(plan, tag, plan.get(tag))
-            if val:
-                self.relative_rad_sensitivity = val
-            tag = "aimedResolution"
-            val = getattr(plan, tag, plan.get(tag))
-            if val:
-                self.aimed_resolution = val
-            if self.automation_mode:
-                tag = "exposureTime"
-                val = getattr(plan, tag, plan.get(tag))
-                if val:
-                    self.auto_acq_parameters[-1]["exposure_time"] = val
-                tag = "oscillationRange"
-                val = getattr(plan, tag, plan.get(tag))
-                if val:
-                    self.auto_acq_parameters[-1]["image_width"] = val
-                tag = "energy"
-                val = getattr(plan, tag, plan.get(tag))
-                if val:
-                    energy_limits = HWR.beamline.energy.get_limits()
-                    val = max(val, energy_limits[0])
-                    val = min(val, energy_limits[1])
-                    nrg1 = self.auto_acq_parameters[-1].get("energy")
-                    if not nrg1:
-                        self.auto_acq_parameters[-1]["energy"] = val
-                    nrg0 = self.auto_acq_parameters[-1].get("energy")
-                    if nrg0:
-                        val = nrg0
-                    else:
-                        self.auto_acq_parameters[0]["energy"] = val
-                    wavelength = HWR.beamline.energy.calculate_wavelength(val)
         if self.wftype == "diffractcal":
             energy_tag = "Main"
         else:
