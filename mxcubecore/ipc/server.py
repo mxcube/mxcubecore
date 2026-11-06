@@ -72,6 +72,13 @@ class IPCServer(HardwareObject):
         # "jsonrpc" or "nanomq"
         transport: str = "jsonrpc"
 
+        # jsonrpc transport settings - bind to localhost by default; set to
+        # a routable address explicitly if external access is needed.
+        host: str = "127.0.0.1"
+        port: int = 9999
+        tls_cert_path: Optional[str] = None
+        tls_key_path: Optional[str] = None
+
         # Shared-secret token required by the "_auth" handshake before any
         # whitelisted method can be called.
         auth_token: Optional[str] = None
@@ -123,8 +130,17 @@ class IPCServer(HardwareObject):
         )
 
         transport_kind = self.get_property("transport", "jsonrpc")
-        # Concrete transports are added separately - none is known yet.
-        raise ValueError(f"Unknown IPC transport: {transport_kind!r}")
+        if transport_kind == "jsonrpc":
+            from mxcubecore.ipc.transports.jsonrpc_tcp import JSONRPCTCPTransport
+
+            self._transport = JSONRPCTCPTransport(
+                host=self.get_property("host", "127.0.0.1"),
+                port=self.get_property("port", 9999),
+                tls_cert_path=self.get_property("tls_cert_path"),
+                tls_key_path=self.get_property("tls_key_path"),
+            )
+        else:
+            raise ValueError(f"Unknown IPC transport: {transport_kind!r}")
 
         self._transport.start(
             on_message=self._on_message,
