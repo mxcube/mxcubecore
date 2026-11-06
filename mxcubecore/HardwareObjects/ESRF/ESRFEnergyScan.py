@@ -99,7 +99,8 @@ class GetStaticParameters:
 class ESRFEnergyScan(AbstractEnergyScan):
     def __init__(self, name):
         super().__init__(name)
-        self.ctrl = None
+        self.ctrl_hwobj = None
+        self.ctrl_proxy = None
 
     def execute_command(self, command_name, *args, **kwargs):
         wait = kwargs.get("wait", True)
@@ -107,12 +108,17 @@ class ESRFEnergyScan(AbstractEnergyScan):
         return cmd_obj(*args, wait=wait)
 
     def init(self):
-        self.ctrl = self.get_object_by_role("controller")
+        """Initialise the objects and the properties"""
+        super().init()
+        # get either the controller object
+        self.ctrl_hwobj = self.get_object_by_role("controller")
+        # or control_proxy
+        self.ctrl_proxy = getattr(HWR.beamline, "control_proxy", None)
+        # do not use the controller if proxy available
+        if self.ctrl_proxy:
+            self.ctrl_hwobj = None
+
         self.ready_event = event.Event()
-        if HWR.beamline.lims is None:
-            self.log.warning(
-                "EnergyScan: you should specify the database hardware object"
-            )
 
     def is_connected(self):
         return True
@@ -135,13 +141,19 @@ class ESRFEnergyScan(AbstractEnergyScan):
 
     def escan_prepare(self):
         """Set the nesessary equipment in position for the scan."""
-        self.ctrl.detcover.set_in()
-        self.ctrl.diffractometer.fldet_in()
-        self.ctrl.diffractometer.set_phase("DataCollection")
+        detcover = self.get_object_by_role("detector_cover")
+        if detcover:
+            detcover.close(timeout=0)
+        diffr = HWR.beamline.diffractometer
+        diffr.set_phase(diffr.get_phase_enum.COLLECT)
+        # set the fluo detector close to the sample
+        diffr.fluodetswitch.set_value(diffr.fluodetswitch.VALUES.IN)
 
     def escan_postscan(self):
         """Actions done after the scan finished."""
-        self.ctrl.diffractometer.fldet_out()
+        # put away the fluo detector
+        fluodet = HWR.beamline.diffractometer.fluodetswitch
+        fluodet.set_value(fluodet.VALUES.OUT)
 
     def escan_cleanup(self):
         """Cleanup actions."""
@@ -151,10 +163,12 @@ class ESRFEnergyScan(AbstractEnergyScan):
         self.ready_event.set()
 
     def close_fast_shutter(self):
-        self.ctrl.diffractometer.msclose()
+        fshut = HWR.beamline.diffractometer.fshutter
+        fshut.set_value(fshut.VALUES.CLOSE)
 
     def open_fast_shutter(self):
-        self.ctrl.diffractometer.msopen()
+        fshut = HWR.beamline.diffractometer.fshutter
+        fshut.set_value(fshut.VALUES.OPEN)
 
     def cancelEnergyScan(self, *args):
         """Called by queue_entry.py. To be removed"""
@@ -260,10 +274,10 @@ class ESRFEnergyScan(AbstractEnergyScan):
         idx = np.where(nparr[:, 1] == fpp_peak)
         pk = nparr[:, 0][idx][0] / 1000.0
         fp_peak = nparr[:, 2][idx][0]
-        fpp_infl = nparr[:, 2].min()
-        idx = np.where(nparr[:, 2] == fpp_infl)
+        fp_infl = nparr[:, 2].min()
+        idx = np.where(nparr[:, 2] == fp_infl)
         ip = nparr[:, 0][idx][0] / 1000.0
-        fp_infl = nparr[:, 1][idx][0]
+        fpp_infl = nparr[:, 1][idx][0]
         # get the threshold from the theoretical edge [keV]
         th_t = self.get_property("theoritical_edge_threshold", 0.03)
         rm = pk + th_t
@@ -369,30 +383,48 @@ class ESRFEnergyScan(AbstractEnergyScan):
 
     def set_mca_roi(self, eroi_min, eroi_max):
         self.energy_scan_parameters["fluorescenceDetector"] = "KETEK_AXAS-A"
+        """ Already set by the find_max_attenuation
         # check if roi in eV or keV
         if eroi_min > 1000:
             eroi_min /= 1000.0
             eroi_max /= 1000.0
-        self.ctrl.mca.set_roi(
+        self.ctrl_hwobj.mca.set_roi(
             eroi_min,
             eroi_max,
             channel=1,
             element=self.energy_scan_parameters["element"],
             atomic_nb=self.energy_scan_parameters["atomic_nb"],
         )
+        """
 
     def choose_attenuation(self):
         """Choose the appropriate attenuation to execute the scan"""
         eroi_min = self.energy_scan_parameters["eroi_min"]
         eroi_max = self.energy_scan_parameters["eroi_max"]
-        self.ctrl.detcover.set_in()
+
         mcafile = Path(self.energy_scan_parameters["directory"]) / "mca.raw"
-        self.ctrl.find_max_attenuation(
-            ctime=2, roi=[eroi_min, eroi_max], datafile=mcafile
-        )
-        self.energy_scan_parameters["transmissionFactor"] = (
-            HWR.beamline.transmission.get_value()
-        )
+        try:
+            if self.ctrl_proxy:
+                future = self.ctrl_proxy.session.call(
+                    "find_max_attenuation",
+                    ctime=2.0,
+                    datafile=mcafile,
+                    roi=[eroi_min, eroi_max],
+                    emit_stdout=True,
+                )
+                current_transm = HWR.beamline.transmission.get_value()
+                future.subscribe_stdout(HWR.beamline.control_proxy.log_func)
+                future.get()
+            else:
+                current_transm = self.ctrl_hwobj.find_max_attenuation(
+                    ctime=2,
+                    datafile=mcafile,
+                    roi=[eroi_min, eroi_max],
+                )
+
+            self.energy_scan_parameters["transmissionFactor"] = current_transm
+        except Exception as exp:
+            raise exp
 
     def execute_energy_scan(self, energy_scan_parameters: dict):
         """
@@ -410,10 +442,23 @@ class ESRFEnergyScan(AbstractEnergyScan):
             dt.strftime(dd, "%b"),
             dt.strftime(dd, "%Y"),
         )
-        self.ctrl.energy_scan.do_energy_scan(start_en, end_en, datafile=fname)
-        self.energy_scan_parameters["exposureTime"] = (
-            self.ctrl.energy_scan.exposure_time
-        )
+        try:
+            if self.ctrl_proxy:
+                future = self.ctrl_proxy.session.call(
+                    "energy_scan.do_energy_scan", start_en, end_en, datafile=fname
+                )
+                future.subscribe_stdout(HWR.beamline.control_proxy.log_func)
+                future.get()
+                exp_time = self.ctrl_proxy.energy_scan.exposure_time
+            else:
+                self.ctrl_hwobj.energy_scan.do_energy_scan(
+                    start_en, end_en, datafile=fname
+                )
+                exp_time = self.ctrl_hwobj.energy_scan.exposure_time
+        except Exception as exp:
+            raise exp
+
+        self.energy_scan_parameters["exposureTime"] = exp_time
 
 
 def store_energy_scan_thread(db_conn, scan_info):

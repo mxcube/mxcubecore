@@ -26,12 +26,26 @@ Example xml_ configuration:
 
  <object class="ESRF.ESRFXRFSpectrum">
    <object href="/bliss" role="controller"/>
+   <object href="/detector_cover" role="detector_cover"/>
    <cfgfile>/users/blissadm/local/beamline_configuration/misc/15keV.cfg</cfgfile
 >
    <default_integration_time>3</default_integration_time>
    <default_energy_range>[2.0, 15]</default_energy_range>
    <cfg_energies>[15]</cfg_energies>
  </object>
+
+.. code-block:: yaml
+
+ class: ESRF.ESRFXRFSpectrum.ESRFXRFSpectrum
+ configuration:
+   default_integration_time: 3
+   default_energy_range: [2.0, 15]
+   cfgfile: /users/blissadm/local/beamline_configuration/misc/15keV.cfg
+   cfg_energies: [15]
+ objects:
+   detector_cover: detector_cover.yaml
+   controller: bliss.yaml   # optional
+
 """
 
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
@@ -42,15 +56,11 @@ from ast import literal_eval
 from pathlib import Path
 from shutil import copy2
 from unittest.mock import MagicMock
-from warnings import warn
 
 import numpy as np
-from PyMca5.PyMca import (
-    ClassMcaTheory,
-    ConfigDict,
-    QtMcaAdvancedFitReport,
-)
+from PyMca5.PyMca import ClassMcaTheory, ConfigDict, QtMcaAdvancedFitReport
 
+from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractXRFSpectrum import AbstractXRFSpectrum
 
 # Next line is a trick to avoid core dump in QtMcaAdvancedFitReport
@@ -65,6 +75,7 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
         self.cfgfile = None
         self.config_fit = None
         self.ctrl_hwobj = None
+        self.ctrl_proxy = None
         self.mcafit = None
         self.default_erange = None
         self.cfg_energies = []
@@ -72,7 +83,13 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
     def init(self):
         """Initialise the objects and the properties"""
         super().init()
+        # get either controller
         self.ctrl_hwobj = self.get_object_by_role("controller")
+        # or control_proxy
+        proxy = getattr(HWR.beamline, "control_proxy", None)
+        if proxy:
+            self.ctrl_proxy = proxy.session
+            self.ctrl_hwobj = None
         self.cfgfile = self.get_property(
             "cfgfile",
             "/users/blissadm/local/beamline_configuration/misc/15keV.cfg",
@@ -87,14 +104,6 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
         self.cfg_energies = self.get_property("cfg_energies", [7, 9, 12, 15])
         if isinstance(self.cfg_energies, str):
             self.cfg_energies = literal_eval(self.cfg_energies)
-
-    def _doSpectrum(self, ctime, filename):
-        """Deprecated method."""
-        warn(
-            "_doSpectrum is deprecated. use _execute_spectrum",
-            DeprecationWarning,
-        )
-        return self._execute_spectrum(ctime, filename)
 
     def _execute_spectrum(
         self,
@@ -111,23 +120,41 @@ class ESRFXRFSpectrum(AbstractXRFSpectrum):
         """
         filename = filename or self.spectrum_info_dict["filename"]
         integration_time = integration_time or self.default_integration_time
-
         # protect the detector
-        self.ctrl_hwobj.detcover.set_in(20)
+        detcover = self.get_object_by_role("detector_cover")
+        if detcover:
+            detcover.close(20)
+
         try:
-            current_transm = self.ctrl_hwobj.find_max_attenuation(
-                ctime=float(integration_time),
-                datafile=filename,
-                roi=self.default_erange,
-            )
+            if self.ctrl_proxy:
+                future = self.ctrl_proxy.call(
+                    "find_max_attenuation",
+                    ctime=float(integration_time),
+                    datafile=filename,
+                    roi=self.default_erange,
+                    emit_stdout=True,
+                )
+                current_transm = HWR.beamline.transmission.get_value()
+                future.subscribe_stdout(HWR.beamline.control_proxy.log_func)
+                future.get()
+            else:
+                current_transm = self.ctrl_hwobj.find_max_attenuation(
+                    ctime=float(integration_time),
+                    datafile=filename,
+                    roi=self.default_erange,
+                )
             self.spectrum_info_dict["beamTransmission"] = current_transm
-        except Exception as exp:
-            logging.getLogger("user_level_log").exception(str(exp))
+        except Exception:
             self.spectrum_command_failed()
             return False
 
         # put away the fluo detector
-        self.ctrl_hwobj.diffractometer.fldet_out()
+        try:
+            fluodet = HWR.beamline.diffractometer.fluodetswitch
+            fluodet.set_value(fluodet.VALUES.OUT)
+        except AttributeError:
+            pass
+
         return True
 
     # Next methods are for fitting the data with pymca
