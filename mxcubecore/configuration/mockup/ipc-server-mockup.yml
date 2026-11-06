@@ -28,3 +28,15 @@ configuration:
     # top-level roles. See IPC_FORMAT.md section 4.
     - diffractometer.omega.set_value
     - diffractometer.omega.get_value
+
+  events:
+    - role: procedure
+      signal: test_signal
+      method: procedure.test_signal
+    - role: diffractometer.omega
+      signal: valueChanged
+      method: diffractometer.omega.valueChanged
+      # Optional: one type per positional signal argument - published by
+      # _describe and checked on every emission. See IPC_FORMAT.md
+      # section 5.
+      args: [float]

@@ -30,6 +30,7 @@ singleton, exactly like any other role lookup in this codebase.
 
 import ast
 import secrets
+import threading
 from typing import (
     Any,
     Dict,
@@ -37,6 +38,8 @@ from typing import (
     Optional,
     Union,
 )
+
+import gevent
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import (
@@ -49,8 +52,15 @@ from mxcubecore.ipc.constants import (
     ErrorCode,
     logger,
 )
+from mxcubecore.ipc.dispatcher_bridge import DispatcherBridge
+from mxcubecore.ipc.events import (
+    EventEntry,
+    build_events,
+    describe_events,
+)
 from mxcubecore.ipc.models import (
     IPCError,
+    IPCEvent,
     IPCRequest,
     IPCResponse,
 )
@@ -97,11 +107,22 @@ class IPCServer(HardwareObject):
         # The global whitelist: flat list of "role.method" strings.
         allowed_methods: List[str] = []
 
+        # HardwareObject signals to forward as IPCEvents:
+        # [{"role": ..., "signal": ..., "method": ..., "args": [...]}, ...]
+        # "args" (optional) declares one type expression per positional
+        # signal argument - see mxcubecore/ipc/events.py.
+        events: List[Dict[str, Any]] = []
+
     def __init__(self, name: str) -> None:
         super().__init__(name)
         self._transport: Optional[Transport] = None
         self._registry: Dict[str, Any] = {}
+        self._events: Dict[str, EventEntry] = {}
         self._authenticated_session: Optional[str] = None
+        self._bridge = DispatcherBridge(self._push_event)
+        # The gevent hub init() ran in - all session state and transport
+        # writes happen there (see _push_event).
+        self._hub: Any = None
         # True only once init() has fully succeeded, incl. the transport
         # actually starting - `self._transport is not None` alone isn't
         # enough to tell: it gets assigned before `.start()` is called, so
@@ -136,9 +157,11 @@ class IPCServer(HardwareObject):
 
     def _do_init(self) -> None:
         super().init()
+        self._hub = gevent.get_hub()
         self._registry = build_whitelist(
             HWR.beamline, self._get_list_property("allowed_methods")
         )
+        self._events = build_events(HWR.beamline, self._get_list_property("events"))
 
         transport_kind = self.get_property("transport", "jsonrpc")
         if transport_kind == "jsonrpc":
@@ -162,6 +185,11 @@ class IPCServer(HardwareObject):
         else:
             raise ValueError(f"Unknown IPC transport: {transport_kind!r}")
 
+        for entry in self._events.values():
+            self._bridge.subscribe(
+                entry.sender, entry.signal, entry.method, entry.check_args
+            )
+
         self._transport.start(
             on_message=self._on_message,
             on_connect=self._on_connect,
@@ -174,6 +202,7 @@ class IPCServer(HardwareObject):
         if self._transport is not None:
             self._transport.stop()
             self._transport = None
+        self._bridge.unsubscribe_all()
         logger.info("IPC server stopped")
         super().stop()
 
@@ -186,6 +215,25 @@ class IPCServer(HardwareObject):
         if session_id == self._authenticated_session:
             self._authenticated_session = None
         logger.info("IPC client disconnected: %s", session_id)
+
+    def _push_event(self, method: str, params: Dict[str, Any]) -> None:
+        if threading.get_ident() != self._hub.thread_ident:
+            # Emitted from a real OS thread (mxcubecore patches gevent with
+            # thread=False, and some HardwareObjects emit from their own
+            # threads) - gevent sockets, locks and session state must not be
+            # touched from there, so re-run this in a hub greenlet instead.
+            self._hub.loop.run_callback_threadsafe(
+                gevent.spawn, self._push_event, method, params
+            )
+            return
+        if self._authenticated_session is None or self._transport is None:
+            logger.debug(
+                "IPC event %s(%s) dropped: no authenticated client", method, params
+            )
+            return
+        logger.info("IPC event: %s(%s)", method, params)
+        event = IPCEvent(method=method, params=params)
+        self._transport.send(self._authenticated_session, event.model_dump_json())
 
     def _on_message(self, session_id: str, raw_json: str) -> None:
         try:
@@ -273,7 +321,10 @@ class IPCServer(HardwareObject):
     def _handle_describe(self, session_id: str, request: IPCRequest) -> None:
         response = IPCResponse(
             id=request.id,
-            result={"methods": describe(self._registry)},
+            result={
+                "methods": describe(self._registry),
+                "events": describe_events(self._events),
+            },
         )
         self._transport.send(session_id, response.model_dump_json())
 
