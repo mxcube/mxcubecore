@@ -80,6 +80,7 @@ class AbstractXRFSpectrum(HardwareObject):
         session_id: int | None = None,
         blsample_id: int | None = None,
         cpos: dict | None = None,
+        sample_reference: dict | None = None,
     ):
         """Start the procedure. Called by the queue_model.
 
@@ -91,9 +92,13 @@ class AbstractXRFSpectrum(HardwareObject):
             session_id: Session ID number (from ISpyB)
             blsample_id: Sample ID number (from ISpyB)
             cpos: The centred position motors and their values.
+            sample_reference: Sample name and protein acronym, with keys
+                "sample_name" and "acronym".
         """
         self.cpos = cpos
         self.spectrum_info_dict = {"sessionId": session_id, "blSampleId": blsample_id}
+        if sample_reference:
+            self.spectrum_info_dict["sample_reference"] = sample_reference
         integration_time = integration_time or self.default_integration_time
         self.spectrum_info_dict["exposureTime"] = integration_time
         self.spectrum_info_dict["filename"] = ""

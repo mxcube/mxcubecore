@@ -43,12 +43,14 @@ from mxcubecore.queuelib.models import (
     CharacterisationNodeModel,
     DataCollectionNodeModel,
     EnergyScanNodeModel,
+    GenericTaskNodeModel,
     QueueNodeModel,
     SampleNode,
     TaskNodeModel,
     WorkflowNodeModel,
     XRFNodeModel,
     build_task_node_model,
+    validate_model_tolerant,
 )
 
 
@@ -85,6 +87,7 @@ class QueueSerializer:
         """Builds the SampleNode representation of the Sample model <n>."""
         return SampleNode(
             sampleID=n.loc_str,
+            limsID=n.lims_id if n.lims_id != -1 else None,
             queueID=n._node_id,
             code=n.code,
             type="Sample",
@@ -430,7 +433,7 @@ class QueueSerializer:
             parameters["path"], parameters["fileName"]
         )
         _, state = self.get_node_state(node._node_id)
-        return DataCollectionNodeModel(
+        return GenericTaskNodeModel(
             label=parameters.get("label", "TaskNode"),
             type=parameters.get("type", "TaskNode"),
             parameters=parameters,
@@ -443,17 +446,18 @@ class QueueSerializer:
         )
 
     def _handle_diffraction_plan(self, node, sample_node):
+        """Return the queueID of the diffraction plan collections, as the UI
+        sets it when a diffraction plan becomes available, and the
+        collections themselves"""
         model, _ = HWR.beamline.queue_manager.get_entry(node._node_id)
-        originID = model.get_origin()
         tasks = []
         if len(model.diffraction_plan) > 0:
             collections = model.diffraction_plan[0]
             for col in collections:
                 t = self._handle_dc_node(sample_node, col)
-                t_dict = t.dict()
-                t_dict["isDiffractionPlan"] = True
-                tasks.append(t_dict)
-            return originID, tasks
+                t.isDiffractionPlan = True
+                tasks.append(t)
+            return tasks[-1].queueID if tasks else -1, tasks
         return -1, []
 
     def _add_task(self, node_id: int, item) -> int:
@@ -482,7 +486,11 @@ class QueueSerializer:
             return self.builder.add_energy_scan(node_id, item.dict())
 
         else:
-            return self.builder.add_queue_entry(node_id, item.dict(), item.type)
+            # Only pass on the parameters that were sent, so that the defaults
+            # of the queue entry DATA_MODEL apply to the others
+            task = item.dict()
+            task["parameters"] = item.parameters.model_dump(exclude_unset=True)
+            return self.builder.add_queue_entry(node_id, task, item.type)
 
     def _resolve_sample_node_id(self, parent: int | str) -> int:
         """Resolve a sample locator (queueID or loc_str) to its node id."""
@@ -513,9 +521,7 @@ class QueueSerializer:
         try:
             task = build_task_node_model(item)
         except ValidationError:
-            logging.getLogger("MX3.QUEUE").exception(
-                "Failed to validate task: %s" % item
-            )
+            logging.getLogger("HWR").exception("Failed to validate task: %s" % item)
             raise
 
         task_id = self._add_task(node_id, task)
@@ -524,7 +530,7 @@ class QueueSerializer:
             try:
                 self.pretty_print_queue(f"Added task type={task.type} parent={parent}")
             except Exception:
-                logging.getLogger("MX3.HWR").exception(
+                logging.getLogger("HWR").exception(
                     "Failed to pretty print queue after adding task"
                 )
 
@@ -548,7 +554,7 @@ class QueueSerializer:
                     f"Added item type={item.type} parent={parent_node_id}"
                 )
             except Exception:
-                logging.getLogger("MX3.HWR").exception(
+                logging.getLogger("HWR").exception(
                     "Failed to pretty print queue after adding item"
                 )
 
@@ -584,9 +590,9 @@ class QueueSerializer:
         (duplicating) items that already succeeded.
         """
         try:
-            parsed_items = [SampleNode.model_validate(i) for i in item_list]
+            parsed_items = [validate_model_tolerant(SampleNode, i) for i in item_list]
         except ValidationError:
-            logging.getLogger("MX3.QUEUE").exception(
+            logging.getLogger("HWR").exception(
                 "Failed to validate queue item(s): %s" % item_list
             )
             raise

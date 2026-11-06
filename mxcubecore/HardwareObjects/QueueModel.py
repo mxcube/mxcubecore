@@ -560,7 +560,7 @@ class QueueModel(HardwareObject):
             data_model = getattr(qentry_cls, "DATA_MODEL", None)
             new_data = json.dumps(data_model.update_dependent_fields(data))
         except Exception:
-            logging.getLogger("MX3.HWR").exception(
+            logging.getLogger("HWR").exception(
                 f"Could not update depedant fields for {task_name}"
             )
 

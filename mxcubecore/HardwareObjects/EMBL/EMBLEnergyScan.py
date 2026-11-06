@@ -162,6 +162,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         session_id=None,
         blsample_id=None,
         exptime=3,
+        sample_reference=None,
     ):
         """Starts energy scan
 

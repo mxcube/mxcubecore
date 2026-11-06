@@ -22,7 +22,7 @@ from mxcubecore.model.common import (
     PathParameters,
     StandardCollectionParameters,
 )
-from mxcubecore.queue_entry.base_queue_entry import BaseQueueEntry
+from mxcubecore.queue_entry.base_queue_entry import BaseMXModel, BaseQueueEntry
 
 DEFAULT_MAX_FREQ = 925
 
@@ -33,7 +33,7 @@ class MXPathParameters(PathParameters):
     )
 
 
-class BaseUserCollectionParameters(BaseModel):
+class BaseUserCollectionParameters(BaseMXModel):
     exp_time: float = Field(95e-6, gt=0, lt=1, description="s")
 
 

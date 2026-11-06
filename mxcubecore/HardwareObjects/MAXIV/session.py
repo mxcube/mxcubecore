@@ -92,8 +92,6 @@ class Session(mxcubecore.HardwareObjects.Session.Session):
 
     def prepare_directories(self, session):
         self.log.info("Preparing Data directory for session: %s", session)
-        start_date = session.start_datetime.date().isoformat().replace("-", "")
-        self.set_session_start_date(start_date)
 
         self.log.info("Preparing Data directory for proposal %s", self.get_proposal())
         if self.is_commissioning:

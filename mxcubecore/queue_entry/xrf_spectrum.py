@@ -61,14 +61,19 @@ class XrfSpectrumQueueEntry(BaseQueueEntry):
                 xrf_spectrum.centred_position = point.get_centred_position()
             self.get_view().setText(1, "Starting xrf spectrum")
             path_template = xrf_spectrum.path_template
+            sample = xrf_spectrum.sample
             HWR.beamline.xrf_spectrum.start_spectrum(
                 integration_time=xrf_spectrum.count_time,
                 data_dir=xrf_spectrum.path_template.directory,
                 archive_dir=xrf_spectrum.path_template.get_archive_directory(),
                 prefix=f"{path_template.get_prefix()}_{path_template.run_number}",
                 session_id=HWR.beamline.session.session_id,
-                blsample_id=xrf_spectrum.sample.lims_id,
+                blsample_id=sample.lims_id,
                 cpos=xrf_spectrum.centred_position,
+                sample_reference={
+                    "sample_name": sample.name,
+                    "acronym": sample.crystals[0].protein_acronym,
+                },
             )
             HWR.beamline.xrf_spectrum._ready_event.wait()
             HWR.beamline.xrf_spectrum._ready_event.clear()

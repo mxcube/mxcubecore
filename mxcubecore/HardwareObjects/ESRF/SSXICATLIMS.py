@@ -1,5 +1,7 @@
 import json
+import logging
 import pathlib
+from importlib.util import find_spec
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.abstract.AbstractLims import (
@@ -8,6 +10,9 @@ from mxcubecore.HardwareObjects.abstract.AbstractLims import (
     LimsMetadataWriteError,
 )
 from mxcubecore.HardwareObjects.ICATLIMS import ICATLIMS
+
+if find_spec("esrf_ontologies"):
+    from esrf_ontologies import technique
 
 
 class SsxDataCollectionMetadataGatherer:
@@ -56,7 +61,6 @@ class SsxDataCollectionMetadataGatherer:
             "SSXChip_vertical_spacing": vertical_spacing,
             "SSXChip_row_number": extra_lims_values.number_of_rows,
             "SSXChip_column_number": extra_lims_values.number_of_columns,
-            "SSXChip_model": 0,
             "InstrumentLaser01_energy": 0,
             "InstrumentLaser01_wavelength": 0,
             "InstrumentLaser01_repetition_rate": 0,
@@ -90,17 +94,24 @@ class SsxDataCollectionMetadataGatherer:
             "Sample_name": path_parameters.prefix,
             "scanNumber": 0,
             "InstrumentMonochromator_wavelength": beamline_parameters.wavelength,
-            "chipModel": extra_lims_values.chip_model,
+            "SSXChip_model": extra_lims_values.chip_model,
             "monoStripe": extra_lims_values.mono_stripe,
             "energyBandwidth": beamline_parameters.energy_bandwidth,
             "detector_id": HWR.beamline.detector.get_property("detector_id"),
-            "experimentType": extra_lims_values.experiment_type,
+            "SSX_experiment_type": extra_lims_values.experiment_type,
             "scanType": extra_lims_values.experiment_type,
-            "Experiment_name": path_parameters.experiment_name,
+            "SSX_experiment_name": path_parameters.experiment_name,
         }
 
         data.update(collection_parameters.user_collection_parameters.dict())
         data.update(collection_parameters.collection_parameters.dict())
+
+        # ontologies
+        try:
+            tech = technique.get_technique_metadata("MX", "SSX")
+            data.update(tech.get_dataset_metadata())
+        except (NameError, TypeError):
+            logging.getLogger("HWR").warning("No technique added to the metadata")
 
         # Round float values to 3 decimal places
         rounded_data = {

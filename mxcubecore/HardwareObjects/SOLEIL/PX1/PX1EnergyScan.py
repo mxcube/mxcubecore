@@ -266,7 +266,14 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
         self.scan_info["beamSizeVertical"] = size_ver
 
     def start_energy_scan(
-        self, element, edge, directory, prefix, session_id=None, blsample_id=None
+        self,
+        element,
+        edge,
+        directory,
+        prefix,
+        session_id=None,
+        blsample_id=None,
+        sample_reference=None,
     ):
         log = self.log
 

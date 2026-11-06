@@ -35,6 +35,7 @@ class LNLSXRF(HardwareObject):
         session_id,
         blsample_id,
         cpos,
+        sample_reference=None,
     ):
         plan_kwargs = {
             "file_path": data_dir,
