@@ -58,13 +58,15 @@ class ESRFBeamlineActionsProxy(BeamlineActions):
         self.hwobj_list = []
 
     @staticmethod
-    def _bliss_session_call(function_name):
+    def _bliss_session_call(function_name, *args, **kwargs):
         """Build a callable that runs 'function_name' in the BLISS session
         via the BlissProxy REST client and blocks for the result.
         """
-        return lambda *args, **kwargs: HWR.beamline.control_proxy.session.call(
-            function_name, *args, **kwargs
-        ).get()
+
+        future = HWR.beamline.control_proxy.session.call(function_name, *args, **kwargs)
+
+        future.subscribe_stdout(HWR.beamline.control_proxy.log_func)
+        future.get()
 
     def init(self):
         """Initialise the controller commands and the actuator object
@@ -77,8 +79,9 @@ class ESRFBeamlineActionsProxy(BeamlineActions):
             bliss_proxy = getattr(HWR.beamline, "control_proxy", None)
             for key, name in ctrl_cmds.items():
                 if bliss_proxy is not None:
-                    # Prefer running the command in the BLISS session;
-                    action = self._bliss_session_call(key)
+                    # Prefer execution via proxy
+                    controller = None
+                    action = name
                 elif controller is not None:
                     try:
                         action = getattr(controller, key)
@@ -105,6 +108,14 @@ class ESRFBeamlineActionsProxy(BeamlineActions):
                 except AttributeError:
                     # self.log.exception("")
                     pass
+
+    def execute_command(self, name, args):
+        cmd = getattr(self, name, None)
+
+        if cmd:
+            self._bliss_session_call(name, args)
+        else:
+            self._execute_command(name, args)
 
     def get_commands(self):
         """Get which objects to be used in the GUI
