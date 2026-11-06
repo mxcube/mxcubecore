@@ -79,6 +79,17 @@ class IPCServer(HardwareObject):
         tls_cert_path: Optional[str] = None
         tls_key_path: Optional[str] = None
 
+        # nanomq (MQTT) transport settings - 1883 is the standard MQTT
+        # plaintext port, matching this transport's plaintext-by-default
+        # behavior (a missing tls_ca_cert_path only warns, same as
+        # jsonrpc's tls_cert_path/tls_key_path). Set broker_port to 8883
+        # (the standard MQTT-over-TLS port) alongside tls_ca_cert_path for
+        # a real deployment.
+        broker_host: str = "localhost"
+        broker_port: int = 1883
+        topic_prefix: str = "mxcube/ipc"
+        tls_ca_cert_path: Optional[str] = None
+
         # Shared-secret token required by the "_auth" handshake before any
         # whitelisted method can be called.
         auth_token: Optional[str] = None
@@ -138,6 +149,15 @@ class IPCServer(HardwareObject):
                 port=self.get_property("port", 9999),
                 tls_cert_path=self.get_property("tls_cert_path"),
                 tls_key_path=self.get_property("tls_key_path"),
+            )
+        elif transport_kind == "nanomq":
+            from mxcubecore.ipc.transports.nanomq import NanoMQTransport
+
+            self._transport = NanoMQTransport(
+                host=self.get_property("broker_host", "localhost"),
+                port=self.get_property("broker_port", 1883),
+                topic_prefix=self.get_property("topic_prefix", "mxcube/ipc"),
+                tls_ca_cert_path=self.get_property("tls_ca_cert_path"),
             )
         else:
             raise ValueError(f"Unknown IPC transport: {transport_kind!r}")
