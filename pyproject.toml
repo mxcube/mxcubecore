@@ -51,6 +51,7 @@ dependencies = [
     "colorama>=0.4.6,<0.5.0",
     "mxcube-video-streamer>=1.8.5,<2.0.0",
     "defusedxml==0.7.1",
+    "paho-mqtt>=2.1.0,<3.0.0",
 ]
 
 [project.optional-dependencies]

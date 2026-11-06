@@ -27,6 +27,10 @@ e.g. class MotorMockup(ActuatorMockup, AbstractMotor):
 
 import random
 import time
+from typing import (
+    Any,
+    Optional,
+)
 
 import gevent
 
@@ -71,7 +75,7 @@ class ActuatorMockup(AbstractActuator.AbstractActuator):
         """
         return self._nominal_value
 
-    def set_value(self, value, timeout=0):
+    def set_value(self, value: Any, timeout: Optional[float] = 0) -> None:
         """
         Set actuator to absolute value.
         This is NOT the recommended way, but for technical reasons
