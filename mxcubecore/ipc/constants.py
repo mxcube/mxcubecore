@@ -40,6 +40,13 @@ AUTH_METHOD = "_auth"
 #: mxcubecore.ipc.whitelist.describe() and IPC_FORMAT.md section 6).
 DESCRIBE_METHOD = "_describe"
 
+#: Method names reserved for the debug bypass (see mxcubecore.ipc.debug and
+#: IPC_FORMAT.md section 7). Disabled by default - only handled at all if
+#: IPCServer's `allow_debug_calls` config is true.
+DEBUG_LIST_ROLES_METHOD = "_debug_list_roles"
+DEBUG_DESCRIBE_ROLE_METHOD = "_debug_describe_role"
+DEBUG_CALL_METHOD = "_debug_call"
+
 #: The single logger ("HWR.ipc") everything in mxcubecore.ipc logs to:
 #: transports, whitelist dispatch (every method call), the server's
 #: session/auth handling, and the signal -> event bridge (every event).
@@ -64,3 +71,4 @@ class ErrorCode(IntEnum):
     METHOD_NOT_WHITELISTED = -32001
     VALIDATION_ERROR = -32002
     CLIENT_ALREADY_CONNECTED = -32003
+    DEBUG_CALLS_DISABLED = -32004

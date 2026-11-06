@@ -46,8 +46,12 @@ from mxcubecore.BaseHardwareObjects import (
     ConfiguredObject,
     HardwareObject,
 )
+from mxcubecore.ipc import debug
 from mxcubecore.ipc.constants import (
     AUTH_METHOD,
+    DEBUG_CALL_METHOD,
+    DEBUG_DESCRIBE_ROLE_METHOD,
+    DEBUG_LIST_ROLES_METHOD,
     DESCRIBE_METHOD,
     ErrorCode,
     logger,
@@ -112,6 +116,13 @@ class IPCServer(HardwareObject):
         # "args" (optional) declares one type expression per positional
         # signal argument - see mxcubecore/ipc/events.py.
         events: List[Dict[str, Any]] = []
+
+        # DANGER - off by default. If true, any authenticated client can
+        # invoke the "_debug_call" bypass: ANY method, on ANY resolvable
+        # role, with ANY arguments - no whitelist check, no pydantic
+        # validation. See mxcubecore/ipc/debug.py and IPC_FORMAT.md
+        # section 7. Only ever enable this for local, trusted exploration.
+        allow_debug_calls: bool = False
 
     def __init__(self, name: str) -> None:
         super().__init__(name)
@@ -184,6 +195,15 @@ class IPCServer(HardwareObject):
             )
         else:
             raise ValueError(f"Unknown IPC transport: {transport_kind!r}")
+
+        if self.get_property("allow_debug_calls", False):
+            logger.warning(
+                "*** IPC DEBUG BYPASS IS ENABLED (allow_debug_calls: true) - "
+                "any authenticated client can invoke ANY method on ANY "
+                "resolvable role with ANY arguments, with no whitelist check "
+                "and no pydantic validation. Only use this for local, "
+                "trusted exploration - see IPC_FORMAT.md section 7. ***"
+            )
 
         for entry in self._events.values():
             self._bridge.subscribe(
@@ -262,6 +282,14 @@ class IPCServer(HardwareObject):
             self._handle_describe(session_id, request)
             return
 
+        if request.method in (
+            DEBUG_LIST_ROLES_METHOD,
+            DEBUG_DESCRIBE_ROLE_METHOD,
+            DEBUG_CALL_METHOD,
+        ):
+            self._handle_debug(session_id, request)
+            return
+
         try:
             result = dispatch(
                 HWR.beamline, self._registry, request.method, request.params
@@ -326,6 +354,50 @@ class IPCServer(HardwareObject):
                 "events": describe_events(self._events),
             },
         )
+        self._transport.send(session_id, response.model_dump_json())
+
+    def _handle_debug(self, session_id: str, request: IPCRequest) -> None:
+        if not self.get_property("allow_debug_calls", False):
+            logger.warning(
+                "IPC debug call %r from %s rejected: allow_debug_calls is disabled",
+                request.method,
+                session_id,
+            )
+            self._send_error(
+                session_id,
+                request.id,
+                ErrorCode.DEBUG_CALLS_DISABLED,
+                "Debug calls are disabled (allow_debug_calls is false)",
+            )
+            return
+
+        role = request.params.get("role", "")
+        try:
+            if request.method == DEBUG_LIST_ROLES_METHOD:
+                result = debug.list_roles(HWR.beamline, role)
+            elif request.method == DEBUG_DESCRIBE_ROLE_METHOD:
+                result = debug.describe_role(HWR.beamline, role)
+            else:
+                result = debug.debug_call(
+                    HWR.beamline,
+                    role,
+                    request.params["method"],
+                    request.params.get("args"),
+                    request.params.get("kwargs"),
+                )
+        except Exception as exc:
+            logger.exception("IPC debug call %s failed", request.method)
+            self._send_error(session_id, request.id, ErrorCode.INTERNAL_ERROR, str(exc))
+            return
+
+        logger.warning(
+            "IPC DEBUG BYPASS: %s from %s: %s -> %s",
+            request.method,
+            session_id,
+            request.params,
+            result,
+        )
+        response = IPCResponse(id=request.id, result=result)
         self._transport.send(session_id, response.model_dump_json())
 
     def _send_error(
