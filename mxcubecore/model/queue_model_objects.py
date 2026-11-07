@@ -1860,7 +1860,7 @@ class CentredPosition(object):
     DIFFRACTOMETER_MOTOR_NAMES = []
 
     @staticmethod
-    def set_diffractometer_motor_names(*names):
+    def set_diffractometer_motor_names(names):
         CentredPosition.DIFFRACTOMETER_MOTOR_NAMES = names[:]
 
     def __init__(self, motor_dict=None):
