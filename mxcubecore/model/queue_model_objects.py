@@ -2411,11 +2411,9 @@ class GphlWorkflow(TaskNode):
             if all(tpl):
                 self.cell_parameters = tpl
 
-        if self.protein_acronym is None:
-            raise ValueError("protein_acronym must be set for GPhL workflow")
         space_group = params.get("space_group", space_group)
         if space_group:
-            self.space_group = crystal_symmetry.SPACEGROUP_MAP.get(space_group)
+            self.space_group = crystal_symmetry.SPACEGROUP_MAP.get(space_group).name
             self.input_space_group = self.space_group
 
         # Set use_cell_for_processing default
