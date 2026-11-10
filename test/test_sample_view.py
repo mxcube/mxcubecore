@@ -134,3 +134,43 @@ def test_sample_view_select_shape(sample_view):
 
     sample_view.de_select_all()
     assert len(sample_view.get_selected_shapes()) == 0
+
+
+@pytest.fixture
+def grid(beamline, monkeypatch):
+    """A grid drawn at omega 0, omega now at 90 degrees."""
+    position = {"omega": 0, "phiz": 0, "phiy": 0, "sampx": 0, "sampy": 0}
+    grid = beamline.sample_view.add_shape_from_mpos([position], (0, 0), "G")
+    monkeypatch.setattr(beamline.diffractometer.omega, "get_value", lambda: 90)
+    yield grid
+    beamline.sample_view.delete_shape(grid.id)
+
+
+def test_grid_hidden_away_from_its_omega(grid):
+    grid.update_position(lambda position: (1, 2))
+
+    assert grid.state == "HIDDEN"
+    assert grid.fade == 0.5
+
+
+def test_pinned_grid_follows_the_sample_faded(grid, beamline, monkeypatch):
+    grid.pinned = True
+    grid.update_position(lambda position: (1, 2))
+
+    assert grid.state == "SAVED"
+    assert grid.screen_coord == (1, 2)
+    assert grid.fade == 0.5
+    assert grid.as_dict()["pinned"]
+
+    # Back within hide_grid_threshold of its omega
+    monkeypatch.setattr(beamline.diffractometer.omega, "get_value", lambda: 362)
+    grid.update_position(lambda position: (3, 4))
+
+    assert (grid.state, grid.fade, grid.screen_coord) == ("SAVED", 0.0, (3, 4))
+
+
+def test_hidden_by_the_user_even_when_pinned(grid):
+    grid.pinned, grid.user_state = True, "HIDDEN"
+    grid.update_position(lambda position: (1, 2))
+
+    assert grid.state == "HIDDEN"
