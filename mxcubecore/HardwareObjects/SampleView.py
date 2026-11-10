@@ -838,7 +838,7 @@ class SampleView(AbstractSampleView):
         Returns:
             (list[Shape]) All the shapes
         """
-        return self.shapes.values()
+        return list(self.shapes.values())
 
     def get_points(self) -> list:
         """Get all Points currently handled.
@@ -1149,18 +1149,33 @@ class Grid(Shape):
         self.beam_width = 0
         self.beam_height = 0
         self.hide_threshold = 5
+        # How far omega is from the omega of the grid: 0 within
+        # hide_grid_threshold, up to 1 facing away. The grid is hidden away
+        # from its omega, unless pinned (by the procedure that draws it, e.g.
+        # the unattended collect, when it creates it): it then keeps following
+        # the sample, for clients to draw faded by this amount.
+        self.fade = 0.0
+        self.pinned = False
 
         self.set_id(Grid.SHAPE_COUNT)
 
     def update_position(self, transform):
-        omega_pos = HWR.beamline.diffractometer.omega.get_value() % 360
-        _d = abs((self.get_centred_position().omega % 360) - omega_pos)
-
         if self.user_state == "HIDDEN":
             self.state = "HIDDEN"
             return
 
-        if min(_d, 360 - _d) > self.shapes_hw_object.hide_grid_threshold:
+        # No omega (e.g. another head): the grid is always shown
+        omega = getattr(HWR.beamline.diffractometer, "omega", None)
+        grid_omega = self.get_centred_position().omega
+        self.fade = 0.0
+
+        if omega is not None and grid_omega is not None:
+            _d = abs((grid_omega % 360) - omega.get_value() % 360)
+            _d = min(_d, 360 - _d)
+            if _d > self.shapes_hw_object.hide_grid_threshold:
+                self.fade = _d / 180.0
+
+        if self.fade and not self.pinned:
             self.state = "HIDDEN"
         else:
             super().update_position(transform)
