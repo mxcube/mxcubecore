@@ -174,3 +174,19 @@ def test_hidden_by_the_user_even_when_pinned(grid):
     grid.update_position(lambda position: (1, 2))
 
     assert grid.state == "HIDDEN"
+
+
+def test_grid_without_omega_is_shown(grid, beamline, monkeypatch):
+    # A head without omega
+    monkeypatch.setattr(beamline.diffractometer, "omega", None)
+    grid.update_position(lambda position: (1, 2))
+
+    assert (grid.state, grid.fade, grid.screen_coord) == ("SAVED", 0.0, (1, 2))
+
+
+def test_fade_and_pinned_only_on_grids(beamline):
+    position = {"omega": 0, "phiz": 0, "phiy": 0, "sampx": 0, "sampy": 0}
+    point = beamline.sample_view.add_shape_from_mpos([position], (0, 0), "P")
+
+    assert not hasattr(point, "fade") and not hasattr(point, "pinned")
+    beamline.sample_view.delete_shape(point.id)
