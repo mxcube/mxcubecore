@@ -44,6 +44,7 @@ objects:
   - xrf_spectrum: xrf-spectrum-mockup.xml
   # Analysis:
   - procedure: procedure-mockup.yml
+  - murko: murko.yml
 
 # Non-object attributes:
 advanced_methods:
