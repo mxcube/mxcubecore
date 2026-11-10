@@ -1,0 +1,8 @@
+%YAML 1.2
+---
+# Client of a murko server, see mxcubecore/HardwareObjects/Murko.py
+class: mxcubecore.HardwareObjects.Murko.Murko
+configuration:
+  host: localhost
+  port: 8901
+  timeout: 30
