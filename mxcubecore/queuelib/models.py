@@ -505,6 +505,12 @@ class WorkflowNodeModel(TaskNodeModel):
     parameters: WorkflowParameters
 
 
+class XrayCentringNodeModel(TaskNodeModel):
+    """X-ray centring on the grid parameters.shape"""
+
+    parameters: TaskDataPathModel
+
+
 class GenericTaskParameters(DataCollectionParameters):
     """Parameters of tasks defined by a queue entry DATA_MODEL, for instance
     the SSX collections. The fields that are not defined here are kept, they
@@ -550,6 +556,9 @@ def build_task_node_model(value: object):
     if task_type == "DataCollection":
         return validate_model_tolerant(DataCollectionNodeModel, normalized)
 
+    if task_type == "XrayCentring":
+        return validate_model_tolerant(XrayCentringNodeModel, normalized)
+
     return validate_model_tolerant(GenericTaskNodeModel, normalized)
 
 
@@ -592,6 +601,7 @@ TaskNodeUnion = (
     | XRFNodeModel
     | EnergyScanNodeModel
     | WorkflowNodeModel
+    | XrayCentringNodeModel
     | GenericTaskNodeModel
 )
 

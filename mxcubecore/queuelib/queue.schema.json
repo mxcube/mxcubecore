@@ -1938,6 +1938,128 @@
       "title": "GenericTaskParameters",
       "type": "object"
     },
+    "TaskDataPathModel": {
+      "properties": {
+        "shape": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": "",
+          "title": "Shape"
+        },
+        "directory": {
+          "default": "",
+          "title": "Directory",
+          "type": "string"
+        },
+        "process_directory": {
+          "default": "",
+          "title": "Process Directory",
+          "type": "string"
+        },
+        "xds_dir": {
+          "default": "",
+          "title": "Xds Dir",
+          "type": "string"
+        },
+        "base_prefix": {
+          "default": "",
+          "title": "Base Prefix",
+          "type": "string"
+        },
+        "mad_prefix": {
+          "default": "",
+          "title": "Mad Prefix",
+          "type": "string"
+        },
+        "reference_image_prefix": {
+          "default": "",
+          "title": "Reference Image Prefix",
+          "type": "string"
+        },
+        "wedge_prefix": {
+          "default": "",
+          "title": "Wedge Prefix",
+          "type": "string"
+        },
+        "run_number": {
+          "default": 0,
+          "title": "Run Number",
+          "type": "integer"
+        },
+        "suffix": {
+          "default": "",
+          "title": "Suffix",
+          "type": "string"
+        },
+        "precision": {
+          "default": 0,
+          "title": "Precision",
+          "type": "integer"
+        },
+        "start_num": {
+          "default": 0,
+          "title": "Start Num",
+          "type": "integer"
+        },
+        "num_files": {
+          "default": 0,
+          "title": "Num Files",
+          "type": "integer"
+        },
+        "compression": {
+          "default": false,
+          "title": "Compression",
+          "type": "boolean"
+        },
+        "path": {
+          "default": "",
+          "title": "Path",
+          "type": "string"
+        },
+        "prefix": {
+          "default": "",
+          "title": "Prefix",
+          "type": "string"
+        },
+        "fileName": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "",
+          "title": "Filename"
+        },
+        "fullPath": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "",
+          "title": "Fullpath"
+        },
+        "subdir": {
+          "default": "",
+          "title": "Subdir",
+          "type": "string"
+        }
+      },
+      "title": "TaskDataPathModel",
+      "type": "object"
+    },
     "WorkflowNodeModel": {
       "additionalProperties": false,
       "properties": {
@@ -2493,6 +2615,118 @@
       "title": "XRFParameters",
       "type": "object"
     },
+    "XrayCentringNodeModel": {
+      "additionalProperties": false,
+      "description": "X-ray centring on the grid parameters.shape",
+      "properties": {
+        "type": {
+          "default": "",
+          "title": "Type",
+          "type": "string"
+        },
+        "queueID": {
+          "default": -1,
+          "title": "Queueid",
+          "type": "integer"
+        },
+        "checked": {
+          "default": false,
+          "title": "Checked",
+          "type": "boolean"
+        },
+        "state": {
+          "default": 0,
+          "title": "State",
+          "type": "integer"
+        },
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        },
+        "sampleID": {
+          "title": "Sampleid",
+          "type": "string"
+        },
+        "sampleQueueID": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Samplequeueid"
+        },
+        "taskIndex": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Taskindex"
+        },
+        "diffractionPlan": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/DataCollectionNodeModel"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Diffractionplan"
+        },
+        "diffractionPlanID": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Diffractionplanid"
+        },
+        "isDiffractionPlan": {
+          "default": false,
+          "title": "Isdiffractionplan",
+          "type": "boolean"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        },
+        "parameters": {
+          "$ref": "#/$defs/TaskDataPathModel"
+        }
+      },
+      "required": [
+        "sampleID",
+        "parameters"
+      ],
+      "title": "XrayCentringNodeModel",
+      "type": "object"
+    },
     "SampleNode": {
       "additionalProperties": false,
       "properties": {
@@ -2622,6 +2856,9 @@
               },
               {
                 "$ref": "#/$defs/WorkflowNodeModel"
+              },
+              {
+                "$ref": "#/$defs/XrayCentringNodeModel"
               },
               {
                 "$ref": "#/$defs/GenericTaskNodeModel"

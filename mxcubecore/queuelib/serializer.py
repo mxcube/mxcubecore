@@ -48,6 +48,7 @@ from mxcubecore.queuelib.models import (
     SampleNode,
     TaskNodeModel,
     WorkflowNodeModel,
+    XrayCentringNodeModel,
     XRFNodeModel,
     build_task_node_model,
     validate_model_tolerant,
@@ -130,6 +131,9 @@ class QueueSerializer:
 
             elif isinstance(n, qmo.EnergyScan):
                 result.append(self._handle_energy_node(sample_node, n))
+
+            elif isinstance(n, qmo.XrayCentring2) and n.shape:
+                result.append(self._handle_xray_centring_node(sample_node, n))
 
             elif isinstance(n, qmo.TaskGroup) and getattr(
                 n, "interleave_num_images", 0
@@ -395,6 +399,24 @@ class QueueSerializer:
             state=state,
         )
 
+    def _handle_xray_centring_node(self, sample_node, node) -> TaskNodeModel:
+        _, state = self.get_node_state(node._node_id)
+        parameters = {**node.path_template.as_dict(), "shape": node.shape}
+        parameters["path"] = parameters["directory"]
+        parameters["subdir"] = self._subdir_from_path(parameters["path"])
+
+        return XrayCentringNodeModel(
+            label="X-ray centring",
+            type="XrayCentring",
+            parameters=parameters,
+            checked=node.is_enabled(),
+            sampleID=sample_node.loc_str,
+            sampleQueueID=sample_node._node_id,
+            taskIndex=HWR.beamline.queue_model.node_index(node)["idx"],
+            queueID=node._node_id,
+            state=state,
+        )
+
     def _handle_interleaved_node(self, sample_node, node) -> TaskNodeModel:
         wedges = [self._handle_dc_node(sample_node, c) for c in node.get_children()]
         _, state = self.get_node_state(node._node_id)
@@ -484,6 +506,9 @@ class QueueSerializer:
 
         elif item.type == "energy_scan":
             return self.builder.add_energy_scan(node_id, item.dict())
+
+        elif item.type == "XrayCentring":
+            return self.builder.add_xray_centring(node_id, item.dict())
 
         else:
             # Only pass on the parameters that were sent, so that the defaults

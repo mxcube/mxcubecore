@@ -60,5 +60,6 @@ def test_schema_covers_every_task_node_type():
         "XRFNodeModel",
         "EnergyScanNodeModel",
         "WorkflowNodeModel",
+        "XrayCentringNodeModel",
     ):
         assert task_model in defs
