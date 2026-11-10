@@ -265,6 +265,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             self.emit("queue_entry_execute_finished", (entry, "Failed"))
             self.emit("statusMessage", ("status", "Queue execution failed", "error"))
         except:
+            entry.ended_at = time.time()
             self.log.exception("")
             raise
         else:
@@ -282,9 +283,9 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         """
         if self._queue_entry_list:
             for qe in self._current_queue_entries:
+                qe.status = QUEUE_ENTRY_STATUS.FAILED
+                qe.ended_at = time.time()
                 try:
-                    qe.status = QUEUE_ENTRY_STATUS.FAILED
-                    qe.ended_at = time.time()
                     self.emit("queue_entry_execute_finished", (qe, "Aborted"))
                     qe.stop()
                     qe.post_execute()
@@ -292,8 +293,6 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                     self.log.exception("")
                 except Exception:
                     self.log.exception("")
-finally:
-     qe.ended_at = time.time()
         if self._root_task:
             self._root_task.kill(block=False)
 
