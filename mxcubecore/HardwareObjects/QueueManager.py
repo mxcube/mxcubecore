@@ -292,7 +292,8 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                     self.log.exception("")
                 except Exception:
                     self.log.exception("")
-
+finally:
+     qe.ended_at = time.time()
         if self._root_task:
             self._root_task.kill(block=False)
 
