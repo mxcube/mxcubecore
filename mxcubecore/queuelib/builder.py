@@ -741,6 +741,36 @@ class QueueBuilder:
 
         return dc_model._node_id
 
+    def add_xray_centring(self, node_id: int, task: dict) -> int:
+        """Add an X-ray centring on the grid task["parameters"]["shape"] to
+        the sample with id <node_id>.
+
+        :param node_id: id of the sample to which the task belongs
+        :param task: task data
+
+        :returns: The queue id of the X-ray centring
+        """
+        sample_model, _sample_entry = HWR.beamline.queue_manager.get_entry(node_id)
+        params = task["parameters"]
+        grid = HWR.beamline.sample_view.get_shape(params["shape"])
+
+        # Back to the omega the grid was drawn at, the other motors are those
+        # of the scan
+        xc_model = qmo.XrayCentring2(
+            name="X-ray centring",
+            motor_positions={"omega": grid.get_centred_position().omega},
+        )
+        xc_model.init_from_task_data(sample_model, params)
+        xc_model.shape = grid.id
+        xc_model.set_origin(ORIGIN_MX3)
+
+        group_model, _group_entry = self._create_and_enqueue_task_group(sample_model)
+        xc_entry = self._attach_model_to_group(group_model, xc_model)
+        xc_model.set_enabled(task["checked"])
+        xc_entry.set_enabled(task["checked"])
+
+        return xc_model._node_id
+
     def add_queue_entry(self, node_id: int, task: dict, task_name: str):
         """Add a queue entry to the sample with id <node_id>.
 
