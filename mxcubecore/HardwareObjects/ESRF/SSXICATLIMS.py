@@ -90,7 +90,6 @@ class SsxDataCollectionMetadataGatherer:
             "MX_transmission": beamline_parameters.transmission,
             "MX_xBeam": beamline_parameters.beam_x,
             "MX_yBeam": beamline_parameters.beam_y,
-            "Project_name": path_parameters.prefix,
             "Sample_name": path_parameters.prefix,
             "scanNumber": 0,
             "InstrumentMonochromator_wavelength": beamline_parameters.wavelength,
