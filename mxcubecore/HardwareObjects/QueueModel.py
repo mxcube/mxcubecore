@@ -36,6 +36,8 @@ from mxcubecore import HardwareRepository as HWR
 from mxcubecore import queue_entry
 from mxcubecore.BaseHardwareObjects import HardwareObject
 from mxcubecore.model import queue_model_objects
+from mxcubecore.queuelib.builder import QueueBuilder
+from mxcubecore.queuelib.serializer import QueueSerializer
 from mxcubecore.utils.view_delegate import ViewDelegate
 
 
@@ -210,6 +212,19 @@ class QueueModel(HardwareObject):
 
                 if result:
                     return result
+
+    def get_queue_dict(self) -> dict:
+        """Serializes the whole queue - see QueueSerializer.queue_to_dict()."""
+        return QueueSerializer(QueueBuilder()).queue_to_dict()
+
+    def get_node_dict(self, node_id: int) -> dict:
+        """Serializes a single node - see QueueSerializer.node_to_dict()."""
+        node = self.get_node(node_id)
+
+        if node is None:
+            raise ValueError(f"No such queue node: {node_id}")
+
+        return QueueSerializer(QueueBuilder()).node_to_dict(node)
 
     def get_sample_by_loc_str(self, loc_str: str) -> queue_model_objects.Sample | None:
         """

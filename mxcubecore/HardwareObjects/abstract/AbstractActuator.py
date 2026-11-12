@@ -25,6 +25,10 @@ from __future__ import annotations
 import abc
 import math
 from ast import literal_eval
+from typing import (
+    Any,
+    Optional,
+)
 
 from gevent.lock import RLock
 
@@ -151,7 +155,7 @@ class AbstractActuator(HardwareObject):
             value: Target value.
         """
 
-    def set_value(self, value, timeout: float = 0) -> None:
+    def set_value(self, value: Any, timeout: Optional[float] = 0) -> None:
         """Set actuator to value.
 
         If ``timeout == 0``: return at once and do not wait (default).
