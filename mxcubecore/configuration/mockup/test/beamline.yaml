@@ -30,6 +30,7 @@ objects:
   - energy: energy-mockup.xml
   - beam: beam-mockup.xml
   - flux: flux-mockup.xml
+  - dose_rate: dose_rate_mockup.yaml
   - detector: detector-mockup.xml
   - resolution: resolution-mockup.xml
   - safety_shutter: safety-shutter-mockup.xml
