@@ -280,6 +280,9 @@ class BaseQueueEntry(QueueEntryContainer):
         self.set_view(view, view_set_queue_entry)
         self._checked_for_exec = False
         self.status = QUEUE_ENTRY_STATUS.NOT_EXECUTED
+        # time.time() at the start and end of the last run, set by QueueManager
+        self.started_at = None
+        self.ended_at = None
         self.type_str = ""
         self._data_model.lims_session_id = HWR.beamline.session.session_id
 

@@ -9,6 +9,7 @@ documentation for the queue_entry module for more information.
 """
 
 import logging
+import time
 
 import gevent
 
@@ -195,9 +196,12 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         if not entry.is_enabled() or self._is_stopped:
             return
 
-        self.emit("queue_entry_execute_started", (entry,))
+        # Listeners read the state of the entry back, so set it before emitting
         self.set_current_entry(entry)
         self._current_queue_entries.append(entry)
+        entry.status = QUEUE_ENTRY_STATUS.RUNNING
+        entry.started_at, entry.ended_at = time.time(), None
+        self.emit("queue_entry_execute_started", (entry,))
 
         logging.getLogger("queue_exec").info("Executing: " + str(entry))
 
@@ -210,7 +214,6 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         try:
             # Procedure to be done before main implementation
             # of task.
-            entry.status = QUEUE_ENTRY_STATUS.RUNNING
             entry.pre_execute()
             entry.execute()
 
@@ -219,12 +222,14 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             # This part should not be here
             # But somehow exception from collect_failed is not caught here
             if entry.is_failed():
+                entry.ended_at = time.time()
                 entry.status = QUEUE_ENTRY_STATUS.FAILED
                 self.emit("queue_entry_execute_finished", (entry, "Failed"))
                 self.emit(
                     "statusMessage", ("status", "Queue execution failed", "error")
                 )
             else:
+                entry.ended_at = time.time()
                 entry.status = QUEUE_ENTRY_STATUS.SUCCESS
                 self.emit("queue_entry_execute_finished", (entry, "Successful"))
                 self.emit("statusMessage", ("status", "", "ready"))
@@ -233,6 +238,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                 "encountered Exception (continuing):\n%s" % ex.stack_trace or ex.message
             )
             # Queue entry, failed, skip.
+            entry.ended_at = time.time()
             entry.status = QUEUE_ENTRY_STATUS.SKIPPED
             self.emit("queue_entry_execute_finished", (entry, "Skipped"))
         except base_queue_entry.QueueAbortedException as ex:
@@ -244,6 +250,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             self.log.warning(
                 "encountered Exception (continuing):\n%s" % ex.stack_trace or ex.message
             )
+            entry.ended_at = time.time()
             entry.status = QUEUE_ENTRY_STATUS.FAILED
             self.emit("queue_entry_execute_finished", (entry, "Aborted"))
             entry.post_execute()
@@ -253,10 +260,12 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             self.log.warning(
                 "encountered Exception (continuing):\n%s" % ex.stack_trace or ex.message
             )
+            entry.ended_at = time.time()
             entry.status = QUEUE_ENTRY_STATUS.FAILED
             self.emit("queue_entry_execute_finished", (entry, "Failed"))
             self.emit("statusMessage", ("status", "Queue execution failed", "error"))
         except:
+            entry.ended_at = time.time()
             self.log.exception("")
             raise
         else:
@@ -274,8 +283,9 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         """
         if self._queue_entry_list:
             for qe in self._current_queue_entries:
+                qe.status = QUEUE_ENTRY_STATUS.FAILED
+                qe.ended_at = time.time()
                 try:
-                    qe.status = QUEUE_ENTRY_STATUS.FAILED
                     self.emit("queue_entry_execute_finished", (qe, "Aborted"))
                     qe.stop()
                     qe.post_execute()
@@ -283,7 +293,6 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                     self.log.exception("")
                 except Exception:
                     self.log.exception("")
-
         if self._root_task:
             self._root_task.kill(block=False)
 
