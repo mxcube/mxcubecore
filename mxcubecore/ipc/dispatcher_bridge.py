@@ -33,7 +33,7 @@ from typing import (
 )
 
 from mxcubecore.dispatcher import dispatcher
-from mxcubecore.ipc.constants import logger
+from mxcubecore.log import ipc_log
 
 
 class DispatcherBridge:
@@ -59,7 +59,7 @@ class DispatcherBridge:
         """
 
         def _handler(*args: Any) -> None:
-            logger.debug(
+            ipc_log.debug(
                 "IPC signal received: %s.%s%s -> event %s",
                 sender,
                 signal_name,
@@ -76,5 +76,5 @@ class DispatcherBridge:
     def unsubscribe_all(self) -> None:
         for sender, signal_name, handler in self._connections:
             dispatcher.disconnect(handler, signal_name, sender)
-            logger.debug("IPC signal unsubscribed: %s.%s", sender, signal_name)
+            ipc_log.debug("IPC signal unsubscribed: %s.%s", sender, signal_name)
         self._connections = []

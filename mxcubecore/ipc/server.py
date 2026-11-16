@@ -55,7 +55,6 @@ from mxcubecore.ipc.constants import (
     DEBUG_LIST_ROLES_METHOD,
     DESCRIBE_METHOD,
     ErrorCode,
-    logger,
 )
 from mxcubecore.ipc.dispatcher_bridge import DispatcherBridge
 from mxcubecore.ipc.events import (
@@ -77,6 +76,7 @@ from mxcubecore.ipc.whitelist import (
     describe,
     dispatch,
 )
+from mxcubecore.log import ipc_log
 
 
 class IPCServer(HardwareObject):
@@ -121,9 +121,8 @@ class IPCServer(HardwareObject):
 
         # DANGER - off by default. If true, any authenticated client can
         # invoke the "_debug_call" bypass: ANY method, on ANY resolvable
-        # role, with ANY arguments - no whitelist check, no pydantic
-        # validation. See mxcubecore/ipc/debug.py and IPC_FORMAT.md
-        # section 7. Only ever enable this for local, trusted exploration.
+        # role, with ANY arguments - no whitelist check. See IPC_FORMAT.md
+        # "Debug bypass". Only ever enable this for local, trusted exploration.
         allow_debug_calls: bool = False
 
     def __init__(self, name: str) -> None:
@@ -165,7 +164,7 @@ class IPCServer(HardwareObject):
             # shows up as "Error in IPCServer.init()" in the printed load
             # table, with the actual cause discarded completely. Log it
             # here, with the traceback, before it disappears upstream.
-            logger.exception("IPCServer failed to initialize")
+            ipc_log.exception("IPCServer failed to initialize")
             raise
 
     def _do_init(self) -> None:
@@ -199,12 +198,10 @@ class IPCServer(HardwareObject):
             raise ValueError(f"Unknown IPC transport: {transport_kind!r}")
 
         if self.get_property("allow_debug_calls", False):
-            logger.warning(
+            ipc_log.warning(
                 "*** IPC DEBUG BYPASS IS ENABLED (allow_debug_calls: true) - "
                 "any authenticated client can invoke ANY method on ANY "
-                "resolvable role with ANY arguments, with no whitelist check "
-                "and no pydantic validation. Only use this for local, "
-                "trusted exploration - see IPC_FORMAT.md section 7. ***"
+                "resolvable role with ANY arguments, with no whitelist check. ***"
             )
 
         for entry in self._events.values():
@@ -218,25 +215,25 @@ class IPCServer(HardwareObject):
             on_disconnect=self._on_disconnect,
         )
         self.started = True
-        logger.info("IPC server started: transport=%s", transport_kind)
+        ipc_log.info("IPC server started: transport=%s", transport_kind)
 
     def stop(self) -> None:
         if self._transport is not None:
             self._transport.stop()
             self._transport = None
         self._bridge.unsubscribe_all()
-        logger.info("IPC server stopped")
+        ipc_log.info("IPC server stopped")
         super().stop()
 
     def _on_connect(self, session_id: str, peer: Optional[str]) -> None:
-        logger.info(
+        ipc_log.info(
             "IPC client connecting: %s (%s)", session_id, peer or "unknown peer"
         )
 
     def _on_disconnect(self, session_id: str) -> None:
         if session_id == self._authenticated_session:
             self._authenticated_session = None
-        logger.info("IPC client disconnected: %s", session_id)
+        ipc_log.info("IPC client disconnected: %s", session_id)
 
     def _push_event(self, method: str, params: Dict[str, Any]) -> None:
         if threading.get_ident() != self._hub.thread_ident:
@@ -249,11 +246,11 @@ class IPCServer(HardwareObject):
             )
             return
         if self._authenticated_session is None or self._transport is None:
-            logger.debug(
+            ipc_log.debug(
                 "IPC event %s(%s) dropped: no authenticated client", method, params
             )
             return
-        logger.info("IPC event: %s(%s)", method, params)
+        ipc_log.info("IPC event: %s(%s)", method, params)
         event = IPCEvent(method=method, params=params)
         self._transport.send(self._authenticated_session, event.model_dump_json())
 
@@ -261,7 +258,7 @@ class IPCServer(HardwareObject):
         try:
             request = IPCRequest.model_validate_json(raw_json)
         except Exception as exc:
-            logger.warning("IPC request parse error from %s: %s", session_id, exc)
+            ipc_log.warning("IPC request parse error from %s: %s", session_id, exc)
             self._send_error(session_id, None, ErrorCode.PARSE_ERROR, str(exc))
             return
 
@@ -270,7 +267,7 @@ class IPCServer(HardwareObject):
             return
 
         if self._authenticated_session != session_id:
-            logger.warning(
+            ipc_log.warning(
                 "IPC call %r from unauthenticated session %s",
                 request.method,
                 session_id,
@@ -321,7 +318,7 @@ class IPCServer(HardwareObject):
             self._authenticated_session is not None
             and self._authenticated_session != session_id
         ):
-            logger.warning(
+            ipc_log.warning(
                 "IPC auth from %s rejected: %s already connected",
                 session_id,
                 self._authenticated_session,
@@ -340,7 +337,7 @@ class IPCServer(HardwareObject):
         if not expected_token or not secrets.compare_digest(
             str(token), str(expected_token)
         ):
-            logger.warning("IPC auth from %s rejected: invalid token", session_id)
+            ipc_log.warning("IPC auth from %s rejected: invalid token", session_id)
             self._send_error(
                 session_id, request.id, ErrorCode.NOT_AUTHENTICATED, "Invalid token"
             )
@@ -348,7 +345,7 @@ class IPCServer(HardwareObject):
 
         self._authenticated_session = session_id
         self._transport.bind(session_id)
-        logger.info("IPC auth from %s succeeded", session_id)
+        ipc_log.info("IPC auth from %s succeeded", session_id)
         response = IPCResponse(id=request.id, result={"authenticated": True})
         self._transport.send(session_id, response.model_dump_json())
 
@@ -364,7 +361,7 @@ class IPCServer(HardwareObject):
 
     def _handle_debug(self, session_id: str, request: IPCRequest) -> None:
         if not self.get_property("allow_debug_calls", False):
-            logger.warning(
+            ipc_log.warning(
                 "IPC debug call %r from %s rejected: allow_debug_calls is disabled",
                 request.method,
                 session_id,
@@ -392,11 +389,11 @@ class IPCServer(HardwareObject):
                     request.params.get("kwargs"),
                 )
         except Exception as exc:
-            logger.exception("IPC debug call %s failed", request.method)
+            ipc_log.exception("IPC debug call %s failed", request.method)
             self._send_error(session_id, request.id, ErrorCode.INTERNAL_ERROR, str(exc))
             return
 
-        logger.warning(
+        ipc_log.warning(
             "IPC DEBUG BYPASS: %s from %s: %s -> %s",
             request.method,
             session_id,

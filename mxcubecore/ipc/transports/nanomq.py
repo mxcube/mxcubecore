@@ -49,8 +49,8 @@ import gevent
 import paho.mqtt.client as mqtt
 from gevent.event import Event
 
-from mxcubecore.ipc.constants import logger
 from mxcubecore.ipc.transports.base import Transport
+from mxcubecore.log import ipc_log
 
 _CLIENT_ALREADY_CONNECTED_FRAME = json.dumps(
     {
@@ -122,7 +122,7 @@ class NanoMQTransport(Transport):
         if self._tls_ca_cert_path:
             self._client.tls_set(ca_certs=self._tls_ca_cert_path)
         else:
-            logger.warning(
+            ipc_log.warning(
                 "NanoMQ IPC transport starting without TLS - configure "
                 "tls_ca_cert_path for a real deployment"
             )
@@ -139,7 +139,7 @@ class NanoMQTransport(Transport):
         self._stopping = False
         self._client.connect_async(self._host, self._port)
         self._client.loop_start()
-        logger.info(
+        ipc_log.info(
             "NanoMQ IPC transport connecting to broker at %s:%s",
             self._host,
             self._port,
@@ -153,7 +153,7 @@ class NanoMQTransport(Transport):
             self._client.disconnect()
             self._client.loop_stop()
             self._client = None
-            logger.info("NanoMQ IPC transport disconnected")
+            ipc_log.info("NanoMQ IPC transport disconnected")
         if self._worker is not None:
             self._worker.kill()
             self._worker = None
@@ -181,7 +181,7 @@ class NanoMQTransport(Transport):
     ) -> None:
         if reason_code.is_failure:
             # e.g. bad credentials - paho keeps retrying, but it won't help.
-            logger.error(
+            ipc_log.error(
                 "NanoMQ IPC transport: broker at %s:%s refused the connection: %s",
                 self._host,
                 self._port,
@@ -195,7 +195,7 @@ class NanoMQTransport(Transport):
         client.subscribe(self._request_topic)
         client.subscribe(self._disconnect_topic)
         self._broker_reachable = True
-        logger.info(
+        ipc_log.info(
             "NanoMQ IPC transport connected to %s:%s, subscribed to %s and %s",
             self._host,
             self._port,
@@ -206,14 +206,14 @@ class NanoMQTransport(Transport):
     def _handle_broker_connect_fail(self, client, userdata) -> None:
         if self._broker_reachable:
             self._broker_reachable = False
-            logger.warning(
+            ipc_log.warning(
                 "NanoMQ IPC transport: can't reach broker at %s:%s, retrying "
                 "in the background (IPC requests can't arrive until it's up)",
                 self._host,
                 self._port,
             )
         else:
-            logger.debug("NanoMQ IPC transport: broker still unreachable, retrying")
+            ipc_log.debug("NanoMQ IPC transport: broker still unreachable, retrying")
 
     def _handle_broker_disconnect(
         self, client, userdata, flags, reason_code, properties
@@ -221,7 +221,7 @@ class NanoMQTransport(Transport):
         if self._stopping:
             return
         self._broker_reachable = False
-        logger.warning(
+        ipc_log.warning(
             "NanoMQ IPC transport: lost connection to broker at %s:%s (%s), "
             "reconnecting",
             self._host,
@@ -246,7 +246,7 @@ class NanoMQTransport(Transport):
                 try:
                     self._process_message(topic, raw)
                 except Exception:
-                    logger.exception("Error processing IPC message on %s", topic)
+                    ipc_log.exception("Error processing IPC message on %s", topic)
                 finally:
                     self._processing = False
 
@@ -254,12 +254,12 @@ class NanoMQTransport(Transport):
         try:
             payload = json.loads(raw.decode("utf-8"))
         except (ValueError, UnicodeDecodeError):
-            logger.warning("Dropping malformed IPC message on %s", topic)
+            ipc_log.warning("Dropping malformed IPC message on %s", topic)
             return
 
         client_id = payload.get("_client_id")
         if not client_id:
-            logger.warning("Dropping IPC message with no _client_id")
+            ipc_log.warning("Dropping IPC message with no _client_id")
             return
 
         if topic == self._disconnect_topic:
@@ -267,7 +267,7 @@ class NanoMQTransport(Transport):
             return
 
         if self._active_client_id is not None and client_id != self._active_client_id:
-            logger.warning(
+            ipc_log.warning(
                 "Rejecting IPC message from %s: %s already connected",
                 client_id,
                 self._active_client_id,
@@ -296,5 +296,5 @@ class NanoMQTransport(Transport):
             return
 
         self._active_client_id = None
-        logger.info("IPC client disconnected: %s", client_id)
+        ipc_log.info("IPC client disconnected: %s", client_id)
         self._on_disconnect(client_id)

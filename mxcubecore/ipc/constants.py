@@ -18,8 +18,7 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-"""Constants for the mxcubecore IPC layer: wire format version, error codes,
-and the shared logger.
+"""Constants for the mxcubecore IPC layer: wire format version and error codes.
 
 The wire-format ones (IPC_FORMAT_VERSION, the reserved method names and
 ErrorCode) are mirrored in the separate mxcube-ipc-client package
@@ -27,8 +26,6 @@ ErrorCode) are mirrored in the separate mxcube-ipc-client package
 """
 
 from enum import IntEnum
-
-from mxcubecore.log import hwr_log
 
 #: Version of the IPC wire format defined by mxcubecore/ipc/IPC_FORMAT.md
 IPC_FORMAT_VERSION = "0.0.1"
@@ -46,11 +43,6 @@ DESCRIBE_METHOD = "_describe"
 DEBUG_LIST_ROLES_METHOD = "_debug_list_roles"
 DEBUG_DESCRIBE_ROLE_METHOD = "_debug_describe_role"
 DEBUG_CALL_METHOD = "_debug_call"
-
-#: The single logger ("HWR.ipc") everything in mxcubecore.ipc logs to:
-#: transports, whitelist dispatch (every method call), the server's
-#: session/auth handling, and the signal -> event bridge (every event).
-logger = hwr_log.getChild("ipc")
 
 
 class ErrorCode(IntEnum):

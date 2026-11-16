@@ -18,47 +18,9 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-"""Global whitelist of HardwareObject methods callable over IPC.
+"""Whitelist of HardwareObject methods callable over IPC.
 
-Design (see IPC_FORMAT.md and mxcubecore/ipc's design notes for the
-rationale): this is a single, centrally-configured whitelist (a flat list of
-"role.method" strings on the IPCServer HardwareObject's own config), not a
-whitelist scattered across every object's own configuration -- so an
-operator can see everything a beamline exposes over IPC in one place. The
-last dot-separated segment is always the method name; everything before it
-is a role *path*, resolved with `HardwareObject.get_by_id()` --
-"diffractometer.omega.foo" resolves beamline's "diffractometer" role, then
-that object's own "omega" sub-role, then calls "foo" on it, without "omega"
-needing to also be one of beamline's own top-level roles.
-
-Every whitelisted method's own parameters *are* the wire format - no
-separate request/response wrapper method needed::
-
-    def method(self, value: float, timeout: Optional[float] = None) -> float: ...
-
-`params` in an `IPCRequest` is validated against a pydantic model built
-from these parameters' own type hints and defaults (via
-`pydantic.create_model()`), then the method is called with those validated
-fields unpacked as keyword arguments - `method(**validated.model_dump())`,
-never `method(validated)`. A method qualifies for the whitelist if either:
-
-- every parameter (besides self) has a type hint pydantic can build a
-  field from (no bare `*args`/`**kwargs`) - no decorator required; or
-- it is decorated with `@ipc_method(request_model=...)`, explicitly
-  supplying a model whose fields are unpacked into the call the same way -
-  needed when the signature itself isn't annotated precisely enough (e.g.
-  untyped parameters, or wanting stricter validation than the raw hints
-  give).
-
-The return value works the same way in reverse: if the method's return
-type hint (or an explicit `@ipc_method(response_model=...)`) is a
-pydantic.BaseModel subclass, the method must return an instance of it
-(validated with `isinstance`). The return value is serialized with
-`pydantic_core.to_jsonable_python()` - no wrapper class required just to
-return a plain value.
-
-Being eligible does not, by itself, expose a method: it must also be listed
-in the IPCServer's `allowed_methods` configuration.
+See IPC_FORMAT.md, section 4, for the eligibility rules.
 """
 
 import inspect
@@ -76,7 +38,7 @@ from typing import (
 from pydantic import BaseModel, TypeAdapter, create_model
 from pydantic_core import to_jsonable_python
 
-from mxcubecore.ipc.constants import logger
+from mxcubecore.log import ipc_log
 
 
 class IPCWhitelistError(Exception):
@@ -206,7 +168,7 @@ def _resolve_entry(beamline: Any, method_path: str) -> WhitelistEntry:
     if response_type is None:
         response_type = _return_type(func)
 
-    logger.info(
+    ipc_log.info(
         "IPC whitelist: %s -> %s.%s(%s) -> %s",
         method_path,
         role,
@@ -233,11 +195,11 @@ def build_whitelist(
         IPCWhitelistError: when a role or method could not be resolved, or
             a method is not IPC-eligible.
     """
-    logger.info(
+    ipc_log.info(
         "Building IPC whitelist from %d configured method(s)", len(allowed_methods)
     )
     registry = {path: _resolve_entry(beamline, path) for path in allowed_methods}
-    logger.info("IPC whitelist ready: %s", sorted(registry))
+    ipc_log.info("IPC whitelist ready: %s", sorted(registry))
     return registry
 
 
@@ -271,10 +233,10 @@ def dispatch(
     """
     entry = registry.get(method_path)
     if entry is None:
-        logger.warning("IPC call to non-whitelisted method: %r", method_path)
+        ipc_log.warning("IPC call to non-whitelisted method: %r", method_path)
         raise IPCWhitelistError(f"Method not whitelisted: {method_path!r}")
 
-    logger.info("IPC call: %s(%s)", method_path, params)
+    ipc_log.info("IPC call: %s(%s)", method_path, params)
 
     func = getattr(beamline.get_by_id(entry.role), entry.method_name)
 
@@ -289,8 +251,8 @@ def dispatch(
             )
         result_json = to_jsonable_python(result)
     except Exception:
-        logger.exception("IPC call failed: %s(%s)", method_path, params)
+        ipc_log.exception("IPC call failed: %s(%s)", method_path, params)
         raise
 
-    logger.info("IPC call %s -> %s", method_path, result_json)
+    ipc_log.info("IPC call %s -> %s", method_path, result_json)
     return result_json

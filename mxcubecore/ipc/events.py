@@ -56,8 +56,8 @@ from typing import (
 
 from pydantic import TypeAdapter, ValidationError
 
-from mxcubecore.ipc.constants import logger
 from mxcubecore.ipc.whitelist import IPCWhitelistError
+from mxcubecore.log import ipc_log
 
 # Names an `args` type expression may use without a module path. Anything
 # else must be a fully-qualified, importable "package.module.Name".
@@ -160,7 +160,7 @@ class EventEntry:
         try:
             self.args_adapter.validate_python(tuple(args))
         except ValidationError as exc:
-            logger.warning(
+            ipc_log.warning(
                 "IPC event %s: %s.%s emitted %r, which doesn't match declared "
                 "args %s: %s",
                 self.method,
@@ -199,7 +199,7 @@ def _resolve_event(beamline: Any, cfg: Dict[str, Any]) -> EventEntry:
         except Exception as exc:
             raise IPCWhitelistError(f"Event {method!r}: invalid 'args': {exc}") from exc
 
-    logger.info(
+    ipc_log.info(
         "IPC event whitelist: %s.%s -> %s%s",
         role,
         signal,
