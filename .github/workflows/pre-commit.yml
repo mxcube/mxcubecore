@@ -3,49 +3,44 @@
 name: Linting & Code Quality
 
 "on":
-  pull_request:
-    types: [opened, reopened, synchronize]
+  pull_request: null
+  merge_group: null
+  push:
+    branches:
+      - develop
+      - master
+  workflow_dispatch: null
 
-env:
-  # Keep in sync with `pyproject.toml` and `.pre-commit-config.yaml`
-  POETRY_VERSION: "2.5.1"
+# Cancel outdated runs of the same pull request, but never runs on branches
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
 
 jobs:
 
   pre-commit:
 
     runs-on: ubuntu-24.04
-    permissions:
-      contents: read
 
     steps:
 
       - name: Checkout source code
         uses: actions/checkout@v4
 
-      - name: Set up Conda environment with Micromamba
-        uses: mamba-org/setup-micromamba@v2
+      # All hooks run in their own isolated environments managed by pre-commit,
+      # so neither Conda nor the project's dependencies are needed here.
+      - name: Cache pre-commit environments
+        uses: actions/cache@v4
         with:
-          cache-environment: true
-          create-args: >-
-            python=3.11
-          environment-file: conda-environment-dev.yml
-          micromamba-version: 1.5.10-0
-          post-cleanup: all
-
-      - name: Install Poetry
-        # Poetry lives in its own isolated environment, not in the Conda environment.
-        # Run from inside the Conda environment, it installs into that environment.
-        run: pipx install "poetry==${{ env.POETRY_VERSION }}"
-
-      - name: Install Python dependencies
-        run: >
-          ${MAMBA_EXE} run --name mxcubecore
-          poetry install --only=dev
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
 
       - name: Run Pre-Commit hooks
-        run: >
-          ${MAMBA_EXE} run --name mxcubecore
+        run: >-
+          pipx run --spec "pre-commit>=4.1,<5"
           pre-commit run --all-files --show-diff-on-failure
 
 ...
