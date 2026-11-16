@@ -38,6 +38,10 @@ or [MXCuBE Qt](https://github.com/mxcube/mxcubeqt/).
 Standalone installation of the `mxcubecore` for development purposes can be done
 via Poetry with `poetry install`
 or via pip with `python -m pip install --editable .` (don't forget the trailing dot `.`).
+Poetry should be installed in its own isolated environment, for example with `pipx install poetry`,
+and not in the project's (Conda) environment,
+see [Poetry's installation instructions](https://python-poetry.org/docs/#installation).
+`mxcubecore` supports Python 3.11.
 
 `mxcubecore` depends on `python-ldap` that in turn depends on the `openldap` system library.
 It can be installed in a conda environment: `conda install openldap`

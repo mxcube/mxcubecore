@@ -10,6 +10,10 @@ concurrency:
   push: null
   pull_request: null
 
+env:
+  # Keep in sync with `pyproject.toml` and `.pre-commit-config.yaml`
+  POETRY_VERSION: "2.5.1"
+
 jobs:
 
   pages-build:
@@ -32,10 +36,15 @@ jobs:
         with:
           cache-environment: true
           create-args: >-
-            python=${{ matrix.python-version }}
+            python=3.11
           environment-file: conda-environment-dev.yml
           micromamba-version: 1.5.10-0
           post-cleanup: all
+
+      - name: Install Poetry
+        # Poetry lives in its own isolated environment, not in the Conda environment.
+        # Run from inside the Conda environment, it installs into that environment.
+        run: pipx install "poetry==${{ env.POETRY_VERSION }}"
 
       - name: Install Python dependencies with Poetry
         run: >

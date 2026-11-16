@@ -8,6 +8,10 @@ name: Coverage Report
       - docs/**
     types: [opened, reopened, synchronize]
 
+env:
+  # Keep in sync with `pyproject.toml` and `.pre-commit-config.yaml`
+  POETRY_VERSION: "2.5.1"
+
 jobs:
 
   pytest-coverage:
@@ -28,10 +32,15 @@ jobs:
         with:
           cache-environment: true
           create-args: >-
-            python=3.10
+            python=3.11
           micromamba-version: 1.5.10-0
           environment-file: conda-environment-dev.yml
           post-cleanup: all
+
+      - name: Install Poetry
+        # Poetry lives in its own isolated environment, not in the Conda environment.
+        # Run from inside the Conda environment, it installs into that environment.
+        run: pipx install "poetry==${{ env.POETRY_VERSION }}"
 
       - name: Install Python dependencies with Poetry
         # Pytest-related dependencies are in the `dev` dependency group,
