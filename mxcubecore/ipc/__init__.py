@@ -40,9 +40,7 @@ from mxcubecore.ipc.whitelist import (
     IPCWhitelistError,
     build_whitelist,
     dispatch,
-    get_role,
     ipc_method,
-    resolve_role_path,
 )
 
 __all__ = [
@@ -57,7 +55,5 @@ __all__ = [
     "IPCWhitelistError",
     "build_whitelist",
     "dispatch",
-    "get_role",
     "ipc_method",
-    "resolve_role_path",
 ]

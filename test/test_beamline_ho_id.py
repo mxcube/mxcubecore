@@ -44,3 +44,7 @@ class TestBeamlineHoId:
         # Test if we can get an object further down the structure
         ho = test_object.get_by_id("diffractometer.sampx")
         assert "diffractometer.sampx" == ho.id
+
+    def test_unknown_id_returns_none(self, test_object):
+        assert test_object.get_by_id("no_such_role") is None
+        assert test_object.get_by_id("diffractometer.no_such_motor") is None

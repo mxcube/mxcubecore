@@ -18,39 +18,36 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-"""The whitelist bypass - see IPC_FORMAT.md section 7.
+"""Whitelist bypass for exploring and debugging - see IPC_FORMAT.md,
+"Debug bypass".
 
-Unlike mxcubecore.ipc.whitelist, NOTHING here is validated. Any role path
-that resolves and any callable can be called with the arguments the caller
-sends.
+Any resolvable role and any callable on it can be called. Arguments are
+validated against the method's signature when a request model can be built
+from it, and passed through unchanged otherwise.
 
-This is for exploring/debugging ONLY, not meant as a production API.
-
-IPCServer only ever routes uses this logic when `allow_debug_calls` config
-is explicitly set to true (false by default).
-
-Enabling it on anything but a local, trusted session means any authenticated
-client can invoke *any* method on *any* loaded HardwareObject with *any* arguments.
+Only reachable when IPCServer's `allow_debug_calls` is true (false by
+default). Never enable it outside a local, trusted session.
 """
 
 import inspect
-import typing
 from typing import (
     Any,
     Dict,
     List,
     Optional,
-    Tuple,
 )
 
-from pydantic import BaseModel
 from pydantic_core import to_jsonable_python
 
-from mxcubecore.ipc.whitelist import build_request_model, resolve_role_path
+from mxcubecore.ipc.whitelist import (
+    IPCWhitelistError,
+    build_request_model,
+    validate_params,
+)
 
 
 def _resolve(beamline: Any, role: str) -> Any:
-    target = beamline if not role else resolve_role_path(beamline, role)
+    target = beamline.get_by_id(role) if role else beamline
     if target is None:
         raise ValueError(f"No such role: {role!r}")
     return target
@@ -66,13 +63,11 @@ def _public_attr_names(target: Any) -> List[str]:
         except Exception:  # noqa: S112 - exploration tool, expect some to fail
             continue
         names.append(name)
-    return sorted(names)
+    return names
 
 
 def list_roles(beamline: Any, role: str = "") -> Dict[str, Any]:
-    """The direct sub-roles of `role` (or of `beamline` itself if `role`
-    is empty/omitted).
-    """
+    """The direct sub-roles of `role` (of `beamline` itself if empty)."""
     target = _resolve(beamline, role)
     get_roles = getattr(target, "get_roles", None)
     roles = get_roles() if callable(get_roles) else []
@@ -80,11 +75,10 @@ def list_roles(beamline: Any, role: str = "") -> Dict[str, Any]:
 
 
 def describe_role(beamline: Any, role: str = "") -> Dict[str, Any]:
-    """One role's class, its own sub-roles, and its public (non-underscore)
-    callable attributes - each with its signature (best-effort string) and,
-    when buildable, a JSON schema for its arguments (the same
-    `pydantic.create_model()` mechanism `mxcubecore.ipc.whitelist` uses for
-    the whitelist. See `build_request_model()`).
+    """Class, sub-roles and public methods of `role`.
+
+    Each method has its signature and, when one can be built, the JSON
+    schema of its arguments.
     """
     target = _resolve(beamline, role)
 
@@ -101,20 +95,9 @@ def describe_role(beamline: Any, role: str = "") -> Dict[str, Any]:
         except (TypeError, ValueError):
             signature = "(...)"
 
-        schema = None
         try:
-            # Both steps can fail on a parameter type pydantic can't
-            # handle - build_request_model() itself for one it can't even
-            # build a core schema for (e.g. a bare HardwareObject-typed
-            # parameter), model_json_schema() for one it can validate but
-            # not describe (e.g. connect/disconnect's Callable-typed
-            # `slot`). Either way, best-effort: fall back to no schema
-            # rather than failing the whole describe_role() call over one
-            # method.
-            request_model = build_request_model(attr)
-            if request_model is not None:
-                schema = request_model.model_json_schema()
-        except Exception:  # noqa: BLE001
+            schema = build_request_model(attr).model_json_schema()
+        except Exception:  # noqa: BLE001 - e.g. a Callable-typed parameter
             schema = None
 
         methods[name] = {"signature": signature, "schema": schema}
@@ -127,47 +110,6 @@ def describe_role(beamline: Any, role: str = "") -> Dict[str, Any]:
     }
 
 
-def _coerce_pydantic_args(
-    func: Any, args: List[Any], kwargs: Dict[str, Any]
-) -> Tuple[List[Any], Dict[str, Any]]:
-    """Best-effort: for any parameter type-hinted as a pydantic.BaseModel
-    subclass, create a plain dict argument into that model via
-    model_validate().
-
-    Deliberately does not swallow a validation failure - letting it
-    propagate gives the caller a real pydantic error (e.g. "field
-    required: node_id") instead of a confusing AttributeError once the
-    unconverted dict reaches the method body.
-    """
-    try:
-        hints = typing.get_type_hints(func)
-    except (NameError, TypeError):
-        return args, kwargs
-    hints.pop("return", None)
-
-    try:
-        parameter_names = list(inspect.signature(func).parameters)
-    except (TypeError, ValueError):
-        return args, kwargs
-
-    def coerce(name: Optional[str], value: Any) -> Any:
-        param_type = hints.get(name) if name else None
-        if (
-            isinstance(value, dict)
-            and isinstance(param_type, type)
-            and issubclass(param_type, BaseModel)
-        ):
-            return param_type.model_validate(value)
-        return value
-
-    coerced_args = [
-        coerce(parameter_names[i] if i < len(parameter_names) else None, value)
-        for i, value in enumerate(args)
-    ]
-    coerced_kwargs = {name: coerce(name, value) for name, value in kwargs.items()}
-    return coerced_args, coerced_kwargs
-
-
 def debug_call(
     beamline: Any,
     role: str,
@@ -175,15 +117,17 @@ def debug_call(
     args: Optional[List[Any]] = None,
     kwargs: Optional[Dict[str, Any]] = None,
 ) -> Any:
-    """Call ANY method on ANY resolvable role, with raw arguments - no
-    whitelist check, no pydantic validation beyond the best-effort
-    single-request-model coercion in _coerce_pydantic_args(). See module
-    docstring.
+    """Call any method on any resolvable role.
+
+    Raises:
+        pydantic.ValidationError: when the arguments don't validate against
+            the method's signature.
     """
     if args is not None and not isinstance(args, list):
         raise TypeError(f"debug_call: args must be a JSON array, got {args!r}")
     if kwargs is not None and not isinstance(kwargs, dict):
         raise TypeError(f"debug_call: kwargs must be a JSON object, got {kwargs!r}")
+    args, kwargs = args or [], kwargs or {}
 
     target = _resolve(beamline, role)
 
@@ -191,6 +135,20 @@ def debug_call(
     if func is None or not callable(func):
         raise ValueError(f"{role or '<beamline>'!r} has no callable method {method!r}")
 
-    coerced_args, coerced_kwargs = _coerce_pydantic_args(func, args or [], kwargs or {})
-    result = func(*coerced_args, **coerced_kwargs)
+    try:
+        request_model = build_request_model(func)
+    except IPCWhitelistError:
+        result = func(*args, **kwargs)
+    else:
+        result = func(**validate_params(request_model, _as_kwargs(func, args, kwargs)))
+
     return to_jsonable_python(result, fallback=repr)
+
+
+def _as_kwargs(func: Any, args: List[Any], kwargs: Dict[str, Any]) -> Dict[str, Any]:
+    """Merge positional `args` into `kwargs` by parameter name."""
+    try:
+        bound = inspect.signature(func).bind_partial(*args, **kwargs)
+    except TypeError as exc:
+        raise TypeError(f"debug_call: {exc}") from exc
+    return dict(bound.arguments)

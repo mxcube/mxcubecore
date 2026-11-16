@@ -186,10 +186,12 @@ class ConfiguredObject:
         for name in _id.split("."):
             # Roles are no longer added to HardwareObjects as attributes so
             # we have to retrieve them by role
-            result = result.get_object_by_role(name)
+            obj = result.get_object_by_role(name)
 
-            if not result:
-                result = getattr(result, name)
+            if obj is None:
+                obj = getattr(result, name, None)
+
+            result = obj
 
             if result is None:
                 break

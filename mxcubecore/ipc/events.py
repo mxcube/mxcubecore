@@ -57,7 +57,7 @@ from typing import (
 from pydantic import TypeAdapter, ValidationError
 
 from mxcubecore.ipc.constants import logger
-from mxcubecore.ipc.whitelist import IPCWhitelistError, resolve_role_path
+from mxcubecore.ipc.whitelist import IPCWhitelistError
 
 # Names an `args` type expression may use without a module path. Anything
 # else must be a fully-qualified, importable "package.module.Name".
@@ -178,7 +178,7 @@ def _resolve_event(beamline: Any, cfg: Dict[str, Any]) -> EventEntry:
         raise IPCWhitelistError(f"Event entry {cfg!r}: missing {missing}")
 
     role, signal, method = cfg["role"], cfg["signal"], cfg["method"]
-    sender = resolve_role_path(beamline, role)
+    sender = beamline.get_by_id(role)
     if sender is None:
         raise IPCWhitelistError(f"Event {method!r}: no such beamline role {role!r}")
 

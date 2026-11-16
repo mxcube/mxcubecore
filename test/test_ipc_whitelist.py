@@ -136,7 +136,7 @@ def test_ipc_method_decorator_supplies_explicit_models(beamline):
     entry = registry["not_self_describing_target.not_self_describing"]
 
     assert entry.request_model is Req
-    assert entry.response_model is Resp
+    assert entry.response_type is Resp
 
     result = dispatch(
         beamline,
@@ -145,6 +145,17 @@ def test_ipc_method_decorator_supplies_explicit_models(beamline):
         {"x": 5},
     )
     assert result == {"y": 5}
+
+
+def test_untyped_parameter_reason_is_reported(beamline):
+    class Target:
+        def untyped(self, x) -> None:
+            pass
+
+    beamline.untyped_target = Target()
+
+    with pytest.raises(IPCWhitelistError, match="parameter 'x' has no type hint"):
+        build_whitelist(beamline, ["untyped_target.untyped"])
 
 
 def test_dispatch_passes_nested_model_as_model_instance(beamline):
