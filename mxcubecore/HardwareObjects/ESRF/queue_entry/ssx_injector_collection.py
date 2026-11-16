@@ -2,6 +2,7 @@ import logging
 
 import gevent
 from pydantic import (
+    ConfigDict,
     Field,
 )
 
@@ -22,9 +23,10 @@ class InjectorUserCollectionParameters(BaseUserCollectionParameters):
     num_images: int = Field(1000, gt=0, lt=10000000)
     take_pedestal: bool = Field(True)
 
-    class Config:
-        extra: "ignore"
-        use_enum_values: True
+    # Note: `use_enum_values` was previously written as an annotation
+    # (`use_enum_values: True`) and therefore never applied; kept disabled
+    # here to preserve the existing behaviour.
+    model_config = ConfigDict(extra="ignore")
 
 
 class InjectorColletionTaskParameters(SsxBaseQueueTaskParameters):

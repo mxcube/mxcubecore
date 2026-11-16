@@ -1,4 +1,5 @@
 from devtools import debug
+from pydantic import ConfigDict
 
 from mxcubecore.HardwareObjects.ESRF.queue_entry.ssx_base_queue_entry import (
     BaseUserCollectionParameters,
@@ -14,8 +15,7 @@ __category__ = "General"
 
 
 class TestUserCollectionParameters(BaseUserCollectionParameters):
-    class Config:
-        extra: "ignore"
+    model_config = ConfigDict(extra="ignore")
 
 
 class TestCollectionTaskParameters(SsxBaseQueueTaskParameters):

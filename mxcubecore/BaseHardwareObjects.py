@@ -23,6 +23,7 @@ from __future__ import absolute_import
 import ast
 import enum
 import itertools
+import json
 import logging
 import typing
 import warnings
@@ -747,9 +748,9 @@ class HardwareObjectMixin(CommandContainer):
             self._pydantic_models[attr_name] = _models[attr_name][0]
             self._exported_attributes[attr_name]["display"] = True
             self._exported_attributes[attr_name]["signature"] = self._exports[attr_name]
-            self._exported_attributes[attr_name]["schema"] = self._pydantic_models[
-                attr_name
-            ].schema_json()
+            self._exported_attributes[attr_name]["schema"] = json.dumps(
+                self._pydantic_models[attr_name].model_json_schema()
+            )
 
         model = create_model(self.__class__.__name__, **_models)
         self._pydantic_models["all"] = model

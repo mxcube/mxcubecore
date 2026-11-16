@@ -1,9 +1,6 @@
 import json
 
-from pydantic import (
-    BaseModel,
-    Field,
-)
+from pydantic import BaseModel, ConfigDict, Field
 
 from mxcubecore.model.common import (
     CommonCollectionParamters,
@@ -21,7 +18,7 @@ __category__ = "General"
 
 class TestUserCollectionParameters(BaseModel):
     num_images: int = Field(0, description="")
-    exp_time: float = Field(100e-6, gt=0, lt=1, unit="s")
+    exp_time: float = Field(100e-6, gt=0, lt=1, json_schema_extra={"unit": "s"})
     cell_a: float = Field(0.0, title="Cell A")
     cell_b: float = Field(0.0, title="Cell B")
     cell_c: float = Field(0.0, title="Cell C")
@@ -29,8 +26,7 @@ class TestUserCollectionParameters(BaseModel):
     cell_beta: float = Field(0.0, title="Cell Beta")
     cell_gamma: float = Field(0.0, title="Cell Gamma")
 
-    class Config:
-        extra: "ignore"
+    model_config = ConfigDict(extra="ignore")
 
 
 class TestCollectionTaskParameters(BaseModel):

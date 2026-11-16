@@ -4,7 +4,7 @@ import math
 
 import gevent
 from devtools import debug
-from pydantic import Field
+from pydantic import ConfigDict, Field
 from typing_extensions import Literal
 
 from mxcubecore import HardwareRepository as HWR
@@ -32,8 +32,7 @@ class SSXUserCollectionParameters(BaseUserCollectionParameters):
     _current_chip = HWR.beamline.diffractometer.get_chip_configuration().current
     chip_type: Literal[_chip_name_tuple] = Field(_current_chip)
 
-    class Config:
-        extra: "ignore"
+    model_config = ConfigDict(extra="ignore")
 
 
 class SsxFoilColletionTaskParameters(SsxBaseQueueTaskParameters):

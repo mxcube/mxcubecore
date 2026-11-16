@@ -75,7 +75,7 @@ import json
 from enum import Enum, unique
 from typing import Dict, List, Optional, Tuple, Union
 from pathlib import Path
-from pydantic.v1 import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ValidationError
 
 from mxcubecore.BaseHardwareObjects import HardwareObject, HardwareObjectState
 from mxcubecore import HardwareRepository as HWR
@@ -155,7 +155,7 @@ class CalibrationData(BaseModel):
 class SampleHolderSectionModel(BaseModel):
     """Generic sample holder."""
 
-    calibration_data: Optional[CalibrationData]
+    calibration_data: Optional[CalibrationData] = None
     section_offset: Tuple[int, int] = Field(
         [0, 0], description="Block offset in grid layout system coordinates x, y"
     )
@@ -464,7 +464,7 @@ class AbstractDiffractometer(HardwareObject):
         Args:
             The layout name.
         """
-        data = self.get_chip_configuration().dict()
+        data = self.get_chip_configuration().model_dump()
         data["current"] = layout_name
         self.set_chip_configuration(json.dumps(data))
         return True
