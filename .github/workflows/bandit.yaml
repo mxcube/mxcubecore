@@ -24,7 +24,7 @@ jobs:
       security-events: write
       actions: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Generate Bandit skips from Ruff
         id: bandit_skips
@@ -54,7 +54,7 @@ jobs:
             -o results.json || true
 
       - name: Upload Bandit results as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: bandit-results
           path: results.json

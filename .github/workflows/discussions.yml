@@ -28,13 +28,13 @@ jobs:
       # First generate the app token for authentication
       - name: Get GitHub App token
         id: github-app-token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
       - name: Notify Team
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           github-token: ${{ steps.github-app-token.outputs.token }}
           script: |

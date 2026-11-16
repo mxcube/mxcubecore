@@ -28,12 +28,12 @@ jobs:
     steps:
 
       - name: Checkout source code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # All hooks run in their own isolated environments managed by pre-commit,
       # so neither Conda nor the project's dependencies are needed here.
       - name: Cache pre-commit environments
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/pre-commit
           key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
