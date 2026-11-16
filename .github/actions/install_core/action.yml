@@ -3,7 +3,8 @@ name: Install mxcubecore
 description: >-
   Sets up the Conda environment (Python and non-Python dependencies),
   installs Poetry in its own isolated environment,
-  then installs mxcubecore and the requested dependency groups into the Conda environment.
+  then installs mxcubecore and the requested dependency groups
+  into the Conda environment.
 
 inputs:
   python-version:
