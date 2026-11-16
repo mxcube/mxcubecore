@@ -26,8 +26,9 @@ Every message is a single JSON object, JSON-RPC 2.0 shaped
 
 - `IPCRequest` (client -> server): `id`, `method`, `params` (an object matching
   the target method's request model - see section 4).
-- `IPCResponse` (server -> client): `id` echoes the request's `id`; exactly one
-  of `result` / `error` is set.
+- `IPCResponse` / `IPCErrorResponse` (server -> client): `id` echoes the
+  request's `id`. A response carries either `result` or `error`, never both
+  (`result` is present, possibly `null`, on success; `error` only on failure).
 - `IPCEvent` (server -> client, unsolicited): no `id`; `method` names the
   event, `params` its payload. Used both for the auth/session layer's own
   notices and for HardwareObject signals forwarded per the `events:` config
@@ -48,7 +49,7 @@ MXCuBE-specific ("server error" range, per the JSON-RPC 2.0 spec):
 | Code   | Name                       | Meaning                                                     |
 | ------ | -------------------------- | ----------------------------------------------------------- |
 | -32700 | `PARSE_ERROR`              | Request body wasn't valid IPCRequest JSON                   |
-| -32603 | `INTERNAL_ERROR`           | Unexpected server-side failure                              |
+| -32603 | `INTERNAL_ERROR`           | The called method raised, or another server-side failure    |
 | -32000 | `NOT_AUTHENTICATED`        | No/failed `_auth` handshake yet                             |
 | -32001 | `METHOD_NOT_WHITELISTED`   | `method` isn't in `allowed_methods`                         |
 | -32002 | `VALIDATION_ERROR`         | `params` didn't validate against the method's request model |
@@ -78,10 +79,15 @@ field alongside the envelope:
 
 `_client_id` is stripped before the JSON is parsed as an `IPCRequest` (extra fields
 are ignored). It exists purely so the transport can tell which messages belong to
-the currently-bound client.
+the currently-bound client. The slot is only claimed by a successful `_auth`:
+before that, messages from any `_client_id` reach the server, which rejects
+everything but `_auth` with `NOT_AUTHENTICATED`.
+
+`_client_id` is self-reported, so the broker's own authentication and ACLs are
+what stop a client from impersonating another one.
 
 A client may optionally also add `_client_host` (e.g. `"my-laptop (192.168.1.5)"`)
-to the first message it sends, logged for anyone reading the `HWR.ipc` logger.
+to its `_auth` message, logged for anyone reading the `HWR.ipc` logger.
 Unlike the JSON-RPC/TCP transport's peer address (read straight off the accepted
 socket), NanoMQ's `IPCServer` never sees a per-client connection. It only handles
 messages relayed through the broker meaning that `_client_host` is purely
@@ -127,9 +133,9 @@ def move_motor(self, value: float, timeout: Optional[float] = None) -> float: ..
 
 The return value works the same way in reverse: if the method's return
 type hint (or an explicit `response_model=`) is a `pydantic.BaseModel`
-subclass, the method must return an instance of it. Otherwise, the bare
-return value (a `float`, `None`, a `dict`, ...) is used directly as the JSON
-result, best-effort (`mxcubecore.ipc.jsonable.to_jsonable`).
+subclass, the method must return an instance of it. The return value is
+serialized with `pydantic_core.to_jsonable_python()`; a value that can't be
+serialized fails the call with `INTERNAL_ERROR`.
 
 Satisifying these requirements does **not** expose a method autmoatically, it
 also needs to be whitelisted `allowed_methods`.

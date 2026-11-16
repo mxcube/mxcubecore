@@ -23,8 +23,8 @@
 
 MQTT itself has no notion of "a connection" the way a TCP socket does, so
 single-client enforcement happens purely at the message layer: every
-message must carry a `_client_id`, and the first one seen claims the
-session until a message announcing that same `_client_id` arrives on the
+message must carry a `_client_id`, and the first one to authenticate claims
+the session until a message announcing that same `_client_id` arrives on the
 `<topic_prefix>/disconnect` topic.
 
 A well-behaved client publishes that message itself right before it
@@ -81,6 +81,9 @@ class NanoMQTransport(Transport):
 
         self._client: Optional[mqtt.Client] = None
         self._active_client_id: Optional[str] = None
+        # Self-reported `_client_host` of the message being processed, logged
+        # if that message authenticates the client (see bind()).
+        self._current_peer: Optional[str] = None
 
         # (topic, payload) pairs appended by paho's thread, drained by
         # `_worker` in the gevent hub. deque.append/popleft are atomic, so
@@ -164,9 +167,15 @@ class NanoMQTransport(Transport):
         return self._active_client_id is not None
 
     def send(self, session_id: str, raw_json: str) -> None:
-        if session_id != self._active_client_id or self._client is None:
+        if self._client is None:
+            return
+        if self._active_client_id is not None and session_id != self._active_client_id:
             return
         self._client.publish(self._response_topic, raw_json)
+
+    def bind(self, session_id: str) -> None:
+        self._active_client_id = session_id
+        self._on_connect(session_id, self._current_peer)
 
     def publish_event(self, raw_json: str) -> None:
         """Push a server-initiated IPCEvent frame, outside the
@@ -265,15 +274,7 @@ class NanoMQTransport(Transport):
             self._handle_disconnect_message(client_id)
             return
 
-        if self._active_client_id is None:
-            self._active_client_id = client_id
-            # No per-connection socket at this layer, so unlike the
-            # JSON-RPC/TCP transport there is no *authoritative* peer
-            # address to report - `_client_host` (if present) is whatever
-            # the client itself claims, same trust level as `_client_id`.
-            peer = payload.get("_client_host")
-            self._on_connect(client_id, f"{peer} (self-reported)" if peer else None)
-        elif client_id != self._active_client_id:
+        if self._active_client_id is not None and client_id != self._active_client_id:
             logger.warning(
                 "Rejecting IPC message from %s: %s already connected",
                 client_id,
@@ -282,7 +283,14 @@ class NanoMQTransport(Transport):
             self._client.publish(self._response_topic, _CLIENT_ALREADY_CONNECTED_FRAME)
             return
 
-        self._on_message(client_id, raw.decode("utf-8"))
+        # The slot is only claimed once the client authenticates (bind()).
+        # `_client_host` is self-reported, same trust level as `_client_id`.
+        peer = payload.get("_client_host")
+        self._current_peer = f"{peer} (self-reported)" if peer else None
+        try:
+            self._on_message(client_id, raw.decode("utf-8"))
+        finally:
+            self._current_peer = None
 
     def _handle_disconnect_message(self, client_id: str) -> None:
         """A `{"_client_id": ...}` message on the disconnect topic - either

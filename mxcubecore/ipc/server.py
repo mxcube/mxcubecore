@@ -40,6 +40,7 @@ from typing import (
 )
 
 import gevent
+from pydantic import ValidationError
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.BaseHardwareObjects import (
@@ -64,6 +65,7 @@ from mxcubecore.ipc.events import (
 )
 from mxcubecore.ipc.models import (
     IPCError,
+    IPCErrorResponse,
     IPCEvent,
     IPCRequest,
     IPCResponse,
@@ -300,12 +302,15 @@ class IPCServer(HardwareObject):
                 session_id, request.id, ErrorCode.METHOD_NOT_WHITELISTED, str(exc)
             )
             return
-        except Exception as exc:
-            # dispatch() already logged the failure (with traceback) at
-            # ERROR - just note the client-facing outcome here.
+        except ValidationError as exc:
+            # dispatch() already logged the failure (with traceback).
             self._send_error(
                 session_id, request.id, ErrorCode.VALIDATION_ERROR, str(exc)
             )
+            return
+        except Exception as exc:
+            # dispatch() already logged the failure (with traceback).
+            self._send_error(session_id, request.id, ErrorCode.INTERNAL_ERROR, str(exc))
             return
 
         response = IPCResponse(id=request.id, result=result)
@@ -342,6 +347,7 @@ class IPCServer(HardwareObject):
             return
 
         self._authenticated_session = session_id
+        self._transport.bind(session_id)
         logger.info("IPC auth from %s succeeded", session_id)
         response = IPCResponse(id=request.id, result={"authenticated": True})
         self._transport.send(session_id, response.model_dump_json())
@@ -407,7 +413,7 @@ class IPCServer(HardwareObject):
         code: ErrorCode,
         message: str,
     ) -> None:
-        response = IPCResponse(
+        response = IPCErrorResponse(
             id=request_id, error=IPCError(code=int(code), message=message)
         )
         self._transport.send(session_id, response.model_dump_json())

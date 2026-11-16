@@ -29,6 +29,7 @@ know which transport carried a message.
 from typing import (
     Any,
     Dict,
+    Literal,
     Optional,
     Union,
 )
@@ -36,38 +37,45 @@ from typing import (
 from pydantic import BaseModel, Field
 
 
+class _JsonRpc(BaseModel):
+    jsonrpc: Literal["2.0"] = "2.0"
+
+
 class IPCError(BaseModel):
-    """Error payload carried in an IPCResponse."""
+    """Error payload carried in an IPCErrorResponse."""
 
     code: int
     message: str
     data: Optional[Any] = None
 
 
-class IPCRequest(BaseModel):
+class IPCRequest(_JsonRpc):
     """A command sent by the client to invoke one whitelisted method."""
 
-    jsonrpc: str = "2.0"
     id: Union[str, int]
     method: str
     params: Dict[str, Any] = Field(default_factory=dict)
 
 
-class IPCResponse(BaseModel):
-    """The server's reply to one IPCRequest.
+class IPCResponse(_JsonRpc):
+    """Successful reply to an IPCRequest."""
 
-    Exactly one of `result`/`error` is set, mirroring JSON-RPC 2.0.
+    id: Union[str, int]
+    result: Any = None
+
+
+class IPCErrorResponse(_JsonRpc):
+    """Error reply to an IPCRequest.
+
+    `id` is None when the request's id couldn't be determined (e.g. parse error).
     """
 
-    jsonrpc: str = "2.0"
     id: Optional[Union[str, int]] = None
-    result: Optional[Any] = None
-    error: Optional[IPCError] = None
+    error: IPCError
 
 
-class IPCEvent(BaseModel):
+class IPCEvent(_JsonRpc):
     """A server-initiated notification (no `id`, no reply expected)."""
 
-    jsonrpc: str = "2.0"
     method: str
     params: Dict[str, Any] = Field(default_factory=dict)

@@ -30,6 +30,7 @@ from mxcubecore.ipc.constants import (
 )
 from mxcubecore.ipc.models import (
     IPCError,
+    IPCErrorResponse,
     IPCEvent,
     IPCRequest,
     IPCResponse,
@@ -48,6 +49,7 @@ __all__ = [
     "IPC_FORMAT_VERSION",
     "ErrorCode",
     "IPCError",
+    "IPCErrorResponse",
     "IPCEvent",
     "IPCRequest",
     "IPCResponse",
