@@ -3,16 +3,21 @@
 
 name: Pages
 
-concurrency:
-  group: pages
-
 "on":
-  push: null
-  pull_request: null
-
-env:
-  # Keep in sync with `pyproject.toml` and `.pre-commit-config.yaml`
-  POETRY_VERSION: "2.5.1"
+  # The API documentation is generated from the code, so code changes matter too
+  pull_request:
+    paths:
+      - "docs/**"
+      - "mxcubecore/**"
+      - "pyproject.toml"
+      - "poetry.lock"
+      - "conda-environment-dev.yml"
+      - ".github/workflows/pages.yaml"
+      - ".github/actions/install_core/**"
+  push:
+    branches:
+      - develop
+  workflow_dispatch: null
 
 jobs:
 
@@ -21,6 +26,11 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+
+    # Cancel outdated runs of the same pull request, but never runs on branches
+    concurrency:
+      group: pages-build-${{ github.ref }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
     steps:
 
@@ -31,25 +41,10 @@ jobs:
           # See "Caveats" at https://pypi.org/project/sphinx-last-updated-by-git
           fetch-depth: 0
 
-      - name: Setup Conda environment with Micromamba
-        uses: mamba-org/setup-micromamba@v2
+      - name: Install mxcubecore with the docs dependencies
+        uses: ./.github/actions/install_core
         with:
-          cache-environment: true
-          create-args: >-
-            python=3.11
-          environment-file: conda-environment-dev.yml
-          micromamba-version: 1.5.10-0
-          post-cleanup: all
-
-      - name: Install Poetry
-        # Poetry lives in its own isolated environment, not in the Conda environment.
-        # Run from inside the Conda environment, it installs into that environment.
-        run: pipx install "poetry==${{ env.POETRY_VERSION }}"
-
-      - name: Install Python dependencies with Poetry
-        run: >
-          ${MAMBA_EXE} run --name mxcubecore
-          poetry install --only=docs,main
+          poetry-groups: docs,main
 
       - name: Build documentation with Sphinx
         run: >
@@ -80,6 +75,11 @@ jobs:
       id-token: write
 
     runs-on: ubuntu-24.04
+
+    # Only one deployment at a time, and never cancel one in progress
+    concurrency:
+      group: pages-deploy
+      cancel-in-progress: false
 
     steps:
 
