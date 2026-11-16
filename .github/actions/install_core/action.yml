@@ -23,7 +23,7 @@ runs:
     # Pin micromamba version because of the following issue:
     # https://github.com/mamba-org/setup-micromamba/issues/225
     - name: Set up Conda environment with Micromamba
-      uses: mamba-org/setup-micromamba@v2
+      uses: mamba-org/setup-micromamba@v3
       with:
         cache-environment: true
         create-args: >-
