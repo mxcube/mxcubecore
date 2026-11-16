@@ -75,7 +75,6 @@ class NanoMQTransport(Transport):
         self._port = port
         self._request_topic = f"{topic_prefix}/request"
         self._response_topic = f"{topic_prefix}/response"
-        self._event_topic = f"{topic_prefix}/event"
         self._disconnect_topic = f"{topic_prefix}/disconnect"
         self._tls_ca_cert_path = tls_ca_cert_path
 
@@ -176,13 +175,6 @@ class NanoMQTransport(Transport):
     def bind(self, session_id: str) -> None:
         self._active_client_id = session_id
         self._on_connect(session_id, self._current_peer)
-
-    def publish_event(self, raw_json: str) -> None:
-        """Push a server-initiated IPCEvent frame, outside the
-        request/response cycle.
-        """
-        if self._client is not None:
-            self._client.publish(self._event_topic, raw_json)
 
     def _handle_broker_connect(
         self, client, userdata, flags, reason_code, properties

@@ -109,9 +109,8 @@ worked example of both.
 (`allowed_methods`) - the *entire* global whitelist lives in this one list,
 not scattered across every object's own configuration, so that its easy to
 get an overview. The last dot-separated segment is always the method name.
-Every segment before it is a role, resolved one hop at a time starting from
-`HWR.beamline` (`mxcubecore.ipc.whitelist.resolve_role_path()`), the same
-way `get_object_by_role()` resolves any role elsewhere in this codebase.
+Every segment before it is a role path, resolved from `HWR.beamline` with
+`HardwareObject.get_by_id()`.
 `"diffractometer.omega.set_value"` means: `beamline`'s `diffractometer`
 role, that object's own `omega` sub-role (e.g. from its `motors:` config),
 then call `set_value` on it - `omega` doesn't need to *also* be one of
@@ -156,7 +155,7 @@ events:
     args: [float]                # optional, see below
 ```
 
-`role` is resolved the same way as in section 4, via`resolve_role_path()`).
+`role` is resolved the same way as in section 4 (`get_by_id()`).
 
 The whole list is resolved once at startup
 (`mxcubecore.ipc.events.build_events()`) and fails fast like the method
@@ -213,8 +212,8 @@ already be authenticated):
 ```
 
 One entry per whitelisted `"role.method"`, built by
-`mxcubecore.ipc.whitelist.describe()` from each entry's
-`request_model.model_json_schema()`.
+`mxcubecore.ipc.whitelist.describe()` from each entry's request model and
+return type.
 
 `events` has one entry per configured event (section 5), keyed by its
 `method`, built by `mxcubecore.ipc.events.describe_events()`. `args` and
@@ -238,3 +237,8 @@ so, and every debug call is logged in full (method, args, result) at `WARNING`
 for an audit trail. Requires the same `_auth` handshake as everything else;
 with the flag off, all three methods below fail with
 `DEBUG_CALLS_DISABLED` (`-32004`) regardless of authentication.
+
+`_debug_call` validates the arguments against a model built from the method's
+signature, as for whitelisted methods, when one can be built; otherwise they
+are passed through unchanged. A return value that can't be serialized is sent
+as its `repr()`.
