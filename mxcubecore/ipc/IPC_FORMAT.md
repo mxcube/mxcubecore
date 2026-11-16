@@ -54,6 +54,7 @@ MXCuBE-specific ("server error" range, per the JSON-RPC 2.0 spec):
 | -32001 | `METHOD_NOT_WHITELISTED`   | `method` isn't in `allowed_methods`                         |
 | -32002 | `VALIDATION_ERROR`         | `params` didn't validate against the method's request model |
 | -32003 | `CLIENT_ALREADY_CONNECTED` | Only one client may be connected at a time                  |
+| -32004 | `DEBUG_CALLS_DISABLED`     | A debug method was called with `allow_debug_calls` off      |
 
 ## 3. Authentication handshake
 
@@ -116,22 +117,23 @@ role, that object's own `omega` sub-role (e.g. from its `motors:` config),
 then call `set_value` on it - `omega` doesn't need to *also* be one of
 beamline's own top-level roles just to be whitelistable.
 
-A whitelisted method's parameters is validated against a pydantic model
-built from the parameter type hints.
+A method's own parameters are the wire format. `params` is validated against
+a pydantic model built from the parameter type hints and defaults, and the
+method is then called with the validated fields as keyword arguments:
 
 ```python
 def move_motor(self, value: float, timeout: Optional[float] = None) -> float: ...
 ```
 
-- every parameter (besides `self`) has a type hint so we can build a pydantic
-  model
+A method is eligible when either:
 
-- The decorator `@ipc_method(request_model=..., response_model=...)`, can be used
-  when the signature itself isn't annotated precisely enough (e.g. untyped parameters,
-  forward references, or wanting stricter validation.
+- every parameter (besides `self`) has a type hint pydantic can handle, and
+  there are no `*args`/`**kwargs`; or
+- it is decorated with `@ipc_method(request_model=..., response_model=...)`,
+  for when the signature isn't annotated precisely enough. The fields of
+  `request_model` are passed as keyword arguments in the same way.
 
-The return value works the same way in reverse: if the method's return
-type hint (or an explicit `response_model=`) is a `pydantic.BaseModel`
+If the return type hint (or `response_model`) is a `pydantic.BaseModel`
 subclass, the method must return an instance of it. The return value is
 serialized with `pydantic_core.to_jsonable_python()`; a value that can't be
 serialized fails the call with `INTERNAL_ERROR`.
@@ -227,9 +229,9 @@ half is kept as `client.events`.
 
 ## 7. Debug bypass (off by default, insecure)
 
-\*\*Enabling this means any authenticated client can invoke any method on
-any resolvable role with any arguments. No white list or input validation.
-\*\*It exists for exploring/debugging only.
+**Enabling this means any authenticated client can invoke any method on
+any resolvable role with any arguments, without a whitelist. It exists for
+exploring/debugging only.**
 
 Debug mode is Off unless `IPCServer`'s `allow_debug_calls: true` is set
 explicitly. In which case a `WARNING`-level line is logged at startup saying
@@ -237,6 +239,12 @@ so, and every debug call is logged in full (method, args, result) at `WARNING`
 for an audit trail. Requires the same `_auth` handshake as everything else;
 with the flag off, all three methods below fail with
 `DEBUG_CALLS_DISABLED` (`-32004`) regardless of authentication.
+
+| Method                 | `params`                           | Result                                        |
+| ---------------------- | ---------------------------------- | --------------------------------------------- |
+| `_debug_list_roles`    | `role` (optional, `""` = beamline) | the direct sub-roles of `role`                |
+| `_debug_describe_role` | `role`                             | class, sub-roles and public methods of `role` |
+| `_debug_call`          | `role`, `method`, `args`, `kwargs` | the method's return value                     |
 
 `_debug_call` validates the arguments against a model built from the method's
 signature, as for whitelisted methods, when one can be built; otherwise they

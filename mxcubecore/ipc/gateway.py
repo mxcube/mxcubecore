@@ -18,15 +18,13 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-"""IPCGateway: a beamline object for IPC-facing methods that don't belong
-to any single HardwareObject acts as a replacement for XMLRPCServer.
-"""
-
 from mxcubecore.BaseHardwareObjects import HardwareObject
 
 
 class IPCGateway(HardwareObject):
-    """See module docstring."""
+    """Beamline object for IPC-facing methods that don't belong to any single
+    HardwareObject. Replaces XMLRPCServer.
+    """
 
     def ping(self, message: str = "") -> str:
         """Echo `message` back as "pong: <message>"."""

@@ -38,8 +38,8 @@ from typing import (
 from gevent.lock import Semaphore
 from gevent.server import StreamServer
 
-from mxcubecore.ipc.constants import logger
 from mxcubecore.ipc.transports.base import Transport
+from mxcubecore.log import ipc_log
 
 # Rejection sent (then the socket is closed) to any connection attempt
 # while another client is already connected - written directly, since the
@@ -110,7 +110,7 @@ class JSONRPCTCPTransport(Transport):
                 "ssl_version": ssl.PROTOCOL_TLS_SERVER,
             }
         else:
-            logger.warning(
+            ipc_log.warning(
                 "JSON-RPC IPC transport starting without TLS - configure "
                 "tls_cert_path/tls_key_path for a real deployment"
             )
@@ -119,7 +119,7 @@ class JSONRPCTCPTransport(Transport):
             (self._host, self._port), self._handle_connection, **ssl_args
         )
         self._server.start()
-        logger.info("JSON-RPC/TCP IPC transport listening on %s", self._server.address)
+        ipc_log.info("JSON-RPC/TCP IPC transport listening on %s", self._server.address)
 
     @property
     def address(self):
@@ -130,7 +130,7 @@ class JSONRPCTCPTransport(Transport):
         if self._server is not None:
             self._server.stop()
             self._server = None
-            logger.info("JSON-RPC/TCP IPC transport stopped")
+            ipc_log.info("JSON-RPC/TCP IPC transport stopped")
         self._files = {}
 
     def has_active_client(self) -> bool:
@@ -149,12 +149,12 @@ class JSONRPCTCPTransport(Transport):
                 sock_file.write(raw_json.encode("utf-8") + b"\n")
                 sock_file.flush()
         except OSError:
-            logger.warning("Failed to send to IPC session %s, dropping it", session_id)
+            ipc_log.warning("Failed to send to IPC session %s, dropping it", session_id)
             self._files.pop(session_id, None)
 
     def _handle_connection(self, sock, address) -> None:
         if self._files:
-            logger.warning(
+            ipc_log.warning(
                 "Rejecting IPC connection from %s: already connected", address
             )
             try:

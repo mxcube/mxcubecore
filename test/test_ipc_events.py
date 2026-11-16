@@ -142,7 +142,7 @@ def test_mismatched_emission_warns_but_is_still_forwarded(beamline):
     bridge = DispatcherBridge(lambda method, params: forwarded.append(params))
     bridge.subscribe(entry.sender, entry.signal, entry.method, entry.check_args)
     try:
-        with patch.object(ipc_events.logger, "warning") as warning:
+        with patch.object(ipc_events.ipc_log, "warning") as warning:
             dispatcher.send("ipcTestSignal", entry.sender, 12.5)
             warning.assert_not_called()
 
