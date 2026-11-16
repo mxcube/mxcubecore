@@ -53,10 +53,8 @@ never `method(validated)`. A method qualifies for the whitelist if either:
 The return value works the same way in reverse: if the method's return
 type hint (or an explicit `@ipc_method(response_model=...)`) is a
 pydantic.BaseModel subclass, the method must return an instance of it
-(validated with `isinstance`, then `.model_dump(mode="json")`-ed for the
-wire) - unchanged from before. Otherwise the bare return value (a float,
-None, a dict, ...) is used directly as the JSON result, best-effort
-(`mxcubecore.ipc.jsonable.to_jsonable`) - no wrapper class required just to
+(validated with `isinstance`). The return value is serialized with
+`pydantic_core.to_jsonable_python()` - no wrapper class required just to
 return a plain value.
 
 Being eligible does not, by itself, expose a method: it must also be listed
@@ -77,9 +75,9 @@ from typing import (
 )
 
 from pydantic import BaseModel, TypeAdapter, create_model
+from pydantic_core import to_jsonable_python
 
 from mxcubecore.ipc.constants import logger
-from mxcubecore.ipc.jsonable import to_jsonable
 
 
 class IPCWhitelistError(Exception):
@@ -162,6 +160,20 @@ def build_request_model(func: Callable) -> Optional[Type[BaseModel]]:
         fields[name] = (hints[name], default)
 
     return create_model(f"{_pascal_case(func.__name__)}Request", **fields)
+
+
+def validate_params(
+    request_model: Type[BaseModel], params: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Validate `params` and return them as keyword arguments.
+
+    Nested models stay model instances (unlike with `model_dump()`).
+
+    Raises:
+        pydantic.ValidationError: when `params` don't validate.
+    """
+    validated = request_model.model_validate(params)
+    return {name: getattr(validated, name) for name in type(validated).model_fields}
 
 
 def _response_info(func: Callable) -> Tuple[Optional[Type[BaseModel]], Any]:
@@ -324,10 +336,13 @@ def dispatch(
     method_path: str,
     params: Dict[str, Any],
 ) -> Any:
-    """Validate params, invoke one whitelisted call, and return a
-    JSON-serializable result. Raises IPCWhitelistError if method_path isn't
-    in the registry, or pydantic.ValidationError if params don't validate
-    against the method's request model.
+    """Validate `params`, call a whitelisted method and return a JSON-safe result.
+
+    Raises:
+        IPCWhitelistError: when `method_path` is not whitelisted.
+        pydantic.ValidationError: when `params` don't validate.
+        TypeError: when the method returns something other than its
+            declared pydantic response model.
     """
     entry = registry.get(method_path)
     if entry is None:
@@ -340,27 +355,18 @@ def dispatch(
     func = getattr(target, entry.method_name)
 
     try:
-        request_obj = entry.request_model.model_validate(params)
-        result = func(**request_obj.model_dump())
-    except Exception:
-        logger.exception("IPC call failed: %s(%s)", method_path, params)
-        raise
-
-    if entry.response_model is not None:
-        if not isinstance(result, entry.response_model):
-            logger.error(
-                "IPC call %s returned %r, expected %r",
-                method_path,
-                type(result).__name__,
-                entry.response_model.__name__,
-            )
-            raise IPCWhitelistError(
+        result = func(**validate_params(entry.request_model, params))
+        if entry.response_model is not None and not isinstance(
+            result, entry.response_model
+        ):
+            raise TypeError(
                 f"{method_path!r} returned {type(result).__name__!r}, expected "
                 f"{entry.response_model.__name__!r}"
             )
-        result_json = result.model_dump(mode="json")
-    else:
-        result_json = to_jsonable(result)
+        result_json = to_jsonable_python(result)
+    except Exception:
+        logger.exception("IPC call failed: %s(%s)", method_path, params)
+        raise
 
     logger.info("IPC call %s -> %s", method_path, result_json)
     return result_json

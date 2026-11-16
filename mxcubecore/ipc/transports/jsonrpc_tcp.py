@@ -136,6 +136,10 @@ class JSONRPCTCPTransport(Transport):
     def has_active_client(self) -> bool:
         return bool(self._files)
 
+    def bind(self, session_id: str) -> None:
+        # Nothing to do - the slot is the TCP connection itself.
+        pass
+
     def send(self, session_id: str, raw_json: str) -> None:
         sock_file = self._files.get(session_id)
         if sock_file is None:

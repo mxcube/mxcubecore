@@ -71,3 +71,11 @@ class Transport(abc.ABC):
     @abc.abstractmethod
     def has_active_client(self) -> bool:
         """Whether a client is currently connected."""
+
+    @abc.abstractmethod
+    def bind(self, session_id: str) -> None:
+        """Called by IPCServer once `session_id` has authenticated.
+
+        Transports that can't tell clients apart by connection (NanoMQ) use
+        this to reserve the single client slot.
+        """

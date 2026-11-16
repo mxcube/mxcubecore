@@ -496,3 +496,87 @@ def test_debug_call_requires_auth(ipc_server_debug):
         assert response["error"]["code"] == -32000
     finally:
         sock.close()
+
+
+@pytest.fixture
+def ipc_server_failing(beamline):
+    """Whitelists a method that always raises."""
+
+    class Target:
+        def fail(self) -> None:
+            raise RuntimeError("motor stuck")
+
+    beamline.failing_target = Target()
+    server = IPCServer("ipc_test_failing")
+    server._config = IPCServer.HOConfig(
+        transport="jsonrpc",
+        host="127.0.0.1",
+        port=0,
+        auth_token=AUTH_TOKEN,
+        allowed_methods=["ipc_gateway.ping", "failing_target.fail"],
+        events=[],
+    )
+    server.init()
+    try:
+        yield server
+    finally:
+        server.stop()
+
+
+def test_response_has_either_result_or_error(ipc_server_failing):
+    sock, sock_file = _connect(ipc_server_failing._transport.address)
+    try:
+        _send(
+            sock_file,
+            {
+                "jsonrpc": "2.0",
+                "id": 0,
+                "method": "_auth",
+                "params": {"token": AUTH_TOKEN},
+            },
+        )
+        assert _recv(sock_file) == {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "result": {"authenticated": True},
+        }
+
+        _send(
+            sock_file,
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "ipc_gateway.ping",
+                "params": {"message": {"not": "a string"}},
+            },
+        )
+        response = _recv(sock_file)
+        assert "result" not in response
+        assert response["error"]["code"] == -32002  # VALIDATION_ERROR
+    finally:
+        sock.close()
+
+
+def test_method_failure_is_internal_error(ipc_server_failing):
+    sock, sock_file = _connect(ipc_server_failing._transport.address)
+    try:
+        _send(
+            sock_file,
+            {
+                "jsonrpc": "2.0",
+                "id": 0,
+                "method": "_auth",
+                "params": {"token": AUTH_TOKEN},
+            },
+        )
+        assert _recv(sock_file)["result"] == {"authenticated": True}
+
+        _send(
+            sock_file,
+            {"jsonrpc": "2.0", "id": 1, "method": "failing_target.fail", "params": {}},
+        )
+        response = _recv(sock_file)
+        assert response["error"]["code"] == -32603  # INTERNAL_ERROR
+        assert "motor stuck" in response["error"]["message"]
+    finally:
+        sock.close()

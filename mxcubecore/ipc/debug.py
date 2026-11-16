@@ -44,8 +44,8 @@ from typing import (
 )
 
 from pydantic import BaseModel
+from pydantic_core import to_jsonable_python
 
-from mxcubecore.ipc.jsonable import to_jsonable
 from mxcubecore.ipc.whitelist import build_request_model, resolve_role_path
 
 
@@ -193,4 +193,4 @@ def debug_call(
 
     coerced_args, coerced_kwargs = _coerce_pydantic_args(func, args or [], kwargs or {})
     result = func(*coerced_args, **coerced_kwargs)
-    return to_jsonable(result)
+    return to_jsonable_python(result, fallback=repr)

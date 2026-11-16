@@ -150,6 +150,61 @@ def test_second_client_id_is_rejected(ipc_server):
     assert _last_published_response(ipc_server._mock_client)["error"]["code"] == -32003
 
 
+def test_unauthenticated_client_does_not_claim_the_slot(ipc_server):
+    transport = ipc_server._transport
+    # client-a sends a call without authenticating first ...
+    _deliver(
+        transport,
+        _mqtt_message(
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "ipc_gateway.ping",
+                "params": {},
+                "_client_id": "client-a",
+            }
+        ),
+    )
+    assert _last_published_response(ipc_server._mock_client)["error"]["code"] == -32000
+    assert not transport.has_active_client()
+
+    # ... which must not lock out client-b.
+    _deliver(
+        transport,
+        _mqtt_message(
+            {
+                "jsonrpc": "2.0",
+                "id": 0,
+                "method": "_auth",
+                "params": {"token": AUTH_TOKEN},
+                "_client_id": "client-b",
+            }
+        ),
+    )
+    assert _last_published_response(ipc_server._mock_client)["result"] == {
+        "authenticated": True
+    }
+    assert transport.has_active_client()
+
+
+def test_failed_auth_does_not_claim_the_slot(ipc_server):
+    transport = ipc_server._transport
+    _deliver(
+        transport,
+        _mqtt_message(
+            {
+                "jsonrpc": "2.0",
+                "id": 0,
+                "method": "_auth",
+                "params": {"token": "wrong"},
+                "_client_id": "client-a",
+            }
+        ),
+    )
+    assert _last_published_response(ipc_server._mock_client)["error"]["code"] == -32000
+    assert not transport.has_active_client()
+
+
 def test_message_without_client_id_is_dropped(ipc_server):
     transport = ipc_server._transport
     _deliver(

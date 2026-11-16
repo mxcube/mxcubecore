@@ -145,3 +145,47 @@ def test_ipc_method_decorator_supplies_explicit_models(beamline):
         {"x": 5},
     )
     assert result == {"y": 5}
+
+
+def test_dispatch_passes_nested_model_as_model_instance(beamline):
+    class Point(BaseModel):
+        x: int
+
+    class Target:
+        def get_x(self, point: Point) -> int:
+            return point.x
+
+    beamline.nested_model_target = Target()
+    registry = build_whitelist(beamline, ["nested_model_target.get_x"])
+
+    assert (
+        dispatch(beamline, registry, "nested_model_target.get_x", {"point": {"x": 3}})
+        == 3
+    )
+
+
+def test_dispatch_non_serializable_result_raises(beamline):
+    class Target:
+        def get_object(self) -> object:
+            return object()
+
+    beamline.non_serializable_target = Target()
+    registry = build_whitelist(beamline, ["non_serializable_target.get_object"])
+
+    with pytest.raises(ValueError, match="Unable to serialize"):
+        dispatch(beamline, registry, "non_serializable_target.get_object", {})
+
+
+def test_dispatch_wrong_response_model_raises_type_error(beamline):
+    class Resp(BaseModel):
+        y: int
+
+    class Target:
+        def wrong(self) -> Resp:
+            return 1
+
+    beamline.wrong_response_target = Target()
+    registry = build_whitelist(beamline, ["wrong_response_target.wrong"])
+
+    with pytest.raises(TypeError, match="expected 'Resp'"):
+        dispatch(beamline, registry, "wrong_response_target.wrong", {})
