@@ -102,8 +102,8 @@ class SsxDataCollectionMetadataGatherer:
             "SSX_experiment_name": path_parameters.experiment_name,
         }
 
-        data.update(collection_parameters.user_collection_parameters.dict())
-        data.update(collection_parameters.collection_parameters.dict())
+        data.update(collection_parameters.user_collection_parameters.model_dump())
+        data.update(collection_parameters.collection_parameters.model_dump())
 
         # ontologies
         try:

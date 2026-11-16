@@ -16,6 +16,7 @@
 #
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+import json
 from enum import (
     IntEnum,
     unique,
@@ -207,9 +208,12 @@ class AbstractProcedure(ConfiguredObject):
             dict{"args": tuple[JSONSchema], "kwargs": key: [JSONSchema]}
         """
         return {
-            "args": tuple([s.schema_json() for s in self._ARGS_CLASS]),
+            "args": tuple(
+                [json.dumps(s.model_json_schema()) for s in self._ARGS_CLASS]
+            ),
             "kwargs": {
-                key: value.schema_json() for (key, value) in self._KWARGS_CLASS.items()
+                key: json.dumps(value.model_json_schema())
+                for (key, value) in self._KWARGS_CLASS.items()
             },
         }
 
@@ -220,7 +224,7 @@ class AbstractProcedure(ConfiguredObject):
         Returns:
             tuple[JSONSchema]
         """
-        return (s.schema_json() for s in self._RESULT_CLASS)
+        return (json.dumps(s.model_json_schema()) for s in self._RESULT_CLASS)
 
     @property
     def msg(self):

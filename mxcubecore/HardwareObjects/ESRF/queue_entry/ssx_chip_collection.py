@@ -1,6 +1,7 @@
 import logging
 
 import gevent
+from pydantic import ConfigDict
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.ESRF.queue_entry.ssx_base_queue_entry import (
@@ -85,8 +86,7 @@ ALL_BLOCKS = [
 class SSXUserCollectionParameters(BaseUserCollectionParameters):
     # align_chip: bool = Field(True)
 
-    class Config:
-        extra: "ignore"
+    model_config = ConfigDict(extra="ignore")
 
 
 class SsxChipColletionTaskParameters(SsxBaseQueueTaskParameters):

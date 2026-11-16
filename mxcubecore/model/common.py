@@ -1,10 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import (
-    BaseModel,
-    Field,
-)
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class CommonCollectionParamters(BaseModel):
@@ -19,8 +16,7 @@ class PathParameters(BaseModel):
     subdir: str
     experiment_name: Optional[str]
 
-    class Config:
-        extra = "ignore"
+    model_config = ConfigDict(extra="ignore")
 
 
 class LegacyParameters(BaseModel):
@@ -29,8 +25,7 @@ class LegacyParameters(BaseModel):
     num_passes: int
     offset: float
 
-    class Config:
-        extra = "ignore"
+    model_config = ConfigDict(extra="ignore")
 
 
 class StandardCollectionParameters(BaseModel):
@@ -48,8 +43,7 @@ class StandardCollectionParameters(BaseModel):
     selection: list = Field([])
     shape: str = ""
 
-    class Config:
-        extra = "ignore"
+    model_config = ConfigDict(extra="ignore")
 
 
 class BeamlineParameters(BaseModel):

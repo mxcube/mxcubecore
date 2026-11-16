@@ -35,7 +35,7 @@ dependencies = [
     "matplotlib>=3.6.2,<4.0.0",
     "numpy>=1.23.5,<2.0.0",
     "Pillow>=12.3.0,<13.0.0",
-    "pydantic>=2.8.2,<2.9.0",
+    "pydantic>=2.14,<3.0.0",
     "PyDispatcher>=2.0.6,<3.0.0",
     "ruamel.yaml>=0.17.21,<0.18.0",
     "scipy>=1.9.3,<2.0.0",
@@ -48,7 +48,7 @@ dependencies = [
     "python-ldap>=3.4.5,<4.0.0",
     "requests>=2.33.0,<3.0.0",
     "colorama>=0.4.6,<0.5.0",
-    "mxcube-video-streamer>=1.8.5,<2.0.0",
+    "mxcube-video-streamer>=1.10.0,<2.0.0",
     "defusedxml==0.7.1",
 ]
 
