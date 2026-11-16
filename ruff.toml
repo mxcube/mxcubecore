@@ -1,4 +1,4 @@
-target-version = "py310"  # Should be the lowest Python version that we support
+target-version = "py311"  # Should be the lowest Python version that we support
 force-exclude = true
 extend-exclude = [
     ".gitignore",
