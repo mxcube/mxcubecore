@@ -12,7 +12,7 @@ dependencies:
   # Runtime dependencies
   # ====================
 
-  - python >=3.11,<3.12  # Keep in sync with `pyproject.toml`
+  - python >=3.11,<3.13  # Keep in sync with `pyproject.toml`
 
   # `openldap` is necessary for `python-ldap` but can not be installed by pip or Poetry.
   # Note also that on PyPI `python-ldap` is only available as *sdist*, not as *wheel*,
