@@ -156,18 +156,6 @@ class IPCServer(HardwareObject):
         return list(value or [])
 
     def init(self) -> None:
-        try:
-            self._do_init()
-        except Exception:
-            # HardwareRepository.load_from_yaml()/parse_xml() swallow any
-            # exception raised here for a non-top-level role - it only
-            # shows up as "Error in IPCServer.init()" in the printed load
-            # table, with the actual cause discarded completely. Log it
-            # here, with the traceback, before it disappears upstream.
-            ipc_log.exception("IPCServer failed to initialize")
-            raise
-
-    def _do_init(self) -> None:
         super().init()
         self._hub = gevent.get_hub()
         self._registry = build_whitelist(
