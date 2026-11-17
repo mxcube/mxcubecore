@@ -24,16 +24,16 @@ classifiers = [
     "Natural Language :: English",
     "Topic :: Scientific/Engineering",
 ]
-requires-python = ">=3.11,<3.13"
+requires-python = ">=3.11,<3.14"
 dependencies = [
     "typing-extensions>=4.3.0,<5.0.0",
-    "gevent>=23.9.1,<24.0.0",
+    "gevent>=24.10.1,<27.0.0",
     "greenlet>=3.0.3,<4.0.0",
     "jsonpickle>=2.2.0,<3.0.0",
     "jsonschema>=4.17.1,<5.0.0",
     "lxml>=6.1.0,<7.0.0",
     "matplotlib>=3.6.2,<4.0.0",
-    "numpy>=1.23.5,<2.0.0",
+    "numpy>=1.26.0,<3.0.0",
     "Pillow>=13.0.0,<14.0.0",
     "pydantic>=2.14,<3.0.0",
     "PyDispatcher>=2.0.6,<3.0.0",
@@ -48,7 +48,7 @@ dependencies = [
     "python-ldap>=3.4.5,<4.0.0",
     "requests>=2.33.0,<3.0.0",
     "colorama>=0.4.6,<0.5.0",
-    "mxcube-video-streamer>=1.10.1,<2.0.0",
+    "mxcube-video-streamer>=1.11.0,<2.0.0",
     "defusedxml==0.7.1",
 ]
 
