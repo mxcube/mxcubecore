@@ -41,7 +41,7 @@ or via pip with `python -m pip install --editable .` (don't forget the trailing 
 Poetry should be installed in its own isolated environment, for example with `pipx install poetry`,
 and not in the project's (Conda) environment,
 see [Poetry's installation instructions](https://python-poetry.org/docs/#installation).
-`mxcubecore` supports Python 3.11, 3.12 and 3.13.
+`mxcubecore` supports Python 3.11 to 3.14.
 
 `mxcubecore` depends on `python-ldap` that in turn depends on the `openldap` system library.
 It can be installed in a conda environment: `conda install openldap`
