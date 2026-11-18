@@ -79,6 +79,7 @@ from pydantic import BaseModel, Field, ValidationError
 
 from mxcubecore.BaseHardwareObjects import HardwareObject, HardwareObjectState
 from mxcubecore import HardwareRepository as HWR
+from mxcubecore.model.nstate import NStateOption
 
 
 __copyright__ = """ Copyright © by the MXCuBE collaboration """
@@ -508,6 +509,17 @@ class AbstractDiffractometer(HardwareObject):
             if _nam not in ["IN", "OUT", "UNKNOWN"]:
                 phase_list.append(_nam)
         return phase_list
+
+    def get_phase_options(self) -> list[NStateOption]:
+        """Get the defined phases as option records.
+
+        Default implementation wraps ``get_phase_list()`` in NStateOption.
+        Used to e.g. give the phases user friendly labels.
+
+        Returns:
+            One option per phase, in ``get_phase_list()`` order.
+        """
+        return [NStateOption(value=phase) for phase in self.get_phase_list()]
 
     @property
     def get_phase_enum(self):

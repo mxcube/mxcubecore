@@ -64,6 +64,8 @@ class TestDiffarctometer(TestHardwareObjectBase):
         phase_enum = test_object.get_phase_enum
         # subtract one for the UNKNOWN
         assert len(phase_enum) - 1 == len(test_object.get_phase_list())
+        options = test_object.get_phase_options()
+        assert [option.value for option in options] == test_object.get_phase_list()
 
     def test_head_type(self, test_object):
         head_enum = test_object.head_enum
