@@ -333,8 +333,8 @@ class QueueBuilder:
         params = task_data["parameters"]
         self.apply_template(params, sample_model, model.path_template)
 
-        # params include only path_template-related parametes and strategy_name
-        model.init_from_task_data(sample_model, params)
+        # params include only path_template-related parameters and strategy_name
+        model.init_from_task_data(params, sample_model)
 
         # # NBNB
         # # These two calls seems to be needed by the Global phasing workflows
