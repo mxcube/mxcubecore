@@ -2041,7 +2041,8 @@ class GphlWorkflow(TaskNode):
         summary["wavelengths"] = tuple(x.wavelength for x in self.wavelengths)
         summary["resolution"] = self.detector_setting.resolution
         summary["orgxy"] = self.detector_setting.orgxy
-        summary["strategy_variant"] = self.strategy_options.get("variant", "not set")
+        if not summary.get("strategy_variant"):
+            summary["strategy_variant"] = self.strategy_options.get("variant", "not set")
         summary["orientation_count"] = len(self.goniostat_translations)
         summary["characterisation_dose"] = self.characterisation_dose
         summary["dose_per_repetition"] = self.acquisition_dose
@@ -2291,7 +2292,7 @@ class GphlWorkflow(TaskNode):
             self.skip_collection = True
 
     def init_from_task_data(self, params: dict, sample_model: Sample|None = None):
-        """ Initialise model contents using a task paramete dictionary
+        """ Initialise model contents using a task parameter dictionary
 
         Args:
             params: Parameter dictionary, values overeride SAmple parameters
@@ -2338,6 +2339,7 @@ class GphlWorkflow(TaskNode):
 
         aimed_resolution = None
         energy = None
+        space_group = None
         # Set parameters from sample model, if passed
         if sample_model is not None:
             # Set crystal parameters from sample node
@@ -2411,16 +2413,20 @@ class GphlWorkflow(TaskNode):
             if all(tpl):
                 self.cell_parameters = tpl
 
-        space_group = params.get("space_group", space_group)
-        if space_group:
-            self.space_group = crystal_symmetry.SPACEGROUP_MAP.get(space_group).name
-            self.input_space_group = self.space_group
-
         # Set use_cell_for_processing default
         self.use_cell_for_processing = False
-        if self.input_space_group:
-            # Only set use_cell_for_processing to True if spacegroup is set
-            self.use_cell_for_processing = params.pop("use_cell_for_processing", False)
+        crystal_classes = params.get("crystal_classes")
+        if crystal_classes:
+            self.crystal_classes  = tuple(crystal_classes)
+        else:
+            space_group = params.get("space_group", space_group)
+            if space_group:
+                self.space_group = crystal_symmetry.SPACEGROUP_MAP.get(space_group).name
+                self.input_space_group = self.space_group
+                # Only set use_cell_for_processing to True if space_group is set
+                self.use_cell_for_processing = params.pop(
+                    "use_cell_for_processing", False
+                )
 
         self.aimed_resolution = params.pop("aimed_resolution", aimed_resolution)
         energy = params.pop("energy", energy)
