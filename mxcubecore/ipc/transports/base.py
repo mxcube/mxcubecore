@@ -18,11 +18,11 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-"""Transport-agnostic interface driven by mxcubecore.ipc.server.IPCServer.
+"""Transport-agnostic interface used by mxcubecore.ipc.server.IPCServer.
 
-A concrete transport owns connection handling, TLS and message framing;
-it knows nothing about the raw JSON IPCRequest/IPCResponse/IPCEvent or
-the whitelist IPCServer owns the session/auth layer and all envelope
+A concrete transport is responsible for connection handling, TLS and
+message framing; it knows nothing about the raw JSONRPC 2.0 protocol or
+the whitelist. IPCServer owns the session/auth layer and all envelope
 handling on top of whatever raw JSON frames a transport delivers.
 """
 

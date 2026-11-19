@@ -18,7 +18,7 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-"""Bridges HardwareObject signals (mxcubecore.dispatcher, as used by
+"""Bridges HardwareObject signals (mxcubecore.dispatcher, used by
 HardwareObjectMixin.emit/.connect) into IPCEvent notifications pushed to
 the connected IPC client.
 """
