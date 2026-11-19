@@ -455,6 +455,9 @@ class QueueNodeModel(BaseModel):
     queueID: int = -1  # noqa: N815
     checked: bool = False
     state: int = UNCOLLECTED
+    # time.time() at the start and end of the last run
+    startedAt: float | None = None  # noqa: N815
+    endedAt: float | None = None  # noqa: N815
 
     @field_validator("type", mode="before")
     @classmethod

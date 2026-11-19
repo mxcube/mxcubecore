@@ -142,6 +142,12 @@ class QueueSerializer:
             else:
                 result.extend(self._queue_to_dict_rec(n))
 
+        for item in result:
+            if item.queueID != -1:
+                _, entry = HWR.beamline.queue_manager.get_entry(item.queueID)
+                item.startedAt = getattr(entry, "started_at", None)
+                item.endedAt = getattr(entry, "ended_at", None)
+
         return result
 
     def pretty_print_queue(self, msg: str | None = None) -> None:
