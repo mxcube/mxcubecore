@@ -215,7 +215,7 @@ class GenericDiffractometer(HardwareObject):
     """
 
     CENTRING_MOTORS_NAME = [
-        "phi",
+        "omega",
         "phiz",
         "phiy",
         "sampx",
