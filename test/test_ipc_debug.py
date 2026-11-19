@@ -55,12 +55,13 @@ def test_describe_role_includes_schema_when_buildable(beamline):
 
 
 def test_describe_role_survives_a_parameter_pydantic_cannot_handle_at_all(beamline):
-    # Regression: a parameter type-hinted with a plain (non-pydantic,
-    # non-BaseModel) class - unlike a Callable-typed parameter, pydantic
-    # can't even build a core schema for this one, so it fails inside
-    # build_request_model() itself (create_model()), not just later in
-    # model_json_schema() - describe_role() must not let that exception
-    # escape and take out every other method's description with it.
+    """
+    Test whether `debug.describe_role` handles unserializable classes in type hints
+
+    When some arbitrary type is provided as a method argument, the function should
+    not crash and just put `None` as its schema.
+    """
+
     class Unschemaable:
         pass
 
