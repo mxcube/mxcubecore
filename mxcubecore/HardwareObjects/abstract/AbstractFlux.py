@@ -21,6 +21,8 @@
 Defines get_average_flux_density.
 """
 
+import math
+
 from scipy.interpolate import interp1d
 
 from mxcubecore import HardwareRepository as HWR
@@ -76,15 +78,25 @@ class AbstractFlux(AbstractActuator):
         ],
     )
 
-    def get_average_flux_density(self, transmission=None):
-        """Get average flux density over the beam area in photons / mm^2
-        for a given transmission setting
+    def get_average_flux_density(self, transmission=None, energy=None):
+        """Get average flux density over the beam area in photons/s/mm^2
+        for a given transmission and energy setting
         Args:
             transmission (float): Target transmission [%]
                                   (defaults to current value)
+            energy (float): Target energy [keV] (defaults to current value).
+                            Only the flux at the current energy is known here,
+                            so other energies give None. Override to model
+                            the energy dependence of the flux.
         Returns:
-            (float): (photons / mm^2) - average flux density over beam area.
+            (float): (photons/s/mm^2) - average flux density over beam area,
+                     None if unknown.
         """
+        # 10 eV covers the rounding of the energy shown in the UI.
+        if energy is not None and not math.isclose(
+            energy, HWR.beamline.energy.get_value(), abs_tol=0.01
+        ):
+            return None
         beam_size = HWR.beamline.beam.get_beam_size()
         flux = self.get_value()
         result = None
