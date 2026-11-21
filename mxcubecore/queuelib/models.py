@@ -239,10 +239,13 @@ class WorkflowParameters(TaskDataPathModel):
     type: str = ""
     wfname: str = ""
     wfpath: str = ""
+    # GPhL workflows only: title of the selected strategy, e.g. "SAD Phasing"
+    strategy_name: str = ""
 
     @field_validator(
         "wfname",
         "wfpath",
+        "strategy_name",
         "type",
         "name",
         "label",

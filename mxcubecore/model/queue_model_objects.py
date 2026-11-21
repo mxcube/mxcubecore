@@ -2307,13 +2307,19 @@ class GphlWorkflow(TaskNode):
         # handle test-from-file
         if self.automation_mode == "TEST_FROM_FILE":
             fname = os.getenv("GPHL_TEST_INPUT")
-            if os.path.isfile(fname):
+            if not fname:
+                raise ValueError(
+                    "TEST_FROM_FILE: GPHL_TEST_INPUT environment variable not set"
+                )
+            elif os.path.isfile(fname):
                 with open(fname, "r", encoding="utf-8") as fp0:
                     task = yaml.load(fp0)["task"]
                     print(task)
                     params.update(task["parameters"])
             else:
-                print("WARNING no GPHL_TEST_INPUT found. test using default values")
+                raise ValueError(
+                    f"TEST_FROM_FILE: GPHL_TEST_INPUT file '{fname}' not found"
+                )
 
         # For external workflow parameters (conf. Olof Svensson)
         dd1 = params.get("workflow_parameters")
@@ -2357,14 +2363,13 @@ class GphlWorkflow(TaskNode):
             self.protein_acronym = crystal.protein_acronym
             space_group = crystal.space_group
 
-            # Set to current wavelength for now - nothing else available
-            wavelength = HWR.beamline.energy.get_wavelength()
-
             # Set parameters from diffraction plan
             plan = sample_model.diffraction_plan
             if plan:
                 # It is not clear if diffraction_plan is a dict or an object,
                 # and if so which kind
+                # override with plan energy if present
+                energy = getattr(plan, "energy", plan.get("energy")) or energy
                 # NB if 'val' is ever not None but zero we still want to skip it
                 tag = "radiationSensitivity"
                 val = getattr(plan, tag, plan.get(tag))
@@ -2383,21 +2388,25 @@ class GphlWorkflow(TaskNode):
                     val = getattr(plan, tag, plan.get(tag))
                     if val:
                         self.auto_acq_parameters[-1]["image_width"] = val
-                    energy = getattr(plan, "energy", plan.get("energy"))
-                    if val:
-                        energy_limits = HWR.beamline.energy.get_limits()
-                        val = max(val, energy_limits[0])
-                        val = min(val, energy_limits[1])
-                        nrg1 = self.auto_acq_parameters[-1].get("energy")
-                        if not nrg1:
-                            self.auto_acq_parameters[-1]["energy"] = val
-                        nrg0 = self.auto_acq_parameters[0].get("energy")
-                        if nrg0:
-                            val = nrg0
-                        else:
-                            self.auto_acq_parameters[0]["energy"] = val
-                        wavelength = HWR.beamline.energy.calculate_wavelength(val)
             base_prefix = HWR.beamline.session.get_default_prefix(sample_model)
+
+        # Override with params value
+        energy = params.pop("energy", energy) or HWR.beamline.energy.get_value()
+        if energy:
+            energy_limits = HWR.beamline.energy.get_limits()
+            energy = max(energy, energy_limits[0])
+            energy = min(energy, energy_limits[1])
+
+        if self.auto_acq_parameters[0].pop("energy", None):
+            raise Warning(
+                "task auto_acq_parameters[0]['energy'] is no longer used; ignored "
+            )
+        if self.auto_acq_parameters[1].pop("energy", None):
+            raise Warning(
+                "task auto_acq_parameters[1]['energy'] is no longer used; ignored "
+            )
+        self.auto_acq_parameters[0]["energy"] = energy
+        wavelength = HWR.beamline.energy.calculate_wavelength(energy)
 
         # Set sample-related parameters from task dictionary
         unit_cell = params.get("unit_cell")
@@ -2429,7 +2438,6 @@ class GphlWorkflow(TaskNode):
                 )
 
         self.aimed_resolution = params.pop("aimed_resolution", aimed_resolution)
-        energy = params.pop("energy", energy)
 
         # Set attributes directly from params
         self.strategy_settings = HWR.beamline.gphl_workflow.workflow_strategies.get(

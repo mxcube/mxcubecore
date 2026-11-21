@@ -300,19 +300,19 @@ class GphlWorkflow(HardwareObject):
             beamline_hook = "py4j::"
 
         # Consolidate workflow options
-        for title, workflow in self.config.workflows.items():
-            workflow["wfname"] = title
+        for wf_title, workflow in self.config.workflows.items():
+            workflow["wfname"] = wf_title
 
             opt0 = workflow.get("options", {})
             opt0["beamline"] = beamline_hook
             default_strategy_name = None
             for strategy in workflow["strategies"]:
-                title = strategy["title"]
-                self.workflow_strategies[title] = strategy
+                strategy_title = strategy["title"]
+                self.workflow_strategies[strategy_title] = strategy
                 strategy["wftype"] = workflow["wftype"]
                 strategy["wfname"] = workflow["wfname"]
                 if default_strategy_name is None:
-                    default_strategy_name = workflow["strategy_name"] = title
+                    default_strategy_name = workflow["strategy_name"] = strategy_title
                 dd0 = opt0.copy()
                 dd0.update(strategy.get("options", {}))
                 strategy["options"] = dd0
