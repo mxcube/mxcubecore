@@ -317,7 +317,8 @@ class CollectEmulator(CollectMockup):
             diffr.update_state(diffr.STATES.BUSY)
 
             running_process = subprocess.Popen(
-                command_list, stdout=fp1, stderr=fp2, env=envs, preexec_fn=set_ulimit
+                command_list, stdout=fp1, stderr=fp2, env=envs, preexec_fn=set_ulimit,
+                cwd=file_info["directory"]
             )
             gphl_connection.collect_emulator_process = running_process
 
