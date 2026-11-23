@@ -1306,6 +1306,38 @@ class XrayCentring2(TaskNode):
     def get_workflow_parameters(self):
         return self._workflow_parameters
 
+    def init_from_task_data(self, sample_model, params):
+        """Set parameters from task input dictionary.
+
+        sample_model is required as this may be called before the object is enqueued
+        params is a dictionary with structure determined by mxcubeweb usage
+        """
+
+        # Set path template
+        self.path_template.set_from_dict(params)
+        if params["prefix"]:
+            self.path_template.base_prefix = params["prefix"]
+        else:
+            self.path_template.base_prefix = HWR.beamline.session.get_default_prefix(
+                sample_model
+            )
+        self.path_template.num_files = 0
+        self.path_template.directory = os.path.join(
+            HWR.beamline.session.get_base_image_directory(), params.get("subdir", "")
+        )
+        self.path_template.process_directory = os.path.join(
+            HWR.beamline.session.get_base_process_directory(),
+            params.get("subdir", ""),
+        )
+
+        # Set parameters from params dict
+        if "name" in params:
+            self.set_name(params["name"])
+        if "motor_positions" in params:
+            self.set_motor_positions(params["motor_positions"])
+        if "grid_size" in params:
+            self.set_grid_size(params["grid_size"])
+
 
 class SampleCentring(TaskNode):
     """Manual 3 click centring
