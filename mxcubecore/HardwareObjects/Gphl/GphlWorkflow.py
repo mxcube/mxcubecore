@@ -194,6 +194,9 @@ class GphlWorkflow(HardwareObject):
 
     TEST_SAMPLE_PREFIX = "emulate"
 
+    # Cutoff for setting calculated transmission to 100%
+    TRANSMISSION_CUTOFF = 99.0
+
     # Signals
     PARAMETERS_NEEDED = "GphlJsonParametersNeeded"
     PARAMETER_RETURN_SIGNAL = "GphlParameterReturn"
@@ -297,19 +300,19 @@ class GphlWorkflow(HardwareObject):
             beamline_hook = "py4j::"
 
         # Consolidate workflow options
-        for title, workflow in self.config.workflows.items():
-            workflow["wfname"] = title
+        for wf_title, workflow in self.config.workflows.items():
+            workflow["wfname"] = wf_title
 
             opt0 = workflow.get("options", {})
             opt0["beamline"] = beamline_hook
             default_strategy_name = None
             for strategy in workflow["strategies"]:
-                title = strategy["title"]
-                self.workflow_strategies[title] = strategy
+                strategy_title = strategy["title"]
+                self.workflow_strategies[strategy_title] = strategy
                 strategy["wftype"] = workflow["wftype"]
                 strategy["wfname"] = workflow["wfname"]
                 if default_strategy_name is None:
-                    default_strategy_name = workflow["strategy_name"] = title
+                    default_strategy_name = workflow["strategy_name"] = strategy_title
                 dd0 = opt0.copy()
                 dd0.update(strategy.get("options", {}))
                 strategy["options"] = dd0
@@ -395,6 +398,7 @@ class GphlWorkflow(HardwareObject):
         space_group = data_model.space_group or ""
         header = soldict = select_row = None
         if choose_lattice:
+            read_only_cell = True
             header, soldict, select_row = self.parse_indexing_solution(choose_lattice)
             lattice = list(soldict.values())[select_row].bravaisLattice
             point_groups = lattice2point_group_tags[lattice]
@@ -417,6 +421,7 @@ class GphlWorkflow(HardwareObject):
                 else:
                     space_group = ""
         else:
+            read_only_cell = False
             flux = HWR.beamline.flux
             if not (flux and flux.get_average_flux_density()):
                 logging.getLogger("user_level_log").warning(
@@ -450,41 +455,41 @@ class GphlWorkflow(HardwareObject):
         fields["cell_a"] = {
             "title": "a",
             "type": "number",
-            "minimum": 0.1,
-            "readOnly": True,
+            "minimum": 0.0,
+            "readOnly": read_only_cell,
         }
         fields["cell_b"] = {
             "title": "b",
             "type": "number",
-            "minimum": 0.1,
-            "readOnly": True,
+            "minimum": 0.0,
+            "readOnly": read_only_cell,
         }
         fields["cell_c"] = {
             "title": "c",
             "type": "number",
-            "minimum": 0.1,
-            "readOnly": True,
+            "minimum": 0.0,
+            "readOnly": read_only_cell,
         }
         fields["cell_alpha"] = {
             "title": "α",
             "type": "number",
-            "minimum": 0.1,
+            "minimum": 0.0,
             "maximum": 180,
-            "readOnly": True,
+            "readOnly": read_only_cell,
         }
         fields["cell_beta"] = {
             "title": "β",
             "type": "number",
-            "minimum": 0.1,
+            "minimum": 0.0,
             "maximum": 180,
-            "readOnly": True,
+            "readOnly": read_only_cell,
         }
         fields["cell_gamma"] = {
             "title": "γ",
             "type": "number",
-            "minimum": 0.1,
+            "minimum": 0.0,
             "maximum": 180,
-            "readOnly": True,
+            "readOnly": read_only_cell,
         }
         fields["lattice"] = {
             "title": "Crystal lattice",
@@ -508,13 +513,13 @@ class GphlWorkflow(HardwareObject):
             "enum": sglist,
         }
         fields["input_space_group"] = {
-            "title": "Space Group",
+            "title": "Expected Space Group",
             "default": (
                 crystal_symmetry.regularise_space_group(data_model.input_space_group)
                 or ""
             ),
             "type": "string",
-            "readOnly": True,
+            "readOnly": read_only_cell,
         }
         fields["relative_rad_sensitivity"] = {
             "title": "Radiation sensitivity",
@@ -740,12 +745,10 @@ class GphlWorkflow(HardwareObject):
             ):
                 fields[tag]["readOnly"] = False
             ui_schema["parameters"]["column1"]["ui:order"].remove("point_groups")
-            fields["crystal_thickness"]["readOnly"] = False
 
         elif not choose_lattice:
             # Characterisation
             ui_schema["parameters"]["column1"]["ui:order"].remove("point_groups")
-            fields["crystal_thickness"]["readOnly"] = False
 
         else:
             # Acquisition
@@ -754,6 +757,7 @@ class GphlWorkflow(HardwareObject):
                 "title": "Select indexing solution :",
                 "type": "string",
             }
+            fields["crystal_thickness"]["readOnly"] = True
             ui_schema["crystal_data"]["sgroup"]["ui:order"].remove("crystal_thickness")
 
             # Color green (figuratively) if matches lattices
@@ -879,9 +883,6 @@ class GphlWorkflow(HardwareObject):
                     params["processing_macro_url"] = line
                 else:
                     raise ValueError("Invalid url string: %s" % line)
-
-        # Convert energy field to a single tuple
-        params["energies"] = (params.pop("energy"),)
         return params
 
     def pre_execute(self, queue_entry):
@@ -1273,7 +1274,7 @@ class GphlWorkflow(HardwareObject):
             use_dose_start = proposed_dose
             use_dose_frozen = False
             transmission = 100 * proposed_dose / maximum_dose
-            if transmission > 100:
+            if transmission > self.TRANSMISSION_CUTOFF:
                 use_dose_start = proposed_dose * 100.0 / transmission
                 transmission = 100.0
         else:
@@ -1577,9 +1578,7 @@ class GphlWorkflow(HardwareObject):
         if value:
             result[tag] = int(value)
 
-        energies = list(result.pop(tag) for tag in beam_energies)
-        del energies[0]
-        result["energies"] = energies
+        result["energies"] = list(result.pop(tag) for tag in beam_energies)
 
         tag = "recentring_mode"
         result[tag] = RECENTRING_MODES.get(result.get(tag)) or default_recentring_mode
@@ -1660,7 +1659,10 @@ class GphlWorkflow(HardwareObject):
                     "'dose_budget' parameter no longer supported. "
                     "Use 'use_dose' or 'transmission' instead"
                 )
-            if parameters.get("init_spot_dir"):
+            if (
+                parameters.get("init_spot_dir")
+                and not gphl_workflow_model.characterisation_done
+            ):
                 transmission = HWR.beamline.transmission.get_value()
                 if not parameters.get("transmission"):
                     parameters["transmission"] = transmission
@@ -1692,7 +1694,7 @@ class GphlWorkflow(HardwareObject):
                     elif wftype != "diffractcal":
                         # This is characterisation
                         new_dose *= gphl_workflow_model.characterisation_budget_fraction
-                    if new_dose > maximum_dose:
+                    if new_dose > self.TRANSMISSION_CUTOFF * maximum_dose / 100:
                         transmission = 100
                         new_dose = maximum_dose
                     else:
@@ -1718,7 +1720,7 @@ class GphlWorkflow(HardwareObject):
                 transmission = 100 * use_dose / maximum_dose
             else:
                 transmission = HWR.beamline.transmission.get_value()
-            if transmission > 100:
+            if transmission > self.TRANSMISSION_CUTOFF:
                 if gphl_workflow_model.characterisation_done or wftype == "diffractcal":
                     # We are not in characterisation.
                     # Try to reset exposure_time to get desired dose
@@ -1728,6 +1730,8 @@ class GphlWorkflow(HardwareObject):
                     exposure_limits = HWR.beamline.detector.get_exposure_time_limits()
                     if exposure_limits[1]:
                         exposure_time = min(exposure_limits[1], exposure_time)
+                    if exposure_limits[0]:
+                        exposure_time = max(exposure_limits[0], exposure_time)
                     gphl_workflow_model.exposure_time = exposure_time
                 transmission = 100
             gphl_workflow_model.transmission = transmission
@@ -3291,7 +3295,7 @@ class GphlWorkflow(HardwareObject):
             if maximum_dose and use_dose:
                 new_transmission = 100 * use_dose / maximum_dose
 
-                if new_transmission > 100.0:
+                if new_transmission > self.TRANSMISSION_CUTOFF:
                     # Transmission too high. Try max transmission, longer exposure_time
                     new_exposure_time = exposure_time * new_transmission / 100
                     new_transmission = 100.0
@@ -3299,6 +3303,8 @@ class GphlWorkflow(HardwareObject):
                     if max_exposure and new_exposure_time > max_exposure:
                         # exposure_time over max; set dose to highest achievable dose
                         new_exposure_time = max_exposure * 0.99999
+                    if exposure_limits[0]:
+                        new_exposure_time = max(exposure_limits[0], new_exposure_time)
                     new_experiment_time = (
                         experiment_time * new_exposure_time / exposure_time
                     )

@@ -253,7 +253,7 @@ class GphlWorkflowConnection(HardwareObject):
             )
 
         init_spot_dir = workflow_model_obj.init_spot_dir
-        if init_spot_dir:
+        if init_spot_dir and not workflow_model_obj.characterisation_done:
             runworkflow_opts.extend(
                 conversion.java_property("co.gphl.wf.initSpotDir", init_spot_dir)
             )

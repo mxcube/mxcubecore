@@ -129,7 +129,7 @@ task:
         # Defaults to calculated dose budget. May reset transmission and exposure time
         # repetition_count: 1
         # snapshot_count: 2
-        skip_collection: true  # Causes GPhL collection simulation (only!) to do nothing
+#        skip_collection: true  # Causes GPhL collection simulation (only!) to do nothing
 
         # Other parameters are set (ultimately) from ISPyB. These are all optional:
         # From crystal description:
