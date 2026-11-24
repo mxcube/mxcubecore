@@ -5,4 +5,4 @@ class: mxcubecore.HardwareObjects.Murko.Murko
 configuration:
   host: localhost
   port: 8901
-  timeout: 30
+  timeout: 10

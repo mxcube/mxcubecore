@@ -18,6 +18,7 @@
 
 murko: https://github.com/MartinSavko/murko. The server answers zmq REQ
 requests; the client needs pyzmq, which is only imported when it is used.
+Install it with the optional dependency: pip install "mxcubecore[murko]".
 
 Example yaml configuration:
 
@@ -25,11 +26,12 @@ Example yaml configuration:
     configuration:
       host: murko-server
       port: 8901
-      timeout: 30
+      timeout: 10
 """
 
 import pickle
 import socket
+from typing import TypedDict
 
 from mxcubecore.BaseHardwareObjects import ConfiguredObject, HardwareObject
 
@@ -43,6 +45,15 @@ class MurkoUnavailable(RuntimeError):
     abort_queue = True
 
 
+class MurkoPrediction(TypedDict):
+    """Where murko sees the loop, in fractions of the image size."""
+
+    # (x, y), the most likely centring point
+    click: tuple[float, float]
+    # (x1, y1, x2, y2), the loop
+    box: tuple[float, float, float, float]
+
+
 class Murko(HardwareObject):
     """Asks murko where the loop is in an image."""
 
@@ -50,7 +61,7 @@ class Murko(HardwareObject):
         host: str = "localhost"
         port: int = 8901
         # Seconds to wait for an answer
-        timeout: float = 30
+        timeout: float = 10
 
     def is_available(self) -> bool:
         """True when the murko server accepts connections."""
@@ -62,16 +73,14 @@ class Murko(HardwareObject):
             return False
         return True
 
-    def predict(self, image) -> dict | None:
+    def predict(self, image) -> MurkoPrediction | None:
         """Find the loop in image.
 
         Args:
             image: the image, as an array or JPEG bytes.
 
         Returns:
-            None when no loop is seen, otherwise "click" (x, y), the most
-            likely centring point, and "box" (x1, y1, x2, y2), the loop, in
-            fractions of the image size.
+            None when no loop is seen, otherwise where the loop is.
 
         Raises:
             MurkoUnavailable: when murko does not answer within the timeout.

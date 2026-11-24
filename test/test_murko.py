@@ -70,7 +70,7 @@ def server(monkeypatch):
 
 @pytest.fixture
 def murko(beamline):
-    return beamline.get_object_by_role("murko")
+    return beamline.get_object_by_role("centring_bot")
 
 
 def _reply(present=1):
@@ -88,7 +88,7 @@ def _reply(present=1):
 
 def test_configuration(murko):
     assert (murko.config.host, murko.config.port) == ("localhost", 8901)
-    assert murko.config.timeout == 30
+    assert murko.config.timeout == 10
 
 
 def test_loop_found(murko, server):
@@ -98,7 +98,7 @@ def test_loop_found(murko, server):
 
     assert server.address == "tcp://localhost:8901"
     assert server.request["to_predict"] == "image"
-    assert server.poll_timeout == 30000
+    assert server.poll_timeout == 10000
     assert prediction["click"] == (0.35, 0.45)
     assert prediction["box"] == pytest.approx((0.25, 0.4, 0.55, 0.6))
     assert server.closed
