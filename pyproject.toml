@@ -55,6 +55,7 @@ dependencies = [
 
 [project.optional-dependencies]
 pyicat-plus = ["pyicat-plus==3.0.2"]
+murko = ["pyzmq>=26.0.0,<28.0.0"]
 
 [tool.poetry]
 requires-poetry = ">=2.5.1,<3.0.0"  # Keep in sync with `.pre-commit-config.yaml` and `.github/`

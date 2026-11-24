@@ -44,6 +44,7 @@ objects:
   - xrf_spectrum: xrf-spectrum-mockup.xml
   # Analysis:
   - procedure: procedure-mockup.yml
+  - centring_bot: murko.yml
   # IPC:
   - ipc_gateway: ipc-gateway-mockup.yml
 
