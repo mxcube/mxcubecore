@@ -227,7 +227,7 @@ class QueueSerializer:
         parameters["shape"] = node.get_point_index()
         refp = self._handle_dc_node(
             sample_node, node.reference_image_collection
-        ).parameters.dict()
+        ).parameters.model_dump()
 
         parameters.update(refp)
 
@@ -408,7 +408,7 @@ class QueueSerializer:
             label="Interleaved",
             type="Interleaved",
             parameters={
-                "wedges": [w.dict() for w in wedges],
+                "wedges": [w.model_dump() for w in wedges],
                 "swNumImages": node.interleave_num_images,
             },
             checked=node.is_enabled(),
@@ -421,11 +421,11 @@ class QueueSerializer:
 
     def _handle_task_node(self, sample_node, node) -> TaskNodeModel:
         parameters = {
-            **node.task_data.collection_parameters.dict(),
-            **node.task_data.user_collection_parameters.dict(),
-            **node.task_data.path_parameters.dict(),
-            **node.task_data.common_parameters.dict(),
-            **node.task_data.legacy_parameters.dict(),
+            **node.task_data.collection_parameters.model_dump(),
+            **node.task_data.user_collection_parameters.model_dump(),
+            **node.task_data.path_parameters.model_dump(),
+            **node.task_data.common_parameters.model_dump(),
+            **node.task_data.legacy_parameters.model_dump(),
         }
         pt = node.acquisitions[0].path_template
         parameters["path"] = pt.directory
@@ -474,27 +474,27 @@ class QueueSerializer:
         :returns: the new task's queue id
         """
         if item.type == "DataCollection":
-            return self.builder.add_data_collection(node_id, item.dict())
+            return self.builder.add_data_collection(node_id, item.model_dump())
 
         elif item.type == "Characterisation":
-            return self.builder.add_characterisation(node_id, item.dict())
+            return self.builder.add_characterisation(node_id, item.model_dump())
 
         elif item.type in ("Workflow", "GphlWorkflow"):
-            return self.builder.add_workflow(node_id, item.dict())
+            return self.builder.add_workflow(node_id, item.model_dump())
 
         elif item.type == "Interleaved":
-            return self.builder.add_interleaved(node_id, item.dict())
+            return self.builder.add_interleaved(node_id, item.model_dump())
 
         elif item.type == "xrf_spectrum":
-            return self.builder.add_xrf_scan(node_id, item.dict())
+            return self.builder.add_xrf_scan(node_id, item.model_dump())
 
         elif item.type == "energy_scan":
-            return self.builder.add_energy_scan(node_id, item.dict())
+            return self.builder.add_energy_scan(node_id, item.model_dump())
 
         else:
             # Only pass on the parameters that were sent, so that the defaults
             # of the queue entry DATA_MODEL apply to the others
-            task = item.dict()
+            task = item.model_dump()
             task["parameters"] = item.parameters.model_dump(exclude_unset=True)
             return self.builder.add_queue_entry(node_id, task, item.type)
 
@@ -544,7 +544,7 @@ class QueueSerializer:
 
     def _queue_add_item_rec(self, parent_node_id: int | None, item: SampleNode):
         if item.type == "Sample":
-            sample_node_id = self.builder.add_sample(item.sampleID, item.dict())
+            sample_node_id = self.builder.add_sample(item.sampleID, item.model_dump())
 
             for task in item.tasks or []:
                 self._queue_add_item_rec(sample_node_id, task)

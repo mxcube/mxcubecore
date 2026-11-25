@@ -1,7 +1,7 @@
 import logging
 import math
 
-from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.ESRF.queue_entry.ssx_base_queue_entry import (
@@ -17,13 +17,12 @@ __category__ = "General"
 
 
 class SsxLineScanCollectionUserParameters(BaseUserCollectionParameters):
-    line_range: float = Field(50, gt=0, unit="μm")
-    num_images: int = Field(0, gt=0, unit="#")
-    spacing: float = Field(10, gt=0, unit="μm")
+    line_range: float = Field(50, gt=0, json_schema_extra={"unit": "μm"})
+    num_images: int = Field(0, gt=0, json_schema_extra={"unit": "#"})
+    spacing: float = Field(10, gt=0, json_schema_extra={"unit": "μm"})
     # exp_time: float = Field(100e-6, gt=0, lt=1, description='s')
 
-    class Config:
-        extra: "ignore"
+    model_config = ConfigDict(extra="ignore")
 
 
 class SsxLineScanCollectionTaskParameters(SsxBaseQueueTaskParameters):

@@ -2,6 +2,7 @@ import logging
 
 from devtools import debug
 from pydantic import (
+    ConfigDict,
     Field,
 )
 
@@ -34,8 +35,7 @@ class SSXUserCollectionParameters(BaseUserCollectionParameters):
     nb_samples_per_line: int = Field(500, gt=0, lt=1000)
     nb_lines: int = Field(3000, gt=0, lt=10000)
 
-    class Config:
-        extra: "ignore"
+    model_config = ConfigDict(extra="ignore")
 
 
 class SsxFoilColletionTaskParameters(SsxBaseQueueTaskParameters):

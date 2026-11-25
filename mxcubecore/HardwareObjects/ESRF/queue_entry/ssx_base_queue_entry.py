@@ -33,14 +33,14 @@ class SSXPathParameters(PathParameters):
 
 
 class BaseUserCollectionParameters(BaseMXModel):
-    exp_time: float = Field(75e-6, gt=0, lt=1, unit="s")
+    exp_time: float = Field(75e-6, gt=0, lt=1, json_schema_extra={"unit": "s"})
     sub_sampling: Literal[1, 2, 4, 6, 8] = Field(1)
     take_pedestal: bool = Field(True)
     reject_empty_frames: bool = Field(True)
 
     frequency: float = Field(
         float(HWR.beamline.diffractometer.get_property("max_freq", DEFAULT_MAX_FREQ)),
-        unit="Hz",
+        json_schema_extra={"unit": "Hz"},
     )
 
 
@@ -546,7 +546,7 @@ class SsxBaseQueueEntry(BaseQueueEntry):
             "start_angle": params.collection_parameters.osc_start,
             "number_images": params.user_collection_parameters.num_images,
             "image_first": params.collection_parameters.first_image,
-            "fileinfo": params.path_parameters.dict(),
+            "fileinfo": params.path_parameters.model_dump(),
             "root_path": path,
             "experiment_type": experiment_type,
         }

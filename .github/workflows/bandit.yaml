@@ -4,9 +4,17 @@ name: Bandit and SonarQube
 
 "on":
   pull_request: null
+  merge_group: null
   push:
-    branches: [develop]
+    branches:
+      - develop
+      - master
   workflow_dispatch: null
+
+# Cancel outdated runs of the same pull request, but never runs on branches
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   bandit:
@@ -16,7 +24,7 @@ jobs:
       security-events: write
       actions: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Generate Bandit skips from Ruff
         id: bandit_skips
@@ -46,7 +54,7 @@ jobs:
             -o results.json || true
 
       - name: Upload Bandit results as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: bandit-results
           path: results.json

@@ -24,7 +24,11 @@ build:
     # See "Caveats" at <https://pypi.org/project/sphinx-last-updated-by-git/>
     - "git fetch --unshallow || true"
     - "mamba env create --file conda-environment-dev.yml --force"
-    - "mamba run --name mxcubecore poetry install --only=docs,main"
+    # Poetry is installed outside of the project's Conda environment
+    # and called by its absolute path from inside that environment.
+    # Keep the version in sync with `pyproject.toml` and `.pre-commit-config.yaml`.
+    - "python -m pip install poetry==2.5.1"
+    - 'mamba run --name mxcubecore "$(command -v poetry)" install --only=docs,main'
     # yamllint disable-line rule:line-length
     - "mamba run --name mxcubecore sphinx-build -T -E -b html -c ./docs/ ./docs/source/ ${READTHEDOCS_OUTPUT}/html/"
 

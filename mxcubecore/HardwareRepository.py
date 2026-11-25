@@ -208,7 +208,15 @@ def load_from_yaml(
             result._init()
         except Exception:
             if _container:
-                msg0 = "Error in %s._init()" % cls.__name__
+                # Not re-raised below the top level - log it so the cause
+                # isn't lost.
+                logging.getLogger("HWR").exception(
+                    "Error in %s._init() for role '%s' in %s",
+                    class_name,
+                    role,
+                    configuration_path,
+                )
+                msg0 = "Error in %s._init() (see log)" % cls.__name__
             else:
                 # at top level we want to get the actual error
                 raise
@@ -273,7 +281,15 @@ def load_from_yaml(
             result.init()
         except Exception:
             if _container:
-                msg0 = "Error in %s.init()" % cls.__name__
+                # Not re-raised below the top level - log it so the cause
+                # isn't lost.
+                logging.getLogger("HWR").exception(
+                    "Error in %s.init() for role '%s' in %s",
+                    class_name,
+                    role,
+                    configuration_path,
+                )
+                msg0 = "Error in %s.init() (see log)" % cls.__name__
             else:
                 # at top level we want to get the actual error
                 raise
