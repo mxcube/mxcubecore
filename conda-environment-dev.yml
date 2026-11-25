@@ -12,7 +12,7 @@ dependencies:
   # Runtime dependencies
   # ====================
 
-  - python >=3.10,<3.12  # Keep in sync with `pyproject.toml`
+  - python >=3.11,<3.15  # Keep in sync with `pyproject.toml`
 
   # `openldap` is necessary for `python-ldap` but can not be installed by pip or Poetry.
   # Note also that on PyPI `python-ldap` is only available as *sdist*, not as *wheel*,
@@ -23,15 +23,9 @@ dependencies:
   # as it is NOT provided as a dependency in this Conda environment file.
   - openldap
 
-
-  # Development dependencies
-  # ========================
-
-  # Intentionally one patch behind `.pre-commit-config.yaml`/`pyproject.toml` (2.4.3):
-  # conda-forge's `poetry` build raised its Python floor to >=3.11 starting at 2.4.3,
-  # which conflicts with `python >=3.10,<3.12` above. 2.4.2 is the newest conda-forge
-  # build still compatible with Python 3.10.
-  - poetry ==2.4.2
+  # Poetry is intentionally NOT part of this environment.
+  # Install it in its own isolated environment (for example with `pipx install poetry`),
+  # see <https://python-poetry.org/docs/#installation>.
 
 
 ...

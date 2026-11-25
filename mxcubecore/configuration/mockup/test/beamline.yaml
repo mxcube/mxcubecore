@@ -44,6 +44,8 @@ objects:
   - xrf_spectrum: xrf-spectrum-mockup.xml
   # Analysis:
   - procedure: procedure-mockup.yml
+  # IPC:
+  - ipc_gateway: ipc-gateway-mockup.yml
 
 # Non-object attributes:
 advanced_methods:

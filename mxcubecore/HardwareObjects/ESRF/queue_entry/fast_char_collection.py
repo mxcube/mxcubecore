@@ -1,6 +1,7 @@
 import logging
 
 from devtools import debug
+from pydantic import ConfigDict
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.ESRF.queue_entry.mx_base_queue_entry import (
@@ -16,8 +17,7 @@ __category__ = "General"
 
 
 class FastCharUserCollectionParameters(BaseUserCollectionParameters):
-    class Config:
-        extra: "ignore"
+    model_config = ConfigDict(extra="ignore")
 
 
 class FastCharCollectionTaskParameters(MXBaseQueueTaskParameters):

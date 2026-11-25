@@ -52,9 +52,13 @@ repos:
 
 
   - repo: https://github.com/python-poetry/poetry
-    rev: 2.4.3
+    rev: 2.5.1  # Keep in sync with `pyproject.toml` and `.github/`
     hooks:
+      # Equivalent to `poetry check --lock`: validates `pyproject.toml`
+      # and checks that `poetry.lock` is in sync with it.
       - id: poetry-check
+        args:
+          - --lock
 
 
 ...

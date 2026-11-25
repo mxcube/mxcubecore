@@ -6,7 +6,11 @@ name: Coverage Report
   pull_request:
     paths-ignore:
       - docs/**
-    types: [opened, reopened, synchronize]
+
+# Cancel outdated runs of the same pull request
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
 
@@ -21,24 +25,10 @@ jobs:
     steps:
 
       - name: Checkout source code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
-      - name: Set up Conda environment with Micromamba
-        uses: mamba-org/setup-micromamba@v2
-        with:
-          cache-environment: true
-          create-args: >-
-            python=3.10
-          micromamba-version: 1.5.10-0
-          environment-file: conda-environment-dev.yml
-          post-cleanup: all
-
-      - name: Install Python dependencies with Poetry
-        # Pytest-related dependencies are in the `dev` dependency group,
-        # so we install that group and skip the other groups.
-        run: >
-          ${MAMBA_EXE} run --name mxcubecore
-          poetry install --only=dev,main
+      - name: Install mxcubecore
+        uses: ./.github/actions/install_core
 
       - name: Check tests with Pytest and write coverage report
         run: >
@@ -54,7 +44,7 @@ jobs:
 
       - name: Write Python tests coverage comments on pull request
         id: coverage-comment
-        uses: MishaKav/pytest-coverage-comment@v1.1.40
+        uses: MishaKav/pytest-coverage-comment@v1.13.1
         with:
           repo-token: ${{ secrets.CI_TOKEN }}
           pytest-coverage-path: ./pytest-coverage.txt
