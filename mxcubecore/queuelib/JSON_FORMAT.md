@@ -83,6 +83,8 @@ Every task (`DataCollection`, `Characterisation`, `Workflow`, `GphlWorkflow`,
 - `queueID`: the node's `_node_id`.
 - `queueID: -1` is the "not yet queued"
 - `taskIndex`: position within the flattened per-sample task list
+- `startedAt` / `endedAt`: UNIX time of the start and end of the node's last run,
+  `null` until then. Also present on a `SampleNode`.
 
 ### Type-specific `parameters`
 
