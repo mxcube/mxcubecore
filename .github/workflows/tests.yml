@@ -3,46 +3,50 @@
 name: Pytest
 
 "on":
-  pull_request:
-    types: [opened, reopened, synchronize]
+  pull_request: null
+  merge_group: null
+  push:
+    branches:
+      - develop
+      - master
+  workflow_dispatch: null
+
+# Cancel outdated runs of the same pull request, but never runs on branches
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
 
 jobs:
 
   Python:
 
     runs-on: ubuntu-24.04
-    permissions:
-      contents: read
 
     strategy:
+      fail-fast: false
       matrix:
         python-version:
-          - "3.10"
           - "3.11"
+          - "3.12"
+          - "3.13"
+          - "3.14"
 
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
-      - name: >-
-          Setup Conda environment with Micromamba
-          for Python ${{ matrix.python-version }}
-        uses: mamba-org/setup-micromamba@v2
+      - name: Install mxcubecore for Python ${{ matrix.python-version }}
+        uses: ./.github/actions/install_core
         with:
-          cache-environment: true
-          create-args: >-
-            python=${{ matrix.python-version }}
-          environment-file: conda-environment-dev.yml
-          micromamba-version: 1.5.10-0
-          post-cleanup: all
-
-      - name: Install dependencies
-        run: >
-          ${MAMBA_EXE} run --name mxcubecore
-          poetry install --only=dev,main
+          python-version: ${{ matrix.python-version }}
 
       - name: Test with pytest
         run: >
           ${MAMBA_EXE} run --name mxcubecore
           pytest --no-cov
+
+...

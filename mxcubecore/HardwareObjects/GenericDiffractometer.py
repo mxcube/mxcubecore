@@ -1467,7 +1467,7 @@ class GenericDiffractometer(HardwareObject):
                     _f.write(json.dumps(data, indent=4))
 
     def set_chip_layout(self, layout_name: str) -> bool:
-        data = self.get_head_configuration().dict()
+        data = self.get_head_configuration().model_dump()
         data["current"] = layout_name
         self.set_head_configuration(json.dumps(data))
         return True

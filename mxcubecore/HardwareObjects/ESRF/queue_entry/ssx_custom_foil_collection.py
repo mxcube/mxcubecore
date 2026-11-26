@@ -4,7 +4,7 @@ import math
 
 import gevent
 from devtools import debug
-from pydantic.v1 import Field
+from pydantic import ConfigDict, Field
 
 from mxcubecore import HardwareRepository as HWR
 from mxcubecore.HardwareObjects.ESRF.queue_entry.ssx_base_queue_entry import (
@@ -27,8 +27,10 @@ __category__ = "General"
 
 class SSXUserCollectionParameters(BaseUserCollectionParameters):
     num_images: int = Field(0, description="")
-    horizontal_spacing: float = Field(20, gt=0, lt=1000, unit="um")
-    vertical_spacing: float = Field(20, gt=0, lt=1000, unit="um")
+    horizontal_spacing: float = Field(
+        20, gt=0, lt=1000, json_schema_extra={"unit": "um"}
+    )
+    vertical_spacing: float = Field(20, gt=0, lt=1000, json_schema_extra={"unit": "um"})
 
     #    _chip_name_tuple = tuple(
     #        HWR.beamline.diffractometer.get_chip_configuration().available.keys()
@@ -36,8 +38,7 @@ class SSXUserCollectionParameters(BaseUserCollectionParameters):
     #    _current_chip = HWR.beamline.diffractometer.get_chip_configuration().current
     #    chip_type: Literal[_chip_name_tuple] = Field(_current_chip)
 
-    class Config:
-        extra = "ignore"
+    model_config = ConfigDict(extra="ignore")
 
 
 class SsxCustomFoilCollectionTaskParameters(SsxBaseQueueTaskParameters):

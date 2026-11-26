@@ -1,0 +1,42 @@
+%YAML 1.2
+---
+
+# Example IPCServer configuration - see mxcubecore/ipc/IPC_FORMAT.md.
+#
+# Not wired into test/beamline.yaml by default (it would start a real
+# listening socket / MQTT client for every test using the mockup beamline).
+# The IPC test suite (test/test_ipc_*.py) builds an IPCServer.HOConfig
+# directly instead. Add an entry like the one below to a beamline.yaml's
+# `objects:` list to actually run one.
+
+class: mxcubecore.ipc.server.IPCServer
+
+configuration:
+  transport: jsonrpc
+
+  host: 127.0.0.1
+  port: 9999
+  tls_cert_path: null
+  tls_key_path: null
+
+  auth_token: change-me
+
+  allowed_methods:
+    - ipc_gateway.ping
+    # Nested role path: diffractometer's own "omega" sub-role (its
+    # motors: config) - doesn't need to also be one of beamline's own
+    # top-level roles. See IPC_FORMAT.md section 4.
+    - diffractometer.omega.set_value
+    - diffractometer.omega.get_value
+
+  events:
+    - role: procedure
+      signal: test_signal
+      method: procedure.test_signal
+    - role: diffractometer.omega
+      signal: valueChanged
+      method: diffractometer.omega.valueChanged
+      # Optional: one type per positional signal argument - published by
+      # _describe and checked on every emission. See IPC_FORMAT.md
+      # section 5.
+      args: [float]

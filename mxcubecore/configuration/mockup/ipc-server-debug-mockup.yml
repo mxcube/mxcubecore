@@ -1,0 +1,30 @@
+%YAML 1.2
+---
+
+# DANGER - example IPCServer configuration with the debug bypass enabled.
+# See mxcubecore/ipc/IPC_FORMAT.md section 7 and mxcubecore/ipc/debug.py.
+#
+# allow_debug_calls: true means any authenticated client can invoke ANY
+# method on ANY resolvable role with ANY arguments - no whitelist check,
+# no pydantic validation. Only ever run this for local, trusted
+# exploration (e.g. with mxcube_ipc_explore.py) - never on a real
+# beamline. See ipc-server-mockup.yml for the safe-by-default example.
+
+class: mxcubecore.ipc.server.IPCServer
+
+configuration:
+  transport: jsonrpc
+
+  host: 127.0.0.1
+  port: 9999
+  tls_cert_path: null
+  tls_key_path: null
+
+  auth_token: change-me
+
+  allow_debug_calls: true
+
+  # Deliberately empty - allow_debug_calls doesn't need any whitelist
+  # entries at all; every role/method is reachable through the bypass.
+  allowed_methods: []
+  events: []

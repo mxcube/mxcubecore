@@ -90,7 +90,6 @@ class SsxDataCollectionMetadataGatherer:
             "MX_transmission": beamline_parameters.transmission,
             "MX_xBeam": beamline_parameters.beam_x,
             "MX_yBeam": beamline_parameters.beam_y,
-            "Project_name": path_parameters.prefix,
             "Sample_name": path_parameters.prefix,
             "scanNumber": 0,
             "InstrumentMonochromator_wavelength": beamline_parameters.wavelength,
@@ -103,8 +102,8 @@ class SsxDataCollectionMetadataGatherer:
             "SSX_experiment_name": path_parameters.experiment_name,
         }
 
-        data.update(collection_parameters.user_collection_parameters.dict())
-        data.update(collection_parameters.collection_parameters.dict())
+        data.update(collection_parameters.user_collection_parameters.model_dump())
+        data.update(collection_parameters.collection_parameters.model_dump())
 
         # ontologies
         try:

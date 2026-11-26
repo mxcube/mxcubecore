@@ -1,0 +1,45 @@
+---
+name: Install mxcubecore
+description: >-
+  Sets up the Conda environment (Python and non-Python dependencies),
+  installs Poetry in its own isolated environment,
+  then installs mxcubecore and the requested dependency groups
+  into the Conda environment.
+
+inputs:
+  python-version:
+    description: Python version to use.
+    default: "3.11"
+  poetry-version:
+    description: Version of Poetry to use.
+    default: 2.5.1  # Keep in sync with `pyproject.toml` and `.pre-commit-config.yaml`
+  poetry-groups:
+    description: Dependency groups passed to `poetry install --only`.
+    default: dev,main
+
+runs:
+  using: composite
+  steps:
+    # Pin micromamba version because of the following issue:
+    # https://github.com/mamba-org/setup-micromamba/issues/225
+    - name: Set up Conda environment with Micromamba
+      uses: mamba-org/setup-micromamba@v3
+      with:
+        cache-environment: true
+        create-args: >-
+          python=${{ inputs.python-version }}
+        environment-file: conda-environment-dev.yml
+        micromamba-version: 1.5.10-0
+        post-cleanup: all
+
+    # Poetry lives in its own isolated environment, not in the Conda environment.
+    # Run from inside the Conda environment, it installs into that environment.
+    - name: Install Poetry
+      shell: bash
+      run: pipx install "poetry==${{ inputs.poetry-version }}"
+
+    - name: Install mxcubecore with Poetry
+      shell: bash
+      run: >-
+        ${MAMBA_EXE} run --name mxcubecore
+        poetry install --only=${{ inputs.poetry-groups }}

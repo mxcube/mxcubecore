@@ -254,7 +254,7 @@ class BeamlineActions(HardwareObject):
         _model = self.pydantic_model[name](**args)
         _all_child_models = []
 
-        for _key in _model.dict().keys():
+        for _key in _model.model_dump().keys():
             _all_child_models.append(getattr(_model, _key))
 
         _t = gevent.spawn(cmd, *_all_child_models)
