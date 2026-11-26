@@ -1268,6 +1268,9 @@ class XrayCentring2(TaskNode):
         self._motor_positions = motor_positions.copy() if motor_positions else {}
         self._grid_size = tuple(grid_size) if grid_size else None
         self._workflow_parameters = workflow_parameters if workflow_parameters else {}
+        # Id of the grid (sample view shape) to centre on, "" for none: the
+        # xray_centring object then chooses where to scan
+        self.shape = ""
 
         # I do nto now if you need a path template; if not remove this
         # and the access to it in init_from_task_data

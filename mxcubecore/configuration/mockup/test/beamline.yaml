@@ -40,6 +40,9 @@ objects:
   - diffractometer: diffractometer-mockup.xml
   - sample_view: sample-view-mockup.xml
   - lims: lims-client-mockup.xml
+  - queue_manager: queue.xml
+  - queue_model: queue-model.xml
+  - collect: collect-mockup.xml
   # Procedures:
   - xrf_spectrum: xrf-spectrum-mockup.xml
   # Analysis:
